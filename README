@@ -1,0 +1,12 @@
+README
+======
+
+This is 'rock', the experimental implementation of an ooc compiler in the ooc language itself.
+
+'r.o.c.k' stands for 'rapid ooc compiler w/o kludges'
+
+It should always compile with the latest reference implementation compiler (ie. using Java),
+which can be found at: http://code.google.com/p/ooc-language
+
+As of June '09, it'll be a few months before rock can do anything useful, so keep tuned, but
+don't expect too much!
