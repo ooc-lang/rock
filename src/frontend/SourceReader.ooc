@@ -75,4 +75,10 @@ SourceReader: class extends Reader {
 
 		return index - newlineIndicies get(getLineNumber() - 2) + 1
 	}
+	
+	getLocation: func() -> FileLocation {
+		FileLocation new(fileName, getLineNumber(), getLinePos(), index)
+	}
+	
+	
 }
