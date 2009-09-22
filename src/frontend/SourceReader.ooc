@@ -145,11 +145,11 @@ SourceReader: class extends Reader {
 		return result
 	}
 	
-	matches: func(candidate: String, keepEnd: Bool) -> Bool {
+	matches: func~withString(candidate: String, keepEnd: Bool) -> Bool {
 		return matches(candidate, keepEnd, SENSITIVE)
 	}
 	
-	matches: func(candidate: String, keepEnd: Bool, caseMode: Int) {
+	matches: func~withCaseMode(candidate: String, keepEnd: Bool, caseMode: Int) -> Bool {
 		mark()
 		i := 0
 		c, c2 : Char
