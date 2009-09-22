@@ -2,6 +2,7 @@ import io/Reader
 import structs/[Array, ArrayList, List]
 
 import FileLocation
+import Locatable
 
 SourceReader: class extends Reader {
 	
@@ -54,6 +55,10 @@ SourceReader: class extends Reader {
 		return marker
 	}
 	
+	reset: func~withoutMarker() { 
+		index = marker
+	}
+	
 	reset: func(marker: Long) {
 		index = marker
 	}
@@ -80,5 +85,111 @@ SourceReader: class extends Reader {
 		FileLocation new(fileName, getLineNumber(), getLinePos(), index)
 	}
 	
+	getLocation: func~withLocatable(loc: Locatable) -> FileLocation {
+		getLocation(loc getStart(), loc getLength())
+	}
 	
+	getLocation: func~withStartAndLength(start: Int, length: Int) -> FileLocation {
+		mark := mark()
+		reset(0)
+		skip(start)
+
+		loc := getLocation()
+		loc length = length
+		reset(mark)
+		
+		return loc
+	}
+	
+	backMatches: func(character: Char, trueIfStartPos: Bool) -> Bool {
+		if (index <= 0)
+			return trueIfStartPos
+		
+		return content charAt(index - 1) == character
+	}
+	
+	matches: func(candidates: List<String>, keepEnd: Bool) -> Int {
+		match := -1
+		count := 0
+		
+		for (candidate: String in candidates) {
+			if (matches(candidate, keepEnd, SENSITIVE))
+				match = count
+			
+			count += 1
+		}
+		
+		return match
+	}
+	
+	matchesSpaced: func(candidate: String, keepEnd: Bool) -> Bool {
+		mark := mark()
+		result := matches(candidate, true) && hasWhitespace(false)
+		
+		if (keepEnd)
+			reset(mark)
+			
+		return result
+	}
+	
+	matchesNonident: func(candidate: String, keepEnd: Bool) -> Bool {
+		mark := mark()
+		result := matches(candidate, true)
+		c := peek()
+		
+		result &= !((c == '_') || c isAlphaNumeric())
+		
+		if(!keepEnd)
+			reset(mark)
+			
+		return result
+	}
+	
+	matches: func(candidate: String, keepEnd: Bool) -> Bool {
+		return matches(candidate, keepEnd, SENSITIVE)
+	}
+	
+	matches: func(candidate: String, keepEnd: Bool, caseMode: Int) {
+		mark()
+		i := 0
+		c, c2 : Char
+		result := true
+		
+		while (i < candidate length()) {
+			c = readChar()
+			c2 = candidate charAt(i)
+			if (c2 != c) {
+				if ((caseMode == SENSITIVE) || (c2 toLower() != c toLower())) {
+					result = false
+					break
+				}
+			}
+			i += 1
+		}
+		
+		if (!result || !keepEnd) 
+			reset()
+		
+		return result
+	}
+	
+	hasWhitespace: func(skip: Bool) -> Bool {
+		has := false
+		mark := mark()
+		
+		while(hasNext()) {
+			c := readChar()
+			if (c isWhitespace())
+				has = true
+			else {
+				rewind(1)
+				break;
+			}
+		}
+		
+		if (!skip)
+			reset(mark)
+			
+		return has
+	}
 }
