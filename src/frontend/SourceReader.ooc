@@ -27,8 +27,11 @@ SourceReader: class extends Reader {
 	}
 	
 	readChar: func() -> Char {
-		if (index + 1 > content length())
-			Exception new("Parsing ended. Parsed " + index + " chars, " + getLineNumber() + " lines total") throw()
+		if (index + 1 > content length()) {
+			msg : Char[128]
+			sprintf(msg, "Parsing ended. Parsed %d chars. %d lines total", index, getLineNumber())
+			Exception new(msg) throw()
+		}
 
 		character := content[index]
 		index += 1
