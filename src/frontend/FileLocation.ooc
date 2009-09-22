@@ -33,8 +33,9 @@ FileLocation: class {
 	
 	toString: func() -> String {
     	//" " + fileName + ":" + getLineNumber() + ":" + getLinePos()
-		buffer := gc_malloc(128) as String
-		sprintf(buffer, " %s:%d:%d", fileName, getLineNumber(), getLinePos())
+		max := 128
+		buffer := gc_malloc(max) as String
+		snprintf(buffer, max, " %s:%d:%d", fileName, getLineNumber(), getLinePos())
 		return buffer
 	}
 }
