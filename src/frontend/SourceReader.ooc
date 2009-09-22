@@ -196,4 +196,115 @@ SourceReader: class extends Reader {
 			
 		return has
 	}
+	
+	skipName: func() -> Bool {
+		if (hasNext()) {
+			chr := readChar()
+			if (!(chr isAlpha()) && chr != '_') {
+				rewind(1)
+				return false
+			}
+		}
+			
+		while(hasNext()) {
+			chr := readChar()
+			if (!(chr isAlphaNumeric()) && chr != '_' && chr != '!') {
+				rewind(1)
+				break
+			}
+		}
+		
+		return true
+	}
+	
+	readName: func() -> String {
+		mark()
+		ret: String
+		
+		if (hasNext()) {
+			chr := readChar();
+			if (chr isAlpha() || chr == '_') {
+				ret += chr
+			} else {
+				rewind(1)
+				return ""
+			}
+		}
+		
+		while (hasNext()) {
+			mark()
+			chr := readChar()
+			
+			if (chr isAlphaNumeric() || chr == '_' || chr == '!') {
+				rewind(1)
+				break
+			}
+		}
+		
+		return ret
+	}
+	
+	readLine: func() -> String {
+		readUntil('\n', true)
+	}
+	
+	readUntil: func(chr: Char, keepEnd: Bool) -> String {
+		ret: String
+		chrRead := 0 as Char
+		
+		while(hasNext() && (chrRead = readChar()) != chr) {
+			ret += chrRead
+		}
+		
+		if (!keepEnd) 
+			reset(index - 1) // chop off the last character
+		else if (chrRead != 0) 
+			ret += chr
+			
+		return ret
+	}
+	
+	readSingleComment: func() {
+		readLine()
+	}
+	
+	readMultiComment: func() {
+		while (!matches("*/", true, SENSITIVE)) 
+			readChar()
+	}
+	
+	readMany: func(candidates: String, ignored: String, keepEnd: Bool) -> String {
+		ret: String
+		mark := mark()
+		
+		while (hasNext()) {
+			c := readChar()
+			
+			if (candidates indexOf(c) != -1) {
+				ret += c
+			} else if (ignored indexOf(c) != -1) {
+				// look up in the sky, and think of how lucky you are and others aren't
+			} else {
+				if (keepEnd) {
+					rewind(1)
+				}
+				break
+			}
+		}
+		
+		if (!keepEnd)
+			reset(mark)
+
+		return ret
+	}
+	
+	readCharLiteral: func() -> Char {
+		mark()
+		c := readChar()
+
+		// TODO
+		// finish me
+		
+		return c
+	}
 }
