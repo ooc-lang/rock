@@ -85,7 +85,7 @@ SourceReader: class extends Reader {
 		if (index + 1 > content length()) {
 			max := 128
 			msg : Char[max]
-			snprintf(msg, max, "Parsing ended. Parsed %d chars. %d lines total", index, getLineNumber())
+			snprintf(msg, max, "Parsing ended. Parsed %zu chars. %d lines total", index, getLineNumber())
 			Exception new(msg) throw()
 		}
 
