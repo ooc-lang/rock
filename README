@@ -1,12 +1,29 @@
-README
-======
+rock
+====
 
-This is 'rock', the experimental implementation of an ooc compiler in the ooc language itself.
+rock is an ooc compiler written in ooc - in other words, it's
+where things begin to become really exciting.
 
-'r.o.c.k' stands for 'rapid ooc compiler w/o kludges'
+'r.o.c.k' stands for 'rapid ooc compiler without kludges'.
+Also, it's short and it sounds cool.
+If you can think of a better acronym, let us know.
 
-It should always compile with the latest reference implementation compiler (ie. using Java),
-which can be found at: http://code.google.com/p/ooc-language
+It should compile fine under the latest j/ooc,
+which you can get at http://github.com/amoswenger/ooc
 
-As of June '09, it'll be a few months before rock can do anything useful, so keep tuned, but
-don't expect too much!
+When rock is be stable enough, we're going to ditch j/ooc for good
+and happily live as chicken and egg forever.
+
+Progress report:
+  - 2009-06 : Basic structure, it's gonna be some time till it can do anything useful
+  - 2009-09 : The tokenizing code is all there, and it's working simply great.
+			  Now onto constructing AST nodes.
+
+You can help! We can probably re-use like 50% of the source code from the
+j/ooc codebase, so please come on #ooc-lang to know which classes need porting.
+
+Porting is not-so-hard, just refer to the cheat sheet here: http://ooc-lang.org/cheat
+
+P.S: Did I mention bootstrapping is awesome?
+P.P.S: If this project description isn't formal enough for you, then rock
+is probably not ready for you yet. Or the other way around. Or not. Who knows.
