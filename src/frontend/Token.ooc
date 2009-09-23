@@ -45,4 +45,8 @@ Token: cover {
 		return type == TokenType NAME || type == TokenType CLASS_KW
 	}
 	
+	equals: func (other: This) -> Bool {
+		return memcmp(this&, other&, This size) == 0
+	}
+	
 }

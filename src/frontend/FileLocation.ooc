@@ -1,4 +1,5 @@
 FileLocation: class {
+	
 	fileName: String
 	lineNumber: Int
 	linePos: Int
@@ -38,4 +39,5 @@ FileLocation: class {
 		snprintf(buffer, max, " %s:%d:%d", fileName, getLineNumber(), getLinePos())
 		return buffer
 	}
+	
 }

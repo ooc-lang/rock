@@ -1,8 +1,8 @@
-import io/Reader
+import io/[Reader, FileReader, File]
 import structs/[Array, ArrayList, List]
+import text/StringBuffer
 
-import FileLocation
-import Locatable
+import FileLocation, Locatable
 
 SourceReader: class extends Reader {
 	
@@ -11,22 +11,77 @@ SourceReader: class extends Reader {
 	newlineIndicies: ArrayList<Int>
 	fileName: String
 	content: String
-	index: Int
+	index: SizeT
+	mark: SizeT
 	
+	/**
+     * Read the content of a the file at place "path"
+     * @param path The path of the file to be read
+     * @return a SourceReader reading from the file content
+     * @throws java.io.IOException if file can't be found or opened for reading
+     * (or any other I/O exception, for that matter).
+     */
+    getReaderFromPath: static func (path: String) -> This{
+        return getReaderFromFile(File new(path));
+    }
+
+    /**
+     * Read the content of a the file pointed by "file"
+     * @param file The file object from which to read
+     * @return a SourceReader reading from the file content
+     * @throws java.io.IOException if file can't be found or opened for reading
+     * (or any other I/O exception, for that matter).
+     */
+    getReaderFromFile: static func (file: File) -> This {
+        return new(file getPath(), readToString(file))
+    }
+    
+    /**
+     * Read the content of a string
+     * @param path The path this string came from. Can be an URL, a file path, etc.
+     * anything descriptive, really, even "<system>" or "<copy-protected>" ^^
+     * @param content
+     * @return
+     */
+    getReaderFromText: static func (path, content: String) -> This {
+		return new(path, content)
+	}
+    
+    /**
+     * Read the content of a the file pointed by "file"
+     * @param file The file object from which to read
+     * @return a SourceReader reading from the file content
+     * @throws java.io.IOException if file can't be found or opened for reading
+     * (or any other I/O exception, for that matter).
+     */
+    readToString: static func (file: File) -> String {
+		size := file size()
+		buffer := gc_malloc(size)
+		FileReader new(file) read(buffer, 0, size)
+		return buffer
+    }
+
+    /**
+     * Create a new SourceReader
+     * @param filePath The filepath is used in locations, for accurate
+     * error messages @see SyntaxError
+     * @param content The content to read from.
+     */
 	init: func(=fileName, =content) {
 		index = 0
-		newlineIndicies = ArrayList<Int> new()
+		mark = 0
+		newlineIndicies = ArrayList<SizeT> new()
 	}
 	
-	peek: func() -> Char {
+	peek: func -> Char {
 		content[index]
 	}
 	
-	read: func(chars: String, offset: Int, count: Int) {
+	read: func(chars: String, offset, count: SizeT) {
 		
 	}
 	
-	readChar: func() -> Char {
+	read: func ~char -> Char {
 		if (index + 1 > content length()) {
 			max := 128
 			msg : Char[max]
@@ -46,7 +101,7 @@ SourceReader: class extends Reader {
 		return character
 	}
 	
-	hasNext: func() -> Bool {
+	hasNext: func -> Bool {
 		return (index + 1) < content length()
 	}
 	
@@ -54,7 +109,7 @@ SourceReader: class extends Reader {
 		index -= index
 	}
 	
-	mark: func() -> Int {
+	mark: func -> Int {
 		marker = index
 		return marker
 	}
@@ -67,7 +122,7 @@ SourceReader: class extends Reader {
 		index = marker
 	}
 	
-	getLineNumber: func() -> Int {
+	getLineNumber: func -> Int {
 		lineNumber := 0
 		
 		while (lineNumber < newlineIndicies size() && newlineIndicies get(lineNumber) <= index)
@@ -76,7 +131,7 @@ SourceReader: class extends Reader {
 		return lineNumber + 1
 	}
 	
-	getLinePos: func() -> Int {
+	getLinePos: func -> Int {
 		lineNumber := getLineNumber()
 		
 		if (lineNumber == 1) 
@@ -85,7 +140,7 @@ SourceReader: class extends Reader {
 		return index - newlineIndicies get(getLineNumber() - 2) + 1
 	}
 	
-	getLocation: func() -> FileLocation {
+	getLocation: func -> FileLocation {
 		FileLocation new(fileName, getLineNumber(), getLinePos(), index)
 	}
 	
@@ -160,7 +215,7 @@ SourceReader: class extends Reader {
 		result := true
 		
 		while (i < candidate length()) {
-			c = readChar()
+			c = read()
 			c2 = candidate charAt(i)
 			if (c2 != c) {
 				if ((caseMode == SENSITIVE) || (c2 toLower() != c toLower())) {
@@ -182,7 +237,7 @@ SourceReader: class extends Reader {
 		mark := mark()
 		
 		while(hasNext()) {
-			c := readChar()
+			c := read()
 			if (c isWhitespace())
 				has = true
 			else {
@@ -197,9 +252,9 @@ SourceReader: class extends Reader {
 		return has
 	}
 	
-	skipName: func() -> Bool {
+	skipName: func -> Bool {
 		if (hasNext()) {
-			chr := readChar()
+			chr := read()
 			if (!(chr isAlpha()) && chr != '_') {
 				rewind(1)
 				return false
@@ -207,7 +262,7 @@ SourceReader: class extends Reader {
 		}
 			
 		while(hasNext()) {
-			chr := readChar()
+			chr := read()
 			if (!(chr isAlphaNumeric()) && chr != '_' && chr != '!') {
 				rewind(1)
 				break
@@ -217,12 +272,12 @@ SourceReader: class extends Reader {
 		return true
 	}
 	
-	readName: func() -> String {
+	readName: func -> String {
 		mark()
-		ret: String
+		ret := ""
 		
 		if (hasNext()) {
-			chr := readChar();
+			chr := read();
 			if (chr isAlpha() || chr == '_') {
 				ret += chr
 			} else {
@@ -233,7 +288,7 @@ SourceReader: class extends Reader {
 		
 		while (hasNext()) {
 			mark()
-			chr := readChar()
+			chr := read()
 			
 			if (chr isAlphaNumeric() || chr == '_' || chr == '!') {
 				rewind(1)
@@ -244,15 +299,15 @@ SourceReader: class extends Reader {
 		return ret
 	}
 	
-	readLine: func() -> String {
+	readLine: func -> String {
 		readUntil('\n', true)
 	}
 	
-	readUntil: func(chr: Char, keepEnd: Bool) -> String {
+	readUntil: func  ~chr (chr: Char, keepEnd: Bool) -> String {
 		ret: String
 		chrRead := 0 as Char
 		
-		while(hasNext() && (chrRead = readChar()) != chr) {
+		while(hasNext() && (chrRead = read()) != chr) {
 			ret += chrRead
 		}
 		
@@ -264,21 +319,51 @@ SourceReader: class extends Reader {
 		return ret
 	}
 	
-	readSingleComment: func() {
+	/**
+     * Read until one of the Strings in "matches" matches, and return the characters read.
+     * @param readUntil The potential end delimiters
+     * @param keepEnd If false, leave the position before the matching end delimiter.
+     * If true, include the matching delimiter in the returned String, and leave the
+     * position after.
+     * @throws java.io.EOFException
+     */
+    readUntil: func ~strings (matches: String*, numMatches: Int, keepEnd: Bool) -> String {
+
+        sB := StringBuffer new()
+        
+        while(hasNext()) {
+            //for(String match: matches) {
+			for(i in 0..numMatches) {
+				match := matches[i]
+                if(matches(match, keepEnd, SENSITIVE)) {
+                    if(keepEnd) {
+                        sB append(match)
+                    }
+                    return sB toString()
+                }
+            }
+            sB append(read())
+        }
+
+        return sB toString()
+
+    }
+	
+	readSingleComment: func {
 		readLine()
 	}
 	
-	readMultiComment: func() {
+	readMultiComment: func {
 		while (!matches("*/", true, SENSITIVE)) 
-			readChar()
+			read()
 	}
 	
-	readMany: func(candidates: String, ignored: String, keepEnd: Bool) -> String {
+	readMany: func(candidates, ignored: String, keepEnd: Bool) -> String {
 		ret: String
 		mark := mark()
 		
 		while (hasNext()) {
-			c := readChar()
+			c := read()
 			
 			if (candidates indexOf(c) != -1) {
 				ret += c
@@ -298,13 +383,70 @@ SourceReader: class extends Reader {
 		return ret
 	}
 	
-	readCharLiteral: func() -> Char {
+	readCharLiteral: func -> Char {
 		mark()
-		c := readChar()
+		c := read()
 
-		// TODO
-		// finish me
+		// TODO: finish me
 		
 		return c
 	}
+	
+	readStringLiteral: func -> String {
+		mark()
+		
+		// TODO: finish me
+		
+		return ""
+	}
+	
+	/**
+     * Ignore the next characters which are contained in the string 'chars'
+     * @throws java.io.IOException
+     */	
+	skipChars: func (chars: String) -> Bool {
+		
+		while(hasNext()) {
+			mark := mark()
+			c := read()
+			if(!chars indexOf(c)) {
+				reset(mark)
+				break
+			}
+		}
+		return true
+		
+	}
+	
+	/**
+	 * Get a slice of the source, specifying the start position
+	 * and the length of the slice.
+	 * @param start
+	 * @param length
+	 * @return
+	 */
+	getSlice: func (start, length : SizeT) -> String {
+		
+		return content substring(start, start + length);
+		
+	}
+	
+	getLine: func (lineNumber: Int) -> String {
+		
+		mark := mark()
+		if(newlineIndicies size() > lineNumber) {
+			reset(newlineIndicies get(lineNumber))
+		} else {
+			reset(0)
+			for(i in 0..lineNumber) {
+				readLine()
+			}
+		}
+		
+		line := readLine()
+		reset(mark)
+		return line
+		
+	}
+	
 }

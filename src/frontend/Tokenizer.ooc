@@ -1,4 +1,5 @@
-import Token, TokenType, SourceReader
+import structs/[List, ArrayList]
+import Token, TokenType, SourceReader, CompilationFailedError
 
 Name: cover {
 	
@@ -14,7 +15,7 @@ Name: cover {
 	
 }
 
-CharTuple1: class {
+CharTuple: class {
 	
 	first: Char
 	firstType: Octet
@@ -29,7 +30,7 @@ CharTuple1: class {
 	
 }
 
-CharTuple2: class extends CharTuple1 {
+CharTuple2: class extends CharTuple {
 	
 	second: Char
 	secondType: Octet
@@ -67,7 +68,7 @@ CharTuple3: class extends CharTuple2 {
 
 Tokenizer: class {
 	
-	names := [
+	names : Name* = [
 		Name new("func", TokenType FUNC_KW),
 		Name new("class", TokenType CLASS_KW),
 		Name new("cover", TokenType COVER_KW),
@@ -107,248 +108,254 @@ Tokenizer: class {
 		Name new("long", TokenType LONG),
 		Name new("union", TokenType UNION),
 		Name new("struct", TokenType STRUCT),
-	] as Name*
+	]
 
-	/*
-	protected static CharTuple[] chars = new CharTuple[] {
-		new CharTuple('(', TokenType.OPEN_PAREN),
-		new CharTuple(')', TokenType.CLOS_PAREN),
-		new CharTuple('{', TokenType.OPEN_BRACK),
-		new CharTuple('}', TokenType.CLOS_BRACK),
-		new CharTuple('[', TokenType.OPEN_SQUAR),
-		new CharTuple(']', TokenType.CLOS_SQUAR),
-		new CharTuple('=', TokenType.ASSIGN, '=', TokenType.EQUALS),
-		new CharTuple('.', TokenType.DOT, '.', TokenType.DOUBLE_DOT, '.', TokenType.TRIPLE_DOT),
-		new CharTuple(',', TokenType.COMMA),
-		new CharTuple('%', TokenType.PERCENT),
-		new CharTuple('~', TokenType.TILDE),
-		new CharTuple(':', TokenType.COLON, '=', TokenType.DECL_ASSIGN),
-		new CharTuple('!', TokenType.BANG, '=', TokenType.NOT_EQUALS),
-		//new CharTuple('&', TokenType.AMPERSAND, '&', TokenType.DOUBLE_AMPERSAND),
-		new CharTuple('|', TokenType.PIPE, '|', TokenType.DOUBLE_PIPE),
-		new CharTuple('?', TokenType.QUEST),
-		new CharTuple('#', TokenType.HASH),
-		new CharTuple('@', TokenType.AT),
-		new CharTuple('+', TokenType.PLUS, '=', TokenType.PLUS_ASSIGN),
-		new CharTuple('*', TokenType.STAR, '=', TokenType.STAR_ASSIGN),
-		new CharTuple('>', TokenType.GREATERTHAN, '=', TokenType.GREATERTHAN_EQUALS),
-		new CharTuple('>', TokenType.GREATERTHAN, '=', TokenType.GREATERTHAN_EQUALS),
-		new CharTuple('^', TokenType.CARET),
-	};
+	chars : CharTuple* = [
+		CharTuple new('(', TokenType OPEN_PAREN),
+		CharTuple new(')', TokenType CLOS_PAREN),
+		CharTuple new('{', TokenType OPEN_BRACK),
+		CharTuple new('}', TokenType CLOS_BRACK),
+		CharTuple new('[', TokenType OPEN_SQUAR),
+		CharTuple new(']', TokenType CLOS_SQUAR),
+		CharTuple2 new('=', TokenType ASSIGN, '=', TokenType EQUALS),
+		CharTuple3 new('.', TokenType DOT, '.', TokenType DOUBLE_DOT, '.', TokenType TRIPLE_DOT),
+		CharTuple new(',', TokenType COMMA),
+		CharTuple new('%', TokenType PERCENT),
+		CharTuple new('~', TokenType TILDE),
+		CharTuple2 new(':', TokenType COLON, '=', TokenType DECL_ASSIGN),
+		CharTuple2 new('!', TokenType BANG, '=', TokenType NOT_EQUALS),
+		//CharTuple2 new('&', TokenType AMPERSAND, '&', TokenType DOUBLE_AMPERSAND),
+		CharTuple2 new('|', TokenType PIPE, '|', TokenType DOUBLE_PIPE),
+		CharTuple new('?', TokenType QUEST),
+		CharTuple new('#', TokenType HASH),
+		CharTuple new('@', TokenType AT),
+		CharTuple2 new('+', TokenType PLUS, '=', TokenType PLUS_ASSIGN),
+		CharTuple2 new('*', TokenType STAR, '=', TokenType STAR_ASSIGN),
+		CharTuple2 new('>', TokenType GREATERTHAN, '=', TokenType GREATERTHAN_EQUALS),
+		CharTuple2 new('>', TokenType GREATERTHAN, '=', TokenType GREATERTHAN_EQUALS),
+		CharTuple new('^', TokenType CARET),
+	]
 	
-	public List<Token> parse(SourceReader reader) throws IOException {
+	parse: func (reader: SourceReader) -> List<Token> {
 		
-		List<Token> tokens = new ArrayList<Token>();
+		tokens := ArrayList<Token> new()
 		
-		reading: while(reader.hasNext()) {
+		while(reader hasNext()) {
 			
-			reader.skipChars("\t ");
-			if(!reader.hasNext()) {
-				break;
+			reader skipChars("\t ")
+			if(!reader hasNext()) {
+				break
 			}
 			
-			int index = reader.mark();
+			index := reader mark()
 			
-			char c = reader.peek();
+			c := reader peek()
 			if(c == ';' || c == '\n') {
-				reader.read();
-				while(reader.peek() == '\n' && reader.hasNext()) {
-					reader.read();
+				reader read()
+				while(reader peek() == '\n' && reader hasNext()) {
+					reader read()
 				}
-				tokens.add(new Token(index, 1, TokenType.LINESEP));
-				continue;
+				tokens add(Token new(index, 1, TokenType LINESEP))
+				continue
 			}
 			
 			if(c == '\\') {
-				reader.read();
-				char c2 = reader.peek();
+				reader read()
+				c2 := reader peek()
 				if(c2 == '\\') {
-					reader.read();
-					tokens.add(new Token(index, 2, TokenType.DOUBLE_BACKSLASH));
+					reader read()
+					tokens add(Token new(index, 2, TokenType DOUBLE_BACKSLASH))
 				} else if(c2 == '\n') {
-					reader.read(); // Just skip both of'em (line continuation)
+					reader read() // Just skip both of'em (line continuation)
 				} else {
-					tokens.add(new Token(index, 1, TokenType.BACKSLASH));
+					tokens add(Token new(index, 1, TokenType BACKSLASH))
 				}
-				continue;
+				continue
 			}
 			
-			for(CharTuple candidate: chars) {
-				Token token = candidate.handle(index, c, reader);
-				if(token != null) {
-					tokens.add(token);
-					continue reading;
+			shouldContinue := false
+			//for(candidate: CharTuple in chars) {
+			for(i in 0..chars size) {
+				candidate := chars[i]
+				token := candidate handle(index, c, reader)
+				if(!token equals(nullToken)) {
+					tokens add(token)
+					shouldContinue = true
+					break
 				}
 			}
+			if(shouldContinue) continue
 
 			
 			if(c == '"') {
-				reader.read();
+				reader read()
 				// TODO: optimize. readStringLiteral actually stores it into a String, but we don't care
-				try {
-					reader.readStringLiteral();
-				} catch(EOFException eof) {
-					throw new CompilationFailedError(reader.getLocation(index, 0), "Never-ending string literal (reached end of file)");
-				}
-				tokens.add(new Token(index + 1,
-						reader.mark() - index - 2,
-						TokenType.STRING_LIT));
-				continue;
+				//try {
+					reader readStringLiteral()
+				//} catch(EOFException eof) {
+				//	throw CompilationFailedError new(reader getLocation(index, 0), "Never-ending string literal (reached end of file)")
+				//}
+				tokens add(Token new(index + 1,
+						reader mark() - index - 2,
+						TokenType STRING_LIT))
+				continue
 			}
 			
 			if(c == '\'') {
-				reader.read();
-				try {
-					reader.readCharLiteral();
-					tokens.add(new Token(index + 1, 
-							reader.mark() - index - 2,
-							TokenType.CHAR_LIT));
-					continue;
-				} catch(SyntaxError e) {
-					throw new CompilationFailedError(reader.getLocation(index, 0), e.getMessage());
-				}
+				reader read()
+				//try {
+					reader readCharLiteral()
+					tokens add(Token new(index + 1, 
+							reader mark() - index - 2,
+							TokenType CHAR_LIT))
+					continue
+				//} catch(SyntaxError e) {
+				//	throw CompilationFailedError new(reader getLocation(index, 0), e.getMessage())
+				//}
 			}
 			
 			if(c == '/') {
-				reader.read();
-				char c2 = reader.peek();
+				reader read()
+				c2 := reader peek()
 				if(c2 == '=') {
-					reader.read();
-					tokens.add(new Token(index, 2, TokenType.SLASH_ASSIGN));
+					reader read()
+					tokens add(Token new(index, 2, TokenType SLASH_ASSIGN))
 				} else if(c2 == '/') {
-					reader.readLine();
-					tokens.add(new Token(index, 1, TokenType.LINESEP));
+					reader readLine()
+					tokens add(Token new(index, 1, TokenType LINESEP))
 				} else if(c2 == '*') {
-					reader.read();
-					char c3 = reader.peek();
+					reader read()
+					c3 := reader peek()
 					if(c3 == '*') {
-						reader.read();
-						reader.readUntil(new String[] {"*//*"}, true);
-						tokens.add(new Token(index, reader.mark() - index, TokenType.OOCDOC));
+						reader read()
+						reader readUntil(["*/"], 1, true)
+						tokens add(Token new(index, reader mark() - index, TokenType OOCDOC))
 					} else {
-						reader.readUntil(new String[] {"*//*"}, true);
+						reader readUntil(["*/"], 1, true)
 					}
 				} else {
-					tokens.add(new Token(index, 1, TokenType.SLASH));
+					tokens add(Token new(index, 1, TokenType SLASH))
 				}
-				continue;
+				continue
 			}
 			
 			if(c == '-') {
-				reader.read();
-				char c2 = reader.peek();
+				reader read()
+				c2 := reader peek()
 				if(c2 == '>') {
-					reader.read();
-					tokens.add(new Token(index, 2, TokenType.ARROW));
+					reader read()
+					tokens add(Token new(index, 2, TokenType ARROW))
 				} else if(c2 == '=') {
-					reader.read();
-					tokens.add(new Token(index, 2, TokenType.MINUS_ASSIGN));
+					reader read()
+					tokens add(Token new(index, 2, TokenType MINUS_ASSIGN))
 				} else {
-					tokens.add(new Token(index, 1, TokenType.MINUS));
+					tokens add(Token new(index, 1, TokenType MINUS))
 				}
-				continue;
+				continue
 			}
 			
 			if(c == '<') {
-				reader.read();
-				char c2 = reader.peek();
+				reader read()
+				c2 := reader peek()
 				if(c2 == '=') {
-					reader.read();
-					tokens.add(new Token(index, 2, TokenType.LESSTHAN_EQUALS));
+					reader read()
+					tokens add(Token new(index, 2, TokenType LESSTHAN_EQUALS))
 				} else {
-					tokens.add(new Token(index, 1, TokenType.LESSTHAN));
+					tokens add(Token new(index, 1, TokenType LESSTHAN))
 				}
-				continue;
+				continue
 			}
 			
 			if(c == '&') {
 				// read the precious one
-				reader.rewind(1);
-				char cprev = reader.read();
-				reader.read(); // skip the '&'
-				boolean binary = false;
-				if(cprev == ' ') binary = true;
-				char c2 = reader.peek();
+				reader rewind(1)
+				cprev := reader read()
+				reader read() // skip the '&'
+				binary := false
+				if(cprev == ' ') binary = true
+				c2 := reader peek()
 				if(c2 == '&') {
-					reader.read();
-					tokens.add(new Token(index, 2, TokenType.DOUBLE_AMPERSAND));
+					reader read()
+					tokens add(Token new(index, 2, TokenType DOUBLE_AMPERSAND))
 				} else if(binary) {
-					tokens.add(new Token(index, 1, TokenType.BINARY_AND));
+					tokens add(Token new(index, 1, TokenType BINARY_AND))
 				} else {
-					tokens.add(new Token(index, 1, TokenType.AMPERSAND));
+					tokens add(Token new(index, 1, TokenType AMPERSAND))
 				}
-				continue;
+				continue
 			}
 			
 			if(c == '0') {
-				reader.read();
-				char c2 = reader.peek();
+				reader read()
+				c2 := reader peek()
 				if(c2 == 'x') {
-					reader.read();
-					String lit = reader.readMany("0123456789abcdefABCDEF", "_", true);
-					if(lit.isEmpty()) {
-						throw new CompilationFailedError(reader.getLocation(index, 0), "Empty hexadecimal number literal");
+					reader read()
+					lit := reader readMany("0123456789abcdefABCDEF", "_", true)
+					if(lit isEmpty()) {
+						CompilationFailedError new(reader getLocation(index, 0), "Empty hexadecimal number literal") throw()
 					}
-					tokens.add(new Token(index + 2, reader.mark()
-							- index - 2, TokenType.HEX_INT));
-					continue;
+					tokens add(Token new(index + 2, reader mark() - index - 2, TokenType HEX_INT))
+					continue
 				} else if(c2 == 'c') {
-					reader.read();
-					String lit = reader.readMany("01234567", "_", true);
-					if(lit.isEmpty()) {
-						throw new CompilationFailedError(reader.getLocation(index, 0), "Empty octal number literal");
+					reader read()
+					lit := reader readMany("01234567", "_", true)
+					if(lit isEmpty()) {
+						CompilationFailedError new(reader getLocation(index, 0), "Empty octal number literal") throw()
 					}
-					tokens.add(new Token(index + 2, reader.mark()
-							- index - 2, TokenType.OCT_INT));
-					continue;
+					tokens add(Token new(index + 2, reader mark() - index - 2, TokenType OCT_INT))
+					continue
 				} else if(c2 == 'b') {
-					reader.read();
-					String lit = reader.readMany("01", "_", true);
-					if(lit.isEmpty()) {
-						throw new CompilationFailedError(reader.getLocation(index, 0), "Empty binary number literal");
+					reader read()
+					lit := reader readMany("01", "_", true)
+					if(lit isEmpty()) {
+						CompilationFailedError new(reader getLocation(index, 0), "Empty binary number literal") throw()
 					}
-					tokens.add(new Token(index + 2, reader.mark()
-							- index - 2, TokenType.BIN_INT));
-					continue;
+					tokens add(Token new(index + 2, reader mark() - index - 2, TokenType BIN_INT))
+					continue
 				}
 			}
 			
-			if(Character.isDigit(c)) {
-				reader.readMany("0123456789", "_", true);
-				if(reader.peek() == '.') {
-					reader.read();
-					if(reader.peek() != '.') {
-						reader.readMany("0123456789", "_", true);
-						tokens.add(new Token(index, reader.mark() - index,
-								TokenType.DEC_FLOAT));
-						continue;
+			if(c isDigit()) {
+				reader readMany("0123456789", "_", true)
+				if(reader peek() == '.') {
+					reader read()
+					if(reader peek() != '.') {
+						reader readMany("0123456789", "_", true)
+						tokens add(Token new(index, reader mark() - index,
+								TokenType DEC_FLOAT))
+						continue
 					}
-					reader.rewind(1);
+					reader rewind(1)
 				}
-				tokens.add(new Token(index, reader.mark() - index,
-					TokenType.DEC_INT));
-				continue;
+				tokens add(Token new(index, reader mark() - index,
+					TokenType DEC_INT))
+				continue
 			}
 			
-			if(reader.skipName()) {
-				String name = reader.getSlice(index, reader.mark() - index);
-				for(Name candidate: names) {
-					if(candidate.name.equals(name)) {
-						tokens.add(new Token(index, name.length(), candidate.tokenType));
-						continue reading;
+			if(reader skipName()) {
+				name := reader getSlice(index, reader mark() - index)
+				//for(candidate: Name in names) {
+				for(i in 0..names size) {
+					candidate := names[i]
+					if(candidate name equals(name)) {
+						tokens add(Token new(index, name length(), candidate tokenType))
+						shouldContinue = true
+						break
 					}
 				}
-				tokens.add(new Token(index, name.length(), TokenType.NAME));
-				continue reading;
+				tokens add(Token new(index, name length(), TokenType NAME))
+				shouldContinue = true
+						break
 			}
-			throw new CompilationFailedError(reader.getLocation(index, 0), "Unexpected input.");
+			if(shouldContinue) continue
+			
+			CompilationFailedError new(reader getLocation(index, 0), "Unexpected input.") throw()
 			
 		}
 		
-		tokens.add(new Token(reader.mark(), 0, TokenType.LINESEP));
+		tokens add(Token new(reader mark(), 0, TokenType LINESEP))
 		
-		return tokens;
+		return tokens
 	}
-	*/
 	
 }
