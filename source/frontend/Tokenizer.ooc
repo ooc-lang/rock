@@ -1,4 +1,4 @@
-import structs/[List, ArrayList]
+import structs/[List, ArrayList, Array]
 import Token, TokenType, SourceReader, CompilationFailedError
 
 Name: cover {
@@ -68,73 +68,89 @@ CharTuple3: class extends CharTuple2 {
 
 Tokenizer: class {
 	
-	names : Name* = [
-		Name new("func", TokenType FUNC_KW),
-		Name new("class", TokenType CLASS_KW),
-		Name new("cover", TokenType COVER_KW),
-		Name new("extern", TokenType EXTERN_KW),
-		Name new("from", TokenType FROM_KW),
-		Name new("if", TokenType IF_KW),
-		Name new("else", TokenType ELSE_KW),
-		Name new("for", TokenType FOR_KW),
-		Name new("while", TokenType WHILE_KW),
-		Name new("true", TokenType TRUE_KW),
-		Name new("false", TokenType FALSE_KW),
-		Name new("null", TokenType NULL_KW),
-		Name new("do", TokenType DO_KW),
-		Name new("switch", TokenType SWITCH_KW),
-		Name new("return", TokenType RETURN_KW),
-		Name new("as", TokenType AS_KW),
-		Name new("const", TokenType CONST_KW),
-		Name new("static", TokenType STATIC_KW),
-		Name new("abstract", TokenType ABSTRACT_KW),
-		Name new("import", TokenType IMPORT_KW),
-		Name new("final", TokenType FINAL_KW),
-		Name new("include", TokenType INCLUDE_KW),
-		Name new("use", TokenType USE_KW),
-		Name new("break", TokenType BREAK_KW),
-		Name new("continue", TokenType CONTINUE_KW),
-		Name new("fallthrough", TokenType FALLTHR_KW),
-		Name new("extends", TokenType EXTENDS_KW),
-		Name new("in", TokenType IN_KW),
-		Name new("version", TokenType VERSION_KW),
-		Name new("proto", TokenType PROTO_KW),
-		Name new("inline", TokenType INLINE_KW),
-		Name new("operator", TokenType OPERATOR_KW),
-		//TODO I'm not sure if those three should be keywords.
-		//They are remains from C and can be parsed as NAMEs
-		Name new("unsigned", TokenType UNSIGNED),
-		Name new("signed", TokenType SIGNED),
-		Name new("long", TokenType LONG),
-		Name new("union", TokenType UNION),
-		Name new("struct", TokenType STRUCT),
-	]
-
-	chars : CharTuple* = [
-		CharTuple new('(', TokenType OPEN_PAREN),
-		CharTuple new(')', TokenType CLOS_PAREN),
-		CharTuple new('{', TokenType OPEN_BRACK),
-		CharTuple new('}', TokenType CLOS_BRACK),
-		CharTuple new('[', TokenType OPEN_SQUAR),
-		CharTuple new(']', TokenType CLOS_SQUAR),
-		CharTuple2 new('=', TokenType ASSIGN, '=', TokenType EQUALS),
-		CharTuple3 new('.', TokenType DOT, '.', TokenType DOUBLE_DOT, '.', TokenType TRIPLE_DOT),
-		CharTuple new(',', TokenType COMMA),
-		CharTuple new('%', TokenType PERCENT),
-		CharTuple new('~', TokenType TILDE),
-		CharTuple2 new(':', TokenType COLON, '=', TokenType DECL_ASSIGN),
-		CharTuple2 new('!', TokenType BANG, '=', TokenType NOT_EQUALS),
-		//CharTuple2 new('&', TokenType AMPERSAND, '&', TokenType DOUBLE_AMPERSAND),
-		CharTuple2 new('|', TokenType PIPE, '|', TokenType DOUBLE_PIPE),
-		CharTuple new('?', TokenType QUEST),
-		CharTuple new('#', TokenType HASH),
-		CharTuple new('@', TokenType AT),
-		CharTuple2 new('+', TokenType PLUS, '=', TokenType PLUS_ASSIGN),
-		CharTuple2 new('*', TokenType STAR, '=', TokenType STAR_ASSIGN),
-		CharTuple2 new('>', TokenType GREATERTHAN, '=', TokenType GREATERTHAN_EQUALS),
-		CharTuple2 new('>', TokenType GREATERTHAN, '=', TokenType GREATERTHAN_EQUALS),
-		CharTuple new('^', TokenType CARET),
-	]
+	debug := false
+	
+	setDebug: func (=debug) {}
+	
+	names : Array<Name> 
+	chars : Array<CharTuple>
+	
+	init: func {
+		
+		namesLit := [
+			Name new("func", TokenType FUNC_KW),
+			Name new("class", TokenType CLASS_KW),
+			Name new("cover", TokenType COVER_KW),
+			Name new("extern", TokenType EXTERN_KW),
+			Name new("from", TokenType FROM_KW),
+			Name new("if", TokenType IF_KW),
+			Name new("else", TokenType ELSE_KW),
+			Name new("for", TokenType FOR_KW),
+			Name new("while", TokenType WHILE_KW),
+			Name new("true", TokenType TRUE_KW),
+			Name new("false", TokenType FALSE_KW),
+			Name new("null", TokenType NULL_KW),
+			Name new("do", TokenType DO_KW),
+			Name new("switch", TokenType SWITCH_KW),
+			Name new("return", TokenType RETURN_KW),
+			Name new("as", TokenType AS_KW),
+			Name new("const", TokenType CONST_KW),
+			Name new("static", TokenType STATIC_KW),
+			Name new("abstract", TokenType ABSTRACT_KW),
+			Name new("import", TokenType IMPORT_KW),
+			Name new("final", TokenType FINAL_KW),
+			Name new("include", TokenType INCLUDE_KW),
+			Name new("use", TokenType USE_KW),
+			Name new("break", TokenType BREAK_KW),
+			Name new("continue", TokenType CONTINUE_KW),
+			Name new("fallthrough", TokenType FALLTHR_KW),
+			Name new("extends", TokenType EXTENDS_KW),
+			Name new("in", TokenType IN_KW),
+			Name new("version", TokenType VERSION_KW),
+			Name new("proto", TokenType PROTO_KW),
+			Name new("inline", TokenType INLINE_KW),
+			Name new("operator", TokenType OPERATOR_KW),
+			//TODO I'm not sure if those three should be keywords.
+			//They are remains from C and can be parsed as NAMEs
+			Name new("unsigned", TokenType UNSIGNED),
+			Name new("signed", TokenType SIGNED),
+			Name new("long", TokenType LONG),
+			Name new("union", TokenType UNION),
+			Name new("struct", TokenType STRUCT),
+		]
+		numNames := namesLit size
+		names = Array<Name> new(namesLit, numNames)
+		
+		charsLit : CharTuple[] = [
+			CharTuple new('(', TokenType OPEN_PAREN),
+			CharTuple new(')', TokenType CLOS_PAREN),
+			CharTuple new('{', TokenType OPEN_BRACK),
+			CharTuple new('}', TokenType CLOS_BRACK),
+			CharTuple new('[', TokenType OPEN_SQUAR),
+			CharTuple new(']', TokenType CLOS_SQUAR),
+			CharTuple2 new('=', TokenType ASSIGN, '=', TokenType EQUALS),
+			CharTuple3 new('.', TokenType DOT, '.', TokenType DOUBLE_DOT, '.', TokenType TRIPLE_DOT),
+			CharTuple new(',', TokenType COMMA),
+			CharTuple new('%', TokenType PERCENT),
+			CharTuple new('~', TokenType TILDE),
+			CharTuple2 new(':', TokenType COLON, '=', TokenType DECL_ASSIGN),
+			CharTuple2 new('!', TokenType BANG, '=', TokenType NOT_EQUALS),
+			//CharTuple2 new('&', TokenType AMPERSAND, '&', TokenType DOUBLE_AMPERSAND),
+			CharTuple2 new('|', TokenType PIPE, '|', TokenType DOUBLE_PIPE),
+			CharTuple new('?', TokenType QUEST),
+			CharTuple new('#', TokenType HASH),
+			CharTuple new('@', TokenType AT),
+			CharTuple2 new('+', TokenType PLUS, '=', TokenType PLUS_ASSIGN),
+			CharTuple2 new('*', TokenType STAR, '=', TokenType STAR_ASSIGN),
+			CharTuple2 new('>', TokenType GREATERTHAN, '=', TokenType GREATERTHAN_EQUALS),
+			CharTuple2 new('>', TokenType GREATERTHAN, '=', TokenType GREATERTHAN_EQUALS),
+			CharTuple new('^', TokenType CARET),
+		]
+		numChars := charsLit size
+		chars = Array<CharTuple> new(charsLit, numChars)
+		chars T = Pointer
+		
+	}
 	
 	parse: func (reader: SourceReader) -> List<Token> {
 		
@@ -144,6 +160,7 @@ Tokenizer: class {
 			
 			reader skipChars("\t ")
 			if(!reader hasNext()) {
+				debugfln("Reached the end of the reader, at %s", reader getLocation() toString())
 				break
 			}
 			
@@ -174,9 +191,7 @@ Tokenizer: class {
 			}
 			
 			shouldContinue := false
-			//for(candidate: CharTuple in chars) {
-			for(i in 0..chars size) {
-				candidate := chars[i]
+			for(candidate: CharTuple in chars) {
 				token := candidate handle(index, c, reader)
 				if(!token equals(nullToken)) {
 					tokens add(token)
@@ -228,10 +243,10 @@ Tokenizer: class {
 					c3 := reader peek()
 					if(c3 == '*') {
 						reader read()
-						reader readUntil(["*/"], 1, true)
+						reader readUntil(Array<String> new(["*/"], 1), true)
 						tokens add(Token new(index, reader mark() - index, TokenType OOCDOC))
 					} else {
-						reader readUntil(["*/"], 1, true)
+						reader readUntil(Array<String> new(["*/"], 1), true)
 					}
 				} else {
 					tokens add(Token new(index, 1, TokenType SLASH))
@@ -334,28 +349,54 @@ Tokenizer: class {
 			
 			if(reader skipName()) {
 				name := reader getSlice(index, reader mark() - index)
-				//for(candidate: Name in names) {
-				for(i in 0..names size) {
-					candidate := names[i]
+				fprintf(stderr, "index = %d, reader mark = %d\n",
+					index, reader mark())
+				debugfln("Just got name '%s'\n", name)
+				for(candidate: Name in names) {
 					if(candidate name equals(name)) {
 						tokens add(Token new(index, name length(), candidate tokenType))
 						shouldContinue = true
 						break
 					}
 				}
-				tokens add(Token new(index, name length(), TokenType NAME))
-				shouldContinue = true
-						break
+				if(!shouldContinue) {
+					tokens add(Token new(index, name length(), TokenType NAME))
+					shouldContinue = true
+				}
 			}
 			if(shouldContinue) continue
 			
-			CompilationFailedError new(reader getLocation(index, 0), "Unexpected input.") throw()
+			max := 256
+			msg : Char[max]
+			snprintf(msg, max, "Unexpected input '%d'", c)
+			CompilationFailedError new(reader getLocation(index, 0), msg) throw()
 			
 		}
 		
+		debugfln("Finished reading at %s!", reader getLocation() toString())
 		tokens add(Token new(reader mark(), 0, TokenType LINESEP))
 		
 		return tokens
+		
+	}
+	
+	debugf: final func (format: String, ...) {
+		args: VaList
+		if(!debug) return
+		va_start(args, format)
+		fprintf(stderr, "[%s] ", class name)
+		vfprintf(stderr, format, args)
+		va_end(args)
+	}
+	
+	debugfln: final func (format: String, ...) {
+		args: VaList
+		if(!debug) return
+		va_start(args, format)
+		fprintf(stderr, "[%s] ", class name)
+		vfprintf(stderr, format, args)
+		fprintf(stderr, "\n")
+		va_end(args)
 	}
 	
 }

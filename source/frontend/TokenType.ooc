@@ -115,7 +115,15 @@ TokenType: class {
 	BINARY_AND = 92 : static const Octet //  &
 	CARET = 93 : static const Octet // ^
 	
-	strings := static const [
+	strings : static String*
+	
+}
+
+loadStringsLit: func {
+	
+	MAX_TOKEN := 93
+
+	stringsLit := [
 		"<no token>",
 		"class",
 		"cover",
@@ -233,5 +241,10 @@ TokenType: class {
 		"^",
 		"^="
 	] as String*
-	
+
+	TokenType strings = gc_malloc(MAX_TOKEN * Pointer size)
+	memcpy(TokenType strings, stringsLit, MAX_TOKEN * Pointer size)
+
 }
+
+loadStringsLit()

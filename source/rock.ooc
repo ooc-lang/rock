@@ -1,4 +1,5 @@
-import structs/[Array, ArrayList]
+import structs/[Array, List, ArrayList]
+import frontend/[Tokenizer, SourceReader, Token]
 
 main: func (argc: Int, argv: String*) -> Int {
 
@@ -24,7 +25,17 @@ main: func (argc: Int, argv: String*) -> Int {
 	
 	printf("Finally, files to compile: ")
 	for(unit: String in unitList) {
-		printf("%s ", unit)
+		printf("%s\n", unit)
+		tokenizer := Tokenizer new() .setDebug(true)
+		sReader := SourceReader getReaderFromPath(unit)
+		list := tokenizer parse(sReader)
+		i := 1
+		for(token: Token in list) {
+			//printf("Token #%d (type %d = %s, %zu:%zu)\n", i, token type, token toString(), token start, token length)
+			printf("%s ", token toString(sReader));
+			i += 1
+		}
+		("Got " + list size() + " tokens.") println()
 	}
 	println()
 

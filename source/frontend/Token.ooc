@@ -21,6 +21,19 @@ Token: cover {
 		return TokenType strings[type]
 	}
 	
+	toString: func ~withQuote (sReader: SourceReader) -> String {
+		return match type {
+			case TokenType NAME =>
+				get(sReader)
+			case TokenType STRING_LIT =>
+				"\"" + get(sReader) + "\""
+			case TokenType LINESEP =>
+				"\n"
+			case =>
+				toString()
+		}
+	}
+	
 	get: func(sReader: SourceReader) -> String {
 		return sReader getSlice(start, length)
 	}

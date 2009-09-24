@@ -56,8 +56,9 @@ SourceReader: class extends Reader {
      */
     readToString: static func (file: File) -> String {
 		size := file size()
-		buffer := gc_malloc(size)
+		buffer : String = gc_malloc(size) + 1
 		FileReader new(file) read(buffer, 0, size)
+		buffer[size] = '\0';
 		return buffer
     }
 
@@ -78,7 +79,9 @@ SourceReader: class extends Reader {
 	}
 	
 	read: func(chars: String, offset, count: SizeT) {
-		
+		memcpy(chars as Char* + offset, content as Char* + index, count)
+		index += count
+		fprintf(stderr, "Just read %d chars, index now = %d\n", count, index)
 	}
 	
 	read: func ~char -> Char {
@@ -93,7 +96,10 @@ SourceReader: class extends Reader {
 		index += 1
 
 		if (character == '\n') {
-			if (newlineIndicies isEmpty() || newlineIndicies get(newlineIndicies lastIndex()) < index) {
+			if (newlineIndicies isEmpty()) {
+				newlineIndicies add(index)
+			}
+			if (newlineIndicies get(newlineIndicies lastIndex()) < index) {
 				newlineIndicies add(index)
 			}
 		}
@@ -106,7 +112,7 @@ SourceReader: class extends Reader {
 	}
 	
 	rewind: func(offset: Int) {
-		index -= index
+		index -= offset
 	}
 	
 	mark: func -> Int {
@@ -125,8 +131,11 @@ SourceReader: class extends Reader {
 	getLineNumber: func -> Int {
 		lineNumber := 0
 		
-		while (lineNumber < newlineIndicies size() && newlineIndicies get(lineNumber) <= index)
+		while (true) {
+			if(lineNumber >= newlineIndicies size()) break
+			if(newlineIndicies get(lineNumber) > index) break
 			lineNumber += 1
+		}
 	
 		return lineNumber + 1
 	}
@@ -168,17 +177,17 @@ SourceReader: class extends Reader {
 	}
 	
 	matches: func(candidates: List<String>, keepEnd: Bool) -> Int {
-		match := -1
+		index := -1
 		count := 0
 		
 		for (candidate: String in candidates) {
 			if (matches(candidate, keepEnd, SENSITIVE))
-				match = count
+				index = count
 			
 			count += 1
 		}
 		
-		return match
+		return index
 	}
 	
 	matchesSpaced: func(candidate: String, keepEnd: Bool) -> Bool {
@@ -268,7 +277,6 @@ SourceReader: class extends Reader {
 				break
 			}
 		}
-		
 		return true
 	}
 	
@@ -327,17 +335,15 @@ SourceReader: class extends Reader {
      * position after.
      * @throws java.io.EOFException
      */
-    readUntil: func ~strings (matches: String*, numMatches: Int, keepEnd: Bool) -> String {
+    readUntil: func ~strings (candidates: Array<String>, keepEnd: Bool) -> String {
 
         sB := StringBuffer new()
         
         while(hasNext()) {
-            //for(String match: matches) {
-			for(i in 0..numMatches) {
-				match := matches[i]
-                if(matches(match, keepEnd, SENSITIVE)) {
+            for(candidate: String in candidates) {
+                if(matches(candidate, keepEnd, SENSITIVE)) {
                     if(keepEnd) {
-                        sB append(match)
+                        sB append(candidate)
                     }
                     return sB toString()
                 }
@@ -393,11 +399,48 @@ SourceReader: class extends Reader {
 	}
 	
 	readStringLiteral: func -> String {
-		mark()
+		return readStringLiteral('"')
+	}
+	
+	readStringLiteral: func ~withDelim (delimiter: Char) -> String {
 		
-		// TODO: finish me
+		buffer := StringBuffer new()
+        while (true) {
+            mark()
+            c := read()
+            match c {
+                case '\\' =>
+                    c2 := read()
+                    match c2 {
+                        case '\\' => // backslash
+                            buffer append('\\')
+                        case '0' => // null char
+                            buffer append('\0')
+                        case 'n' => // newline
+                            buffer append('\n')
+                        case 't' => // tab
+                            buffer append('\t')
+                        case 'b' => // backspace
+                            buffer append('\b')
+                        case 'f' => // form feed
+                            buffer append('\f')
+                        case 'r' => // return
+                            buffer append('\r')
+                        case => // delimiter
+                            if(c2 == delimiter) {
+                                buffer append(delimiter)
+                            }
+                    }
+                case => // TODO : wonder if newline is a syntax error in a string literal
+                	if(c == delimiter) {
+                		break
+                	}
+                    buffer append(c)
+            }
+        }
+
+        return buffer toString()
 		
-		return ""
 	}
 	
 	/**
@@ -409,7 +452,7 @@ SourceReader: class extends Reader {
 		while(hasNext()) {
 			mark := mark()
 			c := read()
-			if(!chars indexOf(c)) {
+			if(chars indexOf(c) == -1) {
 				reset(mark)
 				break
 			}
@@ -427,7 +470,8 @@ SourceReader: class extends Reader {
 	 */
 	getSlice: func (start, length : SizeT) -> String {
 		
-		return content substring(start, start + length);
+		value := content substring(start, start + length)
+		return value
 		
 	}
 	
