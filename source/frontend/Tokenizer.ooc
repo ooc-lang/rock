@@ -148,7 +148,7 @@ Tokenizer: class {
 		]
 		numChars := charsLit size
 		chars = Array<CharTuple> new(charsLit, numChars)
-		chars T = Pointer
+		//chars T = Pointer
 		
 	}
 	

@@ -1,7 +1,7 @@
 .PHONY:all clean mrproper
 
 all:
-	ooc rock -sourcepath=source/ -g ${OOC_FLAGS}
+	ooc rock -sourcepath=source/ +-Os ${OOC_FLAGS}
 
 test:
 	make all && ./rock source/rock.ooc

@@ -27,6 +27,8 @@ Token: cover {
 				get(sReader)
 			case TokenType STRING_LIT =>
 				"\"" + get(sReader) + "\""
+			case TokenType DEC_INT =>
+				get(sReader)
 			case TokenType LINESEP =>
 				"\n"
 			case =>
