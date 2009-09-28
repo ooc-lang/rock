@@ -185,7 +185,7 @@ loadStringsLit: func {
 		"...",
 		"->",
 		":",
-		"line separator",
+		";",
 		
 		"+",
 		"+=",

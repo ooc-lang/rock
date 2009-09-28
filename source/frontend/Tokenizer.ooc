@@ -148,7 +148,6 @@ Tokenizer: class {
 		]
 		numChars := charsLit size
 		chars = Array<CharTuple> new(charsLit, numChars)
-		//chars T = Pointer
 		
 	}
 	
@@ -349,9 +348,10 @@ Tokenizer: class {
 			
 			if(reader skipName()) {
 				name := reader getSlice(index, reader mark() - index)
+				/*
 				fprintf(stderr, "index = %d, reader mark = %d\n",
 					index, reader mark())
-				debugfln("Just got name '%s'\n", name)
+				*/
 				for(candidate: Name in names) {
 					if(candidate name equals(name)) {
 						tokens add(Token new(index, name length(), candidate tokenType))
@@ -373,7 +373,6 @@ Tokenizer: class {
 			
 		}
 		
-		debugfln("Finished reading at %s!", reader getLocation() toString())
 		tokens add(Token new(reader mark(), 0, TokenType LINESEP))
 		
 		return tokens

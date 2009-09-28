@@ -8,15 +8,15 @@ import frontend/model/[IntLiteral]
 
 -- DecimalInt : Literal
 
-value : DEC_INT
+value: DEC_INT
 
-=> IntLiteral (value, IntFormat DEC)
+=> IntLiteral (value get(sReader) toInt(), IntFormat DEC)
 
 -- Addition : Expression
 
-left : %Expression
+left: %Expression
 op: PLUS
-right : %Expression
+right: %Expression
 
 => Add (left, right)
 

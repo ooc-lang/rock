@@ -1,5 +1,5 @@
 import structs/[Array, List, ArrayList]
-import frontend/[Tokenizer, SourceReader, Token]
+import frontend/[Tokenizer, SourceReader, Token, Help]
 
 main: func (argc: Int, argv: String*) -> Int {
 
@@ -15,15 +15,19 @@ main: func (argc: Int, argv: String*) -> Int {
 	for(i in 0..argc - 1) {
 		arg := cursor@
 		cursor += 1
-		if(arg startsWith("-")) {
-			printf("Option: '%s'\n", arg)
-		} else {
-			unitList add(arg);
-			printf("File to compile: '%s'\n", arg)
+		match {
+			case arg startsWith("-") =>
+				match {
+					case arg equals("--help-none") =>
+						Help printHelpNone()
+					case =>
+					("Unknown compiler option " + arg) println()
+				}
+			case =>
+				unitList add(arg);
 		}
 	}
 	
-	printf("Finally, files to compile: ")
 	for(unit: String in unitList) {
 		printf("%s\n", unit)
 		tokenizer := Tokenizer new() .setDebug(true)
