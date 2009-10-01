@@ -1,5 +1,5 @@
 import structs/[Array, List, ArrayList]
-import frontend/[Tokenizer, SourceReader, Token, Help]
+import frontend/[Lexer, SourceReader, Token, Help]
 
 main: func (argc: Int, argv: String*) -> Int {
 
@@ -30,7 +30,7 @@ main: func (argc: Int, argv: String*) -> Int {
 	
 	for(unit: String in unitList) {
 		printf("%s\n", unit)
-		tokenizer := Tokenizer new() .setDebug(true)
+		tokenizer := Lexer new() .setDebug(true)
 		sReader := SourceReader getReaderFromPath(unit)
 		list := tokenizer parse(sReader)
 		i := 1

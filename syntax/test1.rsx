@@ -1,28 +1,15 @@
-import frontend/model/[IntLiteral]
 
--- Statement : Node
 
--- Expression : Statement
+varAccess ::= TokenRule NAME
+access ::= (varAccess | assign)
 
--- Literal : Expression
+assign ::= SequenceRule (expression, TokenRule ASSIGN, expression)
 
--- DecimalInt : Literal
+paren ::= SequenceRule (TokenRule OPEN_PAREN, expression, TokenRule CLOS_PAREN)
 
-value: DEC_INT
+expression ::= (access, paren)
 
-=> IntLiteral (value get(sReader) toInt(), IntFormat DEC)
 
--- Addition : Expression
 
-left: %Expression
-op: PLUS
-right: %Expression
+(a = b)
 
-=> Add (left, right)
-
--- Line : Node 
-
-statement : %Statement
-endline: LINESEP
-
-=> Line (statement)

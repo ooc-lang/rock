@@ -66,7 +66,7 @@ CharTuple3: class extends CharTuple2 {
 	
 }
 
-Tokenizer: class {
+Lexer: class {
 	
 	debug := false
 	

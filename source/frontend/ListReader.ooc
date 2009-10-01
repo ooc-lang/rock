@@ -22,13 +22,14 @@ ListReader: class <T> {
 	}
 	
 	peek: func -> T {
+		if(index >= list size()) return null
 		val := list get(index)
 		return val
 	}
 	
 	prev: func -> T {
-		if(index < 1) return list[index]
-		return list[index - 1]
+		if(index < 1) return list get(index)
+		return list get(index - 1)
 	}
 	
 	mark: func -> SizeT {
