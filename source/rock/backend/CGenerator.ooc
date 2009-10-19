@@ -1,7 +1,7 @@
 import ../middle/Visitor
 import ../io/TabbedWriter, io/File
 import ../middle/[Module, FunctionDecl, FunctionCall, Expression,
-    Type, Line, BinaryOp, IntLiteral, VariableDecl, VariableAccess]
+    Type, Line, BinaryOp, IntLiteral, StringLiteral, VariableDecl, VariableAccess]
 
 CGenerator: class extends Visitor {
 
@@ -104,6 +104,11 @@ CGenerator: class extends Visitor {
         value : Char[128]
         sprintf(value, "%lld", lit value)
         current app(value as String)
+    }
+    
+    /** Write a string literal */
+    visitStringLiteral: func (str: StringLiteral) {
+        current app('"') .app(str value) .app('"')
     }
     
     /** Write a variable declaration */
