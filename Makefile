@@ -1,7 +1,12 @@
-.PHONY:all clean mrproper
+.PHONY:all clean mrproper test-ast
+OOC_OWN_FLAGS=-sourcepath=source/ -driver=sequence -v -noclean -g
+OOC=ooc ${OOC_OWN_FLAGS} ${OOC_FLAGS}
 
 all:
-	ooc rock -sourcepath=source/ -g ${OOC_FLAGS}
+	${OOC} rock/rock
+
+test-ast:
+	${OOC} rock/test-ast
 
 test:
 	make all && ./rock source/rock.ooc
