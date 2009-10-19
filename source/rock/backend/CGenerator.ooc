@@ -1,7 +1,7 @@
 import ../middle/Visitor
 import ../io/TabbedWriter, io/File
 import ../middle/[Module, FunctionDecl, FunctionCall, Expression,
-    Type, Line, Add, IntLiteral, VariableDecl, VariableAccess]
+    Type, Line, BinaryOp, IntLiteral, VariableDecl, VariableAccess]
 
 CGenerator: class extends Visitor {
 
@@ -93,10 +93,10 @@ CGenerator: class extends Visitor {
     }
     
     /** Write an add !!! */
-    visitAdd: func (add: Add) {
-        add left accept(this)
-        current app(" + ")
-        add right accept(this)
+    visitBinaryOp: func (op: BinaryOp) {
+        op left accept(this)
+        current app(" ") .app(OpType repr get(op type)) .app(" ")
+        op right accept(this)
     }
     
     /** Write an int literal */

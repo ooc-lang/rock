@@ -1,6 +1,6 @@
 import io/FileWriter
 import frontend/Token
-import middle/[Add, IntLiteral, Module, FunctionDecl, Line, VariableDecl, VariableAccess, Type]
+import middle/[BinaryOp, IntLiteral, Module, FunctionDecl, Line, VariableDecl, VariableAccess, Type]
 import backend/CGenerator
 
 main: func {
@@ -14,9 +14,10 @@ main: func {
     answer atoms add(Atom new("answer", IntLiteral new(42, nullToken)))
     main body add(Line new(answer))
     
-    add := Add new(
+    add := BinaryOp new(
         VariableAccess new("answer", nullToken),
         IntLiteral new(3, nullToken),
+        OpType add,
         nullToken
     )
     main body add(Line new(add))

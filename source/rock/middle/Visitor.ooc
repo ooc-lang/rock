@@ -10,7 +10,7 @@ Visitor: abstract class {
     visitFunctionCall:      abstract func (node: Node)
     visitFunctionDecl:      abstract func (node: Node)
     visitType:              abstract func (node: Node)
-    visitAdd:               abstract func (node: Node)
+    visitBinaryOp:          abstract func (node: Node)
     visitLine:              abstract func (node: Node)
 
 }
