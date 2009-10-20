@@ -6,6 +6,8 @@ import middle/[BinaryOp, IntLiteral, StringLiteral, RangeLiteral,
     TypeDecl]
 import backend/CGenerator
 
+outPath := "rock_tmp"
+
 main: func {
     
     addtest()
@@ -15,13 +17,15 @@ main: func {
 
 classtest: func {
     
-    module := Module new("add-test", nullToken)
+    module := Module new("class-test", nullToken)
     
     fMain := FunctionDecl new("main", nullToken)
     module addFunction(fMain)
     
     dog := ClassDecl new("Dog", null, nullToken)
     module addType(dog)
+    
+    CGenerator new(outPath, module) write() .close()
     
 }
 
@@ -69,6 +73,6 @@ addtest: func {
     foreach body add(Line new(call2))
     fMain body add(Line new(foreach))
     
-    CGenerator new("rock_tmp", module) write() .close()
+    CGenerator new(outPath, module) write() .close()
     
 }
