@@ -31,8 +31,11 @@ main: func {
     call args add(VariableAccess new("answer", nullToken))
     fMain body add(Line new(call))
     
+    iDecl := VariableDecl new(Type new("int"), Atom new("i"), nullToken)
+    fMain body add(Line new(iDecl))
+    
     foreach := Foreach new(
-        VariableDecl new(Type new("int"), Atom new("i"), nullToken),
+        VariableAccess new("i", nullToken),
         RangeLiteral new(
             IntLiteral new(0, nullToken),
             IntLiteral new(10, nullToken),

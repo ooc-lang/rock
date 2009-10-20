@@ -16,13 +16,13 @@ CGenerator: class extends Visitor {
         File new(outPath) mkdirs()
         fileName := outPath append~char(File separator) + module simpleName
         printf("Writing to fileName %s\n", fileName)
-        hw = TabbedWriter new(FileWriter new(fileName + ".h", "w"))
-        cw = TabbedWriter new(FileWriter new(fileName + ".c", "w"))
+        hw = TabbedWriter new(FileWriter new(fileName + ".h"))
+        cw = TabbedWriter new(FileWriter new(fileName + ".c"))
     }
     
     close: func {
-        hw close()
-        cw close()
+        hw nl() .close()
+        cw nl() .close()
     }
     
     /** Write the whole module */
@@ -40,6 +40,9 @@ CGenerator: class extends Visitor {
         for(inc in module includes) {
             visitInclude(inc)
         }
+        
+        // write include to the module's .h file
+        cw nl() .app("#include \"") .app(module simpleName) .app(".h\"") .nl()
         
         // write all functions
         for(fName in module functions keys) {
