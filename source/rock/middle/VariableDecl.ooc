@@ -14,8 +14,13 @@ VariableDecl: class extends Declaration {
     type: Type
     atoms := ArrayList<Atom> new()
     
-    init: func ~variableDecl (=type, .token) {
+    init: func ~vDecl (=type, .token) {
         super(token)
+    }
+    
+    init: func ~vDeclWithAtom (=type, atom: Atom, .token) {
+        super(token)
+        atoms add(atom)
     }
     
     accept: func (visitor: Visitor) {

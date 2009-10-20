@@ -8,6 +8,13 @@ Visitor: abstract class {
     
     visitModule:            abstract func (node: Node)
     
+    visitIf:                abstract func (node: Node)
+    visitElse:              abstract func (node: Node)
+    visitWhile:             abstract func (node: Node)
+    visitForeach:           abstract func (node: Node)
+    
+    visitRangeLiteral:      abstract func (node: Node)
+    visitCharLiteral:       abstract func (node: Node)
     visitStringLiteral:     abstract func (node: Node)
     visitIntLiteral:        abstract func (node: Node)
     

@@ -1,7 +1,9 @@
 import ../middle/Visitor
 import ../io/TabbedWriter, io/File
-import ../middle/[Module, FunctionDecl, FunctionCall, Expression,
-    Type, Line, BinaryOp, IntLiteral, StringLiteral, VariableDecl, VariableAccess]
+import ../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
+    Line, BinaryOp, IntLiteral, CharLiteral, StringLiteral, RangeLiteral,
+    VariableDecl, If, Else, While, Foreach, Conditional, ControlStatement,
+    VariableAccess, Include, Import, Use]
 
 CGenerator: class extends Visitor {
 
@@ -32,6 +34,12 @@ CGenerator: class extends Visitor {
     visitModule: func(module: Module) {
         hw app("/* ") .app(module fullName) .app(" header file, generated with rock, the ooc compiler in ooc */") .nl()
         cw app("/* ") .app(module fullName) .app(" source file, generated with rock, the ooc compiler in ooc */") .nl()
+
+        // write all includes
+        current = hw
+        for(inc in module includes) {
+            visitInclude(inc)
+        }
         
         // write all functions
         for(fName in module functions keys) {
@@ -89,7 +97,8 @@ CGenerator: class extends Visitor {
     visitLine: func (line: Line) {
         current nl()
         line inner accept(this)
-        current app(';')
+        if(!line inner class instanceof(ControlStatement))
+            current app(';')
     }
     
     /** Write an add !!! */
@@ -109,6 +118,11 @@ CGenerator: class extends Visitor {
     /** Write a string literal */
     visitStringLiteral: func (str: StringLiteral) {
         current app('"') .app(str value) .app('"')
+    }
+    
+    /** Write a char literal */
+    visitCharLiteral: func (chr: CharLiteral) {
+        current app('\'') .app(chr value) .app('\'')
     }
     
     /** Write a variable declaration */
@@ -133,6 +147,67 @@ CGenerator: class extends Visitor {
     /** Write a variable access */
     visitVariableAccess: func (varAcc: VariableAccess) {
         current app(varAcc name)
+    }
+    
+    /** Write a conditional */
+    writeConditional: func (name: String, cond: Conditional) {
+        current app(name) .app(" (" )
+        cond condition accept(this)
+        current app(") {") .tab() .nl()
+        for(line: Line in cond body) {
+            line accept(this)
+        }
+        current untab() .nl() .app("}")
+    }
+    
+    /** Write an if */
+    visitIf: func (if1: If) {
+        writeConditional("if", if1)
+    }
+    
+    /** Write an else */
+    visitElse: func (else1: Else) {
+        writeConditional("else", else1)
+    }
+    
+    /** Write a while */
+    visitWhile: func (while1: While) {
+        writeConditional("while", while1)
+    }
+
+    /** Write a foreach */
+    visitForeach: func (foreach: Foreach) {
+        if(!foreach collection class instanceof(RangeLiteral)) {
+            Exception new(this, "Iterating over not a range but a " + foreach collection class name) throw()
+        }
+        range := foreach collection as RangeLiteral
+        current app("for (")
+        foreach variable accept(this)
+        current app(" = ")
+        range lower accept(this)
+        current app("; ")
+        foreach variable accept(this)
+        current app(" < ")
+        range upper accept(this)
+        current app("; ")
+        foreach variable accept(this)
+        current app("++) {") .tab()
+        for(line: Line in foreach body) {
+            line accept(this)
+        }
+        current untab() .nl() .app("}")
+        
+    }
+    
+    /** Write a range literal */
+    visitRangeLiteral: func (range: RangeLiteral) {
+        Exception new(this, "Should write a Range Literal? wtf?") throw()
+    }
+    
+    /** Write an include */
+    visitInclude: func (inc: Include) {
+        chevron := (inc mode == IncludeModes PATHY)
+        current nl() .app("#include ") .app(chevron ? '<' : '"') .app(inc path) .app(".h") .app(chevron ? '>' : '"')
     }
 
 }
