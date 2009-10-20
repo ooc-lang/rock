@@ -2,10 +2,30 @@ import io/FileWriter
 import frontend/Token
 import middle/[BinaryOp, IntLiteral, StringLiteral, RangeLiteral,
     Module, FunctionDecl, Line, VariableDecl, VariableAccess, Type,
-    FunctionCall, Foreach, Include, Import, Use]
+    FunctionCall, Foreach, Include, Import, Use, ClassDecl, CoverDecl,
+    TypeDecl]
 import backend/CGenerator
 
 main: func {
+    
+    addtest()
+    classtest()
+    
+}
+
+classtest: func {
+    
+    module := Module new("add-test", nullToken)
+    
+    fMain := FunctionDecl new("main", nullToken)
+    module addFunction(fMain)
+    
+    dog := ClassDecl new("Dog", null, nullToken)
+    module addType(dog)
+    
+}
+
+addtest: func {
     
     module := Module new("add-test", nullToken)
     
@@ -21,7 +41,7 @@ main: func {
     add := BinaryOp new(
         VariableAccess new("answer", nullToken),
         IntLiteral new(3, nullToken),
-        OpType addAss,
+        OpTypes addAss,
         nullToken
     )
     fMain body add(Line new(add))

@@ -3,7 +3,7 @@ import ControlStatement, Expression, Visitor, VariableDecl
 
 Foreach: class extends ControlStatement {
     
-    variable: VariableDecl
+    variable: Expression
     collection: Expression
 
     init: func ~_while (=variable, =collection, .token) { super(token) }

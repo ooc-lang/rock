@@ -1,13 +1,14 @@
 import ../middle/Visitor
-import ../io/TabbedWriter, io/[File, FileWriter]
+import ../io/TabbedWriter, io/[File, FileWriter, Writer], AwesomeWriter
 import ../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Line, BinaryOp, IntLiteral, CharLiteral, StringLiteral, RangeLiteral,
     VariableDecl, If, Else, While, Foreach, Conditional, ControlStatement,
-    VariableAccess, Include, Import, Use]
+    VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,
+    Node]
+    
+import Skeleton, FunctionDeclWriter, ControlStatementWriter
 
-CGenerator: class extends Visitor {
-
-    hw, cw, current: TabbedWriter
+CGenerator: class extends Skeleton {
 
     outPath: String
     module: Module
@@ -16,13 +17,13 @@ CGenerator: class extends Visitor {
         File new(outPath) mkdirs()
         fileName := outPath append~char(File separator) + module simpleName
         printf("Writing to fileName %s\n", fileName)
-        hw = TabbedWriter new(FileWriter new(fileName + ".h"))
-        cw = TabbedWriter new(FileWriter new(fileName + ".c"))
+        hw = AwesomeWriter new(this, FileWriter new(fileName + ".h"))
+        cw = AwesomeWriter new(this, FileWriter new(fileName + ".c"))
     }
     
     close: func {
-        hw nl() .close()
-        cw nl() .close()
+        hw nl(). close()
+        cw nl(). close()
     }
     
     /** Write the whole module */
@@ -32,53 +33,41 @@ CGenerator: class extends Visitor {
     
     /** Write a module */
     visitModule: func(module: Module) {
-        hw app("/* ") .app(module fullName) .app(" header file, generated with rock, the ooc compiler in ooc */") .nl()
-        cw app("/* ") .app(module fullName) .app(" source file, generated with rock, the ooc compiler in ooc */") .nl()
+        hw app("/* "). app(module fullName). app(" header file, generated with rock, the ooc compiler in ooc */"). nl()
+        cw app("/* "). app(module fullName). app(" source file, generated with rock, the ooc compiler in ooc */"). nl()
+
+        hName := "__"+ module fullName clone() replace('/', '_') replace('-', '_') + "__"
+
+        // header
+        current = hw
+        current nl(). app("#ifndef "). app(hName)
+        current nl(). app("#define "). app(hName). nl()
 
         // write all includes
-        current = hw
         for(inc in module includes) {
             visitInclude(inc)
         }
         
-        // write include to the module's .h file
-        cw nl() .app("#include \"") .app(module simpleName) .app(".h\"") .nl()
+        // write include to the module's. h file
+        current = cw
+        current nl(). app("#include \""). app(module simpleName). app(".h\""). nl()
         
         // write all functions
         for(fName in module functions keys) {
             visitFunctionDecl(module functions get(fName))
         }
-    }
-    
-    /** Write a function prototype */
-    writeFunctionPrototype: func (function: FunctionDecl) {
-        visitType(function returnType)
-        current app(' ') .app(function name) .app('(')
-        current app(')')
+        
+        // header end
+        current = hw
+        current nl(). nl(). app("#endif // "). app(hName)
     }
     
     /** Write a function declaration */
-    visitFunctionDecl: func (function: FunctionDecl) {
-        // header
-        current = hw
-        current nl()
-        writeFunctionPrototype(function)
-        current app(';')
-        
-        // source
-        current = cw
-        current nl()
-        writeFunctionPrototype(function)
-        current app(" {") .tab()
-        for(line in function body) {
-            visitLine(line)
-        }
-        current untab() .nl() .app("}")
-    }
+    visitFunctionDecl: func (fDecl: FunctionDecl) { FunctionDeclWriter write(this, fDecl) }
     
     /** Write a function call */
     visitFunctionCall: func (function: FunctionCall) {
-        current app(function name) .app('(')
+        current app(function name). app('(')
         isFirst := true
         for(arg: Expression in function args) {
             if(isFirst) {
@@ -98,17 +87,14 @@ CGenerator: class extends Visitor {
     
     /** Write a line */
     visitLine: func (line: Line) {
-        current nl()
-        line inner accept(this)
+        current nl(). app(line inner)
         if(!line inner class instanceof(ControlStatement))
             current app(';')
     }
     
     /** Write an add !!! */
     visitBinaryOp: func (op: BinaryOp) {
-        op left accept(this)
-        current app(" ") .app(OpType repr get(op type)) .app(" ")
-        op right accept(this)
+        current app(op left). app(" "). app(op type toString()). app(" "). app(op right)
     }
     
     /** Write an int literal */
@@ -120,12 +106,12 @@ CGenerator: class extends Visitor {
     
     /** Write a string literal */
     visitStringLiteral: func (str: StringLiteral) {
-        current app('"') .app(str value) .app('"')
+        current app('"'). app(str value). app('"')
     }
     
     /** Write a char literal */
     visitCharLiteral: func (chr: CharLiteral) {
-        current app('\'') .app(chr value) .app('\'')
+        current app('\''). app(chr value). app('\'')
     }
     
     /** Write a variable declaration */
@@ -141,8 +127,7 @@ CGenerator: class extends Visitor {
             }
             current app(atom name)
             if(atom expr) {
-                current app(" = ")
-                atom expr accept(this)
+                current app(" = "). app(atom expr)
             }
         }
     }
@@ -152,54 +137,18 @@ CGenerator: class extends Visitor {
         current app(varAcc name)
     }
     
-    /** Write a conditional */
-    writeConditional: func (name: String, cond: Conditional) {
-        current app(name) .app(" (" )
-        cond condition accept(this)
-        current app(") {") .tab() .nl()
-        for(line: Line in cond body) {
-            line accept(this)
-        }
-        current untab() .nl() .app("}")
-    }
-    
-    /** Write an if */
+    /** Control statements */
     visitIf: func (if1: If) {
-        writeConditional("if", if1)
+        ControlStatementWriter write(this, if1)
     }
-    
-    /** Write an else */
     visitElse: func (else1: Else) {
-        writeConditional("else", else1)
+        ControlStatementWriter write(this, else1)
     }
-    
-    /** Write a while */
     visitWhile: func (while1: While) {
-        writeConditional("while", while1)
+        ControlStatementWriter write(this, while1)
     }
-
-    /** Write a foreach */
     visitForeach: func (foreach: Foreach) {
-        if(!foreach collection class instanceof(RangeLiteral)) {
-            Exception new(this, "Iterating over not a range but a " + foreach collection class name) throw()
-        }
-        range := foreach collection as RangeLiteral
-        current app("for (")
-        foreach variable accept(this)
-        current app(" = ")
-        range lower accept(this)
-        current app("; ")
-        foreach variable accept(this)
-        current app(" < ")
-        range upper accept(this)
-        current app("; ")
-        foreach variable accept(this)
-        current app("++) {") .tab()
-        for(line: Line in foreach body) {
-            line accept(this)
-        }
-        current untab() .nl() .app("}")
-        
+        ControlStatementWriter write(this, foreach)
     }
     
     /** Write a range literal */
@@ -210,7 +159,20 @@ CGenerator: class extends Visitor {
     /** Write an include */
     visitInclude: func (inc: Include) {
         chevron := (inc mode == IncludeModes PATHY)
-        current nl() .app("#include ") .app(chevron ? '<' : '"') .app(inc path) .app(".h") .app(chevron ? '>' : '"')
+        current nl(). app("#include "). app(chevron ? '<' : '"').
+            app(inc path). app(".h"). 
+        app(chevron ? '>' : '"')
     }
+    
+    /** Write a class declaration */
+    visitClassDecl: func (cDecl: ClassDecl) {
+        
+    }
+    
+    /** Write a cover declaration */
+    visitCoverDecl: func (cDecl: CoverDecl) {
+        
+    }
+
 
 }

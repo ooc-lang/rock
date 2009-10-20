@@ -4,14 +4,14 @@ import Expression, Line, Type, Visitor
 
 FunctionDecl: class extends Expression {
 
-    name : String
+    name : String = ""
+    suffix : String = ""
+    
     returnType := voidType
     
     body := ArrayList<Line> new()
 
-    init: func ~funcDecl (=name, .token) {
-        super(token)
-    }
+    init: func ~funcDecl (=name, .token) { super(token) }
     
     accept: func (visitor: Visitor) { visitor visitFunctionDecl(this) }
     

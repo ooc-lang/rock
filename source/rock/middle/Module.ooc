@@ -1,11 +1,12 @@
 import structs/[HashMap, ArrayList]
 import ../frontend/[Token, SourceReader]
-import Node, FunctionDecl, Visitor, Import, Include, Use
+import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl
 
 Module: class extends Node {
 
     fullName, simpleName : String
     
+    types     := HashMap<TypeDecl> new()
     functions := HashMap<FunctionDecl> new()
     
     includes := ArrayList<Include> new()
@@ -17,8 +18,12 @@ Module: class extends Node {
         simpleName = fullName
     }
     
-    addFunction: func (f: FunctionDecl) {
-        functions add(f name, f)
+    addFunction: func (fDecl: FunctionDecl) {
+        functions add(fDecl name, fDecl)
+    }
+    
+    addType: func (t: TypeDecl) {
+        
     }
     
     accept: func (visitor: Visitor) { visitor visitModule(this) }

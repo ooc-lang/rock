@@ -3,8 +3,12 @@ import Node
 Visitor: abstract class {
     
     // All a big hack. To avoid specific circular imports which are buggy atm.
+    visitClassDecl:         abstract func (node: Node)
+    visitCoverDecl:         abstract func (node: Node)
     visitFunctionDecl:      abstract func (node: Node)
     visitVariableDecl:      abstract func (node: Node)
+    
+    visitType:              abstract func (node: Node)
     
     visitModule:            abstract func (node: Node)
     
@@ -21,7 +25,6 @@ Visitor: abstract class {
     visitVariableAccess:    abstract func (node: Node)
     visitFunctionCall:      abstract func (node: Node)
     
-    visitType:              abstract func (node: Node)
     visitBinaryOp:          abstract func (node: Node)
     visitLine:              abstract func (node: Node)
 

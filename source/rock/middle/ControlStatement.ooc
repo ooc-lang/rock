@@ -6,6 +6,6 @@ ControlStatement: abstract class extends Statement {
 
     body := ArrayList<Line> new()
     
-    init: func (.token) { token }
+    init: func (.token) { super(token) }
     
 }
