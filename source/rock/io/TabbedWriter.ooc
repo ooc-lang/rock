@@ -1,16 +1,16 @@
+import io/Writer
+
 TabbedWriter: class {
 
-    stream: FStream
+    stream: Writer
     tabLevel := 0
     tabWidth := 4
     tab := "                                                                                                                                                                                                                                                                                    "
 
-    init: func (=stream) {}
+    init: func (=stream) { }
     
     close: func {
-        if(stream != stdout && stream != stderr) {
-            fclose(stream)
-        }
+    	stream close()
     }
     
     app: func ~chr (c: Char) {
@@ -37,7 +37,7 @@ TabbedWriter: class {
     }
     
     writeTabs: func {
-        stream write(tab, 0, tabLevel * tabWidth)
+        stream write(tab, tabLevel * tabWidth)
     }
     
     newUntabbedLine: func {
@@ -56,5 +56,5 @@ TabbedWriter: class {
     untab: func {
         tabLevel -= 1
     }
-    
+
 }
