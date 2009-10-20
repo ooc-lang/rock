@@ -27,9 +27,9 @@ AbstractCompiler: abstract class {
 	/** @return the exit code of the compiler */
 	launch: abstract func() -> Int
 	
-	supportDeclInFor: abstract func() -> Bool
+	supportsDeclInFor: abstract func() -> Bool
 	
-	supportVLAs: abstract func() -> Bool
+	supportsVLAs: abstract func() -> Bool
 	
 	reset: abstract func()
 	
