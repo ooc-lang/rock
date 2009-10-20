@@ -16,8 +16,8 @@ CGenerator: class extends Visitor {
         File new(outPath) mkdirs()
         fileName := outPath append~char(File separator) + module simpleName
         printf("Writing to fileName %s\n", fileName)
-        hw = TabbedWriter new(FileWriter new(fileName + ".h", "w"))
-        cw = TabbedWriter new(FileWriter new(fileName + ".c", "w"))
+        hw = TabbedWriter new(FileWriter new(fileName + ".h"))
+        cw = TabbedWriter new(FileWriter new(fileName + ".c"))
     }
     
     close: func {
