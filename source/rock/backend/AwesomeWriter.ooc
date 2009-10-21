@@ -13,4 +13,12 @@ AwesomeWriter: class extends TabbedWriter {
         node accept(visitor)
     }
     
+    openBlock: func {
+        this app(" {"). tab(). nl()
+    }
+    
+    closeBlock: func {
+        this untab(). nl(). app("}")
+    }
+    
 }

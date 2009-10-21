@@ -14,5 +14,17 @@ ClassDecl: class extends TypeDecl {
     
     accept: func (visitor: Visitor) { visitor visitClassDecl(this) }
     
+    isObjectClass: func -> Bool {
+		name equals("Object")
+	}
+	
+	isClassClass: func -> Bool {
+		name equals("Class")
+	}
+	
+	isRootClass: func -> Bool {
+		isObjectClass() || isClassClass()
+	}
+    
 }
 

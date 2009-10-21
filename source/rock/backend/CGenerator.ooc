@@ -6,7 +6,7 @@ import ../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,
     Node]
     
-import Skeleton, FunctionDeclWriter, ControlStatementWriter
+import Skeleton, FunctionDeclWriter, ControlStatementWriter, ClassDeclWriter
 
 CGenerator: class extends Skeleton {
 
@@ -33,8 +33,8 @@ CGenerator: class extends Skeleton {
     
     /** Write a module */
     visitModule: func(module: Module) {
-        hw app("/* "). app(module fullName). app(" header file, generated with rock, the ooc compiler in ooc */"). nl()
-        cw app("/* "). app(module fullName). app(" source file, generated with rock, the ooc compiler in ooc */"). nl()
+        hw app("/* "). app(module fullName). app(" header file, generated with rock, the ooc compiler written in ooc */"). nl()
+        cw app("/* "). app(module fullName). app(" source file, generated with rock, the ooc compiler written in ooc */"). nl()
 
         hName := "__"+ module fullName clone() replace('/', '_') replace('-', '_') + "__"
 
@@ -48,13 +48,21 @@ CGenerator: class extends Skeleton {
             visitInclude(inc)
         }
         
-        // write include to the module's. h file
+        // source
         current = cw
+        // write include to the module's. h file
         current nl(). app("#include \""). app(module simpleName). app(".h\""). nl()
         
+        // write all types
+        for(tDecl: TypeDecl in module types) {
+            printf("Writing type %s\n", tDecl name)
+            tDecl accept(this)
+        }
+        
         // write all functions
-        for(fName in module functions keys) {
-            visitFunctionDecl(module functions get(fName))
+        for(fDecl: FunctionDecl in module functions) {
+            printf("Writing function %s\n", fDecl name)
+            visitFunctionDecl(fDecl)
         }
         
         // header end
@@ -153,7 +161,7 @@ CGenerator: class extends Skeleton {
     
     /** Write a range literal */
     visitRangeLiteral: func (range: RangeLiteral) {
-        Exception new(this, "Should write a Range Literal? wtf?") throw()
+        Exception new(This, "Should write a Range Literal? wtf?") throw()
     }
     
     /** Write an include */
@@ -166,7 +174,7 @@ CGenerator: class extends Skeleton {
     
     /** Write a class declaration */
     visitClassDecl: func (cDecl: ClassDecl) {
-        
+        ClassDeclWriter write(this, cDecl)
     }
     
     /** Write a cover declaration */

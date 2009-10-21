@@ -22,7 +22,7 @@ classtest: func {
     fMain := FunctionDecl new("main", nullToken)
     module addFunction(fMain)
     
-    dog := ClassDecl new("Dog", null, nullToken)
+    dog := ClassDecl new("Dog", Type new("Object"), nullToken)
     module addType(dog)
     
     CGenerator new(outPath, module) write() .close()
@@ -39,6 +39,7 @@ addtest: func {
     module addFunction(fMain)
     
     answer := VariableDecl new(Type new("int"), nullToken)
+    printf("answer atoms = %p\n", answer atoms)
     answer atoms add(Atom new("answer", IntLiteral new(39, nullToken)))
     fMain body add(Line new(answer))
     

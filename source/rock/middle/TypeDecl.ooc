@@ -8,10 +8,14 @@ TypeDecl: abstract class extends Declaration {
 
     variables := HashMap<VariableDecl> new()
     functions := HashMap<FunctionDecl> new()
-    
+
+    type: Type
     superType: Type
     
-    init: func ~typeDecl (=name, =superType, .token) { super(token) }
+    init: func ~typeDecl (=name, =superType, .token) {
+        super(token)
+        type = Type new(name)
+    }
     
     getFunction: func (fName, fSuffix: String) -> FunctionDecl {
         // TODO add suffix handling
@@ -20,6 +24,15 @@ TypeDecl: abstract class extends Declaration {
     
     getVariable: func (vName: String) -> VariableDecl {
         variables get(vName)
+    }
+    
+    underName: func -> String {
+        // TODO underize it.
+        name
+    }
+    
+    superRef: func -> TypeDecl {
+        superType ? superType ref : null
     }
 
 }

@@ -5,13 +5,15 @@ Atom: class {
     name: String
     expr: Expression
     
-    init: func ~n (=name) {}
-    init: func ~ne (=name, =expr) {}
+    init: func ~name (=name) {}
+    init: func ~nameExpr (=name, =expr) {}
 }
 
 VariableDecl: class extends Declaration {
 
     type: Type
+    isStatic := false
+    isExtern := false
     atoms := ArrayList<Atom> new()
     
     init: func ~vDecl (=type, .token) {
