@@ -29,10 +29,10 @@ ShellUtils: class {
 			return null
 		}
 		
-		st := StringTokenizer new(pathVar, File pathDelimiter)
+		st := StringTokenizer new(pathVar, ":")
 		while (st hasNext()) {
-			path := st nextToken()
-			file := File new(path + executableName)
+			path := st nextToken() append~char(File separator) append(executableName)			
+			file := File new(path)
 			
 			if (file exists() && file isFile()) {
 				return file
