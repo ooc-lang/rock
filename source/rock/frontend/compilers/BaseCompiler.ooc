@@ -33,7 +33,7 @@ BaseCompiler: abstract class extends AbstractCompiler {
 	}
 	
 	launch: func() -> Int {
-		proc := SubProcess new((command as ArrayList) data) 
+		proc := SubProcess new(command toArray()) 
 		return proc execute()
 	}
 	
@@ -46,10 +46,11 @@ BaseCompiler: abstract class extends AbstractCompiler {
 		commandLine := StringBuffer new()
 				
 		for(arg: String in command) {
+			arg println()
 			commandLine append(arg)
 			commandLine append(' ')
 		}
-				
+						
 		return commandLine toString()
 	}
 }
