@@ -13,14 +13,17 @@ BaseCompiler: abstract class extends AbstractCompiler {
 	
 	init: func(executableName: String) {
 		
+		command = ArrayList<String> new();
+		executablePath = ""
+		
 		execFile := File new(executableName)
 		
 		if (!execFile exists()) {
 			execFile = ShellUtils findExecutable(executableName, false)
 			if (execFile == null) {
-				ShellUtils findExecutable(executableName + "exe", false)
+				execFile = ShellUtils findExecutable(executableName + ".exe", false)
 				if (execFile == null) {
-					ShellUtils findExecutable(executableName + "exe", true)
+					execFile = ShellUtils findExecutable(executableName, true)
 				}
 			}
 		}
@@ -30,7 +33,7 @@ BaseCompiler: abstract class extends AbstractCompiler {
 	}
 	
 	launch: func() -> Int {
-		proc := SubProcess new((command as ArrayList) data) 
+		proc := SubProcess new(command toArray()) 
 		return proc execute()
 	}
 	
@@ -42,12 +45,12 @@ BaseCompiler: abstract class extends AbstractCompiler {
 	getCommandLine: func() -> String {
 		commandLine := StringBuffer new()
 				
-		for(arg in command) {
-			commandLine append(arg);
-			commandLine append(' ');
+		for(arg: String in command) {
+			arg println()
+			commandLine append(arg)
+			commandLine append(' ')
 		}
-		
+						
 		return commandLine toString()
 	}
-	
 }
