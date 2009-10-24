@@ -6,7 +6,8 @@ import ../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,
     Node]
     
-import Skeleton, FunctionDeclWriter, ControlStatementWriter, ClassDeclWriter
+import Skeleton, FunctionDeclWriter, ControlStatementWriter, ClassDeclWriter,
+    ModuleWriter
 
 CGenerator: class extends Skeleton {
 
@@ -18,11 +19,13 @@ CGenerator: class extends Skeleton {
         fileName := outPath append~char(File separator) + module simpleName
         printf("Writing to fileName %s\n", fileName)
         hw = AwesomeWriter new(this, FileWriter new(fileName + ".h"))
+        fw = AwesomeWriter new(this, FileWriter new(fileName + "-fwd.h"))
         cw = AwesomeWriter new(this, FileWriter new(fileName + ".c"))
     }
     
     close: func {
         hw nl(). close()
+        fw nl(). close()
         cw nl(). close()
     }
     
@@ -33,41 +36,7 @@ CGenerator: class extends Skeleton {
     
     /** Write a module */
     visitModule: func(module: Module) {
-        hw app("/* "). app(module fullName). app(" header file, generated with rock, the ooc compiler written in ooc */"). nl()
-        cw app("/* "). app(module fullName). app(" source file, generated with rock, the ooc compiler written in ooc */"). nl()
-
-        hName := "__"+ module fullName clone() replace('/', '_') replace('-', '_') + "__"
-
-        // header
-        current = hw
-        current nl(). app("#ifndef "). app(hName)
-        current nl(). app("#define "). app(hName). nl()
-
-        // write all includes
-        for(inc in module includes) {
-            visitInclude(inc)
-        }
-        
-        // source
-        current = cw
-        // write include to the module's. h file
-        current nl(). app("#include \""). app(module simpleName). app(".h\""). nl()
-        
-        // write all types
-        for(tDecl: TypeDecl in module types) {
-            printf("Writing type %s\n", tDecl name)
-            tDecl accept(this)
-        }
-        
-        // write all functions
-        for(fDecl: FunctionDecl in module functions) {
-            printf("Writing function %s\n", fDecl name)
-            visitFunctionDecl(fDecl)
-        }
-        
-        // header end
-        current = hw
-        current nl(). nl(). app("#endif // "). app(hName)
+        ModuleWriter write(this, module)
     }
     
     /** Write a function declaration */
@@ -162,14 +131,6 @@ CGenerator: class extends Skeleton {
     /** Write a range literal */
     visitRangeLiteral: func (range: RangeLiteral) {
         Exception new(This, "Should write a Range Literal? wtf?") throw()
-    }
-    
-    /** Write an include */
-    visitInclude: func (inc: Include) {
-        chevron := (inc mode == IncludeModes PATHY)
-        current nl(). app("#include "). app(chevron ? '<' : '"').
-            app(inc path). app(".h"). 
-        app(chevron ? '>' : '"')
     }
     
     /** Write a class declaration */

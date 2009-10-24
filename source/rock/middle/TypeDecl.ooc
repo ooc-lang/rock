@@ -47,12 +47,6 @@ TypeDecl: abstract class extends Declaration {
         superType ? superType ref : null
     }
     
-    /*
-    superName: func -> String {
-        superType ? superType name : ""
-    }
-    */
-    
     getFunction: func ~call (call: FunctionCall) -> FunctionDecl {
 		return getFunction(call name, call suffix, call)
 	}

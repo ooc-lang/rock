@@ -8,10 +8,12 @@ ClassDeclWriter: abstract class extends Skeleton {
 	CLASS_NAME := static const LANG_PREFIX + "Class";
     
     write: static func ~_class (this: This, cDecl: ClassDecl) {
+        
         current = hw
         writeObjectStruct(this, cDecl)
         writeClassStruct(this, cDecl)
         writeMemberFuncPrototypes(this, cDecl)
+        
     }
     
     writeObjectStruct: static func (this: This, cDecl: ClassDecl) {
@@ -198,7 +200,23 @@ ClassDeclWriter: abstract class extends Skeleton {
 	}
     
     writeDesignatedInit: static func (this: This, parentDecl, realDecl: FunctionDecl, impl: Bool) {
-        // TODO fill in
+
+        if(realDecl != null && realDecl isAbstract) return
+			
+        current nl(). app('.')
+        FunctionDeclWriter writeSuffixedName(this, parentDecl)
+        current app(" = ")
+        
+        if(realDecl != null) {
+            current app("(")
+            writeFunctionDeclPointer(this, parentDecl, false)
+            current app(") ")
+        }
+
+        FunctionDeclWriter writeFullName(this, realDecl ? realDecl : parentDecl)
+        if(impl) current app("_impl")
+        current app(',')
+
     }
     
 }
