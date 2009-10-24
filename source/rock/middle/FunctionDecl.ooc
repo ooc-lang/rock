@@ -4,12 +4,17 @@ import Expression, Line, Type, Visitor, Argument, TypeDecl
 
 FunctionDecl: class extends Expression {
 
-    name : String = ""
-    suffix : String = ""
+    name = "", suffix = null : String
     returnType := voidType
-    isStatic := false
+    type: static Type = BaseType new("Func", nullToken)
     
-    arguments := ArrayList<Argument> new()
+    /** Attributes */
+    isAbstract := false
+    isStatic := false
+    isFinal := false
+    externName : String = null
+    
+    args := ArrayList<Argument> new()
     body := ArrayList<Line> new()
     
     owner : TypeDecl = null
@@ -24,6 +29,10 @@ FunctionDecl: class extends Expression {
         returnType != voidType
     }
     
-    hasThis: func -> Bool { owner != null }
+    hasThis:  func -> Bool { isMember() && !isStatic }
+    isMember: func -> Bool { owner != null }
+    isExtern: func -> Bool { externName != null }
+    
+    getType: func -> Type { type }
     
 }

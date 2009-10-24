@@ -27,7 +27,7 @@ ControlStatementWriter: abstract class extends Skeleton {
     
     write: static func ~_foreach (this: This, foreach: Foreach) {
         if(!foreach collection class instanceof(RangeLiteral)) {
-            Exception new(this, "Iterating over not a range but a " + foreach collection class name) throw()
+            Exception new(This, "Iterating over not a range but a " + foreach collection class name) throw()
         }
         range := foreach collection as RangeLiteral
         current app("for (").

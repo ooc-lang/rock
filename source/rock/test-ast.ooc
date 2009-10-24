@@ -22,8 +22,15 @@ classtest: func {
     fMain := FunctionDecl new("main", nullToken)
     module addFunction(fMain)
     
-    dog := ClassDecl new("Dog", Type new("Object"), nullToken)
+    dog := ClassDecl new("Dog", BaseType new("Object", nullToken), nullToken)
     module addType(dog)
+    
+    shout := FunctionDecl new("shout", nullToken)
+    dog addFunction(shout)
+    
+    call := FunctionCall new("printf", nullToken)
+    call args add(StringLiteral new("Woof, woof!", nullToken))
+    //shout body add(Line new(call))
     
     CGenerator new(outPath, module) write() .close()
     
@@ -38,8 +45,7 @@ addtest: func {
     fMain := FunctionDecl new("main", nullToken)
     module addFunction(fMain)
     
-    answer := VariableDecl new(Type new("int"), nullToken)
-    printf("answer atoms = %p\n", answer atoms)
+    answer := VariableDecl new(BaseType new("int", nullToken), nullToken)
     answer atoms add(Atom new("answer", IntLiteral new(39, nullToken)))
     fMain body add(Line new(answer))
     
@@ -56,7 +62,7 @@ addtest: func {
     call args add(VariableAccess new("answer", nullToken))
     fMain body add(Line new(call))
     
-    iDecl := VariableDecl new(Type new("int"), Atom new("i"), nullToken)
+    iDecl := VariableDecl new(BaseType new("int", nullToken), Atom new("i"), nullToken)
     fMain body add(Line new(iDecl))
     
     foreach := Foreach new(

@@ -31,24 +31,24 @@ Gcc: class extends BaseCompiler {
 		command add(file)
 	}
 
-	 addOption: func(option: String) {
+	addOption: func(option: String) {
 		command add(option)
 	}
 
-	 setOutputPath: func(path: String) {
+	setOutputPath: func(path: String) {
 		command add("-o")
 		command add(path)
 	}
 
-	 setCompileOnly: func() {
+	setCompileOnly: func() {
 		command add("-c")
 	}
 
-	 setDebugEnabled: func() {
+	setDebugEnabled: func() {
 		command add("-g")
 	}
 	
-	 reset: func() {
+    reset: func() {
 		super reset()
 		command add("-std=c99")
 		command add("-Wall")

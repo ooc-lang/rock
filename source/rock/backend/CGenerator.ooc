@@ -90,7 +90,7 @@ CGenerator: class extends Skeleton {
 
     /** Write a type */
     visitType: func (type: Type) {
-        current app(type name)
+        type write(current)
     }
     
     /** Write a line */
@@ -100,7 +100,7 @@ CGenerator: class extends Skeleton {
             current app(';')
     }
     
-    /** Write an add !!! */
+    /** Write a binary operation */
     visitBinaryOp: func (op: BinaryOp) {
         current app(op left). app(" "). app(op type toString()). app(" "). app(op right)
     }

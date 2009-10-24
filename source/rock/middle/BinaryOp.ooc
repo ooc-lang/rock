@@ -1,6 +1,6 @@
 import structs/ArrayList
 import ../frontend/Token
-import Expression, Visitor
+import Expression, Visitor, Type
 
 include stdint
 
@@ -73,5 +73,8 @@ BinaryOp: class extends Expression {
     accept: func (visitor: Visitor) {
         visitor visitBinaryOp(this)
     }
+    
+    // that's probably not right (haha)
+    getType: func -> Type { left getType() }
 
 }
