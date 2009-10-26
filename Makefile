@@ -16,4 +16,4 @@ clean:
 	rm -rf ooc_tmp/
 
 mrproper: clean
-	rm -rf ./rock
+	rm -rf bin/rock

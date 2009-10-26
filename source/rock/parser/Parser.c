@@ -11,8 +11,11 @@
 #include <source/rock/middle/FunctionDecl-fwd.h>
 #include <source/rock/middle/FunctionCall-fwd.h>
 
+#define YYSTYPE struct _rock_middle__Node*
+
 void stack_push(struct _rock_middle__Node *node);
-void stack_pop(struct _rock_middle__Node *node);
+void stack_pop();
+void stack_add(struct _rock_middle__Node *node);
 
 #ifndef YY_VARIABLE
 #define YY_VARIABLE(T)	static T
@@ -256,60 +259,14 @@ YY_RULE(int) yy_Stmt(); /* 1 */
 YY_ACTION(void) yy_1_STRING_LIT(char *yytext, int yyleng)
 {
   yyprintf((stderr, "do yy_1_STRING_LIT\n"));
-   StringLiteral_new_stringLiteral(yytext, nullToken) ;
-}
-YY_ACTION(void) yy_4_Value(char *yytext, int yyleng)
-{
-#define i yyval[-1]
-  yyprintf((stderr, "do yy_4_Value\n"));
-   printf("<parenthesis>\n"); ;
-#undef i
-}
-YY_ACTION(void) yy_3_Value(char *yytext, int yyleng)
-{
-#define i yyval[-1]
-  yyprintf((stderr, "do yy_3_Value\n"));
-   printf("<variableAccess> '%s'\n", yytext); ;
-#undef i
-}
-YY_ACTION(void) yy_2_Value(char *yytext, int yyleng)
-{
-#define i yyval[-1]
-  yyprintf((stderr, "do yy_2_Value\n"));
-   printf("<stringLiteral \"%s\">\n", yytext); ;
-#undef i
-}
-YY_ACTION(void) yy_1_Value(char *yytext, int yyleng)
-{
-#define i yyval[-1]
-  yyprintf((stderr, "do yy_1_Value\n"));
-   printf("<value> '%s'\n", yytext); yy=1 ;
-#undef i
-}
-YY_ACTION(void) yy_4_Product(char *yytext, int yyleng)
-{
-#define r yyval[-1]
-#define l yyval[-2]
-  yyprintf((stderr, "do yy_4_Product\n"));
-   printf("</product>\n") ;
-#undef r
-#undef l
-}
-YY_ACTION(void) yy_3_Product(char *yytext, int yyleng)
-{
-#define r yyval[-1]
-#define l yyval[-2]
-  yyprintf((stderr, "do yy_3_Product\n"));
-   printf("/ '%s'\n", yytext); ;
-#undef r
-#undef l
+   yy=StringLiteral_new_stringLiteral(yytext, nullToken) ;
 }
 YY_ACTION(void) yy_2_Product(char *yytext, int yyleng)
 {
 #define r yyval[-1]
 #define l yyval[-2]
   yyprintf((stderr, "do yy_2_Product\n"));
-   printf("* '%s'\n", yytext); ;
+   printf("/ '%s'\n", yytext); ;
 #undef r
 #undef l
 }
@@ -318,25 +275,7 @@ YY_ACTION(void) yy_1_Product(char *yytext, int yyleng)
 #define r yyval[-1]
 #define l yyval[-2]
   yyprintf((stderr, "do yy_1_Product\n"));
-   printf("<product> '%s'\n", yytext) ;
-#undef r
-#undef l
-}
-YY_ACTION(void) yy_4_Sum(char *yytext, int yyleng)
-{
-#define r yyval[-1]
-#define l yyval[-2]
-  yyprintf((stderr, "do yy_4_Sum\n"));
-   printf("</sum>\n") ;
-#undef r
-#undef l
-}
-YY_ACTION(void) yy_3_Sum(char *yytext, int yyleng)
-{
-#define r yyval[-1]
-#define l yyval[-2]
-  yyprintf((stderr, "do yy_3_Sum\n"));
-   printf("- '%s'\n", yytext); ;
+   printf("* '%s'\n", yytext); ;
 #undef r
 #undef l
 }
@@ -345,7 +284,7 @@ YY_ACTION(void) yy_2_Sum(char *yytext, int yyleng)
 #define r yyval[-1]
 #define l yyval[-2]
   yyprintf((stderr, "do yy_2_Sum\n"));
-   printf("+ '%s'\n", yytext); ;
+   printf("- '%s'\n", yytext); ;
 #undef r
 #undef l
 }
@@ -354,19 +293,19 @@ YY_ACTION(void) yy_1_Sum(char *yytext, int yyleng)
 #define r yyval[-1]
 #define l yyval[-2]
   yyprintf((stderr, "do yy_1_Sum\n"));
-   printf("<sum> '%s'\n", yytext) ;
+   printf("+ '%s'\n", yytext); ;
 #undef r
 #undef l
 }
 YY_ACTION(void) yy_2_ExpressionList(char *yytext, int yyleng)
 {
   yyprintf((stderr, "do yy_2_ExpressionList\n"));
-  printf("Got another argument\n");
+   stack_add(yy) ;
 }
 YY_ACTION(void) yy_1_ExpressionList(char *yytext, int yyleng)
 {
   yyprintf((stderr, "do yy_1_ExpressionList\n"));
-   printf("Got first argument\n") ;
+   stack_add(yy) ;
 }
 YY_ACTION(void) yy_2_FunctionCall(char *yytext, int yyleng)
 {
@@ -385,16 +324,6 @@ YY_ACTION(void) yy_1_Line(char *yytext, int yyleng)
 {
   yyprintf((stderr, "do yy_1_Line\n"));
    printf("</line>\n") ;
-}
-YY_ACTION(void) yy_2_Body(char *yytext, int yyleng)
-{
-  yyprintf((stderr, "do yy_2_Body\n"));
-   printf("</body>\n") ;
-}
-YY_ACTION(void) yy_1_Body(char *yytext, int yyleng)
-{
-  yyprintf((stderr, "do yy_1_Body\n"));
-   printf("<body>\n") ;
 }
 YY_ACTION(void) yy_2_FunctionDecl(char *yytext, int yyleng)
 {
@@ -469,13 +398,13 @@ YY_RULE(int) yy_TIMES()
 YY_RULE(int) yy_Value()
 {  int yypos0= yypos, yythunkpos0= yythunkpos;  yyDo(yyPush, 1, 0);
   yyprintf((stderr, "%s\n", "Value"));
-  {  int yypos11= yypos, yythunkpos11= yythunkpos;  if (!yy_NUMBER()) goto l12;  yyDo(yySet, -1, 0);  yyDo(yy_1_Value, yybegin, yyend);  goto l11;
-  l12:;	  yypos= yypos11; yythunkpos= yythunkpos11;  if (!yy_STRING_LIT()) goto l13;  yyDo(yySet, -1, 0);  yyDo(yy_2_Value, yybegin, yyend);  goto l11;
-  l13:;	  yypos= yypos11; yythunkpos= yythunkpos11;  if (!yy_IDENT()) goto l14;  yyDo(yySet, -1, 0);
+  {  int yypos11= yypos, yythunkpos11= yythunkpos;  if (!yy_NUMBER()) goto l12;  yyDo(yySet, 0, 0);  goto l11;
+  l12:;	  yypos= yypos11; yythunkpos= yythunkpos11;  if (!yy_STRING_LIT()) goto l13;  yyDo(yySet, 0, 0);  goto l11;
+  l13:;	  yypos= yypos11; yythunkpos= yythunkpos11;  if (!yy_IDENT()) goto l14;  yyDo(yySet, 0, 0);
   {  int yypos15= yypos, yythunkpos15= yythunkpos;  if (!yy_ASSIGN()) goto l15;  goto l14;
   l15:;	  yypos= yypos15; yythunkpos= yythunkpos15;
-  }  yyDo(yy_3_Value, yybegin, yyend);  goto l11;
-  l14:;	  yypos= yypos11; yythunkpos= yythunkpos11;  if (!yy_OPEN_PAREN()) goto l10;  if (!yy_Expr()) goto l10;  yyDo(yySet, -1, 0);  if (!yy_CLOS_PAREN()) goto l10;  yyDo(yy_4_Value, yybegin, yyend);
+  }  goto l11;
+  l14:;	  yypos= yypos11; yythunkpos= yythunkpos11;  if (!yy_OPEN_PAREN()) goto l10;  if (!yy_Expr()) goto l10;  yyDo(yySet, 0, 0);  if (!yy_CLOS_PAREN()) goto l10;
   }
   l11:;	
   yyprintf((stderr, "  ok   %s @ %s\n", "Value", yybuf+yypos));  yyDo(yyPop, 1, 0);
@@ -504,15 +433,15 @@ YY_RULE(int) yy_PLUS()
 }
 YY_RULE(int) yy_Product()
 {  int yypos0= yypos, yythunkpos0= yythunkpos;  yyDo(yyPush, 2, 0);
-  yyprintf((stderr, "%s\n", "Product"));  if (!yy_Value()) goto l18;  yyDo(yySet, -2, 0);  yyDo(yy_1_Product, yybegin, yyend);
+  yyprintf((stderr, "%s\n", "Product"));  if (!yy_Value()) goto l18;  yyDo(yySet, -2, 0);
   l19:;	
   {  int yypos20= yypos, yythunkpos20= yythunkpos;
-  {  int yypos21= yypos, yythunkpos21= yythunkpos;  if (!yy_TIMES()) goto l22;  if (!yy_Value()) goto l22;  yyDo(yySet, -1, 0);  yyDo(yy_2_Product, yybegin, yyend);  goto l21;
-  l22:;	  yypos= yypos21; yythunkpos= yythunkpos21;  if (!yy_DIV()) goto l20;  if (!yy_Value()) goto l20;  yyDo(yySet, -1, 0);  yyDo(yy_3_Product, yybegin, yyend);
+  {  int yypos21= yypos, yythunkpos21= yythunkpos;  if (!yy_TIMES()) goto l22;  if (!yy_Value()) goto l22;  yyDo(yySet, -1, 0);  yyDo(yy_1_Product, yybegin, yyend);  goto l21;
+  l22:;	  yypos= yypos21; yythunkpos= yythunkpos21;  if (!yy_DIV()) goto l20;  if (!yy_Value()) goto l20;  yyDo(yySet, -1, 0);  yyDo(yy_2_Product, yybegin, yyend);
   }
   l21:;	  goto l19;
   l20:;	  yypos= yypos20; yythunkpos= yythunkpos20;
-  }  yyDo(yy_4_Product, yybegin, yyend);
+  }
   yyprintf((stderr, "  ok   %s @ %s\n", "Product", yybuf+yypos));  yyDo(yyPop, 2, 0);
   return 1;
   l18:;	  yypos= yypos0; yythunkpos= yythunkpos0;
@@ -595,7 +524,7 @@ YY_RULE(int) yy_OPEN_BRACK()
 }
 YY_RULE(int) yy_Body()
 {  int yypos0= yypos, yythunkpos0= yythunkpos;
-  yyprintf((stderr, "%s\n", "Body"));  if (!yy_OPEN_BRACK()) goto l35;  yyDo(yy_1_Body, yybegin, yyend);
+  yyprintf((stderr, "%s\n", "Body"));  if (!yy_OPEN_BRACK()) goto l35;
   l36:;	
   {  int yypos37= yypos, yythunkpos37= yythunkpos;  if (!yy_EOL()) goto l37;  goto l36;
   l37:;	  yypos= yypos37; yythunkpos= yythunkpos37;
@@ -603,7 +532,7 @@ YY_RULE(int) yy_Body()
   l38:;	
   {  int yypos39= yypos, yythunkpos39= yythunkpos;  if (!yy_Line()) goto l39;  goto l38;
   l39:;	  yypos= yypos39; yythunkpos= yythunkpos39;
-  }  if (!yy_CLOS_BRACK()) goto l35;  yyDo(yy_2_Body, yybegin, yyend);  if (!yy__()) goto l35;
+  }  if (!yy_CLOS_BRACK()) goto l35;  if (!yy__()) goto l35;
   yyprintf((stderr, "  ok   %s @ %s\n", "Body", yybuf+yypos));
   return 1;
   l35:;	  yypos= yypos0; yythunkpos= yythunkpos0;
@@ -657,15 +586,15 @@ YY_RULE(int) yy_FunctionCall()
 }
 YY_RULE(int) yy_Sum()
 {  int yypos0= yypos, yythunkpos0= yythunkpos;  yyDo(yyPush, 2, 0);
-  yyprintf((stderr, "%s\n", "Sum"));  if (!yy_Product()) goto l50;  yyDo(yySet, -2, 0);  yyDo(yy_1_Sum, yybegin, yyend);
+  yyprintf((stderr, "%s\n", "Sum"));  if (!yy_Product()) goto l50;  yyDo(yySet, -2, 0);
   l51:;	
   {  int yypos52= yypos, yythunkpos52= yythunkpos;
-  {  int yypos53= yypos, yythunkpos53= yythunkpos;  if (!yy_PLUS()) goto l54;  if (!yy_Product()) goto l54;  yyDo(yySet, -1, 0);  yyDo(yy_2_Sum, yybegin, yyend);  goto l53;
-  l54:;	  yypos= yypos53; yythunkpos= yythunkpos53;  if (!yy_MINUS()) goto l52;  if (!yy_Product()) goto l52;  yyDo(yySet, -1, 0);  yyDo(yy_3_Sum, yybegin, yyend);
+  {  int yypos53= yypos, yythunkpos53= yythunkpos;  if (!yy_PLUS()) goto l54;  if (!yy_Product()) goto l54;  yyDo(yySet, -1, 0);  yyDo(yy_1_Sum, yybegin, yyend);  goto l53;
+  l54:;	  yypos= yypos53; yythunkpos= yythunkpos53;  if (!yy_MINUS()) goto l52;  if (!yy_Product()) goto l52;  yyDo(yySet, -1, 0);  yyDo(yy_2_Sum, yybegin, yyend);
   }
   l53:;	  goto l51;
   l52:;	  yypos= yypos52; yythunkpos= yythunkpos52;
-  }  yyDo(yy_4_Sum, yybegin, yyend);
+  }
   yyprintf((stderr, "  ok   %s @ %s\n", "Sum", yybuf+yypos));  yyDo(yyPop, 2, 0);
   return 1;
   l50:;	  yypos= yypos0; yythunkpos= yythunkpos0;

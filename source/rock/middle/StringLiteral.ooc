@@ -8,7 +8,6 @@ StringLiteral: class extends Literal {
     
     init: func ~stringLiteral (=value, .token) {
         super(token)
-        ("\\o/ \\o/ \\o/ \\o/ Got string literal '" + value + "'") println()
     }
     
     accept: func (visitor: Visitor) { visitor visitStringLiteral(this) }

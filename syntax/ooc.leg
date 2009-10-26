@@ -5,8 +5,11 @@
 #include <source/rock/middle/FunctionDecl-fwd.h>
 #include <source/rock/middle/FunctionCall-fwd.h>
 
+#define YYSTYPE struct _rock_middle__Node*
+
 void stack_push(struct _rock_middle__Node *node);
-void stack_pop(struct _rock_middle__Node *node);
+void stack_pop();
+void stack_add(struct _rock_middle__Node *node);
 %}
 
 Stmt    = WS e:Expr EOL
@@ -25,10 +28,10 @@ FunctionDecl    =  IDENT {
                 }
                    COLON "func" - Body?  { printf("</functionDecl>\n") } -
 
-Body            =  OPEN_BRACK { printf("<body>\n") }
+Body            =  OPEN_BRACK
                    EOL*
                    Line*
-                   CLOS_BRACK { printf("</body>\n") } -
+                   CLOS_BRACK -
                    
 Line            =  (WS !EOL Expr EOL*) { printf("</line>\n") }
 
@@ -39,26 +42,26 @@ FunctionCall    =  IDENT {
                    OPEN_PAREN ExpressionList? CLOS_PAREN { printf("</functionCall>") }
                    -
 
-ExpressionList  =  Expr                 { printf("Got first argument\n") }
-                   (COMMA Expr {printf("Got another argument\n")})*
+ExpressionList  =  Expr                 { stack_add($$) }
+                   (COMMA Expr { stack_add($$) })*
 
-Sum     = l:Product                     { printf("<sum> '%s'\n", yytext) }
+Sum     = l:Product
                 ( PLUS  r:Product       { printf("+ '%s'\n", yytext); }
                 | MINUS r:Product       { printf("- '%s'\n", yytext); }
-                )*                      { printf("</sum>\n") }
+                )*
 
-Product = l:Value                       { printf("<product> '%s'\n", yytext) }
+Product = l:Value
                 ( TIMES  r:Value        { printf("* '%s'\n", yytext); }
                 | DIV r:Value           { printf("/ '%s'\n", yytext); }
-                )*                      { printf("</product>\n") }
+                )*
 
-Value   = i:NUMBER                      { printf("<value> '%s'\n", yytext); $$=1 }
-        | i:STRING_LIT                  { printf("<stringLiteral \"%s\">\n", yytext); }
-        | i:IDENT !ASSIGN               { printf("<variableAccess> '%s'\n", yytext); }
-        | OPEN_PAREN i:Expr CLOS_PAREN  { printf("<parenthesis>\n"); }
+Value   = i:NUMBER
+        | i:STRING_LIT
+        | i:IDENT !ASSIGN
+        | OPEN_PAREN i:Expr CLOS_PAREN
         
 NUMBER       = < [0-9]+ >    -
-STRING_LIT   = '"' < (!'"' .)* > '"'           - { StringLiteral_new_stringLiteral(yytext, nullToken) }
+STRING_LIT   = '"' < (!'"' .)* > '"'           - { $$=StringLiteral_new_stringLiteral(yytext, nullToken) }
 IDENT        = < [a-zA-Z_]([a-zA-Z0-9_])* >    -
 COLON        = ':'           -
 COMMA        = ','           -

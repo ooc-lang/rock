@@ -21,7 +21,6 @@ FunctionDecl: class extends Expression {
 
     init: func ~funcDecl (=name, .token) {
         super(token)
-        ("\\o/ \\o/ \\o/ \\o/ Got a function declaration named " + name) println()
     }
     
     accept: func (visitor: Visitor) { visitor visitFunctionDecl(this) }
