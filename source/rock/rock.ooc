@@ -4,6 +4,7 @@ import frontend/[Help, Token]
 import parser/Parser
 import middle/[FunctionDecl, FunctionCall, StringLiteral, Node, Module,
     Statement, Line]
+import backend/CGenerator
 
 main: func (argc: Int, argv: String*) -> Int {
 
@@ -41,6 +42,7 @@ main: func (argc: Int, argv: String*) -> Int {
     module := Module new("test", nullToken)
     stack push(module)
     Parser parse()
+    CGenerator new("rock_tmp", module) write() .close()
     
 	println()
 
@@ -71,10 +73,17 @@ stack_push: func (node: Node) {
     
 }
 
-stack_pop: func () {
+stack_pop: func (T: Class) -> Node {
     
-    node := stack pop()
+    node : Node = stack pop()
     printf("<< pop  %s!!\n", node class name)
+    
+    if(node class != T) {
+        printf("should've been popping a %s, but top is a %s\n", T name, node class name)
+        exit(1)
+    }
+    
+    return node
     
 }
 
@@ -84,13 +93,19 @@ stack_add: func (node: Node) {
     stack_print()
     
     top : Node = stack peek()
-    match(top class) {
+    match top class {
         case FunctionCall =>
             call := top as FunctionCall
             call args add(node)
             printf("Just added arg %s to a FunctionCall to %s\n", node class name, call name)
         case FunctionDecl =>
-            top as FunctionDecl body add(Line new(node))
+            match node class {
+                case Line =>
+                    top as FunctionDecl body add(node)
+                    printf("Adding a line containing a %s\n", node as Line inner class name)
+                case =>
+                    printf("Expected a line in a FunctionDecl, but got a %s\n", node class)
+            }
         case =>
             printf("Huh oh unknown type '%s' of top element", top class name)
     }
@@ -100,7 +115,14 @@ stack_add: func (node: Node) {
 stack_print: func {
     
     for(elem: Node in stack) {
-        printf("\t%s\n", elem class name)
+        printf("\t%s", elem class name)
+        match(elem class) {
+            case FunctionDecl =>
+                printf(" named %s", elem as FunctionDecl name)
+            case FunctionCall =>
+                printf(" to %s", elem as FunctionCall name)
+        }
+        println()
     }
     
 }

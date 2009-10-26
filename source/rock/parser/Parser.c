@@ -6,15 +6,17 @@
 #define YYRULECOUNT 28
 
 #include <stdio.h>
+#include <source/rock/middle/Line-fwd.h>
 #include <source/rock/middle/Node-fwd.h>
 #include <source/rock/middle/StringLiteral-fwd.h>
 #include <source/rock/middle/FunctionDecl-fwd.h>
 #include <source/rock/middle/FunctionCall-fwd.h>
+#include <sdk/lang/BasicTypes-fwd.h>
 
 #define YYSTYPE struct _rock_middle__Node*
 
 void stack_push(struct _rock_middle__Node *node);
-void stack_pop();
+struct _rock_middle__Node *stack_pop(struct _lang__Class *);
 void stack_add(struct _rock_middle__Node *node);
 
 #ifndef YY_VARIABLE
@@ -259,7 +261,7 @@ YY_RULE(int) yy_Stmt(); /* 1 */
 YY_ACTION(void) yy_1_STRING_LIT(char *yytext, int yyleng)
 {
   yyprintf((stderr, "do yy_1_STRING_LIT\n"));
-   yy=StringLiteral_new_stringLiteral(yytext, nullToken) ;
+   yy=StringLiteral_new_stringLiteral(String_clone(yytext), nullToken) ;
 }
 YY_ACTION(void) yy_2_Product(char *yytext, int yyleng)
 {
@@ -310,33 +312,38 @@ YY_ACTION(void) yy_1_ExpressionList(char *yytext, int yyleng)
 YY_ACTION(void) yy_2_FunctionCall(char *yytext, int yyleng)
 {
   yyprintf((stderr, "do yy_2_FunctionCall\n"));
-   printf("</functionCall>") ;
+  
+        yy = stack_pop(FunctionCall_class());
+    ;
 }
 YY_ACTION(void) yy_1_FunctionCall(char *yytext, int yyleng)
 {
   yyprintf((stderr, "do yy_1_FunctionCall\n"));
   
-                    printf("<functionCall '%s'>\n", yytext);
-                    stack_push(FunctionCall_new_funcCall(yytext, nullToken));
-                ;
+        stack_push(FunctionCall_new_funcCall(String_clone(yytext), nullToken));
+    ;
 }
 YY_ACTION(void) yy_1_Line(char *yytext, int yyleng)
 {
+#define e yyval[-1]
   yyprintf((stderr, "do yy_1_Line\n"));
-   printf("</line>\n") ;
+   stack_add(Line_new_line(yy)); ;
+#undef e
 }
 YY_ACTION(void) yy_2_FunctionDecl(char *yytext, int yyleng)
 {
   yyprintf((stderr, "do yy_2_FunctionDecl\n"));
-   printf("</functionDecl>\n") ;
+  
+        stack_pop(FunctionDecl_class())
+    ;
 }
 YY_ACTION(void) yy_1_FunctionDecl(char *yytext, int yyleng)
 {
   yyprintf((stderr, "do yy_1_FunctionDecl\n"));
   
-                    printf("<functionDecl '%s'>\n", yytext);
-                    stack_push(FunctionDecl_new_funcDecl(yytext, nullToken));
-                ;
+        printf("<functionDecl '%s'>\n", yytext);
+        stack_push(FunctionDecl_new_funcDecl(String_clone(yytext), nullToken));
+    ;
 }
 YY_ACTION(void) yy_1_Stmt(char *yytext, int yyleng)
 {
@@ -498,16 +505,16 @@ YY_RULE(int) yy_CLOS_BRACK()
   return 0;
 }
 YY_RULE(int) yy_Line()
-{  int yypos0= yypos, yythunkpos0= yythunkpos;
+{  int yypos0= yypos, yythunkpos0= yythunkpos;  yyDo(yyPush, 1, 0);
   yyprintf((stderr, "%s\n", "Line"));  if (!yy_WS()) goto l30;
   {  int yypos31= yypos, yythunkpos31= yythunkpos;  if (!yy_EOL()) goto l31;  goto l30;
   l31:;	  yypos= yypos31; yythunkpos= yythunkpos31;
-  }  if (!yy_Expr()) goto l30;
+  }  if (!yy_Expr()) goto l30;  yyDo(yySet, -1, 0);
   l32:;	
   {  int yypos33= yypos, yythunkpos33= yythunkpos;  if (!yy_EOL()) goto l33;  goto l32;
   l33:;	  yypos= yypos33; yythunkpos= yythunkpos33;
   }  yyDo(yy_1_Line, yybegin, yyend);
-  yyprintf((stderr, "  ok   %s @ %s\n", "Line", yybuf+yypos));
+  yyprintf((stderr, "  ok   %s @ %s\n", "Line", yybuf+yypos));  yyDo(yyPop, 1, 0);
   return 1;
   l30:;	  yypos= yypos0; yythunkpos= yythunkpos0;
   yyprintf((stderr, "  fail %s @ %s\n", "Line", yybuf+yypos));
@@ -564,7 +571,7 @@ YY_RULE(int) yy_FunctionDecl()
   {  int yypos45= yypos, yythunkpos45= yythunkpos;  if (!yy_Body()) goto l45;  goto l46;
   l45:;	  yypos= yypos45; yythunkpos= yythunkpos45;
   }
-  l46:;	  yyDo(yy_2_FunctionDecl, yybegin, yyend);  if (!yy__()) goto l44;
+  l46:;	  if (!yy__()) goto l44;  yyDo(yy_2_FunctionDecl, yybegin, yyend);
   yyprintf((stderr, "  ok   %s @ %s\n", "FunctionDecl", yybuf+yypos));
   return 1;
   l44:;	  yypos= yypos0; yythunkpos= yythunkpos0;
@@ -577,7 +584,7 @@ YY_RULE(int) yy_FunctionCall()
   {  int yypos48= yypos, yythunkpos48= yythunkpos;  if (!yy_ExpressionList()) goto l48;  goto l49;
   l48:;	  yypos= yypos48; yythunkpos= yythunkpos48;
   }
-  l49:;	  if (!yy_CLOS_PAREN()) goto l47;  yyDo(yy_2_FunctionCall, yybegin, yyend);  if (!yy__()) goto l47;
+  l49:;	  if (!yy_CLOS_PAREN()) goto l47;  if (!yy__()) goto l47;  yyDo(yy_2_FunctionCall, yybegin, yyend);
   yyprintf((stderr, "  ok   %s @ %s\n", "FunctionCall", yybuf+yypos));
   return 1;
   l47:;	  yypos= yypos0; yythunkpos= yythunkpos0;
