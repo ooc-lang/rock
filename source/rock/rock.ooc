@@ -1,8 +1,12 @@
-import structs/[Array, List, ArrayList]
-import frontend/[Lexer, SourceReader, Token, Help]
+import structs/[Array, List, ArrayList, Stack]
+//import frontend/[Lexer, SourceReader, Token, Help]
+import frontend/Help
+import parser/Parser
+import middle/[FunctionDecl, FunctionCall, StringLiteral, Node]
 
 main: func (argc: Int, argv: String*) -> Int {
 
+    /*
 	if(argc <= 1) {
 		printf("rock: no files\n")
 		return 1
@@ -30,22 +34,29 @@ main: func (argc: Int, argv: String*) -> Int {
 	
 	for(unit: String in unitList) {
 		printf("%s\n", unit)
-		tokenizer := Lexer new() .setDebug(true)
-		sReader := SourceReader getReaderFromPath(unit)
-		list := tokenizer parse(sReader)
-		i := 1
-		for(token: Token in list) {
-			//printf("Token #%d (type %d = %s, %zu:%zu)\n", i, token type, token toString(), token start, token length)
-			printf("%s ", token toString(sReader));
-			i += 1
-		}
-		("Got " + list size() + " tokens.") println()
 	}
+    */
+    
+    Parser parse()
+    
 	println()
 
 }
 
+stack := Stack<Node> new()
 
+stack_push: func (node: Node) {
+
+    printf("\t\tPushing a %s!!\n", node class name)
+    stack push(node)
+    
+}
+
+stack_pop: func (node: Node) {
+    
+    stack pop()
+    
+}
 
 
 

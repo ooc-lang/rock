@@ -30,7 +30,7 @@ classtest: func {
     
     call := FunctionCall new("printf", nullToken)
     call args add(StringLiteral new("Woof, woof!", nullToken))
-    //shout body add(Line new(call))
+    shout body add(Line new(call))
     
     CGenerator new(outPath, module) write() .close()
     

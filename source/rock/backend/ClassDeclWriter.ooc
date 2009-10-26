@@ -9,10 +9,18 @@ ClassDeclWriter: abstract class extends Skeleton {
     
     write: static func ~_class (this: This, cDecl: ClassDecl) {
         
+        current = fw
+        writeMemberFuncPrototypes(this, cDecl)
+        
         current = hw
         writeObjectStruct(this, cDecl)
         writeClassStruct(this, cDecl)
-        writeMemberFuncPrototypes(this, cDecl)
+        
+        current = cw
+		//writeInstanceImplFuncs(this, cDecl);
+		writeClassGettingFunction(this, cDecl);
+		//writeInstanceVirtualFuncs(this, cDecl);
+		//writeStaticFuncs(this, cDecl);
         
     }
     

@@ -1,15 +1,16 @@
 .PHONY:all clean mrproper test-ast
-OOC_OWN_FLAGS=-sourcepath=source/ -driver=sequence -v -noclean -g
+OOC_OWN_FLAGS=-sourcepath=source/ -driver=sequence -v -noclean -g -shout
 OOC=ooc ${OOC_OWN_FLAGS} ${OOC_FLAGS}
 
 all:
-	${OOC} rock/rock && mkdir -p bin/ && mv rock bin/
+	mkdir -p source/rock/parser/ && leg syntax/ooc.leg > source/rock/parser/Parser.c
+	${OOC} $(shell find source/ -name "*.c") rock/rock && mkdir -p bin/ && mv rock bin/
 
 test-ast:
 	${OOC} rock/test-ast
 
 test:
-	make all && ./rock source/rock.ooc
+	make all && bin/rock blah < samples/ooc/hi-world.ooc
 
 clean:
 	rm -rf ooc_tmp/

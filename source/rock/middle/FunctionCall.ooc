@@ -11,6 +11,7 @@ FunctionCall: class extends Expression {
     
     init: func ~funcCall (=name, .token) {
         super(token)
+        ("\\o/ \\o/ \\o/ \\o/ Got a function call to " + name) println()
     }
     
     accept: func (visitor: Visitor) {
