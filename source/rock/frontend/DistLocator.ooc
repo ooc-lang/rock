@@ -1,4 +1,4 @@
-import io/File
+import io/[Directory, File]
 import os/Env
 
 DistLocator: class {
@@ -8,6 +8,8 @@ DistLocator: class {
 			return File new(envDist)
 		}
 		
-		return null;
+		// fall back on the current working directory
+		file := File new(Directory getCwd())
+		return file parent()
 	}
 }

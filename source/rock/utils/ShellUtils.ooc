@@ -33,8 +33,8 @@ ShellUtils: class {
 		while (st hasNext()) {
 			path := st nextToken() append~char(File separator) append(executableName)			
 			file := File new(path)
-			
-			if (file exists() && file isFile()) {
+						
+			if (file exists()) {
 				return file
 			}
 		}
