@@ -1,6 +1,5 @@
-
 main: func {
-    answer : Int
-    //answer = (22 + 23) - 3
-    printf("a = %d")
+    answer : int
+    answer = 22 + 10 * 2
+    printf("The answer is %d\n", answer)
 }

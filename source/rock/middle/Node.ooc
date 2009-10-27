@@ -8,5 +8,7 @@ Node: abstract class {
     init: func(=token) {}
     
     accept: abstract func (visitor: Visitor)
+    
+    toString: func -> String { class name }
 
 }

@@ -1,8 +1,12 @@
 %{
 #include <stdio.h>
+#include <source/rock/middle/Type-fwd.h>
 #include <source/rock/middle/Line-fwd.h>
 #include <source/rock/middle/Node-fwd.h>
 #include <source/rock/middle/StringLiteral-fwd.h>
+#include <source/rock/middle/VariableAccess-fwd.h>
+#include <source/rock/middle/IntLiteral-fwd.h>
+#include <source/rock/middle/BinaryOp.h>
 #include <source/rock/middle/FunctionDecl-fwd.h>
 #include <source/rock/middle/FunctionCall-fwd.h>
 #include <sdk/lang/BasicTypes-fwd.h>
@@ -18,12 +22,13 @@ Stmt    = WS e:Expr EOL
         | WS d:Decl EOL
         | ( !EOL . )* EOL               { printf("error\n"); }
 
-Expr    = i:IDENT ASSIGN s:Sum
-        | f:FunctionCall
-        | s:Sum
+Expr    = Assignment
+        | VariableDecl
+        | FunctionCall
+        | Sum
         | WS "//" < (!EOL .)* > EOL WS  { printf("skipped comment %s\n", yytext) } Expr?
         
-Decl  =  FunctionDecl
+Decl  =  (FunctionDecl | VariableDecl)
                    
 FunctionDecl = 
     IDENT {
@@ -44,6 +49,26 @@ Body =
                    
 Line  =  (WS !EOL e:Expr EOL*) { stack_add(Line_new_line($$)); }
 
+VariableDecl =
+    name:IDENT
+    COLON
+    type:Type {
+        printf("Got a variable declaration with name = %s and type = %s\n", name, Node_toString(type));
+        $$=VariableDecl_new_vDeclWithAtom(type, Atom_new_name(name), nullToken)
+    }
+    
+Type = IDENT { $$=BaseType_new_baseType(String_clone(yytext), nullToken) }
+
+Assignment =
+    l:VariableAccess
+    ASSIGN
+    r:Expr
+    - { $$=BinaryOp_new_binaryOp(l, r, ((struct _rock_middle__OpTypesClass *) OpTypes_class())->ass, nullToken); }
+    
+VariableAccess =
+    name:IDENT
+    - { $$=VariableAccess_new_variableAccess(name, nullToken); }
+
 FunctionCall = 
     IDENT {
         stack_push(FunctionCall_new_funcCall(String_clone(yytext), nullToken));
@@ -59,23 +84,31 @@ ExpressionList  =  Expr                 { stack_add($$) }
                    (COMMA Expr { stack_add($$) })*
 
 Sum     = l:Product
-                ( PLUS  r:Product       { printf("+ '%s'\n", yytext); }
-                | MINUS r:Product       { printf("- '%s'\n", yytext); }
+                ( PLUS  r:Product {
+                    $$=BinaryOp_new_binaryOp(l, r, ((struct _rock_middle__OpTypesClass *) OpTypes_class())->add, nullToken);
+                }
+                | MINUS r:Product {
+                    $$=BinaryOp_new_binaryOp(l, r, ((struct _rock_middle__OpTypesClass *) OpTypes_class())->sub, nullToken);
+                }
                 )*
 
 Product = l:Value
-                ( TIMES  r:Value        { printf("* '%s'\n", yytext); }
-                | DIV r:Value           { printf("/ '%s'\n", yytext); }
+                ( TIMES  r:Value {
+                    $$=BinaryOp_new_binaryOp(l, r, ((struct _rock_middle__OpTypesClass *) OpTypes_class())->mul, nullToken);
+                }
+                | DIV r:Value {
+                    $$=BinaryOp_new_binaryOp(l, r, ((struct _rock_middle__OpTypesClass *) OpTypes_class())->div, nullToken);
+                }
                 )*
 
 Value   = i:NUMBER
         | i:STRING_LIT
-        | i:IDENT !ASSIGN
+        | i:IDENT !ASSIGN { $$=VariableAccess_new_variableAccess(i, nullToken) }
         | OPEN_PAREN i:Expr CLOS_PAREN
         
-NUMBER       = < [0-9]+ >    -
-STRING_LIT   = '"' < (!'"' .)* > '"'           - { $$=StringLiteral_new_stringLiteral(String_clone(yytext), nullToken) }
-IDENT        = < [a-zA-Z_]([a-zA-Z0-9_])* >    -
+NUMBER       = < [0-9]+ >                      - { $$=IntLiteral_new_intLiteral(atoll(yytext), nullToken); }
+STRING_LIT   = '"' < (!'"' .)* > '"'           - { $$=StringLiteral_new_stringLiteral(String_clone(yytext), nullToken); }
+IDENT        = < [a-zA-Z_]([a-zA-Z0-9_])* >    - { $$=String_clone(yytext); }
 COLON        = ':'           -
 COMMA        = ','           -
 ASSIGN       = '='           -
