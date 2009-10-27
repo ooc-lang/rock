@@ -288,7 +288,8 @@ CommandLine: class {
         stack push(module)
         Parser parse(modulePath)
         CGenerator new(params outPath path, module) write() .close()
-        driver compile(module)
+        if(params compiler)
+            driver compile(module)
         
         return 0
         

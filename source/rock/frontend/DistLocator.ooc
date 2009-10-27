@@ -11,11 +11,9 @@ DistLocator: class {
 			return File new(envDist)
 		}
 	
-        printf("execName = %s\n", Rock execName)
         exec := ShellUtils findExecutable(Rock execName, false)
         if(exec) {
             realpath := exec getAbsolutePath()
-            printf("Found ourselves at %s, realpath = %s\n", exec path, realpath)
             return File new(File new(realpath) parent() parent() parent() path, "ooc")
         }
     	
