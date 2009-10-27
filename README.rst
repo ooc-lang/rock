@@ -14,12 +14,25 @@ which you can get at http://github.com/nddrylliog/ooc
 When rock is be stable enough, we're going to ditch j/ooc for good
 and happily live as chicken and egg forever.
 
-Progress report:
+Install
+-------
+
+*rock is alpha software*, don't cry if it breaks things
+
+Two ways, either
+  - create a script in /usr/bin/rock where you export OOC_DIST and call /path/to/your/rock/bin/rock
+  - "ln -s /path/to/your/rock/bin/rock /usr/bin" and then make sure rock/ is besides ooc/ (ie. in the same parent folder)
+
+Progress report
+---------------
+
   - 2009-06 : Basic structure, it's gonna be some time till it can do anything useful
   - 2009-09 : The tokenizing code is all there, and it's working simply great.
               Now onto constructing AST nodes.
   - 2009-10 : Creating the AST structure, code generation works well, putting the 
               frontend on hold for a moment
+  - 2009-10 : Made a leg frontend, builds the AST, ported a lot of Java code with itrekkie,
+  	      rock now compiles things =)
 
 You can help! We can probably re-use like 50% of the source code from the
 j/ooc codebase, so please come on #ooc-lang to know which classes need porting.
