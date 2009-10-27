@@ -4,7 +4,8 @@ import frontend/[Help, Token]
 import parser/Parser
 import middle/[FunctionDecl, FunctionCall, StringLiteral, Node, Module,
     Statement, Line]
-import backend/CGenerator
+import backend/[CGenerator]
+import frontend/compilers/Gcc
 
 main: func (argc: Int, argv: String*) -> Int {
 
@@ -38,6 +39,9 @@ main: func (argc: Int, argv: String*) -> Int {
 		printf("%s\n", unit)
 	}
     */
+    
+    //compiler := Gcc new()
+    //printf("command line = %s\n", compiler getCommandLine())
     
     module := Module new("test", nullToken)
     stack push(module)

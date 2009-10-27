@@ -10,7 +10,7 @@ test-ast:
 	${OOC} rock/test-ast
 
 test:
-	make all && bin/rock blah < samples/ooc/hi-world.ooc
+	make all && bin/rock < samples/ooc/hi-world.ooc
 
 clean:
 	rm -rf ooc_tmp/

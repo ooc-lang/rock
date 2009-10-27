@@ -21,6 +21,7 @@ Stmt    = WS e:Expr EOL
 Expr    = i:IDENT ASSIGN s:Sum
         | f:FunctionCall
         | s:Sum
+        | WS "//" < (!EOL .)* > EOL WS  { printf("skipped comment %s\n", yytext) } Expr?
         
 Decl  =  FunctionDecl
                    

@@ -46,9 +46,8 @@ BaseCompiler: abstract class extends AbstractCompiler {
 		commandLine := StringBuffer new()
 				
 		for(arg: String in command) {
-			arg println()
 			commandLine append(arg)
-			commandLine append(' ')
+			commandLine append(" ")
 		}
 						
 		return commandLine toString()
