@@ -17,30 +17,32 @@ OpTypes: class {
     sub = 2,        /*  -  */
     mul = 3,        /*  *  */
     div = 4,        /*  /  */
-    addAss = 5,     /*  += */
-    subAss = 6,     /*  -= */
-    mulAss = 7,     /*  *= */
-    divAss = 8,     /*  /= */
-    rshift = 9,     /*  >> */
-    lshift = 10,    /*  << */
-    rshiftAss = 11, /* >>= */
-    lshiftAss = 12, /* <<= */
-    bOr = 13,       /*  |  */
-    bXor = 14,      /*  ^  */
-    bAnd = 15,      /*  &  */
-    bOrAss = 16,    /*  |= */
-    bXorAss = 17,   /*  ^= */
-    bAndAss = 18,   /*  &= */
-    or = 19,        /*  || */
-    and = 20,       /*  && */
-    incr = 21,      /*  ++ */
-    decr = 22       /*  -- */ : static const OpType
+    ass = 5,        /*  =  */
+    addAss = 6,     /*  += */
+    subAss = 7,     /*  -= */
+    mulAss = 8,     /*  *= */
+    divAss = 9,     /*  /= */
+    rshift = 10,    /*  >> */
+    lshift = 11,    /*  << */
+    rshiftAss = 12, /* >>= */
+    lshiftAss = 13, /* <<= */
+    bOr = 14,       /*  |  */
+    bXor = 15,      /*  ^  */
+    bAnd = 16,      /*  &  */
+    bOrAss = 17,    /*  |= */
+    bXorAss = 18,   /*  ^= */
+    bAndAss = 19,   /*  &= */
+    or = 20,        /*  || */
+    and = 21,       /*  && */
+    incr = 22,      /*  ++ */
+    decr = 23       /*  -- */ : static const OpType
     
     repr := static ["no-op",
         "+",
         "-",
         "*",
         "/",
+        "=",
         "+=",
         "-=",
         "*=",
@@ -66,7 +68,7 @@ BinaryOp: class extends Expression {
     left, right: Expression
     type: OpType
     
-    init: func ~add (=left, =right, =type, .token) {
+    init: func ~binaryOp (=left, =right, =type, .token) {
         super(token)
     }
     
@@ -76,5 +78,9 @@ BinaryOp: class extends Expression {
     
     // that's probably not right (haha)
     getType: func -> Type { left getType() }
+    
+    toString: func -> String {
+        left toString() + OpTypes repr get(type) + right toString()
+    }
 
 }

@@ -93,7 +93,7 @@ stack_pop: func (T: Class) -> Node {
 
 stack_add: func (node: Node) {
     
-    printf("++ add %s, stack = \n", node class name)
+    printf("++ add %s, stack = \n", node toString())
     stack_print()
     
     top : Node = stack peek()
@@ -101,17 +101,17 @@ stack_add: func (node: Node) {
         case FunctionCall =>
             call := top as FunctionCall
             call args add(node)
-            printf("Just added arg %s to a FunctionCall to %s\n", node class name, call name)
+            printf("Just added arg %s to a FunctionCall to %s\n", node toString(), call toString())
         case FunctionDecl =>
             match node class {
                 case Line =>
                     top as FunctionDecl body add(node)
-                    printf("Adding a line containing a %s\n", node as Line inner class name)
+                    printf("Adding a line containing a %s\n", node as Line inner toString())
                 case =>
-                    printf("Expected a line in a FunctionDecl, but got a %s\n", node class)
+                    printf("Expected a line in a FunctionDecl, but got a %s\n", node toString())
             }
         case =>
-            printf("Huh oh unknown type '%s' of top element", top class name)
+            printf("Huh oh unknown type '%s' of top element", top toString())
     }
     
 }
@@ -119,14 +119,7 @@ stack_add: func (node: Node) {
 stack_print: func {
     
     for(elem: Node in stack) {
-        printf("\t%s", elem class name)
-        match(elem class) {
-            case FunctionDecl =>
-                printf(" named %s", elem as FunctionDecl name)
-            case FunctionCall =>
-                printf(" to %s", elem as FunctionCall name)
-        }
-        println()
+        printf("\t%s\n", elem toString())
     }
     
 }
