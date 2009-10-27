@@ -7,7 +7,10 @@
 
 #include <stdio.h>
 
-/* rock node types we're using */
+/* ooc/rock imports */
+#include <sdk/lang/BasicTypes-fwd.h>
+#include <sdk/io/FileReader.h>
+
 #include <source/rock/middle/Parenthesis-fwd.h>
 #include <source/rock/middle/Type-fwd.h>
 #include <source/rock/middle/Line-fwd.h>
@@ -18,7 +21,6 @@
 #include <source/rock/middle/BinaryOp.h> // tight dependency: we use static members
 #include <source/rock/middle/FunctionDecl-fwd.h>
 #include <source/rock/middle/FunctionCall-fwd.h>
-#include <sdk/lang/BasicTypes-fwd.h>
 
 #define YYSTYPE struct _rock_middle__Node*
 
@@ -30,17 +32,27 @@ void stack_add(struct _rock_middle__Node *node);
 /* Current line number */
 static int yylineno;
 
-/* Path of the file we're parsing. haha. */
+/* Path of the file we're parsing. */
 static char* path;
  
-/* Populate this with the code to compile */
-static char* codebuf;
+/* The stream we're reading from. */
+static struct _io__FileReader *stream;
 
 /* Send input to yyparse from codebuf instead of stdin */
+/*
 #define YY_INPUT(buf, result, max_size) {        \
 	int yyc;                                     \
 	if (codebuf && *codebuf != '\0')             \
 		yyc= *codebuf++;                         \
+	else                                         \
+		yyc= EOF;                                \
+	result= (EOF == yyc) ? 0 : (*(buf)= yyc, 1); \
+}
+*/
+#define YY_INPUT(buf, result, max_size) {        \
+	int yyc;                                     \
+	if (FileReader_hasNext(stream))              \
+		yyc= FileReader_read_char(stream);       \
 	else                                         \
 		yyc= EOF;                                \
 	result= (EOF == yyc) ? 0 : (*(buf)= yyc, 1); \
@@ -929,10 +941,10 @@ YY_PARSE(int) YYPARSE(void)
 #endif
 
 
-int Parser_parse(char *pathArg, char *codebufArg) {
+int Parser_parse(char *pathArg) {
     /* Parse code */
     path = pathArg;
-    codebuf = codebufArg;
+    stream = FileReader_new_withName(path);
     yylineno = 1;
     while (yyparse()) {}
     return 0;

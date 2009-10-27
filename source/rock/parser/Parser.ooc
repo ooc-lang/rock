@@ -2,6 +2,6 @@ Parser_parse: extern proto func -> Int
 
 Parser: cover {
     
-    parse: static extern(Parser_parse) func (path, code: String) -> Int
+    parse: static extern(Parser_parse) func (path: String) -> Int
     
 }

@@ -1,7 +1,7 @@
 import structs/[Array, List, ArrayList, Stack]
 import io/File
 //import frontend/[Lexer, SourceReader, Token, Help]
-import frontend/[Help, Token, SourceReader]
+import frontend/[Help, Token]
 import parser/Parser
 import middle/[FunctionDecl, FunctionCall, StringLiteral, Node, Module,
     Statement, Line]
@@ -39,7 +39,7 @@ main: func (argc: Int, argv: String*) -> Int {
         fullName := unit endsWith(".ooc") ? unit substring(0, unit length() - 4) : unit clone()
         module := Module new(fullName, nullToken)
         stack push(module)
-        Parser parse(unit, SourceReader readToString(File new(unit)))
+        Parser parse(unit)
         CGenerator new("rock_tmp", module) write() .close()
     }
     

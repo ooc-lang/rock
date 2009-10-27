@@ -1,3 +1,4 @@
+import io/File
 import structs/[HashMap, ArrayList]
 import ../frontend/[Token, SourceReader]
 import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl
@@ -13,9 +14,11 @@ Module: class extends Node {
     imports  := ArrayList<Import> new()
     uses     := ArrayList<Use> new()
 
-    init: func ~module (=fullName, .token) {
+    init: func ~module (.fullName, .token) {
         super(token)
-        simpleName = fullName
+        this fullName = fullName replace(File separator, '/')
+        idx := fullName lastIndexOf('/')
+        simpleName = idx == -1 ? fullName clone() : fullName substring(idx + 1)
     }
     
     addFunction: func (fDecl: FunctionDecl) {
