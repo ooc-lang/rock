@@ -4,6 +4,7 @@ import os/Env
 import DistLocator
 
 SdkLocator: class {
+    
 	locate: static func -> File {
 		envDist := Env get("OOC_SDK")
 		if (envDist != null) {
@@ -12,4 +13,5 @@ SdkLocator: class {
 		
 		return File new(DistLocator locate() getPath() + File separator + "sdk")
 	}
+    
 }

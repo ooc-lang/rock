@@ -5,7 +5,7 @@ import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl
 
 Module: class extends Node {
 
-    fullName, simpleName : String
+    fullName, simpleName, pathElement : String
     
     types     := HashMap<TypeDecl> new()
     functions := HashMap<FunctionDecl> new()
@@ -31,5 +31,9 @@ Module: class extends Node {
     }
     
     accept: func (visitor: Visitor) { visitor visitModule(this) }
+    
+    getOutPath: func (suffix: String) -> String {
+        pathElement + File separator + fullName + suffix
+    }
 
 }

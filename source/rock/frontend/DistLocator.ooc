@@ -2,6 +2,7 @@ import io/[Directory, File]
 import os/Env
 
 DistLocator: class {
+    
 	locate: static func -> File {
 		envDist := Env get("OOC_DIST")
 		if (envDist != null) {
@@ -12,4 +13,5 @@ DistLocator: class {
 		file := File new(Directory getCwd())
 		return file parent()
 	}
+    
 }

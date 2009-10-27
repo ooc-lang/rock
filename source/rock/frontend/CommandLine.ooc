@@ -1,24 +1,36 @@
 import io/File
-import structs/[Array, ArrayList, List]
+import structs/[Array, ArrayList, List, Stack]
 import text/StringTokenizer
 
-import BuildParams
+import Help, Token, BuildParams
 import compilers/[Gcc, Clang, Icc, Tcc]
-import Help
+import drivers/[Driver, CombineDriver]
+import ../parser/Parser
+import ../backend/CGenerator
+import ../middle/[FunctionDecl, FunctionCall, StringLiteral, Node,
+    Module, Statement, Line]
 
 CommandLine: class {
 	params: BuildParams
-	//driver: CombineDriver
+	driver: Driver
 	
-	init: func(args : List<String>) {
+	init: func(args : Array<String>) {
 		params = BuildParams new()
-		//driver = CombineDriver new(params 
+		driver = CombineDriver new(params)
 		
 		modulePaths := ArrayList<String> new()
-		nasms := ArrayList<String> new()
 		params compiler = Gcc new()
 		
+        isFirst := true
+        
 		for (arg: String in args) {
+            if(isFirst) {
+                isFirst = false
+                continue
+            }
+            
+            printf("Processing arg %s\n", arg)
+            
 			if (arg startsWith("-")) {
 				option := arg substring(1)
 				
@@ -127,7 +139,7 @@ CommandLine: class {
         			if(driverName == "combine") {
 						// TODO
 						"FIXME! CombineDriver" println()
-        				//driver = CombineDriver(params) 
+        				//driver = CombineDriver new(params) 
         			} else if (driverName == "sequence") {
 						// TODO
 						"FIXME! SequenceDriver" println()
@@ -218,11 +230,141 @@ CommandLine: class {
         			printf("Unrecognized option: %s\n", arg)
  
         		}
-			}
+			} else if(arg startsWith("+")) {
+                
+                driver compilerArgs add(arg substring(1))
+                
+            } else {
+                lowerArg := arg toLower()
+                if(lowerArg endsWith(".o") || lowerArg endsWith(".c") || lowerArg endsWith(".cpp")) {
+                    driver additionals add(arg)
+                } else {
+                    if(!lowerArg endsWith(".ooc")) {
+                        modulePaths add(arg+".ooc")
+                    } else {
+                        modulePaths add(arg)
+                    }
+                }
+            }
 		}
+        
+        if(modulePaths isEmpty()) {
+            printf("rock: no files\n")
+            exit(1)
+        }
+        
+        if(params sourcePath isEmpty()) params sourcePath add(".")
+		params sourcePath add(params sdkLocation path)
+        
+        errorCode := 0
+        successCount := 0
+        for(modulePath: String in modulePaths) {
+            //try {
+                code := parse(modulePath)
+                if(code == 0) {
+                    successCount += 1
+                } else {
+                    errorCode = 2 // C compiler failure.
+                }
+            //} catch(CompilationFailedError err) {
+                //if(errorCode == 0) errorCode = 1 // ooc failure
+                //System.err.println(err)
+                //fail()
+                //if(!params editor isEmpty()) {
+                    //launchEditor(params editor, err)
+                //}
+            //}
+            
+            //if(params clean) params outPath deleteRecursive()
+        }
+        
 	}
+    
+    parse: func (modulePath: String) -> Int {
+        
+        params outPath mkdirs()
+        
+        printf("%s\n", modulePath)
+        fullName := modulePath substring(0, modulePath length() - 4)
+        module := Module new(fullName, nullToken)
+        stack push(module)
+        Parser parse(modulePath)
+        CGenerator new("rock_tmp", module) write() .close()
+        
+        return 0
+        
+    }    
+    
 }
 
-main: func(args: Array<String>) {
-	CommandLine new(args)
+stack := Stack<Node> new()
+
+stack_push: func (node: Node) {
+
+    printf(">> push %s!!\n", node class name)
+    
+    top : Node = stack peek()
+    match(node class) {
+        case FunctionDecl =>
+            fDecl := node as FunctionDecl
+            match(top class) {
+                case Module =>
+                    module := top as Module
+                    module addFunction(node)
+                    printf("Just added function '%s' to module '%s'\n", fDecl name, module fullName)
+                case =>
+                    printf("Hey you're trying to add a FunctionDecl to a %s. Wtf?\n", top class name)
+            }
+        case => printf("Pushing unknown node type %s\n", top class name)
+    }
+    
+    stack push(node)
+    
+}
+
+stack_pop: func (T: Class) -> Node {
+    
+    node : Node = stack pop()
+    printf("<< pop  %s!!\n", node class name)
+    
+    if(node class != T) {
+        printf("should've been popping a %s, but top is a %s\n", T name, node class name)
+        exit(1)
+    }
+    
+    return node
+    
+}
+
+stack_add: func (node: Node) {
+    
+    printf("++ add %s, stack = \n", node toString())
+    stack_print()
+    
+    top : Node = stack peek()
+    match top class {
+        case FunctionCall =>
+            call := top as FunctionCall
+            call args add(node)
+            printf("Just added arg %s to a FunctionCall to %s\n", node toString(), call toString())
+        case FunctionDecl =>
+            match node class {
+                case Line =>
+                    top as FunctionDecl body add(node)
+                    printf("Adding a line containing a %s\n", node as Line inner toString())
+                case =>
+                    printf("Expected a line in a FunctionDecl, but got a %s\n", node toString())
+            }
+        case =>
+            printf("Huh oh unknown type '%s' of top element", top toString())
+    }
+    
+}
+
+stack_print: func {
+    
+    for(elem: Node in stack) {
+        printf("\t%s\n", elem toString())
+    }
+    
 }

@@ -31,9 +31,8 @@ ShellUtils: class {
 		
 		st := StringTokenizer new(pathVar, ":")
 		while (st hasNext()) {
-			path := st nextToken() append~char(File separator) append(executableName)			
+			path := st nextToken() + File separator + executableName
 			file := File new(path)
-						
 			if (file exists()) {
 				return file
 			}
