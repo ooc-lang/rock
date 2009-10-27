@@ -1,12 +1,11 @@
 import io/File
+import os/Env
 
 import DistLocator
 
-getenv: extern func(path: String) -> String
-
 SdkLocator: class {
 	locate: static func -> File {
-		envDist := getenv("OOC_SDK")
+		envDist := Env get("OOC_SDK")
 		if (envDist != null) {
 			return File new(envDist)
 		}

@@ -1,7 +1,7 @@
 import io/File
+import os/Env
 import text/StringTokenizer
 
-getenv: extern func(path: String) -> String
 
 /**
  * Utilities for launching processes
@@ -16,11 +16,11 @@ ShellUtils: class {
 	 */
 	findExecutable: static func (executableName: String, crucial: Bool) -> File {
 		
-		pathVar := getenv("PATH")
+		pathVar := Env get("PATH")
 		if (pathVar == null) {
-			pathVar = getenv("Path") 
+			pathVar = Env get("Path") 
 			if (pathVar == null) {
-				pathVar = getenv("path")
+				pathVar = Env get("path")
 			}
 		}
 		
