@@ -287,7 +287,8 @@ CommandLine: class {
         module := Module new(fullName, nullToken)
         stack push(module)
         Parser parse(modulePath)
-        CGenerator new("rock_tmp", module) write() .close()
+        CGenerator new(params outPath path, module) write() .close()
+        driver compile(module)
         
         return 0
         

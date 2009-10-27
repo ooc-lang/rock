@@ -5,7 +5,7 @@ import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl
 
 Module: class extends Node {
 
-    fullName, simpleName, pathElement : String
+    fullName, simpleName, pathElement = "" : String
     
     types     := HashMap<TypeDecl> new()
     functions := HashMap<FunctionDecl> new()

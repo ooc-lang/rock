@@ -16,7 +16,7 @@ CGenerator: class extends Skeleton {
 
     init: func (=outPath, =module) {
         File new(outPath) mkdirs()
-        fileName := outPath + File separator + module simpleName
+        fileName := outPath + File separator + module fullName
         File new(fileName) parent() mkdirs()
         printf("Writing to fileName %s\n", fileName)
         hw = AwesomeWriter new(this, FileWriter new(fileName + ".h"))
