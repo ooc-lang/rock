@@ -26,6 +26,7 @@ Visitor: abstract class {
     visitFunctionCall:      abstract func (node: Node)
     
     visitBinaryOp:          abstract func (node: Node)
+    visitParenthesis:       abstract func (node: Node)
     visitLine:              abstract func (node: Node)
 
 }

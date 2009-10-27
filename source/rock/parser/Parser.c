@@ -6,13 +6,14 @@
 #define YYRULECOUNT 32
 
 #include <stdio.h>
+#include <source/rock/middle/Parenthesis-fwd.h>
 #include <source/rock/middle/Type-fwd.h>
 #include <source/rock/middle/Line-fwd.h>
 #include <source/rock/middle/Node-fwd.h>
 #include <source/rock/middle/StringLiteral-fwd.h>
 #include <source/rock/middle/VariableAccess-fwd.h>
 #include <source/rock/middle/IntLiteral-fwd.h>
-#include <source/rock/middle/BinaryOp.h>
+#include <source/rock/middle/BinaryOp.h> // tight dependency: we use static members
 #include <source/rock/middle/FunctionDecl-fwd.h>
 #include <source/rock/middle/FunctionCall-fwd.h>
 #include <sdk/lang/BasicTypes-fwd.h>
@@ -281,11 +282,30 @@ YY_ACTION(void) yy_1_NUMBER(char *yytext, int yyleng)
   yyprintf((stderr, "do yy_1_NUMBER\n"));
    yy=IntLiteral_new_intLiteral(atoll(yytext), nullToken); ;
 }
+YY_ACTION(void) yy_2_Value(char *yytext, int yyleng)
+{
+#define inner yyval[-1]
+#define name yyval[-2]
+#define i yyval[-3]
+  yyprintf((stderr, "do yy_2_Value\n"));
+  
+            yy=Parenthesis_new_parenthesis(inner, nullToken)
+        ;
+#undef inner
+#undef name
+#undef i
+}
 YY_ACTION(void) yy_1_Value(char *yytext, int yyleng)
 {
-#define i yyval[-1]
+#define inner yyval[-1]
+#define name yyval[-2]
+#define i yyval[-3]
   yyprintf((stderr, "do yy_1_Value\n"));
-   yy=VariableAccess_new_variableAccess(i, nullToken) ;
+  
+            yy=VariableAccess_new_variableAccess(name, nullToken)
+        ;
+#undef inner
+#undef name
 #undef i
 }
 YY_ACTION(void) yy_2_Product(char *yytext, int yyleng)
@@ -474,18 +494,18 @@ YY_RULE(int) yy_TIMES()
   return 0;
 }
 YY_RULE(int) yy_Value()
-{  int yypos0= yypos, yythunkpos0= yythunkpos;  yyDo(yyPush, 1, 0);
+{  int yypos0= yypos, yythunkpos0= yythunkpos;  yyDo(yyPush, 3, 0);
   yyprintf((stderr, "%s\n", "Value"));
-  {  int yypos11= yypos, yythunkpos11= yythunkpos;  if (!yy_NUMBER()) goto l12;  yyDo(yySet, -1, 0);  goto l11;
-  l12:;	  yypos= yypos11; yythunkpos= yythunkpos11;  if (!yy_STRING_LIT()) goto l13;  yyDo(yySet, -1, 0);  goto l11;
-  l13:;	  yypos= yypos11; yythunkpos= yythunkpos11;  if (!yy_IDENT()) goto l14;  yyDo(yySet, -1, 0);
+  {  int yypos11= yypos, yythunkpos11= yythunkpos;  if (!yy_NUMBER()) goto l12;  yyDo(yySet, -3, 0);  goto l11;
+  l12:;	  yypos= yypos11; yythunkpos= yythunkpos11;  if (!yy_STRING_LIT()) goto l13;  yyDo(yySet, -3, 0);  goto l11;
+  l13:;	  yypos= yypos11; yythunkpos= yythunkpos11;  if (!yy_IDENT()) goto l14;  yyDo(yySet, -2, 0);
   {  int yypos15= yypos, yythunkpos15= yythunkpos;  if (!yy_ASSIGN()) goto l15;  goto l14;
   l15:;	  yypos= yypos15; yythunkpos= yythunkpos15;
   }  yyDo(yy_1_Value, yybegin, yyend);  goto l11;
-  l14:;	  yypos= yypos11; yythunkpos= yythunkpos11;  if (!yy_OPEN_PAREN()) goto l10;  if (!yy_Expr()) goto l10;  yyDo(yySet, -1, 0);  if (!yy_CLOS_PAREN()) goto l10;
+  l14:;	  yypos= yypos11; yythunkpos= yythunkpos11;  if (!yy_OPEN_PAREN()) goto l10;  if (!yy_Expr()) goto l10;  yyDo(yySet, -1, 0);  if (!yy_CLOS_PAREN()) goto l10;  yyDo(yy_2_Value, yybegin, yyend);
   }
   l11:;	
-  yyprintf((stderr, "  ok   %s @ %s\n", "Value", yybuf+yypos));  yyDo(yyPop, 1, 0);
+  yyprintf((stderr, "  ok   %s @ %s\n", "Value", yybuf+yypos));  yyDo(yyPop, 3, 0);
   return 1;
   l10:;	  yypos= yypos0; yythunkpos= yythunkpos0;
   yyprintf((stderr, "  fail %s @ %s\n", "Value", yybuf+yypos));

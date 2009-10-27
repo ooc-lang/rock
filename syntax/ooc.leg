@@ -1,12 +1,13 @@
 %{
 #include <stdio.h>
+#include <source/rock/middle/Parenthesis-fwd.h>
 #include <source/rock/middle/Type-fwd.h>
 #include <source/rock/middle/Line-fwd.h>
 #include <source/rock/middle/Node-fwd.h>
 #include <source/rock/middle/StringLiteral-fwd.h>
 #include <source/rock/middle/VariableAccess-fwd.h>
 #include <source/rock/middle/IntLiteral-fwd.h>
-#include <source/rock/middle/BinaryOp.h>
+#include <source/rock/middle/BinaryOp.h> // tight dependency: we use static members
 #include <source/rock/middle/FunctionDecl-fwd.h>
 #include <source/rock/middle/FunctionCall-fwd.h>
 #include <sdk/lang/BasicTypes-fwd.h>
@@ -103,8 +104,12 @@ Product = l:Value
 
 Value   = i:NUMBER
         | i:STRING_LIT
-        | i:IDENT !ASSIGN { $$=VariableAccess_new_variableAccess(i, nullToken) }
-        | OPEN_PAREN i:Expr CLOS_PAREN
+        | name:IDENT !ASSIGN {
+            $$=VariableAccess_new_variableAccess(name, nullToken)
+        }
+        | OPEN_PAREN inner:Expr CLOS_PAREN {
+            $$=Parenthesis_new_parenthesis(inner, nullToken)
+        }
         
 NUMBER       = < [0-9]+ >                      - { $$=IntLiteral_new_intLiteral(atoll(yytext), nullToken); }
 STRING_LIT   = '"' < (!'"' .)* > '"'           - { $$=StringLiteral_new_stringLiteral(String_clone(yytext), nullToken); }
