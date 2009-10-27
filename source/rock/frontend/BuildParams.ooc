@@ -3,12 +3,13 @@ import structs/ArrayList
 
 import compilers/AbstractCompiler
 import PathList
+import DistLocator, SdkLocator
 
 BuildParams: class {
 	compiler: AbstractCompiler = null
 	
-	// distLocation: File = DistLocator locate()
-	// sdkLocation: File = SdkLocator locate()
+	distLocation: File = DistLocator locate()
+	sdkLocation: File = SdkLocator locate()
 	
 	sourcePath: PathList = PathList new()
 	libPath: PathList = PathList new()
