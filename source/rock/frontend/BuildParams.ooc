@@ -15,7 +15,7 @@ BuildParams: class {
 	libPath: PathList = PathList new()
 	incPath: PathList = PathList new()
 	
-	outPath: File = File new("ooc_tmp")
+	outPath: File = File new("rock_tmp")
 	
 	// Path of the text editor to run when an error is encountered in an ooc file 
 	editor: String = ""

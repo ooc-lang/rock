@@ -1,5 +1,7 @@
+import ../utils/ShellUtils
 import io/[Directory, File]
 import os/Env
+import rock/rock
 
 DistLocator: class {
     
@@ -8,7 +10,15 @@ DistLocator: class {
 		if (envDist != null) {
 			return File new(envDist)
 		}
-		
+	
+        printf("execName = %s\n", Rock execName)
+        exec := ShellUtils findExecutable(Rock execName, false)
+        if(exec) {
+            realpath := exec getAbsolutePath()
+            printf("Found ourselves at %s, realpath = %s\n", exec path, realpath)
+            return File new(File new(realpath) parent() parent() parent() path, "ooc")
+        }
+    	
 		// fall back on the current working directory
 		file := File new(Directory getCwd())
 		return file parent()

@@ -29,8 +29,6 @@ CommandLine: class {
                 continue
             }
             
-            printf("Processing arg %s\n", arg)
-            
 			if (arg startsWith("-")) {
 				option := arg substring(1)
 				
