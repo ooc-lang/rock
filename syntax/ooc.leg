@@ -1,5 +1,7 @@
 %{
 #include <stdio.h>
+
+/* rock node types we're using */
 #include <source/rock/middle/Parenthesis-fwd.h>
 #include <source/rock/middle/Type-fwd.h>
 #include <source/rock/middle/Line-fwd.h>
@@ -14,9 +16,30 @@
 
 #define YYSTYPE struct _rock_middle__Node*
 
+/* Functions to communicate with rock */
 void stack_push(struct _rock_middle__Node *node);
 struct _rock_middle__Node *stack_pop(struct _lang__Class *);
 void stack_add(struct _rock_middle__Node *node);
+
+/* Current line number */
+static int yylineno;
+
+/* Path of the file we're parsing. haha. */
+static char* path;
+ 
+/* Populate this with the code to compile */
+static char* codebuf;
+
+/* Send input to yyparse from codebuf instead of stdin */
+#define YY_INPUT(buf, result, max_size) {        \
+	int yyc;                                     \
+	if (codebuf && *codebuf != '\0')             \
+		yyc= *codebuf++;                         \
+	else                                         \
+		yyc= EOF;                                \
+	result= (EOF == yyc) ? 0 : (*(buf)= yyc, 1); \
+}
+
 %}
 
 Stmt    = WS e:Expr EOL
@@ -127,13 +150,16 @@ OPEN_BRACK   = '{'           -
 CLOS_BRACK   = '}'           -
 
 -       = [ \t]*
-EOL     = '\n' | '\r\n' | '\r' | ';'
+EOL     = ('\n' | '\r\n' | '\r') { yylineno++ } | ';'
 WS      = ([ \t] | EOL)*
 
 %%
 
-int Parser_parse() {
-  while (yyparse()) {}
-  
-  return 0;
+int Parser_parse(char *pathArg, char *codebufArg) {
+    /* Parse code */
+    path = pathArg;
+    codebuf = codebufArg;
+    yylineno = 1;
+    while (yyparse()) {}
+    return 0;
 }

@@ -1,6 +1,7 @@
 import structs/[Array, List, ArrayList, Stack]
+import io/File
 //import frontend/[Lexer, SourceReader, Token, Help]
-import frontend/[Help, Token]
+import frontend/[Help, Token, SourceReader]
 import parser/Parser
 import middle/[FunctionDecl, FunctionCall, StringLiteral, Node, Module,
     Statement, Line]
@@ -9,47 +10,42 @@ import frontend/compilers/Gcc
 
 main: func (argc: Int, argv: String*) -> Int {
 
-    /*
-	if(argc <= 1) {
-		printf("rock: no files\n")
-		return 1
-	}
+    if(argc <= 1) {
+        printf("rock: no files\n")
+        return 1
+    }
 
-	unitList := ArrayList<String> new()
+    unitList := ArrayList<String> new()
 
-	//for(arg: String in Array new(argc - 1, argv + 1)) {
-	cursor := argv + 1
-	for(i in 0..argc - 1) {
-		arg := cursor@
-		cursor += 1
-		match {
-			case arg startsWith("-") =>
-				match {
-					case arg equals("--help-none") =>
-						Help printHelpNone()
-					case =>
-					("Unknown compiler option " + arg) println()
-				}
-			case =>
-				unitList add(arg);
-		}
-	}
-	
-	for(unit: String in unitList) {
-		printf("%s\n", unit)
-	}
-    */
+    cursor := argv + 1
+    for(i in 0..argc - 1) {
+        arg := cursor@
+        cursor += 1
+        match {
+            case arg startsWith("-") =>
+                match {
+                    case arg equals("--help-none") =>
+                        Help printHelpNone()
+                    case =>
+                    ("Unknown compiler option " + arg) println()
+                }
+            case =>
+                unitList add(arg);
+        }
+    }
+    
+    for(unit: String in unitList) {
+        printf("%s\n", unit)
+        fullName := unit endsWith(".ooc") ? unit substring(0, unit length() - 4) : unit clone()
+        module := Module new(fullName, nullToken)
+        stack push(module)
+        Parser parse(unit, SourceReader readToString(File new(unit)))
+        CGenerator new("rock_tmp", module) write() .close()
+    }
     
     //compiler := Gcc new()
     //printf("command line = %s\n", compiler getCommandLine())
     
-    module := Module new("test", nullToken)
-    stack push(module)
-    Parser parse()
-    CGenerator new("rock_tmp", module) write() .close()
-    
-	println()
-
 }
 
 stack := Stack<Node> new()
