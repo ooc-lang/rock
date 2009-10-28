@@ -11,7 +11,7 @@ If you can think of a better acronym, let us know.
 It should compile fine under the latest j/ooc,
 which you can get at http://github.com/nddrylliog/ooc
 
-When rock is be stable enough, we're going to ditch j/ooc for good
+When rock will be stable enough, we're going to ditch j/ooc for good
 and happily live as chicken and egg forever.
 
 Install

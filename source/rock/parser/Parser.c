@@ -19,10 +19,14 @@
 #include <source/rock/middle/VariableAccess-fwd.h>
 #include <source/rock/middle/IntLiteral-fwd.h>
 #include <source/rock/middle/BinaryOp.h> // tight dependency: we use static members
-#include <source/rock/middle/FunctionDecl-fwd.h>
 #include <source/rock/middle/FunctionCall-fwd.h>
+#include <source/rock/middle/FunctionDecl-fwd.h>
+#include <source/rock/middle/CoverDecl-fwd.h>
 
 #define YYSTYPE struct _rock_middle__Node*
+
+// uncomment to enable leg's finicky debug output
+//#define YY_DEBUG 1
 
 /* Functions to communicate with rock */
 void stack_push(struct _rock_middle__Node *node);
@@ -39,16 +43,6 @@ static char* path;
 static struct _io__FileReader *stream;
 
 /* Send input to yyparse from codebuf instead of stdin */
-/*
-#define YY_INPUT(buf, result, max_size) {        \
-	int yyc;                                     \
-	if (codebuf && *codebuf != '\0')             \
-		yyc= *codebuf++;                         \
-	else                                         \
-		yyc= EOF;                                \
-	result= (EOF == yyc) ? 0 : (*(buf)= yyc, 1); \
-}
-*/
 #define YY_INPUT(buf, result, max_size) {        \
 	int yyc;                                     \
 	if (FileReader_hasNext(stream))              \
@@ -481,7 +475,7 @@ YY_ACTION(void) yy_1_Stmt(char *yytext, int yyleng)
 #define d yyval[-1]
 #define e yyval[-2]
   yyprintf((stderr, "do yy_1_Stmt\n"));
-   printf("error\n"); ;
+   printf("error at line %d: unexpected input '%s'\n", yylineno, yytext); exit(1); ;
 #undef d
 #undef e
 }
@@ -945,7 +939,7 @@ int Parser_parse(char *pathArg) {
     /* Parse code */
     path = pathArg;
     stream = FileReader_new_withName(path);
-    yylineno = 1;
+    yylineno = 0;
     while (yyparse()) {}
     return 0;
 }
