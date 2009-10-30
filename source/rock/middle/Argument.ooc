@@ -3,16 +3,12 @@ import VariableDecl, Type
 
 Argument: abstract class extends VariableDecl {
     
-    init: func ~argument (.type, .token) { super(type, token) }
-    
-    name: func -> String {
-        atoms get(0) as Atom name
-    }
+    init: func ~argument (.type, .name, .token) { super(type, name, token) }
     
 }
 
 VarArg: class extends Argument {
     
-    init: func ~varArg (.type, .token) { super(type, token) }
+    init: func ~varArg (.type, .token) { super(type, "<...>", token) }
     
 }

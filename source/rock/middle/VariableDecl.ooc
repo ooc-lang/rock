@@ -1,28 +1,22 @@
 import structs/ArrayList
-import Node, Type, Declaration, Expression, Visitor
-
-Atom: class {
-    name: String
-    expr: Expression
-    
-    init: func ~name (=name) {}
-    init: func ~nameExpr (=name, =expr) {}
-}
+import Node, Type, Declaration, Expression, Visitor, TypeDecl
 
 VariableDecl: class extends Declaration {
 
+    name: String
     type: Type
+    expr: Expression
+    owner: TypeDecl
+    
     isStatic := false
     isExtern := false
-    atoms := ArrayList<Atom> new()
     
-    init: func ~vDecl (=type, .token) {
-        super(token)
+    init: func ~vDecl (.type, .name, .token) {
+        this(type, name, null, token)
     }
     
-    init: func ~vDeclWithAtom (=type, atom: Atom, .token) {
+    init: func ~vDeclWithAtom (=type, =name, =expr, .token) {
         super(token)
-        atoms add(atom)
     }
     
     accept: func (visitor: Visitor) {

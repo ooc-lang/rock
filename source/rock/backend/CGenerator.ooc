@@ -93,21 +93,10 @@ CGenerator: class extends Skeleton {
     }
     
     /** Write a variable declaration */
-    visitVariableDecl: func (varDecl: VariableDecl) {
-        visitType(varDecl type)
-        isFirst := true
-        for(atom: Atom in varDecl atoms) {
-            if(isFirst) {
-                isFirst = false 
-                current app(' ')
-            } else {
-                current app(", ")
-            }
-            current app(atom name)
-            if(atom expr) {
-                current app(" = "). app(atom expr)
-            }
-        }
+    visitVariableDecl: func (vDecl: VariableDecl) {
+        current app(vDecl type). app(' '). app(vDecl name)
+        if(vDecl expr)
+            current app(" = "). app(vDecl expr)
     }
     
     /** Write a variable access */
