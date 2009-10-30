@@ -7,8 +7,8 @@ import compilers/[Gcc, Clang, Icc, Tcc]
 import drivers/[Driver, CombineDriver]
 import ../parser/Parser
 import ../backend/CGenerator
-import ../middle/[FunctionDecl, FunctionCall, StringLiteral, Node,
-    Module, Statement, Line]
+import ../middle/[FunctionDecl, TypeDecl, ClassDecl, CoverDecl, 
+    FunctionCall, StringLiteral, Node, Module, Statement, Line]
 
 CommandLine: class {
 	params: BuildParams
@@ -303,19 +303,33 @@ stack_push: func (node: Node) {
 
     printf(">> push %s!!\n", node class name)
     
-    top : Node = stack peek()
-    match(node class) {
-        case FunctionDecl =>
-            fDecl := node as FunctionDecl
-            match(top class) {
+    parent: Node = stack peek()
+    c := node class
+    match {
+        case c instanceof(TypeDecl) =>
+            tDecl := node as TypeDecl
+            match(parent class) {
                 case Module =>
-                    module := top as Module
-                    module addFunction(node)
-                    printf("Just added function '%s' to module '%s'\n", fDecl name, module fullName)
+                    module := parent as Module
+                    module addType(tDecl)
+                    printf("Just added type declaration '%s'\n", tDecl name)
+                    printf("Now has the following type declarations:\n")
+                    for(td : TypeDecl in module types) {
+                        printf(" - %s\n", td toString())
+                    }
                 case =>
-                    printf("Hey you're trying to add a FunctionDecl to a %s. Wtf?\n", top class name)
+                    printf("Hey you're trying to add a %s to a %s. Wtf?\n", tDecl class name, parent class name)
             }
-        case => printf("Pushing unknown node type %s\n", top class name)
+        case c instanceof(FunctionDecl) =>
+            fDecl := node as FunctionDecl
+            match(parent class) {
+                case Module =>
+                    parent as Module addFunction(fDecl)
+                    printf("Just added function '%s'\n", fDecl name)
+                case =>
+                    printf("Hey you're trying to add a %s to a %s. Wtf?\n", fDecl class name, parent class name)
+            }
+        case => printf("Pushing unknown node type %s\n", parent class name)
     }
     
     stack push(node)
@@ -366,5 +380,13 @@ stack_print: func {
     for(elem: Node in stack) {
         printf("\t%s\n", elem toString())
     }
+    
+}
+
+stack_peek: func -> Node {
+    
+    node : Node = stack peek()
+    printf("@@ peeking %s\n", node toString())
+    return node
     
 }

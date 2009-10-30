@@ -10,12 +10,15 @@ ClassDecl: class extends TypeDecl {
 
     isAbstract := false
 
-    init: func ~coverDecl(.name, .superType, .token) { super(name, superType, token) }
+    init: func ~classDecl(.name, .superType, .token) {
+        super(name clone(), superType, token)
+    }
     
     accept: func (visitor: Visitor) { visitor visitClassDecl(this) }
     
     isObjectClass: func -> Bool {
-		name equals("Object")
+		//name equals("Object")
+        true // workaround
 	}
 	
 	isClassClass: func -> Bool {
@@ -25,6 +28,10 @@ ClassDecl: class extends TypeDecl {
 	isRootClass: func -> Bool {
 		isObjectClass() || isClassClass()
 	}
+    
+    toString: func -> String {
+        class name + " " + name
+    }
     
 }
 

@@ -5,6 +5,7 @@
 #include <sdk/lang/BasicTypes-fwd.h>
 #include <sdk/io/FileReader.h>
 
+#include <source/rock/frontend/CommandLine-fwd.h>
 #include <source/rock/middle/Parenthesis-fwd.h>
 #include <source/rock/middle/Type-fwd.h>
 #include <source/rock/middle/Line-fwd.h>
@@ -19,13 +20,17 @@
 
 #define YYSTYPE struct _rock_middle__Node*
 
+typedef char *String;
+typedef struct _rock_middle__Node *Node;
+typedef struct _rock_middle__Type *Type;
+typedef struct _rock_middle__Statement *Statement;
+typedef struct _rock_middle__CoverDecl *CoverDecl;
+typedef struct _rock_middle__ClassDecl *ClassDecl;
+typedef struct _rock_middle__Expression *Expression;
+typedef struct _rock_middle__OpTypesClass *OpTypesClass;
+
 // uncomment to enable leg's finicky debug output
 //#define YY_DEBUG 1
-
-/* Functions to communicate with rock */
-void stack_push(struct _rock_middle__Node *node);
-struct _rock_middle__Node *stack_pop(struct _lang__Class *);
-void stack_add(struct _rock_middle__Node *node);
 
 /* Current line number */
 static int yylineno;
@@ -37,6 +42,7 @@ static char* path;
 static struct _io__FileReader *stream;
 
 /* Send input to yyparse from codebuf instead of stdin */
+/*
 #define YY_INPUT(buf, result, max_size) {        \
 	int yyc;                                     \
 	if (FileReader_hasNext(stream))              \
@@ -45,11 +51,15 @@ static struct _io__FileReader *stream;
 		yyc= EOF;                                \
 	result= (EOF == yyc) ? 0 : (*(buf)= yyc, 1); \
 }
+*/
+#define YY_INPUT(buf, result, max_size) {        \
+    result = FileReader_read(stream, buf, 0, max_size);     \
+}
 
 %}
 
-Stmt    = WS e:Expr EOL
-        | WS d:Decl EOL
+Stmt    = WS d:Decl EOL
+        | WS e:Expr EOL
         | ( !EOL . )* EOL               { printf("error at line %d: unexpected input '%s'\n", yylineno, yytext); exit(1); }
 
 Expr    = Assignment
@@ -58,12 +68,15 @@ Expr    = Assignment
         | Sum
         | WS "//" < (!EOL .)* > EOL WS  { printf("skipped comment %s\n", yytext) } Expr?
         
-Decl  =  (FunctionDecl | VariableDecl)
+#######################################################################
+        
+Decl  =  (TypeDecl | FunctionDecl | VariableDecl)
+
+#######################################################################
                    
 FunctionDecl = 
     IDENT {
-        printf("<functionDecl '%s'>\n", yytext);
-        stack_push(FunctionDecl_new_funcDecl(String_clone(yytext), nullToken));
+        stack_push((Node) FunctionDecl_new_funcDecl(String_clone(yytext), nullToken));
     }
     COLON "func" -
     Body? 
@@ -71,43 +84,87 @@ FunctionDecl =
         stack_pop(FunctionDecl_class())
     }
 
+#######################################################################
+    
 Body = 
     OPEN_BRACK
     EOL*
     Line*
     CLOS_BRACK -
-                   
-Line  =  (WS !EOL e:Expr EOL*) { stack_add(Line_new_line($$)); }
+
+#######################################################################
+
+Line  =  (WS !EOL e:Expr EOL*) { stack_add((Node) Line_new_line((Statement) $$)); }
+
+#######################################################################
+    
+TypeDecl = (CoverDecl | ClassDecl)
+    
+#######################################################################
+    
+CoverDecl = (FromCoverDecl)
+    
+FromCoverDecl =
+    IDENT {
+        stack_push((Node) CoverDecl_new_coverDecl(String_clone(yytext), NULL, nullToken))
+    } -
+    COLON "cover" - "from" - t:Type { CoverDecl_setFromType((CoverDecl) stack_peek(), (Type) t); }
+    - EOL - {
+        stack_pop(CoverDecl_class())
+    }
+
+#######################################################################
+
+ClassDecl = 
+    IDENT {
+        stack_push((Node) ClassDecl_new_classDecl(String_clone(yytext), NULL, nullToken))
+    } -
+    COLON "class"
+    - EOL - {
+        stack_pop(ClassDecl_class())
+    }
+
+#######################################################################
 
 VariableDecl =
-    name:IDENT
-    COLON
-    type:Type {
-        printf("Got a variable declaration with name = %s and type = %s\n", name, Node_toString(type));
-        $$=VariableDecl_new_vDeclWithAtom(type, Atom_new_name(name), nullToken)
+    name:IDENT -
+    COLON -
+    type:Type - EOL -  {
+        printf("Got a variable declaration with name = %s and type = %s\n", (String) name, Node_toString(type));
+        $$=(Node) VariableDecl_new_vDeclWithAtom((Type) type, Atom_new_name((String) name), nullToken)
     }
     
-Type = IDENT { $$=BaseType_new_baseType(String_clone(yytext), nullToken) }
+#######################################################################
+    
+Type = IDENT { $$=(Node) BaseType_new_baseType(String_clone(yytext), nullToken) }
+
+#######################################################################
 
 Assignment =
     l:VariableAccess
     ASSIGN
     r:Expr
-    - { $$=BinaryOp_new_binaryOp(l, r, ((struct _rock_middle__OpTypesClass *) OpTypes_class())->ass, nullToken); }
+    - { $$=(Node) BinaryOp_new_binaryOp((Expression) l, (Expression) r, ((OpTypesClass) OpTypes_class())->ass, nullToken); }
+    
+#######################################################################
     
 VariableAccess =
-    name:IDENT
-    - { $$=VariableAccess_new_variableAccess(name, nullToken); }
+    IDENT { $$=(Node) VariableAccess_new_variableAccess(String_clone(yytext), nullToken); }
+    !ASSIGN
+    -
+
+
+#######################################################################
 
 FunctionCall = 
     IDENT {
-        stack_push(FunctionCall_new_funcCall(String_clone(yytext), nullToken));
+        stack_push((Node) FunctionCall_new_funcCall(String_clone(yytext), nullToken));
     }
     OPEN_PAREN
     ExpressionList?
     CLOS_PAREN
     - {
-        $$ = stack_pop(FunctionCall_class());
+        $$= (Node) stack_pop(FunctionCall_class());
     }
 
 ExpressionList  =  Expr                 { stack_add($$) }
@@ -115,34 +172,36 @@ ExpressionList  =  Expr                 { stack_add($$) }
 
 Sum     = l:Product
                 ( PLUS  r:Product {
-                    $$=BinaryOp_new_binaryOp(l, r, ((struct _rock_middle__OpTypesClass *) OpTypes_class())->add, nullToken);
+                    $$=(Node) BinaryOp_new_binaryOp((Expression) l, (Expression) r,
+                        ((OpTypesClass) OpTypes_class())->add, nullToken);
                 }
                 | MINUS r:Product {
-                    $$=BinaryOp_new_binaryOp(l, r, ((struct _rock_middle__OpTypesClass *) OpTypes_class())->sub, nullToken);
+                    $$=(Node) BinaryOp_new_binaryOp((Expression) l, (Expression) r,
+                        ((OpTypesClass) OpTypes_class())->sub, nullToken);
                 }
                 )*
 
 Product = l:Value
                 ( TIMES  r:Value {
-                    $$=BinaryOp_new_binaryOp(l, r, ((struct _rock_middle__OpTypesClass *) OpTypes_class())->mul, nullToken);
+                    $$=(Node) BinaryOp_new_binaryOp((Expression) l, (Expression) r,
+                        ((OpTypesClass) OpTypes_class())->mul, nullToken);
                 }
                 | DIV r:Value {
-                    $$=BinaryOp_new_binaryOp(l, r, ((struct _rock_middle__OpTypesClass *) OpTypes_class())->div, nullToken);
+                    $$=(Node) BinaryOp_new_binaryOp((Expression) l, (Expression) r,
+                        ((OpTypesClass) OpTypes_class())->div, nullToken);
                 }
                 )*
 
 Value   = i:NUMBER
         | i:STRING_LIT
-        | name:IDENT !ASSIGN {
-            $$=VariableAccess_new_variableAccess(name, nullToken)
-        }
+        | VariableAccess
         | OPEN_PAREN inner:Expr CLOS_PAREN {
-            $$=Parenthesis_new_parenthesis(inner, nullToken)
+            $$=(Node) Parenthesis_new_parenthesis((Expression) inner, nullToken)
         }
         
-NUMBER       = < [0-9]+ >                      - { $$=IntLiteral_new_intLiteral(atoll(yytext), nullToken); }
-STRING_LIT   = '"' < (!'"' .)* > '"'           - { $$=StringLiteral_new_stringLiteral(String_clone(yytext), nullToken); }
-IDENT        = < [a-zA-Z_]([a-zA-Z0-9_])* >    - { $$=String_clone(yytext); }
+NUMBER       = < [0-9]+ >                      - { $$=(Node) IntLiteral_new_intLiteral(atoll(yytext), nullToken); }
+STRING_LIT   = '"' < (!'"' .)* > '"'           - { $$=(Node) StringLiteral_new_stringLiteral(String_clone(yytext), nullToken); }
+IDENT        = < [a-zA-Z_]([a-zA-Z0-9_])* >    -
 COLON        = ':'           -
 COMMA        = ','           -
 ASSIGN       = '='           -

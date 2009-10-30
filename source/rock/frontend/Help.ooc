@@ -18,9 +18,12 @@ Help: class {
 -g, -debug                      compile with debug information
 -noclean                        don't delete any temporary file produced by
                                 the backend
--backend=[gcc,make,none]        choose the compiler backend (default=gcc)
--gui                            secret graphical compilation debugging tool
--daemon:port                    start the compiler daemon on the specified port
+-gcc,-tcc,-icc,-clang,-onlygen  choose the compiler backend (default=gcc)
+-onlygen doesn't launch any C compiler, and implies -noclean
+-gc=[dynamic,static,off]        link dynamically, link statically, or doesn't
+                                link with the Boehm GC at all.
+-driver=[combine,sequence]      choose the driver to use. combine does all in one,
+                                sequence does all the .c one after the other.
 -sourcepath=output/path/        location of your source files
 -outpath                        where to output the  c/ h files
 -Ipath, -incpath=path           where to find C headers

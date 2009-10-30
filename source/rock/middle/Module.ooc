@@ -26,7 +26,6 @@ Module: class extends Node {
     }
     
     addType: func (tDecl: TypeDecl) {
-        printf("Just added type %s\n", tDecl name)
         types add(tDecl name, tDecl)
     }
     

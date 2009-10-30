@@ -1,0 +1,3 @@
+Dog : class
+
+blah: func {}

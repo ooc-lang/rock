@@ -80,7 +80,7 @@ BinaryOp: class extends Expression {
     getType: func -> Type { left getType() }
     
     toString: func -> String {
-        left toString() + OpTypes repr get(type) + right toString()
+        return left toString() + OpTypes repr get(type) + right toString()
     }
 
 }
