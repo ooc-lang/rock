@@ -11,6 +11,6 @@ Rock: class {
 main: func(args: Array<String>) {
     
     Rock execName = args get(0)
-	CommandLine new(args)
+    CommandLine new(args)
     
 }

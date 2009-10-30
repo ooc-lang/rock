@@ -1,4 +1,4 @@
 Locatable: abstract class {
-	getStart: abstract func() -> Int
-	getLength: abstract func() -> Int
+    getStart: abstract func() -> Int
+    getLength: abstract func() -> Int
 }

@@ -5,9 +5,9 @@ include stdint
 ArgsWriteMode: cover from Int32 {}
 
 ArgsWriteModes: class {
-	FULL = 1,
-	NAMES_ONLY = 2,
-	TYPES_ONLY = 3 : static const Int32
+    FULL = 1,
+    NAMES_ONLY = 2,
+    TYPES_ONLY = 3 : static const Int32
 }
 
 FunctionDeclWriter: abstract class extends Skeleton {
@@ -41,13 +41,13 @@ FunctionDeclWriter: abstract class extends Skeleton {
     writeFullName: static func (this: This, fDecl: FunctionDecl) {
         
         if(fDecl isExtern() && !fDecl externName isEmpty()) {
-			current app(fDecl externName)
-		} else {
-			if(fDecl isMember()) {
-				current app(fDecl owner getExternName()). app('_')
-			}
-			writeSuffixedName(this, fDecl)
-		}
+            current app(fDecl externName)
+        } else {
+            if(fDecl isMember()) {
+                current app(fDecl owner getExternName()). app('_')
+            }
+            writeSuffixedName(this, fDecl)
+        }
     }
     
     /** Write the name of a function, with its suffix */
@@ -65,14 +65,14 @@ FunctionDeclWriter: abstract class extends Skeleton {
     
     /** Write the arguments of a function */
     writeFuncArgs: static func (this: This, fDecl: FunctionDecl, mode: ArgsWriteMode, baseType: TypeDecl) {
-		
-		current app('(')
-		isFirst := true
+        
+        current app('(')
+        isFirst := true
 
         iter := fDecl args iterator() as Iterator<Argument>
         if(fDecl hasThis() && iter hasNext()) {
-			if(!isFirst) current app(", ")
-			isFirst = false
+            if(!isFirst) current app(", ")
+            isFirst = false
             arg := iter next()
             
             match mode {
@@ -86,42 +86,42 @@ FunctionDeclWriter: abstract class extends Skeleton {
                 case =>
                     current app(arg)
             }
-		}
-		
+        }
+        
         returnType := fDecl returnType
         // TODO add generics support
         /*
-		if(returnType class instanceof(TypeParam)) {
-			if(!isFirst) current.app(", ");
-			isFirst = false;
-			if(mode == ArgsWriteMode.NAMES_ONLY) {
-				current.app(functionDecl.getReturnArg().getName());
-			} else if(mode == ArgsWriteMode.TYPES_ONLY) {
-				functionDecl.getReturnArg().getType().accept(cgen);
-			} else {
-				functionDecl.getReturnArg().accept(cgen);
-			}
-		}
+        if(returnType class instanceof(TypeParam)) {
+            if(!isFirst) current.app(", ");
+            isFirst = false;
+            if(mode == ArgsWriteMode.NAMES_ONLY) {
+                current.app(functionDecl.getReturnArg().getName());
+            } else if(mode == ArgsWriteMode.TYPES_ONLY) {
+                functionDecl.getReturnArg().getType().accept(cgen);
+            } else {
+                functionDecl.getReturnArg().accept(cgen);
+            }
+        }
         */
         /*
-		for(TypeParam param: functionDecl.getTypeParams().values()) {
-			if(param.isGhost()) continue;
-			if(!isFirst) current.app(", ");
-			isFirst = false;
-			if(mode == ArgsWriteMode.NAMES_ONLY) {
-				current.app(param.getArgument().getName());
-			} else if(mode == ArgsWriteMode.TYPES_ONLY) {
-				param.getArgument().getType().accept(cgen);
-			} else {
-				param.getArgument().accept(cgen);
-			}
-		}
+        for(TypeParam param: functionDecl.getTypeParams().values()) {
+            if(param.isGhost()) continue;
+            if(!isFirst) current.app(", ");
+            isFirst = false;
+            if(mode == ArgsWriteMode.NAMES_ONLY) {
+                current.app(param.getArgument().getName());
+            } else if(mode == ArgsWriteMode.TYPES_ONLY) {
+                param.getArgument().getType().accept(cgen);
+            } else {
+                param.getArgument().accept(cgen);
+            }
+        }
         */
-		
-		while(iter hasNext()) {
+        
+        while(iter hasNext()) {
             arg := iter next()
-			if(!isFirst) current app(", ")
-			isFirst = false
+            if(!isFirst) current app(", ")
+            isFirst = false
             
             match mode {
                 case ArgsWriteModes NAMES_ONLY =>
@@ -137,43 +137,43 @@ FunctionDeclWriter: abstract class extends Skeleton {
                 case =>
                     current app(arg)
             }
-		}
+        }
         
-		current app(')')
+        current app(')')
         
-	}
+    }
     
     writeFuncPrototype: static func ~defaults (this: This, fDecl: FunctionDecl) {
-		writeFuncPrototype(this, fDecl, null)
-	}
-	
-	
-	writeFuncPrototype: static func (this: This, fDecl: FunctionDecl, additionalSuffix: String) {
-		
+        writeFuncPrototype(this, fDecl, null)
+    }
+    
+    
+    writeFuncPrototype: static func (this: This, fDecl: FunctionDecl, additionalSuffix: String) {
+        
         // TODO inline member functions don't work yet anyway.
-		//if(functionDecl isInline()) cgen.current.append("inline ")
-			
+        //if(functionDecl isInline()) cgen.current.append("inline ")
+            
         returnType := fDecl returnType
         // TODO add function pointers and generics
-		/*if (returnType ref class instanceof(TypeParam)) {
-			current app("void ")
-		} else if(returnType instanceof FuncType) {
-			TypeWriter writeFuncPointerStart(this, returnType ref as FunctionDecl)
-		} else */ {
-			returnType write(current)
-		}
+        /*if (returnType ref class instanceof(TypeParam)) {
+            current app("void ")
+        } else if(returnType instanceof FuncType) {
+            TypeWriter writeFuncPointerStart(this, returnType ref as FunctionDecl)
+        } else */ {
+            returnType write(current)
+        }
         current app(' ')
-		writeFullName(this, fDecl)
-		if(additionalSuffix) current app(additionalSuffix)
-		
-		writeFuncArgs(this, fDecl)
-		
+        writeFullName(this, fDecl)
+        if(additionalSuffix) current app(additionalSuffix)
+        
+        writeFuncArgs(this, fDecl)
+        
         // TODO add function pointers
-		/*if(returnType instanceof FuncType) {
-			TypeWriter writeFuncPointerEnd((FunctionDecl) returnType.getRef(), cgen)
-		}*/
-		
-	}    
+        /*if(returnType instanceof FuncType) {
+            TypeWriter writeFuncPointerEnd((FunctionDecl) returnType.getRef(), cgen)
+        }*/
+        
+    }    
     
 }
 

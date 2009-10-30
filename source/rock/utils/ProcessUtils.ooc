@@ -9,10 +9,10 @@ import structs/Array
  */
 ProcessUtils: class {
 
-	/** The size, in bytes or chars, of a buffer used by a relay */
-	BUFFER_SIZE = 4096 : static Int 
-	
-	// TODO: missing functionality for redirecting in-/output
+    /** The size, in bytes or chars, of a buffer used by a relay */
+    BUFFER_SIZE = 4096 : static Int 
+    
+    // TODO: missing functionality for redirecting in-/output
 }
 
 /**
@@ -20,26 +20,26 @@ ProcessUtils: class {
  * @author Amos Wenger
  */
 StreamRelay: class {
-	inStream: Reader
-	outStream: Writer
-	
-	init: func(=inStream, =outStream) { }
-	
-	/**
-	 * Update the relay
-	 * @return
-	 * @throws IOException 
-	 */
-	update: func() -> Bool {
-		
-		buffer := "" new(ProcessUtils BUFFER_SIZE)
-		numRead: Int
-		
-		if ((numRead = inStream read(buffer, 0, ProcessUtils BUFFER_SIZE)) != -1) {
-			outStream write(buffer, numRead)
-			return true
-		}
-		
-		return false
-	}
+    inStream: Reader
+    outStream: Writer
+    
+    init: func(=inStream, =outStream) { }
+    
+    /**
+     * Update the relay
+     * @return
+     * @throws IOException 
+     */
+    update: func() -> Bool {
+        
+        buffer := "" new(ProcessUtils BUFFER_SIZE)
+        numRead: Int
+        
+        if ((numRead = inStream read(buffer, 0, ProcessUtils BUFFER_SIZE)) != -1) {
+            outStream write(buffer, numRead)
+            return true
+        }
+        
+        return false
+    }
 }

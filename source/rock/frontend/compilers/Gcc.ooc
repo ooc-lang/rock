@@ -6,64 +6,64 @@ import BaseCompiler
  * @author Amos Wenger
  */
 Gcc: class extends BaseCompiler {
-	
-	init: func~withGcc() {
-		super("gcc")
-	}
-	
-	init: func~withExecutableName(executableName: String) {
-		super(executableName)
-	}
-	
-	addDynamicLibrary: func(library: String) {
-		command add("-l" + library)
-	}
+    
+    init: func~withGcc() {
+        super("gcc")
+    }
+    
+    init: func~withExecutableName(executableName: String) {
+        super(executableName)
+    }
+    
+    addDynamicLibrary: func(library: String) {
+        command add("-l" + library)
+    }
 
-	addIncludePath: func(path: String) {
-		command add("-I" + path)
-	}
+    addIncludePath: func(path: String) {
+        command add("-I" + path)
+    }
 
-	addLibraryPath: func(path: String) {
-		command add("-L"+path)
-	}
+    addLibraryPath: func(path: String) {
+        command add("-L"+path)
+    }
 
-	addObjectFile: func(file: String) {
-		command add(file)
-	}
+    addObjectFile: func(file: String) {
+        command add(file)
+    }
 
-	addOption: func(option: String) {
-		command add(option)
-	}
+    addOption: func(option: String) {
+        command add(option)
+    }
 
-	setOutputPath: func(path: String) {
-		command add("-o")
-		command add(path)
-	}
+    setOutputPath: func(path: String) {
+        command add("-o")
+        command add(path)
+    }
 
-	setCompileOnly: func() {
-		command add("-c")
-	}
+    setCompileOnly: func() {
+        command add("-c")
+    }
 
-	setDebugEnabled: func() {
-		command add("-g")
-	}
-	
+    setDebugEnabled: func() {
+        command add("-g")
+    }
+    
     reset: func() {
-		super reset()
-		command add("-std=c99")
-		command add("-Wall")
-	}
+        super reset()
+        command add("-std=c99")
+        command add("-Wall")
+    }
 
-	supportsDeclInFor: func() -> Bool {
-		return true
-	}
+    supportsDeclInFor: func() -> Bool {
+        return true
+    }
 
-	supportsVLAs: func() -> Bool {
-		return true
-	}
-	
-	clone: func() -> This {
-		return Gcc new()
-	}
-	
+    supportsVLAs: func() -> Bool {
+        return true
+    }
+    
+    clone: func() -> This {
+        return Gcc new()
+    }
+    
 }

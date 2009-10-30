@@ -5,13 +5,13 @@ import DistLocator
 
 SdkLocator: class {
     
-	locate: static func -> File {
-		envDist := Env get("OOC_SDK")
-		if (envDist != null) {
-			return File new(envDist)
-		}
-		
-		return File new(DistLocator locate() getPath() + File separator + "sdk")
-	}
+    locate: static func -> File {
+        envDist := Env get("OOC_SDK")
+        if (envDist != null) {
+            return File new(envDist)
+        }
+        
+        return File new(DistLocator locate() getPath() + File separator + "sdk")
+    }
     
 }

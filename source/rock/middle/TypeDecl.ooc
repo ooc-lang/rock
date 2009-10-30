@@ -40,7 +40,7 @@ TypeDecl: abstract class extends Declaration {
     }
     
     getExternName: func -> String {
-		return (externName && !externName isEmpty()) ? externName : name
+        return (externName && !externName isEmpty()) ? externName : name
     }
     
     superRef: func -> TypeDecl {
@@ -48,38 +48,38 @@ TypeDecl: abstract class extends Declaration {
     }
     
     getFunction: func ~call (call: FunctionCall) -> FunctionDecl {
-		return getFunction(call name, call suffix, call)
-	}
+        return getFunction(call name, call suffix, call)
+    }
     
     getFunction: func ~nameSuffCall (name, suffix: String, call: FunctionCall) -> FunctionDecl {
-		return getFunction(name, suffix, call, true);
-	}
-	
-	getFunction: func ~nameSuffCallRec (name, suffix: String, call: FunctionCall, recursive: Bool) -> FunctionDecl {
-		return getFunction(name, suffix, call, recursive, 0, null)
-	}
-	
-	getFunction: func ~real (name, suffix: String, call: FunctionCall,
+        return getFunction(name, suffix, call, true);
+    }
+    
+    getFunction: func ~nameSuffCallRec (name, suffix: String, call: FunctionCall, recursive: Bool) -> FunctionDecl {
+        return getFunction(name, suffix, call, recursive, 0, null)
+    }
+    
+    getFunction: func ~real (name, suffix: String, call: FunctionCall,
         recursive: Bool, bestScore: Int, bestMatch: FunctionDecl) -> FunctionDecl {
-			
-		for(fDecl: FunctionDecl in functions) {
-			if(fDecl name equals(name) && (suffix == null || fDecl suffix equals(suffix))) {
-				if(!call) return fDecl
-				score := call getScore(fDecl)
-				if(score == -1) return null
-				if(score > bestScore) {
-					bestScore = score
-					bestMatch = fDecl
-				}
-			}
-		}
-		
-		if(recursive && superRef()) {
+            
+        for(fDecl: FunctionDecl in functions) {
+            if(fDecl name equals(name) && (suffix == null || fDecl suffix equals(suffix))) {
+                if(!call) return fDecl
+                score := call getScore(fDecl)
+                if(score == -1) return null
+                if(score > bestScore) {
+                    bestScore = score
+                    bestMatch = fDecl
+                }
+            }
+        }
+        
+        if(recursive && superRef()) {
             return superRef() getFunction(name, suffix, call, true, bestScore, bestMatch)
         }
-		return bestMatch
+        return bestMatch
         
-	}
+    }
     
     getType: func -> Type { type }
 

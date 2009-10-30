@@ -17,17 +17,17 @@ ClassDecl: class extends TypeDecl {
     accept: func (visitor: Visitor) { visitor visitClassDecl(this) }
     
     isObjectClass: func -> Bool {
-		//name equals("Object")
+        //name equals("Object")
         true // workaround
-	}
-	
-	isClassClass: func -> Bool {
-		name equals("Class")
-	}
-	
-	isRootClass: func -> Bool {
-		isObjectClass() || isClassClass()
-	}
+    }
+    
+    isClassClass: func -> Bool {
+        name equals("Class")
+    }
+    
+    isRootClass: func -> Bool {
+        isObjectClass() || isClassClass()
+    }
     
     toString: func -> String {
         class name + " " + name

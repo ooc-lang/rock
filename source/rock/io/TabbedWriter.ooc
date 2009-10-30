@@ -10,7 +10,7 @@ TabbedWriter: class {
     init: func (=stream) { }
     
     close: func {
-    	stream close()
+        stream close()
     }
     
     app: func ~chr (c: Char) {
