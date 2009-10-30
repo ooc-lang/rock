@@ -120,7 +120,12 @@ ClassDecl =
         stack_push((Node) ClassDecl_new_classDecl(String_clone(yytext), NULL, nullToken))
     } -
     COLON "class"
-    - EOL - {
+    - OPEN_BRACK WS
+    (
+        fDecl:FunctionDecl { stack_add(fDecl); }
+      | vDecl:VariableDecl { stack_add(vDecl); }
+    )*
+    WS CLOS_BRACK - {
         stack_pop(ClassDecl_class())
     }
 
@@ -130,8 +135,7 @@ VariableDecl =
     name:IDENT -
     COLON -
     type:Type - EOL -  {
-        printf("Got a variable declaration with name = %s and type = %s\n", (String) name, Node_toString(type));
-        $$=(Node) VariableDecl_new_vDeclWithAtom((Type) type, Atom_new_name((String) name), nullToken)
+        $$=(Node) VariableDecl_new_vDecl((Type) type, (String) name, nullToken);
     }
     
 #######################################################################
@@ -152,7 +156,6 @@ VariableAccess =
     IDENT { $$=(Node) VariableAccess_new_variableAccess(String_clone(yytext), nullToken); }
     !ASSIGN
     -
-
 
 #######################################################################
 
@@ -201,7 +204,7 @@ Value   = i:NUMBER
         
 NUMBER       = < [0-9]+ >                      - { $$=(Node) IntLiteral_new_intLiteral(atoll(yytext), nullToken); }
 STRING_LIT   = '"' < (!'"' .)* > '"'           - { $$=(Node) StringLiteral_new_stringLiteral(String_clone(yytext), nullToken); }
-IDENT        = < [a-zA-Z_]([a-zA-Z0-9_])* >    -
+IDENT        = < [a-zA-Z_]([a-zA-Z0-9_])* >    - { $$=(Node) String_clone(yytext) } # pointer abuse
 COLON        = ':'           -
 COMMA        = ','           -
 ASSIGN       = '='           -
