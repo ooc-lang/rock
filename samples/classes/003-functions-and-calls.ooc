@@ -17,6 +17,6 @@ main: func {
 
     dog: Dog
     dog = malloc(sizeof(Dog))
-    //blah: func
+    dog = "Fido"
     
 }

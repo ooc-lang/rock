@@ -14,7 +14,7 @@ AwesomeWriter: class extends TabbedWriter {
     }
     
     openBlock: func {
-        this app(" {"). tab(). nl()
+        this app("{"). tab(). nl()
     }
     
     closeBlock: func {

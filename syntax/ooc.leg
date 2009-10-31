@@ -21,6 +21,7 @@
 #define YYSTYPE struct _rock_middle__Node*
 
 typedef char *String;
+typedef struct _lang__Object *Object;
 typedef struct _rock_middle__Node *Node;
 typedef struct _rock_middle__Type *Type;
 typedef struct _rock_middle__Statement *Statement;
@@ -164,13 +165,16 @@ Assignment =
     l:VariableAccess
     ASSIGN
     r:Expr
-    - { $$=(Node) BinaryOp_new_binaryOp((Expression) l, (Expression) r, ((OpTypesClass) OpTypes_class())->ass, nullToken); }
+    - {
+        printf("Parsed an assignment, l is a %s\n", ((Object) l)->class->name);
+        $$=(Node) BinaryOp_new_binaryOp((Expression) l, (Expression) r, ((OpTypesClass) OpTypes_class())->ass, nullToken);
+    }
     
 #######################################################################
     
 VariableAccess =
-    IDENT - { $$=(Node) VariableAccess_new_variableAccess(String_clone(yytext), nullToken); }
-    (" "+ IDENT { printf("Got member access! %s\n", yytext); })*
+    IDENT { $$=(Node) VariableAccess_new_variableAccess(String_clone(yytext), nullToken); }
+    (- IDENT { printf("Got member access! %s\n", yytext); })*
 
 #######################################################################
 

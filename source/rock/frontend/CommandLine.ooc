@@ -379,10 +379,10 @@ stack_add: func (node: Node) {
                 case nc instanceof(FunctionDecl) =>
                     tDecl addFunction(node)
                 case =>
-                    printf("Huh oh unknown type '%s' of top element", top toString())
+                    printf("Wrongly trying to add a '%s' to a '%s'", node toString(), top toString())
             }
         case =>
-            printf("Huh oh unknown type '%s' of top element", top toString())
+            printf("Suspiciously trying to add a '%s' to a '%s'", node toString(), top toString())
     }
     
 }
