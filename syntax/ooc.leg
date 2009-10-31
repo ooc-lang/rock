@@ -76,7 +76,8 @@ Decl  =  (TypeDecl | FunctionDecl | VariableDecl)
                    
 FunctionDecl = 
     IDENT {
-        stack_push((Node) FunctionDecl_new_funcDecl(String_clone(yytext), nullToken));
+        $$=(Node) FunctionDecl_new_funcDecl(String_clone(yytext), nullToken);
+        stack_push($$);
     }
     COLON "func" -
     Body? 
@@ -88,8 +89,9 @@ FunctionDecl =
     
 Body = 
     OPEN_BRACK
-    EOL*
+    WS
     Line*
+    WS
     CLOS_BRACK -
 
 #######################################################################
@@ -122,8 +124,8 @@ ClassDecl =
     COLON "class"
     - OPEN_BRACK WS
     (
-        fDecl:FunctionDecl { stack_add(fDecl); }
-      | vDecl:VariableDecl { stack_add(vDecl); }
+        WS fDecl:FunctionDecl { stack_add(fDecl); }
+      | WS vDecl:VariableDecl { stack_add(vDecl); }
     )*
     WS CLOS_BRACK - {
         stack_pop(ClassDecl_class())
