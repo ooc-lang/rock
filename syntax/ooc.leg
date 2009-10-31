@@ -61,14 +61,15 @@ static struct _io__FileReader *stream;
 Stmt    = WS d:Decl EOL
         | WS e:Expr EOL
         | WS ( !EOL . )* EOL {
-            printf("error at line %d: unexpected input '%s'\n", yylineno, yytext); exit(1);
+            printf("error at line %d: unexpected input '%s'\n", yylineno, yytext);
+            exit(1);
         }
 
 Expr    = Assignment
         | VariableDecl
         | FunctionCall
         | Sum
-        | WS "//" < (!EOL .)* > EOL WS  { printf("skipped comment %s\n", yytext) } Expr?
+        | WS Comment WS Expr
         
 #######################################################################
         
@@ -84,7 +85,7 @@ FunctionDecl =
     COLON "func" -
     Body? 
     - {
-        stack_pop(FunctionDecl_class())
+        $$=(Node) stack_pop(FunctionDecl_class())
     }
 
 #######################################################################
@@ -98,7 +99,9 @@ Body =
 
 #######################################################################
 
-Line  =  (WS !EOL e:Expr EOL WS) { stack_add((Node) Line_new_line((Statement) $$)); }
+Line  = (WS !EOL e:Expr EOL WS) {
+            stack_add((Node) Line_new_line((Statement) $$));
+        }
         | Comment
 
 #######################################################################
@@ -189,7 +192,7 @@ FunctionCall =
         $$= (Node) stack_pop(FunctionCall_class());
     }
 
-ExpressionList  =  Expr                 { stack_add($$) }
+ExpressionList  =  Expr        { stack_add($$) }
                    (COMMA Expr { stack_add($$) })*
 
 Sum     = l:Product

@@ -21,7 +21,7 @@ Type: abstract class extends Node {
     
     getName: abstract func -> String
     
-    toString: func -> String { "Type: " + getName() }
+    toString: func -> String { getName() }
     
 }
 

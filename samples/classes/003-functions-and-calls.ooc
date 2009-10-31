@@ -12,11 +12,3 @@ Dog: class {
     }
 
 }
-
-main: func {
-
-    dog: Dog
-    dog = malloc(sizeof(Dog))
-    dog = "Fido"
-    
-}

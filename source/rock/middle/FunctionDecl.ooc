@@ -37,4 +37,8 @@ FunctionDecl: class extends Expression {
     
     getType: func -> Type { type }
     
+    toString: func -> String {
+        name + ": func"
+    }
+    
 }

@@ -59,5 +59,9 @@ FunctionCall: class extends Expression {
     }
     
     getType: func -> Type { ref ? ref returnType : null }
+    
+    toString: func -> String {
+        name +"()"
+    }
 
 }

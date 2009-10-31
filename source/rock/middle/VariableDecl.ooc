@@ -24,5 +24,9 @@ VariableDecl: class extends Declaration {
     }
     
     getType: func -> Type { type }
+    
+    toString: func -> String {
+        name + ": " + type toString()
+    }
 
 }
