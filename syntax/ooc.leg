@@ -42,25 +42,26 @@ static char* path;
 static struct _io__FileReader *stream;
 
 /* Send input to yyparse from codebuf instead of stdin */
-/*
-#define YY_INPUT(buf, result, max_size) {        \
-	int yyc;                                     \
-	if (FileReader_hasNext(stream))              \
-		yyc= FileReader_read_char(stream);       \
-	else                                         \
-		yyc= EOF;                                \
-	result= (EOF == yyc) ? 0 : (*(buf)= yyc, 1); \
-}
-*/
 #define YY_INPUT(buf, result, max_size) {        \
     result = FileReader_read(stream, buf, 0, max_size);     \
+    static int doneNewlineHack = 0;              \
+    if(result == 0 && doneNewlineHack == 0) {    \
+        doneNewlineHack = 1;                     \
+        char last = buf[strlen(buf) - 1];        \
+        if(last != '\n') {                       \
+            (*buf) = '\n';                       \
+            result = 1;                          \
+        }                                        \
+    }                                            \
 }
 
 %}
 
 Stmt    = WS d:Decl EOL
         | WS e:Expr EOL
-        | ( !EOL . )* EOL               { printf("error at line %d: unexpected input '%s'\n", yylineno, yytext); exit(1); }
+        | WS ( !EOL . )* EOL {
+            printf("error at line %d: unexpected input '%s'\n", yylineno, yytext); exit(1);
+        }
 
 Expr    = Assignment
         | VariableDecl
@@ -96,12 +97,22 @@ Body =
 
 #######################################################################
 
-Line  =  (WS !EOL e:Expr EOL*) { stack_add((Node) Line_new_line((Statement) $$)); }
+Line  =  (WS !EOL e:Expr EOL WS) { stack_add((Node) Line_new_line((Statement) $$)); }
+        | Comment
 
 #######################################################################
     
 TypeDecl = (CoverDecl | ClassDecl)
     
+#######################################################################
+   
+TypeDeclBody = (
+        WS fDecl:FunctionDecl { stack_add(fDecl); }
+      | WS vDecl:VariableDecl { stack_add(vDecl); }
+      | WS Comment
+    )*
+    WS
+
 #######################################################################
     
 CoverDecl = (FromCoverDecl)
@@ -122,21 +133,24 @@ ClassDecl =
         stack_push((Node) ClassDecl_new_classDecl(String_clone(yytext), NULL, nullToken))
     } -
     COLON "class"
-    - OPEN_BRACK WS
-    (
-        WS fDecl:FunctionDecl { stack_add(fDecl); }
-      | WS vDecl:VariableDecl { stack_add(vDecl); }
-    )*
+    - OPEN_BRACK
+    TypeDeclBody?
     WS CLOS_BRACK - {
         stack_pop(ClassDecl_class())
     }
+    
+#######################################################################
+
+Comment = (CommentLine | CommentMultiLine)
+CommentLine = "//" (!EOL .)* EOL
+CommentMultiLine = "/*" (!"*/" .)* "*/"
 
 #######################################################################
 
 VariableDecl =
     name:IDENT -
     COLON -
-    type:Type - EOL -  {
+    type:Type - {
         $$=(Node) VariableDecl_new_vDecl((Type) type, (String) name, nullToken);
     }
     
@@ -155,9 +169,8 @@ Assignment =
 #######################################################################
     
 VariableAccess =
-    IDENT { $$=(Node) VariableAccess_new_variableAccess(String_clone(yytext), nullToken); }
-    !ASSIGN
-    -
+    IDENT - { $$=(Node) VariableAccess_new_variableAccess(String_clone(yytext), nullToken); }
+    (" "+ IDENT { printf("Got member access! %s\n", yytext); })*
 
 #######################################################################
 
@@ -199,14 +212,14 @@ Product = l:Value
 
 Value   = i:NUMBER
         | i:STRING_LIT
-        | VariableAccess
+        | VariableAccess !ASSIGN
         | OPEN_PAREN inner:Expr CLOS_PAREN {
             $$=(Node) Parenthesis_new_parenthesis((Expression) inner, nullToken)
         }
         
 NUMBER       = < [0-9]+ >                      - { $$=(Node) IntLiteral_new_intLiteral(atoll(yytext), nullToken); }
 STRING_LIT   = '"' < (!'"' .)* > '"'           - { $$=(Node) StringLiteral_new_stringLiteral(String_clone(yytext), nullToken); }
-IDENT        = < [a-zA-Z_]([a-zA-Z0-9_])* >    - { $$=(Node) String_clone(yytext) } # pointer abuse
+IDENT        = < [a-zA-Z_]([a-zA-Z0-9_])* >    - { $$=(Node) String_clone(yytext) }
 COLON        = ':'           -
 COMMA        = ','           -
 ASSIGN       = '='           -
