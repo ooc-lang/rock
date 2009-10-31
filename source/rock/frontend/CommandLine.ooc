@@ -7,7 +7,7 @@ import compilers/[Gcc, Clang, Icc, Tcc]
 import drivers/[Driver, CombineDriver]
 import ../parser/Parser
 import ../backend/CGenerator
-import ../middle/[FunctionDecl, TypeDecl, ClassDecl, CoverDecl, 
+import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl, 
     FunctionCall, StringLiteral, Node, Module, Statement, Line]
 
 CommandLine: class {
@@ -23,7 +23,7 @@ CommandLine: class {
         
         isFirst := true
         
-        for (arg: String in args) {
+        for (arg in args) {
             if(isFirst) {
                 isFirst = false
                 continue
@@ -256,7 +256,7 @@ CommandLine: class {
         
         errorCode := 0
         successCount := 0
-        for(modulePath: String in modulePaths) {
+        for(modulePath in modulePaths) {
             //try {
                 code := parse(modulePath)
                 if(code == 0) {
@@ -356,18 +356,30 @@ stack_add: func (node: Node) {
     stack_print()
     
     top : Node = stack peek()
-    match top class {
-        case FunctionCall =>
+    tc := top class
+    match {
+        case tc instanceof(FunctionCall) =>
             call := top as FunctionCall
             call args add(node)
             printf("Just added arg %s to a FunctionCall to %s\n", node toString(), call toString())
-        case FunctionDecl =>
+        case tc instanceof(FunctionDecl) =>
             match node class {
                 case Line =>
                     top as FunctionDecl body add(node)
                     printf("Adding a line containing a %s\n", node as Line inner toString())
                 case =>
                     printf("Expected a line in a FunctionDecl, but got a %s\n", node toString())
+            }
+        case tc instanceof(TypeDecl) =>
+            tDecl := top as TypeDecl
+            nc := node class
+            match {
+                case nc instanceof(VariableDecl) =>
+                    tDecl addVariable(node)
+                case nc instanceof(FunctionDecl) =>
+                    tDecl addFunction(node)
+                case =>
+                    printf("Huh oh unknown type '%s' of top element", top toString())
             }
         case =>
             printf("Huh oh unknown type '%s' of top element", top toString())
@@ -377,7 +389,7 @@ stack_add: func (node: Node) {
 
 stack_print: func {
     
-    for(elem: Node in stack) {
+    for(elem in stack) {
         printf("\t%s\n", elem toString())
     }
     

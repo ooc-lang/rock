@@ -20,7 +20,14 @@ TypeDecl: abstract class extends Declaration {
         type = BaseType new(name, token)
     }
     
+    addVariable: func (vDecl: VariableDecl) {
+        printf("Class %s just got variable %s\n", name, vDecl toString())
+        variables put(vDecl name, vDecl)
+        vDecl owner = this
+    }
+    
     addFunction: func (fDecl: FunctionDecl) {
+        printf("Class %s just got function %s\n", name, fDecl toString())
         functions put(fDecl name, fDecl)
         fDecl owner = this
     }
