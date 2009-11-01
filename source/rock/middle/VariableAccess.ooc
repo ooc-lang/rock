@@ -3,10 +3,15 @@ import Visitor, Expression, VariableDecl, Type
 
 VariableAccess: class extends Expression {
 
+    expr: Expression
     name: String
     ref: VariableDecl
     
-    init: func ~variableAccess (=name, .token) {
+    init: func ~variableAccess (.name, .token) {
+        this(null, name, token)
+    }
+    
+    init: func ~variableAccessWithExpr (=expr, =name, .token) {
         super(token)
     }
     

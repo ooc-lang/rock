@@ -1,5 +1,5 @@
 import ../utils/ShellUtils
-import io/[Directory, File]
+import io/[File]
 import os/Env
 import rock/rock
 
@@ -18,7 +18,7 @@ DistLocator: class {
         }
         
         // fall back on the current working directory
-        file := File new(Directory getCwd())
+        file := File new(File getCwd())
         return file parent()
     }
     

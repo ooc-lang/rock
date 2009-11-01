@@ -101,6 +101,9 @@ CGenerator: class extends Skeleton {
     
     /** Write a variable access */
     visitVariableAccess: func (varAcc: VariableAccess) {
+        if(varAcc expr) {
+            current app(varAcc expr). app('.')
+        }
         current app(varAcc name)
     }
     

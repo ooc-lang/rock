@@ -58,7 +58,7 @@ SourceReader: class extends Reader {
      */
     readToString: static func (file: File) -> String {
         size := file size()
-        buffer : String = gc_malloc(size) + 1
+        buffer : String = gc_malloc(size + 1)
         FileReader new(file) read(buffer, 0, size)
         buffer[size] = '\0';
         return buffer

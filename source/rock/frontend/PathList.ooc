@@ -1,4 +1,4 @@
-import io/[Directory, File]
+import io/[File]
 import structs/[ArrayList, List, HashMap]
 
 /**
@@ -80,9 +80,9 @@ PathList: class {
     }
     
     addChildren: func(basePath: String, list: List<String>, parent: File) {
-        dir := Directory new((parent parent() getPath()))
+        dir := File new((parent parent() getPath()))
         
-        for (child: File in dir getEntries()) {
+        for (child: File in dir getChildren()) {
             if (child isFile()) {
                 list add(basePath + File separator + child name()) 
             }
