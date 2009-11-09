@@ -27,6 +27,7 @@ Module: class extends Node {
     
     addType: func (tDecl: TypeDecl) {
         types add(tDecl name, tDecl)
+        printf("Added %s, now got %d types\n", tDecl name, types size)
     }
     
     accept: func (visitor: Visitor) { visitor visitModule(this) }

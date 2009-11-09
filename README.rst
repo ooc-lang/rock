@@ -19,6 +19,9 @@ Install
 
 *rock is alpha software*, don't cry if it breaks things
 
+You'll need the latest nagaqueen grammar along the rock/ folder: http://github.com/nddrylliog/nagaqueen
+And also a good fork of peg-leg with a reasonable YY_STACK_SIZE: http://github.com/nddrylliog/peg-leg
+
 Two ways, either
   - create a script in /usr/bin/rock where you export OOC_DIST and call /path/to/your/rock/bin/rock
   - "ln -s /path/to/your/rock/bin/rock /usr/bin" and then make sure rock/ is besides ooc/ (ie. in the same parent folder)
@@ -33,6 +36,8 @@ Progress report
               frontend on hold for a moment
   - 2009-10 : Made a leg frontend, builds the AST, ported a lot of Java code with itrekkie,
   	      rock now compiles things =)
+  - 2009-11 : Overwhelmed by complexity, rewrote the grammar as a reusable piece, in a separate
+              github project. nagaqueen (its fancy name) is now needed to make rock compile
 
 You can help! We can probably re-use like 50% of the source code from the
 j/ooc codebase, so please come on #ooc-lang to know which classes need porting.

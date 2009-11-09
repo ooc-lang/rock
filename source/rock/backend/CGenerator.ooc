@@ -7,7 +7,7 @@ import ../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Node, Parenthesis]
     
 import Skeleton, FunctionDeclWriter, ControlStatementWriter, ClassDeclWriter,
-    ModuleWriter
+    ModuleWriter, CoverDeclWriter
 
 CGenerator: class extends Skeleton {
 
@@ -133,7 +133,7 @@ CGenerator: class extends Skeleton {
     
     /** Write a cover declaration */
     visitCoverDecl: func (cDecl: CoverDecl) {
-        
+        CoverDeclWriter write(this, cDecl)
     }
     
     visitParenthesis: func (paren: Parenthesis) {

@@ -3,7 +3,8 @@ OOC_OWN_FLAGS=-sourcepath=source/ -driver=sequence -v -noclean -g -shout
 OOC=ooc ${OOC_OWN_FLAGS} ${OOC_FLAGS}
 
 all:
-	mkdir -p source/rock/parser/ && leg syntax/ooc.leg > source/rock/parser/Parser.c
+	mkdir -p source/rock/parser/
+	leg ../nagaqueen/grammar/nagaqueen.leg > source/rock/frontend/NagaQueen.c
 	${OOC} $(shell find source/ -name "*.c") rock/rock && mkdir -p bin/ && mv rock bin/
 
 test-ast:

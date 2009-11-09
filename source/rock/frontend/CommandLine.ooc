@@ -2,13 +2,12 @@ import io/File
 import structs/[Array, ArrayList, List, Stack]
 import text/StringTokenizer
 
-import Help, Token, BuildParams
+import Help, Token, BuildParams, 
+AstBuilder
 import compilers/[Gcc, Clang, Icc, Tcc]
 import drivers/[Driver, CombineDriver]
-import ../parser/Parser
 import ../backend/CGenerator
-import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl, 
-    FunctionCall, StringLiteral, Node, Module, Statement, Line]
+import ../middle/[Module]
 
 CommandLine: class {
     params: BuildParams
@@ -284,123 +283,17 @@ CommandLine: class {
         
         printf("%s\n", modulePath)
         fullName := modulePath substring(0, modulePath length() - 4)
+        
         module := Module new(fullName, nullToken)
-        stack push(module)
-        Parser parse(modulePath)
+        AstBuilder parse(modulePath, module)
+        
         CGenerator new(params outPath path, module) write() .close()
-        if(params compiler)
+        if(params compiler) {
             driver compile(module)
+        }
         
         return 0
         
     }    
-    
-}
-
-stack := Stack<Node> new()
-
-stack_push: func (node: Node) {
-
-    printf(">> push %s!!\n", node class name)
-    
-    parent: Node = stack peek()
-    c := node class
-    match {
-        case c instanceof(TypeDecl) =>
-            tDecl := node as TypeDecl
-            match(parent class) {
-                case Module =>
-                    module := parent as Module
-                    module addType(tDecl)
-                    printf("Just added type declaration '%s'\n", tDecl name)
-                    printf("Now has the following type declarations:\n")
-                    for(td : TypeDecl in module types) {
-                        printf(" - %s\n", td toString())
-                    }
-                case =>
-                    printf("Hey you're trying to add a %s to a %s. Wtf?\n", tDecl class name, parent class name)
-            }
-        case c instanceof(FunctionDecl) =>
-            fDecl := node as FunctionDecl
-            match(parent class) {
-                case Module =>
-                    parent as Module addFunction(fDecl)
-                    printf("Just added function '%s'\n", fDecl name)
-                case =>
-                    printf("Hey you're trying to add a %s to a %s. Wtf?\n", fDecl class name, parent class name)
-            }
-        case => printf("Pushing unknown node type %s\n", parent class name)
-    }
-    
-    stack push(node)
-    
-}
-
-stack_pop: func (T: Class) -> Node {
-    
-    node : Node = stack pop()
-    printf("<< pop  %s!!\n", node class name)
-    
-    if(node class != T) {
-        printf("should've been popping a %s, but top is a %s\n", T name, node class name)
-        exit(1)
-    }
-    
-    return node
-    
-}
-
-stack_add: func (node: Node) {
-    
-    printf("++ add %s, stack = \n", node toString())
-    stack_print()
-    
-    top : Node = stack peek()
-    tc := top class
-    match {
-        case tc instanceof(FunctionCall) =>
-            call := top as FunctionCall
-            call args add(node)
-            printf("Just added arg %s to a FunctionCall to %s\n", node toString(), call toString())
-        case tc instanceof(FunctionDecl) =>
-            match node class {
-                case Line =>
-                    top as FunctionDecl body add(node)
-                    printf("Adding a line containing a %s\n", node as Line inner toString())
-                case =>
-                    printf("Expected a line in a FunctionDecl, but got a %s\n", node toString())
-            }
-        case tc instanceof(TypeDecl) =>
-            tDecl := top as TypeDecl
-            nc := node class
-            match {
-                case nc instanceof(VariableDecl) =>
-                    tDecl addVariable(node)
-                case nc instanceof(FunctionDecl) =>
-                    tDecl addFunction(node)
-                case =>
-                    printf("Wrongly trying to add a '%s' to a '%s'\n", node toString(), top toString())
-                    Exception new("Abandoning..") throw()
-            }
-        case =>
-            printf("Suspiciously trying to add a '%s' to a '%s'\n", node toString(), top toString())
-            exit(1)
-    }
-    
-}
-
-stack_print: func {
-    
-    for(elem in stack) {
-        printf("\t%s\n", elem toString())
-    }
-    
-}
-
-stack_peek: func -> Node {
-    
-    node : Node = stack peek()
-    printf("@@ peeking %s\n", node toString())
-    return node
     
 }

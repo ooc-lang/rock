@@ -50,6 +50,8 @@ TypeDecl: abstract class extends Declaration {
         return (externName && !externName isEmpty()) ? externName : name
     }
     
+    isExtern: func -> Bool { externName != null }
+    
     superRef: func -> TypeDecl {
         superType ? superType ref : null
     }

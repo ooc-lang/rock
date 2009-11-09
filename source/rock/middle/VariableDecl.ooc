@@ -9,7 +9,7 @@ VariableDecl: class extends Declaration {
     owner: TypeDecl
     
     isStatic := false
-    isExtern := false
+    externName: String = null
     
     init: func ~vDecl (.type, .name, .token) {
         this(type, name, null, token)
@@ -28,5 +28,7 @@ VariableDecl: class extends Declaration {
     toString: func -> String {
         name + ": " + type toString()
     }
+    
+    isExtern: func -> Bool { externName != null }
 
 }

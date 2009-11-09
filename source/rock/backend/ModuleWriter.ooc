@@ -1,16 +1,28 @@
-import ../middle/[Module, Include, TypeDecl, FunctionDecl]
+import ../middle/[Module, Include, TypeDecl, FunctionDecl, CoverDecl]
+import CoverDeclWriter
 import Skeleton
 
 ModuleWriter: abstract class extends Skeleton {
     
     write: static func (this: This, module: Module) {
 
-        /* Write the -fwd.h file */        
         hw app("/* "). app(module fullName). app(" header file, generated with rock, the ooc compiler written in ooc */"). nl()
         fw app("/* "). app(module fullName). app(" header-forward file, generated with rock, the ooc compiler written in ooc */"). nl()
         cw app("/* "). app(module fullName). app(" source file, generated with rock, the ooc compiler written in ooc */"). nl()
 
         hName := "__"+ module fullName clone() replace('/', '_') replace('-', '_') + "__"
+        
+        // forward header
+        current = fw
+        
+        // write all type forward declarations
+        for(tDecl: TypeDecl in module types) {
+            printf("Writing forward type %s\n", tDecl name)
+            match (tDecl class) {
+                case CoverDecl =>
+                    CoverDeclWriter writeTypedef(this, tDecl)
+            }
+        }
 
         // header
         current = hw

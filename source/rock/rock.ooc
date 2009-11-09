@@ -1,7 +1,6 @@
 import structs/[Array, List, ArrayList, Stack]
 import io/File
 import frontend/[CommandLine]
-import parser/Parser
 import backend/[CGenerator]
 
 Rock: class {

@@ -23,6 +23,9 @@ Type: abstract class extends Node {
     
     toString: func -> String { getName() }
     
+    // FIXME: stub
+    getGroundType: func -> Type { this }
+    
 }
 
 BaseType: class extends Type {
@@ -66,7 +69,7 @@ PointerType: class extends Type {
         return (other as PointerType inner equals(inner))
     }
     
-    getName: func -> String { inner getName() }
+    getName: func -> String { inner getName() + "*" }
     
 }
 
@@ -89,7 +92,7 @@ ReferenceType: class extends Type {
         return (other as PointerType inner equals(inner))
     }
     
-    getName: func -> String { inner getName() }
+    getName: func -> String { inner getName() + "@" }
     
 }
 

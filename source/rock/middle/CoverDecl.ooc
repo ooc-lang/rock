@@ -17,4 +17,6 @@ CoverDecl: class extends TypeDecl {
         printf("CoverDecl %s is now from type %s\n", name, fromType toString())
     }
     
+    isAddon: func -> Bool { false }
+    
 }
