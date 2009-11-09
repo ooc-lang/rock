@@ -95,7 +95,7 @@ ClassDeclWriter: abstract class extends Skeleton {
     /** Write the prototypes of member functions */
     writeMemberFuncPrototypes: static func (this: This, cDecl: ClassDecl) {
 
-        current nl(). app(CLASS_NAME). app(" *"). app(cDecl name). app("_class();"). nl()
+        current nl(). app(CLASS_NAME). app(" *"). app(cDecl name). app("_class();")
 
         for(fDecl: FunctionDecl in cDecl functions) {
             
@@ -113,7 +113,7 @@ ClassDeclWriter: abstract class extends Skeleton {
             }
             
         }
-        current nl()
+        
     }
     
     writeInstanceImplFuncs: static func (this: This, cDecl: ClassDecl) {
@@ -140,7 +140,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
     writeClassGettingFunction: static func (this: This, cDecl: ClassDecl) {
 
-        current app(CLASS_NAME). app(" *"). app(cDecl name). app("_class()"). openBlock()
+        current nl(). nl(). app(CLASS_NAME). app(" *"). app(cDecl name). app("_class()"). openBlock()
         if (cDecl superType)
             current app("static "). app(LANG_PREFIX). app("Bool __done__ = false"). nl().
                     app("static "). app(cDecl underName()). app("Class class = ")
@@ -226,6 +226,13 @@ ClassDeclWriter: abstract class extends Skeleton {
         current app(',')
 
     }
+    
+    writeStructTypedef: static func (this: This, structName: String) {
+        
+		current nl(). app("struct _"). app(structName). app(";")
+		current nl(). app("typedef struct _"). app(structName). app(" "). app(structName). app(";")
+        
+	}
     
 }
 

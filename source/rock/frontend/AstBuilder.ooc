@@ -34,7 +34,37 @@ AstBuilder: class {
         cDecl setFromType(type)
     }
     
+    onCoverExtends: static func (superType: Type) {
+        cDecl : CoverDecl = stack peek()
+        cDecl superType = superType
+    }
+    
     onCoverEnd: static func {
+        node : Node = stack pop()
+    }
+    
+    onClassStart: static func (name: String) {
+        cDecl := ClassDecl new(name clone(), null, nullToken)
+        module addType(cDecl)
+        stack push(cDecl)
+    }
+    
+    onClassExtends: static func (superType: Type) {
+        cDecl : ClassDecl = stack peek()
+        cDecl superType = superType
+    }
+    
+    onClassAbstract: static func {
+        cDecl : ClassDecl = stack peek()
+        cDecl isAbstract = true
+    }
+    
+    onClassFinal: static func {
+        cDecl : ClassDecl = stack peek()
+        cDecl isFinal = true
+    }
+    
+    onClassEnd: static func {
         node : Node = stack pop()
     }
       
@@ -48,28 +78,24 @@ AstBuilder: class {
 
 }
 
-nq_onInclude: func (path: String) {
-    AstBuilder onInclude(path)
-}
+// includes
+nq_onInclude: func (path: String) { AstBuilder onInclude(path) }
 
-nq_onCoverStart: func (name: String) {
-    AstBuilder onCoverStart(name)
-}
+// covers
+nq_onCoverStart: func (name: String) { AstBuilder onCoverStart(name) }
+nq_onCoverFromType: func (type: Type) { AstBuilder onCoverFromType(type) }
+nq_onCoverExtends: func (superType: Type) { AstBuilder onCoverExtends(superType) }
+nq_onCoverEnd: func { AstBuilder onCoverEnd() }
 
-nq_onCoverFromType: func (type: Type) {
-    AstBuilder onCoverFromType(type)
-}
+// classes
+nq_onClassStart: func (name: String) { AstBuilder onClassStart(name) }
+nq_onClassExtends: func (superType: Type) { AstBuilder onClassExtends(superType) }
+nq_onClassAbstract: func { AstBuilder onClassAbstract() }
+nq_onClassFinal: func { AstBuilder onClassFinal() }
+nq_onClassEnd: func { AstBuilder onClassEnd() }
 
-nq_onCoverEnd: func {
-    AstBuilder onCoverEnd()
-}
-
-nq_onTypeStart: func (name: String) -> Type {
-    return AstBuilder onTypeStart(name)
-}
-
-nq_onTypePointer: func (type: Type) -> Type {
-    return AstBuilder onTypePointer(type)
-}
+// types
+nq_onTypeStart: func (name: String) -> Type { return AstBuilder onTypeStart(name) }
+nq_onTypePointer: func (type: Type) -> Type { return AstBuilder onTypePointer(type) }
 
 

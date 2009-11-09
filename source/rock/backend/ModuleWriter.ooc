@@ -1,5 +1,5 @@
-import ../middle/[Module, Include, TypeDecl, FunctionDecl, CoverDecl]
-import CoverDeclWriter
+import ../middle/[Module, Include, TypeDecl, FunctionDecl, CoverDecl, ClassDecl]
+import CoverDeclWriter, ClassDeclWriter
 import Skeleton
 
 ModuleWriter: abstract class extends Skeleton {
@@ -19,10 +19,15 @@ ModuleWriter: abstract class extends Skeleton {
         for(tDecl: TypeDecl in module types) {
             printf("Writing forward type %s\n", tDecl name)
             match (tDecl class) {
+                case ClassDecl =>
+                    className := tDecl as ClassDecl underName()
+                    ClassDeclWriter writeStructTypedef(this, className)
+                    ClassDeclWriter writeStructTypedef(this, className+"Class")
                 case CoverDecl =>
                     CoverDeclWriter writeTypedef(this, tDecl)
             }
         }
+        if(!module types isEmpty()) current nl()
 
         // header
         current = hw
@@ -33,6 +38,7 @@ ModuleWriter: abstract class extends Skeleton {
         for(inc: Include in module includes) {
             visitInclude(this, inc)
         }
+        if(!module includes isEmpty()) current nl()
         
         // source
         current = cw

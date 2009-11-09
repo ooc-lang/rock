@@ -5,11 +5,6 @@
 #include <string.h>
 #define YYRULECOUNT 118
 
-#ifndef strclone
-#define strclone strdup
-#define _BSD_SOURCE 1
-#endif
-    
 #include <stdio.h>
 #include <string.h>
 
@@ -50,7 +45,14 @@ void nq_onInclude(char *name);
 
 void nq_onCoverStart(char *name);
 void nq_onCoverFromType(void *type);
+void nq_onCoverExtends(void *type);
 void nq_onCoverEnd();
+
+void nq_onClassStart(char *name);
+void nq_onClassAbstract();
+void nq_onClassFinal();
+void nq_onClassExtends(void *type);
+void nq_onClassEnd();
 
 void *nq_onTypeStart(char *name);   // $$=nq_onTypeStart(yytext)
 void *nq_onTypePointer(void *type); // $$=nq_onTypePointer($$)
@@ -394,7 +396,7 @@ YY_RULE(int) yy_Module(); /* 1 */
 YY_ACTION(void) yy_1_IDENT(char *yytext, int yyleng)
 {
   yyprintf((stderr, "do yy_1_IDENT\n"));
-   yy=strclone(yytext); ;
+   yy=yytext; ;
 }
 YY_ACTION(void) yy_8_Value(char *yytext, int yyleng)
 {
@@ -1091,6 +1093,11 @@ YY_ACTION(void) yy_1_CoverDecl(char *yytext, int yyleng)
   yyprintf((stderr, "do yy_1_CoverDecl\n"));
    nq_onCoverStart(yytext) ;
 }
+YY_ACTION(void) yy_9_ClassDecl(char *yytext, int yyleng)
+{
+  yyprintf((stderr, "do yy_9_ClassDecl\n"));
+   nq_onClassEnd() ;
+}
 YY_ACTION(void) yy_8_ClassDecl(char *yytext, int yyleng)
 {
   yyprintf((stderr, "do yy_8_ClassDecl\n"));
@@ -1109,7 +1116,7 @@ YY_ACTION(void) yy_6_ClassDecl(char *yytext, int yyleng)
 YY_ACTION(void) yy_5_ClassDecl(char *yytext, int yyleng)
 {
   yyprintf((stderr, "do yy_5_ClassDecl\n"));
-   printf(" extends %s", yytext) ;
+   nq_onClassExtends(yytext) ;
 }
 YY_ACTION(void) yy_4_ClassDecl(char *yytext, int yyleng)
 {
@@ -1119,17 +1126,17 @@ YY_ACTION(void) yy_4_ClassDecl(char *yytext, int yyleng)
 YY_ACTION(void) yy_3_ClassDecl(char *yytext, int yyleng)
 {
   yyprintf((stderr, "do yy_3_ClassDecl\n"));
-   printf(" final") ;
+   nq_onClassFinal() ;
 }
 YY_ACTION(void) yy_2_ClassDecl(char *yytext, int yyleng)
 {
   yyprintf((stderr, "do yy_2_ClassDecl\n"));
-   printf(" abstract") ;
+   nq_onClassAbstract() ;
 }
 YY_ACTION(void) yy_1_ClassDecl(char *yytext, int yyleng)
 {
   yyprintf((stderr, "do yy_1_ClassDecl\n"));
-   printf("%s:", yytext); ;
+   nq_onClassStart(yytext); ;
 }
 YY_ACTION(void) yy_2_Argument(char *yytext, int yyleng)
 {
@@ -1244,7 +1251,7 @@ YY_ACTION(void) yy_2_OperatorDecl(char *yytext, int yyleng)
 YY_ACTION(void) yy_1_OperatorDecl(char *yytext, int yyleng)
 {
   yyprintf((stderr, "do yy_1_OperatorDecl\n"));
-   printf("operator ", yytext); ;
+   printf("operator "); ;
 }
 YY_ACTION(void) yy_1_Decl(char *yytext, int yyleng)
 {
@@ -2694,7 +2701,7 @@ YY_RULE(int) yy_ClassDecl()
   }  if (!yy_WS()) goto l354;  if (!yy_CLOS_BRACK()) goto l354;  yyDo(yy_8_ClassDecl, yybegin, yyend);  goto l355;
   l354:;	  yypos= yypos354; yythunkpos= yythunkpos354;
   }
-  l355:;	
+  l355:;	  yyDo(yy_9_ClassDecl, yybegin, yyend);
   yyprintf((stderr, "  ok   %s @ %s\n", "ClassDecl", yybuf+yypos));
   return 1;
   l346:;	  yypos= yypos0; yythunkpos= yythunkpos0;

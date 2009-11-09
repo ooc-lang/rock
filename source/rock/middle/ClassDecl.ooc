@@ -9,6 +9,7 @@ ClassDecl: class extends TypeDecl {
     LOAD_FUNC_NAME      := static const "__load__"
 
     isAbstract := false
+    isFinal := false
 
     init: func ~classDecl(.name, .superType, .token) {
         super(name clone(), superType, token)
