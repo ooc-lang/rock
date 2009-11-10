@@ -1,7 +1,7 @@
 import structs/HashMap
 import ../frontend/Token
 import Expression, Line, Type, Visitor, Declaration, VariableDecl,
-    FunctionDecl, FunctionCall
+    FunctionDecl, FunctionCall, Module
 
 TypeDecl: abstract class extends Declaration {
 
@@ -14,6 +14,8 @@ TypeDecl: abstract class extends Declaration {
 
     type: Type
     superType: Type
+    
+    module: Module = null
     
     init: func ~typeDecl (=name, =superType, .token) {
         super(token)
@@ -43,7 +45,9 @@ TypeDecl: abstract class extends Declaration {
     
     underName: func -> String {
         // TODO underize it.
-        name
+        if(!module) return name
+        
+        
     }
     
     getExternName: func -> String {

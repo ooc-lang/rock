@@ -29,6 +29,9 @@ VariableDecl: class extends Declaration {
         name + ": " + type toString()
     }
     
+    setExpr: func (=expr) {}
+    setStatic: func (=isStatic) {}
+    
     isExtern: func -> Bool { externName != null }
 
 }
