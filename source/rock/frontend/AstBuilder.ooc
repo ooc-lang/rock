@@ -46,6 +46,7 @@ AstBuilder: class {
     
     onClassStart: static func (name: String) {
         cDecl := ClassDecl new(name clone(), null, nullToken)
+        cDecl module = module
         module addType(cDecl)
         stack push(cDecl)
     }

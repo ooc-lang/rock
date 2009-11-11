@@ -141,22 +141,24 @@ ClassDeclWriter: abstract class extends Skeleton {
     writeClassGettingFunction: static func (this: This, cDecl: ClassDecl) {
 
         current nl(). nl(). app(CLASS_NAME). app(" *"). app(cDecl name). app("_class()"). openBlock()
-        if (cDecl superType)
-            current app("static "). app(LANG_PREFIX). app("Bool __done__ = false"). nl().
-                    app("static "). app(cDecl underName()). app("Class class = ")
+        
+        if (cDecl superType) {
+            current app("static "). app(LANG_PREFIX). app("Bool __done__ = false"). nl()
+        }
+        current app("static "). app(cDecl underName()). app("Class class = ")
         
         writeClassStructInitializers(this, cDecl, cDecl, ArrayList<FunctionDecl> new())
         
         current app(';')
-        current nl(). app(CLASS_NAME). app(" *classPtr = ("). app(CLASS_NAME). app(" *) &class")
+        current nl(). app(CLASS_NAME). app(" *classPtr = ("). app(CLASS_NAME). app(" *) &class;")
         if (cDecl superType) {
             current nl(). app("if(!__done__)"). openBlock().
-                    nl(). app("classPtr->super = "). app(cDecl superType getName()). app("_class()").
-                    nl(). app("__done__ = true").
+                    nl(). app("classPtr->super = "). app(cDecl superType getName()). app("_class();").
+                    nl(). app("__done__ = true;").
             closeBlock()
         }
 
-        current nl(). app("return classPtr"). closeBlock()
+        current nl(). app("return classPtr;"). closeBlock()
     }
 
     /**

@@ -12,12 +12,17 @@ ModuleWriter: abstract class extends Skeleton {
 
         hName := "__"+ module fullName clone() replace('/', '_') replace('-', '_') + "__"
         
-        // forward header
+        /* write the fwd-.h file */
         current = fw
+        
+        // write all includes
+        for(inc: Include in module includes) {
+            visitInclude(this, inc)
+        }
+        if(!module includes isEmpty()) current nl()
         
         // write all type forward declarations
         for(tDecl: TypeDecl in module types) {
-            printf("Writing forward type %s\n", tDecl name)
             match (tDecl class) {
                 case ClassDecl =>
                     className := tDecl as ClassDecl underName()
@@ -29,18 +34,14 @@ ModuleWriter: abstract class extends Skeleton {
         }
         if(!module types isEmpty()) current nl()
 
-        // header
+        /* write the .h file */
         current = hw
         current nl(). app("#ifndef "). app(hName)
         current nl(). app("#define "). app(hName). nl()
-
-        // write all includes
-        for(inc: Include in module includes) {
-            visitInclude(this, inc)
-        }
-        if(!module includes isEmpty()) current nl()
         
-        // source
+        current nl(). app("#include \""). app(module simpleName). app("-fwd.h\""). nl()
+        
+        /* write the .c file */
         current = cw
         // write include to the module's. h file
         current nl(). app("#include \""). app(module simpleName). app(".h\""). nl()

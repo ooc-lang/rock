@@ -33,8 +33,8 @@ CommandLine: class {
                 
                 if (option startsWith("sourcepath")) {
                     
-                    sourcePathoption := arg substring(arg indexOf('=') + 1)
-                    tokenizer := StringTokenizer new(sourcePathoption , File separator)
+                    sourcePathOption := arg substring(arg indexOf('=') + 1)
+                    tokenizer := StringTokenizer new(sourcePathOption, File pathDelimiter)
                     for (token: String in tokenizer) {
                         params sourcePath add(token)
                     }
@@ -277,12 +277,20 @@ CommandLine: class {
         
     }
     
-    parse: func (modulePath: String) -> Int {
+    parse: func (moduleName: String) -> Int {
+        
+        moduleFile := params sourcePath getFile(moduleName)
+        
+        if(!moduleFile) {
+            printf("File not found: %s\n", moduleName)
+            exit(1)
+        }
+        
+        modulePath := moduleFile path
         
         params outPath mkdirs()
         
-        printf("%s\n", modulePath)
-        fullName := modulePath substring(0, modulePath length() - 4)
+        fullName := moduleName substring(0, moduleName length() - 4)
         
         module := Module new(fullName, nullToken)
         AstBuilder parse(modulePath, module)
