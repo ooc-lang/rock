@@ -5,7 +5,7 @@ import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl
 
 Module: class extends Node {
 
-    fullName, simpleName, pathElement = "" : String
+    fullName, simpleName, packageName, pathElement = "" : String
     
     types     := HashMap<TypeDecl> new()
     functions := HashMap<FunctionDecl> new()
@@ -18,7 +18,15 @@ Module: class extends Node {
         super(token)
         this fullName = fullName replace(File separator, '/')
         idx := fullName lastIndexOf('/')
-        simpleName = idx == -1 ? fullName clone() : fullName substring(idx + 1)
+        
+        match idx {
+            case -1 =>
+                simpleName = fullName clone()
+                packageName = ""
+            case =>
+                simpleName = fullName substring(idx + 1)
+                packageName = fullName substring(0, idx)
+        }
     }
     
     addFunction: func (fDecl: FunctionDecl) {
