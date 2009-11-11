@@ -2,6 +2,7 @@ import io/File
 import structs/[HashMap, ArrayList]
 import ../frontend/[Token, SourceReader]
 import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl
+import tinker/Response
 
 Module: class extends Node {
 
@@ -41,6 +42,15 @@ Module: class extends Node {
     
     getOutPath: func (suffix: String) -> String {
         pathElement + File separator + fullName + suffix
+    }
+    
+    resolve: func -> Response {
+        for(tDecl in types) {
+            res := tDecl resolve()
+            if(res != Responses OK) return res
+        }
+        
+        return Responses OK
     }
 
 }

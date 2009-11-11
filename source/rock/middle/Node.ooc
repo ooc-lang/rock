@@ -1,5 +1,6 @@
 import Visitor
 import ../frontend/Token
+import tinker/Response
 
 Node: abstract class {
 
@@ -11,6 +12,6 @@ Node: abstract class {
     
     toString: func -> String { class name }
     
-    getResolve: func -> Pointer { null }
+    resolve: func -> Response { Responses OK }
 
 }

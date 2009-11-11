@@ -1,6 +1,7 @@
 import structs/ArrayList
 import ../frontend/Token
 import Expression, Line, Type, Visitor, TypeDecl
+import tinker/Response
 
 ClassDecl: class extends TypeDecl {
 
@@ -31,7 +32,12 @@ ClassDecl: class extends TypeDecl {
     }
     
     toString: func -> String {
-        class name + " " + name
+        class name + ' ' + name
+    }
+    
+    resolve: func -> Response {
+        printf("Resolving %s\n", toString())
+        return Responses OK
     }
     
 }
