@@ -10,5 +10,7 @@ Node: abstract class {
     accept: abstract func (visitor: Visitor)
     
     toString: func -> String { class name }
+    
+    getResolve: func -> Pointer { null }
 
 }

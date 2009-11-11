@@ -7,7 +7,8 @@ AstBuilder
 import compilers/[Gcc, Clang, Icc, Tcc]
 import drivers/[Driver, CombineDriver]
 import ../backend/CGenerator
-import ../middle/[Module]
+import ../middle/[Module, Import]
+import ../middle/tinker/Tinkerer
 
 CommandLine: class {
     params: BuildParams
@@ -291,10 +292,17 @@ CommandLine: class {
         params outPath mkdirs()
         
         fullName := moduleName substring(0, moduleName length() - 4)
-        
         module := Module new(fullName, nullToken)
+        
+        // phase 1: parse
         AstBuilder parse(modulePath, module)
         
+        // phase 2: tinker
+        moduleList := ArrayList<Module> new()
+        collectModules(module, moduleList)
+        Tinkerer new() process(moduleList, params)
+        
+        // phase 3: generate
         CGenerator new(params outPath path, module) write() .close()
         if(params compiler) {
             driver compile(module)
@@ -302,6 +310,17 @@ CommandLine: class {
         
         return 0
         
-    }    
+    }
+    
+    collectModules: func (module: Module, list: List<Module>) {
+        
+		list add(module)
+		for(imp in module imports) {
+			if(!list contains(imp module)) {
+				collectModules(imp module, list)
+			}
+		}
+        
+    }
     
 }
