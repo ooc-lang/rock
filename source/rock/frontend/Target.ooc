@@ -73,7 +73,7 @@ Target: class {
             case LINUX   => "linux" + arch
             case SOLARIS => "solaris" + arch
             case HAIKU   => "haiku" + arch
-            case OSX     => "osx" + arch
+            case OSX     => "osx"
             case         => Exception new("Invalid arch: " + target) throw(); ""
         }
         
