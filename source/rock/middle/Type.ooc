@@ -53,7 +53,7 @@ FuncType: class extends Type {
 
 BaseType: class extends Type {
 
-    ref: Declaration = null
+    ref: TypeDecl = null
     name: String
     
     init: func ~baseType (=name, .token) { super(token) }
@@ -62,7 +62,10 @@ BaseType: class extends Type {
     refLevel:     func -> Int { 0 }
     
     write: func (w: AwesomeWriter) {
-        w app(name)
+        if(ref == null) {
+            Exception new(This, "Trying to write unresolved type " + toString())
+        }
+        w app(ref underName())
     }
     
     equals: func (other: This) -> Bool {
