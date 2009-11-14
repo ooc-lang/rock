@@ -1,12 +1,11 @@
 import ../frontend/Token
 import ../backend/AwesomeWriter
-import Node, Visitor, Declaration
+import Node, Visitor, Declaration, TypeDecl, Module
+import tinker/[Response, Resolver, Trail]
 
 voidType := BaseType new("void", nullToken)
 
 Type: abstract class extends Node {
-    
-    ref: Declaration = null
     
     init: func ~type (.token) { super(token) }
     
@@ -26,10 +25,35 @@ Type: abstract class extends Node {
     // FIXME: stub
     getGroundType: func -> Type { this }
     
+    getRef: abstract func -> Declaration
+    
+}
+
+FuncType: class extends Type {
+    
+    init: func ~funcType (.token) { super(token) }
+    
+    write: func (w: AwesomeWriter) {
+        w app ("Func")
+    }
+    
+    pointerLevel: func -> Int { 0 }
+    refLevel:     func -> Int { 0 }
+    equals: func (other: This) -> Bool {
+        if(other class != this class) return false
+        // FIXME compare types
+        return true
+    }
+    
+    getName: func -> String { "Func" }
+    
+    getRef: func -> Declaration { null }
+    
 }
 
 BaseType: class extends Type {
 
+    ref: Declaration = null
     name: String
     
     init: func ~baseType (=name, .token) { super(token) }
@@ -47,6 +71,30 @@ BaseType: class extends Type {
     }
     
     getName: func -> String { name }
+    
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+    
+        printf("resolving type %s (ref = %p)\n", name, ref)
+        
+        module := trail module()
+        for(tDecl: TypeDecl in module types) {
+            if(tDecl name == this name) {
+                ("Found match! " + name) println()
+                ref = tDecl
+            }
+        }
+        
+        if(ref == null) {
+            return Responses LOOP
+        }
+        
+        return Responses OK
+        
+    }
+    
+    isResolved: func -> Bool { ref != null }
+    
+    getRef: func -> Declaration { ref }
 
 }
 
@@ -71,6 +119,10 @@ PointerType: class extends Type {
     
     getName: func -> String { inner getName() + "*" }
     
+    resolve: func (trail: Trail, res: Resolver) -> Response { inner resolve(trail, res) }
+    
+    getRef: func -> Declaration { inner getRef() }
+    
 }
 
 ReferenceType: class extends Type {
@@ -94,6 +146,8 @@ ReferenceType: class extends Type {
     
     getName: func -> String { inner getName() + "@" }
     
+    resolve: func (trail: Trail, res: Resolver) -> Response { inner resolve(trail, res) }
+    
+    getRef: func -> Declaration { inner getRef() }
+    
 }
-
-

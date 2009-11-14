@@ -1,5 +1,6 @@
-import structs/ArrayList
-import Node, Type, Declaration, Expression, Visitor, TypeDecl
+import structs/[ArrayList]
+import Type, Declaration, Expression, Visitor, TypeDecl
+import tinker/[Response, Resolver, Trail]
 
 VariableDecl: class extends Declaration {
 
@@ -22,7 +23,7 @@ VariableDecl: class extends Declaration {
     accept: func (visitor: Visitor) {
         visitor visitVariableDecl(this)
     }
-    
+
     getType: func -> Type { type }
     
     toString: func -> String {
@@ -33,5 +34,22 @@ VariableDecl: class extends Declaration {
     setStatic: func (=isStatic) {}
     
     isExtern: func -> Bool { externName != null }
+    
+    resolve: func (trail: Trail, res: Response) -> Response {
+
+        trail push(this)
+        
+        printf("Resolving variable decl %s\n", toString());
+        response := type resolve(trail, res)
+        if(!response ok()) {
+            trail pop(this)
+            return response
+        }
+        
+        trail pop(this)
+        
+        return Responses OK
+        
+    }
 
 }

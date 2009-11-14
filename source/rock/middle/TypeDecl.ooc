@@ -2,6 +2,7 @@ import structs/HashMap
 import ../frontend/Token
 import Expression, Line, Type, Visitor, Declaration, VariableDecl,
     FunctionDecl, FunctionCall, Module
+import tinker/[Resolver, Response, Trail]
 
 TypeDecl: abstract class extends Declaration {
 
@@ -58,7 +59,7 @@ TypeDecl: abstract class extends Declaration {
     isExtern: func -> Bool { externName != null }
     
     superRef: func -> TypeDecl {
-        superType ? superType ref : null
+        superType ? superType getRef() : null
     }
     
     getFunction: func ~call (call: FunctionCall) -> FunctionDecl {
@@ -96,5 +97,28 @@ TypeDecl: abstract class extends Declaration {
     }
     
     getType: func -> Type { type }
+
+    isResolved: func -> Bool { false }
+    
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        
+        trail push(this)
+        
+        printf("Resolving type decl %s\n", toString())
+        
+        for(vDecl in variables) {
+            response := vDecl resolve(trail, res)
+            if(!response ok()) return response
+        }
+        
+        trail pop(this)
+        
+        return Responses OK
+        
+    }
+    
+    toString: func -> String {
+        class name + ' ' + name
+    }
 
 }

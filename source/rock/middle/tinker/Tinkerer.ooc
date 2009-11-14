@@ -33,7 +33,9 @@ Tinkerer: class {
                 resolver := iter next()
                 
                 // returns true = dirty, must do again
-                if(resolver process(params)) continue;
+                if(resolver process(params)) {
+                    continue
+                }
             
                 if(params veryVerbose) println("Module " + resolver module fullName + " finished resolving.");
                 
@@ -49,9 +51,11 @@ Tinkerer: class {
             if(round == params blowup) {
                 for(resolver: Resolver in resolvers) resolver fatal = true
             }
+            
             if(round > params blowup) {
                 //CompilationFailedError new(null, "Tinkerer going round in circles. Remaining modules = " + resolvers toString()) throw()
                 println("Tinkerer going round in circles. " + resolvers size() + " modules remaining.")
+                exit(1)
             }
             
         }

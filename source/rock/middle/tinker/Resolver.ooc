@@ -1,6 +1,6 @@
-import ../[Module]
+import ../[Module, Node]
 import ../../frontend/[BuildParams]
-import Response
+import Response, Trail
 
 Resolver: class {
  
@@ -11,13 +11,14 @@ Resolver: class {
     
     process: func (params: BuildParams) -> Bool {
  
-        response := module resolve()
+        response := module resolve(Trail new(), this)
+        printf("response = %s\n", response toString())
         
-        if(response != Responses OK) {
-            true
+        if(!response ok()) {
+            return true
         }
         
-        false
+        return false
         
     }
     

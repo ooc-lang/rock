@@ -63,6 +63,7 @@ void nq_onVarDeclEnd();
 
 void *nq_onTypeNew(char *name);     // $$=nq_onTypeNew(yytext)
 void *nq_onTypePointer(void *type); // $$=nq_onTypePointer($$)
+void *nq_onTypeFuncStart();
 
 /////////////////////                callbacks def end               ////////////////////////
 
@@ -953,7 +954,7 @@ YY_ACTION(void) yy_1_Stmt(char *yytext, int yyleng)
 YY_ACTION(void) yy_1_FuncType(char *yytext, int yyleng)
 {
   yyprintf((stderr, "do yy_1_FuncType\n"));
-   yy=nq_onTypeNew("Func"); ;
+   yy=nq_onFuncTypeNew(); ;
 }
 YY_ACTION(void) yy_8_Type(char *yytext, int yyleng)
 {

@@ -107,7 +107,6 @@ AstBuilder: class {
             
             tDecl := node as TypeDecl
         
-            // FIXME do things.. :D
             println("=======================================")
             for(vd: VariableDecl in vds) {
                 println(vd toString())
@@ -118,8 +117,12 @@ AstBuilder: class {
         }
             
     }
+
+    onFuncTypeNew: static func -> Type {
+        return FuncType new(nullToken)
+    }
       
-    onTypeStart: static func (name: String) -> Type {
+    onTypeNew: static func (name: String) -> Type {
         return BaseType new(name clone(), nullToken)
     }
     
@@ -154,7 +157,8 @@ nq_onVarDeclStatic: func                  { AstBuilder onVarDeclStatic() }
 nq_onVarDeclEnd: func                     { AstBuilder onVarDeclEnd() }
 
 // types
-nq_onTypeNew: func (name: String) -> Type   { return AstBuilder onTypeStart(name) }
+nq_onTypeNew: func (name: String) -> Type   { return AstBuilder onTypeNew(name) }
 nq_onTypePointer: func (type: Type) -> Type { return AstBuilder onTypePointer(type) }
+nq_onFuncTypeNew: func -> Type              { return AstBuilder onFuncTypeNew() }
 
 

@@ -2,7 +2,7 @@ import io/File
 import structs/[HashMap, ArrayList]
 import ../frontend/[Token, SourceReader]
 import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl
-import tinker/Response
+import tinker/[Response, Resolver, Trail]
 
 Module: class extends Node {
 
@@ -44,11 +44,17 @@ Module: class extends Node {
         pathElement + File separator + fullName + suffix
     }
     
-    resolve: func -> Response {
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        
+        trail push(this)
+        
         for(tDecl in types) {
-            res := tDecl resolve()
-            if(res != Responses OK) return res
+            if(tDecl isResolved()) continue
+            response := tDecl resolve(trail, res)
+            if(!response ok()) return response
         }
+        
+        trail pop(this)
         
         return Responses OK
     }

@@ -1,7 +1,8 @@
 import structs/ArrayList
+
 import ../frontend/Token
 import Expression, Line, Type, Visitor, TypeDecl
-import tinker/Response
+import tinker/[Response, Resolver, Trail]
 
 ClassDecl: class extends TypeDecl {
 
@@ -31,12 +32,15 @@ ClassDecl: class extends TypeDecl {
         isObjectClass() || isClassClass()
     }
     
-    toString: func -> String {
-        class name + ' ' + name
-    }
-    
-    resolve: func -> Response {
-        printf("Resolving %s\n", toString())
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        trail push(this)
+        
+        printf("Resolving class %s\n", toString())
+        response := super resolve(trail, res)
+        if(!response ok()) return response
+        
+        trail pop(this)
+        
         return Responses OK
     }
     
