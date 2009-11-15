@@ -234,13 +234,13 @@ CommandLine: class {
                 
             } else {
                 lowerArg := arg toLower()
-                if(lowerArg endsWith(".o") || lowerArg endsWith(".c") || lowerArg endsWith(".cpp")) {
-                    driver additionals add(arg)
+                if(lowerArg endsWith(".ooc")) {
+                    modulePaths add(arg)
                 } else {
-                    if(!lowerArg endsWith(".ooc")) {
-                        modulePaths add(arg+".ooc")
+                   if(lowerArg contains('.')) {
+                        driver additionals add(arg)
                     } else {
-                        modulePaths add(arg)
+                        modulePaths add(arg+".ooc")
                     }
                 }
             }
