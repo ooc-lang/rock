@@ -2,8 +2,8 @@ import structs/[Array, ArrayList, List, Stack]
 
 import ../frontend/Token
 import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl, 
-    FunctionCall, StringLiteral, Node, Module, Statement, Line, Include, Type,
-    Expression]
+    FunctionCall, StringLiteral, Node, Module, Statement, Line, Include, Import,
+    Type, Expression]
 
 nq_parse: extern proto func (String) -> Int
 
@@ -20,8 +20,16 @@ AstBuilder: class {
         nq_parse(modulePath)
     }
     
-    onInclude: static func (path: String) {
-        module includes add(Include new(path clone(), IncludeModes PATHY))
+    onInclude: static func (path, name: String) {
+        inc := Include new(path isEmpty() ? name : path + name, IncludeModes PATHY)
+        module includes add(inc)
+        printf("Got include %s\n", inc path)
+    }
+    
+    onImport: static func  (path, name: String) {
+        imp := Import new(path isEmpty() ? name : path + name)
+        module includes add(imp)
+        printf("Got Import %s\n", imp path)
     }
     
     onCoverStart: static func (name: String) {
@@ -132,8 +140,12 @@ AstBuilder: class {
 
 }
 
-// includes
-nq_onInclude: func (path: String)         { AstBuilder onInclude(path) }
+// string handling
+nq_StringClone: func (string: String) -> String { string clone() }
+
+// includes, imports
+nq_onInclude: func (path, name: String)   { AstBuilder onInclude(path, name) }
+nq_onImport:  func (path, name: String)   { AstBuilder onImport(path, name) }
 
 // covers
 nq_onCoverStart: func (name: String)      { AstBuilder onCoverStart(name) }
@@ -160,5 +172,4 @@ nq_onVarDeclEnd: func                     { AstBuilder onVarDeclEnd() }
 nq_onTypeNew: func (name: String) -> Type   { return AstBuilder onTypeNew(name) }
 nq_onTypePointer: func (type: Type) -> Type { return AstBuilder onTypePointer(type) }
 nq_onFuncTypeNew: func -> Type              { return AstBuilder onFuncTypeNew() }
-
 
