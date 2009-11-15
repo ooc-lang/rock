@@ -20,7 +20,7 @@ Install
 *rock is alpha software*, don't cry if it breaks things
 
 You'll need the latest nagaqueen grammar along the rock/ folder: http://github.com/nddrylliog/nagaqueen
-And also a good fork of peg-leg with a reasonable YY_STACK_SIZE: http://github.com/nddrylliog/peg-leg
+Since 2009-11-05, nagaqueen relies on greg instead of peg-leg again.: http://github.com/nddrylliog/greg
 
 Two ways, either
   - create a script in /usr/bin/rock where you export OOC_DIST and call /path/to/your/rock/bin/rock

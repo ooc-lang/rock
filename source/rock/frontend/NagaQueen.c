@@ -9,9 +9,13 @@ struct _GREG;
 #include <stdio.h>
 #include <string.h>
 
+// workaround for peg/leg/greg's shady parsing of "{}" even in 
+// character class literals
 #define _OBRACK "{"
 #define _CBRACK "}"
 
+// TODO: not everyone wants to use nagaqueen with the gc, make that
+// more modular
 void *GC_malloc(size_t);
 void *GC_calloc(size_t, size_t);
 void *GC_realloc(void *, size_t);
@@ -23,6 +27,9 @@ void GC_free(void *);
 #define YY_FREE             GC_free
 
 #define YYSTYPE void*
+
+// in old peg/leg versions, this was set to 32, but it's wayyy too small
+// for a non-trivial grammar like ooc's
 #define YY_STACK_SIZE 1024
 
 //#define YY_DEBUG 1
@@ -3073,7 +3080,6 @@ YY_PARSE(void) YY_NAME(parse_free)(GREG *G)
 
 int nq_parse(char *pathArg) {
     
-    //GREG g;
     GREG *g = YY_ALLOC(sizeof(GREG), 0);
     
     /* Parse code */
@@ -3083,8 +3089,6 @@ int nq_parse(char *pathArg) {
     yylineno = 0;
     
     while (yyparse(g)) {}
-    //while (yyparse()) {}
-    
     fclose(stream);
     
     return 0;
