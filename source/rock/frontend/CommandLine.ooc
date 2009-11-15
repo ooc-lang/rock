@@ -149,8 +149,7 @@ CommandLine: class {
                 } else if (option startsWith("blowup=")) {
                     
                     // TODO
-                    "FIXME! blowup" println()
-                    // params blowup = Integer.parseInt(option .substring("blowup=".length()))
+                    params blowup = option substring(7) toInt()
                     
                 } else if (option == "V" || option == "-version" || option == "version") {
                     

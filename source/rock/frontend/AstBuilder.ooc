@@ -1,4 +1,4 @@
-import structs/[Array, ArrayList, List, Stack]
+import structs/[Array, ArrayList, List, Stack, HashMap]
 
 import ../frontend/Token
 import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl, 
@@ -9,6 +9,7 @@ nq_parse: extern proto func (AstBuilder, String) -> Int
 
 AstBuilder: class {
 
+    cache := static HashMap<Module> new()
     modulePath : String
     module : Module
     stack : Stack<Node>
