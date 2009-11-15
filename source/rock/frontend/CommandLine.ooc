@@ -73,16 +73,6 @@ CommandLine: class {
                     
                     params dynamicLibs add(arg substring(2))
                     
-                } else if (option == "dyngc") {
-                    
-                    "Deprecated option -dyngc, you should use -gc=dynamic instead." println()
-                    params dynGC = true
-                    
-                } else if (option == "nogc") {
-                    
-                    "Deprecated option -nogc, you should use -gc=off instead." println()
-                    params enableGC = false
-                    
                 } else if (option startsWith("gc=")) {
                     
                     suboption := option substring(3)
@@ -223,11 +213,20 @@ CommandLine: class {
                     else
                         ("Unrecognized architecture: " + arch) println()
             
-                } else {
-                    
-                    printf("Unrecognized option: %s\n", arg)
- 
-                }
+                } else if (option startsWith("archs=")) {
+					
+					archs := arg substring("archs=" length() + 1) split(",")
+					params fatArchitectures addAll(archs)
+					
+				} else if(option startsWith("osxtarget=")) {
+
+					params osxSDKAndDeploymentTarget = arg substring("osxtarget=" length() + 1);
+
+				} else {
+
+					("Unrecognized option: '"+arg+"'") println()
+                
+				}
             } else if(arg startsWith("+")) {
                 
                 driver compilerArgs add(arg substring(1))

@@ -59,7 +59,10 @@ BuildParams: class {
     
     // either "32" or "64"
     arch: String = ""
-    
+
+	fatArchitectures := ArrayList<String> new()
+	osxSDKAndDeploymentTarget: String
+
     // maximum number of rounds the {@link Tinkerer} will do before blowing up.
     blowup: Int = 256
     

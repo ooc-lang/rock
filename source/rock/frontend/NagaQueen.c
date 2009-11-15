@@ -112,10 +112,6 @@ void *nq_onTypeFuncStart();
 #define YYSTYPE	int
 #endif
 
-#ifndef YY_STACK_SIZE
-#define YY_STACK_SIZE 128
-#endif
-
 #ifndef YY_PART
 
 typedef void (*yyaction)(char *yytext, int yyleng);
@@ -2907,9 +2903,9 @@ YY_PARSE(int) YYPARSEFROM(yyrule yystart)
       yybuf= malloc(yybuflen);
       yytextlen= 1024;
       yytext= malloc(yytextlen);
-      yythunkslen= YY_STACK_SIZE;
+      yythunkslen= 32;
       yythunks= malloc(sizeof(yythunk) * yythunkslen);
-      yyvalslen= YY_STACK_SIZE;
+      yyvalslen= 32;
       yyvals= malloc(sizeof(YYSTYPE) * yyvalslen);
       yybegin= yyend= yypos= yylimit= yythunkpos= 0;
     }

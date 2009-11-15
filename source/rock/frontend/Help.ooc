@@ -19,7 +19,7 @@ Help: class {
 -noclean                        don't delete any temporary file produced by
                                 the backend
 -gcc,-tcc,-icc,-clang,-onlygen  choose the compiler backend (default=gcc)
--onlygen doesn't launch any C compiler, and implies -noclean
+                                -onlygen doesn't launch any C compiler, and implies -noclean
 -gc=[dynamic,static,off]        link dynamically, link statically, or doesn't
                                 link with the Boehm GC at all.
 -driver=[combine,sequence]      choose the driver to use. combine does all in one,
@@ -29,8 +29,11 @@ Help: class {
 -Ipath, -incpath=path           where to find C headers
 -Lpath, -libpath=path           where to find libraries to link with
 -lmylib                         link with library 'mylib'
+-archs=arch,arch                build specified architectures with supporting compilers via '-arch'
+-osxtarget=x                    specify Mac OS X build target and SDK
 -timing                         print how much time it took to compile
 -r, -run                        runs the executable after compilation
+-V, -version                    version information for rock and ooc
 \nFor help about the backend options, run 'ooc -help-backends'"
         )
         
