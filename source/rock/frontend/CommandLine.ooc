@@ -154,7 +154,7 @@ CommandLine: class {
                 } else if (option == "V" || option == "-version" || option == "version") {
                     
                     // TODO
-                    "FIXME! Version info!" println()
+                    println("rock v0.0 codename kalamazoo")
                     exit(0)
                     
                 } else if (option == "h" || option == "-help" || option == "help") {
