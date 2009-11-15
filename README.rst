@@ -38,6 +38,9 @@ Progress report
   	      rock now compiles things =)
   - 2009-11 : Overwhelmed by complexity, rewrote the grammar as a reusable piece, in a separate
               github project. nagaqueen (its fancy name) is now needed to make rock compile
+  - 2009-11 : Most of the resolving architecture is now there, it resolve types at module scope
+              correctly. Still need to implement planned implementations that weren't in j/ooc
+              (e.g. sharing Types per module, except for generics, to group resolves)
 
 You can help! We can probably re-use like 50% of the source code from the
 j/ooc codebase, so please come on #ooc-lang to know which classes need porting.
