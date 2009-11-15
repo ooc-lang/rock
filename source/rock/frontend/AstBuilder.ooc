@@ -5,101 +5,101 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     FunctionCall, StringLiteral, Node, Module, Statement, Line, Include, Import,
     Type, Expression]
 
-nq_parse: extern proto func (String) -> Int
+nq_parse: extern proto func (AstBuilder, String) -> Int
 
 AstBuilder: class {
 
-    modulePath : static String
-    module : static Module
-    stack : static Stack<Node>
+    modulePath : String
+    module : Module
+    stack : Stack<Node>
 
-    parse: static func (=modulePath, =module) {
+    parse: func (=modulePath, =module) {
         if(!stack) stack = Stack<Node> new()
         if(!stack isEmpty()) stack clear()
         stack push(module)
-        nq_parse(modulePath)
+        nq_parse(this, modulePath)
     }
     
-    onInclude: static func (path, name: String) {
+    onInclude: func (path, name: String) {
         inc := Include new(path isEmpty() ? name : path + name, IncludeModes PATHY)
         module includes add(inc)
         printf("Got include %s\n", inc path)
     }
     
-    onImport: static func  (path, name: String) {
+    onImport: func  (path, name: String) {
         imp := Import new(path isEmpty() ? name : path + name)
         module includes add(imp)
         printf("Got Import %s\n", imp path)
     }
     
-    onCoverStart: static func (name: String) {
+    onCoverStart: func (name: String) {
         cDecl := CoverDecl new(name clone(), null, nullToken)
         module addType(cDecl)
         stack push(cDecl)
     }
     
-    onCoverFromType: static func (type: Type) {
+    onCoverFromType: func (type: Type) {
         cDecl : CoverDecl = stack peek()
         cDecl setFromType(type)
     }
     
-    onCoverExtends: static func (superType: Type) {
+    onCoverExtends: func (superType: Type) {
         cDecl : CoverDecl = stack peek()
         cDecl superType = superType
     }
     
-    onCoverEnd: static func {
+    onCoverEnd: func {
         node : Node = stack pop()
     }
     
-    onClassStart: static func (name: String) {
+    onClassStart: func (name: String) {
         cDecl := ClassDecl new(name clone(), null, nullToken)
         cDecl module = module
         module addType(cDecl)
         stack push(cDecl)
     }
     
-    onClassExtends: static func (superType: Type) {
+    onClassExtends: func (superType: Type) {
         cDecl : ClassDecl = stack peek()
         cDecl superType = superType
     }
     
-    onClassAbstract: static func {
+    onClassAbstract: func {
         cDecl : ClassDecl = stack peek()
         cDecl isAbstract = true
     }
     
-    onClassFinal: static func {
+    onClassFinal: func {
         cDecl : ClassDecl = stack peek()
         cDecl isFinal = true
     }
     
-    onClassEnd: static func {
+    onClassEnd: func {
         node : Node = stack pop()
     }
      
-    onVarDeclStart: static func {
+    onVarDeclStart: func {
         stack push(Stack<VariableDecl> new())
     }
     
-    onVarDeclName: static func (name: String) {
+    onVarDeclName: func (name: String) {
         vds : Stack<VariableDecl> = stack peek()
         vds push(VariableDecl new(null, name clone(), nullToken))
     }
     
-    onVarDeclExpr: static func (expr: Expression) {
+    onVarDeclExpr: func (expr: Expression) {
         vds : Stack<VariableDecl> = stack peek()
         vds peek() setExpr(expr)
     }
     
-    onVarDeclStatic: static func {
+    onVarDeclStatic: func {
         vds : Stack<VariableDecl> = stack peek()
         for(vd: VariableDecl in vds) {
             vd setStatic(true)
         }
     }
     
-    onVarDeclType: static func (type: Type) {
+    onVarDeclType: func (type: Type) {
         vds : Stack<VariableDecl> = stack peek()
         for(vd: VariableDecl in vds) {
             printf("%s is now of type %s\n", vd name, type toString())
@@ -107,7 +107,7 @@ AstBuilder: class {
         }
     }
     
-    onVarDeclEnd: static func {
+    onVarDeclEnd: func {
         vds : Stack<VariableDecl> = stack pop()
         node : Node = stack peek()
         
@@ -126,50 +126,50 @@ AstBuilder: class {
             
     }
 
-    onFuncTypeNew: static func -> Type {
+    onFuncTypeNew: func -> Type {
         return FuncType new(nullToken)
     }
       
-    onTypeNew: static func (name: String) -> Type {
+    onTypeNew: func (name: String) -> Type {
         return BaseType new(name clone(), nullToken)
     }
     
-    onTypePointer: static func (type: Type) -> Type {
+    onTypePointer: func (type: Type) -> Type {
         return PointerType new(type, nullToken)
     }
 
 }
 
 // string handling
-nq_StringClone: func (string: String) -> String { string clone() }
+nq_StringClone: func (string: String) -> String             { string clone() }
 
 // includes, imports
-nq_onInclude: func (path, name: String)   { AstBuilder onInclude(path, name) }
-nq_onImport:  func (path, name: String)   { AstBuilder onImport(path, name) }
+nq_onInclude: func (this: AstBuilder, path, name: String)   { this onInclude(path, name) }
+nq_onImport:  func (this: AstBuilder, path, name: String)   { this onImport(path, name) }
 
 // covers
-nq_onCoverStart: func (name: String)      { AstBuilder onCoverStart(name) }
-nq_onCoverFromType: func (type: Type)     { AstBuilder onCoverFromType(type) }
-nq_onCoverExtends: func (superType: Type) { AstBuilder onCoverExtends(superType) }
-nq_onCoverEnd: func                       { AstBuilder onCoverEnd() }
+nq_onCoverStart: func (this: AstBuilder, name: String)      { this onCoverStart(name) }
+nq_onCoverFromType: func (this: AstBuilder, type: Type)     { this onCoverFromType(type) }
+nq_onCoverExtends: func (this: AstBuilder, superType: Type) { this onCoverExtends(superType) }
+nq_onCoverEnd: func (this: AstBuilder)                      { this onCoverEnd() }
 
 // classes
-nq_onClassStart: func (name: String)      { AstBuilder onClassStart(name) }
-nq_onClassExtends: func (superType: Type) { AstBuilder onClassExtends(superType) }
-nq_onClassAbstract: func                  { AstBuilder onClassAbstract() }
-nq_onClassFinal: func                     { AstBuilder onClassFinal() }
-nq_onClassEnd: func                       { AstBuilder onClassEnd() }
+nq_onClassStart: func (this: AstBuilder, name: String)      { this onClassStart(name) }
+nq_onClassExtends: func (this: AstBuilder, superType: Type) { this onClassExtends(superType) }
+nq_onClassAbstract: func (this: AstBuilder)                 { this onClassAbstract() }
+nq_onClassFinal: func (this: AstBuilder)                    { this onClassFinal() }
+nq_onClassEnd: func (this: AstBuilder)                      { this onClassEnd() }
 
 // variable declarations
-nq_onVarDeclStart: func                   { AstBuilder onVarDeclStart() }
-nq_onVarDeclName: func (name: String)     { AstBuilder onVarDeclName(name) }
-nq_onVarDeclExpr: func (expr: Expression) { AstBuilder onVarDeclExpr(expr) }
-nq_onVarDeclType: func (type: Type)       { AstBuilder onVarDeclType(type) }
-nq_onVarDeclStatic: func                  { AstBuilder onVarDeclStatic() }
-nq_onVarDeclEnd: func                     { AstBuilder onVarDeclEnd() }
+nq_onVarDeclStart: func (this: AstBuilder)                  { this onVarDeclStart() }
+nq_onVarDeclName: func (this: AstBuilder, name: String)     { this onVarDeclName(name) }
+nq_onVarDeclExpr: func (this: AstBuilder, expr: Expression) { this onVarDeclExpr(expr) }
+nq_onVarDeclType: func (this: AstBuilder, type: Type)       { this onVarDeclType(type) }
+nq_onVarDeclStatic: func (this: AstBuilder)                 { this onVarDeclStatic() }
+nq_onVarDeclEnd: func (this: AstBuilder)                    { this onVarDeclEnd() }
 
 // types
-nq_onTypeNew: func (name: String) -> Type   { return AstBuilder onTypeNew(name) }
-nq_onTypePointer: func (type: Type) -> Type { return AstBuilder onTypePointer(type) }
-nq_onFuncTypeNew: func -> Type              { return AstBuilder onFuncTypeNew() }
+nq_onTypeNew: func (this: AstBuilder, name: String) -> Type   { return this onTypeNew(name) }
+nq_onTypePointer: func (this: AstBuilder, type: Type) -> Type { return this onTypePointer(type) }
+nq_onFuncTypeNew: func (this: AstBuilder) -> Type             { return this onFuncTypeNew() }
 
