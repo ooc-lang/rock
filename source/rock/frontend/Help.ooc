@@ -34,7 +34,7 @@ Help: class {
 -timing                         print how much time it took to compile
 -r, -run                        runs the executable after compilation
 -V, -version                    version information for rock and ooc
-\nFor help about the backend options, run 'ooc -help-backends'"
+\nFor help about the backend options, run 'rock -help-backends'"
         )
         
     }
