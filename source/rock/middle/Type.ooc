@@ -1,6 +1,6 @@
 import ../frontend/Token
 import ../backend/AwesomeWriter
-import Node, Visitor, Declaration, TypeDecl, Module
+import Node, Visitor, Declaration, TypeDecl, ClassDecl, Module
 import tinker/[Response, Resolver, Trail]
 
 voidType := BaseType new("void", nullToken)
@@ -66,6 +66,8 @@ BaseType: class extends Type {
             Exception new(This, "Trying to write unresolved type " + toString())
         }
         w app(ref underName())
+        if(ref class instanceof(ClassDecl))
+            w app("*")
     }
     
     equals: func (other: This) -> Bool {

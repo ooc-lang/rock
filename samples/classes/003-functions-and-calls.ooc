@@ -1,3 +1,5 @@
+import lang/BasicTypes
+
 Dog: class {
 
     name: String
