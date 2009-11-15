@@ -1,10 +1,12 @@
 .PHONY:all clean mrproper test-ast
+#PARSER_GEN=leg
+PARSER_GEN=greg
 OOC_OWN_FLAGS=-sourcepath=source/ -driver=sequence -v -noclean -g -shout
 OOC=ooc ${OOC_OWN_FLAGS} ${OOC_FLAGS}
 
 all:
 	mkdir -p source/rock/parser/
-	leg ../nagaqueen/grammar/nagaqueen.leg > source/rock/frontend/NagaQueen.c
+	${PARSER_GEN} ../nagaqueen/grammar/nagaqueen.leg > source/rock/frontend/NagaQueen.c
 	${OOC} $(shell find source/ -name "*.c") rock/rock && mkdir -p bin/ && mv rock bin/
 
 test-ast:
