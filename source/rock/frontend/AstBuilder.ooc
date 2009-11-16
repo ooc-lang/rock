@@ -1,6 +1,8 @@
+import io/File
+
 import structs/[Array, ArrayList, List, Stack, HashMap]
 
-import ../frontend/Token
+import ../frontend/[Token, BuildParams]
 import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl, 
     FunctionCall, StringLiteral, Node, Module, Statement, Line, Include, Import,
     Type, Expression]
@@ -10,15 +12,67 @@ nq_parse: extern proto func (AstBuilder, String) -> Int
 AstBuilder: class {
 
     cache := static HashMap<Module> new()
+    
+    params : BuildParams
     modulePath : String
     module : Module
     stack : Stack<Node>
 
-    parse: func (=modulePath, =module) {
-        if(!stack) stack = Stack<Node> new()
-        if(!stack isEmpty()) stack clear()
+    init: func (=modulePath, =module, =params) {
+        
+        if(params verbose) {
+            printf("Parsing %s (for module %s)\n", modulePath, module fullName)
+        }
+        cache put(modulePath, module)
+        printCache()
+        
+        stack = Stack<Node> new()
         stack push(module)
-        nq_parse(this, modulePath)
+        result := nq_parse(this, modulePath)
+        if(result == -1) {
+            Exception new(This, "File " +modulePath + " not found") throw()
+        }
+        
+        for(imp: Import in module imports) {
+            path := imp path + ".ooc"
+            if(path startsWith("..")) {
+                //path = FileUtils resolveRedundancies(File new(module getParentPath(), path)) path
+            }
+            
+            impFile := params sourcePath getFile(path)
+            if(!impFile) {
+                path = module getParentPath() + "/" + path
+                impFile = params sourcePath getFile(path)
+                if(impFile == null) {
+                    //throw new OocCompilationError(imp, module, "Module not found in sourcepath: "+imp path);
+                    Exception new(This, "Module not found in sourcepath: " + imp path) throw()
+                }
+            }
+            
+            println("Trying to get "+path+" from cache")
+            cached : Module = null
+            cached = cache get(path)
+            
+            //if(!cached || File new(impFile path) lastModified() > cached lastModified) {
+            if(!cached) {
+                if(cached) {
+                    println(path+" has been changed, recompiling...");
+                }
+                cached = Module new(path, nullToken)
+                imp setModule(cached)
+                This new(impFile path, cached, params)
+            }
+            imp setModule(cached)
+        }
+        
+    }
+    
+    printCache: func {
+        printf("==== Cache ====\n")
+        for(key in cache keys) {
+            printf("cache %s => %s\n", key, cache get(key) fullName)
+        }
+        printf("===============\n")
     }
     
     onInclude: func (path, name: String) {
@@ -29,7 +83,7 @@ AstBuilder: class {
     
     onImport: func  (path, name: String) {
         imp := Import new(path isEmpty() ? name : path + name)
-        module includes add(imp)
+        module imports add(imp)
         printf("Got Import %s\n", imp path)
     }
     

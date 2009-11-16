@@ -82,15 +82,22 @@ BaseType: class extends Type {
         printf("resolving type %s (ref = %p)\n", name, ref)
         
         module := trail module()
-        for(tDecl: TypeDecl in module types) {
-            if(tDecl name == this name) {
-                ("Found match! " + name) println()
-                ref = tDecl
+        
+        this ref = module types get(name)
+        if(ref == null) {
+            for(imp in module imports) {
+                this ref = imp getModule() types get(name)
+                if(ref != null) {
+                    ("Found type " + name + " in " + imp getModule() fullName)
+                    break
+                }
             }
         }
         
         if(ref == null) {
             return Responses LOOP
+        } else {
+            ("Found match! " + name) println()
         }
         
         return Responses OK

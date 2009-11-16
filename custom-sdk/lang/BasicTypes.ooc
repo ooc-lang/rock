@@ -14,6 +14,7 @@ UChar: cover from unsigned char
 WChar: cover from wchar_t
 String: cover from Char*
 LLong: cover from long long
+Int: cover from int extends LLong
 UInt: cover from unsigned int extends LLong
 Short: cover from short extends LLong
 UShort: cover from unsigned short extends LLong

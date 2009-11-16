@@ -294,7 +294,7 @@ CommandLine: class {
         module := Module new(fullName, nullToken)
         
         // phase 1: parse
-        AstBuilder new() parse(modulePath, module)
+        AstBuilder new(modulePath, module, params)
         
         // phase 2: tinker
         moduleList := ArrayList<Module> new()

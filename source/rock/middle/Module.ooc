@@ -14,6 +14,8 @@ Module: class extends Node {
     includes := ArrayList<Include> new()
     imports  := ArrayList<Import> new()
     uses     := ArrayList<Use> new()
+    
+    lastModified : Long
 
     init: func ~module (.fullName, .token) {
         super(token)
@@ -42,6 +44,15 @@ Module: class extends Node {
     
     getOutPath: func (suffix: String) -> String {
         pathElement + File separator + fullName + suffix
+    }
+    
+    getParentPath: func -> String {
+        // FIXME that's sub-optimal
+        fileName := pathElement + fullName + ".ooc"
+        printf("in getParentPath(), fileName = %s (1/2)\n", fileName)
+        parentPath := File new(fileName) parent() path
+        printf("in getParentPath(), parentPath = %s (2/2)\n", parentPath)
+        return parentPath
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
