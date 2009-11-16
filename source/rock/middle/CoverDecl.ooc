@@ -1,6 +1,7 @@
 import structs/ArrayList
 import ../frontend/Token
 import Expression, Line, Type, Visitor, TypeDecl
+import tinker/[Response, Resolver, Trail]
 
 CoverDecl: class extends TypeDecl {
     
@@ -18,5 +19,24 @@ CoverDecl: class extends TypeDecl {
     }
     
     isAddon: func -> Bool { false }
+    
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        if(fromType == null || fromType isResolved())
+            return Responses OK
+        
+        trail push(this)
+        
+        printf("Resolving cover %s\n", toString())
+        response := super resolve(trail, res)
+        if(!response ok()) return response
+
+        response = fromType resolve(trail, res)
+        if(!response ok())
+            printf("Giving up on cover type %s\n", fromType toString())
+        
+        trail pop(this)
+        
+        return Responses OK
+    }
     
 }

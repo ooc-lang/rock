@@ -291,7 +291,7 @@ CommandLine: class {
         params outPath mkdirs()
         
         fullName := moduleName substring(0, moduleName length() - 4)
-        module := Module new(fullName, nullToken)
+        module := Module new(fullName, params sourcePath getElement(moduleName) path, nullToken)
         
         // phase 1: parse
         AstBuilder new(modulePath, module, params)
@@ -302,7 +302,10 @@ CommandLine: class {
         Tinkerer new() process(moduleList, params)
         
         // phase 3: generate
-        CGenerator new(params outPath path, module) write() .close()
+        for(candidate in moduleList) {
+            CGenerator new(params outPath path, candidate) write() .close()
+        }
+        
         if(params compiler) {
             driver compile(module)
         }

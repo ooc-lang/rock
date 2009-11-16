@@ -32,12 +32,14 @@ Tinkerer: class {
     
                 resolver := iter next()
                 
+                printf("++++++++++++ Resolving module %s\n", resolver module fullName)
+                
                 // returns true = dirty, must do again
                 if(resolver process(params)) {
                     continue
                 }
             
-                if(params veryVerbose) println("Module " + resolver module fullName + " finished resolving.");
+                if(params veryVerbose) println("++++++++++++++++ Module " + resolver module fullName + " finished resolving.");
                 
                 // done? check it and remove it from the processing queue
                 /*

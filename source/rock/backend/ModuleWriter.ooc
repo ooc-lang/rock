@@ -1,4 +1,4 @@
-import ../middle/[Module, Include, TypeDecl, FunctionDecl, CoverDecl, ClassDecl]
+import ../middle/[Module, Include, Import, TypeDecl, FunctionDecl, CoverDecl, ClassDecl]
 import CoverDeclWriter, ClassDeclWriter
 import Skeleton
 
@@ -20,6 +20,12 @@ ModuleWriter: abstract class extends Skeleton {
             visitInclude(this, inc)
         }
         if(!module includes isEmpty()) current nl()
+        
+        for(imp: Import in module imports) {
+			inc := imp getModule() getOutPath(".h")
+			current nl(). app("#include <"). app(inc). app(">")
+		}
+        if(!module imports isEmpty()) current nl()
         
         // write all type forward declarations
         for(tDecl: TypeDecl in module types) {

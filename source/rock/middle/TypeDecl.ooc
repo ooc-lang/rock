@@ -45,9 +45,11 @@ TypeDecl: abstract class extends Declaration {
     }
     
     underName: func -> String {
+        
         // TODO underize it.
-        if(module != null && !module packageName isEmpty() && !isExtern())
+        if(module != null && !module packageName isEmpty() && !isExtern()) {
 			return module packageName + "__" + name
+        }
             
 		return name       
     }

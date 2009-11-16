@@ -12,7 +12,8 @@ Pointer: cover from void*
 Char: cover from char
 UChar: cover from unsigned char
 WChar: cover from wchar_t
-String: cover from Char*
+//String: cover from Char*
+String: cover from char*
 LLong: cover from long long
 Int: cover from int extends LLong
 UInt: cover from unsigned int extends LLong
@@ -35,7 +36,8 @@ UInt16: cover from uint16_t
 UInt32: cover from uint32_t
 UInt64: cover from uint64_t
 
-Octet: cover from UInt8
+//Octet: cover from UInt8
+Octet: cover from uint8_t
 SizeT: cover from size_t extends LLong
 Bool: cover from bool
 

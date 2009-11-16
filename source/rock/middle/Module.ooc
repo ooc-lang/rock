@@ -6,7 +6,7 @@ import tinker/[Response, Resolver, Trail]
 
 Module: class extends Node {
 
-    fullName, simpleName, packageName, pathElement = "" : String
+    fullName, simpleName, packageName, underName, pathElement : String
     
     types     := HashMap<TypeDecl> new()
     functions := HashMap<FunctionDecl> new()
@@ -17,7 +17,7 @@ Module: class extends Node {
     
     lastModified : Long
 
-    init: func ~module (.fullName, .token) {
+    init: func ~module (.fullName, =pathElement, .token) {
         super(token)
         this fullName = fullName replace(File separator, '/')
         idx := fullName lastIndexOf('/')
@@ -30,6 +30,15 @@ Module: class extends Node {
                 simpleName = fullName substring(idx + 1)
                 packageName = fullName substring(0, idx)
         }
+        
+        // FIXME this is incomplete, the correct code is actually
+        underName = sanitize(fullName clone())
+        
+        packageName = sanitize(packageName)
+    }
+    
+    sanitize: func(str: String) -> String {
+        return str replace('/', '_') replace('-', '_')
     }
     
     addFunction: func (fDecl: FunctionDecl) {

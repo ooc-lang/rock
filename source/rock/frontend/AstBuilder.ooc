@@ -39,11 +39,13 @@ AstBuilder: class {
                 //path = FileUtils resolveRedundancies(File new(module getParentPath(), path)) path
             }
             
-            impFile := params sourcePath getFile(path)
-            if(!impFile) {
+            impElement := params sourcePath getElement(path)
+            impPath := params sourcePath getFile(path)
+            if(!impPath) {
                 path = module getParentPath() + "/" + path
-                impFile = params sourcePath getFile(path)
-                if(impFile == null) {
+                impElement = params sourcePath getElement(path)
+                impPath = params sourcePath getFile(path)
+                if(impPath == null) {
                     //throw new OocCompilationError(imp, module, "Module not found in sourcepath: "+imp path);
                     Exception new(This, "Module not found in sourcepath: " + imp path) throw()
                 }
@@ -53,14 +55,14 @@ AstBuilder: class {
             cached : Module = null
             cached = cache get(path)
             
-            //if(!cached || File new(impFile path) lastModified() > cached lastModified) {
+            //if(!cached || File new(impPath path) lastModified() > cached lastModified) {
             if(!cached) {
                 if(cached) {
                     println(path+" has been changed, recompiling...");
                 }
-                cached = Module new(path, nullToken)
+                cached = Module new(path substring(0, path length() - 4), impElement path, nullToken)
                 imp setModule(cached)
-                This new(impFile path, cached, params)
+                This new(impPath path, cached, params)
             }
             imp setModule(cached)
         }
@@ -89,6 +91,7 @@ AstBuilder: class {
     
     onCoverStart: func (name: String) {
         cDecl := CoverDecl new(name clone(), null, nullToken)
+        cDecl module = module
         module addType(cDecl)
         stack push(cDecl)
     }
