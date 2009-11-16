@@ -195,6 +195,12 @@ AstBuilder: class {
     onTypePointer: func (type: Type) -> Type {
         return PointerType new(type, nullToken)
     }
+    
+    onFunctionStart: func (name: String) -> FunctionDecl {
+        fDecl := FunctionDecl new(name, nullToken)
+        printf("Got function %s\n", fDecl name)
+        return fDecl
+    }
 
 }
 
@@ -217,6 +223,9 @@ nq_onClassExtends: func (this: AstBuilder, superType: Type) { this onClassExtend
 nq_onClassAbstract: func (this: AstBuilder)                 { this onClassAbstract() }
 nq_onClassFinal: func (this: AstBuilder)                    { this onClassFinal() }
 nq_onClassEnd: func (this: AstBuilder)                      { this onClassEnd() }
+
+// functions
+nq_onFunctionStart: func (this: AstBuilder, name: String)   { this onFunctionStart(name) }
 
 // variable declarations
 nq_onVarDeclStart: func (this: AstBuilder)                  { this onVarDeclStart() }
