@@ -196,10 +196,45 @@ AstBuilder: class {
         return PointerType new(type, nullToken)
     }
     
-    onFunctionStart: func (name: String) -> FunctionDecl {
-        fDecl := FunctionDecl new(name, nullToken)
-        printf("Got function %s\n", fDecl name)
-        return fDecl
+    onFunctionStart: func (name: String) {
+        fDecl := FunctionDecl new(name clone(), nullToken)
+        printf(">>>>>>>>> Got function %s (%p)\n", fDecl name, fDecl)
+        stack push(fDecl)
+    }
+    
+    onFunctionAbstract: func {
+        fDecl : FunctionDecl = stack peek()
+        fDecl isAbstract = true
+    }
+    onFunctionStatic: func {
+        fDecl : FunctionDecl = stack peek()
+        fDecl isStatic = true
+    }
+    onFunctionInline: func {
+        fDecl : FunctionDecl = stack peek()
+        fDecl isInline = true
+    }
+    
+    onFunctionFinal: func {
+        fDecl : FunctionDecl = stack peek()
+        fDecl isFinal = true
+    }
+    
+    onFunctionSuffix: func (suffix: String) {
+        fDecl : FunctionDecl = stack peek()
+        fDecl suffix = suffix clone()
+    }
+    
+    onFunctionEnd: func {
+        fDecl : FunctionDecl = stack pop()
+        printf("|||||| Got function %p\n", fDecl)
+        printf("|||||| Function is named %s\n", fDecl name)
+        node : Node = stack peek()
+        if(node == module) {
+            module addFunction(fDecl)
+        } else {
+            printf("Unexpected function %s\n", fDecl name)
+        }
     }
 
 }
@@ -224,9 +259,6 @@ nq_onClassAbstract: func (this: AstBuilder)                 { this onClassAbstra
 nq_onClassFinal: func (this: AstBuilder)                    { this onClassFinal() }
 nq_onClassEnd: func (this: AstBuilder)                      { this onClassEnd() }
 
-// functions
-nq_onFunctionStart: func (this: AstBuilder, name: String)   { this onFunctionStart(name) }
-
 // variable declarations
 nq_onVarDeclStart: func (this: AstBuilder)                  { this onVarDeclStart() }
 nq_onVarDeclName: func (this: AstBuilder, name: String)     { this onVarDeclName(name) }
@@ -239,4 +271,14 @@ nq_onVarDeclEnd: func (this: AstBuilder)                    { this onVarDeclEnd(
 nq_onTypeNew: func (this: AstBuilder, name: String) -> Type   { return this onTypeNew(name) }
 nq_onTypePointer: func (this: AstBuilder, type: Type) -> Type { return this onTypePointer(type) }
 nq_onFuncTypeNew: func (this: AstBuilder) -> Type             { return this onFuncTypeNew() }
+
+// functions
+nq_onFunctionStart: func (this: AstBuilder, name: String)       { this onFunctionStart(name) }
+nq_onFunctionAbstract: func (this: AstBuilder)                  { this onFunctionAbstract() }
+nq_onFunctionStatic: func (this: AstBuilder)                    { this onFunctionStatic() }
+nq_onFunctionInline: func (this: AstBuilder)                    { this onFunctionInline() }
+nq_onFunctionFinal: func (this: AstBuilder)                     { this onFunctionFinal() }
+nq_onFunctionSuffix: func (this: AstBuilder, suffix: String)    { this onFunctionSuffix(suffix) }
+nq_onFunctionEnd: func (this: AstBuilder)                       { this onFunctionEnd() }
+
 

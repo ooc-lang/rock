@@ -20,5 +20,6 @@ main: func {
     dog: Dog
     dog = gc_malloc(sizeof(Dog))
     dog name = "Fido"
+    dog shout()
     
 }

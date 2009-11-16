@@ -9,13 +9,13 @@ CoverDecl: class extends TypeDecl {
     
     init: func ~coverDecl(.name, .superType, .token) {
         super(name, superType, token)
-        printf("Got CoverDecl %s\n", name)
+        //printf("Got CoverDecl %s\n", name)
     }
     
     accept: func (visitor: Visitor) { visitor visitCoverDecl(this) }
     
     setFromType: func (=fromType) {
-        printf("CoverDecl %s is now from type %s\n", name, fromType toString())
+        //printf("CoverDecl %s is now from type %s\n", name, fromType toString())
     }
     
     isAddon: func -> Bool { false }
@@ -26,13 +26,14 @@ CoverDecl: class extends TypeDecl {
         
         trail push(this)
         
-        printf("Resolving cover %s\n", toString())
         response := super resolve(trail, res)
         if(!response ok()) return response
 
         response = fromType resolve(trail, res)
-        if(!response ok())
-            printf("Giving up on cover type %s\n", fromType toString())
+        if(!response ok()) {
+            //printf("Giving up on cover type %s\n", fromType toString())
+            fromType setRef(BuiltinType new(fromType toString(), nullToken))
+        }
         
         trail pop(this)
         

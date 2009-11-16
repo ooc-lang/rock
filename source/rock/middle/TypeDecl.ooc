@@ -106,7 +106,7 @@ TypeDecl: abstract class extends Declaration {
         
         trail push(this)
         
-        printf("Resolving type decl %s\n", toString())
+        //printf("Resolving type decl %s\n", toString())
         
         for(vDecl in variables) {
             response := vDecl resolve(trail, res)
@@ -124,3 +124,16 @@ TypeDecl: abstract class extends Declaration {
     }
 
 }
+
+BuiltinType: class extends TypeDecl {
+    
+    init: func ~builtinType (.name, .token) {
+        super(name, null, token)
+    }
+    
+    underName: func -> String { name }
+    
+    accept: func (v: Visitor) { /* yeah, right. */ }
+    
+}
+

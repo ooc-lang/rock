@@ -54,7 +54,6 @@ ModuleWriter: abstract class extends Skeleton {
         
         // write all types
         for(tDecl: TypeDecl in module types) {
-            printf("Writing type %s\n", tDecl name)
             tDecl accept(this)
         }
         

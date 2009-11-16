@@ -39,7 +39,7 @@ VariableDecl: class extends Declaration {
 
         trail push(this)
         
-        printf("Resolving variable decl %s\n", toString());
+        //printf("Resolving variable decl %s\n", toString());
         response := type resolve(trail, res)
         if(!response ok()) {
             trail pop(this)

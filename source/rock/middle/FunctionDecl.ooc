@@ -11,6 +11,7 @@ FunctionDecl: class extends Expression {
     /** Attributes */
     isAbstract := false
     isStatic := false
+    isInline := false
     isFinal := false
     externName : String = null
     
