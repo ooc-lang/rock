@@ -16,9 +16,10 @@ Dog: class {
 
 main: func -> Int {
     
-    dog: Dog
-    dog = gc_malloc(sizeof(Dog))
-    dog name = "Fido"
-    dog shout()
+    printf("Goodbye, cruel world\n")
+    //dog: Dog
+    //dog = gc_malloc(sizeof(Dog))
+    //dog name = "Fido"
+    //dog shout()
     
 }

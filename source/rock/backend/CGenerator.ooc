@@ -4,7 +4,7 @@ import ../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Line, BinaryOp, IntLiteral, CharLiteral, StringLiteral, RangeLiteral,
     VariableDecl, If, Else, While, Foreach, Conditional, ControlStatement,
     VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,
-    Node, Parenthesis]
+    Node, Parenthesis, Return]
     
 import Skeleton, FunctionDeclWriter, ControlStatementWriter, ClassDeclWriter,
     ModuleWriter, CoverDeclWriter
@@ -138,6 +138,10 @@ CGenerator: class extends Skeleton {
     
     visitParenthesis: func (paren: Parenthesis) {
         current app('('). app(paren inner). app(')')
+    }
+    
+    visitReturn: func (ret: Return) {
+        current app("return "). app(ret)
     }
 
 }

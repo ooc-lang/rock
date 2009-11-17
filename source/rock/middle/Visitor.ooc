@@ -1,5 +1,7 @@
 import Node
 
+import Return
+
 Visitor: abstract class {
     
     // All a big hack. To avoid specific circular imports which are buggy atm.
@@ -28,5 +30,7 @@ Visitor: abstract class {
     visitBinaryOp:          abstract func (node: Node)
     visitParenthesis:       abstract func (node: Node)
     visitLine:              abstract func (node: Node)
+    
+    visitReturn:            abstract func (ret: Return)
 
 }

@@ -5,7 +5,7 @@ import structs/[Array, ArrayList, List, Stack, HashMap]
 import ../frontend/[Token, BuildParams]
 import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl, 
     FunctionCall, StringLiteral, Node, Module, Statement, Line, Include, Import,
-    Type, Expression]
+    Type, Expression, Return]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -267,6 +267,50 @@ AstBuilder: class {
         }
         return fDecl
     }
+    
+    // function calls
+    onFunctionCallStart: func (name: String) {
+        fCall := FunctionCall new(name clone(), nullToken)
+        stack push(fCall)
+    }
+    
+    onFunctionCallArg: func (expr: Expression) {
+        fCall : FunctionCall = stack peek()
+        fCall args add(expr)
+        printf("Function call to %s got arg %p\n", fCall name, expr)
+    }
+    
+    onFunctionCallEnd: func -> FunctionCall {
+        node : Node = stack pop()
+        printf("Wanted to pop a FunctionCall, got a %s\n", node class name)
+        return node as FunctionCall
+    }
+    
+    // literals
+    onStringLiteral: func (text: String) -> StringLiteral {
+        sl := StringLiteral new(text clone(), nullToken)
+        printf("Got string literal %s\n", sl toString())
+        return sl
+    }
+    
+    // statement
+    onStatement: func (stmt: Statement) {
+        node : Node = stack peek()
+        printf("Got a statement which is a %s, and peek is a %s\n", stmt class name, node class name)
+        match node class {
+            case FunctionDecl =>
+                fDecl : FunctionDecl = node
+                fDecl body add(Line new(stmt))
+                printf("Added line to function decl %s\n", fDecl name)
+        }
+    }
+    
+    // return
+    onReturn: func (expr: Expression) -> Return {
+        ret := Return new(expr, nullToken)
+        printf("Got return %p\n", expr)
+        return ret
+    }
 
 }
 
@@ -315,5 +359,15 @@ nq_onFunctionArgsEnd: func (this: AstBuilder)                   { this onFunctio
 nq_onFunctionReturnType: func (this: AstBuilder, type: Type)    { this onFunctionReturnType(type) }
 nq_onFunctionEnd: func (this: AstBuilder) -> FunctionDecl       { return this onFunctionEnd() }
 
+// function calls
+nq_onFunctionCallStart: func (this: AstBuilder, name: String)   { this onFunctionCallStart(name) }
+nq_onFunctionCallArg: func (this: AstBuilder, arg: Expression)  { this onFunctionCallArg(arg) }
+nq_onFunctionCallEnd: func (this: AstBuilder) -> FunctionCall   { return this onFunctionCallEnd() }
 
+// literals
+nq_onStringLiteral: func (this: AstBuilder, text: String) -> StringLiteral   { return this onStringLiteral(text) }
+
+// statement
+nq_onStatement: func (this: AstBuilder, stmt: Statement)         { this onStatement(stmt) }
+nq_onReturn: func (this: AstBuilder, expr: Expression) -> Return { return this onReturn(expr) }
 

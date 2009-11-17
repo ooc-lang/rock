@@ -1,7 +1,7 @@
 .PHONY:all clean mrproper test-ast
 #PARSER_GEN=leg
 PARSER_GEN=greg
-OOC_OWN_FLAGS=-sourcepath=source/ -driver=sequence -v -noclean -g -shout
+OOC_OWN_FLAGS=-sourcepath=source/ -driver=sequence -v -noclean -g -shout -D_BSD_SOURCE
 OOC=ooc ${OOC_OWN_FLAGS} ${OOC_FLAGS}
 
 all:

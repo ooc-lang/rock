@@ -13,5 +13,7 @@ StringLiteral: class extends Literal {
     accept: func (visitor: Visitor) { visitor visitStringLiteral(this) }
 
     getType: func -> Type { type }
+    
+    toString: func -> String { "\"" + value + "\"" }
 
 }
