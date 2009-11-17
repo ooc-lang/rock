@@ -33,6 +33,28 @@ AstBuilder: class {
             Exception new(This, "File " +modulePath + " not found") throw()
         }
         
+        addLangImports()
+        parseImports()
+        
+    }
+    
+    addLangImports: func {
+    
+        paths := params sourcePath getRelativePaths("lang")
+        for(path in paths) {
+            if(path endsWith(".ooc")) {
+                impName := path substring(0, path length() - 4)
+                if(impName != module fullName) {
+                    printf("Adding import %s to %s\n", impName, module fullName)
+                    module imports add(Import new(impName))
+                }
+            }
+        }
+        
+    }
+    
+    parseImports: func {
+        
         for(imp: Import in module imports) {
             path := imp path + ".ooc"
             if(path startsWith("..")) {
@@ -160,7 +182,6 @@ AstBuilder: class {
     onVarDeclType: func (type: Type) {
         vds : Stack<VariableDecl> = stack peek()
         for(vd: VariableDecl in vds) {
-            printf("%s is now of type %s\n", vd name, type toString())
             vd type = type
         }
     }
@@ -170,16 +191,12 @@ AstBuilder: class {
         node : Node = stack peek()
         
         if(node class instanceof(TypeDecl)) {
-            
             tDecl := node as TypeDecl
-        
-            println("=======================================")
             for(vd: VariableDecl in vds) {
-                println(vd toString())
                 tDecl addVariable(vd)
             }
-            println("=======================================")
-            
+        } else {
+            printf("^^^^^^^ Unexpected varDecl " + vds peek() toString())
         }
             
     }
@@ -189,7 +206,7 @@ AstBuilder: class {
     }
       
     onTypeNew: func (name: String) -> Type {
-        return BaseType new(name clone(), nullToken)
+        return BaseType new(name clone() trim(), nullToken)
     }
     
     onTypePointer: func (type: Type) -> Type {
@@ -198,7 +215,6 @@ AstBuilder: class {
     
     onFunctionStart: func (name: String) {
         fDecl := FunctionDecl new(name clone(), nullToken)
-        printf(">>>>>>>>> Got function %s (%p)\n", fDecl name, fDecl)
         stack push(fDecl)
     }
     
@@ -225,16 +241,31 @@ AstBuilder: class {
         fDecl suffix = suffix clone()
     }
     
-    onFunctionEnd: func {
+    onFunctionArgsStart: func {
+        fDecl : FunctionDecl = stack peek()
+        stack push(fDecl args)
+    }
+    
+    onFunctionArgsEnd: func {
+        node : Node = stack pop()
+        printf("Wanted to pop an ArrayList, got a %s\n", node class name)
+    }
+    
+    onFunctionReturnType: func (type: Type) {
+        fDecl : FunctionDecl = stack peek()
+        fDecl returnType = type
+        printf("returnType of %s is now %s\n", fDecl toString(), type toString())
+    }
+    
+    onFunctionEnd: func -> FunctionDecl {
         fDecl : FunctionDecl = stack pop()
-        printf("|||||| Got function %p\n", fDecl)
-        printf("|||||| Function is named %s\n", fDecl name)
         node : Node = stack peek()
         if(node == module) {
             module addFunction(fDecl)
         } else {
             printf("Unexpected function %s\n", fDecl name)
         }
+        return fDecl
     }
 
 }
@@ -279,6 +310,10 @@ nq_onFunctionStatic: func (this: AstBuilder)                    { this onFunctio
 nq_onFunctionInline: func (this: AstBuilder)                    { this onFunctionInline() }
 nq_onFunctionFinal: func (this: AstBuilder)                     { this onFunctionFinal() }
 nq_onFunctionSuffix: func (this: AstBuilder, suffix: String)    { this onFunctionSuffix(suffix) }
-nq_onFunctionEnd: func (this: AstBuilder)                       { this onFunctionEnd() }
+nq_onFunctionArgsStart: func (this: AstBuilder)                 { this onFunctionArgsStart() }
+nq_onFunctionArgsEnd: func (this: AstBuilder)                   { this onFunctionArgsEnd() }
+nq_onFunctionReturnType: func (this: AstBuilder, type: Type)    { this onFunctionReturnType(type) }
+nq_onFunctionEnd: func (this: AstBuilder) -> FunctionDecl       { return this onFunctionEnd() }
+
 
 

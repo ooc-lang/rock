@@ -11,7 +11,8 @@ SdkLocator: class {
             return File new(envDist)
         }
         
-        return File new(DistLocator locate() getPath() + File separator + "sdk")
+        //return File new(DistLocator locate() getPath() + File separator + "sdk")
+        return File new(DistLocator locate() getPath() + File separator + "custom-sdk")
     }
     
 }

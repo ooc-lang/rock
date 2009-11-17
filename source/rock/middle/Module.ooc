@@ -57,7 +57,7 @@ Module: class extends Node {
     
     getParentPath: func -> String {
         // FIXME that's sub-optimal
-        fileName := pathElement + fullName + ".ooc"
+        fileName := pathElement + File separator + fullName + ".ooc"
         printf("in getParentPath(), fileName = %s (1/2)\n", fileName)
         parentPath := File new(fileName) parent() path
         printf("in getParentPath(), parentPath = %s (2/2)\n", parentPath)
@@ -71,6 +71,12 @@ Module: class extends Node {
         for(tDecl in types) {
             if(tDecl isResolved()) continue
             response := tDecl resolve(trail, res)
+            if(!response ok()) return response
+        }
+        
+        for(fDecl in functions) {
+            if(fDecl isResolved()) continue
+            response := fDecl resolve(trail, res)
             if(!response ok()) return response
         }
         

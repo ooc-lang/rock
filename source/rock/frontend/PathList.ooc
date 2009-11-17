@@ -71,7 +71,8 @@ PathList: class {
         
         for (element: File in paths) {
             candidate := File new(element getPath() + File separator + path) 
-            if (candidate exists) {
+            if (candidate exists() && candidate isDir()) {
+                printf("candidate %s exists and is dir!\n", candidate path)
                 addChildren(path, files, candidate);
             }
         }
@@ -80,9 +81,8 @@ PathList: class {
     }
     
     addChildren: func(basePath: String, list: List<String>, parent: File) {
-        dir := File new((parent parent() getPath()))
         
-        for (child: File in dir getChildren()) {
+        for (child: File in parent getChildren()) {
             if (child isFile()) {
                 list add(basePath + File separator + child name()) 
             }

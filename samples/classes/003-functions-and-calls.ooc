@@ -1,4 +1,3 @@
-import lang/BasicTypes
 
 Dog: class {
 
@@ -15,7 +14,7 @@ Dog: class {
 
 }
 
-main: func {
+main: func -> Int {
     
     dog: Dog
     dog = gc_malloc(sizeof(Dog))

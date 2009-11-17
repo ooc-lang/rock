@@ -1,6 +1,7 @@
 import structs/ArrayList
 import ../frontend/Token
 import Expression, Line, Type, Visitor, Argument, TypeDecl
+import tinker/[Resolver, Response, Trail]
 
 FunctionDecl: class extends Expression {
 
@@ -40,6 +41,23 @@ FunctionDecl: class extends Expression {
     
     toString: func -> String {
         name + ": func"
+    }
+    
+    isResolved: func -> Bool { false }
+    
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        
+        trail push(this)
+        
+        printf("Resolving function decl %s (returnType = %s)\n", toString(), returnType toString())
+
+        response := returnType resolve(trail, res)
+        if(!response ok()) return response
+        
+        trail pop(this)
+        
+        return Responses OK
+        
     }
     
 }
