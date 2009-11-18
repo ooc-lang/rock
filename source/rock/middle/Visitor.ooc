@@ -1,35 +1,37 @@
 import Node
 
-import Return
+import Return, ClassDecl, CoverDecl, FunctionDecl, VariableDecl, Type, Module,
+        If, Else, While, Foreach, RangeLiteral, CharLiteral, StringLiteral, IntLiteral,
+        VariableAccess, FunctionCall, BinaryOp, Parenthesis, Line, Return
 
 Visitor: abstract class {
     
     // All a big hack. To avoid specific circular imports which are buggy atm.
-    visitClassDecl:         abstract func (node: Node)
-    visitCoverDecl:         abstract func (node: Node)
-    visitFunctionDecl:      abstract func (node: Node)
-    visitVariableDecl:      abstract func (node: Node)
+    visitClassDecl:         abstract func (node: ClassDecl)
+    visitCoverDecl:         abstract func (node: CoverDecl)
+    visitFunctionDecl:      abstract func (node: FunctionDecl)
+    visitVariableDecl:      abstract func (node: VariableDecl)
     
-    visitType:              abstract func (node: Node)
+    visitType:              abstract func (node: Type)
     
-    visitModule:            abstract func (node: Node)
+    visitModule:            abstract func (node: Module)
     
-    visitIf:                abstract func (node: Node)
-    visitElse:              abstract func (node: Node)
-    visitWhile:             abstract func (node: Node)
-    visitForeach:           abstract func (node: Node)
+    visitIf:                abstract func (node: If)
+    visitElse:              abstract func (node: Else)
+    visitWhile:             abstract func (node: While)
+    visitForeach:           abstract func (node: Foreach)
     
-    visitRangeLiteral:      abstract func (node: Node)
-    visitCharLiteral:       abstract func (node: Node)
-    visitStringLiteral:     abstract func (node: Node)
-    visitIntLiteral:        abstract func (node: Node)
+    visitRangeLiteral:      abstract func (node: RangeLiteral)
+    visitCharLiteral:       abstract func (node: CharLiteral)
+    visitStringLiteral:     abstract func (node: StringLiteral)
+    visitIntLiteral:        abstract func (node: IntLiteral)
     
-    visitVariableAccess:    abstract func (node: Node)
-    visitFunctionCall:      abstract func (node: Node)
+    visitVariableAccess:    abstract func (node: VariableAccess)
+    visitFunctionCall:      abstract func (node: FunctionCall)
     
-    visitBinaryOp:          abstract func (node: Node)
-    visitParenthesis:       abstract func (node: Node)
-    visitLine:              abstract func (node: Node)
+    visitBinaryOp:          abstract func (node: BinaryOp)
+    visitParenthesis:       abstract func (node: Parenthesis)
+    visitLine:              abstract func (node: Line)
     
     visitReturn:            abstract func (ret: Return)
 

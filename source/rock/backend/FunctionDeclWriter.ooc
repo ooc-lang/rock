@@ -1,4 +1,4 @@
-import ../middle/[FunctionDecl, TypeDecl, Argument]
+import ../middle/[FunctionDecl, TypeDecl, Argument, Line, Type]
 import Skeleton
 include stdint
 
