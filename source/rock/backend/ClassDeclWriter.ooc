@@ -17,7 +17,7 @@ ClassDeclWriter: abstract class extends Skeleton {
         writeClassStruct(this, cDecl)
         
         current = cw
-        //writeInstanceImplFuncs(this, cDecl);
+        writeInstanceImplFuncs(this, cDecl);
         writeClassGettingFunction(this, cDecl);
         //writeInstanceVirtualFuncs(this, cDecl);
         //writeStaticFuncs(this, cDecl);

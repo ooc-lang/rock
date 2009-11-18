@@ -84,17 +84,17 @@ BaseType: class extends Type {
     
         if(isResolved()) return Responses OK
     
-        printf("resolving type %s (ref = %p)\n", name, ref)
+        //printf("resolving type %s (ref = %p)\n", name, ref)
         
         module := trail module()
         
         this ref = module types get(name)
         if(ref == null) {
             for(imp in module imports) {
-                printf("Looking in import %s\n", imp path)
+                //printf("Looking in import %s\n", imp path)
                 this ref = imp getModule() types get(name)
                 if(ref != null) {
-                    ("Found type " + name + " in " + imp getModule() fullName)
+                    //("Found type " + name + " in " + imp getModule() fullName)
                     break
                 }
             }
@@ -102,8 +102,8 @@ BaseType: class extends Type {
         
         if(ref == null) {
             return Responses LOOP
-        } else {
-            ("Found match! " + name) println()
+        //} else {
+            //("Found match! " + name) println()
         }
         
         return Responses OK

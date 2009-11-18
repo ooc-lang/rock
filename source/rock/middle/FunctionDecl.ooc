@@ -51,8 +51,20 @@ FunctionDecl: class extends Expression {
         
         printf("Resolving function decl %s (returnType = %s)\n", toString(), returnType toString())
 
-        response := returnType resolve(trail, res)
-        if(!response ok()) return response
+        {
+            response := returnType resolve(trail, res)
+            if(!response ok()) return response
+        }
+
+        for(arg in args) {
+            response := arg resolve(trail, res)
+            if(!response ok()) return response
+        }
+        
+        for(line in body) {
+            response := line inner resolve(trail, res)
+            if(!response ok()) return response
+        }
         
         trail pop(this)
         

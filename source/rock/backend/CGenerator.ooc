@@ -141,7 +141,8 @@ CGenerator: class extends Skeleton {
     }
     
     visitReturn: func (ret: Return) {
-        current app("return "). app(ret)
+        current app("return")
+        if(ret expr) current app(' '). app(ret expr)
     }
 
 }

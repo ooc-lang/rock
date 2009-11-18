@@ -5,7 +5,7 @@ import structs/[Array, ArrayList, List, Stack, HashMap]
 import ../frontend/[Token, BuildParams]
 import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl, 
     FunctionCall, StringLiteral, Node, Module, Statement, Line, Include, Import,
-    Type, Expression, Return]
+    Type, Expression, Return, VariableAccess]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -45,7 +45,7 @@ AstBuilder: class {
             if(path endsWith(".ooc")) {
                 impName := path substring(0, path length() - 4)
                 if(impName != module fullName) {
-                    printf("Adding import %s to %s\n", impName, module fullName)
+                    //printf("Adding import %s to %s\n", impName, module fullName)
                     module imports add(Import new(impName))
                 }
             }
@@ -73,7 +73,7 @@ AstBuilder: class {
                 }
             }
             
-            println("Trying to get "+path+" from cache")
+            //println("Trying to get "+path+" from cache")
             cached : Module = null
             cached = cache get(path)
             
@@ -102,13 +102,13 @@ AstBuilder: class {
     onInclude: func (path, name: String) {
         inc := Include new(path isEmpty() ? name : path + name, IncludeModes PATHY)
         module includes add(inc)
-        printf("Got include %s\n", inc path)
+        //printf("Got include %s\n", inc path)
     }
     
     onImport: func  (path, name: String) {
         imp := Import new(path isEmpty() ? name : path + name)
         module imports add(imp)
-        printf("Got Import %s\n", imp path)
+        //printf("Got Import %s\n", imp path)
     }
     
     onCoverStart: func (name: String) {
@@ -195,8 +195,14 @@ AstBuilder: class {
             for(vd: VariableDecl in vds) {
                 tDecl addVariable(vd)
             }
+        } else if(node class instanceof(List)) {
+            list : List<Node> = node
+            for(vd: VariableDecl in vds) {
+                printf("Adding variableDecl %s to a %s\n", vd toString(), list class name)
+                list add(vd)
+            }
         } else {
-            printf("^^^^^^^ Unexpected varDecl " + vds peek() toString())
+            printf("^^^^^^^ Unexpected varDecl %s, peek is a %s\n", vds peek() toString(), node class name)
         }
             
     }
@@ -262,8 +268,11 @@ AstBuilder: class {
         node : Node = stack peek()
         if(node == module) {
             module addFunction(fDecl)
+        } else if(node class instanceof(TypeDecl)) {
+            tDecl: TypeDecl = node
+            tDecl addFunction(fDecl)
         } else {
-            printf("Unexpected function %s\n", fDecl name)
+            printf("^^^^^^^^ Unexpected function %s (peek is a %s)\n", fDecl name, node class name)
         }
         return fDecl
     }
@@ -308,8 +317,13 @@ AstBuilder: class {
     // return
     onReturn: func (expr: Expression) -> Return {
         ret := Return new(expr, nullToken)
-        printf("Got return %p\n", expr)
+        printf("Got return %p with expr %s\n", ret, expr ? expr toString() : "(nil)")
         return ret
+    }
+    
+    // variable access
+    onVarAccess: func (name: String) -> VariableAccess {
+        return VariableAccess new(name clone(), nullToken)
     }
 
 }
@@ -368,6 +382,8 @@ nq_onFunctionCallEnd: func (this: AstBuilder) -> FunctionCall   { return this on
 nq_onStringLiteral: func (this: AstBuilder, text: String) -> StringLiteral   { return this onStringLiteral(text) }
 
 // statement
-nq_onStatement: func (this: AstBuilder, stmt: Statement)         { this onStatement(stmt) }
-nq_onReturn: func (this: AstBuilder, expr: Expression) -> Return { return this onReturn(expr) }
+nq_onStatement: func (this: AstBuilder, stmt: Statement)                 { this onStatement(stmt) }
+nq_onReturn: func (this: AstBuilder, expr: Expression) -> Return         { return this onReturn(expr) }
+nq_onVarAccess: func (this: AstBuilder, name: String) -> VariableAccess  { return this onVarAccess(name) }
+
 

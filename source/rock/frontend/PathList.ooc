@@ -72,7 +72,6 @@ PathList: class {
         for (element: File in paths) {
             candidate := File new(element getPath() + File separator + path) 
             if (candidate exists() && candidate isDir()) {
-                printf("candidate %s exists and is dir!\n", candidate path)
                 addChildren(path, files, candidate);
             }
         }

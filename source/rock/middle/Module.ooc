@@ -52,7 +52,8 @@ Module: class extends Node {
     accept: func (visitor: Visitor) { visitor visitModule(this) }
     
     getOutPath: func (suffix: String) -> String {
-        pathElement + File separator + fullName + suffix
+        last := (File new(pathElement) name())
+        return (last + File separator) + fullName + suffix
     }
     
     getParentPath: func -> String {

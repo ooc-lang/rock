@@ -10,6 +10,7 @@ Dog: class {
     
     shout: func {
         printf("Hey, world =D")
+        return
     }
 
 }
