@@ -5,7 +5,8 @@ import structs/[Array, ArrayList, List, Stack, HashMap]
 import ../frontend/[Token, BuildParams]
 import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl, 
     FunctionCall, StringLiteral, Node, Module, Statement, Line, Include, Import,
-    Type, Expression, Return, VariableAccess, Cast, If, Else, ControlStatement, Comparison]
+    Type, Expression, Return, VariableAccess, Cast, If, Else, ControlStatement,
+    Comparison, IntLiteral]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -24,7 +25,7 @@ AstBuilder: class {
             printf("Parsing %s (for module %s)\n", modulePath, module fullName)
         }
         cache put(modulePath, module)
-        printCache()
+        //printCache()
         
         stack = Stack<Node> new()
         stack push(module)
@@ -40,12 +41,14 @@ AstBuilder: class {
     
     addLangImports: func {
     
+        printf("Should add lang imports\n")
         paths := params sourcePath getRelativePaths("lang")
         for(path in paths) {
+            printf("Considering path %s\n", path)
             if(path endsWith(".ooc")) {
                 impName := path substring(0, path length() - 4)
                 if(impName != module fullName) {
-                    //printf("Adding import %s to %s\n", impName, module fullName)
+                    printf("Adding import %s to %s\n", impName, module fullName)
                     module imports add(Import new(impName))
                 }
             }
@@ -186,25 +189,27 @@ AstBuilder: class {
         }
     }
     
-    onVarDeclEnd: func {
+    onVarDeclEnd: func -> Stack<VariableDecl> {
         vds : Stack<VariableDecl> = stack pop()
+        for(vd: VariableDecl in vds) {
+            gotVarDecl(vd)
+        }
+        return vds
+    }
+    
+    gotVarDecl: func (vd: VariableDecl) {
         node : Node = stack peek()
-        
         if(node instanceOf(TypeDecl)) {
             tDecl := node as TypeDecl
-            for(vd: VariableDecl in vds) {
-                tDecl addVariable(vd)
-            }
+            tDecl addVariable(vd)
         } else if(node instanceOf(List)) {
             list : List<Node> = node
-            for(vd: VariableDecl in vds) {
-                printf("Adding variableDecl %s to a %s\n", vd toString(), list class name)
-                list add(vd)
-            }
+            printf("Adding variableDecl %s to a %s\n", vd toString(), list class name)
+            list add(vd)
         } else {
-            printf("^^^^^^^ Unexpected varDecl %s, peek is a %s\n", vds peek() toString(), node class name)
+            onStatement(vd)
+            //printf("^^^^^^^ Unexpected varDecl %s, peek is a %s\n", vd toString(), node class name)
         }
-            
     }
 
     onFuncTypeNew: func -> Type {
@@ -260,7 +265,6 @@ AstBuilder: class {
     onFunctionReturnType: func (type: Type) {
         fDecl : FunctionDecl = stack peek()
         fDecl returnType = type
-        printf("returnType of %s is now %s\n", fDecl toString(), type toString())
     }
     
     onFunctionEnd: func -> FunctionDecl {
@@ -286,42 +290,55 @@ AstBuilder: class {
     onFunctionCallArg: func (expr: Expression) {
         fCall : FunctionCall = stack peek()
         fCall args add(expr)
-        printf("Function call to %s got arg %p\n", fCall name, expr)
+        //printf("Function call to %s got arg %p\n", fCall name, expr)
     }
     
     onFunctionCallEnd: func -> FunctionCall {
         node : Node = stack pop()
-        printf("Wanted to pop a FunctionCall, got a %s\n", node class name)
+        //printf("Wanted to pop a FunctionCall, got a %s\n", node class name)
         return node as FunctionCall
     }
     
     // literals
     onStringLiteral: func (text: String) -> StringLiteral {
         sl := StringLiteral new(text clone(), nullToken)
-        printf("Got string literal %s\n", sl toString())
+        //printf("Got string literal %s\n", sl toString())
         return sl
     }
     
     // statement
     onStatement: func (stmt: Statement) {
         node : Node = stack peek()
-        printf("Got a statement which is a %s, and peek is a %s\n", stmt class name, node class name)
+        printf("====> [%s], and peek = %s\n", stmt class name, node class name)
+        if(node instanceOf(VariableDecl)) {
+            gotVarDecl(node)
+            return
+        } else if(stmt instanceOf(Stack<VariableDecl>)) {
+            stack : Stack<VariableDecl> = stmt
+            if(stack T inheritsFrom(VariableDecl)) {
+                //"Got a stack of variableDecls" println()
+                for(vd in stack) {
+                    gotVarDecl(vd)
+                }
+                return
+            }
+        }
         match {
             case node instanceOf(FunctionDecl) =>
                 fDecl : FunctionDecl = node
                 fDecl body add(Line new(stmt))
-                printf("Added line to function decl %s\n", fDecl name)
+                //printf("Added line to function decl %s\n", fDecl name)
             case node instanceOf(ControlStatement) =>
                 cStmt : ControlStatement = node
                 cStmt body add(Line new(stmt))
-                printf("Added line to control statement %s\n", cStmt toString())
+                //printf("Added line to control statement %s\n", cStmt toString())
         }
     }
     
     // return
     onReturn: func (expr: Expression) -> Return {
         ret := Return new(expr, nullToken)
-        printf("Got return %p with expr %s\n", ret, expr ? expr toString() : "(nil)")
+        printf("Got return %p with expr %s (%p)\n", ret, expr ? expr toString() : "(nil)", expr)
         return ret
     }
     
@@ -380,12 +397,23 @@ nq_onClassFinal: func (this: AstBuilder)                    { this onClassFinal(
 nq_onClassEnd: func (this: AstBuilder)                      { this onClassEnd() }
 
 // variable declarations
-nq_onVarDeclStart: func (this: AstBuilder)                  { this onVarDeclStart() }
-nq_onVarDeclName: func (this: AstBuilder, name: String)     { this onVarDeclName(name) }
-nq_onVarDeclExpr: func (this: AstBuilder, expr: Expression) { this onVarDeclExpr(expr) }
-nq_onVarDeclType: func (this: AstBuilder, type: Type)       { this onVarDeclType(type) }
-nq_onVarDeclStatic: func (this: AstBuilder)                 { this onVarDeclStatic() }
-nq_onVarDeclEnd: func (this: AstBuilder)                    { this onVarDeclEnd() }
+nq_onVarDeclStart: func (this: AstBuilder)                      { this onVarDeclStart() }
+nq_onVarDeclName: func (this: AstBuilder, name: String)         { this onVarDeclName(name) }
+nq_onVarDeclExpr: func (this: AstBuilder, expr: Expression)     { this onVarDeclExpr(expr) }
+nq_onVarDeclType: func (this: AstBuilder, type: Type)           { this onVarDeclType(type) }
+nq_onVarDeclStatic: func (this: AstBuilder)                     { this onVarDeclStatic() }
+nq_onVarDeclEnd: func (this: AstBuilder) -> Stack<VariableDecl> { this onVarDeclEnd() }
+
+nq_onVarDeclAssign: func (this: AstBuilder, acc: VariableAccess, isConst: Bool, expr: Expression) -> VariableDecl {
+    if(!acc instanceOf(VariableAccess)) {
+        Exception new(AstBuilder, "Expected a VariableAccess as a left-hand-side of a decl-assign, but got a " + acc class name) throw()
+    }
+    vDecl := VariableDecl new(null, acc name, expr, nullToken)
+    vDecl isConst = isConst
+    if(isConst) "%s is const!" format(acc name) println()
+    ("Got variableDecl " + vDecl toString()) println()
+    return vDecl
+}
 
 // types
 nq_onTypeNew: func (this: AstBuilder, name: String) -> Type   { return this onTypeNew(name) }
@@ -439,6 +467,10 @@ nq_onLessThanOrEqual: func (this: AstBuilder, left, right: Expression) -> Compar
 }
 nq_onMoreThanOrEqual: func (this: AstBuilder, left, right: Expression) -> Comparison {
     return Comparison new(left, right, CompTypes greaterOrEqual, nullToken)
+}
+
+nq_onIntLiteral: func (this: AstBuilder, value: String) -> IntLiteral {
+    return IntLiteral new(value toLLong(), nullToken)
 }
 
 

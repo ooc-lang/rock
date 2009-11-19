@@ -53,17 +53,19 @@ FunctionDecl: class extends Expression {
 
         {
             response := returnType resolve(trail, res)
+            printf("Response of return type %s = %s\n", returnType toString(), response toString())
             if(!response ok()) return response
         }
 
         for(arg in args) {
             response := arg resolve(trail, res)
+            printf("Response of arg %s = %s\n", arg toString(), response toString())
             if(!response ok()) return response
         }
         
         for(line in body) {
-            //printf("Resolving line, inner = %s\n", line inner toString())
             response := line inner resolve(trail, res)
+            printf("Response of line inner [%s] %s = %s\n", line inner class name, line inner toString(), response toString())
             if(!response ok()) return response
         }
         

@@ -15,7 +15,7 @@ Return: class extends Statement {
     
     accept: func (visitor: Visitor) { visitor visitReturn(this) }
 
-    toString: func -> String { expr = null ? "return" : "return " + expr toString() }
+    toString: func -> String { expr == null ? "return" : "return " + expr toString() }
 
 }
 

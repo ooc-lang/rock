@@ -22,5 +22,9 @@ VariableAccess: class extends Expression {
     getType: func -> Type {
         ref ? ref type : null
     }
+    
+    toString: func -> String {
+        class name + " to " +name
+    }
 
 }

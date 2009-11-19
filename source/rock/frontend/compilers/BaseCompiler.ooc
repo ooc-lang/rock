@@ -33,7 +33,7 @@ BaseCompiler: abstract class extends AbstractCompiler {
     }
     
     launch: func() -> Int {
-        proc := SubProcess new(command toArray()) 
+        proc := SubProcess new(command) 
         return proc execute()
     }
     

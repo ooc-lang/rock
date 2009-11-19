@@ -53,6 +53,9 @@ Module: class extends Node {
     
     getOutPath: func (suffix: String) -> String {
         last := (File new(pathElement) name())
+        printf("last = '%s', separator = '%c', fullName = '%s', suffix  = '%s'\n",
+                last, File separator, fullName, suffix)
+        printf("last + File separator = %s\n", last + File separator)
         return (last + File separator) + fullName + suffix
     }
     
@@ -72,12 +75,14 @@ Module: class extends Node {
         for(tDecl in types) {
             if(tDecl isResolved()) continue
             response := tDecl resolve(trail, res)
+            printf("response of tDecl %s = %s\n", tDecl toString(), response toString())
             if(!response ok()) return response
         }
         
         for(fDecl in functions) {
             if(fDecl isResolved()) continue
             response := fDecl resolve(trail, res)
+            printf("response of fDecl %s = %s\n", fDecl toString(), response toString())
             if(!response ok()) return response
         }
         

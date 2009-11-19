@@ -79,8 +79,8 @@ Class: abstract class {
     }
     
     inheritsFrom: final func (T: Class) -> Bool {
-        if(this == T) return true
-        return (super ? super as This inheritsFrom(T) : false)
+        //if(this == T) return true
+        //return (super ? super as This inheritsFrom(T) : false)
     }
     
     // workaround needed to avoid C circular dependency with _ObjectClass

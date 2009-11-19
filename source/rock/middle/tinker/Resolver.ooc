@@ -12,7 +12,7 @@ Resolver: class {
     process: func (params: BuildParams) -> Bool {
  
         response := module resolve(Trail new(), this)
-        printf("response = %s\n", response toString())
+        printf("[Module] response = %s\n", response toString())
         
         if(!response ok()) {
             return true

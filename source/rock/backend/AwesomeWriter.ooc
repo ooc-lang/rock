@@ -10,6 +10,9 @@ AwesomeWriter: class extends TabbedWriter {
     }
     
     app: func ~node (node: Node) {
+        printf("Should write node %p\n", node)
+        printf(" of class %s\n", node class name);
+        //printf(" repr =  %s\n", node toString())
         node accept(visitor)
     }
     
