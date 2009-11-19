@@ -5,7 +5,7 @@ import structs/[Array, ArrayList, List, Stack, HashMap]
 import ../frontend/[Token, BuildParams]
 import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl, 
     FunctionCall, StringLiteral, Node, Module, Statement, Line, Include, Import,
-    Type, Expression, Return, VariableAccess, Cast, If, Else, ControlStatement]
+    Type, Expression, Return, VariableAccess, Cast, If, Else, ControlStatement, Comparison]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -421,4 +421,24 @@ nq_onIfStart: func (this: AstBuilder, condition: Expression)             { this 
 nq_onIfEnd: func (this: AstBuilder) -> If                                { return this onIfEnd() }
 nq_onElseStart: func (this: AstBuilder, condition: Expression)           { this onElseStart(condition) }
 nq_onElseEnd: func (this: AstBuilder) -> Else                            { return this onElseEnd() }
+
+nq_onEquals: func (this: AstBuilder, left, right: Expression) -> Comparison {
+    return Comparison new(left, right, CompTypes equal, nullToken)
+}
+nq_onNotEquals: func (this: AstBuilder, left, right: Expression) -> Comparison {
+    return Comparison new(left, right, CompTypes notEqual, nullToken)
+}
+nq_onLessThan: func (this: AstBuilder, left, right: Expression) -> Comparison {
+    return Comparison new(left, right, CompTypes smallerThan, nullToken)
+}
+nq_onMoreThan: func (this: AstBuilder, left, right: Expression) -> Comparison {
+    return Comparison new(left, right, CompTypes greaterThan, nullToken)
+}
+nq_onLessThanOrEqual: func (this: AstBuilder, left, right: Expression) -> Comparison {
+    return Comparison new(left, right, CompTypes smallerOrEqual, nullToken)
+}
+nq_onMoreThanOrEqual: func (this: AstBuilder, left, right: Expression) -> Comparison {
+    return Comparison new(left, right, CompTypes greaterOrEqual, nullToken)
+}
+
 

@@ -4,7 +4,7 @@ import ../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Line, BinaryOp, IntLiteral, CharLiteral, StringLiteral, RangeLiteral,
     VariableDecl, If, Else, While, Foreach, Conditional, ControlStatement,
     VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,
-    Node, Parenthesis, Return, Cast]
+    Node, Parenthesis, Return, Cast, Comparison]
     
 import Skeleton, FunctionDeclWriter, ControlStatementWriter, ClassDeclWriter,
     ModuleWriter, CoverDeclWriter
@@ -147,6 +147,10 @@ CGenerator: class extends Skeleton {
     
     visitCast: func (cast: Cast) {
         current app('('). app(cast type). app(") "). app(cast inner)
+    }
+    
+    visitComparison: func (comp: Comparison) {
+        current app(comp left). app(" "). app(comp compType toString()). app(" "). app(comp right)
     }
 
 }

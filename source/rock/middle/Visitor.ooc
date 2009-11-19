@@ -2,11 +2,10 @@ import Node
 
 import Return, ClassDecl, CoverDecl, FunctionDecl, VariableDecl, Type, Module,
         If, Else, While, Foreach, RangeLiteral, CharLiteral, StringLiteral, IntLiteral,
-        VariableAccess, FunctionCall, BinaryOp, Parenthesis, Line, Return, Cast
+        VariableAccess, FunctionCall, BinaryOp, Parenthesis, Line, Return, Cast, Comparison
 
 Visitor: abstract class {
     
-    // All a big hack. To avoid specific circular imports which are buggy atm.
     visitClassDecl:         abstract func (node: ClassDecl)
     visitCoverDecl:         abstract func (node: CoverDecl)
     visitFunctionDecl:      abstract func (node: FunctionDecl)
@@ -36,5 +35,6 @@ Visitor: abstract class {
     visitReturn:            abstract func (node: Return)
 
     visitCast:              abstract func (node: Cast)
+    visitComparison:        abstract func (node: Comparison)
 
 }
