@@ -14,6 +14,6 @@ Node: abstract class {
 
     isResolved: func -> Bool { true }
 
-    resolve: func (trail: Trail, res: Resolver) -> Response { Responses OK }
+    resolve: func (trail: Trail, res: Resolver) -> Response { return Responses OK }
 
 }

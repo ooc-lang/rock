@@ -62,6 +62,7 @@ FunctionDecl: class extends Expression {
         }
         
         for(line in body) {
+            //printf("Resolving line, inner = %s\n", line inner toString())
             response := line inner resolve(trail, res)
             if(!response ok()) return response
         }

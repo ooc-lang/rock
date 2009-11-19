@@ -5,7 +5,7 @@ import structs/[Array, ArrayList, List, Stack, HashMap]
 import ../frontend/[Token, BuildParams]
 import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl, 
     FunctionCall, StringLiteral, Node, Module, Statement, Line, Include, Import,
-    Type, Expression, Return, VariableAccess]
+    Type, Expression, Return, VariableAccess, Cast, If, Else, ControlStatement]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -190,12 +190,12 @@ AstBuilder: class {
         vds : Stack<VariableDecl> = stack pop()
         node : Node = stack peek()
         
-        if(node class instanceof(TypeDecl)) {
+        if(node instanceOf(TypeDecl)) {
             tDecl := node as TypeDecl
             for(vd: VariableDecl in vds) {
                 tDecl addVariable(vd)
             }
-        } else if(node class instanceof(List)) {
+        } else if(node instanceOf(List)) {
             list : List<Node> = node
             for(vd: VariableDecl in vds) {
                 printf("Adding variableDecl %s to a %s\n", vd toString(), list class name)
@@ -268,7 +268,7 @@ AstBuilder: class {
         node : Node = stack peek()
         if(node == module) {
             module addFunction(fDecl)
-        } else if(node class instanceof(TypeDecl)) {
+        } else if(node instanceOf(TypeDecl)) {
             tDecl: TypeDecl = node
             tDecl addFunction(fDecl)
         } else {
@@ -306,11 +306,15 @@ AstBuilder: class {
     onStatement: func (stmt: Statement) {
         node : Node = stack peek()
         printf("Got a statement which is a %s, and peek is a %s\n", stmt class name, node class name)
-        match node class {
-            case FunctionDecl =>
+        match {
+            case node instanceOf(FunctionDecl) =>
                 fDecl : FunctionDecl = node
                 fDecl body add(Line new(stmt))
                 printf("Added line to function decl %s\n", fDecl name)
+            case node instanceOf(ControlStatement) =>
+                cStmt : ControlStatement = node
+                cStmt body add(Line new(stmt))
+                printf("Added line to control statement %s\n", cStmt toString())
         }
     }
     
@@ -324,6 +328,33 @@ AstBuilder: class {
     // variable access
     onVarAccess: func (name: String) -> VariableAccess {
         return VariableAccess new(name clone(), nullToken)
+    }
+    
+    // cast
+    onCast: func (expr: Expression, type: Type) -> Cast {
+        return Cast new(expr, type, nullToken)
+    }
+    
+    // if
+    onIfStart: func (condition: Expression) {
+        stack push(If new(condition, nullToken))
+    }
+    
+    onIfEnd: func -> If {
+        if1 : If = stack pop()
+        ("Wanted to pop an If, got a " + if1 class name) println()
+        return if1
+    }
+    
+    // else
+    onElseStart: func (condition: Expression) {
+        stack push(Else new(condition, nullToken))
+    }
+    
+    onElseEnd: func -> If {
+        else1 : Else = stack pop()
+        ("Wanted to pop an Else, got a " + else1 class name) println()
+        return else1
     }
 
 }
@@ -385,5 +416,9 @@ nq_onStringLiteral: func (this: AstBuilder, text: String) -> StringLiteral   { r
 nq_onStatement: func (this: AstBuilder, stmt: Statement)                 { this onStatement(stmt) }
 nq_onReturn: func (this: AstBuilder, expr: Expression) -> Return         { return this onReturn(expr) }
 nq_onVarAccess: func (this: AstBuilder, name: String) -> VariableAccess  { return this onVarAccess(name) }
-
+nq_onCast: func (this: AstBuilder, expr: Expression, type: Type) -> Cast { return this onCast(expr, type) }
+nq_onIfStart: func (this: AstBuilder, condition: Expression)             { this onIfStart(condition) }
+nq_onIfEnd: func (this: AstBuilder) -> If                                { return this onIfEnd() }
+nq_onElseStart: func (this: AstBuilder, condition: Expression)           { this onElseStart(condition) }
+nq_onElseEnd: func (this: AstBuilder) -> Else                            { return this onElseEnd() }
 

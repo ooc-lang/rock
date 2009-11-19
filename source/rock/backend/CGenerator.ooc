@@ -4,7 +4,7 @@ import ../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Line, BinaryOp, IntLiteral, CharLiteral, StringLiteral, RangeLiteral,
     VariableDecl, If, Else, While, Foreach, Conditional, ControlStatement,
     VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,
-    Node, Parenthesis, Return]
+    Node, Parenthesis, Return, Cast]
     
 import Skeleton, FunctionDeclWriter, ControlStatementWriter, ClassDeclWriter,
     ModuleWriter, CoverDeclWriter
@@ -66,7 +66,7 @@ CGenerator: class extends Skeleton {
     /** Write a line */
     visitLine: func (line: Line) {
         current nl(). app(line inner)
-        if(!line inner class instanceof(ControlStatement))
+        if(!line inner instanceOf(ControlStatement))
             current app(';')
     }
     
@@ -143,6 +143,10 @@ CGenerator: class extends Skeleton {
     visitReturn: func (ret: Return) {
         current app("return")
         if(ret expr) current app(' '). app(ret expr)
+    }
+    
+    visitCast: func (cast: Cast) {
+        current app('('). app(cast type). app(") "). app(cast inner)
     }
 
 }

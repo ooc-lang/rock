@@ -69,7 +69,7 @@ BaseType: class extends Type {
             Exception new(This, "Trying to write unresolved type " + toString()) throw()
         }
         w app(ref underName())
-        if(ref class instanceof(ClassDecl))
+        if(ref instanceOf(ClassDecl))
             w app("*")
     }
     

@@ -91,7 +91,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
         returnType := fDecl returnType
         // TODO add generics support
         /*
-        if(returnType class instanceof(TypeParam)) {
+        if(returnType instanceOf(TypeParam)) {
             if(!isFirst) current.app(", ");
             isFirst = false;
             if(mode == ArgsWriteMode.NAMES_ONLY) {
@@ -128,7 +128,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
                     current app(arg name)
                 case ArgsWriteModes TYPES_ONLY =>
                     {
-                        if(arg class instanceof(VarArg)) {
+                        if(arg instanceOf(VarArg)) {
                             current app("...")
                         } else {
                             current app(arg type)
@@ -155,7 +155,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
             
         returnType := fDecl returnType
         // TODO add function pointers and generics
-        /*if (returnType ref class instanceof(TypeParam)) {
+        /*if (returnType ref instanceOf(TypeParam)) {
             current app("void ")
         } else if(returnType instanceof FuncType) {
             TypeWriter writeFuncPointerStart(this, returnType ref as FunctionDecl)

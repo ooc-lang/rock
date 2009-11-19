@@ -6,7 +6,7 @@ ControlStatementWriter: abstract class extends Skeleton {
     
     /** Write a conditional */
     writeConditional: static func (this: This, name: String, cond: Conditional) {
-        current app(name). app(" (" ). app(cond condition). app(") {"). tab(). nl()
+        current app(name). app(" (" ). app(cond condition). app(") {"). tab()
         for(line: Line in cond body) {
             line accept(this)
         }
@@ -26,7 +26,7 @@ ControlStatementWriter: abstract class extends Skeleton {
     }
     
     write: static func ~_foreach (this: This, foreach: Foreach) {
-        if(!foreach collection class instanceof(RangeLiteral)) {
+        if(!foreach collection instanceOf(RangeLiteral)) {
             Exception new(This, "Iterating over not a range but a " + foreach collection class name) throw()
         }
         range := foreach collection as RangeLiteral

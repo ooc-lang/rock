@@ -51,7 +51,7 @@ FunctionCall: class extends Expression {
         if(decl hasThis()) numArgs -= 1
         
         if(numArgs == args size() || 
-                ((numArgs > 0 && decl args last() class instanceof(VarArg)) &&
+                ((numArgs > 0 && decl args last() instanceOf(VarArg)) &&
                 (numArgs - 1 <= args size()))) {
             return true
         }

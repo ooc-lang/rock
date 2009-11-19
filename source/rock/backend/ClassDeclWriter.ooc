@@ -123,8 +123,9 @@ ClassDeclWriter: abstract class extends Skeleton {
             if (decl isStatic || decl isAbstract || (decl isExtern() && !decl externName isEmpty()))
                 continue
             
+            current nl(). nl()
             FunctionDeclWriter writeFuncPrototype(this, decl, decl isFinal ? null : "_impl")
-            current openBlock()
+            current app(' '). openBlock()
             if(decl name equals(ClassDecl DEFAULTS_FUNC_NAME) && cDecl superType) {
                 current nl(). app(cDecl superType getName()). app("_").
                  app(ClassDecl DEFAULTS_FUNC_NAME). app("_impl((").
@@ -145,7 +146,7 @@ ClassDeclWriter: abstract class extends Skeleton {
         if (cDecl superType) {
             current app("static "). app(LANG_PREFIX). app("Bool __done__ = false"). nl()
         }
-        current app("static "). app(cDecl underName()). app("Class class = ")
+        current app("static "). app(cDecl underName()). app("Class class = "). nl()
         
         writeClassStructInitializers(this, cDecl, cDecl, ArrayList<FunctionDecl> new())
         
@@ -168,7 +169,7 @@ ClassDeclWriter: abstract class extends Skeleton {
     writeClassStructInitializers: static func (this: This, parentClass: ClassDecl,
         realClass: ClassDecl, done: List<FunctionDecl>) {
 
-        current openBlock()
+        current openBlock(). nl()
 
         if (!parentClass isRootClass() && parentClass superType) {
             writeClassStructInitializers(this, parentClass superRef(), realClass, done)
