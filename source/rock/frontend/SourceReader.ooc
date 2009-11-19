@@ -317,7 +317,9 @@ SourceReader: class extends Reader {
         ret: String
         chrRead := 0 as Char
         
-        while(hasNext() && (chrRead = read()) != chr) {
+        while(hasNext()) {
+            chrRead = read()
+            if(chrRead == chr) break
             ret += chrRead
         }
         
