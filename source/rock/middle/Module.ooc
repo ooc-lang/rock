@@ -53,18 +53,13 @@ Module: class extends Node {
     
     getOutPath: func (suffix: String) -> String {
         last := (File new(pathElement) name())
-        printf("last = '%s', separator = '%c', fullName = '%s', suffix  = '%s'\n",
-                last, File separator, fullName, suffix)
-        printf("last + File separator = %s\n", last + File separator)
         return (last + File separator) + fullName + suffix
     }
     
     getParentPath: func -> String {
         // FIXME that's sub-optimal
         fileName := pathElement + File separator + fullName + ".ooc"
-        printf("in getParentPath(), fileName = %s (1/2)\n", fileName)
         parentPath := File new(fileName) parent() path
-        printf("in getParentPath(), parentPath = %s (2/2)\n", parentPath)
         return parentPath
     }
     
