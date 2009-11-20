@@ -45,7 +45,7 @@ CoverDeclWriter: abstract class extends Skeleton {
 				//if(fromType class instanceof (FuncType)) {
 					//TypeWriter writeFuncPointer(this, ((FuncType) fromType).getDecl(), cDecl getName());
 				//} else {
-					TypeWriter writeSpaced(this, fromType getGroundType(), false)
+					TypeWriter writeSpaced(this, fromType getGroundType(), true)
 					current app(cDecl underName())
 				//}
 				current app(';')
