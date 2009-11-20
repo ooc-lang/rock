@@ -14,8 +14,7 @@ DistLocator: class {
         exec := ShellUtils findExecutable(Rock execName, false)
         if(exec) {
             realpath := exec getAbsolutePath()
-            //return File new(File new(realpath) parent() parent() parent() path, "ooc")
-            return File new(File new(realpath) parent())
+            return File new(realpath) parent() parent()
         }
         
         // fall back on the current working directory
