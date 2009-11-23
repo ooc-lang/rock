@@ -110,7 +110,7 @@ TypeDecl: abstract class extends Declaration {
         
         for(vDecl in variables) {
             response := vDecl resolve(trail, res)
-            printf("Response of vDecl %s\n", vDecl toString())
+            //printf("Response of vDecl %s\n", vDecl toString())
             if(!response ok()) return response
         }
         

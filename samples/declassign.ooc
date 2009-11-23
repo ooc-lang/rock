@@ -5,7 +5,13 @@ Float: cover from float
 String: cover from char*
 
 Dog: cover {
+    
     name: String
+    
+    println: func {
+        printf("Hi, my name is %s\n", name)
+    }
+    
 }
 
 main: func -> Int {
