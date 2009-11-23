@@ -1,8 +1,9 @@
 import Node
 
-import Return, ClassDecl, CoverDecl, FunctionDecl, VariableDecl, Type, Module,
-        If, Else, While, Foreach, RangeLiteral, CharLiteral, StringLiteral, IntLiteral,
-        VariableAccess, FunctionCall, BinaryOp, Parenthesis, Line, Return, Cast, Comparison
+import Return, ClassDecl, CoverDecl, FunctionDecl, VariableDecl, Type,
+        Module, If, Else, While, Foreach, RangeLiteral, CharLiteral,
+        StringLiteral, IntLiteral, VariableAccess, FunctionCall, BinaryOp,
+        Parenthesis, Line, Return, Cast, Comparison, Ternary
 
 Visitor: abstract class {
     
@@ -36,5 +37,7 @@ Visitor: abstract class {
 
     visitCast:              abstract func (node: Cast)
     visitComparison:        abstract func (node: Comparison)
+    
+    visitTernary:           abstract func (node: Ternary)
 
 }

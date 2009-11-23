@@ -59,7 +59,6 @@ ModuleWriter: abstract class extends Skeleton {
         
         // write all functions
         for(fDecl: FunctionDecl in module functions) {
-            printf("Writing function %s\n", fDecl name)
             visitFunctionDecl(fDecl)
         }
         

@@ -44,9 +44,9 @@ Bool: cover from bool
 /**
  * real types
  */
-Float: cover from float extends Double
-LDouble: cover from long double
-Double: cover from double
+//Float: cover from float extends Double
+//LDouble: cover from long double
+//Double: cover from double
 
 /**
  * objects
@@ -80,7 +80,7 @@ Class: abstract class {
     
     inheritsFrom: final func (T: Class) -> Bool {
         if(this == T) return true
-        return (super ? super as This inheritsFrom(T) : false)
+        //return (super ? super as This inheritsFrom(T) : false)
     }
     
     // workaround needed to avoid C circular dependency with _ObjectClass

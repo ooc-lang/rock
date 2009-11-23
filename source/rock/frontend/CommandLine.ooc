@@ -73,6 +73,10 @@ CommandLine: class {
                     
                     params dynamicLibs add(arg substring(2))
                     
+                } else if (option == "nolang") { // FIXME debug option.
+                    
+                    params includeLang = false
+                    
                 } else if (option == "dyngc") {
                     
                     "Deprecated option -dyngc, you should use -gc=dynamic instead." println()

@@ -6,7 +6,7 @@ import ../frontend/[Token, BuildParams]
 import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl, 
     FunctionCall, StringLiteral, Node, Module, Statement, Line, Include, Import,
     Type, Expression, Return, VariableAccess, Cast, If, Else, ControlStatement,
-    Comparison, IntLiteral]
+    Comparison, IntLiteral, Ternary, BinaryOp]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -18,11 +18,13 @@ AstBuilder: class {
     modulePath : String
     module : Module
     stack : Stack<Node>
+    
+    posPointer : Int*
 
     init: func (=modulePath, =module, =params) {
         
         if(params verbose) {
-            printf("Parsing %s (for module %s)\n", modulePath, module fullName)
+            printf("- Parsing %s (for module %s)\n", modulePath, module fullName)
         }
         cache put(modulePath, module)
         //printCache()
@@ -34,21 +36,23 @@ AstBuilder: class {
             Exception new(This, "File " +modulePath + " not found") throw()
         }
         
-        addLangImports()
+        if(params includeLang) {
+            addLangImports()
+        }
         parseImports()
         
     }
     
     addLangImports: func {
     
-        printf("Should add lang imports\n")
+        //printf("Should add lang imports\n")
         paths := params sourcePath getRelativePaths("lang")
         for(path in paths) {
-            printf("Considering path %s\n", path)
+            //printf("Considering path %s\n", path)
             if(path endsWith(".ooc")) {
                 impName := path substring(0, path length() - 4)
                 if(impName != module fullName) {
-                    printf("Adding import %s to %s\n", impName, module fullName)
+                    //printf("Adding import %s to %s\n", impName, module fullName)
                     module imports add(Import new(impName))
                 }
             }
@@ -191,9 +195,6 @@ AstBuilder: class {
     
     onVarDeclEnd: func -> Stack<VariableDecl> {
         vds : Stack<VariableDecl> = stack pop()
-        for(vd: VariableDecl in vds) {
-            gotVarDecl(vd)
-        }
         return vds
     }
     
@@ -309,14 +310,15 @@ AstBuilder: class {
     // statement
     onStatement: func (stmt: Statement) {
         node : Node = stack peek()
-        printf("====> [%s], and peek = %s\n", stmt class name, node class name)
+        printf("====> [%s] at %d, and peek = %s\n", stmt class name, posPointer@, node class name)
         if(node instanceOf(VariableDecl)) {
+            "Got varDecl %s" format(node toString()) println()
             gotVarDecl(node)
             return
         } else if(stmt instanceOf(Stack<VariableDecl>)) {
             stack : Stack<VariableDecl> = stmt
             if(stack T inheritsFrom(VariableDecl)) {
-                //"Got a stack of variableDecls" println()
+                "Got a stack of variableDecls" println()
                 for(vd in stack) {
                     gotVarDecl(vd)
                 }
@@ -376,6 +378,9 @@ AstBuilder: class {
 
 }
 
+// position in stream handling
+nq_setPosPointer: func (this: AstBuilder, posPointer: Int*) { this posPointer = posPointer }
+
 // string handling
 nq_StringClone: func (string: String) -> String             { string clone() }
 
@@ -406,7 +411,7 @@ nq_onVarDeclEnd: func (this: AstBuilder) -> Stack<VariableDecl> { this onVarDecl
 
 nq_onVarDeclAssign: func (this: AstBuilder, acc: VariableAccess, isConst: Bool, expr: Expression) -> VariableDecl {
     if(!acc instanceOf(VariableAccess)) {
-        Exception new(AstBuilder, "Expected a VariableAccess as a left-hand-side of a decl-assign, but got a " + acc class name) throw()
+        Exception new(AstBuilder, "Expected a VariableAccess as a left-hand-side of a decl-assign, but got a " + acc toString()) throw()
     }
     vDecl := VariableDecl new(null, acc name, expr, nullToken)
     vDecl isConst = isConst
@@ -473,4 +478,46 @@ nq_onIntLiteral: func (this: AstBuilder, value: String) -> IntLiteral {
     return IntLiteral new(value toLLong(), nullToken)
 }
 
+nq_onTernary: func (this: AstBuilder, condition, ifTrue, ifFalse: Expression) -> Ternary {
+    return Ternary new(condition, ifTrue, ifFalse, nullToken)
+}
 
+nq_onAssignAdd: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+    return BinaryOp new(left, right, OpTypes addAss, nullToken)
+}
+
+nq_onAssignSub: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+    return BinaryOp new(left, right, OpTypes subAss, nullToken)
+}
+
+nq_onAssignMul: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+    return BinaryOp new(left, right, OpTypes mulAss, nullToken)
+}
+
+nq_onAssignDiv: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+    return BinaryOp new(left, right, OpTypes divAss, nullToken)
+}
+
+nq_onAssignAnd: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+    return BinaryOp new(left, right, OpTypes bAndAss, nullToken)
+}
+
+nq_onAssignOr: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+    return BinaryOp new(left, right, OpTypes bOrAss, nullToken)
+}
+
+nq_onAssignXor: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+    return BinaryOp new(left, right, OpTypes bXorAss, nullToken)
+}
+
+nq_onAssign: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+    return BinaryOp new(left, right, OpTypes ass, nullToken)
+}
+    
+nq_onAssignLeftShift: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+    return BinaryOp new(left, right, OpTypes lshiftAss, nullToken)
+}
+
+nq_onAssignRightShift: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+    return BinaryOp new(left, right, OpTypes rshiftAss, nullToken)
+}

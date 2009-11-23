@@ -70,9 +70,9 @@ PathList: class {
         files := ArrayList<String> new()
         
         for (element: File in paths) {
-            printf("Looking for path %s in element %s\n", path, element path)
+            //printf("Looking for path %s in element %s\n", path, element path)
             candidate := File new((element path + File separator) + path) 
-            printf("Candidate = %s\n", candidate path)
+            //printf("Candidate = %s\n", candidate path)
             if (candidate exists() && candidate isDir()) {
                 addChildren(path, files, candidate);
             }

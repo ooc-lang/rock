@@ -63,5 +63,8 @@ BuildParams: class {
     // maximum number of rounds the {@link Tinkerer} will do before blowing up.
     blowup: Int = 256
     
+    includeLang := true
+    
     dynamicLibs := ArrayList<String> new()
+    
 }

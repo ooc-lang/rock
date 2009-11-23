@@ -4,7 +4,7 @@ import ../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Line, BinaryOp, IntLiteral, CharLiteral, StringLiteral, RangeLiteral,
     VariableDecl, If, Else, While, Foreach, Conditional, ControlStatement,
     VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,
-    Node, Parenthesis, Return, Cast, Comparison]
+    Node, Parenthesis, Return, Cast, Comparison, Ternary]
     
 import Skeleton, FunctionDeclWriter, ControlStatementWriter, ClassDeclWriter,
     ModuleWriter, CoverDeclWriter
@@ -19,8 +19,7 @@ CGenerator: class extends Skeleton {
         modOutPath := module getOutPath("")
         fileName := outPath + File separator + modOutPath
         File new(fileName) parent() mkdirs()
-        printf("Writing to fileName '%s', outPath = '%s', separator = '%c', modOutPath = '%s'\n",
-            fileName, outPath, File separator, modOutPath)
+        //printf("Writing to fileName '%s'", fileName)
         hw = AwesomeWriter new(this, FileWriter new(fileName + ".h"))
         fw = AwesomeWriter new(this, FileWriter new(fileName + "-fwd.h"))
         cw = AwesomeWriter new(this, FileWriter new(fileName + ".c"))
@@ -79,9 +78,7 @@ CGenerator: class extends Skeleton {
     
     /** Write an int literal */
     visitIntLiteral: func (lit: IntLiteral) {
-        value : Char[128]
-        sprintf(value, "%lld", lit value)
-        current app(value as String)
+        current app("%lld" format(lit value))
     }
     
     /** Write a string literal */
@@ -153,6 +150,10 @@ CGenerator: class extends Skeleton {
     
     visitComparison: func (comp: Comparison) {
         current app(comp left). app(" "). app(comp compType toString()). app(" "). app(comp right)
+    }
+    
+    visitTernary: func (tern: Ternary) {
+        current app(tern condition). app(" ? "). app(tern ifTrue). app(" : "). app(tern ifFalse)
     }
 
 }

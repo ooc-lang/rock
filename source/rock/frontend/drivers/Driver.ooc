@@ -55,8 +55,6 @@ Driver: abstract class {
         done add(module fullName) 
         
         objFile := params outPath path + File separator + module getOutPath(".c")
-        printf("Adding objFile '%s', outPath path = '%s', separator = '%c', outPath = '%s'\n",
-            objFile, params outPath path, File separator, module getOutPath(".c"))
         params compiler addObjectFile(objFile) 
         
         for(imp: Import in module imports) {
