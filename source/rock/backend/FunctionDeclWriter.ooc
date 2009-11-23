@@ -12,24 +12,19 @@ ArgsWriteModes: class {
 
 FunctionDeclWriter: abstract class extends Skeleton {
     
-    /** Write a function prototype */
-    writePrototype: static func (this: This, fDecl: FunctionDecl) {
-        current app(fDecl returnType). app(' '). app(fDecl name). app('(')
-        // TODO write args =D
-        current app(')')
-    }
-    
     write: static func ~function (this: This, fDecl: FunctionDecl) {
+        "|| Writing function %s" format(fDecl name) println()
+        
         // header
         current = hw
         current nl()
-        writePrototype(this, fDecl)
+        writeFuncPrototype(this, fDecl)
         current app(';')
         
         // source
         current = cw
         current nl()
-        writePrototype(this, fDecl)
+        writeFuncPrototype(this, fDecl)
         current app(" {"). tab()
         for(line in fDecl body) {
             current app(line)
@@ -40,6 +35,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
     /** Write the name of a function, with its suffix, and prefixed by its owner if any */
     writeFullName: static func (this: This, fDecl: FunctionDecl) {
         
+        "Writing full name of %s, isMember() = %s" format(fDecl name, fDecl isMember() toString()) println()
         if(fDecl isExtern() && !fDecl externName isEmpty()) {
             current app(fDecl externName)
         } else {
@@ -149,6 +145,8 @@ FunctionDeclWriter: abstract class extends Skeleton {
     
     
     writeFuncPrototype: static func (this: This, fDecl: FunctionDecl, additionalSuffix: String) {
+        
+        "|| Writing prototype of fDecl %s" format(fDecl name) println()
         
         // TODO inline member functions don't work yet anyway.
         //if(functionDecl isInline()) cgen.current.append("inline ")

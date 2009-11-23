@@ -24,13 +24,13 @@ TypeDecl: abstract class extends Declaration {
     }
     
     addVariable: func (vDecl: VariableDecl) {
-        printf("%s %s just got variable %s\n", class name, vDecl toString())
+        printf("______ %s %s just got variable %s\n", class name, vDecl toString())
         variables put(vDecl name, vDecl)
         vDecl owner = this
     }
     
     addFunction: func (fDecl: FunctionDecl) {
-        printf("%s %s just got function %s\n", class name, name, fDecl toString())
+        printf("______ %s %s just got function %s\n", class name, name, fDecl toString())
         functions put(fDecl name, fDecl)
         fDecl owner = this
     }
