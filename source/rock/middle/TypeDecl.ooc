@@ -24,13 +24,13 @@ TypeDecl: abstract class extends Declaration {
     }
     
     addVariable: func (vDecl: VariableDecl) {
-        //printf("Class %s just got variable %s\n", name, vDecl toString())
+        printf("%s %s just got variable %s\n", class name, vDecl toString())
         variables put(vDecl name, vDecl)
         vDecl owner = this
     }
     
     addFunction: func (fDecl: FunctionDecl) {
-        //printf("Class %s just got function %s\n", name, fDecl toString())
+        printf("%s %s just got function %s\n", class name, name, fDecl toString())
         functions put(fDecl name, fDecl)
         fDecl owner = this
     }
@@ -106,15 +106,17 @@ TypeDecl: abstract class extends Declaration {
         
         trail push(this)
         
-        //printf("Resolving type decl %s\n", toString())
+        printf("Resolving type decl %s\n", toString())
         
         for(vDecl in variables) {
             response := vDecl resolve(trail, res)
+            printf("Response of vDecl %s\n", vDecl toString())
             if(!response ok()) return response
         }
         
         for(fDecl in functions) {
             response := fDecl resolve(trail, res)
+            printf("Response of fDecl %s\n", fDecl toString())
             if(!response ok()) return response
         }
         

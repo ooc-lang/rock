@@ -33,13 +33,8 @@ ClassDecl: class extends TypeDecl {
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        trail push(this)
-        
-        //printf("Resolving class %s\n", toString())
         response := super resolve(trail, res)
         if(!response ok()) return response
-        
-        trail pop(this)
         
         return Responses OK
     }

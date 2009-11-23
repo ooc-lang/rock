@@ -21,18 +21,19 @@ CoverDecl: class extends TypeDecl {
     isAddon: func -> Bool { false }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        if(fromType == null || fromType isResolved())
-            return Responses OK
+        {
+            response := super resolve(trail, res)
+            if(!response ok()) return response
+        }
         
         trail push(this)
         
-        response := super resolve(trail, res)
-        if(!response ok()) return response
-
-        response = fromType resolve(trail, res)
-        if(!response ok()) {
-            //printf("Giving up on cover type %s\n", fromType toString())
-            fromType setRef(BuiltinType new(fromType toString(), nullToken))
+        if(fromType) {
+            response := fromType resolve(trail, res)
+            if(!response ok()) {
+                //printf("Giving up on cover type %s\n", fromType toString())
+                fromType setRef(BuiltinType new(fromType toString(), nullToken))
+            }
         }
         
         trail pop(this)

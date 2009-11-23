@@ -345,8 +345,8 @@ AstBuilder: class {
     }
     
     // variable access
-    onVarAccess: func (name: String) -> VariableAccess {
-        return VariableAccess new(name clone(), nullToken)
+    onVarAccess: func (expr: Expression, name: String) -> VariableAccess {
+        return VariableAccess new(expr, name clone(), nullToken)
     }
     
     // cast
@@ -448,7 +448,7 @@ nq_onStringLiteral: func (this: AstBuilder, text: String) -> StringLiteral   { r
 // statement
 nq_onStatement: func (this: AstBuilder, stmt: Statement)                 { this onStatement(stmt) }
 nq_onReturn: func (this: AstBuilder, expr: Expression) -> Return         { return this onReturn(expr) }
-nq_onVarAccess: func (this: AstBuilder, name: String) -> VariableAccess  { return this onVarAccess(name) }
+nq_onVarAccess: func (this: AstBuilder, expr: Expression, name: String) -> VariableAccess  { return this onVarAccess(expr, name) }
 nq_onCast: func (this: AstBuilder, expr: Expression, type: Type) -> Cast { return this onCast(expr, type) }
 nq_onIfStart: func (this: AstBuilder, condition: Expression)             { this onIfStart(condition) }
 nq_onIfEnd: func (this: AstBuilder) -> If                                { return this onIfEnd() }

@@ -12,16 +12,12 @@ CoverDeclWriter: abstract class extends Skeleton {
 		// we don't need to struct it again, it would confuse the C compiler
 		if(!cDecl isAddon() && !cDecl isExtern() && cDecl fromType == null) {
             current nl(). app("struct _"). app(cDecl underName()). app(' '). openBlock()
+            "Got %d variables" format(cDecl variables size) println()
 			for(vDecl in cDecl variables) {
 				current nl()
                 if(!vDecl isExtern()) {
                     current app(vDecl type). app(' '). app(vDecl name). app(";\n")
                 }
-                /*
-				if(VariableDeclWriter write(this, vDecl)) {
-					current app(';')
-				}
-                */
 			}
 			current closeBlock(). app(';'). nl()
 		}
