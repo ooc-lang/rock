@@ -7,7 +7,6 @@ import tinker/[Resolver, Response, Trail]
 TypeDecl: abstract class extends Declaration {
 
     name: String
-    type : static Type = BaseType new("Class", nullToken)
     externName: String = null
 
     variables := HashMap<VariableDecl> new()
@@ -21,6 +20,8 @@ TypeDecl: abstract class extends Declaration {
     init: func ~typeDecl (=name, =superType, .token) {
         super(token)
         type = BaseType new(name, token)
+        type as BaseType ref = this
+        printf("Just created TypeDecl %s, type = %s\n", name, type toString())
     }
     
     addVariable: func (vDecl: VariableDecl) {

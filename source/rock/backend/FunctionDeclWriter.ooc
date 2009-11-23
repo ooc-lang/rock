@@ -59,63 +59,46 @@ FunctionDeclWriter: abstract class extends Skeleton {
         writeFuncArgs(this, fDecl, ArgsWriteModes FULL, null)
     }
     
-    /** Write the arguments of a function */
+    /**
+     * Write the arguments of a function
+     * 
+     * @param baseType For covers, the 'this' must be casted otherwise
+     * the C compiler complains about incompatible pointer types. Or at
+     * least that's my guess as to its utility =)
+     */
     writeFuncArgs: static func (this: This, fDecl: FunctionDecl, mode: ArgsWriteMode, baseType: TypeDecl) {
         
         current app('(')
         isFirst := true
 
+        /* Step 1 : write this, if any */
         iter := fDecl args iterator() as Iterator<Argument>
-        if(fDecl hasThis() && iter hasNext()) {
-            if(!isFirst) current app(", ")
+        if(fDecl isMember()) {
             isFirst = false
-            arg := iter next()
+            
+            type := fDecl owner getType()
             
             match mode {
                 case ArgsWriteModes NAMES_ONLY =>
                     if(baseType) {
-                        current app("("). app(baseType type)
+                        current app("("). app(baseType type). app(")")
                     }
-                    current app(arg name)
+                    current app("this")
                 case ArgsWriteModes TYPES_ONLY =>
-                    current app(arg type)
+                    current app(type)
                 case =>
-                    current app(arg)
+                    current app(type). app(" this")
             }
         }
         
-        returnType := fDecl returnType
-        // TODO add generics support
-        /*
-        if(returnType instanceOf(TypeParam)) {
-            if(!isFirst) current.app(", ");
-            isFirst = false;
-            if(mode == ArgsWriteMode.NAMES_ONLY) {
-                current.app(functionDecl.getReturnArg().getName());
-            } else if(mode == ArgsWriteMode.TYPES_ONLY) {
-                functionDecl.getReturnArg().getType().accept(cgen);
-            } else {
-                functionDecl.getReturnArg().accept(cgen);
-            }
-        }
-        */
-        /*
-        for(TypeParam param: functionDecl.getTypeParams().values()) {
-            if(param.isGhost()) continue;
-            if(!isFirst) current.app(", ");
-            isFirst = false;
-            if(mode == ArgsWriteMode.NAMES_ONLY) {
-                current.app(param.getArgument().getName());
-            } else if(mode == ArgsWriteMode.TYPES_ONLY) {
-                param.getArgument().getType().accept(cgen);
-            } else {
-                param.getArgument().accept(cgen);
-            }
-        }
-        */
+        /* Step 2 : write generic type args */
+         
+        /// TODO
         
+        /* Step 3 : write real args */
         while(iter hasNext()) {
             arg := iter next()
+            "Writing arg %s\n" format(arg toString()) println()
             if(!isFirst) current app(", ")
             isFirst = false
             
@@ -135,6 +118,10 @@ FunctionDeclWriter: abstract class extends Skeleton {
             }
         }
         
+        /* Step 4 : Write exception handling arguments */
+        
+        /// TODO
+        
         current app(')')
         
     }
@@ -151,16 +138,9 @@ FunctionDeclWriter: abstract class extends Skeleton {
         // TODO inline member functions don't work yet anyway.
         //if(functionDecl isInline()) cgen.current.append("inline ")
             
-        returnType := fDecl returnType
         // TODO add function pointers and generics
-        /*if (returnType ref instanceOf(TypeParam)) {
-            current app("void ")
-        } else if(returnType instanceof FuncType) {
-            TypeWriter writeFuncPointerStart(this, returnType ref as FunctionDecl)
-        } else */ {
-            returnType write(current)
-        }
-        current app(' ')
+        current app(fDecl returnType). app(' ')
+        
         writeFullName(this, fDecl)
         if(additionalSuffix) current app(additionalSuffix)
         

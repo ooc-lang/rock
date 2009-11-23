@@ -15,7 +15,7 @@ CoverDeclWriter: abstract class extends Skeleton {
 			for(vDecl in cDecl variables) {
 				current nl()
                 if(!vDecl isExtern()) {
-                    current app(vDecl type). app(' '). app(vDecl name). app(";\n")
+                    current app(vDecl type). app(' '). app(vDecl name). app(";")
                 }
 			}
 			current closeBlock(). app(';'). nl()
