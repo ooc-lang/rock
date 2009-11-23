@@ -30,6 +30,7 @@ main: func -> Int {
     d: Dog
     d name = "Fido"
     printf("The name of my dog is %s\n", d name)
+    d println()
     
 }
 

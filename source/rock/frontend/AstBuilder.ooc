@@ -300,6 +300,11 @@ AstBuilder: class {
         return node as FunctionCall
     }
     
+    onFunctionCallExpr: func (call: FunctionCall, expr: Expression) {
+        printf("Call to %s became a member call of expression %s\n", call toString(), expr toString())
+        call expr = expr
+    }
+    
     // literals
     onStringLiteral: func (text: String) -> StringLiteral {
         sl := StringLiteral new(text clone(), nullToken)
@@ -438,9 +443,10 @@ nq_onFunctionReturnType: func (this: AstBuilder, type: Type)    { this onFunctio
 nq_onFunctionEnd: func (this: AstBuilder) -> FunctionDecl       { return this onFunctionEnd() }
 
 // function calls
-nq_onFunctionCallStart: func (this: AstBuilder, name: String)   { this onFunctionCallStart(name) }
-nq_onFunctionCallArg: func (this: AstBuilder, arg: Expression)  { this onFunctionCallArg(arg) }
-nq_onFunctionCallEnd: func (this: AstBuilder) -> FunctionCall   { return this onFunctionCallEnd() }
+nq_onFunctionCallStart: func (this: AstBuilder, name: String)     { this onFunctionCallStart(name) }
+nq_onFunctionCallArg: func (this: AstBuilder, arg: Expression)    { this onFunctionCallArg(arg) }
+nq_onFunctionCallEnd: func (this: AstBuilder) -> FunctionCall     { return this onFunctionCallEnd() }
+nq_onFunctionCallExpr: func (this: AstBuilder, call: FunctionCall, expr: Expression)  { this onFunctionCallExpr(call, expr) }
 
 // literals
 nq_onStringLiteral: func (this: AstBuilder, text: String) -> StringLiteral   { return this onStringLiteral(text) }

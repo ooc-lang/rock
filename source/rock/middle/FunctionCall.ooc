@@ -4,6 +4,7 @@ import Visitor, Expression, FunctionDecl, Argument, Type
 
 FunctionCall: class extends Expression {
 
+    expr: Expression
     name, suffix = null : String
     args := ArrayList<Expression> new()
     
