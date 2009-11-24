@@ -20,7 +20,7 @@ BuildParams: class {
     // Path of the text editor to run when an error is encountered in an ooc file 
     editor: String = ""
     
-    // Remove the ooc_tmp/ directory after the C compiler has finished
+    // Remove the rock_tmp/ directory after the C compiler has finished
     clean: Bool = true
     
     // Add debug info to the generated C files (e.g. -g switch for gcc)
@@ -33,7 +33,8 @@ BuildParams: class {
     veryVerbose: Bool = false
     
     // Displays [ OK ] or [FAIL] at the end of the compilation
-    shout: Bool = false
+    //shout: Bool = false
+    shout: Bool = true // true as long as we're debugging
     
     // If false, output .o files. Otherwise output exectuables
     link: Bool = true
@@ -63,7 +64,8 @@ BuildParams: class {
     // maximum number of rounds the {@link Tinkerer} will do before blowing up.
     blowup: Int = 256
     
-    includeLang := true
+    //includeLang := true
+    includeLang := false // false as long as we're debugging
     
     dynamicLibs := ArrayList<String> new()
     

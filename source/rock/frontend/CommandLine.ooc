@@ -1,4 +1,4 @@
-import io/File
+import io/File, os/Terminal
 import structs/[Array, ArrayList, List, Stack]
 import text/StringTokenizer
 
@@ -309,9 +309,26 @@ CommandLine: class {
         for(candidate in moduleList) {
             CGenerator new(params outPath path, candidate) write() .close()
         }
-        
+
+        // phase 4: launch the C compiler
         if(params compiler) {
-            driver compile(module)
+            result := driver compile(module)
+            Terminal setAttr(Attr bright)
+            if(result == 0) {
+                Terminal setFgColor(Color green)
+                "[ OK ]" println()
+            } else {
+                Terminal setFgColor(Color red)
+                "[FAIL]" println()
+            }
+            Terminal reset()
+        }
+
+        // phase 5: clean up
+
+        // oh that's a hack.
+        if(params clean) {
+            system("rm -rf %s" format(params outPath path))
         }
         
         return 0
@@ -330,3 +347,5 @@ CommandLine: class {
     }
     
 }
+
+system: extern func (command: String)
