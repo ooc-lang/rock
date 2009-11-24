@@ -1,4 +1,4 @@
-import Visitor, FunctionCall
+import Visitor, FunctionCall, VariableAccess
 import ../frontend/Token
 import tinker/[Resolver, Response, Trail]
 
@@ -21,7 +21,11 @@ Node: abstract class {
      * and suggest it with call suggest(fDecl)
      */
     resolveCall: func (call : FunctionCall) {
-        // well, in the general case, we don't know how to resolve a function, so..
+        // overridden in sub-classes
+    }
+    
+    resolveAccess: func (access: VariableAccess) {
+        // overridden in sub-classes
     }
 
 }

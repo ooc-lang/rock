@@ -1,6 +1,6 @@
 import structs/ArrayList
 import ../frontend/Token
-import Expression, Line, Type, Visitor, Argument, TypeDecl
+import Expression, Line, Type, Visitor, Argument, TypeDecl, Scope, VariableAccess
 import tinker/[Resolver, Response, Trail]
 
 FunctionDecl: class extends Expression {
@@ -17,7 +17,7 @@ FunctionDecl: class extends Expression {
     externName : String = null
     
     args := ArrayList<Argument> new()
-    body := ArrayList<Line> new()
+    body := Scope new()
     
     owner : TypeDecl = null
 
@@ -44,6 +44,10 @@ FunctionDecl: class extends Expression {
     }
     
     isResolved: func -> Bool { false }
+    
+    resolveAccess: func (access: VariableAccess) {
+        body resolveAccess(access)
+    }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         

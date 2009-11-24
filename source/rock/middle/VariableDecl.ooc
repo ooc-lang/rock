@@ -1,5 +1,5 @@
 import structs/[ArrayList]
-import Type, Declaration, Expression, Visitor, TypeDecl
+import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess
 import tinker/[Response, Resolver, Trail]
 
 VariableDecl: class extends Declaration {
@@ -36,6 +36,12 @@ VariableDecl: class extends Declaration {
     setStatic: func (=isStatic) {}
     
     isExtern: func -> Bool { externName != null }
+    
+    resolveAccess: func (access: VariableAccess) {
+        if(name == access name) {
+            access suggest(this)
+        }
+    }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
 

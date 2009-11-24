@@ -72,7 +72,7 @@ FunctionCall: class extends Expression {
             }
         }
         
-        return refScore == -1 ? Responses LOOP : Responses OK
+        return refScore != -1 ? Responses OK : Responses LOOP
         
     }
     
