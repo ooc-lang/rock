@@ -18,7 +18,6 @@ printf: extern func {}
 
 main: func -> Int {
     
-    /*
     msg := "The answer is"
     answer = 42 : Int
     printf("%s %d\n", msg, answer)
@@ -27,7 +26,6 @@ main: func -> Int {
     
     f := x as Float
     f = 314
-    */
     
     d: Dog
     d name = "Fido"

@@ -230,6 +230,11 @@ AstBuilder: class {
         stack push(fDecl)
     }
     
+    onFunctionExtern: func (externName: String) {
+        fDecl : FunctionDecl = stack peek()
+        fDecl externName = externName
+    }
+    
     onFunctionAbstract: func {
         fDecl : FunctionDecl = stack peek()
         fDecl isAbstract = true
@@ -432,6 +437,7 @@ nq_onFuncTypeNew: func (this: AstBuilder) -> Type             { return this onFu
 
 // functions
 nq_onFunctionStart: func (this: AstBuilder, name: String)       { this onFunctionStart(name) }
+nq_onFunctionExtern: func (this: AstBuilder, externName: String){ this onFunctionExtern(externName) }
 nq_onFunctionAbstract: func (this: AstBuilder)                  { this onFunctionAbstract() }
 nq_onFunctionStatic: func (this: AstBuilder)                    { this onFunctionStatic() }
 nq_onFunctionInline: func (this: AstBuilder)                    { this onFunctionInline() }
