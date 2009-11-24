@@ -1,4 +1,4 @@
-import Visitor
+import Visitor, FunctionCall
 import ../frontend/Token
 import tinker/[Resolver, Response, Trail]
 
@@ -15,5 +15,13 @@ Node: abstract class {
     isResolved: func -> Bool { true }
 
     resolve: func (trail: Trail, res: Resolver) -> Response { return Responses OK }
+    
+    /**
+     * resolveCall should look for a function declaration satisfying call,
+     * and suggest it with call suggest(fDecl)
+     */
+    resolveCall: func (call : FunctionCall) {
+        // well, in the general case, we don't know how to resolve a function, so..
+    }
 
 }

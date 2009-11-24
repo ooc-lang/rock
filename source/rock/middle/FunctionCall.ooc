@@ -1,6 +1,7 @@
 import structs/ArrayList
 import ../frontend/Token
 import Visitor, Expression, FunctionDecl, Argument, Type
+import tinker/[Response, Resolver, Trail]
 
 FunctionCall: class extends Expression {
 
@@ -9,6 +10,7 @@ FunctionCall: class extends Expression {
     args := ArrayList<Expression> new()
     
     ref = null : FunctionDecl
+    refScore := -1
     
     init: func ~funcCall (=name, .token) {
         super(token)
@@ -18,6 +20,67 @@ FunctionCall: class extends Expression {
         visitor visitFunctionCall(this)
     }
     
+    suggest: func (candidate: FunctionDecl) -> Bool {
+        
+        "Got suggestion %s for %s" format(candidate toString(), toString()) println()
+        
+        score := getScore(candidate)
+        if(score > refScore) {
+            "New high score, %d wins against %d/%s" format(score, refScore, ref ? ref toString() : "(nil)") println()
+            refScore = score
+            ref = candidate
+            return false
+        }
+        return true
+        
+    }
+    
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        
+        printf("     - Resolving call to %s\n", name)
+        
+        if(expr) {
+            trail push(this)
+            response := expr resolve(trail, res)
+            if(!response ok()) return response
+            trail pop(this)
+            printf("Resolved expr, type = %s\n", expr getType() ? expr getType() toString() : "(nil)")
+        }
+        
+        /*
+         * Try to resolve the call.
+         * 
+         * We don't only have to find one definition, we have to find
+         * the *best* one. For that, we're sticking to our fun score
+         * system. A call can determine the score of a decl, based
+         * mostly on the types of the arguments, the suffix, etc.
+         * 
+         * Since we're looking for the best, we have to do the whole
+         * trail from top to bottom
+         */
+        if(refScore == -1) {
+            depth := trail size() - 1
+            while(depth >= 0) {
+                "Trying to get to resolve call from depth %d" format(depth) println()
+                node := trail get(depth)
+                "Got a %s" format(node class name) println()
+                node resolveCall(this)
+                depth -= 1
+            }
+            if(expr && expr getType() && expr getType() getRef()) {
+                expr getType() getRef() resolveCall(this)
+            }
+        }
+        
+        return refScore == -1 ? Responses LOOP : Responses OK
+        
+    }
+    
+    /**
+     * @return the score of decl, respective to this function call.
+     * This is used when resolving function calls, so that the function
+     * decl with the highest score is chosen as a reference.
+     */
     getScore: func (decl: FunctionDecl) -> Int {
         score := 0
         
@@ -31,9 +94,8 @@ FunctionCall: class extends Expression {
         if(declArgs size() == 0) return score
         
         declIter : Iterator<Argument> = declArgs iterator()
-        if(decl hasThis() && declIter hasNext()) declIter next()
-        
         callIter : Iterator<Expression> = args iterator()
+        
         while(callIter hasNext() && declIter hasNext()) {
             declArg := declIter next()
             callArg := callIter next()
@@ -47,19 +109,33 @@ FunctionCall: class extends Expression {
         return score
     }
     
+    /**
+     * Returns true if decl has a signature compatible with this function call
+     */
     matchesArgs: func (decl: FunctionDecl) -> Bool {
-        numArgs := decl args size()
-        if(decl hasThis()) numArgs -= 1
-        
-        if(numArgs == args size() || 
-                ((numArgs > 0 && decl args last() instanceOf(VarArg)) &&
-                (numArgs - 1 <= args size()))) {
+        declArgs := decl args size()
+        callArgs := args size()
+
+        // same number of args
+        if(declArgs == callArgs) {
             return true
         }
+        
+        // or, at least one arg, and the last is a varArg
+        if(declArgs > 0) {
+            last := decl args last()
+            // and less fixed decl args than call args ;)
+            if(last instanceOf(VarArg) && declArgs - 1 <= callArgs) {
+                return true
+            }
+        }
+        
         return false
     }
     
     getType: func -> Type { ref ? ref returnType : null }
+    
+    isMember: func -> Bool { expr != null }
     
     toString: func -> String {
         name +"()"

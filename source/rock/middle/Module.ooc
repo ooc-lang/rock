@@ -1,7 +1,7 @@
 import io/File
 import structs/[HashMap, ArrayList]
 import ../frontend/[Token, SourceReader]
-import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl
+import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl, FunctionCall
 import tinker/[Response, Resolver, Trail]
 
 Module: class extends Node {
@@ -61,6 +61,16 @@ Module: class extends Node {
         fileName := pathElement + File separator + fullName + ".ooc"
         parentPath := File new(fileName) parent() path
         return parentPath
+    }
+    
+    resolveCall: func (call : FunctionCall) {
+        printf("Looking for function %s in Module!\n", call name)
+        fDecl : FunctionDecl = null
+        fDecl = functions get(call name)
+        if(fDecl) {
+            "&&&&&&&& Found fDecl for call %s\n" format(call name) println()
+            call suggest(fDecl)
+        }
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {

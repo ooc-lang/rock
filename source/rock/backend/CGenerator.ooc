@@ -7,7 +7,7 @@ import ../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Node, Parenthesis, Return, Cast, Comparison, Ternary]
     
 import Skeleton, FunctionDeclWriter, ControlStatementWriter, ClassDeclWriter,
-    ModuleWriter, CoverDeclWriter
+    ModuleWriter, CoverDeclWriter, FunctionCallWriter
 
 CGenerator: class extends Skeleton {
 
@@ -45,19 +45,7 @@ CGenerator: class extends Skeleton {
     visitFunctionDecl: func (fDecl: FunctionDecl) { FunctionDeclWriter write(this, fDecl) }
     
     /** Write a function call */
-    visitFunctionCall: func (function: FunctionCall) {
-        current app(function name). app('(')
-        isFirst := true
-        for(arg: Expression in function args) {
-            if(isFirst) {
-                isFirst = false
-            } else {
-                current app(", ")
-            }
-            arg accept(this)
-        }
-        current app(')')
-    }
+    visitFunctionCall: func (fCall: FunctionCall) { FunctionCallWriter write(this, fCall) }
 
     /** Write a type */
     visitType: func (type: Type) {

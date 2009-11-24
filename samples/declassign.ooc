@@ -14,6 +14,8 @@ Dog: cover {
     
 }
 
+printf: extern func {}
+
 main: func -> Int {
     
     /*

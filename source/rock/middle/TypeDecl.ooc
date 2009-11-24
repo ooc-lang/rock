@@ -21,17 +21,16 @@ TypeDecl: abstract class extends Declaration {
         super(token)
         type = BaseType new(name, token)
         type as BaseType ref = this
-        printf("Just created TypeDecl %s, type = %s\n", name, type toString())
     }
     
     addVariable: func (vDecl: VariableDecl) {
-        printf("______ %s %s just got variable %s\n", class name, vDecl toString())
+        //printf("______ %s %s just got variable %s\n", class name, vDecl toString())
         variables put(vDecl name, vDecl)
         vDecl owner = this
     }
     
     addFunction: func (fDecl: FunctionDecl) {
-        printf("______ %s %s just got function %s\n", class name, name, fDecl toString())
+        //printf("______ %s %s just got function %s\n", class name, name, fDecl toString())
         functions put(fDecl name, fDecl)
         fDecl owner = this
     }
@@ -107,17 +106,17 @@ TypeDecl: abstract class extends Declaration {
         
         trail push(this)
         
-        printf("Resolving type decl %s\n", toString())
+        printf("======\nResolving type decl %s\n", toString())
         
         for(vDecl in variables) {
             response := vDecl resolve(trail, res)
-            //printf("Response of vDecl %s\n", vDecl toString())
+            //printf("Response of vDecl %s = %s\n", vDecl toString(), response toString())
             if(!response ok()) return response
         }
         
         for(fDecl in functions) {
             response := fDecl resolve(trail, res)
-            printf("Response of fDecl %s\n", fDecl toString())
+            printf("Response of fDecl %s = %s\n", fDecl toString(), response toString())
             if(!response ok()) return response
         }
         
@@ -127,9 +126,21 @@ TypeDecl: abstract class extends Declaration {
         
     }
     
+    resolveCall: func (call : FunctionCall) {
+        printf("Looking for function %s in %s\n", call name, name)
+        fDecl : FunctionDecl = null
+        fDecl = functions get(call name)
+        if(fDecl) {
+            "&&&&&&&& Found fDecl for call %s\n" format(call name) println()
+            call suggest(fDecl)
+        }
+    }
+    
     toString: func -> String {
         class name + ' ' + name
     }
+    
+    
 
 }
 
