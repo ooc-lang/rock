@@ -1,0 +1,6 @@
+Animal: class {
+    
+    shout: func {}
+    
+}
+

@@ -1,7 +1,7 @@
 import structs/ArrayList
 
 import ../frontend/Token
-import Expression, Line, Type, Visitor, TypeDecl
+import Expression, Line, Type, Visitor, TypeDecl, FunctionDecl
 import tinker/[Response, Resolver, Trail]
 
 ClassDecl: class extends TypeDecl {
@@ -38,6 +38,18 @@ ClassDecl: class extends TypeDecl {
         
         return Responses OK
     }
+    
+    getBaseClass: func (fDecl: FunctionDecl) -> ClassDecl {
+        sRef : ClassDecl  = superRef()
+		if(sRef != null) {
+			base := sRef getBaseClass(fDecl)
+			if(base != null) {
+                return base
+            }
+		}
+		if(getFunction(fDecl name, fDecl suffix, null, false) != null) return this
+		return null
+	}
     
 }
 

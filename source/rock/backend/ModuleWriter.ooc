@@ -21,12 +21,6 @@ ModuleWriter: abstract class extends Skeleton {
         }
         if(!module includes isEmpty()) current nl()
         
-        for(imp: Import in module imports) {
-			inc := imp getModule() getOutPath(".h")
-			current nl(). app("#include <"). app(inc). app(">")
-		}
-        if(!module imports isEmpty()) current nl()
-        
         // write all type forward declarations
         for(tDecl: TypeDecl in module types) {
             match (tDecl class) {
@@ -39,6 +33,13 @@ ModuleWriter: abstract class extends Skeleton {
             }
         }
         if(!module types isEmpty()) current nl()
+        
+        // write imports' includes
+        for(imp: Import in module imports) {
+			inc := imp getModule() getOutPath(".h")
+			current nl(). app("#include <"). app(inc). app(">")
+		}
+        if(!module imports isEmpty()) current nl()
 
         /* write the .h file */
         current = hw

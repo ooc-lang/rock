@@ -144,7 +144,7 @@ TypeDecl: abstract class extends Declaration {
         vDecl = variables get(access name)
         if(vDecl) {
             "&&&&&&&& Found vDecl for %s\n" format(access name) println()
-            if(access suggest(vDecl)) {
+            if(access suggest(vDecl) && access expr == null) {
                 varAcc := VariableAccess new("this", nullToken)
                 varAcc suggest(thisDecl)
                 access expr = varAcc

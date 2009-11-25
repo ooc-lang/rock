@@ -89,7 +89,13 @@ CGenerator: class extends Skeleton {
     /** Write a variable access */
     visitVariableAccess: func (varAcc: VariableAccess) {
         if(varAcc expr) {
-            current app(varAcc expr). app('.')
+            current app(varAcc expr)
+            "Writing varAcc %s, wrote varAcc expr %s, type = %p" format(varAcc toString(), varAcc expr toString(), varAcc expr getType()) println()
+            if(varAcc expr getType() getRef() instanceOf(ClassDecl)) {
+                current app("->")
+            } else {
+                current app('.')
+            }
         }
         current app(varAcc name)
     }

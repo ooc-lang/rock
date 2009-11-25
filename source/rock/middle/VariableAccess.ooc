@@ -31,14 +31,6 @@ VariableAccess: class extends Expression {
         
         printf("     - Resolving access to %s (ref = %s)\n", name, ref ? ref toString() : "(nil)")
         
-        if(expr) {
-            trail push(this)
-            response := expr resolve(trail, res)
-            trail pop(this)
-            if(!response ok()) return response
-            //printf("Resolved expr, type = %s\n", expr getType() ? expr getType() toString() : "(nil)")
-        }
-        
         /*
          * Try to resolve the access
          * 
@@ -53,6 +45,14 @@ VariableAccess: class extends Expression {
                 if(ref) break // break on first match
                 depth -= 1
             }
+        }
+        
+        if(expr) {
+            trail push(this)
+            response := expr resolve(trail, res)
+            trail pop(this)
+            if(!response ok()) return response
+            printf("Resolved expr, type = %s\n", expr getType() ? expr getType() toString() : "(nil)")
         }
         
         if(!ref && expr) {

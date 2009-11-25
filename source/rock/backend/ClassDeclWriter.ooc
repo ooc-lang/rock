@@ -19,7 +19,7 @@ ClassDeclWriter: abstract class extends Skeleton {
         current = cw
         writeInstanceImplFuncs(this, cDecl);
         writeClassGettingFunction(this, cDecl);
-        //writeInstanceVirtualFuncs(this, cDecl);
+        writeInstanceVirtualFuncs(this, cDecl);
         //writeStaticFuncs(this, cDecl);
         
     }
@@ -104,7 +104,7 @@ ClassDeclWriter: abstract class extends Skeleton {
             }
             
             current nl()
-            FunctionDeclWriter writeFuncPrototype(this, fDecl, null);
+            FunctionDeclWriter writeFuncPrototype(this, fDecl, null)
             current app(';')
             if(!fDecl isStatic && !fDecl isAbstract && !fDecl isFinal) {
                 current nl()
@@ -115,6 +115,30 @@ ClassDeclWriter: abstract class extends Skeleton {
         }
         
     }
+    
+    writeInstanceVirtualFuncs: static func (this: This, cDecl: ClassDecl) {
+
+		for(fDecl: FunctionDecl in cDecl functions) {
+
+			if (fDecl isStatic || fDecl isFinal) {
+				continue
+            }
+
+			current nl()
+			FunctionDeclWriter writeFuncPrototype(this, fDecl)
+			current openBlock()
+
+            baseClass := cDecl getBaseClass(fDecl)
+			if (fDecl hasReturn()) {
+				current app("return ("). app(fDecl returnType). app(")")
+			}
+			current app("(("). app(baseClass underName()). app("Class *)((lang__Object *)this)->class)->")
+            FunctionDeclWriter writeSuffixedName(this, fDecl)
+			FunctionDeclWriter.writeFuncArgs(this, fDecl, ArgsWriteModes NAMES_ONLY, baseClass);
+			current app(";"). closeBlock()
+
+		}
+	}
     
     writeInstanceImplFuncs: static func (this: This, cDecl: ClassDecl) {
 

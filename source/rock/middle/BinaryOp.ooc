@@ -1,6 +1,7 @@
 import structs/ArrayList
 import ../frontend/Token
 import Expression, Visitor, Type
+import tinker/[Trail, Resolver, Response]
 
 include stdint
 
@@ -81,6 +82,29 @@ BinaryOp: class extends Expression {
     
     toString: func -> String {
         return left toString() + OpTypes repr get(type) + right toString()
+    }
+    
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        
+        trail push(this)
+        {
+            response := left resolve(trail, res)
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
+        }
+        {
+            response := right resolve(trail, res)
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
+        }
+        trail pop(this)
+        
+        return Responses OK
+        
     }
 
 }

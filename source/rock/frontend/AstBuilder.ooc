@@ -36,7 +36,7 @@ AstBuilder: class {
             Exception new(This, "File " +modulePath + " not found") throw()
         }
         
-        if(params includeLang) {
+        if(params includeLang && !module fullName startsWith("/")) {
             addLangImports()
         }
         parseImports()
