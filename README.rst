@@ -41,6 +41,10 @@ Progress report
   - 2009-11 : Most of the resolving architecture is now there, it resolve types at module scope
               correctly. Still need to implement planned implementations that weren't in j/ooc
               (e.g. sharing Types per module, except for generics, to group resolves)
+  - 2009-11 : Wohow, resolving spree. Pretty much everything resolves now, straight/member accesses/calls
+              even accross different modules, with imports and all. Most of the syntax is parsed,
+              except generics, and only a few AST node types are missing. The code is a lot shorter and
+              clearer than j/ooc's, I have high hopes as to the maintainability of rock. Plus, it's still *fast*.
 
 You can help! We can probably re-use like 50% of the source code from the
 j/ooc codebase, so please come on #ooc-lang to know which classes need porting.
