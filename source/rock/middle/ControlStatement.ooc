@@ -11,7 +11,10 @@ ControlStatement: abstract class extends Statement {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         printf("Resolving an %s\n", class name)
-        return body resolve(trail, res)
+        trail push(this)
+        response := body resolve(trail, res)
+        trail pop(this)
+        return response
     }
     
 }

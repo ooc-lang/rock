@@ -1,5 +1,6 @@
 import ../frontend/Token
 import Expression, Visitor, Type
+import tinker/[Response, Resolver, Trail]
 
 Ternary: class extends Expression {
     
@@ -19,6 +20,38 @@ Ternary: class extends Expression {
     
     accept: func (visitor: Visitor) {
         visitor visitTernary(this)
+    }
+    
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        
+        trail push(this)
+        {
+            response := condition resolve(trail, res)
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
+        }
+        
+        {
+            response := ifTrue resolve(trail, res)
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
+        }
+        
+        {
+            response := ifFalse resolve(trail, res)
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
+        }
+        trail pop(this)
+        
+        return Responses OK
+        
     }
     
     toString: func -> String { condition toString() + " ? " + ifTrue toString() + " : " + ifFalse toString() }

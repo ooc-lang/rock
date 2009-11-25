@@ -9,4 +9,8 @@ If: class extends Conditional {
         visitor visitIf(this)
     }
     
+    toString: func -> String {
+            "if (" + condition toString() + ")"
+    }
+    
 }

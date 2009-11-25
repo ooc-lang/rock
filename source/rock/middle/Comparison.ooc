@@ -1,6 +1,7 @@
 import structs/ArrayList
 import ../frontend/Token
 import Expression, Visitor, Type
+import tinker/[Resolver, Trail, Response]
 
 include stdint
 
@@ -47,6 +48,29 @@ Comparison: class extends Expression {
     
     toString: func -> String {
         return left toString() + CompTypes repr get(compType) + right toString()
+    }
+    
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        
+        trail push(this)
+        {
+            response := left resolve(trail, res)
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
+        }
+        {
+            response := right resolve(trail, res)
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
+        }
+        trail pop(this)
+        
+        return Responses OK
+        
     }
 
 }

@@ -22,7 +22,7 @@ Cast: class extends Expression {
         return inner toString() + " as " + type toString()
     }
     
-    resolve: func (trail: Trail, res: Response) -> Response {
+    resolve: func (trail: Trail, res: Resolver) -> Response {
         
         {
             response := inner resolve(trail, res)

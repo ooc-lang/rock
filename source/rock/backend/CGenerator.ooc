@@ -4,7 +4,7 @@ import ../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Line, BinaryOp, IntLiteral, CharLiteral, StringLiteral, RangeLiteral,
     VariableDecl, If, Else, While, Foreach, Conditional, ControlStatement,
     VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,
-    Node, Parenthesis, Return, Cast, Comparison, Ternary]
+    Node, Parenthesis, Return, Cast, Comparison, Ternary, BoolLiteral]
     
 import Skeleton, FunctionDeclWriter, ControlStatementWriter, ClassDeclWriter,
     ModuleWriter, CoverDeclWriter, FunctionCallWriter
@@ -88,9 +88,11 @@ CGenerator: class extends Skeleton {
     
     /** Write a variable access */
     visitVariableAccess: func (varAcc: VariableAccess) {
+        if(varAcc ref == null) {
+            Exception new(This, "Trying to write unresolved variable access %s" format(varAcc toString())) throw()
+        }
         if(varAcc expr) {
             current app(varAcc expr)
-            "Writing varAcc %s, wrote varAcc expr %s, type = %p" format(varAcc toString(), varAcc expr toString(), varAcc expr getType()) println()
             if(varAcc expr getType() getRef() instanceOf(ClassDecl)) {
                 current app("->")
             } else {
@@ -117,6 +119,10 @@ CGenerator: class extends Skeleton {
     /** Write a range literal */
     visitRangeLiteral: func (range: RangeLiteral) {
         Exception new(This, "Should write a Range Literal? wtf?") throw()
+    }
+
+    visitBoolLiteral: func (b: BoolLiteral) {
+        current app(b value ? "true" : "false")
     }
     
     /** Write a class declaration */

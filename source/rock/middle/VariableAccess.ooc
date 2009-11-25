@@ -75,7 +75,7 @@ VariableAccess: class extends Expression {
     }
     
     toString: func -> String {
-        class name + " to " +name
+        name
     }
 
 }

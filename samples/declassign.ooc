@@ -9,7 +9,8 @@ Dog: cover {
     name: String
     
     println: func {
-        printf("Hi, my name is %s\n", this name)
+        //printf("Hi, my name is %s\n", this name)
+        printf("Hi, my name is %s\n", name)
     }
     
 }
