@@ -71,19 +71,27 @@ FunctionDecl: class extends Expression {
         {
             response := returnType resolve(trail, res)
             //printf("Response of return type %s = %s\n", returnType toString(), response toString())
-            if(!response ok()) return response
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
         }
 
         for(arg in args) {
             response := arg resolve(trail, res)
             //printf("Response of arg %s = %s\n", arg toString(), response toString())
-            if(!response ok()) return response
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
         }
         
-        for(line in body) {
-            response := line inner resolve(trail, res)
-            //printf("Response of line inner [%s] %s = %s\n", line inner class name, line inner toString(), response toString())
-            if(!response ok()) return response
+        {
+            response := body resolve(trail, res)
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
         }
         
         trail pop(this)
