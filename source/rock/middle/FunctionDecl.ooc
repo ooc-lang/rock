@@ -1,6 +1,7 @@
-import structs/ArrayList
+import structs/[Stack, ArrayList]
 import ../frontend/Token
-import Expression, Line, Type, Visitor, Argument, TypeDecl, Scope, VariableAccess
+import Expression, Line, Type, Visitor, Argument, TypeDecl, Scope,
+       VariableAccess, ControlStatement, Return, IntLiteral, Else
 import tinker/[Resolver, Response, Trail]
 
 FunctionDecl: class extends Expression {
@@ -47,7 +48,7 @@ FunctionDecl: class extends Expression {
     
     resolveAccess: func (access: VariableAccess) {
         
-        printf("Looking for %s in %s\n", access toString(), toString())
+        //printf("Looking for %s in %s\n", access toString(), toString())
         
         if(owner && access name == "this") {
             if(access suggest(owner thisDecl)) return;
@@ -68,15 +69,6 @@ FunctionDecl: class extends Expression {
         
         //printf("Resolving function decl %s (returnType = %s)\n", toString(), returnType toString())
 
-        {
-            response := returnType resolve(trail, res)
-            //printf("Response of return type %s = %s\n", returnType toString(), response toString())
-            if(!response ok()) {
-                trail pop(this)
-                return response
-            }
-        }
-
         for(arg in args) {
             response := arg resolve(trail, res)
             //printf("Response of arg %s = %s\n", arg toString(), response toString())
@@ -94,10 +86,118 @@ FunctionDecl: class extends Expression {
             }
         }
         
+        autoReturn(trail)
+        
+        {
+            response := returnType resolve(trail, res)
+            printf("))))))) For %s, response of return type %s = %s\n", toString(), returnType toString(), response toString())
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
+        }
+        
         trail pop(this)
         
         return Responses OK
         
+    }
+    
+    autoReturn: func (trail: Trail) {
+        
+        if(isMain() && isVoid()) {
+            returnType = IntLiteral type
+        }
+        
+        if(!hasReturn()) return
+        if(isExtern()) return
+        
+        stack := Stack<Iterator<Scope>> new()
+        stack push(body iterator())
+        
+        //printf("[autoReturn] Exploring a %s\n", this toString())
+        autoReturnExplore(stack, trail)
+        
+    }
+    
+    autoReturnExplore: func (stack: Stack<Iterator<Line>>, trail: Trail) {
+        
+        iter := stack peek()
+        
+        while(iter hasNext()) {
+            line := iter next()
+            node := line inner
+            if(node instanceOf(ControlStatement)) {
+                cs : ControlStatement = node
+                stack push(cs body iterator())
+                //printf("[autoReturn] Exploring a %s\n", cs toString())
+                autoReturnExplore(stack, trail)
+            } else {
+                //"[autoReturn] Huh, node is a %s, ignoring\n" format(node class name) println()
+            }
+        }
+        
+        stack pop()
+        
+        // if we're the bottom element, or if our parent doesn't have
+        // any other element, we're at the end of control
+        condition := stack isEmpty()
+        if(!condition) {
+            condition = !stack peek() hasNext()
+        }
+        if(!condition) {
+            parentIter := stack peek()
+            condition = true
+            i := 0
+            while(parentIter hasNext()) {
+                i += 1
+                next := parentIter next() inner
+                if(!next instanceOf(ControlStatement)) {
+                    //printf("[autoReturn] next is a %s, condition is then false :/", next class name)
+                    condition = false
+                    break
+                }
+            }
+            while(i > 0) {
+                parentIter prev()
+                i -= 1
+            }
+        }
+        
+        if(condition) {
+            list : Scope = iter as ArrayListIterator<Scope> list
+            if(list isEmpty()) {
+                //printf("[autoReturn] scope is empty, needing return\n")
+                returnNeeded(trail)
+            }
+            lastLine := list last()
+            last := lastLine inner
+            if(last instanceOf(Return)) {
+                //printf("[autoReturn] Oh, it's a %s already. Nice =D!\n",  last toString())
+            } else if(last instanceOf(Expression) && !last as Expression getType() equals(voidType)) {
+                //printf("[autoReturn] Hmm it's a %s\n", last toString())
+                lastLine inner = Return new(last, last token)
+                //printf("[autoReturn] Replaced with a %s!\n", lastLine inner toString())
+            } else if(last instanceOf(Else)) {
+                // then it's alright, all cases are already handled
+            } else {
+                //printf("[autoReturn] Huh, last is a %s, needing return\n", last toString())
+                returnNeeded(trail)
+            }
+        }
+        
+    }
+
+    isVoid: func -> Bool { returnType == voidType }
+    
+    isMain: func -> Bool { name == "main" && suffix == null && !isMember() }
+    
+    returnNeeded: func (trail: Trail) {
+        if(isMain()) {
+            body add(Line new(Return new(IntLiteral new(0, nullToken), nullToken)))
+        } else {
+            Exception new(This, "Control reaches the end of non-void function! trail = " + trail toString()) throw()
+        }
     }
     
 }

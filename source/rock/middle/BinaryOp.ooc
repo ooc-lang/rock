@@ -81,7 +81,7 @@ BinaryOp: class extends Expression {
     getType: func -> Type { left getType() }
     
     toString: func -> String {
-        return left toString() + OpTypes repr get(type) + right toString()
+        return left toString() + " " + OpTypes repr get(type) + " " + right toString()
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {

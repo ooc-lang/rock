@@ -27,7 +27,7 @@ AstBuilder: class {
             printf("- Parsing %s (for module %s)\n", modulePath, module fullName)
         }
         cache put(modulePath, module)
-        printCache()
+        //printCache()
         
         stack = Stack<Node> new()
         stack push(module)
@@ -45,14 +45,14 @@ AstBuilder: class {
     
     addLangImports: func {
     
-        printf("Should add lang imports\n")
+        //printf("Should add lang imports\n")
         paths := params sourcePath getRelativePaths("lang")
         for(path in paths) {
-            printf("Considering path %s\n", path)
+            //printf("Considering path %s\n", path)
             if(path endsWith(".ooc")) {
                 impName := path substring(0, path length() - 4)
                 if(impName != module fullName) {
-                    printf("Adding import %s to %s\n", impName, module fullName)
+                    //printf("Adding import %s to %s\n", impName, module fullName)
                     module imports add(Import new(impName))
                 }
             }
@@ -80,7 +80,7 @@ AstBuilder: class {
                 }
             }
             
-            println("Trying to get "+impPath path+" from cache")
+            //println("Trying to get "+impPath path+" from cache")
             cached : Module = null
             cached = cache get(impPath path)
             
@@ -376,8 +376,8 @@ AstBuilder: class {
     }
     
     // else
-    onElseStart: func (condition: Expression) {
-        stack push(Else new(condition, nullToken))
+    onElseStart: func {
+        stack push(Else new(nullToken))
     }
     
     onElseEnd: func -> If {
@@ -464,7 +464,7 @@ nq_onVarAccess: func (this: AstBuilder, expr: Expression, name: String) -> Varia
 nq_onCast: func (this: AstBuilder, expr: Expression, type: Type) -> Cast { return this onCast(expr, type) }
 nq_onIfStart: func (this: AstBuilder, condition: Expression)             { this onIfStart(condition) }
 nq_onIfEnd: func (this: AstBuilder) -> If                                { return this onIfEnd() }
-nq_onElseStart: func (this: AstBuilder, condition: Expression)           { this onElseStart(condition) }
+nq_onElseStart: func (this: AstBuilder)                                  { this onElseStart() }
 nq_onElseEnd: func (this: AstBuilder) -> Else                            { return this onElseEnd() }
 
 nq_onEquals: func (this: AstBuilder, left, right: Expression) -> Comparison {

@@ -47,7 +47,7 @@ Comparison: class extends Expression {
     getType: func -> Type { type }
     
     toString: func -> String {
-        return left toString() + CompTypes repr get(compType) + right toString()
+        return left toString() + " " + CompTypes repr get(compType) + " " + right toString()
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {

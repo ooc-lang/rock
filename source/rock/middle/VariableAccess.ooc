@@ -29,7 +29,7 @@ VariableAccess: class extends Expression {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
-        printf("     - Resolving access to %s (ref = %s)\n", name, ref ? ref toString() : "(nil)")
+        //printf("     - Resolving access to %s (ref = %s)\n", name, ref ? ref toString() : "(nil)")
         
         /*
          * Try to resolve the access
@@ -52,15 +52,15 @@ VariableAccess: class extends Expression {
             response := expr resolve(trail, res)
             trail pop(this)
             if(!response ok()) return response
-            printf("Resolved expr, type = %s\n", expr getType() ? expr getType() toString() : "(nil)")
+            //printf("Resolved expr, type = %s\n", expr getType() ? expr getType() toString() : "(nil)")
         }
         
         if(!ref && expr) {
             exprType := expr getType()
-            printf("Null ref and non-null expr (%s), looking in type %s\n", expr toString(), exprType toString())
+            //printf("Null ref and non-null expr (%s), looking in type %s\n", expr toString(), exprType toString())
             typeDecl := exprType getRef()
             if(!typeDecl) {
-                printf("typeDecl not resolved, looping..")
+                //printf("typeDecl not resolved, looping..")
                 return Responses LOOP
             }
             typeDecl resolveAccess(this)

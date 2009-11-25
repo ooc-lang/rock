@@ -6,7 +6,11 @@ ControlStatementWriter: abstract class extends Skeleton {
     
     /** Write a conditional */
     writeConditional: static func (this: This, name: String, cond: Conditional) {
-        current app(name). app(" (" ). app(cond condition). app(") {"). tab()
+        current app(name)
+        if(cond condition != null) {
+            current app(" (" ). app(cond condition). app(")")
+        }
+        current app(" {"). tab()
         for(line: Line in cond body) {
             line accept(this)
         }

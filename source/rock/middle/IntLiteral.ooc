@@ -11,5 +11,7 @@ IntLiteral: class extends Literal {
     accept: func (visitor: Visitor) { visitor visitIntLiteral(this) }
 
     getType: func -> Type { type }
+    
+    toString: func -> String { "%lld" format(value) }
 
 }

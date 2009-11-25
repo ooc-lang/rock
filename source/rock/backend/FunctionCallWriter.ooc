@@ -4,7 +4,7 @@ import Skeleton, FunctionDeclWriter
 FunctionCallWriter: abstract class extends Skeleton {
     
     write: static func ~functionCall (this: This, fCall: FunctionCall) {
-        //"|| Writing function call %s" format(fCall name) println()
+        "|| Writing function call %s (expr = %s)" format(fCall name, fCall expr ? fCall expr toString() : "(nil)") println()
 
         if(!fCall ref) {
             Exception new(This, "Trying to write unresolved function %s\n" format(fCall toString())) throw()

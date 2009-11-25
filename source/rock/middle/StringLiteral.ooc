@@ -1,5 +1,6 @@
 import ../frontend/Token
 import Literal, Visitor, Type
+import tinker/[Response, Resolver, Trail]
 
 StringLiteral: class extends Literal {
 
@@ -15,5 +16,9 @@ StringLiteral: class extends Literal {
     getType: func -> Type { type }
     
     toString: func -> String { "\"" + value + "\"" }
+    
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        return type resolve(trail, res)
+    }
 
 }

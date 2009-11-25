@@ -10,7 +10,7 @@ Conditional: abstract class extends ControlStatement {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
-        {
+        if(condition != null) {
             trail push(this)
             response := condition resolve(trail, res)
             trail pop(this)

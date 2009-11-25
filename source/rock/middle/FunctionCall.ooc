@@ -22,11 +22,11 @@ FunctionCall: class extends Expression {
     
     suggest: func (candidate: FunctionDecl) -> Bool {
         
-        "Got suggestion %s for %s" format(candidate toString(), toString()) println()
+        //"Got suggestion %s for %s" format(candidate toString(), toString()) println()
         
         score := getScore(candidate)
         if(score > refScore) {
-            "New high score, %d wins against %d/%s" format(score, refScore, ref ? ref toString() : "(nil)") println()
+            "New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
             refScore = score
             ref = candidate
             return true
@@ -42,11 +42,11 @@ FunctionCall: class extends Expression {
         if(args size() > 0) {
             trail push(this)
             for(arg in args) {
-                printf("Resolving arg %s\n", arg toString())
+                //printf("Resolving arg %s\n", arg toString())
                 response := arg resolve(trail, res)
                 if(!response ok()) {
                     trail pop(this)
-                    printf(" -- Failed, looping.\n")
+                    //printf(" -- Failed, looping.\n")
                     return response
                 }
             }
@@ -62,7 +62,10 @@ FunctionCall: class extends Expression {
                 printf(" -- Failed, looping..")
                 return response
             }
-            //printf("Resolved expr, type = %s\n", expr getType() ? expr getType() toString() : "(nil)")
+            printf("Resolved expr, type = %s, class = %s\n", expr getType() ? expr getType() toString() : "(nil)", expr class name)
+            if(expr getType()) {
+                printf("... and ref = %s\n", expr getType() getRef() ? expr getType() getRef() toString() : "(nil)")
+            }
         }
         
         /*
@@ -80,12 +83,15 @@ FunctionCall: class extends Expression {
             depth := trail size() - 1
             while(depth >= 0) {
                 node := trail get(depth)
-                printf("Trying to resolve %s from node %s\n", toString(), node toString())
+                //printf("Trying to resolve %s from node %s\n", toString(), node toString())
                 node resolveCall(this)
                 depth -= 1
             }
-            if(expr && expr getType() && expr getType() getRef()) {
+            if(expr != null && expr getType() != null && expr getType() getRef() != null) {
+                printf("--> resolving call %s from expr %s\n", toString(), expr toString())
                 expr getType() getRef() resolveCall(this)
+            } else {
+                printf("<-- Apparently, there's no expr for %s (or is there? %s)\n", toString(), expr ? expr toString() : "no.")
             }
         }
         

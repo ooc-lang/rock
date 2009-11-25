@@ -13,7 +13,15 @@ Char: cover from char
 UChar: cover from unsigned char
 WChar: cover from wchar_t
 //String: cover from Char*
-String: cover from char*
+
+String: cover from char* {
+    
+    println: func {
+        printf("%s\n", this)
+    }
+    
+}
+
 LLong: cover from long long
 Int: cover from int extends LLong
 UInt: cover from unsigned int extends LLong
@@ -101,8 +109,7 @@ Object: abstract class {
     __destroy__: func {}
 
     instanceOf: final func (T: Class) -> Bool {
-        //class inheritsFrom(T)
-        return class inheritsFrom(T)
+        class inheritsFrom(T)
     }
     
 }

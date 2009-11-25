@@ -36,7 +36,8 @@ FunctionDeclWriter: abstract class extends Skeleton {
     
     /** Write the name of a function, with its suffix, and prefixed by its owner if any */
     writeFullName: static func (this: This, fDecl: FunctionDecl) {
-        
+
+        printf("Writing full name of %s, owner = %s\n", fDecl name, fDecl owner ? fDecl owner toString() : "(nil)")
         if(fDecl isExtern() && !fDecl externName isEmpty()) {
             current app(fDecl externName)
         } else {

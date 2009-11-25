@@ -5,8 +5,7 @@
     gc_malloc_atomic: extern(GC_MALLOC_ATOMIC) func (size: SizeT) -> Pointer
     gc_realloc: extern(GC_REALLOC) func (ptr: Pointer, size: SizeT) -> Pointer
     gc_calloc: func (nmemb: SizeT, size: SizeT) -> Pointer {
-        //gc_malloc(nmemb * size)
-        return gc_malloc(nmemb * size)
+        gc_malloc(nmemb * size)
     }
 //}
 
