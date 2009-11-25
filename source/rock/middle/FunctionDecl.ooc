@@ -46,6 +46,19 @@ FunctionDecl: class extends Expression {
     isResolved: func -> Bool { false }
     
     resolveAccess: func (access: VariableAccess) {
+        
+        printf("Looking for %s in %s\n", access toString(), toString())
+        
+        if(owner && access name == "this") {
+            if(access suggest(owner thisDecl)) return;
+        }
+        
+        for(arg in args) {
+            if(access name == arg name) {
+                if(access suggest(arg)) return;
+            }
+        }
+        
         body resolveAccess(access)
     }
     
@@ -53,23 +66,23 @@ FunctionDecl: class extends Expression {
         
         trail push(this)
         
-        printf("Resolving function decl %s (returnType = %s)\n", toString(), returnType toString())
+        //printf("Resolving function decl %s (returnType = %s)\n", toString(), returnType toString())
 
         {
             response := returnType resolve(trail, res)
-            printf("Response of return type %s = %s\n", returnType toString(), response toString())
+            //printf("Response of return type %s = %s\n", returnType toString(), response toString())
             if(!response ok()) return response
         }
 
         for(arg in args) {
             response := arg resolve(trail, res)
-            printf("Response of arg %s = %s\n", arg toString(), response toString())
+            //printf("Response of arg %s = %s\n", arg toString(), response toString())
             if(!response ok()) return response
         }
         
         for(line in body) {
             response := line inner resolve(trail, res)
-            printf("Response of line inner [%s] %s = %s\n", line inner class name, line inner toString(), response toString())
+            //printf("Response of line inner [%s] %s = %s\n", line inner class name, line inner toString(), response toString())
             if(!response ok()) return response
         }
         

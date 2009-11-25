@@ -21,7 +21,6 @@ CoverDeclWriter: abstract class extends Skeleton {
 			current closeBlock(). app(';'). nl()
 		}
 		
-        "Got %d functions in %s" format(cDecl functions size, cDecl name) println()
 		for(fDecl in cDecl functions) {
 			fDecl accept(this)
             current nl()

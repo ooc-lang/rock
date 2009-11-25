@@ -29,22 +29,40 @@ FunctionCall: class extends Expression {
             "New high score, %d wins against %d/%s" format(score, refScore, ref ? ref toString() : "(nil)") println()
             refScore = score
             ref = candidate
-            return false
+            return true
         }
-        return true
+        return false
         
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
-        printf("     - Resolving call to %s\n", name)
+        printf("     - Resolving call to %s (ref = %s)\n", name, ref ? ref toString() : "(nil)")
+        
+        if(args size() > 0) {
+            trail push(this)
+            for(arg in args) {
+                printf("Resolving arg %s\n", arg toString())
+                response := arg resolve(trail, res)
+                if(!response ok()) {
+                    trail pop(this)
+                    printf(" -- Failed, looping.\n")
+                    return response
+                }
+            }
+            trail pop(this)
+        }
         
         if(expr) {
+            printf("Resolving expr %s\n", expr toString())
             trail push(this)
             response := expr resolve(trail, res)
-            if(!response ok()) return response
             trail pop(this)
-            printf("Resolved expr, type = %s\n", expr getType() ? expr getType() toString() : "(nil)")
+            if(!response ok()) {
+                printf(" -- Failed, looping..")
+                return response
+            }
+            //printf("Resolved expr, type = %s\n", expr getType() ? expr getType() toString() : "(nil)")
         }
         
         /*
@@ -61,9 +79,8 @@ FunctionCall: class extends Expression {
         if(refScore == -1) {
             depth := trail size() - 1
             while(depth >= 0) {
-                "Trying to get to resolve call from depth %d" format(depth) println()
                 node := trail get(depth)
-                "Got a %s" format(node class name) println()
+                printf("Trying to resolve %s from node %s\n", toString(), node toString())
                 node resolveCall(this)
                 depth -= 1
             }
@@ -100,7 +117,8 @@ FunctionCall: class extends Expression {
             declArg := declIter next()
             callArg := callIter next()
             // avoid null types
-            if(!declArg type) return -1
+            //if(!declArg type) return -1
+            //if(!callArg type) return -1
             if(declArg type equals(callArg getType())) {
                 score += 10
             }

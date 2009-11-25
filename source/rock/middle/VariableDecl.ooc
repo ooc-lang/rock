@@ -47,11 +47,11 @@ VariableDecl: class extends Declaration {
 
         trail push(this)
 
-        printf("Resolving variable decl %s\n", toString());
+        //printf("Resolving variable decl %s\n", toString());
         
         if(expr) {
             response := expr resolve(trail, res)
-            printf("response of expr = %s\n", response toString())
+            //printf("response of expr = %s\n", response toString())
             if(!response ok()) {
                 trail pop(this)
                 return response
@@ -59,17 +59,17 @@ VariableDecl: class extends Declaration {
         }
 
         if(!type) {
-            "coool! we're gonna have to infer it!" println()
+            //"coool! we're gonna have to infer it!" println()
             type = expr getType()
             if(!type) {
-                "Still null, looping..." println()
+                //"Still null, looping..." println()
                 return Responses LOOP
             }
         }
         
         {
             response := type resolve(trail, res)
-            printf("response of type = %s\n", response toString())
+            //printf("response of type = %s\n", response toString())
             if(!response ok()) {
                 trail pop(this)
                 return response

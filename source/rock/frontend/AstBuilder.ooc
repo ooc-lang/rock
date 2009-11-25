@@ -27,7 +27,7 @@ AstBuilder: class {
             printf("- Parsing %s (for module %s)\n", modulePath, module fullName)
         }
         cache put(modulePath, module)
-        //printCache()
+        printCache()
         
         stack = Stack<Node> new()
         stack push(module)
@@ -45,14 +45,14 @@ AstBuilder: class {
     
     addLangImports: func {
     
-        //printf("Should add lang imports\n")
+        printf("Should add lang imports\n")
         paths := params sourcePath getRelativePaths("lang")
         for(path in paths) {
-            //printf("Considering path %s\n", path)
+            printf("Considering path %s\n", path)
             if(path endsWith(".ooc")) {
                 impName := path substring(0, path length() - 4)
                 if(impName != module fullName) {
-                    //printf("Adding import %s to %s\n", impName, module fullName)
+                    printf("Adding import %s to %s\n", impName, module fullName)
                     module imports add(Import new(impName))
                 }
             }
@@ -80,9 +80,9 @@ AstBuilder: class {
                 }
             }
             
-            //println("Trying to get "+path+" from cache")
+            println("Trying to get "+impPath path+" from cache")
             cached : Module = null
-            cached = cache get(path)
+            cached = cache get(impPath path)
             
             //if(!cached || File new(impPath path) lastModified() > cached lastModified) {
             if(!cached) {
@@ -205,7 +205,7 @@ AstBuilder: class {
             tDecl addVariable(vd)
         } else if(node instanceOf(List)) {
             list : List<Node> = node
-            printf("Adding variableDecl %s to a %s\n", vd toString(), list class name)
+            //printf("Adding variableDecl %s to a %s\n", vd toString(), list class name)
             list add(vd)
         } else {
             onStatement(vd)
@@ -232,7 +232,7 @@ AstBuilder: class {
     
     onFunctionExtern: func (externName: String) {
         fDecl : FunctionDecl = stack peek()
-        fDecl externName = externName
+        fDecl externName = externName clone()
     }
     
     onFunctionAbstract: func {
@@ -265,7 +265,7 @@ AstBuilder: class {
     
     onFunctionArgsEnd: func {
         node : Node = stack pop()
-        printf("Wanted to pop an ArrayList, got a %s\n", node class name)
+        //printf("Wanted to pop an ArrayList, got a %s\n", node class name)
     }
     
     onFunctionReturnType: func (type: Type) {
@@ -282,7 +282,7 @@ AstBuilder: class {
             tDecl: TypeDecl = node
             tDecl addFunction(fDecl)
         } else {
-            printf("^^^^^^^^ Unexpected function %s (peek is a %s)\n", fDecl name, node class name)
+            //printf("^^^^^^^^ Unexpected function %s (peek is a %s)\n", fDecl name, node class name)
         }
         return fDecl
     }
@@ -306,7 +306,7 @@ AstBuilder: class {
     }
     
     onFunctionCallExpr: func (call: FunctionCall, expr: Expression) {
-        printf("Call to %s became a member call of expression %s\n", call toString(), expr toString())
+        //printf("Call to %s became a member call of expression %s\n", call toString(), expr toString())
         call expr = expr
     }
     
@@ -322,13 +322,13 @@ AstBuilder: class {
         node : Node = stack peek()
         printf("====> [%s] at %d, and peek = %s\n", stmt class name, posPointer@, node class name)
         if(node instanceOf(VariableDecl)) {
-            "Got varDecl %s" format(node toString()) println()
+            //"Got varDecl %s" format(node toString()) println()
             gotVarDecl(node)
             return
         } else if(stmt instanceOf(Stack<VariableDecl>)) {
             stack : Stack<VariableDecl> = stmt
             if(stack T inheritsFrom(VariableDecl)) {
-                "Got a stack of variableDecls" println()
+                //"Got a stack of variableDecls" println()
                 for(vd in stack) {
                     gotVarDecl(vd)
                 }
@@ -350,7 +350,7 @@ AstBuilder: class {
     // return
     onReturn: func (expr: Expression) -> Return {
         ret := Return new(expr, nullToken)
-        printf("Got return %p with expr %s (%p)\n", ret, expr ? expr toString() : "(nil)", expr)
+        //printf("Got return %p with expr %s (%p)\n", ret, expr ? expr toString() : "(nil)", expr)
         return ret
     }
     
@@ -371,7 +371,7 @@ AstBuilder: class {
     
     onIfEnd: func -> If {
         if1 : If = stack pop()
-        ("Wanted to pop an If, got a " + if1 class name) println()
+        //("Wanted to pop an If, got a " + if1 class name) println()
         return if1
     }
     
@@ -382,7 +382,7 @@ AstBuilder: class {
     
     onElseEnd: func -> If {
         else1 : Else = stack pop()
-        ("Wanted to pop an Else, got a " + else1 class name) println()
+        //("Wanted to pop an Else, got a " + else1 class name) println()
         return else1
     }
 

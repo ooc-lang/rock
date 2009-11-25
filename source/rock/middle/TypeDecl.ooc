@@ -1,7 +1,7 @@
 import structs/HashMap
 import ../frontend/Token
 import Expression, Line, Type, Visitor, Declaration, VariableDecl,
-    FunctionDecl, FunctionCall, Module
+    FunctionDecl, FunctionCall, Module, VariableAccess
 import tinker/[Resolver, Response, Trail]
 
 TypeDecl: abstract class extends Declaration {
@@ -12,6 +12,8 @@ TypeDecl: abstract class extends Declaration {
     variables := HashMap<VariableDecl> new()
     functions := HashMap<FunctionDecl> new()
 
+    thisDecl : VariableDecl
+
     type: Type
     superType: Type
     
@@ -21,6 +23,7 @@ TypeDecl: abstract class extends Declaration {
         super(token)
         type = BaseType new(name, token)
         type as BaseType ref = this
+        thisDecl = VariableDecl new(type, "this", nullToken)
     }
     
     addVariable: func (vDecl: VariableDecl) {
@@ -47,6 +50,15 @@ TypeDecl: abstract class extends Declaration {
     underName: func -> String {
         
         // TODO underize it.
+        /*
+        if(module != null) {
+            printf("module fullName = %s\n", module fullName)
+            printf("module packageName = %s\n", module packageName)
+            printf("externName = %s\n", externName)
+            printf("module packageName isEmpty() = %d\n", module packageName isEmpty())
+            printf("isExtern = %d\n", isExtern())
+        }
+        */
         if(module != null && !module packageName isEmpty() && !isExtern()) {
 			return module packageName + "__" + name
         }
@@ -106,7 +118,7 @@ TypeDecl: abstract class extends Declaration {
         
         trail push(this)
         
-        printf("======\nResolving type decl %s\n", toString())
+        //printf("======\nResolving type decl %s\n", toString())
         
         for(vDecl in variables) {
             response := vDecl resolve(trail, res)
@@ -116,7 +128,7 @@ TypeDecl: abstract class extends Declaration {
         
         for(fDecl in functions) {
             response := fDecl resolve(trail, res)
-            printf("Response of fDecl %s = %s\n", fDecl toString(), response toString())
+            //printf("Response of fDecl %s = %s\n", fDecl toString(), response toString())
             if(!response ok()) return response
         }
         
@@ -126,12 +138,26 @@ TypeDecl: abstract class extends Declaration {
         
     }
     
+    resolveAccess: func (access: VariableAccess) {
+        printf("? Looking for variable %s in %s\n", access name, name)
+        vDecl : VariableDecl = null
+        vDecl = variables get(access name)
+        if(vDecl) {
+            "&&&&&&&& Found vDecl for %s\n" format(access name) println()
+            if(access suggest(vDecl)) {
+                varAcc := VariableAccess new("this", nullToken)
+                varAcc suggest(thisDecl)
+                access expr = varAcc
+            }
+        }
+    }
+    
     resolveCall: func (call : FunctionCall) {
-        printf("Looking for function %s in %s\n", call name, name)
+        printf("? Looking for function %s in %s\n", call name, name)
         fDecl : FunctionDecl = null
         fDecl = functions get(call name)
         if(fDecl) {
-            "&&&&&&&& Found fDecl for call %s\n" format(call name) println()
+            "&&&&&&&& Found fDecl for %s\n" format(call name) println()
             call suggest(fDecl)
         }
     }

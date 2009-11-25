@@ -64,12 +64,20 @@ Module: class extends Node {
     }
     
     resolveCall: func (call : FunctionCall) {
-        printf("Looking for function %s in Module!\n", call name)
+        printf("Looking for function %s in module %s!\n", call name, fullName)
         fDecl : FunctionDecl = null
         fDecl = functions get(call name)
         if(fDecl) {
             "&&&&&&&& Found fDecl for call %s\n" format(call name) println()
-            call suggest(fDecl)
+            if(call suggest(fDecl)) return
+        }
+        
+        for(imp in imports) {
+            fDecl = imp getModule() functions get(call name)
+            if(fDecl) {
+                "&&&&&&&& Found fDecl for call %s in module %s\n" format(call name, imp getModule() fullName) println()
+                if(call suggest(fDecl)) return
+            }
         }
     }
     
@@ -80,14 +88,14 @@ Module: class extends Node {
         for(tDecl in types) {
             if(tDecl isResolved()) continue
             response := tDecl resolve(trail, res)
-            printf("response of tDecl %s = %s\n", tDecl toString(), response toString())
+            //printf("response of tDecl %s = %s\n", tDecl toString(), response toString())
             if(!response ok()) return response
         }
         
         for(fDecl in functions) {
             if(fDecl isResolved()) continue
             response := fDecl resolve(trail, res)
-            printf("response of fDecl %s = %s\n", fDecl toString(), response toString())
+            //printf("response of fDecl %s = %s\n", fDecl toString(), response toString())
             if(!response ok()) return response
         }
         
