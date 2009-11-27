@@ -1,8 +1,10 @@
 Int: cover from int
 
-main: func -> Int {
+main: func {
  
     a := 42
     b := a
+    
+    return 0
     
 }

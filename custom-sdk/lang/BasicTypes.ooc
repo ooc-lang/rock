@@ -12,8 +12,8 @@ Pointer: cover from void*
 Char: cover from char
 UChar: cover from unsigned char
 WChar: cover from wchar_t
-//String: cover from Char*
 
+//String: cover from Char*
 String: cover from char* {
     
     println: func {
@@ -52,9 +52,9 @@ Bool: cover from bool
 /**
  * real types
  */
-//Float: cover from float extends Double
-//LDouble: cover from long double
-//Double: cover from double
+Float: cover from float extends Double
+LDouble: cover from long double
+Double: cover from double
 
 /**
  * objects

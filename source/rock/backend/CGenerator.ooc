@@ -4,7 +4,8 @@ import ../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Line, BinaryOp, IntLiteral, CharLiteral, StringLiteral, RangeLiteral,
     VariableDecl, If, Else, While, Foreach, Conditional, ControlStatement,
     VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,
-    Node, Parenthesis, Return, Cast, Comparison, Ternary, BoolLiteral]
+    Node, Parenthesis, Return, Cast, Comparison, Ternary, BoolLiteral,
+    Argument]
     
 import Skeleton, FunctionDeclWriter, ControlStatementWriter, ClassDeclWriter,
     ModuleWriter, CoverDeclWriter, FunctionCallWriter
@@ -154,6 +155,13 @@ CGenerator: class extends Skeleton {
     
     visitTernary: func (tern: Ternary) {
         current app(tern condition). app(" ? "). app(tern ifTrue). app(" : "). app(tern ifFalse)
+    }
+    
+    visitVarArg: func (varArg: VarArg) {
+        // note: this is a hack to support C-style varargs function definitions
+        // in the future, this will be half-deprecated to support varargs
+        // with ArrayLists of Value<T>
+        current app("...")
     }
 
 }

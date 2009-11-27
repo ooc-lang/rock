@@ -6,7 +6,7 @@ import ../frontend/[Token, BuildParams]
 import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl, 
     FunctionCall, StringLiteral, Node, Module, Statement, Line, Include, Import,
     Type, Expression, Return, VariableAccess, Cast, If, Else, ControlStatement,
-    Comparison, IntLiteral, Ternary, BinaryOp, BoolLiteral]
+    Comparison, IntLiteral, Ternary, BinaryOp, BoolLiteral, Argument]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -537,3 +537,8 @@ nq_onAssignLeftShift: func (this: AstBuilder, left, right: Expression) -> Binary
 nq_onAssignRightShift: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes rshiftAss, nullToken)
 }
+
+nq_onVarArg: func (this: AstBuilder) -> VarArg {
+    return VarArg new(nullToken)
+}
+

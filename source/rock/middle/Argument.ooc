@@ -1,5 +1,5 @@
 import ../frontend/Token
-import VariableDecl, Type
+import VariableDecl, Type, Visitor
 
 Argument: abstract class extends VariableDecl {
     
@@ -9,6 +9,10 @@ Argument: abstract class extends VariableDecl {
 
 VarArg: class extends Argument {
     
-    init: func ~varArg (.type, .token) { super(type, "<...>", token) }
+    init: func ~varArg (.token) { super(null, "<...>", token) }
+    
+    accept: func (visitor: Visitor) {
+        visitor visitVarArg(this)
+    }
     
 }

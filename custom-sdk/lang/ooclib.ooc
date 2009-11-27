@@ -11,7 +11,6 @@ va_end: extern func (VaList) // ap
 exit: extern func (Int)
 
 // math
-/*
 cos: extern func (Double) -> Double
 sin: extern func (Double) -> Double
 tan: extern func (Double) -> Double
@@ -37,10 +36,9 @@ log10: extern (log10f) func ~Float (Float) -> Float
 log10: extern (log10l) func ~Long (LDouble) -> LDouble
 
 round: extern (lround) func ~dl (Double) -> Long
-*/
 
 // memory management
-//sizeof: extern func (...) -> SizeT
+sizeof: extern func (...) -> SizeT
 memset: extern func (Pointer, Int, SizeT) -> Pointer
 memcmp: extern func (Pointer, Pointer, SizeT) -> Int
 memmove: extern func (Pointer, Pointer, SizeT)
