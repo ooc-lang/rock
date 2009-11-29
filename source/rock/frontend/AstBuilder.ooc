@@ -538,6 +538,18 @@ nq_onAssignRightShift: func (this: AstBuilder, left, right: Expression) -> Binar
     return BinaryOp new(left, right, OpTypes rshiftAss, nullToken)
 }
 
+nq_onAdd: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+    return BinaryOp new(left, right, OpTypes add, nullToken)
+}
+
+nq_onSub: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+    return BinaryOp new(left, right, OpTypes sub, nullToken)
+}
+
+nq_onMul: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+    return BinaryOp new(left, right, OpTypes mul, nullToken)
+}
+
 nq_onVarArg: func (this: AstBuilder) -> VarArg {
     return VarArg new(nullToken)
 }
