@@ -1,7 +1,8 @@
 import ../frontend/Token
-import Node, Expression, Visitor
+import Node, Expression, Visitor, Type
+import tinker/[Trail, Resolver, Response]
 
-Parenthesis: class extends Node {
+Parenthesis: class extends Expression {
 
     inner: Expression
 
@@ -9,6 +10,14 @@ Parenthesis: class extends Node {
     
     accept: func (visitor: Visitor) {
         visitor visitParenthesis(this)
+    }
+    
+    getType: func -> Type {
+        inner getType()
+    }
+    
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        inner resolve(trail, res)
     }
 
 }

@@ -6,7 +6,7 @@ import ../frontend/[Token, BuildParams]
 import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl, 
     FunctionCall, StringLiteral, Node, Module, Statement, Line, Include, Import,
     Type, Expression, Return, VariableAccess, Cast, If, Else, ControlStatement,
-    Comparison, IntLiteral, Ternary, BinaryOp, BoolLiteral, Argument]
+    Comparison, IntLiteral, Ternary, BinaryOp, BoolLiteral, Argument, Parenthesis]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -560,6 +560,10 @@ nq_onDiv: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
 
 nq_onVarArg: func (this: AstBuilder) -> VarArg {
     return VarArg new(nullToken)
+}
+
+nq_onParenthesis: func (this: AstBuilder, inner: Expression) -> Parenthesis {
+    return Parenthesis new(inner, nullToken)
 }
 
 nq_onGenericArgument: func (this: AstBuilder, name: String) {
