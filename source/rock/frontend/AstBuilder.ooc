@@ -542,3 +542,7 @@ nq_onVarArg: func (this: AstBuilder) -> VarArg {
     return VarArg new(nullToken)
 }
 
+nq_onGenericArgument: func (this: AstBuilder, name: String) {
+    
+}
+
