@@ -62,7 +62,7 @@ CGenerator: class extends Skeleton {
     
     /** Write a binary operation */
     visitBinaryOp: func (op: BinaryOp) {
-        current app(op left). app(" "). app(op type toString()). app(" "). app(op right)
+        current app('('). app(op left). app(" "). app(op type toString()). app(" "). app(op right). app(')')
     }
     
     /** Write an int literal */

@@ -18,31 +18,33 @@ OpTypes: class {
     sub = 2,        /*  -  */
     mul = 3,        /*  *  */
     div = 4,        /*  /  */
-    ass = 5,        /*  =  */
-    addAss = 6,     /*  += */
-    subAss = 7,     /*  -= */
-    mulAss = 8,     /*  *= */
-    divAss = 9,     /*  /= */
-    rshift = 10,    /*  >> */
-    lshift = 11,    /*  << */
-    rshiftAss = 12, /* >>= */
-    lshiftAss = 13, /* <<= */
-    bOr = 14,       /*  |  */
-    bXor = 15,      /*  ^  */
-    bAnd = 16,      /*  &  */
-    bOrAss = 17,    /*  |= */
-    bXorAss = 18,   /*  ^= */
-    bAndAss = 19,   /*  &= */
-    or = 20,        /*  || */
-    and = 21,       /*  && */
-    incr = 22,      /*  ++ */
-    decr = 23       /*  -- */ : static const OpType
+    mod = 5,        /*  %  */
+    ass = 6,        /*  =  */
+    addAss = 7,     /*  += */
+    subAss = 8,     /*  -= */
+    mulAss = 9,     /*  *= */
+    divAss = 10,     /*  /= */
+    rshift = 11,    /*  >> */
+    lshift = 12,    /*  << */
+    rshiftAss = 13, /* >>= */
+    lshiftAss = 14, /* <<= */
+    bOr = 15,       /*  |  */
+    bXor = 16,      /*  ^  */
+    bAnd = 17,      /*  &  */
+    bOrAss = 18,    /*  |= */
+    bXorAss = 19,   /*  ^= */
+    bAndAss = 20,   /*  &= */
+    or = 21,        /*  || */
+    and = 22,       /*  && */
+    incr = 23,      /*  ++ */
+    decr = 24       /*  -- */ : static const OpType
     
     repr := static ["no-op",
         "+",
         "-",
         "*",
         "/",
+        "%",
         "=",
         "+=",
         "-=",

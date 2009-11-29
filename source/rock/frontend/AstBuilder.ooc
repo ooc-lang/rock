@@ -546,8 +546,16 @@ nq_onSub: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes sub, nullToken)
 }
 
+nq_onMod: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+    return BinaryOp new(left, right, OpTypes mod, nullToken)
+}
+
 nq_onMul: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes mul, nullToken)
+}
+
+nq_onDiv: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+    return BinaryOp new(left, right, OpTypes div, nullToken)
 }
 
 nq_onVarArg: func (this: AstBuilder) -> VarArg {
