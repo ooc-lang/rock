@@ -320,7 +320,7 @@ AstBuilder: class {
     // statement
     onStatement: func (stmt: Statement) {
         node : Node = stack peek()
-        printf("====> [%s] at %d, and peek = %s\n", stmt class name, posPointer@, node class name)
+        //printf("====> [%s] at %d, and peek = %s\n", stmt class name, posPointer@, node class name)
         if(node instanceOf(VariableDecl)) {
             //"Got varDecl %s" format(node toString()) println()
             gotVarDecl(node)
@@ -425,8 +425,8 @@ nq_onVarDeclAssign: func (this: AstBuilder, acc: VariableAccess, isConst: Bool, 
     }
     vDecl := VariableDecl new(null, acc name, expr, nullToken)
     vDecl isConst = isConst
-    if(isConst) "%s is const!" format(acc name) println()
-    ("Got variableDecl " + vDecl toString()) println()
+    //if(isConst) "%s is const!" format(acc name) println()
+    //("Got variableDecl " + vDecl toString()) println()
     return vDecl
 }
 
@@ -568,5 +568,13 @@ nq_onParenthesis: func (this: AstBuilder, inner: Expression) -> Parenthesis {
 
 nq_onGenericArgument: func (this: AstBuilder, name: String) {
     
+    node : Node = this stack peek()
+    printf("======= Got generic argument %s, and node is a %s\n", name, node class name)
+    
+    match {
+        case node instanceOf(FunctionDecl) =>
+            fDecl := node as FunctionDecl
+            fDecl typeArgs add(VariableDecl new(BaseType new("Class", nullToken), name clone(), nullToken))
+    }
 }
 

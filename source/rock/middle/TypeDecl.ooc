@@ -21,8 +21,7 @@ TypeDecl: abstract class extends Declaration {
     
     init: func ~typeDecl (=name, =superType, .token) {
         super(token)
-        type = BaseType new(name, token)
-        type as BaseType ref = this
+        type = BaseType new("Class", token)
         thisDecl = VariableDecl new(type, "this", nullToken)
     }
     
@@ -118,7 +117,12 @@ TypeDecl: abstract class extends Declaration {
         
         trail push(this)
         
-        //printf("======\nResolving type decl %s\n", toString())
+        //printf("====== Resolving type decl %s\n", toString())
+        
+        {
+            response := type resolve(trail, res)
+            if(!response ok()) return response
+        }
         
         for(vDecl in variables) {
             response := vDecl resolve(trail, res)

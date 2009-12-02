@@ -1,13 +1,14 @@
 import structs/ArrayList
 import ../frontend/Token
-import Visitor, Expression, FunctionDecl, Argument, Type
+import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess
 import tinker/[Response, Resolver, Trail]
 
 FunctionCall: class extends Expression {
 
     expr: Expression
     name, suffix = null : String
-    args := ArrayList<Expression> new()
+    typeArgs := ArrayList<Expression> new()
+    args := ArrayList<Expression> new()    
     
     ref = null : FunctionDecl
     refScore := -1
@@ -90,12 +91,67 @@ FunctionCall: class extends Expression {
             if(expr != null && expr getType() != null && expr getType() getRef() != null) {
                 printf("--> resolving call %s from expr %s\n", toString(), expr toString())
                 expr getType() getRef() resolveCall(this)
-            } else {
-                printf("<-- Apparently, there's no expr for %s (or is there? %s)\n", toString(), expr ? expr toString() : "no.")
+            //} else {
+                //printf("<-- Apparently, there's no expr for %s (or is there? %s)\n", toString(), expr ? expr toString() : "no.")
             }
         }
         
+        /*
+         * Now resolve generic type arguments
+         */
+        if(refScore != -1) {
+            handleGenerics(trail, res)
+        }
+        
+        if(typeArgs size() > 0) {
+            trail push(this)
+            for(typeArg in typeArgs) {
+                printf("Resolving typeArg %s\n", typeArg toString())
+                response := typeArg resolve(trail, res)
+                if(!response ok()) {
+                    trail pop(this)
+                    printf(" -- Failed, looping.\n")
+                    return response
+                }
+            }
+            trail pop(this)
+        }
+        
         return refScore != -1 ? Responses OK : Responses LOOP
+        
+    }
+    
+    /**
+     * Resolve type arguments
+     */
+    handleGenerics: func (trail: Trail, res: Resolver) {
+        
+        
+        if(typeArgs size() == ref typeArgs size()) {
+            return // already resolved
+        }
+        
+        printf("\t$$$$ resolving typeArgs of %s (call = %d, ref = %d)\n", toString(), typeArgs size(), ref typeArgs size())
+        
+        i := typeArgs size()
+        while(i < ref typeArgs size()) {
+            typeArg := ref typeArgs get(i)
+            printf("\t$$$$ resolving typeArg %s\n", typeArg name)
+            
+            /* myFunction: func <T> (myArg: T) */
+            j := 0
+            for(arg in ref args) {
+                if(arg type getName() == typeArg name) {
+                    typeResult := args get(j) getType()
+                    printf("\t$$=- found match in arg %s of type %s\n", arg toString(), typeResult toString())
+                    typeArgs add(VariableAccess new(typeResult, nullToken))
+                    break
+                }
+                j += 1
+            }
+            
+            i += 1
+        }
         
     }
     

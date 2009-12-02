@@ -1,4 +1,4 @@
-import Visitor, FunctionCall, VariableAccess
+import Visitor, FunctionCall, VariableAccess, Type
 import ../frontend/Token
 import tinker/[Resolver, Response, Trail]
 
@@ -25,6 +25,10 @@ Node: abstract class {
     }
     
     resolveAccess: func (access: VariableAccess) {
+        // overridden in sub-classes
+    }
+    
+    resolveType: func (type: BaseType) {
         // overridden in sub-classes
     }
 

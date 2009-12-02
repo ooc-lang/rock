@@ -1,6 +1,6 @@
 import ../frontend/Token
 import ../backend/AwesomeWriter
-import Node, Visitor, Declaration, TypeDecl, ClassDecl, Module, Import
+import Node, Visitor, Declaration, TypeDecl, ClassDecl, VariableDecl, Module, Import
 import tinker/[Response, Resolver, Trail]
 
 voidType := BaseType new("void", nullToken)
@@ -56,7 +56,7 @@ FuncType: class extends Type {
 
 BaseType: class extends Type {
 
-    ref: TypeDecl = null
+    ref: Declaration = null
     name: String
     
     init: func ~baseType (=name, .token) { super(token) }
@@ -68,9 +68,21 @@ BaseType: class extends Type {
         if(ref == null) {
             Exception new(This, "Trying to write unresolved type " + toString()) throw()
         }
-        w app(ref underName())
-        if(ref instanceOf(ClassDecl))
+        match {
+            case ref instanceOf(TypeDecl)     => writeRegularType(w, ref)
+            case ref instanceOf(VariableDecl) => writeGenericType(w, ref)
+        }
+    }
+    
+    writeRegularType: func (w: AwesomeWriter, td: TypeDecl) {
+        w app(td underName())
+        if(td instanceOf(ClassDecl)) {
             w app("*")
+        }
+    }
+    
+    writeGenericType: func (w: AwesomeWriter, vd: VariableDecl) {
+        w app("/* generic type */ uint8_t*")
     }
     
     equals: func (other: This) -> Bool {
@@ -80,23 +92,25 @@ BaseType: class extends Type {
     
     getName: func -> String { name }
     
+    suggest: func (decl: Declaration) -> Bool {
+        // trivial impl for now
+        ref = decl
+        return true
+    }
+    
     resolve: func (trail: Trail, res: Resolver) -> Response {
     
         if(isResolved()) return Responses OK
     
-        //printf("resolving type %s (ref = %p)\n", name, ref)
+        //printf("     - resolving type %s (ref = %p)\n", name, ref)
         
-        module := trail module()
-        
-        this ref = module types get(name)
-        if(ref == null) {
-            for(imp in module imports) {
-                //printf("Looking in import %s\n", imp path)
-                this ref = imp getModule() types get(name)
-                if(ref != null) {
-                    //("Found type " + name + " in " + imp getModule() fullName)
-                    break
-                }
+        if(!ref) {
+            depth := trail size() - 1
+            while(depth >= 0) {
+                node := trail get(depth)
+                node resolveType(this)
+                if(ref) break // break on first match
+                depth -= 1
             }
         }
         

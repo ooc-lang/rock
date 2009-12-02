@@ -7,9 +7,6 @@ Ternary: class extends Expression {
     condition, ifTrue, ifFalse : Expression
 
     init: func ~ternary (=condition, =ifTrue, =ifFalse, .token) {
-        printf("Got a ternary with condition = %s\n", condition toString())
-        printf("  ...ifTrue = %s\n", ifTrue toString())
-        printf("and ifFalse = %s\n", ifFalse toString())
         super(token)
     }
 

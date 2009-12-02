@@ -92,15 +92,22 @@ CGenerator: class extends Skeleton {
         if(varAcc ref == null) {
             Exception new(This, "Trying to write unresolved variable access %s" format(varAcc toString())) throw()
         }
-        if(varAcc expr) {
-            current app(varAcc expr)
-            if(varAcc expr getType() getRef() instanceOf(ClassDecl)) {
-                current app("->")
-            } else {
-                current app('.')
+        
+        if(varAcc ref instanceOf(VariableDecl)) {
+            if(varAcc expr) {
+                current app(varAcc expr)
+                if(varAcc expr getType() getRef() instanceOf(ClassDecl)) {
+                    current app("->")
+                } else {
+                    current app('.')
+                }
             }
+            current app(varAcc name)
+        } else if(varAcc ref instanceOf(TypeDecl)) {
+            typeDecl : TypeDecl = varAcc ref
+            printf("()() Writing variable access to type %s\n", typeDecl toString())
+            current app(typeDecl name). app("_class()")
         }
-        current app(varAcc name)
     }
     
     /** Control statements */

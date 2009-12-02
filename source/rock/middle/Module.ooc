@@ -1,7 +1,8 @@
 import io/File
 import structs/[HashMap, ArrayList]
 import ../frontend/[Token, SourceReader]
-import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl, FunctionCall
+import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl,
+       FunctionCall, Type, Declaration, VariableAccess
 import tinker/[Response, Resolver, Trail]
 
 Module: class extends Node {
@@ -63,7 +64,27 @@ Module: class extends Node {
         return parentPath
     }
     
-    resolveCall: func (call : FunctionCall) {
+    resolveAccess: func (access: VariableAccess) {
+        
+        ref : Declaration = null
+        
+        ref = types get(access name)
+        if(ref != null && access suggest(ref)) {
+            return
+        }
+        
+        for(imp in imports) {
+            //printf("Looking in import %s\n", imp path)
+            ref = imp getModule() types get(access name)
+            if(ref != null && access suggest(ref)) {
+                //("Found type " + name + " in " + imp getModule() fullName)
+                break
+            }
+        }
+        
+    }
+    
+    resolveCall: func (call: FunctionCall) {
         if(call expr != null) return // hmm no member calls for us
         
         //printf("Looking for function %s in module %s!\n", call name, fullName)
@@ -81,6 +102,26 @@ Module: class extends Node {
                 if(call suggest(fDecl)) return
             }
         }
+    }
+    
+    resolveType: func (type: BaseType) {
+        
+        ref : Declaration = null
+        
+        ref = types get(type name)
+        if(ref != null && type suggest(ref)) {
+            return
+        }
+            
+        for(imp in imports) {
+            //printf("Looking in import %s\n", imp path)
+            ref = imp getModule() types get(type name)
+            if(ref != null && type suggest(ref)) {
+                //("Found type " + name + " in " + imp getModule() fullName)
+                break
+            }
+        }
+        
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {

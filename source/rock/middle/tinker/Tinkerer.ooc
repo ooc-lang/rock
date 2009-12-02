@@ -32,7 +32,9 @@ Tinkerer: class {
     
                 resolver := iter next()
                 
-                printf("++++++++++++ Resolving module %s\n", resolver module fullName)
+                printf("\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
+                printf("\tResolving module %s", resolver module fullName)
+                printf("\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
                 
                 // returns true = dirty, must do again
                 if(resolver process(params)) {

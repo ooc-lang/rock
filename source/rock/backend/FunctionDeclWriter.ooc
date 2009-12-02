@@ -25,7 +25,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
         
         // source
         current = cw
-        current nl()
+        current nl(). nl()
         writeFuncPrototype(this, fDecl)
         current app(" {"). tab()
         for(line in fDecl body) {
@@ -67,6 +67,8 @@ FunctionDeclWriter: abstract class extends Skeleton {
      * @param baseType For covers, the 'this' must be casted otherwise
      * the C compiler complains about incompatible pointer types. Or at
      * least that's my guess as to its utility =)
+     * 
+     * @see FunctionCallWriter
      */
     writeFuncArgs: static func (this: This, fDecl: FunctionDecl, mode: ArgsWriteMode, baseType: TypeDecl) {
         
@@ -94,15 +96,18 @@ FunctionDeclWriter: abstract class extends Skeleton {
         }
         
         /* Step 2 : write generic type args */
-         
-        /// TODO
+        for(typeArg in fDecl typeArgs) {
+            if(!isFirst) current app(", ")
+            else isFirst = false
+            current app(typeArg)
+        }
         
         /* Step 3 : write real args */
         while(iter hasNext()) {
             arg := iter next()
             //"Writing arg %s" format(arg toString()) println()
             if(!isFirst) current app(", ")
-            isFirst = false
+            else isFirst = false
             
             match mode {
                 case ArgsWriteModes NAMES_ONLY =>
@@ -121,8 +126,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
         }
         
         /* Step 4 : Write exception handling arguments */
-        
-        /// TODO
+        // TODO
         
         current app(')')
         

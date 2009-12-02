@@ -26,7 +26,7 @@ ClassDeclWriter: abstract class extends Skeleton {
     
     writeObjectStruct: static func (this: This, cDecl: ClassDecl) {
         
-        current nl(). app("struct _"). app(cDecl underName()). app(' '). openBlock()
+        current nl(). app("struct _"). app(cDecl underName()). app(' '). openBlock(). nl()
 
         if(cDecl isClassClass()) {
             current app(CLASS_NAME). app(" *class;")
@@ -47,7 +47,7 @@ ClassDeclWriter: abstract class extends Skeleton {
     
     writeClassStruct: static func (this: This, cDecl: ClassDecl) {
 
-        current nl(). app("struct _"). app(cDecl underName()). app("Class"). app(' '). openBlock()
+        current nl(). app("struct _"). app(cDecl underName()). app("Class"). app(' '). openBlock(). nl()
 
         if(cDecl isRootClass()) {
             current app("struct _"). app(CLASS_NAME). app(" __super__;")
@@ -165,7 +165,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
     writeClassGettingFunction: static func (this: This, cDecl: ClassDecl) {
 
-        current nl(). nl(). app(CLASS_NAME). app(" *"). app(cDecl name). app("_class()"). openBlock()
+        current nl(). nl(). app(CLASS_NAME). app(" *"). app(cDecl name). app("_class()"). openBlock(). nl()
         
         if (cDecl superType) {
             current app("static "). app(LANG_PREFIX). app("Bool __done__ = false"). nl()

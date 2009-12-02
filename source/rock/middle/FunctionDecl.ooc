@@ -1,7 +1,8 @@
 import structs/[Stack, ArrayList]
 import ../frontend/Token
 import Expression, Line, Type, Visitor, Argument, TypeDecl, Scope,
-       VariableAccess, ControlStatement, Return, IntLiteral, Else
+       VariableAccess, ControlStatement, Return, IntLiteral, Else,
+       VariableDecl
 import tinker/[Resolver, Response, Trail]
 
 FunctionDecl: class extends Expression {
@@ -17,6 +18,7 @@ FunctionDecl: class extends Expression {
     isFinal := false
     externName : String = null
     
+    typeArgs := ArrayList<VariableDecl> new()
     args := ArrayList<Argument> new()
     body := Scope new()
     
@@ -45,6 +47,21 @@ FunctionDecl: class extends Expression {
     }
     
     isResolved: func -> Bool { false }
+    
+    resolveType: func (type: BaseType) {
+        
+        //printf("** Looking for type %s in func %s with %d type args\n", type name, toString(), typeArgs size())
+        
+        for(typeArg: VariableDecl in typeArgs) {
+            //printf("*** For typeArg %s\n", typeArg name)
+            if(typeArg name == type name) {
+                //printf("***** Found match for %s in function decl %s\n", type name, toString())
+                type suggest(typeArg)
+                break
+            }
+        }
+        
+    }
     
     resolveAccess: func (access: VariableAccess) {
         
@@ -78,6 +95,15 @@ FunctionDecl: class extends Expression {
             }
         }
         
+        for(typeArg in typeArgs) {
+            response := typeArg resolve(trail, res)
+            //printf("Response of typeArg %s = %s\n", typeArg toString(), response toString())
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
+        }
+        
         {
             response := body resolve(trail, res)
             if(!response ok()) {
@@ -90,7 +116,7 @@ FunctionDecl: class extends Expression {
         
         {
             response := returnType resolve(trail, res)
-            printf("))))))) For %s, response of return type %s = %s\n", toString(), returnType toString(), response toString())
+            //printf("))))))) For %s, response of return type %s = %s\n", toString(), returnType toString(), response toString())
             if(!response ok()) {
                 trail pop(this)
                 return response

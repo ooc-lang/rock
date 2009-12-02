@@ -1,5 +1,5 @@
 import ../frontend/Token
-import Visitor, Expression, VariableDecl, Type
+import Visitor, Expression, VariableDecl, Declaration, Type
 import tinker/[Resolver, Response, Trail]
 
 VariableAccess: class extends Expression {
@@ -7,7 +7,7 @@ VariableAccess: class extends Expression {
     expr: Expression
     name: String
     
-    ref: VariableDecl
+    ref: Declaration
     
     init: func ~variableAccess (.name, .token) {
         this(null, name, token)
@@ -15,6 +15,12 @@ VariableAccess: class extends Expression {
     
     init: func ~variableAccessWithExpr (=expr, =name, .token) {
         super(token)
+    }
+    
+    init: func ~typeAccess (type: Type, .token) {
+        super(token)
+        name = type getName()
+        ref = type getRef()
     }
     
     accept: func (visitor: Visitor) {
@@ -35,7 +41,7 @@ VariableAccess: class extends Expression {
          * Try to resolve the access
          * 
          * It's far simpler than resolving a function call, we just
-         * go from top to bottom and retain the first match.
+         * explore the trail from top to bottom and retain the first match.
          */
         if(!ref) {
             depth := trail size() - 1
@@ -71,7 +77,11 @@ VariableAccess: class extends Expression {
     }
     
     getType: func -> Type {
-        ref ? ref type : null
+        if(!ref) return null
+        if(ref instanceOf(Expression)) {
+            return ref as Expression getType()
+        }
+        return null
     }
     
     toString: func -> String {

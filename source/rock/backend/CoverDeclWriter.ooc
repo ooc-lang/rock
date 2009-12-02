@@ -26,6 +26,29 @@ CoverDeclWriter: abstract class extends Skeleton {
             current nl()
 		}
         
+        writeClassFunction(this, cDecl)
+        
+    }
+    
+    writeClassFunction: static func (this: This, cDecl: CoverDecl) {
+        
+        current = fw
+        
+        current nl() .app("lang__Class *"). app(cDecl name). app("_class();")
+        
+        current = cw
+        
+        current nl().
+        app("lang__Class *"). app(cDecl name). app("_class() {"). tab(). nl().
+            app("static lang__Class _class = {"). tab(). nl().
+                app(".size = sizeof("). app(cDecl underName()). app("),"). nl().
+                app(".instanceSize = sizeof("). app(cDecl underName()). app("),"). nl().
+                app(".name = \""). app(cDecl name). app("\"").
+            untab(). nl(). app("};").
+            nl(). app("return &_class;").
+        untab(). nl(). app("}").
+        nl()
+        
     }
     
     writeTypedef: static func (this: This, cDecl: CoverDecl) {
