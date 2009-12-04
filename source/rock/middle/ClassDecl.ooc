@@ -12,16 +12,30 @@ ClassDecl: class extends TypeDecl {
 
     isAbstract := false
     isFinal := false
+    
+    isMeta := false
 
-    init: func ~classDecl(.name, .superType, .token) {
+    init: func ~classDeclNotMeta(.name, .superType, .token) {
+        this(name, superType, false, token)
+    }
+
+    init: func ~classDecl(.name, .superType, =isMeta, .token) {
         super(name clone(), superType, token)
+
+        if(!superType && !isObjectClass() && !isClassClass()) {
+            // everyone inherits from object, biatch.
+            this superType = BaseType new("Object", token)
+        }
+        
+        if(!isMeta) {
+            // create the meta-class
+        }
     }
     
     accept: func (visitor: Visitor) { visitor visitClassDecl(this) }
     
     isObjectClass: func -> Bool {
-        //name equals("Object")
-        true // workaround
+        name equals("Object")
     }
     
     isClassClass: func -> Bool {

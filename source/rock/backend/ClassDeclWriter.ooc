@@ -168,7 +168,7 @@ ClassDeclWriter: abstract class extends Skeleton {
         current nl(). nl(). app(CLASS_NAME). app(" *"). app(cDecl name). app("_class()"). openBlock(). nl()
         
         if (cDecl superType) {
-            current app("static "). app(LANG_PREFIX). app("Bool __done__ = false"). nl()
+            current app("static "). app(LANG_PREFIX). app("Bool __done__ = false;"). nl()
         }
         current app("static "). app(cDecl underName()). app("Class class = "). nl()
         

@@ -14,15 +14,18 @@ TypeDecl: abstract class extends Declaration {
 
     thisDecl : VariableDecl
 
+    instanceType: Type
     type: Type
-    superType: Type
+    superType: Type = null
     
     module: Module = null
     
     init: func ~typeDecl (=name, =superType, .token) {
         super(token)
         type = BaseType new("Class", token)
-        thisDecl = VariableDecl new(type, "this", nullToken)
+        instanceType = BaseType new(name, token)
+        instanceType as BaseType ref = this
+        thisDecl = VariableDecl new(instanceType, "this", nullToken)
     }
     
     addVariable: func (vDecl: VariableDecl) {
@@ -32,7 +35,7 @@ TypeDecl: abstract class extends Declaration {
     }
     
     addFunction: func (fDecl: FunctionDecl) {
-        //printf("______ %s %s just got function %s\n", class name, name, fDecl toString())
+        printf("______ %s %s just got function %s\n", class name, name, fDecl toString())
         functions put(fDecl name, fDecl)
         fDecl owner = this
     }
@@ -109,7 +112,7 @@ TypeDecl: abstract class extends Declaration {
         
     }
     
-    getType: func -> Type { type }
+    getType: func -> Type { instanceType }
 
     isResolved: func -> Bool { false }
     
@@ -121,6 +124,11 @@ TypeDecl: abstract class extends Declaration {
         
         {
             response := type resolve(trail, res)
+            if(!response ok()) return response
+        }
+        
+        if(superType) {
+            response := superType resolve(trail, res)
             if(!response ok()) return response
         }
         
@@ -157,11 +165,11 @@ TypeDecl: abstract class extends Declaration {
     }
     
     resolveCall: func (call : FunctionCall) {
-        //printf("? Looking for function %s in %s\n", call name, name)
+        printf("? Looking for function %s in %s\n", call name, name)
         fDecl : FunctionDecl = null
         fDecl = functions get(call name)
         if(fDecl) {
-            //"&&&&&&&& Found fDecl for %s\n" format(call name) println()
+            "&&&&&&&& Found fDecl for %s\n" format(call name) println()
             call suggest(fDecl)
         }
     }
