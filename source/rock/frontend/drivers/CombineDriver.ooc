@@ -30,7 +30,11 @@ CombineDriver: class extends Driver {
         }
         
         if(params link) {
-            params compiler setOutputPath(module simpleName)
+            if (params binaryPath != "") {
+                params compiler setOutputPath(params binaryPath)
+            } else {
+                params compiler setOutputPath(module simpleName)
+            }
             //libs := getFlagsFromUse(module)
             //for(lib: String in libs) params compiler addObjectFile(lib)
             

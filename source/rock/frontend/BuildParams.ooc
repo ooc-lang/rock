@@ -17,6 +17,9 @@ BuildParams: class {
     
     outPath: File = File new("rock_tmp")
     
+    // Path to place the binary
+    binaryPath: String = ""
+
     // Path of the text editor to run when an error is encountered in an ooc file 
     editor: String = ""
     
