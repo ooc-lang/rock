@@ -102,7 +102,7 @@ BaseType: class extends Type {
     
         if(isResolved()) return Responses OK
     
-        //printf("     - resolving type %s (ref = %p)\n", name, ref)
+        printf("     - resolving type %s (ref = %p)\n", name, ref)
         
         if(!ref) {
             depth := trail size() - 1

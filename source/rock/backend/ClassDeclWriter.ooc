@@ -9,28 +9,37 @@ ClassDeclWriter: abstract class extends Skeleton {
     
     write: static func ~_class (this: This, cDecl: ClassDecl) {
         
-        current = fw
-        writeMemberFuncPrototypes(this, cDecl)
+        if(cDecl isMeta) {
+            
+            current = hw
+            writeObjectStruct(this, cDecl)
+            
+            current = fw
+            writeMemberFuncPrototypes(this, cDecl)
+            
+            current = cw
+            writeInstanceImplFuncs(this, cDecl)
+            writeClassGettingFunction(this, cDecl)
+            writeInstanceVirtualFuncs(this, cDecl)
+            writeStaticFuncs(this, cDecl)
+            
+        } else {
+            
+            current = hw
+            writeObjectStruct(this, cDecl)
         
-        current = hw
-        writeObjectStruct(this, cDecl)
-        writeClassStruct(this, cDecl)
-        
-        current = cw
-        writeInstanceImplFuncs(this, cDecl);
-        writeClassGettingFunction(this, cDecl);
-        writeInstanceVirtualFuncs(this, cDecl);
-        //writeStaticFuncs(this, cDecl);
+        }
         
     }
     
     writeObjectStruct: static func (this: This, cDecl: ClassDecl) {
         
+        // FIXME debug KALAMAZOO
+        printf("Writing object struct of %s\n", cDecl toString())
+        
         current nl(). app("struct _"). app(cDecl underName()). app(' '). openBlock(). nl()
 
-        if(cDecl isClassClass()) {
-            current app(CLASS_NAME). app(" *class;")
-        } else if (!cDecl isObjectClass()) {
+        if (!(cDecl name equals("Object"))) {
             current app("struct _"). app(cDecl superRef() ? cDecl superRef() underName() : "FIXME"). app(" __super__;")
         }
         
@@ -41,26 +50,21 @@ ClassDeclWriter: abstract class extends Skeleton {
             current nl(). app(vDecl). app(';')
         }
         
-        current closeBlock(). app(';'). nl(). nl()
+        /// ///////////////////// START code from writeClassStruct (meta-class work)
         
-    }
-    
-    writeClassStruct: static func (this: This, cDecl: ClassDecl) {
-
-        current nl(). app("struct _"). app(cDecl underName()). app("Class"). app(' '). openBlock(). nl()
-
-        if(cDecl isRootClass()) {
-            current app("struct _"). app(CLASS_NAME). app(" __super__;")
-        } else {
-            current app("struct _"). app(cDecl superRef() ? cDecl superRef() underName() : "FIXME"). app("Class __super__;")
-        }
-
-        /* Now write all virtual functions prototypes in the class struct */
+        // Now write all virtual functions prototypes in the class struct
         for (fDecl: FunctionDecl in cDecl functions) {
+            // FIXME debug KALAMAZOO
+            printf("Got function %s in %s\n", fDecl toString(), cDecl toString())
+            
             if(cDecl superRef()) {
-                superDecl := cDecl superRef() getFunction(fDecl name, fDecl suffix)
+                superDecl : FunctionDecl = null
+                superDecl = cDecl superRef() getFunction(fDecl name, fDecl suffix)
                 // don't write the function if it was declared in the parent
-                if(superDecl && !fDecl name equals("init")) continue
+                if(superDecl != null && !fDecl name equals("init")) {
+                    printf("Already declared in super %s, skipping (superDecl = %s)\n", cDecl superRef() toString(), superDecl toString())
+                    continue
+                }
             }
             
             current nl()
@@ -68,7 +72,7 @@ ClassDeclWriter: abstract class extends Skeleton {
             current app(';')
         }
         
-        /* And all static variables */
+        // And all static variables
         for (vDecl: VariableDecl in cDecl variables) {
             // skip non-static and extern variables
             if (!vDecl isStatic || vDecl isExtern) continue
@@ -76,7 +80,10 @@ ClassDeclWriter: abstract class extends Skeleton {
             current nl(). app(vDecl). app(';')
         }
         
+        /// ///////////////////// END code from writeClassStruct (meta-class work)
+        
         current closeBlock(). app(';'). nl(). nl()
+        
     }
     
     /** Write a function declaration's pointer */
@@ -95,7 +102,7 @@ ClassDeclWriter: abstract class extends Skeleton {
     /** Write the prototypes of member functions */
     writeMemberFuncPrototypes: static func (this: This, cDecl: ClassDecl) {
 
-        current nl(). app(CLASS_NAME). app(" *"). app(cDecl name). app("_class();")
+        current nl(). app(cDecl underName()). app(" *"). app(cDecl getNonMeta() name). app("_class();")
 
         for(fDecl: FunctionDecl in cDecl functions) {
             
@@ -115,6 +122,29 @@ ClassDeclWriter: abstract class extends Skeleton {
         }
         
     }
+
+    writeStaticFuncs: static func (this: This, cDecl: ClassDecl) {
+
+		for (fDecl: FunctionDecl in cDecl functions) {
+
+			if (!fDecl isStatic || (fDecl isExternWithName())) {
+				if(fDecl isExternWithName()) {
+					FunctionDeclWriter write(this, fDecl)
+				}
+				continue
+			}
+
+            current nl()
+			FunctionDeclWriter writeFuncPrototype(this, fDecl);
+            
+			current app(' '). openBlock(). nl()
+            for(line: Line in fDecl body) {
+                line accept(this)
+            }
+            current closeBlock()
+
+		}
+	}
     
     writeInstanceVirtualFuncs: static func (this: This, cDecl: ClassDecl) {
 
@@ -124,15 +154,15 @@ ClassDeclWriter: abstract class extends Skeleton {
 				continue
             }
 
-			current nl()
+			current nl(). nl()
 			FunctionDeclWriter writeFuncPrototype(this, fDecl)
-			current openBlock()
+			current openBlock(). nl()
 
             baseClass := cDecl getBaseClass(fDecl)
 			if (fDecl hasReturn()) {
 				current app("return ("). app(fDecl returnType). app(")")
 			}
-			current app("(("). app(baseClass underName()). app("Class *)((lang__Object *)this)->class)->")
+			current app("(("). app(baseClass underName()). app(" *)((lang__Object *)this)->class)->")
             FunctionDeclWriter writeSuffixedName(this, fDecl)
 			FunctionDeclWriter.writeFuncArgs(this, fDecl, ArgsWriteModes NAMES_ONLY, baseClass);
 			current app(";"). closeBlock()
@@ -144,17 +174,24 @@ ClassDeclWriter: abstract class extends Skeleton {
 
         // Non-static (ie  instance) functions
         for (decl: FunctionDecl in cDecl functions) {
-            if (decl isStatic || decl isAbstract || (decl isExtern() && !decl externName isEmpty()))
+            if (decl isStatic || decl isAbstract || (decl isExtern() && !decl externName isEmpty())) {
                 continue
+            }
             
-            current nl(). nl()
+            current nl(). nl(). nl()
             FunctionDeclWriter writeFuncPrototype(this, decl, decl isFinal ? null : "_impl")
-            current app(' '). openBlock()
-            if(decl name equals(ClassDecl DEFAULTS_FUNC_NAME) && cDecl superType) {
+            current app(' '). openBlock(). nl()
+            
+            
+            /*
+            nonMeta := cDecl getNonMeta()
+            if(decl name equals(ClassDecl DEFAULTS_FUNC_NAME) && nonMeta) {
                 current nl(). app(cDecl superType getName()). app("_").
                  app(ClassDecl DEFAULTS_FUNC_NAME). app("_impl((").
-                 app(cDecl superRef() underName()). app(" *) this)")
+                 app(nonMeta underName()). app(" *) this)")
             }
+            */
+            
             for(line: Line in decl body) {
                 line accept(this)
             }
@@ -165,25 +202,25 @@ ClassDeclWriter: abstract class extends Skeleton {
 
     writeClassGettingFunction: static func (this: This, cDecl: ClassDecl) {
 
-        current nl(). nl(). app(CLASS_NAME). app(" *"). app(cDecl name). app("_class()"). openBlock(). nl()
+        current nl(). nl(). app(cDecl underName()). app(" *"). app(cDecl getNonMeta() getName()). app("_class()"). openBlock(). nl()
         
-        if (cDecl superType) {
+        if (cDecl getNonMeta() superRef()) {
             current app("static "). app(LANG_PREFIX). app("Bool __done__ = false;"). nl()
         }
-        current app("static "). app(cDecl underName()). app("Class class = "). nl()
+        current app("static "). app(cDecl underName()). app(" class = "). nl()
         
         writeClassStructInitializers(this, cDecl, cDecl, ArrayList<FunctionDecl> new())
         
         current app(';')
-        current nl(). app(CLASS_NAME). app(" *classPtr = ("). app(CLASS_NAME). app(" *) &class;")
-        if (cDecl superType) {
+        if (cDecl getNonMeta() superRef()) {
+            current nl(). app(CLASS_NAME). app(" *classPtr = ("). app(CLASS_NAME). app(" *) &class;")
             current nl(). app("if(!__done__)"). openBlock().
-                    nl(). app("classPtr->super = "). app(cDecl superType getName()). app("_class();").
+                    nl(). app("classPtr->super = ("). app(CLASS_NAME). app("*) "). app(cDecl getNonMeta() superRef() getName()). app("_class();").
                     nl(). app("__done__ = true;").
             closeBlock()
         }
 
-        current nl(). app("return classPtr;"). closeBlock()
+        current nl(). app("return &class;"). closeBlock()
     }
 
     /**
@@ -193,16 +230,14 @@ ClassDeclWriter: abstract class extends Skeleton {
     writeClassStructInitializers: static func (this: This, parentClass: ClassDecl,
         realClass: ClassDecl, done: List<FunctionDecl>) {
 
-        current openBlock(). nl()
+        current openBlock(). app("  // %s" format(parentClass name)). nl()
 
-        if (!parentClass isRootClass() && parentClass superType) {
-            writeClassStructInitializers(this, parentClass superRef(), realClass, done)
+        if (parentClass name equals("Class")) {
+            current app(".instanceSize = "). app("sizeof("). app(realClass underName()). app("),").
+              nl() .app(".size = "). app("sizeof(void*),").
+              nl() .app(".name = "). app('"'). app(realClass name). app("\",")
         } else {
-            current openBlock().
-                nl() .app(".instanceSize = "). app("sizeof("). app(realClass underName()). app("),").
-                nl() .app(".size = "). app("sizeof(void*),").
-                nl() .app(".name = "). app('"'). app(realClass name). app("\",").
-            closeBlock(). app(',')
+            writeClassStructInitializers(this, parentClass superRef(), realClass, done)
         }
 
         for (parentDecl: FunctionDecl in parentClass functions) {

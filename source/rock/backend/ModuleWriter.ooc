@@ -26,8 +26,8 @@ ModuleWriter: abstract class extends Skeleton {
             match (tDecl class) {
                 case ClassDecl =>
                     className := tDecl as ClassDecl underName()
+                    printf("&&& Writing class %s\n", className)
                     ClassDeclWriter writeStructTypedef(this, className)
-                    ClassDeclWriter writeStructTypedef(this, className+"Class")
                 case CoverDecl =>
                     CoverDeclWriter writeTypedef(this, tDecl)
             }

@@ -7,7 +7,7 @@ OOC=ooc ${OOC_OWN_FLAGS} ${OOC_FLAGS}
 all:
 	mkdir -p source/rock/parser/
 	${PARSER_GEN} ../nagaqueen/grammar/nagaqueen.leg > source/rock/frontend/NagaQueen.c
-	${OOC} $(shell find source/ -name "*.c") rock/rock && mkdir -p bin/ && mv rock bin/
+	${OOC} $(shell find source/ -name "*.c") rock/rock -o=bin/rock
 
 test-ast:
 	${OOC} rock/test-ast

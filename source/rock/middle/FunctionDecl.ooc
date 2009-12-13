@@ -40,6 +40,10 @@ FunctionDecl: class extends Expression {
     isMember: func -> Bool { owner != null }
     isExtern: func -> Bool { externName != null }
     
+    isExternWithName: func -> Bool {
+        (externName != null) && !(externName isEmpty())
+    }
+    
     getType: func -> Type { type }
     
     toString: func -> String {

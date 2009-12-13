@@ -1,7 +1,7 @@
 import structs/ArrayList
 
 import ../frontend/Token
-import Expression, Line, Type, Visitor, TypeDecl, FunctionDecl
+import Expression, Line, Type, Visitor, TypeDecl, FunctionDecl, FunctionCall, Module
 import tinker/[Response, Resolver, Trail]
 
 ClassDecl: class extends TypeDecl {
@@ -14,6 +14,8 @@ ClassDecl: class extends TypeDecl {
     isFinal := false
     
     isMeta := false
+    meta : ClassDecl = null
+    nonMeta : ClassDecl = null
 
     init: func ~classDeclNotMeta(.name, .superType, .token) {
         this(name, superType, false, token)
@@ -22,24 +24,42 @@ ClassDecl: class extends TypeDecl {
     init: func ~classDecl(.name, .superType, =isMeta, .token) {
         super(name clone(), superType, token)
 
-        if(!superType && !isObjectClass() && !isClassClass()) {
-            // everyone inherits from object, biatch.
+        if(!superType && !isObjectClass()) {
+            // everyone inherits from object, darling.
             this superType = BaseType new("Object", token)
         }
         
         if(!isMeta) {
             // create the meta-class
+            metaSuperType : Type = null
+            if(this superType) {
+                metaSuperType = BaseType new(this superType getName() + "Class", nullToken)
+            } else {
+                metaSuperType = BaseType new("Class", nullToken)
+            }
+            meta = ClassDecl new(name + "Class", metaSuperType, true, token)
+            meta nonMeta = this
         }
     }
     
     accept: func (visitor: Visitor) { visitor visitClassDecl(this) }
     
+    addFunction: func (fDecl: FunctionDecl) {
+        printf("______**** ClassDecl %s just got function %s\n", name, fDecl toString())
+        if(!isMeta) {
+            meta addFunction(fDecl)
+        } else {
+            functions put(fDecl name, fDecl)
+        }
+        fDecl owner = this
+    }
+    
     isObjectClass: func -> Bool {
-        name equals("Object")
+        name equals("Object") || name equals("ObjectClass")
     }
     
     isClassClass: func -> Bool {
-        name equals("Class")
+        name equals("Class") || name equals("ClassClass")
     }
     
     isRootClass: func -> Bool {
@@ -47,10 +67,32 @@ ClassDecl: class extends TypeDecl {
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        response := super resolve(trail, res)
-        if(!response ok()) return response
+        {
+            response := super resolve(trail, res)
+            if(!response ok()) return response
+        }
+        
+        if(meta) {
+            trail push(this)
+            meta module = module
+            module types put(meta name, meta)
+            response := meta resolve(trail, res)
+            trail pop(this)
+            if(!response ok()) {
+                printf("-- %s, meta of %s, isn't resolved, looping.\n", meta toString(), toString())
+                return response
+            }
+        }
         
         return Responses OK
+    }
+    
+    resolveCall: func (call : FunctionCall) {
+        if(!isMeta) {
+            meta resolveCall(call)
+        } else {
+            super resolveCall(call)
+        }
     }
     
     getBaseClass: func (fDecl: FunctionDecl) -> ClassDecl {
@@ -64,6 +106,9 @@ ClassDecl: class extends TypeDecl {
 		if(getFunction(fDecl name, fDecl suffix, null, false) != null) return this
 		return null
 	}
+    
+    getMeta: func -> This { meta }
+    getNonMeta: func -> This { nonMeta }
     
 }
 

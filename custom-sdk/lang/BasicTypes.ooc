@@ -59,6 +59,22 @@ Double: cover from double
 /**
  * objects
  */
+Object: abstract class {
+
+    class: Class
+        
+    /// Instance initializer: set default values for a new instance of this class
+    __defaults__: func {}
+    
+    /// Finalizer: cleans up any objects belonging to this instance
+    __destroy__: func {}
+
+    instanceOf: final func (T: Class) -> Bool {
+        class inheritsFrom(T)
+    }
+    
+}
+
 Class: abstract class {
     
     /// Number of octets to allocate for a new instance of this class 
@@ -95,21 +111,5 @@ Class: abstract class {
     __defaults__: static Func (Class)
     __destroy__: static Func (Class)
     __load__: static Func
-    
-}
-
-Object: abstract class {
-
-    class: Class
-        
-    /// Instance initializer: set default values for a new instance of this class
-    __defaults__: func {}
-    
-    /// Finalizer: cleans up any objects belonging to this instance
-    __destroy__: func {}
-
-    instanceOf: final func (T: Class) -> Bool {
-        class inheritsFrom(T)
-    }
     
 }

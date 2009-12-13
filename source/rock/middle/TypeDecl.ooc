@@ -42,7 +42,9 @@ TypeDecl: abstract class extends Declaration {
     
     getFunction: func (fName, fSuffix: String) -> FunctionDecl {
         // TODO add suffix handling
-        functions get(fName)
+        fDecl : FunctionDecl = null
+        fDecl = functions get(fName)
+        return fDecl
     }
     
     getVariable: func (vName: String) -> VariableDecl {
@@ -67,6 +69,8 @@ TypeDecl: abstract class extends Declaration {
             
 		return name       
     }
+    
+    getName: func -> String { name }
     
     getExternName: func -> String {
         return (externName && !externName isEmpty()) ? externName : name
@@ -124,24 +128,36 @@ TypeDecl: abstract class extends Declaration {
         
         {
             response := type resolve(trail, res)
-            if(!response ok()) return response
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
         }
         
         if(superType) {
             response := superType resolve(trail, res)
-            if(!response ok()) return response
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
         }
         
         for(vDecl in variables) {
             response := vDecl resolve(trail, res)
             //printf("Response of vDecl %s = %s\n", vDecl toString(), response toString())
-            if(!response ok()) return response
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
         }
         
         for(fDecl in functions) {
             response := fDecl resolve(trail, res)
             //printf("Response of fDecl %s = %s\n", fDecl toString(), response toString())
-            if(!response ok()) return response
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
         }
         
         trail pop(this)
@@ -151,11 +167,11 @@ TypeDecl: abstract class extends Declaration {
     }
     
     resolveAccess: func (access: VariableAccess) {
-        //printf("? Looking for variable %s in %s\n", access name, name)
+        printf("? Looking for variable %s in %s\n", access name, name)
         vDecl : VariableDecl = null
         vDecl = variables get(access name)
         if(vDecl) {
-            //"&&&&&&&& Found vDecl for %s\n" format(access name) println()
+            "&&&&&&&& Found vDecl for %s\n" format(access name) println()
             if(access suggest(vDecl) && access expr == null) {
                 varAcc := VariableAccess new("this", nullToken)
                 varAcc suggest(thisDecl)
@@ -178,7 +194,8 @@ TypeDecl: abstract class extends Declaration {
         class name + ' ' + name
     }
     
-    
+    getMeta: func -> This { null }
+    getNonMeta: func -> This { this }
 
 }
 

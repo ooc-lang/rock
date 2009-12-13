@@ -1,4 +1,4 @@
-import ../middle/[FunctionDecl, TypeDecl, Argument, Line, Type]
+import ../middle/[FunctionDecl, TypeDecl, ClassDecl, Argument, Line, Type]
 import Skeleton
 include stdint
 
@@ -80,12 +80,12 @@ FunctionDeclWriter: abstract class extends Skeleton {
         if(fDecl isMember()) {
             isFirst = false
             
-            type := fDecl owner getType()
-            
+            type := fDecl owner thisDecl getType()
+                        
             match mode {
                 case ArgsWriteModes NAMES_ONLY =>
                     if(baseType) {
-                        current app("("). app(baseType getType()). app(")")
+                        current app("("). app(baseType getNonMeta() getType()). app(")")
                     }
                     current app("this")
                 case ArgsWriteModes TYPES_ONLY =>
