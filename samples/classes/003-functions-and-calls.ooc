@@ -1,5 +1,5 @@
 
-Dog: class {
+Dog : class {
 
     name: String
     age: Int
@@ -9,8 +9,8 @@ Dog: class {
     /* Comments! :D */
     
     shout: func {
-        printf("Hey, world =D")
-        return
+        printf("Hey, world =D, my name is %s\n", name)
+        return 0
     }
 
 }
@@ -18,9 +18,12 @@ Dog: class {
 main: func -> Int {
     
     printf("Goodbye, cruel world\n")
-    //dog: Dog
-    //dog = gc_malloc(sizeof(Dog))
-    //dog name = "Fido"
-    //dog shout()
+    dog: Dog
+    dog = gc_malloc(sizeof(Dog))
+    (dog as Object) class = Dog
+    dog name = "Fido"
+    dog shout()
+    
+    0
     
 }

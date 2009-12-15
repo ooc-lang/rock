@@ -168,6 +168,10 @@ TypeDecl: abstract class extends Declaration {
     
     resolveAccess: func (access: VariableAccess) {
         printf("? Looking for variable %s in %s\n", access name, name)
+        printf("? Got variables ")
+        for(v in variables) { v toString() print(); ", " print() }
+        println()
+        
         vDecl : VariableDecl = null
         vDecl = variables get(access name)
         if(vDecl) {
@@ -177,6 +181,10 @@ TypeDecl: abstract class extends Declaration {
                 varAcc suggest(thisDecl)
                 access expr = varAcc
             }
+        }
+        
+        if(getMeta() && getMeta() != this) {
+            getMeta() resolveAccess(access)
         }
     }
     

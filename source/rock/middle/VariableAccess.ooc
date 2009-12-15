@@ -35,7 +35,7 @@ VariableAccess: class extends Expression {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
-        printf("     - Resolving access to %s (ref = %s)\n", name, ref ? ref toString() : "(nil)")
+        printf("     - Resolving access to %s%s (ref = %s)\n", expr ? (expr toString() + "->") : "(nil)", name, ref ? ref toString() : "(nil)")
         
         /*
          * Try to resolve the access
@@ -58,7 +58,7 @@ VariableAccess: class extends Expression {
             response := expr resolve(trail, res)
             trail pop(this)
             if(!response ok()) return response
-            //printf("Resolved expr, type = %s\n", expr getType() ? expr getType() toString() : "(nil)")
+            printf("Resolved expr, type = %s\n", expr getType() ? expr getType() toString() : "(nil)")
         }
         
         if(!ref && expr) {

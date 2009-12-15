@@ -4,3 +4,5 @@ Dog: class {
     age: Int
 
 }
+
+main: func {}

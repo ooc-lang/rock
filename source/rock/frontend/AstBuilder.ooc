@@ -205,11 +205,11 @@ AstBuilder: class {
             tDecl addVariable(vd)
         } else if(node instanceOf(List)) {
             list : List<Node> = node
-            //printf("Adding variableDecl %s to a %s\n", vd toString(), list class name)
+            printf("Adding variableDecl %s to a %s\n", vd toString(), list class name)
             list add(vd)
         } else {
             onStatement(vd)
-            //printf("^^^^^^^ Unexpected varDecl %s, peek is a %s\n", vd toString(), node class name)
+            printf("^^^^^^^ Unexpected varDecl %s, peek is a %s\n", vd toString(), node class name)
         }
     }
 
