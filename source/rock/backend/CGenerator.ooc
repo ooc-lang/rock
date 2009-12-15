@@ -95,7 +95,18 @@ CGenerator: class extends Skeleton {
         
         if(varAcc ref instanceOf(VariableDecl)) {
             if(varAcc expr) {
+                vDecl := varAcc ref as VariableDecl
+                printf("vDecl owner getType = %s, varAcc expr getType = %s\n", vDecl owner getType() toString(), varAcc expr getType() toString())
+                casted := false
+                if(vDecl owner != varAcc expr getType() getRef()) {
+                    casted = true
+                    current app("(("). app(vDecl owner underName()). app("*) ")
+                }
+                
                 current app(varAcc expr)
+                
+                if(casted) current app(")")
+                
                 if(varAcc expr getType() getRef() instanceOf(ClassDecl)) {
                     current app("->")
                 } else {

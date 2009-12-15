@@ -156,7 +156,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
 			current nl(). nl()
 			FunctionDeclWriter writeFuncPrototype(this, fDecl)
-			current openBlock(). nl()
+			current app(' '). openBlock(). nl()
 
             baseClass := cDecl getBaseClass(fDecl)
 			if (fDecl hasReturn()) {
@@ -178,19 +178,9 @@ ClassDeclWriter: abstract class extends Skeleton {
                 continue
             }
             
-            current nl(). nl(). nl()
+            current nl(). nl()
             FunctionDeclWriter writeFuncPrototype(this, decl, decl isFinal ? null : "_impl")
             current app(' '). openBlock(). nl()
-            
-            
-            /*
-            nonMeta := cDecl getNonMeta()
-            if(decl name equals(ClassDecl DEFAULTS_FUNC_NAME) && nonMeta) {
-                current nl(). app(cDecl superType getName()). app("_").
-                 app(ClassDecl DEFAULTS_FUNC_NAME). app("_impl((").
-                 app(nonMeta underName()). app(" *) this)")
-            }
-            */
             
             for(line: Line in decl body) {
                 line accept(this)
@@ -230,7 +220,7 @@ ClassDeclWriter: abstract class extends Skeleton {
     writeClassStructInitializers: static func (this: This, parentClass: ClassDecl,
         realClass: ClassDecl, done: List<FunctionDecl>) {
 
-        current openBlock(). app("  // %s" format(parentClass name)). nl()
+        current openBlock(). nl()
 
         if (parentClass name equals("Class")) {
             current app(".instanceSize = "). app("sizeof("). app(realClass underName()). app("),").

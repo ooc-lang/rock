@@ -1,6 +1,6 @@
 import structs/ArrayList
 import ../frontend/Token
-import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess
+import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess, TypeDecl
 import tinker/[Response, Resolver, Trail]
 
 FunctionCall: class extends Expression {
@@ -90,7 +90,7 @@ FunctionCall: class extends Expression {
             }
             if(expr != null && expr getType() != null && expr getType() getRef() != null) {
                 printf("--> resolving call %s from expr %s\n", toString(), expr toString())
-                expr getType() getRef() resolveCall(this)
+                expr getType() getRef() as TypeDecl getMeta() resolveCall(this)
             //} else {
                 //printf("<-- Apparently, there's no expr for %s (or is there? %s)\n", toString(), expr ? expr toString() : "no.")
             }

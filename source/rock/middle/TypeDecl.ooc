@@ -20,6 +20,8 @@ TypeDecl: abstract class extends Declaration {
     
     module: Module = null
     
+    isMeta := false
+    
     init: func ~typeDecl (=name, =superType, .token) {
         super(token)
         type = BaseType new("Class", token)
@@ -168,9 +170,6 @@ TypeDecl: abstract class extends Declaration {
     
     resolveAccess: func (access: VariableAccess) {
         printf("? Looking for variable %s in %s\n", access name, name)
-        printf("? Got variables ")
-        for(v in variables) { v toString() print(); ", " print() }
-        println()
         
         vDecl : VariableDecl = null
         vDecl = variables get(access name)
@@ -181,21 +180,24 @@ TypeDecl: abstract class extends Declaration {
                 varAcc suggest(thisDecl)
                 access expr = varAcc
             }
-        }
-        
-        if(getMeta() && getMeta() != this) {
-            getMeta() resolveAccess(access)
+        } else if(superRef()) {
+            superRef() resolveAccess(access)
         }
     }
     
     resolveCall: func (call : FunctionCall) {
-        printf("? Looking for function %s in %s\n", call name, name)
+        
+        printf("\n? Looking for function %s in %s\n", call name, name)
         fDecl : FunctionDecl = null
         fDecl = functions get(call name)
         if(fDecl) {
             "&&&&&&&& Found fDecl for %s\n" format(call name) println()
             call suggest(fDecl)
+        } else if(superRef()) {
+            printf("Looking for call in superRef %s\n", superRef() toString())
+            superRef() resolveCall(call)
         }
+        
     }
     
     toString: func -> String {

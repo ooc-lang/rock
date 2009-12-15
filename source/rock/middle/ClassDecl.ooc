@@ -13,7 +13,6 @@ ClassDecl: class extends TypeDecl {
     isAbstract := false
     isFinal := false
     
-    isMeta := false
     meta : ClassDecl = null
     nonMeta : ClassDecl = null
 
@@ -29,7 +28,7 @@ ClassDecl: class extends TypeDecl {
             this superType = BaseType new("Object", token)
         }
         
-        if(!isMeta) {
+        if(!this isMeta) {
             // create the meta-class
             metaSuperType : Type = null
             if(this superType) {
@@ -45,7 +44,7 @@ ClassDecl: class extends TypeDecl {
     accept: func (visitor: Visitor) { visitor visitClassDecl(this) }
     
     addFunction: func (fDecl: FunctionDecl) {
-        printf("______**** ClassDecl %s just got function %s\n", name, fDecl toString())
+        printf("______**** ClassDecl %s just got function %s isMeta? %s\n", name, fDecl toString(), isMeta toString())
         if(!isMeta) {
             meta addFunction(fDecl)
         } else {
@@ -87,13 +86,17 @@ ClassDecl: class extends TypeDecl {
         return Responses OK
     }
     
+    /*
     resolveCall: func (call : FunctionCall) {
         if(!isMeta) {
+            printf("%s isn't meta, looking in meta %s\n", toString(), meta toString())
             meta resolveCall(call)
         } else {
+            printf("%s is meta, resolving\n", toString())
             super resolveCall(call)
         }
     }
+    */
     
     getBaseClass: func (fDecl: FunctionDecl) -> ClassDecl {
         sRef : ClassDecl  = superRef()
