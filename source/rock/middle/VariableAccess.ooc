@@ -28,14 +28,18 @@ VariableAccess: class extends Expression {
     }
     
     suggest: func (candidate: VariableDecl) -> Bool {
-        // trivial impl for now
+        // if we're accessing a member, we're expecting the candidate
+        // to belong to a TypeDecl..
+        if((expr != null) && (candidate owner == null)) {
+            //printf("%s is no fit!, we need something to fit %s\n", candidate toString(), toString())
+            return false
+        }
+        
         ref = candidate
         return true
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        
-        printf("     - Resolving access to %s%s (ref = %s)\n", expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)")
         
         /*
          * Try to resolve the access
@@ -58,7 +62,7 @@ VariableAccess: class extends Expression {
             response := expr resolve(trail, res)
             trail pop(this)
             if(!response ok()) return response
-            printf("Resolved expr, type = %s\n", expr getType() ? expr getType() toString() : "(nil)")
+            //printf("Resolved expr, type = %s\n", expr getType() ? expr getType() toString() : "(nil)")
         }
         
         if(!ref && expr) {
@@ -66,7 +70,7 @@ VariableAccess: class extends Expression {
             //printf("Null ref and non-null expr (%s), looking in type %s\n", expr toString(), exprType toString())
             typeDecl := exprType getRef()
             if(!typeDecl) {
-                //printf("typeDecl not resolved, looping..")
+                printf("     - access to %s%s still not resolved, looping (ref = %s)\n", expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)")
                 return Responses LOOP
             }
             typeDecl resolveAccess(this)

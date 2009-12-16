@@ -34,9 +34,6 @@ ClassDeclWriter: abstract class extends Skeleton {
     
     writeObjectStruct: static func (this: This, cDecl: ClassDecl) {
         
-        // FIXME debug KALAMAZOO
-        printf("Writing object struct of %s\n", cDecl toString())
-        
         current nl(). app("struct _"). app(cDecl underName()). app(' '). openBlock(). nl()
 
         if (!(cDecl name equals("Object"))) {
@@ -54,8 +51,6 @@ ClassDeclWriter: abstract class extends Skeleton {
         
         // Now write all virtual functions prototypes in the class struct
         for (fDecl: FunctionDecl in cDecl functions) {
-            // FIXME debug KALAMAZOO
-            printf("Got function %s in %s\n", fDecl toString(), cDecl toString())
             
             if(cDecl superRef()) {
                 superDecl : FunctionDecl = null

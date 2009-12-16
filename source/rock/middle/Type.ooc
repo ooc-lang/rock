@@ -101,8 +101,6 @@ BaseType: class extends Type {
     resolve: func (trail: Trail, res: Resolver) -> Response {
     
         if(isResolved()) return Responses OK
-    
-        printf("     - resolving type %s (ref = %p)\n", name, ref)
         
         if(!ref) {
             depth := trail size() - 1
@@ -115,6 +113,7 @@ BaseType: class extends Type {
         }
         
         if(ref == null) {
+            printf("     - type %s still not resolved, looping (ref = %p)\n", name, ref)
             return Responses LOOP
         //} else {
             //("Found match! " + name) println()

@@ -28,8 +28,11 @@ VariableDecl: class extends Declaration {
     getType: func -> Type { type }
     
     toString: func -> String {
-        if(!type) return name + ": <unknown type>"
-        name + ": " + type toString()
+        "%s%s : %s" format(
+            expr ? (expr toString() + "->") : "",
+            name,
+            type ? type toString() : "<unknown type>"
+        )
     }
     
     setExpr: func (=expr) {}

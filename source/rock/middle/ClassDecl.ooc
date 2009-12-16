@@ -86,18 +86,6 @@ ClassDecl: class extends TypeDecl {
         return Responses OK
     }
     
-    /*
-    resolveCall: func (call : FunctionCall) {
-        if(!isMeta) {
-            printf("%s isn't meta, looking in meta %s\n", toString(), meta toString())
-            meta resolveCall(call)
-        } else {
-            printf("%s is meta, resolving\n", toString())
-            super resolveCall(call)
-        }
-    }
-    */
-    
     getBaseClass: func (fDecl: FunctionDecl) -> ClassDecl {
         sRef : ClassDecl  = superRef()
 		if(sRef != null) {

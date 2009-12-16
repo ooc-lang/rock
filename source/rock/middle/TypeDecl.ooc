@@ -37,7 +37,7 @@ TypeDecl: abstract class extends Declaration {
     }
     
     addFunction: func (fDecl: FunctionDecl) {
-        printf("______ %s %s just got function %s\n", class name, name, fDecl toString())
+        //printf("______ %s %s just got function %s\n", class name, name, fDecl toString())
         functions put(fDecl name, fDecl)
         fDecl owner = this
     }
@@ -169,12 +169,12 @@ TypeDecl: abstract class extends Declaration {
     }
     
     resolveAccess: func (access: VariableAccess) {
-        printf("? Looking for variable %s in %s\n", access name, name)
+        //printf("? Looking for variable %s in %s\n", access name, name)
         
         vDecl : VariableDecl = null
         vDecl = variables get(access name)
         if(vDecl) {
-            "&&&&&&&& Found vDecl for %s\n" format(access name) println()
+            //"&&&&&&&& Found vDecl for %s\n" format(access name) println()
             if(access suggest(vDecl) && access expr == null) {
                 varAcc := VariableAccess new("this", nullToken)
                 varAcc suggest(thisDecl)
@@ -187,14 +187,14 @@ TypeDecl: abstract class extends Declaration {
     
     resolveCall: func (call : FunctionCall) {
         
-        printf("\n? Looking for function %s in %s\n", call name, name)
+        //printf("\n? Looking for function %s in %s\n", call name, name)
         fDecl : FunctionDecl = null
         fDecl = functions get(call name)
         if(fDecl) {
-            "&&&&&&&& Found fDecl for %s\n" format(call name) println()
+            //"&&&&&&&& Found fDecl for %s\n" format(call name) println()
             call suggest(fDecl)
         } else if(superRef()) {
-            printf("Looking for call in superRef %s\n", superRef() toString())
+            //printf("Looking for call in superRef %s\n", superRef() toString())
             superRef() resolveCall(call)
         }
         
