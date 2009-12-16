@@ -24,10 +24,14 @@ FunctionCall: class extends Expression {
     suggest: func (candidate: FunctionDecl) -> Bool {
         
         //"Got suggestion %s for %s" format(candidate toString(), toString()) println()
+        if((expr != null) && (candidate owner == null)) {
+            //printf("%s is no fit!, we need something to fit %s\n", candidate toString(), toString())
+            return false
+        }
         
         score := getScore(candidate)
         if(score > refScore) {
-            "New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
+            //"New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
             refScore = score
             ref = candidate
             return true
@@ -38,7 +42,7 @@ FunctionCall: class extends Expression {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
-        printf("     - Resolving call to %s (ref = %s)\n", name, ref ? ref toString() : "(nil)")
+        //printf("     - Resolving call to %s (ref = %s)\n", name, ref ? ref toString() : "(nil)")
         
         if(args size() > 0) {
             trail push(this)
@@ -55,18 +59,17 @@ FunctionCall: class extends Expression {
         }
         
         if(expr) {
-            printf("Resolving expr %s\n", expr toString())
             trail push(this)
             response := expr resolve(trail, res)
             trail pop(this)
             if(!response ok()) {
-                printf(" -- Failed, looping..")
+                printf("Failed to resolve expr %s of call %s, looping\n", expr toString(), toString())
                 return response
             }
-            printf("Resolved expr, type = %s, class = %s\n", expr getType() ? expr getType() toString() : "(nil)", expr class name)
-            if(expr getType()) {
-                printf("... and ref = %s\n", expr getType() getRef() ? expr getType() getRef() toString() : "(nil)")
-            }
+            //printf("Resolved expr, type = %s, class = %s\n", expr getType() ? expr getType() toString() : "(nil)", expr class name)
+            //if(expr getType()) {
+            //    printf("... and ref = %s\n", expr getType() getRef() ? expr getType() getRef() toString() : "(nil)")
+            //}
         }
         
         /*
@@ -89,7 +92,7 @@ FunctionCall: class extends Expression {
                 depth -= 1
             }
             if(expr != null && expr getType() != null && expr getType() getRef() != null) {
-                printf("--> resolving call %s from expr %s\n", toString(), expr toString())
+                //printf("--> resolving call %s from expr %s\n", toString(), expr toString())
                 expr getType() getRef() as TypeDecl getMeta() resolveCall(this)
             //} else {
                 //printf("<-- Apparently, there's no expr for %s (or is there? %s)\n", toString(), expr ? expr toString() : "no.")

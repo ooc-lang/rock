@@ -53,9 +53,6 @@ CommandLine: class {
                     
                     params incPath add(arg substring(2))
                     
-                } else if (option startsWith("o")) {
-                    params binaryPath = arg substring(arg indexOf('=') + 1)
-                
                 } else if (option startsWith("libpath")) {
                     
                     params libPath add(arg substring(arg indexOf('=') + 1))
@@ -197,6 +194,11 @@ CommandLine: class {
                 } else if (option == "onlygen") {
                     params compiler = null
                     params clean = false
+                    
+                } else if (option startsWith("o=")) {
+                    
+                    params binaryPath = arg substring(arg indexOf('=') + 1)
+                
                 } else if (option == "help-backends" || option == "-help-backends") {
                     
                     Help printHelpBackends()

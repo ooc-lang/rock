@@ -44,7 +44,7 @@ ClassDecl: class extends TypeDecl {
     accept: func (visitor: Visitor) { visitor visitClassDecl(this) }
     
     addFunction: func (fDecl: FunctionDecl) {
-        printf("______**** ClassDecl %s just got function %s isMeta? %s\n", name, fDecl toString(), isMeta toString())
+        //printf("______**** ClassDecl %s just got function %s isMeta? %s\n", name, fDecl toString(), isMeta toString())
         if(!isMeta) {
             meta addFunction(fDecl)
         } else {
