@@ -8,7 +8,7 @@ import ../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Argument, Statement]
     
 import Skeleton, FunctionDeclWriter, ControlStatementWriter, ClassDeclWriter,
-    ModuleWriter, CoverDeclWriter, FunctionCallWriter
+    ModuleWriter, CoverDeclWriter, FunctionCallWriter, CastWriter
 
 CGenerator: class extends Skeleton {
 
@@ -156,7 +156,7 @@ CGenerator: class extends Skeleton {
     }
     
     visitCast: func (cast: Cast) {
-        current app('('). app(cast type). app(") "). app(cast inner)
+        CastWriter write(this, cast)
     }
     
     visitComparison: func (comp: Comparison) {
