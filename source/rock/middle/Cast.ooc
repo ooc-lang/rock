@@ -1,6 +1,6 @@
 import structs/ArrayList
 import ../frontend/Token
-import Expression, Visitor, Type
+import Expression, Visitor, Type, Node
 import tinker/[Response, Resolver, Trail]
 
 Cast: class extends Expression {
@@ -35,6 +35,14 @@ Cast: class extends Expression {
         
         return Responses OK
         
+    }
+    
+    replace: func (oldie, kiddo: Node) -> Bool {
+        match oldie {
+            case inner => inner = kiddo; true
+            case type  => type = kiddo; true
+            case => false
+        }
     }
 
 }

@@ -1,5 +1,5 @@
 import ../frontend/Token
-import Visitor, Statement, Expression
+import Visitor, Statement, Expression, Node
 import tinker/[Response, Resolver, Trail]
 
 Return: class extends Statement {
@@ -32,6 +32,13 @@ Return: class extends Statement {
     }
 
     toString: func -> String { expr == null ? "return" : "return " + expr toString() }
+    
+    replace: func (oldie, kiddo: Node) -> Bool {
+        match oldie {
+            case expr => expr = kiddo; true
+            case => false
+        }
+    }
 
 }
 

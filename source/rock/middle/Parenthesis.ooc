@@ -19,5 +19,12 @@ Parenthesis: class extends Expression {
     resolve: func (trail: Trail, res: Resolver) -> Response {
         inner resolve(trail, res)
     }
+    
+    replace: func (oldie, kiddo: Node) -> Bool {
+        match oldie {
+            case inner => inner = oldie; true
+            case => false
+        }
+    }
 
 }

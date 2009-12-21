@@ -4,6 +4,8 @@ import tinker/[Resolver, Response, Trail]
 
 Node: abstract class {
 
+    nameSeed: static Int = 0
+
     token: Token
     
     init: func(=token) {}
@@ -15,6 +17,10 @@ Node: abstract class {
     isResolved: func -> Bool { true }
 
     resolve: func (trail: Trail, res: Resolver) -> Response { return Responses OK }
+    
+    replace: abstract func (oldie, kiddo: Node) -> Bool
+    
+    addBefore: func (mark, newcomer: Node) -> Bool { false }
     
     /**
      * resolveCall should look for a function declaration satisfying call,
@@ -30,6 +36,11 @@ Node: abstract class {
     
     resolveType: func (type: BaseType) {
         // overridden in sub-classes
+    }
+    
+    generateTempName: func -> String {
+        nameSeed += 1
+        return "waka" + nameSeed
     }
 
 }

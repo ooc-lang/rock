@@ -1,7 +1,7 @@
 import structs/HashMap
 import ../frontend/Token
-import Expression, Line, Type, Visitor, Declaration, VariableDecl,
-    FunctionDecl, FunctionCall, Module, VariableAccess
+import Expression, Type, Visitor, Declaration, VariableDecl,
+    FunctionDecl, FunctionCall, Module, VariableAccess, Node
 import tinker/[Resolver, Response, Trail]
 
 TypeDecl: abstract class extends Declaration {
@@ -218,6 +218,8 @@ BuiltinType: class extends TypeDecl {
     underName: func -> String { name }
     
     accept: func (v: Visitor) { /* yeah, right. */ }
+    
+    replace: func (oldie, kiddo: Node) -> Bool { false }
     
 }
 

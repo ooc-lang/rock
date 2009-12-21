@@ -1,5 +1,5 @@
 import ../frontend/Token
-import ControlStatement, Expression
+import ControlStatement, Expression, Node
 import tinker/[Trail, Resolver, Response]
 
 Conditional: abstract class extends ControlStatement {
@@ -21,6 +21,13 @@ Conditional: abstract class extends ControlStatement {
         
         return super resolve(trail, res)
         
+    }
+    
+    replace: func (oldie, kiddo: Node) -> Bool {
+        match oldie {
+            case condition => condition = kiddo; true
+            case => false
+        }
     }
 
 }

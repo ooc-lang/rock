@@ -4,7 +4,7 @@ import structs/[Array, ArrayList, List, Stack, HashMap]
 
 import ../frontend/[Token, BuildParams]
 import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl, 
-    FunctionCall, StringLiteral, Node, Module, Statement, Line, Include, Import,
+    FunctionCall, StringLiteral, Node, Module, Statement, Include, Import,
     Type, Expression, Return, VariableAccess, Cast, If, Else, ControlStatement,
     Comparison, IntLiteral, Ternary, BinaryOp, BoolLiteral, Argument, Parenthesis]
 
@@ -338,11 +338,11 @@ AstBuilder: class {
         match {
             case node instanceOf(FunctionDecl) =>
                 fDecl : FunctionDecl = node
-                fDecl body add(Line new(stmt))
+                fDecl body add(stmt)
                 //printf("Added line to function decl %s\n", fDecl name)
             case node instanceOf(ControlStatement) =>
                 cStmt : ControlStatement = node
-                cStmt body add(Line new(stmt))
+                cStmt body add(stmt)
                 //printf("Added line to control statement %s\n", cStmt toString())
         }
     }

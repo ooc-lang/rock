@@ -44,7 +44,7 @@ Trail: class extends Stack<Node> {
             for(j in 0..i) {
                 sb append("  ")
             }
-            sb append(get(i) toString()). append('\n')
+            sb append("\\_, "). append(get(i) toString()). append('\n')
         }
         
         sb toString()

@@ -1,6 +1,6 @@
 import structs/ArrayList
 import ../frontend/Token
-import Expression, Visitor, Type
+import Expression, Visitor, Type, Node
 import tinker/[Trail, Resolver, Response]
 
 include stdint
@@ -107,6 +107,14 @@ BinaryOp: class extends Expression {
         
         return Responses OK
         
+    }
+    
+    replace: func (oldie, kiddo: Node) -> Bool {
+        match oldie {
+            case left => left = kiddo; true
+            case right => right = kiddo; true
+            case => false
+        }
     }
 
 }

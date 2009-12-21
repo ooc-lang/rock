@@ -1,8 +1,8 @@
 import structs/[Stack, ArrayList]
 import ../frontend/Token
-import Expression, Line, Type, Visitor, Argument, TypeDecl, Scope,
+import Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, Else,
-       VariableDecl
+       VariableDecl, Node, Statement
 import tinker/[Resolver, Response, Trail]
 
 FunctionDecl: class extends Expression {
@@ -72,12 +72,18 @@ FunctionDecl: class extends Expression {
         //printf("Looking for %s in %s\n", access toString(), toString())
         
         if(owner && access name == "this") {
-            if(access suggest(owner thisDecl)) return;
+            if(access suggest(owner thisDecl)) return
+        }
+        
+        for(typeArg in typeArgs) {
+            if(access name == typeArg name) {
+                if(access suggest(typeArg)) return
+            }
         }
         
         for(arg in args) {
             if(access name == arg name) {
-                if(access suggest(arg)) return;
+                if(access suggest(arg)) return
             }
         }
         
@@ -150,13 +156,12 @@ FunctionDecl: class extends Expression {
         
     }
     
-    autoReturnExplore: func (stack: Stack<Iterator<Line>>, trail: Trail) {
+    autoReturnExplore: func (stack: Stack<Iterator<Statement>>, trail: Trail) {
         
         iter := stack peek()
         
         while(iter hasNext()) {
-            line := iter next()
-            node := line inner
+            node := iter next()
             if(node instanceOf(ControlStatement)) {
                 cs : ControlStatement = node
                 stack push(cs body iterator())
@@ -181,7 +186,7 @@ FunctionDecl: class extends Expression {
             i := 0
             while(parentIter hasNext()) {
                 i += 1
-                next := parentIter next() inner
+                next := parentIter next()
                 if(!next instanceOf(ControlStatement)) {
                     //printf("[autoReturn] next is a %s, condition is then false :/", next class name)
                     condition = false
@@ -200,14 +205,13 @@ FunctionDecl: class extends Expression {
                 //printf("[autoReturn] scope is empty, needing return\n")
                 returnNeeded(trail)
             }
-            lastLine := list last()
-            last := lastLine inner
+            last := list last()
             if(last instanceOf(Return)) {
                 //printf("[autoReturn] Oh, it's a %s already. Nice =D!\n",  last toString())
             } else if(last instanceOf(Expression) && !last as Expression getType() equals(voidType)) {
                 //printf("[autoReturn] Hmm it's a %s\n", last toString())
-                lastLine inner = Return new(last, last token)
-                //printf("[autoReturn] Replaced with a %s!\n", lastLine inner toString())
+                list set(list lastIndex(), Return new(last, last token))
+                //printf("[autoReturn] Replaced with a %s!\n", last toString())
             } else if(last instanceOf(Else)) {
                 // then it's alright, all cases are already handled
             } else {
@@ -224,10 +228,38 @@ FunctionDecl: class extends Expression {
     
     returnNeeded: func (trail: Trail) {
         if(isMain()) {
-            body add(Line new(Return new(IntLiteral new(0, nullToken), nullToken)))
+            body add(Return new(IntLiteral new(0, nullToken), nullToken))
         } else {
             Exception new(This, "Control reaches the end of non-void function! trail = " + trail toString()) throw()
         }
+    }
+    
+    replace: func (oldie, kiddo: Node) -> Bool {
+        match oldie {
+            case returnType => returnType = kiddo; true
+            case => false
+        }
+    }
+    
+    addBefore: func (mark, newcomer: Node) -> Bool {
+        
+        printf("Should add %s before %s, in a %s\n", newcomer toString(), mark toString(), toString())
+        
+        idx := body indexOf(mark)
+        printf("idx = %d\n", idx)
+        if(idx != -1) {
+            body add(idx, newcomer)
+            return true
+        } else {
+            printf("content of body = \n")
+            for(e in body) {
+                printf("    ")
+                e toString() println()
+            }
+        }
+        
+        false
+    
     }
     
 }

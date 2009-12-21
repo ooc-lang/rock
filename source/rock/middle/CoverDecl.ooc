@@ -1,6 +1,6 @@
 import structs/ArrayList
 import ../frontend/Token
-import Expression, Line, Type, Visitor, TypeDecl
+import Expression, Type, Visitor, TypeDecl, Node
 import tinker/[Response, Resolver, Trail]
 
 CoverDecl: class extends TypeDecl {
@@ -40,5 +40,7 @@ CoverDecl: class extends TypeDecl {
         
         return Responses OK
     }
+    
+    replace: func (oldie, kiddo: Node) -> Bool { false }
     
 }

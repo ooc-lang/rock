@@ -1,5 +1,5 @@
 import ../frontend/Token
-import VariableDecl, Type, Visitor
+import VariableDecl, Type, Visitor, Node
 
 Argument: abstract class extends VariableDecl {
     
@@ -14,5 +14,7 @@ VarArg: class extends Argument {
     accept: func (visitor: Visitor) {
         visitor visitVarArg(this)
     }
+    
+    replace: func (oldie, kiddo: Node) -> Bool { false }
     
 }

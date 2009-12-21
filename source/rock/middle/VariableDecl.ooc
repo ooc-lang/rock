@@ -1,5 +1,5 @@
 import structs/[ArrayList]
-import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess
+import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess, Node
 import tinker/[Response, Resolver, Trail]
 
 VariableDecl: class extends Declaration {
@@ -27,11 +27,13 @@ VariableDecl: class extends Declaration {
 
     getType: func -> Type { type }
     
+    getName: func -> String { name }
+    
     toString: func -> String {
-        "%s%s : %s" format(
-            expr ? (expr toString() + "->") : "",
+        "%s : %s%s" format(
             name,
-            type ? type toString() : "<unknown type>"
+            type ? type toString() : "<unknown type>",
+            expr ? " = " + expr toString() : ""
         )
     }
     
@@ -83,6 +85,14 @@ VariableDecl: class extends Declaration {
         
         return Responses OK
         
+    }
+    
+    replace: func (oldie, kiddo: Node) -> Bool {
+        match oldie {
+            case expr => expr = kiddo; true
+            case type => type = kiddo; true
+            case => false
+        }
     }
 
 }

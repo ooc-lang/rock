@@ -1,7 +1,8 @@
 import structs/ArrayList
 
 import ../frontend/Token
-import Expression, Line, Type, Visitor, TypeDecl, FunctionDecl, FunctionCall, Module
+import Expression, Type, Visitor, TypeDecl, FunctionDecl,
+       FunctionCall, Module, Node
 import tinker/[Response, Resolver, Trail]
 
 ClassDecl: class extends TypeDecl {
@@ -100,6 +101,8 @@ ClassDecl: class extends TypeDecl {
     
     getMeta: func -> This { meta }
     getNonMeta: func -> This { nonMeta }
+    
+    replace: func (oldie, kiddo: Node) -> Bool { false }
     
 }
 

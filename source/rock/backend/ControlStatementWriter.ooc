@@ -1,5 +1,5 @@
 import ../middle/[ControlStatement, Conditional, If, Else, While,
-    Foreach, Line, RangeLiteral]
+    Foreach, RangeLiteral]
 import Skeleton
 
 ControlStatementWriter: abstract class extends Skeleton {
@@ -11,8 +11,8 @@ ControlStatementWriter: abstract class extends Skeleton {
             current app(" (" ). app(cond condition). app(")")
         }
         current app(" {"). tab()
-        for(line: Line in cond body) {
-            line accept(this)
+        for(stat in cond body) {
+            writeLine(stat)
         }
         current untab(). nl(). app("}")
     }
@@ -39,8 +39,8 @@ ControlStatementWriter: abstract class extends Skeleton {
             app(foreach variable). app(" < "). app(range upper). app("; ").
             app(foreach variable). app("++) {").
         tab()
-        for(line: Line in foreach body) {
-            line accept(this)
+        for(stat in foreach body) {
+            writeLine(stat)
         }
         current untab(). nl(). app("}")
     }

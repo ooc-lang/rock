@@ -1,5 +1,5 @@
 import structs/[List, ArrayList, HashMap]
-import ../middle/[ClassDecl, FunctionDecl, VariableDecl, TypeDecl, Type, Node, Line, CoverDecl]
+import ../middle/[ClassDecl, FunctionDecl, VariableDecl, TypeDecl, Type, Node, CoverDecl]
 import Skeleton, FunctionDeclWriter, TypeWriter
 
 CoverDeclWriter: abstract class extends Skeleton {

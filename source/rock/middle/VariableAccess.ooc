@@ -1,5 +1,5 @@
 import ../frontend/Token
-import Visitor, Expression, VariableDecl, Declaration, Type
+import Visitor, Expression, VariableDecl, Declaration, Type, Node
 import tinker/[Resolver, Response, Trail]
 
 VariableAccess: class extends Expression {
@@ -15,6 +15,12 @@ VariableAccess: class extends Expression {
     
     init: func ~variableAccessWithExpr (=expr, =name, .token) {
         super(token)
+    }
+    
+    init: func ~varDecl (varDecl: VariableDecl, .token) {
+        super(token)
+        name = varDecl getName()
+        ref = varDecl
     }
     
     init: func ~typeAccess (type: Type, .token) {
@@ -76,6 +82,10 @@ VariableAccess: class extends Expression {
             typeDecl resolveAccess(this)
         }
         
+        if(!ref) {
+            printf("     - access to %s%s still not resolved, looping (ref = %s)\n", expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)")
+        }
+        
         return ref ? Responses OK : Responses LOOP
         
     }
@@ -90,6 +100,15 @@ VariableAccess: class extends Expression {
     
     toString: func -> String {
         name
+    }
+    
+    isReferencable: func -> Bool { true }
+    
+    replace: func (oldie, kiddo: Node) -> Bool {
+        match oldie {
+            case expr => expr = kiddo; true
+            case => false
+        }
     }
 
 }

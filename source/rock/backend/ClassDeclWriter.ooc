@@ -1,5 +1,5 @@
 import structs/[List, ArrayList, HashMap]
-import ../middle/[ClassDecl, FunctionDecl, VariableDecl, TypeDecl, Type, Node, Line]
+import ../middle/[ClassDecl, FunctionDecl, VariableDecl, TypeDecl, Type, Node]
 import Skeleton, FunctionDeclWriter
 
 ClassDeclWriter: abstract class extends Skeleton {
@@ -133,8 +133,8 @@ ClassDeclWriter: abstract class extends Skeleton {
 			FunctionDeclWriter writeFuncPrototype(this, fDecl);
             
 			current app(' '). openBlock(). nl()
-            for(line: Line in fDecl body) {
-                line accept(this)
+            for(stat in fDecl body) {
+                writeLine(stat)
             }
             current closeBlock()
 
@@ -177,8 +177,8 @@ ClassDeclWriter: abstract class extends Skeleton {
             FunctionDeclWriter writeFuncPrototype(this, decl, decl isFinal ? null : "_impl")
             current app(' '). openBlock(). nl()
             
-            for(line: Line in decl body) {
-                line accept(this)
+            for(stat in decl body) {
+                writeLine(stat)
             }
             current closeBlock()
         }

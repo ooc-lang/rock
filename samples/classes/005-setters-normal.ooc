@@ -10,6 +10,13 @@ Dog: class {
 
 main: func {
     
-    d : Dog = gc_malloc(Dog size)
+    d : Dog
+    //d = gc_malloc(Dog size)
+    d class = Dog
+    
+    d setName("Fido")
+    (d name) println()
+    
+    0
     
 }

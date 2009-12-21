@@ -1,5 +1,5 @@
 import ../frontend/Token
-import Expression, Visitor, Type
+import Expression, Visitor, Type, Node
 import tinker/[Response, Resolver, Trail]
 
 Ternary: class extends Expression {
@@ -52,5 +52,14 @@ Ternary: class extends Expression {
     }
     
     toString: func -> String { condition toString() + " ? " + ifTrue toString() + " : " + ifFalse toString() }
+    
+    replace: func (oldie, kiddo: Node) -> Bool {
+        match oldie {
+            case condition => condition = kiddo; true
+            case ifTrue    => ifTrue = kiddo; true
+            case ifFalse   => ifFalse = kiddo; true
+            case => false
+        }
+    }
     
 }

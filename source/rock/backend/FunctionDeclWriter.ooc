@@ -1,4 +1,4 @@
-import ../middle/[FunctionDecl, TypeDecl, ClassDecl, Argument, Line, Type]
+import ../middle/[FunctionDecl, TypeDecl, ClassDecl, Argument, Type]
 import Skeleton
 include stdint
 
@@ -28,8 +28,8 @@ FunctionDeclWriter: abstract class extends Skeleton {
         current nl(). nl()
         writeFuncPrototype(this, fDecl)
         current app(" {"). tab()
-        for(line in fDecl body) {
-            current app(line)
+        for(stat in fDecl body) {
+            writeLine(stat)
         }
         current untab(). nl(). app("}")
     }

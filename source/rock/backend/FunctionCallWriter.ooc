@@ -1,4 +1,4 @@
-import ../middle/[FunctionDecl, FunctionCall, TypeDecl, Argument, Line, Type, Expression]
+import ../middle/[FunctionDecl, FunctionCall, TypeDecl, Argument, Type, Expression]
 import Skeleton, FunctionDeclWriter
 
 FunctionCallWriter: abstract class extends Skeleton {
@@ -33,13 +33,23 @@ FunctionCallWriter: abstract class extends Skeleton {
         }
         
         /* Step 3 : write real args */
+        i := 0
         for(arg: Expression in fCall args) {
             if(isFirst) {
                 isFirst = false
             } else {
                 current app(", ")
             }
+            isGeneric := i < fDecl args size()
+            if(isGeneric) isGeneric = fDecl args get(i) getType() isGeneric()
+            if(isGeneric) {
+                current app("(uint8_t*) (&")
+            }
             arg accept(this)
+            if(isGeneric) {
+                current app(")")
+            }
+            i += 1
         }
         current app(')')
         

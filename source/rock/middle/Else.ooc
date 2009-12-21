@@ -1,5 +1,5 @@
 import ../frontend/Token
-import Conditional, Expression, Visitor
+import Conditional, Expression, Visitor, Node
 
 Else: class extends Conditional {
 

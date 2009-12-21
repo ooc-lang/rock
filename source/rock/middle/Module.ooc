@@ -156,5 +156,7 @@ Module: class extends Node {
     toString: func -> String {
         class name + ' ' + fullName
     }
+    
+    replace: func (oldie, kiddo: Node) -> Bool { false }
 
 }

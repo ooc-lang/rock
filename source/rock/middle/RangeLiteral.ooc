@@ -1,5 +1,5 @@
 import ../frontend/Token
-import Literal, Expression, Visitor, Type
+import Literal, Expression, Visitor, Type, Node
 
 RangeLiteral: class extends Literal {
     
@@ -13,5 +13,13 @@ RangeLiteral: class extends Literal {
     }
     
     getType: func -> Type { type }
+    
+    replace: func (oldie, kiddo: Node) -> Bool {
+        match oldie {
+            case lower => lower = kiddo; true
+            case upper => upper = kiddo; true
+            case => false
+        }
+    }
     
 }

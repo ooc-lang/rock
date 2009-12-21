@@ -1,25 +1,25 @@
 import structs/[ArrayList]
-import Line, VariableAccess, VariableDecl
+import VariableAccess, VariableDecl, Statement
 import tinker/[Trail, Resolver, Response]
 
-Scope: class extends ArrayList<Line> {
+Scope: class extends ArrayList<Statement> {
     
     init: func ~scope {
-        T = Line
+        T = Statement
         super()
     }
     
     resolveAccess: func (access: VariableAccess) {
-        for(line in this) {
-            line inner resolveAccess(access)
+        for(stat in this) {
+            stat resolveAccess(access)
         }
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        for(line in this) {
-            response := line inner resolve(trail, res)
-            //printf("Response of line inner [%s] %s = %s\n", line inner class name, line inner toString(), response toString())
+        for(stat in this) {
+            response := stat resolve(trail, res)
+            //printf("Response of statement [%s] %s = %s\n", stast class name, stat toString(), response toString())
             if(!response ok()) return response
         }
         

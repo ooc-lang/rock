@@ -1,11 +1,11 @@
 import ../middle/Visitor
 import ../io/TabbedWriter, io/[File, FileWriter, Writer], AwesomeWriter
 import ../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
-    Line, BinaryOp, IntLiteral, CharLiteral, StringLiteral, RangeLiteral,
+    BinaryOp, IntLiteral, CharLiteral, StringLiteral, RangeLiteral,
     VariableDecl, If, Else, While, Foreach, Conditional, ControlStatement,
     VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,
     Node, Parenthesis, Return, Cast, Comparison, Ternary, BoolLiteral,
-    Argument]
+    Argument, Statement]
     
 import Skeleton, FunctionDeclWriter, ControlStatementWriter, ClassDeclWriter,
     ModuleWriter, CoverDeclWriter, FunctionCallWriter
@@ -51,13 +51,6 @@ CGenerator: class extends Skeleton {
     /** Write a type */
     visitType: func (type: Type) {
         type write(current)
-    }
-    
-    /** Write a line */
-    visitLine: func (line: Line) {
-        current nl(). app(line inner)
-        if(!line inner instanceOf(ControlStatement))
-            current app(';')
     }
     
     /** Write a binary operation */

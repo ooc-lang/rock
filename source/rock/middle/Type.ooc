@@ -29,6 +29,15 @@ Type: abstract class extends Node {
     getRef: abstract func -> Declaration
     setRef: abstract func (d: Declaration)
     
+    isGeneric: func -> Bool {
+        if(getRef()) {
+            printf("ref of %s is %s %s\n", toString(), getRef() class name, getRef() toString())
+            return getRef() instanceOf(VariableDecl)
+        }
+    }
+    
+    replace: func (oldie, kiddo: Node) -> Bool { false }
+    
 }
 
 FuncType: class extends Type {

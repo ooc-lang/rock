@@ -1,6 +1,7 @@
 import structs/ArrayList
 import ../frontend/Token
-import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess, TypeDecl
+import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
+       TypeDecl, Node, VariableDecl
 import tinker/[Response, Resolver, Trail]
 
 FunctionCall: class extends Expression {
@@ -66,10 +67,6 @@ FunctionCall: class extends Expression {
                 printf("Failed to resolve expr %s of call %s, looping\n", expr toString(), toString())
                 return response
             }
-            //printf("Resolved expr, type = %s, class = %s\n", expr getType() ? expr getType() toString() : "(nil)", expr class name)
-            //if(expr getType()) {
-            //    printf("... and ref = %s\n", expr getType() getRef() ? expr getType() getRef() toString() : "(nil)")
-            //}
         }
         
         /*
@@ -135,6 +132,7 @@ FunctionCall: class extends Expression {
         }
         
         printf("\t$$$$ resolving typeArgs of %s (call = %d, ref = %d)\n", toString(), typeArgs size(), ref typeArgs size())
+        printf("trail = %s\n", trail toString())
         
         i := typeArgs size()
         while(i < ref typeArgs size()) {
@@ -145,9 +143,19 @@ FunctionCall: class extends Expression {
             j := 0
             for(arg in ref args) {
                 if(arg type getName() == typeArg name) {
-                    typeResult := args get(j) getType()
+                    implArg := args get(j)
+                    typeResult := implArg getType()
                     printf("\t$$=- found match in arg %s of type %s\n", arg toString(), typeResult toString())
                     typeArgs add(VariableAccess new(typeResult, nullToken))
+                    
+                    if(!implArg isReferencable()) {
+                        varDecl := VariableDecl new(typeResult, generateTempName(), args get(j), nullToken)
+                        if(!trail peek() addBefore(this, varDecl)) {
+                            printf("Couldn't add %s before %s, parent is a %s\n", varDecl toString(), toString(), trail peek() toString())
+                        }
+                        args set(j, VariableAccess new(varDecl, implArg token))
+                    }
+                    
                     break
                 }
                 j += 1
@@ -222,6 +230,13 @@ FunctionCall: class extends Expression {
     
     toString: func -> String {
         name +"()"
+    }
+    
+    replace: func (oldie, kiddo: Node) -> Bool {
+        match oldie {
+            case expr => expr = kiddo; true
+            case => false
+        }
     }
 
 }

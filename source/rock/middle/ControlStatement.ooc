@@ -1,6 +1,6 @@
 import structs/ArrayList
 import ../frontend/Token
-import Statement, Line, Scope, VariableAccess
+import Statement, Scope, VariableAccess
 import tinker/[Trail, Resolver, Response]
 
 ControlStatement: abstract class extends Statement {
