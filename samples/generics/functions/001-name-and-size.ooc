@@ -1,7 +1,7 @@
 
 print: func <T> (value: T) {
     
-    printf("Got a %s of size %d\n", T name, T instanceSize)
+    printf("Got a %s of size %zd\n", T name, T instanceSize)
     
     if(T == Int) {
         printf("Value = %d\n", value as Int)
