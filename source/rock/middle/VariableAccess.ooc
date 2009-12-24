@@ -1,4 +1,4 @@
-import ../frontend/Token
+import ../frontend/[Token, BuildParams]
 import Visitor, Expression, VariableDecl, Declaration, Type, Node
 import tinker/[Resolver, Response, Trail]
 
@@ -63,7 +63,7 @@ VariableAccess: class extends Expression {
             //printf("Null ref and non-null expr (%s), looking in type %s\n", expr toString(), exprType toString())
             typeDecl := exprType getRef()
             if(!typeDecl) {
-                printf("     - access to %s%s still not resolved, looping (ref = %s)\n", expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)")
+                if(res params verbose) printf("     - access to %s%s still not resolved, looping (ref = %s)\n", expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)")
                 return Responses LOOP
             }
             typeDecl resolveAccess(this)
@@ -86,7 +86,7 @@ VariableAccess: class extends Expression {
         }
         
         if(!ref) {
-            printf("     - access to %s%s still not resolved, looping (ref = %s)\n", expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)")
+            if(res params verbose) printf("     - access to %s%s still not resolved, looping (ref = %s)\n", expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)")
         }
         
         return ref ? Responses OK : Responses LOOP
