@@ -6,13 +6,14 @@ Resolver: class {
  
     fatal := false
     module: Module
+    params: BuildParams
     
-    init: func (=module) {}
+    init: func (=module, =params) {}
     
-    process: func (params: BuildParams) -> Bool {
+    process: func -> Bool {
  
         response := module resolve(Trail new(), this)
-        printf("[Module] response = %s\n", response toString())
+        if(params verbose) printf("[Module] response = %s\n", response toString())
         
         if(!response ok()) {
             return true

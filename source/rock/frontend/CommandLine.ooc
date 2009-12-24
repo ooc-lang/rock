@@ -308,7 +308,7 @@ CommandLine: class {
         // phase 2: tinker
         moduleList := ArrayList<Module> new()
         collectModules(module, moduleList)
-        Tinkerer new() process(moduleList, params)
+        if(!Tinkerer new(params) process(moduleList)) failure()
         
         // phase 3: generate
         for(candidate in moduleList) {
@@ -318,15 +318,11 @@ CommandLine: class {
         // phase 4: launch the C compiler
         if(params compiler) {
             result := driver compile(module)
-            Terminal setAttr(Attr bright)
             if(result == 0) {
-                Terminal setFgColor(Color green)
-                "[ OK ]" println()
+                success()
             } else {
-                Terminal setFgColor(Color red)
-                "[FAIL]" println()
+                failure()
             }
-            Terminal reset()
         }
 
         // phase 5: clean up
@@ -338,6 +334,21 @@ CommandLine: class {
         
         return 0
         
+    }
+    
+    success: func {
+        Terminal setAttr(Attr bright)
+        Terminal setFgColor(Color green)
+        "[ OK ]" println()
+        Terminal reset()
+    }
+    
+    failure: func {
+        Terminal setAttr(Attr bright)
+        Terminal setFgColor(Color red)
+        "[FAIL]" println()
+        Terminal reset()
+        exit(1)
     }
     
     collectModules: func (module: Module, list: List<Module>) {

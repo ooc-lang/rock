@@ -5,18 +5,21 @@ import ../[Module]
 import Resolver
 
 Tinkerer: class {
+
+    params: BuildParams
     
-    process: func (modules: List<Module>, params: BuildParams) {
-        
-        /*
-        for(module in modules) {
-            Unwrapper new() process(module, params)
-        }
-        */
+    init: func (=params) {}
+    
+    /**
+     * Manipulate the AST.
+     * 
+     * @return true on success, false on failure
+     */
+    process: func (modules: List<Module>) -> Bool {
         
         resolvers := ArrayList<Resolver> new()
         for(module in modules) {
-            resolvers add(Resolver new(module))
+            resolvers add(Resolver new(module, params))
         }
         
         round := 0
@@ -32,12 +35,14 @@ Tinkerer: class {
     
                 resolver := iter next()
                 
-                printf("\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
-                printf("\tResolving module %s", resolver module fullName)
-                printf("\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
+                if(params verbose) {
+                    printf("\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
+                    printf("\tResolving module %s", resolver module fullName)
+                    printf("\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
+                }
                 
                 // returns true = dirty, must do again
-                if(resolver process(params)) {
+                if(resolver process()) {
                     continue
                 }
             
@@ -59,10 +64,12 @@ Tinkerer: class {
             if(round > params blowup) {
                 //CompilationFailedError new(null, "Tinkerer going round in circles. Remaining modules = " + resolvers toString()) throw()
                 println("Tinkerer going round in circles. " + resolvers size() + " modules remaining.")
-                exit(1)
+                return false
             }
             
         }
+        
+        true
         
     }
     

@@ -1,4 +1,4 @@
-import ../frontend/Token
+import ../frontend/[Token, BuildParams]
 import ../backend/AwesomeWriter
 import Node, Visitor, Declaration, TypeDecl, ClassDecl, VariableDecl, Module, Import
 import tinker/[Response, Resolver, Trail]
@@ -122,7 +122,9 @@ BaseType: class extends Type {
         }
         
         if(ref == null) {
-            printf("     - type %s still not resolved, looping (ref = %p)\n", name, ref)
+            if(res params verbose) {
+                printf("     - type %s still not resolved, looping (ref = %p)\n", name, ref)
+            }
             return Responses LOOP
         //} else {
             //("Found match! " + name) println()
