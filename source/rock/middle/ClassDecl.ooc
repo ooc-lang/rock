@@ -39,6 +39,11 @@ ClassDecl: class extends TypeDecl {
             }
             meta = ClassDecl new(name + "Class", metaSuperType, true, token)
             meta nonMeta = this
+            meta thisDecl = this thisDecl
+            
+            // if we access to "Dog", we access to an object of type "DogClass"
+            type = meta getInstanceType()
+            type as BaseType ref = meta
         }
     }
     

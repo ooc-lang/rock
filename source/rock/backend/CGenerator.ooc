@@ -108,7 +108,7 @@ CGenerator: class extends Skeleton {
             current app(varAcc name)
         } else if(varAcc ref instanceOf(TypeDecl)) {
             typeDecl : TypeDecl = varAcc ref
-            printf("()() Writing variable access to type %s\n", typeDecl toString())
+            //printf("()() Writing variable access to type %s\n", typeDecl toString())
             current app(typeDecl name). app("_class()")
         }
     }

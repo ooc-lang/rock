@@ -85,7 +85,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
             match mode {
                 case ArgsWriteModes NAMES_ONLY =>
                     if(baseType) {
-                        current app("("). app(baseType getNonMeta() getType()). app(")")
+                        current app("("). app(baseType getNonMeta() getInstanceType()). app(")")
                     }
                     current app("this")
                 case ArgsWriteModes TYPES_ONLY =>

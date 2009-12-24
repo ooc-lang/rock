@@ -31,7 +31,7 @@ Type: abstract class extends Node {
     
     isGeneric: func -> Bool {
         if(getRef()) {
-            printf("ref of %s is %s %s\n", toString(), getRef() class name, getRef() toString())
+            //printf("ref of %s is %s %s\n", toString(), getRef() class name, getRef() toString())
             return getRef() instanceOf(VariableDecl)
         }
     }
@@ -91,7 +91,7 @@ BaseType: class extends Type {
     }
     
     writeGenericType: func (w: AwesomeWriter, vd: VariableDecl) {
-        w app("/* generic type */ uint8_t*")
+        w app("uint8_t*")
     }
     
     equals: func (other: This) -> Bool {

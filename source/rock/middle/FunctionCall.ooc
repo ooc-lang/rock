@@ -90,7 +90,12 @@ FunctionCall: class extends Expression {
             }
             if(expr != null && expr getType() != null && expr getType() getRef() != null) {
                 //printf("--> resolving call %s from expr %s\n", toString(), expr toString())
-                expr getType() getRef() as TypeDecl getMeta() resolveCall(this)
+                meta := expr getType() getRef() as TypeDecl getMeta()
+                if(meta) {
+                    meta resolveCall(this)
+                } else {
+                    printf("--> %s has no meta, not resolving.\n", expr getType() getRef() toString())
+                }
             //} else {
                 //printf("<-- Apparently, there's no expr for %s (or is there? %s)\n", toString(), expr ? expr toString() : "no.")
             }

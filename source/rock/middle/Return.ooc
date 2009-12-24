@@ -1,5 +1,5 @@
 import ../frontend/Token
-import Visitor, Statement, Expression, Node
+import Visitor, Statement, Expression, Node, FunctionDecl
 import tinker/[Response, Resolver, Trail]
 
 Return: class extends Statement {
@@ -25,6 +25,12 @@ Return: class extends Statement {
             if(!response ok()) {
                 return response
             }
+        }
+        
+        //println("/- Resolving " + toString() + ", trail = " + trail toString())
+        idx := trail find(FunctionDecl)
+        if(idx != -1) {
+            
         }
         
         return Responses OK

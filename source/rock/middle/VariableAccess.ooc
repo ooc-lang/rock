@@ -47,22 +47,6 @@ VariableAccess: class extends Expression {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
-        /*
-         * Try to resolve the access
-         * 
-         * It's far simpler than resolving a function call, we just
-         * explore the trail from top to bottom and retain the first match.
-         */
-        if(!ref) {
-            depth := trail size() - 1
-            while(depth >= 0) {
-                node := trail get(depth)
-                node resolveAccess(this)
-                if(ref) break // break on first match
-                depth -= 1
-            }
-        }
-        
         if(expr) {
             trail push(this)
             response := expr resolve(trail, res)
@@ -71,6 +55,9 @@ VariableAccess: class extends Expression {
             //printf("Resolved expr, type = %s\n", expr getType() ? expr getType() toString() : "(nil)")
         }
         
+        /*
+         * Try to resolve the access from the expr
+         */
         if(!ref && expr) {
             exprType := expr getType()
             //printf("Null ref and non-null expr (%s), looking in type %s\n", expr toString(), exprType toString())
@@ -80,6 +67,22 @@ VariableAccess: class extends Expression {
                 return Responses LOOP
             }
             typeDecl resolveAccess(this)
+        }
+        
+        /*
+         * Try to resolve the access from the trail
+         * 
+         * It's far simpler than resolving a function call, we just
+         * explore the trail from top to bottom and retain the first match.
+         */
+        if(!ref && !expr) {
+            depth := trail size() - 1
+            while(depth >= 0) {
+                node := trail get(depth)
+                node resolveAccess(this)
+                if(ref) break // break on first match
+                depth -= 1
+            }
         }
         
         if(!ref) {

@@ -2,8 +2,8 @@ Dog: class {
     
     name: String
     
-    setName: func (name: String) {
-        this name = name
+    setName: func (num: String) {
+        this name = num
     }
     
 }
@@ -11,7 +11,7 @@ Dog: class {
 main: func {
     
     d : Dog
-    //d = gc_malloc(Dog size)
+    d = gc_malloc(Dog size)
     d class = Dog
     
     d setName("Fido")

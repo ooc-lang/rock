@@ -118,7 +118,8 @@ TypeDecl: abstract class extends Declaration {
         
     }
     
-    getType: func -> Type { instanceType }
+    getType: func -> Type { type }
+    getInstanceType: func -> Type { instanceType }
 
     isResolved: func -> Bool { false }
     
@@ -169,12 +170,13 @@ TypeDecl: abstract class extends Declaration {
     }
     
     resolveAccess: func (access: VariableAccess) {
+        
         //printf("? Looking for variable %s in %s\n", access name, name)
         
         vDecl : VariableDecl = null
         vDecl = variables get(access name)
         if(vDecl) {
-            //"&&&&&&&& Found vDecl for %s\n" format(access name) println()
+            //"&&&&&&&& Found vDecl for %s" format(access name) println()
             if(access suggest(vDecl) && access expr == null) {
                 varAcc := VariableAccess new("this", nullToken)
                 varAcc suggest(thisDecl)
@@ -188,6 +190,7 @@ TypeDecl: abstract class extends Declaration {
     resolveCall: func (call : FunctionCall) {
         
         //printf("\n? Looking for function %s in %s\n", call name, name)
+        
         fDecl : FunctionDecl = null
         fDecl = functions get(call name)
         if(fDecl) {

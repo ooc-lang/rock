@@ -8,7 +8,7 @@ CoverDecl: class extends TypeDecl {
     fromType: Type
     
     init: func ~coverDecl(.name, .superType, .token) {
-        super(name, superType, token)
+        super(name, this superType, token)
         //printf("Got CoverDecl %s\n", name)
     }
     
@@ -42,5 +42,6 @@ CoverDecl: class extends TypeDecl {
     }
     
     replace: func (oldie, kiddo: Node) -> Bool { false }
+    getMeta: func -> This { this }
     
 }
