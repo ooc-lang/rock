@@ -7,7 +7,7 @@ import tinker/[Response, Resolver, Trail]
 
 Module: class extends Node {
 
-    fullName, simpleName, packageName, underName, pathElement : String
+    path, fullName, simpleName, packageName, underName, pathElement : String
     
     types     := HashMap<TypeDecl> new()
     functions := HashMap<FunctionDecl> new()
@@ -20,6 +20,7 @@ Module: class extends Node {
 
     init: func ~module (.fullName, =pathElement, .token) {
         super(token)
+        this path = fullName clone()
         this fullName = fullName replace(File separator, '/')
         idx := fullName lastIndexOf('/')
         

@@ -86,6 +86,10 @@ VariableAccess: class extends Expression {
         }
         
         if(!ref) {
+            if(res fatal) {
+                token throwError("Couldn't resolve access to %s" format(name))
+                exit(1)
+            }
             if(res params verbose) printf("     - access to %s%s still not resolved, looping (ref = %s)\n", expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)")
         }
         

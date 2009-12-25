@@ -89,7 +89,7 @@ AstBuilder: class {
                 if(cached) {
                     println(path+" has been changed, recompiling...");
                 }
-                cached = Module new(path substring(0, path length() - 4), impElement path, nullToken)
+                cached = Module new(path substring(0, path length() - 4), impElement path, Token new(this tokenPos, this module))
                 imp setModule(cached)
                 This new(impPath path, cached, params)
             }
@@ -119,7 +119,7 @@ AstBuilder: class {
     }
     
     onCoverStart: func (name: String) {
-        cDecl := CoverDecl new(name clone(), null, nullToken)
+        cDecl := CoverDecl new(name clone(), null, Token new(this tokenPos, this module))
         cDecl module = module
         module addType(cDecl)
         stack push(cDecl)
@@ -140,7 +140,7 @@ AstBuilder: class {
     }
     
     onClassStart: func (name: String) {
-        cDecl := ClassDecl new(name clone(), null, nullToken)
+        cDecl := ClassDecl new(name clone(), null, Token new(this tokenPos, this module))
         cDecl module = module
         module addType(cDecl)
         stack push(cDecl)
@@ -171,7 +171,7 @@ AstBuilder: class {
     
     onVarDeclName: func (name: String) {
         vds : Stack<VariableDecl> = stack peek()
-        vds push(VariableDecl new(null, name clone(), nullToken))
+        vds push(VariableDecl new(null, name clone(), Token new(this tokenPos, this module)))
     }
     
     onVarDeclExpr: func (expr: Expression) {
@@ -214,19 +214,19 @@ AstBuilder: class {
     }
 
     onFuncTypeNew: func -> Type {
-        return FuncType new(nullToken)
+        return FuncType new(Token new(this tokenPos, this module))
     }
       
     onTypeNew: func (name: String) -> Type {
-        return BaseType new(name clone() trim(), nullToken)
+        return BaseType new(name clone() trim(), Token new(this tokenPos, this module))
     }
     
     onTypePointer: func (type: Type) -> Type {
-        return PointerType new(type, nullToken)
+        return PointerType new(type, Token new(this tokenPos, this module))
     }
     
     onFunctionStart: func (name: String) {
-        fDecl := FunctionDecl new(name clone(), Token new(tokenPos, module))
+        fDecl := FunctionDecl new(name clone(), Token new(this tokenPos, this module))
         stack push(fDecl)
     }
     
@@ -289,7 +289,7 @@ AstBuilder: class {
     
     // function calls
     onFunctionCallStart: func (name: String) {
-        fCall := FunctionCall new(name clone(), nullToken)
+        fCall := FunctionCall new(name clone(), Token new(this tokenPos, this module))
         stack push(fCall)
     }
     
@@ -312,7 +312,7 @@ AstBuilder: class {
     
     // literals
     onStringLiteral: func (text: String) -> StringLiteral {
-        sl := StringLiteral new(text clone(), nullToken)
+        sl := StringLiteral new(text clone(), Token new(this tokenPos, this module))
         //printf("Got string literal %s\n", sl toString())
         return sl
     }
@@ -348,24 +348,24 @@ AstBuilder: class {
     
     // return
     onReturn: func (expr: Expression) -> Return {
-        ret := Return new(expr, nullToken)
+        ret := Return new(expr, Token new(this tokenPos, this module))
         //printf("Got return %p with expr %s (%p)\n", ret, expr ? expr toString() : "(nil)", expr)
         return ret
     }
     
     // variable access
     onVarAccess: func (expr: Expression, name: String) -> VariableAccess {
-        return VariableAccess new(expr, name clone(), nullToken)
+        return VariableAccess new(expr, name clone(), Token new(this tokenPos, this module))
     }
     
     // cast
     onCast: func (expr: Expression, type: Type) -> Cast {
-        return Cast new(expr, type, nullToken)
+        return Cast new(expr, type, Token new(this tokenPos, this module))
     }
     
     // if
     onIfStart: func (condition: Expression) {
-        stack push(If new(condition, nullToken))
+        stack push(If new(condition, Token new(this tokenPos, this module)))
     }
     
     onIfEnd: func -> If {
@@ -376,7 +376,7 @@ AstBuilder: class {
     
     // else
     onElseStart: func {
-        stack push(Else new(nullToken))
+        stack push(Else new(Token new(this tokenPos, this module)))
     }
     
     onElseEnd: func -> If {
@@ -422,7 +422,7 @@ nq_onVarDeclAssign: func (this: AstBuilder, acc: VariableAccess, isConst: Bool, 
     if(!acc instanceOf(VariableAccess)) {
         Exception new(AstBuilder, "Expected a VariableAccess as a left-hand-side of a decl-assign, but got a " + acc toString()) throw()
     }
-    vDecl := VariableDecl new(null, acc name, expr, nullToken)
+    vDecl := VariableDecl new(null, acc name, expr, Token new(this tokenPos, this module))
     vDecl isConst = isConst
     //if(isConst) "%s is const!" format(acc name) println()
     //("Got variableDecl " + vDecl toString()) println()
@@ -467,102 +467,102 @@ nq_onElseStart: func (this: AstBuilder)                                  { this 
 nq_onElseEnd: func (this: AstBuilder) -> Else                            { return this onElseEnd() }
 
 nq_onEquals: func (this: AstBuilder, left, right: Expression) -> Comparison {
-    return Comparison new(left, right, CompTypes equal, nullToken)
+    return Comparison new(left, right, CompTypes equal, Token new(this tokenPos, this module))
 }
 nq_onNotEquals: func (this: AstBuilder, left, right: Expression) -> Comparison {
-    return Comparison new(left, right, CompTypes notEqual, nullToken)
+    return Comparison new(left, right, CompTypes notEqual, Token new(this tokenPos, this module))
 }
 nq_onLessThan: func (this: AstBuilder, left, right: Expression) -> Comparison {
-    return Comparison new(left, right, CompTypes smallerThan, nullToken)
+    return Comparison new(left, right, CompTypes smallerThan, Token new(this tokenPos, this module))
 }
 nq_onMoreThan: func (this: AstBuilder, left, right: Expression) -> Comparison {
-    return Comparison new(left, right, CompTypes greaterThan, nullToken)
+    return Comparison new(left, right, CompTypes greaterThan, Token new(this tokenPos, this module))
 }
 nq_onLessThanOrEqual: func (this: AstBuilder, left, right: Expression) -> Comparison {
-    return Comparison new(left, right, CompTypes smallerOrEqual, nullToken)
+    return Comparison new(left, right, CompTypes smallerOrEqual, Token new(this tokenPos, this module))
 }
 nq_onMoreThanOrEqual: func (this: AstBuilder, left, right: Expression) -> Comparison {
-    return Comparison new(left, right, CompTypes greaterOrEqual, nullToken)
+    return Comparison new(left, right, CompTypes greaterOrEqual, Token new(this tokenPos, this module))
 }
 
 nq_onIntLiteral: func (this: AstBuilder, value: String) -> IntLiteral {
-    return IntLiteral new(value toLLong(), nullToken)
+    return IntLiteral new(value toLLong(), Token new(this tokenPos, this module))
 }
 
 nq_onBoolLiteral: func (this: AstBuilder, value: Bool) -> BoolLiteral {
-    return BoolLiteral new(value, nullToken)
+    return BoolLiteral new(value, Token new(this tokenPos, this module))
 }
 
 nq_onTernary: func (this: AstBuilder, condition, ifTrue, ifFalse: Expression) -> Ternary {
-    return Ternary new(condition, ifTrue, ifFalse, nullToken)
+    return Ternary new(condition, ifTrue, ifFalse, Token new(this tokenPos, this module))
 }
 
 nq_onAssignAdd: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
-    return BinaryOp new(left, right, OpTypes addAss, nullToken)
+    return BinaryOp new(left, right, OpTypes addAss, Token new(this tokenPos, this module))
 }
 
 nq_onAssignSub: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
-    return BinaryOp new(left, right, OpTypes subAss, nullToken)
+    return BinaryOp new(left, right, OpTypes subAss, Token new(this tokenPos, this module))
 }
 
 nq_onAssignMul: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
-    return BinaryOp new(left, right, OpTypes mulAss, nullToken)
+    return BinaryOp new(left, right, OpTypes mulAss, Token new(this tokenPos, this module))
 }
 
 nq_onAssignDiv: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
-    return BinaryOp new(left, right, OpTypes divAss, nullToken)
+    return BinaryOp new(left, right, OpTypes divAss, Token new(this tokenPos, this module))
 }
 
 nq_onAssignAnd: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
-    return BinaryOp new(left, right, OpTypes bAndAss, nullToken)
+    return BinaryOp new(left, right, OpTypes bAndAss, Token new(this tokenPos, this module))
 }
 
 nq_onAssignOr: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
-    return BinaryOp new(left, right, OpTypes bOrAss, nullToken)
+    return BinaryOp new(left, right, OpTypes bOrAss, Token new(this tokenPos, this module))
 }
 
 nq_onAssignXor: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
-    return BinaryOp new(left, right, OpTypes bXorAss, nullToken)
+    return BinaryOp new(left, right, OpTypes bXorAss, Token new(this tokenPos, this module))
 }
 
 nq_onAssign: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
-    return BinaryOp new(left, right, OpTypes ass, nullToken)
+    return BinaryOp new(left, right, OpTypes ass, Token new(this tokenPos, this module))
 }
     
 nq_onAssignLeftShift: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
-    return BinaryOp new(left, right, OpTypes lshiftAss, nullToken)
+    return BinaryOp new(left, right, OpTypes lshiftAss, Token new(this tokenPos, this module))
 }
 
 nq_onAssignRightShift: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
-    return BinaryOp new(left, right, OpTypes rshiftAss, nullToken)
+    return BinaryOp new(left, right, OpTypes rshiftAss, Token new(this tokenPos, this module))
 }
 
 nq_onAdd: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
-    return BinaryOp new(left, right, OpTypes add, nullToken)
+    return BinaryOp new(left, right, OpTypes add, Token new(this tokenPos, this module))
 }
 
 nq_onSub: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
-    return BinaryOp new(left, right, OpTypes sub, nullToken)
+    return BinaryOp new(left, right, OpTypes sub, Token new(this tokenPos, this module))
 }
 
 nq_onMod: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
-    return BinaryOp new(left, right, OpTypes mod, nullToken)
+    return BinaryOp new(left, right, OpTypes mod, Token new(this tokenPos, this module))
 }
 
 nq_onMul: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
-    return BinaryOp new(left, right, OpTypes mul, nullToken)
+    return BinaryOp new(left, right, OpTypes mul, Token new(this tokenPos, this module))
 }
 
 nq_onDiv: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
-    return BinaryOp new(left, right, OpTypes div, nullToken)
+    return BinaryOp new(left, right, OpTypes div, Token new(this tokenPos, this module))
 }
 
 nq_onVarArg: func (this: AstBuilder) -> VarArg {
-    return VarArg new(nullToken)
+    return VarArg new(Token new(this tokenPos, this module))
 }
 
 nq_onParenthesis: func (this: AstBuilder, inner: Expression) -> Parenthesis {
-    return Parenthesis new(inner, nullToken)
+    return Parenthesis new(inner, Token new(this tokenPos, this module))
 }
 
 nq_onGenericArgument: func (this: AstBuilder, name: String) {
@@ -573,7 +573,7 @@ nq_onGenericArgument: func (this: AstBuilder, name: String) {
     match {
         case node instanceOf(FunctionDecl) =>
             fDecl := node as FunctionDecl
-            fDecl typeArgs add(VariableDecl new(BaseType new("Class", nullToken), name clone(), nullToken))
+            fDecl typeArgs add(VariableDecl new(BaseType new("Class", Token new(this tokenPos, this module)), name clone(), Token new(this tokenPos, this module)))
     }
 }
 

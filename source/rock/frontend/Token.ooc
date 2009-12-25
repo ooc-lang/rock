@@ -1,3 +1,4 @@
+
 import ../middle/Module
 
 /* Will go into the load method of Token */
@@ -38,6 +39,12 @@ Token: cover {
         return sReader getSlice(start, length)
     }
     */
+    
+    throwError: func (message: String) {
+        "%s:%d: [ERROR] %s" format(module path, start, message) println()
+        "    blah blah blah, code" println()
+        "    ^^^^^^^^^" println()
+    }
     
     getLength: func -> SizeT {
         return length
