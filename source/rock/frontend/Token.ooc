@@ -1,44 +1,43 @@
-import TokenType, SourceReader
+import ../middle/Module
 
 /* Will go into the load method of Token */
 nullToken : Token
-nullToken = Token new(0, 0, 0)
+nullToken = Token new(0, 0, null)
 
 Token: cover {
     
-    type: Octet
     start, length : SizeT
+    module: Module
     
-    new: static func (.start, .length, .type) -> This {
+    new: static func~fromData (data: Int*, module: Module) -> This {
         this : This
-        this start = start
-        this length = length
-        this type = type
+        this start =  data[0]
+        this length = data[1]
+        this module = module
         return this
     }
     
-    toString: func -> String {
-        return TokenType strings[type]
+    new: static func (.start, .length, .module) -> This {
+        this : This
+        this start =  start
+        this length = length
+        this module = module
+        return this
     }
     
-    toString: func ~withQuote (sReader: SourceReader) -> String {
-        return match type {
-            case TokenType NAME =>
-                get(sReader)
-            case TokenType STRING_LIT =>
-                "\"" + this get(sReader) + "\""
-            case TokenType DEC_INT =>
-                this get(sReader)
-            case TokenType LINESEP =>
-                "\n"
-            case =>
-                toString()
-        }
+    new: static func~copy (origin: This) -> This {
+        // well that's quite stupid. but covers have value semantics
+        // already, so no action is needed to make a "copy" of it.
+        return origin
     }
     
+    toString: func -> String { "[%d, %d]" format(getStart(), getEnd()) }
+    
+    /*
     get: func(sReader: SourceReader) -> String {
         return sReader getSlice(start, length)
     }
+    */
     
     getLength: func -> SizeT {
         return length
@@ -48,18 +47,10 @@ Token: cover {
         return start
     }
     
-    cloneEnclosing: func (end: Token) -> This {
-        return new(start, end getEnd() - start, type)
-    }
-    
     getEnd: func -> SizeT {
         return start + length
     }
 
-    isNameToken: func -> Bool {
-        return type == TokenType NAME || type == TokenType CLASS_KW
-    }
-    
     equals: func (other: This) -> Bool {
         return memcmp(this&, other&, This size) == 0
     }

@@ -19,7 +19,7 @@ AstBuilder: class {
     module : Module
     stack : Stack<Node>
     
-    posPointer : Int*
+    tokenPos : Int*
 
     init: func (=modulePath, =module, =params) {
         
@@ -226,7 +226,7 @@ AstBuilder: class {
     }
     
     onFunctionStart: func (name: String) {
-        fDecl := FunctionDecl new(name clone(), nullToken)
+        fDecl := FunctionDecl new(name clone(), Token new(tokenPos, module))
         stack push(fDecl)
     }
     
@@ -320,7 +320,6 @@ AstBuilder: class {
     // statement
     onStatement: func (stmt: Statement) {
         node : Node = stack peek()
-        //printf("====> [%s] at %d, and peek = %s\n", stmt class name, posPointer@, node class name)
         if(node instanceOf(VariableDecl)) {
             //"Got varDecl %s" format(node toString()) println()
             gotVarDecl(node)
@@ -389,7 +388,7 @@ AstBuilder: class {
 }
 
 // position in stream handling
-nq_setPosPointer: func (this: AstBuilder, posPointer: Int*) { this posPointer = posPointer }
+nq_setTokenPositionPointer: func (this: AstBuilder, tokenPos: Int*) { this tokenPos = tokenPos }
 
 // string handling
 nq_StringClone: func (string: String) -> String             { string clone() }

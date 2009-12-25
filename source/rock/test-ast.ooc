@@ -17,7 +17,7 @@ main: func {
 
 classtest: func {
     
-    module := Module new("class-test", nullToken)
+    module := Module new("class-test", "", nullToken)
     
     fMain := FunctionDecl new("main", nullToken)
     module addFunction(fMain)
@@ -38,15 +38,14 @@ classtest: func {
 
 addtest: func {
     
-    module := Module new("add-test", nullToken)
+    module := Module new("add-test", "", nullToken)
     
     module includes add(Include new("stdio", IncludeModes PATHY))
     
     fMain := FunctionDecl new("main", nullToken)
     module addFunction(fMain)
     
-    answer := VariableDecl new(BaseType new("int", nullToken), nullToken)
-    answer atoms add(Atom new("answer", IntLiteral new(39, nullToken)))
+    answer := VariableDecl new(BaseType new("int", nullToken), "answer", IntLiteral new(39, nullToken), nullToken)
     fMain body add(answer)
     
     add := BinaryOp new(
@@ -62,7 +61,7 @@ addtest: func {
     call args add(VariableAccess new("answer", nullToken))
     fMain body add(call)
     
-    iDecl := VariableDecl new(BaseType new("int", nullToken), Atom new("i"), nullToken)
+    iDecl := VariableDecl new(BaseType new("int", nullToken), "i", nullToken)
     fMain body add(iDecl)
     
     foreach := Foreach new(
@@ -77,7 +76,7 @@ addtest: func {
     call2 := FunctionCall new("printf", nullToken)
     call2 args add(StringLiteral new("%d\\n", nullToken))
     call2 args add(VariableAccess new("i", nullToken))
-    foreach body add(call2))
+    foreach body add(call2)
     fMain body add(foreach)
     
     CGenerator new(outPath, module) write() .close()

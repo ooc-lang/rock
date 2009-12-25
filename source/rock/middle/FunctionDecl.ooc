@@ -2,7 +2,7 @@ import structs/[Stack, ArrayList]
 import ../frontend/Token
 import Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, Else,
-       VariableDecl, Node, Statement
+       VariableDecl, Node, Statement, Module
 import tinker/[Resolver, Response, Trail]
 
 FunctionDecl: class extends Expression {
