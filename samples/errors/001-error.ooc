@@ -1,6 +1,6 @@
 
 main: func {
 
-    a = 3
+    unknown = 3
     
 }

@@ -1,4 +1,6 @@
 
+import text/StringBuffer
+import io/[FileReader]
 import ../middle/Module
 
 /* Will go into the load method of Token */
@@ -41,9 +43,48 @@ Token: cover {
     */
     
     throwError: func (message: String) {
-        "%s:%d: [ERROR] %s" format(module path, start, message) println()
-        "    blah blah blah, code" println()
-        "    ^^^^^^^^^" println()
+        fr := FileReader new(module path + ".ooc")
+        
+        lastNewLine := 0
+        lines := 0
+        idx := 0
+        while(fr hasNext() && idx < start) {
+            c := fr read()
+            if(c == '\n') {
+                lines += 1
+                lastNewLine = idx
+            }
+            idx += 1
+        }
+        
+        while(true) {
+            if(!fr hasNext() || fr read() == '\n') break
+            idx += 1
+        }
+        
+        fr reset(lastNewLine + 1)
+        over := StringBuffer new()
+        
+        "%s:%d:%d [ERROR] %s" format(module path, lines, start - lastNewLine, message) println()
+        
+        end := getEnd()
+        for(i in (lastNewLine + 1)..idx) {
+            c := fr read()
+            if(c == '\t') {
+                printf("    ")
+                over append("    ")
+            } else {
+                printf("%c", c)
+                if(i < start || i >= end) {
+                    over append(' ')
+                } else {
+                    over append('^')
+                }
+            }
+        }
+        println()
+        over toString() println()
+        
     }
     
     getLength: func -> SizeT {
