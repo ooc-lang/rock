@@ -34,6 +34,7 @@ Module: class extends Node {
         }
         
         // FIXME this is incomplete, the correct code is actually
+        // to replace everything non-alphanumeric with underscores
         underName = sanitize(fullName clone())
         
         packageName = sanitize(packageName)

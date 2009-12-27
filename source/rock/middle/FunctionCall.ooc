@@ -1,5 +1,5 @@
 import structs/ArrayList
-import ../frontend/Token
+import ../frontend/[Token, BuildParams]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl
 import tinker/[Response, Resolver, Trail]
@@ -64,7 +64,7 @@ FunctionCall: class extends Expression {
             response := expr resolve(trail, res)
             trail pop(this)
             if(!response ok()) {
-                printf("Failed to resolve expr %s of call %s, looping\n", expr toString(), toString())
+                if(res params verbose) printf("Failed to resolve expr %s of call %s, looping\n", expr toString(), toString())
                 return response
             }
         }
@@ -84,17 +84,15 @@ FunctionCall: class extends Expression {
             depth := trail size() - 1
             while(depth >= 0) {
                 node := trail get(depth)
-                //printf("Trying to resolve %s from node %s\n", toString(), node toString())
                 node resolveCall(this)
                 depth -= 1
             }
             if(expr != null && expr getType() != null && expr getType() getRef() != null) {
-                //printf("--> resolving call %s from expr %s\n", toString(), expr toString())
                 meta := expr getType() getRef() as TypeDecl getMeta()
                 if(meta) {
                     meta resolveCall(this)
                 } else {
-                    printf("--> %s has no meta, not resolving.\n", expr getType() getRef() toString())
+                    //printf("--> %s has no meta, not resolving.\n", expr getType() getRef() toString())
                 }
             //} else {
                 //printf("<-- Apparently, there's no expr for %s (or is there? %s)\n", toString(), expr ? expr toString() : "no.")
@@ -111,15 +109,19 @@ FunctionCall: class extends Expression {
         if(typeArgs size() > 0) {
             trail push(this)
             for(typeArg in typeArgs) {
-                printf("Resolving typeArg %s\n", typeArg toString())
+                if(res params verbose) printf("Resolving typeArg %s\n", typeArg toString())
                 response := typeArg resolve(trail, res)
                 if(!response ok()) {
                     trail pop(this)
-                    printf(" -- Failed, looping.\n")
+                    if(res params verbose) printf(" -- Failed, looping.\n")
                     return response
                 }
             }
             trail pop(this)
+        }
+
+        if(refScore == -1 && res fatal) {
+            token throwError("No such function %s" format(name))
         }
         
         return refScore != -1 ? Responses OK : Responses LOOP
@@ -136,13 +138,13 @@ FunctionCall: class extends Expression {
             return // already resolved
         }
         
-        printf("\t$$$$ resolving typeArgs of %s (call = %d, ref = %d)\n", toString(), typeArgs size(), ref typeArgs size())
-        printf("trail = %s\n", trail toString())
+        if(res params verbose) printf("\t$$$$ resolving typeArgs of %s (call = %d, ref = %d)\n", toString(), typeArgs size(), ref typeArgs size())
+        if(res params verbose) printf("trail = %s\n", trail toString())
         
         i := typeArgs size()
         while(i < ref typeArgs size()) {
             typeArg := ref typeArgs get(i)
-            printf("\t$$$$ resolving typeArg %s\n", typeArg name)
+            if(res params verbose) printf("\t$$$$ resolving typeArg %s\n", typeArg name)
             
             /* myFunction: func <T> (myArg: T) */
             j := 0
@@ -150,13 +152,13 @@ FunctionCall: class extends Expression {
                 if(arg type getName() == typeArg name) {
                     implArg := args get(j)
                     typeResult := implArg getType()
-                    printf("\t$$=- found match in arg %s of type %s\n", arg toString(), typeResult toString())
+                    if(res params verbose) printf("\t$$=- found match in arg %s of type %s\n", arg toString(), typeResult toString())
                     typeArgs add(VariableAccess new(typeResult, nullToken))
                     
                     if(!implArg isReferencable()) {
                         varDecl := VariableDecl new(typeResult, generateTempName(), args get(j), nullToken)
                         if(!trail peek() addBefore(this, varDecl)) {
-                            printf("Couldn't add %s before %s, parent is a %s\n", varDecl toString(), toString(), trail peek() toString())
+                            if(res params verbose) printf("Couldn't add %s before %s, parent is a %s\n", varDecl toString(), toString(), trail peek() toString())
                         }
                         args set(j, VariableAccess new(varDecl, implArg token))
                     }

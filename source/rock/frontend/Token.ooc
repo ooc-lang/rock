@@ -1,4 +1,5 @@
 
+import ../frontend/CommandLine
 import text/StringBuffer
 import io/[FileReader]
 import ../middle/Module
@@ -85,6 +86,7 @@ Token: cover {
         println()
         over toString() println()
         
+        CommandLine failure()
     }
     
     getLength: func -> SizeT {

@@ -297,8 +297,6 @@ CommandLine: class {
         
         modulePath := moduleFile path
         
-        params outPath mkdirs()
-        
         fullName := moduleName substring(0, moduleName length() - 4)
         module := Module new(fullName, params sourcePath getElement(moduleName) path, nullToken)
         
@@ -311,6 +309,7 @@ CommandLine: class {
         if(!Tinkerer new(params) process(moduleList)) failure()
         
         // phase 3: generate
+        params outPath mkdirs()
         for(candidate in moduleList) {
             CGenerator new(params outPath path, candidate) write() .close()
         }
@@ -336,14 +335,14 @@ CommandLine: class {
         
     }
     
-    success: func {
+    success: static func {
         Terminal setAttr(Attr bright)
         Terminal setFgColor(Color green)
         "[ OK ]" println()
         Terminal reset()
     }
     
-    failure: func {
+    failure: static func {
         Terminal setAttr(Attr bright)
         Terminal setFgColor(Color red)
         "[FAIL]" println()

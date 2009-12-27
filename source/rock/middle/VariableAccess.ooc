@@ -63,6 +63,7 @@ VariableAccess: class extends Expression {
             //printf("Null ref and non-null expr (%s), looking in type %s\n", expr toString(), exprType toString())
             typeDecl := exprType getRef()
             if(!typeDecl) {
+                if(res fatal) expr token throwError("Can't resolve type %s" format(expr getType() toString()))
                 if(res params verbose) printf("     - access to %s%s still not resolved, looping (ref = %s)\n", expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)")
                 return Responses LOOP
             }
@@ -86,10 +87,7 @@ VariableAccess: class extends Expression {
         }
         
         if(!ref) {
-            if(res fatal) {
-                token throwError("Couldn't resolve access to %s" format(name))
-                exit(1)
-            }
+            if(res fatal) token throwError("No such variable %s" format(toString()))
             if(res params verbose) printf("     - access to %s%s still not resolved, looping (ref = %s)\n", expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)")
         }
         
@@ -106,7 +104,7 @@ VariableAccess: class extends Expression {
     }
     
     toString: func -> String {
-        name
+        expr ? (expr getType() toString() + "." + name) : name
     }
     
     isReferencable: func -> Bool { true }
