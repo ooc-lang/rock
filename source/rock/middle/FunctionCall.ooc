@@ -9,6 +9,7 @@ FunctionCall: class extends Expression {
     expr: Expression
     name, suffix = null : String
     typeArgs := ArrayList<Expression> new()
+    returnArg : Expression = null
     args := ArrayList<Expression> new()    
     
     ref = null : FunctionDecl
@@ -156,9 +157,16 @@ FunctionCall: class extends Expression {
                     typeArgs add(VariableAccess new(typeResult, nullToken))
                     
                     if(!implArg isReferencable()) {
-                        varDecl := VariableDecl new(typeResult, generateTempName(), args get(j), nullToken)
-                        if(!trail peek() addBefore(this, varDecl)) {
+                        varDecl := VariableDecl new(typeResult, generateTempName("genArg"), args get(j), nullToken)
+                        // that's actually quite a hack - what if we're not in a FunctionDecl?
+                        idx := trail find(FunctionDecl)
+                        fDecl := trail get(idx)
+                        println("|| fDecl = " + fDecl toString())
+                        result := !fDecl addBefore(trail get(idx + 1), varDecl)
+                        if(!result) {
                             if(res params verbose) printf("Couldn't add %s before %s, parent is a %s\n", varDecl toString(), toString(), trail peek() toString())
+                        } else {
+                            printf("Just added a %s before %s, parent is a %s\n", varDecl toString(), toString(), trail peek() toString())
                         }
                         args set(j, VariableAccess new(varDecl, implArg token))
                     }
@@ -245,5 +253,8 @@ FunctionCall: class extends Expression {
             case => false
         }
     }
+    
+    setReturnArg: func (=returnArg) {}
+    getReturnArg: func -> Expression { returnArg }
 
 }

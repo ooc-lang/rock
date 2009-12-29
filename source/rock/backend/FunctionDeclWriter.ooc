@@ -95,14 +95,29 @@ FunctionDeclWriter: abstract class extends Skeleton {
             }
         }
         
-        /* Step 2 : write generic type args */
+        /* Step 2: write the return argument, if any */
+        if(fDecl getReturnType() isGeneric()) {
+            if(!isFirst) current app(", ")
+            else isFirst = false
+            
+            match mode {
+                case ArgsWriteModes NAMES_ONLY =>
+                    current app(fDecl getReturnArg() getName())
+                case ArgsWriteModes TYPES_ONLY =>
+                    current app(fDecl getReturnArg() getType())
+                case =>
+                    current app(fDecl getReturnArg())
+            }
+        }
+        
+        /* Step 3 : write generic type args */
         for(typeArg in fDecl typeArgs) {
             if(!isFirst) current app(", ")
             else isFirst = false
             current app(typeArg)
         }
         
-        /* Step 3 : write real args */
+        /* Step 4 : write real args */
         while(iter hasNext()) {
             arg := iter next()
             //"Writing arg %s" format(arg toString()) println()
@@ -125,7 +140,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
             }
         }
         
-        /* Step 4 : Write exception handling arguments */
+        /* Step 5 : Write exception handling arguments */
         // TODO
         
         current app(')')

@@ -38,6 +38,8 @@ Type: abstract class extends Node {
     
     replace: func (oldie, kiddo: Node) -> Bool { false }
     
+    reference: func -> This { PointerType new(this, token) }
+    
 }
 
 FuncType: class extends Type {

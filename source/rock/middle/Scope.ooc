@@ -27,5 +27,24 @@ Scope: class extends ArrayList<Statement> {
         
     }
     
+    replace: func (oldie, kiddo: Statement) -> Bool {
+        
+        idx := indexOf(oldie)
+        if(idx == -1) return false
+        
+        set(idx, kiddo)
+        
+        println("Just replaced " + oldie toString() + " with " + kiddo toString())
+        
+        "Now remaining: " println()
+        for(s: Statement in this) {
+            s toString() println()
+        }
+        "-----------" println()
+        
+        return true
+        
+    }
+    
 }
 

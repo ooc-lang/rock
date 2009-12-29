@@ -1,5 +1,6 @@
 import ../frontend/Token
-import Visitor, Statement, Expression, Node, FunctionDecl
+import Visitor, Statement, Expression, Node, FunctionDecl, FunctionCall,
+       VariableAccess, AddressOf
 import tinker/[Response, Resolver, Trail]
 
 Return: class extends Statement {
@@ -30,7 +31,25 @@ Return: class extends Statement {
         //println("/- Resolving " + toString() + ", trail = " + trail toString())
         idx := trail find(FunctionDecl)
         if(idx != -1) {
+            fDecl := trail get(idx) as FunctionDecl
+            retType := fDecl getReturnType()
+            if(!retType isResolved()) {
+                return Responses LOOP
+            }
             
+            if(fDecl getReturnType() isGeneric()) {
+                println(fDecl toString() + " has a generic return type, replacing self with memcpy!")
+                println("trail peek() is " + trail peek() toString())
+                
+                fCall := FunctionCall new("memcpy", token)
+                fCall args add(VariableAccess new(fDecl getReturnArg(), token))
+                fCall args add(AddressOf new(expr, expr token))
+                fCall args add(VariableAccess new(VariableAccess new(fDecl getReturnType() getName(), token), "size", token))
+                result := trail peek() replace(this, fCall)
+                
+                println("was the replace a success? " + result toString())
+                return Responses LOOP
+            }
         }
         
         return Responses OK
@@ -40,10 +59,13 @@ Return: class extends Statement {
     toString: func -> String { expr == null ? "return" : "return " + expr toString() }
     
     replace: func (oldie, kiddo: Node) -> Bool {
-        match oldie {
-            case expr => expr = kiddo; true
-            case => false
+        if(expr == oldie) {
+            println("replacing expr " + expr toString() + " with  kiddo " + kiddo toString())
+            expr = kiddo
+            return true
         }
+        
+        return false
     }
 
 }

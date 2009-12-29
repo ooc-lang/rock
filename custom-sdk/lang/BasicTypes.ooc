@@ -1,4 +1,4 @@
-include stdlib, stdio, ctype, stdint, stdbool
+include stdlib, stdio, ctype, stdint, stdbool, string
 
 /**
  * Pointer type

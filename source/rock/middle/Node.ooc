@@ -38,9 +38,9 @@ Node: abstract class {
         // overridden in sub-classes
     }
     
-    generateTempName: func -> String {
+    generateTempName: func (origin: String) -> String {
         nameSeed += 1
-        return "waka" + nameSeed
+        return origin + nameSeed
     }
 
 }
