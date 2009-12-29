@@ -106,6 +106,10 @@ AstBuilder: class {
         printf("===============\n")
     }
     
+    error: func (errorID: Int, message: String, index: Int) {
+        Token new(index, 1, module) throwError(message)
+    }
+    
     onInclude: func (path, name: String) {
         inc := Include new(path isEmpty() ? name : path + name, IncludeModes PATHY)
         module includes add(inc)
@@ -576,4 +580,6 @@ nq_onGenericArgument: func (this: AstBuilder, name: String) {
             fDecl typeArgs add(VariableDecl new(BaseType new("Class", Token new(this tokenPos, this module)), name clone(), Token new(this tokenPos, this module)))
     }
 }
+
+nq_error: func (this: AstBuilder, errorID: Int, message: String, index: Int) { this error(errorID, message, index) }
 
