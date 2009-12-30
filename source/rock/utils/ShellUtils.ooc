@@ -32,7 +32,6 @@ ShellUtils: class {
         st := StringTokenizer new(pathVar, ":")
         while (st hasNext()) {
             path := st nextToken() + File separator + executableName
-            println("testing path " + path)
             file := File new(path)
             if (file exists()) {
                 return file

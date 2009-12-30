@@ -9,8 +9,6 @@ SdkLocator: class {
         exec := ShellUtils findExecutable(Rock execName, false)
         if(exec) {
             realpath := exec getAbsolutePath()
-            println("path to rock          = " + exec path)
-            println("absolute path to rock = " + realpath)
             return File new(File new(realpath) parent() parent() path, "custom-sdk/")
         }
         
