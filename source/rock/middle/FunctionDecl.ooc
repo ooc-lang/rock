@@ -267,27 +267,7 @@ FunctionDecl: class extends Expression {
     }
     
     addBefore: func (mark, newcomer: Node) -> Bool {
-        
-        printf("Should add %s before %s, in a %s\n", newcomer toString(), mark toString(), toString())
-        
-        idx := body indexOf(mark)
-        printf("idx = %d\n", idx)
-        if(idx != -1) {
-            body add(idx, newcomer)
-            println("|| adding newcomer " + newcomer toString() + " at idx " + idx toString())
-            return true
-        } else {
-            printf("content of body = \n")
-            for(e in body) {
-                printf("    ")
-                e toString() println()
-            }
-            
-            return false
-        }
-        
-        return false
-    
+        body addBefore(mark, newcomer)
     }
     
     isScope: func -> Bool { true }
