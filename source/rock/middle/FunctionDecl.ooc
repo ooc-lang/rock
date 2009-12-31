@@ -228,7 +228,7 @@ FunctionDecl: class extends Expression {
                 //printf("[autoReturn] Oh, it's a %s already. Nice =D!\n",  last toString())
             } else if(last instanceOf(Expression)) {
                 expr := last as Expression
-                if(expr getType == null) return Responses LOOP
+                if(expr getType() == null) return Responses LOOP
                 
                 if(!expr getType() equals(voidType)) {
                     //printf("[autoReturn] Hmm it's a %s\n", last toString())
@@ -289,5 +289,7 @@ FunctionDecl: class extends Expression {
         return false
     
     }
+    
+    isScope: func -> Bool { true }
     
 }

@@ -1,6 +1,6 @@
 import structs/ArrayList
 import ../frontend/Token
-import Expression, Visitor, Type, Node
+import Expression, Visitor, Type, Node, VariableDecl, FunctionDecl
 import tinker/[Trail, Resolver, Response]
 
 AddressOf: class extends Expression {
@@ -15,7 +15,7 @@ AddressOf: class extends Expression {
         visitor visitAddressOf(this)
     }
     
-    getType: func -> Type { expr getType() reference() }
+    getType: func -> Type { expr getType() ? expr getType() reference() : null }
     
     toString: func -> String {
         return expr toString() + "&"
@@ -32,6 +32,10 @@ AddressOf: class extends Expression {
             }
         }
         trail pop(this)
+        
+        if(!expr isReferencable()) {
+            expr = VariableDecl new(null, generateTempName("wakaref"), expr, expr token)
+        }
         
         return Responses OK
         

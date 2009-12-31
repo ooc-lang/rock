@@ -15,10 +15,10 @@ Dereference: class extends Expression {
         visitor visitDereference(this)
     }
     
-    getType: func -> Type { expr getType() dereference() }
+    getType: func -> Type { expr getType() ? expr getType() dereference() : null }
     
     toString: func -> String {
-        return expr toString() + "&"
+        return expr toString() + "@"
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {

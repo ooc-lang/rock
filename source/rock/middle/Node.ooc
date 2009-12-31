@@ -22,6 +22,8 @@ Node: abstract class {
     
     addBefore: func (mark, newcomer: Node) -> Bool { false }
     
+    isScope: func -> Bool { false }
+    
     /**
      * resolveCall should look for a function declaration satisfying call,
      * and suggest it with call suggest(fDecl)
