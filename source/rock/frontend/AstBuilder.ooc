@@ -214,7 +214,6 @@ AstBuilder: class {
             list add(vd)
         } else {
             onStatement(vd)
-            printf("^^^^^^^ Unexpected varDecl %s, peek is a %s\n", vd toString(), node class name)
         }
     }
 

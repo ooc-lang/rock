@@ -112,9 +112,15 @@ BinaryOp: class extends Expression {
             //println("resolving " + toString() + ", right is a " + right class name)
             if(right instanceOf(FunctionCall)) {
                 fCall := right as FunctionCall
+                fDecl := fCall getRef()
+                if(!fDecl) return Responses LOOP
+                if(!fDecl getReturnType() isResolved()) return Responses LOOP
+                
                 //println("got assignment rhs a " + fCall toString())
-                fCall setReturnArg(left)
-                trail peek() replace(this, fCall)
+                if(fDecl getReturnType() isGeneric()) {
+                    fCall setReturnArg(left)
+                    trail peek() replace(this, fCall)
+                }
             }
         }
         

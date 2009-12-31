@@ -256,5 +256,7 @@ FunctionCall: class extends Expression {
     
     setReturnArg: func (=returnArg) {}
     getReturnArg: func -> Expression { returnArg }
+    
+    getRef: func -> FunctionDecl { ref }
 
 }
