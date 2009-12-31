@@ -109,10 +109,10 @@ BinaryOp: class extends Expression {
         trail pop(this)
 
         if(type == OpTypes ass) {
-            println("resolving " + toString() + ", right is a " + right class name)
+            //println("resolving " + toString() + ", right is a " + right class name)
             if(right instanceOf(FunctionCall)) {
                 fCall := right as FunctionCall
-                println("got assignment rhs a " + fCall toString())
+                //println("got assignment rhs a " + fCall toString())
                 fCall setReturnArg(left)
                 trail peek() replace(this, fCall)
             }

@@ -162,7 +162,7 @@ FunctionCall: class extends Expression {
                         idx := trail find(FunctionDecl)
                         fDecl := trail get(idx)
                         println("|| fDecl = " + fDecl toString())
-                        result := !fDecl addBefore(trail get(idx + 1), varDecl)
+                        result := !fDecl addBefore(idx + 1 >= trail size() ? this : trail get(idx + 1), varDecl)
                         if(!result) {
                             if(res params verbose) printf("Couldn't add %s before %s, parent is a %s\n", varDecl toString(), toString(), trail peek() toString())
                         } else {

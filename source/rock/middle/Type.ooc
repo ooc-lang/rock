@@ -38,7 +38,8 @@ Type: abstract class extends Node {
     
     replace: func (oldie, kiddo: Node) -> Bool { false }
     
-    reference: func -> This { PointerType new(this, token) }
+    reference:   func          -> This { PointerType new(this, token) }
+    dereference: abstract func -> This
     
 }
 
@@ -62,6 +63,9 @@ FuncType: class extends Type {
     
     getRef: func -> Declaration { null }
     setRef: func (d: Declaration) {}
+    
+    // should we throw an error or something?
+    dereference : func -> This { null }
     
 }
 
@@ -140,6 +144,9 @@ BaseType: class extends Type {
     
     getRef: func -> Declaration { ref }
     setRef: func (=ref) {}
+    
+    // should we throw an error or something?
+    dereference : func -> This { null }
 
 }
 
@@ -150,7 +157,7 @@ SugarType: abstract class extends Type {
     init: func ~sugarType (=inner, .token) { super(token) }
     
     resolve: func (trail: Trail, res: Resolver) -> Response { inner resolve(trail, res) }
-    getRef: func -> Declaration { inner getRef() }
+    getRef: func -> Declaration   { inner getRef()  }
     setRef: func (d: Declaration) { inner setRef(d) }
     
 }
@@ -174,6 +181,8 @@ PointerType: class extends SugarType {
     
     getName: func -> String { inner getName() + "*" }
     
+    dereference : func -> This { inner }
+    
 }
 
 ReferenceType: class extends SugarType {
@@ -194,5 +203,7 @@ ReferenceType: class extends SugarType {
     }
     
     getName: func -> String { inner getName() + "@" }
+    
+    dereference : func -> This { inner }
     
 }

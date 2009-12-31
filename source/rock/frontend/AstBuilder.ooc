@@ -6,7 +6,8 @@ import ../frontend/[Token, BuildParams]
 import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl, 
     FunctionCall, StringLiteral, Node, Module, Statement, Include, Import,
     Type, Expression, Return, VariableAccess, Cast, If, Else, ControlStatement,
-    Comparison, IntLiteral, Ternary, BinaryOp, BoolLiteral, Argument, Parenthesis]
+    Comparison, IntLiteral, Ternary, BinaryOp, BoolLiteral, Argument, Parenthesis,
+    AddressOf, Dereference]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -580,6 +581,9 @@ nq_onGenericArgument: func (this: AstBuilder, name: String) {
             fDecl typeArgs add(VariableDecl new(BaseType new("Class", Token new(this tokenPos, this module)), name clone(), Token new(this tokenPos, this module)))
     }
 }
+
+nq_onAddressOf:   func (this: AstBuilder, inner: Expression) -> AddressOf   { return AddressOf   new(inner, Token new(this tokenPos, this module)) }
+nq_onDereference: func (this: AstBuilder, inner: Expression) -> Dereference { return Dereference new(inner, Token new(this tokenPos, this module)) }
 
 nq_error: func (this: AstBuilder, errorID: Int, message: String, index: Int) { this error(errorID, message, index) }
 
