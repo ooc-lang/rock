@@ -21,4 +21,8 @@ ControlStatement: abstract class extends Statement {
         return response
     }
     
+    replace: func (oldie, kiddo: Node) -> Bool {
+        return body replace(oldie, kiddo)
+    }
+    
 }
