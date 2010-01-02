@@ -1,5 +1,5 @@
 import structs/[ArrayList]
-import VariableAccess, VariableDecl, Statement
+import VariableAccess, VariableDecl, Statement, Node
 import tinker/[Trail, Resolver, Response]
 
 Scope: class extends ArrayList<Statement> {
@@ -26,6 +26,29 @@ Scope: class extends ArrayList<Statement> {
         return Responses OK
         
     }
+    
+    addBefore: func (mark, newcomer: Node) -> Bool {
+        
+        printf("Should add %s before %s\n", newcomer toString(), mark toString())
+        
+        idx := indexOf(mark)
+        printf("idx = %d\n", idx)
+        if(idx != -1) {
+            add(idx, newcomer)
+            println("|| adding newcomer " + newcomer toString() + " at idx " + idx toString())
+            return true
+        } else {
+            printf("content of body = \n")
+            for(e in this) {
+                printf("    ")
+                e toString() println()
+            }
+            
+            return false
+        }
+        
+        return false
+    
     
 }
 

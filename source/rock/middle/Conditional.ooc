@@ -24,10 +24,12 @@ Conditional: abstract class extends ControlStatement {
     }
     
     replace: func (oldie, kiddo: Node) -> Bool {
-        match oldie {
-            case condition => condition = kiddo; true
-            case => false
+        if(oldie == condition) {
+            condition = kiddo
+            return true
         }
+        
+        return super replace(oldie, kiddo)
     }
 
 }

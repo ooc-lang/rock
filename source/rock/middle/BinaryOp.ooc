@@ -1,6 +1,6 @@
 import structs/ArrayList
 import ../frontend/Token
-import Expression, Visitor, Type, Node
+import Expression, Visitor, Type, Node, FunctionCall
 import tinker/[Trail, Resolver, Response]
 
 include stdint
@@ -89,6 +89,7 @@ BinaryOp: class extends Expression {
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
         trail push(this)
+        
         {
             response := left resolve(trail, res)
             if(!response ok()) {
@@ -96,6 +97,7 @@ BinaryOp: class extends Expression {
                 return response
             }
         }
+        
         {
             response := right resolve(trail, res)
             if(!response ok()) {
@@ -103,7 +105,24 @@ BinaryOp: class extends Expression {
                 return response
             }
         }
+
         trail pop(this)
+
+        if(type == OpTypes ass) {
+            //println("resolving " + toString() + ", right is a " + right class name)
+            if(right instanceOf(FunctionCall)) {
+                fCall := right as FunctionCall
+                fDecl := fCall getRef()
+                if(!fDecl) return Responses LOOP
+                if(!fDecl getReturnType() isResolved()) return Responses LOOP
+                
+                //println("got assignment rhs a " + fCall toString())
+                if(fDecl getReturnType() isGeneric()) {
+                    fCall setReturnArg(left)
+                    trail peek() replace(this, fCall)
+                }
+            }
+        }
         
         return Responses OK
         

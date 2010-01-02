@@ -5,7 +5,7 @@ import ../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     VariableDecl, If, Else, While, Foreach, Conditional, ControlStatement,
     VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,
     Node, Parenthesis, Return, Cast, Comparison, Ternary, BoolLiteral,
-    Argument, Statement]
+    Argument, Statement, AddressOf, Dereference]
     
 import Skeleton, FunctionDeclWriter, ControlStatementWriter, ClassDeclWriter,
     ModuleWriter, CoverDeclWriter, FunctionCallWriter, CastWriter
@@ -172,6 +172,14 @@ CGenerator: class extends Skeleton {
         // in the future, this will be half-deprecated to support varargs
         // with ArrayLists of Value<T>
         current app("...")
+    }
+    
+    visitAddressOf: func (node: AddressOf) {
+        current app("&("). app(node expr). app(")")
+    }
+    
+    visitDereference: func (node: Dereference) {
+        current app("*("). app(node expr). app(")")
     }
 
 }

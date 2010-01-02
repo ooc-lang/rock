@@ -1,6 +1,6 @@
 import structs/ArrayList
 import ../frontend/Token
-import Statement, Scope, VariableAccess
+import Statement, Scope, VariableAccess, Node
 import tinker/[Trail, Resolver, Response]
 
 ControlStatement: abstract class extends Statement {
@@ -20,5 +20,15 @@ ControlStatement: abstract class extends Statement {
         trail pop(this)
         return response
     }
+    
+    replace: func (oldie, kiddo: Node) -> Bool {
+        return body replace(oldie, kiddo)
+    }
+    
+    addBefore: func (mark, newcomer: Node) -> Bool {
+        body addBefore(mark, newcomer)
+    }
+    
+    isScope: func -> Bool { true }
     
 }

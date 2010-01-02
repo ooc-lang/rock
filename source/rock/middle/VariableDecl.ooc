@@ -1,5 +1,6 @@
 import structs/[ArrayList]
-import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess, Node
+import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
+       Node, ClassDecl
 import tinker/[Response, Resolver, Trail]
 
 VariableDecl: class extends Declaration {
@@ -82,6 +83,16 @@ VariableDecl: class extends Declaration {
         }
         
         trail pop(this)
+        
+        {
+            parent := trail peek()
+            if(!parent isScope() && !parent instanceOf(ClassDecl)) {
+                println("uh oh the parent of " + toString() + " isn't a scope but a " + parent class name)
+                idx := trail findScope()
+                result := trail get(idx) addBefore(trail get(idx + 1), this)
+                trail peek() replace(this, VariableAccess new(this, token))
+            } 
+        }
         
         return Responses OK
         

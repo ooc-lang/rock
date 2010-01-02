@@ -22,7 +22,23 @@ FunctionCallWriter: abstract class extends Skeleton {
             current app(fCall expr) 
         }
     
-        /* Step 2 : write generic type args */
+        /* Step 2 : write generic return arg, if any */
+        if(fDecl getReturnType() isGeneric()) {
+            if(isFirst) {
+                isFirst = false
+            } else {
+                current app(", ")
+            }
+            
+            retArg := fCall getReturnArg()
+            if(retArg) {
+                current app("&("). app(retArg). app(")")
+            } else {
+                current app("NULL")
+            }
+        }
+    
+        /* Step 3 : write generic type args */
         for(typeArg in fCall typeArgs) {
             if(isFirst) {
                 isFirst = false
@@ -32,7 +48,7 @@ FunctionCallWriter: abstract class extends Skeleton {
             current app(typeArg)
         }
         
-        /* Step 3 : write real args */
+        /* Step 4 : write real args */
         i := 0
         for(arg: Expression in fCall args) {
             if(isFirst) {

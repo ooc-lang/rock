@@ -8,4 +8,8 @@ Dog: class {
 
 }
 
-main: func {}
+main: func {
+
+    "All good!" println()
+
+}

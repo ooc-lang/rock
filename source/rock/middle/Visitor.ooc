@@ -3,7 +3,8 @@ import Node
 import Return, ClassDecl, CoverDecl, FunctionDecl, VariableDecl, Type,
         Module, If, Else, While, Foreach, RangeLiteral, CharLiteral,
         BoolLiteral, StringLiteral, IntLiteral, VariableAccess, FunctionCall,
-        BinaryOp, Parenthesis, Return, Cast, Comparison, Ternary, Argument
+        BinaryOp, Parenthesis, Return, Cast, Comparison, Ternary, Argument,
+        AddressOf, Dereference
 
 Visitor: abstract class {
     
@@ -32,7 +33,6 @@ Visitor: abstract class {
     
     visitBinaryOp:          abstract func (node: BinaryOp)
     visitParenthesis:       abstract func (node: Parenthesis)
-    //visitLine:              abstract func (node: Line)
     
     visitReturn:            abstract func (node: Return)
 
@@ -42,5 +42,8 @@ Visitor: abstract class {
     visitTernary:           abstract func (node: Ternary)
     
     visitVarArg:            abstract func (node: VarArg)
+    
+    visitAddressOf:         abstract func (node: AddressOf)
+    visitDereference:       abstract func (node: Dereference)
 
 }

@@ -35,6 +35,19 @@ Trail: class extends Stack<Node> {
         
     }
     
+    findScope: func -> Int {
+        
+        i := size() - 1
+        while(i >= 0) {
+            node : Node = data get(i)
+            if(node isScope()) break
+            i -= 1
+        }
+        
+        return i
+        
+    }
+    
     toString: func -> String {
         
         sb := StringBuffer new()

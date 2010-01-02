@@ -2,7 +2,7 @@ import structs/[Stack, ArrayList]
 import ../frontend/Token
 import Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, Else,
-       VariableDecl, Node, Statement, Module
+       VariableDecl, Node, Statement, Module, FunctionCall
 import tinker/[Resolver, Response, Trail]
 
 FunctionDecl: class extends Expression {
@@ -20,6 +20,7 @@ FunctionDecl: class extends Expression {
     
     typeArgs := ArrayList<VariableDecl> new()
     args := ArrayList<Argument> new()
+    returnArg : Argument = null
     body := Scope new()
     
     owner : TypeDecl = null
@@ -29,6 +30,15 @@ FunctionDecl: class extends Expression {
     }
     
     accept: func (visitor: Visitor) { visitor visitFunctionDecl(this) }
+
+    getReturnType: func -> Type { returnType }
+    
+    getReturnArg: func -> Argument {
+        if(returnArg == null) {
+            returnArg = Argument new(getReturnType(), generateTempName("returnArg"), token)
+        }
+        return returnArg
+    }
     
     hasReturn: func -> Bool {
         // TODO add Generic support
@@ -115,6 +125,15 @@ FunctionDecl: class extends Expression {
         }
         
         {
+            response := returnType resolve(trail, res)
+            //printf("))))))) For %s, response of return type %s = %s\n", toString(), returnType toString(), response toString())
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
+        }
+        
+        {
             response := body resolve(trail, res)
             if(!response ok()) {
                 trail pop(this)
@@ -122,11 +141,8 @@ FunctionDecl: class extends Expression {
             }
         }
         
-        autoReturn(trail)
-        
         {
-            response := returnType resolve(trail, res)
-            //printf("))))))) For %s, response of return type %s = %s\n", toString(), returnType toString(), response toString())
+            response := autoReturn(trail)
             if(!response ok()) {
                 trail pop(this)
                 return response
@@ -139,24 +155,24 @@ FunctionDecl: class extends Expression {
         
     }
     
-    autoReturn: func (trail: Trail) {
+    autoReturn: func (trail: Trail) -> Response {
         
         if(isMain() && isVoid()) {
             returnType = IntLiteral type
         }
         
-        if(!hasReturn()) return
-        if(isExtern()) return
+        if(!hasReturn() || isExtern()) return Responses OK
         
         stack := Stack<Iterator<Scope>> new()
         stack push(body iterator())
         
         //printf("[autoReturn] Exploring a %s\n", this toString())
-        autoReturnExplore(stack, trail)
+        response := autoReturnExplore(stack, trail)
+        return response
         
     }
     
-    autoReturnExplore: func (stack: Stack<Iterator<Statement>>, trail: Trail) {
+    autoReturnExplore: func (stack: Stack<Iterator<Statement>>, trail: Trail) -> Response {
         
         iter := stack peek()
         
@@ -188,7 +204,7 @@ FunctionDecl: class extends Expression {
                 i += 1
                 next := parentIter next()
                 if(!next instanceOf(ControlStatement)) {
-                    //printf("[autoReturn] next is a %s, condition is then false :/", next class name)
+                    //printf("[autoReturn] next is a %s, condition is then false :/\n", next class name)
                     condition = false
                     break
                 }
@@ -205,13 +221,20 @@ FunctionDecl: class extends Expression {
                 //printf("[autoReturn] scope is empty, needing return\n")
                 returnNeeded(trail)
             }
+            
             last := list last()
+            
             if(last instanceOf(Return)) {
                 //printf("[autoReturn] Oh, it's a %s already. Nice =D!\n",  last toString())
-            } else if(last instanceOf(Expression) && !last as Expression getType() equals(voidType)) {
-                //printf("[autoReturn] Hmm it's a %s\n", last toString())
-                list set(list lastIndex(), Return new(last, last token))
-                //printf("[autoReturn] Replaced with a %s!\n", last toString())
+            } else if(last instanceOf(Expression)) {
+                expr := last as Expression
+                if(expr getType() == null) return Responses LOOP
+                
+                if(!expr getType() equals(voidType)) {
+                    //printf("[autoReturn] Hmm it's a %s\n", last toString())
+                    list set(list lastIndex(), Return new(last, last token))
+                    //printf("[autoReturn] Replaced with a %s!\n", list last() toString())
+                }
             } else if(last instanceOf(Else)) {
                 // then it's alright, all cases are already handled
             } else {
@@ -219,6 +242,8 @@ FunctionDecl: class extends Expression {
                 returnNeeded(trail)
             }
         }
+        
+        return Responses OK
         
     }
 
@@ -237,29 +262,14 @@ FunctionDecl: class extends Expression {
     replace: func (oldie, kiddo: Node) -> Bool {
         match oldie {
             case returnType => returnType = kiddo; true
-            case => false
+            case => body replace(oldie, kiddo) != null
         }
     }
     
     addBefore: func (mark, newcomer: Node) -> Bool {
-        
-        printf("Should add %s before %s, in a %s\n", newcomer toString(), mark toString(), toString())
-        
-        idx := body indexOf(mark)
-        printf("idx = %d\n", idx)
-        if(idx != -1) {
-            body add(idx, newcomer)
-            return true
-        } else {
-            printf("content of body = \n")
-            for(e in body) {
-                printf("    ")
-                e toString() println()
-            }
-        }
-        
-        false
-    
+        body addBefore(mark, newcomer)
     }
+    
+    isScope: func -> Bool { true }
     
 }

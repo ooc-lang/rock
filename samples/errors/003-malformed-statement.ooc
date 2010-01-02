@@ -12,6 +12,6 @@ main: func {
     
     a := 235
     
-    ab + 
+    ab +
     
 }

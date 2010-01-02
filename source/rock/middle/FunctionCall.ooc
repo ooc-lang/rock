@@ -9,6 +9,7 @@ FunctionCall: class extends Expression {
     expr: Expression
     name, suffix = null : String
     typeArgs := ArrayList<Expression> new()
+    returnArg : Expression = null
     args := ArrayList<Expression> new()    
     
     ref = null : FunctionDecl
@@ -156,8 +157,13 @@ FunctionCall: class extends Expression {
                     typeArgs add(VariableAccess new(typeResult, nullToken))
                     
                     if(!implArg isReferencable()) {
-                        varDecl := VariableDecl new(typeResult, generateTempName(), args get(j), nullToken)
-                        if(!trail peek() addBefore(this, varDecl)) {
+                        varDecl := VariableDecl new(typeResult, generateTempName("genArg"), args get(j), nullToken)
+                        // that's actually quite a hack - what if we're not in a FunctionDecl?
+                        idx := trail findScope()
+                        fDecl := trail get(idx)
+                        println("|| fDecl = " + fDecl toString())
+                        result := !fDecl addBefore(idx + 1 >= trail size() ? this : trail get(idx + 1), varDecl)
+                        if(!result) {
                             if(res params verbose) printf("Couldn't add %s before %s, parent is a %s\n", varDecl toString(), toString(), trail peek() toString())
                         }
                         args set(j, VariableAccess new(varDecl, implArg token))
@@ -197,8 +203,8 @@ FunctionCall: class extends Expression {
             declArg := declIter next()
             callArg := callIter next()
             // avoid null types
-            //if(!declArg type) return -1
-            //if(!callArg type) return -1
+            if(declArg getType() == null) return -1
+            if(callArg getType() == null) return -1
             if(declArg type equals(callArg getType())) {
                 score += 10
             }
@@ -240,10 +246,17 @@ FunctionCall: class extends Expression {
     }
     
     replace: func (oldie, kiddo: Node) -> Bool {
-        match oldie {
-            case expr => expr = kiddo; true
-            case => false
+        if(oldie == expr) {
+            expr = kiddo;
+            return true;
         }
+        
+        return (args replace(oldie, kiddo) != null)
     }
+    
+    setReturnArg: func (=returnArg) {}
+    getReturnArg: func -> Expression { returnArg }
+    
+    getRef: func -> FunctionDecl { ref }
 
 }

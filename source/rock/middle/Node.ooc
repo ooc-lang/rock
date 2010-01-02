@@ -22,6 +22,8 @@ Node: abstract class {
     
     addBefore: func (mark, newcomer: Node) -> Bool { false }
     
+    isScope: func -> Bool { false }
+    
     /**
      * resolveCall should look for a function declaration satisfying call,
      * and suggest it with call suggest(fDecl)
@@ -38,9 +40,9 @@ Node: abstract class {
         // overridden in sub-classes
     }
     
-    generateTempName: func -> String {
+    generateTempName: func (origin: String) -> String {
         nameSeed += 1
-        return "waka" + nameSeed
+        return origin + nameSeed
     }
 
 }
