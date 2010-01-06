@@ -86,7 +86,7 @@ VariableDecl: class extends Declaration {
         
         {
             parent := trail peek()
-            if(!parent isScope() && !parent instanceOf(ClassDecl)) {
+            if(!parent isScope() && !parent instanceOf(TypeDecl)) {
                 println("uh oh the parent of " + toString() + " isn't a scope but a " + parent class name)
                 idx := trail findScope()
                 result := trail get(idx) addBefore(trail get(idx + 1), this)

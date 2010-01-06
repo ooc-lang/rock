@@ -158,13 +158,9 @@ FunctionCall: class extends Expression {
                     
                     if(!implArg isReferencable()) {
                         varDecl := VariableDecl new(typeResult, generateTempName("genArg"), args get(j), nullToken)
-                        // that's actually quite a hack - what if we're not in a FunctionDecl?
-                        idx := trail findScope()
-                        fDecl := trail get(idx)
-                        println("|| fDecl = " + fDecl toString())
-                        result := !fDecl addBefore(idx + 1 >= trail size() ? this : trail get(idx + 1), varDecl)
-                        if(!result) {
-                            if(res params verbose) printf("Couldn't add %s before %s, parent is a %s\n", varDecl toString(), toString(), trail peek() toString())
+                        
+                        if(!trail addBeforeInScope(this, varDecl)) {
+                            printf("Couldn't add %s before %s, parent is a %s\n", varDecl toString(), toString(), trail peek() toString())
                         }
                         args set(j, VariableAccess new(varDecl, implArg token))
                     }

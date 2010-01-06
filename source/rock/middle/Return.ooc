@@ -38,16 +38,20 @@ Return: class extends Statement {
             }
             
             if(fDecl getReturnType() isGeneric()) {
-                println(fDecl toString() + " has a generic return type, replacing self with memcpy!")
-                println("trail peek() is " + trail peek() toString())
+                //println(fDecl toString() + " has a generic return type, replacing self with memcpy!")
+                //println("trail peek() is " + trail peek() toString())
                 
                 fCall := FunctionCall new("memcpy", token)
                 fCall args add(VariableAccess new(fDecl getReturnArg(), token))
                 fCall args add(AddressOf new(expr, expr token))
                 fCall args add(VariableAccess new(VariableAccess new(fDecl getReturnType() getName(), token), "size", token))
                 result := trail peek() replace(this, fCall)
+                //println("was the replace a success? " + result toString())
                 
-                println("was the replace a success? " + result toString())
+                if(!result) {
+                    token throwError("Couldn't replace ourselves (a return) with a memcpy/assignment! trail = " + trail toString())
+                }
+                
                 return Responses LOOP
             }
         }
