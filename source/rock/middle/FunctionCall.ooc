@@ -1,7 +1,7 @@
 import structs/ArrayList
 import ../frontend/[Token, BuildParams]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
-       TypeDecl, Node, VariableDecl
+       TypeDecl, Node, VariableDecl, AddressOf
 import tinker/[Response, Resolver, Trail]
 
 FunctionCall: class extends Expression {
@@ -162,7 +162,7 @@ FunctionCall: class extends Expression {
                         if(!trail addBeforeInScope(this, varDecl)) {
                             printf("Couldn't add %s before %s, parent is a %s\n", varDecl toString(), toString(), trail peek() toString())
                         }
-                        args set(j, VariableAccess new(varDecl, implArg token))
+                        args set(j, AddressOf new(VariableAccess new(varDecl, implArg token), implArg token))
                     }
                     
                     break

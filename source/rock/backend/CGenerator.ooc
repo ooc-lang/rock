@@ -75,7 +75,7 @@ CGenerator: class extends Skeleton {
     
     /** Write a variable declaration */
     visitVariableDecl: func (vDecl: VariableDecl) {
-        current app(vDecl type). app(' '). app(vDecl name)
+        current app(vDecl getType()). app(' '). app(vDecl name)
         if(vDecl expr)
             current app(" = "). app(vDecl expr)
     }

@@ -35,6 +35,7 @@ AddressOf: class extends Expression {
         
         if(!expr isReferencable()) {
             expr = VariableDecl new(null, generateTempName("wakaref"), expr, expr token)
+            return Responses LOOP
         }
         
         return Responses OK
