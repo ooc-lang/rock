@@ -7,7 +7,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     FunctionCall, StringLiteral, Node, Module, Statement, Include, Import,
     Type, Expression, Return, VariableAccess, Cast, If, Else, ControlStatement,
     Comparison, IntLiteral, Ternary, BinaryOp, BoolLiteral, Argument, Parenthesis,
-    AddressOf, Dereference]
+    AddressOf, Dereference, Foreach]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -388,6 +388,17 @@ AstBuilder: class {
         //("Wanted to pop an Else, got a " + else1 class name) println()
         return else1
     }
+    
+    // foreach
+    onForeachStart: func (decl, collec: Expression) {
+        stack push(Foreach new(decl, collec, Token new(this tokenPos, this module)))
+    }
+    
+    onForeachEnd: func -> If {
+        foreach1 : Foreach = stack pop()
+        //("Wanted to pop an Foreach, got a " + foreach1 class name) println()
+        return foreach1
+    }
 
 }
 
@@ -465,10 +476,14 @@ nq_onStatement: func (this: AstBuilder, stmt: Statement)                 { this 
 nq_onReturn: func (this: AstBuilder, expr: Expression) -> Return         { return this onReturn(expr) }
 nq_onVarAccess: func (this: AstBuilder, expr: Expression, name: String) -> VariableAccess  { return this onVarAccess(expr, name) }
 nq_onCast: func (this: AstBuilder, expr: Expression, type: Type) -> Cast { return this onCast(expr, type) }
+
 nq_onIfStart: func (this: AstBuilder, condition: Expression)             { this onIfStart(condition) }
 nq_onIfEnd: func (this: AstBuilder) -> If                                { return this onIfEnd() }
 nq_onElseStart: func (this: AstBuilder)                                  { this onElseStart() }
 nq_onElseEnd: func (this: AstBuilder) -> Else                            { return this onElseEnd() }
+
+nq_onForeachStart: func (this: AstBuilder, decl, collec: Expression)     { this onForeachStart(decl, collec) }
+nq_onForeachEnd: func (this: AstBuilder) -> Foreach                      { return this onForeachEnd() }
 
 nq_onEquals: func (this: AstBuilder, left, right: Expression) -> Comparison {
     return Comparison new(left, right, CompTypes equal, Token new(this tokenPos, this module))

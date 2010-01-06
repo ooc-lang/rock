@@ -159,8 +159,13 @@ FunctionDeclWriter: abstract class extends Skeleton {
         // TODO inline member functions don't work yet anyway.
         //if(functionDecl isInline()) cgen.current.append("inline ")
             
-        // TODO add function pointers and generics
-        current app(fDecl returnType). app(' ')
+        // functions that return a generic value are actually void
+        // the return takes place with a memcpy/assignment to the returnArg
+        if(fDecl getReturnType() isGeneric()) {
+            current app("void ")
+        } else {
+            current app(fDecl returnType). app(' ')
+        }
         
         writeFullName(this, fDecl)
         if(additionalSuffix) current app(additionalSuffix)
