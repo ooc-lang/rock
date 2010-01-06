@@ -113,3 +113,5 @@ Class: abstract class {
     __load__: static Func
     
 }
+
+None: class {init: func {}}
