@@ -1,6 +1,6 @@
 import structs/[ArrayList]
 import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
-       Node, ClassDecl
+       Node, ClassDecl, FunctionCall
 import tinker/[Response, Resolver, Trail]
 
 VariableDecl: class extends Declaration {
@@ -91,7 +91,26 @@ VariableDecl: class extends Declaration {
                 idx := trail findScope()
                 result := trail get(idx) addBefore(trail get(idx + 1), this)
                 trail peek() replace(this, VariableAccess new(this, token))
+                return Responses LOOP
             } 
+        }
+        
+        if(expr != null && expr instanceOf(FunctionCall)) {
+            fCall := expr as FunctionCall
+            fDecl := fCall getRef()
+            if(!fDecl) return Responses LOOP
+            if(!fDecl getReturnType() isResolved()) return Responses LOOP
+            
+            println("got decl rhs a " + fCall toString())
+            if(fDecl getReturnType() isGeneric()) {
+                fCall setReturnArg(VariableAccess new(this, token))
+                println("Adding add a " + fCall toString() + " after a " + toString() + ", trail = " + trail toString())
+                result := trail addAfterInScope(this, fCall)
+                if(!result) {
+                    token throwError("Couldn't add a " + fCall toString() + " after a " + toString() + ", trail = " + trail toString())
+                }
+                expr = null
+            }
         }
         
         return Responses OK

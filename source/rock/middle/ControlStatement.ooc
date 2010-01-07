@@ -29,6 +29,10 @@ ControlStatement: abstract class extends Statement {
         body addBefore(mark, newcomer)
     }
     
+    addAfter: func (mark, newcomer: Node) -> Bool {
+        body addAfter(mark, newcomer)
+    }
+    
     isScope: func -> Bool { true }
     
 }

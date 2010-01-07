@@ -48,6 +48,32 @@ Scope: class extends ArrayList<Statement> {
         }
         
         return false
+        
+    }
+    
+    addAfter: func (mark, newcomer: Node) -> Bool {
+        
+        printf("Should add %s after %s\n", newcomer toString(), mark toString())
+        
+        idx := indexOf(mark)
+        printf("idx = %d\n", idx)
+        if(idx != -1) {
+            add(idx + 1, newcomer)
+            println("|| adding newcomer " + newcomer toString() + " at idx " + (idx + 1) toString())
+            return true
+        } else {
+            printf("content of body = \n")
+            for(e in this) {
+                printf("    ")
+                e toString() println()
+            }
+            
+            return false
+        }
+        
+        return false
+        
+    }
     
     
 }
