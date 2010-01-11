@@ -10,6 +10,8 @@ import ../backend/CGenerator
 import ../middle/[Module, Import]
 import ../middle/tinker/Tinkerer
 
+ROCK_BUILD_DATE, ROCK_BUILD_TIME: extern String
+
 CommandLine: class {
     params: BuildParams
     driver: Driver
@@ -158,7 +160,7 @@ CommandLine: class {
                 } else if (option == "V" || option == "-version" || option == "version") {
                     
                     // TODO
-                    println("rock v0.0 codename kalamazoo")
+                    printf("rock head, built on %s at %s\n", ROCK_BUILD_DATE, ROCK_BUILD_TIME)
                     exit(0)
                     
                 } else if (option == "h" || option == "-help" || option == "help") {
