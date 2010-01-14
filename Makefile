@@ -2,7 +2,14 @@
 PARSER_GEN=greg
 DATE=$(shell date +%Y-%m-%d)
 TIME=$(shell date +%H:%M)
-OOC_OWN_FLAGS=-sourcepath=source/ -driver=sequence -noclean -g -shout -v +-w +-DROCK_BUILD_DATE=\\\"${DATE}\\\" +-DROCK_BUILD_TIME=\\\"${TIME}\\\"
+OOC_OWN_FLAGS=-sourcepath=source/ -driver=sequence -noclean -g -shout -v +-w
+
+ifdef WINDIR
+	OOC_OWN_FLAGS+=+-DROCK_BUILD_DATE=\\\"${DATE}\\\" +-DROCK_BUILD_TIME=\\\"${TIME}\\\"
+else
+	OOC_OWN_FLAGS+=+-DROCK_BUILD_DATE=\"${DATE}\" +-DROCK_BUILD_TIME=\"${TIME}\"
+endif
+
 OOC=ooc ${OOC_OWN_FLAGS} ${OOC_FLAGS}
 
 all:
