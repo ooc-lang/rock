@@ -2,8 +2,7 @@ import io/File, os/Terminal
 import structs/[Array, ArrayList, List, Stack]
 import text/StringTokenizer
 
-import Help, Token, BuildParams, 
-AstBuilder
+import Help, Token, BuildParams, AstBuilder
 import compilers/[Gcc, Clang, Icc, Tcc]
 import drivers/[Driver, CombineDriver]
 import ../backend/CGenerator
