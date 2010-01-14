@@ -5,7 +5,7 @@ import text/StringTokenizer
 import Help, Token, BuildParams, AstBuilder
 import compilers/[Gcc, Clang, Icc, Tcc]
 import drivers/[Driver, CombineDriver]
-import ../backend/CGenerator
+import ../backend/cnaughty/CGenerator
 import ../middle/[Module, Import]
 import ../middle/tinker/Tinkerer
 

@@ -4,7 +4,7 @@ import middle/[BinaryOp, IntLiteral, StringLiteral, RangeLiteral,
     Module, FunctionDecl, VariableDecl, VariableAccess, Type,
     FunctionCall, Foreach, Include, Import, Use, ClassDecl, CoverDecl,
     TypeDecl]
-import backend/CGenerator
+import backend/cnaughty/CGenerator
 
 outPath := "rock_tmp"
 

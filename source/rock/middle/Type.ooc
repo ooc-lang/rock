@@ -1,5 +1,5 @@
 import ../frontend/[Token, BuildParams]
-import ../backend/AwesomeWriter
+import ../backend/cnaughty/AwesomeWriter
 import Node, Visitor, Declaration, TypeDecl, ClassDecl, VariableDecl, Module, Import
 import tinker/[Response, Resolver, Trail]
 

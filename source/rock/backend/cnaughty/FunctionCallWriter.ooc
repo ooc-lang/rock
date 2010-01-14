@@ -1,4 +1,4 @@
-import ../middle/[FunctionDecl, FunctionCall, TypeDecl, Argument, Type, Expression]
+import ../../middle/[FunctionDecl, FunctionCall, TypeDecl, Argument, Type, Expression]
 import Skeleton, FunctionDeclWriter
 
 FunctionCallWriter: abstract class extends Skeleton {

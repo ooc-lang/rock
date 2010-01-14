@@ -1,4 +1,4 @@
-import ../middle/[Module, Include, Import, TypeDecl, FunctionDecl, CoverDecl, ClassDecl]
+import ../../middle/[Module, Include, Import, TypeDecl, FunctionDecl, CoverDecl, ClassDecl]
 import CoverDeclWriter, ClassDeclWriter
 import Skeleton
 

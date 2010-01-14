@@ -1,4 +1,4 @@
-import AwesomeWriter, ../middle/[Visitor, Statement, ControlStatement]
+import AwesomeWriter, ../../middle/[Visitor, Statement, ControlStatement]
 
 Skeleton: abstract class extends Visitor {
     

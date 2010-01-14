@@ -1,5 +1,5 @@
-import io/[Writer], ../io/TabbedWriter
-import ../middle/[Visitor, Node]
+import io/[Writer], ../../io/TabbedWriter
+import ../../middle/[Visitor, Node]
 
 AwesomeWriter: class extends TabbedWriter {
     

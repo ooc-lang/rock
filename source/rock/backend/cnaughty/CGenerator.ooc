@@ -1,6 +1,6 @@
-import ../middle/Visitor
-import ../io/TabbedWriter, io/[File, FileWriter, Writer], AwesomeWriter
-import ../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
+import ../../middle/Visitor
+import ../../io/TabbedWriter, io/[File, FileWriter, Writer], AwesomeWriter
+import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     BinaryOp, IntLiteral, CharLiteral, StringLiteral, RangeLiteral,
     VariableDecl, If, Else, While, Foreach, Conditional, ControlStatement,
     VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,

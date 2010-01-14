@@ -1,4 +1,4 @@
-import ../middle/[ControlStatement, Conditional, If, Else, While,
+import ../../middle/[ControlStatement, Conditional, If, Else, While,
     Foreach, RangeLiteral]
 import Skeleton
 

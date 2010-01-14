@@ -1,5 +1,5 @@
 import structs/[List, ArrayList, HashMap]
-import ../middle/[Type]
+import ../../middle/[Type]
 import Skeleton
 
 TypeWriter: abstract class extends Skeleton {

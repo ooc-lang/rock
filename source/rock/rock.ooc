@@ -1,7 +1,7 @@
 import structs/[Array, List, ArrayList, Stack]
 import io/File
 import frontend/[CommandLine]
-import backend/[CGenerator]
+import backend/cnaughty/[CGenerator]
 
 Rock: class {
     execName : static String = ""

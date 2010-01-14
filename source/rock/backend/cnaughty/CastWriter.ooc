@@ -1,5 +1,5 @@
 import structs/[List, ArrayList, HashMap]
-import ../middle/[Cast]
+import ../../middle/[Cast]
 import Skeleton
 
 CastWriter: abstract class extends Skeleton {
