@@ -47,7 +47,9 @@ FunctionDecl: class extends Expression {
     }
     
     hasThis:  func -> Bool { isMember() && !isStatic }
+    
     isMember: func -> Bool { owner != null }
+    
     isExtern: func -> Bool { externName != null }
     
     isExternWithName: func -> Bool {

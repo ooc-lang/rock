@@ -43,6 +43,10 @@ VariableDecl: class extends Declaration {
     
     isExtern: func -> Bool { externName != null }
     
+    isExternWithName: func -> Bool {
+        (externName != null) && !(externName isEmpty())
+    }
+    
     resolveAccess: func (access: VariableAccess) {
         if(name == access name) {
             access suggest(this)
