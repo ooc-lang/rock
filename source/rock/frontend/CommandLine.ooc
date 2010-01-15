@@ -6,6 +6,7 @@ import Help, Token, BuildParams, AstBuilder
 import compilers/[Gcc, Clang, Icc, Tcc]
 import drivers/[Driver, CombineDriver]
 import ../backend/cnaughty/CGenerator
+import ../backend/json/JSONGenerator
 import ../middle/[Module, Import]
 import ../middle/tinker/Tinkerer
 
@@ -45,7 +46,14 @@ CommandLine: class {
                     
                     params outPath = File new(arg substring(arg indexOf('=') + 1))
                     params clean = false
+                } else if(option startsWith("backend")) {
+                    params backend = arg substring(arg indexOf('=') + 1)
                     
+                    if(params backend != "c" && params backend != "json") {
+                        "Unknown backend: %s." format(params backend) println()
+                        params backend = "c"     
+                    }
+
                 } else if (option startsWith("incpath")) {
                     
                     params incPath add(arg substring(arg indexOf('=') + 1))
@@ -309,29 +317,33 @@ CommandLine: class {
         collectModules(module, moduleList)
         if(!Tinkerer new(params) process(moduleList)) failure()
         
-        // phase 3: generate
-        params outPath mkdirs()
-        for(candidate in moduleList) {
-            CGenerator new(params outPath path, candidate) write() .close()
-        }
+        if(params backend == "c") {
+            // c phase 3: generate.
+            params outPath mkdirs()
+            for(candidate in moduleList) {
+                CGenerator new(params outPath path, candidate) write() .close()
+            }
+            // c phase 4: launch the C compiler
+            if(params compiler) {
+                result := driver compile(module)
+                if(result == 0) {
+                    success()
+                } else {
+                    failure()
+                }
+                // c phase 5: clean up
 
-        // phase 4: launch the C compiler
-        if(params compiler) {
-            result := driver compile(module)
-            if(result == 0) {
-                success()
-            } else {
-                failure()
+                // oh that's a hack.
+                if(params clean) {
+                    system("rm -rf %s" format(params outPath path))
+                }
+            }
+        } else if(params backend == "json") {
+            // json phase 3: generate.
+            for(candidate in moduleList) {
+                JSONGenerator new(File new(candidate simpleName + ".json"), candidate) write() .close()
             }
         }
-
-        // phase 5: clean up
-
-        // oh that's a hack.
-        if(params clean) {
-            system("rm -rf %s" format(params outPath path))
-        }
-        
         return 0
         
     }

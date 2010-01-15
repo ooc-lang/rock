@@ -18,6 +18,7 @@ Help: class {
 -g, -debug                      compile with debug information
 -noclean                        don't delete any temporary file produced by
                                 the backend
+-backend=[c,json]               choose the rock backend (default=c)
 -gcc,-tcc,-icc,-clang,-onlygen  choose the compiler backend (default=gcc)
 -onlygen doesn't launch any C compiler, and implies -noclean
 -gc=[dynamic,static,off]        link dynamically, link statically, or doesn't

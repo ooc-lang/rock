@@ -71,5 +71,8 @@ BuildParams: class {
     //includeLang := false // false as long as we're debugging
     
     dynamicLibs := ArrayList<String> new()
+
+    // backend; can be "c" or "json".
+    backend: String = "c"
     
 }
