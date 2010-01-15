@@ -246,35 +246,6 @@ JSONGenerator: class extends Visitor {
             type accept(this)
         /* TODO: catch global variables */
     }
-    
-    visitIf:                 func (node: If) {}
-    visitElse:               func (node: Else) {}
-    visitWhile:              func (node: While) {}
-    visitForeach:            func (node: Foreach) {}
-    
-    visitRangeLiteral:       func (node: RangeLiteral) {}
-    visitCharLiteral:        func (node: CharLiteral) {}
-    visitStringLiteral:      func (node: StringLiteral) {}
-    visitBoolLiteral:        func (node: BoolLiteral) {}
-    visitIntLiteral:         func (node: IntLiteral) {}
-    
-    visitVariableAccess:     func (node: VariableAccess) {}
-    visitFunctionCall:       func (node: FunctionCall) {}
-    
-    visitBinaryOp:           func (node: BinaryOp) {}
-    visitParenthesis:        func (node: Parenthesis) {}
-    
-    visitReturn:             func (node: Return) {}
-
-    visitCast:               func (node: Cast) {}
-    visitComparison:         func (node: Comparison) {}
-    
-    visitTernary:            func (node: Ternary) {}
-    
-    visitVarArg:             func (node: VarArg) {}
-    
-    visitAddressOf:          func (node: AddressOf) {}
-    visitDereference:        func (node: Dereference) {}
 
 
 }
