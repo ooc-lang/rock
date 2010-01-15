@@ -8,42 +8,42 @@ import Return, ClassDecl, CoverDecl, FunctionDecl, VariableDecl, Type,
 
 Visitor: abstract class {
     
-    visitClassDecl:         abstract func (node: ClassDecl)
-    visitCoverDecl:         abstract func (node: CoverDecl)
-    visitFunctionDecl:      abstract func (node: FunctionDecl)
-    visitVariableDecl:      abstract func (node: VariableDecl)
+    visitClassDecl:         func (node: ClassDecl)
+    visitCoverDecl:         func (node: CoverDecl)
+    visitFunctionDecl:      func (node: FunctionDecl)
+    visitVariableDecl:      func (node: VariableDecl)
     
-    visitType:              abstract func (node: Type)
+    visitType:              func (node: Type)
     
-    visitModule:            abstract func (node: Module)
+    visitModule:            func (node: Module)
     
-    visitIf:                abstract func (node: If)
-    visitElse:              abstract func (node: Else)
-    visitWhile:             abstract func (node: While)
-    visitForeach:           abstract func (node: Foreach)
+    visitIf:                func (node: If)
+    visitElse:              func (node: Else)
+    visitWhile:             func (node: While)
+    visitForeach:           func (node: Foreach)
     
-    visitRangeLiteral:      abstract func (node: RangeLiteral)
-    visitCharLiteral:       abstract func (node: CharLiteral)
-    visitStringLiteral:     abstract func (node: StringLiteral)
-    visitBoolLiteral:       abstract func (node: BoolLiteral)
-    visitIntLiteral:        abstract func (node: IntLiteral)
+    visitRangeLiteral:      func (node: RangeLiteral)
+    visitCharLiteral:       func (node: CharLiteral)
+    visitStringLiteral:     func (node: StringLiteral)
+    visitBoolLiteral:       func (node: BoolLiteral)
+    visitIntLiteral:        func (node: IntLiteral)
     
-    visitVariableAccess:    abstract func (node: VariableAccess)
-    visitFunctionCall:      abstract func (node: FunctionCall)
+    visitVariableAccess:    func (node: VariableAccess)
+    visitFunctionCall:      func (node: FunctionCall)
     
-    visitBinaryOp:          abstract func (node: BinaryOp)
-    visitParenthesis:       abstract func (node: Parenthesis)
+    visitBinaryOp:          func (node: BinaryOp)
+    visitParenthesis:       func (node: Parenthesis)
     
-    visitReturn:            abstract func (node: Return)
+    visitReturn:            func (node: Return)
 
-    visitCast:              abstract func (node: Cast)
-    visitComparison:        abstract func (node: Comparison)
+    visitCast:              func (node: Cast)
+    visitComparison:        func (node: Comparison)
     
-    visitTernary:           abstract func (node: Ternary)
+    visitTernary:           func (node: Ternary)
     
-    visitVarArg:            abstract func (node: VarArg)
+    visitVarArg:            func (node: VarArg)
     
-    visitAddressOf:         abstract func (node: AddressOf)
-    visitDereference:       abstract func (node: Dereference)
+    visitAddressOf:         func (node: AddressOf)
+    visitDereference:       func (node: Dereference)
 
 }
