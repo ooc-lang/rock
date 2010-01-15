@@ -54,23 +54,74 @@ JSONGenerator: class extends Visitor {
         writer close()
     }
 
-    visitClassDecl:          func (node: ClassDecl) {
-/*        obj := ValueMap new()
-        /* `name` /
-        obj putValue("name", node name)
-        /* `type` /
+    visitClassDecl: func (node: ClassDecl) {
+        if(node isMeta)
+            return
+        obj := ValueMap new()
+        /* `name` */
+        obj putValue("name", node name as String)
+        /* `type` */
         obj putValue("type", "class")
-        /* `extends` /
+        /* `tag` */
+        obj putValue("tag", node name as String)
+        /* `extends` */
         if(node superRef() != null) {
-            obj putValue("extends", node superRef() name)
+            obj putValue("extends", node superRef() name as String)
         } else {
             obj putValue("extends", null)
         }
-        /* TODO: genericTypes /
-        /* `members` /*/
-        
+        /* TODO: genericTypes */
+        /* `members` */
+        members := ValueList new()
+        for(function in node meta functions) {
+            member := ValueList new()
+            member addValue(function name) .addValue(buildFunctionDecl(function, "memberFunction"))
+            members addValue(member)
+        }
+        for(variable in node variables) {
+            member := ValueList new()
+            member addValue(variable name) .addValue(buildVariableDecl(variable, "field"))
+            members addValue(member)
+        }
+        obj putValue("members", members)
+        root putValue(node name, obj)
     }
-    visitCoverDecl:          func (node: CoverDecl) {}
+
+    visitCoverDecl: func (node: CoverDecl) {
+        obj := ValueMap new()
+        /* `name` */
+        obj putValue("name", node name as String)
+        /* `type` */
+        obj putValue("type", "cover")
+        /* `tag` */
+        obj putValue("tag", node name as String)
+        /* `extends` */
+        if(node superRef() != null) {
+            obj putValue("extends", node superRef() name as String)
+        } else {
+            obj putValue("extends", null)
+        }
+        /* `from` */
+        if(node fromType != null) {
+            obj putValue("from", node fromType toString())
+        } else {
+            obj putValue("from", null)
+        }
+        /* `members` */
+        members := ValueList new()
+        for(function in node functions) {
+            member := ValueList new()
+            member addValue(function name) .addValue(buildFunctionDecl(function, "memberFunction"))
+            members addValue(member)
+        }
+        for(variable: VariableDecl in node variables) {
+            member := ValueList new()
+            member addValue(variable name) .addValue(buildVariableDecl(variable, "field"))
+            members addValue(member)
+        }
+        obj putValue("members", members)
+        root putValue(node name, obj)
+    }
 
     visitFunctionDecl: func (node: FunctionDecl) {
         /* add to the root */
@@ -82,6 +133,12 @@ JSONGenerator: class extends Visitor {
         obj := ValueMap new()
         /* `name` */
         obj putValue("name", node name)
+        /* `tag` */
+        if(type == "memberFunction") {
+            obj putValue("tag", "memberFunction(%s, %s)" format(node owner name, node name))
+        } else {
+            obj putValue("tag", node name)
+        }
         /* `type` */
         obj putValue("type", type)
         /* `extern` */
@@ -135,13 +192,59 @@ JSONGenerator: class extends Visitor {
         obj
     }
 
-    visitVariableDecl:       func (node: VariableDecl) {}
+    visitVariableDecl: func (node: VariableDecl) {
+        /* add to the root */
+        obj := buildVariableDecl(node, "globalVariable")
+        root putValue(node name, obj)
+    }
+
+    buildVariableDecl: func (node: VariableDecl, type: String) -> ValueMap {
+        obj := ValueMap new()
+        /* `name` */
+        obj putValue("name", node name)
+        /* `extern` */
+        if(node isExtern()) {
+            if(node externName isEmpty())
+                obj putValue("extern", true)
+            else
+                obj putValue("extern", node externName)
+        } else {
+            obj putValue("extern", false)
+        }
+        /* `type` */
+        obj putValue("type", type)
+        /* `tag` */
+        if(type == "field") {
+            obj putValue("tag", "field(%s, %s)" format(node owner name, node name))
+        } else {
+            obj putValue("tag", node name)
+        }
+        /* `modifiers` */
+        modifiers := ValueList new()
+        if(node isStatic)
+            modifiers addValue("static")
+        if(node isConst)
+            modifiers addValue("const")
+        obj putValue("modifiers", modifiers)
+        /* `value` */
+        if(node expr != null) {
+            obj putValue("value", node expr toString())
+        } else {
+            obj putValue("value", null)
+        }
+        /* `varType` */
+        obj putValue("varType", resolveType(node type))
+        obj
+    }
     
     visitType:               func (node: Type) {}
     
     visitModule:             func (node: Module) {
         for(function in node functions)
             function accept(this)
+        for(type in node types)
+            type accept(this)
+        /* TODO: catch global variables */
     }
     
     visitIf:                 func (node: If) {}
