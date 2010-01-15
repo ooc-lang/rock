@@ -1,6 +1,3 @@
-Int: cover from int
-Long: cover from long
-
 main: func -> Int {
 
     a := 42

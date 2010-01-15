@@ -1,9 +1,3 @@
-include stdio
-
-Int: cover from int
-Float: cover from float
-String: cover from char*
-
 Dog: cover {
     
     name: String
