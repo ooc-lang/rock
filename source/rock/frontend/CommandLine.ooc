@@ -321,7 +321,7 @@ CommandLine: class {
             // c phase 3: generate.
             params outPath mkdirs()
             for(candidate in moduleList) {
-                CGenerator new(params outPath path, candidate) write() .close()
+                CGenerator new(params, candidate) write() .close()
             }
             // c phase 4: launch the C compiler
             if(params compiler) {
@@ -341,7 +341,7 @@ CommandLine: class {
         } else if(params backend == "json") {
             // json phase 3: generate.
             for(candidate in moduleList) {
-                JSONGenerator new(File new(candidate simpleName + ".json"), candidate) write() .close()
+                JSONGenerator new(params, candidate) write() .close()
             }
         }
         return 0

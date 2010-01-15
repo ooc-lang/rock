@@ -33,14 +33,13 @@ Module: class extends Node {
                 packageName = fullName substring(0, idx)
         }
         
-        // FIXME this is incomplete, the correct code is actually
-        // to replace everything non-alphanumeric with underscores
         underName = sanitize(fullName clone())
-        
         packageName = sanitize(packageName)
     }
     
     sanitize: func(str: String) -> String {
+        // FIXME this is incomplete, the correct code is actually
+        // to replace everything non-alphanumeric with underscores
         return str replace('/', '_') replace('-', '_')
     }
     
@@ -54,7 +53,7 @@ Module: class extends Node {
     
     accept: func (visitor: Visitor) { visitor visitModule(this) }
     
-    getOutPath: func (suffix: String) -> String {
+    getPath: func (suffix: String) -> String {
         last := (File new(pathElement) name())
         return (last + File separator) + fullName + suffix
     }

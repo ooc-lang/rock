@@ -35,7 +35,7 @@ ModuleWriter: abstract class extends Skeleton {
         
         // write imports' includes
         for(imp: Import in module imports) {
-			inc := imp getModule() getOutPath(".h")
+			inc := imp getModule() getPath(".h")
 			current nl(). app("#include <"). app(inc). app(">")
 		}
         if(!module imports isEmpty()) current nl()

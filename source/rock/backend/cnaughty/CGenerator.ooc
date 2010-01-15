@@ -1,5 +1,9 @@
+
 import ../../middle/Visitor
 import ../../io/TabbedWriter, io/[File, FileWriter, Writer], AwesomeWriter
+
+import ../../frontend/BuildParams
+
 import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     BinaryOp, IntLiteral, CharLiteral, StringLiteral, RangeLiteral,
     VariableDecl, If, Else, While, Foreach, Conditional, ControlStatement,
@@ -12,18 +16,15 @@ import Skeleton, FunctionDeclWriter, ControlStatementWriter, ClassDeclWriter,
 
 CGenerator: class extends Skeleton {
 
-    outPath: String
+    params: BuildParams
     module: Module
 
-    init: func (=outPath, =module) {
-        File new(outPath) mkdirs()
-        modOutPath := module getOutPath("")
-        fileName := outPath + File separator + modOutPath
-        File new(fileName) parent() mkdirs()
-        //printf("Writing to fileName '%s'", fileName)
-        hw = AwesomeWriter new(this, FileWriter new(fileName + ".h"))
-        fw = AwesomeWriter new(this, FileWriter new(fileName + "-fwd.h"))
-        cw = AwesomeWriter new(this, FileWriter new(fileName + ".c"))
+    init: func (=params, =module) {
+        outPath := params getOutputPath(module, "")
+        File new(outPath) parent() mkdirs()
+        hw = AwesomeWriter new(this, FileWriter new(outPath + ".h"))
+        fw = AwesomeWriter new(this, FileWriter new(outPath + "-fwd.h"))
+        cw = AwesomeWriter new(this, FileWriter new(outPath + ".c"))
     }
     
     close: func {

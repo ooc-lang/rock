@@ -3,6 +3,8 @@ use yajl
 import io/[File, FileWriter]
 import yajl/Yajl
 
+import ../../frontend/BuildParams
+
 import ../../middle/[Visitor]
 
 import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
@@ -13,11 +15,15 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Argument, Statement, AddressOf, Dereference]
     
 JSONGenerator: class extends Visitor {
+    
+    params: BuildParams
     outFile: File
     module: Module
     root: ValueMap
 
-    init: func (=outFile, =module) {
+    init: func (=params, =module) {
+        outFile = File new(params getOutputPath(module, ".json"))
+        outFile parent() mkdirs()
         root = ValueMap new()
     }
 

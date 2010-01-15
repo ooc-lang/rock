@@ -4,8 +4,10 @@ import structs/ArrayList
 import compilers/AbstractCompiler
 import PathList
 import DistLocator, SdkLocator
+import ../middle/Module
 
 BuildParams: class {
+    
     compiler: AbstractCompiler = null
     
     distLocation: File = DistLocator locate()
@@ -74,5 +76,16 @@ BuildParams: class {
 
     // backend; can be "c" or "json".
     backend: String = "c"
+    
+    /**
+     * Build the output path for an .ooc file.
+     * For example, if the file was found in
+     *    `<sourcepath>/my/package/file.ooc`
+     * The output path will be built like this:
+     *     <outpath>/my/package/file<extension>
+     */
+    getOutputPath: func (module: Module, extension: String) -> String {
+        outPath path + File separator + module getPath(extension)
+    }
     
 }

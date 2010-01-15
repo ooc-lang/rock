@@ -54,7 +54,7 @@ Driver: abstract class {
         toCompile add(module) 
         done add(module fullName) 
         
-        objFile := params outPath path + File separator + module getOutPath(".c")
+        objFile := params getOutputPath(module, ".c")
         params compiler addObjectFile(objFile) 
         
         for(imp: Import in module imports) {
