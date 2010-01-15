@@ -2,7 +2,7 @@ include stdio
 
 Natural: cover from int
 Real: cover from float
-Text cover from char*
+Text: cover from char*
 
 Dog: cover {
     name: String
