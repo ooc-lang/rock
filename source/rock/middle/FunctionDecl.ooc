@@ -159,8 +159,11 @@ FunctionDecl: class extends Expression {
     
     autoReturn: func (trail: Trail) -> Response {
         
+        finalResponse := Responses OK
+        
         if(isMain() && isVoid()) {
             returnType = IntLiteral type
+            finalResponse = Responses LOOP
         }
         
         if(!hasReturn() || isExtern()) return Responses OK
@@ -170,7 +173,10 @@ FunctionDecl: class extends Expression {
         
         //printf("[autoReturn] Exploring a %s\n", this toString())
         response := autoReturnExplore(stack, trail)
-        return response
+        
+        if(!response ok()) finalResponse = Responses LOOP
+        
+        return finalResponse
         
     }
     
@@ -222,6 +228,7 @@ FunctionDecl: class extends Expression {
             if(list isEmpty()) {
                 //printf("[autoReturn] scope is empty, needing return\n")
                 returnNeeded(trail)
+                return Responses LOOP
             }
             
             last := list last()
@@ -242,6 +249,7 @@ FunctionDecl: class extends Expression {
             } else {
                 //printf("[autoReturn] Huh, last is a %s, needing return\n", last toString())
                 returnNeeded(trail)
+                return Responses LOOP
             }
         }
         
@@ -255,7 +263,8 @@ FunctionDecl: class extends Expression {
     
     returnNeeded: func (trail: Trail) {
         if(isMain()) {
-            body add(Return new(IntLiteral new(0, nullToken), nullToken))
+            ret := Return new(IntLiteral new(0, nullToken), nullToken)
+            body add(ret)
         } else {
             Exception new(This, "Control reaches the end of non-void function! trail = " + trail toString()) throw()
         }

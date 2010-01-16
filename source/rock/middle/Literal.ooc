@@ -11,7 +11,7 @@ Literal: abstract class extends Expression {
     isResolved: func -> Bool { getType() isResolved() }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        
+
         if(!getType() isResolved()) {
             response := getType() resolve(trail, res)
             if(!response ok()) return response
