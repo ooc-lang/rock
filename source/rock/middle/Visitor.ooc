@@ -4,7 +4,7 @@ import Return, ClassDecl, CoverDecl, FunctionDecl, VariableDecl, Type,
         Module, If, Else, While, Foreach, RangeLiteral, CharLiteral,
         BoolLiteral, StringLiteral, IntLiteral, VariableAccess, FunctionCall,
         BinaryOp, Parenthesis, Return, Cast, Comparison, Ternary, Argument,
-        AddressOf, Dereference
+        AddressOf, Dereference, CommaSequence
 
 Visitor: abstract class {
     
@@ -45,5 +45,7 @@ Visitor: abstract class {
     
     visitAddressOf:         func (node: AddressOf) {}
     visitDereference:       func (node: Dereference) {}
+    
+    visitCommaSequence:     func (node: CommaSequence) {}
 
 }

@@ -1,7 +1,7 @@
 import structs/ArrayList
 import ../frontend/[Token, BuildParams]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
-       TypeDecl, Node, VariableDecl, AddressOf
+       TypeDecl, Node, VariableDecl, AddressOf, CommaSequence
 import tinker/[Response, Resolver, Trail]
 
 FunctionCall: class extends Expression {
@@ -52,6 +52,7 @@ FunctionCall: class extends Expression {
         
         if(args size() > 0) {
             trail push(this)
+            i := 0
             for(arg in args) {
                 //printf("Resolving arg %s\n", arg toString())
                 response := arg resolve(trail, res)
@@ -60,6 +61,7 @@ FunctionCall: class extends Expression {
                     //printf(" -- Failed, looping.\n")
                     return response
                 }
+                i += 1
             }
             trail pop(this)
         }
@@ -132,12 +134,36 @@ FunctionCall: class extends Expression {
             }
             trail pop(this)
         }
+        
+        unwrapIfNeeded(trail, res)
 
         if(refScore == -1 && res fatal) {
             token throwError("No such function %s" format(name))
         }
         
         return refScore != -1 ? Responses OK : Responses LOOP
+        
+    }
+    
+    unwrapIfNeeded: func (trail: Trail, res: Resolver) -> Response {
+        
+        parent := trail peek()
+        
+        if(ref returnType isGeneric() && !(parent isScope() || parent instanceOf(CommaSequence) || parent instanceOf(VariableDecl))) {
+            printf("OHMAGAD a generic-returning function (say, %s) in a %s!!!\n", toString(), parent toString())
+            vDecl := VariableDecl new(getType(), generateTempName("genCall"), token)
+            if(!trail addBeforeInScope(this, vDecl)) {
+                token throwError("Couldn't add a " + vDecl toString() + " before a " + toString() + ", trail = " + trail toString())
+            }
+            varAcc := VariableAccess new(vDecl, token)
+            setReturnArg(varAcc)
+            seq := CommaSequence new(token)
+            seq getBody() add(this)
+            seq getBody() add(varAcc)
+            if(!parent replace(this, seq)) {
+                token throwError("Couldn't replace " + toString() + " with " + seq toString() + ", trail = " + trail toString())
+            }
+        }
         
     }
     
