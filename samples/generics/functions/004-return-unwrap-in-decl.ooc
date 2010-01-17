@@ -1,7 +1,7 @@
 
 get: func <T> (t: T) -> T {
     
-    return 42
+    return t as Int + 21
     
 }
 

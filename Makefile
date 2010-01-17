@@ -23,6 +23,9 @@ test-ast:
 test:
 	make all && bin/rock < samples/ooc/hi-world.ooc
 
+slave:
+	OOC_FLAGS="-slave" make
+
 clean:
 	rm -rf ooc_tmp/
 

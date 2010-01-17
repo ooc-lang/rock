@@ -106,7 +106,7 @@ FunctionDecl: class extends Expression {
         
         trail push(this)
         
-        //printf("Resolving function decl %s (returnType = %s)\n", toString(), returnType toString())
+        //printf("\n\nResolving function decl %s (returnType = %s)\n", toString(), returnType toString())
 
         for(arg in args) {
             response := arg resolve(trail, res)
@@ -137,6 +137,7 @@ FunctionDecl: class extends Expression {
         
         {
             response := body resolve(trail, res)
+            //printf("))))))) For %s, response of body = %s\n", toString(), response toString())
             if(!response ok()) {
                 trail pop(this)
                 return response
@@ -145,6 +146,7 @@ FunctionDecl: class extends Expression {
         
         {
             response := autoReturn(trail)
+            //printf("))))))) For %s, response of autoReturn = %s\n", toString(), response toString())
             if(!response ok()) {
                 trail pop(this)
                 return response
@@ -152,6 +154,8 @@ FunctionDecl: class extends Expression {
         }
         
         trail pop(this)
+        
+        //printf("%s returning OK..\n", toString())
         
         return Responses OK
         
@@ -163,6 +167,7 @@ FunctionDecl: class extends Expression {
         
         if(isMain() && isVoid()) {
             returnType = IntLiteral type
+            //printf("Looping %s because of returnType, now %s\n", toString(), returnType toString())
             finalResponse = Responses LOOP
         }
         
@@ -174,7 +179,10 @@ FunctionDecl: class extends Expression {
         //printf("[autoReturn] Exploring a %s\n", this toString())
         response := autoReturnExplore(stack, trail)
         
-        if(!response ok()) finalResponse = Responses LOOP
+        if(!response ok()) {
+            //printf("Looping %s because autoReturnExplore said so.\n", toString())
+            finalResponse = Responses LOOP
+        }
         
         return finalResponse
         
@@ -237,7 +245,10 @@ FunctionDecl: class extends Expression {
                 //printf("[autoReturn] Oh, it's a %s already. Nice =D!\n",  last toString())
             } else if(last instanceOf(Expression)) {
                 expr := last as Expression
-                if(expr getType() == null) return Responses LOOP
+                if(expr getType() == null) {
+                    //printf("[autoReturn] LOOPing because last's type (%s) is null.", expr toString())
+                    return Responses LOOP
+                }
                 
                 if(!expr getType() equals(voidType)) {
                     //printf("[autoReturn] Hmm it's a %s\n", last toString())

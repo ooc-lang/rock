@@ -8,8 +8,12 @@ FunctionCall: class extends Expression {
 
     expr: Expression
     name, suffix = null : String
+    
     typeArgs := ArrayList<Expression> new()
+    
     returnArg : Expression = null
+    returnType : Type = null
+    
     args := ArrayList<Expression> new()    
     
     ref = null : FunctionDecl
@@ -104,17 +108,25 @@ FunctionCall: class extends Expression {
          * Now resolve generic type arguments
          */
         if(refScore != -1) {
-            handleGenerics(trail, res)
+            
+            response1 := resolveReturnType(trail, res)
+            response2 := handleGenerics(trail, res)
+            
+            if(!response1 ok() || !response2 ok()) {
+                //"%s looping because of generics!" format(toString()) println()
+                return Responses LOOP
+            }
         }
         
         if(typeArgs size() > 0) {
             trail push(this)
             for(typeArg in typeArgs) {
-                if(res params verbose) printf("Resolving typeArg %s\n", typeArg toString())
+                if(typeArg isResolved()) continue
+                //if(res params verbose) printf("Resolving typeArg %s\n", typeArg toString())
                 response := typeArg resolve(trail, res)
                 if(!response ok()) {
                     trail pop(this)
-                    if(res params verbose) printf(" -- Failed, looping.\n")
+                    //if(res params verbose) printf(" -- Failed, looping.\n")
                     return response
                 }
             }
@@ -129,49 +141,84 @@ FunctionCall: class extends Expression {
         
     }
     
+    resolveReturnType: func (trail: Trail, res: Resolver) -> Response {
+        
+        if(returnType == null && ref != null) {
+            if(ref returnType isGeneric()) {
+                //if(res params verbose) printf("\t$$$$ resolving returnType %s\n", ref returnType toString())
+                returnType = resolveTypeArg(ref returnType getName(), trail, res)
+            } else {
+                returnType = ref returnType
+            }
+        }
+        
+        //"At the end of resolveReturnType(), the return type of %s is %s" format(toString(), getType() ? getType() toString() : "null") println()
+        
+        return returnType == null ? Responses LOOP : Responses OK
+        
+    }
+    
     /**
      * Resolve type arguments
      */
-    handleGenerics: func (trail: Trail, res: Resolver) {
-        
+    handleGenerics: func (trail: Trail, res: Resolver) -> Response {
         
         if(typeArgs size() == ref typeArgs size()) {
-            return // already resolved
+            return Responses OK // already resolved
         }
         
-        if(res params verbose) printf("\t$$$$ resolving typeArgs of %s (call = %d, ref = %d)\n", toString(), typeArgs size(), ref typeArgs size())
-        if(res params verbose) printf("trail = %s\n", trail toString())
+        //if(res params verbose) printf("\t$$$$ resolving typeArgs of %s (call = %d, ref = %d)\n", toString(), typeArgs size(), ref typeArgs size())
+        //if(res params verbose) printf("trail = %s\n", trail toString())
         
         i := typeArgs size()
         while(i < ref typeArgs size()) {
             typeArg := ref typeArgs get(i)
-            if(res params verbose) printf("\t$$$$ resolving typeArg %s\n", typeArg name)
+            //if(res params verbose) printf("\t$$$$ resolving typeArg %s\n", typeArg name)
             
-            /* myFunction: func <T> (myArg: T) */
-            j := 0
-            for(arg in ref args) {
-                if(arg type getName() == typeArg name) {
-                    implArg := args get(j)
-                    typeResult := implArg getType()
-                    if(res params verbose) printf("\t$$=- found match in arg %s of type %s\n", arg toString(), typeResult toString())
-                    typeArgs add(VariableAccess new(typeResult, nullToken))
+            typeResult := resolveTypeArg(typeArg name, trail, res)
+            if(typeResult) {
+                typeArgs add(VariableAccess new(typeResult, nullToken))
+            } else break // typeArgs must be in order
+            
+            i += 1
+        }
+        
+        return typeArgs size() == ref typeArgs size() ? Responses LOOP : Responses OK
+        
+    }
+    
+    resolveTypeArg: func (typeArgName: String, trail: Trail, res: Resolver) -> Type {
+        
+        /* myFunction: func <T> (myArg: T) */
+        j := 0
+        for(arg in ref args) {
+            if(arg type getName() == typeArgName) {
+                implArg := args get(j)
+                typeResult := implArg getType()
+                //if(res params verbose) printf("\t$$=- found match in arg %s of type %s\n", arg toString(), typeResult toString())
+                
+                // if AdressOf, the job's done. If it's not referencable, we need to unwrap it!
+                if(!implArg instanceOf(AddressOf)) { // FIXME this is probably wrong - what if we want an address's address? etc.
                     
+                    target : Expression = implArg
                     if(!implArg isReferencable()) {
                         varDecl := VariableDecl new(typeResult, generateTempName("genArg"), args get(j), nullToken)
                         
                         if(!trail addBeforeInScope(this, varDecl)) {
                             printf("Couldn't add %s before %s, parent is a %s\n", varDecl toString(), toString(), trail peek() toString())
                         }
-                        args set(j, AddressOf new(VariableAccess new(varDecl, implArg token), implArg token))
+                        target = VariableAccess new(varDecl, implArg token)
                     }
-                    
-                    break
+                    args set(j, AddressOf new(target, target token))
+                
                 }
-                j += 1
+                
+                return typeResult
             }
-            
-            i += 1
+            j += 1
         }
+        
+        return null
         
     }
     
@@ -233,7 +280,7 @@ FunctionCall: class extends Expression {
         return false
     }
     
-    getType: func -> Type { ref ? ref returnType : null }
+    getType: func -> Type { returnType }
     
     isMember: func -> Bool { expr != null }
     
