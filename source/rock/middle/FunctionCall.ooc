@@ -160,6 +160,7 @@ FunctionCall: class extends Expression {
             seq := CommaSequence new(token)
             seq getBody() add(this)
             seq getBody() add(varAcc)
+            printf("Just unwrapped %s into var %s\n", toString(), varAcc toString())
             if(!parent replace(this, seq)) {
                 token throwError("Couldn't replace " + toString() + " with " + seq toString() + ", trail = " + trail toString())
             }
@@ -175,6 +176,10 @@ FunctionCall: class extends Expression {
                 returnType = resolveTypeArg(ref returnType getName(), trail, res)
             } else {
                 returnType = ref returnType
+            }
+            if(returnType) {
+                //printf("Looping because of return type %s\n", returnType toString())
+                return Responses LOOP
             }
         }
         

@@ -43,7 +43,7 @@ Return: class extends Statement {
                 
                 fCall := FunctionCall new("memcpy", token)
                 fCall args add(VariableAccess new(fDecl getReturnArg(), token))
-                fCall args add(AddressOf new(expr, expr token))
+                fCall args add(expr getType() isGeneric() ? expr : AddressOf new(expr, expr token))
                 fCall args add(VariableAccess new(VariableAccess new(fDecl getReturnType() getName(), token), "size", token))
                 result := trail peek() replace(this, fCall)
                 //println("was the replace a success? " + result toString())

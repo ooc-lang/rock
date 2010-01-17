@@ -5,7 +5,7 @@ import ../../io/TabbedWriter, io/[File, FileWriter, Writer], AwesomeWriter
 import ../../frontend/BuildParams
 
 import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
-    BinaryOp, IntLiteral, CharLiteral, StringLiteral, RangeLiteral,
+    BinaryOp, IntLiteral, FloatLiteral, CharLiteral, StringLiteral, RangeLiteral,
     VariableDecl, If, Else, While, Foreach, Conditional, ControlStatement,
     VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,
     Node, Parenthesis, Return, Cast, Comparison, Ternary, BoolLiteral,
@@ -62,6 +62,11 @@ CGenerator: class extends Skeleton {
     /** Write an int literal */
     visitIntLiteral: func (lit: IntLiteral) {
         current app("%lld" format(lit value))
+    }
+    
+    /** Write a float literal */
+    visitFloatLiteral: func (lit: FloatLiteral) {
+        current app("%f" format(lit value))
     }
     
     /** Write a string literal */

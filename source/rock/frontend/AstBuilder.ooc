@@ -6,8 +6,8 @@ import ../frontend/[Token, BuildParams]
 import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl, 
     FunctionCall, StringLiteral, Node, Module, Statement, Include, Import,
     Type, Expression, Return, VariableAccess, Cast, If, Else, ControlStatement,
-    Comparison, IntLiteral, Ternary, BinaryOp, BoolLiteral, Argument, Parenthesis,
-    AddressOf, Dereference, Foreach]
+    Comparison, IntLiteral, FloatLiteral, Ternary, BinaryOp, BoolLiteral,
+    Argument, Parenthesis, AddressOf, Dereference, Foreach]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -506,6 +506,10 @@ nq_onMoreThanOrEqual: func (this: AstBuilder, left, right: Expression) -> Compar
 
 nq_onIntLiteral: func (this: AstBuilder, value: String) -> IntLiteral {
     return IntLiteral new(value toLLong(), Token new(this tokenPos, this module))
+}
+
+nq_onFloatLiteral: func (this: AstBuilder, value: String) -> IntLiteral {
+    return FloatLiteral new(value toFloat(), Token new(this tokenPos, this module))
 }
 
 nq_onBoolLiteral: func (this: AstBuilder, value: Bool) -> BoolLiteral {

@@ -2,9 +2,10 @@ import Node
 
 import Return, ClassDecl, CoverDecl, FunctionDecl, VariableDecl, Type,
         Module, If, Else, While, Foreach, RangeLiteral, CharLiteral,
-        BoolLiteral, StringLiteral, IntLiteral, VariableAccess, FunctionCall,
-        BinaryOp, Parenthesis, Return, Cast, Comparison, Ternary, Argument,
-        AddressOf, Dereference, CommaSequence
+        BoolLiteral, StringLiteral, IntLiteral, FloatLiteral,
+        VariableAccess, FunctionCall, BinaryOp, Parenthesis, Return,
+        Cast, Comparison, Ternary, Argument, AddressOf, Dereference,
+        CommaSequence
 
 Visitor: abstract class {
     
@@ -25,8 +26,10 @@ Visitor: abstract class {
     visitRangeLiteral:      func (node: RangeLiteral) {}
     visitCharLiteral:       func (node: CharLiteral) {}
     visitStringLiteral:     func (node: StringLiteral) {}
+    
     visitBoolLiteral:       func (node: BoolLiteral) {}
     visitIntLiteral:        func (node: IntLiteral) {}
+    visitFloatLiteral:      func (node: FloatLiteral) {}
     
     visitVariableAccess:    func (node: VariableAccess) {}
     visitFunctionCall:      func (node: FunctionCall) {}

@@ -21,7 +21,7 @@ Node: abstract class {
     replace: abstract func (oldie, kiddo: Node) -> Bool
     
     addBefore: func (mark, newcomer: Node) -> Bool { false }
-    addAfter: func (mark, newcomer: Node)  -> Bool { true }
+    addAfter:  func (mark, newcomer: Node) -> Bool { true }
     
     isScope: func -> Bool { false }
     
