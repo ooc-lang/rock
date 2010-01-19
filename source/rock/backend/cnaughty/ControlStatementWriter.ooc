@@ -22,7 +22,14 @@ ControlStatementWriter: abstract class extends Skeleton {
     }
     
     write: static func ~_else (this: This, else1: Else) {
-        writeConditional(this, "else", else1)
+        isIf := else1 getBody() size() == 1 && else1 getBody() first() instanceOf(If)
+        
+        if(isIf) {
+            current app("else ")
+            writeConditional(this, "if", else1 getBody() first() as If)
+        } else {
+            writeConditional(this, "else", else1)
+        }
     }
     
     write: static func ~_while (this: This, while1: While) {

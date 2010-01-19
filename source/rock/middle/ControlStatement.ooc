@@ -35,4 +35,6 @@ ControlStatement: abstract class extends Statement {
     
     isScope: func -> Bool { true }
     
+    getBody: func -> Scope { body }
+    
 }
