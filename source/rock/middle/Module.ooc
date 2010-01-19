@@ -48,7 +48,8 @@ Module: class extends Node {
     }
     
     addType: func (tDecl: TypeDecl) {
-        types add(tDecl name, tDecl)
+        types put(tDecl name, tDecl)
+        if(tDecl getMeta()) types put(tDecl getMeta() name, tDecl getMeta())
     }
     
     accept: func (visitor: Visitor) { visitor visitModule(this) }

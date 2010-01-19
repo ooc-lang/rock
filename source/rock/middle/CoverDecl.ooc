@@ -42,6 +42,5 @@ CoverDecl: class extends TypeDecl {
     }
     
     replace: func (oldie, kiddo: Node) -> Bool { false }
-    getMeta: func -> This { this }
     
 }

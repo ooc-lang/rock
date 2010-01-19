@@ -11,43 +11,26 @@ CoverDeclWriter: abstract class extends Skeleton {
 		// addons only add functions to an already imported cover, so
 		// we don't need to struct it again, it would confuse the C compiler
 		if(!cDecl isAddon() && !cDecl isExtern() && cDecl fromType == null) {
-            current nl(). app("struct _"). app(cDecl underName()). app(' '). openBlock()
-			for(vDecl in cDecl variables) {
-				current nl()
-                if(!vDecl isExtern()) {
-                    current app(vDecl type). app(' '). app(vDecl name). app(";")
-                }
-			}
-			current closeBlock(). app(';'). nl()
+            writeGuts(this, cDecl)
 		}
-		
+        
 		for(fDecl in cDecl functions) {
 			fDecl accept(this)
             current nl()
 		}
         
-        writeClassFunction(this, cDecl)
-        
     }
     
-    writeClassFunction: static func (this: This, cDecl: CoverDecl) {
+    writeGuts: static func (this: This, cDecl: CoverDecl) {
         
-        current = fw
-        
-        current nl() .app("lang__Class *"). app(cDecl name). app("_class();")
-        
-        current = cw
-        
-        current nl().
-        app("lang__Class *"). app(cDecl name). app("_class() {"). tab(). nl().
-            app("static lang__Class _class = {"). tab(). nl().
-                app(".size = sizeof("). app(cDecl underName()). app("),"). nl().
-                app(".instanceSize = sizeof("). app(cDecl underName()). app("),"). nl().
-                app(".name = \""). app(cDecl name). app("\"").
-            untab(). nl(). app("};").
-            nl(). app("return &_class;").
-        untab(). nl(). app("}").
-        nl()
+        current nl(). app("struct _"). app(cDecl underName()). app(' '). openBlock()
+        for(vDecl in cDecl variables) {
+            current nl()
+            if(!vDecl isExtern()) {
+                current app(vDecl type). app(' '). app(vDecl name). app(";")
+            }
+        }
+        current closeBlock(). app(';'). nl()
         
     }
     

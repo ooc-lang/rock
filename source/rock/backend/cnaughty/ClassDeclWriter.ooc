@@ -8,6 +8,8 @@ ClassDeclWriter: abstract class extends Skeleton {
     CLASS_NAME := static const LANG_PREFIX + "Class";
     
     write: static func ~_class (this: This, cDecl: ClassDecl) {
+
+        //printf(" << Writing class decl %s\n", cDecl toString())
         
         if(cDecl isMeta) {
             
@@ -43,7 +45,6 @@ ClassDeclWriter: abstract class extends Skeleton {
         for(vName: String in cDecl variables keys) {
             // FIXME should figure out the type of vDecl by itself. Generics again, grr.
             vDecl := cDecl variables get(vName) as VariableDecl
-            if(vDecl isStatic) continue
             current nl(). app(vDecl). app(';')
         }
         

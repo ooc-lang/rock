@@ -23,6 +23,17 @@ ModuleWriter: abstract class extends Skeleton {
         
         // write all type forward declarations
         for(tDecl: TypeDecl in module types) {
+            if(tDecl isMeta) continue
+            match (tDecl class) {
+                case ClassDecl =>
+                    className := tDecl as ClassDecl underName()
+                    ClassDeclWriter writeStructTypedef(this, className)
+                case CoverDecl =>
+                    CoverDeclWriter writeTypedef(this, tDecl)
+            }
+        }
+        for(tDecl: TypeDecl in module types) {
+            if(!tDecl isMeta) continue
             match (tDecl class) {
                 case ClassDecl =>
                     className := tDecl as ClassDecl underName()
@@ -54,6 +65,11 @@ ModuleWriter: abstract class extends Skeleton {
         
         // write all types
         for(tDecl: TypeDecl in module types) {
+            if(tDecl isMeta) continue
+            tDecl accept(this)
+        }
+        for(tDecl: TypeDecl in module types) {
+            if(!tDecl isMeta) continue
             tDecl accept(this)
         }
         

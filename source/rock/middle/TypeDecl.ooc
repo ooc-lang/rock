@@ -68,14 +68,20 @@ TypeDecl: abstract class extends Declaration {
     }
     
     addVariable: func (vDecl: VariableDecl) {
-        //printf("______ %s %s just got variable %s\n", class name, vDecl toString())
-        variables put(vDecl name, vDecl)
-        vDecl owner = this
+        if(vDecl isStatic && !isMeta) {
+            meta addVariable(vDecl)
+        } else {
+            variables put(vDecl name, vDecl)
+            vDecl owner = this
+        }
     }
     
     addFunction: func (fDecl: FunctionDecl) {
-        //printf("______ %s %s just got function %s\n", class name, name, fDecl toString())
-        functions put(fDecl name, fDecl)
+        if(!isMeta) {
+            meta addFunction(fDecl)
+        } else {
+            functions put(fDecl name, fDecl)
+        }
         fDecl owner = this
     }
     
@@ -200,6 +206,16 @@ TypeDecl: abstract class extends Declaration {
             }
         }
         
+        if(meta) {
+            meta module = module
+            response := meta resolve(trail, res)
+            if(!response ok()) {
+                trail pop(this)
+                //printf("-- %s, meta of %s, isn't resolved, looping.\n", meta toString(), toString())
+                return response
+            }
+        }
+        
         trail pop(this)
         
         return Responses OK
@@ -244,8 +260,8 @@ TypeDecl: abstract class extends Declaration {
         class name + ' ' + name
     }
     
-    getMeta: func -> This { null }
-    getNonMeta: func -> This { this }
+    getMeta: func -> This { meta }
+    getNonMeta: func -> This { nonMeta }
 
 }
 

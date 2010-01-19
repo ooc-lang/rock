@@ -24,32 +24,10 @@ ClassDecl: class extends TypeDecl {
     
     accept: func (visitor: Visitor) { visitor visitClassDecl(this) }
     
-    addFunction: func (fDecl: FunctionDecl) {
-        //printf("______**** ClassDecl %s just got function %s isMeta? %s\n", name, fDecl toString(), isMeta toString())
-        if(!isMeta) {
-            meta addFunction(fDecl)
-        } else {
-            functions put(fDecl name, fDecl)
-        }
-        fDecl owner = this
-    }
-    
     resolve: func (trail: Trail, res: Resolver) -> Response {
         {
             response := super resolve(trail, res)
             if(!response ok()) return response
-        }
-        
-        if(meta) {
-            trail push(this)
-            meta module = module
-            module types put(meta name, meta)
-            response := meta resolve(trail, res)
-            trail pop(this)
-            if(!response ok()) {
-                //printf("-- %s, meta of %s, isn't resolved, looping.\n", meta toString(), toString())
-                return response
-            }
         }
         
         return Responses OK
@@ -66,9 +44,6 @@ ClassDecl: class extends TypeDecl {
 		if(getFunction(fDecl name, fDecl suffix, null, false) != null) return this
 		return null
 	}
-    
-    getMeta: func -> This { meta }
-    getNonMeta: func -> This { nonMeta }
     
     replace: func (oldie, kiddo: Node) -> Bool { false }
     
