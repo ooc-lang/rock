@@ -115,7 +115,7 @@ FunctionCall: class extends Expression {
             response2 := handleGenerics(trail, res)
             
             if(!response1 ok() || !response2 ok()) {
-                //"%s looping because of generics!" format(toString()) println()
+                "%s looping because of generics!" format(toString()) println()
                 return Responses LOOP
             }
         }
@@ -184,7 +184,6 @@ FunctionCall: class extends Expression {
         }
         
         //"At the end of resolveReturnType(), the return type of %s is %s" format(toString(), getType() ? getType() toString() : "null") println()
-        
         return returnType == null ? Responses LOOP : Responses OK
         
     }
@@ -212,6 +211,11 @@ FunctionCall: class extends Expression {
             } else break // typeArgs must be in order
             
             i += 1
+        }
+        
+        for(typeArg in typeArgs) {
+            response := typeArg resolve(trail, res)
+            if(!response ok()) return response
         }
         
         return typeArgs size() == ref typeArgs size() ? Responses LOOP : Responses OK
@@ -253,10 +257,12 @@ FunctionCall: class extends Expression {
         j = 0
         for(arg in ref args) {
             if(arg getName() == typeArgName) {
-                result := BaseType new(typeArgName, args get(j) token)
-                " >> Found ref-arg %s for typeArgName %s, returning %s" format(arg toString(), typeArgName, result toString()) println()
+                implArg := args get(j)
+                result := BaseType new(implArg as VariableAccess getName(), implArg token)
+                " >> Found ref-arg %s for typeArgName %s, returning %s" format(implArg toString(), typeArgName, result toString()) println()
                 return result
             }
+            j += 1
         }
         
         return null

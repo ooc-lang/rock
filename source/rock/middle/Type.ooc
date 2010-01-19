@@ -128,6 +128,9 @@ BaseType: class extends Type {
         }
         
         if(ref == null) {
+            if(res fatal) {
+                token throwError("Can't resolve type %s!" format(toString()))
+            }
             if(res params verbose) {
                 printf("     - type %s still not resolved, looping (ref = %p)\n", name, ref)
             }

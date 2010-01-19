@@ -19,7 +19,7 @@ Scope: class extends ArrayList<Statement> {
 
         for(stat in this) {
             response := stat resolve(trail, res)
-            //printf("Response of statement [%s] %s = %s\n", stast class name, stat toString(), response toString())
+            //printf("Response of statement [%s] %s = %s\n", stat class name, stat toString(), response toString())
             if(!response ok()) return response
         }
         

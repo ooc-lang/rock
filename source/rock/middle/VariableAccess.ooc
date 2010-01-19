@@ -103,6 +103,8 @@ VariableAccess: class extends Expression {
         return null
     }
     
+    getName: func -> String { name }
+    
     toString: func -> String {
         expr ? (expr getType() toString() + "." + name) : name
     }

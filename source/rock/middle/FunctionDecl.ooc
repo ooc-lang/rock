@@ -167,7 +167,7 @@ FunctionDecl: class extends Expression {
         
         if(isMain() && isVoid()) {
             returnType = IntLiteral type
-            //printf("Looping %s because of returnType, now %s\n", toString(), returnType toString())
+            printf("Looping %s because of returnType, now %s\n", toString(), returnType toString())
             finalResponse = Responses LOOP
         }
         
@@ -180,7 +180,7 @@ FunctionDecl: class extends Expression {
         response := autoReturnExplore(stack, trail)
         
         if(!response ok()) {
-            //printf("Looping %s because autoReturnExplore said so.\n", toString())
+            printf("Looping %s because autoReturnExplore said so.\n", toString())
             finalResponse = Responses LOOP
         }
         

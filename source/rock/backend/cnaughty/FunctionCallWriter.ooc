@@ -40,17 +40,27 @@ FunctionCallWriter: abstract class extends Skeleton {
         }
     
         /* Step 3 : write generic type args */
+        i := 0
         for(typeArg in fCall typeArgs) {
-            if(isFirst) {
-                isFirst = false
-            } else {
-                current app(", ")
+            ghost := false
+            for(arg in fDecl args) {
+                if(arg getName() == fDecl typeArgs get(i) getName()) {
+                    ghost = true
+                    break
+                }
             }
-            current app(typeArg)
+            
+            if(!ghost) {
+                if(isFirst) isFirst = false
+                else        current app(", ")
+                current app(typeArg)
+            }
+            
+            i += 1
         }
         
         /* Step 4 : write real args */
-        i := 0
+        i = 0
         for(arg: Expression in fCall args) {
             if(isFirst) {
                 isFirst = false

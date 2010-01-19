@@ -15,7 +15,7 @@ get: func <T> (T: Class) -> T {
 
 main: func -> Int {
 
-    //printf("%s %d, not %.2f\n", get(String), get(Int), get(Float))
+    printf("%s %d, not %.2f\n", get(String), get(Int), get(Float))
     return 0
     
 }
