@@ -20,13 +20,6 @@ ClassDecl: class extends TypeDecl {
 
     init: func ~classDecl(.name, .superType, =isMeta, .token) {
         super(name clone(), superType, token)
-
-        if(!superType && !isObjectClass()) {
-            // everyone inherits from object, darling.
-            this superType = BaseType new("Object", token)
-        }
-
-        createMeta()
     }
     
     accept: func (visitor: Visitor) { visitor visitClassDecl(this) }
@@ -39,18 +32,6 @@ ClassDecl: class extends TypeDecl {
             functions put(fDecl name, fDecl)
         }
         fDecl owner = this
-    }
-    
-    isObjectClass: func -> Bool {
-        name equals("Object") || name equals("ObjectClass")
-    }
-    
-    isClassClass: func -> Bool {
-        name equals("Class") || name equals("ClassClass")
-    }
-    
-    isRootClass: func -> Bool {
-        isObjectClass() || isClassClass()
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {

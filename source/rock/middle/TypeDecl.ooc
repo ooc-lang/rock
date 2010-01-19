@@ -30,9 +30,13 @@ TypeDecl: abstract class extends Declaration {
         instanceType = BaseType new(name, token)
         instanceType as BaseType ref = this
         thisDecl = VariableDecl new(instanceType, "this", nullToken)
-    }
-    
-    createMeta: func {
+        
+        // determine super-class
+        if(!this superType && !isObjectClass()) {
+            // everyone inherits from object, darling.
+            this superType = BaseType new("Object", token)
+        }
+        
         if(!this isMeta) {
             // create the meta-class
             metaSuperType : Type = null
@@ -49,6 +53,18 @@ TypeDecl: abstract class extends Declaration {
             type = meta getInstanceType()
             type as BaseType ref = meta
         }
+    }
+    
+    isObjectClass: func -> Bool {
+        name equals("Object") || name equals("ObjectClass")
+    }
+    
+    isClassClass: func -> Bool {
+        name equals("Class") || name equals("ClassClass")
+    }
+    
+    isRootClass: func -> Bool {
+        isObjectClass() || isClassClass()
     }
     
     addVariable: func (vDecl: VariableDecl) {
