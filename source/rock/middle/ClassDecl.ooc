@@ -84,7 +84,7 @@ ClassDecl: class extends TypeDecl {
             response := meta resolve(trail, res)
             trail pop(this)
             if(!response ok()) {
-                printf("-- %s, meta of %s, isn't resolved, looping.\n", meta toString(), toString())
+                //printf("-- %s, meta of %s, isn't resolved, looping.\n", meta toString(), toString())
                 return response
             }
         }

@@ -591,7 +591,7 @@ nq_onParenthesis: func (this: AstBuilder, inner: Expression) -> Parenthesis {
 nq_onGenericArgument: func (this: AstBuilder, name: String) {
     
     node : Node = this stack peek()
-    printf("======= Got generic argument %s, and node is a %s\n", name, node class name)
+    //printf("======= Got generic argument %s, and node is a %s\n", name, node class name)
     
     match {
         case node instanceOf(FunctionDecl) =>

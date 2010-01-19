@@ -91,7 +91,7 @@ VariableDecl: class extends Declaration {
         {
             parent := trail peek()
             if(!parent isScope() && !parent instanceOf(TypeDecl)) {
-                println("uh oh the parent of " + toString() + " isn't a scope but a " + parent class name)
+                //println("uh oh the parent of " + toString() + " isn't a scope but a " + parent class name)
                 idx := trail findScope()
                 result := trail get(idx) addBefore(trail get(idx + 1), this)
                 trail peek() replace(this, VariableAccess new(this, token))
@@ -105,10 +105,10 @@ VariableDecl: class extends Declaration {
             if(!fDecl) return Responses LOOP
             if(!fDecl getReturnType() isResolved()) return Responses LOOP
             
-            println("got decl rhs a " + fCall toString())
+            //println("got decl rhs a " + fCall toString())
             if(fDecl getReturnType() isGeneric()) {
                 fCall setReturnArg(VariableAccess new(this, token))
-                println("Adding add a " + fCall toString() + " after a " + toString() + ", trail = " + trail toString())
+                //println("Adding add a " + fCall toString() + " after a " + toString() + ", trail = " + trail toString())
                 result := trail addAfterInScope(this, fCall)
                 if(!result) {
                     token throwError("Couldn't add a " + fCall toString() + " after a " + toString() + ", trail = " + trail toString())

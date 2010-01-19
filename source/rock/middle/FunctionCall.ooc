@@ -115,7 +115,7 @@ FunctionCall: class extends Expression {
             response2 := handleGenerics(trail, res)
             
             if(!response1 ok() || !response2 ok()) {
-                "%s looping because of generics!" format(toString()) println()
+                //"%s looping because of generics!" format(toString()) println()
                 return Responses LOOP
             }
         }
@@ -150,7 +150,7 @@ FunctionCall: class extends Expression {
         parent := trail peek()
         
         if(ref returnType isGeneric() && !(parent isScope() || parent instanceOf(CommaSequence) || parent instanceOf(VariableDecl))) {
-            printf("OHMAGAD a generic-returning function (say, %s) in a %s!!!\n", toString(), parent toString())
+            //printf("OHMAGAD a generic-returning function (say, %s) in a %s!!!\n", toString(), parent toString())
             vDecl := VariableDecl new(getType(), generateTempName("genCall"), token)
             if(!trail addBeforeInScope(this, vDecl)) {
                 token throwError("Couldn't add a " + vDecl toString() + " before a " + toString() + ", trail = " + trail toString())
@@ -160,7 +160,7 @@ FunctionCall: class extends Expression {
             seq := CommaSequence new(token)
             seq getBody() add(this)
             seq getBody() add(varAcc)
-            printf("Just unwrapped %s into var %s\n", toString(), varAcc toString())
+            //printf("Just unwrapped %s into var %s\n", toString(), varAcc toString())
             if(!parent replace(this, seq)) {
                 token throwError("Couldn't replace " + toString() + " with " + seq toString() + ", trail = " + trail toString())
             }
@@ -259,7 +259,7 @@ FunctionCall: class extends Expression {
             if(arg getName() == typeArgName) {
                 implArg := args get(j)
                 result := BaseType new(implArg as VariableAccess getName(), implArg token)
-                " >> Found ref-arg %s for typeArgName %s, returning %s" format(implArg toString(), typeArgName, result toString()) println()
+                //" >> Found ref-arg %s for typeArgName %s, returning %s" format(implArg toString(), typeArgName, result toString()) println()
                 return result
             }
             j += 1

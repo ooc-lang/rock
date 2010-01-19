@@ -29,16 +29,16 @@ Scope: class extends ArrayList<Statement> {
     
     addBefore: func (mark, newcomer: Node) -> Bool {
         
-        printf("Should add %s before %s\n", newcomer toString(), mark toString())
+        //printf("Should add %s before %s\n", newcomer toString(), mark toString())
         
         idx := indexOf(mark)
-        printf("idx = %d\n", idx)
+        //printf("idx = %d\n", idx)
         if(idx != -1) {
             add(idx, newcomer)
-            println("|| adding newcomer " + newcomer toString() + " at idx " + idx toString())
+            //println("|| adding newcomer " + newcomer toString() + " at idx " + idx toString())
             return true
         } else {
-            printf("content of body = \n")
+            //printf("content of body = \n")
             for(e in this) {
                 printf("    ")
                 e toString() println()
@@ -53,16 +53,16 @@ Scope: class extends ArrayList<Statement> {
     
     addAfter: func (mark, newcomer: Node) -> Bool {
         
-        printf("Should add %s after %s\n", newcomer toString(), mark toString())
+        //printf("Should add %s after %s\n", newcomer toString(), mark toString())
         
         idx := indexOf(mark)
-        printf("idx = %d\n", idx)
+        //printf("idx = %d\n", idx)
         if(idx != -1) {
             add(idx + 1, newcomer)
-            println("|| adding newcomer " + newcomer toString() + " at idx " + (idx + 1) toString())
+            //println("|| adding newcomer " + newcomer toString() + " at idx " + (idx + 1) toString())
             return true
         } else {
-            printf("content of body = \n")
+            //printf("content of body = \n")
             for(e in this) {
                 printf("    ")
                 e toString() println()
