@@ -434,6 +434,7 @@ nq_onVarDeclAssign: func (this: AstBuilder, acc: VariableAccess, isConst: Bool, 
 // types
 nq_onTypeNew: func (this: AstBuilder, name: String) -> Type   { return BaseType new(name clone() trim(), Token new(this tokenPos, this module)) }
 nq_onTypePointer: func (this: AstBuilder, type: Type) -> Type { return PointerType new(type, Token new(this tokenPos, this module)) }
+nq_onTypeGenericArgument: func (this: AstBuilder, type: Type, name: String) { type addTypeArgument(VariableAccess new(name clone(), Token new(this tokenPos, this module))) }
 nq_onFuncTypeNew: func (this: AstBuilder) -> Type             { return FuncType new(Token new(this tokenPos, this module)) }
 
 // functions
