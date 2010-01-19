@@ -1,3 +1,4 @@
+import structs/[ArrayList]
 import ../frontend/[Token, BuildParams]
 import ../backend/cnaughty/AwesomeWriter
 import Node, Visitor, Declaration, TypeDecl, ClassDecl, VariableDecl, Module, Import
@@ -74,6 +75,8 @@ BaseType: class extends Type {
     ref: Declaration = null
     name: String
     
+    typeArgs := ArrayList<VariableDecl> new()
+    
     init: func ~baseType (=name, .token) { super(token) }
     
     pointerLevel: func -> Int { 0 }
@@ -104,6 +107,8 @@ BaseType: class extends Type {
         if(other class != this class) return false
         return (other as BaseType name equals(name))
     }
+    
+    addTypeArgument: func (typeArg: VariableDecl) -> Bool { typeArgs add(typeArg); true }
     
     getName: func -> String { name }
     

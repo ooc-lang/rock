@@ -169,7 +169,7 @@ FunctionDecl: class extends Expression {
         
         if(isMain() && isVoid()) {
             returnType = IntLiteral type
-            printf("Looping %s because of returnType, now %s\n", toString(), returnType toString())
+            //printf("Looping %s because of returnType, now %s\n", toString(), returnType toString())
             finalResponse = Responses LOOP
         }
         
