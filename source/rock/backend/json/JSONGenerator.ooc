@@ -73,12 +73,20 @@ JSONGenerator: class extends Visitor {
         /* TODO: genericTypes */
         /* `members` */
         members := ValueList new()
+        /* member functions */
         for(function in node meta functions) {
             member := ValueList new()
             member addValue(function name) .addValue(buildFunctionDecl(function, "memberFunction"))
             members addValue(member)
         }
+        /* variables */
         for(variable in node variables) {
+            member := ValueList new()
+            member addValue(variable name) .addValue(buildVariableDecl(variable, "field"))
+            members addValue(member)
+        }
+        /* static variables */
+        for(variable in node meta variables) {
             member := ValueList new()
             member addValue(variable name) .addValue(buildVariableDecl(variable, "field"))
             members addValue(member)
