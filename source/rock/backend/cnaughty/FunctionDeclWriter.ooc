@@ -112,9 +112,20 @@ FunctionDeclWriter: abstract class extends Skeleton {
         
         /* Step 3 : write generic type args */
         for(typeArg in fDecl typeArgs) {
-            if(!isFirst) current app(", ")
-            else isFirst = false
-            current app(typeArg)
+            ghost := false
+            for(arg in fDecl args) {
+                if(arg getName() == typeArg getName()) {
+                    ghost = true
+                    break
+                }
+            }
+            
+            if(!ghost) {
+                if(!isFirst) current app(", ")
+                else isFirst = false
+                
+                current app(typeArg)
+            }
         }
         
         /* Step 4 : write real args */

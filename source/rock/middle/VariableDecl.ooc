@@ -9,7 +9,7 @@ VariableDecl: class extends Declaration {
     type: Type
     expr: Expression
     owner: TypeDecl
-    
+
     isConst := false
     isStatic := false
     externName: String = null

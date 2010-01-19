@@ -249,6 +249,16 @@ FunctionCall: class extends Expression {
             j += 1
         }
         
+        /* myFunction: func <T> (T: Class) */
+        j = 0
+        for(arg in ref args) {
+            if(arg getName() == typeArgName) {
+                result := BaseType new(typeArgName, args get(j) token)
+                " >> Found ref-arg %s for typeArgName %s, returning %s" format(arg toString(), typeArgName, result toString()) println()
+                return result
+            }
+        }
+        
         return null
         
     }

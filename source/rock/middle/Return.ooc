@@ -19,7 +19,9 @@ Return: class extends Statement {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
-        if(expr) {
+        if(!expr) return Responses OK
+        
+        {
             trail push(this)
             response := expr resolve(trail, res)
             trail pop(this)
@@ -27,6 +29,7 @@ Return: class extends Statement {
                 return response
             }
         }
+        
         
         //println("/- Resolving " + toString() + ", trail = " + trail toString())
         idx := trail find(FunctionDecl)

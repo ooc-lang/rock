@@ -1,3 +1,4 @@
+
 id: func <T> (t: T) -> T { t }
 
 main: func -> Int {
