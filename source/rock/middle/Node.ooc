@@ -1,4 +1,4 @@
-import Visitor, FunctionCall, VariableAccess, Type
+import Visitor, FunctionCall, VariableAccess, VariableDecl, Type
 import ../frontend/Token
 import tinker/[Resolver, Response, Trail]
 
@@ -40,6 +40,12 @@ Node: abstract class {
     resolveType: func (type: BaseType) {
         // overridden in sub-classes
     }
+    
+    /**
+     * @return true if the node supports type arguments and it's been
+     * successfully added, false if not
+     */
+    addTypeArgument: func (typeArg: VariableDecl) -> Bool { false }
     
     generateTempName: func (origin: String) -> String {
         nameSeed += 1

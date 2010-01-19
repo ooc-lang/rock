@@ -216,18 +216,6 @@ AstBuilder: class {
         }
     }
 
-    onFuncTypeNew: func -> Type {
-        return FuncType new(Token new(this tokenPos, this module))
-    }
-      
-    onTypeNew: func (name: String) -> Type {
-        return BaseType new(name clone() trim(), Token new(this tokenPos, this module))
-    }
-    
-    onTypePointer: func (type: Type) -> Type {
-        return PointerType new(type, Token new(this tokenPos, this module))
-    }
-    
     onFunctionStart: func (name: String) {
         fDecl := FunctionDecl new(name clone(), Token new(this tokenPos, this module))
         stack push(fDecl)
@@ -444,9 +432,9 @@ nq_onVarDeclAssign: func (this: AstBuilder, acc: VariableAccess, isConst: Bool, 
 }
 
 // types
-nq_onTypeNew: func (this: AstBuilder, name: String) -> Type   { return this onTypeNew(name) }
-nq_onTypePointer: func (this: AstBuilder, type: Type) -> Type { return this onTypePointer(type) }
-nq_onFuncTypeNew: func (this: AstBuilder) -> Type             { return this onFuncTypeNew() }
+nq_onTypeNew: func (this: AstBuilder, name: String) -> Type   { return BaseType new(name clone() trim(), Token new(this tokenPos, this module)) }
+nq_onTypePointer: func (this: AstBuilder, type: Type) -> Type { return PointerType new(type, Token new(this tokenPos, this module)) }
+nq_onFuncTypeNew: func (this: AstBuilder) -> Type             { return FuncType new(Token new(this tokenPos, this module)) }
 
 // functions
 nq_onFunctionStart: func (this: AstBuilder, name: String)       { this onFunctionStart(name) }
@@ -590,13 +578,14 @@ nq_onParenthesis: func (this: AstBuilder, inner: Expression) -> Parenthesis {
 nq_onGenericArgument: func (this: AstBuilder, name: String) {
     
     node : Node = this stack peek()
-    //printf("======= Got generic argument %s, and node is a %s\n", name, node class name)
-    
-    match {
-        case node instanceOf(FunctionDecl) =>
-            fDecl := node as FunctionDecl
-            fDecl typeArgs add(VariableDecl new(BaseType new("Class", Token new(this tokenPos, this module)), name clone(), Token new(this tokenPos, this module)))
+    printf("======= Got generic argument %s, and node is a %s\n", name, node class name)
+        
+    token := Token new(this tokenPos, this module)
+    vDecl := VariableDecl new(BaseType new("Class", token), name clone(), token)
+    if(!node addTypeArgument(vDecl)) {
+        token throwError("Unexpected type argument in a %s declaration!" format(node class name))
     }
+    
 }
 
 nq_onAddressOf:   func (this: AstBuilder, inner: Expression) -> AddressOf   { return AddressOf   new(inner, Token new(this tokenPos, this module)) }

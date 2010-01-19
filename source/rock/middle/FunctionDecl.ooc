@@ -31,6 +31,8 @@ FunctionDecl: class extends Expression {
     
     accept: func (visitor: Visitor) { visitor visitFunctionDecl(this) }
 
+    addTypeArgument: func (typeArg: VariableDecl) -> Bool { typeArgs add(typeArg); true }
+
     getReturnType: func -> Type { returnType }
     
     getReturnArg: func -> Argument {

@@ -1,4 +1,4 @@
-import structs/HashMap
+import structs/[ArrayList, HashMap]
 import ../frontend/Token
 import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
     FunctionDecl, FunctionCall, Module, VariableAccess, Node
@@ -8,6 +8,8 @@ TypeDecl: abstract class extends Declaration {
 
     name: String
     externName: String = null
+
+    typeArgs := ArrayList<VariableDecl> new()
 
     variables := HashMap<VariableDecl> new()
     functions := HashMap<FunctionDecl> new()
@@ -54,6 +56,8 @@ TypeDecl: abstract class extends Declaration {
             type as BaseType ref = meta
         }
     }
+    
+    addTypeArgument: func (typeArg: VariableDecl) -> Bool { typeArgs add(typeArg); true }
     
     isObjectClass: func -> Bool {
         name equals("Object") || name equals("ObjectClass")
