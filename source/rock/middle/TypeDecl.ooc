@@ -1,6 +1,6 @@
 import structs/HashMap
 import ../frontend/Token
-import Expression, Type, Visitor, Declaration, VariableDecl,
+import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
     FunctionDecl, FunctionCall, Module, VariableAccess, Node
 import tinker/[Resolver, Response, Trail]
 
@@ -21,6 +21,8 @@ TypeDecl: abstract class extends Declaration {
     module: Module = null
     
     isMeta := false
+    meta : TypeDecl = null
+    nonMeta : TypeDecl = null
     
     init: func ~typeDecl (=name, =superType, .token) {
         super(token)
@@ -28,6 +30,25 @@ TypeDecl: abstract class extends Declaration {
         instanceType = BaseType new(name, token)
         instanceType as BaseType ref = this
         thisDecl = VariableDecl new(instanceType, "this", nullToken)
+    }
+    
+    createMeta: func {
+        if(!this isMeta) {
+            // create the meta-class
+            metaSuperType : Type = null
+            if(this superType) {
+                metaSuperType = BaseType new(this superType getName() + "Class", nullToken)
+            } else {
+                metaSuperType = BaseType new("Class", nullToken)
+            }
+            meta = ClassDecl new(name + "Class", metaSuperType, true, token)
+            meta nonMeta = this
+            meta thisDecl = this thisDecl
+            
+            // if we access to "Dog", we access to an object of type "DogClass"
+            type = meta getInstanceType()
+            type as BaseType ref = meta
+        }
     }
     
     addVariable: func (vDecl: VariableDecl) {

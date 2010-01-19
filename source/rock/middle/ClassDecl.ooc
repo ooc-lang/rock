@@ -14,9 +14,6 @@ ClassDecl: class extends TypeDecl {
     isAbstract := false
     isFinal := false
     
-    meta : ClassDecl = null
-    nonMeta : ClassDecl = null
-
     init: func ~classDeclNotMeta(.name, .superType, .token) {
         this(name, superType, false, token)
     }
@@ -28,23 +25,8 @@ ClassDecl: class extends TypeDecl {
             // everyone inherits from object, darling.
             this superType = BaseType new("Object", token)
         }
-        
-        if(!this isMeta) {
-            // create the meta-class
-            metaSuperType : Type = null
-            if(this superType) {
-                metaSuperType = BaseType new(this superType getName() + "Class", nullToken)
-            } else {
-                metaSuperType = BaseType new("Class", nullToken)
-            }
-            meta = ClassDecl new(name + "Class", metaSuperType, true, token)
-            meta nonMeta = this
-            meta thisDecl = this thisDecl
-            
-            // if we access to "Dog", we access to an object of type "DogClass"
-            type = meta getInstanceType()
-            type as BaseType ref = meta
-        }
+
+        createMeta()
     }
     
     accept: func (visitor: Visitor) { visitor visitClassDecl(this) }

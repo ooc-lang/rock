@@ -12,6 +12,7 @@ main: func -> Int {
     
     d: Dog
     d name = "Fido"
+    printf("The poor bastard's name is %s\n", d name)
 
     0
     

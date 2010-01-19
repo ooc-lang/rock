@@ -28,7 +28,6 @@ AstBuilder: class {
             printf("- Parsing %s (for module %s)\n", modulePath, module fullName)
         }
         cache put(modulePath, module)
-        //printCache()
         
         stack = Stack<Node> new()
         stack push(module)
