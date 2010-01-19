@@ -21,6 +21,7 @@ Install
 
 You'll need the latest nagaqueen grammar along the rock/ folder: http://github.com/nddrylliog/nagaqueen
 Since 2009-11-05, nagaqueen relies on greg instead of peg-leg again.: http://github.com/nddrylliog/greg
+You'll also need the ooc-yajl project for the json backend: http://github.com/fredreichbier/ooc-yajl
 
 Two ways, either
   - create a script in /usr/bin/rock where you export OOC_DIST and call /path/to/your/rock/bin/rock
