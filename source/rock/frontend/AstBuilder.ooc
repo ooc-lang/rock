@@ -178,6 +178,11 @@ AstBuilder: class {
         vds push(VariableDecl new(null, name clone(), Token new(this tokenPos, this module)))
     }
     
+    onVarDeclExtern: func (externName: String) {
+        vds : Stack<VariableDecl> = stack peek()
+        vds peek() setExternName(externName)
+    }
+    
     onVarDeclExpr: func (expr: Expression) {
         vds : Stack<VariableDecl> = stack peek()
         vds peek() setExpr(expr)
@@ -415,6 +420,7 @@ nq_onClassEnd: func (this: AstBuilder)                      { this onClassEnd() 
 // variable declarations
 nq_onVarDeclStart: func (this: AstBuilder)                      { this onVarDeclStart() }
 nq_onVarDeclName: func (this: AstBuilder, name: String)         { this onVarDeclName(name) }
+nq_onVarDeclExtern: func (this: AstBuilder, externName: String) { this onVarDeclName(externName) }
 nq_onVarDeclExpr: func (this: AstBuilder, expr: Expression)     { this onVarDeclExpr(expr) }
 nq_onVarDeclType: func (this: AstBuilder, type: Type)           { this onVarDeclType(type) }
 nq_onVarDeclStatic: func (this: AstBuilder)                     { this onVarDeclStatic() }
