@@ -2,7 +2,7 @@ import io/File
 import structs/[HashMap, ArrayList]
 import ../frontend/[Token, SourceReader]
 import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl,
-       FunctionCall, Type, Declaration, VariableAccess
+       FunctionCall, Type, Declaration, VariableAccess, OperatorDecl
 import tinker/[Response, Resolver, Trail]
 
 Module: class extends Node {
@@ -11,6 +11,7 @@ Module: class extends Node {
     
     types     := HashMap<TypeDecl> new()
     functions := HashMap<FunctionDecl> new()
+    operators := ArrayList<OperatorDecl> new()
     
     includes := ArrayList<Include> new()
     imports  := ArrayList<Import> new()
@@ -50,6 +51,10 @@ Module: class extends Node {
     addType: func (tDecl: TypeDecl) {
         types put(tDecl name, tDecl)
         if(tDecl getMeta()) types put(tDecl getMeta() name, tDecl getMeta())
+    }
+    
+    addOperator: func (oDecl: OperatorDecl) {
+        operators add(oDecl)
     }
     
     accept: func (visitor: Visitor) { visitor visitModule(this) }

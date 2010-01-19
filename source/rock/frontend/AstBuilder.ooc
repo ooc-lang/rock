@@ -7,7 +7,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     FunctionCall, StringLiteral, Node, Module, Statement, Include, Import,
     Type, Expression, Return, VariableAccess, Cast, If, Else, ControlStatement,
     Comparison, IntLiteral, FloatLiteral, Ternary, BinaryOp, BoolLiteral,
-    Argument, Parenthesis, AddressOf, Dereference, Foreach]
+    Argument, Parenthesis, AddressOf, Dereference, Foreach, OperatorDecl]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -218,6 +218,23 @@ AstBuilder: class {
             list add(vd)
         } else {
             onStatement(vd)
+        }
+    }
+
+    onOperatorStart: func (symbol: String) {
+        oDecl := OperatorDecl new(symbol clone(), Token new(this tokenPos, this module))
+        printf("Got operator overload %s\n", oDecl toString())
+        stack push(oDecl)
+        stack push(FunctionDecl new("", Token new(this tokenPos, this module)))
+    }
+    
+    onOperatorEnd: func {
+        printf("onOperatorEnd!\n")
+        oDecl : OperatorDecl = stack pop()
+        node : Node = stack peek()
+        if(node == module) {
+            printf(" >> Got operator overload %s\n", oDecl toString())
+            module addOperator(oDecl)
         }
     }
 
@@ -442,6 +459,10 @@ nq_onTypeNew: func (this: AstBuilder, name: String) -> Type   { return BaseType 
 nq_onTypePointer: func (this: AstBuilder, type: Type) -> Type { return PointerType new(type, Token new(this tokenPos, this module)) }
 nq_onTypeGenericArgument: func (this: AstBuilder, type: Type, name: String) { type addTypeArgument(VariableAccess new(name clone(), Token new(this tokenPos, this module))) }
 nq_onFuncTypeNew: func (this: AstBuilder) -> Type             { return FuncType new(Token new(this tokenPos, this module)) }
+
+// operators
+nq_onOperatorStart: func (this: AstBuilder, symbol: String)   { this onOperatorStart(symbol) }
+nq_onOperatorEnd: func (this: AstBuilder)                     { this onOperatorEnd() }
 
 // functions
 nq_onFunctionStart: func (this: AstBuilder, name: String)       { this onFunctionStart(name) }
