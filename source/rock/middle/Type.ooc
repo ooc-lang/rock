@@ -24,6 +24,8 @@ Type: abstract class extends Node {
     
     toString: func -> String { getName() }
     
+    toMangledString: func -> String { getName() }
+    
     // FIXME: stub
     getGroundType: func -> Type { this }
     
@@ -168,6 +170,8 @@ SugarType: abstract class extends Type {
     getRef: func -> Declaration   { inner getRef()  }
     setRef: func (d: Declaration) { inner setRef(d) }
     
+    getName: func -> String { inner getName() }
+    
 }
 
 PointerType: class extends SugarType {
@@ -187,7 +191,8 @@ PointerType: class extends SugarType {
         return (other as PointerType inner equals(inner))
     }
     
-    getName: func -> String { inner getName() + "*" }
+    toString: func -> String { inner toString() + "*" }
+    toMangledString: func -> String { inner toString() + "__star" }
     
     dereference : func -> This { inner }
     
@@ -210,7 +215,8 @@ ReferenceType: class extends SugarType {
         return (other as PointerType inner equals(inner))
     }
     
-    getName: func -> String { inner getName() + "@" }
+    toString: func -> String { inner toString() + "@" }
+    toMangledString: func -> String { inner toString() + "__star" }
     
     dereference : func -> This { inner }
     

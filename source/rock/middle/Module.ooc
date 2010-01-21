@@ -155,6 +155,15 @@ Module: class extends Node {
             }
         }
         
+        for(oDecl in operators) {
+            if(oDecl isResolved()) continue
+            response := oDecl resolve(trail, res)
+            //printf("response of oDecl %s = %s\n", oDecl toString(), response toString())
+            if(!response ok()) {
+                finalResponse = response
+            }
+        }
+        
         trail pop(this)
         
         return finalResponse

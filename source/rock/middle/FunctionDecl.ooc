@@ -35,6 +35,9 @@ FunctionDecl: class extends Expression {
 
     getReturnType: func -> Type { returnType }
     
+    setName: func (=name) {}
+    getName: func -> String { name }
+    
     getReturnArg: func -> Argument {
         if(returnArg == null) {
             returnArg = Argument new(getReturnType(), generateTempName("returnArg"), token)

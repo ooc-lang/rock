@@ -1,5 +1,7 @@
 Test: class {
-	
+
+    new: static func -> Test { null }
+    
 }
 
 operator + (first, second: Test) {
@@ -84,6 +86,7 @@ operator [] (first: Test, second: Int) {
 main: func {
 	one := Test new()
 	two := Test new()
+	//one, two : Test
 	one + two
 	one - two
 	one * two

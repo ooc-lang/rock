@@ -22,26 +22,8 @@ ModuleWriter: abstract class extends Skeleton {
         if(!module includes isEmpty()) current nl()
         
         // write all type forward declarations
-        for(tDecl: TypeDecl in module types) {
-            if(tDecl isMeta) continue
-            match (tDecl class) {
-                case ClassDecl =>
-                    className := tDecl as ClassDecl underName()
-                    ClassDeclWriter writeStructTypedef(this, className)
-                case CoverDecl =>
-                    CoverDeclWriter writeTypedef(this, tDecl)
-            }
-        }
-        for(tDecl: TypeDecl in module types) {
-            if(!tDecl isMeta) continue
-            match (tDecl class) {
-                case ClassDecl =>
-                    className := tDecl as ClassDecl underName()
-                    ClassDeclWriter writeStructTypedef(this, className)
-                case CoverDecl =>
-                    CoverDeclWriter writeTypedef(this, tDecl)
-            }
-        }
+        writeTypesForward(this, module, false) // non-metas first
+        writeTypesForward(this, module, true)  // then metas
         if(!module types isEmpty()) current nl()
         
         // write imports' includes
@@ -63,7 +45,7 @@ ModuleWriter: abstract class extends Skeleton {
         // write include to the module's. h file
         current nl(). app("#include \""). app(module simpleName). app(".h\""). nl()
         
-        // write all types
+        // write all types, non-metas first, then metas
         for(tDecl: TypeDecl in module types) {
             if(tDecl isMeta) continue
             tDecl accept(this)
@@ -81,6 +63,21 @@ ModuleWriter: abstract class extends Skeleton {
         // header end
         current = hw
         current nl(). nl(). app("#endif // "). app(hName)
+        
+    }
+    
+    writeTypesForward: static func (this: This, module: Module, meta: Bool) {
+        
+        for(tDecl: TypeDecl in module types) {
+            if(tDecl isMeta != meta) continue
+            match (tDecl class) {
+                case ClassDecl =>
+                    className := tDecl as ClassDecl underName()
+                    ClassDeclWriter writeStructTypedef(this, className)
+                case CoverDecl =>
+                    CoverDeclWriter writeTypedef(this, tDecl)
+            }
+        }
         
     }
     

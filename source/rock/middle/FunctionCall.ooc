@@ -95,10 +95,12 @@ FunctionCall: class extends Expression {
                 depth -= 1
             }
             if(expr != null && expr getType() != null && expr getType() getRef() != null) {
-                meta := expr getType() getRef() as TypeDecl getMeta()
+                tDecl := expr getType() getRef() as TypeDecl
+                meta := tDecl getMeta()
                 if(meta) {
                     meta resolveCall(this)
                 } else {
+                    tDecl resolveCall(this)
                     //printf("--> %s has no meta, not resolving.\n", expr getType() getRef() toString())
                 }
             //} else {
@@ -148,6 +150,8 @@ FunctionCall: class extends Expression {
     unwrapIfNeeded: func (trail: Trail, res: Resolver) -> Response {
         
         parent := trail peek()
+        
+        if(ref == null || ref returnType == null) return Responses LOOP // evil! should take fatal into account
         
         if(ref returnType isGeneric() && !(parent isScope() || parent instanceOf(CommaSequence) || parent instanceOf(VariableDecl))) {
             //printf("OHMAGAD a generic-returning function (say, %s) in a %s!!!\n", toString(), parent toString())

@@ -7,7 +7,8 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     FunctionCall, StringLiteral, Node, Module, Statement, Include, Import,
     Type, Expression, Return, VariableAccess, Cast, If, Else, ControlStatement,
     Comparison, IntLiteral, FloatLiteral, Ternary, BinaryOp, BoolLiteral,
-    Argument, Parenthesis, AddressOf, Dereference, Foreach, OperatorDecl]
+    NullLiteral, Argument, Parenthesis, AddressOf, Dereference, Foreach,
+    OperatorDecl]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -222,14 +223,14 @@ AstBuilder: class {
     }
 
     onOperatorStart: func (symbol: String) {
-        oDecl := OperatorDecl new(symbol clone(), Token new(this tokenPos, this module))
-        printf("Got operator overload %s\n", oDecl toString())
+        oDecl := OperatorDecl new(symbol clone() trim(), Token new(this tokenPos, this module))
+        fDecl := FunctionDecl new("", Token new(this tokenPos, this module))
+        oDecl setFunctionDecl(fDecl)
         stack push(oDecl)
-        stack push(FunctionDecl new("", Token new(this tokenPos, this module)))
+        stack push(fDecl)
     }
     
     onOperatorEnd: func {
-        printf("onOperatorEnd!\n")
         oDecl : OperatorDecl = stack pop()
         node : Node = stack peek()
         if(node == module) {
@@ -529,6 +530,10 @@ nq_onFloatLiteral: func (this: AstBuilder, value: String) -> IntLiteral {
 
 nq_onBoolLiteral: func (this: AstBuilder, value: Bool) -> BoolLiteral {
     return BoolLiteral new(value, Token new(this tokenPos, this module))
+}
+
+nq_onNull: func (this: AstBuilder) -> NullLiteral {
+    return NullLiteral new(Token new(this tokenPos, this module))
 }
 
 nq_onTernary: func (this: AstBuilder, condition, ifTrue, ifFalse: Expression) -> Ternary {

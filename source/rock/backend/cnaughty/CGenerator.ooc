@@ -5,11 +5,12 @@ import ../../io/TabbedWriter, io/[File, FileWriter, Writer], AwesomeWriter
 import ../../frontend/BuildParams
 
 import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
-    BinaryOp, IntLiteral, FloatLiteral, CharLiteral, StringLiteral, RangeLiteral,
-    VariableDecl, If, Else, While, Foreach, Conditional, ControlStatement,
-    VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,
-    Node, Parenthesis, Return, Cast, Comparison, Ternary, BoolLiteral,
-    Argument, Statement, AddressOf, Dereference, CommaSequence]
+    BinaryOp, IntLiteral, FloatLiteral, CharLiteral, StringLiteral,
+    RangeLiteral, NullLiteral, VariableDecl, If, Else, While, Foreach, 
+    Conditional, ControlStatement, VariableAccess, Include, Import,
+    Use, TypeDecl, ClassDecl, CoverDecl, Node, Parenthesis, Return,
+    Cast, Comparison, Ternary, BoolLiteral, Argument, Statement,
+    AddressOf, Dereference, CommaSequence]
     
 import Skeleton, FunctionDeclWriter, ControlStatementWriter, ClassDeclWriter,
     ModuleWriter, CoverDeclWriter, FunctionCallWriter, CastWriter
@@ -77,6 +78,11 @@ CGenerator: class extends Skeleton {
     /** Write a char literal */
     visitCharLiteral: func (chr: CharLiteral) {
         current app('\''). app(chr value). app('\'')
+    }
+    
+    /** Write a null literal! */
+    visitNullLiteral: func (lit: NullLiteral) {
+        current app("NULL")
     }
     
     /** Write a variable declaration */
