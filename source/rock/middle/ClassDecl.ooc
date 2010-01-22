@@ -66,10 +66,12 @@ ClassDecl: class extends TypeDecl {
 	addInit: func(fDecl: FunctionDecl) {
 		/* if defaultInit != null */
 		
+        newType := getNonMeta() getInstanceType()
+        
 		constructor := FunctionDecl new("new", fDecl token)
         constructor setStatic(true)
 		constructor setSuffix(fDecl getSuffix())
-		retType := getInstanceType()
+		retType := newType clone()
 		retType getTypeArgs() clear()
 		
 		constructor getArguments() addAll(fDecl getArguments())
@@ -77,7 +79,6 @@ ClassDecl: class extends TypeDecl {
 		
         // why use getNonMeta() here? addInit() is called only in the
         // meta-class, remember?
-        newType := getNonMeta() getInstanceType()
         newTypeAccess := VariableAccess new(newType, fDecl token)
         newTypeAccess setRef(getNonMeta())
 		allocCall := FunctionCall new(newTypeAccess, "alloc", fDecl token)

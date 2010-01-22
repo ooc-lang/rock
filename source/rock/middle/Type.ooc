@@ -40,6 +40,7 @@ Type: abstract class extends Node {
     }
     
     replace: func (oldie, kiddo: Node) -> Bool { false }
+    clone: abstract func -> This
     
     reference:   func          -> This { PointerType new(this, token) }
     dereference: abstract func -> This
@@ -71,6 +72,9 @@ FuncType: class extends Type {
     
     // should we throw an error or something?
     dereference : func -> This { null }
+    
+    // TODO: clone arguments, when the FuncType is fleshed out
+    clone: func -> This { new(token) }
     
     getTypeArgs: func -> List<VariableDecl> { null }
     
@@ -163,6 +167,8 @@ BaseType: class extends Type {
     
     // should we throw an error or something?
     dereference : func -> This { null }
+    
+    clone: func -> This { new(name, token) }
 
 }
 
@@ -204,6 +210,8 @@ PointerType: class extends SugarType {
     
     dereference : func -> This { inner }
     
+    clone: func -> This { new(inner, token) }
+    
 }
 
 ReferenceType: class extends SugarType {
@@ -227,5 +235,7 @@ ReferenceType: class extends SugarType {
     toMangledString: func -> String { inner toString() + "__star" }
     
     dereference : func -> This { inner }
+    
+    clone: func -> This { new(inner, token) }
     
 }
