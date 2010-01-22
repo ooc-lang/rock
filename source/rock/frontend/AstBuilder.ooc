@@ -8,7 +8,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Type, Expression, Return, VariableAccess, Cast, If, Else, ControlStatement,
     Comparison, IntLiteral, FloatLiteral, Ternary, BinaryOp, BoolLiteral,
     NullLiteral, Argument, Parenthesis, AddressOf, Dereference, Foreach,
-    OperatorDecl]
+    OperatorDecl, RangeLiteral, UnaryOp]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -598,6 +598,50 @@ nq_onMul: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
 
 nq_onDiv: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes div, Token new(this tokenPos, this module))
+}
+
+nq_onRangeLiteral: func (this: AstBuilder, left, right: Expression) -> RangeLiteral {
+    return RangeLiteral new(left, right, Token new(this tokenPos, this module))
+}
+
+nq_onBinaryLeftShift: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+    return BinaryOp new(left, right, OpTypes lshift, Token new(this tokenPos, this module))
+}
+
+nq_onBinaryRightShift: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+    return BinaryOp new(left, right, OpTypes rshift, Token new(this tokenPos, this module))
+}
+
+nq_onLogicalOr: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+    return BinaryOp new(left, right, OpTypes or, Token new(this tokenPos, this module))
+}
+
+nq_onLogicalAnd: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+    return BinaryOp new(left, right, OpTypes and, Token new(this tokenPos, this module))
+}
+
+nq_onBinaryOr: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+    return BinaryOp new(left, right, OpTypes bOr, Token new(this tokenPos, this module))
+}
+
+nq_onBinaryXor: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+    return BinaryOp new(left, right, OpTypes bXor, Token new(this tokenPos, this module))
+}
+
+nq_onBinaryAnd: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+    return BinaryOp new(left, right, OpTypes bAnd, Token new(this tokenPos, this module))
+}
+
+nq_onLogicalNot: func (this: AstBuilder, inner: Expression) -> UnaryOp {
+    return UnaryOp new(inner, UnaryOpTypes logicalNot, Token new(this tokenPos, this module))
+}
+
+nq_onBinaryNot: func (this: AstBuilder, inner: Expression) -> UnaryOp {
+    return UnaryOp new(inner, UnaryOpTypes binaryNot, Token new(this tokenPos, this module))
+}
+
+nq_onUnaryMinus: func (this: AstBuilder, inner: Expression) -> UnaryOp {
+    return UnaryOp new(inner, UnaryOpTypes unaryMinus, Token new(this tokenPos, this module))
 }
 
 nq_onVarArg: func (this: AstBuilder) -> VarArg {

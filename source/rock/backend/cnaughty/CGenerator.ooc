@@ -10,7 +10,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Conditional, ControlStatement, VariableAccess, Include, Import,
     Use, TypeDecl, ClassDecl, CoverDecl, Node, Parenthesis, Return,
     Cast, Comparison, Ternary, BoolLiteral, Argument, Statement,
-    AddressOf, Dereference, CommaSequence]
+    AddressOf, Dereference, CommaSequence, UnaryOp]
     
 import Skeleton, FunctionDeclWriter, ControlStatementWriter, ClassDeclWriter,
     ModuleWriter, CoverDeclWriter, FunctionCallWriter, CastWriter
@@ -58,6 +58,11 @@ CGenerator: class extends Skeleton {
     /** Write a binary operation */
     visitBinaryOp: func (op: BinaryOp) {
         current app(op left). app(" "). app(op type toString()). app(" "). app(op right)
+    }
+    
+    /** Write a unary operation */
+    visitUnaryOp: func (op: UnaryOp) {
+        current app(op type toString()). app(op inner)
     }
     
     /** Write an int literal */

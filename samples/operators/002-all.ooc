@@ -4,84 +4,41 @@ Test: class {
     
 }
 
-operator + (first, second: Test) {
-	println("+ works")
-}
+operator [] (first: Test, second: Int) { println("[] works") }
+operator + (first, second: Test) { println("+ works") }
+operator - (first, second: Test) { println("- works") }
+operator * (first, second: Test) { println("* works") }
+operator / (first, second: Test) { println("/ works") }
+operator << (first, second: Test) { println("<< works") }
+operator >> (first, second: Test) { println(">> works") }
+operator ^ (first, second: Test) { println("^ works") }
+operator & (first, second: Test) { println("& works") }
+operator | (first, second: Test) { println("| works") }
 
-operator - (first, second: Test) {
-	println("- works")
-}
+operator []= (first: Test, second: Int, third: Test) { println("[]= works") }
+operator += (first, second: Test) { println("+= works") }
+operator -= (first, second: Test) { println("-= works") }
+operator *= (first, second: Test) { println("*= works") }
+operator /= (first, second: Test) { println("/= works") }
+operator <<= (first, second: Test) { println("<<= works") }
+operator >>= (first, second: Test) { println(">>= works") }
+operator ^= (first, second: Test) { println("^= works") }
+operator &= (first, second: Test) { println("&= works") }
+operator |= (first, second: Test) { println("|= works") }
 
-operator * (first, second: Test) {
-	println("* works")
-}
-
-operator / (first, second: Test) {
-	println("/ works")
-}
-
-operator == (first, second: Test) -> Bool {
-	println("== works")
-	return true;
-}
-
-operator != (first, second: Test) -> Bool {
-	println("!= works")
-	return true;
-}
-
-operator < (first, second: Test) -> Bool {
-	println("< works")
-	return true;
-}
-
-operator <= (first, second: Test) -> Bool {
-	println("<= works")
-	return true;
-}
-
-operator >= (first, second: Test) -> Bool {
-	println(">= works")
-	return true;
-}
-
-operator > (first, second: Test) -> Bool {
-	println("> works")
-	return true;
-}
-
-operator = (first, second: Test) -> Bool {
-	println("= works")
-	return true;
-}
-
-operator += (first, second: Test) -> Bool {
-	println("+= works")
-	return true;
-}
-
-operator -= (first, second: Test) -> Bool {
-	println("-= works")
-	return true;
-}
-
-operator *= (first, second: Test) -> Bool {
-	println("*= works")
-	return true;
-}
-
-operator /= (first, second: Test) -> Bool {
-	println("/= works")
-	return true;
-}
-
-operator []= (first: Test, second: Int, third: Test) {
-	println("[]= works")
-}
-
-operator [] (first: Test, second: Int) {
-	println("[] works")
-}
+operator && (first, second: Test) { println("&& works") }
+operator || (first, second: Test) { println("|| works") }
+operator % (first, second: Test) { println("% works") }
+operator = (first, second: Test) { println("= works") }
+operator == (first, second: Test) -> Bool { println("== works"); true }
+operator <= (first, second: Test) -> Bool { println("<= works"); true }
+operator >= (first, second: Test) -> Bool {	println(">= works"); true }
+operator != (first, second: Test) -> Bool { println("!= works"); true }
+operator ! (first: Test) -> Bool { println("! works"); true }
+operator < (first, second: Test) -> Bool { println("< works"); true }
+operator > (first, second: Test) -> Bool { println("> works"); true }
+operator ~ (first: Test) -> Bool { println("~ works"); true }
+operator as (first: Test) -> String { println("as works") }
 
 main: func {
     
@@ -108,7 +65,7 @@ main: func {
     one >>= two
     one ^= two
     one &= two
-    one | two
+    one |= two
     
     one && two
     one || two
@@ -122,7 +79,35 @@ main: func {
 	one > two
     one < two
     ~one
-    one as String
+    s1 := one as String
+    
+    a, b, c : Int
+
+    c = a + b
+    c = a - b
+    c = a * b
+    c = a / b
+    c = a >> b
+    c = a << b
+    c = a ^ b
+    c = a & b
+    c = a | b
+    
+    a += b
+    a -= b
+    a *= b
+    a /= b
+    a <<= b
+    a >>= b
+    a ^= b
+    a &= b
+    a |= b
+    
+    c = !a
+    c = a > b
+    c = a < b
+    c = ~a
+    s2 := a as String
 	
 }
 
