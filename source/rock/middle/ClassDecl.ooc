@@ -2,7 +2,7 @@ import structs/ArrayList
 
 import ../frontend/Token
 import Expression, Type, Visitor, TypeDecl, Cast, FunctionCall, FunctionDecl,
-       FunctionCall, Module, Node, VariableDecl, VariableAccess, BinaryOp, Argument, Return
+	   Module, Node, VariableDecl, VariableAccess, BinaryOp, Argument, Return
 import tinker/[Response, Resolver, Trail]
 
 ClassDecl: class extends TypeDecl {
@@ -89,7 +89,7 @@ ClassDecl: class extends TypeDecl {
 		thisAccess := VariableAccess new(vdfe, fDecl token)
 		thisAccess setRef(vdfe)
 		
-		initCall := FunctionCall new(fDecl, fDecl token)
+		initCall := FunctionCall new(fDecl getName(), fDecl token)
 		for (arg in constructor getArguments()) {
 			initCall getArguments() add(VariableAccess new(arg, fDecl token))
 		}
