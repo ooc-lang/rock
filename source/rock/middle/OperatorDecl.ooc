@@ -13,6 +13,9 @@ OperatorDecl: class extends Expression {
     }
     
     setFunctionDecl: func (=fDecl) {}
+    getFunctionDecl: func -> FunctionDecl { fDecl }
+    
+    getSymbol: func -> String { symbol }
     
     accept: func (visitor: Visitor) { visitor visitFunctionDecl(fDecl) }
 

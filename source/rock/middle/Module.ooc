@@ -1,5 +1,5 @@
 import io/File
-import structs/[HashMap, ArrayList]
+import structs/[HashMap, ArrayList, List]
 import ../frontend/[Token, SourceReader]
 import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl,
        FunctionCall, Type, Declaration, VariableAccess, OperatorDecl
@@ -57,6 +57,8 @@ Module: class extends Node {
         operators add(oDecl)
     }
     
+    getOperators: func -> List<OperatorDecl> { operators }
+    
     accept: func (visitor: Visitor) { visitor visitModule(this) }
     
     getPath: func (suffix: String) -> String {
@@ -70,6 +72,8 @@ Module: class extends Node {
         parentPath := File new(fileName) parent() path
         return parentPath
     }
+    
+    getImports: func -> List<Import> { imports }
     
     resolveAccess: func (access: VariableAccess) {
         

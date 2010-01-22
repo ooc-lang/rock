@@ -67,7 +67,7 @@ BuildParams: class {
     arch: String = ""
     
     // maximum number of rounds the {@link Tinkerer} will do before blowing up.
-    blowup: Int = 16
+    blowup: Int = 64
     
     includeLang := true
     //includeLang := false // false as long as we're debugging

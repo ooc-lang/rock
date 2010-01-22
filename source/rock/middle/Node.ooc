@@ -21,9 +21,11 @@ Node: abstract class {
     replace: abstract func (oldie, kiddo: Node) -> Bool
     
     addBefore: func (mark, newcomer: Node) -> Bool { false }
-    addAfter:  func (mark, newcomer: Node) -> Bool { true }
+    addAfter:  func (mark, newcomer: Node) -> Bool { false }
     
     isScope: func -> Bool { false }
+    
+    getRequiredType: func -> Type { null }
     
     /**
      * resolveCall should look for a function declaration satisfying call,

@@ -1,7 +1,8 @@
 import structs/[ArrayList, List]
 import ../frontend/[Token, BuildParams]
 import ../backend/cnaughty/AwesomeWriter
-import Node, Visitor, Declaration, TypeDecl, ClassDecl, VariableDecl, Module, Import
+import Node, Visitor, Declaration, TypeDecl, ClassDecl, VariableDecl,
+       Module, Import, CoverDecl
 import tinker/[Response, Resolver, Trail]
 
 voidType := BaseType new("void", nullToken)
@@ -47,6 +48,25 @@ Type: abstract class extends Node {
     
     getTypeArgs: abstract func -> List<VariableDecl>
     
+    getScore: func (other: This) -> Int {
+        scoreSeed := 4096
+        current := this
+        while(current != null) {
+            score := getScoreImpl(other, scoreSeed)
+            printf("--> Comparing %s and %s! Score = %d\n", current toString(), other toString(), score)
+            if(score > 0) {
+                return score
+            }
+            printf("--> Digging!")
+            current = current dig()
+            scoreSeed -= 1
+        }
+    }
+    
+    getScoreImpl: abstract func (other: This, scoreSeed: Int) -> Int
+    
+    dig: abstract func -> This
+    
 }
 
 FuncType: class extends Type {
@@ -77,6 +97,15 @@ FuncType: class extends Type {
     clone: func -> This { new(token) }
     
     getTypeArgs: func -> List<VariableDecl> { null }
+    
+    getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
+        if(other instanceOf(FuncType)) {
+            return scoreSeed
+        }
+        return 0
+    }
+    
+    dig: func -> Type { null }
     
 }
 
@@ -165,10 +194,24 @@ BaseType: class extends Type {
     
     getTypeArgs: func -> List<VariableDecl> { typeArgs }
     
+    getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
+        if(other instanceOf(BaseType)) {
+            return (other getName() equals(getName()) ? scoreSeed : 0)
+        }
+        return 0
+    }
+    
     // should we throw an error or something?
     dereference : func -> This { null }
     
     clone: func -> This { new(name, token) }
+    
+    dig: func -> Type {
+        if(ref instanceOf(CoverDecl)) {
+            return ref as CoverDecl getFromType()
+        }
+        return null
+    }
 
 }
 
@@ -184,7 +227,21 @@ SugarType: abstract class extends Type {
     
     getTypeArgs: func -> List<VariableDecl> { inner getTypeArgs() }
     
+    getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
+        return (other instanceOf(class) ? inner getScore(other as SugarType inner) : 0)
+    }
+    
     getName: func -> String { inner getName() }
+    
+    dig: func -> Type {
+        innerUnder := inner dig()
+        if(innerUnder) {
+            under := clone() as SugarType
+            under inner = innerUnder
+            return under
+        }
+        return null
+    }
     
 }
 

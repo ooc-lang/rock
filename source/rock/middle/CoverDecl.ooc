@@ -14,9 +14,8 @@ CoverDecl: class extends TypeDecl {
     
     accept: func (visitor: Visitor) { visitor visitCoverDecl(this) }
     
-    setFromType: func (=fromType) {
-        //printf("CoverDecl %s is now from type %s\n", name, fromType toString())
-    }
+    setFromType: func (=fromType) {}    
+    getFromType: func -> Type { fromType }
     
     // all functions of a cover are final, because we don't have a 'class' field
     addFunction: func (fDecl: FunctionDecl) {

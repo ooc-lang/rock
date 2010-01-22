@@ -4,41 +4,41 @@ Test: class {
     
 }
 
-operator [] (first: Test, second: Int) { println("[] works") }
-operator + (first, second: Test) { println("+ works") }
-operator - (first, second: Test) { println("- works") }
-operator * (first, second: Test) { println("* works") }
-operator / (first, second: Test) { println("/ works") }
-operator << (first, second: Test) { println("<< works") }
-operator >> (first, second: Test) { println(">> works") }
-operator ^ (first, second: Test) { println("^ works") }
-operator & (first, second: Test) { println("& works") }
-operator | (first, second: Test) { println("| works") }
+operator [] (first: Test, second: Int) { "[] works" println() }
+operator + (first, second: Test) { "+ works" println() }
+operator - (first, second: Test) { "- works" println() }
+operator * (first, second: Test) { "* works" println() }
+operator / (first, second: Test) { "/ works" println() }
+operator << (first, second: Test) { "<< works" println() }
+operator >> (first, second: Test) { ">> works" println() }
+operator ^ (first, second: Test) { "^ works" println() }
+operator & (first, second: Test) { "& works" println() }
+operator | (first, second: Test) { "| works" println() }
 
-operator []= (first: Test, second: Int, third: Test) { println("[]= works") }
-operator += (first, second: Test) { println("+= works") }
-operator -= (first, second: Test) { println("-= works") }
-operator *= (first, second: Test) { println("*= works") }
-operator /= (first, second: Test) { println("/= works") }
-operator <<= (first, second: Test) { println("<<= works") }
-operator >>= (first, second: Test) { println(">>= works") }
-operator ^= (first, second: Test) { println("^= works") }
-operator &= (first, second: Test) { println("&= works") }
-operator |= (first, second: Test) { println("|= works") }
+operator []= (first: Test, second: Int, third: Test) { "[]= works" println() }
+operator += (first, second: Test) { "+= works" println() }
+operator -= (first, second: Test) { "-= works" println() }
+operator *= (first, second: Test) { "*= works" println() }
+operator /= (first, second: Test) { "/= works" println() }
+operator <<= (first, second: Test) { "<<= works" println() }
+operator >>= (first, second: Test) { ">>= works" println() }
+operator ^= (first, second: Test) { "^= works" println() }
+operator &= (first, second: Test) { "&= works" println() }
+operator |= (first, second: Test) { "|= works" println() }
 
-operator && (first, second: Test) { println("&& works") }
-operator || (first, second: Test) { println("|| works") }
-operator % (first, second: Test) { println("% works") }
-operator = (first, second: Test) { println("= works") }
-operator == (first, second: Test) -> Bool { println("== works"); true }
-operator <= (first, second: Test) -> Bool { println("<= works"); true }
-operator >= (first, second: Test) -> Bool {	println(">= works"); true }
-operator != (first, second: Test) -> Bool { println("!= works"); true }
-operator ! (first: Test) -> Bool { println("! works"); true }
-operator < (first, second: Test) -> Bool { println("< works"); true }
-operator > (first, second: Test) -> Bool { println("> works"); true }
-operator ~ (first: Test) -> Bool { println("~ works"); true }
-operator as (first: Test) -> String { println("as works") }
+operator && (first, second: Test) { "&& works" println() }
+operator || (first, second: Test) { "|| works" println() }
+operator % (first, second: Test) { "% works" println() }
+operator = (first, second: Test) { "= works" println() }
+operator == (first, second: Test) -> Bool { "== works" println(); true }
+operator <= (first, second: Test) -> Bool { "<= works" println(); true }
+operator >= (first, second: Test) -> Bool {	">= works" println(); true }
+operator != (first, second: Test) -> Bool { "!= works" println(); true }
+operator ! (first: Test) -> Bool { "! works" println(); true }
+operator < (first, second: Test) -> Bool { "< works" println(); true }
+operator > (first, second: Test) -> Bool { "> works" println(); true }
+operator ~ (first: Test) -> Bool { "~ works" println(); true }
+operator as (first: Test) -> String { "as works" println(); "Test!" }
 
 main: func {
     
@@ -78,7 +78,7 @@ main: func {
     !one
 	one > two
     one < two
-    ~one
+    //~one
     s1 := one as String
     
     a, b, c : Int
