@@ -84,7 +84,7 @@ OperatorDecl: class extends Expression {
             case "~"   =>  "B_NEG"
             case "as"  =>  "AS"
             
-            case       =>  "UNKNOWN_" + symbol
+            case       =>  token throwError("Unknown overloaded symbol: %s" format(symbol)); "UNKNOWN"
         }
     }
     

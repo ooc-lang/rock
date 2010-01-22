@@ -84,24 +84,45 @@ operator [] (first: Test, second: Int) {
 }
 
 main: func {
+    
 	one := Test new()
 	two := Test new()
-	//one, two : Test
+    
+    one[123]
 	one + two
 	one - two
 	one * two
 	one / two
-	one == two
-	one != two
-	one > two
-	one >= two
-	one < two
-	one <= two
+    one << two
+    one >> two
+    one ^ two
+    one & two
+    one | two
+    
+    one[123] = two
 	one += two
 	one -= two
 	one *= two
 	one /= two
-	one[123] = two
-	one[123]
+    one <<= two
+    one >>= two
+    one ^= two
+    one &= two
+    one | two
+    
+    one && two
+    one || two
+    one % two
+    one = two
+    one == two
+    one >= two
+	one <= two
+	one != two
+    !one
+	one > two
+    one < two
+    ~one
+    one as String
+	
 }
 

@@ -1,4 +1,5 @@
-import ../../middle/[Module, Include, Import, TypeDecl, FunctionDecl, CoverDecl, ClassDecl]
+import ../../middle/[Module, Include, Import, TypeDecl, FunctionDecl,
+       CoverDecl, ClassDecl, OperatorDecl]
 import CoverDeclWriter, ClassDeclWriter
 import Skeleton
 
@@ -57,7 +58,12 @@ ModuleWriter: abstract class extends Skeleton {
         
         // write all functions
         for(fDecl: FunctionDecl in module functions) {
-            visitFunctionDecl(fDecl)
+            fDecl accept(this)
+        }
+        
+        // write all operator overloads
+        for(oDecl: OperatorDecl in module operators) {
+            oDecl accept(this)
         }
         
         // header end
