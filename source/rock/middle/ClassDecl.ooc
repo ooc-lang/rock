@@ -81,7 +81,8 @@ ClassDecl: class extends TypeDecl {
         // meta-class, remember?
         newTypeAccess := VariableAccess new(newType, fDecl token)
         newTypeAccess setRef(getNonMeta())
-		allocCall := FunctionCall new(newTypeAccess, "alloc", fDecl token)
+		castedTypeAccess := Cast new(newTypeAccess, BaseType new("Class", fDecl token), fDecl token)
+		allocCall := FunctionCall new(castedTypeAccess, "alloc", fDecl token)
 		cast := Cast new(allocCall, newType, fDecl token)
 		vdfe := VariableDecl new(null, "this", cast, fDecl token)
 		constructor getBody() add(vdfe)
