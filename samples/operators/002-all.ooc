@@ -78,7 +78,7 @@ main: func {
     !one
 	one > two
     one < two
-    //~one
+    ~one
     s1 := one as String
     
     a, b, c : Int

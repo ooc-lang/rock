@@ -53,11 +53,9 @@ Type: abstract class extends Node {
         current := this
         while(current != null) {
             score := getScoreImpl(other, scoreSeed)
-            printf("--> Comparing %s and %s! Score = %d\n", current toString(), other toString(), score)
             if(score > 0) {
                 return score
             }
-            printf("--> Digging!")
             current = current dig()
             scoreSeed -= 1
         }
