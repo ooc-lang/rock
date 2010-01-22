@@ -52,6 +52,7 @@ FunctionCall: class extends Expression {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
+        //printf("===============================================================\n")
         //printf("     - Resolving call to %s (ref = %s)\n", name, ref ? ref toString() : "(nil)")
         
         if(args size() > 0) {
