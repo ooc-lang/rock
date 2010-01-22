@@ -1,5 +1,6 @@
 import ../../middle/[FunctionDecl, TypeDecl, ClassDecl, Argument, Type]
-import Skeleton
+import Skeleton, CGenerator
+import ../../frontend/BuildParams
 include stdint
 
 ArgsWriteMode: cover from Int32 {}
@@ -10,7 +11,7 @@ ArgsWriteModes: class {
     TYPES_ONLY = 3 : static const Int32
 }
 
-FunctionDeclWriter: abstract class extends Skeleton {
+FunctionDeclWriter: abstract class extends CGenerator {
     
     write: static func ~function (this: This, fDecl: FunctionDecl) {
         //"|| Writing function %s" format(fDecl name) println()
@@ -28,6 +29,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
         current nl(). nl()
         writeFuncPrototype(this, fDecl)
         current app(" {"). tab()
+        if(params enableGC && fDecl isMain()) current nl(). app("GC_INIT();")
         for(stat in fDecl body) {
             writeLine(stat)
         }

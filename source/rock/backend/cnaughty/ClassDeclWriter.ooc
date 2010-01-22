@@ -1,8 +1,8 @@
 import structs/[List, ArrayList, HashMap]
 import ../../middle/[ClassDecl, FunctionDecl, VariableDecl, TypeDecl, Type, Node]
-import Skeleton, FunctionDeclWriter
+import Skeleton, FunctionDeclWriter, CGenerator
 
-ClassDeclWriter: abstract class extends Skeleton {
+ClassDeclWriter: abstract class extends CGenerator {
 
     LANG_PREFIX := static const "lang__";
     CLASS_NAME := static const LANG_PREFIX + "Class";
