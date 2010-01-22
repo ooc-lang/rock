@@ -37,6 +37,7 @@ FunctionDecl: class extends Expression {
     
     setName: func (=name) {}
     getName: func -> String { name }
+	getSuffix: func -> String { suffix }
     
     getReturnArg: func -> Argument {
         if(returnArg == null) {
