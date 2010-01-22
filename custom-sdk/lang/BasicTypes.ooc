@@ -40,6 +40,7 @@ Class: abstract class {
     alloc: final func -> Object {
         object := gc_malloc(instanceSize) as Object
         if(object) {
+            printf("Object allocated! setting class & running defaults\n")
             object class = this
             object __defaults__()
         }
