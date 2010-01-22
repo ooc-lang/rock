@@ -38,8 +38,12 @@ FunctionDecl: class extends Expression {
     
     setName: func (=name) {}
     getName: func -> String { name }
+    
 	getSuffix: func -> String { suffix }
 	setSuffix: func(suffix: String) { this suffix = suffix }
+    
+    isStatic: func -> Bool { isStatic }
+    setStatic: func (=isStatic) {}
     
     getReturnArg: func -> Argument {
         if(returnArg == null) {

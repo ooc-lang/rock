@@ -47,22 +47,27 @@ ClassDecl: class extends TypeDecl {
     
     replace: func (oldie, kiddo: Node) -> Bool { false }
 
-    addFunction: func (fDecl: FunctionDecl) {		
-		if (fDecl getName() == "init") {
-			addInit(fDecl)
-		} else if (fDecl getName() == "new") {
-			already := getFunction(fDecl getName(), fDecl getSuffix())
-			// FIXME, just removing based off fDecl name for now
-			if (already != null) removeFunction(fDecl) 
-		}
+    addFunction: func (fDecl: FunctionDecl) {
+        
+        if(isMeta) {
+            if (fDecl getName() == "init") {
+                addInit(fDecl)
+            } else if (fDecl getName() == "new") {
+                already := getFunction(fDecl getName(), fDecl getSuffix())
+                // FIXME, just removing based off fDecl name for now
+                if (already != null) removeFunction(fDecl) 
+            }
+        }
 	
 		super addFunction(fDecl)
+        
     }
 
 	addInit: func(fDecl: FunctionDecl) {
 		/* if defaultInit != null */
 		
 		constructor := FunctionDecl new("new", fDecl token)
+        constructor setStatic(true)
 		constructor setSuffix(fDecl getSuffix())
 		retType := getInstanceType()
 		retType getTypeArgs() clear()
@@ -70,30 +75,36 @@ ClassDecl: class extends TypeDecl {
 		constructor getArguments() addAll(fDecl getArguments())
 		constructor getTypeArgs() addAll(getTypeArgs())
 		
-		thisTypeAccess := VariableAccess new(getType(), fDecl token)
-		thisTypeAccess setRef(this)
-		classAccess := VariableAccess new(thisTypeAccess, "class", fDecl token)
-		allocCall := FunctionCall new(classAccess, "alloc", fDecl token)
-		cast := Cast new(allocCall, getType(), fDecl token)
+        // why use getNonMeta() here? addInit() is called only in the
+        // meta-class, remember?
+        newType := getNonMeta() getInstanceType()
+        newTypeAccess := VariableAccess new(newType, fDecl token)
+        newTypeAccess setRef(getNonMeta())
+		allocCall := FunctionCall new(newTypeAccess, "alloc", fDecl token)
+		cast := Cast new(allocCall, newType, fDecl token)
 		vdfe := VariableDecl new(null, "this", cast, fDecl token)
 		constructor getBody() add(vdfe)
 		
+        /*
 		for (typeArg in typeArgs) {
 			e := VariableAccess new(typeArg getName(), constructor token)
 			retType getTypeArgs() add(e)
 			
 			constructor getBody() add(BinaryOp new(VariableAccess new(VariableAccess new("this", constructor token), typeArg name, constructor token), e, OpTypes ass, constructor token))		
 		}
+        */
 		constructor setReturnType(retType)
 		
 		thisAccess := VariableAccess new(vdfe, fDecl token)
 		thisAccess setRef(vdfe)
 		
+        // TODO: add suffix handling
 		initCall := FunctionCall new(fDecl getName(), fDecl token)
+        initCall setExpr(VariableAccess new("this", fDecl token))
 		for (arg in constructor getArguments()) {
 			initCall getArguments() add(VariableAccess new(arg, fDecl token))
 		}
-		constructor getBody() add(FunctionCall new(thisAccess, initCall, fDecl token))
+		constructor getBody() add(initCall)
 		constructor getBody() add(Return new(thisAccess, fDecl token))
 		
 		addFunction(constructor)	

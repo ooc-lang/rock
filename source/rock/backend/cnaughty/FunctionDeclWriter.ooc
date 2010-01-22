@@ -79,7 +79,7 @@ FunctionDeclWriter: abstract class extends CGenerator {
 
         /* Step 1 : write this, if any */
         iter := fDecl args iterator() as Iterator<Argument>
-        if(fDecl isMember()) {
+        if(fDecl isMember() && !fDecl isStatic()) {
             isFirst = false
             
             type := fDecl owner thisDecl getType()

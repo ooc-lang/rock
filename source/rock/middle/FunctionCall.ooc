@@ -26,6 +26,8 @@ FunctionCall: class extends Expression {
     init: func ~functionCallWithExpr (=expr, =name, .token) {
         super(token)
     }
+    
+    setExpr: func (=expr) {}
 
     accept: func (visitor: Visitor) {
         visitor visitFunctionCall(this)
