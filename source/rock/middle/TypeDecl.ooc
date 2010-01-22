@@ -123,6 +123,8 @@ TypeDecl: abstract class extends Declaration {
 		return name       
     }
     
+	getTypeArgs: func -> ArrayList<VariableDecl> { typeArgs }
+
     getName: func -> String { name }
     
     getExternName: func -> String {

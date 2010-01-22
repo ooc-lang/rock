@@ -22,7 +22,11 @@ FunctionCall: class extends Expression {
     init: func ~funcCall (=name, .token) {
         super(token)
     }
-    
+
+    init: func ~functionCallWithExpr (=expr, =name, .token) {
+        super(token)
+    }
+
     accept: func (visitor: Visitor) {
         visitor visitFunctionCall(this)
     }
@@ -352,5 +356,7 @@ FunctionCall: class extends Expression {
     getReturnArg: func -> Expression { returnArg }
     
     getRef: func -> FunctionDecl { ref }
+
+	getArguments: func ->  ArrayList<Expression> { args }
 
 }

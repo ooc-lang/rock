@@ -1,8 +1,8 @@
 import structs/ArrayList
 
 import ../frontend/Token
-import Expression, Type, Visitor, TypeDecl, FunctionDecl,
-       FunctionCall, Module, Node
+import Expression, Type, Visitor, TypeDecl, Cast, FunctionCall, FunctionDecl,
+       FunctionCall, Module, Node, VariableDecl, VariableAccess, BinaryOp, Argument, Return
 import tinker/[Response, Resolver, Trail]
 
 ClassDecl: class extends TypeDecl {
@@ -49,13 +49,54 @@ ClassDecl: class extends TypeDecl {
 
     addFunction: func (fDecl: FunctionDecl) {		
 		if (fDecl getName() == "init") {
-			"NEED TO CALL addInit" println()
+			addInit(fDecl)
 		} else if (fDecl getName() == "new") {
 			already := getFunction(fDecl getName(), fDecl getSuffix())
-			if (already != null) removeFunction(fDecl)
+			// FIXME, just removing based off fDecl name for now
+			if (already != null) removeFunction(fDecl) 
 		}
 	
 		super addFunction(fDecl)
     }
+
+	addInit: func(fDecl: FunctionDecl) {
+		/* if defaultInit != null */
+		
+		constructor := FunctionDecl new("new", fDecl token)
+		constructor setSuffix(fDecl getSuffix())
+		retType := getInstanceType()
+		retType getTypeArgs() clear()
+		
+		constructor getArguments() addAll(fDecl getArguments())
+		constructor getTypeArgs() addAll(getTypeArgs())
+		
+		thisTypeAccess := VariableAccess new(getType(), fDecl token)
+		thisTypeAccess setRef(this)
+		classAccess := VariableAccess new(thisTypeAccess, "class", fDecl token)
+		allocCall := FunctionCall new(classAccess, "alloc", fDecl token)
+		cast := Cast new(allocCall, getType(), fDecl token)
+		vdfe := VariableDecl new(null, "this", cast, fDecl token)
+		constructor getBody() add(vdfe)
+		
+		for (typeArg in typeArgs) {
+			e := VariableAccess new(typeArg getName(), constructor token)
+			retType getTypeArgs() add(e)
+			
+			constructor getBody() add(BinaryOp new(VariableAccess new(VariableAccess new("this", constructor token), typeArg name, constructor token), e, OpTypes ass, constructor token))		
+		}
+		constructor setReturnType(retType)
+		
+		thisAccess := VariableAccess new(vdfe, fDecl token)
+		thisAccess setRef(vdfe)
+		
+		initCall := FunctionCall new(fDecl, fDecl token)
+		for (arg in constructor getArguments()) {
+			initCall getArguments() add(VariableAccess new(arg, fDecl token))
+		}
+		constructor getBody() add(FunctionCall new(thisAccess, initCall, fDecl token))
+		constructor getBody() add(Return new(thisAccess, fDecl token))
+		
+		addFunction(constructor)	
+	}
 }
 

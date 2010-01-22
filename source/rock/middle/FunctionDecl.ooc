@@ -34,10 +34,12 @@ FunctionDecl: class extends Expression {
     addTypeArgument: func (typeArg: VariableDecl) -> Bool { typeArgs add(typeArg); true }
 
     getReturnType: func -> Type { returnType }
+	setReturnType: func(type: Type) { this returnType = type }
     
     setName: func (=name) {}
     getName: func -> String { name }
 	getSuffix: func -> String { suffix }
+	setSuffix: func(suffix: String) { this suffix = suffix }
     
     getReturnArg: func -> Argument {
         if(returnArg == null) {
@@ -303,5 +305,9 @@ FunctionDecl: class extends Expression {
     }
     
     isScope: func -> Bool { true }
+
+	getTypeArgs: func -> ArrayList<VariableDecl> { typeArgs }
+	getArguments: func -> ArrayList<Argument> { args } 
+	getBody: func -> Scope { body }
     
 }

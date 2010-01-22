@@ -118,4 +118,8 @@ VariableAccess: class extends Expression {
         }
     }
 
+	setRef: func(ref: Declaration) {
+		this ref = ref
+	}
+
 }
