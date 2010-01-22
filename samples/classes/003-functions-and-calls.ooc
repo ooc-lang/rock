@@ -26,7 +26,8 @@ main: func -> Int {
     */
     
     printf("Dog instanceSize = %d\n", Dog instanceSize)
-    dog := Dog alloc()
+    dog := (Dog alloc()) as Dog
+    //dog : Dog
 	
     dog name = "Fido"
     dog shout()

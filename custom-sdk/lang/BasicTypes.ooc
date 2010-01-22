@@ -12,7 +12,7 @@ Object: abstract class {
     
     /// Finalizer: cleans up any objects belonging to this instance
     __destroy__: func {}
-
+    
     instanceOf: final func (T: Class) -> Bool {
         class inheritsFrom(T)
     }
@@ -38,18 +38,21 @@ Class: abstract class {
     
     /// Create a new instance of the object of type defined by this class
     alloc: final func -> Object {
+        printf("Allocating %d bytes!", instanceSize)
         object := gc_malloc(instanceSize) as Object
         if(object) {
-            printf("Object allocated! setting class & running defaults\n")
+            printf("Object allocated! setting class\n")
             object class = this
+            printf("Running __defaults__()\n")
             object __defaults__()
         }
+        printf("Returning object\n")
         return object
     }
     
     inheritsFrom: final func (T: Class) -> Bool {
         if(this == T) return true
-        return (super ? super as This inheritsFrom(T) : false)
+        return (super ? super inheritsFrom(T) : false)
     }
     
 }

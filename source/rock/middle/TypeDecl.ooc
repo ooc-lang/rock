@@ -250,15 +250,19 @@ TypeDecl: abstract class extends Declaration {
     
     resolveCall: func (call : FunctionCall) {
         
-        //printf("\n? Looking for function %s in %s\n", call name, name)
+        printf("\n? Looking for function %s in %s\n", call name, name)
+        
+        for(f in functions) {
+            printf("   Got %s!\n", f toString())
+        }
         
         fDecl : FunctionDecl = null
         fDecl = functions get(call name)
         if(fDecl) {
-            //"&&&&&&&& Found fDecl for %s\n" format(call name) println()
+            "&&&&&&&& Found fDecl for %s\n" format(call name) println()
             call suggest(fDecl)
         } else if(superRef()) {
-            //printf("Looking for call in superRef %s\n", superRef() toString())
+            printf("Looking for call in superRef %s\n", superRef() toString())
             superRef() resolveCall(call)
         }
         

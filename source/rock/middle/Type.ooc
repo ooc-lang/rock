@@ -44,6 +44,8 @@ Type: abstract class extends Node {
     reference:   func          -> This { PointerType new(this, token) }
     dereference: abstract func -> This
     
+    getTypeArgs: abstract func -> List<VariableDecl>
+    
 }
 
 FuncType: class extends Type {
@@ -69,6 +71,8 @@ FuncType: class extends Type {
     
     // should we throw an error or something?
     dereference : func -> This { null }
+    
+    getTypeArgs: func -> List<VariableDecl> { null }
     
 }
 
@@ -155,6 +159,8 @@ BaseType: class extends Type {
     getRef: func -> Declaration { ref }
     setRef: func (=ref) {}
     
+    getTypeArgs: func -> List<VariableDecl> { typeArgs }
+    
     // should we throw an error or something?
     dereference : func -> This { null }
 
@@ -169,6 +175,8 @@ SugarType: abstract class extends Type {
     resolve: func (trail: Trail, res: Resolver) -> Response { inner resolve(trail, res) }
     getRef: func -> Declaration   { inner getRef()  }
     setRef: func (d: Declaration) { inner setRef(d) }
+    
+    getTypeArgs: func -> List<VariableDecl> { inner getTypeArgs() }
     
     getName: func -> String { inner getName() }
     
