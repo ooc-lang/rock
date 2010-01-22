@@ -19,6 +19,7 @@ main: func -> Int {
     
     printf("Goodbye, cruel world\n")
     dog: Dog
+	printf("Dog size = %d\n", Dog size)
     dog = gc_malloc(Dog size)
     dog class = Dog as Class
     dog name = "Fido"

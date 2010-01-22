@@ -46,6 +46,16 @@ ClassDecl: class extends TypeDecl {
 	}
     
     replace: func (oldie, kiddo: Node) -> Bool { false }
-    
+
+    addFunction: func (fDecl: FunctionDecl) {		
+		if (fDecl getName() == "init") {
+			"NEED TO CALL addInit" println()
+		} else if (fDecl getName() == "new") {
+			already := getFunction(fDecl getName(), fDecl getSuffix())
+			if (already != null) removeFunction(fDecl)
+		}
+	
+		super addFunction(fDecl)
+    }
 }
 

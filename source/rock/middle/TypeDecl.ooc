@@ -88,6 +88,10 @@ TypeDecl: abstract class extends Declaration {
         }
         fDecl owner = this
     }
+
+	removeFunction: func(fDecl: FunctionDecl) {
+		functions remove(fDecl getName())
+	}
     
     getFunction: func (fName, fSuffix: String) -> FunctionDecl {
         // TODO add suffix handling
