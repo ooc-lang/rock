@@ -258,7 +258,12 @@ FunctionDecl: class extends Expression {
             } else if(last instanceOf(Expression)) {
                 expr := last as Expression
                 if(expr getType() == null) {
-                    //printf("[autoReturn] LOOPing because last's type (%s) is null.", expr toString())
+                    printf("[autoReturn] LOOPing because last's type (%s) is null.", expr toString())
+                    return Responses LOOP
+                }
+                
+                if(isMain() && !expr getType() equals(IntLiteral type)) {
+                    returnNeeded(trail)
                     return Responses LOOP
                 }
                 
