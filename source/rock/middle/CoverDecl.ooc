@@ -1,6 +1,6 @@
 import structs/ArrayList
 import ../frontend/Token
-import Expression, Type, Visitor, TypeDecl, Node
+import Expression, Type, Visitor, TypeDecl, Node, FunctionDecl
 import tinker/[Response, Resolver, Trail]
 
 CoverDecl: class extends TypeDecl {
@@ -16,6 +16,14 @@ CoverDecl: class extends TypeDecl {
     
     setFromType: func (=fromType) {
         //printf("CoverDecl %s is now from type %s\n", name, fromType toString())
+    }
+    
+    // all functions of a cover are final, because we don't have a 'class' field
+    addFunction: func (fDecl: FunctionDecl) {
+        
+        fDecl isFinal = true
+        super addFunction(fDecl)
+        
     }
     
     isAddon: func -> Bool { false }
