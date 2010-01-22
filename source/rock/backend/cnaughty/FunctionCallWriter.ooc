@@ -19,14 +19,6 @@ FunctionCallWriter: abstract class extends Skeleton {
         /* Step 1: write this, if any */
         if(fCall expr) {
             isFirst = false
-            callType := fCall expr getType()
-            declType := fDecl owner getInstanceType()
-            
-            // TODO maybe check there's some kind of inheritance/compatibility here?
-            // or in the tinker phase?
-            if(!(callType equals(declType))) {
-                current app("("). app(declType). app(") ")
-            }
             current app(fCall expr) 
         }
     
