@@ -43,7 +43,12 @@ TypeDecl: abstract class extends Declaration {
             // create the meta-class
             metaSuperType : Type = null
             if(this superType) {
-                metaSuperType = BaseType new(this superType getName() + "Class", nullToken)
+                // TODO: there's probably a better way, but this works fine =)
+                if(this superType getName() == "Object" && !(this name == "Class")) {
+                    metaSuperType = BaseType new("ClassClass", nullToken)
+                } else {
+                    metaSuperType = BaseType new(this superType getName() + "Class", nullToken)
+                }
             } else {
                 metaSuperType = BaseType new("Class", nullToken)
             }
@@ -250,19 +255,20 @@ TypeDecl: abstract class extends Declaration {
     
     resolveCall: func (call : FunctionCall) {
         
-        printf("\n? Looking for function %s in %s\n", call name, name)
-        
+        //printf("\n====> Search %s in %s\n", call toString(), name)
+        /*
         for(f in functions) {
-            printf("   Got %s!\n", f toString())
+            printf("  - Got %s!\n", f toString())
         }
+        */
         
         fDecl : FunctionDecl = null
         fDecl = functions get(call name)
         if(fDecl) {
-            "&&&&&&&& Found fDecl for %s\n" format(call name) println()
+            //"    \\o/ Found fDecl for %s\n" format(call name) println()
             call suggest(fDecl)
         } else if(superRef()) {
-            printf("Looking for call in superRef %s\n", superRef() toString())
+            //printf("  <== going in superRef %s\n", superRef() toString())
             superRef() resolveCall(call)
         }
         
