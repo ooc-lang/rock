@@ -115,8 +115,12 @@ BinaryOp: class extends Expression {
             if(right instanceOf(FunctionCall)) {
                 fCall := right as FunctionCall
                 fDecl := fCall getRef()
-                if(!fDecl) return Responses LOOP
-                if(!fDecl getReturnType() isResolved()) return Responses LOOP
+                if(!fDecl) {
+                    return Responses LOOP
+                }
+                if(!fDecl getReturnType() isResolved()) {
+                    return Responses LOOP
+                }
                 
                 //println("got assignment rhs a " + fCall toString())
                 if(fDecl getReturnType() isGeneric()) {
@@ -168,7 +172,8 @@ BinaryOp: class extends Expression {
             if(!trail peek() replace(this, fCall)) {
                 token throwError("Couldn't replace %s with %s!" format(toString(), fCall toString()))
             }
-            return Responses LOOP
+            //return Responses LOOP
+            res wholeAgain()
         }
         
         return Responses OK

@@ -179,8 +179,6 @@ BaseType: class extends Type {
                 printf("     - type %s still not resolved, looping (ref = %p)\n", name, ref)
             }
             return Responses LOOP
-        //} else {
-            //("Found match! " + name) println()
         }
         
         return Responses OK
@@ -207,7 +205,7 @@ BaseType: class extends Type {
     clone: func -> This { new(name, token) }
     
     dig: func -> Type {
-        if(ref instanceOf(CoverDecl)) {
+        if(ref != null && ref instanceOf(CoverDecl)) {
             return ref as CoverDecl getFromType()
         }
         return null

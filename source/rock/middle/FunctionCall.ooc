@@ -124,7 +124,7 @@ FunctionCall: class extends Expression {
             response2 := handleGenerics(trail, res)
             
             if(!response1 ok() || !response2 ok()) {
-                //"%s looping because of generics!" format(toString()) println()
+                if(res params verbose) "%s looping because of generics!" format(toString()) println()
                 return Responses LOOP
             }
         }
@@ -149,8 +149,13 @@ FunctionCall: class extends Expression {
         if(refScore == -1 && res fatal) {
             token throwError("No such function %s" format(name))
         }
+
+        if(refScore == -1) {
+            if(res params verbose) "%s looping because not resolved!" format(toString()) println()
+            return Responses LOOP
+        }
         
-        return refScore != -1 ? Responses OK : Responses LOOP
+        return Responses OK
         
     }
     
@@ -158,7 +163,10 @@ FunctionCall: class extends Expression {
         
         parent := trail peek()
         
-        if(ref == null || ref returnType == null) return Responses LOOP // evil! should take fatal into account
+        if(ref == null || ref returnType == null) {
+            if(res params verbose) printf("LOOPing %s because ref = null, or ref returnType == null\n", toString())
+            return Responses LOOP // evil! should take fatal into account
+        }
         
         if(ref returnType isGeneric() && !(parent isScope() || parent instanceOf(CommaSequence) || parent instanceOf(VariableDecl))) {
             //printf("OHMAGAD a generic-returning function (say, %s) in a %s!!!\n", toString(), parent toString())
@@ -189,8 +197,10 @@ FunctionCall: class extends Expression {
                 returnType = ref returnType
             }
             if(returnType) {
-                //printf("Looping because of return type %s\n", returnType toString())
-                return Responses LOOP
+                if(res params verbose) printf("LOOPing because of return type %s\n", returnType toString())
+                res wholeAgain()
+                return Responses OK
+                //return Responses LOOP
             }
         }
         
@@ -229,7 +239,10 @@ FunctionCall: class extends Expression {
             if(!response ok()) return response
         }
         
-        return typeArgs size() == ref typeArgs size() ? Responses LOOP : Responses OK
+        if(typeArgs size() != ref typeArgs size()) {
+            if(res params verbose) printf("Looping %s because of typeArgs\n", toString())
+        }
+        return typeArgs size() == ref typeArgs size() ? Responses OK : Responses LOOP
         
     }
     

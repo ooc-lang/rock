@@ -1,6 +1,6 @@
 import io/File
 import structs/[HashMap, ArrayList, List]
-import ../frontend/[Token, SourceReader]
+import ../frontend/[Token, SourceReader, BuildParams]
 import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl,
        FunctionCall, Type, Declaration, VariableAccess, OperatorDecl
 import tinker/[Response, Resolver, Trail]
@@ -144,8 +144,8 @@ Module: class extends Node {
         for(tDecl in types) {
             if(tDecl isResolved()) continue
             response := tDecl resolve(trail, res)
-            //printf("response of tDecl %s = %s\n", tDecl toString(), response toString())
             if(!response ok()) {
+                if(res params verbose) printf("response of tDecl %s = %s\n", tDecl toString(), response toString())
                 finalResponse = response
             }
         }
@@ -153,8 +153,8 @@ Module: class extends Node {
         for(fDecl in functions) {
             if(fDecl isResolved()) continue
             response := fDecl resolve(trail, res)
-            //printf("response of fDecl %s = %s\n", fDecl toString(), response toString())
             if(!response ok()) {
+                if(res params verbose) printf("response of fDecl %s = %s\n", fDecl toString(), response toString())
                 finalResponse = response
             }
         }
@@ -162,8 +162,8 @@ Module: class extends Node {
         for(oDecl in operators) {
             if(oDecl isResolved()) continue
             response := oDecl resolve(trail, res)
-            //printf("response of oDecl %s = %s\n", oDecl toString(), response toString())
             if(!response ok()) {
+                if(res params verbose) printf("response of oDecl %s = %s\n", oDecl toString(), response toString())
                 finalResponse = response
             }
         }

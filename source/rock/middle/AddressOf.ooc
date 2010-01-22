@@ -1,5 +1,5 @@
 import structs/ArrayList
-import ../frontend/Token
+import ../frontend/[Token, BuildParams]
 import Expression, Visitor, Type, Node, VariableDecl, FunctionDecl
 import tinker/[Trail, Resolver, Response]
 
@@ -35,6 +35,7 @@ AddressOf: class extends Expression {
         
         if(!expr isReferencable()) {
             expr = VariableDecl new(null, generateTempName("wakaref"), expr, expr token)
+            if(res params verbose) printf("LOOPing because %s has been replaced by a VDecl\n", toString())
             return Responses LOOP
         }
         

@@ -137,7 +137,8 @@ CommandLine: class {
                     params verbose = true
                     
                 } else if (option == "veryVerbose" || option == "vv") {
-                    
+
+                    params verbose = true
                     params veryVerbose = true
                     
                 } else if (option == "run" || option == "r") {

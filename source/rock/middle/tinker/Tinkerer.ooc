@@ -31,6 +31,7 @@ Tinkerer: class {
                     round + ", " + resolvers size() + " left")
             
             iter := resolvers iterator()
+            
             while(iter hasNext()) {
     
                 resolver := iter next()

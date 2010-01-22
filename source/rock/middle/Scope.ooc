@@ -1,6 +1,7 @@
 import structs/[ArrayList]
 import VariableAccess, VariableDecl, Statement, Node
 import tinker/[Trail, Resolver, Response]
+import ../frontend/[BuildParams]
 
 Scope: class extends ArrayList<Statement> {
     
@@ -19,8 +20,10 @@ Scope: class extends ArrayList<Statement> {
 
         for(stat in this) {
             response := stat resolve(trail, res)
-            //printf("Response of statement [%s] %s = %s\n", stat class name, stat toString(), response toString())
-            if(!response ok()) return response
+            if(!response ok()) {
+                if(res params verbose) printf("Response of statement [%s] %s = %s\n", stat class name, stat toString(), response toString())
+                return response
+            }
         }
         
         return Responses OK

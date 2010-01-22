@@ -4,6 +4,8 @@ import Response, Trail
 
 Resolver: class {
  
+    wholeAgain := false
+ 
     fatal := false
     module: Module
     params: BuildParams
@@ -12,15 +14,17 @@ Resolver: class {
     
     process: func -> Bool {
  
-        response := module resolve(Trail new(), this)
+        response : Response = null
+        wholeAgain = false
+
+        response = module resolve(Trail new(), this)
+        
         if(params verbose) printf("[Module] response = %s\n", response toString())
         
-        if(!response ok()) {
-            return true
-        }
-        
-        return false
+        return !response ok() || wholeAgain
         
     }
+    
+    wholeAgain: func { wholeAgain = true }
     
 }
