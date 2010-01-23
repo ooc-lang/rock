@@ -103,7 +103,6 @@ UnaryOp: class extends Expression {
             if(!trail peek() replace(this, fCall)) {
                 token throwError("Couldn't replace %s with %s!" format(toString(), fCall toString()))
             }
-            //return Responses LOOP
             res wholeAgain()
         }
         
@@ -119,8 +118,6 @@ UnaryOp: class extends Expression {
             return 0 // not the right overload type - skip
         }
         
-        //printf("=====\nNot skipped '%s'  vs  '%s'!\n", op getSymbol(), symbol)
-        
         fDecl := op getFunctionDecl()
         
         args := fDecl getArguments()
@@ -131,16 +128,10 @@ UnaryOp: class extends Expression {
         
         score := 0
         
-        //printf("Reviewing operator %s for %s\n", op toString(), toString())
-        //printf("Left  score = %d (%s vs %s)\n", args get(0) getType() getScore(left  getType()), args get(0) getType() toString(), left getType() toString())
-        //printf("Right score = %d (%s vs %s)\n", args get(1) getType() getScore(right getType()), args get(1) getType() toString(), right getType() toString())
-        
         score += args get(0) getType() getScore(inner getType())
         if(reqType) {
             score += fDecl getReturnType() getScore(reqType)
         }
-        
-        //printf("Final score = %d\n", score)
         
         return score
         

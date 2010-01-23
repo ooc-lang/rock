@@ -84,6 +84,7 @@ OperatorDecl: class extends Expression {
             case "!"   =>  "NOT"
             case "<"   =>  "LT"
             case ">"   =>  "GT"
+            case "<=>" =>  "CMP"
             case "~"   =>  "B_NEG"
             case "as"  =>  "AS"
             

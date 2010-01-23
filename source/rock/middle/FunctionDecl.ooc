@@ -274,8 +274,13 @@ FunctionDecl: class extends Expression {
                 }
             } else if(last instanceOf(Else)) {
                 // then it's alright, all cases are already handled
+                //printf("[autoReturn] last is an Else, all cases are already handled\n", last toString())
             } else {
                 //printf("[autoReturn] Huh, last is a %s, needing return\n", last toString())
+                //printf("[autoReturn] Content = \n")
+                for(statement in list) {
+                    printf(" - %s\n", statement toString())
+                }
                 returnNeeded(trail)
                 return Responses LOOP
             }
@@ -294,7 +299,7 @@ FunctionDecl: class extends Expression {
             ret := Return new(IntLiteral new(0, nullToken), nullToken)
             body add(ret)
         } else {
-            Exception new(This, "Control reaches the end of non-void function! trail = " + trail toString()) throw()
+            token throwError("Control reaches the end of non-void function! trail = " + trail toString())
         }
     }
     

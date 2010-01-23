@@ -111,7 +111,6 @@ BinaryOp: class extends Expression {
         }
 
         if(type == OpTypes ass) {
-            //println("resolving " + toString() + ", right is a " + right class name)
             if(right instanceOf(FunctionCall)) {
                 fCall := right as FunctionCall
                 fDecl := fCall getRef()
@@ -122,7 +121,6 @@ BinaryOp: class extends Expression {
                     return Responses LOOP
                 }
                 
-                //println("got assignment rhs a " + fCall toString())
                 if(fDecl getReturnType() isGeneric()) {
                     fCall setReturnArg(left)
                     trail peek() replace(this, fCall)
@@ -172,7 +170,6 @@ BinaryOp: class extends Expression {
             if(!trail peek() replace(this, fCall)) {
                 token throwError("Couldn't replace %s with %s!" format(toString(), fCall toString()))
             }
-            //return Responses LOOP
             res wholeAgain()
         }
         
@@ -188,8 +185,6 @@ BinaryOp: class extends Expression {
             return 0 // not the right overload type - skip
         }
         
-        //printf("=====\nNot skipped '%s'  vs  '%s'!\n", op getSymbol(), symbol)
-        
         fDecl := op getFunctionDecl()
         
         args := fDecl getArguments()
@@ -200,17 +195,11 @@ BinaryOp: class extends Expression {
         
         score := 0
         
-        //printf("Reviewing operator %s for %s\n", op toString(), toString())
-        //printf("Left  score = %d (%s vs %s)\n", args get(0) getType() getScore(left  getType()), args get(0) getType() toString(), left getType() toString())
-        //printf("Right score = %d (%s vs %s)\n", args get(1) getType() getScore(right getType()), args get(1) getType() toString(), right getType() toString())
-        
         score += args get(0) getType() getScore(left getType())
         score += args get(1) getType() getScore(right getType())        
         if(reqType) {
             score += fDecl getReturnType() getScore(reqType)
         }
-        
-        //printf("Final score = %d\n", score)
         
         return score
         

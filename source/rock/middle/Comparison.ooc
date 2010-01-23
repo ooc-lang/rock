@@ -1,6 +1,7 @@
 import structs/ArrayList
 import ../frontend/Token
-import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl
+import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
+       IntLiteral, Ternary
 import tinker/[Resolver, Trail, Response]
 
 include stdint
@@ -19,7 +20,8 @@ CompTypes: class {
     greaterThan = 3,
     smallerThan = 4,
     greaterOrEqual = 5,
-    smallerOrEqual = 6 : static const CompType
+    smallerOrEqual = 6,
+    compare = 7 : static const CompType
     
     repr := static ["no-op",
         "==",
@@ -27,8 +29,10 @@ CompTypes: class {
         ">",
         "<",
         ">=",
-        "<="] as ArrayList<String>
+        "<=",
+        "<=>"] as ArrayList<String>
 }
+
 
 Comparison: class extends Expression {
 
@@ -107,16 +111,38 @@ Comparison: class extends Expression {
             }
         }
         
-        if(candidate != null) {
+        if(candidate == null) {
+            
+            if(compType == CompTypes compare) {
+                // a <=> b
+                // a > b ? 1 : (a < b ? -1 : 0)
+                
+                minus := IntLiteral new(-1, token)
+                zero  := IntLiteral new(0,  token)
+                plus  := IntLiteral new(1,  token)
+                inner := Ternary new(Comparison new(left, right, CompTypes smallerThan,  token), minus, zero,  token)
+                outer := Ternary new(Comparison new(left, right, CompTypes greaterThan, token),  plus,  inner, token)
+                
+                if(!trail peek() replace(this, outer)) {
+                    token throwError("Couldn't replace %s with %s!" format(toString(), outer toString()))
+                }
+            }
+            
+        } else {
             fDecl := candidate getFunctionDecl()
             fCall := FunctionCall new(fDecl getName(), token)
             fCall setRef(fDecl)
             fCall getArguments() add(left)
             fCall getArguments() add(right)
-            if(!trail peek() replace(this, fCall)) {
-                token throwError("Couldn't replace %s with %s!" format(toString(), fCall toString()))
+            node := fCall as Node
+            
+            if(candidate getSymbol() equals("<=>")) {
+                node = Comparison new(node, IntLiteral new(0, token), compType, token)
             }
-            //return Responses LOOP
+            
+            if(!trail peek() replace(this, node)) {
+                token throwError("Couldn't replace %s with %s!" format(toString(), node toString()))
+            }
             res wholeAgain()
         }
         
@@ -128,11 +154,12 @@ Comparison: class extends Expression {
         
         symbol := CompTypes repr[compType]
         
-        if(!(op getSymbol() equals(symbol))) {
-            return 0 // not the right overload type - skip
-        }
+        half := false
         
-        //printf("=====\nNot skipped '%s'  vs  '%s'!\n", op getSymbol(), symbol)
+        if(!(op getSymbol() equals(symbol))) {
+            if(op getSymbol() equals("<=>")) half = true
+            else return 0 // not the right overload type - skip
+        }
         
         fDecl := op getFunctionDecl()
         
@@ -144,17 +171,13 @@ Comparison: class extends Expression {
         
         score := 0
         
-        //printf("Reviewing operator %s for %s\n", op toString(), toString())
-        //printf("Left  score = %d (%s vs %s)\n", args get(0) getType() getScore(left  getType()), args get(0) getType() toString(), left getType() toString())
-        //printf("Right score = %d (%s vs %s)\n", args get(1) getType() getScore(right getType()), args get(1) getType() toString(), right getType() toString())
-        
         score += args get(0) getType() getScore(left getType())
         score += args get(1) getType() getScore(right getType())        
         if(reqType) {
             score += fDecl getReturnType() getScore(reqType)
         }
         
-        //printf("Final score = %d\n", score)
+        if(half) score /= 2  // used to prioritize '<=', '>=', and blah, over '<=>'
         
         return score
         

@@ -514,6 +514,10 @@ nq_onLessThan: func (this: AstBuilder, left, right: Expression) -> Comparison {
 nq_onMoreThan: func (this: AstBuilder, left, right: Expression) -> Comparison {
     return Comparison new(left, right, CompTypes greaterThan, Token new(this tokenPos, this module))
 }
+nq_onCmp: func (this: AstBuilder, left, right: Expression) -> Comparison {
+    return Comparison new(left, right, CompTypes compare, Token new(this tokenPos, this module))
+}
+
 nq_onLessThanOrEqual: func (this: AstBuilder, left, right: Expression) -> Comparison {
     return Comparison new(left, right, CompTypes smallerOrEqual, Token new(this tokenPos, this module))
 }
