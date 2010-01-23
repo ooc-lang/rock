@@ -192,7 +192,7 @@ FunctionDecl: class extends Expression {
         response := autoReturnExplore(stack, trail)
         
         if(!response ok()) {
-            printf("Looping %s because autoReturnExplore said so.\n", toString())
+            //printf("Looping %s because autoReturnExplore said so.\n", toString())
             finalResponse = Responses LOOP
         }
         
@@ -258,7 +258,7 @@ FunctionDecl: class extends Expression {
             } else if(last instanceOf(Expression)) {
                 expr := last as Expression
                 if(expr getType() == null) {
-                    printf("[autoReturn] LOOPing because last's type (%s) is null.", expr toString())
+                    //printf("[autoReturn] LOOPing because last's type (%s) is null.", expr toString())
                     return Responses LOOP
                 }
                 

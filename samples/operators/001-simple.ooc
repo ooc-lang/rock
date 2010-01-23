@@ -1,13 +1,13 @@
 Test: class {
-	
+	init: func {}
 }
 
 operator + (first, second: Test) {
-	println("+ works")
+	"+ works" println()
 }
 
 main: func {
-	one, two : Test
-	one + two
+	one := Test new()
+	one + one
 }
 

@@ -234,8 +234,9 @@ AstBuilder: class {
         oDecl : OperatorDecl = stack pop()
         node : Node = stack peek()
         if(node == module) {
-            printf(" >> Got operator overload %s\n", oDecl toString())
             module addOperator(oDecl)
+        } else {
+            oDecl token throwError("Unexpected operator overload here!")
         }
     }
 

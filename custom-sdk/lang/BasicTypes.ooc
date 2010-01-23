@@ -38,15 +38,11 @@ Class: abstract class {
     
     /// Create a new instance of the object of type defined by this class
     alloc: final func -> Object {
-        printf("[Class] Allocating %d bytes!\n", instanceSize)
         object := gc_malloc(instanceSize) as Object
         if(object) {
-            printf("[Class] Object allocated! setting class\n")
             object class = this
-            printf("[Class] Running __defaults__()\n")
             object __defaults__()
         }
-        printf("[Class] Returning object\n")
         return object
     }
     

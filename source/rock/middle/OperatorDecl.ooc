@@ -42,7 +42,7 @@ OperatorDecl: class extends Expression {
             }
             
             fDecl setName(sb toString())
-            printf("Just created op-func name %s\n", fDecl getName())
+            //printf("Just created op-func name %s\n", fDecl getName())
         }
         
         fDecl resolve(trail, res)
