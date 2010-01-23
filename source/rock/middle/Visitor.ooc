@@ -5,7 +5,7 @@ import Return, ClassDecl, CoverDecl, FunctionDecl, VariableDecl, Type,
         BoolLiteral, StringLiteral, IntLiteral, FloatLiteral, NullLiteral,
         VariableAccess, FunctionCall, BinaryOp, Parenthesis, Return,
         Cast, Comparison, Ternary, Argument, AddressOf, Dereference,
-        CommaSequence, UnaryOp
+        CommaSequence, UnaryOp, ArrayAccess
 
 Visitor: abstract class {
     
@@ -33,6 +33,7 @@ Visitor: abstract class {
     visitNullLiteral:       func (node: NullLiteral) {}
     
     visitVariableAccess:    func (node: VariableAccess) {}
+    visitArrayAccess:       func (node: ArrayAccess) {}
     visitFunctionCall:      func (node: FunctionCall) {}
     
     visitBinaryOp:          func (node: BinaryOp) {}

@@ -170,6 +170,8 @@ Module: class extends Node {
         
         trail pop(this)
         
+        printf("Module's finalResponse = %s\n", finalResponse toString())
+        
         return finalResponse
     }
     

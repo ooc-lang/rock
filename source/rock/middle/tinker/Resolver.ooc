@@ -19,7 +19,7 @@ Resolver: class {
 
         response = module resolve(Trail new(), this)
         
-        if(params verbose) printf("[Module] response = %s\n", response toString())
+        if(params verbose) printf("[Module] response = %s (wholeAgain = %s)\n", response toString(), wholeAgain toString())
         
         return !response ok() || wholeAgain
         

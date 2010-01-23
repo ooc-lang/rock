@@ -8,7 +8,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Type, Expression, Return, VariableAccess, Cast, If, Else, ControlStatement,
     Comparison, IntLiteral, FloatLiteral, Ternary, BinaryOp, BoolLiteral,
     NullLiteral, Argument, Parenthesis, AddressOf, Dereference, Foreach,
-    OperatorDecl, RangeLiteral, UnaryOp]
+    OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -492,6 +492,7 @@ nq_onStringLiteral: func (this: AstBuilder, text: String) -> StringLiteral   { r
 nq_onStatement: func (this: AstBuilder, stmt: Statement)                 { this onStatement(stmt) }
 nq_onReturn: func (this: AstBuilder, expr: Expression) -> Return         { return this onReturn(expr) }
 nq_onVarAccess: func (this: AstBuilder, expr: Expression, name: String) -> VariableAccess  { return this onVarAccess(expr, name) }
+nq_onArrayAccess: func (this: AstBuilder, array, index: Expression) -> ArrayAccess         { return ArrayAccess new(array, index, Token new(this tokenPos, this module)) }
 nq_onCast: func (this: AstBuilder, expr: Expression, type: Type) -> Cast { return this onCast(expr, type) }
 
 nq_onIfStart: func (this: AstBuilder, condition: Expression)             { this onIfStart(condition) }

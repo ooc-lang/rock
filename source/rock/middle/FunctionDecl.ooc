@@ -118,11 +118,11 @@ FunctionDecl: class extends Expression {
         
         trail push(this)
         
-        //printf("\n\nResolving function decl %s (returnType = %s)\n", toString(), returnType toString())
+        printf("\n\nResolving function decl %s (returnType = %s)\n", toString(), returnType toString())
 
         for(arg in args) {
             response := arg resolve(trail, res)
-            //printf("Response of arg %s = %s\n", arg toString(), response toString())
+            printf("Response of arg %s = %s\n", arg toString(), response toString())
             if(!response ok()) {
                 trail pop(this)
                 return response
@@ -131,7 +131,7 @@ FunctionDecl: class extends Expression {
         
         for(typeArg in typeArgs) {
             response := typeArg resolve(trail, res)
-            //printf("Response of typeArg %s = %s\n", typeArg toString(), response toString())
+            printf("Response of typeArg %s = %s\n", typeArg toString(), response toString())
             if(!response ok()) {
                 trail pop(this)
                 return response
@@ -140,7 +140,7 @@ FunctionDecl: class extends Expression {
         
         {
             response := returnType resolve(trail, res)
-            //printf("))))))) For %s, response of return type %s = %s\n", toString(), returnType toString(), response toString())
+            printf("))))))) For %s, response of return type %s = %s\n", toString(), returnType toString(), response toString())
             if(!response ok()) {
                 trail pop(this)
                 return response
@@ -149,7 +149,7 @@ FunctionDecl: class extends Expression {
         
         {
             response := body resolve(trail, res)
-            //printf("))))))) For %s, response of body = %s\n", toString(), response toString())
+            printf("))))))) For %s, response of body = %s\n", toString(), response toString())
             if(!response ok()) {
                 trail pop(this)
                 return response
@@ -158,7 +158,7 @@ FunctionDecl: class extends Expression {
         
         {
             response := autoReturn(trail)
-            //printf("))))))) For %s, response of autoReturn = %s\n", toString(), response toString())
+            printf("))))))) For %s, response of autoReturn = %s\n", toString(), response toString())
             if(!response ok()) {
                 trail pop(this)
                 return response
@@ -167,7 +167,7 @@ FunctionDecl: class extends Expression {
         
         trail pop(this)
         
-        //printf("%s returning OK..\n", toString())
+        printf("%s returning OK..\n", toString())
         
         return Responses OK
         

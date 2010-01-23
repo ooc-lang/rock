@@ -14,4 +14,6 @@ main: func {
     printf("r[3] = %d\n", r[3])
     r[9] = 17
     
+    return 0
+    
 }

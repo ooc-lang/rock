@@ -10,7 +10,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Conditional, ControlStatement, VariableAccess, Include, Import,
     Use, TypeDecl, ClassDecl, CoverDecl, Node, Parenthesis, Return,
     Cast, Comparison, Ternary, BoolLiteral, Argument, Statement,
-    AddressOf, Dereference, CommaSequence, UnaryOp]
+    AddressOf, Dereference, CommaSequence, UnaryOp, ArrayAccess]
     
 import Skeleton, FunctionDeclWriter, ControlStatementWriter, ClassDeclWriter,
     ModuleWriter, CoverDeclWriter, FunctionCallWriter, CastWriter
@@ -128,6 +128,11 @@ CGenerator: class extends Skeleton {
             //printf("()() Writing variable access to type %s\n", typeDecl toString())
             current app(typeDecl name). app("_class()")
         }
+    }
+    
+    /** Write an array access */
+    visitArrayAccess: func (arrAcc: ArrayAccess) {
+        current app(arrAcc getArray()). app('['). app(arrAcc getIndex()). app(']')
     }
     
     /** Control statements */
