@@ -277,10 +277,6 @@ FunctionDecl: class extends Expression {
                 //printf("[autoReturn] last is an Else, all cases are already handled\n", last toString())
             } else {
                 //printf("[autoReturn] Huh, last is a %s, needing return\n", last toString())
-                //printf("[autoReturn] Content = \n")
-                for(statement in list) {
-                    printf(" - %s\n", statement toString())
-                }
                 returnNeeded(trail)
                 return Responses LOOP
             }
