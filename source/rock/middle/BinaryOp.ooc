@@ -27,6 +27,7 @@ OpTypes: class {
     bAnd = 10,      /*  &  */
     
     ass = 11,       /*  =  */
+    
     addAss = 12,    /*  += */
     subAss = 13,    /*  -= */
     mulAss = 14,    /*  *= */
@@ -91,6 +92,19 @@ BinaryOp: class extends Expression {
         return left toString() + " " + OpTypes repr get(type) + " " + right toString()
     }
     
+    unwrapAssign: func (trail: Trail, res: Resolver) -> Bool {
+        
+        if(!isAssign()) return false
+        
+        innerType := type - (OpTypes addAss - OpTypes add)
+        inner := BinaryOp new(left, right, innerType, token)
+        right = inner
+        type = OpTypes ass
+        
+        return true
+        
+    }
+    
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
         trail push(this)
@@ -119,6 +133,8 @@ BinaryOp: class extends Expression {
         }
 
         if(type == OpTypes ass) {
+            // if we're an assignment from a generic return value
+            // we need to set the returnArg to left and disappear! =)
             if(right instanceOf(FunctionCall)) {
                 fCall := right as FunctionCall
                 fDecl := fCall getRef()
@@ -170,6 +186,15 @@ BinaryOp: class extends Expression {
         }
         
         if(candidate != null) {
+            if(isAssign() && !candidate getSymbol() endsWith("=")) {
+                // we need to unwrap first!
+                unwrapAssign(trail, res)
+                trail push(this)
+                right resolve(trail, res)
+                trail pop(this)
+                return Responses OK
+            }
+            
             fDecl := candidate getFunctionDecl()
             fCall := FunctionCall new(fDecl getName(), token)
             fCall setRef(fDecl)
@@ -187,10 +212,16 @@ BinaryOp: class extends Expression {
     
     getScore: func (op: OperatorDecl, reqType: Type) -> Int {
         
-        symbol := OpTypes repr[type]
+        symbol : String = OpTypes repr[type]
+        
+        half := false
         
         if(!(op getSymbol() equals(symbol))) {
-            return 0 // not the right overload type - skip
+            if(isAssign() && symbol startsWith(op getSymbol())) {
+                // alright!
+            } else {
+                return 0 // not the right overload type - skip
+            }
         }
         
         fDecl := op getFunctionDecl()
@@ -207,6 +238,9 @@ BinaryOp: class extends Expression {
         score += args get(1) getType() getScore(right getType())        
         if(reqType) {
             score += fDecl getReturnType() getScore(reqType)
+        }
+        if(half) {
+            score /= 2
         }
         
         return score
