@@ -6,7 +6,7 @@ Reverse: class {
 }
 
 operator []  (r: Reverse, i: Int) -> Int    { -i }
-operator []= (r: Reverse, i, v: Int) -> Int { printf("r[%d]=%d called!\n", i, v) }
+operator []= (r: Reverse, i, v: Int) -> Int { printf("r[%d] = %d called!\n", i, v) }
 
 main: func {
     

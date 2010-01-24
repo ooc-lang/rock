@@ -20,21 +20,23 @@ OpTypes: class {
     mul = 3,        /*  *  */
     div = 4,        /*  /  */
     mod = 5,        /*  %  */
-    ass = 6,        /*  =  */
-    addAss = 7,     /*  += */
-    subAss = 8,     /*  -= */
-    mulAss = 9,     /*  *= */
-    divAss = 10,     /*  /= */
-    rshift = 11,    /*  >> */
-    lshift = 12,    /*  << */
-    rshiftAss = 13, /* >>= */
-    lshiftAss = 14, /* <<= */
-    bOr = 15,       /*  |  */
-    bXor = 16,      /*  ^  */
-    bAnd = 17,      /*  &  */
+    rshift = 6,     /*  >> */
+    lshift = 7,     /*  << */
+    bOr = 8,        /*  |  */
+    bXor = 9,       /*  ^  */
+    bAnd = 10,      /*  &  */
+    
+    ass = 11,       /*  =  */
+    addAss = 12,    /*  += */
+    subAss = 13,    /*  -= */
+    mulAss = 14,    /*  *= */
+    divAss = 15,    /*  /= */
+    rshiftAss = 16, /* >>= */
+    lshiftAss = 17, /* <<= */
     bOrAss = 18,    /*  |= */
     bXorAss = 19,   /*  ^= */
     bAndAss = 20,   /*  &= */
+    
     or = 21,        /*  || */
     and = 22        /*  && */ : static const OpType
     
@@ -44,21 +46,23 @@ OpTypes: class {
         "*",
         "/",
         "%",
+        ">>",
+        "<<",
+        "|",
+        "^",
+        "&",
+        
         "=",
         "+=",
         "-=",
         "*=",
         "/=",
-        ">>",
-        "<<",
         ">>=",
         "<<=",
-        "|",
-        "^",
-        "&",
         "|=",
         "^=",
         "&=",
+        
         "||",
         "&&"] as ArrayList<String>
 }
@@ -72,12 +76,16 @@ BinaryOp: class extends Expression {
         super(token)
     }
     
+    isAssign: func -> Bool { (type >= OpTypes ass) && (type <= OpTypes bAndAss) }
+    
     accept: func (visitor: Visitor) {
         visitor visitBinaryOp(this)
     }
     
     // that's probably not right (haha)
     getType: func -> Type { left getType() }
+    getLeft:  func -> Expression { left  }
+    getRight: func -> Expression { right }
     
     toString: func -> String {
         return left toString() + " " + OpTypes repr get(type) + " " + right toString()
