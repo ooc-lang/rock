@@ -8,7 +8,8 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Type, Expression, Return, VariableAccess, Cast, If, Else, ControlStatement,
     Comparison, IntLiteral, FloatLiteral, Ternary, BinaryOp, BoolLiteral,
     NullLiteral, Argument, Parenthesis, AddressOf, Dereference, Foreach,
-    OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess, Match]
+    OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess, Match, FlowControl,
+    While]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -394,7 +395,7 @@ AstBuilder: class {
         stack push(Else new(Token new(this tokenPos, this module)))
     }
     
-    onElseEnd: func -> If {
+    onElseEnd: func -> Else {
         else1 : Else = stack pop()
         //("Wanted to pop an Else, got a " + else1 class name) println()
         return else1
@@ -408,10 +409,21 @@ AstBuilder: class {
         stack push(Foreach new(decl, collec, Token new(this tokenPos, this module)))
     }
     
-    onForeachEnd: func -> If {
+    onForeachEnd: func -> Foreach {
         foreach1 : Foreach = stack pop()
         //("Wanted to pop an Foreach, got a " + foreach1 class name) println()
         return foreach1
+    }
+    
+    // while
+    onWhileStart: func (condition: Expression) {
+        stack push(While new(condition, Token new(this tokenPos, this module)))
+    }
+    
+    onWhileEnd: func -> While {
+        whyle : While = stack pop()
+        //("Wanted to pop an While, got a " + whyle class name) println()
+        return whyle
     }
 
 }
@@ -505,6 +517,8 @@ nq_onElseEnd: func (this: AstBuilder) -> Else                            { retur
 
 nq_onForeachStart: func (this: AstBuilder, decl, collec: Expression)     { this onForeachStart(decl, collec) }
 nq_onForeachEnd: func (this: AstBuilder) -> Foreach                      { return this onForeachEnd() }
+nq_onWhileStart: func (this: AstBuilder, condition: Expression)          { this onWhileStart(condition) }
+nq_onWhileEnd: func (this: AstBuilder) -> While                          { return this onWhileEnd() }
 
 nq_onMatchStart: func (this: AstBuilder)               { this stack push(Match new(Token new(this tokenPos, this module))) }
 nq_onMatchExpr:  func (this: AstBuilder, v:Expression) { m := this stack peek() as Match; m setExpr(v) }
@@ -526,6 +540,9 @@ nq_onCaseEnd:   func (this: AstBuilder) {
     m := this stack peek() as Match
     m addCase(c)
 }
+
+nq_onBreak:    func (this: AstBuilder) -> FlowControl { FlowControl new(FlowActions _break,    Token new(this tokenPos, this module)) }
+nq_onContinue: func (this: AstBuilder) -> FlowControl { FlowControl new(FlowActions _continue, Token new(this tokenPos, this module)) }
 
 nq_onEquals: func (this: AstBuilder, left, right: Expression) -> Comparison {
     return Comparison new(left, right, CompTypes equal, Token new(this tokenPos, this module))
