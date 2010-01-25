@@ -240,6 +240,10 @@ TypeDecl: abstract class extends Declaration {
     resolveAccess: func (access: VariableAccess) {
         
         //printf("? Looking for variable %s in %s\n", access name, name)
+        if(access getName() == "This") {
+            access suggest(this)
+            return
+        }
         
         vDecl : VariableDecl = null
         vDecl = variables get(access name)

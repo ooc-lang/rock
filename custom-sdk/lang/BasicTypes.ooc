@@ -17,6 +17,10 @@ Object: abstract class {
         class inheritsFrom(T)
     }
     
+    toString: func -> String {
+        "%s@%p" format(class name, this)
+    }
+    
 }
 
 Class: abstract class {
@@ -78,6 +82,18 @@ String: cover from char* {
     toDouble: extern(atof) func -> Double
     toFloat: extern(atof) func -> Float
     
+    first: func -> SizeT {
+        return this[0]
+    }
+    
+    lastIndex: func -> SizeT {
+        return length() - 1
+    }
+    
+    last: func -> Char {
+        return this[lastIndex()]
+    }
+    
     println: func {
         printf("%s\n", this)
     }
@@ -95,10 +111,74 @@ String: cover from char* {
         return copy
     }
     
+    prepend: func (other: String) -> String {
+    //prepend: func (other: This) -> This {
+        other append(this)
+    }
+    
+    format: func (...) -> String {
+        list:VaList
+
+        va_start(list, this)
+        
+        //length := vsnprintf(null, 0, this, list) + 1
+        length := vsnprintf(null, 0, this, list)
+        length += 1
+        
+        output: String = gc_malloc(length)
+        va_end(list)
+
+        va_start(list, this)
+        vsnprintf(output, length, this, list)
+        va_end(list)
+
+        return output
+    }
+    
 }
 
 operator + (left, right: String) -> String {
     return left append(right)
+}
+
+operator + (left: LLong, right: String) -> String {
+    left toString() + right
+}
+
+operator + (left: String, right: LLong) -> String {
+    left + right toString()
+}
+
+operator + (left: Int, right: String) -> String {
+    left toString() + right
+}
+
+operator + (left: String, right: Int) -> String {
+    left + right toString()
+}
+
+operator + (left: Bool, right: String) -> String {
+    left toString() + right
+}
+
+operator + (left: String, right: Bool) -> String {
+    left + right toString()
+}
+
+operator + (left: Double, right: String) -> String {
+    left toString() + right
+}
+
+operator + (left: String, right: Double) -> String {
+    left + right toString()
+}
+
+operator + (left: String, right: Char) -> String {
+    left append(right)
+}
+
+operator + (left: Char, right: String) -> String {
+    right prepend(left)
 }
 
 LLong: cover from long long
@@ -152,5 +232,44 @@ Range: cover {
     }
 
 }
+
+/**
+ * exceptions
+ */
+Exception: class {
+
+    origin: Class
+    msg : String
+
+    init: func (=origin, =msg) {}
+    init: func ~noOrigin (=msg) {}
+    
+    crash: func {
+        //fflush(stdout)
+        x := 0
+        x = 1 / x
+    }
+    
+    getMessage: func -> String {
+        //max := const 1024
+        max : const Int = 1024
+        buffer := gc_malloc(max) as String
+        if(origin) snprintf(buffer, max, "[%s in %s]: %s\n", class name, origin name, msg)
+        else snprintf(buffer, max, "[%s]: %s\n", class name, msg)
+        return buffer
+    }
+    
+    print: func {
+        //fprintf(stderr, "%s", getMessage())
+        printf("%s", getMessage())
+    }
+    
+    throw: func {
+        print()
+        crash()
+    }
+
+}
+
 
 

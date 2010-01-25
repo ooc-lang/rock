@@ -161,8 +161,6 @@ BinaryOp: class extends Expression {
         // so here's the plan: we give each operator overload a score
         // depending on how well it fits our requirements (types)
         
-        printf("Resolving overload of %s (in module %s)\n", toString(), trail module() getFullName())
-        
         bestScore := 0
         candidate : OperatorDecl = null
         
@@ -206,7 +204,6 @@ BinaryOp: class extends Expression {
             fCall getArguments() add(right)
             if(!trail peek() replace(this, fCall)) {
                 if(res fatal) token throwError("Couldn't replace %s with %s! trail = %s" format(toString(), fCall toString(), trail toString()))
-                printf("LOOPing, was trying to replace %s with %s! (in %s) trail = %s\n", toString(), fCall toString(), trail peek() toString(), trail toString())
                 return Responses LOOP
             }
             res wholeAgain(this, "Just replaced with an operator overloading")

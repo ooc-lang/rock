@@ -21,7 +21,6 @@ Parenthesis: class extends Expression {
         response := inner resolve(trail, res)
         trail pop(this)
         
-        printf("Resolved %s in parenthesis, response = %s\n", inner toString(), response toString())
         return response
     }
     

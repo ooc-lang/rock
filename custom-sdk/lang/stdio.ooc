@@ -10,7 +10,6 @@ println: func {
 // input/output
 printf: extern func (String, ...) -> Int
 
-/*
 fprintf: extern func (FStream, String, ...) -> Int
 sprintf: extern func (String, String, ...) -> Int
 snprintf: extern func (String, Int, String, ...) -> Int
@@ -99,4 +98,3 @@ FStream: cover from FILE* {
 }
 
 stdout, stderr, stdin : extern FStream
-*/
