@@ -429,38 +429,38 @@ AstBuilder: class {
 }
 
 // position in stream handling
-nq_setTokenPositionPointer: func (this: AstBuilder, tokenPos: Int*) { this tokenPos = tokenPos }
+nq_setTokenPositionPointer: unmangled func (this: AstBuilder, tokenPos: Int*) { this tokenPos = tokenPos }
 
 // string handling
-nq_StringClone: func (string: String) -> String             { string clone() }
+nq_StringClone: unmangled func (string: String) -> String             { string clone() }
 
 // includes, imports
-nq_onInclude: func (this: AstBuilder, path, name: String)   { this onInclude(path, name) }
-nq_onImport:  func (this: AstBuilder, path, name: String)   { this onImport(path, name) }
+nq_onInclude: unmangled func (this: AstBuilder, path, name: String)   { this onInclude(path, name) }
+nq_onImport:  unmangled func (this: AstBuilder, path, name: String)   { this onImport(path, name) }
 
 // covers
-nq_onCoverStart: func (this: AstBuilder, name: String)      { this onCoverStart(name) }
-nq_onCoverFromType: func (this: AstBuilder, type: Type)     { this onCoverFromType(type) }
-nq_onCoverExtends: func (this: AstBuilder, superType: Type) { this onCoverExtends(superType) }
-nq_onCoverEnd: func (this: AstBuilder)                      { this onCoverEnd() }
+nq_onCoverStart: unmangled func (this: AstBuilder, name: String)      { this onCoverStart(name) }
+nq_onCoverFromType: unmangled func (this: AstBuilder, type: Type)     { this onCoverFromType(type) }
+nq_onCoverExtends: unmangled func (this: AstBuilder, superType: Type) { this onCoverExtends(superType) }
+nq_onCoverEnd: unmangled func (this: AstBuilder)                      { this onCoverEnd() }
 
 // classes
-nq_onClassStart: func (this: AstBuilder, name: String)      { this onClassStart(name) }
-nq_onClassExtends: func (this: AstBuilder, superType: Type) { this onClassExtends(superType) }
-nq_onClassAbstract: func (this: AstBuilder)                 { this onClassAbstract() }
-nq_onClassFinal: func (this: AstBuilder)                    { this onClassFinal() }
-nq_onClassEnd: func (this: AstBuilder)                      { this onClassEnd() }
+nq_onClassStart: unmangled func (this: AstBuilder, name: String)      { this onClassStart(name) }
+nq_onClassExtends: unmangled func (this: AstBuilder, superType: Type) { this onClassExtends(superType) }
+nq_onClassAbstract: unmangled func (this: AstBuilder)                 { this onClassAbstract() }
+nq_onClassFinal: unmangled func (this: AstBuilder)                    { this onClassFinal() }
+nq_onClassEnd: unmangled func (this: AstBuilder)                      { this onClassEnd() }
 
 // variable declarations
-nq_onVarDeclStart: func (this: AstBuilder)                      { this onVarDeclStart() }
-nq_onVarDeclName: func (this: AstBuilder, name: String)         { this onVarDeclName(name) }
-nq_onVarDeclExtern: func (this: AstBuilder, externName: String) { this onVarDeclName(externName) }
-nq_onVarDeclExpr: func (this: AstBuilder, expr: Expression)     { this onVarDeclExpr(expr) }
-nq_onVarDeclType: func (this: AstBuilder, type: Type)           { this onVarDeclType(type) }
-nq_onVarDeclStatic: func (this: AstBuilder)                     { this onVarDeclStatic() }
-nq_onVarDeclEnd: func (this: AstBuilder) -> Stack<VariableDecl> { this onVarDeclEnd() }
+nq_onVarDeclStart: unmangled func (this: AstBuilder)                      { this onVarDeclStart() }
+nq_onVarDeclName: unmangled func (this: AstBuilder, name: String)         { this onVarDeclName(name) }
+nq_onVarDeclExtern: unmangled func (this: AstBuilder, externName: String) { this onVarDeclName(externName) }
+nq_onVarDeclExpr: unmangled func (this: AstBuilder, expr: Expression)     { this onVarDeclExpr(expr) }
+nq_onVarDeclType: unmangled func (this: AstBuilder, type: Type)           { this onVarDeclType(type) }
+nq_onVarDeclStatic: unmangled func (this: AstBuilder)                     { this onVarDeclStatic() }
+nq_onVarDeclEnd: unmangled func (this: AstBuilder) -> Stack<VariableDecl> { this onVarDeclEnd() }
 
-nq_onVarDeclAssign: func (this: AstBuilder, acc: VariableAccess, isConst: Bool, expr: Expression) -> VariableDecl {
+nq_onVarDeclAssign: unmangled func (this: AstBuilder, acc: VariableAccess, isConst: Bool, expr: Expression) -> VariableDecl {
     if(!acc instanceOf(VariableAccess)) {
         Exception new(AstBuilder, "Expected a VariableAccess as a left-hand-side of a decl-assign, but got a " + acc toString()) throw()
     }
@@ -472,57 +472,57 @@ nq_onVarDeclAssign: func (this: AstBuilder, acc: VariableAccess, isConst: Bool, 
 }
 
 // types
-nq_onTypeNew: func (this: AstBuilder, name: String) -> Type   { return BaseType new(name clone() trim(), Token new(this tokenPos, this module)) }
-nq_onTypePointer: func (this: AstBuilder, type: Type) -> Type { return PointerType new(type, Token new(this tokenPos, this module)) }
-nq_onTypeGenericArgument: func (this: AstBuilder, type: Type, name: String) { type addTypeArgument(VariableAccess new(name clone(), Token new(this tokenPos, this module))) }
-nq_onFuncTypeNew: func (this: AstBuilder) -> Type             { return FuncType new(Token new(this tokenPos, this module)) }
+nq_onTypeNew: unmangled func (this: AstBuilder, name: String) -> Type   { return BaseType new(name clone() trim(), Token new(this tokenPos, this module)) }
+nq_onTypePointer: unmangled func (this: AstBuilder, type: Type) -> Type { return PointerType new(type, Token new(this tokenPos, this module)) }
+nq_onTypeGenericArgument: unmangled func (this: AstBuilder, type: Type, name: String) { type addTypeArgument(VariableAccess new(name clone(), Token new(this tokenPos, this module))) }
+nq_onFuncTypeNew: unmangled func (this: AstBuilder) -> Type             { return FuncType new(Token new(this tokenPos, this module)) }
 
 // operators
-nq_onOperatorStart: func (this: AstBuilder, symbol: String)   { this onOperatorStart(symbol) }
-nq_onOperatorEnd: func (this: AstBuilder)                     { this onOperatorEnd() }
+nq_onOperatorStart: unmangled func (this: AstBuilder, symbol: String)   { this onOperatorStart(symbol) }
+nq_onOperatorEnd: unmangled func (this: AstBuilder)                     { this onOperatorEnd() }
 
-// functions
-nq_onFunctionStart: func (this: AstBuilder, name: String)       { this onFunctionStart(name) }
-nq_onFunctionExtern: func (this: AstBuilder, externName: String){ this onFunctionExtern(externName) }
-nq_onFunctionAbstract: func (this: AstBuilder)                  { this onFunctionAbstract() }
-nq_onFunctionStatic: func (this: AstBuilder)                    { this onFunctionStatic() }
-nq_onFunctionInline: func (this: AstBuilder)                    { this onFunctionInline() }
-nq_onFunctionFinal: func (this: AstBuilder)                     { this onFunctionFinal() }
-nq_onFunctionSuffix: func (this: AstBuilder, suffix: String)    { this onFunctionSuffix(suffix) }
-nq_onFunctionArgsStart: func (this: AstBuilder)                 { this onFunctionArgsStart() }
-nq_onFunctionArgsEnd: func (this: AstBuilder)                   { this onFunctionArgsEnd() }
-nq_onFunctionReturnType: func (this: AstBuilder, type: Type)    { this onFunctionReturnType(type) }
-nq_onFunctionEnd: func (this: AstBuilder) -> FunctionDecl       { return this onFunctionEnd() }
+// unmangled functions
+nq_onFunctionStart: unmangled func (this: AstBuilder, name: String)       { this onFunctionStart(name) }
+nq_onFunctionExtern: unmangled func (this: AstBuilder, externName: String){ this onFunctionExtern(externName) }
+nq_onFunctionAbstract: unmangled func (this: AstBuilder)                  { this onFunctionAbstract() }
+nq_onFunctionStatic: unmangled func (this: AstBuilder)                    { this onFunctionStatic() }
+nq_onFunctionInline: unmangled func (this: AstBuilder)                    { this onFunctionInline() }
+nq_onFunctionFinal: unmangled func (this: AstBuilder)                     { this onFunctionFinal() }
+nq_onFunctionSuffix: unmangled func (this: AstBuilder, suffix: String)    { this onFunctionSuffix(suffix) }
+nq_onFunctionArgsStart: unmangled func (this: AstBuilder)                 { this onFunctionArgsStart() }
+nq_onFunctionArgsEnd: unmangled func (this: AstBuilder)                   { this onFunctionArgsEnd() }
+nq_onFunctionReturnType: unmangled func (this: AstBuilder, type: Type)    { this onFunctionReturnType(type) }
+nq_onFunctionEnd: unmangled func (this: AstBuilder) -> FunctionDecl       { return this onFunctionEnd() }
 
-// function calls
-nq_onFunctionCallStart: func (this: AstBuilder, name: String)     { this onFunctionCallStart(name) }
-nq_onFunctionCallArg: func (this: AstBuilder, arg: Expression)    { this onFunctionCallArg(arg) }
-nq_onFunctionCallEnd: func (this: AstBuilder) -> FunctionCall     { return this onFunctionCallEnd() }
-nq_onFunctionCallExpr: func (this: AstBuilder, call: FunctionCall, expr: Expression)  { this onFunctionCallExpr(call, expr) }
+// unmangled function calls
+nq_onFunctionCallStart: unmangled func (this: AstBuilder, name: String)     { this onFunctionCallStart(name) }
+nq_onFunctionCallArg: unmangled func (this: AstBuilder, arg: Expression)    { this onFunctionCallArg(arg) }
+nq_onFunctionCallEnd: unmangled func (this: AstBuilder) -> FunctionCall     { return this onFunctionCallEnd() }
+nq_onFunctionCallExpr: unmangled func (this: AstBuilder, call: FunctionCall, expr: Expression)  { this onFunctionCallExpr(call, expr) }
 
 // literals
-nq_onStringLiteral: func (this: AstBuilder, text: String) -> StringLiteral   { return this onStringLiteral(text) }
+nq_onStringLiteral: unmangled func (this: AstBuilder, text: String) -> StringLiteral   { return this onStringLiteral(text) }
 
 // statement
-nq_onStatement: func (this: AstBuilder, stmt: Statement)                 { this onStatement(stmt) }
-nq_onReturn: func (this: AstBuilder, expr: Expression) -> Return         { return this onReturn(expr) }
-nq_onVarAccess: func (this: AstBuilder, expr: Expression, name: String) -> VariableAccess  { return this onVarAccess(expr, name) }
-nq_onArrayAccess: func (this: AstBuilder, array, index: Expression) -> ArrayAccess         { return ArrayAccess new(array, index, Token new(this tokenPos, this module)) }
-nq_onCast: func (this: AstBuilder, expr: Expression, type: Type) -> Cast { return this onCast(expr, type) }
+nq_onStatement: unmangled func (this: AstBuilder, stmt: Statement)                 { this onStatement(stmt) }
+nq_onReturn: unmangled func (this: AstBuilder, expr: Expression) -> Return         { return this onReturn(expr) }
+nq_onVarAccess: unmangled func (this: AstBuilder, expr: Expression, name: String) -> VariableAccess  { return this onVarAccess(expr, name) }
+nq_onArrayAccess: unmangled func (this: AstBuilder, array, index: Expression) -> ArrayAccess         { return ArrayAccess new(array, index, Token new(this tokenPos, this module)) }
+nq_onCast: unmangled func (this: AstBuilder, expr: Expression, type: Type) -> Cast { return this onCast(expr, type) }
 
-nq_onIfStart: func (this: AstBuilder, condition: Expression)             { this onIfStart(condition) }
-nq_onIfEnd: func (this: AstBuilder) -> If                                { return this onIfEnd() }
-nq_onElseStart: func (this: AstBuilder)                                  { this onElseStart() }
-nq_onElseEnd: func (this: AstBuilder) -> Else                            { return this onElseEnd() }
+nq_onIfStart: unmangled func (this: AstBuilder, condition: Expression)             { this onIfStart(condition) }
+nq_onIfEnd: unmangled func (this: AstBuilder) -> If                                { return this onIfEnd() }
+nq_onElseStart: unmangled func (this: AstBuilder)                                  { this onElseStart() }
+nq_onElseEnd: unmangled func (this: AstBuilder) -> Else                            { return this onElseEnd() }
 
-nq_onForeachStart: func (this: AstBuilder, decl, collec: Expression)     { this onForeachStart(decl, collec) }
-nq_onForeachEnd: func (this: AstBuilder) -> Foreach                      { return this onForeachEnd() }
-nq_onWhileStart: func (this: AstBuilder, condition: Expression)          { this onWhileStart(condition) }
-nq_onWhileEnd: func (this: AstBuilder) -> While                          { return this onWhileEnd() }
+nq_onForeachStart: unmangled func (this: AstBuilder, decl, collec: Expression)     { this onForeachStart(decl, collec) }
+nq_onForeachEnd: unmangled func (this: AstBuilder) -> Foreach                      { return this onForeachEnd() }
+nq_onWhileStart: unmangled func (this: AstBuilder, condition: Expression)          { this onWhileStart(condition) }
+nq_onWhileEnd: unmangled func (this: AstBuilder) -> While                          { return this onWhileEnd() }
 
-nq_onMatchStart: func (this: AstBuilder)               { this stack push(Match new(Token new(this tokenPos, this module))) }
-nq_onMatchExpr:  func (this: AstBuilder, v:Expression) { m := this stack peek() as Match; m setExpr(v) }
-nq_onMatchEnd:   func (this: AstBuilder) -> Match {
+nq_onMatchStart: unmangled func (this: AstBuilder)               { this stack push(Match new(Token new(this tokenPos, this module))) }
+nq_onMatchExpr:  unmangled func (this: AstBuilder, v:Expression) { m := this stack peek() as Match; m setExpr(v) }
+nq_onMatchEnd:   unmangled func (this: AstBuilder) -> Match {
     m : Node = this stack pop()
     if(!m instanceOf(Match)) {
         Exception new(AstBuilder, "Should've popped a Match, but popped a %s instead!" format(m class name)) throw()
@@ -530,9 +530,9 @@ nq_onMatchEnd:   func (this: AstBuilder) -> Match {
     m
 }
 
-nq_onCaseStart: func (this: AstBuilder)               { this stack push(Case new(Token new(this tokenPos, this module))) }
-nq_onCaseExpr:  func (this: AstBuilder, v:Expression) { c := this stack peek() as Case; c setExpr(v) }
-nq_onCaseEnd:   func (this: AstBuilder) {
+nq_onCaseStart: unmangled func (this: AstBuilder)               { this stack push(Case new(Token new(this tokenPos, this module))) }
+nq_onCaseExpr:  unmangled func (this: AstBuilder, v:Expression) { c := this stack peek() as Case; c setExpr(v) }
+nq_onCaseEnd:   unmangled func (this: AstBuilder) {
     c : Node = this stack pop()
     if(!c instanceOf(Case)) {
         Exception new(AstBuilder, "Should've popped a Case, but popped a %s instead!" format(c class name)) throw()
@@ -541,165 +541,165 @@ nq_onCaseEnd:   func (this: AstBuilder) {
     m addCase(c)
 }
 
-nq_onBreak:    func (this: AstBuilder) -> FlowControl { FlowControl new(FlowActions _break,    Token new(this tokenPos, this module)) }
-nq_onContinue: func (this: AstBuilder) -> FlowControl { FlowControl new(FlowActions _continue, Token new(this tokenPos, this module)) }
+nq_onBreak:    unmangled func (this: AstBuilder) -> FlowControl { FlowControl new(FlowActions _break,    Token new(this tokenPos, this module)) }
+nq_onContinue: unmangled func (this: AstBuilder) -> FlowControl { FlowControl new(FlowActions _continue, Token new(this tokenPos, this module)) }
 
-nq_onEquals: func (this: AstBuilder, left, right: Expression) -> Comparison {
+nq_onEquals: unmangled func (this: AstBuilder, left, right: Expression) -> Comparison {
     return Comparison new(left, right, CompTypes equal, Token new(this tokenPos, this module))
 }
-nq_onNotEquals: func (this: AstBuilder, left, right: Expression) -> Comparison {
+nq_onNotEquals: unmangled func (this: AstBuilder, left, right: Expression) -> Comparison {
     return Comparison new(left, right, CompTypes notEqual, Token new(this tokenPos, this module))
 }
-nq_onLessThan: func (this: AstBuilder, left, right: Expression) -> Comparison {
+nq_onLessThan: unmangled func (this: AstBuilder, left, right: Expression) -> Comparison {
     return Comparison new(left, right, CompTypes smallerThan, Token new(this tokenPos, this module))
 }
-nq_onMoreThan: func (this: AstBuilder, left, right: Expression) -> Comparison {
+nq_onMoreThan: unmangled func (this: AstBuilder, left, right: Expression) -> Comparison {
     return Comparison new(left, right, CompTypes greaterThan, Token new(this tokenPos, this module))
 }
-nq_onCmp: func (this: AstBuilder, left, right: Expression) -> Comparison {
+nq_onCmp: unmangled func (this: AstBuilder, left, right: Expression) -> Comparison {
     return Comparison new(left, right, CompTypes compare, Token new(this tokenPos, this module))
 }
 
-nq_onLessThanOrEqual: func (this: AstBuilder, left, right: Expression) -> Comparison {
+nq_onLessThanOrEqual: unmangled func (this: AstBuilder, left, right: Expression) -> Comparison {
     return Comparison new(left, right, CompTypes smallerOrEqual, Token new(this tokenPos, this module))
 }
-nq_onMoreThanOrEqual: func (this: AstBuilder, left, right: Expression) -> Comparison {
+nq_onMoreThanOrEqual: unmangled func (this: AstBuilder, left, right: Expression) -> Comparison {
     return Comparison new(left, right, CompTypes greaterOrEqual, Token new(this tokenPos, this module))
 }
 
-nq_onIntLiteral: func (this: AstBuilder, value: String) -> IntLiteral {
+nq_onIntLiteral: unmangled func (this: AstBuilder, value: String) -> IntLiteral {
     return IntLiteral new(value toLLong(), Token new(this tokenPos, this module))
 }
 
-nq_onFloatLiteral: func (this: AstBuilder, value: String) -> IntLiteral {
+nq_onFloatLiteral: unmangled func (this: AstBuilder, value: String) -> IntLiteral {
     return FloatLiteral new(value toFloat(), Token new(this tokenPos, this module))
 }
 
-nq_onBoolLiteral: func (this: AstBuilder, value: Bool) -> BoolLiteral {
+nq_onBoolLiteral: unmangled func (this: AstBuilder, value: Bool) -> BoolLiteral {
     return BoolLiteral new(value, Token new(this tokenPos, this module))
 }
 
-nq_onNull: func (this: AstBuilder) -> NullLiteral {
+nq_onNull: unmangled func (this: AstBuilder) -> NullLiteral {
     return NullLiteral new(Token new(this tokenPos, this module))
 }
 
-nq_onTernary: func (this: AstBuilder, condition, ifTrue, ifFalse: Expression) -> Ternary {
+nq_onTernary: unmangled func (this: AstBuilder, condition, ifTrue, ifFalse: Expression) -> Ternary {
     return Ternary new(condition, ifTrue, ifFalse, Token new(this tokenPos, this module))
 }
 
-nq_onAssignAdd: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+nq_onAssignAdd: unmangled func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes addAss, Token new(this tokenPos, this module))
 }
 
-nq_onAssignSub: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+nq_onAssignSub: unmangled func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes subAss, Token new(this tokenPos, this module))
 }
 
-nq_onAssignMul: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+nq_onAssignMul: unmangled func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes mulAss, Token new(this tokenPos, this module))
 }
 
-nq_onAssignDiv: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+nq_onAssignDiv: unmangled func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes divAss, Token new(this tokenPos, this module))
 }
 
-nq_onAssignAnd: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+nq_onAssignAnd: unmangled func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes bAndAss, Token new(this tokenPos, this module))
 }
 
-nq_onAssignOr: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+nq_onAssignOr: unmangled func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes bOrAss, Token new(this tokenPos, this module))
 }
 
-nq_onAssignXor: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+nq_onAssignXor: unmangled func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes bXorAss, Token new(this tokenPos, this module))
 }
 
-nq_onAssign: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+nq_onAssign: unmangled func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes ass, Token new(this tokenPos, this module))
 }
     
-nq_onAssignLeftShift: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+nq_onAssignLeftShift: unmangled func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes lshiftAss, Token new(this tokenPos, this module))
 }
 
-nq_onAssignRightShift: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+nq_onAssignRightShift: unmangled func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes rshiftAss, Token new(this tokenPos, this module))
 }
 
-nq_onAdd: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+nq_onAdd: unmangled func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes add, Token new(this tokenPos, this module))
 }
 
-nq_onSub: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+nq_onSub: unmangled func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes sub, Token new(this tokenPos, this module))
 }
 
-nq_onMod: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+nq_onMod: unmangled func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes mod, Token new(this tokenPos, this module))
 }
 
-nq_onMul: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+nq_onMul: unmangled func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes mul, Token new(this tokenPos, this module))
 }
 
-nq_onDiv: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+nq_onDiv: unmangled func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes div, Token new(this tokenPos, this module))
 }
 
-nq_onRangeLiteral: func (this: AstBuilder, left, right: Expression) -> RangeLiteral {
+nq_onRangeLiteral: unmangled func (this: AstBuilder, left, right: Expression) -> RangeLiteral {
     return RangeLiteral new(left, right, Token new(this tokenPos, this module))
 }
 
-nq_onBinaryLeftShift: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+nq_onBinaryLeftShift: unmangled func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes lshift, Token new(this tokenPos, this module))
 }
 
-nq_onBinaryRightShift: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+nq_onBinaryRightShift: unmangled func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes rshift, Token new(this tokenPos, this module))
 }
 
-nq_onLogicalOr: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+nq_onLogicalOr: unmangled func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes or, Token new(this tokenPos, this module))
 }
 
-nq_onLogicalAnd: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+nq_onLogicalAnd: unmangled func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes and, Token new(this tokenPos, this module))
 }
 
-nq_onBinaryOr: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+nq_onBinaryOr: unmangled func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes bOr, Token new(this tokenPos, this module))
 }
 
-nq_onBinaryXor: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+nq_onBinaryXor: unmangled func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes bXor, Token new(this tokenPos, this module))
 }
 
-nq_onBinaryAnd: func (this: AstBuilder, left, right: Expression) -> BinaryOp {
+nq_onBinaryAnd: unmangled func (this: AstBuilder, left, right: Expression) -> BinaryOp {
     return BinaryOp new(left, right, OpTypes bAnd, Token new(this tokenPos, this module))
 }
 
-nq_onLogicalNot: func (this: AstBuilder, inner: Expression) -> UnaryOp {
+nq_onLogicalNot: unmangled func (this: AstBuilder, inner: Expression) -> UnaryOp {
     return UnaryOp new(inner, UnaryOpTypes logicalNot, Token new(this tokenPos, this module))
 }
 
-nq_onBinaryNot: func (this: AstBuilder, inner: Expression) -> UnaryOp {
+nq_onBinaryNot: unmangled func (this: AstBuilder, inner: Expression) -> UnaryOp {
     return UnaryOp new(inner, UnaryOpTypes binaryNot, Token new(this tokenPos, this module))
 }
 
-nq_onUnaryMinus: func (this: AstBuilder, inner: Expression) -> UnaryOp {
+nq_onUnaryMinus: unmangled func (this: AstBuilder, inner: Expression) -> UnaryOp {
     return UnaryOp new(inner, UnaryOpTypes unaryMinus, Token new(this tokenPos, this module))
 }
 
-nq_onVarArg: func (this: AstBuilder) -> VarArg {
+nq_onVarArg: unmangled func (this: AstBuilder) -> VarArg {
     return VarArg new(Token new(this tokenPos, this module))
 }
 
-nq_onParenthesis: func (this: AstBuilder, inner: Expression) -> Parenthesis {
+nq_onParenthesis: unmangled func (this: AstBuilder, inner: Expression) -> Parenthesis {
     return Parenthesis new(inner, Token new(this tokenPos, this module))
 }
 
-nq_onGenericArgument: func (this: AstBuilder, name: String) {
+nq_onGenericArgument: unmangled func (this: AstBuilder, name: String) {
     
     node : Node = this stack peek()
     printf("======= Got generic argument %s, and node is a %s\n", name, node class name)
@@ -712,8 +712,8 @@ nq_onGenericArgument: func (this: AstBuilder, name: String) {
     
 }
 
-nq_onAddressOf:   func (this: AstBuilder, inner: Expression) -> AddressOf   { return AddressOf   new(inner, Token new(this tokenPos, this module)) }
-nq_onDereference: func (this: AstBuilder, inner: Expression) -> Dereference { return Dereference new(inner, Token new(this tokenPos, this module)) }
+nq_onAddressOf:   unmangled func (this: AstBuilder, inner: Expression) -> AddressOf   { return AddressOf   new(inner, Token new(this tokenPos, this module)) }
+nq_onDereference: unmangled func (this: AstBuilder, inner: Expression) -> Dereference { return Dereference new(inner, Token new(this tokenPos, this module)) }
 
-nq_error: func (this: AstBuilder, errorID: Int, message: String, index: Int) { this error(errorID, message, index) }
+nq_error: unmangled func (this: AstBuilder, errorID: Int, message: String, index: Int) { this error(errorID, message, index) }
 
