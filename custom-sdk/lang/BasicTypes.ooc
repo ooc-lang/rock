@@ -82,6 +82,23 @@ String: cover from char* {
         printf("%s\n", this)
     }
     
+    length: extern(strlen) func -> SizeT
+    
+    //append: func(other: This) -> This {
+    append: func(other: String) -> String {
+        //length := length()
+        length := this length()
+        rlength := other length()
+        copy := gc_malloc(length + rlength + 1) as Char*
+        memcpy(copy, this, length)
+        memcpy(copy as Char* + length, other, rlength + 1) // copy the final '\0'
+        return copy
+    }
+    
+}
+
+operator + (left, right: String) -> String {
+    return left append(right)
 }
 
 LLong: cover from long long

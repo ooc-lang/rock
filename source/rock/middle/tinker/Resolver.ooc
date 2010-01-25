@@ -25,6 +25,9 @@ Resolver: class {
         
     }
     
-    wholeAgain: func { wholeAgain = true }
+    wholeAgain: func (node: Node, reason: String) {
+        printf("%s (of type %s) wants to wholeAgain() because '%s'\n", node toString(), node class name, reason)
+        wholeAgain = true
+    }
     
 }

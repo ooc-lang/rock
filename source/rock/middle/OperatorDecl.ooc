@@ -22,7 +22,7 @@ OperatorDecl: class extends Expression {
     getType: func -> Type { fDecl getType() }
     
     toString: func -> String {
-        "operator " + symbol + (fDecl ? fDecl toString() : "")
+        "operator " + symbol + (fDecl ? fDecl getArgsRepr() : "")
     }
     
     isResolved: func -> Bool { false }
@@ -42,7 +42,6 @@ OperatorDecl: class extends Expression {
             }
             
             fDecl setName(sb toString())
-            //printf("Just created op-func name %s\n", fDecl getName())
         }
         
         fDecl resolve(trail, res)

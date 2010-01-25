@@ -161,6 +161,8 @@ BinaryOp: class extends Expression {
         // so here's the plan: we give each operator overload a score
         // depending on how well it fits our requirements (types)
         
+        printf("Resolving overload of %s (in module %s)\n", toString(), trail module() getFullName())
+        
         bestScore := 0
         candidate : OperatorDecl = null
         
@@ -168,6 +170,7 @@ BinaryOp: class extends Expression {
         
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType)
+            if(score == -1) { res wholeAgain(this, "score of %s == -1 !!" format(opDecl toString())); return Responses OK }
             if(score > bestScore) {
                 bestScore = score
                 candidate = opDecl
@@ -176,8 +179,9 @@ BinaryOp: class extends Expression {
         
         for(imp in trail module() getImports()) {
             module := imp getModule()
-            for(opDecl in trail module() getOperators()) {
+            for(opDecl in module getOperators()) {
                 score := getScore(opDecl, reqType)
+                if(score == -1) { res wholeAgain(this, "score of %s == -1 !!" format(opDecl toString())); return Responses OK }
                 if(score > bestScore) {
                     bestScore = score
                     candidate = opDecl
@@ -201,9 +205,11 @@ BinaryOp: class extends Expression {
             fCall getArguments() add(left)
             fCall getArguments() add(right)
             if(!trail peek() replace(this, fCall)) {
-                token throwError("Couldn't replace %s with %s!" format(toString(), fCall toString()))
+                if(res fatal) token throwError("Couldn't replace %s with %s! trail = %s" format(toString(), fCall toString(), trail toString()))
+                printf("LOOPing, was trying to replace %s with %s! (in %s) trail = %s\n", toString(), fCall toString(), trail peek() toString(), trail toString())
+                return Responses LOOP
             }
-            res wholeAgain()
+            res wholeAgain(this, "Just replaced with an operator overloading")
         }
         
         return Responses OK
@@ -234,8 +240,15 @@ BinaryOp: class extends Expression {
         
         score := 0
         
-        score += args get(0) getType() getScore(left getType())
-        score += args get(1) getType() getScore(right getType())        
+        opLeft  := args get(0)
+        opRight := args get(1)
+        
+        if(opLeft getType() == null || opRight getType() == null || left getType() == null || right getType() == null) {
+            return -1
+        }
+        
+        score += opLeft  getType() getScore(left getType())
+        score += opRight getType() getScore(right getType())        
         if(reqType) {
             score += fDecl getReturnType() getScore(reqType)
         }
@@ -249,7 +262,7 @@ BinaryOp: class extends Expression {
     
     replace: func (oldie, kiddo: Node) -> Bool {
         match oldie {
-            case left => left = kiddo; true
+            case left  => left  = kiddo; true
             case right => right = kiddo; true
             case => false
         }

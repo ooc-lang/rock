@@ -94,6 +94,7 @@ Comparison: class extends Expression {
         
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType)
+            if(score == -1) { res wholeAgain(this, "score of %s == -1 !!" format(opDecl toString())); return Responses OK }
             if(score > bestScore) {
                 bestScore = score
                 candidate = opDecl
@@ -102,8 +103,9 @@ Comparison: class extends Expression {
         
         for(imp in trail module() getImports()) {
             module := imp getModule()
-            for(opDecl in trail module() getOperators()) {
+            for(opDecl in module getOperators()) {
                 score := getScore(opDecl, reqType)
+                if(score == -1) { res wholeAgain(this, "score of %s == -1 !!" format(opDecl toString())); return Responses OK }
                 if(score > bestScore) {
                     bestScore = score
                     candidate = opDecl
@@ -141,9 +143,10 @@ Comparison: class extends Expression {
             }
             
             if(!trail peek() replace(this, node)) {
-                token throwError("Couldn't replace %s with %s!" format(toString(), node toString()))
+                if(res fatal) token throwError("Couldn't replace %s with %s!" format(toString(), node toString()))
+                return Responses LOOP
             }
-            res wholeAgain()
+            res wholeAgain(this, "Just replaced with an operator overloading")
         }
         
         return Responses OK
@@ -171,8 +174,15 @@ Comparison: class extends Expression {
         
         score := 0
         
-        score += args get(0) getType() getScore(left getType())
-        score += args get(1) getType() getScore(right getType())        
+        opLeft  := args get(0)
+        opRight := args get(1)
+        
+        if(opLeft getType() == null || opRight getType() == null || left getType() == null || right getType() == null) {
+            return -1
+        }
+        
+        score += opLeft  getType() getScore(left getType())
+        score += opRight getType() getScore(right getType())
         if(reqType) {
             score += fDecl getReturnType() getScore(reqType)
         }

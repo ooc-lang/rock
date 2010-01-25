@@ -1,4 +1,4 @@
-import structs/ArrayList
+import structs/ArrayList, text/StringBuffer
 import ../frontend/[Token, BuildParams]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence
@@ -198,7 +198,7 @@ FunctionCall: class extends Expression {
             }
             if(returnType) {
                 if(res params verbose) printf("LOOPing because of return type %s\n", returnType toString())
-                res wholeAgain()
+                res wholeAgain(this, "Because of return type %s\n" format(returnType toString()))
                 return Responses OK
                 //return Responses LOOP
             }
@@ -355,8 +355,21 @@ FunctionCall: class extends Expression {
     
     isMember: func -> Bool { expr != null }
     
+    getArgsRepr: func -> String {
+        sb := StringBuffer new()
+        sb append("(")
+        isFirst := true
+        for(arg in args) {
+            if(!isFirst) sb append(", ")
+            sb append(arg toString())
+            if(isFirst) isFirst = false
+        }
+        sb append(")")
+        return sb toString()
+    }
+    
     toString: func -> String {
-        name +"()"
+        (expr ? expr toString() + " " : "") + (ref ? ref getName() : name) + getArgsRepr()
     }
     
     replace: func (oldie, kiddo: Node) -> Bool {

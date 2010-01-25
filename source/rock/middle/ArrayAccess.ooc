@@ -24,16 +24,16 @@ ArrayAccess: class extends Expression {
         
         if(!index resolve(trail, res) ok()) {
             //printf("Whole-again because of index!\n")
-            res wholeAgain()
+            res wholeAgain(this, "because of index!")
         }
         if(!array resolve(trail, res) ok()) {
             //printf("Whole-again because of array!\n")
-            res wholeAgain()
+            res wholeAgain(this, "because of array!")
         }
         
         if(array getType() == null) {
             //printf("Whole-again because of array type!\n")
-            res wholeAgain()
+            res wholeAgain(this, "because of array type!")
         } else {
             type = array getType() dereference()
         }
@@ -72,7 +72,7 @@ ArrayAccess: class extends Expression {
         
         for(imp in trail module() getImports()) {
             module := imp getModule()
-            for(opDecl in trail module() getOperators()) {
+            for(opDecl in module getOperators()) {
                 score := getScore(opDecl, reqType, inAssign)
                 if(score > bestScore) {
                     bestScore = score
@@ -101,7 +101,7 @@ ArrayAccess: class extends Expression {
                 }
             }
             
-            res wholeAgain()
+            res wholeAgain(this, "Just been replaced with an overload")
         }
         
         return Responses OK

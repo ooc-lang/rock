@@ -1,4 +1,4 @@
-import structs/[Stack, ArrayList]
+import structs/[Stack, ArrayList], text/StringBuffer
 import ../frontend/Token
 import Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, Else,
@@ -69,9 +69,22 @@ FunctionDecl: class extends Expression {
     }
     
     getType: func -> Type { type }
+
+    getArgsRepr: func -> String {
+        sb := StringBuffer new()
+        sb append("(")
+        isFirst := true
+        for(arg in args) {
+            if(!isFirst) sb append(", ")
+            sb append(arg toString())
+            if(isFirst) isFirst = false
+        }
+        sb append(")")
+        return sb toString()
+    }
     
     toString: func -> String {
-        name + ": func"
+        name + ": func " + getArgsRepr()
     }
     
     isResolved: func -> Bool { false }

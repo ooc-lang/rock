@@ -17,14 +17,21 @@ Parenthesis: class extends Expression {
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        inner resolve(trail, res)
+        trail push(this)
+        response := inner resolve(trail, res)
+        trail pop(this)
+        
+        printf("Resolved %s in parenthesis, response = %s\n", inner toString(), response toString())
+        return response
     }
     
     replace: func (oldie, kiddo: Node) -> Bool {
         match oldie {
-            case inner => inner = oldie; true
+            case inner => inner = kiddo; true
             case => false
         }
     }
+    
+    toString: func -> String { "(" + inner toString() + ")" }
 
 }

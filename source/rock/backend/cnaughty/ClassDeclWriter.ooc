@@ -263,7 +263,7 @@ ClassDeclWriter: abstract class extends CGenerator {
         FunctionDeclWriter writeSuffixedName(this, parentDecl)
         current app(" = ")
         
-        if(realDecl != null) {
+        if(realDecl != null || parentDecl isExtern()) {
             current app("(")
             writeFunctionDeclPointer(this, parentDecl, false)
             current app(") ")

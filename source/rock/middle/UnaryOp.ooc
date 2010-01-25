@@ -78,6 +78,7 @@ UnaryOp: class extends Expression {
         
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType)
+            if(score == -1) { res wholeAgain(this, "score of %s == -1 !!" format(opDecl toString())); return Responses OK }
             if(score > bestScore) {
                 bestScore = score
                 candidate = opDecl
@@ -86,8 +87,9 @@ UnaryOp: class extends Expression {
         
         for(imp in trail module() getImports()) {
             module := imp getModule()
-            for(opDecl in trail module() getOperators()) {
+            for(opDecl in module getOperators()) {
                 score := getScore(opDecl, reqType)
+                if(score == -1) { res wholeAgain(this, "score of %s == -1 !!" format(opDecl toString())); return Responses OK }
                 if(score > bestScore) {
                     bestScore = score
                     candidate = opDecl
@@ -101,9 +103,10 @@ UnaryOp: class extends Expression {
             fCall setRef(fDecl)
             fCall getArguments() add(inner)
             if(!trail peek() replace(this, fCall)) {
-                token throwError("Couldn't replace %s with %s!" format(toString(), fCall toString()))
+                if(res fatal) token throwError("Couldn't replace %s with %s!" format(toString(), fCall toString()))
+                return Responses LOOP
             }
-            res wholeAgain()
+            res wholeAgain(this, "Just replaced with an operator overloading")
         }
         
         return Responses OK
@@ -127,6 +130,8 @@ UnaryOp: class extends Expression {
         }
         
         score := 0
+        
+        if(args get(0) getType() == null || inner getType() == null) { return -1 }
         
         score += args get(0) getType() getScore(inner getType())
         if(reqType) {

@@ -81,5 +81,16 @@ Case: class extends ControlStatement {
         body resolveAccess(access)
     }
     
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        
+        if (expr != null) {
+            response := expr resolve(trail, res)
+            if(!response ok()) return response
+        }
+        
+        return body resolve(trail, res)
+        
+    }
+    
 }
 

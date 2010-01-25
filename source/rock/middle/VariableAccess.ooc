@@ -91,7 +91,7 @@ VariableAccess: class extends Expression {
         if(!ref) {
             if(res fatal) token throwError("No such variable %s" format(toString()))
             if(res params verbose) printf("     - access to %s%s still not resolved, looping (ref = %s)\n", expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)")
-            res wholeAgain()
+            res wholeAgain(this, "Couldn't resolve %s" format(toString()))
         }
         
         //return ref ? Responses OK : Responses LOOP
