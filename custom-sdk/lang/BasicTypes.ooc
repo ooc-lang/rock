@@ -72,6 +72,12 @@ WChar: cover from wchar_t
 //String: cover from Char*
 String: cover from char* {
     
+    toInt: extern(atoi) func -> Int
+    toLong: extern(atol) func -> Long
+    toLLong: extern(atoll) func -> LLong
+    toDouble: extern(atof) func -> Double
+    toFloat: extern(atof) func -> Float
+    
     println: func {
         printf("%s\n", this)
     }
