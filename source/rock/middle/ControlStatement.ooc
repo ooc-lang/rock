@@ -33,6 +33,15 @@ ControlStatement: abstract class extends Statement {
         body addAfter(mark, newcomer)
     }
     
+    /**
+     * If, Else, Match are dead-end control statements.
+     * While, For, Foreach aren't.
+     * 
+     * A dead-end control statement is explored by autoReturn(TM),
+     * to add return when the last statement is a non-void expression.
+     */
+    isDeadEnd: func -> Bool { false }
+    
     isScope: func -> Bool { true }
     
     getBody: func -> Scope { body }

@@ -1,7 +1,7 @@
 
 import ../frontend/CommandLine
 import text/StringBuffer
-import io/[FileReader]
+import io/[FileReader, File]
 import ../middle/Module
 
 /* Will go into the load method of Token */
@@ -44,7 +44,7 @@ Token: cover {
     */
     
     throwError: func (message: String) {
-        fr := FileReader new(module path + ".ooc")
+        fr := FileReader new(module getPathElement() + File separator + module getFullName() + ".ooc")
         
         lastNewLine := 0
         lines := 0

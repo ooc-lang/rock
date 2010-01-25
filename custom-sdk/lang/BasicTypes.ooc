@@ -111,3 +111,23 @@ Bool: cover from bool
 Float: cover from float extends Double
 LDouble: cover from long double
 Double: cover from double
+
+/**
+ * custom types
+ */
+Range: cover {
+
+    min, max: Int
+    
+    //new: static func (.min, .max) -> This {
+    new: static func (min, max: Int) -> Range {
+        //this : This
+        this : Range
+        this min = min
+        this max = max
+        return this
+    }
+
+}
+
+

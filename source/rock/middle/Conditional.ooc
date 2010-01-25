@@ -31,5 +31,7 @@ Conditional: abstract class extends ControlStatement {
         
         return super replace(oldie, kiddo)
     }
+    
+    isDeadEnd: func -> Bool { true }
 
 }

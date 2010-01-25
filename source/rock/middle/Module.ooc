@@ -38,8 +38,11 @@ Module: class extends Node {
         packageName = sanitize(packageName)
     }
     
+    getFullName:    func -> String { fullName }
+    getPathElement: func -> String { pathElement }
+    
     sanitize: func(str: String) -> String {
-        // FIXME this is incomplete, the correct code is actually
+        // FIXME this is incomplete, the correct way is actually
         // to replace everything non-alphanumeric with underscores
         return str replace('/', '_') replace('-', '_')
     }

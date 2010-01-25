@@ -1,5 +1,5 @@
 import ../../middle/[ControlStatement, Conditional, If, Else, While,
-    Foreach, RangeLiteral]
+    Foreach, RangeLiteral, VariableDecl, VariableAccess]
 import Skeleton
 
 ControlStatementWriter: abstract class extends Skeleton {
@@ -40,11 +40,16 @@ ControlStatementWriter: abstract class extends Skeleton {
         if(!foreach collection instanceOf(RangeLiteral)) {
             Exception new(This, "Iterating over not a range but a " + foreach collection class name) throw()
         }
+        access := foreach variable
+        if(access instanceOf(VariableDecl)) {
+            access = VariableAccess new(access as VariableDecl, access token)
+        }
+        
         range := foreach collection as RangeLiteral
         current app("for (").
             app(foreach variable). app(" = "). app(range lower). app("; ").
-            app(foreach variable). app(" < "). app(range upper). app("; ").
-            app(foreach variable). app("++) {").
+            app(access).           app(" < "). app(range upper). app("; ").
+            app(access).           app("++) {").
         tab()
         for(stat in foreach body) {
             writeLine(stat)

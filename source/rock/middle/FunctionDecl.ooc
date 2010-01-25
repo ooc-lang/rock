@@ -206,7 +206,7 @@ FunctionDecl: class extends Expression {
         
         while(iter hasNext()) {
             node := iter next()
-            if(node instanceOf(ControlStatement)) {
+            if(node instanceOf(ControlStatement) && (node as ControlStatement isDeadEnd())) {
                 cs : ControlStatement = node
                 stack push(cs body iterator())
                 //printf("[autoReturn] Exploring a %s\n", cs toString())
@@ -244,7 +244,7 @@ FunctionDecl: class extends Expression {
         }
         
         if(condition) {
-            list : Scope = iter as ArrayListIterator<Scope> list
+            list : Scope = iter as ArrayListIterator<Node> list
             if(list isEmpty()) {
                 //printf("[autoReturn] scope is empty, needing return\n")
                 returnNeeded(trail)
@@ -268,9 +268,9 @@ FunctionDecl: class extends Expression {
                 }
                 
                 if(!expr getType() equals(voidType)) {
-                    //printf("[autoReturn] Hmm it's a %s\n", last toString())
+                    printf("[autoReturn] Hmm it's a %s\n", last toString())
                     list set(list lastIndex(), Return new(last, last token))
-                    //printf("[autoReturn] Replaced with a %s!\n", list last() toString())
+                    printf("[autoReturn] Replaced with a %s!\n", list last() toString())
                 }
             } else if(last instanceOf(Else)) {
                 // then it's alright, all cases are already handled
