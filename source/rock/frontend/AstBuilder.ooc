@@ -402,7 +402,10 @@ AstBuilder: class {
     
     // foreach
     onForeachStart: func (decl, collec: Expression) {
-        stack push(Foreach new(decl instanceOf(Stack) ? decl as Stack<VariableDecl> pop() : decl, collec, Token new(this tokenPos, this module)))
+        if(decl instanceOf(Stack)) {
+            decl = decl as Stack<VariableDecl> pop()
+        }
+        stack push(Foreach new(decl, collec, Token new(this tokenPos, this module)))
     }
     
     onForeachEnd: func -> If {

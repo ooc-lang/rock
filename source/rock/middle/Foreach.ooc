@@ -1,7 +1,7 @@
 import ../frontend/Token
 import ControlStatement, Expression, Visitor, VariableDecl, Node,
-       VariableAccess, VariableDecl
-import tinker/[Trail, Resolver, Response]       
+       VariableAccess, VariableDecl, IntLiteral, Type, RangeLiteral
+import tinker/[Trail, Resolver, Response]
 
 Foreach: class extends ControlStatement {
     
@@ -31,6 +31,14 @@ Foreach: class extends ControlStatement {
             if(!response ok()) return response
         }
         
+        if(variable instanceOf(VariableAccess) && !variable isResolved()) {
+            varType : Type = null
+            if(collection instanceOf(RangeLiteral)) {
+                varType = IntLiteral type
+            }
+            variable = VariableDecl new(varType, variable as VariableAccess getName(), variable token)
+        }
+        
         {
             response := collection resolve(trail, res)
             if(!response ok()) return response
@@ -42,10 +50,8 @@ Foreach: class extends ControlStatement {
     
     resolveAccess: func (access: VariableAccess) {
         
-        println("Looking for " + access toString() + " in " + toString() + " and variable is a " + variable toString())
         if(variable instanceOf(VariableDecl)) {
             vDecl := variable as VariableDecl
-            println("Got vDecl " + vDecl toString())
             if(vDecl name == access name) {
                 access suggest(vDecl)
             }

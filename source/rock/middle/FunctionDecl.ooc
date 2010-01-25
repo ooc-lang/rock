@@ -268,9 +268,9 @@ FunctionDecl: class extends Expression {
                 }
                 
                 if(!expr getType() equals(voidType)) {
-                    printf("[autoReturn] Hmm it's a %s\n", last toString())
+                    //printf("[autoReturn] Hmm it's a %s\n", last toString())
                     list set(list lastIndex(), Return new(last, last token))
-                    printf("[autoReturn] Replaced with a %s!\n", list last() toString())
+                    //printf("[autoReturn] Replaced with a %s!\n", list last() toString())
                 }
             } else if(last instanceOf(Else)) {
                 // then it's alright, all cases are already handled
