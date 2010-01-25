@@ -11,6 +11,7 @@ BoolLiteral: class extends Literal {
     accept: func (visitor: Visitor) { visitor visitBoolLiteral(this) }
 
     getType: func -> Type { type }
+    getValue: func -> Bool { value }
     
     toString: func -> String {
         value ? "true" : "false"

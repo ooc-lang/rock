@@ -5,7 +5,7 @@ import Return, ClassDecl, CoverDecl, FunctionDecl, VariableDecl, Type,
         BoolLiteral, StringLiteral, IntLiteral, FloatLiteral, NullLiteral,
         VariableAccess, FunctionCall, BinaryOp, Parenthesis, Return,
         Cast, Comparison, Ternary, Argument, AddressOf, Dereference,
-        CommaSequence, UnaryOp, ArrayAccess
+        CommaSequence, UnaryOp, ArrayAccess, Match
 
 Visitor: abstract class {
     
@@ -22,6 +22,7 @@ Visitor: abstract class {
     visitElse:              func (node: Else) {}
     visitWhile:             func (node: While) {}
     visitForeach:           func (node: Foreach) {}
+    visitMatch:             func (node: Match) {}
     
     visitRangeLiteral:      func (node: RangeLiteral) {}
     visitCharLiteral:       func (node: CharLiteral) {}

@@ -8,7 +8,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Type, Expression, Return, VariableAccess, Cast, If, Else, ControlStatement,
     Comparison, IntLiteral, FloatLiteral, Ternary, BinaryOp, BoolLiteral,
     NullLiteral, Argument, Parenthesis, AddressOf, Dereference, Foreach,
-    OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess]
+    OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess, Match]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -505,6 +505,27 @@ nq_onElseEnd: func (this: AstBuilder) -> Else                            { retur
 
 nq_onForeachStart: func (this: AstBuilder, decl, collec: Expression)     { this onForeachStart(decl, collec) }
 nq_onForeachEnd: func (this: AstBuilder) -> Foreach                      { return this onForeachEnd() }
+
+nq_onMatchStart: func (this: AstBuilder)               { this stack push(Match new(Token new(this tokenPos, this module))) }
+nq_onMatchExpr:  func (this: AstBuilder, v:Expression) { m := this stack peek() as Match; m setExpr(v) }
+nq_onMatchEnd:   func (this: AstBuilder) -> Match {
+    m : Node = this stack pop()
+    if(!m instanceOf(Match)) {
+        Exception new(AstBuilder, "Should've popped a Match, but popped a %s instead!" format(m class name)) throw()
+    }
+    m
+}
+
+nq_onCaseStart: func (this: AstBuilder)               { this stack push(Case new(Token new(this tokenPos, this module))) }
+nq_onCaseExpr:  func (this: AstBuilder, v:Expression) { c := this stack peek() as Case; c setExpr(v) }
+nq_onCaseEnd:   func (this: AstBuilder) {
+    c : Node = this stack pop()
+    if(!c instanceOf(Case)) {
+        Exception new(AstBuilder, "Should've popped a Case, but popped a %s instead!" format(c class name)) throw()
+    }
+    m := this stack peek() as Match
+    m addCase(c)
+}
 
 nq_onEquals: func (this: AstBuilder, left, right: Expression) -> Comparison {
     return Comparison new(left, right, CompTypes equal, Token new(this tokenPos, this module))

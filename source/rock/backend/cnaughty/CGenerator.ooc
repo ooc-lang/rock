@@ -10,7 +10,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Conditional, ControlStatement, VariableAccess, Include, Import,
     Use, TypeDecl, ClassDecl, CoverDecl, Node, Parenthesis, Return,
     Cast, Comparison, Ternary, BoolLiteral, Argument, Statement,
-    AddressOf, Dereference, CommaSequence, UnaryOp, ArrayAccess]
+    AddressOf, Dereference, CommaSequence, UnaryOp, ArrayAccess, Match]
     
 import Skeleton, FunctionDeclWriter, ControlStatementWriter, ClassDeclWriter,
     ModuleWriter, CoverDeclWriter, FunctionCallWriter, CastWriter
@@ -147,6 +147,9 @@ CGenerator: class extends Skeleton {
     }
     visitForeach: func (foreach: Foreach) {
         ControlStatementWriter write(this, foreach)
+    }
+    visitMatch: func (mat: Match) {
+        ControlStatementWriter write(this, mat)
     }
     
     /** Write a range literal */

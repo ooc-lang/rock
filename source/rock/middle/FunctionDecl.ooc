@@ -156,7 +156,7 @@ FunctionDecl: class extends Expression {
             }
         }
         
-        {
+        if(!isAbstract) {
             response := autoReturn(trail)
             //printf("))))))) For %s, response of autoReturn = %s\n", toString(), response toString())
             if(!response ok()) {

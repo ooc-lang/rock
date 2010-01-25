@@ -1,5 +1,5 @@
 import ../../middle/[ControlStatement, Conditional, If, Else, While,
-    Foreach, RangeLiteral, VariableDecl, VariableAccess]
+    Foreach, RangeLiteral, VariableDecl, VariableAccess, Match]
 import Skeleton
 
 ControlStatementWriter: abstract class extends Skeleton {
@@ -55,6 +55,31 @@ ControlStatementWriter: abstract class extends Skeleton {
             writeLine(stat)
         }
         current untab(). nl(). app("}")
+    }
+    
+    write: static func ~_match (this: This, mat: Match) {
+        isFirst := true
+        
+		for(caze in mat getCases()) {
+			if(!isFirst) current app(" else ")
+
+			if(caze getExpr() == null) {
+				if(isFirst) current.app(" else ");
+			} else {
+                // FIXME: wtf? (from the j/ooc codebase)
+				//if(case1 isFallthrough()) current app(' ')
+				current app("if ("). app(caze getExpr()). app(")")
+			}
+			
+			current app("{"). tab()
+			
+			for(stat in caze getBody()) {
+				writeLine(stat)
+			}
+			
+			current untab(). nl(). app("}")
+			if(isFirst) isFirst = false;
+		}
     }
     
 }
