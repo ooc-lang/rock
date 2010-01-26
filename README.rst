@@ -11,21 +11,19 @@ If you can think of a better acronym, let us know.
 It should compile fine under the latest j/ooc,
 which you can get at http://github.com/nddrylliog/ooc
 
-When rock will be stable enough, we're going to ditch j/ooc for good
-and happily live as chicken and egg forever.
-
 Install
 -------
 
 *rock is alpha software*, don't cry if it breaks things
 
-You'll need the latest nagaqueen grammar along the rock/ folder: http://github.com/nddrylliog/nagaqueen
-Since 2009-11-05, nagaqueen relies on greg instead of peg-leg again.: http://github.com/nddrylliog/greg
-You'll also need the ooc-yajl project for the json backend: http://github.com/fredreichbier/ooc-yajl
+  - clone nagaqueen, so that rock/ and nagaqueen/ are in the same folder (ie. they should be brothers) http://github.com/nddrylliog/nagaqueen
+  - clone greg, make && make install (will install in /usr/local/bin by default, make sure it's in your path) http://github.com/nddrylliog/greg
+  - install libyajl http://lloyd.github.com/yajl/ (make sure to `./configure --prefix=/usr` cause it defaults to /usr/local by default,
+    and may not be found by gcc/ld), and ooc-yajl http://github.com/fredreichbier/ooc-yajl
 
-Two ways, either
   - create a script in /usr/bin/rock where you export OOC_DIST and call /path/to/your/rock/bin/rock
-  - "ln -s /path/to/your/rock/bin/rock /usr/bin" and then make sure rock/ is besides ooc/ (ie. in the same parent folder)
+or
+  - "ln -s /path/to/your/rock/bin/rock /usr/bin" and then make sure rock/ is besides ooc/ (ie. they should be brothers)
 
 Progress report
 ---------------
@@ -46,13 +44,17 @@ Progress report
               even accross different modules, with imports and all. Most of the syntax is parsed,
               except generics, and only a few AST node types are missing. The code is a lot shorter and
               clearer than j/ooc's, I have high hopes as to the maintainability of rock. Plus, it's still *fast*.
+  - 2010-01 : Copying chunks of the sdk from j/ooc to rock/custom-sdk, generics for functions are mostly implemented,
+              classes still to come. Most control flow structures are implemented
+              (if/else/while/foreach/match/case/break/continue), decl-assign, 'This', member calls, covers, etc.
 
 You can help! We can probably re-use like 50% of the source code from the
 j/ooc codebase, so please come on #ooc-lang to know which classes need porting.
 
 Porting is not-so-hard, just refer to the cheat sheet here: http://ooc-lang.org/cheat
 
-P.S: Did I mention bootstrapping is awesome?
-P.P.S: If this project description isn't formal enough for you, then rock
-is probably not ready for you yet. Or the other way around. Or not. Who knows.
-P.P.P.S: rock is distributed under the BSD license, as usual.
+License
+-------
+
+rock is distributed under a BSD license
+
