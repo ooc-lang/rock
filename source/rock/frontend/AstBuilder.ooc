@@ -356,37 +356,40 @@ AstBuilder: class {
      * Function calls
      */
     
-    onFunctionCallStart: func (name: String) {
+    onFunctionCallStart: unmangled(nq_onFunctionCallStart) func (name: String) {
         fCall := FunctionCall new(name clone(), Token new(this tokenPos, this module))
         stack push(fCall)
     }
     
-    onFunctionCallArg: func (expr: Expression) {
+    onFunctionCallArg: unmangled(nq_onFunctionCallArg) func (expr: Expression) {
         fCall : FunctionCall = stack peek()
         fCall args add(expr)
         //printf("Function call to %s got arg %p\n", fCall name, expr)
     }
     
-    onFunctionCallEnd: func -> FunctionCall {
+    onFunctionCallEnd: unmangled(nq_onFunctionCallEnd) func -> FunctionCall {
         node : Node = stack pop()
         //printf("Wanted to pop a FunctionCall, got a %s\n", node class name)
         return node as FunctionCall
     }
     
-    onFunctionCallExpr: func (call: FunctionCall, expr: Expression) {
+    onFunctionCallExpr: unmangled(nq_onFunctionCallExpr) func (call: FunctionCall, expr: Expression) {
         //printf("Call to %s became a member call of expression %s\n", call toString(), expr toString())
         call expr = expr
     }
     
-    // literals
-    onStringLiteral: func (text: String) -> StringLiteral {
+    /*
+     * Literals
+     */
+    
+    onStringLiteral: unmangled(nq_onStringLiteral) func (text: String) -> StringLiteral {
         sl := StringLiteral new(text clone(), Token new(this tokenPos, this module))
         //printf("Got string literal %s\n", sl toString())
         return sl
     }
     
     // statement
-    onStatement: func (stmt: Statement) {
+    onStatement: unmangled(nq_onStatement) func (stmt: Statement) {
         node : Node = stack peek()
         if(node instanceOf(VariableDecl)) {
             //"Got varDecl %s" format(node toString()) println()
@@ -414,65 +417,69 @@ AstBuilder: class {
         }
     }
     
+    onArrayAccess: unmangled(nq_onArrayAccess) func (array, index: Expression) -> ArrayAccess {
+        return ArrayAccess new(array, index, Token new(this tokenPos, this module))
+    }
+    
     // return
-    onReturn: func (expr: Expression) -> Return {
+    onReturn: unmangled(nq_onReturn) func (expr: Expression) -> Return {
         ret := Return new(expr, Token new(this tokenPos, this module))
         //printf("Got return %p with expr %s (%p)\n", ret, expr ? expr toString() : "(nil)", expr)
         return ret
     }
     
     // variable access
-    onVarAccess: func (expr: Expression, name: String) -> VariableAccess {
+    onVarAccess: unmangled(nq_onVarAccess) func (expr: Expression, name: String) -> VariableAccess {
         return VariableAccess new(expr, name clone(), Token new(this tokenPos, this module))
     }
     
     // cast
-    onCast: func (expr: Expression, type: Type) -> Cast {
+    onCast: unmangled(nq_onCast) func (expr: Expression, type: Type) -> Cast {
         return Cast new(expr, type, Token new(this tokenPos, this module))
     }
     
     // if
-    onIfStart: func (condition: Expression) {
+    onIfStart: unmangled(nq_onIfStart) func (condition: Expression) {
         stack push(If new(condition, Token new(this tokenPos, this module)))
     }
     
-    onIfEnd: func -> If {
+    onIfEnd: unmangled(nq_onIfEnd) func -> If {
         if1 : If = stack pop()
         //("Wanted to pop an If, got a " + if1 class name) println()
         return if1
     }
     
     // else
-    onElseStart: func {
+    onElseStart: unmangled(nq_onElseStart) func {
         stack push(Else new(Token new(this tokenPos, this module)))
     }
     
-    onElseEnd: func -> Else {
+    onElseEnd: unmangled(nq_onElseEnd) func -> Else {
         else1 : Else = stack pop()
         //("Wanted to pop an Else, got a " + else1 class name) println()
         return else1
     }
     
     // foreach
-    onForeachStart: func (decl, collec: Expression) {
+    onForeachStart: unmangled(nq_onForeachStart) func (decl, collec: Expression) {
         if(decl instanceOf(Stack)) {
             decl = decl as Stack<VariableDecl> pop()
         }
         stack push(Foreach new(decl, collec, Token new(this tokenPos, this module)))
     }
     
-    onForeachEnd: func -> Foreach {
+    onForeachEnd: unmangled(nq_onForeachEnd) func -> Foreach {
         foreach1 : Foreach = stack pop()
         //("Wanted to pop an Foreach, got a " + foreach1 class name) println()
         return foreach1
     }
     
     // while
-    onWhileStart: func (condition: Expression) {
+    onWhileStart: unmangled(nq_onWhileStart) func (condition: Expression) {
         stack push(While new(condition, Token new(this tokenPos, this module)))
     }
     
-    onWhileEnd: func -> While {
+    onWhileEnd: unmangled(nq_onWhileEnd) func -> While {
         whyle : While = stack pop()
         //("Wanted to pop an While, got a " + whyle class name) println()
         return whyle
@@ -485,32 +492,6 @@ nq_setTokenPositionPointer: unmangled func (this: AstBuilder, tokenPos: Int*) { 
 
 // string handling
 nq_StringClone: unmangled func (string: String) -> String             { string clone() }
-
-// unmangled function calls
-nq_onFunctionCallStart: unmangled func (this: AstBuilder, name: String)     { this onFunctionCallStart(name) }
-nq_onFunctionCallArg: unmangled func (this: AstBuilder, arg: Expression)    { this onFunctionCallArg(arg) }
-nq_onFunctionCallEnd: unmangled func (this: AstBuilder) -> FunctionCall     { return this onFunctionCallEnd() }
-nq_onFunctionCallExpr: unmangled func (this: AstBuilder, call: FunctionCall, expr: Expression)  { this onFunctionCallExpr(call, expr) }
-
-// literals
-nq_onStringLiteral: unmangled func (this: AstBuilder, text: String) -> StringLiteral   { return this onStringLiteral(text) }
-
-// statement
-nq_onStatement: unmangled func (this: AstBuilder, stmt: Statement)                 { this onStatement(stmt) }
-nq_onReturn: unmangled func (this: AstBuilder, expr: Expression) -> Return         { return this onReturn(expr) }
-nq_onVarAccess: unmangled func (this: AstBuilder, expr: Expression, name: String) -> VariableAccess  { return this onVarAccess(expr, name) }
-nq_onArrayAccess: unmangled func (this: AstBuilder, array, index: Expression) -> ArrayAccess         { return ArrayAccess new(array, index, Token new(this tokenPos, this module)) }
-nq_onCast: unmangled func (this: AstBuilder, expr: Expression, type: Type) -> Cast { return this onCast(expr, type) }
-
-nq_onIfStart: unmangled func (this: AstBuilder, condition: Expression)             { this onIfStart(condition) }
-nq_onIfEnd: unmangled func (this: AstBuilder) -> If                                { return this onIfEnd() }
-nq_onElseStart: unmangled func (this: AstBuilder)                                  { this onElseStart() }
-nq_onElseEnd: unmangled func (this: AstBuilder) -> Else                            { return this onElseEnd() }
-
-nq_onForeachStart: unmangled func (this: AstBuilder, decl, collec: Expression)     { this onForeachStart(decl, collec) }
-nq_onForeachEnd: unmangled func (this: AstBuilder) -> Foreach                      { return this onForeachEnd() }
-nq_onWhileStart: unmangled func (this: AstBuilder, condition: Expression)          { this onWhileStart(condition) }
-nq_onWhileEnd: unmangled func (this: AstBuilder) -> While                          { return this onWhileEnd() }
 
 nq_onMatchStart: unmangled func (this: AstBuilder)               { this stack push(Match new(Token new(this tokenPos, this module))) }
 nq_onMatchExpr:  unmangled func (this: AstBuilder, v:Expression) { m := this stack peek() as Match; m setExpr(v) }
