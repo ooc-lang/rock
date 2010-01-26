@@ -61,6 +61,7 @@ Module: class extends Node {
     }
     
     getOperators: func -> List<OperatorDecl> { operators }
+    getTypes:     func -> HashMap<TypeDecl>  { types }
     
     accept: func (visitor: Visitor) { visitor visitModule(this) }
     
@@ -101,7 +102,7 @@ Module: class extends Node {
     resolveCall: func (call: FunctionCall) {
         if(call expr != null) return // hmm no member calls for us
         
-        //printf("Looking for function %s in module %s!\n", call name, fullName)
+        //printf(" >> Looking for function %s in module %s!\n", call name, fullName)
         fDecl : FunctionDecl = null
         fDecl = functions get(call name)
         if(fDecl) {

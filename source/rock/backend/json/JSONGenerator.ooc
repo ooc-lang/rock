@@ -65,8 +65,8 @@ JSONGenerator: class extends Visitor {
         /* `tag` */
         obj putValue("tag", node name as String)
         /* `extends` */
-        if(node superRef() != null) {
-            obj putValue("extends", node superRef() name as String)
+        if(node getSuperRef() != null) {
+            obj putValue("extends", node getSuperRef() name as String)
         } else {
             obj putValue("extends", null)
         }
@@ -104,8 +104,8 @@ JSONGenerator: class extends Visitor {
         /* `tag` */
         obj putValue("tag", node name as String)
         /* `extends` */
-        if(node superRef() != null) {
-            obj putValue("extends", node superRef() name as String)
+        if(node getSuperRef() != null) {
+            obj putValue("extends", node getSuperRef() name as String)
         } else {
             obj putValue("extends", null)
         }

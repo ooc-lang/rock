@@ -109,6 +109,9 @@ TypeDecl: abstract class extends Declaration {
         variables get(vName)
     }
     
+    getVariables: func -> HashMap<VariableDecl> { variables }
+    getFunctions: func -> HashMap<VariableDecl> { functions }
+    
     underName: func -> String {
         
         // TODO underize it.
@@ -138,7 +141,7 @@ TypeDecl: abstract class extends Declaration {
     
     isExtern: func -> Bool { externName != null }
     
-    superRef: func -> TypeDecl {
+    getSuperRef: func -> TypeDecl {
         superType ? superType getRef() : null
     }
     
@@ -169,13 +172,14 @@ TypeDecl: abstract class extends Declaration {
             }
         }
         
-        if(recursive && superRef()) {
-            return superRef() getFunction(name, suffix, call, true, bestScore, bestMatch)
+        if(recursive && getSuperRef() != null) {
+            return getSuperRef() getFunction(name, suffix, call, true, bestScore, bestMatch)
         }
         return bestMatch
         
     }
-    
+
+    getModule: func -> Module { module }
     getType: func -> Type { type }
     getInstanceType: func -> Type { instanceType }
 
@@ -241,7 +245,7 @@ TypeDecl: abstract class extends Declaration {
         
         //printf("? Looking for variable %s in %s\n", access name, name)
         if(access getName() == "This") {
-            access suggest(this)
+            access suggest(getNonMeta() ? getNonMeta() : this)
             return
         }
         
@@ -254,8 +258,8 @@ TypeDecl: abstract class extends Declaration {
                 varAcc suggest(thisDecl)
                 access expr = varAcc
             }
-        } else if(superRef()) {
-            superRef() resolveAccess(access)
+        } else if(getSuperRef() != null) {
+            getSuperRef() resolveAccess(access)
         }
     }
     
@@ -276,9 +280,9 @@ TypeDecl: abstract class extends Declaration {
             if(accepted && call getExpr() == null) {
                 call setExpr(VariableAccess new("this", call token))
             }
-        } else if(superRef()) {
+        } else if(getSuperRef() != null) {
             //printf("  <== going in superRef %s\n", superRef() toString())
-            superRef() resolveCall(call)
+            getSuperRef() resolveCall(call)
         }
         
     }

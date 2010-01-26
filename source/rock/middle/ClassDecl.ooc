@@ -34,7 +34,7 @@ ClassDecl: class extends TypeDecl {
     }
     
     getBaseClass: func (fDecl: FunctionDecl) -> ClassDecl {
-        sRef : ClassDecl  = superRef()
+        sRef : ClassDecl  = getSuperRef()
 		if(sRef != null) {
 			base := sRef getBaseClass(fDecl)
 			if(base != null) {

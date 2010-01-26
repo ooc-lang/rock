@@ -691,8 +691,29 @@ nq_onUnaryMinus: unmangled func (this: AstBuilder, inner: Expression) -> UnaryOp
     return UnaryOp new(inner, UnaryOpTypes unaryMinus, Token new(this tokenPos, this module))
 }
 
-nq_onVarArg: unmangled func (this: AstBuilder) -> VarArg {
-    return VarArg new(Token new(this tokenPos, this module))
+nq_onVarArg: unmangled func (this: AstBuilder) {
+    vararg := VarArg new(Token new(this tokenPos, this module))
+    node : Node = this stack peek()
+    if(node instanceOf(List)) {
+        list : List<Node> = node
+        //printf("Adding vararg %s to a %s\n", vararg toString(), list class name)
+        list add(vararg)
+    } else {
+        vararg token throwError("Unexpected vararg! parent is a %s" format(node class name))
+    }
+}
+
+nq_onTypeArg: unmangled func (this: AstBuilder, type: Type) {
+    typeArg := Argument new(type, "", Token new(this tokenPos, this module))
+    // TODO: add check for extern function (TypeArgs are illegal in non-extern functions.)
+    node : Node = this stack peek()
+    if(node instanceOf(List)) {
+        list : List<Node> = node
+        //printf("Adding typeArg %s to a %s\n", typeArg toString(), list class name)
+        list add(typeArg)
+    } else {
+        typeArg token throwError("Unexpected typeArg! parent is a %s" format(node class name))
+    }
 }
 
 nq_onParenthesis: unmangled func (this: AstBuilder, inner: Expression) -> Parenthesis {

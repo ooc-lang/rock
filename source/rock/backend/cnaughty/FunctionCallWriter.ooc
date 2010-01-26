@@ -76,10 +76,9 @@ FunctionCallWriter: abstract class extends Skeleton {
                 current app(", ")
             }
             isGeneric := i < fDecl args size()
+            if(isGeneric) isGeneric = !(fDecl args get(i) instanceOf(VarArg))
             if(isGeneric) isGeneric = fDecl args get(i) getType() isGeneric()
-            if(isGeneric) {
-                current app("(uint8_t*) ")
-            }
+            if(isGeneric) current app("(uint8_t*) ")
             arg accept(this)
             i += 1
         }

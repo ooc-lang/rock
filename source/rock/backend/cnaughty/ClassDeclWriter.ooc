@@ -39,7 +39,7 @@ ClassDeclWriter: abstract class extends CGenerator {
         current nl(). app("struct _"). app(cDecl underName()). app(' '). openBlock(). nl()
 
         if (!(cDecl name equals("Object"))) {
-            current app("struct _"). app(cDecl superRef() ? cDecl superRef() underName() : "FIXME"). app(" __super__;")
+            current app("struct _"). app(cDecl getSuperRef() ? cDecl getSuperRef() underName() : "FIXME"). app(" __super__;")
         }
         
         for(vName: String in cDecl variables keys) {
@@ -53,12 +53,12 @@ ClassDeclWriter: abstract class extends CGenerator {
         // Now write all virtual functions prototypes in the class struct
         for (fDecl: FunctionDecl in cDecl functions) {
             
-            if(cDecl superRef()) {
+            if(cDecl getSuperRef() != null) {
                 superDecl : FunctionDecl = null
-                superDecl = cDecl superRef() getFunction(fDecl name, fDecl suffix)
+                superDecl = cDecl getSuperRef() getFunction(fDecl name, fDecl suffix)
                 // don't write the function if it was declared in the parent
                 if(superDecl != null && !fDecl name equals("init")) {
-                    printf("Already declared in super %s, skipping (superDecl = %s)\n", cDecl superRef() toString(), superDecl toString())
+                    printf("Already declared in super %s, skipping (superDecl = %s)\n", cDecl getSuperRef() toString(), superDecl toString())
                     continue
                 }
             }
@@ -190,7 +190,7 @@ ClassDeclWriter: abstract class extends CGenerator {
 
         current nl(). nl(). app(cDecl underName()). app(" *"). app(cDecl getNonMeta() getName()). app("_class()"). openBlock(). nl()
         
-        if (cDecl getNonMeta() superRef()) {
+        if (cDecl getNonMeta() getSuperRef()) {
             current app("static "). app(LANG_PREFIX). app("Bool __done__ = false;"). nl()
         }
         current app("static "). app(cDecl underName()). app(" class = "). nl()
@@ -198,10 +198,10 @@ ClassDeclWriter: abstract class extends CGenerator {
         writeClassStructInitializers(this, cDecl, cDecl, ArrayList<FunctionDecl> new())
         
         current app(';')
-        if (cDecl getNonMeta() superRef()) {
+        if (cDecl getNonMeta() getSuperRef()) {
             current nl(). app(CLASS_NAME). app(" *classPtr = ("). app(CLASS_NAME). app(" *) &class;")
             current nl(). app("if(!__done__)"). openBlock().
-                    nl(). app("classPtr->super = ("). app(CLASS_NAME). app("*) "). app(cDecl getNonMeta() superRef() getName()). app("_class();").
+                    nl(). app("classPtr->super = ("). app(CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getName()). app("_class();").
                     nl(). app("__done__ = true;").
             closeBlock()
         }
@@ -223,7 +223,7 @@ ClassDeclWriter: abstract class extends CGenerator {
               nl() .app(".size = "). app("sizeof(void*),").
               nl() .app(".name = "). app('"'). app(realClass name). app("\",")
         } else {
-            writeClassStructInitializers(this, parentClass superRef(), realClass, done)
+            writeClassStructInitializers(this, parentClass getSuperRef(), realClass, done)
         }
 
         for (parentDecl: FunctionDecl in parentClass functions) {

@@ -1,5 +1,6 @@
 import ../frontend/Token
 import VariableDecl, Type, Visitor, Node
+import tinker/[Trail, Resolver, Response]
 
 Argument: abstract class extends VariableDecl {
     
@@ -16,5 +17,11 @@ VarArg: class extends Argument {
     }
     
     replace: func (oldie, kiddo: Node) -> Bool { false }
+    
+    isResolved: func -> Bool { true }
+    
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        return Responses OK
+    }
     
 }

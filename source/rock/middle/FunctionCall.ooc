@@ -36,15 +36,15 @@ FunctionCall: class extends Expression {
     
     suggest: func (candidate: FunctionDecl) -> Bool {
         
-        //"Got suggestion %s for %s" format(candidate toString(), toString()) println()
+        //"** Got suggestion %s for %s" format(candidate toString(), toString()) println()
         if((expr != null) && (candidate owner == null)) {
-            //printf("%s is no fit!, we need something to fit %s\n", candidate toString(), toString())
+            //printf("** %s is no fit!, we need something to fit %s\n", candidate toString(), toString())
             return false
         }
         
         score := getScore(candidate)
         if(score > refScore) {
-            //"New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
+            //"** New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
             refScore = score
             ref = candidate
             return true
@@ -318,6 +318,7 @@ FunctionCall: class extends Expression {
             declArg := declIter next()
             callArg := callIter next()
             // avoid null types
+            if(declArg instanceOf(VarArg)) break
             if(declArg getType() == null) return -1
             if(callArg getType() == null) return -1
             if(declArg type equals(callArg getType())) {

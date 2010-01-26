@@ -8,11 +8,11 @@ CastWriter: abstract class extends Skeleton {
         
         if(cast inner getType() isGeneric()) {
             
-            current app("(* ("). app(cast type). app("*)"). app(cast inner). app(")")
+            current app("(* ("). app(cast type). app("*)"). app(cast inner). app(')')
             
         } else {
         
-            current app('('). app(cast type). app(") "). app(cast inner)
+            current app("(("). app(cast type). app(") "). app(cast inner). app(')')
             
         }
         

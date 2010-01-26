@@ -16,10 +16,12 @@ Object: abstract class {
     instanceOf: final func (T: Class) -> Bool {
         class inheritsFrom(T)
     }
-    
+
+    /*
     toString: func -> String {
         "%s@%p" format(class name, this)
     }
+    */
     
 }
 
@@ -100,6 +102,7 @@ String: cover from char* {
     
     length: extern(strlen) func -> SizeT
     
+    //FIXME: add 'This' support for rock!
     //append: func(other: This) -> This {
     append: func(other: String) -> String {
         //length := length()
@@ -149,6 +152,8 @@ operator + (left: String, right: LLong) -> String {
     left + right toString()
 }
 
+//FIXME: figure out why toString() aren't inherited from LLong
+/*
 operator + (left: Int, right: String) -> String {
     left toString() + right
 }
@@ -180,8 +185,31 @@ operator + (left: String, right: Char) -> String {
 operator + (left: Char, right: String) -> String {
     right prepend(left)
 }
+*/
 
-LLong: cover from long long
+LLong: cover from long long {
+    
+    toString: func -> String {
+        str = gc_malloc(64) : String
+        sprintf(str, "%lld", this)
+        str
+    }
+    
+    toHexString: func -> String {
+        str = gc_malloc(64) : String
+        sprintf(str, "%llx", this)
+        str
+    }
+    
+    isOdd:  func -> Bool { this % 2 == 1 }
+    isEven: func -> Bool { this % 2 == 0 }
+    
+    in: func(range: Range) -> Bool {
+        return this >= range min && this < range max
+    }
+    
+}
+    
 Int: cover from int extends LLong
 UInt: cover from unsigned int extends LLong
 Short: cover from short extends LLong
@@ -245,6 +273,7 @@ Exception: class {
     init: func ~noOrigin (=msg) {}
     
     crash: func {
+        //FIXME: add global variables support for rock!
         //fflush(stdout)
         x := 0
         x = 1 / x
@@ -254,12 +283,13 @@ Exception: class {
         //max := const 1024
         max : const Int = 1024
         buffer := gc_malloc(max) as String
-        if(origin) snprintf(buffer, max, "[%s in %s]: %s\n", class name, origin name, msg)
-        else snprintf(buffer, max, "[%s]: %s\n", class name, msg)
+        if(origin) snprintf(buffer, max, "[%s in %s]: %s\n", this as Object class name, origin name, msg)
+        else snprintf(buffer, max, "[%s]: %s\n", this as Object class name, msg)
         return buffer
     }
     
     print: func {
+        //FIXME: add global variable support for rock!
         //fprintf(stderr, "%s", getMessage())
         printf("%s", getMessage())
     }
