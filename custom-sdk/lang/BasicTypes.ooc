@@ -103,8 +103,8 @@ String: cover from char* {
     length: extern(strlen) func -> SizeT
     
     //FIXME: add 'This' support for rock!
-    //append: func(other: This) -> This {
-    append: func(other: String) -> String {
+    append: func(other: This) -> This {
+    //append: func(other: String) -> String {
         //length := length()
         length := this length()
         rlength := other length()

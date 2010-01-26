@@ -241,12 +241,19 @@ TypeDecl: abstract class extends Declaration {
         
     }
     
+    resolveType: func (type: BaseType) {
+        
+        if(type getName() == "This") {
+            if(type suggest(getNonMeta() ? getNonMeta() : this)) return
+        }
+        
+    }
+    
     resolveAccess: func (access: VariableAccess) {
         
         //printf("? Looking for variable %s in %s\n", access name, name)
         if(access getName() == "This") {
-            access suggest(getNonMeta() ? getNonMeta() : this)
-            return
+            if(access suggest(getNonMeta() ? getNonMeta() : this)) return
         }
         
         vDecl : VariableDecl = null
