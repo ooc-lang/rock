@@ -112,101 +112,122 @@ AstBuilder: class {
         Token new(index, 1, module) throwError(message)
     }
     
-    onInclude: func (path, name: String) {
+    onInclude: unmangled(nq_onInclude) func (path, name: String) {
         inc := Include new(path isEmpty() ? name : path + name, IncludeModes PATHY)
         module includes add(inc)
         //printf("Got include %s\n", inc path)
     }
     
-    onImport: func  (path, name: String) {
+    onImport: unmangled(nq_onImport) func (path, name: String) {
         imp := Import new(path isEmpty() ? name : path + name)
         module imports add(imp)
         //printf("Got Import %s\n", imp path)
     }
     
-    onCoverStart: func (name: String) {
+    /*
+     * Covers
+     */
+    
+    onCoverStart: unmangled(nq_onCoverStart) func (name: String) {
         cDecl := CoverDecl new(name clone(), null, Token new(this tokenPos, this module))
         cDecl module = module
         module addType(cDecl)
         stack push(cDecl)
     }
     
-    onCoverFromType: func (type: Type) {
+    onCoverFromType: unmangled(nq_onCoverFromType) func (type: Type) {
         cDecl : CoverDecl = stack peek()
         cDecl setFromType(type)
     }
     
-    onCoverExtends: func (superType: Type) {
+    onCoverExtends: unmangled(nq_onCoverExtends) func (superType: Type) {
         cDecl : CoverDecl = stack peek()
         cDecl superType = superType
     }
     
-    onCoverEnd: func {
+    onCoverEnd: unmangled(nq_onCoverEnd) func {
         node : Node = stack pop()
     }
     
-    onClassStart: func (name: String) {
+    /*
+     * Classes
+     */
+    
+    onClassStart: unmangled(nq_onClassStart) func (name: String) {
         cDecl := ClassDecl new(name clone(), null, Token new(this tokenPos, this module))
         cDecl module = module
         module addType(cDecl)
         stack push(cDecl)
     }
     
-    onClassExtends: func (superType: Type) {
+    onClassExtends: unmangled(nq_onClassExtends) func (superType: Type) {
         cDecl : ClassDecl = stack peek()
         cDecl superType = superType
     }
     
-    onClassAbstract: func {
+    onClassAbstract: unmangled(nq_onClassAbstract) func {
         cDecl : ClassDecl = stack peek()
         cDecl isAbstract = true
     }
     
-    onClassFinal: func {
+    onClassFinal: unmangled(nq_onClassFinal) func {
         cDecl : ClassDecl = stack peek()
         cDecl isFinal = true
     }
     
-    onClassEnd: func {
+    onClassEnd: unmangled(nq_onClassEnd) func {
         node : Node = stack pop()
     }
      
-    onVarDeclStart: func {
+    /*
+     * Variable declarations
+     */
+     
+    onVarDeclStart: unmangled(nq_onVarDeclStart) func {
         stack push(Stack<VariableDecl> new())
     }
     
-    onVarDeclName: func (name: String) {
+    onVarDeclName: unmangled(nq_onVarDeclName) func (name: String) {
         vds : Stack<VariableDecl> = stack peek()
         vds push(VariableDecl new(null, name clone(), Token new(this tokenPos, this module)))
     }
     
-    onVarDeclExtern: func (externName: String) {
+    onVarDeclExtern: unmangled(nq_onVarDeclExtern) func (externName: String) {
         vds : Stack<VariableDecl> = stack peek()
         vds peek() setExternName(externName)
     }
     
-    onVarDeclExpr: func (expr: Expression) {
+    onVarDeclExpr: unmangled(nq_onVarDeclExpr) func (expr: Expression) {
         vds : Stack<VariableDecl> = stack peek()
         vds peek() setExpr(expr)
     }
     
-    onVarDeclStatic: func {
+    onVarDeclStatic: unmangled(nq_onVarDeclStatic) func {
         vds : Stack<VariableDecl> = stack peek()
         for(vd: VariableDecl in vds) {
             vd setStatic(true)
         }
     }
     
-    onVarDeclType: func (type: Type) {
+    onVarDeclType: unmangled(nq_onVarDeclType) func (type: Type) {
         vds : Stack<VariableDecl> = stack peek()
         for(vd: VariableDecl in vds) {
             vd type = type
         }
     }
     
-    onVarDeclEnd: func -> Stack<VariableDecl> {
+    onVarDeclEnd: unmangled(nq_onVarDeclEnd) func -> Stack<VariableDecl> {
         vds : Stack<VariableDecl> = stack pop()
         return vds
+    }
+    
+    onVarDeclAssign: unmangled(nq_onVarDeclAssign) func (acc: VariableAccess, isConst: Bool, expr: Expression) -> VariableDecl {
+        if(!acc instanceOf(VariableAccess)) {
+            Exception new(AstBuilder, "Expected a VariableAccess as a left-hand-side of a decl-assign, but got a " + acc toString()) throw()
+        }
+        vDecl := VariableDecl new(null, acc name, expr, Token new(this tokenPos, this module))
+        vDecl isConst = isConst
+        return vDecl
     }
     
     gotVarDecl: func (vd: VariableDecl) {
@@ -222,8 +243,32 @@ AstBuilder: class {
             onStatement(vd)
         }
     }
+    
+    /*
+     * Types
+     */
+    
+    onTypeNew: unmangled(nq_onTypeNew) func (name: String) -> Type   {
+        BaseType new(name clone() trim(), Token new(this tokenPos, this module))
+    }
+    
+    onTypePointer: unmangled(nq_onTypePointer) func (type: Type) -> Type {
+        PointerType new(type, Token new(this tokenPos, this module))
+    }
+    
+    onTypeGenericArgument: unmangled(nq_onTypeGenericArgument) func (type: Type, name: String) {
+        type addTypeArgument(VariableAccess new(name clone(), Token new(this tokenPos, this module)))
+    }
+    
+    onFuncTypeNew: unmangled(nq_onFuncTypeNew) func -> Type {
+        FuncType new(Token new(this tokenPos, this module))
+    }
+    
+    /*
+     * Operator overloads
+     */
 
-    onOperatorStart: func (symbol: String) {
+    onOperatorStart: unmangled(nq_onOperatorStart) func (symbol: String) {
         oDecl := OperatorDecl new(symbol clone() trim(), Token new(this tokenPos, this module))
         fDecl := FunctionDecl new("", Token new(this tokenPos, this module))
         oDecl setFunctionDecl(fDecl)
@@ -231,7 +276,7 @@ AstBuilder: class {
         stack push(fDecl)
     }
     
-    onOperatorEnd: func {
+    onOperatorEnd: unmangled(nq_onOperatorEnd) func {
         oDecl : OperatorDecl = stack pop()
         node : Node = stack peek()
         if(node == module) {
@@ -241,55 +286,59 @@ AstBuilder: class {
         }
     }
 
-    onFunctionStart: func (name: String) {
+    /*
+     * Functions
+     */
+
+    onFunctionStart: unmangled(nq_onFunctionStart) func (name: String) {
         fDecl := FunctionDecl new(name clone(), Token new(this tokenPos, this module))
         stack push(fDecl)
     }
     
-    onFunctionExtern: func (externName: String) {
+    onFunctionExtern: unmangled(nq_onFunctionExtern) func (externName: String) {
         fDecl : FunctionDecl = stack peek()
         fDecl externName = externName clone()
     }
     
-    onFunctionAbstract: func {
+    onFunctionAbstract: unmangled(nq_onFunctionAbstract) func {
         fDecl : FunctionDecl = stack peek()
         fDecl isAbstract = true
     }
-    onFunctionStatic: func {
+    onFunctionStatic: unmangled(nq_onFunctionStatic) func {
         fDecl : FunctionDecl = stack peek()
         fDecl isStatic = true
     }
-    onFunctionInline: func {
+    onFunctionInline: unmangled(nq_onFunctionInline) func {
         fDecl : FunctionDecl = stack peek()
         fDecl isInline = true
     }
     
-    onFunctionFinal: func {
+    onFunctionFinal: unmangled(nq_onFunctionFinal) func {
         fDecl : FunctionDecl = stack peek()
         fDecl isFinal = true
     }
     
-    onFunctionSuffix: func (suffix: String) {
+    onFunctionSuffix: unmangled(nq_onFunctionSuffix) func (suffix: String) {
         fDecl : FunctionDecl = stack peek()
         fDecl suffix = suffix clone()
     }
     
-    onFunctionArgsStart: func {
+    onFunctionArgsStart: unmangled(nq_onFunctionArgsStart) func {
         fDecl : FunctionDecl = stack peek()
         stack push(fDecl args)
     }
     
-    onFunctionArgsEnd: func {
+    onFunctionArgsEnd: unmangled(nq_onFunctionArgsEnd) func {
         node : Node = stack pop()
         //printf("Wanted to pop an ArrayList, got a %s\n", node class name)
     }
     
-    onFunctionReturnType: func (type: Type) {
+    onFunctionReturnType: unmangled(nq_onFunctionReturnType) func (type: Type) {
         fDecl : FunctionDecl = stack peek()
         fDecl returnType = type
     }
     
-    onFunctionEnd: func -> FunctionDecl {
+    onFunctionEnd: unmangled(nq_onFunctionEnd) func -> FunctionDecl {
         fDecl : FunctionDecl = stack pop()
         node : Node = stack peek()
         if(node == module) {
@@ -303,7 +352,10 @@ AstBuilder: class {
         return fDecl
     }
     
-    // function calls
+    /*
+     * Function calls
+     */
+    
     onFunctionCallStart: func (name: String) {
         fCall := FunctionCall new(name clone(), Token new(this tokenPos, this module))
         stack push(fCall)
@@ -433,66 +485,6 @@ nq_setTokenPositionPointer: unmangled func (this: AstBuilder, tokenPos: Int*) { 
 
 // string handling
 nq_StringClone: unmangled func (string: String) -> String             { string clone() }
-
-// includes, imports
-nq_onInclude: unmangled func (this: AstBuilder, path, name: String)   { this onInclude(path, name) }
-nq_onImport:  unmangled func (this: AstBuilder, path, name: String)   { this onImport(path, name) }
-
-// covers
-nq_onCoverStart: unmangled func (this: AstBuilder, name: String)      { this onCoverStart(name) }
-nq_onCoverFromType: unmangled func (this: AstBuilder, type: Type)     { this onCoverFromType(type) }
-nq_onCoverExtends: unmangled func (this: AstBuilder, superType: Type) { this onCoverExtends(superType) }
-nq_onCoverEnd: unmangled func (this: AstBuilder)                      { this onCoverEnd() }
-
-// classes
-nq_onClassStart: unmangled func (this: AstBuilder, name: String)      { this onClassStart(name) }
-nq_onClassExtends: unmangled func (this: AstBuilder, superType: Type) { this onClassExtends(superType) }
-nq_onClassAbstract: unmangled func (this: AstBuilder)                 { this onClassAbstract() }
-nq_onClassFinal: unmangled func (this: AstBuilder)                    { this onClassFinal() }
-nq_onClassEnd: unmangled func (this: AstBuilder)                      { this onClassEnd() }
-
-// variable declarations
-nq_onVarDeclStart: unmangled func (this: AstBuilder)                      { this onVarDeclStart() }
-nq_onVarDeclName: unmangled func (this: AstBuilder, name: String)         { this onVarDeclName(name) }
-nq_onVarDeclExtern: unmangled func (this: AstBuilder, externName: String) { this onVarDeclName(externName) }
-nq_onVarDeclExpr: unmangled func (this: AstBuilder, expr: Expression)     { this onVarDeclExpr(expr) }
-nq_onVarDeclType: unmangled func (this: AstBuilder, type: Type)           { this onVarDeclType(type) }
-nq_onVarDeclStatic: unmangled func (this: AstBuilder)                     { this onVarDeclStatic() }
-nq_onVarDeclEnd: unmangled func (this: AstBuilder) -> Stack<VariableDecl> { this onVarDeclEnd() }
-
-nq_onVarDeclAssign: unmangled func (this: AstBuilder, acc: VariableAccess, isConst: Bool, expr: Expression) -> VariableDecl {
-    if(!acc instanceOf(VariableAccess)) {
-        Exception new(AstBuilder, "Expected a VariableAccess as a left-hand-side of a decl-assign, but got a " + acc toString()) throw()
-    }
-    vDecl := VariableDecl new(null, acc name, expr, Token new(this tokenPos, this module))
-    vDecl isConst = isConst
-    //if(isConst) "%s is const!" format(acc name) println()
-    //("Got variableDecl " + vDecl toString()) println()
-    return vDecl
-}
-
-// types
-nq_onTypeNew: unmangled func (this: AstBuilder, name: String) -> Type   { return BaseType new(name clone() trim(), Token new(this tokenPos, this module)) }
-nq_onTypePointer: unmangled func (this: AstBuilder, type: Type) -> Type { return PointerType new(type, Token new(this tokenPos, this module)) }
-nq_onTypeGenericArgument: unmangled func (this: AstBuilder, type: Type, name: String) { type addTypeArgument(VariableAccess new(name clone(), Token new(this tokenPos, this module))) }
-nq_onFuncTypeNew: unmangled func (this: AstBuilder) -> Type             { return FuncType new(Token new(this tokenPos, this module)) }
-
-// operators
-nq_onOperatorStart: unmangled func (this: AstBuilder, symbol: String)   { this onOperatorStart(symbol) }
-nq_onOperatorEnd: unmangled func (this: AstBuilder)                     { this onOperatorEnd() }
-
-// unmangled functions
-nq_onFunctionStart: unmangled func (this: AstBuilder, name: String)       { this onFunctionStart(name) }
-nq_onFunctionExtern: unmangled func (this: AstBuilder, externName: String){ this onFunctionExtern(externName) }
-nq_onFunctionAbstract: unmangled func (this: AstBuilder)                  { this onFunctionAbstract() }
-nq_onFunctionStatic: unmangled func (this: AstBuilder)                    { this onFunctionStatic() }
-nq_onFunctionInline: unmangled func (this: AstBuilder)                    { this onFunctionInline() }
-nq_onFunctionFinal: unmangled func (this: AstBuilder)                     { this onFunctionFinal() }
-nq_onFunctionSuffix: unmangled func (this: AstBuilder, suffix: String)    { this onFunctionSuffix(suffix) }
-nq_onFunctionArgsStart: unmangled func (this: AstBuilder)                 { this onFunctionArgsStart() }
-nq_onFunctionArgsEnd: unmangled func (this: AstBuilder)                   { this onFunctionArgsEnd() }
-nq_onFunctionReturnType: unmangled func (this: AstBuilder, type: Type)    { this onFunctionReturnType(type) }
-nq_onFunctionEnd: unmangled func (this: AstBuilder) -> FunctionDecl       { return this onFunctionEnd() }
 
 // unmangled function calls
 nq_onFunctionCallStart: unmangled func (this: AstBuilder, name: String)     { this onFunctionCallStart(name) }
