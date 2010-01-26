@@ -32,23 +32,23 @@ Progress report
 
   - 2009-06 : Basic structure, it's gonna be some time till it can do anything useful
   - 2009-09 : The tokenizing code is all there, and it's working simply great.
-              Now onto constructing AST nodes.
+    Now onto constructing AST nodes.
   - 2009-10 : Creating the AST structure, code generation works well, putting the 
-              frontend on hold for a moment
+    frontend on hold for a moment
   - 2009-10 : Made a leg frontend, builds the AST, ported a lot of Java code with itrekkie,
-  	      rock now compiles things =)
+    rock now compiles things =)
   - 2009-11 : Overwhelmed by complexity, rewrote the grammar as a reusable piece, in a separate
-              github project. nagaqueen (its fancy name) is now needed to make rock compile
+    github project. nagaqueen (its fancy name) is now needed to make rock compile
   - 2009-11 : Most of the resolving architecture is now there, it resolve types at module scope
-              correctly. Still need to implement planned implementations that weren't in j/ooc
-              (e.g. sharing Types per module, except for generics, to group resolves)
+    correctly. Still need to implement planned implementations that weren't in j/ooc
+    (e.g. sharing Types per module, except for generics, to group resolves)
   - 2009-11 : Wohow, resolving spree. Pretty much everything resolves now, straight/member accesses/calls
-              even accross different modules, with imports and all. Most of the syntax is parsed,
-              except generics, and only a few AST node types are missing. The code is a lot shorter and
-              clearer than j/ooc's, I have high hopes as to the maintainability of rock. Plus, it's still *fast*.
+    even accross different modules, with imports and all. Most of the syntax is parsed,
+    except generics, and only a few AST node types are missing. The code is a lot shorter and
+    clearer than j/ooc's, I have high hopes as to the maintainability of rock. Plus, it's still *fast*.
   - 2010-01 : Copying chunks of the sdk from j/ooc to rock/custom-sdk, generics for functions are mostly implemented,
-              classes still to come. Most control flow structures are implemented
-              (if/else/while/foreach/match/case/break/continue), decl-assign, 'This', member calls, covers, etc.
+    classes still to come. Most control flow structures are implemented
+    (if/else/while/foreach/match/case/break/continue), decl-assign, 'This', member calls, covers, etc.
 
 You can help! We can probably re-use like 50% of the source code from the
 j/ooc codebase, so please come on #ooc-lang to know which classes need porting.
