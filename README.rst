@@ -17,13 +17,15 @@ Install
 *rock is alpha software*, don't cry if it breaks things
 
   - clone nagaqueen, so that rock/ and nagaqueen/ are in the same folder (ie. they should be brothers) http://github.com/nddrylliog/nagaqueen
-  - clone greg, make && make install (will install in /usr/local/bin by default, make sure it's in your path) http://github.com/nddrylliog/greg
-  - install libyajl http://lloyd.github.com/yajl/ (make sure to `./configure --prefix=/usr` cause it defaults to /usr/local by default,
-    and may not be found by gcc/ld), and ooc-yajl http://github.com/fredreichbier/ooc-yajl
+  - build and install greg http://github.com/nddrylliog/greg
+  - build and install libyajl http://lloyd.github.com/yajl/ (make sure to `./configure --prefix=/usr` cause it defaults to /usr/local by default,
+    and may not be found by gcc/ld)
+  - install ooc-yajl http://github.com/fredreichbier/ooc-yajl (make sure it's in /usr/lib/ooc/, or whatever your $OOC_LIBS is defined to)
+
+Finally,
 
   - create a script in /usr/bin/rock where you export OOC_DIST and call /path/to/your/rock/bin/rock
-or
-  - "ln -s /path/to/your/rock/bin/rock /usr/bin" and then make sure rock/ is besides ooc/ (ie. they should be brothers)
+  - OR "ln -s /path/to/your/rock/bin/rock /usr/bin" and then make sure rock/ is besides ooc/ (ie. they should be brothers)
 
 Progress report
 ---------------
