@@ -489,32 +489,24 @@ AstBuilder: class {
      * Arguments
      */
     onVarArg: unmangled(nq_onVarArg) func {
-        vararg := VarArg new(Token new(this tokenPos, this module))
-        node : Node = this stack peek()
-        if(node instanceOf(List)) {
-            list : List<Node> = node
-            //printf("Adding vararg %s to a %s\n", vararg toString(), list class name)
-            list add(vararg)
-        } else {
-            vararg token throwError("Unexpected vararg! parent is a %s" format(node class name))
-        }
+        varArg := VarArg new(Token new(this tokenPos, this module))
+        list := peek(List<Node>)
+        list add(varArg)
     }
 
     onTypeArg: unmangled(nq_onTypeArg) func (type: Type) {
         typeArg := Argument new(type, "", Token new(this tokenPos, this module))
         // TODO: add check for extern function (TypeArgs are illegal in non-extern functions.)
-        node : Node = this stack peek()
-        if(node instanceOf(List)) {
-            list : List<Node> = node
-            //printf("Adding typeArg %s to a %s\n", typeArg toString(), list class name)
-            list add(typeArg)
-        } else {
-            typeArg token throwError("Unexpected typeArg! parent is a %s" format(node class name))
-        }
+        list := peek(List<Node>)
+        list add(typeArg)
     }
     
     peek: func <T> (T: Class) -> T {
-        node := stack peek()
+        node := stack peek() as Node
+        if(!node instanceOf(T)) {
+            Exception new(This, "Should've peeked a %s, but peeked a %s" format(T name, node class name)) throw()
+        }
+        return node
     }
 
 }
