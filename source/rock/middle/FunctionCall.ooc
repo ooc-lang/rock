@@ -28,6 +28,7 @@ FunctionCall: class extends Expression {
     }
     
     setExpr: func (=expr) {}
+    getExpr: func -> Expression { expr }
 
     accept: func (visitor: Visitor) {
         visitor visitFunctionCall(this)

@@ -1,4 +1,4 @@
-//include stdlib, stdint, stdbool, math, stdarg, memory, string
+include stdlib, stdint, stdbool, math, stdarg, memory, string
 
 // variable arguments
 VaList: cover from va_list

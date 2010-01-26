@@ -272,7 +272,10 @@ TypeDecl: abstract class extends Declaration {
         fDecl = functions get(call name)
         if(fDecl) {
             //"    \\o/ Found fDecl for %s\n" format(call name) println()
-            call suggest(fDecl)
+            accepted := call suggest(fDecl)
+            if(accepted && call getExpr() == null) {
+                call setExpr(VariableAccess new("this", call token))
+            }
         } else if(superRef()) {
             //printf("  <== going in superRef %s\n", superRef() toString())
             superRef() resolveCall(call)
