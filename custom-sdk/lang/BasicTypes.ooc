@@ -66,23 +66,26 @@ None: class {init: func {}}
  * Pointer type
  */
 Void: cover from void
-Pointer: cover from void*
+Pointer: cover from void* {
+    toString: func -> String { "%p" format(this) }
+}
 
 /**
  * character and pointer types
  */
-Char: cover from char
+Char:  cover from char
+SChar: cover from signed char
 UChar: cover from unsigned char
 WChar: cover from wchar_t
 
 //String: cover from Char*
 String: cover from char* {
     
-    toInt: extern(atoi) func -> Int
-    toLong: extern(atol) func -> Long
-    toLLong: extern(atoll) func -> LLong
-    toDouble: extern(atof) func -> Double
-    toFloat: extern(atof) func -> Float
+    toInt:    extern(atoi)  func -> Int
+    toLong:   extern(atol)  func -> Long
+    toLLong:  extern(atoll) func -> LLong
+    toDouble: extern(atof)  func -> Double
+    toFloat:  extern(atof)  func -> Float
     
     first: func -> SizeT {
         return this[0]
@@ -138,6 +141,7 @@ operator + (left, right: String) -> String {
     return left append(right)
 }
 
+/*
 operator + (left: LLong, right: String) -> String {
     left toString() + right
 }
@@ -146,8 +150,6 @@ operator + (left: String, right: LLong) -> String {
     left + right toString()
 }
 
-//FIXME: figure out why toString() aren't inherited from LLong
-/*
 operator + (left: Int, right: String) -> String {
     left toString() + right
 }
@@ -181,7 +183,7 @@ operator + (left: Char, right: String) -> String {
 }
 */
 
-LLong: cover from long long {
+LLong: cover from signed long long {
     
     toString:    func -> String { "%lld" format(this) }
     toHexString: func -> String { "%llx" format(this) }
@@ -195,9 +197,9 @@ LLong: cover from long long {
     
 }
     
-Long:  cover from long  extends LLong
-Short: cover from short extends LLong
-Int:   cover from int   extends LLong
+Long:  cover from signed long  extends LLong
+Short: cover from signed short extends LLong
+Int:   cover from signed int   extends LLong
 
 ULLong: cover from unsigned long long extends LLong {
 

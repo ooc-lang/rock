@@ -58,7 +58,7 @@ ClassDeclWriter: abstract class extends CGenerator {
                 superDecl = cDecl getSuperRef() getFunction(fDecl name, fDecl suffix)
                 // don't write the function if it was declared in the parent
                 if(superDecl != null && !fDecl name equals("init")) {
-                    printf("Already declared in super %s, skipping (superDecl = %s)\n", cDecl getSuperRef() toString(), superDecl toString())
+                    //printf("Already declared in super %s, skipping (superDecl = %s)\n", cDecl getSuperRef() toString(), superDecl toString())
                     continue
                 }
             }
