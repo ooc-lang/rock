@@ -19,3 +19,4 @@ main: func {
     printf("dog name = %s, dog age = %d\n", dog name, dog age)
     
 }
+
