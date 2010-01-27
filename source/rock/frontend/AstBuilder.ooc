@@ -125,7 +125,7 @@ AstBuilder: class {
      */
     
     onCoverStart: unmangled(nq_onCoverStart) func (name: String) {
-        cDecl := CoverDecl new(name clone(), null, Token new(this tokenPos, this module))
+        cDecl := CoverDecl new(name clone(), null, token())
         cDecl module = module
         module addType(cDecl)
         stack push(cDecl)
@@ -148,7 +148,7 @@ AstBuilder: class {
      */
     
     onClassStart: unmangled(nq_onClassStart) func (name: String) {
-        cDecl := ClassDecl new(name clone(), null, Token new(this tokenPos, this module))
+        cDecl := ClassDecl new(name clone(), null, token())
         cDecl module = module
         module addType(cDecl)
         stack push(cDecl)
@@ -179,7 +179,7 @@ AstBuilder: class {
     }
     
     onVarDeclName: unmangled(nq_onVarDeclName) func (name: String) {
-        peek(Stack<VariableDecl>) push(VariableDecl new(null, name clone(), Token new(this tokenPos, this module)))
+        peek(Stack<VariableDecl>) push(VariableDecl new(null, name clone(), token()))
     }
     
     onVarDeclExtern: unmangled(nq_onVarDeclExtern) func (externName: String) {
@@ -210,7 +210,7 @@ AstBuilder: class {
         if(!acc instanceOf(VariableAccess)) {
             Exception new(AstBuilder, "Expected a VariableAccess as a left-hand-side of a decl-assign, but got a " + acc toString()) throw()
         }
-        vDecl := VariableDecl new(null, acc name, expr, Token new(this tokenPos, this module))
+        vDecl := VariableDecl new(null, acc name, expr, token())
         vDecl isConst = isConst
         return vDecl
     }
@@ -232,19 +232,19 @@ AstBuilder: class {
      */
     
     onTypeNew: unmangled(nq_onTypeNew) func (name: String) -> Type   {
-        BaseType new(name clone() trim(), Token new(this tokenPos, this module))
+        BaseType new(name clone() trim(), token())
     }
     
     onTypePointer: unmangled(nq_onTypePointer) func (type: Type) -> Type {
-        PointerType new(type, Token new(this tokenPos, this module))
+        PointerType new(type, token())
     }
     
     onTypeGenericArgument: unmangled(nq_onTypeGenericArgument) func (type: Type, name: String) {
-        type addTypeArgument(VariableAccess new(name clone(), Token new(this tokenPos, this module)))
+        type addTypeArgument(VariableAccess new(name clone(), token()))
     }
     
     onFuncTypeNew: unmangled(nq_onFuncTypeNew) func -> Type {
-        FuncType new(Token new(this tokenPos, this module))
+        FuncType new(token())
     }
     
     /*
@@ -252,8 +252,8 @@ AstBuilder: class {
      */
 
     onOperatorStart: unmangled(nq_onOperatorStart) func (symbol: String) {
-        oDecl := OperatorDecl new(symbol clone() trim(), Token new(this tokenPos, this module))
-        fDecl := FunctionDecl new("", Token new(this tokenPos, this module))
+        oDecl := OperatorDecl new(symbol clone() trim(), token())
+        fDecl := FunctionDecl new("", token())
         oDecl setFunctionDecl(fDecl)
         stack push(oDecl)
         stack push(fDecl)
@@ -269,7 +269,7 @@ AstBuilder: class {
      */
 
     onFunctionStart: unmangled(nq_onFunctionStart) func (name: String) {
-        stack push(FunctionDecl new(name clone(), Token new(this tokenPos, this module)))
+        stack push(FunctionDecl new(name clone(), token()))
     }
     
     onFunctionExtern: unmangled(nq_onFunctionExtern) func (externName: String) {
@@ -325,7 +325,7 @@ AstBuilder: class {
      */
     
     onFunctionCallStart: unmangled(nq_onFunctionCallStart) func (name: String) {
-        stack push(FunctionCall new(name clone(), Token new(this tokenPos, this module)))
+        stack push(FunctionCall new(name clone(), token()))
     }
     
     onFunctionCallArg: unmangled(nq_onFunctionCallArg) func (expr: Expression) {
@@ -345,7 +345,7 @@ AstBuilder: class {
      */
     
     onStringLiteral: unmangled(nq_onStringLiteral) func (text: String) -> StringLiteral {
-        StringLiteral new(text clone(), Token new(this tokenPos, this module))
+        StringLiteral new(text clone(), token())
     }
     
     // statement
@@ -374,27 +374,27 @@ AstBuilder: class {
     }
     
     onArrayAccess: unmangled(nq_onArrayAccess) func (array, index: Expression) -> ArrayAccess {
-        ArrayAccess new(array, index, Token new(this tokenPos, this module))
+        ArrayAccess new(array, index, token())
     }
     
     // return
     onReturn: unmangled(nq_onReturn) func (expr: Expression) -> Return {
-        Return new(expr, Token new(this tokenPos, this module))
+        Return new(expr, token())
     }
     
     // variable access
     onVarAccess: unmangled(nq_onVarAccess) func (expr: Expression, name: String) -> VariableAccess {
-        return VariableAccess new(expr, name clone(), Token new(this tokenPos, this module))
+        return VariableAccess new(expr, name clone(), token())
     }
     
     // cast
     onCast: unmangled(nq_onCast) func (expr: Expression, type: Type) -> Cast {
-        return Cast new(expr, type, Token new(this tokenPos, this module))
+        return Cast new(expr, type, token())
     }
     
     // if
     onIfStart: unmangled(nq_onIfStart) func (condition: Expression) {
-        stack push(If new(condition, Token new(this tokenPos, this module)))
+        stack push(If new(condition, token()))
     }
     
     onIfEnd: unmangled(nq_onIfEnd) func -> If {
@@ -405,7 +405,7 @@ AstBuilder: class {
     
     // else
     onElseStart: unmangled(nq_onElseStart) func {
-        stack push(Else new(Token new(this tokenPos, this module)))
+        stack push(Else new(token()))
     }
     
     onElseEnd: unmangled(nq_onElseEnd) func -> Else {
@@ -419,7 +419,7 @@ AstBuilder: class {
         if(decl instanceOf(Stack)) {
             decl = decl as Stack<VariableDecl> pop()
         }
-        stack push(Foreach new(decl, collec, Token new(this tokenPos, this module)))
+        stack push(Foreach new(decl, collec, token()))
     }
     
     onForeachEnd: unmangled(nq_onForeachEnd) func -> Foreach {
@@ -430,7 +430,7 @@ AstBuilder: class {
     
     // while
     onWhileStart: unmangled(nq_onWhileStart) func (condition: Expression) {
-        stack push(While new(condition, Token new(this tokenPos, this module)))
+        stack push(While new(condition, token()))
     }
     
     onWhileEnd: unmangled(nq_onWhileEnd) func -> While {
@@ -443,19 +443,19 @@ AstBuilder: class {
      * Arguments
      */
     onVarArg: unmangled(nq_onVarArg) func {
-        peek(List<Node>) add(VarArg new(Token new(this tokenPos, this module)))
+        peek(List<Node>) add(VarArg new(token()))
     }
 
     onTypeArg: unmangled(nq_onTypeArg) func (type: Type) {
         // TODO: add check for extern function (TypeArgs are illegal in non-extern functions.)
-        peek(List<Node>) add(Argument new(type, "", Token new(this tokenPos, this module)))
+        peek(List<Node>) add(Argument new(type, "", token()))
     }
     
     /*
      * Match & case
      */
     onMatchStart: unmangled(nq_onMatchStart) func {
-        stack push(Match new(Token new(this tokenPos, this module)))
+        stack push(Match new(token()))
     }
     
     onMatchExpr: unmangled(nq_onMatchExpr) func (v:Expression) {
@@ -467,7 +467,7 @@ AstBuilder: class {
     }
 
     onCaseStart: unmangled(nq_onCaseStart) func {
-        stack push(Case new(Token new(this tokenPos, this module)))
+        stack push(Case new(token()))
     }
     
     onCaseExpr: unmangled(nq_onCaseExpr) func (v:Expression) {
@@ -478,163 +478,190 @@ AstBuilder: class {
         pop(Case)
     }
     
-    nq_onBreak: unmangled func -> FlowControl {
-        FlowControl new(FlowActions _break, Token new(this tokenPos, this module))
+    onBreak: unmangled(nq_onBreak) func -> FlowControl {
+        FlowControl new(FlowActions _break, token())
     }
 
-    nq_onContinue: unmangled func -> FlowControl {
-        FlowControl new(FlowActions _continue, Token new(this tokenPos, this module))
+    onContinue: unmangled(nq_onContinue) func -> FlowControl {
+        FlowControl new(FlowActions _continue, token())
     }
 
-    nq_onEquals: unmangled func (left, right: Expression) -> Comparison {
-        Comparison new(left, right, CompTypes equal, Token new(this tokenPos, this module))
+    onEquals: unmangled(nq_onEquals) func (left, right: Expression) -> Comparison {
+        Comparison new(left, right, CompTypes equal, token())
     }
-    nq_onNotEquals: unmangled func (left, right: Expression) -> Comparison {
-        Comparison new(left, right, CompTypes notEqual, Token new(this tokenPos, this module))
+    
+    onNotEquals: unmangled(nq_onNotEquals) func (left, right: Expression) -> Comparison {
+        Comparison new(left, right, CompTypes notEqual, token())
     }
-    nq_onLessThan: unmangled func (left, right: Expression) -> Comparison {
-        Comparison new(left, right, CompTypes smallerThan, Token new(this tokenPos, this module))
+    
+    onLessThan: unmangled(nq_onLessThan) func (left, right: Expression) -> Comparison {
+        Comparison new(left, right, CompTypes smallerThan, token())
     }
-    nq_onMoreThan: unmangled func (left, right: Expression) -> Comparison {
-        Comparison new(left, right, CompTypes greaterThan, Token new(this tokenPos, this module))
+    
+    onMoreThan: unmangled(nq_onMoreThan) func (left, right: Expression) -> Comparison {
+        Comparison new(left, right, CompTypes greaterThan, token())
     }
-    nq_onCmp: unmangled func (left, right: Expression) -> Comparison {
-        Comparison new(left, right, CompTypes compare, Token new(this tokenPos, this module))
-    }
-
-    nq_onLessThanOrEqual: unmangled func (left, right: Expression) -> Comparison {
-        Comparison new(left, right, CompTypes smallerOrEqual, Token new(this tokenPos, this module))
-    }
-    nq_onMoreThanOrEqual: unmangled func (left, right: Expression) -> Comparison {
-        Comparison new(left, right, CompTypes greaterOrEqual, Token new(this tokenPos, this module))
+    
+    onCmp: unmangled(nq_onCmp) func (left, right: Expression) -> Comparison {
+        Comparison new(left, right, CompTypes compare, token())
     }
 
-    nq_onIntLiteral: unmangled func (value: String) -> IntLiteral {
-        IntLiteral new(value toLLong(), Token new(this tokenPos, this module))
+    onLessThanOrEqual: unmangled(nq_onLessThanOrEqual) func (left, right: Expression) -> Comparison {
+        Comparison new(left, right, CompTypes smallerOrEqual, token())
+    }
+    onMoreThanOrEqual: unmangled(nq_onMoreThanOrEqual) func (left, right: Expression) -> Comparison {
+        Comparison new(left, right, CompTypes greaterOrEqual, token())
     }
 
-    nq_onFloatLiteral: unmangled func (value: String) -> IntLiteral {
-        FloatLiteral new(value toFloat(), Token new(this tokenPos, this module))
+    onIntLiteral: unmangled(nq_onIntLiteral) func (value: String) -> IntLiteral {
+        IntLiteral new(value toLLong(), token())
     }
 
-    nq_onBoolLiteral: unmangled func (value: Bool) -> BoolLiteral {
-        BoolLiteral new(value, Token new(this tokenPos, this module))
+    onFloatLiteral: unmangled(nq_onFloatLiteral) func (value: String) -> IntLiteral {
+        FloatLiteral new(value toFloat(), token())
     }
 
-    nq_onNull: unmangled func -> NullLiteral {
-        NullLiteral new(Token new(this tokenPos, this module))
+    onBoolLiteral: unmangled(nq_onBoolLiteral) func (value: Bool) -> BoolLiteral {
+        BoolLiteral new(value, token())
     }
 
-    nq_onTernary: unmangled func (condition, ifTrue, ifFalse: Expression) -> Ternary {
-        Ternary new(condition, ifTrue, ifFalse, Token new(this tokenPos, this module))
+    onNull: unmangled(nq_onNull) func -> NullLiteral {
+        NullLiteral new(token())
     }
 
-    nq_onAssignAdd: unmangled func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes addAss, Token new(this tokenPos, this module))
+    onTernary: unmangled(nq_onTernary) func (condition, ifTrue, ifFalse: Expression) -> Ternary {
+        Ternary new(condition, ifTrue, ifFalse, token())
     }
 
-    nq_onAssignSub: unmangled func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes subAss, Token new(this tokenPos, this module))
+    onAssignAdd: unmangled(nq_onAssignAdd) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpTypes addAss, token())
     }
 
-    nq_onAssignMul: unmangled func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes mulAss, Token new(this tokenPos, this module))
+    onAssignSub: unmangled(nq_onAssignSub) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpTypes subAss, token())
     }
 
-    nq_onAssignDiv: unmangled func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes divAss, Token new(this tokenPos, this module))
+    onAssignMul: unmangled(nq_onAssignMul) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpTypes mulAss, token())
     }
 
-    nq_onAssignAnd: unmangled func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes bAndAss, Token new(this tokenPos, this module))
+    onAssignDiv: unmangled(nq_onAssignDiv) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpTypes divAss, token())
     }
 
-    nq_onAssignOr: unmangled func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes bOrAss, Token new(this tokenPos, this module))
+    onAssignAnd: unmangled(nq_onAssignAnd) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpTypes bAndAss, token())
     }
 
-    nq_onAssignXor: unmangled func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes bXorAss, Token new(this tokenPos, this module))
+    onAssignOr: unmangled(nq_onAssignOr) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpTypes bOrAss, token())
     }
 
-    nq_onAssign: unmangled func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes ass, Token new(this tokenPos, this module))
+    onAssignXor: unmangled(nq_onAssignXor) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpTypes bXorAss, token())
+    }
+
+    onAssign: unmangled(nq_onAssign) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpTypes ass, token())
     }
         
-    nq_onAssignLeftShift: unmangled func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes lshiftAss, Token new(this tokenPos, this module))
+    onAssignLeftShift: unmangled(nq_onAssignLeftShift) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpTypes lshiftAss, token())
     }
 
-    nq_onAssignRightShift: unmangled func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes rshiftAss, Token new(this tokenPos, this module))
+    onAssignRightShift: unmangled(nq_onAssignRightShift) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpTypes rshiftAss, token())
     }
 
-    nq_onAdd: unmangled func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes add, Token new(this tokenPos, this module))
+    onAdd: unmangled(nq_onAdd) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpTypes add, token())
     }
 
-    nq_onSub: unmangled func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes sub, Token new(this tokenPos, this module))
+    onSub: unmangled(nq_onSub) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpTypes sub, token())
     }
 
-    nq_onMod: unmangled func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes mod, Token new(this tokenPos, this module))
+    onMod: unmangled(nq_onMod) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpTypes mod, token())
     }
 
-    nq_onMul: unmangled func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes mul, Token new(this tokenPos, this module))
+    onMul: unmangled(nq_onMul) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpTypes mul, token())
     }
 
-    nq_onDiv: unmangled func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes div, Token new(this tokenPos, this module))
+    onDiv: unmangled(nq_onDiv) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpTypes div, token())
     }
 
-    nq_onRangeLiteral: unmangled func (left, right: Expression) -> RangeLiteral {
-        RangeLiteral new(left, right, Token new(this tokenPos, this module))
+    onRangeLiteral: unmangled(nq_onRangeLiteral) func (left, right: Expression) -> RangeLiteral {
+        RangeLiteral new(left, right, token())
     }
 
-    nq_onBinaryLeftShift: unmangled func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes lshift, Token new(this tokenPos, this module))
+    onBinaryLeftShift: unmangled(nq_onBinaryLeftShift) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpTypes lshift, token())
     }
 
-    nq_onBinaryRightShift: unmangled func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes rshift, Token new(this tokenPos, this module))
+    onBinaryRightShift: unmangled(nq_onBinaryRightShift) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpTypes rshift, token())
     }
 
-    nq_onLogicalOr: unmangled func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes or, Token new(this tokenPos, this module))
+    onLogicalOr: unmangled(nq_onLogicalOr) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpTypes or, token())
     }
 
-    nq_onLogicalAnd: unmangled func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes and, Token new(this tokenPos, this module))
+    onLogicalAnd: unmangled(nq_onLogicalAnd) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpTypes and, token())
     }
 
-    nq_onBinaryOr: unmangled func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes bOr, Token new(this tokenPos, this module))
+    onBinaryOr: unmangled(nq_onBinaryOr) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpTypes bOr, token())
     }
 
-    nq_onBinaryXor: unmangled func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes bXor, Token new(this tokenPos, this module))
+    onBinaryXor: unmangled(nq_onBinaryXor) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpTypes bXor, token())
     }
 
-    nq_onBinaryAnd: unmangled func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes bAnd, Token new(this tokenPos, this module))
+    onBinaryAnd: unmangled(nq_onBinaryAnd) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpTypes bAnd, token())
     }
 
-    nq_onLogicalNot: unmangled func (inner: Expression) -> UnaryOp {
-        UnaryOp new(inner, UnaryOpTypes logicalNot, Token new(this tokenPos, this module))
+    onLogicalNot: unmangled(nq_onLogicalNot) func (inner: Expression) -> UnaryOp {
+        UnaryOp new(inner, UnaryOpTypes logicalNot, token())
     }
 
-    nq_onBinaryNot: unmangled func (inner: Expression) -> UnaryOp {
-        UnaryOp new(inner, UnaryOpTypes binaryNot, Token new(this tokenPos, this module))
+    onBinaryNot: unmangled(nq_onBinaryNot) func (inner: Expression) -> UnaryOp {
+        UnaryOp new(inner, UnaryOpTypes binaryNot, token())
     }
 
-    nq_onUnaryMinus: unmangled func (inner: Expression) -> UnaryOp {
-        UnaryOp new(inner, UnaryOpTypes unaryMinus, Token new(this tokenPos, this module))
+    onUnaryMinus: unmangled(nq_onUnaryMinus) func (inner: Expression) -> UnaryOp {
+        UnaryOp new(inner, UnaryOpTypes unaryMinus, token())
     }
 
-    nq_onParenthesis: unmangled func (inner: Expression) -> Parenthesis {
-        Parenthesis new(inner, Token new(this tokenPos, this module))
+    onParenthesis: unmangled(nq_onParenthesis) func (inner: Expression) -> Parenthesis {
+        Parenthesis new(inner, token())
+    }
+    
+    onGenericArgument: unmangled(nq_onGenericArgument) func (name: String) {
+        node := peek(Node)
+        printf("======= Got generic argument %s, and node is a %s\n", name, node class name)
+            
+        vDecl := VariableDecl new(BaseType new("Class", token()), name clone(), token())
+        if(!node addTypeArgument(vDecl)) {
+            token() throwError("Unexpected type argument in a %s declaration!" format(node class name))
+        }
+        
+    }
+    
+    onAddressOf: unmangled(nq_onAddressOf) func (inner: Expression) -> AddressOf {
+        AddressOf new(inner, token())
+    }
+    
+    onDereference: unmangled(nq_onDereference) func (inner: Expression) -> Dereference {
+        Dereference new(inner, token())
+    }
+
+    token: func -> Token {
+        Token new(tokenPos, module)
     }
     
     peek: func <T> (T: Class) -> T {
@@ -660,22 +687,5 @@ nq_setTokenPositionPointer: unmangled func (this: AstBuilder, tokenPos: Int*) { 
 
 // string handling
 nq_StringClone: unmangled func (string: String) -> String             { string clone() }
-
-nq_onGenericArgument: unmangled func (this: AstBuilder, name: String) {
-    
-    node : Node = this stack peek()
-    printf("======= Got generic argument %s, and node is a %s\n", name, node class name)
-        
-    token := Token new(this tokenPos, this module)
-    vDecl := VariableDecl new(BaseType new("Class", token), name clone(), token)
-    if(!node addTypeArgument(vDecl)) {
-        token throwError("Unexpected type argument in a %s declaration!" format(node class name))
-    }
-    
-}
-
-nq_onAddressOf:   unmangled func (this: AstBuilder, inner: Expression) -> AddressOf   { return AddressOf   new(inner, Token new(this tokenPos, this module)) }
-nq_onDereference: unmangled func (this: AstBuilder, inner: Expression) -> Dereference { return Dereference new(inner, Token new(this tokenPos, this module)) }
-
 nq_error: unmangled func (this: AstBuilder, errorID: Int, message: String, index: Int) { this error(errorID, message, index) }
 
