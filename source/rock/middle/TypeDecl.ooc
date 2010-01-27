@@ -303,6 +303,15 @@ TypeDecl: abstract class extends Declaration {
         
     }
     
+    inheritsFrom: func (tDecl: TypeDecl) -> Bool {
+        if(this == tDecl) return true
+        
+        superRef := getSuperRef()
+        if(superRef != null) return superRef inheritsFrom(tDecl)
+        
+        return false
+    }
+    
     toString: func -> String {
         class name + ' ' + name
     }

@@ -61,7 +61,9 @@ FunctionCallWriter: abstract class extends Skeleton {
             if(!ghost) {
                 if(isFirst) isFirst = false
                 else        current app(", ")
-                current app(typeArg)
+                // FIXME: it's really ugly to hardcode class
+                // it should be resolved once and for all in Resolver and used from there.
+                current app("(lang__Class*)"). app(typeArg)
             }
             
             i += 1
@@ -75,10 +77,21 @@ FunctionCallWriter: abstract class extends Skeleton {
             } else {
                 current app(", ")
             }
-            isGeneric := i < fDecl args size()
-            if(isGeneric) isGeneric = !(fDecl args get(i) instanceOf(VarArg))
-            if(isGeneric) isGeneric = fDecl args get(i) getType() isGeneric()
-            if(isGeneric) current app("(uint8_t*) ")
+            
+            declArg : Argument = null
+            if(i < fDecl args size())                         declArg = fDecl args get(i)
+            if(declArg != null && declArg instanceOf(VarArg)) declArg = null
+            
+            if(declArg != null) {
+                if(declArg getType() isGeneric()) {
+                    current app("(uint8_t*) ")
+                } else if(arg getType != null && declArg getType() != null && arg getType() inheritsFrom(declArg getType())) {
+                    printf("%s inherits from %s, casting!\n", arg getType() toString(), declArg getType() toString())
+                    current app("("). app(declArg getType()). app(")")
+                }
+            }
+            
+            
             arg accept(this)
             i += 1
         }

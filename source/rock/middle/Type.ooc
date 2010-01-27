@@ -63,6 +63,8 @@ Type: abstract class extends Node {
     
     getScoreImpl: abstract func (other: This, scoreSeed: Int) -> Int
     
+    inheritsFrom: func (t: This) -> Bool { false }
+    
     dig: abstract func -> This
     
 }
@@ -207,6 +209,15 @@ BaseType: class extends Type {
             return ref as CoverDecl getFromType()
         }
         return null
+    }
+    
+    inheritsFrom: func (t: Type) -> Bool {
+        if(!t instanceOf(BaseType)) return false
+        bt := t as BaseType
+        if(   ref == null ||    ref instanceOf(TypeDecl)) return false
+        if(bt ref == null || bt ref instanceOf(TypeDecl)) return false
+        
+        return ref as TypeDecl inheritsFrom(bt ref as TypeDecl)
     }
 
 }
