@@ -102,11 +102,8 @@ String: cover from char* {
     
     length: extern(strlen) func -> SizeT
     
-    //FIXME: add 'This' support for rock!
     append: func(other: This) -> This {
-    //append: func(other: String) -> String {
-        //length := length()
-        length := this length()
+        length := length()
         rlength := other length()
         copy := gc_malloc(length + rlength + 1) as Char*
         memcpy(copy, this, length)
@@ -114,8 +111,7 @@ String: cover from char* {
         return copy
     }
     
-    prepend: func (other: String) -> String {
-    //prepend: func (other: This) -> This {
+    prepend: func (other: This) -> This {
         other append(this)
     }
     
@@ -124,10 +120,8 @@ String: cover from char* {
 
         va_start(list, this)
         
-        //length := vsnprintf(null, 0, this, list) + 1
-        length := vsnprintf(null, 0, this, list)
-        length += 1
-        
+        // TODO: use String new() instead (when rock supports constructors with suffixes properly)
+        length := vsnprintf(null, 0, this, list) + 1
         output: String = gc_malloc(length)
         va_end(list)
 
@@ -270,7 +264,7 @@ Exception: class {
     msg : String
 
     init: func (=origin, =msg) {}
-    init: func ~noOrigin (=msg) {}
+    //init: func ~noOrigin (=msg) {}
     
     crash: func {
         //FIXME: add global variables support for rock!

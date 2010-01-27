@@ -148,7 +148,13 @@ FunctionCall: class extends Expression {
         unwrapIfNeeded(trail, res)
 
         if(refScore == -1 && res fatal) {
-            token throwError("No such function %s" format(name))
+            message : String
+            if(expr && expr getType()) {
+                message = "No such function %s.%s%s" format(expr getType() getName(), name, getArgsRepr())
+            } else {
+                message = "No such function %s%s" format(name, getArgsRepr())
+            }
+            token throwError(message)
         }
 
         if(refScore == -1) {

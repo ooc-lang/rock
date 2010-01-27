@@ -1,5 +1,5 @@
 import structs/[ArrayList, HashMap]
-import ../frontend/Token
+import ../frontend/[Token, BuildParams]
 import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
     FunctionDecl, FunctionCall, Module, VariableAccess, Node
 import tinker/[Resolver, Response, Trail]
@@ -86,10 +86,10 @@ TypeDecl: abstract class extends Declaration {
     }
     
     addFunction: func (fDecl: FunctionDecl) {
-        if(!isMeta) {
-            meta addFunction(fDecl)
-        } else {
+        if(isMeta) {
             functions put(fDecl name, fDecl)
+        } else {
+            meta addFunction(fDecl)
         }
         fDecl owner = this
     }
@@ -106,7 +106,12 @@ TypeDecl: abstract class extends Declaration {
     }
     
     getVariable: func (vName: String) -> VariableDecl {
-        variables get(vName)
+        result := variables get(vName)
+        if(result) return result
+        
+        if(isMeta) {
+            return getNonMeta() getVariable(vName)
+        }
     }
     
     getVariables: func -> HashMap<VariableDecl> { variables }
@@ -189,7 +194,7 @@ TypeDecl: abstract class extends Declaration {
         
         trail push(this)
         
-        //printf("====== Resolving type decl %s\n", toString())
+        //if(res params verbose) printf("====== Resolving type decl %s\n", toString())
         
         {
             response := type resolve(trail, res)
@@ -209,8 +214,8 @@ TypeDecl: abstract class extends Declaration {
         
         for(vDecl in variables) {
             response := vDecl resolve(trail, res)
-            //printf("Response of vDecl %s = %s\n", vDecl toString(), response toString())
             if(!response ok()) {
+                if(res params verbose) printf("Response of vDecl %s = %s\n", vDecl toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -218,8 +223,8 @@ TypeDecl: abstract class extends Declaration {
         
         for(fDecl in functions) {
             response := fDecl resolve(trail, res)
-            //printf("Response of fDecl %s = %s\n", fDecl toString(), response toString())
             if(!response ok()) {
+                if(res params verbose) printf("Response of fDecl %s = %s\n", fDecl toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -229,8 +234,8 @@ TypeDecl: abstract class extends Declaration {
             meta module = module
             response := meta resolve(trail, res)
             if(!response ok()) {
+                if(res params verbose) printf("-- %s, meta of %s, isn't resolved, looping.\n", meta toString(), toString())
                 trail pop(this)
-                //printf("-- %s, meta of %s, isn't resolved, looping.\n", meta toString(), toString())
                 return response
             }
         }
