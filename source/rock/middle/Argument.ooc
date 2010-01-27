@@ -43,7 +43,6 @@ DotArg: class extends Argument {
         tDecl := trail get(idx) as TypeDecl
         ref = tDecl getVariable(name)
         if(ref == null) token throwError("%s refers to non-existing member variable '%s' in type '%s'" format(class name, name, tDecl getName()))
-        printf("Got ref! it's %s\n", ref toString())
         
         type = ref getType()
         if(type == null) {

@@ -18,15 +18,12 @@ Scope: class extends ArrayList<Statement> {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        i := 0
         for(stat in this) {
-            printf("Resolving statement %d, = %s\n", i, stat ? stat class name : "nil")
             response := stat resolve(trail, res)
             if(!response ok()) {
                 if(res params verbose) printf("Response of statement [%s] %s = %s\n", stat class name, stat toString(), response toString())
                 return response
             }
-            i += 1
         }
         
         return Responses OK
