@@ -1,3 +1,5 @@
+include memory
+
 //version(gc) {
     include gc/gc
     
@@ -18,3 +20,11 @@
     //gc_realloc: extern(realloc) func (ptr: Pointer, size: SizeT) -> Pointer
     //gc_calloc: extern(calloc) func (nmemb: SizeT, size: SizeT) -> Pointer
 //}
+
+// memory management
+sizeof: extern func (...) -> SizeT
+memset: extern func (Pointer, Int, SizeT) -> Pointer
+memcmp: extern func (Pointer, Pointer, SizeT) -> Int
+memmove: extern func (Pointer, Pointer, SizeT)
+memcpy: extern func (Pointer, Pointer, SizeT)
+

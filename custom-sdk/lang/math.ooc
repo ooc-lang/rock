@@ -1,14 +1,5 @@
-include stdlib, stdint, stdbool, math, stdarg, memory, string
+include math
 
-// variable arguments
-VaList: cover from va_list
-va_start: extern func (VaList, ...) // ap, last_arg
-va_arg: extern func (VaList, ...) // ap, type
-va_end: extern func (VaList) // ap
-
-exit: extern func (Int)
-
-// math
 cos: extern func (Double) -> Double
 sin: extern func (Double) -> Double
 tan: extern func (Double) -> Double
@@ -35,9 +26,3 @@ log10: extern (log10l) func ~Long (LDouble) -> LDouble
 
 round: extern (lround) func ~dl (Double) -> Long
 
-// memory management
-sizeof: extern func (...) -> SizeT
-memset: extern func (Pointer, Int, SizeT) -> Pointer
-memcmp: extern func (Pointer, Pointer, SizeT) -> Int
-memmove: extern func (Pointer, Pointer, SizeT)
-memcpy: extern func (Pointer, Pointer, SizeT)
