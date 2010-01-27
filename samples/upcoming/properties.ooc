@@ -1,35 +1,27 @@
 Person: class {
-    _age: UInt
-
     /* An advanced property. */
-    age: property {
-        /* `set` will be called for assignment operations. */
-        set: func ~int (=_age) {
+    _age: UInt
+    age: property UInt {
+        set: {
+            _age = value
             if(_age > 120)
                 "IMBA!" println()
         }
-        /* You can have multiple setters. */
-        set: func ~string (age: String) {
-            set(age toInt())
-        }
-        /* But only one getter. */
-        get: func -> UInt {
+        get: {
             _age
         }
     }
 
     /* A simple property that in fact only has a getter and whose value is
        computed on each new get operation. */
-    imba: property {
-        get: func -> Bool {
+    imba: property Bool {
+        get: {
             age > 120
         }
     }
 
-    _name: String
-
     /* A shortcut that creates a default getter and setter. */
-    name: property(_name)
+    name: property String
 }
 
 person := Person new()
