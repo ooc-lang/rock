@@ -90,8 +90,8 @@ ModuleWriter: abstract class extends Skeleton {
 				if(selfDecl getSuperRef() != null && selfDecl getSuperRef() getModule() == imp getModule()) {
 					// tighten imports of modules which contain classes we extend
 					imp setTight(true)
-				} else if(imp getModule() getFullName() startsWith("lang/BasicTypes")) {
-                    // FIXME: hardcoding "BasicTypes" is ugly :( :( Figure out where 'Object' and 'Class' is in a more flexible way
+				} else if(imp getModule() getFullName() startsWith("lang/types")) {
+                    // FIXME: hardcoding "types" is ugly :( :( Figure out where 'Object' and 'Class' is in a more flexible way
 					// tighten imports of core modules
 					imp setTight(true)
 				} else {
