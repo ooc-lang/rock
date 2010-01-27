@@ -451,6 +451,16 @@ AstBuilder: class {
         peek(List<Node>) add(Argument new(type, "", token()))
     }
     
+    onDotArg: unmangled(nq_onDotArg) func (name: String) {
+        // TODO: add check for member function
+        peek(List<Node>) add(DotArg new(name clone(), token()))
+    }
+    
+    onAssArg: unmangled(nq_onAssArg) func (name: String) {
+        // TODO: add check for member function
+        peek(List<Node>) add(AssArg new(name clone(), token()))
+    }
+    
     /*
      * Match & case
      */
