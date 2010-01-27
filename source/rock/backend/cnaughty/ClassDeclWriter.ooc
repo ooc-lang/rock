@@ -10,7 +10,7 @@ ClassDeclWriter: abstract class extends CGenerator {
     write: static func ~_class (this: This, cDecl: ClassDecl) {
 
         //printf(" << Writing class decl %s\n", cDecl toString())
-        
+                
         if(cDecl isMeta) {
             
             current = hw
@@ -39,7 +39,7 @@ ClassDeclWriter: abstract class extends CGenerator {
         current nl(). app("struct _"). app(cDecl underName()). app(' '). openBlock(). nl()
 
         if (!(cDecl name equals("Object"))) {
-            current app("struct _"). app(cDecl getSuperRef() ? cDecl getSuperRef() underName() : "FIXME"). app(" __super__;")
+            current app("struct _"). app(cDecl getSuperRef() underName()). app(" __super__;")
         }
         
         for(vName: String in cDecl variables keys) {
@@ -47,8 +47,6 @@ ClassDeclWriter: abstract class extends CGenerator {
             vDecl := cDecl variables get(vName) as VariableDecl
             current nl(). app(vDecl). app(';')
         }
-        
-        /// ///////////////////// START code from writeClassStruct (meta-class work)
         
         // Now write all virtual functions prototypes in the class struct
         for (fDecl: FunctionDecl in cDecl functions) {
@@ -75,8 +73,6 @@ ClassDeclWriter: abstract class extends CGenerator {
                 
             current nl(). app(vDecl). app(';')
         }
-        
-        /// ///////////////////// END code from writeClassStruct (meta-class work)
         
         current closeBlock(). app(';'). nl(). nl()
         

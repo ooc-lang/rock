@@ -203,8 +203,7 @@ Int:   cover from signed int   extends LLong
 
 ULLong: cover from unsigned long long extends LLong {
 
-    toString:    func -> String { "%llud" format(this) }
-    toHexString: func -> String { "%llux" format(this) }
+    toString:    func -> String { "%llu" format(this) }
     
     in: func(range: Range) -> Bool {
         return this >= range min && this < range max
