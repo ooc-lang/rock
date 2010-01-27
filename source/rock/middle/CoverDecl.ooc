@@ -7,9 +7,12 @@ CoverDecl: class extends TypeDecl {
     
     fromType: Type
     
+    init: func ~coverDeclNoSuper(.name, .token) {
+        super(name, token)
+    }
+    
     init: func ~coverDecl(.name, .superType, .token) {
-        super(name, this superType, token)
-        //printf("Got CoverDecl %s\n", name)
+        super(name, superType, token)
     }
     
     accept: func (visitor: Visitor) { visitor visitCoverDecl(this) }

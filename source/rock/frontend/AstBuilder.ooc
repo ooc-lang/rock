@@ -125,7 +125,7 @@ AstBuilder: class {
      */
     
     onCoverStart: unmangled(nq_onCoverStart) func (name: String) {
-        cDecl := CoverDecl new(name clone(), null, token())
+        cDecl := CoverDecl new(name clone(), token())
         cDecl module = module
         module addType(cDecl)
         stack push(cDecl)
@@ -136,7 +136,7 @@ AstBuilder: class {
     }
     
     onCoverExtends: unmangled(nq_onCoverExtends) func (superType: Type) {
-        peek(CoverDecl) superType = superType
+        peek(CoverDecl) setSuperType(superType)
     }
     
     onCoverEnd: unmangled(nq_onCoverEnd) func {
@@ -148,14 +148,14 @@ AstBuilder: class {
      */
     
     onClassStart: unmangled(nq_onClassStart) func (name: String) {
-        cDecl := ClassDecl new(name clone(), null, token())
+        cDecl := ClassDecl new(name clone(), token())
         cDecl module = module
         module addType(cDecl)
         stack push(cDecl)
     }
     
     onClassExtends: unmangled(nq_onClassExtends) func (superType: Type) {
-        peek(ClassDecl) superType = superType
+        peek(ClassDecl) setSuperType(superType)
     }
     
     onClassAbstract: unmangled(nq_onClassAbstract) func {

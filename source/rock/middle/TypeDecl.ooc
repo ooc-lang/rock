@@ -26,39 +26,43 @@ TypeDecl: abstract class extends Declaration {
     meta : TypeDecl = null
     nonMeta : TypeDecl = null
     
-    init: func ~typeDecl (=name, =superType, .token) {
+    init: func ~typeDeclNoSuper (=name, .token) {
         super(token)
         type = BaseType new("Class", token)
         instanceType = BaseType new(name, token)
         instanceType as BaseType ref = this
         thisDecl = VariableDecl new(instanceType, "this", nullToken)
         
-        // determine super-class
-        if(!this superType && !isObjectClass()) {
-            // everyone inherits from object, darling.
-            this superType = BaseType new("Object", token)
-        }
-        
-        if(!this isMeta) {
-            // create the meta-class
-            metaSuperType : Type = null
-            if(this superType) {
-                // TODO: there's probably a better way, but this works fine =)
-                if(this superType getName() == "Object" && !(this name == "Class")) {
-                    metaSuperType = BaseType new("ClassClass", nullToken)
-                } else {
-                    metaSuperType = BaseType new(this superType getName() + "Class", nullToken)
-                }
-            } else {
-                metaSuperType = BaseType new("Class", nullToken)
-            }
-            meta = ClassDecl new(name + "Class", metaSuperType, true, token)
+        if(!isMeta) {
+            meta = ClassDecl new(name + "Class", null, true, token)
             meta nonMeta = this
             meta thisDecl = this thisDecl
+            meta setSuperType(BaseType new("Class", nullToken))
             
             // if we access to "Dog", we access to an object of type "DogClass"
             type = meta getInstanceType()
             type as BaseType ref = meta
+        }
+        
+        if(!isObjectClass()) {
+            // by default, everyone inherits from object
+            setSuperType(BaseType new("Object", token))
+        }
+    }
+    
+    init: func ~typeDecl (.name, =superType, .token) {
+        this(name, token)
+        setSuperType(superType)
+    }
+    
+    setSuperType: func(=superType) {
+        if(!this isMeta && superType != null) {
+            // TODO: there's probably a better way, but this works fine =)
+            if(superType getName() == "Object" && name != "Class") {
+                meta setSuperType(BaseType new("ClassClass", nullToken))
+            } else {
+                meta setSuperType(BaseType new(this superType getName() + "Class", nullToken))
+            }
         }
     }
     

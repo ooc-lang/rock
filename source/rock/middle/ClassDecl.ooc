@@ -14,12 +14,16 @@ ClassDecl: class extends TypeDecl {
     isAbstract := false
     isFinal := false
     
+    init: func ~classDeclNoSuper(.name, .token) {
+        super(name, token)
+    }
+    
     init: func ~classDeclNotMeta(.name, .superType, .token) {
         this(name, superType, false, token)
     }
 
     init: func ~classDecl(.name, .superType, =isMeta, .token) {
-        super(name clone(), superType, token)
+        super(name, superType, token)
     }
     
     accept: func (visitor: Visitor) { visitor visitClassDecl(this) }

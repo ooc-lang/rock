@@ -183,17 +183,8 @@ operator + (left: Char, right: String) -> String {
 
 LLong: cover from long long {
     
-    toString: func -> String {
-        str = gc_malloc(64) : String
-        sprintf(str, "%lld", this)
-        str
-    }
-    
-    toHexString: func -> String {
-        str = gc_malloc(64) : String
-        sprintf(str, "%llx", this)
-        str
-    }
+    toString:    func -> String { "%lld" format(this) }
+    toHexString: func -> String { "%llx" format(this) }
     
     isOdd:  func -> Bool { this % 2 == 1 }
     isEven: func -> Bool { this % 2 == 0 }
@@ -204,38 +195,50 @@ LLong: cover from long long {
     
 }
     
-Int: cover from int extends LLong
-UInt: cover from unsigned int extends LLong
+Long:  cover from long  extends LLong
 Short: cover from short extends LLong
-UShort: cover from unsigned short extends LLong
-Long: cover from long extends LLong
-ULong: cover from unsigned long extends LLong
-ULLong: cover from unsigned long long extends LLong
+Int:   cover from int   extends LLong
+
+ULLong: cover from unsigned long long extends LLong {
+
+    toString:    func -> String { "%llud" format(this) }
+    toHexString: func -> String { "%llux" format(this) }
+    
+    in: func(range: Range) -> Bool {
+        return this >= range min && this < range max
+    }
+    
+}
+
+ULong:  cover from unsigned long  extends ULLong
+UInt:   cover from unsigned int   extends ULLong
+UShort: cover from unsigned short extends ULLong
+
 
 /**
  * fixed-size integer types
  */
-Int8: cover from int8_t
-Int16: cover from int16_t
-Int32: cover from int32_t
-Int64: cover from int64_t
+Int8:   cover from int8_t extends LLong
+Int16:  cover from int16_t extends LLong
+Int32:  cover from int32_t extends LLong
+Int64:  cover from int64_t extends LLong
 
-UInt8:  cover from uint8_t
-UInt16: cover from uint16_t
-UInt32: cover from uint32_t
-UInt64: cover from uint64_t
+UInt8:  cover from uint8_t extends ULLong
+UInt16: cover from uint16_t extends ULLong
+UInt32: cover from uint32_t extends ULLong
+UInt64: cover from uint64_t extends ULLong
 
 //Octet: cover from UInt8
-Octet: cover from uint8_t
-SizeT: cover from size_t extends LLong
-Bool: cover from bool
+Octet:  cover from uint8_t
+SizeT:  cover from size_t extends LLong
+Bool:   cover from bool
 
 /**
  * real types
  */
-Float: cover from float extends Double
 LDouble: cover from long double
-Double: cover from double
+Double: cover from double extends LDouble
+Float: cover from float extends LDouble
 
 /**
  * custom types
@@ -244,10 +247,8 @@ Range: cover {
 
     min, max: Int
     
-    //new: static func (.min, .max) -> This {
-    new: static func (min, max: Int) -> Range {
-        //this : This
-        this : Range
+    new: static func (.min, .max) -> This {
+        this : This
         this min = min
         this max = max
         return this
@@ -294,6 +295,3 @@ Exception: class {
     }
 
 }
-
-
-
