@@ -47,7 +47,7 @@ Token: cover {
         fr := FileReader new(module getPathElement() + File separator + module getFullName() + ".ooc")
         
         lastNewLine := 0
-        lines := 0
+        lines := 1
         idx := 0
         while(fr hasNext() && idx < start) {
             c := fr read()
