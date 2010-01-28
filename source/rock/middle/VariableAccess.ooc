@@ -103,6 +103,8 @@ VariableAccess: class extends Expression {
         
     }
     
+    getRef: func -> Declaration { ref }
+    
     getType: func -> Type {
         if(!ref) return null
         if(ref instanceOf(Expression)) {

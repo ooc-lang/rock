@@ -1,3 +1,4 @@
+import text/StringBuffer
 import structs/[ArrayList, List]
 import ../frontend/[Token, BuildParams]
 import ../backend/cnaughty/AwesomeWriter
@@ -225,6 +226,21 @@ BaseType: class extends Type {
         if(bt ref == null || bt ref instanceOf(TypeDecl)) return false
         
         return ref as TypeDecl inheritsFrom(bt ref as TypeDecl)
+    }
+    
+    toString: func -> String {
+        if(typeArgs isEmpty()) return getName()
+        sb := StringBuffer new()
+        sb append(getName())
+        sb append("<")
+        isFirst := true
+        for(typeArg in typeArgs) {
+            if(isFirst) isFirst = false
+            else        sb append(", ")
+            sb append(typeArg toString())
+        }
+        sb append(">")
+        return sb toString()
     }
 
 }

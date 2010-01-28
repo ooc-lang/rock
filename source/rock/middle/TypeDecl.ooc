@@ -66,7 +66,12 @@ TypeDecl: abstract class extends Declaration {
         }
     }
     
-    addTypeArgument: func (typeArg: VariableDecl) -> Bool { typeArgs add(typeArg); true }
+    addTypeArgument: func (typeArg: VariableDecl) -> Bool {
+        typeArg owner = this
+        typeArgs add(typeArg)
+        variables put(typeArg getName(), typeArg)
+        true
+    }
     
     isObjectClass: func -> Bool {
         name equals("Object") || name equals("ObjectClass")
@@ -292,6 +297,7 @@ TypeDecl: abstract class extends Declaration {
                 varAcc := VariableAccess new("this", nullToken)
                 varAcc suggest(thisDecl)
                 access expr = varAcc
+                return
             }
         } else if(getSuperRef() != null) {
             getSuperRef() resolveAccess(access)
@@ -300,7 +306,12 @@ TypeDecl: abstract class extends Declaration {
         // look in type arguments
         for(typeArg in typeArgs) {
             if(access name == typeArg name) {
-                if(access suggest(typeArg)) return
+                if(access suggest(typeArg) && access expr == null) {
+                    varAcc := VariableAccess new("this", nullToken)
+                    varAcc suggest(thisDecl)
+                    access expr = varAcc
+                    return
+                }
             }
         }
         

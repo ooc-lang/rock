@@ -121,10 +121,12 @@ FunctionCall: class extends Expression {
          */
         if(refScore != -1) {
             
-            response1 := resolveReturnType(trail, res)
-            response2 := handleGenerics(trail, res)
+            if(!resolveReturnType(trail, res) ok()) {
+                if(res params verbose) "%s looping because of return type!" format(toString()) println()
+                return Responses LOOP
+            }
             
-            if(!response1 ok() || !response2 ok()) {
+            if(!handleGenerics(trail, res) ok()) {
                 if(res params verbose) "%s looping because of generics!" format(toString()) println()
                 return Responses LOOP
             }
@@ -198,20 +200,27 @@ FunctionCall: class extends Expression {
         
         if(returnType == null && ref != null) {
             if(ref returnType isGeneric()) {
-                //if(res params verbose) printf("\t$$$$ resolving returnType %s\n", ref returnType toString())
+                if(res params verbose) printf("\t$$$$ resolving returnType %s\n", ref returnType toString())
                 returnType = resolveTypeArg(ref returnType getName(), trail, res)
+                if(returnType == null && res fatal) {
+                    token throwError("Not enough info to resolve return type %s of function call\n" format(ref returnType toString()))
+                }
             } else {
                 returnType = ref returnType
             }
             if(returnType) {
                 res wholeAgain(this, "because of return type %s" format(returnType toString()))
                 return Responses OK
-                //return Responses LOOP
             }
         }
         
+        if(returnType == null) {
+            if(res fatal) token throwError("Couldn't resolve return type of function %s\n" format(toString()))
+            return Responses LOOP
+        }
+        
         //"At the end of resolveReturnType(), the return type of %s is %s" format(toString(), getType() ? getType() toString() : "null") println()
-        return returnType == null ? Responses LOOP : Responses OK
+        return Responses OK
         
     }
     
@@ -242,13 +251,22 @@ FunctionCall: class extends Expression {
         
         for(typeArg in typeArgs) {
             response := typeArg resolve(trail, res)
-            if(!response ok()) return response
+            if(!response ok()) {
+                if(res fatal) {
+                    token throwError("Couldn't resolve typeArg %s in call %s" format(typeArg toString(), toString()))
+                }
+                return response
+            }
         }
         
         if(typeArgs size() != ref typeArgs size()) {
-            if(res params verbose) printf("Looping %s because of typeArgs\n", toString())
+            if(res fatal) {
+                token throwError("Couldn't figure out generic type %s in call %s" format(ref typeArgs get(typeArgs size()) toString(), toString()))
+            }
+            res wholeAgain("Looping %s because of typeArgs\n", toString())
         }
-        return typeArgs size() == ref typeArgs size() ? Responses OK : Responses LOOP
+        
+        return Responses OK
         
     }
     
@@ -295,6 +313,24 @@ FunctionCall: class extends Expression {
             j += 1
         }
         
+        /* expr: Type<T>; expr myFunction() */
+        j = 0
+        if(expr != null && expr getType() != null && expr getType() instanceOf(BaseType) && expr getType() getRef() != null) {
+            printf("Looking for typeArg %s in expr %s\n", typeArgName, expr toString())
+            exprType := expr getType() as BaseType
+            ref := exprType getRef() as TypeDecl
+            for(arg in ref typeArgs) {
+                if(arg getName() == typeArgName) {
+                    candidate := exprType typeArgs get(j)
+                    result := candidate getRef() as TypeDecl getInstanceType()
+                    printf("Found match for arg %s! it's %s. Hence, result = %s (cause expr type = %s)\n", typeArgName, candidate toString(), result toString(), exprType toString())
+                    return result
+                }
+            }
+            j += 1
+        }
+        
+        printf("Couldn't resolve typeArg %s\n", typeArgName)
         return null
         
     }

@@ -46,7 +46,11 @@ DotArg: class extends Argument {
         
         tDecl := trail get(idx) as TypeDecl
         ref = tDecl getVariable(name)
-        if(ref == null) token throwError("%s refers to non-existing member variable '%s' in type '%s'" format(class name, name, tDecl getName()))
+        if(ref == null) {
+            if(res fatal) token throwError("%s refers to non-existing member variable '%s' in type '%s'" format(class name, name, tDecl getName()))
+            res wholeAgain(this, "DotArg wants its variable!")
+            return Responses OK
+        }
         
         type = ref getType()
         if(type == null) {
