@@ -53,9 +53,7 @@ FunctionDecl: class extends Expression {
     }
     
     hasReturn: func -> Bool {
-        // TODO add Generic support
-        //return !getReturnType().isVoid() && !(getReturnType().getRef() instanceof TypeParam);
-        returnType != voidType
+        returnType != voidType && !returnType isGeneric()
     }
     
     hasThis:  func -> Bool { isMember() && !isStatic }
@@ -196,7 +194,7 @@ FunctionDecl: class extends Expression {
             finalResponse = Responses LOOP
         }
         
-        if(!hasReturn() || isExtern()) return Responses OK
+        if(returnType == voidType || isExtern()) return Responses OK
         
         stack := Stack<Iterator<Scope>> new()
         stack push(body iterator())

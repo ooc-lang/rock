@@ -81,7 +81,7 @@ ClassDeclWriter: abstract class extends CGenerator {
     /** Write a function declaration's pointer */
     writeFunctionDeclPointer: static func (this: This, fDecl: FunctionDecl, doName: Bool) {
         
-        current app((fDecl hasReturn() ? fDecl returnType : voidType) as Node)
+        current app((fDecl hasReturn() ? fDecl getReturnType() : voidType) as Node)
         
         current app(" (*")
         if(doName) FunctionDeclWriter writeSuffixedName(this, fDecl)
