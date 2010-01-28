@@ -2,7 +2,7 @@ import structs/[ArrayList, List]
 import ../frontend/[Token, BuildParams]
 import ../backend/cnaughty/AwesomeWriter
 import Node, Visitor, Declaration, TypeDecl, ClassDecl, VariableDecl,
-       Module, Import, CoverDecl
+       Module, Import, CoverDecl, VariableAccess
 import tinker/[Response, Resolver, Trail]
 
 voidType := BaseType new("void", nullToken)
@@ -10,7 +10,9 @@ voidType ref = BuiltinType new("void", nullToken)
 
 Type: abstract class extends Node {
     
-    init: func ~type (.token) { super(token) }
+    init: func ~type (.token) {
+        super(token)
+    }
     
     accept: func (visitor: Visitor) { visitor visitType(this) }
     
@@ -114,7 +116,7 @@ BaseType: class extends Type {
     ref: Declaration = null
     name: String
     
-    typeArgs := ArrayList<VariableDecl> new()
+    typeArgs := ArrayList<VariableAccess> new()
     
     init: func ~baseType (=name, .token) { super(token) }
     
@@ -173,12 +175,17 @@ BaseType: class extends Type {
         
         if(ref == null) {
             if(res fatal) {
-                token throwError("Can't resolve type %s!" format(toString()))
+                token throwError("Can't resolve type %s!" format(getName()))
             }
             if(res params verbose) {
                 printf("     - type %s still not resolved, looping (ref = %p)\n", name, ref)
             }
             return Responses LOOP
+        }
+        
+        for(typeArg in typeArgs) {
+            response := typeArg resolve(trail, res)
+            if(!response ok()) return response
         }
         
         return Responses OK

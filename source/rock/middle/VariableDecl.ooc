@@ -70,7 +70,7 @@ VariableDecl: class extends Declaration {
             }
         }
 
-        if(!type) {
+        if(type == null) {
             //"coool! we're gonna have to infer it!" println()
             type = expr getType()
             if(!type) {

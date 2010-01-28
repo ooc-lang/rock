@@ -216,6 +216,15 @@ TypeDecl: abstract class extends Declaration {
             }
         }
         
+        for(typeArg in typeArgs) {
+            response := typeArg resolve(trail, res)
+            if(!response ok()) {
+                if(res params verbose) printf("Response of typeArg %s = %s\n", typeArg toString(), response toString())
+                trail pop(this)
+                return response
+            }
+        }
+        
         for(vDecl in variables) {
             response := vDecl resolve(trail, res)
             if(!response ok()) {
@@ -256,6 +265,16 @@ TypeDecl: abstract class extends Declaration {
             if(type suggest(getNonMeta() ? getNonMeta() : this)) return
         }
         
+        //printf("** Looking for type %s in func %s with %d type args\n", type name, toString(), typeArgs size())
+        for(typeArg: VariableDecl in typeArgs) {
+            //printf("*** For typeArg %s\n", typeArg name)
+            if(typeArg name == type name) {
+                //printf("***** Found match for %s in function decl %s\n", type name, toString())
+                type suggest(typeArg)
+                break
+            }
+        }
+        
     }
     
     resolveAccess: func (access: VariableAccess) {
@@ -277,6 +296,14 @@ TypeDecl: abstract class extends Declaration {
         } else if(getSuperRef() != null) {
             getSuperRef() resolveAccess(access)
         }
+        
+        // look in type arguments
+        for(typeArg in typeArgs) {
+            if(access name == typeArg name) {
+                if(access suggest(typeArg)) return
+            }
+        }
+        
     }
     
     resolveCall: func (call : FunctionCall) {

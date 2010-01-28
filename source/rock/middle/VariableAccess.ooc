@@ -62,6 +62,10 @@ VariableAccess: class extends Expression {
          */
         if(!ref && expr) {
             exprType := expr getType()
+            if(exprType == null) {
+                res wholeAgain(this, "expr's type isn't resolved yet, and it's needed to resolve the access")
+                return Responses OK
+            }
             //printf("Null ref and non-null expr (%s), looking in type %s\n", expr toString(), exprType toString())
             typeDecl := exprType getRef()
             if(!typeDecl) {
@@ -110,7 +114,7 @@ VariableAccess: class extends Expression {
     getName: func -> String { name }
     
     toString: func -> String {
-        expr ? (expr getType() toString() + "." + name) : name
+        (expr && expr getType()) ? (expr getType() toString() + "." + name) : name
     }
     
     isReferencable: func -> Bool { true }

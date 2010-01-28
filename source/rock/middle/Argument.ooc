@@ -7,6 +7,8 @@ Argument: abstract class extends VariableDecl {
     
     init: func ~argument (.type, .name, .token) { super(type, name, token) }
     
+    toString: func -> String { name isEmpty() ? type toString() : super toString() }
+    
 }
 
 VarArg: class extends Argument {
@@ -24,6 +26,8 @@ VarArg: class extends Argument {
     resolve: func (trail: Trail, res: Resolver) -> Response {
         return Responses OK
     }
+    
+    toString: func -> String { "..." }
     
 }
 
@@ -55,6 +59,8 @@ DotArg: class extends Argument {
         return Responses OK
         
     }
+    
+    toString: func -> String { "." + name }
     
 }
 
@@ -89,5 +95,7 @@ AssArg: class extends DotArg {
         return Responses OK
         
     }
+    
+    toString: func -> String { "=" + name }
     
 }

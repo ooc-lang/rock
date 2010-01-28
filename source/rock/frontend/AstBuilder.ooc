@@ -240,6 +240,7 @@ AstBuilder: class {
     }
     
     onTypeGenericArgument: unmangled(nq_onTypeGenericArgument) func (type: Type, name: String) {
+        printf("Type %s just had typeArgument %s!\n", type toString(), name)
         type addTypeArgument(VariableAccess new(name clone(), token()))
     }
     

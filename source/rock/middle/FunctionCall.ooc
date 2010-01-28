@@ -204,8 +204,7 @@ FunctionCall: class extends Expression {
                 returnType = ref returnType
             }
             if(returnType) {
-                if(res params verbose) printf("LOOPing because of return type %s\n", returnType toString())
-                res wholeAgain(this, "Because of return type %s\n" format(returnType toString()))
+                res wholeAgain(this, "because of return type %s" format(returnType toString()))
                 return Responses OK
                 //return Responses LOOP
             }

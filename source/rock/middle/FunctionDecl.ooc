@@ -1,5 +1,5 @@
 import structs/[Stack, ArrayList], text/StringBuffer
-import ../frontend/Token
+import ../frontend/[Token, BuildParams]
 import Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, Else,
        VariableDecl, Node, Statement, Module, FunctionCall
@@ -90,7 +90,6 @@ FunctionDecl: class extends Expression {
     resolveType: func (type: BaseType) {
         
         //printf("** Looking for type %s in func %s with %d type args\n", type name, toString(), typeArgs size())
-        
         for(typeArg: VariableDecl in typeArgs) {
             //printf("*** For typeArg %s\n", typeArg name)
             if(typeArg name == type name) {
@@ -129,12 +128,12 @@ FunctionDecl: class extends Expression {
         
         trail push(this)
         
-        //printf("\n\nResolving function decl %s (returnType = %s)\n", toString(), returnType toString())
+        //printf("Resolving function decl %s\n", name)
 
         for(arg in args) {
             response := arg resolve(trail, res)
-            //printf("Response of arg %s = %s\n", arg toString(), response toString())
             if(!response ok()) {
+                if(res params verbose) printf("Response of arg %s = %s\n", arg toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -142,8 +141,8 @@ FunctionDecl: class extends Expression {
         
         for(typeArg in typeArgs) {
             response := typeArg resolve(trail, res)
-            //printf("Response of typeArg %s = %s\n", typeArg toString(), response toString())
             if(!response ok()) {
+                if(res params verbose) printf("Response of typeArg %s = %s\n", typeArg toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -151,8 +150,8 @@ FunctionDecl: class extends Expression {
         
         {
             response := returnType resolve(trail, res)
-            //printf("))))))) For %s, response of return type %s = %s\n", toString(), returnType toString(), response toString())
             if(!response ok()) {
+                if(res params verbose) printf("))))))) For %s, response of return type %s = %s\n", toString(), returnType toString(), response toString()) 
                 trail pop(this)
                 return response
             }
@@ -160,8 +159,8 @@ FunctionDecl: class extends Expression {
         
         {
             response := body resolve(trail, res)
-            //printf("))))))) For %s, response of body = %s\n", toString(), response toString())
             if(!response ok()) {
+                if(res params verbose) printf("))))))) For %s, response of body = %s\n", toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -169,8 +168,8 @@ FunctionDecl: class extends Expression {
         
         if(!isAbstract) {
             response := autoReturn(trail)
-            //printf("))))))) For %s, response of autoReturn = %s\n", toString(), response toString())
             if(!response ok()) {
+                if(res params verbose) printf("))))))) For %s, response of autoReturn = %s\n", toString(), response toString())
                 trail pop(this)
                 return response
             }
