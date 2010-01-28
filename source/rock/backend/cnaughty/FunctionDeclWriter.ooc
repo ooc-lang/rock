@@ -126,7 +126,14 @@ FunctionDeclWriter: abstract class extends CGenerator {
                 if(!isFirst) current app(", ")
                 else isFirst = false
                 
-                current app(typeArg)
+                match mode {
+                    case ArgsWriteModes NAMES_ONLY =>
+                        current app(typeArg getName())
+                    case ArgsWriteModes TYPES_ONLY =>
+                        current app(typeArg getType())
+                    case =>
+                        current app(typeArg)
+                }
             }
         }
         
