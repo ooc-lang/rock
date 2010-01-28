@@ -14,4 +14,10 @@ Blah: cover from char {
     
 }
 
-main: func {}
+main: func {
+
+    printf("'\\n' is whitespace ? %s\n", '\n' as Blah isWhitespace() toString())
+    printf(" ' ' is whitespace ? %s\n", ' ' as Blah isWhitespace() toString())
+    printf(" 'c' is whitespace ? %s\n", 'c'  as Blah isWhitespace() toString())
+    
+}

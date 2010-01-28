@@ -9,7 +9,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Comparison, IntLiteral, FloatLiteral, Ternary, BinaryOp, BoolLiteral,
     NullLiteral, Argument, Parenthesis, AddressOf, Dereference, Foreach,
     OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess, Match, FlowControl,
-    While]
+    While, CharLiteral]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -346,6 +346,10 @@ AstBuilder: class {
     
     onStringLiteral: unmangled(nq_onStringLiteral) func (text: String) -> StringLiteral {
         StringLiteral new(text clone(), token())
+    }
+    
+    onCharLiteral: unmangled(nq_onCharLiteral) func (value: String) -> CharLiteral {
+        CharLiteral new(value clone(), token())
     }
     
     // statement

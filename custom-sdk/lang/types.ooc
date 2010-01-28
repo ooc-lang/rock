@@ -232,7 +232,9 @@ UInt64: cover from uint64_t extends ULLong
 //Octet: cover from UInt8
 Octet:  cover from uint8_t
 SizeT:  cover from size_t extends LLong
-Bool:   cover from bool
+Bool:   cover from bool {
+    toString: func -> String { this ? "true" : "false" }
+}
 
 /**
  * real types
