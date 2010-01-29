@@ -46,7 +46,7 @@ Type: abstract class extends Node {
     replace: func (oldie, kiddo: Node) -> Bool { false }
     clone: abstract func -> This
     
-    reference:   func          -> This { PointerType new(this, token) }
+    reference:   func          -> This { p := PointerType new(this, token); p setRef(getRef()); p }
     dereference: abstract func -> This
     
     getTypeArgs: abstract func -> List<VariableDecl>

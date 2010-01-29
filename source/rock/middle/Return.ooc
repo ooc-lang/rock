@@ -30,7 +30,6 @@ Return: class extends Statement {
             }
         }
         
-        
         //println("/- Resolving " + toString() + ", trail = " + trail toString())
         idx := trail find(FunctionDecl)
         if(idx != -1) {
@@ -43,6 +42,11 @@ Return: class extends Statement {
             if(fDecl getReturnType() isGeneric()) {
                 //println(fDecl toString() + " has a generic return type, replacing self with memcpy!")
                 //println("trail peek() is " + trail peek() toString())
+                
+                if(expr getType() == null) {
+                    res wholeAgain(this, "Need expr's type to be resolved to resolve further!")
+                    return Responses OK
+                }
                 
                 fCall := FunctionCall new("memcpy", token)
                 fCall args add(VariableAccess new(fDecl getReturnArg(), token))

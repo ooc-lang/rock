@@ -348,6 +348,41 @@ Range: cover {
 }
 
 /**
+ * iterators
+ */
+/*
+Iterator: abstract class <T> {
+
+    hasNext: abstract func -> Bool
+    next: abstract func -> T
+    
+    hasPrev: abstract func -> Bool
+    prev: abstract func -> T
+    
+    remove: abstract func -> Bool
+    
+}
+
+Iterable: abstract class <T> {
+
+    iterator: abstract func -> Iterator<T>*/
+
+    /**
+     * @return the contents of the iterable as ArrayList.
+     */
+    /*
+    toArrayList: func -> ArrayList<T> {
+        result := ArrayList<T> new()
+        for(elem: T in this) {
+            result add(elem)
+        }
+        result
+    }
+    */
+/*}*/
+
+
+/**
  * exceptions
  */
 Exception: class {
