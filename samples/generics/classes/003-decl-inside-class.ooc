@@ -9,22 +9,26 @@ Provider: class <TOOPAK> {
 	
 }
 
-/*
 Getter: class <T> {
 
 	field : T
 	data : T*
 	
-	init: func {
+	init: func (.T) {
+        this T = T
 		data = gc_malloc(T size)
 	}
 
 	get: func(prov: Provider<T>) -> T {
-		element: T
+        printf("Got T = %s, T size = %d\n", T name, T size)
+		element: T = gc_malloc(T size)
 		element = prov provide()
+        //element := prov provide()
+        printf("Got element as Int = %d\n", element as Int)
 		return element
 	}
-	
+
+    /*
 	get2: func(prov: Provider<T>) -> T {
 		field = prov provide()
 		return field
@@ -34,9 +38,9 @@ Getter: class <T> {
 		//data@ = prov provide()
 		//return data@
 	}
+    */
 	
 }
-*/
 
 main: func {
 
@@ -45,8 +49,9 @@ main: func {
     prov TOOPAK = Int
 	printf("The answer is %d\n", prov provide())
 	//gett := Getter<Int> new()
-    //gett : Getter<Int> = Getter new()
-	//printf("The answer is also %d\n", gett get(prov))
+    gett : Getter<Int> = Getter new(Int)
+    //gett T = Int
+	printf("The answer is also %d\n", gett get(prov))
 	//printf("The answer is %d, too.\n", gett get2(prov))
 	//printf("The answer is still %d\n", gett get3(prov))
 

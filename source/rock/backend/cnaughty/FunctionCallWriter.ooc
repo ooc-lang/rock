@@ -40,8 +40,12 @@ FunctionCallWriter: abstract class extends Skeleton {
             
             retArg := fCall getReturnArg()
             if(retArg) {
-                // FIXME hardcoding uint8_t is probably a bad idea. Ain't it?
-                current app("(uint8_t*) &("). app(retArg). app(")")
+                if(retArg getType() isGeneric()) {
+                    current app(retArg)
+                } else {
+                    // FIXME hardcoding uint8_t is probably a bad idea. Ain't it?
+                    current app("(uint8_t*) &("). app(retArg). app(")")
+                }
             } else {
                 current app("NULL")
             }

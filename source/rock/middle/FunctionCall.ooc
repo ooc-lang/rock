@@ -278,10 +278,13 @@ FunctionCall: class extends Expression {
             if(arg type getName() == typeArgName) {
                 implArg := args get(j)
                 typeResult := implArg getType()
-                //if(res params verbose) printf("\t$$=- found match in arg %s of type %s\n", arg toString(), typeResult toString())
+                if(res params verbose) printf("\t$$=- found match in arg %s of type %s\n", arg toString(), typeResult toString())
+                
+                isGood := (implArg instanceOf(AddressOf) || implArg getType() isGeneric())
                 
                 // if AdressOf, the job's done. If it's not referencable, we need to unwrap it!
-                if(!implArg instanceOf(AddressOf)) { // FIXME this is probably wrong - what if we want an address's address? etc.
+                if(!isGood) { // FIXME this is probably wrong - what if we want an address's address? etc.
+                    printf("&-ing implArg %s\n", implArg toString())
                     
                     target : Expression = implArg
                     if(!implArg isReferencable()) {
@@ -322,7 +325,14 @@ FunctionCall: class extends Expression {
             for(arg in ref typeArgs) {
                 if(arg getName() == typeArgName) {
                     candidate := exprType typeArgs get(j)
-                    result := candidate getRef() as TypeDecl getInstanceType()
+                    ref := candidate getRef()
+                    result : Type = null
+                    if(ref instanceOf(TypeDecl)) {
+                        result = candidate getRef() as TypeDecl getInstanceType()
+                    } else {
+                        //result = ref getType()
+                        result = BaseType new(ref as VariableDecl getName(), token)
+                    }
                     printf("Found match for arg %s! it's %s. Hence, result = %s (cause expr type = %s)\n", typeArgName, candidate toString(), result toString(), exprType toString())
                     return result
                 }
