@@ -1,4 +1,4 @@
-import io/File
+import io/File, text/StringBuffer
 
 import structs/[Array, ArrayList, List, Stack, HashMap]
 
@@ -681,7 +681,7 @@ AstBuilder: class {
     peek: func <T> (T: Class) -> T {
         node := stack peek() as Node
         if(!node instanceOf(T)) {
-            Exception new(This, "Should've peek'd a %s, but peek'd a %s" format(T name, node class name)) throw()
+            Exception new(This, "Should've peek'd a %s, but peek'd a %s. Stack = %s" format(T name, node class name, stackRepr())) throw()
         }
         return node
     }
@@ -689,9 +689,17 @@ AstBuilder: class {
     pop: func <T> (T: Class) -> T {
         node := stack pop() as Node
         if(!node instanceOf(T)) {
-            Exception new(This, "Should've pop'd a %s, but pop'd a %s" format(T name, node class name)) throw()
+            Exception new(This, "Should've pop'd a %s, but pop'd a %s Stack = %s" format(T name, node class name, stackRepr())) throw()
         }
         return node
+    }
+    
+    stackRepr: func -> String {
+        sb := StringBuffer new()
+        for(e in stack) {
+            sb append(e class name). append(", ")
+        }
+        sb toString()
     }
 
 }
