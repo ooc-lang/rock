@@ -84,6 +84,11 @@ FunctionCall: class extends Expression {
             }
         }
         
+        if(returnType) {
+            response := returnType resolve(trail, res)
+            if(!response ok()) return response
+        }
+        
         /*
          * Try to resolve the call.
          * 
@@ -198,9 +203,20 @@ FunctionCall: class extends Expression {
     
     resolveReturnType: func (trail: Trail, res: Resolver) -> Response {
         
+        if(returnType != null) return Responses OK
+        
+        printf("Resolving returnType of %s (=%s), returnType of ref = %s, isGeneric() = %s, ref of returnType of ref = %s\n", toString(), returnType ? returnType toString() : "(nil)", 
+            ref returnType toString(), ref returnType isGeneric() toString(), ref returnType getRef() ? ref returnType getRef() toString() : "(nil)")
+        
         if(returnType == null && ref != null) {
+            if(ref returnType getRef() == null) {
+                //ref returnType resolve(trail, res)
+                res wholeAgain(this, "need to know if the return type of our ref is generic.")
+                return Responses OK
+            }
+            
             if(ref returnType isGeneric()) {
-                if(res params verbose) printf("\t$$$$ resolving returnType %s\n", ref returnType toString())
+                /*if(res params verbose)*/ printf("\t$$$$ resolving returnType %s\n", ref returnType toString())
                 returnType = resolveTypeArg(ref returnType getName(), trail, res)
                 if(returnType == null && res fatal) {
                     token throwError("Not enough info to resolve return type %s of function call\n" format(ref returnType toString()))
@@ -271,6 +287,8 @@ FunctionCall: class extends Expression {
     }
     
     resolveTypeArg: func (typeArgName: String, trail: Trail, res: Resolver) -> Type {
+        
+        printf("Should resolve typeArg %s\n", typeArgName)
         
         /* myFunction: func <T> (myArg: T) */
         j := 0

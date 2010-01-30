@@ -24,14 +24,25 @@ Cast: class extends Expression {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
+        trail push(this)
+        
         {
             response := inner resolve(trail, res)
-            if(!response ok()) return response
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
         }
+        
         {
             response := type resolve(trail, res)
-            if(!response ok()) return response
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
         }
+        
+        trail pop(this)
         
         return Responses OK
         

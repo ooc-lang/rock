@@ -71,6 +71,14 @@ Comparison: class extends Expression {
                 return response
             }
         }
+        {
+            response := type resolve(trail, res)
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
+        }
+        
         trail pop(this)
         
         {

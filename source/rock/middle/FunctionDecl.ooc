@@ -149,6 +149,7 @@ FunctionDecl: class extends Expression {
         }
         
         {
+            //printf("Resolving return type %s\n", returnType toString())
             response := returnType resolve(trail, res)
             if(!response ok()) {
                 if(res params verbose) printf("))))))) For %s, response of return type %s = %s\n", toString(), returnType toString(), response toString()) 
@@ -167,7 +168,7 @@ FunctionDecl: class extends Expression {
         }
         
         if(!isAbstract) {
-            response := autoReturn(trail)
+            response := autoReturn(trail, res)
             if(!response ok()) {
                 if(res params verbose) printf("))))))) For %s, response of autoReturn = %s\n", toString(), response toString())
                 trail pop(this)
@@ -183,7 +184,7 @@ FunctionDecl: class extends Expression {
         
     }
     
-    autoReturn: func (trail: Trail) -> Response {
+    autoReturn: func (trail: Trail, res: Resolver) -> Response {
         
         finalResponse := Responses OK
         
@@ -202,8 +203,9 @@ FunctionDecl: class extends Expression {
         response := autoReturnExplore(stack, trail)
         
         if(!response ok()) {
-            //printf("Looping %s because autoReturnExplore said so.\n", toString())
-            finalResponse = Responses LOOP
+            printf("Looping %s because autoReturnExplore said so.\n", toString())
+            //finalResponse = Responses LOOP
+            res wholeAgain(this, "autoReturnExplore said so!")
         }
         
         return finalResponse

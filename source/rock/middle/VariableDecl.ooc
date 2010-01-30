@@ -75,6 +75,7 @@ VariableDecl: class extends Declaration {
             type = expr getType()
             if(!type) {
                 //"Still null, looping..." println()
+                trail pop(this)
                 return Responses LOOP
             }
         }
