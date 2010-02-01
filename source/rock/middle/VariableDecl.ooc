@@ -119,6 +119,15 @@ VariableDecl: class extends Declaration {
                 expr = null
             }
         }
+
+        if(expr == null && type != null && type isGeneric() && type pointerLevel() == 0 && !isMember()) {
+        	fCall := FunctionCall new("gc_malloc", token)
+        	tAccess := VariableAccess new(type getName(), token)
+        	sizeAccess := VariableAccess new(tAccess, "size", token)
+        	fCall getArguments() add(sizeAccess)
+			expr = fCall
+			res wholeAgain(this, "just set expr to gc_malloc cause generic!")
+        }
         
         return Responses OK
         
@@ -131,5 +140,7 @@ VariableDecl: class extends Declaration {
             case => false
         }
     }
+
+    isMember: func -> Bool { owner != null }
 
 }

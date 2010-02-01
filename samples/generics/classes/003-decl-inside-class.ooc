@@ -21,7 +21,8 @@ Getter: class <T> {
 
 	get: func(prov: Provider<T>) -> T {
         printf("Got T = %s, T size = %d\n", T name, T size)
-		element: T = gc_malloc(T size)
+		//element: T = gc_malloc(T size)
+		element: T
 		element = prov provide()
         //element := prov provide()
         printf("Got element as Int = %d\n", element as Int)
