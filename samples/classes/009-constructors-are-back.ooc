@@ -7,17 +7,13 @@ Dog: class {
         name = "Dogbert"
     }
     
-    init: func ~withName (=name) {
-        "Now name = %s, this name = %s\n" format(name, this name) println()
-    }
+    init: func ~withName (=name) {}
     
     sayHi: func { "Hi, I'm %s" format(name) println() }
 
 }
 
 PrettyDog: class extends Dog {
-    
-    name: String
     
     // overload the default constructor. No argument, no suffix.
     init: func {

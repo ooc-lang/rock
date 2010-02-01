@@ -135,11 +135,18 @@ TypeDecl: abstract class extends Declaration {
     }
     
     getVariable: func (vName: String) -> VariableDecl {
-        result := variables get(vName)
-        if(result) return result
+    	{
+	        result := variables get(vName)
+	        if(result) return result
+	    }
         
         if(isMeta) {
-            return getNonMeta() getVariable(vName)
+			result := getNonMeta() getVariable(vName)
+			if(result) return result
+        }
+
+        if(getSuperRef()) {
+			return getSuperRef() getVariable(vName)
         }
     }
     
@@ -301,8 +308,12 @@ TypeDecl: abstract class extends Declaration {
         }
         
     }
-    
+
     resolveAccess: func (access: VariableAccess) {
+		resolveAccess(access, this)
+    }
+    
+    resolveAccess: func ~withRef (access: VariableAccess, referenceDecl: This) {
         
         //printf("? Looking for variable %s in %s\n", access name, name)
         if(access getName() == "This") {
@@ -315,12 +326,12 @@ TypeDecl: abstract class extends Declaration {
             //"&&&&&&&& Found vDecl for %s" format(access name) println()
             if(access suggest(vDecl) && access expr == null) {
                 varAcc := VariableAccess new("this", nullToken)
-                varAcc suggest(thisDecl)
+                varAcc suggest(referenceDecl)
                 access expr = varAcc
                 return
             }
         } else if(getSuperRef() != null) {
-            getSuperRef() resolveAccess(access)
+            getSuperRef() resolveAccess(access, referenceDecl)
         }
         
         // look in type arguments
@@ -328,7 +339,7 @@ TypeDecl: abstract class extends Declaration {
             if(access name == typeArg name) {
                 if(access suggest(typeArg) && access expr == null) {
                     varAcc := VariableAccess new("this", nullToken)
-                    varAcc suggest(thisDecl)
+                    varAcc suggest(referenceDecl)
                     access expr = varAcc
                     return
                 }
