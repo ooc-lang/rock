@@ -84,6 +84,7 @@ AssArg: class extends DotArg {
             res wholeAgain(this, "Yet has to be unwrapped =)")
         } else {
             fDecl := trail get(trail find(FunctionDecl)) as FunctionDecl
+	    	//printf("Unwrapping AssArg %s in function %s\n", toString(), fDecl toString())
             if(fDecl getName() != "new") {
                 fDecl getBody() add(0, BinaryOp new(
                     VariableAccess new(VariableAccess new("this", token), name, token),
@@ -91,9 +92,9 @@ AssArg: class extends DotArg {
                     OpTypes ass,
                     token
                 ))
+                unwrapped = true
+	            res wholeAgain(this, "Just unwrapped!")
             }
-            unwrapped = true
-            res wholeAgain(this, "Just unwrapped!")
         }
         
         return Responses OK
