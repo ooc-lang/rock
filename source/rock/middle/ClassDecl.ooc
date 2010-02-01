@@ -13,6 +13,8 @@ ClassDecl: class extends TypeDecl {
 
     isAbstract := false
     isFinal := false
+
+    defaultInit: FunctionDecl = null
     
     init: func ~classDeclNoSuper(.name, .token) {
         super(name, token)
@@ -51,6 +53,14 @@ ClassDecl: class extends TypeDecl {
     
     replace: func (oldie, kiddo: Node) -> Bool { false }
 
+	addDefaultInit: func {
+		if(!isAbstract && !isObjectClass() && defaultInit == null) {
+			init := FunctionDecl new("init", token);
+			addFunction(init);
+			defaultInit = init;
+		}
+	}
+
     addFunction: func (fDecl: FunctionDecl) {
         
         if(isMeta) {
@@ -58,7 +68,7 @@ ClassDecl: class extends TypeDecl {
                 addInit(fDecl)
             } else if (fDecl getName() == "new") {
                 already := getFunction(fDecl getName(), fDecl getSuffix())
-                // FIXME, just removing based off fDecl name for now
+                // FIXME, just removing based off fDecl name for now (should take suffix into account)
                 if (already != null) removeFunction(fDecl) 
             }
         }
