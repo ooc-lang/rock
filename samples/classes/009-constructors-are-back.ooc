@@ -7,13 +7,15 @@ Dog: class {
         name = "Dogbert"
     }
     
-    init: func ~withName (=name) {}
+    init: func ~withName (=name) {
+        "Now name = %s, this name = %s\n" format(name, this name) println()
+    }
     
-    sayHi: func -> { "Hi, I'm %s\n" format(name) println() }
+    sayHi: func { "Hi, I'm %s" format(name) println() }
 
 }
 
-PrettyDog: class {
+PrettyDog: class extends Dog {
     
     name: String
     
@@ -30,10 +32,10 @@ PrettyDog: class {
 
 main: func {
 
-    d1 := Dog new()
-    d2 := Dog new("Pintsize")
-    d3 := PrettyDog new()
-    d4 := PrettyDog new("Clango")
+    Dog new() sayHi()
+    Dog new("Pintsize") sayHi()
+    PrettyDog new() sayHi()
+    PrettyDog new("Clango") sayHi()
     
 }
 

@@ -93,10 +93,18 @@ TypeDecl: abstract class extends Declaration {
             vDecl owner = this
         }
     }
+
+	hashName: func (name, suffix: String) -> String {
+		suffix ? "%s~%s" format(name, suffix) : name
+	}
+
+	hashName: func ~fromFuncDecl (fDecl: FunctionDecl) -> String {
+		hashName(fDecl getName(), fDecl getSuffix())
+	}
     
     addFunction: func (fDecl: FunctionDecl) {
         if(isMeta) {
-            functions put(fDecl name, fDecl)
+            functions put(hashName(fDecl), fDecl)
         } else {
             meta addFunction(fDecl)
         }
@@ -108,10 +116,22 @@ TypeDecl: abstract class extends Declaration {
 	}
     
     getFunction: func (fName, fSuffix: String) -> FunctionDecl {
-        // TODO add suffix handling
+    
+    	// quick lookup, if we're lucky (exact suffix or no suffix)
         fDecl : FunctionDecl = null
-        fDecl = functions get(fName)
-        return fDecl
+        fDecl = functions get(hashName(fName, fSuffix))
+		if(fDecl) return fDecl
+
+		// slow lookup, if we have a vague query
+		if(fSuffix == null) {
+			for(f in functions) {
+				// returns the first match.. is it useful?
+				if(f getName() == fName) {
+					return fDecl
+				}
+			}
+		}
+        return null
     }
     
     getVariable: func (vName: String) -> VariableDecl {
@@ -318,16 +338,15 @@ TypeDecl: abstract class extends Declaration {
     }
     
     resolveCall: func (call : FunctionCall) {
-        
-        //printf("\n====> Search %s in %s\n", call toString(), name)
-        /*
+
+		/*
+		printf("\n====> Search %s in %s\n", call toString(), name)
         for(f in functions) {
             printf("  - Got %s!\n", f toString())
         }
-        */
+       	*/
         
-        fDecl : FunctionDecl = null
-        fDecl = functions get(call name)
+        fDecl := getFunction(call)
         if(fDecl) {
             //"    \\o/ Found fDecl for %s\n" format(call name) println()
             accepted := call suggest(fDecl)
@@ -335,7 +354,7 @@ TypeDecl: abstract class extends Declaration {
                 call setExpr(VariableAccess new("this", call token))
             }
         } else if(getSuperRef() != null) {
-            //printf("  <== going in superRef %s\n", superRef() toString())
+            //printf("  <== going in superRef %s\n", getSuperRef() toString())
             getSuperRef() resolveCall(call)
         }
         
