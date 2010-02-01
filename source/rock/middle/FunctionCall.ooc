@@ -1,7 +1,7 @@
 import structs/ArrayList, text/StringBuffer
 import ../frontend/[Token, BuildParams]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
-       TypeDecl, Node, VariableDecl, AddressOf, CommaSequence
+       TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp
 import tinker/[Response, Resolver, Trail]
 
 FunctionCall: class extends Expression {
@@ -182,7 +182,7 @@ FunctionCall: class extends Expression {
             return Responses LOOP // evil! should take fatal into account
         }
         
-        if(ref returnType isGeneric() && !(parent isScope() || parent instanceOf(CommaSequence) || parent instanceOf(VariableDecl))) {
+        if(ref returnType isGeneric() && !isFriendlyHost(parent)) {
             //printf("OHMAGAD a generic-returning function (say, %s) in a %s!!!\n", toString(), parent toString())
             vDecl := VariableDecl new(getType(), generateTempName("genCall"), token)
             if(!trail addBeforeInScope(this, vDecl)) {
@@ -199,6 +199,21 @@ FunctionCall: class extends Expression {
             }
         }
         
+    }
+
+	/**
+	 * In some cases, a generic function call needs to be unwrapped,
+	 * e.g. when it's used as an expression in another call, etc.
+	 * However, some nodes are 'friendly' parents to us, e.g.
+	 * they handle things themselves and we don't need to unwrap.
+	 * @return true if the node is friendly, false if it is not and we
+	 * need to unwrap
+	 */
+    isFriendlyHost: func (node: Node) -> Bool {
+		node isScope() ||
+		node instanceOf(CommaSequence) ||
+		node instanceOf(VariableDecl) ||
+		(node instanceOf(BinaryOp) && node as BinaryOp isAssign())
     }
     
     resolveReturnType: func (trail: Trail, res: Resolver) -> Response {
