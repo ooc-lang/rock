@@ -310,10 +310,6 @@ TypeDecl: abstract class extends Declaration {
     }
 
     resolveAccess: func (access: VariableAccess) {
-		resolveAccess(access, this)
-    }
-    
-    resolveAccess: func ~withRef (access: VariableAccess, referenceDecl: This) {
         
         //printf("? Looking for variable %s in %s\n", access name, name)
         if(access getName() == "This") {
@@ -326,12 +322,11 @@ TypeDecl: abstract class extends Declaration {
             //"&&&&&&&& Found vDecl for %s" format(access name) println()
             if(access suggest(vDecl) && access expr == null) {
                 varAcc := VariableAccess new("this", nullToken)
-                varAcc suggest(referenceDecl)
                 access expr = varAcc
                 return
             }
         } else if(getSuperRef() != null) {
-            getSuperRef() resolveAccess(access, referenceDecl)
+            getSuperRef() resolveAccess(access)
         }
         
         // look in type arguments
@@ -339,7 +334,6 @@ TypeDecl: abstract class extends Declaration {
             if(access name == typeArg name) {
                 if(access suggest(typeArg) && access expr == null) {
                     varAcc := VariableAccess new("this", nullToken)
-                    varAcc suggest(referenceDecl)
                     access expr = varAcc
                     return
                 }
