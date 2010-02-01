@@ -58,7 +58,12 @@ CGenerator: class extends Skeleton {
     
     /** Write a binary operation */
     visitBinaryOp: func (op: BinaryOp) {
-        current app(op left). app(" "). app(op type toString()). app(" "). app(op right)
+        current app(op left). app(" "). app(op type toString()). app(" ")
+        if(op right getType() inheritsFrom(op left getType())) {
+			current app("(("). app(op left getType()). app(") ") .app(op right). app(")")
+        } else {
+        	current app(op right)
+        }
     }
     
     /** Write a unary operation */
@@ -126,7 +131,6 @@ CGenerator: class extends Skeleton {
             current app(varAcc name)
         } else if(varAcc ref instanceOf(TypeDecl)) {
             typeDecl : TypeDecl = varAcc ref
-            //printf("()() Writing variable access to type %s\n", typeDecl toString())
             current app(typeDecl name). app("_class()")
         }
     }

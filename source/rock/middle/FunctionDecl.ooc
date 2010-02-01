@@ -199,12 +199,8 @@ FunctionDecl: class extends Expression {
         stack := Stack<Iterator<Scope>> new()
         stack push(body iterator())
         
-        //printf("[autoReturn] Exploring a %s\n", this toString())
-        response := autoReturnExplore(stack, trail)
-        
-        if(!response ok()) {
-            printf("Looping %s because autoReturnExplore said so.\n", toString())
-            //finalResponse = Responses LOOP
+        //printf("[autoReturn] Exploring a %s\n", this toString())        
+        if(!autoReturnExplore(stack, trail) ok()) {
             res wholeAgain(this, "autoReturnExplore said so!")
         }
         
