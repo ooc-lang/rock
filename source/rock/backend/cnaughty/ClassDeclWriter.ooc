@@ -129,7 +129,7 @@ ClassDeclWriter: abstract class extends CGenerator {
             current nl()
 			FunctionDeclWriter writeFuncPrototype(this, fDecl);
             
-			current app(' '). openBlock(). nl()
+			current app(' '). openBlock()
             for(stat in fDecl body) {
                 writeLine(stat)
             }
@@ -172,7 +172,7 @@ ClassDeclWriter: abstract class extends CGenerator {
             
             current nl(). nl()
             FunctionDeclWriter writeFuncPrototype(this, decl, decl isFinal ? null : "_impl")
-            current app(' '). openBlock(). nl()
+            current app(' '). openBlock()
             
             for(stat in decl body) {
                 writeLine(stat)
