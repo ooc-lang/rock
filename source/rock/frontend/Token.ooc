@@ -63,7 +63,7 @@ Token: cover {
             idx += 1
         }
         
-        fr reset(lastNewLine + 1)
+        fr reset(lastNewLine == 0 ? 0 : lastNewLine + 1)
         over := StringBuffer new()
         
         "%s:%d:%d [ERROR] %s" format(module path, lines, start - lastNewLine, message) println()
