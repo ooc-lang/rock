@@ -390,8 +390,8 @@ Exception: class {
     origin: Class
     msg : String
 
-    init: func (=origin, =msg) {}
-    //init: func ~noOrigin (=msg) {}
+    init: func ~originMsg (=origin, =msg) {}
+    init: func ~noOrigin (=msg) {}
     
     crash: func {
         //FIXME: add global variables support for rock!
