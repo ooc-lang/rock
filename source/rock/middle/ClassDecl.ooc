@@ -31,6 +31,18 @@ ClassDecl: class extends TypeDecl {
     accept: func (visitor: Visitor) { visitor visitClassDecl(this) }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
+
+    	shouldDefault := false
+	    for(vDecl in variables) {
+			if(vDecl getExpr() != null) {
+				shouldDefault
+				break
+			}
+	    }
+	    if(shouldDefault && functions get(DEFAULTS_FUNC_NAME) == null) {
+			addFunction(FunctionDecl new(DEFAULTS_FUNC_NAME, token))
+	    }
+    
         {
             response := super resolve(trail, res)
             if(!response ok()) return response
@@ -54,7 +66,7 @@ ClassDecl: class extends TypeDecl {
     replace: func (oldie, kiddo: Node) -> Bool { false }
 
 	addDefaultInit: func {
-		if(!isAbstract && !isObjectClass() && defaultInit == null) {
+		if(!isAbstract && !isObjectClass() && !isClassClass() && defaultInit == null) {
 			init := FunctionDecl new("init", token);
 			addFunction(init);
 			defaultInit = init;
@@ -64,7 +76,7 @@ ClassDecl: class extends TypeDecl {
     addFunction: func (fDecl: FunctionDecl) {
         
         if(isMeta) {
-            if (fDecl getName() == "init") {
+            if (fDecl getName() == "init" && !fDecl isExternWithName()) {
                 addInit(fDecl)
             } else if (fDecl getName() == "new") {
                 already := getFunction(fDecl getName(), fDecl getSuffix())

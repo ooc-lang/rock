@@ -8,5 +8,7 @@ While: class extends Conditional {
     accept: func (visitor: Visitor) {
         visitor visitWhile(this)
     }
+
+    isDeadEnd: func -> Bool { false }
     
 }

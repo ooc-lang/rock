@@ -256,7 +256,7 @@ TypeDecl: abstract class extends Declaration {
                 return response
             }
         }
-        
+
         for(vDecl in variables) {
             response := vDecl resolve(trail, res)
             if(!response ok()) {
