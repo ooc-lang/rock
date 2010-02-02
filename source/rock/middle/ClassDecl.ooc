@@ -35,7 +35,7 @@ ClassDecl: class extends TypeDecl {
     	shouldDefault := false
 	    for(vDecl in variables) {
 			if(vDecl getExpr() != null) {
-				shouldDefault
+				shouldDefault = true
 				break
 			}
 	    }

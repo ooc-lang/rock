@@ -200,7 +200,7 @@ FunctionDecl: class extends Expression {
         stack := Stack<Iterator<Scope>> new()
         stack push(body iterator())
         
-        printf("[autoReturn] Exploring a %s\n", this toString())        
+        //printf("[autoReturn] Exploring a %s\n", this toString())        
         if(!autoReturnExplore(stack, trail) ok()) {
             res wholeAgain(this, "autoReturnExplore said so!")
         }
@@ -218,10 +218,10 @@ FunctionDecl: class extends Expression {
             if(node instanceOf(ControlStatement) && (node as ControlStatement isDeadEnd())) {
                 cs := node as ControlStatement
                 stack push(cs body iterator())
-                printf("[autoReturn] Sub-exploring a %s. isDeadEnd() ? %s\n", cs toString(), cs isDeadEnd() toString())
+                //printf("[autoReturn] Sub-exploring a %s. isDeadEnd() ? %s\n", cs toString(), cs isDeadEnd() toString())
                 autoReturnExplore(stack, trail)
             } else {
-                "[autoReturn] Huh, node is a %s, ignoring\n" format(node class name) println()
+                //"[autoReturn] Huh, node is a %s, ignoring\n" format(node class name) println()
             }
         }
         
@@ -241,7 +241,7 @@ FunctionDecl: class extends Expression {
                 i += 1
                 next := parentIter next()
                 if(!next instanceOf(ControlStatement)) {
-                    printf("[autoReturn] next is a %s, condition is then false :/\n", next class name)
+                    //printf("[autoReturn] next is a %s, condition is then false :/\n", next class name)
                     condition = false
                     break
                 }
@@ -255,7 +255,7 @@ FunctionDecl: class extends Expression {
         if(condition) {
             list : Scope = iter as ArrayListIterator<Node> list
             if(list isEmpty()) {
-                printf("[autoReturn] scope is empty, needing return\n")
+                //printf("[autoReturn] scope is empty, needing return\n")
                 returnNeeded(trail)
                 return Responses LOOP
             }
@@ -263,11 +263,11 @@ FunctionDecl: class extends Expression {
             last := list last()
             
             if(last instanceOf(Return)) {
-                printf("[autoReturn] Oh, it's a %s already. Nice =D!\n",  last toString())
+                //printf("[autoReturn] Oh, it's a %s already. Nice =D!\n",  last toString())
             } else if(last instanceOf(Expression)) {
                 expr := last as Expression
                 if(expr getType() == null) {
-                    printf("[autoReturn] LOOPing because last's type (%s) is null.", expr toString())
+                    //printf("[autoReturn] LOOPing because last's type (%s) is null.", expr toString())
                     return Responses LOOP
                 }
                 
@@ -277,15 +277,15 @@ FunctionDecl: class extends Expression {
                 }
                 
                 if(!expr getType() equals(voidType)) {
-                    printf("[autoReturn] Hmm it's a %s\n", last toString())
+                    //printf("[autoReturn] Hmm it's a %s\n", last toString())
                     list set(list lastIndex(), Return new(last, last token))
-                    printf("[autoReturn] Replaced with a %s!\n", list last() toString())
+                    //printf("[autoReturn] Replaced with a %s!\n", list last() toString())
                 }
             } else if(last instanceOf(Else)) {
                 // then it's alright, all cases are already handled
-                printf("[autoReturn] last is an Else, all cases are already handled\n", last toString())
+                //printf("[autoReturn] last is an Else, all cases are already handled\n", last toString())
             } else {
-                printf("[autoReturn] Huh, last is a %s, needing return\n", last toString())
+                //printf("[autoReturn] Huh, last is a %s, needing return\n", last toString())
                 returnNeeded(trail)
                 return Responses LOOP
             }

@@ -42,14 +42,12 @@ ClassDeclWriter: abstract class extends CGenerator {
             current app("struct _"). app(cDecl getSuperRef() underName()). app(" __super__;")
         }
         
-        for(vName: String in cDecl variables keys) {
-            // FIXME should figure out the type of vDecl by itself. Generics again, grr.
-            vDecl := cDecl variables get(vName) as VariableDecl
-            current nl(). app(vDecl). app(';')
+        for(vDecl in cDecl variables) {
+        	current nl(). app(vDecl getType()). app(" "). app(vDecl getName()). app(';')
         }
         
         // Now write all virtual functions prototypes in the class struct
-        for (fDecl: FunctionDecl in cDecl functions) {
+        for (fDecl in cDecl functions) {
             
             if(cDecl getSuperRef() != null) {
                 superDecl : FunctionDecl = null
@@ -173,6 +171,14 @@ ClassDeclWriter: abstract class extends CGenerator {
             current nl(). nl()
             FunctionDeclWriter writeFuncPrototype(this, decl, decl isFinal ? null : "_impl")
             current app(' '). openBlock()
+
+            if(decl getName() == ClassDecl DEFAULTS_FUNC_NAME) {
+            	nonMeta := cDecl getNonMeta()
+				for(vDecl in nonMeta variables) {
+					if(vDecl getExpr() == null) continue
+					current nl(). app("this->"). app(vDecl getName()). app(" = "). app(vDecl getExpr()). app(';')
+				}
+            }
             
             for(stat in decl body) {
                 writeLine(stat)
