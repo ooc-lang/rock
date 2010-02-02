@@ -110,25 +110,29 @@ CGenerator: class extends Skeleton {
         }
         
         if(varAcc ref instanceOf(VariableDecl)) {
-            if(varAcc expr) {
-                vDecl := varAcc ref as VariableDecl
-                casted := false
-                if(vDecl owner != varAcc expr getType() getRef()) {
-                    casted = true
-                    current app("(("). app(vDecl owner underName()). app("*) ")
-                }
-                
-                current app(varAcc expr)
-                
-                if(casted) current app(")")
-                
-                if(varAcc expr getType() getRef() instanceOf(ClassDecl)) {
-                    current app("->")
-                } else {
-                    current app('.')
-                }
-            }
-            current app(varAcc name)
+            vDecl := varAcc ref as VariableDecl
+        	if(vDecl isExternWithName()) {
+				current app(vDecl getExternName())
+        	} else {
+		        if(varAcc expr) {
+		            casted := false
+		            if(vDecl owner != varAcc expr getType() getRef()) {
+		                casted = true
+		                current app("(("). app(vDecl owner underName()). app("*) ")
+		            }
+		            
+		            current app(varAcc expr)
+		            
+		            if(casted) current app(")")
+		            
+		            if(varAcc expr getType() getRef() instanceOf(ClassDecl)) {
+		                current app("->")
+		            } else {
+		                current app('.')
+		            }
+		        }
+                current app(varAcc name)
+	        }
         } else if(varAcc ref instanceOf(TypeDecl)) {
             typeDecl : TypeDecl = varAcc ref
             current app(typeDecl name). app("_class()")

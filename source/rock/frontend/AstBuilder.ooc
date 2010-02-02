@@ -184,7 +184,7 @@ AstBuilder: class {
     }
     
     onVarDeclExtern: unmangled(nq_onVarDeclExtern) func (externName: String) {
-        peek(Stack<VariableDecl>) peek() setExternName(externName)
+        peek(Stack<VariableDecl>) peek() setExternName(externName clone())
     }
     
     onVarDeclExpr: unmangled(nq_onVarDeclExpr) func (expr: Expression) {
@@ -277,7 +277,7 @@ AstBuilder: class {
     }
     
     onFunctionExtern: unmangled(nq_onFunctionExtern) func (externName: String) {
-        peek(FunctionDecl) externName = externName clone()
+        peek(FunctionDecl) setExternName(externName clone())
     }
     
     onFunctionAbstract: unmangled(nq_onFunctionAbstract) func {

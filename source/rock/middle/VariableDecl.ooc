@@ -40,11 +40,10 @@ VariableDecl: class extends Declaration {
     
     setExpr: func (=expr) {}
     setStatic: func (=isStatic) {}
-    
+
+    getExternName: func -> String { externName }
     setExternName: func (=externName) {}
-    
     isExtern: func -> Bool { externName != null }
-    
     isExternWithName: func -> Bool {
         (externName != null) && !(externName isEmpty())
     }

@@ -59,9 +59,10 @@ FunctionDecl: class extends Expression {
     hasThis:  func -> Bool { isMember() && !isStatic }
     
     isMember: func -> Bool { owner != null }
-    
+
+    getExternName: func -> String { externName }
+    setExternName: func (=externName) {}
     isExtern: func -> Bool { externName != null }
-    
     isExternWithName: func -> Bool {
         (externName != null) && !(externName isEmpty())
     }
