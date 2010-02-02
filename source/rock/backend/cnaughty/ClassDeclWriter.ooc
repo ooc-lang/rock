@@ -265,8 +265,9 @@ ClassDeclWriter: abstract class extends CGenerator {
             current app(") ")
         }
 
-        FunctionDeclWriter writeFullName(this, realDecl ? realDecl : parentDecl)
-        if(impl) current app("_impl")
+		decl := realDecl ? realDecl : parentDecl
+        FunctionDeclWriter writeFullName(this, decl)
+        if(!decl isExternWithName() && impl) current app("_impl")
         current app(',')
 
     }
