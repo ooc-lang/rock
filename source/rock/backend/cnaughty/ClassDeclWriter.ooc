@@ -173,6 +173,12 @@ ClassDeclWriter: abstract class extends CGenerator {
             current app(' '). openBlock()
 
             if(decl getName() == ClassDecl DEFAULTS_FUNC_NAME) {
+            	superRef := cDecl getSuperRef()
+            	superDefaults := superRef getFunction(ClassDecl DEFAULTS_FUNC_NAME, null, null)
+            	if(superDefaults) {
+					FunctionDeclWriter writeFullName(this, superDefaults)
+					current app("_impl(("). app(superDefaults owner getInstanceType()). app(") this);")
+            	}
             	nonMeta := cDecl getNonMeta()
 				for(vDecl in nonMeta variables) {
 					if(vDecl getExpr() == null) continue

@@ -8,14 +8,14 @@ Animal: class extends Being {
 }
 
 Mammal: class extends Animal {
-    three := 3
+    
 }
 
 Cat: class extends Mammal {
-    four := 4
+    three := 3
     
     print: func {
-        printf("1 = %d, 2 = %d, 3 = %d, 4 = %d", one, two, three, four)
+        printf("1 = %d\n2 = %d\n3 = %d\n", one, two, three)
     }
 }
 
