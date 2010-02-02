@@ -29,6 +29,7 @@ FunctionCall: class extends Expression {
     
     setExpr: func (=expr) {}
     getExpr: func -> Expression { expr }
+    getName: func -> String { name }
 
     accept: func (visitor: Visitor) {
         visitor visitFunctionCall(this)
@@ -101,23 +102,28 @@ FunctionCall: class extends Expression {
          * trail from top to bottom
          */
         if(refScore == -1) {
-            depth := trail size() - 1
-            while(depth >= 0) {
-                node := trail get(depth)
-                node resolveCall(this)
-                depth -= 1
-            }
-            if(expr != null && expr getType() != null && expr getType() getRef() != null) {
-                tDecl := expr getType() getRef() as TypeDecl
-                meta := tDecl getMeta()
-                if(meta) {
-                    meta resolveCall(this)
-                } else {
-                    tDecl resolveCall(this)
-                    //printf("--> %s has no meta, not resolving.\n", expr getType() getRef() toString())
-                }
-            //} else {
-                //printf("<-- Apparently, there's no expr for %s (or is there? %s)\n", toString(), expr ? expr toString() : "no.")
+        	if(name == "super") {
+				fDecl := trail get(trail find(FunctionDecl)) as FunctionDecl
+				superTypeDecl := fDecl owner getSuperRef()
+				ref = superTypeDecl getMeta() getFunction(fDecl getName(), fDecl getSuffix(), this)
+				refScore = 1
+				expr = VariableAccess new(superTypeDecl getThisDecl(), token)
+        	} else {
+		        depth := trail size() - 1
+		        while(depth >= 0) {
+		            node := trail get(depth)
+		            node resolveCall(this)
+		            depth -= 1
+		        }
+		        if(expr != null && expr getType() != null && expr getType() getRef() != null) {
+		            tDecl := expr getType() getRef() as TypeDecl
+		            meta := tDecl getMeta()
+		            if(meta) {
+		                meta resolveCall(this)
+		            } else {
+		                tDecl resolveCall(this)
+		            }
+		        }
             }
         }
         
@@ -161,6 +167,8 @@ FunctionCall: class extends Expression {
             } else {
                 message = "No such function %s%s" format(name, getArgsRepr())
             }
+            printf("name = %s, refScore = %d, ref = %s\n",
+            	name, refScore, ref ? ref toString() : "(nil)")
             token throwError(message)
         }
 

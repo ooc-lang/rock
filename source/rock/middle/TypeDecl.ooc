@@ -223,6 +223,7 @@ TypeDecl: abstract class extends Declaration {
     getModule: func -> Module { module }
     getType: func -> Type { type }
     getInstanceType: func -> Type { instanceType }
+    getThisDecl: func -> VariableDecl { thisDecl }
 
     isResolved: func -> Bool { false }
     

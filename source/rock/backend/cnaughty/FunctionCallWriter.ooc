@@ -12,7 +12,10 @@ FunctionCallWriter: abstract class extends Skeleton {
         }
         fDecl : FunctionDecl = fCall ref
         
-        FunctionDeclWriter writeFullName(this, fCall ref)
+        FunctionDeclWriter writeFullName(this, fDecl)
+        if(!fDecl isFinal && fCall getName() == "super") {
+			current app("_impl")
+        }
         current app('(')
         isFirst := true
         

@@ -1,6 +1,6 @@
 
 Being: class {
-    printf: func {
+    print: func {
         printf("Hi, I'm a Being!\n")
     }
 }
@@ -18,15 +18,22 @@ Mammal: class extends Animal {
 Cat: class extends Mammal {
     print: func {
         super()
-        printf("Hi, I'm a cat!\n")
+        printf("Hi, I'm a Cat!\n")
     }
 }
 
 main: func {
 
+    "\n==========\nCalling on Being" println()
     Being new() print()
-    Animal new print()
+    
+    "\n==========\nCalling on Animal" println()
+    Animal new() print()
+    
+    "\n==========\nCalling on Mammal" println()
     Mammal new() print()
+    
+    "\n==========\nCalling on Cat" println()
     Cat new() print()
     
 }
