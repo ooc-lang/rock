@@ -74,7 +74,6 @@ AstBuilder: class {
             impPath := params sourcePath getFile(path)
             if(!impPath) {
                 path = File new(module getPath()) parent() path
-                printf("Trying 2nd path %s\n", path)
                 impElement = params sourcePath getElement(path)
 	            impPath = params sourcePath getFile(path)
                 if(!impPath exists()) {
