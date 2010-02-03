@@ -64,6 +64,8 @@ Module: class extends Node {
     getTypes:     func -> HashMap<TypeDecl>  { types }
     
     accept: func (visitor: Visitor) { visitor visitModule(this) }
+
+	getPath: func ~full -> String { path }
     
     getPath: func (suffix: String) -> String {
         last := (File new(pathElement) name())

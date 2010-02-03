@@ -73,10 +73,11 @@ AstBuilder: class {
             impElement := params sourcePath getElement(path)
             impPath := params sourcePath getFile(path)
             if(!impPath) {
-                path = module getParentPath() + "/" + path
+                path = File new(module getPath()) parent() path
+                printf("Trying 2nd path %s\n", path)
                 impElement = params sourcePath getElement(path)
-                impPath = params sourcePath getFile(path)
-                if(impPath == null) {
+	            impPath = params sourcePath getFile(path)
+                if(!impPath exists()) {
                     //throw new OocCompilationError(imp, module, "Module not found in sourcepath: "+imp path);
                     Exception new(This, "Module not found in sourcepath: " + imp path) throw()
                 }
