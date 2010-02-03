@@ -2,6 +2,7 @@ import io/File, text/StringBuffer
 
 import structs/[Array, ArrayList, List, Stack, HashMap]
 
+import ../utils/FileUtils
 import ../frontend/[Token, BuildParams]
 import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl, 
     FunctionCall, StringLiteral, Node, Module, Statement, Include, Import,
@@ -65,18 +66,15 @@ AstBuilder: class {
     parseImports: func {
         
         for(imp: Import in module imports) {
-            path := imp path + ".ooc"
-            if(path startsWith("..")) {
-                //path = FileUtils resolveRedundancies(File new(module getParentPath(), path)) path
-            }
+            path := FileUtils resolveRedundancies(imp path + ".ooc")
             
             impElement := params sourcePath getElement(path)
             impPath := params sourcePath getFile(path)
             if(!impPath) {
-                path = File new(module getPath()) parent() path
+                path = FileUtils resolveRedundancies(File new(module getPath()) parent() path + File separator + imp path + ".ooc")
                 impElement = params sourcePath getElement(path)
 	            impPath = params sourcePath getFile(path)
-                if(!impPath exists()) {
+	            if(impPath == null) {
                     //throw new OocCompilationError(imp, module, "Module not found in sourcepath: "+imp path);
                     Exception new(This, "Module not found in sourcepath: " + imp path) throw()
                 }

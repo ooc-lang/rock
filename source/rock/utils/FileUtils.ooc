@@ -14,14 +14,13 @@ FileUtils: class {
 	 * @param file
 	 * @return cleaned up file
 	 */
-	resolveRedundancies: static func(file: File) -> File {
-		path := file getPath()
+	resolveRedundancies: static func(path: String) -> String {
 		elems := ArrayList<String> new()
 		
 		for (elem in path split(File separator)) {
 			if (elem == "..") {
 				if (!elems isEmpty()) {
-					elems remove(elems lastIndex())
+					elems removeAt(elems lastIndex())
 				} else {
 					elems add(elem)
 				}
@@ -47,6 +46,6 @@ FileUtils: class {
 			}
 		}
 		
-		return File new(buffer toString())
+		return buffer toString()
 	}
 }

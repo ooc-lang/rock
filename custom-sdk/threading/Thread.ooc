@@ -17,5 +17,7 @@ Thread: class {
 		null
 		
     }
+
+    start: abstract func {}
     
 }

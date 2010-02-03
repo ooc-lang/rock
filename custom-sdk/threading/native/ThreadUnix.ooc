@@ -1,5 +1,18 @@
 import ../Thread
+include pthread
 
-ThreadUnix: class extends {
+//version(linux) {
+
+PThread: cover from pthread_t
+
+ThreadUnix: class extends Thread {
+
+	init: func (=runnable) {}
+
+	start: func {
+		// whadoIdonow?
+	}
 
 }
+
+//}
