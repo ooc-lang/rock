@@ -2,10 +2,10 @@ import structs/[Stack, ArrayList], text/StringBuffer
 import ../frontend/[Token, BuildParams]
 import Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, Else,
-       VariableDecl, Node, Statement, Module, FunctionCall
+       VariableDecl, Node, Statement, Module, FunctionCall, Declaration
 import tinker/[Resolver, Response, Trail]
 
-FunctionDecl: class extends Expression {
+FunctionDecl: class extends Declaration {
 
     name = "", suffix = null : String
     returnType := voidType

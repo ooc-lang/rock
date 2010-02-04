@@ -84,6 +84,8 @@ Module: class extends Node {
     resolveAccess: func (access: VariableAccess) {
         
         ref : Declaration = null
+
+		//printf("Looking for %s in %s\n", access toString(), toString())
         
         ref = types get(access name)
         if(ref != null && access suggest(ref)) {
@@ -94,7 +96,7 @@ Module: class extends Node {
             //printf("Looking in import %s\n", imp path)
             ref = imp getModule() types get(access name)
             if(ref != null && access suggest(ref)) {
-                //("Found type " + name + " in " + imp getModule() fullName)
+                //("Found type " + access name + " in " + imp getModule() fullName)
                 break
             }
         }

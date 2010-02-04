@@ -1,5 +1,6 @@
 import ../frontend/[Token, BuildParams]
-import Visitor, Expression, VariableDecl, Declaration, Type, Node
+import Visitor, Expression, VariableDecl, FunctionDecl, TypeDecl,
+	   Declaration, Type, Node
 import tinker/[Resolver, Response, Trail]
 
 VariableAccess: class extends Expression {
@@ -33,16 +34,33 @@ VariableAccess: class extends Expression {
         visitor visitVariableAccess(this)
     }
     
-    suggest: func (candidate: VariableDecl) -> Bool {
-        // if we're accessing a member, we're expecting the candidate
-        // to belong to a TypeDecl..
-        if((expr != null) && (candidate owner == null)) {
-            //printf("%s is no fit!, we need something to fit %s\n", candidate toString(), toString())
-            return false
-        }
-        
-        ref = candidate
-        return true
+    suggest: func (node: Node) -> Bool {
+    	if(node instanceOf(VariableDecl)) {
+			candidate := node as VariableDecl
+		    // if we're accessing a member, we're expecting the candidate
+		    // to belong to a TypeDecl..
+		    if((expr != null) && (candidate owner == null)) {
+		        //printf("%s is no fit!, we need something to fit %s\n", candidate toString(), toString())
+		        return false
+		    }
+		    
+		    ref = candidate
+		    return true
+	    } else if(node instanceOf(FunctionDecl)) {
+			candidate := node as FunctionDecl
+		    // if we're accessing a member, we're expecting the candidate
+		    // to belong to a TypeDecl..
+		    if((expr != null) && (candidate owner == null)) {
+		        //printf("%s is no fit!, we need something to fit %s\n", candidate toString(), toString())
+		        return false
+		    }
+		    
+		    ref = candidate
+		    return true
+	    } else if(node instanceOf(TypeDecl)) {
+			ref = node
+	    }
+	    return false
     }
     
     isResolved: func -> Bool { ref != null }

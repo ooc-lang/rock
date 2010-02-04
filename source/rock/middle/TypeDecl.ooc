@@ -317,16 +317,32 @@ TypeDecl: abstract class extends Declaration {
             if(access suggest(getNonMeta() ? getNonMeta() : this)) return
         }
         
-        vDecl : VariableDecl = null
-        vDecl = variables get(access name)
+        vDecl := variables get(access name)
         if(vDecl) {
-            //"&&&&&&&& Found vDecl for %s" format(access name) println()
-            if(access suggest(vDecl) && access expr == null) {
-                varAcc := VariableAccess new("this", nullToken)
-                access expr = varAcc
+            //"&&&&&&&& Found vDecl %s for %s" format(vDecl toString(), access name) println()
+            if(access suggest(vDecl)) {
+            	if(access expr == null) {
+	                varAcc := VariableAccess new("this", nullToken)
+	                access expr = varAcc
+                }
                 return
             }
-        } else if(getSuperRef() != null) {
+        }
+
+		fDecl := getFunction(access name, null, null)
+		if(fDecl) {
+            //"&&&&&&&& Found fDecl %s for %s" format(fDecl toString(), access name) println()
+            if(access suggest(fDecl)) {
+            	if(access expr == null) {
+	                //varAcc := VariableAccess new("this", nullToken)
+	                //access expr = varAcc
+                }
+                return
+            }
+		}
+		
+        if(getSuperRef() != null) {
+        	//FIXME: should return here if success
             getSuperRef() resolveAccess(access)
         }
         
@@ -345,23 +361,23 @@ TypeDecl: abstract class extends Declaration {
     
     resolveCall: func (call : FunctionCall) {
 
-		printf("\n====> Search %s in %s\n", call toString(), name)
-        for(f in functions) {
-            printf("  - Got %s!\n", f toString())
-        }
+		//printf("\n====> Search %s in %s\n", call toString(), name)
+        //for(f in functions) {
+        //    printf("  - Got %s!\n", f toString())
+        //}
         
         fDecl := getFunction(call)
         if(fDecl) {
-            "    \\o/ Found fDecl for %s, it's %s" format(call name, fDecl toString()) println()
+            //"    \\o/ Found fDecl for %s, it's %s" format(call name, fDecl toString()) println()
             if(call suggest(fDecl)) {
 	            if(call getExpr() == null) {
 	            	call setExpr(VariableAccess new("this", call token))
             	}
-            	"   returning..." println()
+            	//"   returning..." println()
 	            return
             }
         } else if(getSuperRef() != null) {
-            printf("  <== going in superRef %s\n", getSuperRef() toString())
+            //printf("  <== going in superRef %s\n", getSuperRef() toString())
             getSuperRef() resolveCall(call)
         }
         
