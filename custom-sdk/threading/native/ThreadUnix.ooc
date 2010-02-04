@@ -7,7 +7,7 @@ PThread: cover from pthread_t
 
 ThreadUnix: class extends Thread {
 
-	init: func (=runnable) {}
+	init: func ~unix (=runnable) {}
 
 	start: func {
 		// whadoIdonow?

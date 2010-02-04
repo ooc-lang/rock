@@ -109,13 +109,14 @@ FunctionCall: class extends Expression {
 				refScore = 1
 				expr = VariableAccess new(superTypeDecl getThisDecl(), token)
         	} else {
-		        depth := trail size() - 1
-		        while(depth >= 0) {
-		            node := trail get(depth)
-		            node resolveCall(this)
-		            depth -= 1
-		        }
-		        if(expr != null && expr getType() != null && expr getType() getRef() != null) {
+        		if(expr == null) {
+				    depth := trail size() - 1
+				    while(depth >= 0) {
+				        node := trail get(depth)
+				        node resolveCall(this)
+				        depth -= 1
+				    }
+			    } else if(expr getType() != null && expr getType() getRef() != null) {
 		            tDecl := expr getType() getRef() as TypeDecl
 		            meta := tDecl getMeta()
 		            if(meta) {

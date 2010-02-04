@@ -345,22 +345,23 @@ TypeDecl: abstract class extends Declaration {
     
     resolveCall: func (call : FunctionCall) {
 
-		/*
 		printf("\n====> Search %s in %s\n", call toString(), name)
         for(f in functions) {
             printf("  - Got %s!\n", f toString())
         }
-       	*/
         
         fDecl := getFunction(call)
         if(fDecl) {
-            //"    \\o/ Found fDecl for %s\n" format(call name) println()
-            accepted := call suggest(fDecl)
-            if(accepted && call getExpr() == null) {
-                call setExpr(VariableAccess new("this", call token))
+            "    \\o/ Found fDecl for %s, it's %s" format(call name, fDecl toString()) println()
+            if(call suggest(fDecl)) {
+	            if(call getExpr() == null) {
+	            	call setExpr(VariableAccess new("this", call token))
+            	}
+            	"   returning..." println()
+	            return
             }
         } else if(getSuperRef() != null) {
-            //printf("  <== going in superRef %s\n", getSuperRef() toString())
+            printf("  <== going in superRef %s\n", getSuperRef() toString())
             getSuperRef() resolveCall(call)
         }
         
