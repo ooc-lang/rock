@@ -200,7 +200,14 @@ BaseType: class extends Type {
         
     }
     
-    isResolved: func -> Bool { ref != null }
+    isResolved: func -> Bool {
+        if(ref == null) return false
+        if(typeArgs == null) return true
+        for(typeArg in typeArgs) if(!typeArg isResolved()) {
+            return false
+        }
+        return true
+    }
     
     getRef: func -> Declaration { ref }
     setRef: func (=ref) {}

@@ -152,13 +152,14 @@ FunctionCall: class extends Expression {
         if(typeArgs size() > 0) {
             trail push(this)
             for(typeArg in typeArgs) {
-                if(typeArg isResolved()) continue
                 //if(res params verbose) printf("Resolving typeArg %s\n", typeArg toString())
                 response := typeArg resolve(trail, res)
                 if(!response ok()) {
                     trail pop(this)
                     //if(res params verbose) printf(" -- Failed, looping.\n")
-                    return response
+                    //return response
+                    res wholeAgain(this, "typeArg %s failed to resolve\n" format(typeArg toString()))
+                    return Responses OK
                 }
             }
             trail pop(this)
@@ -253,7 +254,10 @@ FunctionCall: class extends Expression {
             } else {
                 returnType = ref returnType
             }
-            realTypize(returnType, trail, res)
+            if(!realTypize(returnType, trail, res)) {
+                res wholeAgain(this, "because couldn't properly realTypize %s" format(returnType toString()))
+                returnType = null
+            }
             
             if(returnType) {
                 res wholeAgain(this, "because of return type %s" format(returnType toString()))
@@ -272,19 +276,24 @@ FunctionCall: class extends Expression {
     }
     
     realTypize: func (type: Type, trail: Trail, res: Resolver) -> Bool {
+
+        //printf("[realTypize] realTypizing type %s in %s\n", type toString(), toString())
         
         if(type instanceOf(BaseType) && type as BaseType typeArgs != null) {
             baseType := type as BaseType
             j := 0
             for(typeArg in baseType typeArgs) {
-                if(typeArg getRef() == null) return false // must resolve it before
-                printf("[realTypize] Ref of typeArg %s is a %s (and expr is a %s)\n", typeArg toString(), typeArg getRef() class name, expr toString())
+                //printf("[realTypize] for typeArg %s (ref = %s)\n", typeArg toString(), typeArg getRef() ? typeArg getRef() toString() : "(nil)")
+                if(typeArg getRef() == null) {
+                    return false // must resolve it before
+                }
+                //printf("[realTypize] Ref of typeArg %s is a %s (and expr is a %s)\n", typeArg toString(), typeArg getRef() class name, expr ? expr toString() : "(nil)")
                 
                 // if it's generic-unspecific, it needs to be resolved
                 if(typeArg getRef() instanceOf(VariableDecl)) {
                     typeArgName := typeArg getRef() as VariableDecl getName()
                     result := resolveTypeArg(typeArgName, trail, res)
-                    printf("[realTypize] result = %s\n", result ? result toString() : "(nil)")
+                    //printf("[realTypize] result = %s\n", result ? result toString() : "(nil)")
                     if(result) baseType typeArgs set(j, result)
                 }
                 j += 1
@@ -343,7 +352,7 @@ FunctionCall: class extends Expression {
     
     resolveTypeArg: func (typeArgName: String, trail: Trail, res: Resolver) -> Type {
         
-        printf("Should resolve typeArg %s\n", typeArgName)
+        //printf("Should resolve typeArg %s\n", typeArgName)
         
         /* myFunction: func <T> (myArg: T) */
         j := 0
@@ -390,10 +399,10 @@ FunctionCall: class extends Expression {
 
         /* myFunction: func <T> (myArg: OtherType<T>) */
         for(arg in args) {
-            printf("Looking for typeArg %s in arg's type %s\n", typeArgName, arg getType() toString())
+            //printf("Looking for typeArg %s in arg's type %s\n", typeArgName, arg getType() toString())
             result := searchInTypeDecl(typeArgName, arg getType())
             if(result) {
-                printf("Found match for arg %s! Hence, result = %s (cause arg = %s)\n", typeArgName, result toString(), arg toString())
+                //printf("Found match for arg %s! Hence, result = %s (cause arg = %s)\n", typeArgName, result toString(), arg toString())
                 return result
             }
         }
@@ -401,24 +410,24 @@ FunctionCall: class extends Expression {
         if(expr != null) {
             if(expr instanceOf(Type)) {
                 /* Type<T> myFunction() */
-                printf("Looking for typeArg %s in expr-type %s\n", typeArgName, expr toString())
+                //printf("Looking for typeArg %s in expr-type %s\n", typeArgName, expr toString())
                 result := searchInTypeDecl(typeArgName, expr)
                 if(result) {
-                    printf("Found match for arg %s! Hence, result = %s (cause expr = %s)\n", typeArgName, result toString(), expr toString())
+                    //printf("Found match for arg %s! Hence, result = %s (cause expr = %s)\n", typeArgName, result toString(), expr toString())
                     return result
                 }
             } else {
                 /* expr: Type<T>; expr myFunction() */
-                printf("Looking for typeArg %s in expr %s\n", typeArgName, expr toString())
+                //printf("Looking for typeArg %s in expr %s\n", typeArgName, expr toString())
                 result := searchInTypeDecl(typeArgName, expr getType())
                 if(result) {
-                    printf("Found match for arg %s! Hence, result = %s (cause expr type = %s)\n", typeArgName, result toString(), expr getType() toString())
+                    //printf("Found match for arg %s! Hence, result = %s (cause expr type = %s)\n", typeArgName, result toString(), expr getType() toString())
                     return result
                 }
             }
         }
         
-        printf("Couldn't resolve typeArg %s\n", typeArgName)
+        //printf("Couldn't resolve typeArg %s\n", typeArgName)
         return null
         
     }
@@ -437,8 +446,9 @@ FunctionCall: class extends Expression {
             if(arg getName() == typeArgName) {
                 candidate := type typeArgs get(j)
                 ref := candidate getRef()
+                if(ref == null) return null
                 result : Type = null
-                printf("Found candidate %s for typeArg %s\n", candidate toString(), typeArgName)
+                //printf("Found candidate %s for typeArg %s\n", candidate toString(), typeArgName)
                 if(ref instanceOf(TypeDecl)) {
                     // resolves to a known type
                     result = candidate getRef() as TypeDecl getInstanceType()

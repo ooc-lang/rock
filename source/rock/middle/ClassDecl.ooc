@@ -67,8 +67,7 @@ ClassDecl: class extends TypeDecl {
 
 	addDefaultInit: func {
 		if(!isAbstract && !isObjectClass() && !isClassClass() && defaultInit == null) {
-            printf("Adding defaultInit to %s\n", toString())
-			init := FunctionDecl new("init", token);
+            init := FunctionDecl new("init", token);
 			addFunction(init);
 			defaultInit = init;
 		}
@@ -113,10 +112,8 @@ ClassDecl: class extends TypeDecl {
 		vdfe := VariableDecl new(null, "this", cast, fDecl token)
 		constructor getBody() add(vdfe)
 		
-        printf("[addInit for %s], got %d typeArgs\n", toString(), getTypeArgs() size())
-		for (typeArg in getTypeArgs()) {
-            printf("[addInit for %s], got typeArg %s\n", toString(), typeArg toString())
-			e := VariableAccess new(typeArg getName(), constructor token)
+        for (typeArg in getTypeArgs()) {
+        	e := VariableAccess new(typeArg getName(), constructor token)
 			retType addTypeArg(e)
 			
             thisAccess    := VariableAccess new("this",                   constructor token)
