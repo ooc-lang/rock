@@ -48,14 +48,14 @@ AstBuilder: class {
 
     addLangImports: func {
 
-        printf("Should add lang imports\n")
+        //printf("Should add lang imports\n")
         paths := params sourcePath getRelativePaths("lang")
         for(path in paths) {
-            printf("Considering path %s\n", path)
+            //printf("Considering path %s\n", path)
             if(path endsWith(".ooc")) {
                 impName := path substring(0, path length() - 4)
                 if(impName != module fullName) {
-                    printf("Adding import %s to %s\n", impName, module fullName)
+                    //printf("Adding import %s to %s\n", impName, module fullName)
                     module imports add(Import new(impName))
                 }
             }
@@ -222,6 +222,7 @@ AstBuilder: class {
             tDecl := node as TypeDecl
             tDecl addVariable(vd)
         } else if(node instanceOf(List)) {
+            vd isArg = true
             node as List<Node> add(vd)
         } else {
             //printf("[gotVarDecl] Parent is a %s, don't know what to do, calling gotStatement()\n", node class name)

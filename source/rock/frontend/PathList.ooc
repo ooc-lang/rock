@@ -29,7 +29,6 @@ PathList: class {
         }
 
         absolutePath := file getAbsolutePath()
-        printf("Adding path %s, absolutePath = %s\n", path, absolutePath)
         if (!paths contains(absolutePath)) {
             paths put(absolutePath, file)
         }
@@ -70,11 +69,10 @@ PathList: class {
     getRelativePaths: func(path: String) -> List<String> {
         files := ArrayList<String> new()
 
-        printf("Got %d elements\n", paths size)
         for (element: File in paths) {
-            printf("Looking for path %s in element %s\n", path, element path)
+            //printf("Looking for path %s in element %s\n", path, element path)
             candidate := File new((element path + File separator) + path)
-            printf("Candidate = %s\n", candidate path)
+            //printf("Candidate = %s\n", candidate path)
             if (candidate exists() && candidate isDir()) {
                 addChildren(path, files, candidate);
             }
@@ -85,7 +83,6 @@ PathList: class {
 
     addChildren: func(basePath: String, list: List<String>, parent: File) {
 
-        printf("should add children in parent %s\n", parent path)
         for (child: File in parent getChildren()) {
             if (child isFile()) {
                 list add(basePath + File separator + child name())
