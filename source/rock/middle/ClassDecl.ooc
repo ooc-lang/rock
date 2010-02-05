@@ -67,6 +67,7 @@ ClassDecl: class extends TypeDecl {
 
 	addDefaultInit: func {
 		if(!isAbstract && !isObjectClass() && !isClassClass() && defaultInit == null) {
+            printf("Adding defaultInit to %s\n", toString())
 			init := FunctionDecl new("init", token);
 			addFunction(init);
 			defaultInit = init;
@@ -131,6 +132,7 @@ ClassDecl: class extends TypeDecl {
 		
         // TODO: add suffix handling
 		initCall := FunctionCall new(fDecl getName(), fDecl token)
+        initCall setSuffix(fDecl getSuffix())
         initCall setExpr(VariableAccess new("this", fDecl token))
 		for (arg in constructor getArguments()) {
 			initCall getArguments() add(VariableAccess new(arg, fDecl token))

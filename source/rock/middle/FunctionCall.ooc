@@ -29,7 +29,12 @@ FunctionCall: class extends Expression {
     
     setExpr: func (=expr) {}
     getExpr: func -> Expression { expr }
+    
+    setName: func (=name) {}
     getName: func -> String { name }
+    
+    setSuffix: func (=suffix) {}
+    getSuffix: func -> String { suffix }
 
     accept: func (visitor: Visitor) {
         visitor visitFunctionCall(this)

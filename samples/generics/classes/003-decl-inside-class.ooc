@@ -1,7 +1,5 @@
 Provider: class <TOOPAK> {
 
-    init: func {}
-
 	provide: func -> TOOPAK {
 		a := 42
 		return a
@@ -13,11 +11,11 @@ Getter: class <T> {
 
 	field : T
 	data : T*
+    
+    init: func {
+        data = gc_malloc(T size)
+    }
 	
-	init: func {
-		data = gc_malloc(T size)
-	}
-
 	get: func(prov: Provider<T>) -> T {
         printf("Got T = %s, T size = %d\n", T name, T size)
 
