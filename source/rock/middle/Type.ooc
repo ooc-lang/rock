@@ -3,13 +3,13 @@ import structs/[ArrayList, List]
 import ../frontend/[Token, BuildParams]
 import ../backend/cnaughty/AwesomeWriter
 import Node, Visitor, Declaration, TypeDecl, ClassDecl, VariableDecl,
-       Module, Import, CoverDecl, VariableAccess
+       Module, Import, CoverDecl, VariableAccess, Expression
 import tinker/[Response, Resolver, Trail]
 
 voidType := BaseType new("void", nullToken)
 voidType ref = BuiltinType new("void", nullToken)
 
-Type: abstract class extends Node {
+Type: abstract class extends Expression {
     
     init: func ~type (.token) {
         super(token)
@@ -50,6 +50,10 @@ Type: abstract class extends Node {
     dereference: abstract func -> This
     
     getTypeArgs: abstract func -> List<VariableDecl>
+    
+    getType: func -> This {
+        getRef() ? getRef() getType() : null
+    }
     
     getScore: func (other: This) -> Int {
         scoreSeed := 4096
@@ -150,7 +154,7 @@ BaseType: class extends Type {
         return (other as BaseType name equals(name))
     }
     
-    addTypeArgument: func (typeArg: VariableDecl) -> Bool {
+    addTypeArg: func (typeArg: VariableDecl) -> Bool {
         if(!typeArgs) typeArgs = ArrayList<VariableAccess> new()
         typeArgs add(typeArg); true
     }

@@ -92,12 +92,12 @@ ClassDecl: class extends TypeDecl {
 	addInit: func(fDecl: FunctionDecl) {
 		/* if defaultInit != null */
 		
-        newType := getNonMeta() getInstanceType()
+        newType := getNonMeta() getInstanceType() as BaseType
         
 		constructor := FunctionDecl new("new", fDecl token)
         constructor setStatic(true)
 		constructor setSuffix(fDecl getSuffix())
-		retType := newType clone()
+		retType := newType clone() as BaseType
 		if(retType getTypeArgs()) retType getTypeArgs() clear()
 		
 		constructor getArguments() addAll(fDecl getArguments())
@@ -112,14 +112,18 @@ ClassDecl: class extends TypeDecl {
 		vdfe := VariableDecl new(null, "this", cast, fDecl token)
 		constructor getBody() add(vdfe)
 		
-        /*
-		for (typeArg in typeArgs) {
+        printf("[addInit for %s], got %d typeArgs\n", toString(), getTypeArgs() size())
+		for (typeArg in getTypeArgs()) {
+            printf("[addInit for %s], got typeArg %s\n", toString(), typeArg toString())
 			e := VariableAccess new(typeArg getName(), constructor token)
-			retType getTypeArgs() add(e)
+			retType addTypeArg(e)
 			
-			constructor getBody() add(BinaryOp new(VariableAccess new(VariableAccess new("this", constructor token), typeArg name, constructor token), e, OpTypes ass, constructor token))		
+            thisAccess    := VariableAccess new("this",                   constructor token)
+            typeArgAccess := VariableAccess new(thisAccess, typeArg name, constructor token)
+            ass := BinaryOp new(typeArgAccess, e, OpTypes ass, constructor token)
+			constructor getBody() add(ass)
 		}
-        */
+        
 		constructor setReturnType(retType)
 		
 		thisAccess := VariableAccess new(vdfe, fDecl token)

@@ -148,7 +148,6 @@ AstBuilder: class {
     onClassStart: unmangled(nq_onClassStart) func (name: String) {
         cDecl := ClassDecl new(name clone(), token())
         cDecl module = module
-        cDecl addDefaultInit()
         module addType(cDecl)
         stack push(cDecl)
     }
@@ -164,6 +163,9 @@ AstBuilder: class {
     onClassFinal: unmangled(nq_onClassFinal) func {
         peek(ClassDecl) isFinal = true
     }
+    
+    onClassBody: unmangled(nq_onClassBody) func {
+        peek(ClassDecl) addDefaultInit()    }
 
     onClassEnd: unmangled(nq_onClassEnd) func {
         pop(ClassDecl)
@@ -243,7 +245,7 @@ AstBuilder: class {
     }
 
     onTypeGenericArgument: unmangled(nq_onTypeGenericArgument) func (type: Type, name: String) {
-        type addTypeArgument(VariableAccess new(name clone(), token()))
+        type addTypeArg(VariableAccess new(name clone(), token()))
     }
 
     onFuncTypeNew: unmangled(nq_onFuncTypeNew) func -> Type {
@@ -673,7 +675,7 @@ AstBuilder: class {
         printf("======= Got generic argument %s, and node is a %s\n", name, node class name)
 
         vDecl := VariableDecl new(BaseType new("Class", token()), name clone(), token())
-        if(!node addTypeArgument(vDecl)) {
+        if(!node addTypeArg(vDecl)) {
             token() throwError("Unexpected type argument in a %s declaration!" format(node class name))
         }
 

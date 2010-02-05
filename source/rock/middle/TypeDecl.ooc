@@ -66,9 +66,9 @@ TypeDecl: abstract class extends Declaration {
         }
     }
     
-    addTypeArgument: func (typeArg: VariableDecl) -> Bool {
+    addTypeArg: func (typeArg: VariableDecl) -> Bool {
         typeArg owner = this
-        typeArgs add(typeArg)
+        getTypeArgs() add(typeArg)
         variables put(typeArg getName(), typeArg)
         true
     }
@@ -172,7 +172,7 @@ TypeDecl: abstract class extends Declaration {
 		return name       
     }
     
-	getTypeArgs: func -> List<VariableDecl> { typeArgs }
+	getTypeArgs: func -> List<VariableDecl> { isMeta ? getNonMeta() typeArgs : typeArgs }
 
     getName: func -> String { name }
     
@@ -249,7 +249,7 @@ TypeDecl: abstract class extends Declaration {
             }
         }
         
-        for(typeArg in typeArgs) {
+        for(typeArg in getTypeArgs()) {
             response := typeArg resolve(trail, res)
             if(!response ok()) {
                 if(res params verbose) printf("Response of typeArg %s = %s\n", typeArg toString(), response toString())
@@ -298,8 +298,8 @@ TypeDecl: abstract class extends Declaration {
             if(type suggest(getNonMeta() ? getNonMeta() : this)) return
         }
         
-        //printf("** Looking for type %s in func %s with %d type args\n", type name, toString(), typeArgs size())
-        for(typeArg: VariableDecl in typeArgs) {
+        //printf("** Looking for type %s in func %s with %d type args\n", type name, toString(), getTypeArgs() size())
+        for(typeArg: VariableDecl in getTypeArgs()) {
             //printf("*** For typeArg %s\n", typeArg name)
             if(typeArg name == type name) {
                 //printf("***** Found match for %s in function decl %s\n", type name, toString())
@@ -347,7 +347,7 @@ TypeDecl: abstract class extends Declaration {
         }
         
         // look in type arguments
-        for(typeArg in typeArgs) {
+        for(typeArg in getTypeArgs()) {
             if(access name == typeArg name) {
                 if(access suggest(typeArg) && access expr == null) {
                     varAcc := VariableAccess new("this", nullToken)

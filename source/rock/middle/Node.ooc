@@ -47,7 +47,7 @@ Node: abstract class {
      * @return true if the node supports type arguments and it's been
      * successfully added, false if not
      */
-    addTypeArgument: func (typeArg: VariableDecl) -> Bool { false }
+    addTypeArg: func (typeArg: VariableDecl) -> Bool { false }
     
     generateTempName: func (origin: String) -> String {
         nameSeed += 1

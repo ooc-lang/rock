@@ -240,7 +240,7 @@ FunctionCall: class extends Expression {
             }
             
             if(ref returnType isGeneric()) {
-                /*if(res params verbose)*/ printf("\t$$$$ resolving returnType %s\n", ref returnType toString())
+                /*if(res params verbose)*/ printf("\t$$$$ resolving returnType %s for %s\n", ref returnType toString(), toString())
                 returnType = resolveTypeArg(ref returnType getName(), trail, res)
                 if(returnType == null && res fatal) {
                     token throwError("Not enough info to resolve return type %s of function call\n" format(ref returnType toString()))
@@ -248,6 +248,8 @@ FunctionCall: class extends Expression {
             } else {
                 returnType = ref returnType
             }
+            realTypize(returnType, trail, res)
+            
             if(returnType) {
                 res wholeAgain(this, "because of return type %s" format(returnType toString()))
                 return Responses OK
@@ -261,6 +263,30 @@ FunctionCall: class extends Expression {
         
         //"At the end of resolveReturnType(), the return type of %s is %s" format(toString(), getType() ? getType() toString() : "null") println()
         return Responses OK
+        
+    }
+    
+    realTypize: func (type: Type, trail: Trail, res: Resolver) -> Bool {
+        
+        if(type instanceOf(BaseType) && type as BaseType typeArgs != null) {
+            baseType := type as BaseType
+            j := 0
+            for(typeArg in baseType typeArgs) {
+                if(typeArg getRef() == null) return false // must resolve it before
+                printf("[realTypize] Ref of typeArg %s is a %s (and expr is a %s)\n", typeArg toString(), typeArg getRef() class name, expr toString())
+                
+                // if it's generic-unspecific, it needs to be resolved
+                if(typeArg getRef() instanceOf(VariableDecl)) {
+                    typeArgName := typeArg getRef() as VariableDecl getName()
+                    result := resolveTypeArg(typeArgName, trail, res)
+                    printf("[realTypize] result = %s\n", result ? result toString() : "(nil)")
+                    if(result) baseType typeArgs set(j, result)
+                }
+                j += 1
+            }
+        }
+        
+        return true
         
     }
     
@@ -301,9 +327,9 @@ FunctionCall: class extends Expression {
         
         if(typeArgs size() != ref typeArgs size()) {
             if(res fatal) {
-                token throwError("Couldn't figure out generic type %s in call %s" format(ref typeArgs get(typeArgs size()) toString(), toString()))
+                token throwError("Missing info for type argument %s. Have you forgotten to qualify, e.g. List<Int>?" format(ref typeArgs get(typeArgs size()) getName()))
             }
-            res wholeAgain("Looping %s because of typeArgs\n", toString())
+            res wholeAgain(this, "Looping %s because of typeArgs\n" format(toString()))
         }
         
         return Responses OK
@@ -359,36 +385,60 @@ FunctionCall: class extends Expression {
         }
         
         /* expr: Type<T>; expr myFunction() */
-        j = 0
         if(expr != null &&
            expr getType() != null &&
            expr getType() instanceOf(BaseType) &&
            expr getType() as BaseType typeArgs != null &&
            expr getType() getRef() != null) {
             printf("Looking for typeArg %s in expr %s\n", typeArgName, expr toString())
-            exprType := expr getType() as BaseType
-            ref := exprType getRef() as TypeDecl
-            for(arg in ref typeArgs) {
-                if(arg getName() == typeArgName) {
-                    candidate := exprType typeArgs get(j)
-                    ref := candidate getRef()
-                    result : Type = null
-                    if(ref instanceOf(TypeDecl)) {
-                        result = candidate getRef() as TypeDecl getInstanceType()
-                    } else {
-                        //result = ref getType()
-                        result = BaseType new(ref as VariableDecl getName(), token)
-                    }
-                    printf("Found match for arg %s! it's %s. Hence, result = %s (cause expr type = %s)\n", typeArgName, candidate toString(), result toString(), exprType toString())
-                    return result
-                }
+            result := searchInTypeDecl(typeArgName, expr getType() as BaseType)
+            if(result) {
+                printf("Found match for arg %s! Hence, result = %s (cause expr type = %s)\n", typeArgName, result toString(), expr getType() toString())
+                return result
             }
-            j += 1
+        }
+        
+        /* Type<T> myFunction() */
+        if(expr != null &&
+           expr instanceOf(BaseType) &&
+           expr as BaseType typeArgs != null &&
+           expr as BaseType getRef() != null) {
+            printf("Looking for typeArg %s in expr-type %s\n", typeArgName, expr toString())
+            result := searchInTypeDecl(typeArgName, expr as BaseType)
+            if(result) {
+                printf("Found match for arg %s! Hence, result = %s (cause expr = %s)\n", typeArgName, result toString(), expr toString())
+                return result
+            }
         }
         
         printf("Couldn't resolve typeArg %s\n", typeArgName)
         return null
         
+    }
+    
+    searchInTypeDecl: func (typeArgName: String, type: BaseType) -> Expression {
+        typeRef := type getRef() as TypeDecl
+        if(typeRef typeArgs == null) return null
+        
+        j := 0
+        for(arg in typeRef typeArgs) {
+            if(arg getName() == typeArgName) {
+                candidate := type typeArgs get(j)
+                ref := candidate getRef()
+                result : Type = null
+                printf("Found candidate %s for typeArg %s\n", candidate toString(), typeArgName)
+                if(ref instanceOf(TypeDecl)) {
+                    // resolves to a known type
+                    result = candidate getRef() as TypeDecl getInstanceType()
+                } else {
+                    // resolves to an access to another generic type
+                    result = BaseType new(ref as VariableDecl getName(), token)
+                }
+                return result
+            }
+            j += 1
+        }
+        return null
     }
     
     /**

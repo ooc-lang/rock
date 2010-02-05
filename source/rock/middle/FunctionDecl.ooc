@@ -31,7 +31,7 @@ FunctionDecl: class extends Declaration {
     
     accept: func (visitor: Visitor) { visitor visitFunctionDecl(this) }
 
-    addTypeArgument: func (typeArg: VariableDecl) -> Bool { typeArgs add(typeArg); true }
+    addTypeArg: func (typeArg: VariableDecl) -> Bool { typeArgs add(typeArg); true }
 
     getReturnType: func -> Type { returnType }
 	setReturnType: func(type: Type) { this returnType = type }

@@ -14,8 +14,7 @@ Getter: class <T> {
 	field : T
 	data : T*
 	
-	init: func (.T) {
-        this T = T
+	init: func {
 		data = gc_malloc(T size)
 	}
 
@@ -53,12 +52,10 @@ Getter: class <T> {
 main: func {
 
 	prov := Provider<Int> new()
-    //prov : Provider<Int> = Provider new()
-    prov TOOPAK = Int
 	printf("The answer is %d\n", prov provide())
-	//gett := Getter<Int> new()
-    gett : Getter<Int> = Getter new(Int)
-    //gett T = Int
+    
+	gett := Getter<Int> new()
+    
 	printf("The answer is also %d\n", gett get(prov))
 	//printf("The answer is %d, too.\n", gett get2(prov))
 	//printf("The answer is still %d\n", gett get3(prov))
