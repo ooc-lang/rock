@@ -4,43 +4,44 @@ import structs/[ArrayList, List, HashMap]
 /**
  * Somehow like the 'classpath' in Java. E.g. holds where to find ooc
  * modules, and well, find them when asked kindly to.
- * 
+ *
  * @author Amos Wenger
  */
 PathList: class {
     paths: HashMap<File>
-    
+
     init: func {
         paths = HashMap<File> new()
     }
-    
+
     /**
      * Add an element to the classpath
      * @param path
      */
     add: func(path: String) {
         file := File new(path)
-        
+
         if (!file exists()) {
             Exception new(This, "Classpath element cannot be found: " + path) throw()
         }
         else if (!file isDir()) {
             Exception new(This, "Classpath element is not a directory: " + path) throw()
         }
-    
+
         absolutePath := file getAbsolutePath()
+        printf("Adding path %s, absolutePath = %s\n", path, absolutePath)
         if (!paths contains(absolutePath)) {
             paths put(absolutePath, file)
         }
     }
-    
+
     /**
      * Remove an element from the sourcepath
      * @param path
      */
     remove: func(path: String) {
         file := File new(path)
-        
+
         if (!file exists()) {
             Exception new(This, "Classpath element cannot be found: " + file getPath()) throw()
         }
@@ -50,17 +51,17 @@ PathList: class {
         else if (!paths contains(file getAbsolutePath())) {
             Exception new(This, "Attempting to remove a nonexistant path: " + file getPath()) throw()
         }
-        
+
         paths remove(file getAbsolutePath())
     }
-    
+
     /**
      * Remove all elements from the sourcepath
      */
     clear: func {
         paths clear()
     }
-    
+
     /**
      * Return a list of all files found in a directory in the whole sourcepath
      * @param path
@@ -68,31 +69,33 @@ PathList: class {
      */
     getRelativePaths: func(path: String) -> List<String> {
         files := ArrayList<String> new()
-        
+
+        printf("Got %d elements\n", paths size)
         for (element: File in paths) {
-            //printf("Looking for path %s in element %s\n", path, element path)
-            candidate := File new((element path + File separator) + path) 
-            //printf("Candidate = %s\n", candidate path)
+            printf("Looking for path %s in element %s\n", path, element path)
+            candidate := File new((element path + File separator) + path)
+            printf("Candidate = %s\n", candidate path)
             if (candidate exists() && candidate isDir()) {
                 addChildren(path, files, candidate);
             }
         }
-        
+
         return files
     }
-    
+
     addChildren: func(basePath: String, list: List<String>, parent: File) {
-        
+
+        printf("should add children in parent %s\n", parent path)
         for (child: File in parent getChildren()) {
             if (child isFile()) {
-                list add(basePath + File separator + child name()) 
+                list add(basePath + File separator + child name())
             }
             else if (child isDir()) {
                 addChildren(basePath + File separator + child name(), list, child)
             }
-        }       
+        }
     }
-    
+
     /**
      * Find the file in the source path and return a File object associated to it
      */
@@ -100,8 +103,8 @@ PathList: class {
         element := getElement(path)
         return element == null ? null : File new(element getPath() + File separator + path)
     }
-    
-    
+
+
     /**
      * Find the file in the source path and return the element of the path list
      * it has been found in.
@@ -113,10 +116,10 @@ PathList: class {
                 return element
             }
         }
-        
+
         return null
     }
-    
+
     /**
      * @return true if the source path is empty
      */
@@ -125,4 +128,4 @@ PathList: class {
     }
 }
 
-    
+
