@@ -49,6 +49,8 @@ Progress report
   - 2010-01 : Copying chunks of the sdk from j/ooc to rock/custom-sdk, generics for functions are mostly implemented,
     classes still to come. Most control flow structures are implemented
     (if/else/while/foreach/match/case/break/continue), decl-assign, 'This', member calls, covers, etc.
+  - 2010-02 : twitter announcement: for the first time, rock, a 10k SLOC pure ooc codebase,
+    compiles under Win32, and produces executables with gcc. party?
 
 You can help! We can probably re-use like 50% of the source code from the
 j/ooc codebase, so please come on #ooc-lang to know which classes need porting.

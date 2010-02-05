@@ -360,7 +360,11 @@ FunctionCall: class extends Expression {
         
         /* expr: Type<T>; expr myFunction() */
         j = 0
-        if(expr != null && expr getType() != null && expr getType() instanceOf(BaseType) && expr getType() getRef() != null) {
+        if(expr != null &&
+           expr getType() != null &&
+           expr getType() instanceOf(BaseType) &&
+           expr getType() as BaseType typeArgs != null &&
+           expr getType() getRef() != null) {
             printf("Looking for typeArg %s in expr %s\n", typeArgName, expr toString())
             exprType := expr getType() as BaseType
             ref := exprType getRef() as TypeDecl

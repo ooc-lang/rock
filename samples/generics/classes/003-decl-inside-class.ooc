@@ -52,8 +52,8 @@ Getter: class <T> {
 
 main: func {
 
-	//prov := Provider<Int> new()
-    prov : Provider<Int> = Provider new()
+	prov := Provider<Int> new()
+    //prov : Provider<Int> = Provider new()
     prov TOOPAK = Int
 	printf("The answer is %d\n", prov provide())
 	//gett := Getter<Int> new()

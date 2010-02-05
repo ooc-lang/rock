@@ -98,7 +98,7 @@ ClassDecl: class extends TypeDecl {
         constructor setStatic(true)
 		constructor setSuffix(fDecl getSuffix())
 		retType := newType clone()
-		retType getTypeArgs() clear()
+		if(retType getTypeArgs()) retType getTypeArgs() clear()
 		
 		constructor getArguments() addAll(fDecl getArguments())
 		constructor getTypeArgs() addAll(getTypeArgs())

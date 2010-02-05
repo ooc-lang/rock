@@ -1,4 +1,4 @@
-import structs/[ArrayList, HashMap]
+import structs/[ArrayList, List, HashMap]
 import ../frontend/[Token, BuildParams]
 import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
     FunctionDecl, FunctionCall, Module, VariableAccess, Node
@@ -172,7 +172,7 @@ TypeDecl: abstract class extends Declaration {
 		return name       
     }
     
-	getTypeArgs: func -> ArrayList<VariableDecl> { typeArgs }
+	getTypeArgs: func -> List<VariableDecl> { typeArgs }
 
     getName: func -> String { name }
     

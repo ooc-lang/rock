@@ -117,7 +117,7 @@ BaseType: class extends Type {
     ref: Declaration = null
     name: String
     
-    typeArgs := ArrayList<VariableAccess> new()
+    typeArgs : List<VariableAccess>
     
     init: func ~baseType (=name, .token) { super(token) }
     
@@ -150,7 +150,10 @@ BaseType: class extends Type {
         return (other as BaseType name equals(name))
     }
     
-    addTypeArgument: func (typeArg: VariableDecl) -> Bool { typeArgs add(typeArg); true }
+    addTypeArgument: func (typeArg: VariableDecl) -> Bool {
+        if(!typeArgs) typeArgs = ArrayList<VariableAccess> new()
+        typeArgs add(typeArg); true
+    }
     
     getName: func -> String { name }
     
@@ -184,7 +187,7 @@ BaseType: class extends Type {
             return Responses LOOP
         }
         
-        for(typeArg in typeArgs) {
+        if(typeArgs) for(typeArg in typeArgs) {
             response := typeArg resolve(trail, res)
             if(!response ok()) return response
         }
@@ -229,12 +232,13 @@ BaseType: class extends Type {
     }
     
     toString: func -> String {
-        if(typeArgs isEmpty()) return getName()
+        if(typeArgs == null) return getName()
+        
         sb := StringBuffer new()
         sb append(getName())
         sb append("<")
         isFirst := true
-        for(typeArg in typeArgs) {
+        if(typeArgs) for(typeArg in typeArgs) {
             if(isFirst) isFirst = false
             else        sb append(", ")
             sb append(typeArg toString())

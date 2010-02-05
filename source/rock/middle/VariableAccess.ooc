@@ -116,11 +116,10 @@ VariableAccess: class extends Expression {
             res wholeAgain(this, "Couldn't resolve %s" format(toString()))
         }
         
-        //return ref ? Responses OK : Responses LOOP
         return Responses OK
         
     }
-    
+
     getRef: func -> Declaration { ref }
     
     getType: func -> Type {
