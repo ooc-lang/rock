@@ -19,8 +19,7 @@ MyArray: class <T> {
 
 main: func {
     
-    //arr := MyArray<Int> new()
-    arr := MyArray new()
+    arr := MyArray<Int> new()
     arr blah()
     
 }
