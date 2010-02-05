@@ -362,7 +362,6 @@ FunctionCall: class extends Expression {
                     target : Expression = implArg
                     if(!implArg isReferencable()) {
                         varDecl := VariableDecl new(typeResult, generateTempName("genArg"), args get(j), nullToken)
-                        
                         if(!trail addBeforeInScope(this, varDecl)) {
                             printf("Couldn't add %s before %s, parent is a %s\n", varDecl toString(), toString(), trail peek() toString())
                         }
@@ -388,31 +387,34 @@ FunctionCall: class extends Expression {
             }
             j += 1
         }
-        
-        /* expr: Type<T>; expr myFunction() */
-        if(expr != null &&
-           expr getType() != null &&
-           expr getType() instanceOf(BaseType) &&
-           expr getType() as BaseType typeArgs != null &&
-           expr getType() getRef() != null) {
-            printf("Looking for typeArg %s in expr %s\n", typeArgName, expr toString())
-            result := searchInTypeDecl(typeArgName, expr getType() as BaseType)
+
+        /* myFunction: func <T> (myArg: OtherType<T>) */
+        for(arg in args) {
+            printf("Looking for typeArg %s in arg's type %s\n", typeArgName, arg getType() toString())
+            result := searchInTypeDecl(typeArgName, arg getType())
             if(result) {
-                printf("Found match for arg %s! Hence, result = %s (cause expr type = %s)\n", typeArgName, result toString(), expr getType() toString())
+                printf("Found match for arg %s! Hence, result = %s (cause arg = %s)\n", typeArgName, result toString(), arg toString())
                 return result
             }
         }
-        
-        /* Type<T> myFunction() */
-        if(expr != null &&
-           expr instanceOf(BaseType) &&
-           expr as BaseType typeArgs != null &&
-           expr as BaseType getRef() != null) {
-            printf("Looking for typeArg %s in expr-type %s\n", typeArgName, expr toString())
-            result := searchInTypeDecl(typeArgName, expr as BaseType)
-            if(result) {
-                printf("Found match for arg %s! Hence, result = %s (cause expr = %s)\n", typeArgName, result toString(), expr toString())
-                return result
+
+        if(expr != null) {
+            if(expr instanceOf(Type)) {
+                /* Type<T> myFunction() */
+                printf("Looking for typeArg %s in expr-type %s\n", typeArgName, expr toString())
+                result := searchInTypeDecl(typeArgName, expr)
+                if(result) {
+                    printf("Found match for arg %s! Hence, result = %s (cause expr = %s)\n", typeArgName, result toString(), expr toString())
+                    return result
+                }
+            } else {
+                /* expr: Type<T>; expr myFunction() */
+                printf("Looking for typeArg %s in expr %s\n", typeArgName, expr toString())
+                result := searchInTypeDecl(typeArgName, expr getType())
+                if(result) {
+                    printf("Found match for arg %s! Hence, result = %s (cause expr type = %s)\n", typeArgName, result toString(), expr getType() toString())
+                    return result
+                }
             }
         }
         
@@ -421,7 +423,12 @@ FunctionCall: class extends Expression {
         
     }
     
-    searchInTypeDecl: func (typeArgName: String, type: BaseType) -> Expression {
+    searchInTypeDecl: func (typeArgName: String, anyType: Type) -> Expression {
+        if(anyType getRef() == null) return null
+        
+        if(!anyType instanceOf(BaseType)) return null
+        type := anyType as BaseType
+        
         typeRef := type getRef() as TypeDecl
         if(typeRef typeArgs == null) return null
         
