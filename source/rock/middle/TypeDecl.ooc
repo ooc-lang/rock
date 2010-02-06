@@ -200,12 +200,15 @@ TypeDecl: abstract class extends Declaration {
     
     getFunction: func ~real (name, suffix: String, call: FunctionCall,
         recursive: Bool, bestScore: Int, bestMatch: FunctionDecl) -> FunctionDecl {
-            
+    
         for(fDecl: FunctionDecl in functions) {
+            //printf("[%s] considering %s\n", hashName(name, suffix), fDecl toString())
+            
             if(fDecl name equals(name) && (suffix == null || fDecl suffix equals(suffix))) {
                 if(!call) return fDecl
                 score := call getScore(fDecl)
-                if(score == -1) return null
+                if(score == -1) return null // special score that means "something isn't resolved"
+
                 if(score > bestScore) {
                     bestScore = score
                     bestMatch = fDecl

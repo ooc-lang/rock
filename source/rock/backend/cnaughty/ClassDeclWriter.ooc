@@ -241,7 +241,7 @@ ClassDeclWriter: abstract class extends CGenerator {
             
             realDecl : FunctionDecl = null
             if(realClass != parentClass) {
-                realDecl = realClass getFunction(parentDecl name, parentDecl suffix, null, true, 0, null)
+                realDecl = realClass getFunction(parentDecl name, parentDecl suffix, null, true)
                 if(realDecl != parentDecl) {
                     if(done contains(realDecl)) {
                         continue

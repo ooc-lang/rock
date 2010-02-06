@@ -66,6 +66,7 @@ ClassDecl: class extends TypeDecl {
     replace: func (oldie, kiddo: Node) -> Bool { false }
 
 	addDefaultInit: func {
+        
         if(!isMeta) {
             getMeta() addDefaultInit()
             return
@@ -78,8 +79,9 @@ ClassDecl: class extends TypeDecl {
              * It gets removed as soon as you add another init() function
              * though, see addInit()
              */
-            defaultInit = FunctionDecl new("init", token)
-			addFunction(defaultInit)
+            init := FunctionDecl new("init", token)
+			addFunction(init)
+            defaultInit = init // if defaultInit is set earlier, it'll try to remove it..
         }
 	}
 
@@ -114,8 +116,8 @@ ClassDecl: class extends TypeDecl {
              * As soon as we've got another init defined, remove the
              * default, no-args, empty one.
              */
-            functions remove(hashName("init", ""))
-            functions remove(hashName("new", ""))
+            functions remove(hashName("init", null))
+            functions remove(hashName("new", null))
             defaultInit = null
         }
 		
