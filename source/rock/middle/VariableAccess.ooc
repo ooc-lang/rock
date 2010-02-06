@@ -1,6 +1,6 @@
 import ../frontend/[Token, BuildParams]
 import Visitor, Expression, VariableDecl, FunctionDecl, TypeDecl,
-	   Declaration, Type, Node
+	   Declaration, Type, Node, ClassDecl
 import tinker/[Resolver, Response, Trail]
 
 VariableAccess: class extends Expression {
@@ -73,6 +73,18 @@ VariableAccess: class extends Expression {
             trail pop(this)
             if(!response ok()) return response
             //printf("Resolved expr, type = %s\n", expr getType() ? expr getType() toString() : "(nil)")
+        }
+        
+        if(expr && name == "class") {
+            if(expr getType() == null || expr getType() getRef() == null) {
+                res wholeAgain(this, "expr type or expr type ref is null")
+                return Responses OK
+            }
+            if(!expr getType() getRef() instanceOf(ClassDecl)) {
+                name = expr getType() getName()
+                ref = expr getType() getRef()
+                expr = null
+            }
         }
         
         /*

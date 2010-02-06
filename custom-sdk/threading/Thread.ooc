@@ -1,6 +1,6 @@
-import Runnable, native/ThreadUnix
+import Runnable, native/[ThreadUnix, ThreadWin32]
 
-Thread: class {
+Thread: abstract class {
 
     runnable: Runnable
 

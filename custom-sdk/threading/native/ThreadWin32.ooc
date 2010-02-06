@@ -1,28 +1,37 @@
 import ../[Thread, Runnable]
-include pthread, unistd
+//import native/win32/[types, errors]
 
-//version(linux) {
+//version(windows) {
 
-/* covers & extern functions */
-PThread: cover from pthread_t
-pthread_create: extern func (...) -> Int
-pthread_join:   extern func (...) -> Int
+include windows
 
-ThreadUnix: class extends Thread {
+Handle: cover from HANDLE
+INVALID_HANDLE_VALUE: extern Handle
+CreateThread: extern func (...) -> Handle
+WaitForSingleObject: extern func (...) -> Long // laziness
+INFINITE: extern Long
+WAIT_OBJECT_0: extern Long
 
-    pthread: PThread
+ThreadWin32: class extends Thread {
 
-    init: func ~unix (=runnable) {}
+    handle: Handle
+    threadID: Long
+
+    init: func ~win (=runnable) {}
 
     start: func -> Int {
-        // Feinte du loup des bois. We pass a pointer to the runnable
-        // to pthread_create so that it corresponds to the 'this' argument
-        // of our member method. Easy enough, huh ?
-        return pthread_create(pthread&, null, Runnable run as Pointer, runnable)
+        handle = CreateThread(
+            null,                    // default security attributes
+            0,                       // use default stack size
+            Runnable run as Pointer, // thread function name
+            runnable,                // argument to thread function
+            0,                       // use default creation flags
+            threadID&)               // returns the thread identifier
+        return (handle == INVALID_HANDLE_VALUE ? -1 : 0)
     }
 
     wait: func -> Int {
-        return pthread_join(pthread, null)
+        WaitForSingleObject(handle, INFINITE) == WAIT_OBJECT_0 ? 0 : -1
     }
 
 }
