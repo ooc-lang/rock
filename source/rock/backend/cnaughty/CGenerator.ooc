@@ -61,12 +61,33 @@ CGenerator: class extends Skeleton {
 
     /** Write a binary operation */
     visitBinaryOp: func (op: BinaryOp) {
-        current app(op left). app(" "). app(op type toString()). app(" ")
+        
+        // when assigning to a member function (e.g. for hotswapping),
+        // you want to change the class field, not just the function name
+        isFunc := op isAssign() &&
+                  op left instanceOf(VariableAccess) &&
+                  op left as VariableAccess ref instanceOf(FunctionDecl) &&
+                  op left as VariableAccess ref as FunctionDecl getOwner() != null
+                  
+        if(isFunc) {
+            fDecl := op left as VariableAccess ref as FunctionDecl
+            current app(fDecl owner as TypeDecl name). app("_class()->"). app(fDecl name)
+        } else {
+            current app(op left)
+        }
+        
+        current app(" "). app(op type toString()). app(" ")
+        
+        if(isFunc) {
+            current app("(void*) ")
+        }
+        
         if(op right getType() inheritsFrom(op left getType())) {
             current app("(("). app(op left getType()). app(") ") .app(op right). app(")")
         } else {
             current app(op right)
         }
+        
     }
 
     /** Write a unary operation */
