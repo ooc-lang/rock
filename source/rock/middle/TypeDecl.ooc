@@ -23,7 +23,7 @@ TypeDecl: abstract class extends Declaration {
     module: Module = null
     
     isMeta := false
-    meta : TypeDecl = null
+    meta : ClassDecl = null
     nonMeta : TypeDecl = null
     
     init: func ~typeDeclNoSuper (=name, .token) {
@@ -105,14 +105,14 @@ TypeDecl: abstract class extends Declaration {
     addFunction: func (fDecl: FunctionDecl) {
         if(isMeta) {
             functions put(hashName(fDecl), fDecl)
+            fDecl owner = getNonMeta()
         } else {
             meta addFunction(fDecl)
         }
-        fDecl owner = this
     }
 
 	removeFunction: func(fDecl: FunctionDecl) {
-		functions remove(fDecl getName())
+		functions remove(hashName(fDecl))
 	}
     
     getFunction: func (fName, fSuffix: String) -> FunctionDecl {
@@ -397,7 +397,7 @@ TypeDecl: abstract class extends Declaration {
         class name + ' ' + name
     }
     
-    getMeta: func -> This { meta }
+    getMeta: func -> ClassDecl { meta }
     getNonMeta: func -> This { nonMeta }
 
 }

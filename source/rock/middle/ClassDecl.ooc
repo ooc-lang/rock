@@ -14,7 +14,7 @@ ClassDecl: class extends TypeDecl {
     isAbstract := false
     isFinal := false
 
-    defaultInit: FunctionDecl = null
+    defaultInit := null as FunctionDecl
     
     init: func ~classDeclNoSuper(.name, .token) {
         super(name, token)
@@ -66,21 +66,39 @@ ClassDecl: class extends TypeDecl {
     replace: func (oldie, kiddo: Node) -> Bool { false }
 
 	addDefaultInit: func {
+        if(!isMeta) {
+            getMeta() addDefaultInit()
+            return
+        }
+        
 		if(!isAbstract && !isObjectClass() && !isClassClass() && defaultInit == null) {
-            init := FunctionDecl new("init", token);
-			addFunction(init);
-			defaultInit = init;
-		}
+            /*
+             * Concrete classes that aren't `Object` nor `Class` get a
+             * default, no-args constructor that does nothing.
+             * It gets removed as soon as you add another init() function
+             * though, see addInit()
+             */
+            defaultInit = FunctionDecl new("init", token)
+			addFunction(defaultInit)
+        }
 	}
 
     addFunction: func (fDecl: FunctionDecl) {
         
         if(isMeta) {
             if (fDecl getName() == "init" && !fDecl isExternWithName()) {
+                /*
+                 * init functions generate static new functions so that
+                 * objects can be created like:
+                 * dog := Dog new()
+                 */
                 addInit(fDecl)
             } else if (fDecl getName() == "new") {
+                /*
+                 * ..but you can also define the new function yourself,
+                 * e.g. if you allocate in a special way
+                 */
                 already := getFunction(fDecl getName(), fDecl getSuffix())
-                // FIXME, just removing based off fDecl name for now (should take suffix into account)
                 if (already != null) removeFunction(fDecl) 
             }
         }
@@ -90,7 +108,16 @@ ClassDecl: class extends TypeDecl {
     }
 
 	addInit: func(fDecl: FunctionDecl) {
-		/* if defaultInit != null */
+        
+		if(defaultInit != null) {
+            /*
+             * As soon as we've got another init defined, remove the
+             * default, no-args, empty one.
+             */
+            functions remove(hashName("init", ""))
+            functions remove(hashName("new", ""))
+            defaultInit = null
+        }
 		
         newType := getNonMeta() getInstanceType() as BaseType
         
@@ -127,10 +154,9 @@ ClassDecl: class extends TypeDecl {
 		thisAccess := VariableAccess new(vdfe, fDecl token)
 		thisAccess setRef(vdfe)
 		
-        // TODO: add suffix handling
-		initCall := FunctionCall new(fDecl getName(), fDecl token)
+        initCall := FunctionCall new(fDecl getName(), fDecl token)
         initCall setSuffix(fDecl getSuffix())
-        initCall setExpr(VariableAccess new("this", fDecl token))
+        initCall setExpr(VariableAccess new(vdfe, fDecl token))
 		for (arg in constructor getArguments()) {
 			initCall getArguments() add(VariableAccess new(arg, fDecl token))
 		}

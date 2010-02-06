@@ -83,7 +83,7 @@ FunctionDecl: class extends Declaration {
     }
     
     toString: func -> String {
-        name + ": func " + getArgsRepr()
+        (suffix ? name + "~" + suffix : name) + ": func " + getArgsRepr()
     }
     
     isResolved: func -> Bool { false }
