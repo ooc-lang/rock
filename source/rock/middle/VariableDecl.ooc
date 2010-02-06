@@ -39,6 +39,8 @@ VariableDecl: class extends Declaration {
         )
     }
 
+    setOwner: func (=owner) {}
+
     setExpr: func (=expr) {}
     getExpr: func -> Expression { expr }
     setStatic: func (=isStatic) {}

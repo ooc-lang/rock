@@ -122,7 +122,7 @@ FunctionCall: class extends Expression {
 				        depth -= 1
 				    }
 			    } else if(expr getType() != null && expr getType() getRef() != null) {
-		            tDecl := expr getType() getRef() as TypeDecl
+                    tDecl := expr getType() getRef() as TypeDecl
 		            meta := tDecl getMeta()
 		            if(meta) {
 		                meta resolveCall(this)

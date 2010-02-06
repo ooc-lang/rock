@@ -24,6 +24,7 @@ FunctionDecl: class extends Declaration {
     body := Scope new()
     
     owner : TypeDecl = null
+    staticVariant : This = null
 
     init: func ~funcDecl (=name, .token) {
         super(token)
@@ -44,6 +45,19 @@ FunctionDecl: class extends Declaration {
     
     isStatic: func -> Bool { isStatic }
     setStatic: func (=isStatic) {}
+    
+    setOwner: func (=owner) {
+        if(isStatic) return
+        staticVariant = new(name, token)
+        staticVariant suffix = suffix
+        staticVariant args = args clone()
+        staticVariant returnType = returnType
+        staticVariant args add(0, owner getThisDecl())
+        staticVariant isStatic = true
+        staticVariant owner = owner
+    }
+    
+    getStaticVariant: func -> This { staticVariant }
     
     getReturnArg: func -> Argument {
         if(returnArg == null) {
@@ -83,7 +97,7 @@ FunctionDecl: class extends Declaration {
     }
     
     toString: func -> String {
-        (suffix ? name + "~" + suffix : name) + ": func " + getArgsRepr()
+        (suffix ? (name + "~" + suffix) : name) + (isStatic ? ": static func " : ": func ") + getArgsRepr()
     }
     
     isResolved: func -> Bool { false }

@@ -67,7 +67,7 @@ TypeDecl: abstract class extends Declaration {
     }
     
     addTypeArg: func (typeArg: VariableDecl) -> Bool {
-        typeArg owner = this
+        typeArg setOwner(this)
         getTypeArgs() add(typeArg)
         variables put(typeArg getName(), typeArg)
         true
@@ -90,7 +90,7 @@ TypeDecl: abstract class extends Declaration {
             meta addVariable(vDecl)
         } else {
             variables put(vDecl name, vDecl)
-            vDecl owner = this
+            vDecl setOwner(this)
         }
     }
 
@@ -105,7 +105,7 @@ TypeDecl: abstract class extends Declaration {
     addFunction: func (fDecl: FunctionDecl) {
         if(isMeta) {
             functions put(hashName(fDecl), fDecl)
-            fDecl owner = getNonMeta()
+            fDecl setOwner(getNonMeta())
         } else {
             meta addFunction(fDecl)
         }
@@ -200,10 +200,8 @@ TypeDecl: abstract class extends Declaration {
     
     getFunction: func ~real (name, suffix: String, call: FunctionCall,
         recursive: Bool, bestScore: Int, bestMatch: FunctionDecl) -> FunctionDecl {
-    
+
         for(fDecl: FunctionDecl in functions) {
-            //printf("[%s] considering %s\n", hashName(name, suffix), fDecl toString())
-            
             if(fDecl name equals(name) && (suffix == null || fDecl suffix equals(suffix))) {
                 if(!call) return fDecl
                 score := call getScore(fDecl)
@@ -212,6 +210,26 @@ TypeDecl: abstract class extends Declaration {
                 if(score > bestScore) {
                     bestScore = score
                     bestMatch = fDecl
+                }
+            }
+        }
+        
+        if(call && call expr && call expr getType() && call expr getType() getRef() &&
+           call expr getType() getRef() instanceOf(ClassDecl) &&
+           call expr getType() getRef() as ClassDecl isMeta) {
+            for(_fDecl: FunctionDecl in functions) {
+                if(_fDecl isStatic()) continue
+                fDecl := _fDecl getStaticVariant()
+                if(!fDecl) continue
+                if(fDecl name equals(name) && (suffix == null || fDecl suffix equals(suffix))) {
+                    if(!call) return fDecl
+                    score := call getScore(fDecl)
+                    if(score == -1) return null // special score that means "something isn't resolved"
+
+                    if(score > bestScore) {
+                        bestScore = score
+                        bestMatch = fDecl
+                    }
                 }
             }
         }
