@@ -5,10 +5,12 @@ import Return, ClassDecl, CoverDecl, FunctionDecl, VariableDecl, Type,
         BoolLiteral, StringLiteral, IntLiteral, FloatLiteral, NullLiteral,
         VariableAccess, FunctionCall, BinaryOp, Parenthesis, Return,
         Cast, Comparison, Ternary, Argument, AddressOf, Dereference,
-        CommaSequence, UnaryOp, ArrayAccess, Match, FlowControl
+        CommaSequence, UnaryOp, ArrayAccess, Match, FlowControl,
+        InterfaceDecl
 
 Visitor: abstract class {
     
+    visitInterfaceDecl:     func (node: InterfaceDecl) {}
     visitClassDecl:         func (node: ClassDecl) {}
     visitCoverDecl:         func (node: CoverDecl) {}
     visitFunctionDecl:      func (node: FunctionDecl) {}

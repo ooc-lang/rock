@@ -10,7 +10,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Comparison, IntLiteral, FloatLiteral, Ternary, BinaryOp, BoolLiteral,
     NullLiteral, Argument, Parenthesis, AddressOf, Dereference, Foreach,
     OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess, Match, FlowControl,
-    While, CharLiteral]
+    While, CharLiteral, InterfaceDecl]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -155,6 +155,10 @@ AstBuilder: class {
     onClassExtends: unmangled(nq_onClassExtends) func (superType: Type) {
         peek(ClassDecl) setSuperType(superType)
     }
+    
+    onClassImplements: unmangled(nq_onClassImplements) func (interfaceType: Type) {
+        printf("Class %s implements %s!\n", peek(ClassDecl) toString(), interfaceType toString())
+    }
 
     onClassAbstract: unmangled(nq_onClassAbstract) func {
         peek(ClassDecl) isAbstract = true
@@ -169,6 +173,25 @@ AstBuilder: class {
 
     onClassEnd: unmangled(nq_onClassEnd) func {
         pop(ClassDecl)
+    }
+    
+    /*
+     * Interfaces
+     */
+    
+    onInterfaceStart: unmangled(nq_onInterfaceStart) func (name: String) {
+        cDecl := InterfaceDecl new(name clone(), token())
+        cDecl module = module
+        module addType(cDecl)
+        stack push(cDecl)
+    }
+
+    onInterfaceExtends: unmangled(nq_onInterfaceExtends) func (superType: Type) {
+        peek(InterfaceDecl) setSuperType(superType)
+    }
+
+    onInterfaceEnd: unmangled(nq_onInterfaceEnd) func {
+        pop(InterfaceDecl)
     }
 
     /*

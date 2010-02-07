@@ -46,6 +46,9 @@ FunctionDecl: class extends Declaration {
     isStatic: func -> Bool { isStatic }
     setStatic: func (=isStatic) {}
     
+    isAbstract: func -> Bool { isAbstract }
+    setAbstract: func (=isAbstract) {}
+    
     setOwner: func (=owner) {
         if(isStatic) return
         staticVariant = new(name, token)

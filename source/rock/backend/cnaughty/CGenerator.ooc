@@ -13,7 +13,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Use, TypeDecl, ClassDecl, CoverDecl, Node, Parenthesis, Return,
     Cast, Comparison, Ternary, BoolLiteral, Argument, Statement,
     AddressOf, Dereference, CommaSequence, UnaryOp, ArrayAccess, Match,
-    FlowControl]
+    FlowControl, InterfaceDecl]
 
 import Skeleton, FunctionDeclWriter, ControlStatementWriter, ClassDeclWriter,
     ModuleWriter, CoverDeclWriter, FunctionCallWriter, CastWriter
@@ -201,6 +201,11 @@ CGenerator: class extends Skeleton {
 
     visitBoolLiteral: func (b: BoolLiteral) {
         current app(b value ? "true" : "false")
+    }
+
+    /** Write an interface declaration */
+    visitInterfaceDecl: func (iDecl: InterfaceDecl) {
+        ClassDeclWriter write(this, iDecl)
     }
 
     /** Write a class declaration */
