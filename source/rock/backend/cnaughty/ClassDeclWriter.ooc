@@ -250,7 +250,9 @@ ClassDeclWriter: abstract class extends CGenerator {
                 }
             }
             
-            if (parentDecl isStatic || parentDecl isFinal || (realDecl == null && parentDecl isAbstract)) {
+            if (parentDecl isFinal) continue; // skip it.
+            
+            if (parentDecl isStatic || (realDecl == null && parentDecl isAbstract)) {
                 writeDesignatedInit(this, parentDecl, realDecl, false)
             } else {
                 writeDesignatedInit(this, parentDecl, realDecl, true)

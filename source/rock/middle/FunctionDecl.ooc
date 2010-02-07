@@ -56,6 +56,7 @@ FunctionDecl: class extends Declaration {
         staticVariant isStatic = true
         staticVariant owner = owner
     }
+    getOwner: func -> TypeDecl { owner }
     
     getStaticVariant: func -> This { staticVariant }
     

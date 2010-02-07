@@ -1,6 +1,6 @@
 
 KillableInterface : abstract class {
-	dyingNoise : abstract func -> String {}
+	dyingNoise : abstract func -> String
 }
 
 KillableReference : cover {
@@ -16,6 +16,7 @@ kill : func(ref : KillableReference) {
 }
 
 Dog : class {
+    trap: func -> String {"HAHA it doesn't work"}
 	dyingNoise : func -> String {"yowl"}
 }
 
