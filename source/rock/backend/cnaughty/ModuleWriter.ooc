@@ -116,11 +116,11 @@ ModuleWriter: abstract class extends Skeleton {
 
         for(tDecl: TypeDecl in module types) {
             if(tDecl isMeta != meta) continue
-            match (tDecl class) {
-                case ClassDecl =>
+            match {
+                case tDecl instanceOf(ClassDecl) =>
                     className := tDecl as ClassDecl underName()
                     ClassDeclWriter writeStructTypedef(this, className)
-                case CoverDecl =>
+                case tDecl instanceOf(CoverDecl) =>
                     CoverDeclWriter writeTypedef(this, tDecl)
             }
         }

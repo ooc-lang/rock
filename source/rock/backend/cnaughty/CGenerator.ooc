@@ -16,7 +16,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     FlowControl, InterfaceDecl]
 
 import Skeleton, FunctionDeclWriter, ControlStatementWriter, ClassDeclWriter,
-    ModuleWriter, CoverDeclWriter, FunctionCallWriter, CastWriter
+    ModuleWriter, CoverDeclWriter, FunctionCallWriter, CastWriter, InterfaceDeclWriter
 
 
 CGenerator: class extends Skeleton {
@@ -123,7 +123,15 @@ CGenerator: class extends Skeleton {
     /** Write a variable declaration */
     visitVariableDecl: func (vDecl: VariableDecl) {
         if(vDecl isExtern()) return
-        current app(vDecl getType()). app(' '). app(vDecl name)
+        
+        // FIXME: won't work with pointers.
+        if(vDecl getType() getRef() instanceOf(InterfaceDecl)) {
+            current app("struct _") . app(vDecl getType() getRef() as InterfaceDecl getFatType() getInstanceType())
+        } else {
+            current app(vDecl getType())
+        }
+        
+        current app(' '). app(vDecl name)
         if(vDecl expr)
             current app(" = "). app(vDecl expr)
     }
@@ -205,7 +213,7 @@ CGenerator: class extends Skeleton {
 
     /** Write an interface declaration */
     visitInterfaceDecl: func (iDecl: InterfaceDecl) {
-        ClassDeclWriter write(this, iDecl)
+        InterfaceDeclWriter write(this, iDecl)
     }
 
     /** Write a class declaration */
