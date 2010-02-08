@@ -98,8 +98,7 @@ FunctionCallWriter: abstract class extends Skeleton {
                     iDecl := declArg getType() getRef() as InterfaceDecl
                     //current app("(struct "). app(iDecl getFatType() getInstanceType()). app(") {").
                     current app("(struct _"). app(iDecl getFatType() getInstanceType()). app(") {").
-                        app("NULL, (lang__Object*)")
-                        //app(arg getType() getName()). app("__impl__"). app(iDecl getName()). app("__class(), ")
+                        app(arg getType() getName()). app("__impl__"). app(iDecl getName()). app("_class(), (lang__Object*)")
                 }
                 
                 if(declArg getType() isGeneric()) {
