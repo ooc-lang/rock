@@ -1,2 +1,0 @@
-all:
-	gcc -std=c99 -Wall -I/blue/Dev/ooc/libs/headers/ -Icorrect_code correct_code/./001-pure-ooc-slembcke.c correct_code/custom-sdk/lang/stdio.c correct_code/custom-sdk/lang/types.c correct_code/custom-sdk/lang/math.c correct_code/custom-sdk/lang/memory.c correct_code/custom-sdk/lang/system.c correct_code/custom-sdk/lang/vararg.c -o 001-pure-ooc-slembcke -lpthread ../../../ooc/libs/linux32/libgc.a
