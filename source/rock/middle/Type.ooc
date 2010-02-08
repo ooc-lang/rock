@@ -3,7 +3,7 @@ import structs/[ArrayList, List]
 import ../frontend/[Token, BuildParams]
 import ../backend/cnaughty/AwesomeWriter
 import Node, Visitor, Declaration, TypeDecl, ClassDecl, VariableDecl,
-       Module, Import, CoverDecl, VariableAccess, Expression
+       Module, Import, CoverDecl, VariableAccess, Expression, InterfaceDecl
 import tinker/[Response, Resolver, Trail]
 
 voidType := BaseType new("void", nullToken)
@@ -133,9 +133,15 @@ BaseType: class extends Type {
             Exception new(This, "Trying to write unresolved type " + toString()) throw()
         }
         match {
+            case ref instanceOf(InterfaceDecl)=> writeInterfaceType(w, ref)
             case ref instanceOf(TypeDecl)     => writeRegularType(w, ref)
             case ref instanceOf(VariableDecl) => writeGenericType(w, ref)
         }
+    }
+    
+    writeInterfaceType: func (w: AwesomeWriter, id: InterfaceDecl) {
+        printf("Writing type %s which is an interface\n", toString())
+        w app(id getFatType() getInstanceType())
     }
     
     writeRegularType: func (w: AwesomeWriter, td: TypeDecl) {

@@ -1,6 +1,6 @@
 import structs/List
 import ../../middle/[Module, Include, Import, TypeDecl, FunctionDecl,
-       CoverDecl, ClassDecl, OperatorDecl]
+       CoverDecl, ClassDecl, OperatorDecl, InterfaceDecl]
 import CoverDeclWriter, ClassDeclWriter
 import Skeleton
 
@@ -120,6 +120,9 @@ ModuleWriter: abstract class extends Skeleton {
                 case tDecl instanceOf(ClassDecl) =>
                     className := tDecl as ClassDecl underName()
                     ClassDeclWriter writeStructTypedef(this, className)
+                    if(tDecl instanceOf(InterfaceDecl)) {
+                        CoverDeclWriter writeTypedef(this, tDecl as InterfaceDecl getFatType())
+                    }
                 case tDecl instanceOf(CoverDecl) =>
                     CoverDeclWriter writeTypedef(this, tDecl)
             }

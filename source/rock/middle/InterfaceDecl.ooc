@@ -14,6 +14,8 @@ InterfaceDecl: class extends ClassDecl {
         fatType addVariable(VariableDecl new(BaseType new("Object", token), "obj", token))
     }
     
+    getInstanceType: func -> Type { fatType getInstanceType() }
+    
     accept: func (visitor: Visitor) { visitor visitInterfaceDecl(this) }
     
     addFunction: func (fDecl: FunctionDecl) {

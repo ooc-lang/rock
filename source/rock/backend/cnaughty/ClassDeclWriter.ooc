@@ -1,5 +1,6 @@
 import structs/[List, ArrayList, HashMap]
-import ../../middle/[ClassDecl, FunctionDecl, VariableDecl, TypeDecl, Type, Node]
+import ../../middle/[ClassDecl, FunctionDecl, VariableDecl, TypeDecl,
+        Type, Node, InterfaceDecl]
 import Skeleton, FunctionDeclWriter, CGenerator
 
 ClassDeclWriter: abstract class extends CGenerator {
@@ -150,11 +151,15 @@ ClassDeclWriter: abstract class extends CGenerator {
 
             baseClass := cDecl getBaseClass(fDecl)
 			if (fDecl hasReturn()) {
-				current app("return ("). app(fDecl returnType). app(")")
+				current app("return ("). app(fDecl returnType). app(") ")
 			}
-			current app("(("). app(baseClass underName()). app(" *)((lang__Object *)this)->class)->")
+            if(cDecl getNonMeta() instanceOf(InterfaceDecl)) {
+                current app("this.impl->")
+            } else {
+                current app("(("). app(baseClass underName()). app(" *)"). app("((lang__Object *)this)->class)->")
+            }
             FunctionDeclWriter writeSuffixedName(this, fDecl)
-			FunctionDeclWriter.writeFuncArgs(this, fDecl, ArgsWriteModes NAMES_ONLY, baseClass);
+			FunctionDeclWriter writeFuncArgs(this, fDecl, ArgsWriteModes NAMES_ONLY, baseClass)
 			current app(";"). closeBlock()
 
 		}

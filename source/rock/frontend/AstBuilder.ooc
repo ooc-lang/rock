@@ -157,7 +157,7 @@ AstBuilder: class {
     }
     
     onClassImplements: unmangled(nq_onClassImplements) func (interfaceType: Type) {
-        printf("Class %s implements %s!\n", peek(ClassDecl) toString(), interfaceType toString())
+        peek(ClassDecl) addInterface(interfaceType)
     }
 
     onClassAbstract: unmangled(nq_onClassAbstract) func {

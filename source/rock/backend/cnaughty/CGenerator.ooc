@@ -124,14 +124,7 @@ CGenerator: class extends Skeleton {
     visitVariableDecl: func (vDecl: VariableDecl) {
         if(vDecl isExtern()) return
         
-        // FIXME: won't work with pointers.
-        if(vDecl getType() getRef() instanceOf(InterfaceDecl)) {
-            current app("struct _") . app(vDecl getType() getRef() as InterfaceDecl getFatType() getInstanceType())
-        } else {
-            current app(vDecl getType())
-        }
-        
-        current app(' '). app(vDecl name)
+        current app(vDecl getType()). app(' '). app(vDecl name)
         if(vDecl expr)
             current app(" = "). app(vDecl expr)
     }

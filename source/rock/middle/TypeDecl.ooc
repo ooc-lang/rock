@@ -13,6 +13,9 @@ TypeDecl: abstract class extends Declaration {
 
     variables := HashMap<VariableDecl> new()
     functions := HashMap<FunctionDecl> new()
+    
+    interfaceTypes := ArrayList<Type> new()
+    interfaceDecls := ArrayList<ClassDecl> new()
 
     thisDecl : VariableDecl
 
@@ -66,6 +69,8 @@ TypeDecl: abstract class extends Declaration {
         }
     }
     
+    getSuperType: func -> Type { superType }
+    
     addTypeArg: func (typeArg: VariableDecl) -> Bool {
         typeArg setOwner(this)
         getTypeArgs() add(typeArg)
@@ -92,6 +97,11 @@ TypeDecl: abstract class extends Declaration {
             variables put(vDecl name, vDecl)
             vDecl setOwner(this)
         }
+    }
+    
+    addInterface: func (interfaceType: Type) {
+        printf("Type %s implements %s!\n", toString(), interfaceType toString())
+        interfaceTypes add(interfaceType)
     }
 
 	hashName: func (name, suffix: String) -> String {
@@ -302,6 +312,37 @@ TypeDecl: abstract class extends Declaration {
             response := meta resolve(trail, res)
             if(!response ok()) {
                 if(res params verbose) printf("-- %s, meta of %s, isn't resolved, looping.\n", meta toString(), toString())
+                trail pop(this)
+                return response
+            }
+        }
+        
+        i := 0
+        for(interfaceType in interfaceTypes) {
+            response := interfaceType resolve(trail, res)
+            if(!response ok()) {
+                if(res params verbose) printf("-- %s, interfaceType of %s, isn't resolved, looping.\n", interfaceType toString(), toString())
+                trail pop(this)
+                return response
+            }
+            if(interfaceType getRef() == null) {
+                res wholeAgain(this, "Should resolve interface type %s first." format(interfaceType toString()))
+                break
+            } else if(i >= interfaceDecls size()) {
+                printf("Creating class for interface impl %s\n", interfaceType toString())
+                iName := getName() + "__impl__" + interfaceType getName()
+                interfaceDecl := ClassDecl new(iName, interfaceType, token)
+                interfaceDecl module = module
+                interfaceDecls add(interfaceDecl)
+                printf("Added interfaceDecl %s\n", interfaceDecl toString())
+            }
+            i += 1
+        }
+        
+        for(interfaceDecl in interfaceDecls) {
+            response := interfaceDecl resolve(trail, res)
+            if(!response ok()) {
+                if(res params verbose) printf("-- %s, interfaceDecl, isn't resolved, looping.\n", interfaceDecl toString(), toString())
                 trail pop(this)
                 return response
             }

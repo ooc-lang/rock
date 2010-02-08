@@ -1,9 +1,9 @@
-import ../../middle/[FunctionDecl, TypeDecl, ClassDecl, Argument, Type]
+import ../../middle/[FunctionDecl, TypeDecl, ClassDecl, Argument, Type, InterfaceDecl]
 import Skeleton, CGenerator
 import ../../frontend/BuildParams
 include stdint
 
-ArgsWriteMode: cover from Int32 {}
+ArgsWriteMode: cover from Int32
 
 ArgsWriteModes: class {
     FULL = 1,
@@ -77,6 +77,11 @@ FunctionDeclWriter: abstract class extends CGenerator {
         current app('(')
         isFirst := true
 
+        isInterface := false
+        owner := fDecl getOwner()
+        if(owner != null && owner isMeta) owner = owner getNonMeta()
+        if(owner != null && owner instanceOf(InterfaceDecl)) isInterface = true
+
         /* Step 1 : write this, if any */
         iter := fDecl args iterator() as Iterator<Argument>
         if(fDecl isMember() && !fDecl isStatic()) {
@@ -86,7 +91,7 @@ FunctionDeclWriter: abstract class extends CGenerator {
                         
             match mode {
                 case ArgsWriteModes NAMES_ONLY =>
-                    if(baseType) {
+                    if(baseType && !isInterface) {
                         current app("("). app(baseType getNonMeta() getInstanceType()). app(")")
                     }
                     current app("this")
