@@ -24,10 +24,12 @@ ClassDeclWriter: abstract class extends CGenerator {
             
                 current = cw
                 writeInstanceImplFuncs(this, cDecl)
-                writeClassGettingFunction(this, cDecl)
                 writeInstanceVirtualFuncs(this, cDecl)
                 writeStaticFuncs(this, cDecl)
             }
+            
+            current = cw
+            writeClassGettingFunction(this, cDecl)
             
             for(interfaceDecl in cDecl getNonMeta() getInterfaceDecls()) {
                 write(this, interfaceDecl getMeta())
@@ -213,14 +215,17 @@ ClassDeclWriter: abstract class extends CGenerator {
 
     writeClassGettingFunction: static func (this: This, cDecl: ClassDecl) {
 
-        current nl(). nl(). app(cDecl underName()). app(" *"). app(cDecl getNonMeta() getName()). app("_class()"). openBlock(). nl()
+        isInterface := (cDecl getNonMeta() != null && cDecl getNonMeta() instanceOf(InterfaceImpl)) as Bool
+        underName := isInterface ? cDecl getSuperRef() underName() : cDecl underName()
+
+        current nl(). nl(). app(underName). app(" *"). app(cDecl getNonMeta() getName()). app("_class()"). openBlock(). nl()
         
         if (cDecl getNonMeta() getSuperRef()) {
             current app("static "). app(LANG_PREFIX). app("Bool __done__ = false;"). nl()
         }
-        current app("static "). app(cDecl underName()). app(" class = "). nl()
+        current app("static "). app(underName). app(" class = "). nl()
         
-        writeClassStructInitializers(this, cDecl, cDecl, ArrayList<FunctionDecl> new())
+        writeClassStructInitializers(this, isInterface ? cDecl getSuperRef() : cDecl, cDecl, ArrayList<FunctionDecl> new())
         
         current app(';')
         if (cDecl getNonMeta() getSuperRef()) {
