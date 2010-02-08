@@ -225,7 +225,7 @@ ClassDeclWriter: abstract class extends CGenerator {
         }
         current app("static "). app(underName). app(" class = "). nl()
         
-        writeClassStructInitializers(this, isInterface ? cDecl getSuperRef() : cDecl, cDecl, ArrayList<FunctionDecl> new())
+        writeClassStructInitializers(this, isInterface ? cDecl getSuperRef() : cDecl, cDecl, ArrayList<FunctionDecl> new(), true)
         
         current app(';')
         if (cDecl getNonMeta() getSuperRef()) {
@@ -244,7 +244,7 @@ ClassDeclWriter: abstract class extends CGenerator {
      * @param parentClass 
      */
     writeClassStructInitializers: static func (this: This, parentClass: ClassDecl,
-        realClass: ClassDecl, done: List<FunctionDecl>) {
+        realClass: ClassDecl, done: List<FunctionDecl>, root: Bool) {
 
         current openBlock(). nl()
 
@@ -253,7 +253,7 @@ ClassDeclWriter: abstract class extends CGenerator {
               nl() .app(".size = "). app("sizeof(void*),").
               nl() .app(".name = "). app('"'). app(realClass getNonMeta() name). app("\",")
         } else {
-            writeClassStructInitializers(this, parentClass getSuperRef(), realClass, done)
+            writeClassStructInitializers(this, parentClass getSuperRef(), realClass, done, false)
         }
 
         for (parentDecl: FunctionDecl in parentClass functions) {
@@ -283,7 +283,8 @@ ClassDeclWriter: abstract class extends CGenerator {
         }
 
         current closeBlock()
-        if (realClass != parentClass)
+        //if(realClass != parentClass)
+        if (!root)
             current app(',')
     }
     

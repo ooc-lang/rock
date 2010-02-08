@@ -5,6 +5,12 @@ import Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableDecl, Node, Statement, Module, FunctionCall, Declaration
 import tinker/[Resolver, Response, Trail]
 
+FunctionAlias: class extends FunctionDecl {
+    
+    
+    
+}
+
 FunctionDecl: class extends Declaration {
 
     name = "", suffix = null : String
