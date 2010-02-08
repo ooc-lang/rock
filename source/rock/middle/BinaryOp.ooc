@@ -222,6 +222,7 @@ BinaryOp: class extends Expression {
         if(!(op getSymbol() equals(symbol))) {
             if(isAssign() && symbol startsWith(op getSymbol())) {
                 // alright!
+                half = true
             } else {
                 return 0 // not the right overload type - skip
             }
