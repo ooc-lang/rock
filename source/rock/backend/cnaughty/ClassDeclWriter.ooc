@@ -1,6 +1,6 @@
 import structs/[List, ArrayList, HashMap]
 import ../../middle/[ClassDecl, FunctionDecl, VariableDecl, TypeDecl,
-        Type, Node, InterfaceDecl]
+        Type, Node, InterfaceDecl, InterfaceImpl]
 import Skeleton, FunctionDeclWriter, CGenerator
 
 ClassDeclWriter: abstract class extends CGenerator {
@@ -17,19 +17,31 @@ ClassDeclWriter: abstract class extends CGenerator {
             current = hw
             writeObjectStruct(this, cDecl)
             
-            current = fw
-            writeMemberFuncPrototypes(this, cDecl)
+            //TODO: split into InterfaceImplWriter ?
+            if(!cDecl getNonMeta() instanceOf(InterfaceImpl)) {
+                current = fw
+                writeMemberFuncPrototypes(this, cDecl)
             
-            current = cw
-            writeInstanceImplFuncs(this, cDecl)
-            writeClassGettingFunction(this, cDecl)
-            writeInstanceVirtualFuncs(this, cDecl)
-            writeStaticFuncs(this, cDecl)
+                current = cw
+                writeInstanceImplFuncs(this, cDecl)
+                writeClassGettingFunction(this, cDecl)
+                writeInstanceVirtualFuncs(this, cDecl)
+                writeStaticFuncs(this, cDecl)
+            }
+            
+            for(interfaceDecl in cDecl getNonMeta() getInterfaceDecls()) {
+                write(this, interfaceDecl getMeta())
+            }
+        
             
         } else {
             
             current = hw
             writeObjectStruct(this, cDecl)
+            
+            for(interfaceDecl in cDecl getInterfaceDecls()) {
+                write(this, interfaceDecl)
+            }
         
         }
         

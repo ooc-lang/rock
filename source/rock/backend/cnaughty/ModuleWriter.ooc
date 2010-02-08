@@ -115,7 +115,16 @@ ModuleWriter: abstract class extends Skeleton {
     writeTypesForward: static func (this: This, module: Module, meta: Bool) {
 
         for(tDecl: TypeDecl in module types) {
+            for(interfaceDecl in tDecl getInterfaceDecls()) {
+                if(meta) {
+                    //ClassDeclWriter writeStructTypedef(this, interfaceDecl getMeta())
+                } else {
+                    CoverDeclWriter writeTypedef(this, interfaceDecl)
+                }
+            }
+            
             if(tDecl isMeta != meta) continue
+            
             match {
                 case tDecl instanceOf(ClassDecl) =>
                     className := tDecl as ClassDecl underName()

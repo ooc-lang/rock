@@ -1,7 +1,7 @@
 import structs/[ArrayList, List, HashMap]
 import ../frontend/[Token, BuildParams]
 import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
-    FunctionDecl, FunctionCall, Module, VariableAccess, Node
+    FunctionDecl, FunctionCall, Module, VariableAccess, Node, InterfaceImpl
 import tinker/[Resolver, Response, Trail]
 
 TypeDecl: abstract class extends Declaration {
@@ -15,7 +15,7 @@ TypeDecl: abstract class extends Declaration {
     functions := HashMap<FunctionDecl> new()
     
     interfaceTypes := ArrayList<Type> new()
-    interfaceDecls := ArrayList<ClassDecl> new()
+    interfaceDecls := ArrayList<InterfaceImpl> new()
 
     thisDecl : VariableDecl
 
@@ -103,6 +103,9 @@ TypeDecl: abstract class extends Declaration {
         printf("Type %s implements %s!\n", toString(), interfaceType toString())
         interfaceTypes add(interfaceType)
     }
+    
+    getInterfaceTypes: func -> List<Type>          { interfaceTypes }
+    getInterfaceDecls: func -> List<InterfaceImpl> { interfaceDecls }
 
 	hashName: func (name, suffix: String) -> String {
 		suffix ? "%s~%s" format(name, suffix) : name
@@ -331,16 +334,20 @@ TypeDecl: abstract class extends Declaration {
             } else if(i >= interfaceDecls size()) {
                 printf("Creating class for interface impl %s\n", interfaceType toString())
                 iName := getName() + "__impl__" + interfaceType getName()
-                interfaceDecl := ClassDecl new(iName, interfaceType, token)
+                interfaceDecl := InterfaceImpl new(iName, interfaceType, token)
                 interfaceDecl module = module
+                interfaceDecl meta module = module
                 interfaceDecls add(interfaceDecl)
-                printf("Added interfaceDecl %s\n", interfaceDecl toString())
+                printf("Added interfaceDecl %s which has super-type %s\n", interfaceDecl toString(), interfaceDecl getSuperType() toString())
             }
             i += 1
         }
         
         for(interfaceDecl in interfaceDecls) {
             response := interfaceDecl resolve(trail, res)
+            if(response ok()) {
+                response = interfaceDecl getMeta() resolve(trail, res)
+            }
             if(!response ok()) {
                 if(res params verbose) printf("-- %s, interfaceDecl, isn't resolved, looping.\n", interfaceDecl toString(), toString())
                 trail pop(this)
