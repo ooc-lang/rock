@@ -8,24 +8,35 @@ Noisy: interface {
 }
 
 Dog: class implements Representable, Noisy {
-    growl: func {}
+    growl: func { "Grrwoof woof!" println() }
     toString: func -> String { "Dog!" }
     run: func {}
+    
+    makeNoise: func { growl() }
 }
 
 Cat: class implements Representable, Noisy {
-    meowl: func {}
+    meowl: func { "Meoowwwwww!" println() }
     beLazy: func {}
     toString: func -> String { "Cat!" }
+    
+    makeNoise: func { meowl() }
 }
 
 main: func {
-    r1 := Dog new() as Representable
-    print(r1)
-    r2 := Cat new() as Representable
-    print(r2)
+    r := Dog new() as Representable
+    print(r)
+    print(Cat new())
+    
+    poke(Dog new())
+    n := Cat new() as Noisy
+    poke(n)
 }
 
 print: func (r: Representable) {
     r toString() println()
+}
+
+poke: func (n: Noisy) {
+    n makeNoise()
 }

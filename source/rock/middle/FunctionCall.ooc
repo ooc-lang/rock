@@ -323,13 +323,11 @@ FunctionCall: class extends Expression {
             callArg := args get(i)
             if(declArg getType() == null || declArg getType() getRef() == null ||
                callArg getType() == null || callArg getType() getRef() == null) {
-                res wholeAgain(this, "[KOOLAMAZA] To resolve interface-args, need to resolve declArg (= %s) & callArg (= %s) type" format(declArg toString(), callArg toString()))
+                res wholeAgain(this, "To resolve interface-args, need to resolve declArg and callArg" format(declArg toString(), callArg toString()))
                 return Responses OK
             }
             if(declArg getType() getRef() instanceOf(InterfaceDecl)) {
-                printf("[KOOLAMAZA] Call to %s has arg %s for interface-arg %s\n", toString(), callArg toString(), declArg toString())
                 if(!declArg getType() equals(callArg getType())) {
-                    printf("[KOOLAMAZA] OMG they're not equal! Quick, caaaaaaaaast!\n")
                     args set(i, Cast new(callArg, declArg getType(), callArg token))
                 }
                 

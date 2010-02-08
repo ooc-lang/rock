@@ -91,7 +91,7 @@ FunctionDeclWriter: abstract class extends CGenerator {
                         
             match mode {
                 case ArgsWriteModes NAMES_ONLY =>
-                    if(baseType && !isInterface) {
+                    if(baseType != null && !isInterface) {
                         current app("("). app(baseType getNonMeta() getInstanceType()). app(")")
                     }
                     current app("this")

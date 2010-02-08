@@ -285,11 +285,9 @@ ClassDeclWriter: abstract class extends CGenerator {
             parentClass getNonMeta() != null &&
             parentClass getNonMeta() instanceOf(InterfaceDecl) &&
             realClass getNonMeta() instanceOf(InterfaceImpl)) {
-            printf("\n[KALAMAZOO] parentDecl %s is an InterfaceDecl! (for %s)\n", parentClass toString(), realClass toString())
             
             interfaceImpl := realClass getNonMeta() as InterfaceImpl
             for(alias: FunctionAlias in interfaceImpl getAliases()) {
-                printf("[KALAMAZOO] got alias %s\n", alias toString())
                 current app('.'). app(alias key getName()). app(" = (void*) ")
                 FunctionDeclWriter writeFullName(this, alias value)
                 if(!alias value isFinal()) current app("_impl")

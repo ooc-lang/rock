@@ -10,8 +10,8 @@ InterfaceDecl: class extends ClassDecl {
         super(name, token)
         
         fatType = CoverDecl new(name + "__reference", token)
-        fatType addVariable(VariableDecl new(getType(), "impl", token))
         fatType addVariable(VariableDecl new(BaseType new("Object", token), "obj", token))
+        fatType addVariable(VariableDecl new(getType(), "impl", token))
     }
     
     getInstanceType: func -> Type { fatType getInstanceType() }
