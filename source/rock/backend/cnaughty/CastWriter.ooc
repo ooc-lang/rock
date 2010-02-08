@@ -1,5 +1,5 @@
 import structs/[List, ArrayList, HashMap]
-import ../../middle/[Cast]
+import ../../middle/[Cast, InterfaceDecl, TypeDecl]
 import Skeleton
 
 CastWriter: abstract class extends Skeleton {
@@ -10,8 +10,15 @@ CastWriter: abstract class extends Skeleton {
             
             current app("(* ("). app(cast type). app("*)"). app(cast inner). app(')')
             
+        } else if(cast getType() getRef() instanceOf(InterfaceDecl)) {
+            
+            iDecl := cast getType() getRef() as InterfaceDecl
+            current app("(struct _"). app(iDecl getFatType() getInstanceType()). app(") {").
+                app(cast inner getType() getName()). app("__impl__"). app(iDecl getName()). app("_class(), (lang__Object*) ").
+                app(cast inner). app('}')
+                
         } else {
-        
+            
             current app("(("). app(cast type). app(") "). app(cast inner). app(')')
             
         }

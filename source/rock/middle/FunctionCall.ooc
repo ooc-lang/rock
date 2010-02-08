@@ -1,7 +1,8 @@
 import structs/ArrayList, text/StringBuffer
 import ../frontend/[Token, BuildParams]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
-       TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp
+       TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
+       InterfaceDecl, Cast
 import tinker/[Response, Resolver, Trail]
 
 FunctionCall: class extends Expression {
@@ -134,7 +135,7 @@ FunctionCall: class extends Expression {
         }
         
         /*
-         * Now resolve generic type arguments
+         * Now resolve return type, generic type arguments, and interfaces
          */
         if(refScore != -1) {
             
@@ -147,6 +148,12 @@ FunctionCall: class extends Expression {
                 if(res params verbose) "%s looping because of generics!" format(toString()) println()
                 return Responses LOOP
             }
+            
+            if(!handleInterfaces(trail, res) ok()) {
+                if(res params verbose) "%s looping because of interfaces!" format(toString()) println()
+                return Responses LOOP
+            }
+            
         }
         
         if(typeArgs size() > 0) {
@@ -301,6 +308,36 @@ FunctionCall: class extends Expression {
         }
         
         return true
+        
+    }
+    
+    /**
+     * Add casts for interfaces arguments
+     */
+    handleInterfaces: func (trail: Trail, res: Resolver) -> Response {
+        
+        i := 0
+        for(declArg in ref args) {
+            if(declArg instanceOf(VarArg)) break
+            if(i >= args size()) break
+            callArg := args get(i)
+            if(declArg getType() == null || declArg getType() getRef() == null ||
+               callArg getType() == null || callArg getType() getRef() == null) {
+                res wholeAgain(this, "[KOOLAMAZA] To resolve interface-args, need to resolve declArg (= %s) & callArg (= %s) type" format(declArg toString(), callArg toString()))
+                return Responses OK
+            }
+            if(declArg getType() getRef() instanceOf(InterfaceDecl)) {
+                printf("[KOOLAMAZA] Call to %s has arg %s for interface-arg %s\n", toString(), callArg toString(), declArg toString())
+                if(!declArg getType() equals(callArg getType())) {
+                    printf("[KOOLAMAZA] OMG they're not equal! Quick, caaaaaaaaast!\n")
+                    args set(i, Cast new(callArg, declArg getType(), callArg token))
+                }
+                
+            }
+            i += 1
+        }
+        
+        return Responses OK
         
     }
     
