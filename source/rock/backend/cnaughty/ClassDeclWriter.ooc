@@ -66,7 +66,7 @@ ClassDeclWriter: abstract class extends CGenerator {
             
             if(cDecl getSuperRef() != null) {
                 superDecl : FunctionDecl = null
-                superDecl = cDecl getSuperRef() getFunction(fDecl name, fDecl suffix)
+                superDecl = cDecl getSuperRef() lookupFunction(fDecl name, fDecl suffix)
                 // don't write the function if it was declared in the parent
                 if(superDecl != null) {
                     //printf("Already declared in super %s, skipping (superDecl = %s)\n", cDecl getSuperRef() toString(), superDecl toString())
@@ -82,7 +82,7 @@ ClassDeclWriter: abstract class extends CGenerator {
         // And all static variables
         for (vDecl: VariableDecl in cDecl variables) {
             // skip non-static and extern variables
-            if (!vDecl isStatic || vDecl isExtern) continue
+            if (!vDecl isStatic() || vDecl isExtern()) continue
                 
             current nl(). app(vDecl). app(';')
         }
@@ -118,7 +118,7 @@ ClassDeclWriter: abstract class extends CGenerator {
             current nl()
             FunctionDeclWriter writeFuncPrototype(this, fDecl, null)
             current app(';')
-            if(!fDecl isStatic && !fDecl isAbstract && !fDecl isFinal) {
+            if(!fDecl isStatic() && !fDecl isAbstract() && !fDecl isFinal()) {
                 current nl()
                 FunctionDeclWriter writeFuncPrototype(this, fDecl, "_impl")
                 current app(';')
@@ -132,7 +132,7 @@ ClassDeclWriter: abstract class extends CGenerator {
 
 		for (fDecl: FunctionDecl in cDecl functions) {
 
-			if (!fDecl isStatic || (fDecl isExternWithName())) {
+			if (!fDecl isStatic() || fDecl isExternWithName()) {
 				if(fDecl isExternWithName()) {
 					FunctionDeclWriter write(this, fDecl)
 				}
@@ -155,7 +155,7 @@ ClassDeclWriter: abstract class extends CGenerator {
 
 		for(fDecl: FunctionDecl in cDecl functions) {
 
-			if (fDecl isStatic || fDecl isFinal) {
+			if (fDecl isStatic() || fDecl isFinal()) {
 				continue
             }
 
@@ -183,7 +183,7 @@ ClassDeclWriter: abstract class extends CGenerator {
 
         // Non-static (ie  instance) functions
         for (decl: FunctionDecl in cDecl functions) {
-            if (decl isStatic || decl isAbstract || (decl isExtern() && !decl externName isEmpty())) {
+            if (decl isStatic() || decl isAbstract() || decl isExternWithName()) {
                 continue
             }
             
@@ -272,18 +272,32 @@ ClassDeclWriter: abstract class extends CGenerator {
                 }
             }
             
-            if (parentDecl isFinal) continue; // skip it.
+            if (parentDecl isFinal()) continue; // skip it.
             
-            if (parentDecl isStatic || (realDecl == null && parentDecl isAbstract)) {
+            if (parentDecl isStatic() || (realDecl == null && parentDecl isAbstract())) {
                 writeDesignatedInit(this, parentDecl, realDecl, false)
             } else {
                 writeDesignatedInit(this, parentDecl, realDecl, true)
             }
-
+        }
+        
+        if (parentClass != realClass &&
+            parentClass getNonMeta() != null &&
+            parentClass getNonMeta() instanceOf(InterfaceDecl) &&
+            realClass getNonMeta() instanceOf(InterfaceImpl)) {
+            printf("\n[KALAMAZOO] parentDecl %s is an InterfaceDecl! (for %s)\n", parentClass toString(), realClass toString())
+            
+            interfaceImpl := realClass getNonMeta() as InterfaceImpl
+            for(alias: FunctionAlias in interfaceImpl getAliases()) {
+                printf("[KALAMAZOO] got alias %s\n", alias toString())
+                current app('.'). app(alias key getName()). app(" = (void*) ")
+                FunctionDeclWriter writeFullName(this, alias value)
+                if(!alias value isFinal()) current app("_impl")
+                current app(","). nl()
+            }
         }
 
         current closeBlock()
-        //if(realClass != parentClass)
         if (!root)
             current app(',')
     }

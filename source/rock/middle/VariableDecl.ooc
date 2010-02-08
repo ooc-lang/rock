@@ -43,6 +43,8 @@ VariableDecl: class extends Declaration {
 
     setExpr: func (=expr) {}
     getExpr: func -> Expression { expr }
+    
+    isStatic: func -> Bool { isStatic }
     setStatic: func (=isStatic) {}
 
     getExternName: func -> String { externName }

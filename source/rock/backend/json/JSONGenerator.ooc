@@ -160,13 +160,13 @@ JSONGenerator: class extends Visitor {
         }
         /* `modifiers` */
         modifiers := ValueList new()
-        if(node isAbstract)
+        if(node isAbstract())
             modifiers addValue("abstract")
-        if(node isStatic)
+        if(node isStatic())
             modifiers addValue("static")
-        if(node isInline)
+        if(node isInline())
             modifiers addValue("inline")
-        if(node isFinal)
+        if(node isFinal())
             modifiers addValue("final")
         obj putValue("modifiers", modifiers)
         /* generic types */

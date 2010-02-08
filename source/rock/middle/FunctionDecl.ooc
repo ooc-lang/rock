@@ -5,12 +5,6 @@ import Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableDecl, Node, Statement, Module, FunctionCall, Declaration
 import tinker/[Resolver, Response, Trail]
 
-FunctionAlias: class extends FunctionDecl {
-    
-    
-    
-}
-
 FunctionDecl: class extends Declaration {
 
     name = "", suffix = null : String
@@ -49,11 +43,17 @@ FunctionDecl: class extends Declaration {
 	getSuffix: func -> String { suffix }
 	setSuffix: func(suffix: String) { this suffix = suffix }
     
-    isStatic: func -> Bool { isStatic }
-    setStatic: func (=isStatic) {}
+    isStatic:    func -> Bool { isStatic }
+    setStatic:   func (=isStatic) {}
     
-    isAbstract: func -> Bool { isAbstract }
+    isAbstract:  func -> Bool { isAbstract }
     setAbstract: func (=isAbstract) {}
+    
+    isFinal:     func -> Bool { isFinal }
+    setFinal:    func (=isFinal) {}
+    
+    isInline:    func -> Bool { isInline }
+    setInline:   func (=isInline) {}
     
     setOwner: func (=owner) {
         if(isStatic) return
@@ -80,7 +80,7 @@ FunctionDecl: class extends Declaration {
         returnType != voidType && !returnType isGeneric()
     }
     
-    hasThis:  func -> Bool { isMember() && !isStatic }
+    hasThis:  func -> Bool { isMember() && !isStatic() }
     
     isMember: func -> Bool { owner != null }
 
@@ -354,3 +354,4 @@ FunctionDecl: class extends Declaration {
 	getBody: func -> Scope { body }
     
 }
+

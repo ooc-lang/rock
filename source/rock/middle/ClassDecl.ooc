@@ -100,7 +100,7 @@ ClassDecl: class extends TypeDecl {
                  * ..but you can also define the new function yourself,
                  * e.g. if you allocate in a special way
                  */
-                already := getFunction(fDecl getName(), fDecl getSuffix())
+                already := lookupFunction(fDecl getName(), fDecl getSuffix())
                 if (already != null) removeFunction(fDecl) 
             }
         }

@@ -91,7 +91,7 @@ TypeDecl: abstract class extends Declaration {
     }
     
     addVariable: func (vDecl: VariableDecl) {
-        if(vDecl isStatic && !isMeta) {
+        if(vDecl isStatic() && !isMeta) {
             meta addVariable(vDecl)
         } else {
             variables put(vDecl name, vDecl)
@@ -128,7 +128,7 @@ TypeDecl: abstract class extends Declaration {
 		functions remove(hashName(fDecl))
 	}
     
-    getFunction: func (fName, fSuffix: String) -> FunctionDecl {
+    lookupFunction: func (fName, fSuffix: String) -> FunctionDecl {
     
     	// quick lookup, if we're lucky (exact suffix or no suffix)
         fDecl : FunctionDecl = null
@@ -334,9 +334,7 @@ TypeDecl: abstract class extends Declaration {
             } else if(i >= interfaceDecls size()) {
                 printf("Creating class for interface impl %s\n", interfaceType toString())
                 iName := getName() + "__impl__" + interfaceType getName()
-                interfaceDecl := InterfaceImpl new(iName, interfaceType, token)
-                interfaceDecl module = module
-                interfaceDecl meta module = module
+                interfaceDecl := InterfaceImpl new(iName, interfaceType, this, token)
                 interfaceDecls add(interfaceDecl)
                 printf("Added interfaceDecl %s which has super-type %s\n", interfaceDecl toString(), interfaceDecl getSuperType() toString())
             }
