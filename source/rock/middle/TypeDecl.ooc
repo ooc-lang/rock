@@ -100,7 +100,6 @@ TypeDecl: abstract class extends Declaration {
     }
     
     addInterface: func (interfaceType: Type) {
-        printf("Type %s implements %s!\n", toString(), interfaceType toString())
         interfaceTypes add(interfaceType)
     }
     
@@ -332,11 +331,9 @@ TypeDecl: abstract class extends Declaration {
                 res wholeAgain(this, "Should resolve interface type %s first." format(interfaceType toString()))
                 break
             } else if(i >= interfaceDecls size()) {
-                printf("Creating class for interface impl %s\n", interfaceType toString())
                 iName := getName() + "__impl__" + interfaceType getName()
                 interfaceDecl := InterfaceImpl new(iName, interfaceType, this, token)
                 interfaceDecls add(interfaceDecl)
-                printf("Added interfaceDecl %s which has super-type %s\n", interfaceDecl toString(), interfaceDecl getSuperType() toString())
             }
             i += 1
         }

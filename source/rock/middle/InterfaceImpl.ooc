@@ -35,17 +35,15 @@ InterfaceImpl: class extends ClassDecl {
         // done already.
         if(aliases size() == ref getMeta() getFunctions() size()) return Responses OK
         
-        printf("[KALAMAZOO] reviewing functions in %s. getMeta() = %s\n", ref toString(), ref getMeta() ? ref getMeta() toString() : "(nil)")
         for(key: FunctionDecl in ref getMeta() getFunctions()) {
             hash := hashName(key)
             alias := aliases get(hash)
             if(alias == null) {
-                printf("[KALAMAZOO] Yet has to resolve %s for %s to implement %s\n", key toString(), impl toString(), superType toString())
                 //FIXME: smarter strategy needed here to match functions - also, check signatures
                 value := impl getMeta() getFunction(key getName(), key getSuffix(), null, true)
                 if(value == null) {
-                    token throwError("Couldn't find function %s in class %s, neeeded to implement interface %s\n" format(
-                        key toString(), impl toString(), superType toString()))
+                    token throwError("%s must implement function %s, from interface %s\n" format(
+                        impl getName(), key toString(), superType toString()))
                 }
                 aliases put(hash, FunctionAlias new(key, value))
             }
