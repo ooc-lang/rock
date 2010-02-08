@@ -1,4 +1,4 @@
-import ../../middle/[FunctionDecl, FunctionCall, TypeDecl, Argument, Type, Expression]
+import ../../middle/[FunctionDecl, FunctionCall, TypeDecl, Argument, Type, Expression, InterfaceDecl]
 import Skeleton, FunctionDeclWriter
 
 FunctionCallWriter: abstract class extends Skeleton {
@@ -30,6 +30,7 @@ FunctionCallWriter: abstract class extends Skeleton {
             if(!(callType equals(declType))) {
                 current app("("). app(declType). app(") ")
             }
+            
             current app(fCall expr) 
         }
     
@@ -89,7 +90,18 @@ FunctionCallWriter: abstract class extends Skeleton {
             if(i < fDecl args size())                         declArg = fDecl args get(i)
             if(declArg != null && declArg instanceOf(VarArg)) declArg = null
             
+            isInterface := declArg != null && declArg getType() getRef() instanceOf(InterfaceDecl)
+            
             if(declArg != null) {
+                if(isInterface) {
+                    printf("%s is a call, which arg %s is of interface type.\n", fCall toString(), declArg toString())
+                    iDecl := declArg getType() getRef() as InterfaceDecl
+                    //current app("(struct "). app(iDecl getFatType() getInstanceType()). app(") {").
+                    current app("(struct _"). app(iDecl getFatType() getInstanceType()). app(") {").
+                        app("NULL, (lang__Object*)")
+                        //app(arg getType() getName()). app("__impl__"). app(iDecl getName()). app("__class(), ")
+                }
+                
                 if(declArg getType() isGeneric()) {
                     current app("(uint8_t*) ")
                 } else if(arg getType != null && declArg getType() != null && arg getType() inheritsFrom(declArg getType())) {
@@ -98,8 +110,10 @@ FunctionCallWriter: abstract class extends Skeleton {
                 }
             }
             
-            
             arg accept(this)
+            
+            if(isInterface) current app("}")
+            
             i += 1
         }
         current app(')')
