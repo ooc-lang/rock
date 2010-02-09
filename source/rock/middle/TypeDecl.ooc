@@ -188,6 +188,7 @@ TypeDecl: abstract class extends Declaration {
 
     getName: func -> String { name }
     
+    setExternName: func (=externName) {}
     getExternName: func -> String {
         return (externName && !externName isEmpty()) ? externName : name
     }
@@ -378,6 +379,7 @@ TypeDecl: abstract class extends Declaration {
         
         //printf("? Looking for variable %s in %s\n", access name, name)
         if(access getName() == "This") {
+            //printf("Asking for 'This' in %s (non-meta %s)\n", toString(), getNonMeta() ? getNonMeta() toString() : "(nil)")
             if(access suggest(getNonMeta() ? getNonMeta() : this)) return
         }
         

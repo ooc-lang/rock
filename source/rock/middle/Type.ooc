@@ -32,8 +32,18 @@ Type: abstract class extends Expression {
     
     toMangledString: func -> String { getName() }
     
-    // FIXME: stub
-    getGroundType: func -> Type { this }
+    getGroundType: func -> Type {
+        under := this
+        while (under != null) {
+            candidate := under dig()
+            if(candidate) {
+                under = candidate
+            } else {
+                break
+            }
+        }
+        return under
+    }
     
     getRef: abstract func -> Declaration
     setRef: abstract func (d: Declaration)
@@ -149,6 +159,11 @@ BaseType: class extends Type {
     }
     
     writeRegularType: func (w: AwesomeWriter, td: TypeDecl) {
+        if(td isExtern()) {
+            w app(td getExternName())
+            return
+        }
+        
         w app(td underName())
         if(td instanceOf(ClassDecl)) {
             w app("*")
@@ -172,8 +187,12 @@ BaseType: class extends Type {
     getName: func -> String { name }
     
     suggest: func (decl: Declaration) -> Bool {
-        // trivial impl for now
         ref = decl
+        if(name == "This" && ref instanceOf(TypeDecl)) {
+            // not exactly sure how good an idea it is
+            tDecl := ref as TypeDecl
+            name = tDecl getName()
+        }
         return true
     }
     
@@ -231,8 +250,13 @@ BaseType: class extends Type {
         return NOLUCK_SCORE // no luck.
     }
     
-    // should we throw an error or something?
-    dereference : func -> This { null }
+    dereference: func -> This {
+        digged := dig()
+        if(digged) {
+            return digged dereference()
+        }
+        null
+    }
     
     clone: func -> This { new(name, token) }
     

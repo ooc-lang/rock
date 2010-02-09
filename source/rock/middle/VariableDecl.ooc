@@ -71,17 +71,18 @@ VariableDecl: class extends Declaration {
             //printf("response of expr = %s\n", response toString())
             if(!response ok()) {
                 trail pop(this)
+                printf("^^^^^^^^^^ returning response of EXPR\n")
                 return response
             }
         }
 
         if(type == null) {
-            //"coool! we're gonna have to infer it!" println()
+            // infer the type
             type = expr getType()
-            if(!type) {
-                //"Still null, looping..." println()
+            if(type == null) {
                 trail pop(this)
-                return Responses LOOP
+                res wholeAgain(this, "must determine type of %s\n" format(toString()))
+                return Responses OK
             }
         }
 
@@ -90,6 +91,7 @@ VariableDecl: class extends Declaration {
             //printf("response of type = %s\n", response toString())
             if(!response ok()) {
                 trail pop(this)
+                printf("^^^^^^^^^^ returning response of TYPE\n")
                 return response
             }
         }
@@ -103,15 +105,18 @@ VariableDecl: class extends Declaration {
                 idx := trail findScope()
                 result := trail get(idx) addBefore(trail get(idx + 1), this)
                 trail peek() replace(this, VariableAccess new(this, token))
-                return Responses LOOP
+                res wholeAgain(this, "parent isn't scope nor typedecl")
+                return Responses OK
             }
         }
 
         if(expr != null && expr instanceOf(FunctionCall)) {
             fCall := expr as FunctionCall
             fDecl := fCall getRef()
-            if(!fDecl) return Responses LOOP
-            if(!fDecl getReturnType() isResolved()) return Responses LOOP
+            if(!fDecl || !fDecl getReturnType() isResolved()) {
+                res wholeAgain(this, "fCall isn't resolved.")
+                return Responses OK
+            }
 
             //println("got decl rhs a " + fCall toString())
             if(fDecl getReturnType() isGeneric()) {

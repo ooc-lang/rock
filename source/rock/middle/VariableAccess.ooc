@@ -35,12 +35,12 @@ VariableAccess: class extends Expression {
     }
     
     suggest: func (node: Node) -> Bool {
-    	if(node instanceOf(VariableDecl)) {
+        if(node instanceOf(VariableDecl)) {
 			candidate := node as VariableDecl
 		    // if we're accessing a member, we're expecting the candidate
 		    // to belong to a TypeDecl..
 		    if((expr != null) && (candidate owner == null)) {
-		        //printf("%s is no fit!, we need something to fit %s\n", candidate toString(), toString())
+		        printf("%s is no fit!, we need something to fit %s\n", candidate toString(), toString())
 		        return false
 		    }
 		    
@@ -51,7 +51,7 @@ VariableAccess: class extends Expression {
 		    // if we're accessing a member, we're expecting the candidate
 		    // to belong to a TypeDecl..
 		    if((expr != null) && (candidate owner == null)) {
-		        //printf("%s is no fit!, we need something to fit %s\n", candidate toString(), toString())
+		        printf("%s is no fit!, we need something to fit %s\n", candidate toString(), toString())
 		        return false
 		    }
 		    
@@ -59,6 +59,7 @@ VariableAccess: class extends Expression {
 		    return true
 	    } else if(node instanceOf(TypeDecl)) {
 			ref = node
+            return true
 	    }
 	    return false
     }

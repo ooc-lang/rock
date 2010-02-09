@@ -23,19 +23,19 @@ ArrayAccess: class extends Expression {
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
         if(!index resolve(trail, res) ok()) {
-            //printf("Whole-again because of index!\n")
             res wholeAgain(this, "because of index!")
         }
         if(!array resolve(trail, res) ok()) {
-            //printf("Whole-again because of array!\n")
             res wholeAgain(this, "because of array!")
         }
         
         if(array getType() == null) {
-            //printf("Whole-again because of array type!\n")
             res wholeAgain(this, "because of array type!")
         } else {
             type = array getType() dereference()
+            if(type == null) {
+                res wholeAgain(this, "because of array dereference type!")
+            }
         }
         
         {
@@ -125,9 +125,16 @@ ArrayAccess: class extends Expression {
         */
         
         score := 0
+
+        opArray  := args get(0)
+        opIndex := args get(1)
+
+        if(opArray getType() == null || opIndex getType() == null || array getType() == null || index getType() == null) {
+            return -1
+        }
         
-        score += args get(0) getType() getScore(array getType())
-        score += args get(1) getType() getScore(index getType())        
+        score += opArray getType() getScore(array getType())
+        score += opIndex getType() getScore(index getType())        
         if(reqType) {
             score += fDecl getReturnType() getScore(reqType)
         }

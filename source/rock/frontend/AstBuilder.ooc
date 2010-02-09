@@ -128,6 +128,10 @@ AstBuilder: class {
         module addType(cDecl)
         stack push(cDecl)
     }
+    
+    onCoverExtern: unmangled(nq_onCoverExtern) func (externName: String) {
+        peek(CoverDecl) setExternName(externName clone())
+    }
 
     onCoverFromType: unmangled(nq_onCoverFromType) func (type: Type) {
         peek(CoverDecl) setFromType(type)
@@ -354,6 +358,10 @@ AstBuilder: class {
 
     onFunctionCallStart: unmangled(nq_onFunctionCallStart) func (name: String) {
         stack push(FunctionCall new(name clone(), token()))
+    }
+    
+    onFunctionCallSuffix: unmangled(nq_onFunctionCallSuffix) func (suffix: String) {
+        peek(FunctionCall) setSuffix(suffix clone())
     }
 
     onFunctionCallArg: unmangled(nq_onFunctionCallArg) func (expr: Expression) {

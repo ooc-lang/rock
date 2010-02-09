@@ -140,18 +140,18 @@ FunctionCall: class extends Expression {
         if(refScore != -1) {
             
             if(!resolveReturnType(trail, res) ok()) {
-                if(res params verbose) "%s looping because of return type!" format(toString()) println()
-                return Responses LOOP
+                res wholeAgain(this, "%s looping because of return type!" format(toString()))
+                return Responses OK
             }
             
             if(!handleGenerics(trail, res) ok()) {
-                if(res params verbose) "%s looping because of generics!" format(toString()) println()
-                return Responses LOOP
+                res wholeAgain(this, "%s looping because of generics!" format(toString()))
+                return Responses OK
             }
             
             if(!handleInterfaces(trail, res) ok()) {
-                if(res params verbose) "%s looping because of interfaces!" format(toString()) println()
-                return Responses LOOP
+                res wholeAgain(this, "%s looping because of interfaces!" format(toString()))
+                return Responses OK
             }
             
         }
@@ -177,9 +177,9 @@ FunctionCall: class extends Expression {
         if(refScore == -1 && res fatal) {
             message : String
             if(expr && expr getType()) {
-                message = "No such function %s.%s%s" format(expr getType() getName(), name, getArgsRepr())
+                message = "No such function %s.%s%s" format(expr getType() getName(), name, getArgsTypesRepr())
             } else {
-                message = "No such function %s%s" format(name, getArgsRepr())
+                message = "No such function %s%s" format(name, getArgsTypesRepr())
             }
             printf("name = %s, refScore = %d, ref = %s\n",
             	name, refScore, ref ? ref toString() : "(nil)")
@@ -187,8 +187,8 @@ FunctionCall: class extends Expression {
         }
 
         if(refScore == -1) {
-            if(res params verbose) "%s looping because not resolved!" format(toString()) println()
-            return Responses LOOP
+            res wholeAgain(this, "%s looping because not resolved!" format(toString()))
+            return Responses OK
         }
         
         return Responses OK
@@ -568,6 +568,19 @@ FunctionCall: class extends Expression {
         for(arg in args) {
             if(!isFirst) sb append(", ")
             sb append(arg toString())
+            if(isFirst) isFirst = false
+        }
+        sb append(")")
+        return sb toString()
+    }
+    
+    getArgsTypesRepr: func -> String {
+        sb := StringBuffer new()
+        sb append("(")
+        isFirst := true
+        for(arg in args) {
+            if(!isFirst) sb append(", ")
+            sb append(arg getType() ? arg getType() toString() : "<unknown type>")
             if(isFirst) isFirst = false
         }
         sb append(")")
