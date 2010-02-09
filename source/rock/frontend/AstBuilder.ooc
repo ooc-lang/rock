@@ -452,9 +452,7 @@ AstBuilder: class {
     }
 
     onIfEnd: unmangled(nq_onIfEnd) func -> If {
-        if1 : If = stack pop()
-        //("Wanted to pop an If, got a " + if1 class name) println()
-        return if1
+        pop(If)
     }
 
     // else
@@ -463,9 +461,7 @@ AstBuilder: class {
     }
 
     onElseEnd: unmangled(nq_onElseEnd) func -> Else {
-        else1 : Else = stack pop()
-        //("Wanted to pop an Else, got a " + else1 class name) println()
-        return else1
+        pop(Else)
     }
 
     // foreach
@@ -477,9 +473,7 @@ AstBuilder: class {
     }
 
     onForeachEnd: unmangled(nq_onForeachEnd) func -> Foreach {
-        foreach1 : Foreach = stack pop()
-        //("Wanted to pop an Foreach, got a " + foreach1 class name) println()
-        return foreach1
+        pop(Foreach)
     }
 
     // while
@@ -488,9 +482,7 @@ AstBuilder: class {
     }
 
     onWhileEnd: unmangled(nq_onWhileEnd) func -> While {
-        whyle : While = stack pop()
-        //("Wanted to pop an While, got a " + whyle class name) println()
-        return whyle
+        pop(While)
     }
 
     /*
