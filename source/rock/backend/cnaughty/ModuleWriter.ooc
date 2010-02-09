@@ -116,9 +116,7 @@ ModuleWriter: abstract class extends Skeleton {
 
         for(tDecl: TypeDecl in module types) {
             for(interfaceDecl in tDecl getInterfaceDecls()) {
-                if(meta) {
-                    //ClassDeclWriter writeStructTypedef(this, interfaceDecl getMeta())
-                } else {
+                if(!meta) {
                     CoverDeclWriter writeTypedef(this, interfaceDecl)
                 }
             }

@@ -292,10 +292,10 @@ ClassDeclWriter: abstract class extends CGenerator {
             
             interfaceImpl := realClass getNonMeta() as InterfaceImpl
             for(alias: FunctionAlias in interfaceImpl getAliases()) {
-                current app('.'). app(alias key getName()). app(" = (void*) ")
+                current nl(). app('.'). app(alias key getName()). app(" = (void*) ")
                 FunctionDeclWriter writeFullName(this, alias value)
                 if(!alias value isFinal()) current app("_impl")
-                current app(","). nl()
+                current app(",")
             }
         }
 

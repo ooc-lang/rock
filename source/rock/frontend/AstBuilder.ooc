@@ -140,6 +140,10 @@ AstBuilder: class {
     onCoverExtends: unmangled(nq_onCoverExtends) func (superType: Type) {
         peek(CoverDecl) setSuperType(superType)
     }
+    
+    onCoverImplements: unmangled(nq_onCoverImplements) func (interfaceType: Type) {
+        peek(CoverDecl) addInterface(interfaceType)
+    }
 
     onCoverEnd: unmangled(nq_onCoverEnd) func {
         pop(CoverDecl)

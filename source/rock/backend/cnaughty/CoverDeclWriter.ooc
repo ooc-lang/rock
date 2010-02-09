@@ -1,6 +1,6 @@
 import structs/[List, ArrayList, HashMap]
 import ../../middle/[ClassDecl, FunctionDecl, VariableDecl, TypeDecl, Type, Node, CoverDecl]
-import Skeleton, FunctionDeclWriter, TypeWriter
+import Skeleton, FunctionDeclWriter, TypeWriter, ClassDeclWriter
 
 CoverDeclWriter: abstract class extends Skeleton {
 
@@ -18,6 +18,10 @@ CoverDeclWriter: abstract class extends Skeleton {
 			fDecl accept(this)
             current nl()
 		}
+        
+        for(interfaceDecl in cDecl getInterfaceDecls()) {
+            ClassDeclWriter write(this, interfaceDecl)
+        }
         
     }
     

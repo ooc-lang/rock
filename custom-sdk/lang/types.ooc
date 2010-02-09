@@ -549,7 +549,7 @@ String: cover from Char* {
         va_end(list)
 
         va_start(list, this)
-        vsnprintf(output, length, this, list)
+        vsnprintf(output, length + 1, this, list)
         va_end(list)
 
         return output

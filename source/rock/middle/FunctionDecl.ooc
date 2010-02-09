@@ -94,6 +94,7 @@ FunctionDecl: class extends Declaration {
     getType: func -> Type { type }
 
     getArgsRepr: func -> String {
+        if(args size() == 0) return ""
         sb := StringBuffer new()
         sb append("(")
         isFirst := true
@@ -107,7 +108,7 @@ FunctionDecl: class extends Declaration {
     }
     
     toString: func -> String {
-        (suffix ? (name + "~" + suffix) : name) + (isStatic ? ": static func " : ": func ") + getArgsRepr()
+        (suffix ? (name + "~" + suffix) : name) + (isStatic ? ": static func " : ": func ") + getArgsRepr() + (hasReturn() ? " -> " + returnType toString() : "")
     }
     
     isResolved: func -> Bool { false }
