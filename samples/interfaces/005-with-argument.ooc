@@ -9,7 +9,7 @@ kill : func(killable: Killable) {
 
 Dog : class implements Killable {
     trap: func -> String {"HAHA it doesn't work"}
-    dyingNoise : func (n: Int) -> String { "yowl! " * n }
+    dyingNoise : func (n: Int) -> String { printf("Yowling %d times\n", n); "yowl! " * n }
 }
 
 

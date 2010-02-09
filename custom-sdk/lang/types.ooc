@@ -468,7 +468,7 @@ String: cover from Char* {
     /** return a string that contains *this*, repeated *count* times. */
     times: func (count: Int) -> This {
         length := length()
-        result := This new(length * count)
+        result := This new(length * count) as Char*
         for(i in 0..count) {
             memcpy(result + (i * length), this, length)
         }
@@ -480,7 +480,7 @@ String: cover from Char* {
     append: func(other: This) -> This {
         length := length()
         rlength := other length()
-        copy := This new(length + rlength)
+        copy := This new(length + rlength) as Char*
         memcpy(copy, this, length)
         memcpy(copy + length, other, rlength + 1) // copy the final '\0'
         return copy
@@ -489,7 +489,7 @@ String: cover from Char* {
     /** return a string containing *this* followed by *other*. */
     append: func ~char (other: Char) -> This {
         length := length()
-        copy := This new(length + 1)
+        copy := This new(length + 1) as Char*
         memcpy(copy, this, length)
         copy[length] = other
         copy[length + 1] = '\0'
@@ -504,7 +504,7 @@ String: cover from Char* {
     /** return a new string containing *other* followed by *this*. */
     prepend: func ~char (other: Char) -> This {
         length := length()
-        copy := This new(length + 1)
+        copy := This new(length + 1) as Char*
         copy[0] = other
         memcpy(copy + 1, this, length)
         return copy
@@ -513,7 +513,7 @@ String: cover from Char* {
     /** return a new string with all characters lowercased (if possible). */
     toLower: func -> This {
         length := length()
-        copy := This new(length)
+        copy := This new(length) as Char*
         for(i in 0..length) {
             copy[i] = this[i] as Char toLower()
         }
@@ -523,7 +523,7 @@ String: cover from Char* {
     /** return a new string with all characters uppercased (if possible). */
     toUpper: func -> This {
         length := length()
-        copy := This new(length)
+        copy := This new(length) as Char*
         for(i in 0..length) {
             copy[i] = this[i] as Char toUpper()
         }

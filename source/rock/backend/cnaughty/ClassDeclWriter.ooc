@@ -256,28 +256,32 @@ ClassDeclWriter: abstract class extends CGenerator {
             writeClassStructInitializers(this, parentClass getSuperRef(), realClass, done, false)
         }
 
-        for (parentDecl: FunctionDecl in parentClass functions) {
-            if(done contains(parentDecl)) {
-                continue
-            }
-            
-            realDecl : FunctionDecl = null
-            if(realClass != parentClass) {
-                realDecl = realClass getFunction(parentDecl name, parentDecl suffix, null, true)
-                if(realDecl != parentDecl) {
-                    if(done contains(realDecl)) {
-                        continue
-                    }
-                    done add(realDecl)
+        if(parentClass != realClass ||
+           realClass getNonMeta() == null ||
+           !realClass getNonMeta() instanceOf(InterfaceDecl)) {
+            for (parentDecl: FunctionDecl in parentClass functions) {
+                if(done contains(parentDecl)) {
+                    continue
                 }
-            }
-            
-            if (parentDecl isFinal()) continue; // skip it.
-            
-            if (parentDecl isStatic() || (realDecl == null && parentDecl isAbstract())) {
-                writeDesignatedInit(this, parentDecl, realDecl, false)
-            } else {
-                writeDesignatedInit(this, parentDecl, realDecl, true)
+                
+                realDecl : FunctionDecl = null
+                if(realClass != parentClass) {
+                    realDecl = realClass getFunction(parentDecl name, parentDecl suffix, null, true)
+                    if(realDecl != parentDecl) {
+                        if(done contains(realDecl)) {
+                            continue
+                        }
+                        done add(realDecl)
+                    }
+                }
+                
+                if (parentDecl isFinal()) continue; // skip it.
+                
+                if (parentDecl isStatic() || (realDecl == null && parentDecl isAbstract())) {
+                    writeDesignatedInit(this, parentDecl, realDecl, false)
+                } else {
+                    writeDesignatedInit(this, parentDecl, realDecl, true)
+                }
             }
         }
         

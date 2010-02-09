@@ -10,8 +10,13 @@ InterfaceDecl: class extends ClassDecl {
         super(name, token)
         
         fatType = CoverDecl new(name + "__reference", token)
-        fatType addVariable(VariableDecl new(BaseType new("Object", token), "obj", token))
+        // "If you're gonna crash, do it as soon and as noisily as possible"
+        // declaring 'obj' first would hide a bug with calls to interface functions
+        // that have at least one argument.
+        // Done this way, it will only work if "this.obj" is passed, not "this" with
+        // incorrect function prototypes
         fatType addVariable(VariableDecl new(getType(), "impl", token))
+        fatType addVariable(VariableDecl new(BaseType new("Object", token), "obj", token))
     }
     
     getInstanceType: func -> Type { fatType getInstanceType() }

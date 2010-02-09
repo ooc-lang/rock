@@ -1,5 +1,5 @@
 import ../../middle/[FunctionDecl, TypeDecl, ClassDecl, Argument, Type, InterfaceDecl]
-import Skeleton, CGenerator
+import Skeleton, CGenerator, ClassDeclWriter
 import ../../frontend/BuildParams
 include stdint
 
@@ -95,8 +95,13 @@ FunctionDeclWriter: abstract class extends CGenerator {
                         current app("("). app(baseType getNonMeta() getInstanceType()). app(")")
                     }
                     current app("this")
+                    if(isInterface) current app(".obj")
                 case ArgsWriteModes TYPES_ONLY =>
-                    current app(type)
+                    if(isInterface) {
+                        current app("void*")
+                    } else {
+                        current app(type)
+                    }
                 case =>
                     current app(type). app(" this")
             }
