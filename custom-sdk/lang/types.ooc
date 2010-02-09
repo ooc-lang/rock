@@ -193,17 +193,38 @@ String: cover from char* {
     
     length: extern(strlen) func -> SizeT
     
+    /** return a string that contains *this* followed by *other*. */
     append: func(other: This) -> This {
         length := length()
         rlength := other length()
         copy := gc_malloc(length + rlength + 1) as Char*
         memcpy(copy, this, length)
-        memcpy(copy as Char* + length, other, rlength + 1) // copy the final '\0'
+        memcpy(copy + length, other, rlength + 1) // copy the final '\0'
         return copy
     }
     
+    /** return a string containing *this* followed by *other*. */
+    append: func ~char (other: Char) -> This {
+        length := length()
+        copy := gc_malloc(length + 2) as Char*
+        memcpy(copy, this, length)
+        copy[length] = other
+        copy[length + 1] = '\0'
+        return copy
+    }
+    
+    /** return a new string containg *other* followed by *this*. */
     prepend: func (other: This) -> This {
         other append(this)
+    }
+    
+    /** return a new string containing *other* followed by *this*. */
+    prepend: func ~char (other: Char) -> This {
+        length := length()
+        copy := gc_malloc(length + 2) as Char*
+        copy[0] = other
+        memcpy(copy + 1, this, length)
+        return copy
     }
     
     format: func (...) -> String {
@@ -229,7 +250,6 @@ operator + (left, right: String) -> String {
     return left append(right)
 }
 
-/*
 operator + (left: LLong, right: String) -> String {
     left toString() + right
 }
@@ -269,7 +289,6 @@ operator + (left: String, right: Char) -> String {
 operator + (left: Char, right: String) -> String {
     right prepend(left)
 }
-*/
 
 LLong: cover from signed long long {
     
@@ -327,7 +346,19 @@ Bool:   cover from bool {
 /**
  * real types
  */
-LDouble: cover from long double
+LDouble: cover from long double {
+    
+    toString: func -> String {
+        str = gc_malloc(64) : String
+        sprintf(str, "%.2Lf", this)
+        str
+    }
+    
+    abs: func -> This {
+        return this < 0 ? -this : this
+    }
+    
+}
 Double: cover from double extends LDouble
 Float: cover from float extends LDouble
 

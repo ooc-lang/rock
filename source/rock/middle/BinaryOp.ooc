@@ -1,7 +1,7 @@
 import structs/ArrayList
 import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
-       Import, Module, FunctionCall
+       Import, Module, FunctionCall, ClassDecl, CoverDecl
 import tinker/[Trail, Resolver, Response]
 
 include stdint
@@ -152,8 +152,50 @@ BinaryOp: class extends Expression {
             }
         }
         
+        if(!isLegal(res)) {
+            if(res fatal) {
+                token throwError("Invalid use of operator %s between operands of type %s and %s\n" format(
+                    OpTypes repr get(type), left getType() toString(), right getType() toString()))
+            }
+            res wholeAgain(this, "Illegal use, looping in hope.")
+        }
+                
         return Responses OK
         
+    }
+    
+    isLegal: func (res: Resolver) -> Bool {
+        if(left getType() == null || left getType() getRef() == null || right getType() == null || right getType() getRef() == null) {
+            // must resolve first
+            res wholeAgain(this, "Unresolved types, looping to determine legitness left = %s (who is null? %s, %s, %s, %s)" format(
+              left toString(),
+             (left getType() == null) as Bool toString(),
+             (left getType() != null && left getType() getRef() == null) as Bool toString(),
+             (right getType() == null) as Bool toString(),
+             (right getType() != null && right getType() getRef() == null) as Bool toString()))
+            return true
+        }
+        if(left getType() getName() == "Pointer" || right getType() getName() == "Pointer") {
+            // pointer arithmetic: you can add, subtract, and assign pointers
+            return (type == OpTypes add ||
+                    type == OpTypes sub ||
+                    type == OpTypes addAss ||
+                    type == OpTypes subAss ||
+                    type == OpTypes ass)
+        }
+        if(left getType() getRef() instanceOf(ClassDecl) ||
+           right getType() getRef() instanceOf(ClassDecl)) {
+            // you can only assign - all others must be overloaded
+            return (type == OpTypes ass)
+        }
+        if((left  getType() getRef() instanceOf(CoverDecl) &&
+            left  getType() getRef() as CoverDecl getFromType() == null) ||
+           (right getType() getRef() instanceOf(CoverDecl) &&
+            right getType() getRef() as CoverDecl getFromType() == null)) {
+            // you can only assign structs, others must be overloaded
+            return (type == OpTypes ass)
+        }
+        return true
     }
     
     resolveOverload: func (trail: Trail, res: Resolver) -> Response {

@@ -11,6 +11,8 @@ voidType ref = BuiltinType new("void", nullToken)
 
 Type: abstract class extends Expression {
     
+    NOLUCK_SCORE := const -100000
+    
     init: func ~type (.token) {
         super(token)
     }
@@ -56,16 +58,18 @@ Type: abstract class extends Expression {
     }
     
     getScore: func (other: This) -> Int {
-        scoreSeed := 4096
+        bestScore := NOLUCK_SCORE
+        scoreSeed := 1024
         current := this
         while(current != null) {
             score := getScoreImpl(other, scoreSeed)
-            if(score > 0) {
-                return score
+            if(score > bestScore) {
+                bestScore = score
             }
             current = current dig()
             scoreSeed -= 1
         }
+        return bestScore
     }
     
     getScoreImpl: abstract func (other: This, scoreSeed: Int) -> Int
@@ -109,7 +113,7 @@ FuncType: class extends Type {
         if(other instanceOf(FuncType)) {
             return scoreSeed
         }
-        return 0
+        return NOLUCK_SCORE
     }
     
     dig: func -> Type { null }
@@ -222,9 +226,9 @@ BaseType: class extends Type {
     
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
         if(other instanceOf(BaseType)) {
-            return (other getName() equals(getName()) ? scoreSeed : 0)
+            return (other getName() equals(getName()) ? scoreSeed : NOLUCK_SCORE)
         }
-        return 0
+        return NOLUCK_SCORE // no luck.
     }
     
     // should we throw an error or something?
@@ -279,7 +283,7 @@ SugarType: abstract class extends Type {
     getTypeArgs: func -> List<VariableDecl> { inner getTypeArgs() }
     
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
-        return (other instanceOf(class) ? inner getScore(other as SugarType inner) : 0)
+        return (other instanceOf(class) ? inner getScore(other as SugarType inner) : NOLUCK_SCORE)
     }
     
     getName: func -> String { inner getName() }
