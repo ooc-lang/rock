@@ -2,7 +2,8 @@ import io/File, text/EscapeSequence
 import structs/[HashMap, ArrayList, List]
 import ../frontend/[Token, SourceReader, BuildParams]
 import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl,
-       FunctionCall, Type, Declaration, VariableAccess, OperatorDecl
+       FunctionCall, Type, Declaration, VariableAccess, OperatorDecl,
+       Scope
 import tinker/[Response, Resolver, Trail]
 
 Module: class extends Node {
@@ -16,6 +17,8 @@ Module: class extends Node {
     includes := ArrayList<Include> new()
     imports  := ArrayList<Import> new()
     uses     := ArrayList<Use> new()
+    
+    body     := Scope new()
 
     lastModified : Long
 
@@ -83,24 +86,29 @@ Module: class extends Node {
 
     resolveAccess: func (access: VariableAccess) {
 
-        ref : Declaration = null
+        // TODO: optimize by returning as soon as the access is resolved
 
-        //printf("Looking for %s in %s\n", access toString(), toString())
+        resolveAccessNonRecursive(access)
+
+        for(imp in imports) {
+            imp getModule() resolveAccessNonRecursive(access)
+        }
+        
+    }
+    
+    resolveAccessNonRecursive: func (access: VariableAccess) {
+        
+        ref := null as Declaration
+
+        printf("Looking for %s in %s\n", access toString(), toString())
 
         ref = types get(access name)
         if(ref != null && access suggest(ref)) {
             return
         }
-
-        for(imp in imports) {
-            //printf("Looking in import %s\n", imp path)
-            ref = imp getModule() types get(access name)
-            if(ref != null && access suggest(ref)) {
-                //("Found type " + access name + " in " + imp getModule() fullName)
-                break
-            }
-        }
-
+        
+        body resolveAccess(access)
+        
     }
 
     resolveCall: func (call: FunctionCall) {
@@ -149,6 +157,14 @@ Module: class extends Node {
 
         trail push(this)
 
+        {
+            response := body resolve(trail, res)
+            if(!response ok()) {
+                if(res params verbose) printf("response of body = %s\n", response toString())
+                finalResponse = response
+            }
+        }
+
         for(tDecl in types) {
             if(tDecl isResolved()) continue
             response := tDecl resolve(trail, res)
@@ -186,5 +202,7 @@ Module: class extends Node {
     }
 
     replace: func (oldie, kiddo: Node) -> Bool { false }
+    
+    isScope: func -> Bool { true }
 
 }

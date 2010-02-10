@@ -1,5 +1,7 @@
 include stdio
 
+stdout, stderr, stdin: extern FStream
+
 println: func ~withStr (str: String) {
 	printf("%s\n", str)
 }
@@ -98,5 +100,3 @@ FStream: cover from FILE* {
 	}
 	
 }
-
-stdout, stderr, stdin : extern FStream

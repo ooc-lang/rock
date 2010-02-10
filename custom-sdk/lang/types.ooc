@@ -448,8 +448,7 @@ String: cover from Char* {
     /** print *this* to stdout without a following newline. Flush stdout. */
     print: func {
         printf("%s", this)
-        //FIXME: add globals
-        //fflush(stdout)
+        fflush(stdout)
     }
     
     /** print *this* followed by a newline. */
@@ -764,8 +763,7 @@ Exception: class {
     init: func ~noOrigin (=msg) {}
     
     crash: func {
-        //FIXME: add global variables support for rock!
-        //fflush(stdout)
+        fflush(stdout)
         x := 0
         x = 1 / x
     }
@@ -780,8 +778,7 @@ Exception: class {
     }
     
     print: func {
-        //FIXME: add global variable support for rock!
-        //fprintf(stderr, "%s", getMessage())
+        fprintf(stderr, "%s", getMessage())
         printf("%s", getMessage())
     }
     

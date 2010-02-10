@@ -258,7 +258,7 @@ AstBuilder: class {
             vd isArg = true
             node as List<Node> add(vd)
         } else {
-            //printf("[gotVarDecl] Parent is a %s, don't know what to do, calling gotStatement()\n", node class name)
+            printf("[gotVarDecl] Parent is a %s, don't know what to do, calling gotStatement()\n", node class name)
             gotStatement(vd)
         }
     }
@@ -395,7 +395,7 @@ AstBuilder: class {
     // statement
     onStatement: unmangled(nq_onStatement) func (stmt: Statement) {
         if(stmt instanceOf(VariableDecl)) {
-            //printf("[onStatement] stmt is a VariableDecl, calling gotVarDecl\n")
+            //printf("[onStatement] stmt %s is a VariableDecl, calling gotVarDecl\n", stmt toString())
             gotVarDecl(stmt)
             return
         } else if(stmt instanceOf(Stack<VariableDecl>)) {
@@ -403,6 +403,7 @@ AstBuilder: class {
             if(stack T inheritsFrom(VariableDecl)) {
                 //printf("[onStatement] stmt is a Stack<VariableDecl>, calling gotVarDecl on each of'em\n")
                 for(vd in stack) {
+                    //printf("[onStatement] among em, %s\n", vd toString())
                     gotVarDecl(vd)
                 }
                 return
@@ -417,11 +418,15 @@ AstBuilder: class {
 
         match {
             case node instanceOf(FunctionDecl) =>
-                fDecl : FunctionDecl = node
+                fDecl := node as FunctionDecl
                 fDecl body add(stmt)
             case node instanceOf(ControlStatement) =>
-                cStmt : ControlStatement = node
+                cStmt := node as ControlStatement
                 cStmt body add(stmt)
+            case node instanceOf(Module) =>
+                printf("Added stmt %s to body of module %s\n", stmt toString(), node toString())
+                module := node as Module
+                module body add(stmt)
             case =>
                 printf("[gotStatement] Got a %s, don't know what to do with it, parent = %s\n", stmt toString(), node class name)
         }
