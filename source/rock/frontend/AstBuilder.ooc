@@ -121,15 +121,12 @@ AstBuilder: class {
         module addImport(Import new(path isEmpty() ? name : path + name))
     }
     
-    onImportNamespace: unmangled(nq_onImportNamespace) func (namespace: String) {
+    onImportNamespace: unmangled(nq_onImportNamespace) func (namespace: String, quantity: Int) {
         nDecl := NamespaceDecl new(namespace clone())
-        node := peek(Object)
-        match {
-            case node instanceOf(Module) =>
-                nDecl addImport(module getGlobalImports() last())
-                module getGlobalImports() removeAt(module getGlobalImports() lastIndex()) // no longer a global import
-            case node instanceOf(List) =>
-                printf("Multi-namespaced-imports not handled yet!")
+        peek(Module) // ensure we're a at root level
+        for(i in 0..quantity) {
+            nDecl addImport(module getGlobalImports() last())
+            module getGlobalImports() removeAt(module getGlobalImports() lastIndex()) // no longer a global import
         }
         printf("Just got namespaced import %s!\n", nDecl toString())
         module addNamespace(nDecl)

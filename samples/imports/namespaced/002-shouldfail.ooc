@@ -1,6 +1,6 @@
-import io/File into Y
+import threading/Thread into threading
+import threading/Runnable
 
 main: func {
-    f := File new("001-into.ooc")
-    f name() println()
+    "%s, %s" format(Runnable name, Thread name)
 }

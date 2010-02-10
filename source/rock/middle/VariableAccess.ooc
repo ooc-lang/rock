@@ -92,7 +92,7 @@ VariableAccess: class extends Expression {
          * Try to resolve the access from the expr
          */
         if(!ref && expr) {
-            if(expr instanceOf(VariableAccess) && expr as VariableAccess getRef() instanceOf(NamespaceDecl)) {
+            if(expr instanceOf(VariableAccess) && expr as VariableAccess getRef() != null && expr as VariableAccess getRef() instanceOf(NamespaceDecl)) {
                 printf("============ expr ref is a NamespaceDecl!!\n")
                 expr as VariableAccess getRef() resolveAccess(this)
             } else {
