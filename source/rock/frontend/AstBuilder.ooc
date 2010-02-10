@@ -258,7 +258,7 @@ AstBuilder: class {
             vd isArg = true
             node as List<Node> add(vd)
         } else {
-            printf("[gotVarDecl] Parent is a %s, don't know what to do, calling gotStatement()\n", node class name)
+            //printf("[gotVarDecl] Parent is a %s, don't know what to do, calling gotStatement()\n", node class name)
             gotStatement(vd)
         }
     }
@@ -424,7 +424,10 @@ AstBuilder: class {
                 cStmt := node as ControlStatement
                 cStmt body add(stmt)
             case node instanceOf(Module) =>
-                printf("Added stmt %s to body of module %s\n", stmt toString(), node toString())
+                if(stmt instanceOf(VariableDecl)) {
+                    vd := stmt as VariableDecl
+                    vd setGlobal(true)
+                }
                 module := node as Module
                 module body add(stmt)
             case =>

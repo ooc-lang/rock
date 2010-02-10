@@ -11,6 +11,7 @@ VariableDecl: class extends Declaration {
     owner: TypeDecl
 
     isArg := false // ugly hack.. =D
+    isGlobal := false // ugly hack #2.. =D
     isConst := false
     isStatic := false
     externName: String = null
@@ -46,6 +47,11 @@ VariableDecl: class extends Declaration {
     
     isStatic: func -> Bool { isStatic }
     setStatic: func (=isStatic) {}
+    
+    isGlobal: func -> Bool { isGlobal }
+    setGlobal: func (=isGlobal) {}
+    
+    isArg: func -> Bool { isArg }
 
     getExternName: func -> String { externName }
     setExternName: func (=externName) {}

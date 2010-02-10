@@ -100,7 +100,7 @@ Module: class extends Node {
         
         ref := null as Declaration
 
-        printf("Looking for %s in %s\n", access toString(), toString())
+        //printf("Looking for %s in %s\n", access toString(), toString())
 
         ref = types get(access name)
         if(ref != null && access suggest(ref)) {
