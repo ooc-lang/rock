@@ -3,22 +3,23 @@ import structs/[HashMap, ArrayList, List]
 import ../frontend/[Token, SourceReader, BuildParams]
 import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl,
        FunctionCall, Type, Declaration, VariableAccess, OperatorDecl,
-       Scope
+       Scope, NamespaceDecl
 import tinker/[Response, Resolver, Trail]
 
 Module: class extends Node {
 
     path, fullName, simpleName, packageName, underName, pathElement : String
 
-    types     := HashMap<TypeDecl> new()
-    functions := HashMap<FunctionDecl> new()
-    operators := ArrayList<OperatorDecl> new()
+    types      := HashMap<TypeDecl> new()
+    functions  := HashMap<FunctionDecl> new()
+    operators  := ArrayList<OperatorDecl> new()
 
-    includes := ArrayList<Include> new()
-    imports  := ArrayList<Import> new()
-    uses     := ArrayList<Use> new()
+    includes   := ArrayList<Include> new()
+    imports    := ArrayList<Import> new()
+    namespaces := HashMap<NamespaceDecl> new()
+    uses       := ArrayList<Use> new()
     
-    body     := Scope new()
+    body       := Scope new()
 
     lastModified : Long
 
@@ -62,6 +63,18 @@ Module: class extends Node {
     addOperator: func (oDecl: OperatorDecl) {
         operators add(oDecl)
     }
+    
+    addImport: func (imp: Import) {
+        imports add(imp)
+    }
+    
+    addInclude: func (inc: Include) {
+        includes add(inc)
+    }
+    
+    addNamespace: func (nDecl: NamespaceDecl) {
+        namespaces put(nDecl getName(), nDecl)
+    }
 
     getOperators: func -> List<OperatorDecl> { operators }
     getTypes:     func -> HashMap<TypeDecl>  { types }
@@ -82,16 +95,35 @@ Module: class extends Node {
         return parentPath
     }
 
-    getImports: func -> List<Import> { imports }
+    /** return global (e.g. non-namespaced) imports */
+    getGlobalImports: func -> List<Import> { imports }
+    
+    /** return all imports, including those in namespaces */
+    getAllImports: func -> List<Import> {
+        if(namespaces isEmpty()) return imports
+        
+        list := ArrayList<Import> new()
+        list addAll(getGlobalImports())
+        for(namespace in namespaces)
+            list addAll(namespace getImports())
+        return list
+    }
 
     resolveAccess: func (access: VariableAccess) {
+        
+        printf("Looking for %s in %s\n", access toString(), toString())
 
         // TODO: optimize by returning as soon as the access is resolved
-
         resolveAccessNonRecursive(access)
 
-        for(imp in imports) {
+        for(imp in getGlobalImports()) {
             imp getModule() resolveAccessNonRecursive(access)
+        }
+        
+        namespace := namespaces get(access getName())
+        if(namespace != null) {
+            printf("resolved access %s to namespace %s!\n", access getName(), namespace toString())
+            access suggest(namespace)
         }
         
     }
@@ -99,8 +131,6 @@ Module: class extends Node {
     resolveAccessNonRecursive: func (access: VariableAccess) {
         
         ref := null as Declaration
-
-        //printf("Looking for %s in %s\n", access toString(), toString())
 
         ref = types get(access name)
         if(ref != null && access suggest(ref)) {
@@ -122,7 +152,7 @@ Module: class extends Node {
             if(call suggest(fDecl)) return
         }
 
-        for(imp in imports) {
+        for(imp in getGlobalImports()) {
             fDecl = imp getModule() functions get(call name)
             if(fDecl) {
                 //"&&&&&&&& Found fDecl for call %s in module %s\n" format(call name, imp getModule() fullName) println()
@@ -140,7 +170,7 @@ Module: class extends Node {
             return
         }
 
-        for(imp in imports) {
+        for(imp in getGlobalImports()) {
             //printf("Looking in import %s\n", imp path)
             ref = imp getModule() types get(type name)
             if(ref != null && type suggest(ref)) {

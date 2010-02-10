@@ -1,6 +1,6 @@
 import ../frontend/[Token, BuildParams]
 import Visitor, Expression, VariableDecl, FunctionDecl, TypeDecl,
-	   Declaration, Type, Node, ClassDecl
+	   Declaration, Type, Node, ClassDecl, NamespaceDecl
 import tinker/[Resolver, Response, Trail]
 
 VariableAccess: class extends Expression {
@@ -57,7 +57,7 @@ VariableAccess: class extends Expression {
 		    
 		    ref = candidate
 		    return true
-	    } else if(node instanceOf(TypeDecl)) {
+	    } else if(node instanceOf(TypeDecl) || node instanceOf(NamespaceDecl)) {
 			ref = node
             return true
 	    }
@@ -92,19 +92,24 @@ VariableAccess: class extends Expression {
          * Try to resolve the access from the expr
          */
         if(!ref && expr) {
-            exprType := expr getType()
-            if(exprType == null) {
-                res wholeAgain(this, "expr's type isn't resolved yet, and it's needed to resolve the access")
-                return Responses OK
+            if(expr instanceOf(VariableAccess) && expr as VariableAccess getRef() instanceOf(NamespaceDecl)) {
+                printf("============ expr ref is a NamespaceDecl!!\n")
+                expr as VariableAccess getRef() resolveAccess(this)
+            } else {
+                exprType := expr getType()
+                if(exprType == null) {
+                    res wholeAgain(this, "expr's type isn't resolved yet, and it's needed to resolve the access")
+                    return Responses OK
+                }
+                //printf("Null ref and non-null expr (%s), looking in type %s\n", expr toString(), exprType toString())
+                typeDecl := exprType getRef()
+                if(!typeDecl) {
+                    if(res fatal) expr token throwError("Can't resolve type %s" format(expr getType() toString()))
+                    if(res params verbose) printf("     - access to %s%s still not resolved, looping (ref = %s)\n", expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)")
+                    return Responses LOOP
+                }
+                typeDecl resolveAccess(this)
             }
-            //printf("Null ref and non-null expr (%s), looking in type %s\n", expr toString(), exprType toString())
-            typeDecl := exprType getRef()
-            if(!typeDecl) {
-                if(res fatal) expr token throwError("Can't resolve type %s" format(expr getType() toString()))
-                if(res params verbose) printf("     - access to %s%s still not resolved, looping (ref = %s)\n", expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)")
-                return Responses LOOP
-            }
-            typeDecl resolveAccess(this)
         }
         
         /*

@@ -217,7 +217,7 @@ BinaryOp: class extends Expression {
             }
         }
         
-        for(imp in trail module() getImports()) {
+        for(imp in trail module() getAllImports()) {
             module := imp getModule()
             for(opDecl in module getOperators()) {
                 score := getScore(opDecl, reqType)

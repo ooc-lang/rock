@@ -83,7 +83,7 @@ ModuleWriter: abstract class extends Skeleton {
     /** Classify imports between 'tight' and 'loose' */
     classifyImports: static func (this: This, module: Module) -> List<Import> {
 
-        imports := module getImports() clone()
+        imports := module getAllImports() clone()
 
         for(selfDecl in module getTypes()) {
             for(imp in imports) {

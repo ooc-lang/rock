@@ -4,13 +4,13 @@ Thread: abstract class {
 
     runnable: Runnable
 
-    new: static func ~fromRunnable (=runnable) -> This {
+    new: static func ~fromRunnable (.runnable) -> This {
 
         //version (unix || apple) {
-        //  return ThreadUnix new(runnable) as This
+            return ThreadUnix new(runnable) as This
         //}
         //version (windows) {
-            return ThreadWin32 new(runnable) as This
+        //  return ThreadWin32 new(runnable) as This
         //}
 
         Exception new(This, "Unsupported platform!\n") throw()

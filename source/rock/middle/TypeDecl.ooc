@@ -215,7 +215,7 @@ TypeDecl: abstract class extends Declaration {
         recursive: Bool, bestScore: Int, bestMatch: FunctionDecl) -> FunctionDecl {
 
         for(fDecl: FunctionDecl in functions) {
-            if(fDecl name equals(name) && (suffix == null || fDecl suffix equals(suffix))) {
+            if(fDecl name equals(name) && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix equals(suffix))) {
                 if(!call) return fDecl
                 score := call getScore(fDecl)
                 if(score == -1) return null // special score that means "something isn't resolved"
@@ -234,7 +234,7 @@ TypeDecl: abstract class extends Declaration {
                 if(_fDecl isStatic()) continue
                 fDecl := _fDecl getStaticVariant()
                 if(!fDecl) continue
-                if(fDecl name equals(name) && (suffix == null || fDecl suffix equals(suffix))) {
+                if(fDecl name equals(name) && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix equals(suffix))) {
                     if(!call) return fDecl
                     score := call getScore(fDecl)
                     if(score == -1) return null // special score that means "something isn't resolved"

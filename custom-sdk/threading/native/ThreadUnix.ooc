@@ -1,11 +1,10 @@
-//import ../[Thread, Runnable]
-//include pthread, unistd
+import ../[Thread, Runnable]
+include pthread, unistd
 
 //version(linux) {
 
 /* covers & extern functions */
 
-/*
 PThread: cover from pthread_t
 pthread_create: extern func (...) -> Int
 pthread_join:   extern func (...) -> Int
@@ -28,6 +27,5 @@ ThreadUnix: class extends Thread {
     }
 
 }
-*/
 
 //}

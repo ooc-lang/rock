@@ -10,7 +10,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Comparison, IntLiteral, FloatLiteral, Ternary, BinaryOp, BoolLiteral,
     NullLiteral, Argument, Parenthesis, AddressOf, Dereference, Foreach,
     OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess, Match, FlowControl,
-    While, CharLiteral, InterfaceDecl]
+    While, CharLiteral, InterfaceDecl, NamespaceDecl]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -56,7 +56,7 @@ AstBuilder: class {
                 impName := path substring(0, path length() - 4)
                 if(impName != module fullName) {
                     //printf("Adding import %s to %s\n", impName, module fullName)
-                    module imports add(Import new(impName))
+                    module addImport(Import new(impName))
                 }
             }
         }
@@ -65,7 +65,7 @@ AstBuilder: class {
 
     parseImports: func {
 
-        for(imp: Import in module imports) {
+        for(imp: Import in module getAllImports()) {
             path := FileUtils resolveRedundancies(imp path + ".ooc")
 
             impElement := params sourcePath getElement(path)
@@ -114,11 +114,25 @@ AstBuilder: class {
     }
 
     onInclude: unmangled(nq_onInclude) func (path, name: String) {
-        module includes add(Include new(path isEmpty() ? name : path + name, IncludeModes PATHY))
+        module addInclude(Include new(path isEmpty() ? name : path + name, IncludeModes PATHY))
     }
 
     onImport: unmangled(nq_onImport) func (path, name: String) {
-        module imports add(Import new(path isEmpty() ? name : path + name))
+        module addImport(Import new(path isEmpty() ? name : path + name))
+    }
+    
+    onImportNamespace: unmangled(nq_onImportNamespace) func (namespace: String) {
+        nDecl := NamespaceDecl new(namespace clone())
+        node := peek(Object)
+        match {
+            case node instanceOf(Module) =>
+                nDecl addImport(module getGlobalImports() last())
+                module getGlobalImports() removeAt(module getGlobalImports() lastIndex()) // no longer a global import
+            case node instanceOf(List) =>
+                printf("Multi-namespaced-imports not handled yet!")
+        }
+        printf("Just got namespaced import %s!\n", nDecl toString())
+        module addNamespace(nDecl)
     }
 
     /*

@@ -1,6 +1,16 @@
-import io/File into Y
+import threading/Thread into threading
+import threading/Runnable
+
+MyRunnable: class extends Runnable {
+    
+    run: func {
+        printf("Huhu.\n")
+    }
+    
+}
 
 main: func {
-    f := Y File new("001-into.ooc")
-    f name() println()
+    t := threading Thread new(MyRunnable new())
+    t start()
+    t wait()
 }

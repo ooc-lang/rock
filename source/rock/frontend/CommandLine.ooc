@@ -367,7 +367,7 @@ CommandLine: class {
     collectModules: func (module: Module, list: List<Module>) {
         
         list add(module)
-		for(imp in module imports) {
+		for(imp in module getAllImports()) {
 			if(!list contains(imp getModule())) {
 				collectModules(imp getModule(), list)
 			}

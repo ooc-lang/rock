@@ -43,7 +43,7 @@ Driver: abstract class {
             }
         }
         
-        for(imp: Import in module imports) {
+        for(imp: Import in module getAllImports()) {
             copyLocalHeaders(imp module, params, done) 
         }
         
@@ -57,7 +57,7 @@ Driver: abstract class {
         objFile := params getOutputPath(module, ".c")
         params compiler addObjectFile(objFile) 
         
-        for(imp: Import in module imports) {
+        for(imp: Import in module getAllImports()) {
             if(!done contains(imp module fullName)) {
                 addDeps(imp module, toCompile, done) 
             }
@@ -86,7 +86,7 @@ Driver: abstract class {
             getFlagsFromUse(useDef, flagsDone, usesDone) 
         }
         
-        for(imp: Import in module imports) {
+        for(imp: Import in module getAllImports()) {
             getFlagsFromUse(imp module, flagsDone, modulesDone, usesDone) 
         }
         
