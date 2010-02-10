@@ -70,10 +70,13 @@ AstBuilder: class {
 
             impElement := params sourcePath getElement(path)
             impPath := params sourcePath getFile(path)
-            if(!impPath) {
-                path = FileUtils resolveRedundancies(File new(module getPath()) parent() path + File separator + imp path + ".ooc")
-                impElement = params sourcePath getElement(path)
-                impPath = params sourcePath getFile(path)
+            if(impPath == null) {
+                parent := File new(module getPath()) parent()
+                if(parent != null) {
+                    path = FileUtils resolveRedundancies(File new(module getPath()) parent() path + File separator + imp path + ".ooc")
+                    impElement = params sourcePath getElement(path)
+                    impPath = params sourcePath getFile(path)
+                }
                 if(impPath == null) {
                     //throw new OocCompilationError(imp, module, "Module not found in sourcepath: "+imp path);
                     Exception new(This, "Module not found in sourcepath: " + imp path) throw()
