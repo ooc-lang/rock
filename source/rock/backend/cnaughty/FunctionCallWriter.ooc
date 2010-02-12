@@ -20,7 +20,7 @@ FunctionCallWriter: abstract class extends Skeleton {
         isFirst := true
         
         /* Step 1: write this, if any */
-        if(!fDecl isStatic() && fCall expr) {
+        if(!fDecl isStatic() && fCall isMember()) {
             isFirst = false
             callType := fCall expr getType()
             declType := fDecl owner getInstanceType()

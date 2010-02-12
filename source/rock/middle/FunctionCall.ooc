@@ -2,7 +2,7 @@ import structs/ArrayList, text/StringBuffer
 import ../frontend/[Token, BuildParams]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
-       InterfaceDecl, Cast
+       InterfaceDecl, Cast, NamespaceDecl
 import tinker/[Response, Resolver, Trail]
 
 FunctionCall: class extends Expression {
@@ -44,7 +44,7 @@ FunctionCall: class extends Expression {
     suggest: func (candidate: FunctionDecl) -> Bool {
         
         //"** Got suggestion %s for %s" format(candidate toString(), toString()) println()
-        if((expr != null) && (candidate owner == null)) {
+        if(isMember() && candidate owner == null) {
             //printf("** %s is no fit!, we need something to fit %s\n", candidate toString(), toString())
             return false
         }
@@ -122,7 +122,10 @@ FunctionCall: class extends Expression {
 				        node resolveCall(this)
 				        depth -= 1
 				    }
-			    } else if(expr getType() != null && expr getType() getRef() != null) {
+			    } else if(expr instanceOf(VariableAccess) && expr as VariableAccess getRef() != null && expr as VariableAccess getRef() instanceOf(NamespaceDecl)) {
+                    printf("============ [FunctionCall] expr ref is a NamespaceDecl!!\n")
+                    expr as VariableAccess getRef() resolveCall(this)
+                } else if(expr getType() != null && expr getType() getRef() != null) {
                     tDecl := expr getType() getRef() as TypeDecl
 		            meta := tDecl getMeta()
 		            if(meta) {
@@ -559,7 +562,13 @@ FunctionCall: class extends Expression {
     
     getType: func -> Type { returnType }
     
-    isMember: func -> Bool { expr != null }
+    isMember: func -> Bool {
+        (expr != null) &&
+        !(expr instanceOf(VariableAccess) &&
+          expr as VariableAccess getRef() != null &&
+          expr as VariableAccess getRef() instanceOf(NamespaceDecl)
+        )
+    }
     
     getArgsRepr: func -> String {
         sb := StringBuffer new()

@@ -1,6 +1,6 @@
 import structs/List
 import ../../middle/[Module, Include, Import, TypeDecl, FunctionDecl,
-       CoverDecl, ClassDecl, OperatorDecl, InterfaceDecl]
+       CoverDecl, ClassDecl, OperatorDecl, InterfaceDecl, VariableDecl]
 import CoverDeclWriter, ClassDeclWriter
 import Skeleton
 
@@ -59,6 +59,41 @@ ModuleWriter: abstract class extends Skeleton {
             if(!tDecl isMeta) continue
             tDecl accept(this)
         }
+        
+        // write all global variables
+        for(stmt in module body) {
+            if(stmt instanceOf(VariableDecl)) {
+                vd := stmt as VariableDecl
+                // TODO: add 'local'
+                if(vd isExtern()) continue
+                current = fw
+                current nl(). app("extern "). app(vd getType()). app(' '). app(vd getName()). app(';')
+                current = cw
+                current nl().                 app(vd getType()). app(' '). app(vd getName()). app(';')
+            }
+        }
+        
+        // write load function
+        current = fw
+        current nl(). app("void "). app(module getLoadFuncName()). app("();")
+        current = cw
+        current nl(). app("void "). app(module getLoadFuncName()). app("() {"). tab()
+        current nl(). app("static "). app("bool __done__ = false;"). nl(). app("if (!__done__)"). app("{"). tab()
+		current nl(). app("__done__ = true;")
+        for (imp in module getAllImports()) {
+			current nl(). app(imp getModule() getLoadFuncName()). app("();")
+		}
+        for(stmt in module body) {
+            if(stmt instanceOf(VariableDecl)) {
+                vd := stmt as VariableDecl
+                if(vd isExtern() || vd getExpr() == null) continue
+                current nl(). app(vd getName()). app(" = "). app(vd getExpr()). app(';')
+            } else {
+                writeLine(stmt)
+            }
+        }
+        current untab(). nl(). app("}")
+        current untab(). nl(). app("}"). nl()
 
         // write all functions
         for(fDecl: FunctionDecl in module functions) {

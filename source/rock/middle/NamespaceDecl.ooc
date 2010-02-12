@@ -2,7 +2,7 @@ import structs/[ArrayList, List]
 import text/StringBuffer
 
 import ../frontend/Token
-import Declaration, Import, Type, Visitor, Node, VariableAccess
+import Declaration, Import, Type, Visitor, Node, VariableAccess, FunctionCall
 
 NamespaceDecl: class extends Declaration {
     
@@ -39,6 +39,18 @@ NamespaceDecl: class extends Declaration {
     resolveType: func (type: Type) {
         
         printf("[Namespace] Looking for type %s in %s\n", type toString(), toString())
+        for(imp in imports) {
+            imp getModule() resolveType(type)
+        }
+        
+    }
+    
+    resolveCall: func (call: FunctionCall) {
+        
+        printf("[Namespace] Looking for %s in %s\n", call toString(), toString())
+        for(imp in imports) {
+            imp getModule() resolveCall(call)
+        }
         
     }
     

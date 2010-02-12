@@ -42,13 +42,17 @@ Module: class extends Node {
         packageName = sanitize(packageName)
     }
 
-    getFullName:    func -> String { fullName }
-    getPathElement: func -> String { pathElement }
+    getLoadFuncName: func -> String { getUnderName() + "_load" }
+    getFullName:     func -> String { fullName }
+    getUnderName:    func -> String { underName }
+    getPathElement:  func -> String { pathElement }
 
     sanitize: func(str: String) -> String {
         // FIXME this is incomplete, the correct way is actually
         // to replace everything non-alphanumeric with underscores
-        return str replace('/', '_') replace('-', '_')
+        result := str replace('/', '_') replace('-', '_')
+        if(!result[0] isAlpha()) result = '_' + result
+        result
     }
 
     addFunction: func (fDecl: FunctionDecl) {
@@ -111,7 +115,7 @@ Module: class extends Node {
 
     resolveAccess: func (access: VariableAccess) {
         
-        printf("Looking for %s in %s\n", access toString(), toString())
+        //printf("Looking for %s in %s\n", access toString(), toString())
 
         // TODO: optimize by returning as soon as the access is resolved
         resolveAccessNonRecursive(access)
@@ -122,7 +126,7 @@ Module: class extends Node {
         
         namespace := namespaces get(access getName())
         if(namespace != null) {
-            printf("resolved access %s to namespace %s!\n", access getName(), namespace toString())
+            //printf("resolved access %s to namespace %s!\n", access getName(), namespace toString())
             access suggest(namespace)
         }
         
@@ -142,7 +146,9 @@ Module: class extends Node {
     }
 
     resolveCall: func (call: FunctionCall) {
-        if(call expr != null) return // hmm no member calls for us
+        if(call isMember()) {
+            return // hmm no member calls for us
+        }
 
         //printf(" >> Looking for function %s in module %s!\n", call name, fullName)
         fDecl : FunctionDecl = null

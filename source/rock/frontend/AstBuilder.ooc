@@ -10,7 +10,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Comparison, IntLiteral, FloatLiteral, Ternary, BinaryOp, BoolLiteral,
     NullLiteral, Argument, Parenthesis, AddressOf, Dereference, Foreach,
     OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess, Match, FlowControl,
-    While, CharLiteral, InterfaceDecl, NamespaceDecl]
+    While, CharLiteral, InterfaceDecl, NamespaceDecl, Version]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -18,10 +18,11 @@ AstBuilder: class {
 
     cache := static HashMap<Module> new()
 
-    params : BuildParams
-    modulePath : String
-    module : Module
-    stack : Stack<Node>
+    params: BuildParams
+    modulePath: String
+    module: Module
+    stack: Stack<Node>
+    versionStack: Stack<VersionSpec>
 
     tokenPos : Int*
 
@@ -34,6 +35,8 @@ AstBuilder: class {
 
         stack = Stack<Node> new()
         stack push(module)
+        versionStack = Stack<VersionSpec> new()
+        
         result := nq_parse(this, modulePath)
         if(result == -1) {
             Exception new(This, "File " +modulePath + " not found") throw()
@@ -198,6 +201,34 @@ AstBuilder: class {
     }
     
     /*
+     * Version blocks
+     */
+    
+    onVersionName: unmangled(nq_onVersionName) func (name: String) -> VersionSpec {
+        VersionName new(name clone())
+    }
+    
+    onVersionNegation: unmangled(nq_onVersionNegation) func (spec: VersionSpec) -> VersionSpec {
+        VersionNegation new(spec)
+    }
+    
+    onVersionAnd: unmangled(nq_onVersionAnd) func (specLeft, specRight: VersionSpec) -> VersionSpec {
+        VersionAnd new(specLeft, specRight)
+    }
+    
+    onVersionOr: unmangled(nq_onVersionOr) func (specLeft, specRight: VersionSpec) -> VersionSpec {
+        VersionOr new(specLeft, specRight)
+    }
+    
+    onVersionStart: unmangled(nq_onVersionStart) func (spec: VersionSpec) {
+        versionStack push(spec)
+    }
+    
+    onVersionEnd: unmangled(nq_onVersionEnd) func {
+        versionStack pop()
+    }
+    
+    /*
      * Interfaces
      */
     
@@ -229,7 +260,15 @@ AstBuilder: class {
     }
 
     onVarDeclExtern: unmangled(nq_onVarDeclExtern) func (externName: String) {
-        peek(Stack<VariableDecl>) peek() setExternName(externName clone())
+        vars := peek(Stack<VariableDecl>)
+        if(externName isEmpty()) {
+            for(var in vars) var setExternName("")
+        } else {
+            if(vars size() != 1) {
+                token() throwError("Trying to set an extern name on several variables at once!")
+            }
+            vars peek() setExternName(externName clone())
+        }
     }
 
     onVarDeclExpr: unmangled(nq_onVarDeclExpr) func (expr: Expression) {

@@ -140,7 +140,7 @@ CGenerator: class extends Skeleton {
             if(vDecl isExternWithName()) {
                 current app(vDecl getExternName())
             } else {
-                if(varAcc expr) {
+                if(varAcc isMember()) {
                     casted := false
                     if(vDecl owner != varAcc expr getType() getRef()) {
                         casted = true

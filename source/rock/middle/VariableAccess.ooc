@@ -39,8 +39,8 @@ VariableAccess: class extends Expression {
 			candidate := node as VariableDecl
 		    // if we're accessing a member, we're expecting the candidate
 		    // to belong to a TypeDecl..
-		    if((expr != null) && (candidate owner == null)) {
-		        printf("%s is no fit!, we need something to fit %s\n", candidate toString(), toString())
+		    if(isMember() && candidate owner == null) {
+                printf("%s is no fit!, we need something to fit %s\n", candidate toString(), toString())
 		        return false
 		    }
 		    
@@ -93,7 +93,7 @@ VariableAccess: class extends Expression {
          */
         if(!ref && expr) {
             if(expr instanceOf(VariableAccess) && expr as VariableAccess getRef() != null && expr as VariableAccess getRef() instanceOf(NamespaceDecl)) {
-                printf("============ expr ref is a NamespaceDecl!!\n")
+                printf("============ [VariableAccess] expr ref is a NamespaceDecl!!\n")
                 expr as VariableAccess getRef() resolveAccess(this)
             } else {
                 exprType := expr getType()
@@ -146,6 +146,14 @@ VariableAccess: class extends Expression {
             return ref as Expression getType()
         }
         return null
+    }
+    
+    isMember: func -> Bool {
+        (expr != null) &&
+        !(expr instanceOf(VariableAccess) &&
+          expr as VariableAccess getRef() != null &&
+          expr as VariableAccess getRef() instanceOf(NamespaceDecl)
+        )
     }
     
     getName: func -> String { name }

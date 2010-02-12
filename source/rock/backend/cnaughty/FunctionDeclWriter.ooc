@@ -19,7 +19,7 @@ FunctionDeclWriter: abstract class extends CGenerator {
         if(fDecl isExtern()) return
         
         // header
-        current = hw
+        current = fw
         current nl()
         writeFuncPrototype(this, fDecl)
         current app(';')
@@ -29,7 +29,12 @@ FunctionDeclWriter: abstract class extends CGenerator {
         current nl(). nl()
         writeFuncPrototype(this, fDecl)
         current app(" {"). tab()
+        
         if(params enableGC && fDecl isMain()) current nl(). app("GC_INIT();")
+        
+        //FIXME: this should be isEntryPoint()
+        if(fDecl isMain()) current nl(). app(module getLoadFuncName()). app("();")
+        
         for(stat in fDecl body) {
             writeLine(stat)
         }
