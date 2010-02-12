@@ -1,6 +1,6 @@
 import structs/[List, ArrayList, HashMap]
 import ../../middle/[ClassDecl, FunctionDecl, VariableDecl, TypeDecl, Type, Node, CoverDecl]
-import Skeleton, FunctionDeclWriter, TypeWriter, ClassDeclWriter
+import Skeleton, FunctionDeclWriter, TypeWriter, ClassDeclWriter, VersionWriter
 
 CoverDeclWriter: abstract class extends Skeleton {
 
@@ -27,6 +27,8 @@ CoverDeclWriter: abstract class extends Skeleton {
     
     writeGuts: static func (this: This, cDecl: CoverDecl) {
         
+        if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
+        
         current nl(). app("struct _"). app(cDecl underName()). app(' '). openBlock()
         for(vDecl in cDecl variables) {
             current nl()
@@ -36,10 +38,14 @@ CoverDeclWriter: abstract class extends Skeleton {
         }
         current closeBlock(). app(';'). nl()
         
+        if(cDecl getVersion()) VersionWriter writeEnd(this)
+        
     }
     
     writeTypedef: static func (this: This, cDecl: CoverDecl) {
-		
+        
+        if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
+        
 		if(!cDecl isAddon() && !cDecl isExtern()) {
 			fromType := cDecl fromType
 			if(!fromType) {
@@ -55,6 +61,8 @@ CoverDeclWriter: abstract class extends Skeleton {
 				current app(';')
 			}
 		}
+        
+        if(cDecl getVersion()) VersionWriter writeEnd(this)
         
 	}
     
