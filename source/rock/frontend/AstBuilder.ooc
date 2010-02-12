@@ -205,19 +205,19 @@ AstBuilder: class {
      */
     
     onVersionName: unmangled(nq_onVersionName) func (name: String) -> VersionSpec {
-        VersionName new(name clone())
+        VersionName new(name clone(), token())
     }
     
     onVersionNegation: unmangled(nq_onVersionNegation) func (spec: VersionSpec) -> VersionSpec {
-        VersionNegation new(spec)
+        VersionNegation new(spec, token())
     }
     
     onVersionAnd: unmangled(nq_onVersionAnd) func (specLeft, specRight: VersionSpec) -> VersionSpec {
-        VersionAnd new(specLeft, specRight)
+        VersionAnd new(specLeft, specRight, token())
     }
     
     onVersionOr: unmangled(nq_onVersionOr) func (specLeft, specRight: VersionSpec) -> VersionSpec {
-        VersionOr new(specLeft, specRight)
+        VersionOr new(specLeft, specRight, token())
     }
     
     onVersionStart: unmangled(nq_onVersionStart) func (spec: VersionSpec) {
@@ -226,7 +226,6 @@ AstBuilder: class {
             versionStack push(spec)
         } else {
             vb := VersionBlock new(spec, token())
-            printf("{ version block %s at %s\n", vb spec toString(), vb token toString())
             stack push(vb)
         }
     }
@@ -237,7 +236,6 @@ AstBuilder: class {
             versionStack pop()
         } else {
             vb := pop(VersionBlock)
-            printf("} version block %s at %s\n", vb spec toString(), vb token toString())
             return vb
         }
         return null
@@ -489,7 +487,6 @@ AstBuilder: class {
                 fDecl := node as FunctionDecl
                 fDecl body add(stmt)
             case node instanceOf(ControlStatement) =>
-                printf("Adding statement %s to a %s\n", stmt toString(), node class name)
                 cStmt := node as ControlStatement
                 cStmt body add(stmt)
             case node instanceOf(Module) =>

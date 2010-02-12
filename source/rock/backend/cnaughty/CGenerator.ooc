@@ -268,7 +268,6 @@ CGenerator: class extends Skeleton {
     }
     
     visitVersionBlock: func (node: VersionBlock) {
-        printf("Visiting versionBlock %s with %d nodes!\n", node toString(), node getBody() size())
         VersionWriter writeStart(this, node getSpec())
         for(statement in node getBody()) {
             writeLine(statement)

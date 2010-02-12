@@ -43,7 +43,16 @@ Token: cover {
     }
     */
     
+    throwWarning: func (message: String) {
+        printMessage(message, "WARNING")
+    }
+    
     throwError: func (message: String) {
+        printMessage(message, "ERROR")
+        CommandLine failure()
+    }
+    
+    printMessage: func (message, type: String) {
         fr := FileReader new(module getPathElement() + File separator + module getFullName() + ".ooc")
         
         lastNewLine := 0
@@ -66,7 +75,7 @@ Token: cover {
         fr reset(lastNewLine == 0 ? 0 : lastNewLine + 1)
         over := StringBuffer new()
         
-        "%s:%d:%d [ERROR] %s" format(module path, lines, start - lastNewLine, message) println()
+        "%s:%d:%d [%s] %s" format(module path, lines, start - lastNewLine, type, message) println()
         
         end := getEnd()
         for(i in (lastNewLine + 1)..idx) {
@@ -85,8 +94,6 @@ Token: cover {
         }
         println()
         over toString() println()
-        
-        CommandLine failure()
     }
     
     getLength: func -> SizeT {
