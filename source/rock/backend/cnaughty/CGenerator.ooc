@@ -13,10 +13,11 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Use, TypeDecl, ClassDecl, CoverDecl, Node, Parenthesis, Return,
     Cast, Comparison, Ternary, BoolLiteral, Argument, Statement,
     AddressOf, Dereference, CommaSequence, UnaryOp, ArrayAccess, Match,
-    FlowControl, InterfaceDecl]
+    FlowControl, InterfaceDecl, Version]
 
-import Skeleton, FunctionDeclWriter, ControlStatementWriter, ClassDeclWriter,
-    ModuleWriter, CoverDeclWriter, FunctionCallWriter, CastWriter, InterfaceDeclWriter
+import Skeleton, FunctionDeclWriter, ControlStatementWriter,
+    ClassDeclWriter, ModuleWriter, CoverDeclWriter, FunctionCallWriter,
+    CastWriter, InterfaceDeclWriter, VersionWriter
 
 
 CGenerator: class extends Skeleton {
@@ -258,12 +259,21 @@ CGenerator: class extends Skeleton {
     visitCommaSequence: func (node: CommaSequence) {
         current app("(")
         isFirst := true
-        for(statement: Statement in node getBody()) {
+        for(statement in node getBody()) {
             if(isFirst) isFirst = false
             else        current app(", ")
             current app(statement)
         }
         current app(")")
+    }
+    
+    visitVersionBlock: func (node: VersionBlock) {
+        printf("Visiting versionBlock %s with %d nodes!\n", node toString(), node getBody() size())
+        VersionWriter writeStart(this, node getSpec())
+        for(statement in node getBody()) {
+            writeLine(statement)
+        }
+        VersionWriter writeEnd(this)
     }
 
 }
