@@ -18,7 +18,7 @@ Module: class extends Node {
     imports    := ArrayList<Import> new()
     namespaces := HashMap<NamespaceDecl> new()
     uses       := ArrayList<Use> new()
-    
+
     body       := Scope new()
 
     lastModified : Long
@@ -27,19 +27,24 @@ Module: class extends Node {
         super(token)
         this path = fullName clone()
         this fullName = fullName replace(File separator, '/')
-        idx := fullName lastIndexOf('/')
+        idx := this fullName lastIndexOf('/')
 
         match idx {
             case -1 =>
-                simpleName = fullName clone()
+                simpleName = this fullName clone()
                 packageName = ""
             case =>
-                simpleName = fullName substring(idx + 1)
-                packageName = fullName substring(0, idx)
+                simpleName = this fullName substring(idx + 1)
+                packageName = this fullName substring(0, idx)
         }
 
-        underName = sanitize(fullName clone())
+        underName = sanitize(this fullName clone())
         packageName = sanitize(packageName)
+
+        printf("path        = %s\n", path)
+        printf("fullName    = %s\n", this fullName)
+        printf("simpleName  = %s\n", simpleName)
+        printf("packageName = %s\n", packageName)
     }
 
     getLoadFuncName: func -> String { getUnderName() + "_load" }
@@ -50,7 +55,7 @@ Module: class extends Node {
     sanitize: func(str: String) -> String {
         // FIXME this is incomplete, the correct way is actually
         // to replace everything non-alphanumeric with underscores
-        result := str replace('/', '_') replace('-', '_')
+        result := str replace('/', '_') replace(File separator, '_') replace('-', '_')
         if(!result[0] isAlpha()) result = '_' + result
         result
     }
@@ -67,15 +72,15 @@ Module: class extends Node {
     addOperator: func (oDecl: OperatorDecl) {
         operators add(oDecl)
     }
-    
+
     addImport: func (imp: Import) {
         imports add(imp)
     }
-    
+
     addInclude: func (inc: Include) {
         includes add(inc)
     }
-    
+
     addNamespace: func (nDecl: NamespaceDecl) {
         namespaces put(nDecl getName(), nDecl)
     }
@@ -101,11 +106,11 @@ Module: class extends Node {
 
     /** return global (e.g. non-namespaced) imports */
     getGlobalImports: func -> List<Import> { imports }
-    
+
     /** return all imports, including those in namespaces */
     getAllImports: func -> List<Import> {
         if(namespaces isEmpty()) return imports
-        
+
         list := ArrayList<Import> new()
         list addAll(getGlobalImports())
         for(namespace in namespaces)
@@ -114,7 +119,7 @@ Module: class extends Node {
     }
 
     resolveAccess: func (access: VariableAccess) {
-        
+
         //printf("Looking for %s in %s\n", access toString(), toString())
 
         // TODO: optimize by returning as soon as the access is resolved
@@ -123,26 +128,26 @@ Module: class extends Node {
         for(imp in getGlobalImports()) {
             imp getModule() resolveAccessNonRecursive(access)
         }
-        
+
         namespace := namespaces get(access getName())
         if(namespace != null) {
             //printf("resolved access %s to namespace %s!\n", access getName(), namespace toString())
             access suggest(namespace)
         }
-        
+
     }
-    
+
     resolveAccessNonRecursive: func (access: VariableAccess) {
-        
+
         ref := null as Declaration
 
         ref = types get(access name)
         if(ref != null && access suggest(ref)) {
             return
         }
-        
+
         body resolveAccess(access)
-        
+
     }
 
     resolveCall: func (call: FunctionCall) {
@@ -227,7 +232,7 @@ Module: class extends Node {
                 finalResponse = response
             }
         }
-        
+
         for(inc in includes) {
             if(inc getVersion() && !inc getVersion() resolve() ok()) return Responses LOOP
         }
@@ -242,7 +247,7 @@ Module: class extends Node {
     }
 
     replace: func (oldie, kiddo: Node) -> Bool { false }
-    
+
     isScope: func -> Bool { true }
 
 }
