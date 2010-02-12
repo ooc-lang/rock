@@ -253,7 +253,7 @@ CGenerator: class extends Skeleton {
     }
 
     visitDereference: func (node: Dereference) {
-        current app("*("). app(node expr). app(")")
+        current app("(*("). app(node expr). app("))")
     }
 
     visitCommaSequence: func (node: CommaSequence) {

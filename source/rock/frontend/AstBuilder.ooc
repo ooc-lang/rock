@@ -117,7 +117,13 @@ AstBuilder: class {
     }
 
     onInclude: unmangled(nq_onInclude) func (path, name: String) {
-        module addInclude(Include new(path isEmpty() ? name : path + name, IncludeModes PATHY))
+        inc := Include new(path isEmpty() ? name : path + name, IncludeModes PATHY)
+        module addInclude(inc)
+        inc setVersion(getVersion())
+    }
+    
+    onIncludeDefine: unmangled(nq_onIncludeDefine) func (name, value: String) {
+        module includes last() addDefine(Define new(name clone(), value clone()))
     }
 
     onImport: unmangled(nq_onImport) func (path, name: String) {
@@ -651,11 +657,11 @@ AstBuilder: class {
     }
 
     onIntLiteral: unmangled(nq_onIntLiteral) func (value: String) -> IntLiteral {
-        IntLiteral new(value toLLong(), token())
+        IntLiteral new(value replace("_", "") toLLong(), token())
     }
 
     onFloatLiteral: unmangled(nq_onFloatLiteral) func (value: String) -> IntLiteral {
-        FloatLiteral new(value toFloat(), token())
+        FloatLiteral new(value replace("_", "") toFloat(), token())
     }
 
     onBoolLiteral: unmangled(nq_onBoolLiteral) func (value: Bool) -> BoolLiteral {

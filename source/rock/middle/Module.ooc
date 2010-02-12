@@ -227,6 +227,10 @@ Module: class extends Node {
                 finalResponse = response
             }
         }
+        
+        for(inc in includes) {
+            if(inc getVersion() && !inc getVersion() resolve() ok()) return Responses LOOP
+        }
 
         trail pop(this)
 

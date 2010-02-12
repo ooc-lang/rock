@@ -1,7 +1,7 @@
 import structs/List
 import ../../middle/[Module, Include, Import, TypeDecl, FunctionDecl,
        CoverDecl, ClassDecl, OperatorDecl, InterfaceDecl, VariableDecl]
-import CoverDeclWriter, ClassDeclWriter
+import CoverDeclWriter, ClassDeclWriter, VersionWriter
 import Skeleton
 
 ModuleWriter: abstract class extends Skeleton {
@@ -173,10 +173,33 @@ ModuleWriter: abstract class extends Skeleton {
 
     /** Write an include */
     visitInclude: static func (this: This, inc: Include) {
+        
+        if(inc getVersion()) VersionWriter writeStart(this, inc getVersion())
+        
+        for(define in inc getDefines()) {
+			current nl(). app("#ifndef "). app(define name)
+			current nl(). app("#define "). app(define name)
+            current nl(). app("#define "). app(define name). app("___defined")
+			if(define value != null) {
+                current app(' '). app(define value)
+            }
+			current nl(). app("#endif");
+		}
+        
         chevron := (inc mode == IncludeModes PATHY)
         current nl(). app("#include "). app(chevron ? '<' : '"').
             app(inc path). app(".h").
         app(chevron ? '>' : '"')
+        
+        for(define in inc getDefines()) {
+            current nl(). app("#ifdef "). app(define name). app("___defined")
+            current nl(). app("#undef "). app(define name)
+            current nl(). app("#undef "). app(define name). app("___defined")
+            current nl(). app("#endif")
+        }
+        
+        if(inc getVersion()) VersionWriter writeEnd(this)
+        
     }
 
 }

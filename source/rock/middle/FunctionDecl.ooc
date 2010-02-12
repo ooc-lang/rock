@@ -2,7 +2,8 @@ import structs/[Stack, ArrayList], text/StringBuffer
 import ../frontend/[Token, BuildParams]
 import Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, Else,
-       VariableDecl, Node, Statement, Module, FunctionCall, Declaration
+       VariableDecl, Node, Statement, Module, FunctionCall, Declaration,
+       Version
 import tinker/[Resolver, Response, Trail]
 
 FunctionDecl: class extends Declaration {
@@ -310,7 +311,9 @@ FunctionDecl: class extends Declaration {
                     list set(list lastIndex(), Return new(last, last token))
                     //printf("[autoReturn] Replaced with a %s!\n", list last() toString())
                 }
-            } else if(last instanceOf(Else)) {
+            } else if(last instanceOf(Else) || last instanceOf(VersionBlock)) {
+                // FIXME: this is actually deficient.
+                
                 // then it's alright, all cases are already handled
                 //printf("[autoReturn] last is an Else, all cases are already handled\n", last toString())
             } else {
