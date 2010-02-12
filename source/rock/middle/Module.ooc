@@ -1,5 +1,5 @@
 import io/File, text/EscapeSequence
-import structs/[HashMap, ArrayList, List]
+import structs/[HashMap, ArrayList, List, MultiMap]
 import ../frontend/[Token, SourceReader, BuildParams]
 import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl,
        FunctionCall, Type, Declaration, VariableAccess, OperatorDecl,
@@ -10,8 +10,8 @@ Module: class extends Node {
 
     path, fullName, simpleName, packageName, underName, pathElement : String
 
-    types      := HashMap<TypeDecl> new()
-    functions  := HashMap<FunctionDecl> new()
+    types      := MultiMap<TypeDecl> new()
+    functions  := MultiMap<FunctionDecl> new()
     operators  := ArrayList<OperatorDecl> new()
 
     includes   := ArrayList<Include> new()

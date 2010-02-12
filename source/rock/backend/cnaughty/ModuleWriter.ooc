@@ -160,13 +160,12 @@ ModuleWriter: abstract class extends Skeleton {
             
             match {
                 case tDecl instanceOf(ClassDecl) =>
-                    className := tDecl as ClassDecl underName()
-                    ClassDeclWriter writeStructTypedef(this, className)
+                    ClassDeclWriter writeStructTypedef(this, tDecl as ClassDecl)
                     if(tDecl instanceOf(InterfaceDecl)) {
                         CoverDeclWriter writeTypedef(this, tDecl as InterfaceDecl getFatType())
                     }
                 case tDecl instanceOf(CoverDecl) =>
-                    CoverDeclWriter writeTypedef(this, tDecl)
+                    CoverDeclWriter writeTypedef(this, tDecl as CoverDecl)
             }
         }
 

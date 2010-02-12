@@ -1,7 +1,7 @@
 import structs/[List, ArrayList, HashMap]
 import ../../middle/[ClassDecl, FunctionDecl, VariableDecl, TypeDecl,
         Type, Node, InterfaceDecl, InterfaceImpl]
-import Skeleton, FunctionDeclWriter, CGenerator
+import Skeleton, FunctionDeclWriter, CGenerator, VersionWriter
 
 ClassDeclWriter: abstract class extends CGenerator {
 
@@ -10,26 +10,34 @@ ClassDeclWriter: abstract class extends CGenerator {
     
     write: static func ~_class (this: This, cDecl: ClassDecl) {
 
-        //printf(" << Writing class decl %s\n", cDecl toString())
+        //printf(" << Writing class decl %s with version %s\n", cDecl toString(), cDecl getVersion() ? cDecl getVersion() toString() : "(nil)")
                 
         if(cDecl isMeta) {
             
             current = hw
+            if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
             writeObjectStruct(this, cDecl)
+            if(cDecl getVersion()) VersionWriter writeEnd(this)
             
             //TODO: split into InterfaceImplWriter ?
             if(!cDecl getNonMeta() instanceOf(InterfaceImpl)) {
                 current = fw
+                if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
                 writeMemberFuncPrototypes(this, cDecl)
+                if(cDecl getVersion()) VersionWriter writeEnd(this)
             
                 current = cw
+                if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
                 writeInstanceImplFuncs(this, cDecl)
                 writeInstanceVirtualFuncs(this, cDecl)
                 writeStaticFuncs(this, cDecl)
+            } else {
+                current = cw
+                if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
             }
-            
-            current = cw
+
             writeClassGettingFunction(this, cDecl)
+            if(cDecl getVersion()) VersionWriter writeEnd(this)
             
             for(interfaceDecl in cDecl getNonMeta() getInterfaceDecls()) {
                 write(this, interfaceDecl getMeta())
@@ -39,7 +47,9 @@ ClassDeclWriter: abstract class extends CGenerator {
         } else {
             
             current = hw
+            if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
             writeObjectStruct(this, cDecl)
+            if(cDecl getVersion()) VersionWriter writeEnd(this)
             
             for(interfaceDecl in cDecl getInterfaceDecls()) {
                 write(this, interfaceDecl)
@@ -326,10 +336,13 @@ ClassDeclWriter: abstract class extends CGenerator {
 
     }
     
-    writeStructTypedef: static func (this: This, structName: String) {
-        
+    writeStructTypedef: static func (this: This, cDecl: ClassDecl) {
+
+        structName := cDecl underName()
+        if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
 		current nl(). app("struct _"). app(structName). app(";")
 		current nl(). app("typedef struct _"). app(structName). app(" "). app(structName). app(";")
+        if(cDecl getVersion()) VersionWriter writeEnd(this)
         
 	}
     

@@ -141,6 +141,7 @@ AstBuilder: class {
 
     onCoverStart: unmangled(nq_onCoverStart) func (name: String) {
         cDecl := CoverDecl new(name clone(), token())
+        cDecl setVersion(getVersion())
         cDecl module = module
         module addType(cDecl)
         stack push(cDecl)
@@ -173,6 +174,7 @@ AstBuilder: class {
     onClassStart: unmangled(nq_onClassStart) func (name: String) {
         cDecl := ClassDecl new(name clone(), token())
         cDecl module = module
+        cDecl setVersion(getVersion())
         module addType(cDecl)
         stack push(cDecl)
     }
@@ -246,10 +248,11 @@ AstBuilder: class {
      */
     
     onInterfaceStart: unmangled(nq_onInterfaceStart) func (name: String) {
-        cDecl := InterfaceDecl new(name clone(), token())
-        cDecl module = module
-        module addType(cDecl)
-        stack push(cDecl)
+        iDecl := InterfaceDecl new(name clone(), token())
+        iDecl module = module
+        iDecl setVersion(getVersion())
+        module addType(iDecl)
+        stack push(iDecl)
     }
 
     onInterfaceExtends: unmangled(nq_onInterfaceExtends) func (superType: Type) {
@@ -816,6 +819,20 @@ AstBuilder: class {
             sb append(e class name). append(", ")
         }
         sb toString()
+    }
+    
+    getVersion: func -> VersionSpec {
+        spec := null as VersionSpec
+        
+        for(v in versionStack) {
+            if(spec) {
+                spec = VersionAnd new(spec, v, spec token) 
+            } else {
+                spec = v
+            }
+        }
+        
+        return spec
     }
 
 }

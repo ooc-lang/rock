@@ -1,7 +1,8 @@
 import structs/[ArrayList, List, HashMap]
 import ../frontend/[Token, BuildParams]
 import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
-    FunctionDecl, FunctionCall, Module, VariableAccess, Node, InterfaceImpl
+    FunctionDecl, FunctionCall, Module, VariableAccess, Node,
+    InterfaceImpl, Version
 import tinker/[Resolver, Response, Trail]
 
 TypeDecl: abstract class extends Declaration {
@@ -28,6 +29,8 @@ TypeDecl: abstract class extends Declaration {
     isMeta := false
     meta : ClassDecl = null
     nonMeta : TypeDecl = null
+    
+    verzion: VersionSpec = null
     
     init: func ~typeDeclNoSuper (=name, .token) {
         super(token)
@@ -353,6 +356,11 @@ TypeDecl: abstract class extends Declaration {
         
         trail pop(this)
         
+        if(verzion) {
+            response := verzion resolve()
+            if(!response ok()) return response
+        }
+        
         return Responses OK
         
     }
@@ -465,6 +473,13 @@ TypeDecl: abstract class extends Declaration {
     
     getMeta: func -> ClassDecl { meta }
     getNonMeta: func -> This { nonMeta }
+    
+    setVersion: func (=verzion) {
+        if(verzion) {
+            printf("type %s got version %s\n", toString(), verzion toString())
+        }
+    }
+    getVersion: func -> VersionSpec { verzion ? verzion : (getNonMeta() ? getNonMeta() getVersion() : null) }
 
 }
 

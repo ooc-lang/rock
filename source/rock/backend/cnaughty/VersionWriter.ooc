@@ -1,7 +1,7 @@
 import ../../middle/[Version]
-import Skeleton
+import CGenerator
 
-VersionWriter: abstract class extends Skeleton {
+VersionWriter: abstract class extends CGenerator {
 
     writeStart: static func ~_version (this: This, _version: VersionSpec) {
         current nl(). app("#if ")
