@@ -16,6 +16,7 @@ FunctionDecl: class extends Declaration {
     isStatic := false
     isInline := false
     isFinal := false
+    isProto := false
     externName : String = null
     
     typeArgs := ArrayList<VariableDecl> new()
@@ -54,6 +55,9 @@ FunctionDecl: class extends Declaration {
     
     isInline:    func -> Bool { isInline }
     setInline:   func (=isInline) {}
+    
+    isProto:    func -> Bool { isProto }
+    setProto:   func (=isProto) {}
     
     setOwner: func (=owner) {
         if(isStatic) return

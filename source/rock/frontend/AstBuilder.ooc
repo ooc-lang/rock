@@ -394,6 +394,10 @@ AstBuilder: class {
     onFunctionFinal: unmangled(nq_onFunctionFinal) func {
         peek(FunctionDecl) isFinal = true
     }
+    
+    onFunctionProto: unmangled(nq_onFunctionProto) func {
+        peek(FunctionDecl) isProto = true
+    }
 
     onFunctionSuffix: unmangled(nq_onFunctionSuffix) func (suffix: String) {
         peek(FunctionDecl) suffix = suffix clone()
