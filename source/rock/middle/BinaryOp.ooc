@@ -162,31 +162,31 @@ BinaryOp: class extends Expression {
             
             realLeft = null, realRight = null : Expression
             isGeneric := false
-            printf("\n==================\nFor %s\n", toString())
+            //printf("\n========= BinaryOp =========\nFor %s\n", toString())
             if(left getType() isGeneric()) {
-                printf("left is generic\n")
+                //printf("left is generic\n")
                 if(left getType() pointerLevel() > 0) {
-                    printf("left is an ArrayAccess\n")
+                    //printf("left is an ArrayAccess\n")
                     realLeft = left
                 } else {
-                    printf("left is a regular access\n")
-                    realLeft = AddressOf new(left, left token)
+                    //printf("left is a regular access\n")
+                    realLeft = left instanceOf(ArrayAccess) ? AddressOf new(left, left token) : left
                     isGeneric = true
                 }
             }
             if(right getType() isGeneric()) {
-                printf("right is generic\n")
+                //printf("right is generic\n")
                 if(right getType() pointerLevel() > 0) {
-                    printf("right is an ArrayAccess\n")
+                    //printf("right is an ArrayAccess\n")
                     realRight = right
                 } else {
-                    printf("right is a regular access\n")
-                    realRight = AddressOf new(right, right token)
+                    //printf("right is a regular access\n")
+                    realRight = right instanceOf(ArrayAccess) ? AddressOf new(right, right token) : right
                     isGeneric = true
                 }
             }
             if(isGeneric) {
-                printf("isGeneric, unwrapping\n")
+                //printf("isGeneric, unwrapping\n")
                 if(realLeft  == null) realLeft  = AddressOf new(left,  left  token)
                 if(realRight == null) realRight = AddressOf new(right, right token)
                 fCall := FunctionCall new("memcpy", token)

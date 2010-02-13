@@ -347,6 +347,39 @@ FunctionCall: class extends Expression {
      */
     handleGenerics: func (trail: Trail, res: Resolver) -> Response {
         
+        j := 0
+        for(arg in ref args) {
+            if(arg instanceOf(VarArg)) { j += 1; continue }
+            if(arg getType() == null || !arg getType() isResolved()) {
+                res wholeAgain(this, "need ref arg type"); break // we'll do it later
+            }
+            if(!arg getType() isGeneric()) { j += 1; continue }
+            
+            printf(" >> Reviewing arg %s in call %s\n", arg toString(), toString())
+            
+            implArg := args get(j)
+            typeResult := implArg getType()
+            
+            isGood := (implArg instanceOf(AddressOf) || implArg getType() isGeneric())
+            
+            // if AdressOf, the job's done. If it's not referencable, we need to unwrap it!
+            if(!isGood) { // FIXME this is probably wrong - what if we want an address's address? etc.
+                printf("&-ing implArg %s\n", implArg toString())
+                
+                target : Expression = implArg
+                if(!implArg isReferencable()) {
+                    varDecl := VariableDecl new(typeResult, generateTempName("genArg"), args get(j), nullToken)
+                    if(!trail addBeforeInScope(this, varDecl)) {
+                        printf("Couldn't add %s before %s, parent is a %s\n", varDecl toString(), toString(), trail peek() toString())
+                    }
+                    target = VariableAccess new(varDecl, implArg token)
+                }
+                args set(j, AddressOf new(target, target token))
+            
+            }
+            j += 1
+        }
+        
         if(typeArgs size() == ref typeArgs size()) {
             return Responses OK // already resolved
         }
@@ -397,28 +430,9 @@ FunctionCall: class extends Expression {
         for(arg in ref args) {
             if(arg type getName() == typeArgName) {
                 implArg := args get(j)
-                typeResult := implArg getType()
-                if(res params verbose) printf("\t$$=- found match in arg %s of type %s\n", arg toString(), typeResult toString())
-                
-                isGood := (implArg instanceOf(AddressOf) || implArg getType() isGeneric())
-                
-                // if AdressOf, the job's done. If it's not referencable, we need to unwrap it!
-                if(!isGood) { // FIXME this is probably wrong - what if we want an address's address? etc.
-                    printf("&-ing implArg %s\n", implArg toString())
-                    
-                    target : Expression = implArg
-                    if(!implArg isReferencable()) {
-                        varDecl := VariableDecl new(typeResult, generateTempName("genArg"), args get(j), nullToken)
-                        if(!trail addBeforeInScope(this, varDecl)) {
-                            printf("Couldn't add %s before %s, parent is a %s\n", varDecl toString(), toString(), trail peek() toString())
-                        }
-                        target = VariableAccess new(varDecl, implArg token)
-                    }
-                    args set(j, AddressOf new(target, target token))
-                
-                }
-                
-                return typeResult
+                result := implArg getType()
+                //" >> Found arg-arg %s for typeArgName %s, returning %s" format(implArg toString(), typeArgName, result toString()) println()
+                return result
             }
             j += 1
         }

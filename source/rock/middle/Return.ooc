@@ -43,9 +43,8 @@ Return: class extends Statement {
                 //println(fDecl toString() + " has a generic return type, replacing self with memcpy!")
                 //println("trail peek() is " + trail peek() toString())
                 
-                if(expr getType() == null) {
-                    res wholeAgain(this, "Need expr's type to be resolved to resolve further!")
-                    return Responses OK
+                if(expr getType() == null || !expr getType() isResolved()) {
+                    res wholeAgain(this, "expr type is unresolved"); return Responses OK
                 }
                 
                 fCall := FunctionCall new("memcpy", token)
