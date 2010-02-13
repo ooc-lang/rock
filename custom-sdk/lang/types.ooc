@@ -719,7 +719,6 @@ Range: cover {
 /**
  * iterators
  */
-/*
 Iterator: abstract class <T> {
 
     hasNext: abstract func -> Bool
@@ -734,7 +733,7 @@ Iterator: abstract class <T> {
 
 Iterable: abstract class <T> {
 
-    iterator: abstract func -> Iterator<T>*/
+    iterator: abstract func -> Iterator<T>
 
     /**
      * @return the contents of the iterable as ArrayList.
@@ -748,7 +747,7 @@ Iterable: abstract class <T> {
         result
     }
     */
-/*}*/
+}
 
 
 /**

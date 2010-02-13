@@ -3,11 +3,11 @@ Array: class <T> extends Iterable<T> {
 	size: SizeT
 	data: T*
 	
-	init: func (=size) {
+	init: func ~withSize (=size) {
 		data = gc_calloc(size, T size)
 	}
-	
-	// FIXME .data should work!
+
+    // FIXME .data should work!
 	init: func ~withData (data: Pointer, =size) {
 		this data = gc_calloc(size, T size)
 		memcpy(this data, data, size * T size)
@@ -41,8 +41,9 @@ Array: class <T> extends Iterable<T> {
 	}
 	*/
 	
+    /*
 	iterator: func -> Iterator<T> {
-		return ArrayIterator<T> new(this);
+		return ArrayIterator<T> new(this)
 	}
 
 	lastIndex: func -> SizeT {
@@ -58,6 +59,7 @@ Array: class <T> extends Iterable<T> {
 			f(get(i))
 		}
 	}
+    */
 
 }
 
@@ -66,7 +68,7 @@ ArrayIterator: class <T> extends Iterator {
 	array: Array<T>
 	i := 0
 	
-	init: func (=array) {}
+	init: func ~array (=array) {}
 	
 	hasNext: func -> Bool { i < array size }
 	
