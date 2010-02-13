@@ -1,7 +1,8 @@
 import structs/ArrayList
 import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
-       Import, Module, FunctionCall, ClassDecl, CoverDecl
+       Import, Module, FunctionCall, ClassDecl, CoverDecl, AddressOf,
+       ArrayAccess, VariableAccess
 import tinker/[Trail, Resolver, Response]
 
 include stdint
@@ -149,6 +150,58 @@ BinaryOp: class extends Expression {
                     fCall setReturnArg(left)
                     trail peek() replace(this, fCall)
                 }
+            }
+            
+            if(left getType() == null || !left isResolved()) {
+                res wholeAgain(this, "left type is unresolved"); return Responses OK
+            }
+            
+            if(right getType() == null || !right isResolved()) {
+                res wholeAgain(this, "right type is unresolved"); return Responses OK
+            }
+            
+            realLeft = null, realRight = null : Expression
+            isGeneric := false
+            printf("\n==================\nFor %s\n", toString())
+            if(left getType() isGeneric()) {
+                printf("left is generic\n")
+                if(left getType() pointerLevel() > 0) {
+                    printf("left is an ArrayAccess\n")
+                    realLeft = left
+                } else {
+                    printf("left is a regular access\n")
+                    realLeft = AddressOf new(left, left token)
+                    isGeneric = true
+                }
+            }
+            if(right getType() isGeneric()) {
+                printf("right is generic\n")
+                if(right getType() pointerLevel() > 0) {
+                    printf("right is an ArrayAccess\n")
+                    realRight = right
+                } else {
+                    printf("right is a regular access\n")
+                    realRight = AddressOf new(right, right token)
+                    isGeneric = true
+                }
+            }
+            if(isGeneric) {
+                printf("isGeneric, unwrapping\n")
+                if(realLeft  == null) realLeft  = AddressOf new(left,  left  token)
+                if(realRight == null) realRight = AddressOf new(right, right token)
+                fCall := FunctionCall new("memcpy", token)
+                fCall args add(realLeft)
+                fCall args add(realRight)
+                fCall args add(VariableAccess new(VariableAccess new(left getType() getName(), token), "size", token))
+                result := trail peek() replace(this, fCall)
+                
+                if(!result) {
+                    token throwError("Couldn't replace ourselves (a return) with a memcpy/assignment! trail = " + trail toString())
+                }
+                
+                res wholeAgain(this, "Replaced ourselves, need to tidy up")
+                return Responses OK
+                //return Responses LOOP
             }
         }
         
