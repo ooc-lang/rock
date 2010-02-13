@@ -1,39 +1,38 @@
 /** 
  * Set text colors and attributes for VT100 compatible terminals
  * @author eagle2com
- *     
  */
 
 Attr: class {
     /* text attribute codes */
     /* Reset All Attributes (return to normal mode) */
-    reset = 0,
+    reset =   0,
     /* Bright (Usually turns on BOLD) */        
-    bright = 1,    
+    bright =  1,    
     /* Dim    */            
-    dim = 2,    
+    dim =     2,    
     /* Underline */                
-    under = 3,        
+    under =   3,        
     /* Blink (Does this really work?????) */        
-    blink = 5,    
+    blink =   5,    
     /* Reverse (swap background and foreground colors) */                
     reverse = 7,     
     /* Hidden */
-    hidden = 8 : static const Int     
+    hidden =  8 : static const Int     
 }
 
 
 Color: class {    
     /* Foreground color codes */
-    black =        30,
+    black =      30,
     red =        31,
-    green =        32,
-    yellow =    33,
-    blue  =     34,
-    magenta =     35,
-    cyan =         36,
+    green =      32,
+    yellow =     33,
+    blue  =      34,
+    magenta =    35,
+    cyan =       36,
     grey =       37,
-    white  =    38    : static const Int
+    white  =     38    : static const Int
 }
 
 Terminal: class {

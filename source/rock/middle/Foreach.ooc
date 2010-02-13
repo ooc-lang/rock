@@ -26,17 +26,17 @@ Foreach: class extends ControlStatement {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
-        {
-            response := variable resolve(trail, res)
-            if(!response ok()) return response
-        }
-        
-        if(variable instanceOf(VariableAccess) && !variable isResolved()) {
+        if(variable instanceOf(VariableAccess)) {
             varType : Type = null
             if(collection instanceOf(RangeLiteral)) {
                 varType = IntLiteral type
             }
             variable = VariableDecl new(varType, variable as VariableAccess getName(), variable token)
+        }
+        
+        {
+            response := variable resolve(trail, res)
+            if(!response ok()) return response
         }
         
         {

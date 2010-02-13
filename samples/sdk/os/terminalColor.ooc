@@ -12,4 +12,5 @@ main: func {
 	printf("i like blue =) \n");
 	Terminal reset();
 	printf("And back to normal!\n");
+    
 }

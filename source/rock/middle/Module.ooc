@@ -40,11 +40,6 @@ Module: class extends Node {
 
         underName = sanitize(this fullName clone())
         packageName = sanitize(packageName)
-
-        printf("path        = %s\n", path)
-        printf("fullName    = %s\n", this fullName)
-        printf("simpleName  = %s\n", simpleName)
-        printf("packageName = %s\n", packageName)
     }
 
     getLoadFuncName: func -> String { getUnderName() + "_load" }
