@@ -496,6 +496,9 @@ FunctionCall: class extends Expression {
         j := 0
         for(arg in typeRef typeArgs) {
             if(arg getName() == typeArgName) {
+                if(type typeArgs == null || type typeArgs size() <= j) {
+                    continue
+                }
                 candidate := type typeArgs get(j)
                 ref := candidate getRef()
                 if(ref == null) return null

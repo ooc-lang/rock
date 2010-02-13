@@ -786,7 +786,7 @@ AstBuilder: class {
 
     onGenericArgument: unmangled(nq_onGenericArgument) func (name: String) {
         node := peek(Node)
-        printf("======= Got generic argument %s, and node is a %s\n", name, node class name)
+        //printf("======= Got generic argument %s, and node is a %s\n", name, node class name)
 
         vDecl := VariableDecl new(BaseType new("Class", token()), name clone(), token())
         if(!node addTypeArg(vDecl)) {
