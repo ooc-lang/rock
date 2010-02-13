@@ -1,6 +1,6 @@
 import ../frontend/Token
 import Visitor, Statement, Expression, Node, FunctionDecl, FunctionCall,
-       VariableAccess, AddressOf
+       VariableAccess, AddressOf, ArrayAccess
 import tinker/[Response, Resolver, Trail]
 
 Return: class extends Statement {
@@ -50,7 +50,7 @@ Return: class extends Statement {
                 
                 fCall := FunctionCall new("memcpy", token)
                 fCall args add(VariableAccess new(fDecl getReturnArg(), token))
-                fCall args add(expr getType() isGeneric() ? expr : AddressOf new(expr, expr token))
+                fCall args add((expr getType() isGeneric() && !(expr instanceOf(ArrayAccess))) ? expr : AddressOf new(expr, expr token))
                 fCall args add(VariableAccess new(VariableAccess new(fDecl getReturnType() getName(), token), "size", token))
                 result := trail peek() replace(this, fCall)
                 //println("was the replace a success? " + result toString())
