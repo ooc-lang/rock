@@ -1,0 +1,4 @@
+Name: PCRE
+Description: Perl Compatible Regular Expressions
+Pkgs: libpcre
+Includes: pcre.h

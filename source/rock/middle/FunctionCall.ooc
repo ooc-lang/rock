@@ -264,8 +264,8 @@ FunctionCall: class extends Expression {
             } else {
                 returnType = ref returnType
             }
-            if(!realTypize(returnType, trail, res)) {
-                res wholeAgain(this, "because couldn't properly realTypize %s" format(returnType toString()))
+            if(returnType != null && !realTypize(returnType, trail, res)) {
+                res wholeAgain(this, "because couldn't properly realTypize return type.")
                 returnType = null
             }
             
@@ -479,13 +479,25 @@ FunctionCall: class extends Expression {
             }
         }
         
+        idx := trail find(TypeDecl)
+        if(idx != -1) {
+            tDecl := trail get(idx) as TypeDecl
+            printf("In typeDecl %s\n", tDecl toString())
+            for(typeArg in tDecl getTypeArgs()) {
+                if(typeArg getName() == typeArgName) {
+                    printf("Found!\n")
+                    return BaseType new(typeArgName, token)
+                }
+            }
+        }
+        
         //printf("Couldn't resolve typeArg %s\n", typeArgName)
         return null
         
     }
     
     searchInTypeDecl: func (typeArgName: String, anyType: Type) -> Expression {
-        if(anyType getRef() == null) return null
+        if(anyType == null || anyType getRef() == null) return null
         
         if(!anyType instanceOf(BaseType)) return null
         type := anyType as BaseType
