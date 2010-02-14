@@ -70,7 +70,6 @@ Return: class extends Statement {
     
     replace: func (oldie, kiddo: Node) -> Bool {
         if(expr == oldie) {
-            println("replacing expr " + expr toString() + " with  kiddo " + kiddo toString())
             expr = kiddo
             return true
         }

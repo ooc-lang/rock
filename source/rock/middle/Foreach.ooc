@@ -44,6 +44,10 @@ Foreach: class extends ControlStatement {
             if(!response ok()) return response
         }
         
+        if(!collection instanceOf(RangeLiteral)) {
+            printf("collection is a %s to %s\n", collection class name, collection getType() ? collection getType() toString() : "(nil)")
+        }
+        
         return super resolve(trail, res)
         
     }

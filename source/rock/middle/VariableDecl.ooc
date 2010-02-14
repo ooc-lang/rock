@@ -10,8 +10,8 @@ VariableDecl: class extends Declaration {
     expr: Expression
     owner: TypeDecl
 
-    isArg := false // ugly hack.. =D
-    isGlobal := false // ugly hack #2.. =D
+    isArg := false
+    isGlobal := false
     isConst := false
     isStatic := false
     externName: String = null
@@ -82,7 +82,7 @@ VariableDecl: class extends Declaration {
             }
         }
 
-        if(type == null) {
+        if(type == null && expr != null) {
             // infer the type
             type = expr getType()
             if(type == null) {
@@ -92,7 +92,7 @@ VariableDecl: class extends Declaration {
             }
         }
 
-        {
+        if(type != null) {
             response := type resolve(trail, res)
             //printf("response of type = %s\n", response toString())
             if(!response ok()) {

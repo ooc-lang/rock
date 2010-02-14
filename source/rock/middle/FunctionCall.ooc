@@ -256,7 +256,7 @@ FunctionCall: class extends Expression {
             }
             
             if(ref returnType isGeneric()) {
-                /*if(res params verbose)*/ printf("\t$$$$ resolving returnType %s for %s\n", ref returnType toString(), toString())
+                if(res params verbose) printf("\t$$$$ resolving returnType %s for %s\n", ref returnType toString(), toString())
                 returnType = resolveTypeArg(ref returnType getName(), trail, res)
                 if(returnType == null && res fatal) {
                     token throwError("Not enough info to resolve return type %s of function call\n" format(ref returnType toString()))
@@ -355,7 +355,7 @@ FunctionCall: class extends Expression {
             }
             if(!arg getType() isGeneric()) { j += 1; continue }
             
-            printf(" >> Reviewing arg %s in call %s\n", arg toString(), toString())
+            //printf(" >> Reviewing arg %s in call %s\n", arg toString(), toString())
             
             implArg := args get(j)
             typeResult := implArg getType()
@@ -364,7 +364,7 @@ FunctionCall: class extends Expression {
             
             // if AdressOf, the job's done. If it's not referencable, we need to unwrap it!
             if(!isGood) { // FIXME this is probably wrong - what if we want an address's address? etc.
-                printf("&-ing implArg %s\n", implArg toString())
+                //printf("&-ing implArg %s\n", implArg toString())
                 
                 target : Expression = implArg
                 if(!implArg isReferencable()) {
