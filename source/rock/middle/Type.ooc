@@ -61,7 +61,7 @@ Type: abstract class extends Expression {
     reference:   func          -> This { p := PointerType new(this, token); p setRef(getRef()); p }
     dereference: abstract func -> This
     
-    getTypeArgs: abstract func -> List<VariableDecl>
+    getTypeArgs: abstract func -> List<VariableAccess>
     
     getType: func -> This {
         getRef() ? getRef() getType() : null
@@ -117,7 +117,7 @@ FuncType: class extends Type {
     // TODO: clone arguments, when the FuncType is fleshed out
     clone: func -> This { new(token) }
     
-    getTypeArgs: func -> List<VariableDecl> { null }
+    getTypeArgs: func -> List<VariableAccess> { null }
     
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
         if(other instanceOf(FuncType)) {
@@ -135,7 +135,7 @@ BaseType: class extends Type {
     ref: Declaration = null
     name: String
     
-    typeArgs : List<VariableAccess>
+    typeArgs: List<VariableAccess>
     
     init: func ~baseType (=name, .token) { super(token) }
     
@@ -304,7 +304,7 @@ SugarType: abstract class extends Type {
     getRef: func -> Declaration   { inner getRef()  }
     setRef: func (d: Declaration) { inner setRef(d) }
     
-    getTypeArgs: func -> List<VariableDecl> { inner getTypeArgs() }
+    getTypeArgs: func -> List<VariableAccess> { inner getTypeArgs() }
     
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
         return (other instanceOf(class) ? inner getScore(other as SugarType inner) : NOLUCK_SCORE)

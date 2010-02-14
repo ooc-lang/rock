@@ -70,6 +70,16 @@ TypeDecl: abstract class extends Declaration {
                 meta setSuperType(BaseType new(this superType getName() + "Class", nullToken))
             }
         }
+        
+        if(superType != null && superType getTypeArgs()) {
+            for(typeArg in getTypeArgs()) for(candidate in superType getTypeArgs()) {
+                printf("Got candidate %s\n", candidate getName())
+                if(typeArg getName() == candidate getName()) {
+                    printf("Removing doublon %s\n", typeArg getName())
+                    variables remove(typeArg getName())
+                }
+            }
+        }
     }
     
     getSuperType: func -> Type { superType }
@@ -77,6 +87,7 @@ TypeDecl: abstract class extends Declaration {
     addTypeArg: func (typeArg: VariableDecl) -> Bool {
         typeArg setOwner(this)
         getTypeArgs() add(typeArg)
+        
         variables put(typeArg getName(), typeArg)
         true
     }
@@ -418,17 +429,6 @@ TypeDecl: abstract class extends Declaration {
         if(getSuperRef() != null) {
         	//FIXME: should return here if success
             getSuperRef() resolveAccess(access)
-        }
-        
-        // look in type arguments
-        for(typeArg in getTypeArgs()) {
-            if(access name == typeArg name) {
-                if(access suggest(typeArg) && access expr == null) {
-                    varAcc := VariableAccess new("this", nullToken)
-                    access expr = varAcc
-                    return
-                }
-            }
         }
         
     }

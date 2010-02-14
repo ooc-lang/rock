@@ -485,7 +485,7 @@ FunctionCall: class extends Expression {
             for(typeArg in tDecl getTypeArgs()) {
                 if(typeArg getName() == typeArgName) {
                     result := BaseType new(typeArgName, token)
-                    result setRef(typeArg)
+                    //result setRef(typeArg)
                     return result
                 }
             }
