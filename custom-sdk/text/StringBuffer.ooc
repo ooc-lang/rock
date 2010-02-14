@@ -6,7 +6,7 @@ Buffer: class {
     data: String
 
     init: func {
-        this(128)
+        init(128)
     }
 
     init: func ~withCapa (=capacity) {
@@ -90,9 +90,12 @@ BufferWriter: class extends Writer {
 
     init: func ~withBuffer (=buffer) {}
 
+    // FIXME: prioritize variables over functions in VariableAccess
+    /*
     buffer: func -> Buffer {
         return buffer
     }
+    */
 
     close: func {
         /* do nothing. */
@@ -109,9 +112,10 @@ BufferWriter: class extends Writer {
 }
 
 // Provided for backwards compatiblity, depreciated and replaced by BufferWriter.
+/*
 StringBuffer: class extends BufferWriter {
     init: func {
-        this(128)
+        init(128)
     }
 
     init: func ~withCapa (capacity: Int) {
@@ -138,6 +142,7 @@ StringBuffer: class extends BufferWriter {
         return buffer toString()
     }
 }
+*/
 
 BufferReader: class extends Reader {
     buffer: Buffer
@@ -148,9 +153,12 @@ BufferReader: class extends Reader {
 
     init: func ~withBuffer (=buffer) {}
 
+    // FIXME: rock bug
+    /*
     buffer: func -> Buffer {
         return buffer
     }
+    */
 
     read: func(chars: String, offset: Int, count: Int) -> SizeT {
         buffer get(chars, offset, count)

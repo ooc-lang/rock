@@ -55,7 +55,7 @@ Return: class extends Statement {
                 //println("was the replace a success? " + result toString())
                 
                 if(!result) {
-                    token throwError("Couldn't replace ourselves (a return) with a memcpy/assignment! trail = " + trail toString())
+                    token throwError("Couldn't replace ourselves (a return) with a memcpy/assignment in a %s! trail = %s" format(trail peek() as Node class name, trail toString()))
                 }
                 
                 return Responses LOOP

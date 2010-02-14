@@ -203,7 +203,7 @@ List: abstract class <T> extends Iterable<T> {
             Exception new("You cannot use `String join` with %s instances." format(this T name)) throw()
         }
         /* TODO: A more performant implementation is possible. */
-        result := StringBuffer new()
+        result := Buffer new()
         first := true
         for(item: String in this) {
             if(first)

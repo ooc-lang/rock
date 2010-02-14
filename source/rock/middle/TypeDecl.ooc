@@ -396,7 +396,7 @@ TypeDecl: abstract class extends Declaration {
 
     resolveAccess: func (access: VariableAccess) {
         
-        //printf("? Looking for variable %s in %s\n", access name, name)
+        printf("? Looking for variable %s in %s\n", access name, name)
         if(access getName() == "This") {
             //printf("Asking for 'This' in %s (non-meta %s)\n", toString(), getNonMeta() ? getNonMeta() toString() : "(nil)")
             if(access suggest(getNonMeta() ? getNonMeta() : this)) return
@@ -404,7 +404,7 @@ TypeDecl: abstract class extends Declaration {
         
         vDecl := variables get(access name)
         if(vDecl) {
-            //"&&&&&&&& Found vDecl %s for %s" format(vDecl toString(), access name) println()
+            "&&&&&&&& Found vDecl %s for %s" format(vDecl toString(), access name) println()
             if(access suggest(vDecl)) {
             	if(access expr == null) {
 	                varAcc := VariableAccess new("this", nullToken)
@@ -416,13 +416,9 @@ TypeDecl: abstract class extends Declaration {
 
 		fDecl := getFunction(access name, null, null)
 		if(fDecl) {
-            //"&&&&&&&& Found fDecl %s for %s" format(fDecl toString(), access name) println()
+            "&&&&&&&& Found fDecl %s for %s" format(fDecl toString(), access name) println()
             if(access suggest(fDecl)) {
-            	if(access expr == null) {
-	                //varAcc := VariableAccess new("this", nullToken)
-	                //access expr = varAcc
-                }
-                return
+            	return
             }
 		}
 		

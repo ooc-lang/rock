@@ -196,7 +196,7 @@ BinaryOp: class extends Expression {
                 result := trail peek() replace(this, fCall)
                 
                 if(!result) {
-                    token throwError("Couldn't replace ourselves (a return) with a memcpy/assignment! trail = " + trail toString())
+                    if(res fatal) token throwError("Couldn't replace ourselves (%s) with a memcpy/assignment in a %s! trail = %s" format(toString(), trail peek() as Node class name, trail toString()))
                 }
                 
                 res wholeAgain(this, "Replaced ourselves, need to tidy up")
