@@ -42,7 +42,7 @@ Buffer: class {
             Exception new(This, "Buffer overflow! Offset is larger than buffer size.") throw()
         }
         if((offset + length) >= size) {
-            Exception new(This, "Buffer overflow! Offset + Lenght is larger than buffer size.") throw()
+            Exception new(This, "Buffer overflow! Offset + Length is larger than buffer size.") throw()
         }
 
         memcpy(str as Char*, data as Char* + offset, length)
@@ -90,13 +90,10 @@ BufferWriter: class extends Writer {
 
     init: func ~withBuffer (=buffer) {}
 
-    // FIXME: prioritize variables over functions in VariableAccess
-    /*
     buffer: func -> Buffer {
         return buffer
     }
-    */
-
+    
     close: func {
         /* do nothing. */
     }
@@ -153,13 +150,10 @@ BufferReader: class extends Reader {
 
     init: func ~withBuffer (=buffer) {}
 
-    // FIXME: rock bug
-    /*
     buffer: func -> Buffer {
         return buffer
     }
-    */
-
+    
     read: func(chars: String, offset: Int, count: Int) -> SizeT {
         buffer get(chars, offset, count)
         return count

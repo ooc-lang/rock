@@ -124,10 +124,7 @@ VariableAccess: class extends Expression {
                 node := trail get(depth)
                 if(node instanceOf(TypeDecl)) {
                     tDecl := node as TypeDecl
-                    printf("Trying to resolve %s from typeDecl %s\n", toString(), tDecl toString())
-                    if(tDecl isMeta) {
-                        node = tDecl getNonMeta()
-                    }
+                    if(tDecl isMeta) node = tDecl getNonMeta()
                 }
                 node resolveAccess(this)
                 if(ref) break // break on first match
