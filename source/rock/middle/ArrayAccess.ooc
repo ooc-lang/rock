@@ -93,7 +93,7 @@ ArrayAccess: class extends Expression {
                 fCall getArguments() add(assign getRight())
                 
                 if(!trail peek(2) replace(assign, fCall)) {
-                    token throwError("Couldn't replace %s with %s!" format(toString(), fCall toString()))
+                    token throwError("Couldn't replace %s with %s in %s!" format(assign toString(), fCall toString(), trail peek(2) as Node class name))
                 }
             } else {
                 if(!trail peek() replace(this, fCall)) {

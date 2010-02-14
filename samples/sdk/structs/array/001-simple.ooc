@@ -2,36 +2,38 @@ import structs/Array
 
 main: func {
 
-    size := 4
+    size := 12
     arr := Array<Int> new(size)
     
-    for(i in 0..2) {
-        arr set(i, i)
+    for(i in 0..size / 2) {
+        arr set(i, i + 1)
     }
     for(i in 0..size) {
-        //arr[i] = i
-        arr set(i, i)
+        arr[i] = i + 1
     }
-    
-    "==============" println()
     
     for(i in 0..size) {
-        printf("%d = %d\n", i, arr get(i))
+        printf("%d, ", arr get(i))
     }
+    println()
     
-    "==============" println()
+    "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" println()
     
     for(i in 0..size) {
-        printf("%d = %d\n", i, arr[i])
+        printf("%d, ", arr[i])
     }
+    println()
     
-    "==============" println()
+    "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" println()
 
     i := 0
     iter := arr iterator()
     while(iter hasNext()) {
-        printf("%d = %d\n", i, iter next())
+        printf("%d, ", iter next())
         i += 1
     }
+    println()
+    
+    "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" println()
     
 }

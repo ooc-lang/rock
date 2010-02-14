@@ -18,10 +18,10 @@ Foreach: class extends ControlStatement {
     
     replace: func (oldie, kiddo: Node) -> Bool {
         match oldie {
-            case variable   => variable   = kiddo; true
-            case collection => collection = kiddo; true
-            case => false
+            case variable   => variable   = kiddo; return true
+            case collection => collection = kiddo; return true
         }
+        return super replace(oldie, kiddo)
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
