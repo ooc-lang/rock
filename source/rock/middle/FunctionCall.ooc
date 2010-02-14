@@ -482,11 +482,11 @@ FunctionCall: class extends Expression {
         idx := trail find(TypeDecl)
         if(idx != -1) {
             tDecl := trail get(idx) as TypeDecl
-            printf("In typeDecl %s\n", tDecl toString())
             for(typeArg in tDecl getTypeArgs()) {
                 if(typeArg getName() == typeArgName) {
-                    printf("Found!\n")
-                    return BaseType new(typeArgName, token)
+                    result := BaseType new(typeArgName, token)
+                    result setRef(typeArg)
+                    return result
                 }
             }
         }
