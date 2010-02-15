@@ -3,4 +3,4 @@ Version: head
 Origin: git://github.com/nddrylliog/rock.git
 Description: ooc compiler written in ooc
 Requires: nagaqueen
-SourcePath: .
+SourcePath: source

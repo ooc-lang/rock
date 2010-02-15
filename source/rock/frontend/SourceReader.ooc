@@ -262,6 +262,15 @@ SourceReader: class extends Reader {
             
         return has
     }
+
+    skipLine: func {
+        while(hasNext()) {
+            c := read()
+            if(c == '\n') {
+                return
+            }
+        }
+    }
     
     skipName: func -> Bool {
         if (hasNext()) {
