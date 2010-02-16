@@ -323,21 +323,21 @@ SourceReader: class extends Reader {
     }
     
     readUntil: func  ~chr (chr: Char, keepEnd: Bool) -> String {
-        ret: String
+        ret := StringBuffer new()
         chrRead := 0 as Char
         
         while(hasNext()) {
             chrRead = read()
             if(chrRead == chr) break
-            ret += chrRead
+            ret append(chrRead)
         }
         
         if (!keepEnd) 
             reset(index - 1) // chop off the last character
         else if (chrRead != 0) 
-            ret += chr
+            ret append(chr)
             
-        return ret
+        ret toString()
     }
     
     /**

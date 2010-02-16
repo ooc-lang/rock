@@ -1,5 +1,5 @@
 import io/File
-import structs/ArrayList
+import structs/[List, ArrayList, HashMap]
 import text/StringTokenizer
 
 import rock/frontend/[BuildParams, SourceReader]
@@ -8,24 +8,65 @@ Requirement: class {
     name, ver: String
     useDef: UseDef
 
-    init: func (=name, =ver) {
-    }
+    init: func (=name, =ver) {}
+    
+    getUseDef: func -> UseDef { useDef }
 }
 
 UseDef: class {
-    identifier, name, description: String
-    requirements: ArrayList<Requirement>
-    pkgs, libs, includes, libPaths, includePaths: ArrayList<String>
+    cache := static HashMap<UseDef> new()
+    
+    identifier, name = "", description = "": String
+    
+    requirements := ArrayList<Requirement> new()
+    pkgs         := ArrayList<String> new()
+    libs         := ArrayList<String> new()
+    includes     := ArrayList<String> new()
+    libPaths     := ArrayList<String> new()
+    includePaths := ArrayList<String> new()
 
-    init: func (=identifier) {
-        requirements = ArrayList<Requirement> new()
-        name = ""
-        description = ""
-        pkgs = ArrayList<String> new()
-        libs = ArrayList<String> new()
-        includes = ArrayList<String> new()
-        libPaths = ArrayList<String> new()
-        includePaths = ArrayList<String> new()
+    init: func (=identifier) {}
+    
+    getRequirements: func -> List<Requirement> { requirements }
+    getPkgs:         func -> List<String>      { pkgs }
+    getLibs:         func -> List<String>      { libs }
+    getIncludes:     func -> List<String>      { includes }
+    getLibPaths:     func -> List<String>      { libPaths }
+    getIncludePaths: func -> List<String>      { includePaths }
+
+    parse: static func (identifier: String, params: BuildParams) -> UseDef {
+        cached := cache get(identifier)
+        if(!cached) {
+            cached = UseDef new(identifier)
+            file := findUse(identifier + ".use", params)
+            if(!file) return null
+            cached read(file, params)
+            cache put(identifier, cached)
+        }
+        
+        cached
+    }
+    
+    findUse: static func (fileName: String, params: BuildParams) -> File {
+        set := ArrayList<File> new()
+        set add(params libsPath)
+        set add(params sdkLocation)
+        
+        while(!set isEmpty()) {
+            nextSet := ArrayList<File> new()
+            for(candidate in set) {
+                if(candidate getPath() endsWith(fileName)) {
+                    return candidate
+                } else if(candidate isDir()) {
+                    for(child in candidate getChildren()) {
+                        nextSet add(child getAbsoluteFile())
+                    }
+                }
+            }
+            set = nextSet
+        }
+        
+		return null
     }
 
     read: func (file: File, params: BuildParams) {
@@ -45,7 +86,7 @@ UseDef: class {
 
             id := reader readUntil(':', false) trim()
             reader read() // skip the ':'
-            value := reader readLine() trim()
+            value := reader readLine() trim() trim('\n')
             if(id == "Name") {
                 name = value
             } else if(id == "Description") {
@@ -82,14 +123,13 @@ UseDef: class {
                     requirements add(Requirement new(req trim(), "0")) // TODO: Version support!
                 }
             } else if(id == "SourcePath") {
+                printf("value = %s, file = %s\n", value, file getPath())
                 sourcePathFile := File new(value)
-                if(sourcePathFile getAbsoluteFile() != sourcePathFile) {
+                if(sourcePathFile isRelative()) {
                     /* is relative. TODO: better check? */
-                    sourcePathFile = file getChild(value) getAbsoluteFile()
+                    sourcePathFile = file parent() getChild(value) getAbsoluteFile()
                 }
-                if(params verbose) {
-                    "Adding %s to sourcepath ..." format(sourcePathFile path) println()
-                }
+                if(params verbose) "Adding %s to sourcepath ..." format(sourcePathFile path) println()
                 params sourcePath add(sourcePathFile path)
             }
             reader hasWhitespace(true)

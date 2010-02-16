@@ -10,7 +10,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Comparison, IntLiteral, FloatLiteral, Ternary, BinaryOp, BoolLiteral,
     NullLiteral, Argument, Parenthesis, AddressOf, Dereference, Foreach,
     OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess, Match, FlowControl,
-    While, CharLiteral, InterfaceDecl, NamespaceDecl, Version]
+    While, CharLiteral, InterfaceDecl, NamespaceDecl, Version, Use]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -114,6 +114,11 @@ AstBuilder: class {
 
     error: func (errorID: Int, message: String, index: Int) {
         Token new(index, 1, module) throwError(message)
+    }
+
+    onUse: unmangled(nq_onUse) func (identifier: String) {
+        printf("Got use %s for module %s\n", identifier, module getFullName())
+        module addUse(Use new(identifier, params, token()))
     }
 
     onInclude: unmangled(nq_onInclude) func (path, name: String) {

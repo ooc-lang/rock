@@ -8,11 +8,9 @@ import structs/[ArrayList, List, HashMap]
  * @author Amos Wenger
  */
 PathList: class {
-    paths: HashMap<File>
+    paths := HashMap<File> new()
 
-    init: func {
-        paths = HashMap<File> new()
-    }
+    getPaths : func -> HashMap<File> { paths }
 
     /**
      * Add an element to the classpath
@@ -22,10 +20,10 @@ PathList: class {
         file := File new(path)
 
         if (!file exists()) {
-            Exception new(This, "Classpath element cannot be found: " + path) throw()
+            Exception new(This, "Classpath element cannot be found: %s" format(path)) throw()
         }
         else if (!file isDir()) {
-            Exception new(This, "Classpath element is not a directory: " + path) throw()
+            Exception new(This, "Classpath element is not a directory: %s" format(path)) throw()
         }
 
         absolutePath := file getAbsolutePath()
@@ -123,6 +121,7 @@ PathList: class {
     isEmpty: func -> Bool {
         return paths isEmpty()
     }
+    
 }
 
 

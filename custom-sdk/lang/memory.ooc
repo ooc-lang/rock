@@ -27,4 +27,4 @@ memset: extern func (Pointer, Int, SizeT) -> Pointer
 memcmp: extern func (Pointer, Pointer, SizeT) -> Int
 memmove: extern func (Pointer, Pointer, SizeT)
 memcpy: extern func (Pointer, Pointer, SizeT)
-
+free: extern func (Pointer)

@@ -1,4 +1,4 @@
-import io/File
+import io/File, os/Env
 import structs/ArrayList
 
 import compilers/AbstractCompiler
@@ -8,14 +8,25 @@ import ../middle/Module
 
 BuildParams: class {
     
+    init: func {
+        path := Env get("OOC_LIBS")
+        if(path == null) {
+            // TODO: find other standard paths for other OSes
+            path = "/usr/lib/ooc/"
+        }
+        libsPath = File new(path)
+    }
+    
     compiler: AbstractCompiler = null
     
-    distLocation: File = DistLocator locate()
-    sdkLocation: File = SdkLocator locate()
+    distLocation := DistLocator locate()
+    sdkLocation := SdkLocator locate()
     
-    sourcePath: PathList = PathList new()
-    libPath: PathList = PathList new()
-    incPath: PathList = PathList new()
+    sourcePath := PathList new()
+    libPath := PathList new()
+    incPath := PathList new()
+    
+    libsPath: File
     
     outPath: File = File new("rock_tmp")
     

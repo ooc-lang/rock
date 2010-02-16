@@ -2,7 +2,7 @@ import io/[File]
 import structs/[List, ArrayList]
 
 import ../BuildParams
-import ../../middle/[Import, Include, Module, Use]
+import ../../middle/[Import, Include, Module, Use, UseDef]
 
 /*
 import org.ooc.frontend.pkgconfig.PkgConfigFrontend 
@@ -65,8 +65,7 @@ Driver: abstract class {
         
     }
     
-    /*
-    getFlagsFromUse: func (module: Module) -> List<String> {
+    getFlagsFromUse: func ~defaults (module: Module) -> List<String> {
 
         list := ArrayList<String> new() 
         done := ArrayList<Module> new() 
@@ -75,14 +74,13 @@ Driver: abstract class {
         
     }
 
-    getFlagsFromUse: func (module: Module, flagsDone: List<String>, 
-            modulesDone: List<Module>, usesDone: List<UseDef>) {
+    getFlagsFromUse: func ~allModules (module: Module, flagsDone: List<String>, modulesDone: List<Module>, usesDone: List<UseDef>) {
 
         if(modulesDone contains(module)) return 
         modulesDone add(module) 
         
         for(use1: Use in module getUses()) {
-            UseDef useDef = use1 getUseDef() 
+            useDef := use1 getUseDef() 
             getFlagsFromUse(useDef, flagsDone, usesDone) 
         }
         
@@ -92,20 +90,21 @@ Driver: abstract class {
         
     }
 
-    getFlagsFromUse: func (useDef: UseDef, flagsDone : List<String>,
-            usesDone: List<UseDef>) {
+    getFlagsFromUse: func (useDef: UseDef, flagsDone : List<String>, usesDone: List<UseDef>) {
         
         if(usesDone contains(useDef)) return 
         usesDone add(useDef) 
-        compileNasms(useDef getLibs(), flagsDone) 
+        //compileNasms(useDef getLibs(), flagsDone) 
+        // TODO: implement PkgConfigFrontend
+        /*
         for(pkg: String in useDef getPkgs()) {
-            PkgInfo info = PkgConfigFrontend getInfo(pkg) 
-            for(cflag: String in info cflags) {
+            info := PkgConfigFrontend getInfo(pkg) 
+            for(cflag in info cflags) {
                 if(!flagsDone contains(cflag)) {
                     flagsDone add(cflag) 
                 }
             }
-            for(library: String in info libraries) {
+            for(library in info libraries) {
                  // FIXME lazy
                 String lpath = "-l"+library 
                 if(!flagsDone contains(lpath)) {
@@ -113,7 +112,8 @@ Driver: abstract class {
                 }
             }
         }
-        for(includePath: String in useDef getIncludePaths()) {
+        */
+        for(includePath in useDef getIncludePaths()) {
              // FIXME lazy too 
             ipath := "-I" + includePath 
             if(!flagsDone contains(ipath)) {
@@ -121,7 +121,7 @@ Driver: abstract class {
             }
         }
         
-        for(libPath: String in useDef getLibPaths()) {
+        for(libPath in useDef getLibPaths()) {
              // FIXME lazy too 
             lpath := "-L" + libPath 
             if(!flagsDone contains(lpath)) {
@@ -129,12 +129,11 @@ Driver: abstract class {
             }
         }
         
-        for(req: Requirement in useDef getRequirements()) {
+        for(req in useDef getRequirements()) {
             getFlagsFromUse(req getUseDef(), flagsDone, usesDone) 
         }
         
     }
-    */
     
     findExec: func (name: String) -> File {
         

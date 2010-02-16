@@ -79,9 +79,14 @@ Module: class extends Node {
     addNamespace: func (nDecl: NamespaceDecl) {
         namespaces put(nDecl getName(), nDecl)
     }
+    
+    addUse: func (use1: Use) {
+        uses add(use1)
+    }
 
     getOperators: func -> List<OperatorDecl> { operators }
     getTypes:     func -> HashMap<TypeDecl>  { types }
+    getUses:      func -> List<Use>          { uses }
 
     accept: func (visitor: Visitor) { visitor visitModule(this) }
 
