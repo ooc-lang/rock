@@ -19,11 +19,12 @@ ArrayList: class <T> extends List<T> {
 	}
 	
 	init: func ~withCapacity (=capacity) { 
-		data& = gc_malloc(capacity * T size)
+        // FIXME: j/ooc needs a 'data&' Why?
+		data = gc_malloc(capacity * T size)
 	}
     
     init: func ~withData (.data, =size) {
-        this data& = gc_malloc(size * T size)
+        this data = gc_malloc(size * T size)
         memcpy(this data&, data&, size * T size)
         capacity = size
     }
@@ -150,7 +151,7 @@ ArrayList: class <T> extends List<T> {
 		capacity = capacity * 1.1 + 10
 		tmpData := gc_realloc(data&, capacity * T size)
 		if (tmpData) {
-			data& = tmpData
+			data = tmpData
 		} else {
 			printf("Failed to allocate %zu bytes of memory for array to grow! Exiting..\n",
 				capacity * T size)
@@ -183,7 +184,7 @@ ArrayListIterator: class <T> extends Iterator<T> {
 	list: ArrayList<T>
 	index := 0
 	
-	init: func(=list) {}
+	init: func ~iter (=list) {}
 	
 	hasNext: func -> Bool { index < list size() }
 	

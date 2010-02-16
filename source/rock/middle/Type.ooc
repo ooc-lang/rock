@@ -258,7 +258,14 @@ BaseType: class extends Type {
         null
     }
     
-    clone: func -> This { new(name, token) }
+    clone: func -> This {
+        copy := new(name, token)
+        if(getTypeArgs()) for(typeArg in getTypeArgs()) {
+            copy addTypeArg(typeArg)
+        }
+        copy setRef(getRef())
+        copy
+    }
     
     dig: func -> Type {
         if(ref != null && ref instanceOf(CoverDecl)) {

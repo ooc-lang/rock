@@ -246,11 +246,10 @@ FunctionCall: class extends Expression {
         if(returnType != null) return Responses OK
         
         //printf("Resolving returnType of %s (=%s), returnType of ref = %s, isGeneric() = %s, ref of returnType of ref = %s\n", toString(), returnType ? returnType toString() : "(nil)", 
-        //  ref returnType toString(), ref returnType isGeneric() toString(), ref returnType getRef() ? ref returnType getRef() toString() : "(nil)")
+        //    ref returnType toString(), ref returnType isGeneric() toString(), ref returnType getRef() ? ref returnType getRef() toString() : "(nil)")
         
         if(returnType == null && ref != null) {
             if(ref returnType getRef() == null) {
-                //ref returnType resolve(trail, res)
                 res wholeAgain(this, "need to know if the return type of our ref is generic.")
                 return Responses OK
             }
@@ -262,7 +261,7 @@ FunctionCall: class extends Expression {
                     token throwError("Not enough info to resolve return type %s of function call\n" format(ref returnType toString()))
                 }
             } else {
-                returnType = ref returnType
+                returnType = ref returnType clone()
             }
             if(returnType != null && !realTypize(returnType, trail, res)) {
                 res wholeAgain(this, "because couldn't properly realTypize return type.")
@@ -280,7 +279,7 @@ FunctionCall: class extends Expression {
             return Responses LOOP
         }
         
-        //"At the end of resolveReturnType(), the return type of %s is %s" format(toString(), getType() ? getType() toString() : "null") println()
+        //"At the end of resolveReturnType(), the return type of %s is %s" format(toString(), getType() ? getType() toString() : "(nil)") println()
         return Responses OK
         
     }
@@ -431,7 +430,7 @@ FunctionCall: class extends Expression {
             if(arg type getName() == typeArgName) {
                 implArg := args get(j)
                 result := implArg getType()
-                //" >> Found arg-arg %s for typeArgName %s, returning %s" format(implArg toString(), typeArgName, result toString()) println()
+                printf(" >> Found arg-arg %s for typeArgName %s, returning %s\n", implArg toString(), typeArgName, result toString())
                 return result
             }
             j += 1
@@ -485,7 +484,6 @@ FunctionCall: class extends Expression {
             for(typeArg in tDecl getTypeArgs()) {
                 if(typeArg getName() == typeArgName) {
                     result := BaseType new(typeArgName, token)
-                    //result setRef(typeArg)
                     return result
                 }
             }
