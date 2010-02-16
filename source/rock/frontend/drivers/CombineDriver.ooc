@@ -35,8 +35,11 @@ CombineDriver: class extends Driver {
             } else {
                 params compiler setOutputPath(module simpleName)
             }
-            //libs := getFlagsFromUse(module)
-            //for(lib: String in libs) params compiler addObjectFile(lib)
+            libs := getFlagsFromUse(module)
+            for(lib in libs) {
+                printf("[CombineDriver] Adding lib %s from use\n", lib)
+                params compiler addObjectFile(lib)
+            }
             
             if(params enableGC) {
                 params compiler addDynamicLibrary("pthread")

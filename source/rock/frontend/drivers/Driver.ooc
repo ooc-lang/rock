@@ -1,15 +1,8 @@
 import io/[File]
 import structs/[List, ArrayList]
 
-import ../BuildParams
+import ../BuildParams, ../pkgconfig/[PkgInfo, PkgConfigFrontend]
 import ../../middle/[Import, Include, Module, Use, UseDef]
-
-/*
-import org.ooc.frontend.pkgconfig.PkgConfigFrontend 
-import org.ooc.frontend.pkgconfig.PkgInfo 
-import org.ooc.middle.UseDef 
-import org.ooc.middle.UseDef.Requirement 
-*/
 
 import ../../utils/[ShellUtils]
 
@@ -67,6 +60,8 @@ Driver: abstract class {
     
     getFlagsFromUse: func ~defaults (module: Module) -> List<String> {
 
+        printf("[Driver] getFlagsFromUse~defaults(module %s)\n", module getFullName())
+
         list := ArrayList<String> new() 
         done := ArrayList<Module> new() 
         getFlagsFromUse(module, list, done, ArrayList<UseDef> new()) 
@@ -92,12 +87,15 @@ Driver: abstract class {
 
     getFlagsFromUse: func (useDef: UseDef, flagsDone : List<String>, usesDone: List<UseDef>) {
         
+        printf("[Driver] getFlagsFromUse~defaults(useDef %s)\n", useDef identifier)
+        
         if(usesDone contains(useDef)) return 
-        usesDone add(useDef) 
-        //compileNasms(useDef getLibs(), flagsDone) 
-        // TODO: implement PkgConfigFrontend
-        /*
-        for(pkg: String in useDef getPkgs()) {
+        usesDone add(useDef)
+        
+        //compileNasms(useDef getLibs(), flagsDone)
+        flagsDone addAll(useDef getLibs())
+        
+        for(pkg in useDef getPkgs()) {
             info := PkgConfigFrontend getInfo(pkg) 
             for(cflag in info cflags) {
                 if(!flagsDone contains(cflag)) {
@@ -105,16 +103,16 @@ Driver: abstract class {
                 }
             }
             for(library in info libraries) {
-                 // FIXME lazy
-                String lpath = "-l"+library 
+                // FIXME lazy
+                lpath := "-l"+library 
                 if(!flagsDone contains(lpath)) {
                     flagsDone add(lpath) 
                 }
             }
         }
-        */
+        
         for(includePath in useDef getIncludePaths()) {
-             // FIXME lazy too 
+            // FIXME lazy too 
             ipath := "-I" + includePath 
             if(!flagsDone contains(ipath)) {
                 flagsDone add(ipath) 
@@ -122,7 +120,7 @@ Driver: abstract class {
         }
         
         for(libPath in useDef getLibPaths()) {
-             // FIXME lazy too 
+            // FIXME lazy too 
             lpath := "-L" + libPath 
             if(!flagsDone contains(lpath)) {
                 flagsDone add(lpath) 
