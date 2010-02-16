@@ -13,7 +13,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Use, TypeDecl, ClassDecl, CoverDecl, Node, Parenthesis, Return,
     Cast, Comparison, Ternary, BoolLiteral, Argument, Statement,
     AddressOf, Dereference, CommaSequence, UnaryOp, ArrayAccess, Match,
-    FlowControl, InterfaceDecl, Version]
+    FlowControl, InterfaceDecl, Version, Block]
 
 import Skeleton, FunctionDeclWriter, ControlStatementWriter,
     ClassDeclWriter, ModuleWriter, CoverDeclWriter, FunctionCallWriter,
@@ -194,6 +194,13 @@ CGenerator: class extends Skeleton {
     }
     visitFlowControl: func (fc: FlowControl) {
         current app(fc getAction() toString())
+    }
+    visitBlock: func (b: Block) {
+        current nl(). app('{'). tab()
+        for(stmt in b getBody()) {
+            writeLine(stmt)
+        }
+        current untab(). nl(). app('}')
     }
 
     /** Write a range literal */

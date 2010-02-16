@@ -14,7 +14,7 @@ ControlStatement: abstract class extends Statement {
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        //printf("Resolving an %s\n", class name)
+        //printf("Resolving a %s\n", class name)
         trail push(this)
         response := body resolve(trail, res)
         trail pop(this)

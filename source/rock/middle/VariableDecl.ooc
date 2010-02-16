@@ -28,6 +28,7 @@ VariableDecl: class extends Declaration {
         visitor visitVariableDecl(this)
     }
 
+    setType: func(=type) {}
     getType: func -> Type { type }
 
     getName: func -> String { name }

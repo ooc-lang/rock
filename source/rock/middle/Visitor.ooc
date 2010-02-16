@@ -6,7 +6,7 @@ import Return, ClassDecl, CoverDecl, FunctionDecl, VariableDecl, Type,
         VariableAccess, FunctionCall, BinaryOp, Parenthesis, Return,
         Cast, Comparison, Ternary, Argument, AddressOf, Dereference,
         CommaSequence, UnaryOp, ArrayAccess, Match, FlowControl,
-        InterfaceDecl, Version
+        InterfaceDecl, Version, Block
 
 Visitor: abstract class {
     
@@ -26,6 +26,7 @@ Visitor: abstract class {
     visitForeach:           func (node: Foreach) {}
     visitMatch:             func (node: Match) {}
     visitFlowControl:       func (node: FlowControl) {}
+    visitBlock:             func (node: Block) {}
     
     visitRangeLiteral:      func (node: RangeLiteral) {}
     visitCharLiteral:       func (node: CharLiteral) {}

@@ -17,14 +17,10 @@ main: func {
     }
     println()
     
-    "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" println()
-    
     for(i in 0..size) {
         printf("%d, ", arr[i])
     }
     println()
-    
-    "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" println()
 
     i := 0
     iter := arr iterator()
@@ -34,13 +30,9 @@ main: func {
     }
     println()
     
-    "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" println()
-    
     for(i in arr) {
         printf("%d, ", i)
     }
     println()
-    
-    "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" println()
     
 }
