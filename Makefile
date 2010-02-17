@@ -10,7 +10,8 @@ else
 	OOC_OWN_FLAGS+=+-DROCK_BUILD_DATE=\"${DATE}\" +-DROCK_BUILD_TIME=\"${TIME}\"
 endif
 
-OOC=ooc ${OOC_OWN_FLAGS} ${OOC_FLAGS}
+OOC_PATH?=ooc
+OOC=${OOC_PATH} ${OOC_OWN_FLAGS} ${OOC_FLAGS}
 
 all:
 	mkdir -p source/rock/parser/

@@ -463,6 +463,20 @@ AstBuilder: class {
     onFunctionCallExpr: unmangled(nq_onFunctionCallExpr) func (call: FunctionCall, expr: Expression) {
         call expr = expr
     }
+    
+    onFunctionCallChain: unmangled(nq_onFunctionCallChain) func (call: FunctionCall, node: Node) {
+        if(node instanceOf(FunctionCall)) {
+            prevCall := node as FunctionCall
+            call expr = prevCall expr
+        } else if(node instanceOf(VariableDecl)) {
+            varDecl := node as VariableDecl
+            call expr = VariableAccess new(varDecl, call token)
+        } else if(node instanceOf(Expression)) {
+            call expr = node as Expression
+        } else {
+            token() throwError("Can't chain a %s with %s\n" format(node class name, call toString()))
+        }
+    }
 
     /*
      * Literals
@@ -499,7 +513,7 @@ AstBuilder: class {
 
     gotStatement: func (stmt: Statement) {
         node := peek(Node)
-
+     
         match {
             case node instanceOf(FunctionDecl) =>
                 fDecl := node as FunctionDecl
