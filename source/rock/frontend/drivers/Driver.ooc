@@ -60,8 +60,6 @@ Driver: abstract class {
     
     getFlagsFromUse: func ~defaults (module: Module) -> List<String> {
 
-        printf("[Driver] getFlagsFromUse~defaults(module %s)\n", module getFullName())
-
         list := ArrayList<String> new() 
         done := ArrayList<Module> new() 
         getFlagsFromUse(module, list, done, ArrayList<UseDef> new()) 
@@ -86,8 +84,6 @@ Driver: abstract class {
     }
 
     getFlagsFromUse: func (useDef: UseDef, flagsDone : List<String>, usesDone: List<UseDef>) {
-        
-        printf("[Driver] getFlagsFromUse~defaults(useDef %s)\n", useDef identifier)
         
         if(usesDone contains(useDef)) return 
         usesDone add(useDef)
