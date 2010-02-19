@@ -8,7 +8,9 @@ HashEntry: class <T> {
     key: String
     value: T
 
-    init: func (=key, =value) {}
+    init: func ~keyVal (=key, .value) {
+        this value = value
+    }
 
 }
 
@@ -100,7 +102,7 @@ HashMap: class <T> extends Iterable<T> {
      * @param String s The string to hash
      * @return UInt
      */
-    ac_X31_hash: func (s: String) -> UInt {
+    ac_X31_hash: func (s: Char*) -> UInt {
         h = s@ : UInt
         if (h) {
             s += 1
@@ -280,7 +282,7 @@ HashMapValueIterator: class <T> extends Iterator<T> {
     map: HashMap<T>
     index := 0
     
-    init: func(=map) {}
+    init: func ~withMap (=map) {}
     
     hasNext: func -> Bool { index < map keys size() }
     

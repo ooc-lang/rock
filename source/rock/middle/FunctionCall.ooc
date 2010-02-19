@@ -393,7 +393,8 @@ FunctionCall: class extends Expression {
             
             typeResult := resolveTypeArg(typeArg name, trail, res)
             if(typeResult) {
-                typeArgs add(VariableAccess new(typeResult, nullToken))
+                //typeArgs add(VariableAccess new(typeResult, nullToken))
+                typeArgs add(VariableAccess new(typeResult getName(), nullToken))
             } else break // typeArgs must be in order
             
             i += 1
@@ -494,7 +495,7 @@ FunctionCall: class extends Expression {
         
     }
     
-    searchInTypeDecl: func (typeArgName: String, anyType: Type) -> Expression {
+    searchInTypeDecl: func (typeArgName: String, anyType: Type) -> Type {
         if(anyType == null || anyType getRef() == null) return null
         
         if(!anyType instanceOf(BaseType)) return null
@@ -512,7 +513,7 @@ FunctionCall: class extends Expression {
                 candidate := type typeArgs get(j)
                 ref := candidate getRef()
                 if(ref == null) return null
-                result : Type = null
+                result: Type = null
                 //printf("Found candidate %s for typeArg %s\n", candidate toString(), typeArgName)
                 if(ref instanceOf(TypeDecl)) {
                     // resolves to a known type

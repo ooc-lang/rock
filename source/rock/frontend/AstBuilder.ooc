@@ -675,8 +675,12 @@ AstBuilder: class {
         Comparison new(left, right, CompTypes greaterOrEqual, token())
     }
 
-    onIntLiteral: unmangled(nq_onIntLiteral) func (value: String) -> IntLiteral {
+    onDecLiteral: unmangled(nq_onDecLiteral) func (value: String) -> IntLiteral {
         IntLiteral new(value replace("_", "") toLLong(), token())
+    }
+    
+    onHexLiteral: unmangled(nq_onHexLiteral) func (value: String) -> IntLiteral {
+        IntLiteral new(value replace("_", "") toLLong(16), token())
     }
 
     onFloatLiteral: unmangled(nq_onFloatLiteral) func (value: String) -> IntLiteral {
