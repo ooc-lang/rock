@@ -51,6 +51,8 @@ Progress report
     (if/else/while/foreach/match/case/break/continue), decl-assign, 'This', member calls, covers, etc.
   - 2010-02 : twitter announcement: for the first time, rock, a 10k SLOC pure ooc codebase,
     compiles under Win32, and produces executables with gcc. party?
+  - 2010-02 : rock compiles most, if not all, generic collection classes, produces correct code.
+    we're going toward self-hosting, fixing bugs as we encounter them.
 
 You can help! We can probably re-use like 50% of the source code from the
 j/ooc codebase, so please come on #ooc-lang to know which classes need porting.
