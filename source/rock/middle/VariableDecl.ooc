@@ -75,7 +75,7 @@ VariableDecl: class extends Declaration {
 
         if(expr) {
             response := expr resolve(trail, res)
-            f(!response ok()) {
+            if(!response ok()) {
                 trail pop(this)
                 return response
             }
@@ -93,7 +93,7 @@ VariableDecl: class extends Declaration {
 
         if(type != null) {
             response := type resolve(trail, res)
-            f(!response ok()) {
+            if(!response ok()) {
                 trail pop(this)
                 return response
             }
