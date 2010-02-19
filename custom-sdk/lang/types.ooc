@@ -654,7 +654,12 @@ LLong: cover from signed long long implements Comparable {
     
 Long:  cover from signed long  extends LLong
 Short: cover from signed short extends LLong
-Int:   cover from signed int   extends LLong
+Int:   cover from signed int   extends LLong {
+	// temporary workaround until covers inheritance is duplication
+	compareTo: func<T>(other: T) -> Int {
+        (T == This) ? (this <=> other as This) : -1
+    }
+}
 
 ULLong: cover from unsigned long long extends LLong {
 
