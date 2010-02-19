@@ -628,7 +628,14 @@ operator + (left: Char, right: String) -> String {
     right prepend(left)
 }
 
-LLong: cover from signed long long {
+/**
+ * Comparable
+ */
+Comparable: interface {
+    compareTo: func<T>(other: T) -> Int
+}
+
+LLong: cover from signed long long implements Comparable {
     
     toString:    func -> String { "%lld" format(this) }
     toHexString: func -> String { "%llx" format(this) }
@@ -639,12 +646,20 @@ LLong: cover from signed long long {
     in: func(range: Range) -> Bool {
         return this >= range min && this < range max
     }
-    
+
+    compareTo: func<T>(other: T) -> Int {
+        (T == This) ? (this <=> other as This) : -1
+    }
 }
     
 Long:  cover from signed long  extends LLong
 Short: cover from signed short extends LLong
-Int:   cover from signed int   extends LLong
+Int:   cover from signed int   extends LLong {
+	// temporary workaround until covers inheritance is duplication
+	compareTo: func<T>(other: T) -> Int {
+        (T == This) ? (this <=> other as This) : -1
+    }
+}
 
 ULLong: cover from unsigned long long extends LLong {
 
