@@ -156,6 +156,9 @@ ClassDecl: class extends TypeDecl {
 		thisAccess := VariableAccess new(vdfe, fDecl token)
 		thisAccess setRef(vdfe)
 		
+        defaultsCall := FunctionCall new("__defaults__", fDecl token)
+        constructor getBody() add(defaultsCall)
+        
         initCall := FunctionCall new(fDecl getName(), fDecl token)
         initCall setSuffix(fDecl getSuffix())
         initCall setExpr(VariableAccess new(vdfe, fDecl token))

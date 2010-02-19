@@ -394,6 +394,10 @@ TypeDecl: abstract class extends Declaration {
 
     resolveAccess: func (access: VariableAccess) {
         
+        if(access getName() == "this") {
+            if(access suggest(getNonMeta() ? getNonMeta() thisDecl : thisDecl)) return
+        }
+        
         //printf("? Looking for variable %s in %s\n", access name, name)
         if(access getName() == "This") {
             //printf("Asking for 'This' in %s (non-meta %s)\n", toString(), getNonMeta() ? getNonMeta() toString() : "(nil)")

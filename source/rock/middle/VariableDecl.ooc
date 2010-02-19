@@ -75,10 +75,8 @@ VariableDecl: class extends Declaration {
 
         if(expr) {
             response := expr resolve(trail, res)
-            //printf("response of expr = %s\n", response toString())
-            if(!response ok()) {
+            f(!response ok()) {
                 trail pop(this)
-                printf("^^^^^^^^^^ returning response of EXPR\n")
                 return response
             }
         }
@@ -95,10 +93,8 @@ VariableDecl: class extends Declaration {
 
         if(type != null) {
             response := type resolve(trail, res)
-            //printf("response of type = %s\n", response toString())
-            if(!response ok()) {
+            f(!response ok()) {
                 trail pop(this)
-                printf("^^^^^^^^^^ returning response of TYPE\n")
                 return response
             }
         }
@@ -112,7 +108,7 @@ VariableDecl: class extends Declaration {
                 idx := trail findScope()
                 result := trail get(idx) addBefore(trail get(idx + 1), this)
                 trail peek() replace(this, VariableAccess new(this, token))
-                res wholeAgain(this, "parent isn't scope nor typedecl")
+                res wholeAgain(this, "parent isn't scope nor typedecl, unwrapped")
                 return Responses OK
             }
         }
@@ -137,7 +133,7 @@ VariableDecl: class extends Declaration {
             }
         }
 
-        if(!isArg && expr == null && type != null && type isGeneric() && type pointerLevel() == 0 && !isMember()) {
+        if(!isArg && expr == null && type != null && type isGeneric() && type pointerLevel() == 0) {
             fCall := FunctionCall new("gc_malloc", token)
             tAccess := VariableAccess new(type getName(), token)
             sizeAccess := VariableAccess new(tAccess, "size", token)

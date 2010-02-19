@@ -47,7 +47,6 @@ Class: abstract class {
         object := gc_malloc(instanceSize) as Object
         if(object) {
             object class = this
-            object __defaults__()
         }
         return object
     }

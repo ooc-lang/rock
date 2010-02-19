@@ -53,6 +53,10 @@ Token: cover {
     }
     
     printMessage: func (message, type: String) {
+        if(module == null) {
+            Exception new(This, "? [%s] %s" format(type, message)) throw()
+        }
+        
         fr := FileReader new(module getPathElement() + File separator + module getFullName() + ".ooc")
         
         lastNewLine := 0
