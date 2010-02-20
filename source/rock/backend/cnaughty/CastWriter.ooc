@@ -14,7 +14,7 @@ CastWriter: abstract class extends Skeleton {
             
             iDecl := cast getType() getRef() as InterfaceDecl
             current app("(struct _"). app(iDecl getFatType() getInstanceType()). app(") {").
-                app(".impl = "). app(cast inner getType() getName()). app("__impl__"). app(iDecl getName()). app("_class(), .obj = (lang__Object*) ").
+                app(".impl = "). app(cast inner getType() getName()). app("__impl__"). app(iDecl getName()). app("_class(), .obj = (lang_types__Object*) ").
                 app(cast inner). app('}')
                 
         } else {

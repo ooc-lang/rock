@@ -8,7 +8,7 @@ import tinker/[Resolver, Response, Trail]
 
 FunctionDecl: class extends Declaration {
 
-    name = "", suffix = null : String
+    name = "", suffix = null, fullName = null : String
     returnType := voidType
     type: static Type = BaseType new("Func", nullToken)
     
@@ -94,6 +94,28 @@ FunctionDecl: class extends Declaration {
     isExtern: func -> Bool { externName != null }
     isExternWithName: func -> Bool {
         (externName != null) && !(externName isEmpty())
+    }
+
+    getFullName: func -> String {
+        if(fullName == null) {
+            if(isExtern()) {
+                if(isExternWithName()) {
+                    fullName = externName
+                } else {
+                    fullName = name
+                }
+            } else {
+                if(isMember()) {
+                    fullName = "%s_%s" format(owner getFullName(), name)
+                } else {
+                    fullName = name
+                }
+                if(suffix != null) {
+                    fullName = "%s_%s" format(fullName, suffix)
+                }
+            }
+        }
+        fullName
     }
     
     getType: func -> Type { type }

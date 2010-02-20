@@ -45,17 +45,10 @@ FunctionDeclWriter: abstract class extends CGenerator {
     writeFullName: static func (this: This, fDecl: FunctionDecl) {
 
         //printf("Writing full name of %s, owner = %s\n", fDecl name, fDecl owner ? fDecl owner toString() : "(nil)")
-        if(fDecl isExtern() && !fDecl externName isEmpty()) {
-            current app(fDecl externName)
-        } else {
-            if(fDecl isMember()) {
-                current app(fDecl owner getExternName()). app('_')
-            }
-            writeSuffixedName(this, fDecl)
-        }
+        current app(fDecl getFullName())
     }
-    
-    /** Write the name of a function, with its suffix */
+
+    /** Write the name of a function, with its suffix and without any module prefixes */
     writeSuffixedName: static func (this: This, fDecl: FunctionDecl) {
         current app(fDecl name)
         if(fDecl suffix) {

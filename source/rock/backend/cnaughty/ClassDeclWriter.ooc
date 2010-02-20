@@ -5,7 +5,7 @@ import Skeleton, FunctionDeclWriter, CGenerator, VersionWriter
 
 ClassDeclWriter: abstract class extends CGenerator {
 
-    LANG_PREFIX := static const "lang__";
+    LANG_PREFIX := static const "lang_types__";
     CLASS_NAME := static const LANG_PREFIX + "Class";
     
     write: static func ~_class (this: This, cDecl: ClassDecl) {
@@ -180,7 +180,7 @@ ClassDeclWriter: abstract class extends CGenerator {
             if(cDecl getNonMeta() instanceOf(InterfaceDecl)) {
                 current app("this.impl->")
             } else {
-                current app("(("). app(baseClass underName()). app(" *)"). app("((lang__Object *)this)->class)->")
+                current app("(("). app(baseClass underName()). app(" *)"). app("((lang_types__Object *)this)->class)->")
             }
             FunctionDeclWriter writeSuffixedName(this, fDecl)
 			FunctionDeclWriter writeFuncArgs(this, fDecl, ArgsWriteModes NAMES_ONLY, baseClass)

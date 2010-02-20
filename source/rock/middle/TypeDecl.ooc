@@ -55,6 +55,10 @@ TypeDecl: abstract class extends Declaration {
             setSuperType(BaseType new("Object", token))
         }
     }
+
+    getFullName: func -> String {
+        underName()
+    }
     
     init: func ~typeDecl (.name, =superType, .token) {
         this(name, token)
@@ -189,11 +193,10 @@ TypeDecl: abstract class extends Declaration {
             printf("isExtern = %d\n", isExtern())
         }
         */
-        if(module != null && !module packageName isEmpty() && !isExtern()) {
-			return module packageName + "__" + name
+        if(module != null && !module underName isEmpty() && !isExtern()) {
+            return module underName + "__" + name
         }
-            
-		return name       
+	return name       
     }
     
 	getTypeArgs: func -> List<VariableDecl> { isMeta ? getNonMeta() typeArgs : typeArgs }
