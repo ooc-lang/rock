@@ -48,7 +48,7 @@ FunctionCallWriter: abstract class extends Skeleton {
                     current app(retArg)
                 } else {
                     // FIXME hardcoding uint8_t is probably a bad idea. Ain't it?
-                    current app("(uint8_t*) &("). app(retArg). app(")")
+                    current app("(uint8_t*) "). app(retArg)
                 }
             } else {
                 current app("NULL")

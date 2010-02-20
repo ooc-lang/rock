@@ -203,8 +203,14 @@ FunctionCall: class extends Expression {
         parent := trail peek()
         
         if(ref == null || ref returnType == null) {
-            if(res params verbose) printf("LOOPing %s because ref = null, or ref returnType == null\n", toString())
-            return Responses LOOP // evil! should take fatal into account
+            res wholeAgain(this, "need ref and refType")
+            return Responses OK
+        }
+        
+        idx := 2
+        while(parent instanceOf(Cast)) {
+            parent = trail peek(idx)
+            idx += 1
         }
         
         if(ref returnType isGeneric() && !isFriendlyHost(parent)) {
@@ -217,10 +223,14 @@ FunctionCall: class extends Expression {
             seq := CommaSequence new(token)
             seq getBody() add(this)
             seq getBody() add(varAcc)
-            if(!parent replace(this, seq)) {
+            if(!trail peek() replace(this, seq)) {
                 token throwError("Couldn't replace " + toString() + " with " + seq toString() + ", trail = " + trail toString())
             }
+            
+            res wholeAgain(this, "just unwrapped")
         }
+        
+        return Responses OK
         
     }
 
@@ -233,7 +243,7 @@ FunctionCall: class extends Expression {
 	 * need to unwrap
 	 */
     isFriendlyHost: func (node: Node) -> Bool {
-		node isScope() ||
+        node isScope() ||
 		node instanceOf(CommaSequence) ||
 		node instanceOf(VariableDecl) ||
 		(node instanceOf(BinaryOp) && node as BinaryOp isAssign())

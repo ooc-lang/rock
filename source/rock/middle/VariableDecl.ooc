@@ -1,6 +1,6 @@
 import structs/[ArrayList]
 import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
-       Node, ClassDecl, FunctionCall, Argument
+       Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast
 import tinker/[Response, Resolver, Trail]
 
 VariableDecl: class extends Declaration {
@@ -113,26 +113,29 @@ VariableDecl: class extends Declaration {
             }
         }
 
-        if(expr != null && expr instanceOf(FunctionCall)) {
-            fCall := expr as FunctionCall
-            fDecl := fCall getRef()
-            if(!fDecl || !fDecl getReturnType() isResolved()) {
-                res wholeAgain(this, "fCall isn't resolved.")
-                return Responses OK
+        if(expr != null) {
+            realExpr := expr
+            while(realExpr instanceOf(Cast)) {
+                realExpr = realExpr as Cast inner
             }
-
-            //println("got decl rhs a " + fCall toString())
-            if(fDecl getReturnType() isGeneric()) {
-                fCall setReturnArg(VariableAccess new(this, token))
-                //println("Adding add a " + fCall toString() + " after a " + toString() + ", trail = " + trail toString())
-                result := trail addAfterInScope(this, fCall)
-                if(!result) {
-                    token throwError("Couldn't add a " + fCall toString() + " after a " + toString() + ", trail = " + trail toString())
+            if(realExpr instanceOf(FunctionCall)) {
+                fCall := realExpr as FunctionCall
+                fDecl := fCall getRef()
+                if(!fDecl || !fDecl getReturnType() isResolved()) {
+                    res wholeAgain(this, "fCall isn't resolved.")
+                    return Responses OK
                 }
-                expr = null
+
+                if(fDecl getReturnType() isGeneric()) {
+                    ass := BinaryOp new(VariableAccess new(this, token), realExpr, OpTypes ass, token)
+                    if(!trail addAfterInScope(this, ass)) {
+                        token throwError("Couldn't add a " + fCall toString() + " after a " + toString() + ", trail = " + trail toString())
+                    }
+                    expr = null
+                }
             }
         }
-
+        
         if(!isArg && expr == null && type != null && type isGeneric() && type pointerLevel() == 0) {
             fCall := FunctionCall new("gc_malloc", token)
             tAccess := VariableAccess new(type getName(), token)

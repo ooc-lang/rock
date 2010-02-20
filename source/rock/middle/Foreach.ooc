@@ -89,8 +89,10 @@ Foreach: class extends ControlStatement {
             
             block getBody() add(vdfe).
                             add(while1)
-                            
-            variable as VariableDecl setType(nextCall getType())
+
+            if(variable getType() == null) {
+                variable as VariableDecl setType(nextCall getType())
+            }
                             
             res wholeAgain(this, "Just turned into a while =)")
             return Responses OK
