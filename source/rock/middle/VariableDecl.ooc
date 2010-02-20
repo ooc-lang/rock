@@ -17,6 +17,7 @@ VariableDecl: class extends Declaration {
     isConst := false
     isStatic := false
     externName: String = null
+    unmangledName: String = null
 
     init: func ~vDecl (.type, .name, .token) {
         this(type, name, null, token)
@@ -64,9 +65,18 @@ VariableDecl: class extends Declaration {
         (externName != null) && !(externName isEmpty())
     }
 
+    getUnmangledName: func -> String { unmangledName isEmpty() ? name : unmangledName }
+    setUnmangledName: func (=unmangledName) {}
+    isUnmangled: func -> Bool { unmangledName != null }
+    isUnmangledWithName: func -> Bool {
+        (unmangledName != null) && !(unmangledName isEmpty())
+    }
+
     getFullName: func -> String {
         if(fullName == null) {
-            if(isExtern()) {
+            if(isUnmangled()) {
+                fullName = getUnmangledName()
+            } else if(isExtern()) {
                 if(isExternWithName()) {
                     fullName = externName
                 } else {

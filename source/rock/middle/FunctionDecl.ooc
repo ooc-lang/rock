@@ -19,6 +19,7 @@ FunctionDecl: class extends Declaration {
     isFinal := false
     isProto := false
     externName : String = null
+    unmangledName: String = null
     
     typeArgs := ArrayList<VariableDecl> new()
     args := ArrayList<Argument> new()
@@ -96,9 +97,18 @@ FunctionDecl: class extends Declaration {
         (externName != null) && !(externName isEmpty())
     }
 
+    getUnmangledName: func -> String { unmangledName isEmpty() ? name : unmangledName }
+    setUnmangledName: func (=unmangledName) {}
+    isUnmangled: func -> Bool { unmangledName != null }
+    isUnmangledWithName: func -> Bool {
+        (unmangledName != null) && !(unmangledName isEmpty())
+    }
+
     getFullName: func -> String {
         if(fullName == null) {
-            if(isMain()) { // FIXME: This should be isEntryPoint.
+            if(isUnmangled()) {
+                fullName = getUnmangledName()
+            } else if(isMain()) { // FIXME: This should be isEntryPoint.
                 fullName = name
             } else if(isExtern()) {
                 if(isExternWithName()) {

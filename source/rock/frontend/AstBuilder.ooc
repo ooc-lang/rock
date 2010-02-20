@@ -298,6 +298,18 @@ AstBuilder: class {
         }
     }
 
+    onVarDeclUnmangled: unmangled(nq_onVarDeclUnmangled) func (unmangledName: String) {
+        vars := peek(Stack<VariableDecl>)
+        if(unmangledName isEmpty()) {
+            for(var in vars) var setUnmangledName("")
+        } else {
+            if(vars size() != 1) {
+                token() throwError("Trying to set an unmangled name on several variables at once!")
+            }
+            vars peek() setUnmangledName(unmangledName clone())
+        }
+    }
+
     onVarDeclExpr: unmangled(nq_onVarDeclExpr) func (expr: Expression) {
         peek(Stack<VariableDecl>) peek() setExpr(expr)
     }
@@ -390,6 +402,10 @@ AstBuilder: class {
 
     onFunctionExtern: unmangled(nq_onFunctionExtern) func (externName: String) {
         peek(FunctionDecl) setExternName(externName clone())
+    }
+
+    onFunctionUnmangled: unmangled(nq_onFunctionUnmangled) func (unmangledName: String) {
+        peek(FunctionDecl) setUnmangledName(unmangledName clone())
     }
 
     onFunctionAbstract: unmangled(nq_onFunctionAbstract) func {
