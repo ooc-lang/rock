@@ -161,14 +161,23 @@ VariableDecl: class extends Declaration {
                 if(fDecl getReturnType() isGeneric()) {
                     ass := BinaryOp new(VariableAccess new(this, token), realExpr, OpTypes ass, token)
                     if(!trail addAfterInScope(this, ass)) {
-                        token throwError("Couldn't add a " + fCall toString() + " after a " + toString() + ", trail = " + trail toString())
+                        token throwError("Couldn't add a " + ass toString() + " after a " + toString() + ", trail = " + trail toString())
                     }
                     expr = null
                 }
             }
         }
         
-        if(!isArg && expr == null && type != null && type isGeneric() && type pointerLevel() == 0) {
+        if(!isArg && type != null && type isGeneric() && type pointerLevel() == 0) {
+            if(expr != null) {
+                if(expr instanceOf(FunctionCall) && expr as FunctionCall getName() == "gc_malloc") return Responses OK
+                
+                ass := BinaryOp new(VariableAccess new(this, token), expr, OpTypes ass, token)
+                if(!trail addAfterInScope(this, ass)) {
+                    token throwError("Couldn't add a " + ass toString() + " after a " + toString() + ", original expr = " + expr toString() + " trail = " + trail toString())
+                }
+                expr = null
+            }
             fCall := FunctionCall new("gc_malloc", token)
             tAccess := VariableAccess new(type getName(), token)
             sizeAccess := VariableAccess new(tAccess, "size", token)

@@ -98,10 +98,8 @@ ArrayList: class <T> extends List<T> {
 	}
 
 	removeAt: func (index: Int) -> T {
-		//element := data[index]
-        element : T
-        element = data[index]
-		memmove(data + (index * T size), data + ((index + 1) * T size), (size - index) * T size)
+		element := data[index]
+        memmove(data + (index * T size), data + ((index + 1) * T size), (size - index) * T size)
 		size -= 1
 		return element
 	}
