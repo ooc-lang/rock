@@ -101,7 +101,6 @@ ArrayList: class <T> extends List<T> {
 		//element := data[index]
         element : T
         element = data[index]
-        printf("Removing at %d, index * T size = %d, (index + 1) * T size = %d, (size - index) * T size = %d\n", index, index * T size, (index + 1) * T size, (size - index) * T size)
 		memmove(data + (index * T size), data + ((index + 1) * T size), (size - index) * T size)
 		size -= 1
 		return element
