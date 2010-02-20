@@ -154,7 +154,6 @@ BaseType: class extends Type {
     }
     
     writeInterfaceType: func (w: AwesomeWriter, id: InterfaceDecl) {
-        printf("Writing type %s which is an interface\n", toString())
         w app(id getFatType() getInstanceType())
     }
     

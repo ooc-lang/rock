@@ -135,7 +135,7 @@ CGenerator: class extends Skeleton {
     /** Write a variable access */
     visitVariableAccess: func (varAcc: VariableAccess) {
         if(varAcc ref == null) {
-            Exception new(This, "Trying to write unresolved variable access %s" format(varAcc toString())) throw()
+            Exception new(This, "Trying to write unresolved variable access %s" format(varAcc getName())) throw()
         }
 
         if(varAcc ref instanceOf(VariableDecl)) {

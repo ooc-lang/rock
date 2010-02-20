@@ -69,11 +69,9 @@ FunctionCall: class extends Expression {
             trail push(this)
             i := 0
             for(arg in args) {
-                //printf("Resolving arg %s\n", arg toString())
                 response := arg resolve(trail, res)
                 if(!response ok()) {
                     trail pop(this)
-                    //printf(" -- Failed, looping.\n")
                     return response
                 }
                 i += 1
@@ -93,6 +91,11 @@ FunctionCall: class extends Expression {
         
         if(returnType) {
             response := returnType resolve(trail, res)
+            if(!response ok()) return response
+        }
+        
+        if(returnArg) {
+            response := returnArg resolve(trail, res)
             if(!response ok()) return response
         }
         
@@ -162,12 +165,9 @@ FunctionCall: class extends Expression {
         if(typeArgs size() > 0) {
             trail push(this)
             for(typeArg in typeArgs) {
-                //if(res params verbose) printf("Resolving typeArg %s\n", typeArg toString())
                 response := typeArg resolve(trail, res)
                 if(!response ok()) {
                     trail pop(this)
-                    //if(res params verbose) printf(" -- Failed, looping.\n")
-                    //return response
                     res wholeAgain(this, "typeArg %s failed to resolve\n" format(typeArg toString()))
                     return Responses OK
                 }
@@ -208,7 +208,6 @@ FunctionCall: class extends Expression {
         }
         
         if(ref returnType isGeneric() && !isFriendlyHost(parent)) {
-            //printf("OHMAGAD a generic-returning function (say, %s) in a %s!!!\n", toString(), parent toString())
             vDecl := VariableDecl new(getType(), generateTempName("genCall"), token)
             if(!trail addBeforeInScope(this, vDecl)) {
                 token throwError("Couldn't add a " + vDecl toString() + " before a " + toString() + ", trail = " + trail toString())
@@ -218,7 +217,6 @@ FunctionCall: class extends Expression {
             seq := CommaSequence new(token)
             seq getBody() add(this)
             seq getBody() add(varAcc)
-            //printf("Just unwrapped %s into var %s\n", toString(), varAcc toString())
             if(!parent replace(this, seq)) {
                 token throwError("Couldn't replace " + toString() + " with " + seq toString() + ", trail = " + trail toString())
             }
@@ -431,7 +429,7 @@ FunctionCall: class extends Expression {
             if(arg type getName() == typeArgName) {
                 implArg := args get(j)
                 result := implArg getType()
-                printf(" >> Found arg-arg %s for typeArgName %s, returning %s\n", implArg toString(), typeArgName, result toString())
+                //printf(" >> Found arg-arg %s for typeArgName %s, returning %s\n", implArg toString(), typeArgName, result toString())
                 return result
             }
             j += 1

@@ -46,8 +46,6 @@ Foreach: class extends ControlStatement {
         }
         
         if(!collection instanceOf(RangeLiteral)) {
-            printf("collection is a %s to %s\n", collection class name, collection getType() ? collection getType() toString() : "(nil)")
-            
             iterCall := FunctionCall new(collection, "iterator", token)
             
             response := Responses LOOP

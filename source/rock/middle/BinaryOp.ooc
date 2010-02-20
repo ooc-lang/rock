@@ -145,8 +145,11 @@ BinaryOp: class extends Expression {
                 }
                 
                 if(fDecl getReturnType() isGeneric()) {
-                    fCall setReturnArg(left)
+                    sizeAcc := VariableAccess new(VariableAccess new(left getType() getName(), token), "size", token)
+                    fCall setReturnArg(getRealOperand(left, sizeAcc))
                     trail peek() replace(this, fCall)
+                    res wholeAgain(this, "just replaced with fCall and set ourselves as returnArg")
+                    return Responses OK
                 }
             }
             
