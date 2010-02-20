@@ -155,44 +155,25 @@ BinaryOp: class extends Expression {
             if(left getType() == null || !left isResolved()) {
                 res wholeAgain(this, "left type is unresolved"); return Responses OK
             }
-            
             if(right getType() == null || !right isResolved()) {
                 res wholeAgain(this, "right type is unresolved"); return Responses OK
             }
             
-            realLeft = null, realRight = null : Expression
             isGeneric := false
-            //printf("\n========= BinaryOp =========\nFor %s\n", toString())
-            if(left getType() isGeneric()) {
-                //printf("left is generic\n")
-                if(left getType() pointerLevel() > 0) {
-                    //printf("left is an ArrayAccess\n")
-                    realLeft = left
-                } else {
-                    //printf("left is a regular access\n")
-                    realLeft = left instanceOf(ArrayAccess) ? AddressOf new(left, left token) : left
-                    isGeneric = true
-                }
-            }
-            if(right getType() isGeneric()) {
-                //printf("right is generic\n")
-                if(right getType() pointerLevel() > 0) {
-                    //printf("right is an ArrayAccess\n")
-                    realRight = right
-                } else {
-                    //printf("right is a regular access\n")
-                    realRight = right instanceOf(ArrayAccess) ? AddressOf new(right, right token) : right
-                    isGeneric = true
-                }
-            }
+            
+            // TODO: optimize, there's a whole bunch of nodes we don't need to create if the assign isn't generic..
+            sizeAcc := VariableAccess new(VariableAccess new(left getType() getName(), token), "size", token)
+            
+            realLeft  := getRealOperand(left,  sizeAcc, isGeneric&)
+            realRight := getRealOperand(right, sizeAcc, isGeneric&)
+            
             if(isGeneric) {
-                //printf("isGeneric, unwrapping\n")
                 if(realLeft  == null) realLeft  = AddressOf new(left,  left  token)
                 if(realRight == null) realRight = AddressOf new(right, right token)
                 fCall := FunctionCall new("memcpy", token)
                 fCall args add(realLeft)
                 fCall args add(realRight)
-                fCall args add(VariableAccess new(VariableAccess new(left getType() getName(), token), "size", token))
+                fCall args add(sizeAcc)
                 result := trail peek() replace(this, fCall)
                 
                 if(!result) {
@@ -215,6 +196,23 @@ BinaryOp: class extends Expression {
                 
         return Responses OK
         
+    }
+    
+    getRealOperand: func (expr: Expression, sizeAcc: Expression, isGeneric: Bool@) -> Expression {
+        if(expr getType() isGeneric()) {
+            if(expr getType() pointerLevel() > 0) {
+                return expr
+            } else {
+                isGeneric = true
+                if(expr instanceOf(ArrayAccess)) {
+                    arrAcc := expr as ArrayAccess
+                    arrAcc setIndex(BinaryOp new(arrAcc getIndex(), sizeAcc, OpTypes mul, arrAcc token))
+                    return AddressOf new(arrAcc, arrAcc token)
+                }
+                return expr
+            }
+        }
+        return null
     }
     
     isLegal: func (res: Resolver) -> Bool {

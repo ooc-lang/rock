@@ -10,7 +10,9 @@ ArrayAccess: class extends Expression {
     type: Type = null
     
     getArray: func -> Expression { array }
+    setArray: func (=array) {}
     getIndex: func -> Expression { index }
+    setIndex: func (=index) {}
     
     init: func ~arrayAccess (=array, =index, .token) {
         super(token)
