@@ -79,17 +79,19 @@ CGenerator: class extends Skeleton {
         
         current app(" "). app(op type toString()). app(" ")
         
+        
         if(isFunc) {
             current app("(void*) ")
+        } else if(op isAssign()) {
+            if(op left  getType() isPointer() ||
+               op right getType() isPointer()) {
+                current app("(void*) ")
+            } else if(op right getType() inheritsFrom(op left getType())) {
+                current app('('). app(op left getType()). app(") ")
+            }
         }
         
-        if(op isAssign() && (
-           op right getType() inheritsFrom(op left getType()) ||
-           op left getType() pointerLevel() > 0)) {
-            current app("(("). app(op left getType()). app(") ") .app(op right). app(")")
-        } else {
-            current app(op right)
-        }
+        current app(op right)
         
     }
 

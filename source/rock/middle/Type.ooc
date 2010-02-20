@@ -82,6 +82,8 @@ Type: abstract class extends Expression {
         return bestScore
     }
     
+    isPointer: func -> Bool { pointerLevel() > 0 }
+    
     getScoreImpl: abstract func (other: This, scoreSeed: Int) -> Int
     
     inheritsFrom: func (t: This) -> Bool { false }
@@ -126,6 +128,8 @@ FuncType: class extends Type {
         return NOLUCK_SCORE
     }
     
+    isPointer: func -> Bool { true }
+    
     dig: func -> Type { null }
     
 }
@@ -141,6 +145,8 @@ BaseType: class extends Type {
     
     pointerLevel: func -> Int { 0 }
     refLevel:     func -> Int { 0 }
+    
+    isPointer: func -> Bool { name == "Pointer" }
     
     write: func (w: AwesomeWriter) {
         if(ref == null) {
