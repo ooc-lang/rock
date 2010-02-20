@@ -6,7 +6,8 @@ main: func {
 	
 	"\nadding a few numbers.." println()
 	for (i in 0..2) list add (i)
-	for (i in 2..4) list += i
+	//for (i in 2..4) list += i
+    for (i in 2..4) list add(i)
 	
 	"\ncreating another with 3, 4.." println()
 	other := ArrayList<Int> new() .add(3) .add(4)
@@ -31,7 +32,8 @@ testList: func(list, other: List<Int>) {
 	for (i in 0..list size()) printf("list[%d] = %d\n", i, list[i])
 	
 	"\nremoving an element.." println()
-	list -= 0
+	//list -= 0
+    list remove(0)
 	for (i in 0..list size()) printf("list[%d] = %d\n", i, list[i])
 	
 	"\nremoving another element.." println()

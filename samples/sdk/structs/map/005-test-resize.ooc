@@ -9,4 +9,8 @@ main: func {
         map put(s, s)
     }
     
+    for(val in map) {
+        val println()
+    }
+    
 }

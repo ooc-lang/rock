@@ -340,7 +340,7 @@ PointerType: class extends SugarType {
     
     write: func (w: AwesomeWriter) {
         inner write(w)
-        w app("*")
+        if(!inner isGeneric()) w app("*")
     }
     
     equals: func (other: This) -> Bool {

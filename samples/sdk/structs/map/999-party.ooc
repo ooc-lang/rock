@@ -37,7 +37,8 @@ main: func (argc: Int, argv: String*) {
 
 	/* Check out the keys */
 	printf("Keys: ") 
-	for(key: String in ht keys) {
+	//for(key: String in ht keys) {
+    for(key: String in ht getKeys()) {
 		printf("%s=%s ", key, ht get(key))
 	}
 	printf("\n") 

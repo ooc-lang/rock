@@ -25,7 +25,7 @@ ArrayList: class <T> extends List<T> {
     
     init: func ~withData (.data, =size) {
         this data = gc_malloc(size * T size)
-        memcpy(this data&, data&, size * T size)
+        memcpy(this data, data, size * T size)
         capacity = size
     }
 	
@@ -40,8 +40,8 @@ ArrayList: class <T> extends List<T> {
 		if(index == 0) {
             ensureCapacity(size + 1)
             dst, src: Octet*
-            dst = data& + (T size)
-            src = data&
+            dst = data + (T size)
+            src = data
             memmove(dst, src, T size * size)
             data[0] = element
             size += 1
@@ -56,8 +56,8 @@ ArrayList: class <T> extends List<T> {
         checkIndex(index)
 		ensureCapacity(size + 1)
 		dst, src: Octet*
-		dst = data& + (T size * (index + 1))
-		src = data& + (T size * index)
+		dst = data + (T size * (index + 1))
+		src = data + (T size * index)
 		bsize := (size - index) * T size
 		memmove(dst, src, bsize)
 		data[index] = element
@@ -80,7 +80,7 @@ ArrayList: class <T> extends List<T> {
 			candidate : T
 			candidate = data[index]
             // that workaround sucks, but it works
-			if(memcmp(candidate&, element&, T size) == 0) return index
+			if(memcmp(candidate, element, T size) == 0) return index
 		}
 		return -1
 	}
@@ -91,15 +91,18 @@ ArrayList: class <T> extends List<T> {
 			candidate : T
 			candidate = data[index]
             // that workaround sucks, but it works
-			if(memcmp(candidate&, element&, T size) == 0) return index
+			if(memcmp(candidate, element, T size) == 0) return index
 			index -= 1
 		}
 		return -1
 	}
 
 	removeAt: func (index: Int) -> T {
-		element := data[index]
-		memmove(data& + (index * T size), data& + ((index + 1) * T size), (size - index) * T size)
+		//element := data[index]
+        element : T
+        element = data[index]
+        printf("Removing at %d, index * T size = %d, (index + 1) * T size = %d, (size - index) * T size = %d\n", index, index * T size, (index + 1) * T size, (size - index) * T size)
+		memmove(data + (index * T size), data + ((index + 1) * T size), (size - index) * T size)
 		size -= 1
 		return element
 	}
@@ -149,7 +152,7 @@ ArrayList: class <T> extends List<T> {
 	/** private */
 	grow: func {
 		capacity = capacity * 1.1 + 10
-		tmpData := gc_realloc(data&, capacity * T size)
+		tmpData := gc_realloc(data, capacity * T size)
 		if (tmpData) {
 			data = tmpData
 		} else {
@@ -175,7 +178,7 @@ ArrayList: class <T> extends List<T> {
 	}
     
     /** */
-    toArray: func -> Pointer { data& }
+    toArray: func -> Pointer { data }
 	
 }
 

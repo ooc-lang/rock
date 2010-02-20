@@ -1,6 +1,6 @@
 import ../frontend/Token
 import Visitor, Statement, Expression, Node, FunctionDecl, FunctionCall,
-       VariableAccess, AddressOf, ArrayAccess
+       VariableAccess, AddressOf, ArrayAccess, If, BinaryOp
 import tinker/[Response, Resolver, Trail]
 
 Return: class extends Statement {
@@ -43,11 +43,14 @@ Return: class extends Statement {
                     res wholeAgain(this, "expr type is unresolved"); return Responses OK
                 }
                 
-                fCall := FunctionCall new("memcpy", token)
-                fCall args add(VariableAccess new(fDecl getReturnArg(), token))
-                fCall args add((expr getType() isGeneric() && !(expr instanceOf(ArrayAccess))) ? expr : AddressOf new(expr, expr token))
-                fCall args add(VariableAccess new(VariableAccess new(fDecl getReturnType() getName(), token), "size", token))
-                if(!trail peek() addBefore(this, fCall)) {
+                returnAcc := VariableAccess new(fDecl getReturnArg(), token)
+                
+                if1 := If new(returnAcc, token)
+                
+                ass := BinaryOp new(returnAcc, expr, OpTypes ass, token)
+                if1 getBody() add(ass)
+                
+                if(!trail peek() addBefore(this, if1)) {
                     token throwError("Couldn't add the memcpy before the generic return in a %s! trail = %s" format(trail peek() as Node class name, trail toString()))
                 }
                 expr = null

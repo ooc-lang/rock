@@ -1,7 +1,8 @@
 import structs/HashMap
 
 printMap: func (map: HashMap<String>) {
-    for(key: String in map keys) {
+    //for(key: String in map keys) {
+    for(key: String in map getKeys()) {
         "%s: %s" format(key, map get(key)) println()
     }
 }
