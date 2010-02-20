@@ -139,11 +139,9 @@ BinaryOp: class extends Expression {
             if(right instanceOf(FunctionCall)) {
                 fCall := right as FunctionCall
                 fDecl := fCall getRef()
-                if(!fDecl) {
-                    return Responses LOOP
-                }
-                if(!fDecl getReturnType() isResolved()) {
-                    return Responses LOOP
+                if(!fDecl || !fDecl getReturnType() isResolved()) {
+                    res wholeAgain(this, "Need more info on fDecl")
+                    return Responses OK
                 }
                 
                 if(fDecl getReturnType() isGeneric()) {
@@ -159,20 +157,12 @@ BinaryOp: class extends Expression {
                 res wholeAgain(this, "right type is unresolved"); return Responses OK
             }
             
-            isGeneric := false
-            
-            // TODO: optimize, there's a whole bunch of nodes we don't need to create if the assign isn't generic..
-            sizeAcc := VariableAccess new(VariableAccess new(left getType() getName(), token), "size", token)
-            
-            realLeft  := getRealOperand(left,  sizeAcc, isGeneric&)
-            realRight := getRealOperand(right, sizeAcc, isGeneric&)
-            
-            if(isGeneric) {
-                if(realLeft  == null) realLeft  = AddressOf new(left,  left  token)
-                if(realRight == null) realRight = AddressOf new(right, right token)
+            if(isGeneric()) {
+                sizeAcc := VariableAccess new(VariableAccess new(left getType() getName(), token), "size", token)
+                
                 fCall := FunctionCall new("memcpy", token)
-                fCall args add(realLeft)
-                fCall args add(realRight)
+                fCall args add(getRealOperand(left,  sizeAcc))
+                fCall args add(getRealOperand(right, sizeAcc))
                 fCall args add(sizeAcc)
                 result := trail peek() replace(this, fCall)
                 
@@ -182,7 +172,6 @@ BinaryOp: class extends Expression {
                 
                 res wholeAgain(this, "Replaced ourselves, need to tidy up")
                 return Responses OK
-                //return Responses LOOP
             }
         }
         
@@ -198,21 +187,21 @@ BinaryOp: class extends Expression {
         
     }
     
-    getRealOperand: func (expr: Expression, sizeAcc: Expression, isGeneric: Bool@) -> Expression {
+    isGeneric: func -> Bool {
+        (left  getType() isGeneric() && left  getType() pointerLevel() == 0) ||
+        (right getType() isGeneric() && right getType() pointerLevel() == 0)
+    }
+    
+    getRealOperand: func (expr: Expression, sizeAcc: Expression) -> Expression {
         if(expr getType() isGeneric()) {
-            if(expr getType() pointerLevel() > 0) {
-                return expr
-            } else {
-                isGeneric = true
-                if(expr instanceOf(ArrayAccess)) {
-                    arrAcc := expr as ArrayAccess
-                    arrAcc setIndex(BinaryOp new(arrAcc getIndex(), sizeAcc, OpTypes mul, arrAcc token))
-                    return AddressOf new(arrAcc, arrAcc token)
-                }
-                return expr
+            if(expr getType() pointerLevel() == 0 && expr instanceOf(ArrayAccess)) {
+                arrAcc := expr as ArrayAccess
+                arrAcc setIndex(BinaryOp new(arrAcc getIndex(), sizeAcc, OpTypes mul, arrAcc token))
+                return AddressOf new(arrAcc, arrAcc token)
             }
+            return expr
         }
-        return null
+        return AddressOf new(expr, expr token)
     }
     
     isLegal: func (res: Resolver) -> Bool {
