@@ -1,6 +1,6 @@
 import ../frontend/Token
 import Visitor, Statement, Expression, Node, FunctionDecl, FunctionCall,
-       VariableAccess, AddressOf, ArrayAccess, If, BinaryOp
+       VariableAccess, AddressOf, ArrayAccess, If, BinaryOp, Cast
 import tinker/[Response, Resolver, Trail]
 
 Return: class extends Statement {
@@ -54,6 +54,17 @@ Return: class extends Statement {
                     token throwError("Couldn't add the memcpy before the generic return in a %s! trail = %s" format(trail peek() as Node class name, trail toString()))
                 }
                 expr = null
+            }
+            
+            if(expr != null) {
+                if(expr getType() == null || !expr getType() isResolved()) {
+                    res wholeAgain(this, "Need info about the expr type")
+                    return Responses OK
+                }
+                if(!retType equals(expr getType())) {
+                    // TODO: add checking to see if the types are compatible
+                    expr = Cast new(expr, retType, expr token)
+                }
             }
         }
         
