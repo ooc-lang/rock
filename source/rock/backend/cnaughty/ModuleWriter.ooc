@@ -67,9 +67,9 @@ ModuleWriter: abstract class extends Skeleton {
                 // TODO: add 'local'
                 if(vd isExtern()) continue
                 current = fw
-                current nl(). app("extern "). app(vd getType()). app(' '). app(vd getName()). app(';')
+                current nl(). app("extern "). app(vd getType()). app(' '). app(vd getFullName()). app(';')
                 current = cw
-                current nl().                 app(vd getType()). app(' '). app(vd getName()). app(';')
+                current nl().                 app(vd getType()). app(' '). app(vd getFullName()). app(';')
             }
         }
         
@@ -87,7 +87,7 @@ ModuleWriter: abstract class extends Skeleton {
             if(stmt instanceOf(VariableDecl)) {
                 vd := stmt as VariableDecl
                 if(vd isExtern() || vd getExpr() == null) continue
-                current nl(). app(vd getName()). app(" = "). app(vd getExpr()). app(';')
+                current nl(). app(vd getFullName()). app(" = "). app(vd getExpr()). app(';')
             } else {
                 writeLine(stmt)
             }

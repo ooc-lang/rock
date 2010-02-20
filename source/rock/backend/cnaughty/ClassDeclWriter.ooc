@@ -117,7 +117,7 @@ ClassDeclWriter: abstract class extends CGenerator {
     /** Write the prototypes of member functions */
     writeMemberFuncPrototypes: static func (this: This, cDecl: ClassDecl) {
 
-        current nl(). app(cDecl underName()). app(" *"). app(cDecl getNonMeta() name). app("_class();")
+        current nl(). app(cDecl underName()). app(" *"). app(cDecl getNonMeta() getFullName()). app("_class();")
 
         for(fDecl: FunctionDecl in cDecl functions) {
             
@@ -228,7 +228,7 @@ ClassDeclWriter: abstract class extends CGenerator {
         isInterface := (cDecl getNonMeta() != null && cDecl getNonMeta() instanceOf(InterfaceImpl)) as Bool
         underName := isInterface ? cDecl getSuperRef() underName() : cDecl underName()
 
-        current nl(). nl(). app(underName). app(" *"). app(cDecl getNonMeta() getName()). app("_class()"). openBlock(). nl()
+        current nl(). nl(). app(underName). app(" *"). app(cDecl getNonMeta() getFullName()). app("_class()"). openBlock(). nl()
         
         if (cDecl getNonMeta() getSuperRef()) {
             current app("static "). app(LANG_PREFIX). app("Bool __done__ = false;"). nl()
@@ -241,7 +241,7 @@ ClassDeclWriter: abstract class extends CGenerator {
         if (cDecl getNonMeta() getSuperRef()) {
             current nl(). app(CLASS_NAME). app(" *classPtr = ("). app(CLASS_NAME). app(" *) &class;")
             current nl(). app("if(!__done__)"). openBlock().
-                    nl(). app("classPtr->super = ("). app(CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getName()). app("_class();").
+                    nl(). app("classPtr->super = ("). app(CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getFullName()). app("_class();").
                     nl(). app("__done__ = true;").
             closeBlock()
         }

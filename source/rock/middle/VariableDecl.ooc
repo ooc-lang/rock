@@ -1,11 +1,13 @@
 import structs/[ArrayList]
 import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
-       Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast
+       Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast, Module
 import tinker/[Response, Resolver, Trail]
 
 VariableDecl: class extends Declaration {
 
     name: String
+    fullName: String = null
+
     type: Type
     expr: Expression
     owner: TypeDecl
@@ -15,6 +17,7 @@ VariableDecl: class extends Declaration {
     isConst := false
     isStatic := false
     externName: String = null
+    unmangledName: String = null
 
     init: func ~vDecl (.type, .name, .token) {
         this(type, name, null, token)
@@ -30,6 +33,7 @@ VariableDecl: class extends Declaration {
 
     setType: func(=type) {}
     getType: func -> Type { type }
+
 
     getName: func -> String { name }
 
@@ -59,6 +63,34 @@ VariableDecl: class extends Declaration {
     isExtern: func -> Bool { externName != null }
     isExternWithName: func -> Bool {
         (externName != null) && !(externName isEmpty())
+    }
+
+    getUnmangledName: func -> String { unmangledName isEmpty() ? name : unmangledName }
+    setUnmangledName: func (=unmangledName) {}
+    isUnmangled: func -> Bool { unmangledName != null }
+    isUnmangledWithName: func -> Bool {
+        (unmangledName != null) && !(unmangledName isEmpty())
+    }
+
+    getFullName: func -> String {
+        if(fullName == null) {
+            if(isUnmangled()) {
+                fullName = getUnmangledName()
+            } else if(isExtern()) {
+                if(isExternWithName()) {
+                    fullName = externName
+                } else {
+                    fullName = name
+                }
+            } else {
+                if(!isGlobal()) {
+                    fullName = name
+                } else {
+                    fullName = "%s__%s" format(token module getUnderName(), name)
+                }
+            }
+        }
+        fullName
     }
 
     resolveAccess: func (access: VariableAccess) {
