@@ -243,7 +243,11 @@ CGenerator: class extends Skeleton {
     }
 
     visitComparison: func (comp: Comparison) {
-        current app(comp left). app(" "). app(comp compType toString()). app(" "). app(comp right)
+        current app(comp left). app(" "). app(comp compType toString()). app(" ")
+        if(!comp right getType() equals(comp left getType())) {
+            current app('('). app (comp left getType()). app(") ") 
+        }
+        current app(comp right)
     }
 
     visitTernary: func (tern: Ternary) {
