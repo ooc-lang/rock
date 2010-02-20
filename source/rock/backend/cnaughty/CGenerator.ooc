@@ -126,8 +126,8 @@ CGenerator: class extends Skeleton {
     /** Write a variable declaration */
     visitVariableDecl: func (vDecl: VariableDecl) {
         if(vDecl isExtern()) return
-        
-        current app(vDecl getType()). app(' '). app(vDecl name)
+       
+        current app(vDecl getType()). app(' '). app(vDecl getFullName())
         if(vDecl expr)
             current app(" = "). app(vDecl expr)
     }
@@ -160,15 +160,13 @@ CGenerator: class extends Skeleton {
                         current app('.')
                     }
                 }
-                current app(varAcc name)
+                current app(vDecl getFullName())
             }
         } else if(varAcc ref instanceOf(TypeDecl)) {
             tDecl := varAcc ref as TypeDecl
-            // FIXME: use mangled name here later
-            current app(tDecl name). app("_class()")
+            current app(tDecl getFullName()). app("_class()")
         } else if(varAcc ref instanceOf(FunctionDecl)) {
             fDecl := varAcc ref as FunctionDecl
-            // FIXME: use mangled name here later
             FunctionDeclWriter writeFullName(this, fDecl)
         }
     }

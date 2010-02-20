@@ -98,7 +98,9 @@ FunctionDecl: class extends Declaration {
 
     getFullName: func -> String {
         if(fullName == null) {
-            if(isExtern()) {
+            if(isMain()) { // FIXME: This should be isEntryPoint.
+                fullName = name
+            } else if(isExtern()) {
                 if(isExternWithName()) {
                     fullName = externName
                 } else {
@@ -108,7 +110,7 @@ FunctionDecl: class extends Declaration {
                 if(isMember()) {
                     fullName = "%s_%s" format(owner getFullName(), name)
                 } else {
-                    fullName = name
+                    fullName = "%s__%s" format(token module getUnderName(), name) 
                 }
                 if(suffix != null) {
                     fullName = "%s_%s" format(fullName, suffix)
