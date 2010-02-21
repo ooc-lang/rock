@@ -97,6 +97,10 @@ FunctionCall: class extends Expression {
         if(returnArg) {
             response := returnArg resolve(trail, res)
             if(!response ok()) return response
+            
+            if(returnArg isResolved() && !returnArg instanceOf(AddressOf)) {
+                returnArg = returnArg getGenericOperand()
+            }
         }
         
         /*

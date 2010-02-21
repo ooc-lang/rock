@@ -146,7 +146,7 @@ BinaryOp: class extends Expression {
                 
                 if(fDecl getReturnType() isGeneric()) {
                     sizeAcc := VariableAccess new(VariableAccess new(left getType() getName(), token), "size", token)
-                    fCall setReturnArg(getRealOperand(left, sizeAcc))
+                    fCall setReturnArg(left getGenericOperand())
                     trail peek() replace(this, fCall)
                     res wholeAgain(this, "just replaced with fCall and set ourselves as returnArg")
                     return Responses OK
@@ -164,8 +164,8 @@ BinaryOp: class extends Expression {
                 sizeAcc := VariableAccess new(VariableAccess new(left getType() getName(), token), "size", token)
                 
                 fCall := FunctionCall new("memcpy", token)
-                fCall args add(getRealOperand(left,  sizeAcc))
-                fCall args add(getRealOperand(right, sizeAcc))
+                fCall args add(left  getGenericOperand())
+                fCall args add(right getGenericOperand())
                 fCall args add(sizeAcc)
                 result := trail peek() replace(this, fCall)
                 
@@ -193,18 +193,6 @@ BinaryOp: class extends Expression {
     isGeneric: func -> Bool {
         (left  getType() isGeneric() && left  getType() pointerLevel() == 0) ||
         (right getType() isGeneric() && right getType() pointerLevel() == 0)
-    }
-    
-    getRealOperand: func (expr: Expression, sizeAcc: Expression) -> Expression {
-        if(expr getType() isGeneric()) {
-            if(expr getType() pointerLevel() == 0 && expr instanceOf(ArrayAccess)) {
-                arrAcc := expr as ArrayAccess
-                arrAcc setIndex(BinaryOp new(arrAcc getIndex(), sizeAcc, OpTypes mul, arrAcc token))
-                return AddressOf new(arrAcc, arrAcc token)
-            }
-            return expr
-        }
-        return AddressOf new(expr, expr token)
     }
     
     isLegal: func (res: Resolver) -> Bool {

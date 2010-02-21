@@ -1,7 +1,8 @@
 import structs/[ArrayList]
 import ../frontend/[Token, BuildParams]
 import Visitor, Expression, VariableDecl, Declaration, Type, Node,
-       OperatorDecl, FunctionCall, Import, Module, BinaryOp
+       OperatorDecl, FunctionCall, Import, Module, BinaryOp,
+       VariableAccess, AddressOf
 import tinker/[Resolver, Response, Trail]
 
 ArrayAccess: class extends Expression {
@@ -20,6 +21,16 @@ ArrayAccess: class extends Expression {
     
     accept: func (visitor: Visitor) {
         visitor visitArrayAccess(this)
+    }
+    
+    getGenericOperand: func -> Expression {
+        if(getType() isGeneric() && getType() pointerLevel() == 0) {
+            sizeAcc := VariableAccess new(VariableAccess new(getType() getName(), token), "size", token)
+            arrAcc := this as ArrayAccess
+            arrAcc setIndex(BinaryOp new(arrAcc getIndex(), sizeAcc, OpTypes mul, arrAcc token))
+            return AddressOf new(arrAcc, arrAcc token)
+        }
+        return super getGenericOperand()
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
