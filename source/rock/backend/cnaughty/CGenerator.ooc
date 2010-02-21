@@ -65,7 +65,7 @@ CGenerator: class extends Skeleton {
         
         // when assigning to a member function (e.g. for hotswapping),
         // you want to change the class field, not just the function name
-        isFunc := op isAssign() &&
+        isFunc := op type == OpTypes ass &&
                   op left instanceOf(VariableAccess) &&
                   op left as VariableAccess ref instanceOf(FunctionDecl) &&
                   op left as VariableAccess ref as FunctionDecl getOwner() != null
@@ -82,7 +82,7 @@ CGenerator: class extends Skeleton {
         
         if(isFunc) {
             current app("(void*) ")
-        } else if(op isAssign()) {
+        } else if(op type == OpTypes ass) {
             if(op left  getType() isPointer() ||
                op right getType() isPointer()) {
                 current app("(void*) ")
