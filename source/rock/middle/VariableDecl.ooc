@@ -53,6 +53,9 @@ VariableDecl: class extends Declaration {
     isStatic: func -> Bool { isStatic }
     setStatic: func (=isStatic) {}
     
+    isConst: func -> Bool { isConst }
+    setConst: func (=isConst) {}
+    
     isGlobal: func -> Bool { isGlobal }
     setGlobal: func (=isGlobal) {}
     

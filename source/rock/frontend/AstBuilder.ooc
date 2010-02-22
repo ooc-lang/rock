@@ -319,6 +319,12 @@ AstBuilder: class {
             vd setStatic(true)
         }
     }
+    
+    onVarDeclConst: unmangled(nq_onVarDeclConst) func {
+        for(vd: VariableDecl in peek(Stack<VariableDecl>)) {
+            vd setConst(true)
+        }
+    }
 
     onVarDeclType: unmangled(nq_onVarDeclType) func (type: Type) {
         for(vd: VariableDecl in peek(Stack<VariableDecl>)) {
@@ -330,12 +336,11 @@ AstBuilder: class {
         pop(Stack<VariableDecl>)
     }
 
-    onVarDeclAssign: unmangled(nq_onVarDeclAssign) func (acc: VariableAccess, isConst: Bool, expr: Expression) -> VariableDecl {
+    onVarDeclAssign: unmangled(nq_onVarDeclAssign) func (acc: VariableAccess, expr: Expression) -> VariableDecl {
         if(!acc instanceOf(VariableAccess)) {
             Exception new(AstBuilder, "Expected a VariableAccess as a left-hand-side of a decl-assign, but got a " + acc toString()) throw()
         }
         vDecl := VariableDecl new(null, acc name, expr, token())
-        vDecl isConst = isConst
         //printf("[onVarDeclAssign] Got new VDFE %s\n", vDecl toString())
         return vDecl
     }
