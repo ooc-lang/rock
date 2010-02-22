@@ -336,15 +336,6 @@ AstBuilder: class {
         pop(Stack<VariableDecl>)
     }
 
-    onVarDeclAssign: unmangled(nq_onVarDeclAssign) func (acc: VariableAccess, expr: Expression) -> VariableDecl {
-        if(!acc instanceOf(VariableAccess)) {
-            Exception new(AstBuilder, "Expected a VariableAccess as a left-hand-side of a decl-assign, but got a " + acc toString()) throw()
-        }
-        vDecl := VariableDecl new(null, acc name, expr, token())
-        //printf("[onVarDeclAssign] Got new VDFE %s\n", vDecl toString())
-        return vDecl
-    }
-
     gotVarDecl: func (vd: VariableDecl) {
         node : Node = stack peek()
         //printf("[gotVarDecl] Got variable decl %s, and parent is a %s\n", vd toString(), node class name)
@@ -854,7 +845,7 @@ AstBuilder: class {
     peek: func <T> (T: Class) -> T {
         node := stack peek() as Node
         if(!node instanceOf(T)) {
-            Exception new(This, "Should've peek'd a %s, but peek'd a %s. Stack = %s" format(T name, node class name, stackRepr())) throw()
+            token() throwError("Should've peek'd a %s, but peek'd a %s. Stack = %s" format(T name, node class name, stackRepr()))
         }
         return node
     }
@@ -862,7 +853,7 @@ AstBuilder: class {
     pop: func <T> (T: Class) -> T {
         node := stack pop() as Node
         if(!node instanceOf(T)) {
-            Exception new(This, "Should've pop'd a %s, but pop'd a %s Stack = %s" format(T name, node class name, stackRepr())) throw()
+            token() throwError("Should've pop'd a %s, but pop'd a %s. Stack = %s" format(T name, node class name, stackRepr()))
         }
         return node
     }
