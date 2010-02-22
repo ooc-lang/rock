@@ -540,6 +540,14 @@ AstBuilder: class {
                 }
                 module := node as Module
                 module body add(stmt)
+            case node instanceOf(ClassDecl) =>
+                cDecl := node as ClassDecl
+                fDecl := cDecl lookupFunction(ClassDecl DEFAULTS_FUNC_NAME, "")
+                if(fDecl == null) {
+                    fDecl = FunctionDecl new(ClassDecl DEFAULTS_FUNC_NAME, cDecl token)
+                    cDecl addFunction(fDecl)
+                }
+                fDecl getBody() add(stmt)
             case =>
                 printf("[gotStatement] Got a %s, don't know what to do with it, parent = %s\n", stmt toString(), node class name)
         }
