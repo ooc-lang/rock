@@ -42,8 +42,6 @@ ControlStatement: abstract class extends Statement {
      */
     isDeadEnd: func -> Bool { false }
     
-    isScope: func -> Bool { true }
-    
     getBody: func -> Scope { body }
     
 }

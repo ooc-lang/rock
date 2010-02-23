@@ -6,7 +6,7 @@ import Return, ClassDecl, CoverDecl, FunctionDecl, VariableDecl, Type,
         VariableAccess, FunctionCall, BinaryOp, Parenthesis, Return,
         Cast, Comparison, Ternary, Argument, AddressOf, Dereference,
         CommaSequence, UnaryOp, ArrayAccess, Match, FlowControl,
-        InterfaceDecl, Version, Block
+        InterfaceDecl, Version, Block, Scope
 
 Visitor: abstract class {
     
@@ -60,5 +60,7 @@ Visitor: abstract class {
     visitCommaSequence:     func (node: CommaSequence) {}
     
     visitVersionBlock:      func (node: VersionBlock) {}
+    
+    visitScope:             func (node: Scope) {}
 
 }

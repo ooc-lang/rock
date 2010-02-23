@@ -193,7 +193,7 @@ FunctionDecl: class extends Declaration {
         
         trail push(this)
         
-        printf("*/* Resolving function decl %s\n", name)
+        //printf("*/* Resolving function decl %s\n", name)
 
         for(arg in args) {
             response := arg resolve(trail, res)
@@ -261,7 +261,7 @@ FunctionDecl: class extends Declaration {
         
         if(returnType == voidType || isExtern()) return Responses OK
         
-        stack := Stack<Iterator<Scope>> new()
+        stack := Stack<Iterator<Statement>> new()
         stack push(body iterator())
         
         //printf("[autoReturn] Exploring a %s\n", this toString())        
@@ -317,7 +317,7 @@ FunctionDecl: class extends Declaration {
         }
         
         if(condition) {
-            list : Scope = iter as ArrayListIterator<Node> list
+            list : ArrayList<Statement> = iter as ArrayListIterator<Node> list
             if(list isEmpty()) {
                 //printf("[autoReturn] scope is empty, needing return\n")
                 returnNeeded(trail)

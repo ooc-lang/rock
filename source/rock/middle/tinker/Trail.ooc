@@ -1,6 +1,6 @@
 import structs/Stack
 import text/StringBuffer
-import ../[Node, Module, Statement]
+import ../[Node, Module, Statement, Scope]
 
 Trail: class extends Stack<Node> {
 
@@ -54,7 +54,7 @@ Trail: class extends Stack<Node> {
         i := size() - 1
         while(i >= 0) {
             node : Node = data get(i)
-            if(node isScope()) break
+            if(node instanceOf(Scope)) break
             i -= 1
         }
         

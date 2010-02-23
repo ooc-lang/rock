@@ -1,14 +1,15 @@
 import structs/[ArrayList]
-import VariableAccess, VariableDecl, Statement, Node
+import VariableAccess, VariableDecl, Statement, Node, Visitor
 import tinker/[Trail, Resolver, Response]
 import ../frontend/[BuildParams]
 
-Scope: class extends ArrayList<Statement> {
+Scope: class extends Node {
     
-    init: func ~scope {
-        T = Statement
-        super()
-    }
+    list := ArrayList<Statement> new()
+    
+    init: func ~scope {}
+    
+    accept: func (v: Visitor) { v visitScope(this) }
     
     resolveAccess: func (access: VariableAccess) {
         for(stat in this) {
@@ -18,14 +19,17 @@ Scope: class extends ArrayList<Statement> {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
+        trail push(this)
         for(stat in this) {
             response := stat resolve(trail, res)
             if(!response ok()) {
                 if(res params verbose) printf("Response of statement [%s] %s = %s\n", stat class name, stat toString(), response toString())
+                trail pop(this)
                 return response
             }
         }
         
+        trail pop(this)
         return Responses OK
         
     }
@@ -78,6 +82,33 @@ Scope: class extends ArrayList<Statement> {
         
     }
     
+    add:      func ~append (n: Statement) { list add(n) }
+    remove:   func (n: Statement) { list remove(n) }
+    removeAt: func (i: Int)       { list removeAt(i) }
+    
+    iterator: func -> Iterator<Statement> {
+        list iterator()
+    }
+    
+    isEmpty:  func -> Bool { list isEmpty() }
+    
+    last:  func -> Statement { list last() }
+    first: func -> Statement { list first() }
+    
+    lastIndex: func -> Int { list lastIndex() }
+    
+    set: func (i: Int, s: Statement) { list set(i, s) }
+    add: func (i: Int, s: Statement) { list add(i, s) }
+    
+    addAll: func (s: Scope) { list addAll(s list) }
+    
+    indexOf: func (s: Statement) -> Int { list indexOf(s) }
+    
+    replace: func (oldie, kiddo: Node) -> Bool { list replace(oldie, kiddo) }
+    
+    size: func -> Int { list size() }
+    
+    isScope: func -> Bool { true }
     
 }
 

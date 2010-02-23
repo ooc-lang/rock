@@ -28,3 +28,4 @@ Container: class <T> extends AbstractContainer<T> {
 main: func {
     Container<Int> new() doThing()
 }
+
