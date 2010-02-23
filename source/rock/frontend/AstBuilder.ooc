@@ -396,7 +396,9 @@ AstBuilder: class {
      */
 
     onFunctionStart: unmangled(nq_onFunctionStart) func (name: String) {
-        stack push(FunctionDecl new(name clone(), token()))
+        fDecl := FunctionDecl new(name clone(), token())
+        fDecl setVersion(getVersion())
+        stack push(fDecl)
     }
 
     onFunctionExtern: unmangled(nq_onFunctionExtern) func (externName: String) {

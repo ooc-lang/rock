@@ -28,6 +28,8 @@ FunctionDecl: class extends Declaration {
     
     owner : TypeDecl = null
     staticVariant : This = null
+    
+    verzion: VersionSpec = null
 
     init: func ~funcDecl (=name, .token) {
         super(token)
@@ -243,7 +245,10 @@ FunctionDecl: class extends Declaration {
         
         trail pop(this)
         
-        //printf("%s returning OK..\n", toString())
+        if(verzion) {
+            response := verzion resolve()
+            if(!response ok()) return response
+        }
         
         return Responses OK
         
@@ -394,6 +399,13 @@ FunctionDecl: class extends Declaration {
 	getTypeArgs: func -> ArrayList<VariableDecl> { typeArgs }
 	getArguments: func -> ArrayList<Argument> { args } 
 	getBody: func -> Scope { body }
+    
+    setVersion: func (=verzion) {
+        if(verzion) {
+            printf("func %s got version %s\n", toString(), verzion toString())
+        }
+    }
+    getVersion: func -> VersionSpec { verzion }
     
 }
 

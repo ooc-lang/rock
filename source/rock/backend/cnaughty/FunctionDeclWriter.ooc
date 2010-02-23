@@ -1,5 +1,5 @@
 import ../../middle/[FunctionDecl, TypeDecl, ClassDecl, Argument, Type, InterfaceDecl]
-import Skeleton, CGenerator, ClassDeclWriter
+import Skeleton, CGenerator, ClassDeclWriter, VersionWriter
 import ../../frontend/BuildParams
 include stdint
 
@@ -20,12 +20,15 @@ FunctionDeclWriter: abstract class extends CGenerator {
         
         // header
         current = fw
+        if(fDecl getVersion()) VersionWriter writeStart(this, fDecl getVersion())
         current nl()
         writeFuncPrototype(this, fDecl)
         current app(';')
+        if(fDecl getVersion()) VersionWriter writeEnd(this)
         
         // source
         current = cw
+        if(fDecl getVersion()) VersionWriter writeStart(this, fDecl getVersion())
         current nl(). nl()
         writeFuncPrototype(this, fDecl)
         current app(" {"). tab()
@@ -39,6 +42,7 @@ FunctionDeclWriter: abstract class extends CGenerator {
             writeLine(stat)
         }
         current untab(). nl(). app("}")
+        if(fDecl getVersion()) VersionWriter writeEnd(this)
     }
     
     /** Write the name of a function, with its suffix, and prefixed by its owner if any */
