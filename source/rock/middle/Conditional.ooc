@@ -12,6 +12,7 @@ Conditional: abstract class extends ControlStatement {
         
         if(condition != null) {
             trail push(this)
+            printf("Resolving condition of type %s\n", condition class name)
             response := condition resolve(trail, res)
             trail pop(this)
             if(!response ok()) {

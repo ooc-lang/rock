@@ -333,7 +333,10 @@ AstBuilder: class {
     }
 
     onVarDeclEnd: unmangled(nq_onVarDeclEnd) func -> Stack<VariableDecl> {
-        pop(Stack<VariableDecl>)
+        stack := pop(Stack<VariableDecl>)
+        if(stack size() == 1) return stack peek()
+        // FIXME: Better detection to avoid 'stack' being passed as a Statement to, say, an If
+        return stack
     }
 
     gotVarDecl: func (vd: VariableDecl) {
@@ -697,6 +700,10 @@ AstBuilder: class {
 
     onDecLiteral: unmangled(nq_onDecLiteral) func (value: String) -> IntLiteral {
         IntLiteral new(value replace("_", "") toLLong(), token())
+    }
+    
+    onOctLiteral: unmangled(nq_onOctLiteral) func (value: String) -> IntLiteral {
+        IntLiteral new(value replace("_", "") substring(2) toLLong(8), token())
     }
     
     onHexLiteral: unmangled(nq_onHexLiteral) func (value: String) -> IntLiteral {

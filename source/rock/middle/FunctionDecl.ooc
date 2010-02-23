@@ -193,7 +193,7 @@ FunctionDecl: class extends Declaration {
         
         trail push(this)
         
-        //printf("*/* Resolving function decl %s\n", name)
+        printf("*/* Resolving function decl %s\n", name)
 
         for(arg in args) {
             response := arg resolve(trail, res)

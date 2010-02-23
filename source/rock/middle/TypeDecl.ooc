@@ -280,7 +280,7 @@ TypeDecl: abstract class extends Declaration {
         
         trail push(this)
         
-        //if(res params verbose) printf("====== Resolving type decl %s\n", toString())
+        if(res params verbose) printf("====== Resolving type decl %s\n", toString())
         
         {
             response := type resolve(trail, res)
