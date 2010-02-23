@@ -36,7 +36,7 @@ Scope: class extends Node {
     
     addBefore: func (mark, newcomer: Node) -> Bool {
         
-        //printf("Should add %s before %s\n", newcomer toString(), mark toString())
+        printf("Should add %s before %s\n", newcomer toString(), mark toString())
         
         idx := indexOf(mark)
         //printf("idx = %d\n", idx)
@@ -60,7 +60,7 @@ Scope: class extends Node {
     
     addAfter: func (mark, newcomer: Node) -> Bool {
         
-        //printf("Should add %s after %s\n", newcomer toString(), mark toString())
+        printf("Should add %s after %s\n", newcomer toString(), mark toString())
         
         idx := indexOf(mark)
         //printf("idx = %d\n", idx)

@@ -1,6 +1,7 @@
 import structs/[ArrayList]
 import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
-       Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast, Module
+       Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast, Module,
+       Block
 import tinker/[Response, Resolver, Trail]
 
 VariableDecl: class extends Declaration {
@@ -141,7 +142,17 @@ VariableDecl: class extends Declaration {
             if(!parent isScope() && !parent instanceOf(TypeDecl)) {
                 //println("uh oh the parent of " + toString() + " isn't a scope but a " + parent class name)
                 idx := trail findScope()
-                result := trail get(idx) addBefore(trail get(idx + 1), this)
+                scope := trail get(idx)
+                
+                block := Block new(token)
+                block getBody() add(this)
+                block getBody() add(trail get(idx + 1))
+                
+                result := scope replace(trail get(idx + 1), block)
+                if(!result) {
+                    token throwError("Couldn't unwrap " + toString() + " , trail = " + trail toString())
+                }
+                printf("Unwrapped %s\n", toString())
                 trail peek() replace(this, VariableAccess new(this, token))
                 res wholeAgain(this, "parent isn't scope nor typedecl, unwrapped")
                 return Responses OK

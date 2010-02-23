@@ -9,7 +9,7 @@ Node: class {
     
     parent: func -> Node { _parent }
     
-    print: func -> String {
+    print: func {
         if(parent := parent()) {
             parent print()
         }
