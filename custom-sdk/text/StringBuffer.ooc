@@ -109,7 +109,6 @@ BufferWriter: class extends Writer {
 }
 
 // Provided for backwards compatiblity, depreciated and replaced by BufferWriter.
-/*
 StringBuffer: class extends BufferWriter {
     init: func {
         init(128)
@@ -139,7 +138,6 @@ StringBuffer: class extends BufferWriter {
         return buffer toString()
     }
 }
-*/
 
 BufferReader: class extends Reader {
     buffer: Buffer

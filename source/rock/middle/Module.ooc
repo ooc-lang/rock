@@ -141,6 +141,12 @@ Module: class extends Node {
 
         ref := null as Declaration
 
+        for(f in functions) {
+            if(f name == access name) {
+                access suggest(f)
+            }
+        }
+
         ref = types get(access name)
         if(ref != null && access suggest(ref)) {
             return

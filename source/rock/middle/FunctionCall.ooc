@@ -117,9 +117,9 @@ FunctionCall: class extends Expression {
         if(refScore == -1) {
         	if(name == "super") {
 				fDecl := trail get(trail find(FunctionDecl)) as FunctionDecl
-				superTypeDecl := fDecl owner getSuperRef()
-				ref = superTypeDecl getMeta() getFunction(fDecl getName(), fDecl getSuffix(), this)
-				refScore = 1
+                superTypeDecl := fDecl owner getSuperRef()
+                ref = superTypeDecl getMeta() getFunction(fDecl getName(), null, this)
+                refScore = 1
 				expr = VariableAccess new(superTypeDecl getThisDecl(), token)
         	} else {
         		if(expr == null) {

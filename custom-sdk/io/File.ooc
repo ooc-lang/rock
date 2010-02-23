@@ -42,11 +42,11 @@ File: abstract class {
     }
 
     new: static func ~parentFile(parent: File, .path) -> This {
-        return new(parent path + File separator + path)
+        return new(parent path + This separator + path)
     }
 
     new: static func ~parentPath(parent: String, .path) -> This {
-        return new(parent + File separator + path)
+        return new(parent + This separator + path)
     }
 
     /**
@@ -97,8 +97,8 @@ File: abstract class {
      * name() will return 'bluetooth'
      */
     name: func -> String {
-        trimmed := path trim(separator)
-        idx := trimmed lastIndexOf(separator)
+        trimmed := path trim(This separator)
+        idx := trimmed lastIndexOf(This separator)
         if(idx == -1) return trimmed
         return trimmed substring(idx + 1)
     }
@@ -120,7 +120,7 @@ File: abstract class {
      * root directory.
      */
     parentName: func -> String {
-        idx := path lastIndexOf(separator)
+        idx := path lastIndexOf(This separator)
         if(idx == -1) return null
         return path substring(0, idx)
     }
@@ -240,7 +240,7 @@ File: abstract class {
      * :param name: The name of the child, relatively to this path
      */
     getChild: func (name: String) -> This {
-        new(this path + File separator + name)
+        new(this path + This separator + name)
     }
 
     /**

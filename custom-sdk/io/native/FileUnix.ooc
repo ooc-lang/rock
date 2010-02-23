@@ -34,9 +34,9 @@ version(unix || apple) {
     S_ISDIR: extern func(...) -> Bool
     S_ISREG: extern func(...) -> Bool
     S_ISLNK: extern func(...) -> Bool
-    S_IRWXU: extern func(...)
-    S_IRWXG: extern func(...)
-    S_IRWXO: extern func(...)
+    S_IRWXU: extern Long
+    S_IRWXG: extern Long
+    S_IRWXO: extern Long
 
     lstat: extern func(String, FileStat*) -> Int
     _mkdir: extern(mkdir) func(String, ModeT) -> Int
@@ -154,7 +154,7 @@ version(unix || apple) {
          * The absolute path, e.g. "my/dir" => "/current/directory/my/dir"
          */
         getAbsolutePath: func -> String {
-            actualPath := String new(MAX_PATH_LENGTH + 1)
+            actualPath := String new(This MAX_PATH_LENGTH + 1)
             return realpath(path, actualPath)
         }
 

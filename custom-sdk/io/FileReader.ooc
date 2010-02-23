@@ -4,9 +4,7 @@ fopen: extern func(filename: Char*, mode: Char*) -> FILE*
 fread: extern func(ptr: Pointer, size: SizeT, count: SizeT, stream: FILE*) -> SizeT
 feof: extern func(stream: FILE*) -> Int
 fseek: extern func(stream: FILE*, offset: Long, origin: Int) -> Int
-SEEK_CUR: extern func
-SEEK_SET: extern func
-SEEK_END: extern func
+SEEK_CUR, SEEK_SET, SEEK_END: extern Int
 ftell: extern func(stream: FILE*) -> Long
  
 FileReader: class extends Reader {
