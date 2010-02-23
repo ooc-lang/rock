@@ -8,6 +8,8 @@ Foreach: class extends ControlStatement {
     
     variable: Expression
     collection: Expression
+    
+    replaced := false
 
     init: func ~_foreach (=variable, =collection, .token) {
         super(token)
@@ -19,7 +21,7 @@ Foreach: class extends ControlStatement {
     
     replace: func (oldie, kiddo: Node) -> Bool {
         match oldie {
-            case variable   => variable   = kiddo; return true
+            case variable   => variable   = kiddo; replaced = true; return true
             case collection => collection = kiddo; return true
         }
         return super replace(oldie, kiddo)
@@ -27,7 +29,7 @@ Foreach: class extends ControlStatement {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
-        if(variable instanceOf(VariableAccess)) {
+        if(variable instanceOf(VariableAccess) && !replaced) {
             varType : Type = null
             if(collection instanceOf(RangeLiteral)) {
                 varType = IntLiteral type
@@ -35,15 +37,25 @@ Foreach: class extends ControlStatement {
             variable = VariableDecl new(varType, variable as VariableAccess getName(), variable token)
         }
         
+        trail push(this)
+        
         {
             response := variable resolve(trail, res)
-            if(!response ok()) return response
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
         }
         
         {
             response := collection resolve(trail, res)
-            if(!response ok()) return response
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
         }
+        
+        trail pop(this)
         
         if(!collection instanceOf(RangeLiteral)) {
             iterCall := FunctionCall new(collection, "iterator", token)
@@ -84,14 +96,21 @@ Foreach: class extends ControlStatement {
                              addAll(getBody())
             
             if(!list replace(this, block)) {
-                printf("Failed to replace %s with %s in a %s. trail = %s", toString(), block toString(), list toString(), trail toString())
+                if(res fatal) printf("Failed to replace %s with %s in a %s. trail = %s", toString(), block toString(), list toString(), trail toString())
+                res wholeAgain(this, "Can't turn into a while =)")
+                return Responses OK
             }
             
             block getBody() add(vdfe).
                             add(while1)
 
             if(variable getType() == null) {
-                variable as VariableDecl setType(nextCall getType())
+                decl : VariableDecl = variable
+                if(!variable instanceOf(VariableDecl)) {
+                    acc := variable as VariableAccess
+                    decl = acc ref
+                }
+                decl setType(nextCall getType())
             }
                             
             res wholeAgain(this, "Just turned into a while =)")
@@ -111,5 +130,7 @@ Foreach: class extends ControlStatement {
         super resolveAccess(access)
         
     }
+    
+    toString: func -> String { "for (" + variable toString() + " in " + collection toString() + ")" }
     
 }

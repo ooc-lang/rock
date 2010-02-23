@@ -36,7 +36,7 @@ Scope: class extends Node {
     
     addBefore: func (mark, newcomer: Node) -> Bool {
         
-        printf("Should add %s before %s\n", newcomer toString(), mark toString())
+        //printf("Should add %s before %s\n", newcomer toString(), mark toString())
         
         idx := indexOf(mark)
         //printf("idx = %d\n", idx)
@@ -44,14 +44,6 @@ Scope: class extends Node {
             add(idx, newcomer)
             //println("|| adding newcomer " + newcomer toString() + " at idx " + idx toString())
             return true
-        } else {
-            //printf("content of body = \n")
-            for(e in this) {
-                printf("    ")
-                e toString() println()
-            }
-            
-            return false
         }
         
         return false
@@ -60,7 +52,7 @@ Scope: class extends Node {
     
     addAfter: func (mark, newcomer: Node) -> Bool {
         
-        printf("Should add %s after %s\n", newcomer toString(), mark toString())
+        //printf("Should add %s after %s\n", newcomer toString(), mark toString())
         
         idx := indexOf(mark)
         //printf("idx = %d\n", idx)
@@ -68,14 +60,6 @@ Scope: class extends Node {
             add(idx + 1, newcomer)
             //println("|| adding newcomer " + newcomer toString() + " at idx " + (idx + 1) toString())
             return true
-        } else {
-            //printf("content of body = \n")
-            for(e in this) {
-                printf("    ")
-                e toString() println()
-            }
-            
-            return false
         }
         
         return false

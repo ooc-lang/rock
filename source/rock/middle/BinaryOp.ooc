@@ -134,6 +134,11 @@ BinaryOp: class extends Expression {
         }
 
         if(type == OpTypes ass) {
+            if(left getType() == null) {
+                res wholeAgain(this, "Need left type of %s" format(left toString()))
+                return Responses OK
+            }
+            
             // if we're an assignment from a generic return value
             // we need to set the returnArg to left and disappear! =)
             if(right instanceOf(FunctionCall)) {

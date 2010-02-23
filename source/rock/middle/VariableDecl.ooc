@@ -1,7 +1,7 @@
 import structs/[ArrayList]
 import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
        Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast, Module,
-       Block
+       Block, Scope
 import tinker/[Response, Resolver, Trail]
 
 VariableDecl: class extends Declaration {
@@ -140,20 +140,28 @@ VariableDecl: class extends Declaration {
         parent := trail peek()
         {
             if(!parent isScope() && !parent instanceOf(TypeDecl)) {
-                //println("uh oh the parent of " + toString() + " isn't a scope but a " + parent class name)
+                //println("oh the parent of " + toString() + " isn't a scope but a " + parent class name)
+                //println("trail = " + trail toString())
+                
+                result := trail peek() replace(this, VariableAccess new(this, token))
+                if(!result) {
+                    token throwError("Couldn't replace %s with a varAcc in %s, trail = %s" format(toString(), trail peek() toString(), trail toString()))
+                }
+                
                 idx := trail findScope()
-                scope := trail get(idx)
+                scope := trail get(idx) as Scope
+                
+                parent := trail get(idx + 1)
                 
                 block := Block new(token)
                 block getBody() add(this)
-                block getBody() add(trail get(idx + 1))
+                block getBody() add(parent)
                 
-                result := scope replace(trail get(idx + 1), block)
+                result = scope replace(trail get(idx + 1), block)
                 if(!result) {
                     token throwError("Couldn't unwrap " + toString() + " , trail = " + trail toString())
                 }
-                printf("Unwrapped %s\n", toString())
-                trail peek() replace(this, VariableAccess new(this, token))
+                
                 res wholeAgain(this, "parent isn't scope nor typedecl, unwrapped")
                 return Responses OK
             }
