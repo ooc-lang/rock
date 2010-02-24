@@ -29,12 +29,10 @@ Array: class <T> extends Iterable<T> {
 		data[i] = value
 	}
 	
-    /*
-	size: func -> Int {
+    size: func -> Int {
 		return size
 	}
-    */
-
+    
 	/*
 	nullTerminated: static func (p : T*) -> Array {
 		Object* q = p;

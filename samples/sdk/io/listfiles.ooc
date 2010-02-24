@@ -10,11 +10,13 @@ main: func (args: Array<String>) {
         //f = f getAbsoluteFile()
 
         Terminal setAttr(Attr bright)
+        /*
         Terminal setFgColor(match {
             case f isDir()  => Color blue
             case f isLink() => Color cyan
             case            => Terminal setAttr(Attr reset); Color white
         })
+        */
         if(f isFile() && (f ownerPerm() & 1 || f groupPerm() & 1 || f otherPerm() & 1)) {
             Terminal setAttr(Attr bright)
             Terminal setFgColor(Color green)
