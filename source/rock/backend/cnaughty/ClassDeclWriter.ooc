@@ -68,7 +68,9 @@ ClassDeclWriter: abstract class extends CGenerator {
         }
         
         for(vDecl in cDecl variables) {
-        	current nl(). app(vDecl getType()). app(" "). app(vDecl getName()). app(';')
+            if(vDecl isExtern()) continue;
+            
+            current nl(). app(vDecl getType()). app(" "). app(vDecl getName()). app(';')
         }
         
         // Now write all virtual functions prototypes in the class struct
@@ -87,14 +89,6 @@ ClassDeclWriter: abstract class extends CGenerator {
             current nl()
             writeFunctionDeclPointer(this, fDecl, true)
             current app(';')
-        }
-        
-        // And all static variables
-        for (vDecl: VariableDecl in cDecl variables) {
-            // skip non-static and extern variables
-            if (!vDecl isStatic() || vDecl isExtern()) continue
-                
-            current nl(). app(vDecl). app(';')
         }
         
         current closeBlock(). app(';'). nl(). nl()
@@ -140,20 +134,34 @@ ClassDeclWriter: abstract class extends CGenerator {
 
     writeStaticFuncs: static func (this: This, cDecl: ClassDecl) {
 
-		for (fDecl: FunctionDecl in cDecl functions) {
+		for (decl: FunctionDecl in cDecl functions) {
 
-			if (!fDecl isStatic() || fDecl isExternWithName()) {
-				if(fDecl isExternWithName()) {
-					FunctionDeclWriter write(this, fDecl)
+			if (!decl isStatic() || decl isExternWithName()) {
+				if(decl isExternWithName()) {
+					FunctionDeclWriter write(this, decl)
 				}
 				continue
 			}
 
             current nl()
-			FunctionDeclWriter writeFuncPrototype(this, fDecl);
+			FunctionDeclWriter writeFuncPrototype(this, decl);
             
 			current app(' '). openBlock()
-            for(stat in fDecl body) {
+            
+            if(decl getName() == ClassDecl LOAD_FUNC_NAME) {
+                superRef := cDecl getSuperRef()
+            	superLoad := superRef getFunction(ClassDecl LOAD_FUNC_NAME, null, null)
+            	if(superLoad) {
+					FunctionDeclWriter writeFullName(this, superLoad)
+					current app("_impl(("). app(superLoad owner getInstanceType()). app(") this);")
+            	}
+            	for(vDecl in cDecl variables) {
+					if(vDecl getExpr() == null) continue
+					current nl(). app(cDecl getNonMeta() underName()). app("_class()->"). app(vDecl getName()). app(" = "). app(vDecl getExpr()). app(';')
+				}
+            }
+            
+            for(stat in decl body) {
                 writeLine(stat)
             }
             current closeBlock()

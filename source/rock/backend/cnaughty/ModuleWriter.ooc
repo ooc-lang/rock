@@ -83,6 +83,19 @@ ModuleWriter: abstract class extends Skeleton {
         for (imp in module getAllImports()) {
 			current nl(). app(imp getModule() getLoadFuncName()). app("();")
 		}
+        
+        for (type in module types) {
+            if(type instanceOf(ClassDecl)) {
+                cDecl := type as ClassDecl
+                loadFunc := cDecl getFunction(ClassDecl LOAD_FUNC_NAME, null, null)
+                if(loadFunc) {
+                    if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
+                    current nl(). app(loadFunc getFullName()). app("();")
+                    if(cDecl getVersion()) VersionWriter writeEnd(this)
+                }
+            }
+        }
+        
         for(stmt in module body) {
             if(stmt instanceOf(VariableDecl)) {
                 vd := stmt as VariableDecl

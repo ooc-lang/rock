@@ -32,15 +32,26 @@ ClassDecl: class extends TypeDecl {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
+        shouldLoad := false
     	shouldDefault := false
 	    for(vDecl in variables) {
 			if(vDecl getExpr() != null) {
-				shouldDefault = true
-				break
+                if(vDecl isStatic()) {
+                    shouldLoad = true
+                } else {
+                    shouldDefault = true
+                }
+                if(shouldLoad && shouldDefault) break
 			}
 	    }
+        
 	    if(shouldDefault && functions get(DEFAULTS_FUNC_NAME) == null) {
 			addFunction(FunctionDecl new(DEFAULTS_FUNC_NAME, token))
+	    }
+        if(shouldLoad && functions get(LOAD_FUNC_NAME) == null) {
+            fDecl := FunctionDecl new(LOAD_FUNC_NAME, token)
+            fDecl setStatic(true)
+			addFunction(fDecl)
 	    }
     
         {
