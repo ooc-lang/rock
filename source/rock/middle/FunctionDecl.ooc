@@ -12,7 +12,7 @@ FunctionDecl: class extends Declaration {
     returnType := voidType
     type: static Type = BaseType new("Func", nullToken)
     
-    /** Attributes */
+    // /** Attributes *//*
     isAbstract := false
     isStatic := false
     isInline := false
@@ -195,7 +195,7 @@ FunctionDecl: class extends Declaration {
         
         trail push(this)
         
-        //printf("*/* Resolving function decl %s\n", name)
+        //printf("** Resolving function decl %s\n", name)
 
         for(arg in args) {
             response := arg resolve(trail, res)
@@ -253,7 +253,7 @@ FunctionDecl: class extends Declaration {
         return Responses OK
         
     }
-    
+
     autoReturn: func (trail: Trail, res: Resolver) -> Response {
         
         finalResponse := Responses OK
@@ -279,7 +279,7 @@ FunctionDecl: class extends Declaration {
     }
     
     autoReturnExplore: func (stack: Stack<Iterator<Statement>>, trail: Trail) -> Response {
-        
+
         iter := stack peek()
         
         while(iter hasNext()) {

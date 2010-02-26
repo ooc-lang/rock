@@ -366,8 +366,8 @@ AstBuilder: class {
         PointerType new(type, token())
     }
 
-    onTypeGenericArgument: unmangled(nq_onTypeGenericArgument) func (type: Type, name: String) {
-        type addTypeArg(VariableAccess new(name clone(), token()))
+    onTypeGenericArgument: unmangled(nq_onTypeGenericArgument) func (type: Type, typeInner: Type) {
+        type addTypeArg(VariableAccess new(typeInner, token()))
     }
 
     onFuncTypeNew: unmangled(nq_onFuncTypeNew) func -> Type {
