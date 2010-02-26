@@ -5,7 +5,7 @@ AwesomeWriter: class extends TabbedWriter {
     
     visitor: Visitor
     
-    init: func ~awesome (=visitor,. stream) {
+    init: func ~awesome (=visitor, .stream) {
         super(stream)
     }
     
