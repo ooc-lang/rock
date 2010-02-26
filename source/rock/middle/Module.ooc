@@ -155,7 +155,7 @@ Module: class extends Node {
         body resolveAccess(access)
 
     }
-
+    
     resolveCall: func (call: FunctionCall) {
         if(call isMember()) {
             return // hmm no member calls for us

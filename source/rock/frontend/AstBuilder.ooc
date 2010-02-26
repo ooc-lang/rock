@@ -10,7 +10,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Comparison, IntLiteral, FloatLiteral, Ternary, BinaryOp, BoolLiteral,
     NullLiteral, Argument, Parenthesis, AddressOf, Dereference, Foreach,
     OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess, Match, FlowControl,
-    While, CharLiteral, InterfaceDecl, NamespaceDecl, Version, Use]
+    While, CharLiteral, InterfaceDecl, NamespaceDecl, Version, Use, Block]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -575,6 +575,15 @@ AstBuilder: class {
     // cast
     onCast: unmangled(nq_onCast) func (expr: Expression, type: Type) -> Cast {
         return Cast new(expr, type, token())
+    }
+
+    // block {}
+    onBlockStart: unmangled(nq_onBlockStart) func {
+        stack push(Block new(token()))
+    }
+    
+    onBlockEnd: unmangled(nq_onBlockEnd) func -> Block {
+        pop(Block)
     }
 
     // if

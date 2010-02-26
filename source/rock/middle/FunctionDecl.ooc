@@ -400,11 +400,7 @@ FunctionDecl: class extends Declaration {
 	getArguments: func -> ArrayList<Argument> { args } 
 	getBody: func -> Scope { body }
     
-    setVersion: func (=verzion) {
-        if(verzion) {
-            printf("func %s got version %s\n", toString(), verzion toString())
-        }
-    }
+    setVersion: func (=verzion) {}
     getVersion: func -> VersionSpec { verzion }
     
 }

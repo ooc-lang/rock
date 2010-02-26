@@ -475,11 +475,7 @@ TypeDecl: abstract class extends Declaration {
     getMeta: func -> ClassDecl { meta }
     getNonMeta: func -> This { nonMeta }
     
-    setVersion: func (=verzion) {
-        if(verzion) {
-            printf("type %s got version %s\n", toString(), verzion toString())
-        }
-    }
+    setVersion: func (=verzion) {}
     getVersion: func -> VersionSpec { verzion ? verzion : (getNonMeta() ? getNonMeta() getVersion() : null) }
 
 }

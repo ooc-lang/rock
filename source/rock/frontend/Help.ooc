@@ -13,6 +13,7 @@ Help: class {
     printHelp: static func {
 
         println("Usage: ooc [options] files\n")
+        /*
         println(
 "-v, -verbose                    verbose
 -g, -debug                      compile with debug information
@@ -34,6 +35,7 @@ Help: class {
 -r, -run                        runs the executable after compilation
 \nFor help about the backend options, run 'ooc -help-backends'"
         )
+        */
         
     }
 
@@ -41,6 +43,7 @@ Help: class {
      * Print a helpful help message that helps about backends 
      */
     printHelpBackends: static func {
+        /*
         println(
 "The available backends are: [none,gcc,make] and the default is gcc 
 none             just outputs the  c/ h files (be sure to have a main func)
@@ -48,12 +51,14 @@ gcc              call the GNU C compiler with appropriate options
 make             generate a Makefile in the default output directory (ooc_tmp)
 \nFor help about a specific backend, run 'ooc -help-gcc' for example"
         )
+        */
     }
     
     /**
      * Print a helpful help message that helps about gcc 
      */
     printHelpGcc: static func {
+        /*
         println(
 "gcc backend options:
 -clean=[yes,no]        delete (or not) temporary files  default: yes 
@@ -64,18 +69,21 @@ make             generate a Makefile in the default output directory (ooc_tmp)
                        if it was successful (in green, on Linux platforms)
 any other option       passed to gcc\n"
         )
+        */
     }
     
     /**
      * Print a helpful help message that helps about make 
      */
     printHelpMake: static func {
+        /*
         println(
 "make backend options:
 -cc=[gcc,icl]        write a Makefile to be compatible with the said compiler
 -link=libname a      link with the static library libname a
 any other option     passed to the compiler\n"
         )
+        */
     }
     
     /**
@@ -84,6 +92,7 @@ any other option     passed to the compiler\n"
     printHelpNone: static func {
         srand(Time microsec())
         
+        /*
         text : UInt32[] = [
 0x20202020, 0x20202020, 0x2b202020, 0x684e4e28, 0x73684242, 0x20272b73, 
 0x20202020, 0x20202020, 0x20202020, 0x20202020, 0x272b7e20, 0x424e7328, 
@@ -158,7 +167,7 @@ any other option     passed to the compiler\n"
     ]
 
         printf("\033[0;32;%dm                    SOMEBODY SET US UP THE BOMB!\n\033[m\n%s", ((rand() % 6) + 31), text as String)
-
+    */
     }
     
 }
