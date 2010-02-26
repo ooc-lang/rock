@@ -1,4 +1,4 @@
-import io/File, text/StringBuffer
+import io/File, text/[StringBuffer, EscapeSequence]
 
 import structs/[Array, ArrayList, List, Stack, HashMap]
 
@@ -500,7 +500,7 @@ AstBuilder: class {
      */
 
     onStringLiteral: unmangled(nq_onStringLiteral) func (text: String) -> StringLiteral {
-        StringLiteral new(text clone(), token())
+        StringLiteral new(EscapeSequence escape(text clone()), token())
     }
 
     onCharLiteral: unmangled(nq_onCharLiteral) func (value: String) -> CharLiteral {
