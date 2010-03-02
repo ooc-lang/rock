@@ -22,7 +22,7 @@ Type: abstract class extends Expression {
     pointerLevel: abstract func -> Int
     refLevel:     abstract func -> Int
     
-    write: abstract func (w: AwesomeWriter)
+    write: abstract func (w: AwesomeWriter, name: String)
     
     equals: abstract func (other: This) -> Bool
     
@@ -96,8 +96,9 @@ FuncType: class extends Type {
     
     init: func ~funcType (.token) { super(token) }
     
-    write: func (w: AwesomeWriter) {
+    write: func (w: AwesomeWriter, name: String) {
         w app ("Func")
+        if(name != null) w app(' '). app(name)
     }
     
     pointerLevel: func -> Int { 0 }
@@ -148,7 +149,7 @@ BaseType: class extends Type {
     
     isPointer: func -> Bool { name == "Pointer" }
     
-    write: func (w: AwesomeWriter) {
+    write: func (w: AwesomeWriter, name: String) {
         if(ref == null) {
             Exception new(This, "Trying to write unresolved type " + toString()) throw()
         }
@@ -157,6 +158,7 @@ BaseType: class extends Type {
             case ref instanceOf(TypeDecl)     => writeRegularType(w, ref)
             case ref instanceOf(VariableDecl) => writeGenericType(w, ref)
         }
+        if(name != null) w app(' '). app(name)
     }
     
     writeInterfaceType: func (w: AwesomeWriter, id: InterfaceDecl) {
@@ -343,9 +345,10 @@ PointerType: class extends SugarType {
     pointerLevel: func -> Int { inner pointerLevel() + 1 }
     refLevel:     func -> Int { inner refLevel() }
     
-    write: func (w: AwesomeWriter) {
-        inner write(w)
+    write: func (w: AwesomeWriter, name: String) {
+        inner write(w, null)
         if(!inner isGeneric()) w app("*")
+        if(name != null) w app(' '). app(name)
     }
     
     equals: func (other: This) -> Bool {
@@ -362,6 +365,24 @@ PointerType: class extends SugarType {
     
 }
 
+ArrayType: class extends PointerType {
+    
+    expr : Expression = null
+    
+    init: func ~arrayType (.inner, =expr, .token) { super(inner, token) }
+    
+    write: func (w: AwesomeWriter, name: String) {
+        inner write(w, null)
+        if(name != null) w app(' '). app(name)
+        if(expr != null) w app("["). app(expr). app("]")
+        else             w app("[]")
+    }
+    
+    toString: func -> String { inner toString() append(expr != null ? "[%s]" format(expr toString()) : "[]") }
+    toMangledString: func -> String { inner toString() + "__array" }
+    
+}
+
 ReferenceType: class extends SugarType {
     
     init: func ~pointerType (.inner, .token) { super(inner, token) }
@@ -369,9 +390,10 @@ ReferenceType: class extends SugarType {
     pointerLevel: func -> Int { inner pointerLevel() }
     refLevel:     func -> Int { inner refLevel() + 1 }
     
-    write: func (w: AwesomeWriter) {
-        inner write(w)
+    write: func (w: AwesomeWriter, name: String) {
+        inner write(w, null)
         w app("*")
+        if(name != null) w app(' '). app(name)
     }
     
     equals: func (other: This) -> Bool {

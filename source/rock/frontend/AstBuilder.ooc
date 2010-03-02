@@ -365,6 +365,10 @@ AstBuilder: class {
     onTypePointer: unmangled(nq_onTypePointer) func (type: Type) -> Type {
         PointerType new(type, token())
     }
+    
+    onTypeBrackets: unmangled(nq_onTypeBrackets) func (type: Type, inner: Expression) -> Type {
+        ArrayType new(type, inner, token())
+    }
 
     onTypeGenericArgument: unmangled(nq_onTypeGenericArgument) func (type: Type, typeInner: Type) {
         type addTypeArg(VariableAccess new(typeInner, token()))

@@ -57,7 +57,7 @@ CGenerator: class extends Skeleton {
 
     /** Write a type */
     visitType: func (type: Type) {
-        type write(current)
+        type write(current, null)
     }
 
     /** Write a binary operation */
@@ -129,7 +129,7 @@ CGenerator: class extends Skeleton {
     visitVariableDecl: func (vDecl: VariableDecl) {
         if(vDecl isExtern()) return
        
-        current app(vDecl getType()). app(' '). app(vDecl getFullName())
+        vDecl getType() write(current, vDecl getFullName())
         if(vDecl expr)
             current app(" = "). app(vDecl expr)
     }

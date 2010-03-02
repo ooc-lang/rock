@@ -105,7 +105,7 @@ FunctionDeclWriter: abstract class extends CGenerator {
                         current app(type)
                     }
                 case =>
-                    current app(type). app(" this")
+                    type write(current, "this")
             }
         }
         
