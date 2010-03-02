@@ -553,6 +553,10 @@ String: cover from Char* {
         return output
     }
     
+    iterator: func -> StringIterator<Char> {
+        StringIterator<Char> new(this)
+    }
+    
 }
 
 operator == (str1: String, str2: String) -> Bool {
@@ -763,6 +767,39 @@ Iterable: abstract class <T> {
     */
 }
 
+/**
+ * iterators
+ */
+
+StringIterator: class <T> extends Iterator<T> {
+    
+    i := 0
+    str: String
+    
+    init: func ~withStr (=str) {}
+    
+    hasNext: func -> Bool {
+        i < str length()
+    }
+    
+    next: func -> T {
+        c := str[i]
+        i += 1
+        return c
+    }
+    
+    hasPrev: func -> Bool {
+        i > 0
+    }
+    
+    prev: func -> T {
+        i -= 1
+        return str[i]
+    }
+    
+    remove: func -> Bool { false } // this could be implemented!
+    
+}
 
 /**
  * exceptions

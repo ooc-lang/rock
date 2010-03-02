@@ -1,4 +1,4 @@
-import text/StringBuffer
+import text/Buffer
 import structs/[ArrayList, List]
 import ../frontend/[Token, BuildParams]
 import ../backend/cnaughty/AwesomeWriter
@@ -293,7 +293,7 @@ BaseType: class extends Type {
     toString: func -> String {
         if(typeArgs == null) return getName()
         
-        sb := StringBuffer new()
+        sb := Buffer new()
         sb append(getName())
         sb append("<")
         isFirst := true

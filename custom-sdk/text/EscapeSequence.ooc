@@ -1,4 +1,4 @@
-import text/StringBuffer
+import text/Buffer
 use math
 
 EscapeSequence: class {
@@ -82,7 +82,7 @@ EscapeSequence: class {
      * escape sequences. Unknown escape sequences will just get the '\\' stripped. ("\\u" -> "u")
      */
     unescape: static func (s: String) -> String {
-        buffer := StringBuffer new()
+        buffer := Buffer new()
         i := 0
         while(i < s length()) {
             if(s[i] == '\\') {
@@ -121,7 +121,7 @@ EscapeSequence: class {
 
     /** Escape a string. This will replace non-printable characters with equivalents like \something or \x??. **/
     escape: static func (s: String) -> String {
-        buf := StringBuffer new()
+        buf := Buffer new()
         for(chr in s) {
             if(!chr isPrintable()) {
                 buf append(match chr {

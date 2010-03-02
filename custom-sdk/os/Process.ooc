@@ -1,6 +1,6 @@
 import Pipe, PipeReader
 import structs/[List, ArrayList, HashMap]
-import text/StringBuffer
+import text/Buffer
 import native/[ProcessUnix, ProcessWin32]
 
 Process: abstract class {

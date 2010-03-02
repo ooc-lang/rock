@@ -1,5 +1,5 @@
 import structs/Stack
-import text/StringBuffer
+import text/Buffer
 import ../[Node, Module, Statement, Scope]
 
 Trail: class extends Stack<Node> {
@@ -108,7 +108,7 @@ Trail: class extends Stack<Node> {
      */
     toString: func -> String {
         
-        sb := StringBuffer new()
+        sb := Buffer new()
         sb append('\n')
         
         for(i in 0..size()) {

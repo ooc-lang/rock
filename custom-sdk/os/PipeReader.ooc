@@ -1,5 +1,5 @@
 import os/Pipe
-import text/StringBuffer
+import text/Buffer
 
 PipeReader: class {
 
@@ -18,7 +18,7 @@ PipeReader: class {
     
     toString: func -> String {
         
-        sb := StringBuffer new(128)
+        sb := Buffer new(128)
         while(hasNext()) {
             sb append(read())
         }

@@ -1,4 +1,4 @@
-import structs/[HashMap, ArrayList], text/StringBuffer
+import structs/[HashMap, ArrayList], text/Buffer
 import ../Process
 import native/win32/[types, errors]
 
@@ -31,7 +31,7 @@ ProcessWin32: class extends Process {
     cmdLine: String = ""
 
     init: func ~win32 (=args) {
-        sb := StringBuffer new()
+        sb := Buffer new()
         for(arg in args) {
             sb append('"'). append(arg). append("\" ")
         }

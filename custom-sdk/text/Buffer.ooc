@@ -80,6 +80,9 @@ Buffer: class {
     }
 }
 
+/**
+ * This deprecates and replaces Buffer
+ */
 BufferWriter: class extends Writer {
     
     buffer: Buffer
@@ -105,37 +108,6 @@ BufferWriter: class extends Writer {
     write: func (chars: String, length: SizeT) -> SizeT {
         buffer append(chars, length)
         return length
-    }
-}
-
-// Provided for backwards compatiblity, depreciated and replaced by BufferWriter.
-StringBuffer: class extends BufferWriter {
-    init: func {
-        init(128)
-    }
-
-    init: func ~withCapa (capacity: Int) {
-        super(Buffer new(capacity))
-    }
-
-    init: func ~withContent (data: String) {
-        super(Buffer new(data))
-    }
-
-    append: func ~str (str: String) {
-        buffer append(str)
-    }
-
-    append: func ~strWithLength (str: String, length: SizeT) {
-        buffer append(str, length)
-    }
-
-    append: func ~chr (chr: Char) {
-        buffer append(chr)
-    }
-
-    toString: func -> String {
-        return buffer toString()
     }
 }
 

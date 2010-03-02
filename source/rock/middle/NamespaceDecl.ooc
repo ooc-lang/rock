@@ -1,5 +1,5 @@
 import structs/[ArrayList, List]
-import text/StringBuffer
+import text/Buffer
 
 import ../frontend/Token
 import Declaration, Import, Type, Visitor, Node, VariableAccess, FunctionCall
@@ -24,7 +24,7 @@ NamespaceDecl: class extends Declaration {
     getType: func -> Type { null }
     
     toString: func -> String {
-        sb := StringBuffer new()
+        sb := Buffer new()
         sb append("[")
         isFirst := true
         for(imp in imports) {

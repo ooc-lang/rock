@@ -1,6 +1,6 @@
 import io/File
 import structs/ArrayList
-import text/[StringBuffer, StringTokenizer]
+import text/[Buffer, StringTokenizer]
 
 /**
  * A collection of file utilities that should have been in the
@@ -31,7 +31,7 @@ FileUtils: class {
 			}
 		}
 		
-		buffer := StringBuffer new(path length())
+		buffer := Buffer new(path length())
 		if (path startsWith(File separator)) {
 			buffer append(File separator)
 		}

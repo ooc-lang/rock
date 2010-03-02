@@ -1,4 +1,4 @@
-import structs/ArrayList, text/StringBuffer
+import structs/ArrayList, text/Buffer
 import ../frontend/[Token, BuildParams]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
@@ -611,7 +611,7 @@ FunctionCall: class extends Expression {
     }
     
     getArgsRepr: func -> String {
-        sb := StringBuffer new()
+        sb := Buffer new()
         sb append("(")
         isFirst := true
         for(arg in args) {
@@ -624,7 +624,7 @@ FunctionCall: class extends Expression {
     }
     
     getArgsTypesRepr: func -> String {
-        sb := StringBuffer new()
+        sb := Buffer new()
         sb append("(")
         isFirst := true
         for(arg in args) {

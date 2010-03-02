@@ -1,4 +1,4 @@
-import text/StringBuffer /* for List join */
+import text/Buffer /* for List join */
 
 /**
  * List interface for a data container

@@ -1,4 +1,4 @@
-import text/StringBuffer
+import text/Buffer
 import ../frontend/Token
 import FunctionDecl, Expression, Type, Visitor, Node, Argument
 import tinker/[Resolver, Response, Trail]
@@ -30,7 +30,7 @@ OperatorDecl: class extends Expression {
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
         if(fDecl getName() isEmpty()) {
-            sb := StringBuffer new()
+            sb := Buffer new()
             sb append("__OP_"). append(getName())
             
             for(arg in fDecl args) {

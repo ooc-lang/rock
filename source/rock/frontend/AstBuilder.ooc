@@ -1,4 +1,4 @@
-import io/File, text/[StringBuffer, EscapeSequence]
+import io/File, text/[Buffer, EscapeSequence]
 
 import structs/[Array, ArrayList, List, Stack, HashMap]
 
@@ -889,7 +889,7 @@ AstBuilder: class {
     }
 
     stackRepr: func -> String {
-        sb := StringBuffer new()
+        sb := Buffer new()
         for(e in stack) {
             sb append(e class name). append(", ")
         }

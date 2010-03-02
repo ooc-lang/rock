@@ -1,7 +1,7 @@
 // ooc imports
 import io/[Reader, FileReader, File]
 import structs/[Array, ArrayList, List]
-import text/StringBuffer
+import text/Buffer
 
 // rock imports
 import FileLocation, Locatable
@@ -323,8 +323,8 @@ SourceReader: class extends Reader {
     }
     
     readUntil: func  ~chr (chr: Char, keepEnd: Bool) -> String {
-        ret := StringBuffer new()
-        chrRead := 0 as Char
+        ret := Buffer new()
+        chrRead := '\0'
         
         while(hasNext()) {
             chrRead = read()
@@ -350,7 +350,7 @@ SourceReader: class extends Reader {
      */
     readUntil: func ~strings (candidates: Array<String>, keepEnd: Bool) -> String {
 
-        sB := StringBuffer new()
+        sB := Buffer new()
         
         while(hasNext()) {
             for(candidate: String in candidates) {
@@ -417,7 +417,7 @@ SourceReader: class extends Reader {
     
     readStringLiteral: func ~withDelim (delimiter: Char) -> String {
         
-        buffer := StringBuffer new()
+        buffer := Buffer new()
         while (true) {
             mark()
             c := read()

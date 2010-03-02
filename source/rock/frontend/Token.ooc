@@ -1,6 +1,6 @@
 
 import ../frontend/CommandLine
-import text/StringBuffer
+import text/Buffer
 import io/[FileReader, File]
 import ../middle/Module
 
@@ -77,7 +77,7 @@ Token: cover {
         }
         
         fr reset(lastNewLine == 0 ? 0 : lastNewLine + 1)
-        over := StringBuffer new()
+        over := Buffer new()
         
         "%s:%d:%d [%s] %s" format(module path, lines, start - lastNewLine, type, message) println()
         

@@ -1,4 +1,4 @@
-import structs/[Stack, ArrayList], text/StringBuffer
+import structs/[Stack, ArrayList], text/Buffer
 import ../frontend/[Token, BuildParams]
 import Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, Else,
@@ -136,7 +136,7 @@ FunctionDecl: class extends Declaration {
 
     getArgsRepr: func -> String {
         if(args size() == 0) return ""
-        sb := StringBuffer new()
+        sb := Buffer new()
         sb append("(")
         isFirst := true
         for(arg in args) {

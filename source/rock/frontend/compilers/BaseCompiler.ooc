@@ -1,6 +1,6 @@
 import io/File
 import structs/[List, ArrayList]
-import text/StringBuffer
+import text/Buffer
 import os/Process
 
 import AbstractCompiler
@@ -43,7 +43,7 @@ BaseCompiler: abstract class extends AbstractCompiler {
     }
     
     getCommandLine: func() -> String {
-        commandLine := StringBuffer new()
+        commandLine := Buffer new()
                 
         for(arg: String in command) {
             commandLine append(arg)

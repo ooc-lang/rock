@@ -1,4 +1,4 @@
-import text/StringBuffer
+import text/Buffer
 import structs/HashMap
 
 String: cover from Char* {
@@ -16,7 +16,7 @@ String: cover from Char* {
     */
     formatTemplate: func (values: HashMap<String>) -> String {
         length := this length()
-        buffer := StringBuffer new(length)
+        buffer := Buffer new(length)
         p: Char* = this
         identifier: Char* = null
         while(p@) {

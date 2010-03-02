@@ -1,4 +1,4 @@
-import io/Reader, io/File, text/StringBuffer
+import io/Reader, io/File, text/Buffer
 
 fopen: extern func(filename: Char*, mode: Char*) -> FILE*
 fread: extern func(ptr: Pointer, size: SizeT, count: SizeT, stream: FILE*) -> SizeT
@@ -32,7 +32,7 @@ FileReader: class extends Reader {
     }
     
     readLine: func -> String {
-        sb := StringBuffer new(40) // let's be optimistic
+        sb := Buffer new(40) // let's be optimistic
         while(hasNext()) {
             c := read()
             if(c == '\n') break
