@@ -3,7 +3,8 @@ import structs/[ArrayList, List]
 import ../frontend/[Token, BuildParams]
 import ../backend/cnaughty/AwesomeWriter
 import Node, Visitor, Declaration, TypeDecl, ClassDecl, VariableDecl,
-       Module, Import, CoverDecl, VariableAccess, Expression, InterfaceDecl
+       Module, Import, CoverDecl, VariableAccess, Expression,
+       InterfaceDecl, FunctionCall
 import tinker/[Response, Resolver, Trail]
 
 voidType := BaseType new("void", nullToken)
@@ -56,6 +57,7 @@ Type: abstract class extends Expression {
     }
     
     replace: func (oldie, kiddo: Node) -> Bool { false }
+    
     clone: abstract func -> This
     
     reference:   func          -> This { p := PointerType new(this, token); p setRef(getRef()); p }
@@ -186,7 +188,7 @@ BaseType: class extends Type {
         return (other as BaseType name equals(name))
     }
     
-    addTypeArg: func (typeArg: VariableDecl) -> Bool {
+    addTypeArg: func (typeArg: VariableAccess) -> Bool {
         if(!typeArgs) typeArgs = ArrayList<VariableAccess> new()
         typeArgs add(typeArg); true
     }
@@ -227,9 +229,16 @@ BaseType: class extends Type {
             return Responses LOOP
         }
         
-        if(typeArgs) for(typeArg in typeArgs) {
-            response := typeArg resolve(trail, res)
-            if(!response ok()) return response
+        if(typeArgs) {
+            trail push(this)
+            for(typeArg in typeArgs) {
+                response := typeArg resolve(trail, res)
+                if(!response ok()) {
+                    trail pop(this)
+                    return response
+                }
+            }
+            trail pop(this)
         }
         
         return Responses OK
@@ -248,7 +257,7 @@ BaseType: class extends Type {
     getRef: func -> Declaration { ref }
     setRef: func (=ref) {}
     
-    getTypeArgs: func -> List<VariableDecl> { typeArgs }
+    getTypeArgs: func -> List<VariableAccess> { typeArgs }
     
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
         if(other instanceOf(BaseType)) {
@@ -288,6 +297,11 @@ BaseType: class extends Type {
         if(bt ref == null || !bt ref instanceOf(TypeDecl)) return false
         
         return ref as TypeDecl inheritsFrom(bt ref as TypeDecl)
+    }
+    
+    replace: func (oldie, kiddo: Node) -> Bool {
+        if(typeArgs) return typeArgs replace(oldie, kiddo)
+        false
     }
     
     toString: func -> String {
@@ -385,9 +399,22 @@ ArrayType: class extends PointerType {
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
         if(expr == null) {
-            //kiddo := BaseType new()
-            //kiddo typeArgs add()
-            //trail peek() replace()
+            kiddo := BaseType new("ArrayList", token)
+            kiddo addTypeArg(VariableAccess new(getName(), token))
+            parent := trail peek()
+            
+            if(!parent replace(this, kiddo)) {
+                printf("Couldn't replace %s with %s in %s, trail = %s\n", toString(), kiddo toString(), parent toString(), trail toString())
+            }
+            
+            if(parent instanceOf(VariableDecl)) {
+                vd := parent as VariableDecl
+                if(!vd isArg && vd getType() == kiddo) {
+                    printf("Should add initializer to %s\n", vd toString())
+                    fCall := FunctionCall new(kiddo, "new", token)
+                    vd setExpr(fCall)
+                }
+            }
         }
         
         return super resolve(trail, res)
