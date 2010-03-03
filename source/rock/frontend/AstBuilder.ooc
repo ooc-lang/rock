@@ -10,7 +10,8 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Comparison, IntLiteral, FloatLiteral, Ternary, BinaryOp, BoolLiteral,
     NullLiteral, Argument, Parenthesis, AddressOf, Dereference, Foreach,
     OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess, Match, FlowControl,
-    While, CharLiteral, InterfaceDecl, NamespaceDecl, Version, Use, Block]
+    While, CharLiteral, InterfaceDecl, NamespaceDecl, Version, Use, Block,
+    ArrayLiteral]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -503,6 +504,14 @@ AstBuilder: class {
      * Literals
      */
 
+    onArrayLiteralStart: unmangled(nq_onArrayLiteralStart) func {
+        stack push(ArrayLiteral new(token()))
+    }
+    
+    onArrayLiteralEnd: unmangled(nq_onArrayLiteralEnd) func -> ArrayLiteral {
+        pop(ArrayLiteral)
+    }
+
     onStringLiteral: unmangled(nq_onStringLiteral) func (text: String) -> StringLiteral {
         StringLiteral new(EscapeSequence escape(text clone()), token())
     }
@@ -557,6 +566,9 @@ AstBuilder: class {
                     cDecl addFunction(fDecl)
                 }
                 fDecl getBody() add(stmt)
+            case node instanceOf(ArrayLiteral) =>
+                arrayLit := node as ArrayLiteral
+                arrayLit getElements() add(stmt)
             case =>
                 printf("[gotStatement] Got a %s, don't know what to do with it, parent = %s\n", stmt toString(), node class name)
         }
