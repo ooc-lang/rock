@@ -19,14 +19,14 @@ Resolver: class {
 
         response = module resolve(Trail new(), this)
         
-        if(params verbose) printf("[Module] response = %s (wholeAgain = %s)\n", response toString(), wholeAgain toString())
+        if(params veryVerbose) printf("[Module] response = %s (wholeAgain = %s)\n", response toString(), wholeAgain toString())
         
         return !response ok() || wholeAgain
         
     }
     
     wholeAgain: func (node: Node, reason: String) {
-        if(params verbose) printf("%s (of type %s) wants to wholeAgain() because '%s'\n", node toString(), node class name, reason)
+        if(params veryVerbose) printf("%s (of type %s) wants to wholeAgain() because '%s'\n", node toString(), node class name, reason)
         wholeAgain = true
     }
     

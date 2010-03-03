@@ -25,6 +25,13 @@ ModuleWriter: abstract class extends Skeleton {
             visitInclude(this, inc)
         }
         if(!module includes isEmpty()) current nl()
+        
+        for(uze in module uses) {
+            useDef := uze getUseDef()
+			for(ynclude in useDef getIncludes()) {
+				current nl(). app("#include <"). app(ynclude). app(">")
+			}
+		}
 
         // write all type forward declarations
         writeTypesForward(this, module, false) // non-metas first

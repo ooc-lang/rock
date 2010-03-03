@@ -36,7 +36,7 @@ Tinkerer: class {
     
                 resolver := iter next()
                 
-                if(params verbose) {
+                if(params veryVerbose) {
                     printf("\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
                     printf("\tResolving module %s", resolver module fullName)
                     printf("\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")

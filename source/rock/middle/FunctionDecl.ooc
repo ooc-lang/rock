@@ -200,7 +200,7 @@ FunctionDecl: class extends Declaration {
         for(arg in args) {
             response := arg resolve(trail, res)
             if(!response ok()) {
-                if(res params verbose) printf("Response of arg %s = %s\n", arg toString(), response toString())
+                if(res params veryVerbose) printf("Response of arg %s = %s\n", arg toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -209,7 +209,7 @@ FunctionDecl: class extends Declaration {
         for(typeArg in typeArgs) {
             response := typeArg resolve(trail, res)
             if(!response ok()) {
-                if(res params verbose) printf("Response of typeArg %s = %s\n", typeArg toString(), response toString())
+                if(res params veryVerbose) printf("Response of typeArg %s = %s\n", typeArg toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -219,7 +219,7 @@ FunctionDecl: class extends Declaration {
             //printf("Resolving return type %s\n", returnType toString())
             response := returnType resolve(trail, res)
             if(!response ok()) {
-                if(res params verbose) printf("))))))) For %s, response of return type %s = %s\n", toString(), returnType toString(), response toString()) 
+                if(res params veryVerbose) printf("))))))) For %s, response of return type %s = %s\n", toString(), returnType toString(), response toString()) 
                 trail pop(this)
                 return response
             }
@@ -228,7 +228,7 @@ FunctionDecl: class extends Declaration {
         {
             response := body resolve(trail, res)
             if(!response ok()) {
-                if(res params verbose) printf("))))))) For %s, response of body = %s\n", toString(), response toString())
+                if(res params veryVerbose) printf("))))))) For %s, response of body = %s\n", toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -237,7 +237,7 @@ FunctionDecl: class extends Declaration {
         if(!isAbstract) {
             response := autoReturn(trail, res)
             if(!response ok()) {
-                if(res params verbose) printf("))))))) For %s, response of autoReturn = %s\n", toString(), response toString())
+                if(res params veryVerbose) printf("))))))) For %s, response of autoReturn = %s\n", toString(), response toString())
                 trail pop(this)
                 return response
             }

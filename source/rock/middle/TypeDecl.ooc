@@ -280,7 +280,7 @@ TypeDecl: abstract class extends Declaration {
         
         trail push(this)
         
-        if(res params verbose) printf("====== Resolving type decl %s\n", toString())
+        if(res params veryVerbose) printf("====== Resolving type decl %s\n", toString())
         
         {
             response := type resolve(trail, res)
@@ -301,7 +301,7 @@ TypeDecl: abstract class extends Declaration {
         for(typeArg in getTypeArgs()) {
             response := typeArg resolve(trail, res)
             if(!response ok()) {
-                if(res params verbose) printf("Response of typeArg %s = %s\n", typeArg toString(), response toString())
+                if(res params veryVerbose) printf("Response of typeArg %s = %s\n", typeArg toString(), response toString())
                 trail pop(this)
                 return response
             }
