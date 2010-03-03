@@ -15,6 +15,14 @@ Dereference: class extends Expression {
         visitor visitDereference(this)
     }
     
+    getGenericOperand: func -> Expression {
+        if(expr getType() isGeneric() && expr getType() pointerLevel() > 0) {
+            printf("Returning expr for deref %s\n", toString())
+            return expr
+        }
+        return super getGenericOperand()
+    }
+    
     getType: func -> Type { expr getType() ? expr getType() dereference() : null }
     
     toString: func -> String {

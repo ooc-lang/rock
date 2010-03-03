@@ -39,6 +39,14 @@ ArrayLiteral: class extends Literal {
         
         printf(" >> Resolving %s\n", toString())
         
+        /*{
+            parent := trail peek()
+            if(!parent instanceOf()) {
+                grandpa := trail peek(2)
+                grandpa replace(parent, VariableDecl new())
+            }
+        }*/
+        
         if(type == null) {
             innerType := elements first() getType()
             if(innerType == null || !innerType isResolved()) {

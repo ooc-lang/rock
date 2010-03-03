@@ -27,6 +27,7 @@ ArrayAccess: class extends Expression {
         if(getType() isGeneric() && getType() pointerLevel() == 0) {
             sizeAcc := VariableAccess new(VariableAccess new(getType() getName(), token), "size", token)
             arrAcc := this as ArrayAccess
+            // FIXME: wtf? we're modifying 'this' instead of making a copy of it?
             arrAcc setIndex(BinaryOp new(arrAcc getIndex(), sizeAcc, OpTypes mul, arrAcc token))
             return AddressOf new(arrAcc, arrAcc token)
         }

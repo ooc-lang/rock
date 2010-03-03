@@ -262,6 +262,13 @@ CGenerator: class extends Skeleton {
     }
 
     visitAddressOf: func (node: AddressOf) {
+        if(node expr instanceOf(VariableAccess)) {
+            varAcc := node expr as VariableAccess
+            if(varAcc getType() isGeneric()) {
+                // generic variables are already pointers =)
+                current app(node expr); return
+            }
+        }
         current app("&("). app(node expr). app(")")
     }
 
