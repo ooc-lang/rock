@@ -356,6 +356,10 @@ PointerType: class extends SugarType {
         return (other as PointerType inner equals(inner))
     }
     
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        return super resolve(trail, res)
+    }
+    
     toString: func -> String { inner toString() + "*" }
     toMangledString: func -> String { inner toString() + "__star" }
     
@@ -386,7 +390,7 @@ ArrayType: class extends PointerType {
             //trail peek() replace()
         }
         
-        return super resolve()
+        return super resolve(trail, res)
         
     }
     
