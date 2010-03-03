@@ -381,10 +381,9 @@ ArrayType: class extends PointerType {
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
         if(expr == null) {
-            kiddo := BaseType new()
-            kiddo typeArgs add()
-            
-            trail peek() replace()
+            //kiddo := BaseType new()
+            //kiddo typeArgs add()
+            //trail peek() replace()
         }
         
         return super resolve()
