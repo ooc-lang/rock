@@ -378,6 +378,19 @@ ArrayType: class extends PointerType {
         else             w app("[]")
     }
     
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        
+        if(expr == null) {
+            kiddo := BaseType new()
+            kiddo typeArgs add()
+            
+            trail peek() replace()
+        }
+        
+        return super resolve()
+        
+    }
+    
     toString: func -> String { inner toString() append(expr != null ? "[%s]" format(expr toString()) : "[]") }
     toMangledString: func -> String { inner toString() + "__array" }
     
