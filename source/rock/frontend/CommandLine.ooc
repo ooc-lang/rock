@@ -6,7 +6,7 @@ import Help, Token, BuildParams, AstBuilder
 import compilers/[Gcc, Clang, Icc, Tcc]
 import drivers/[Driver, CombineDriver]
 import ../backend/cnaughty/CGenerator
-import ../backend/json/JSONGenerator
+//import ../backend/json/JSONGenerator
 import ../middle/[Module, Import]
 import ../middle/tinker/Tinkerer
 
@@ -342,7 +342,8 @@ CommandLine: class {
         } else if(params backend == "json") {
             // json phase 3: generate.
             for(candidate in moduleList) {
-                JSONGenerator new(params, candidate) write() .close()
+                "FIXME! JSON generator disabled for now" println()
+                //JSONGenerator new(params, candidate) write() .close()
             }
         }
         return 0

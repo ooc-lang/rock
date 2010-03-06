@@ -359,31 +359,27 @@ FunctionCall: class extends Expression {
     handleGenerics: func (trail: Trail, res: Resolver) -> Response {
         
         j := 0
-        for(arg in ref args) {
-            if(arg instanceOf(VarArg)) { j += 1; continue }
-            if(arg getType() == null || !arg getType() isResolved()) {
+        for(implArg in ref args) {
+            if(implArg instanceOf(VarArg)) { j += 1; continue }
+            if(implArg getType() == null || !implArg getType() isResolved()) {
                 res wholeAgain(this, "need ref arg type"); break // we'll do it later
             }
-            if(!arg getType() isGeneric()) { j += 1; continue }
+            if(!implArg getType() isGeneric()) { j += 1; continue }
             
             //printf(" >> Reviewing arg %s in call %s\n", arg toString(), toString())
             
-            implArg := args get(j)
-            typeResult := implArg getType()
+            callArg := args get(j)
+            typeResult := callArg getType()
             
-            isGood := (implArg instanceOf(AddressOf) || implArg getType() isGeneric())
-            
-            // if AdressOf, the job's done. If it's not referencable, we need to unwrap it!
+            isGood := (callArg instanceOf(AddressOf) || typeResult isGeneric())
             if(!isGood) { // FIXME this is probably wrong - what if we want an address's address? etc.
-                //printf("&-ing implArg %s\n", implArg toString())
-                
-                target : Expression = implArg
-                if(!implArg isReferencable()) {
-                    varDecl := VariableDecl new(typeResult, generateTempName("genArg"), args get(j), nullToken)
+                target : Expression = callArg
+                if(!callArg isReferencable()) {
+                    varDecl := VariableDecl new(typeResult, generateTempName("genArg"), callArg, nullToken)
                     if(!trail addBeforeInScope(this, varDecl)) {
                         printf("Couldn't add %s before %s, parent is a %s\n", varDecl toString(), toString(), trail peek() toString())
                     }
-                    target = VariableAccess new(varDecl, implArg token)
+                    target = VariableAccess new(varDecl, callArg token)
                 }
                 args set(j, AddressOf new(target, target token))
             

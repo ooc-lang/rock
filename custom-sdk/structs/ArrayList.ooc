@@ -19,7 +19,6 @@ ArrayList: class <T> extends List<T> {
 	}
 	
 	init: func ~withCapacity (=capacity) { 
-        // FIXME: j/ooc needs a 'data&' Why?
 		data = gc_malloc(capacity * T size)
 	}
     
@@ -79,7 +78,6 @@ ArrayList: class <T> extends List<T> {
 			index += 1
 			candidate : T
 			candidate = data[index]
-            // that workaround sucks, but it works
 			if(memcmp(candidate, element, T size) == 0) return index
 		}
 		return -1
@@ -90,7 +88,6 @@ ArrayList: class <T> extends List<T> {
 		while(index) {
 			candidate : T
 			candidate = data[index]
-            // that workaround sucks, but it works
 			if(memcmp(candidate, element, T size) == 0) return index
 			index -= 1
 		}
@@ -203,9 +200,9 @@ ArrayListIterator: class <T> extends Iterator<T> {
 	}
     
     remove: func -> Bool {
-        result := list removeAt(index - 1)
+        if(list removeAt(index - 1) == null) return false
         if(index <= list size()) index -= 1
-        return result
+        return true
     }
 	
 }

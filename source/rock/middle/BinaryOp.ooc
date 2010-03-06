@@ -134,9 +134,11 @@ BinaryOp: class extends Expression {
         }
 
         if(type == OpTypes ass) {
-            if(left getType() == null) {
-                res wholeAgain(this, "Need left type of %s" format(left toString()))
-                return Responses OK
+            if(left getType() == null || !left isResolved()) {
+                res wholeAgain(this, "left type is unresolved"); return Responses OK
+            }
+            if(right getType() == null || !right isResolved()) {
+                res wholeAgain(this, "right type is unresolved"); return Responses OK
             }
             
             // if we're an assignment from a generic return value
@@ -150,19 +152,11 @@ BinaryOp: class extends Expression {
                 }
                 
                 if(fDecl getReturnType() isGeneric()) {
-                    sizeAcc := VariableAccess new(VariableAccess new(left getType() getName(), token), "size", token)
                     fCall setReturnArg(left getGenericOperand())
                     trail peek() replace(this, fCall)
                     res wholeAgain(this, "just replaced with fCall and set ourselves as returnArg")
                     return Responses OK
                 }
-            }
-            
-            if(left getType() == null || !left isResolved()) {
-                res wholeAgain(this, "left type is unresolved"); return Responses OK
-            }
-            if(right getType() == null || !right isResolved()) {
-                res wholeAgain(this, "right type is unresolved"); return Responses OK
             }
             
             if(isGeneric()) {

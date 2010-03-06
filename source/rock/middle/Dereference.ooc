@@ -17,7 +17,6 @@ Dereference: class extends Expression {
     
     getGenericOperand: func -> Expression {
         if(expr getType() isGeneric() && expr getType() pointerLevel() > 0) {
-            printf("Returning expr for deref %s\n", toString())
             return expr
         }
         return super getGenericOperand()
