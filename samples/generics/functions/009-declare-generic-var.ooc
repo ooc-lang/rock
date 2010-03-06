@@ -6,12 +6,7 @@ AnthroPC: class <T> {
         printf("Just created %s<%s>\n", this as Object class name, T name)
     }
     
-    doThing: func -> T {
-        //t: T
-        //t = 42
-        //return t
-        42
-    }
+    doThing: func -> T { 42 }
     
 }
 
@@ -19,7 +14,7 @@ main: func -> Int {
     
     a : AnthroPC<Int> = AnthroPC new(Int)
     i := a doThing()
-    //i toString() println()
+    i toString() println()
     
     return 0
     

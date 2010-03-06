@@ -1,14 +1,14 @@
 printType: func <T> (object: T) {
-	
-	printf("Got an object of type %s\n", T name)
-	
+    
+    printf("Got an object of type %s\n", T name)
+    
 }
 
 Bird: class {}
 
 main: func {
-	
-	bird := Bird new()
-	printType(bird)
-	
+    
+    bird := Bird new()
+    printType(bird)
+    
 }

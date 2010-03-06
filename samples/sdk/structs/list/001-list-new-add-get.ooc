@@ -18,7 +18,6 @@ main: func {
         
     list3 := ArrayList<Cont> new()
     list3 add(Cont new())
-    //val3 := list3 get(0) as Cont
     val3 := list3 get(0) as Cont
     ("Val3 is "+ val3 content) println()
 

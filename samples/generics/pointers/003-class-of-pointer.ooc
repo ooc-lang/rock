@@ -17,7 +17,7 @@ main: func {
 	cont := Container<Dog> new()
 	("cont T size == " + cont T size as Int + ", Pointer size == " + Pointer size as Int) println()
 	
-	match cont T {
+	match (cont T) {
 		case Pointer => "Success!"
 		case => "Fail :("
 	} println()
@@ -25,7 +25,7 @@ main: func {
 	cont = Container<Short*> new()
 	("cont T size == " + cont T size as Int + ", Pointer size == " + Pointer size as Int) println()
 	
-	match cont T {
+	match (cont T) {
 		case Pointer => "Success!"
 		case => "Fail :("
 	} println()

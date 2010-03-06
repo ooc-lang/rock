@@ -27,7 +27,7 @@ Container: class <T> {
 
 	set2: func (index: Int, element: T) {
 		dst := data + (index * T size)
-		memcpy(dst&, element&, T size)
+		memcpy(dst, element&, T size)
 	}
 	
 	equals: func (index: Int, element: T) -> Bool {
@@ -65,6 +65,6 @@ main: func {
 	printf("cont get(2) = %d\n", cont[2])
 	printf("cont get(3) = %d\n", cont[3])
 
-	printf("cont equals(2, 42) ? %s\n", cont equals(2, 42) repr())
+	printf("cont equals(2, 42) ? %s\n", cont equals(2, 42) toString())
 
 }

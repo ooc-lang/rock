@@ -5,7 +5,7 @@ A: class {
 }
 
 main: func {
-	a := A new()
-	a f(Int) toString() println()
+    a := A new()
+    a f(Int) toString() println()
 }
 

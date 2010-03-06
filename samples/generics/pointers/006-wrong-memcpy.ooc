@@ -8,8 +8,8 @@ Box: class <T> {
 
 testLocal: func <T> (T: Class) -> T {
     box := Box new("Hey there!")
-	value := box value
-	value
+    value := box value
+    value
 }
 
 testMember: func <T> (T: Class) -> T {
@@ -19,5 +19,5 @@ testMember: func <T> (T: Class) -> T {
 
 main: func {
     testLocal(String) println()
-	testMember(String) println()
+    testMember(String) println()
 }

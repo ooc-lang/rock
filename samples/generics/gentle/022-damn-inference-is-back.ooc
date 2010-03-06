@@ -25,15 +25,15 @@ Container: class<T> {
 }
 
 main: func {
-	list := Container<Int> new()
-	for(i in 1..10) {
-		list add(42)
-	}
-	
-	for(i in 0..list size()) {
+    list := Container<Int> new()
+    for(i in 1..10) {
+        list add(42)
+    }
+    
+    for(i in 0..list size()) {
         node := list get(i)
         printf("Got a %s<%s>\n", node class name, node T name)
         //kakoo := node data
-		//kakoo draw()
-	}
+        //kakoo draw()
+    }
 }

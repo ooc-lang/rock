@@ -1,9 +1,9 @@
 /*
 test: func <T> (blah: T) {
 
-	var: T
-	var = 13
-	
+    var: T
+    var = 13
+    
 }
 
 thirteen: func -> Int { 13 }
@@ -21,9 +21,9 @@ test: func<T> (blub: T) -> T {
 }
 
 main: func() {
-	
-	test("42") as String println()
-	test(true) as Bool toString() println()
+    
+    test("42") as String println()
+    test(true) as Bool toString() println()
     (test(42) ? "non-null" : "null") println()
-	
+    
 }
