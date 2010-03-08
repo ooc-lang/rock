@@ -269,6 +269,12 @@ CGenerator: class extends Skeleton {
                 current app(node expr); return
             }
         }
+        
+        if(node expr instanceOf(Dereference)) {
+            current app(node expr as Dereference expr)
+			return;
+		}
+        
         current app("&("). app(node expr). app(")")
     }
 

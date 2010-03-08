@@ -2,7 +2,6 @@ import structs/ArrayList
 
 main: func {
     
-    //list := [1, 2, 3, 4] as ArrayList<Int>
     list := [1, 2, 3, 4]
     elem3 := fiddleDum(list)
     printf("list[3] = %d\n", elem3)
