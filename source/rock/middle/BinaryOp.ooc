@@ -2,7 +2,7 @@ import structs/ArrayList
 import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
        Import, Module, FunctionCall, ClassDecl, CoverDecl, AddressOf,
-       ArrayAccess, VariableAccess
+       ArrayAccess, VariableAccess, Cast
 import tinker/[Trail, Resolver, Response]
 
 include stdint
@@ -141,10 +141,17 @@ BinaryOp: class extends Expression {
                 res wholeAgain(this, "right type is unresolved"); return Responses OK
             }
             
+            cast : Cast = null
+            realRight := right
+            if(right instanceOf(Cast)) {
+                cast = right as Cast
+                realRight = cast inner
+            }                
+            
             // if we're an assignment from a generic return value
             // we need to set the returnArg to left and disappear! =)
-            if(right instanceOf(FunctionCall)) {
-                fCall := right as FunctionCall
+            if(realRight instanceOf(FunctionCall)) {
+                fCall := realRight as FunctionCall
                 fDecl := fCall getRef()
                 if(!fDecl || !fDecl getReturnType() isResolved()) {
                     res wholeAgain(this, "Need more info on fDecl")
@@ -161,7 +168,7 @@ BinaryOp: class extends Expression {
             
             if(isGeneric()) {
                 sizeAcc := VariableAccess new(VariableAccess new(left getType() getName(), token), "size", token)
-                
+
                 fCall := FunctionCall new("memcpy", token)
                 fCall args add(left  getGenericOperand())
                 fCall args add(right getGenericOperand())
