@@ -1,4 +1,4 @@
-import structs/[ArrayList]
+import structs/[ArrayList], text/Buffer
 import VariableAccess, VariableDecl, Statement, Node, Visitor
 import tinker/[Trail, Resolver, Response]
 import ../frontend/[BuildParams]
@@ -93,6 +93,19 @@ Scope: class extends Node {
     size: func -> Int { list size() }
     
     isScope: func -> Bool { true }
+    
+    toString: func -> String {
+        sb := Buffer new()
+        sb append('{')
+        isFirst := true
+        for(stmt in list) {
+            if(isFirst) isFirst = false
+            else        sb append(", ")
+            sb append(stmt toString())
+        }
+        sb append('}')
+        sb toString()
+    }
     
 }
 

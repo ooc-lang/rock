@@ -5,8 +5,7 @@ test-ast
 hi-world
 hi-42
 003-functions-and-calls
-ooc_tmp*
-rock_tmp*
+*tmp*
 declassign
 vardecl
 NagaQueen.c

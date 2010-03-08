@@ -168,6 +168,9 @@ BinaryOp: class extends Expression {
                 fCall args add(sizeAcc)
                 result := trail peek() replace(this, fCall)
                 
+                // FIXME KALAMAZOO
+                token throwWarning("Turned %s into %s, into trail peek() = %s\n" format(toString(), fCall toString(), trail peek() toString()))
+                
                 if(!result) {
                     if(res fatal) token throwError("Couldn't replace ourselves (%s) with a memcpy/assignment in a %s! trail = %s" format(toString(), trail peek() as Node class name, trail toString()))
                 }

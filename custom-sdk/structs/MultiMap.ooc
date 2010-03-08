@@ -33,7 +33,7 @@ MultiMap: class <T> extends HashMap<T> {
     }
     
     remove: func (key: String) -> Bool {
-        already := super get(key)
+        already := super get(key) as Object
         if(already == null) {
             // Doesn't contain it
             return false

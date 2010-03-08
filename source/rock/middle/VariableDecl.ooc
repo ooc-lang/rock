@@ -3,6 +3,7 @@ import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
        Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast, Module,
        Block, Scope
 import tinker/[Response, Resolver, Trail]
+import ../frontend/BuildParams
 
 VariableDecl: class extends Declaration {
 
@@ -107,7 +108,7 @@ VariableDecl: class extends Declaration {
 
         trail push(this)
 
-        //printf("Resolving variable decl %s\n", toString());
+        if(res params veryVerbose) printf("Resolving variable decl %s\n", toString());
 
         if(expr) {
             response := expr resolve(trail, res)

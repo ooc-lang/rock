@@ -54,6 +54,13 @@ Return: class extends Statement {
                     token throwError("Couldn't add the memcpy before the generic return in a %s! trail = %s" format(trail peek() as Node class name, trail toString()))
                 }
                 expr = null
+                
+                // FIXME KALAMAZOO
+                token throwWarning("Replacing %s with if %s, assignment %s\n" format(toString(), if1 toString(), ass toString()))
+                
+                res wholeAgain(this, "Turned into an assignment")
+                //return Responses OK
+                return Responses LOOP
             }
             
             if(expr != null) {
@@ -61,7 +68,7 @@ Return: class extends Statement {
                     res wholeAgain(this, "Need info about the expr type")
                     return Responses OK
                 }
-                if(!retType equals(expr getType())) {
+                if(!retType getName() toLower() equals("void") && !retType equals(expr getType())) {
                     // TODO: add checking to see if the types are compatible
                     expr = Cast new(expr, retType, expr token)
                 }

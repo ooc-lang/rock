@@ -265,104 +265,52 @@ FunctionDecl: class extends Declaration {
         }
         
         if(returnType == voidType || isExtern()) return Responses OK
-        
-        stack := Stack<Iterator<Statement>> new()
-        stack push(body iterator())
-        
-        //printf("[autoReturn] Exploring a %s\n", this toString())        
-        if(!autoReturnExplore(stack, trail) ok()) {
-            res wholeAgain(this, "autoReturnExplore said so!")
-        }
-        
-        return finalResponse
+
+        autoReturnExplore(trail, res, body)
+        return Responses OK
         
     }
     
-    autoReturnExplore: func (stack: Stack<Iterator<Statement>>, trail: Trail) -> Response {
-
-        iter := stack peek()
+    autoReturnExplore: func (trail: Trail, res: Resolver, scope: Scope) {
         
-        while(iter hasNext()) {
-            node := iter next()
-            if(node instanceOf(ControlStatement) && (node as ControlStatement isDeadEnd())) {
-                cs := node as ControlStatement
-                stack push(cs body iterator())
-                //printf("[autoReturn] Sub-exploring a %s. isDeadEnd() ? %s\n", cs toString(), cs isDeadEnd() toString())
-                autoReturnExplore(stack, trail)
-            } else {
-                //"[autoReturn] Huh, node is a %s, ignoring\n" format(node class name) println()
-            }
+        if(scope isEmpty()) {
+            printf("[autoReturn] scope is empty, we need a return\n")
+            returnNeeded(trail)
+            return
+        }
+                
+        last := scope last()
+        
+        if(last instanceOf(Return)) {
+            printf("[autoReturn] Oh, it's a %s already. Nice =D!\n",  last toString())
+            return
         }
         
-        stack pop()
-        
-        // if we're the bottom element, or if our parent doesn't have
-        // any other element, we're at the end of control
-        condition := stack isEmpty()
-        if(!condition) {
-            condition = !stack peek() hasNext()
-        }
-        if(!condition) {
-            parentIter := stack peek()
-            condition = true
-            i := 0
-            while(parentIter hasNext()) {
-                i += 1
-                next := parentIter next()
-                if(!next instanceOf(ControlStatement)) {
-                    //printf("[autoReturn] next is a %s, condition is then false :/\n", next class name)
-                    condition = false
-                    break
-                }
-            }
-            while(i > 0) {
-                parentIter prev()
-                i -= 1
-            }
-        }
-        
-        if(condition) {
-            list : ArrayList<Statement> = iter as ArrayListIterator<Node> list
-            if(list isEmpty()) {
-                //printf("[autoReturn] scope is empty, needing return\n")
-                returnNeeded(trail)
-                return Responses LOOP
+        if(last instanceOf(Expression)) {
+            expr := last as Expression
+            if(expr getType() == null) {
+                printf("[autoReturn] LOOPing because last's type (%s) is null.", expr toString())
+                res wholeAgain(this, "last's type is null")
+                return
             }
             
-            last := list last()
-            
-            if(last instanceOf(Return)) {
-                //printf("[autoReturn] Oh, it's a %s already. Nice =D!\n",  last toString())
-            } else if(last instanceOf(Expression)) {
-                expr := last as Expression
-                if(expr getType() == null) {
-                    //printf("[autoReturn] LOOPing because last's type (%s) is null.", expr toString())
-                    return Responses LOOP
-                }
-                
-                if(isMain() && !expr getType() equals(IntLiteral type)) {
-                    returnNeeded(trail)
-                    return Responses LOOP
-                }
-                
-                if(!expr getType() equals(voidType)) {
-                    //printf("[autoReturn] Hmm it's a %s\n", last toString())
-                    list set(list lastIndex(), Return new(last, last token))
-                    //printf("[autoReturn] Replaced with a %s!\n", list last() toString())
-                }
-            } else if(last instanceOf(Else) || last instanceOf(VersionBlock)) {
-                // FIXME: this is actually deficient.
-                
-                // then it's alright, all cases are already handled
-                //printf("[autoReturn] last is an Else, all cases are already handled\n", last toString())
-            } else {
-                //printf("[autoReturn] Huh, last is a %s, needing return\n", last toString())
+            if(isMain() && !expr getType() equals(IntLiteral type)) {
                 returnNeeded(trail)
-                return Responses LOOP
+                res wholeAgain(this, "was needing return")
+                return
             }
+            
+            if(!expr getType() equals(voidType)) {
+                printf("[autoReturn] Hmm it's a %s\n", last toString())
+                scope set(scope lastIndex(), Return new(last, last token))
+                printf("[autoReturn] Replaced with a %s!\n", scope last() toString())
+            }
+        } else {
+            printf("[autoReturn] Huh, last is a %s, needing return\n", last toString())
+            returnNeeded(trail)
+            res wholeAgain(this, "was needing return")
+            return
         }
-        
-        return Responses OK
         
     }
 
