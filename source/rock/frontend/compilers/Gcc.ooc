@@ -50,7 +50,8 @@ Gcc: class extends BaseCompiler {
     
     reset: func() {
         super reset()
-        command add("-std=c99")
+        command add("-O2")
+        command add("-std=gnu99")
         command add("-Wall")
     }
 
