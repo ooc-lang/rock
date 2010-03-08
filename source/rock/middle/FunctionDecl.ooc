@@ -274,7 +274,7 @@ FunctionDecl: class extends Declaration {
     autoReturnExplore: func (trail: Trail, res: Resolver, scope: Scope) {
         
         if(scope isEmpty()) {
-            printf("[autoReturn] scope is empty, we need a return\n")
+            //printf("[autoReturn] scope is empty, we need a return\n")
             returnNeeded(trail)
             return
         }
@@ -282,14 +282,14 @@ FunctionDecl: class extends Declaration {
         last := scope last()
         
         if(last instanceOf(Return)) {
-            printf("[autoReturn] Oh, it's a %s already. Nice =D!\n",  last toString())
+            //printf("[autoReturn] Oh, it's a %s already. Nice =D!\n",  last toString())
             return
         }
         
         if(last instanceOf(Expression)) {
             expr := last as Expression
             if(expr getType() == null) {
-                printf("[autoReturn] LOOPing because last's type (%s) is null.", expr toString())
+                //printf("[autoReturn] LOOPing because last's type (%s) is null.", expr toString())
                 res wholeAgain(this, "last's type is null")
                 return
             }
@@ -301,12 +301,12 @@ FunctionDecl: class extends Declaration {
             }
             
             if(!expr getType() equals(voidType)) {
-                printf("[autoReturn] Hmm it's a %s\n", last toString())
+                //printf("[autoReturn] Hmm it's a %s\n", last toString())
                 scope set(scope lastIndex(), Return new(last, last token))
-                printf("[autoReturn] Replaced with a %s!\n", scope last() toString())
+                //printf("[autoReturn] Replaced with a %s!\n", scope last() toString())
             }
         } else {
-            printf("[autoReturn] Huh, last is a %s, needing return\n", last toString())
+            //printf("[autoReturn] Huh, last is a %s, needing return\n", last toString())
             returnNeeded(trail)
             res wholeAgain(this, "was needing return")
             return

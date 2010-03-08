@@ -55,9 +55,6 @@ Return: class extends Statement {
                 }
                 expr = null
                 
-                // FIXME KALAMAZOO
-                token throwWarning("Replacing %s with if %s, assignment %s\n" format(toString(), if1 toString(), ass toString()))
-                
                 res wholeAgain(this, "Turned into an assignment")
                 //return Responses OK
                 return Responses LOOP
