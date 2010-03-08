@@ -50,5 +50,7 @@ Dereference: class extends Expression {
             case      => false
         }
     }
+    
+    isReferencable: func -> Bool { true }
 
 }
