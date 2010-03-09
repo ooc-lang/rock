@@ -124,6 +124,10 @@ UnaryOp: class extends Expression {
         fDecl := op getFunctionDecl()
         
         args := fDecl getArguments()
+        
+        //if we have 2 arguments, then it's a binary plus binary
+        if(args size() == 2) return 0
+			
         if(args size() != 1) {
             op token throwError(
                 "Argl, you need 1 argument to override the '%s' operator, not %d" format(symbol, args size()))

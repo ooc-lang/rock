@@ -194,9 +194,10 @@ version(windows) {
         getAbsolutePath: func -> String {
             if(isRelative()) {
                 return getCwd() + This separator + path
-            } else {
+            } /*else {
                 return path
-            }
+            }*/
+            return path
         }
 
         /**

@@ -60,6 +60,7 @@ Time: class {
 			gettimeofday(tv&, null)
 			return tv tv_usec
 		}
+		return -1
 	}
 	
 	sec: static func -> UInt {
@@ -73,6 +74,7 @@ Time: class {
 			val := localtime(tt&)
 			return val@ tm_sec
 		}
+		return -1
 	}
 	
 	min: static func -> UInt {
@@ -86,6 +88,7 @@ Time: class {
 			val := localtime(tt&)
 			return val@ tm_min
 		}
+		return -1
 	}
 	
 	hour: static func -> UInt {
@@ -99,6 +102,7 @@ Time: class {
 			val := localtime(tt&)
 			return val@ tm_hour
 		}
+		return -1
 	}
 	
 	sleepSec: static func (duration: Float) {
