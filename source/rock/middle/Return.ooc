@@ -1,6 +1,7 @@
 import ../frontend/Token
 import Visitor, Statement, Expression, Node, FunctionDecl, FunctionCall,
-       VariableAccess, AddressOf, ArrayAccess, If, BinaryOp, Cast
+       VariableAccess, VariableDecl, AddressOf, ArrayAccess, If,
+       BinaryOp, Cast
 import tinker/[Response, Resolver, Trail]
 
 Return: class extends Statement {
@@ -46,12 +47,16 @@ Return: class extends Statement {
                 returnAcc := VariableAccess new(fDecl getReturnArg(), token)
                 
                 if1 := If new(returnAcc, token)
+                vdfe := VariableDecl new(null, generateTempName("returnVal"), expr, expr token)
                 
-                ass := BinaryOp new(returnAcc, expr, OpTypes ass, token)
+                ass := BinaryOp new(returnAcc, VariableAccess new(vdfe, vdfe token), OpTypes ass, token)
                 if1 getBody() add(ass)
                 
+                if(!trail peek() addBefore(this, vdfe)) {
+                    token throwError("Couldn't add the vdfe before the generic return in a %s! trail = %s" format(trail peek() as Node class name, trail toString()))
+                }
                 if(!trail peek() addBefore(this, if1)) {
-                    token throwError("Couldn't add the memcpy before the generic return in a %s! trail = %s" format(trail peek() as Node class name, trail toString()))
+                    token throwError("Couldn't add the assignment before the generic return in a %s! trail = %s" format(trail peek() as Node class name, trail toString()))
                 }
                 expr = null
                 

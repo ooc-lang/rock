@@ -1,5 +1,5 @@
 import io/File, os/Terminal
-import structs/[Array, ArrayList, List, Stack]
+import structs/[ArrayList, List, Stack]
 import text/StringTokenizer
 
 import Help, Token, BuildParams, AstBuilder
@@ -16,7 +16,7 @@ CommandLine: class {
     params: BuildParams
     driver: Driver
     
-    init: func(args : Array<String>) {
+    init: func(args : ArrayList<String>) {
         params = BuildParams new()
         driver = CombineDriver new(params)
         

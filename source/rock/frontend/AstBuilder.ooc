@@ -1,6 +1,6 @@
 import io/File, text/[Buffer, EscapeSequence]
 
-import structs/[Array, ArrayList, List, Stack, HashMap]
+import structs/[ArrayList, List, Stack, HashMap]
 
 import ../utils/FileUtils
 import ../frontend/[Token, BuildParams]

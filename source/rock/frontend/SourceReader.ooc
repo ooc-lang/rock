@@ -1,6 +1,6 @@
 // ooc imports
 import io/[Reader, FileReader, File]
-import structs/[Array, ArrayList, List]
+import structs/[ArrayList, List]
 import text/Buffer
 
 // rock imports
@@ -348,7 +348,7 @@ SourceReader: class extends Reader {
      * position after.
      * @throws java.io.EOFException
      */
-    readUntil: func ~strings (candidates: Array<String>, keepEnd: Bool) -> String {
+    readUntil: func ~strings (candidates: ArrayList<String>, keepEnd: Bool) -> String {
 
         sB := Buffer new()
         
