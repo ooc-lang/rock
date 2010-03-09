@@ -80,7 +80,7 @@ LinkedList: class <T> extends List<T> {
 		
 		i = 0 : Int
 		current := first
-		while(current next && i < index) {
+		while(current next != null && i < index) {
 			current = current next
 			i += 1
 		}
@@ -114,7 +114,7 @@ LinkedList: class <T> extends List<T> {
 	}
 	
 	removeAt: func (index: Int) -> T {
-		if(first && index >= 0 && index < size) {
+		if(first != null && index >= 0 && index < size) {
 			toRemove := getNode(index)
 			if(toRemove next) {
 				toRemove next prev = toRemove prev
@@ -135,9 +135,9 @@ LinkedList: class <T> extends List<T> {
 			}
 			size -= 1
 			return toRemove data
-		} else {
+		} //else {
 			Exception new(This, "Check index: 0 <= " + index + " < " + size) throw()
-		}
+		//}
 	}
 	
 	remove: func (data: T) -> Bool {
@@ -173,6 +173,7 @@ LinkedList: class <T> extends List<T> {
 	
 	set: func (index: Int, data: T) -> T {
         // FIXME: stub
+        return null
     }
 	
 	size: func -> Int {return size}
