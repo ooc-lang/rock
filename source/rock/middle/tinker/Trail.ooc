@@ -71,14 +71,16 @@ Trail: class extends Stack<Node> {
      */
     addBeforeInScope: func (mark, newcomer: Statement) -> Bool {
         
-        idx := findScope()
-        if(idx == -1) {
-            // not in a scope
-            return false
+        i := size() - 1
+        while(i >= 0) {
+            node : Node = data get(i)
+            if(node instanceOf(Scope) &&
+               get(i) addBefore(i + 1 >= size() ? mark : get(i + 1), newcomer)) {
+                return true
+            }
+            i -= 1
         }
-        
-        scope := get(idx)
-        return scope addBefore(idx + 1 >= size() ? mark : get(idx + 1), newcomer)
+        return false
         
     }
     
@@ -91,14 +93,16 @@ Trail: class extends Stack<Node> {
      */
     addAfterInScope: func (mark, newcomer: Statement) -> Bool {
         
-        idx := findScope()
-        if(idx == -1) {
-            // not in a scope
-            return false
+        i := size() - 1
+        while(i >= 0) {
+            node : Node = data get(i)
+            if(node instanceOf(Scope) &&
+               get(i) addAfter(i + 1 >= size() ? mark : get(i + 1), newcomer)) {
+                return true
+            }
+            i -= 1
         }
-        
-        scope := get(idx)
-        return scope addAfter(idx + 1 >= size() ? mark : get(idx + 1), newcomer)
+        return false
         
     }
     

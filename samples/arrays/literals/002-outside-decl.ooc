@@ -2,13 +2,11 @@ import structs/ArrayList
 
 main: func {
  
-    list := [1, 2, 3]
-    for(i in list) {
+    for(i in [1, 2, 3]) {
         i toString() println()
     }
     
-    list2 := [4, 5, 6]
-    for(i in list2) {
+    for(i in [4, 5, 6]) {
         i toString() println()
     }
     

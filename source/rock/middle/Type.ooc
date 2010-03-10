@@ -54,6 +54,7 @@ Type: abstract class extends Expression {
             //printf("ref of %s is %s %s\n", toString(), getRef() class name, getRef() toString())
             return getRef() instanceOf(VariableDecl)
         }
+        return false
     }
     
     replace: func (oldie, kiddo: Node) -> Bool { false }

@@ -49,6 +49,8 @@ MultiMap: class <T> extends HashMap<T> {
             // Only one - remove it
             return super remove(key)
         }
+        // work-around
+        return false
     }
     
     getAll: func (key: String) -> T {

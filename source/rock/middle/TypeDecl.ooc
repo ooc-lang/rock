@@ -176,6 +176,7 @@ TypeDecl: abstract class extends Declaration {
         if(getSuperRef()) {
 			return getSuperRef() getVariable(vName)
         }
+        return null
     }
     
     getVariables: func -> HashMap<VariableDecl> { variables }

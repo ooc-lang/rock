@@ -220,16 +220,25 @@ FunctionCall: class extends Expression {
         if(ref returnType isGeneric() && !isFriendlyHost(parent)) {
             vDecl := VariableDecl new(getType(), generateTempName("genCall"), token)
             if(!trail addBeforeInScope(this, vDecl)) {
-                token throwError("Couldn't add a " + vDecl toString() + " before a " + toString() + ", trail = " + trail toString())
+                if(res fatal) token throwError("Couldn't add a " + vDecl toString() + " before a " + toString() + ", trail = " + trail toString())
+                res wholeAgain(this, "couldn't add before scope")
+                return Responses OK
             }
+            
+            seq := CommaSequence new(token)
+            if(!trail peek() replace(this, seq)) {
+                if(res fatal) token throwError("Couldn't replace " + toString() + " with " + seq toString() + ", trail = " + trail toString())
+                // FIXME: what if we already added the vDecl?
+                res wholeAgain(this, "couldn't unwrap, trail = " + trail toString())
+                return Responses OK
+            }
+            
+            // only modify ourselves if we could do the other modifications
             varAcc := VariableAccess new(vDecl, token)
             setReturnArg(varAcc)
-            seq := CommaSequence new(token)
+            
             seq getBody() add(this)
             seq getBody() add(varAcc)
-            if(!trail peek() replace(this, seq)) {
-                token throwError("Couldn't replace " + toString() + " with " + seq toString() + ", trail = " + trail toString())
-            }
             
             res wholeAgain(this, "just unwrapped")
         }

@@ -8,7 +8,7 @@ import text/Buffer
 ArrayLiteral: class extends Literal {
 
     elements := ArrayList<Expression> new()
-    type : static Type = null
+    type : Type = null
     
     init: func ~arrayLiteral (.token) {
         super(token)
@@ -37,15 +37,21 @@ ArrayLiteral: class extends Literal {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
-        printf(" >> Resolving %s\n", toString())
+        printf(" >> Resolving %s, type = %s\n", toString(), type ? type toString() : "(nil)")
         
-        /*{
+        {
             parent := trail peek()
-            if(!parent instanceOf()) {
-                grandpa := trail peek(2)
-                grandpa replace(parent, VariableDecl new())
+            if(!parent instanceOf(VariableDecl)) {
+                varDecl := VariableDecl new(null, generateTempName("arrLit"), this, token)
+                if(!trail addBeforeInScope(parent, varDecl)) {
+                    if(res fatal) token throwError("Couldn't add " + varDecl toString() + " before " + parent toString() + " in scope")
+                    return Responses LOOP
+                }
+                parent replace(this, VariableAccess new(varDecl, token))
+                res wholeAgain(this, "replaced ourselves with varAcc")
+                return Responses OK
             }
-        }*/
+        }
         
         if(type == null) {
             innerType := elements first() getType()
@@ -56,7 +62,7 @@ ArrayLiteral: class extends Literal {
                 
             type = BaseType new("ArrayList", token)
             type addTypeArg(innerType)
-            printf("Decided for type %s\n", type toString())
+            printf("Inferred type %s for %s\n", type toString(), toString())
             
             newCall := FunctionCall new(type, "new", token)
             parent := trail peek()
