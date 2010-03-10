@@ -74,7 +74,11 @@ File: abstract class {
      * opened for reading
      */
     exists: func -> Bool {
-        return fopen(path, "r") ? true : false
+        fd := fopen(path, "r")
+        if(fd) {
+            fclose(fd); return true
+        }
+        false
     }
 
     /**
