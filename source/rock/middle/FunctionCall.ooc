@@ -649,7 +649,7 @@ FunctionCall: class extends Expression {
     getReturnArg: func -> Expression { returnArg }
     
     getRef: func -> FunctionDecl { ref }
-    setRef: func (=ref) { refScore = 0 /* or it'll keep trying to resolve it =) */ }
+    setRef: func (=ref) { refScore = 0; /* or it'll keep trying to resolve it =) */ }
 
 	getArguments: func ->  ArrayList<Expression> { args }
 

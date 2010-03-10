@@ -10,16 +10,16 @@ else
 	OOC_OWN_FLAGS+=+-DROCK_BUILD_DATE=\"${DATE}\" +-DROCK_BUILD_TIME=\"${TIME}\"
 endif
 
-OOC_PATH?=ooc
-OOC=${OOC_PATH} ${OOC_OWN_FLAGS} ${OOC_FLAGS}
+OOC?=ooc
+OOC_CMD=${OOC} ${OOC_OWN_FLAGS} ${OOC_FLAGS}
 
 all:
 	mkdir -p source/rock/parser/
 	${PARSER_GEN} ../nagaqueen/grammar/nagaqueen.leg > source/rock/frontend/NagaQueen.c
-	${OOC} $(shell find source/ -name "*.c") rock/rock -o=bin/rock
+	${OOC_CMD} $(shell find source/ -name "*.c") rock/rock -o=bin/rock
 
 test-ast:
-	${OOC} rock/test-ast
+	${OOC_CMD} rock/test-ast
 
 test:
 	make all && bin/rock < samples/ooc/hi-world.ooc
