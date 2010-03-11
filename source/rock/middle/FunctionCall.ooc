@@ -133,6 +133,10 @@ FunctionCall: class extends Expression {
                     printf("============ [FunctionCall] expr ref is a NamespaceDecl!!\n")
                     expr as VariableAccess getRef() resolveCall(this)
                 } else if(expr getType() != null && expr getType() getRef() != null) {
+                    if(!expr getType() getRef() instanceOf(TypeDecl)) {
+                        message := "No such function %s.%s%s (you can't call methods on generic types! you have to cast them to something sane first)" format(expr getType() getName(), name, getArgsTypesRepr())
+                        token throwError(message)
+                    }
                     tDecl := expr getType() getRef() as TypeDecl
 		            meta := tDecl getMeta()
 		            if(meta) {
@@ -518,11 +522,17 @@ FunctionCall: class extends Expression {
         if(!anyType instanceOf(BaseType)) return null
         type := anyType as BaseType
         
+        if(!type getRef() instanceOf(TypeDecl)) {
+            println("[KALAMAZOO] Haha, type ref of " + type toString() + " is not a TypeDecl but a " + type getRef() class name + ", skipping")
+            return null
+        }
+        
         typeRef := type getRef() as TypeDecl
         if(typeRef typeArgs == null) return null
         
         j := 0
         for(arg in typeRef typeArgs) {
+            println("[KALAMAZOO] arg is a " + arg class name)
             if(arg getName() == typeArgName) {
                 if(type typeArgs == null || type typeArgs size() <= j) {
                     continue

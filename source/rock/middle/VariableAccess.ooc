@@ -105,8 +105,8 @@ VariableAccess: class extends Expression {
                 typeDecl := exprType getRef()
                 if(!typeDecl) {
                     if(res fatal) expr token throwError("Can't resolve type %s" format(expr getType() toString()))
-                    if(res params verbose) printf("     - access to %s%s still not resolved, looping (ref = %s)\n", expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)")
-                    return Responses LOOP
+                    res wholeAgain(this, "     - access to %s%s still not resolved, looping (ref = %s)\n" format(expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)"))
+                    return Responses OK
                 }
                 typeDecl resolveAccess(this)
             }
@@ -133,7 +133,10 @@ VariableAccess: class extends Expression {
         }
         
         if(!ref) {
-            if(res fatal) token throwError("No such variable %s" format(toString()))
+            if(res fatal) {
+                println("trail = " + trail toString())
+                token throwError("No such variable %s" format(toString()))
+            }
             if(res params verbose) printf("     - access to %s%s still not resolved, looping (ref = %s)\n", expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)")
             res wholeAgain(this, "Couldn't resolve %s" format(toString()))
         }

@@ -3,14 +3,12 @@ import ArrayList
 /**
  * Container for key/value entries in the hash table
  */
-HashEntry: class <T> {
+HashEntry: class <K, V> {
 
-    key: String
-    value: T
+    key: K
+    value: V
 
-    init: func ~keyVal (=key, .value) {
-        this value = value
-    }
+    init: func ~keyVal (=key, =value) {}
 
 }
 
@@ -18,12 +16,12 @@ HashEntry: class <T> {
  * Simple hash table implementation
  */
 
-HashMap: class <T> extends Iterable<T> {
+HashMap: class <K, V> extends Iterable<V> {
 
     size, capacity: UInt
 
-    buckets: ArrayList<T>*
-    keys: ArrayList<String>
+    buckets: ArrayList<V>*
+    keys: ArrayList<K>
     
     /**
      * Returns a hash table with 100 buckets
@@ -47,30 +45,31 @@ HashMap: class <T> extends Iterable<T> {
             "Out of memory: failed to allocate " + (capacity * Pointer size) + " bytes\n") throw()
         }
         for (i: UInt in 0..capacity) {
-            buckets[i] = ArrayList<T> new()
+            buckets[i] = ArrayList<V> new()
         }
-        keys = ArrayList<String> new()
+        keys = ArrayList<K> new()
     }
 
     /**
      * Port of Austin Appleby's Murmur Hash implementation
      * http://murmurhash.googlepages.com/
      * TODO: Use this to hash not just strings, but any type of object
-     * @param Object key The key to hash
-     * @param Int len The size of the key (in bytes)
-     * @param UInt seed The seed value
+     * @param key The key to hash
+     * @param seed The seed value
      */
-    murmurHash: func (keyTagazok: T, seed: UInt) -> UInt {
+    murmurHash: func (keyTagazok: K) -> UInt {
         
-        len := T size
+        seed: UInt = 1 // TODO: figure out what makes a good seed value?
+        
+        len := V size
         m = 0x5bd1e995 : const UInt
         r = 24 : const Int
 
         h : UInt = seed ^ len
-        data := const keyTagazok as Octet*
+        data := (keyTagazok&) as Octet*
 
         while (len >= 4) {
-            k := (data as UInt*) @
+            k := (data as UInt*)@
 
             k *= m
             k ^= k >> r
@@ -83,10 +82,12 @@ HashMap: class <T> extends Iterable<T> {
             len -= 4
         }
 
-        if(len == 3) h ^= data[2] << 16
-        if(len == 2) h ^= data[1] << 8
-        if(len == 1) h ^= data[0]
-        else         h *= m    
+        match(len) {
+            case 3 => h ^= data[2] << 16
+            case 2 => h ^= data[1] << 8
+            case 1 => h ^= data[0]
+            case   => h *= m
+        }
                 
         h ^= h >> 13
         h *= m
@@ -99,7 +100,7 @@ HashMap: class <T> extends Iterable<T> {
      * khash's ac_X31_hash_string
      * http://attractivechaos.awardspace.com/khash.h.html
      * @access private
-     * @param String s The string to hash
+     * @param s The string to hash
      * @return UInt
      */
     ac_X31_hash: func (s: Char*) -> UInt {
@@ -117,16 +118,19 @@ HashMap: class <T> extends Iterable<T> {
     /**
      * Returns the HashEntry associated with a key.
      * @access private
-     * @param String key The key associated with the HashEntry
+     * @param key The key associated with the HashEntry
      * @return HashEntry
      */
-    getEntry: func (key: String) -> HashEntry<T> {
-        entry = null : HashEntry<T>
-        hash : UInt = ac_X31_hash(key) % capacity
+    getEntry: func (key: K) -> HashEntry<K, V> {
+        entry = null : HashEntry<K, V>
+        //hash : UInt = ac_X31_hash(key) % capacity
+        hash : UInt = murmurHash(key) % capacity
         iter := buckets[hash] iterator()
         while (iter hasNext()) {
             entry = iter next()
-            if (entry key equals(key)) {
+            // TODO: check if that does compile to memcmp() on rock,
+            // Add check if V inheritsFrom(Object), use the equals() method
+            if (entry key == key) {
                 return entry
             }
         }
@@ -136,11 +140,11 @@ HashMap: class <T> extends Iterable<T> {
     /**
      * Puts a key/value pair in the hash table. If the pair already exists,
      * it is overwritten.
-     * @param String key The key to be hashed
-     * @param Object value The value associated with the key
+     * @param key The key to be hashed
+     * @param value The value associated with the key
      * @return Bool
      */
-    put: func (key: String, value: T) -> Bool {
+    put: func (key: K, value: V) -> Bool {
         load: Float
         hash: UInt
         entry := getEntry(key)
@@ -149,8 +153,9 @@ HashMap: class <T> extends Iterable<T> {
         }
         else {
             keys add(key)
-            hash = ac_X31_hash(key) % capacity
-            entry = HashEntry<T> new(key, value)
+            //hash = ac_X31_hash(key) % capacity
+            hash = murmurHash(key) % capacity
+            entry = HashEntry<K, V> new(key, value)
             buckets[hash] add(entry)
             size += 1
             load = size / capacity as Float
@@ -166,17 +171,17 @@ HashMap: class <T> extends Iterable<T> {
     /**
      * Alias of put
      */
-    add: func (key: String, value: T) -> Bool {
+    add: func (key: K, value: V) -> Bool {
         return put(key, value)
     }
 
     /**
      * Returns the value associated with the key. Returns null if the key
      * does not exist.
-     * @param String key The key associated with the value
+     * @param key The key associated with the value
      * @return Object
      */
-    get: func (key: String) -> T {
+    get: func (key: K) -> V {
         entry := getEntry(key)
         if (entry) {
 	    return entry value
@@ -191,25 +196,27 @@ HashMap: class <T> extends Iterable<T> {
 
     /**
      * Returns whether or not the key exists in the hash table.
-     * @param String key The key to check
+     * @param key The key to check
      * @return Bool
      */
-    contains: func (key: String) -> Bool {
+    contains: func (key: K) -> Bool {
         getEntry(key) ? true : false
     }
 
     /**
      * Removes the entry associated with the key
-     * @param String key The key to remove
+     * @param key The key to remove
      * @return Bool
      */
-    remove: func (key: String) -> Bool {
+    remove: func (key: K) -> Bool {
         entry := getEntry(key)
-        hash : UInt = ac_X31_hash(key) % capacity
+        //hash : UInt = ac_X31_hash(key) % capacity
+        hash : UInt = murmurHash(key) % capacity
         if (entry) {
             for (i: UInt in 0.. keys size()) {
                 cKey := keys get(i)
-                if (key equals(cKey)) {
+                // FIXME use equals for objects, check that it's memcmp otherwise
+                if (key == cKey) {
                     keys removeAt(i)
                     break
                 }
@@ -229,7 +236,7 @@ HashMap: class <T> extends Iterable<T> {
         
         /* Keep track of old settings */
         old_capacity := capacity
-        old_buckets := gc_malloc(old_capacity * Pointer size) as ArrayList<T>*
+        old_buckets := gc_malloc(old_capacity * Pointer size) as ArrayList<V>*
         if (!old_buckets) {
             Exception new(This, "Out of memory: failed to allocate %d bytes\n" + (old_capacity * Pointer size)) throw()
         }
@@ -247,9 +254,9 @@ HashMap: class <T> extends Iterable<T> {
             Exception new(This, "Out of memory: failed to allocate %d bytes\n" + (capacity * Pointer size)) throw()
         }
         for (i: UInt in 0..capacity) {
-            buckets[i] = ArrayList<T> new()
+            buckets[i] = ArrayList<V> new()
         }
-        entry : HashEntry<T>
+        entry : HashEntry<K, V>
         for (bucket: UInt in 0..old_capacity) {
             if (old_buckets[bucket] size() > 0) {
                 iter := old_buckets[bucket] iterator()
@@ -263,8 +270,8 @@ HashMap: class <T> extends Iterable<T> {
         return true
     }
     
-    iterator: func -> Iterator<T> {
-        HashMapValueIterator<T> new(this)
+    iterator: func -> Iterator<V> {
+        HashMapValueIterator<K, V> new(this)
     }
 
     clear: func {
@@ -273,13 +280,13 @@ HashMap: class <T> extends Iterable<T> {
     
     size: func -> UInt { size }
     
-    getKeys: func -> ArrayList<String> { keys }
+    getKeys: func -> ArrayList<K> { keys }
 
 }
 
-HashMapValueIterator: class <T> extends Iterator<T> {
+HashMapValueIterator: class <K, T> extends Iterator<T> {
 
-    map: HashMap<T>
+    map: HashMap<K, T>
     index := 0
     
     init: func ~withMap (=map) {}
@@ -308,10 +315,10 @@ HashMapValueIterator: class <T> extends Iterator<T> {
     
 }
 
-operator [] <T> (map: HashMap<T>, key: String) -> T {
+operator [] <K, V> (map: HashMap<K, V>, key: K) -> V {
     map get(key)
 }
 
-operator []= <T> (map: HashMap<T>, key: String, value: T) {
+operator []= <K, V> (map: HashMap<K, V>, key: K, value: V) {
     map put(key, value)
 }

@@ -74,23 +74,23 @@ TypeDecl: abstract class extends Declaration {
                 meta setSuperType(BaseType new(this superType getName() + "Class", nullToken))
             }
         }
-        
-        if(superType != null && superType getTypeArgs()) {
-            for(typeArg in getTypeArgs()) for(candidate in superType getTypeArgs()) {
-                if(typeArg getName() == candidate getName()) {
-                    variables remove(typeArg getName())
-                }
-            }
-        }
     }
     
     getSuperType: func -> Type { superType }
     
     addTypeArg: func (typeArg: VariableDecl) -> Bool {
+        println("Type " + toString() + " got typeArg " + typeArg toString())
         typeArg setOwner(this)
         getTypeArgs() add(typeArg)
         
         variables put(typeArg getName(), typeArg)
+        
+        printf("Now got variables: ")
+        for(v in variables) {
+            printf("%s, ", v toString())
+        }
+        println()
+        
         true
     }
     
@@ -297,6 +297,15 @@ TypeDecl: abstract class extends Declaration {
                 trail pop(this)
                 return response
             }
+            
+            if(superType != null && superType getTypeArgs()) {
+                for(typeArg in getTypeArgs()) for(candidate in superType getRef() as TypeDecl getTypeArgs()) {
+                    println("[KALAMAZOO] Comparing typeArg " + typeArg getName() + " with " + candidate getName())
+                    if(typeArg getName() == candidate getName()) {
+                        variables remove(typeArg getName())
+                    }
+                }
+            }
         }
         
         for(typeArg in getTypeArgs()) {
@@ -402,7 +411,13 @@ TypeDecl: abstract class extends Declaration {
             if(access suggest(getNonMeta() ? getNonMeta() thisDecl : thisDecl)) return
         }
         
-        //printf("? Looking for variable %s in %s\n", access name, name)
+        printf("? Looking for variable %s in %s\n", access name, name)
+        printf("Got variables: ")
+        for(v in variables) {
+            printf("%s, ", v toString())
+        }
+        println()
+        
         if(access getName() == "This") {
             //printf("Asking for 'This' in %s (non-meta %s)\n", toString(), getNonMeta() ? getNonMeta() toString() : "(nil)")
             if(access suggest(getNonMeta() ? getNonMeta() : this)) return
