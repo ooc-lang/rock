@@ -1,7 +1,7 @@
 import structs/[ArrayList]
 import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
        Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast, Module,
-       Block, Scope
+       Block, Scope, FunctionDecl, Argument
 import tinker/[Response, Resolver, Trail]
 import ../frontend/BuildParams
 
@@ -20,6 +20,9 @@ VariableDecl: class extends Declaration {
     isStatic := false
     externName: String = null
     unmangledName: String = null
+    
+    /** if this VariableDecl is a Func, it can be called! */
+    fDecl : FunctionDecl = null
 
     init: func ~vDecl (.type, .name, .token) {
         this(type, name, null, token)
@@ -135,6 +138,14 @@ VariableDecl: class extends Declaration {
                 return response
             }
         }
+        
+        if(fDecl != null) {
+            response := fDecl resolve(trail, res)
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
+        }
 
         trail pop(this)
 
@@ -219,6 +230,17 @@ VariableDecl: class extends Declaration {
             case type => type = kiddo; true
             case => false
         }
+    }
+    
+    getFunctionDecl: func -> FunctionDecl {
+        if(getType() instanceOf(FuncType) && fDecl == null) {
+            fDecl = FunctionDecl new(name, token)
+            fDecl setOwner(owner)
+            fDecl args add(VarArg new(token))
+            fDecl vDecl = this
+            println("[KALAMAZOO] Just created fDecl " + fDecl toString() + " for var " + toString())
+        }
+        return fDecl
     }
 
     isMember: func -> Bool { owner != null }

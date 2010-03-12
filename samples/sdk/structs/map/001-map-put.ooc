@@ -6,7 +6,7 @@ main: func {
 	for(i in 0..500) {
 		key: String
         key = "hobo" + i toString()
-		map put(key, "haba")
+		map put("hobo", "haba")
         if(i % 100 == 0) 
             printf("Adding key %s\n", key)
 	}

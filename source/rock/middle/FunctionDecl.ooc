@@ -10,9 +10,9 @@ FunctionDecl: class extends Declaration {
 
     name = "", suffix = null, fullName = null : String
     returnType := voidType
-    type: static Type = BaseType new("Func", nullToken)
+    type : static Type = FuncType new(nullToken)
     
-    // /** Attributes *//*
+    /** Attributes */
     isAbstract := false
     isStatic := false
     isInline := false
@@ -20,6 +20,9 @@ FunctionDecl: class extends Declaration {
     isProto := false
     externName : String = null
     unmangledName: String = null
+    
+    /** If this FunctionDecl is a shim to make a VariableDecl callable, then vDecl is set to that variable decl. */
+    vDecl : VariableDecl = null
     
     typeArgs := ArrayList<VariableDecl> new()
     args := ArrayList<Argument> new()
@@ -195,7 +198,7 @@ FunctionDecl: class extends Declaration {
         
         trail push(this)
         
-        //printf("** Resolving function decl %s\n", name)
+        if(res params veryVerbose) printf("** Resolving function decl %s\n", name)
 
         for(arg in args) {
             response := arg resolve(trail, res)

@@ -523,7 +523,7 @@ FunctionCall: class extends Expression {
         type := anyType as BaseType
         
         if(!type getRef() instanceOf(TypeDecl)) {
-            println("[KALAMAZOO] Haha, type ref of " + type toString() + " is not a TypeDecl but a " + type getRef() class name + ", skipping")
+            // only TypeDecl have typeArgs anyway.
             return null
         }
         
@@ -532,7 +532,6 @@ FunctionCall: class extends Expression {
         
         j := 0
         for(arg in typeRef typeArgs) {
-            println("[KALAMAZOO] arg is a " + arg class name)
             if(arg getName() == typeArgName) {
                 if(type typeArgs == null || type typeArgs size() <= j) {
                     continue

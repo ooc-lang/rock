@@ -19,6 +19,7 @@ HashEntry: class <K, V> {
 HashMap: class <K, V> extends Iterable<V> {
 
     size, capacity: UInt
+    keyEquals: Func // (K, K) -> Bool
 
     buckets: ArrayList<V>*
     keys: ArrayList<K>
@@ -48,6 +49,25 @@ HashMap: class <K, V> extends Iterable<V> {
             buckets[i] = ArrayList<V> new()
         }
         keys = ArrayList<K> new()
+        
+        // choose comparing function for key type
+        if(K == String) {
+            keyEquals = This stringKeyEquals
+        } else {
+            keyEquals = This genericKeyEquals
+        }
+    }
+    
+    stringKeyEquals: func (k1, k2: K) -> Bool {
+        // FIXME those casts shouldn't be needed,
+        // and this method doesn't belong here
+        k1 as String equals(k2 as String)
+    }
+    
+    /** used when we don't have a custom comparing function for the key type */
+    genericKeyEquals: func (k1, k2: K) -> Bool {
+        // FIXME rock should turn == between generic vars into a memcmp itself
+        memcmp(k1, k2, K size) == 0
     }
 
     /**
@@ -61,9 +81,10 @@ HashMap: class <K, V> extends Iterable<V> {
         
         seed: UInt = 1 // TODO: figure out what makes a good seed value?
         
-        len := V size
+        len := K size
         m = 0x5bd1e995 : const UInt
         r = 24 : const Int
+        l := len
 
         h : UInt = seed ^ len
         data := (keyTagazok&) as Octet*
@@ -82,13 +103,23 @@ HashMap: class <K, V> extends Iterable<V> {
             len -= 4
         }
 
+        t := 0
+
+        /*
         match(len) {
             case 3 => h ^= data[2] << 16
             case 2 => h ^= data[1] << 8
             case 1 => h ^= data[0]
-            case   => h *= m
         }
-                
+        */
+        
+        if(len == 3) h ^= data[2] << 16
+        if(len == 2) h ^= data[1] << 8
+        if(len == 1) h ^= data[0]
+        
+        t *= m; t ^= t >> r; t *= m; h *= m; h ^= t;
+        l *= m; l ^= l >> r; l *= m; h *= m; h ^= l;
+        
         h ^= h >> 13
         h *= m
         h ^= h >> 15
@@ -128,9 +159,7 @@ HashMap: class <K, V> extends Iterable<V> {
         iter := buckets[hash] iterator()
         while (iter hasNext()) {
             entry = iter next()
-            // TODO: check if that does compile to memcmp() on rock,
-            // Add check if V inheritsFrom(Object), use the equals() method
-            if (entry key == key) {
+            if(keyEquals(entry key, key)) {
                 return entry
             }
         }
@@ -215,8 +244,7 @@ HashMap: class <K, V> extends Iterable<V> {
         if (entry) {
             for (i: UInt in 0.. keys size()) {
                 cKey := keys get(i)
-                // FIXME use equals for objects, check that it's memcmp otherwise
-                if (key == cKey) {
+                if(keyEquals(key, cKey)) {
                     keys removeAt(i)
                     break
                 }

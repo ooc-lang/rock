@@ -210,6 +210,18 @@ BinaryOp: class extends Expression {
              (left getType() != null && left getType() getRef() == null) as Bool toString(),
              (right getType() == null) as Bool toString(),
              (right getType() != null && right getType() getRef() == null) as Bool toString()))
+            if(left getType()) {
+                println("[KALAMAZOO] btw, left type = " + left getType() toString())
+                if(left getType() getRef()) {
+                println("[KALAMAZOO] btw, left type ref = " + left getType() getRef() toString())
+                }
+            }
+            if(right getType()) {
+                println("[KALAMAZOO] btw, right type = " + right getType() toString())
+                if(right getType() getRef()) {
+                    println("[KALAMAZOO] btw, right type ref = " + right getType() getRef() toString())
+                }
+            }
             return true
         }
         if(left getType() getName() == "Pointer" || right getType() getName() == "Pointer") {

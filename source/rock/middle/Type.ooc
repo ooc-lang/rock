@@ -97,10 +97,15 @@ Type: abstract class extends Expression {
 
 FuncType: class extends Type {
     
-    init: func ~funcType (.token) { super(token) }
+    ref : TypeDecl
+    
+    init: func ~funcType (.token) {
+        super(token)
+        CoverDecl new("", token)
+    }
     
     write: func (w: AwesomeWriter, name: String) {
-        w app ("Func")
+        w app ("void*")
         if(name != null) w app(' '). app(name)
     }
     
@@ -114,7 +119,7 @@ FuncType: class extends Type {
     
     getName: func -> String { "Func" }
     
-    getRef: func -> Declaration { null }
+    getRef: func -> Declaration { this }
     setRef: func (d: Declaration) {}
     
     // should we throw an error or something?
