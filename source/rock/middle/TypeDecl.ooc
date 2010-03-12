@@ -475,12 +475,10 @@ TypeDecl: abstract class extends Declaration {
         }
         
         if(call getRef() == null) {
-            println("[KALAMAZOO] Looking for call " + call toString() + " in typeDecl " + toString())
             vDecl := getVariable(call getName())
             if(vDecl != null) {
                 // FIXME this is far from good.
                 if(vDecl getType() instanceOf(FuncType)) {
-                    printf("[KALAMAZOO] Got vDecl " + vDecl toString() + " for call " + call toString())
                     if(call suggest(vDecl getFunctionDecl())) {
                         if(call getExpr() == null) {
                             call setExpr(VariableAccess new("this", call token))

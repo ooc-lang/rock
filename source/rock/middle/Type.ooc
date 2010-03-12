@@ -98,6 +98,7 @@ Type: abstract class extends Expression {
 FuncType: class extends Type {
     
     ref : TypeDecl
+    cached := false
     
     init: func ~funcType (.token) {
         super(token)
@@ -105,15 +106,14 @@ FuncType: class extends Type {
     }
     
     write: func (w: AwesomeWriter, name: String) {
-        w app ("void*")
-        if(name != null) w app(' '). app(name)
+        w app (hashName())
     }
     
     pointerLevel: func -> Int { 0 }
     refLevel:     func -> Int { 0 }
     equals: func (other: This) -> Bool {
         if(other class != this class) return false
-        // FIXME compare types
+        // FIXME compare argument's types, return type, etc.
         return true
     }
     
@@ -136,6 +136,19 @@ FuncType: class extends Type {
         }
         return NOLUCK_SCORE
     }
+    
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        if(!cached) {
+            cached = true
+            trail module() addFuncType(hashName(), this)
+            res wholeAgain(this, "Added funcType!")
+        }
+        
+        return Responses OK
+    }
+    
+    // TODO: add args, when the FuncType is fleshed outn
+    hashName: func -> String { "__FUNC__vararg" }
     
     isPointer: func -> Bool { true }
     

@@ -19,6 +19,8 @@ Module: class extends Node {
     namespaces := HashMap<NamespaceDecl> new()
     uses       := ArrayList<Use> new()
 
+    funcTypesMap := HashMap<FuncType> new()
+
     body       := Scope new()
 
     lastModified : Long
@@ -46,6 +48,13 @@ Module: class extends Node {
     getFullName:     func -> String { fullName }
     getUnderName:    func -> String { underName }
     getPathElement:  func -> String { pathElement }
+
+    addFuncType: func (hashName: String, funcType: FuncType) {
+        if(!funcTypesMap contains(hashName)) {
+            funcTypesMap put(hashName, funcType)
+            println("[KALAMAZOO] Just cached funcType " + funcType toString())
+        }
+    }
 
     sanitize: func(str: String) -> String {
         // FIXME this is incomplete, the correct way is actually

@@ -238,7 +238,6 @@ VariableDecl: class extends Declaration {
             fDecl setOwner(owner)
             fDecl args add(VarArg new(token))
             fDecl vDecl = this
-            println("[KALAMAZOO] Just created fDecl " + fDecl toString() + " for var " + toString())
         }
         return fDecl
     }

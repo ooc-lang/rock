@@ -32,6 +32,11 @@ ModuleWriter: abstract class extends Skeleton {
 				current nl(). app("#include <"). app(ynclude). app(">")
 			}
 		}
+        
+        // write all func types typedefs
+        for(funcType in module funcTypesMap) {
+            current nl(). app("typedef int (*"). app(funcType hashName()). app(")();")
+        }
 
         // write all type forward declarations
         writeTypesForward(this, module, false) // non-metas first
