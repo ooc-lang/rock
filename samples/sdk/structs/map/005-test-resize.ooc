@@ -2,7 +2,7 @@ import structs/HashMap
 
 main: func {
  
-    map := HashMap<String> new(3)
+    map := HashMap<String, String> new(3)
     
     for(i in 0..10) {
         s := i toString()

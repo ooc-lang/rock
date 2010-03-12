@@ -1,7 +1,7 @@
 import structs/HashMap
 
 main: func {
-    map := HashMap<String> new()
+    map := HashMap<String, String> new()
     map["hello"] = "goodbye"
     map["yes"] = "no"
     map["hello"] println()

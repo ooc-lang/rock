@@ -2,7 +2,7 @@ import structs/HashMap
 
 main: func (argc: Int, argv: String*) {
 	
-	ht := HashMap<String> new()
+	ht := HashMap<String, String> new()
 
 
 	/* Testing contains method */
