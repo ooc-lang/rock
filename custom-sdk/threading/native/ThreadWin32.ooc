@@ -1,9 +1,8 @@
-//import ../[Thread, Runnable]
-//import native/win32/[types, errors]
+import ../[Thread, Runnable]
+import native/win32/[types, errors]
 
-//version(windows) {
+version(windows) {
 
-/*
 include windows
 
 Handle: cover from HANDLE
@@ -36,6 +35,5 @@ ThreadWin32: class extends Thread {
     }
 
 }
-*/
 
-//}
+}

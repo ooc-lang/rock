@@ -1,7 +1,7 @@
 import ../[Thread, Runnable]
 include pthread, unistd
 
-//version(linux) {
+version(unix || apple) {
 
 /* covers & extern functions */
 
@@ -28,4 +28,4 @@ ThreadUnix: class extends Thread {
 
 }
 
-//}
+}
