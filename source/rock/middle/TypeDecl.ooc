@@ -79,18 +79,10 @@ TypeDecl: abstract class extends Declaration {
     getSuperType: func -> Type { superType }
     
     addTypeArg: func (typeArg: VariableDecl) -> Bool {
-        println("Type " + toString() + " got typeArg " + typeArg toString())
         typeArg setOwner(this)
         getTypeArgs() add(typeArg)
         
         variables put(typeArg getName(), typeArg)
-        
-        printf("Now got variables: ")
-        for(v in variables) {
-            printf("%s, ", v toString())
-        }
-        println()
-        
         true
     }
     

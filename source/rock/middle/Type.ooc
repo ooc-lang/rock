@@ -107,6 +107,7 @@ FuncType: class extends Type {
     
     write: func (w: AwesomeWriter, name: String) {
         w app (hashName())
+        if(name) w app(' '). app(name)
     }
     
     pointerLevel: func -> Int { 0 }

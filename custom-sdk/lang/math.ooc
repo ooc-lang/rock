@@ -26,3 +26,10 @@ log10: extern (log10l) func ~Long (LDouble) -> LDouble
 
 round: extern (lround) func ~dl (Double) -> Long
 
+ceil: extern (ceil) func ~Double (Double) -> Double
+ceil: extern (ceilf) func ~Float (Float) -> Float
+ceil: extern (ceill) func ~Long (LDouble) -> LDouble
+
+floor: extern (floor) func ~Double (Double) -> Double
+floor: extern (floorf) func ~Float (Float) -> Float
+floor: extern (floorl) func ~Long (LDouble) -> LDouble
