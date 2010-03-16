@@ -283,6 +283,7 @@ TypeDecl: abstract class extends Declaration {
             }
         }
         
+        // remove ghost type arguments
         if(superType) {
             response := superType resolve(trail, res)
             if(!response ok()) {
