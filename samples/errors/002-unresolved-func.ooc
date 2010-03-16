@@ -1,6 +1,0 @@
-
-main: func {
-
-    unknown()
-    
-}
