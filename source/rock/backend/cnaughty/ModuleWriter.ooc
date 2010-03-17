@@ -35,7 +35,7 @@ ModuleWriter: abstract class extends Skeleton {
         
         // write all func types typedefs
         for(funcType in module funcTypesMap) {
-            current nl(). app("typedef int (*"). app(funcType hashName()). app(")();")
+            current nl(). app("typedef int (*"). app(funcType toMangledString()). app(")();")
         }
 
         // write all type forward declarations

@@ -97,7 +97,10 @@ Type: abstract class extends Expression {
 
 FuncType: class extends Type {
     
-    ref : TypeDecl
+    ref : TypeDecl = null
+    argTypes := ArrayList<Type> new()
+    typeArgs := ArrayList<VariableAccess> new()
+    returnType : Type = null
     cached := false
     
     init: func ~funcType (.token) {
@@ -106,7 +109,7 @@ FuncType: class extends Type {
     }
     
     write: func (w: AwesomeWriter, name: String) {
-        w app (hashName())
+        w app (toMangledString())
         if(name) w app(' '). app(name)
     }
     
@@ -129,7 +132,12 @@ FuncType: class extends Type {
     // TODO: clone arguments, when the FuncType is fleshed out
     clone: func -> This { new(token) }
     
-    getTypeArgs: func -> List<VariableAccess> { null }
+    getTypeArgs: func -> List<VariableAccess> { typeArgs }
+    
+    addTypeArg: func (typeArg: VariableAccess) -> Bool {
+        if(!typeArgs) typeArgs = ArrayList<VariableAccess> new()
+        typeArgs add(typeArg); true
+    }
     
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
         if(other instanceOf(FuncType)) {
@@ -139,17 +147,44 @@ FuncType: class extends Type {
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
+        if(typeArgs && !typeArgs isEmpty()) {
+            trail push(this)
+            for(typeArg in typeArgs) {
+                response := typeArg resolve(trail, res)
+                if(!response ok()) {
+                    trail pop(this)
+                    return response
+                }
+            }
+            trail pop(this)
+        }
+        
         if(!cached) {
             cached = true
-            trail module() addFuncType(hashName(), this)
+            trail module() addFuncType(toMangledString(), this)
             res wholeAgain(this, "Added funcType!")
         }
         
         return Responses OK
     }
     
-    // TODO: add args, when the FuncType is fleshed outn
-    hashName: func -> String { "__FUNC__vararg" }
+    toMangledString: func -> String {
+        b := Buffer new()
+        b append("__FUNC__")
+        for(typeArg in typeArgs) {
+            /*
+            b append('_'). append(typeArg getRef() as Type toMangledString())
+            */
+            b append('_'). append(typeArg toString())
+        }
+        for(argType in argTypes) {
+            b append('_'). append(argType toMangledString())
+        }
+        if(returnType != null) {
+            b append('_'). append(returnType toMangledString())
+        }
+        b toString()
+    }
     
     isPointer: func -> Bool { true }
     

@@ -375,8 +375,22 @@ AstBuilder: class {
         type addTypeArg(VariableAccess new(typeInner, token()))
     }
 
-    onFuncTypeNew: unmangled(nq_onFuncTypeNew) func -> Type {
+    /*
+     * Function types
+     */
+
+    onFuncTypeNew: unmangled(nq_onFuncTypeNew) func -> FuncType {
         FuncType new(token())
+    }
+    
+    onFuncTypeArgument: unmangled(nq_onFuncTypeArgument) func (f: FuncType, argType: Type) {
+        f argTypes add(argType)
+        println("[KALAMAZOO] FuncType " + f toString() + " got argument " + argType toString())
+    }
+    
+    onFuncTypeReturnType: unmangled(nq_onFuncTypeReturnType) func (f: FuncType, returnType: Type) {
+        f returnType = returnType
+        println("[KALAMAZOO] FuncType " + f toString() + " got returnType " + returnType toString())
     }
 
     /*

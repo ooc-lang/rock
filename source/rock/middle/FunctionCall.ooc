@@ -43,15 +43,15 @@ FunctionCall: class extends Expression {
     
     suggest: func (candidate: FunctionDecl) -> Bool {
         
-        //"** Got suggestion %s for %s" format(candidate toString(), toString()) println()
+        "** Got suggestion %s for %s" format(candidate toString(), toString()) println()
         if(isMember() && candidate owner == null) {
-            //printf("** %s is no fit!, we need something to fit %s\n", candidate toString(), toString())
+            printf("** %s is no fit!, we need something to fit %s\n", candidate toString(), toString())
             return false
         }
         
         score := getScore(candidate)
         if(score > refScore) {
-            //"** New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
+            "** New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
             refScore = score
             ref = candidate
             return true
