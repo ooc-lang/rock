@@ -175,7 +175,7 @@ FuncType: class extends Type {
             /*
             b append('_'). append(typeArg getRef() as Type toMangledString())
             */
-            b append('_'). append(typeArg toString())
+            b append('_'). append(typeArg getName())
         }
         for(argType in argTypes) {
             b append('_'). append(argType toMangledString())

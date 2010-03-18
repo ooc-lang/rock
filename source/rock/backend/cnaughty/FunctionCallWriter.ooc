@@ -28,8 +28,9 @@ FunctionCallWriter: abstract class extends Skeleton {
         current app('(')
         isFirst := true
         
-        /* Step 1: write this, if any */
-        if(!fDecl isStatic() && fCall isMember()) {
+        /* Step 1: write this, if any
+         * for example, call to member function pointers (fDecl vDecl != null) don't need a this */
+        if(!fDecl isStatic() && fCall isMember() && fDecl vDecl == null) {
             isFirst = false
             callType := fCall expr getType()
             declType := fDecl owner getInstanceType()
