@@ -37,8 +37,7 @@ Scope: class extends Node {
     resolveCall: func (call: FunctionCall) {
         // FIXME: this is as wrong as resolveAccess, see the comments up there.
         // KALAMAZOO
-        printf("turlututu looking for call %s in scope %s\n", call toString(), toString())
-        
+
         for(stat in this) {
             if(stat instanceOf(VariableDecl)) {
                 vDecl := stat as VariableDecl

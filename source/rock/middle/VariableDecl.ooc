@@ -237,23 +237,20 @@ VariableDecl: class extends Declaration {
             fType := getType() as FuncType
             fDecl = FunctionDecl new(name, token)
             if(owner) fDecl setOwner(owner)
-            printf("[KALAMAZOO] fType typeArg = %s\n", fType typeArgs ? fType typeArgs size() toString() : "(nil)")
             if(fType typeArgs != null && !fType typeArgs isEmpty()) {
                 classType := BaseType new("Class", fType token)
                 for(typeArg in fType typeArgs) {
-                    printf("[KALAMAZOO] Adding typeArg %s\n", typeArg toString())
                     vDecl := VariableDecl new(classType, typeArg name, typeArg token)
                     fDecl typeArgs add(vDecl)
                     typeArg setRef(vDecl)
                 }
             }
             for(argType in fType argTypes) {
-                fDecl args add(Argument new(argType, null, token))
+                fDecl args add(Argument new(argType, "", token))
             }
             if(fType returnType != null) {
                 fDecl setReturnType(fType returnType)
             }
-            printf("[KALAMAZOO] Constructed fDecl %s\n", fDecl toString())
             fDecl vDecl = this
         }
         return fDecl

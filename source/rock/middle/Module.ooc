@@ -52,7 +52,6 @@ Module: class extends Node {
     addFuncType: func (hashName: String, funcType: FuncType) {
         if(!funcTypesMap contains(hashName)) {
             funcTypesMap put(hashName, funcType)
-            println("[KALAMAZOO] Just cached funcType " + funcType toString())
         }
     }
 
