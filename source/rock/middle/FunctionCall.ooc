@@ -383,6 +383,10 @@ FunctionCall: class extends Expression {
             
             callArg := args get(j)
             typeResult := callArg getType()
+            if(typeResult == null) {
+                res wholeAgain(this, "null callArg, need to resolve it first.")
+                return Responses OK
+            }
             
             isGood := (callArg instanceOf(AddressOf) || typeResult isGeneric())
             if(!isGood) { // FIXME this is probably wrong - what if we want an address's address? etc.

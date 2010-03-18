@@ -315,6 +315,10 @@ BaseType: class extends Type {
     getTypeArgs: func -> List<VariableAccess> { typeArgs }
     
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
+        if(isGeneric()) {
+            // every type is always a match against a generic type
+            return scoreSeed
+        }
         if(other instanceOf(BaseType)) {
             return (other getName() equals(getName()) ? scoreSeed : NOLUCK_SCORE)
         }

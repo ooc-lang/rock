@@ -45,7 +45,7 @@ OperatorDecl: class extends Expression {
         }
         
         fDecl resolve(trail, res)
-    
+            
     }
     
     getName: func -> String {
