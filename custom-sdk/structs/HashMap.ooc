@@ -3,12 +3,12 @@ import ArrayList
 /**
  * Container for key/value entries in the hash table
  */
-HashEntry: class <K, V> {
+HashEntry: class <T> {
 
-    key: K
-    value: V
+    key: String
+    value: T
 
-    init: func ~keyVal (=key, =value) {}
+    init: func (=key, =value) {}
 
 }
 
@@ -16,13 +16,12 @@ HashEntry: class <K, V> {
  * Simple hash table implementation
  */
 
-HashMap: class <K, V> extends Iterable<V> {
+HashMap: class <T> extends Iterable<T> {
 
     size, capacity: UInt
-    keyEquals: Func // (K, K) -> Bool
 
-    buckets: ArrayList<V>*
-    keys: ArrayList<K>
+    buckets: ArrayList<T>*
+    keys: ArrayList<String>
     
     /**
      * Returns a hash table with 100 buckets
@@ -46,51 +45,30 @@ HashMap: class <K, V> extends Iterable<V> {
             "Out of memory: failed to allocate " + (capacity * Pointer size) + " bytes\n") throw()
         }
         for (i: UInt in 0..capacity) {
-            buckets[i] = ArrayList<V> new()
+            buckets[i] = ArrayList<T> new()
         }
-        keys = ArrayList<K> new()
-        
-        // choose comparing function for key type
-        if(K == String) {
-            keyEquals = This stringKeyEquals
-        } else {
-            keyEquals = This genericKeyEquals
-        }
-    }
-    
-    stringKeyEquals: func (k1, k2: K) -> Bool {
-        // FIXME those casts shouldn't be needed,
-        // and this method doesn't belong here
-        k1 as String equals(k2 as String)
-    }
-    
-    /** used when we don't have a custom comparing function for the key type */
-    genericKeyEquals: func (k1, k2: K) -> Bool {
-        // FIXME rock should turn == between generic vars into a memcmp itself
-        memcmp(k1, k2, K size) == 0
+        keys = ArrayList<String> new()
     }
 
     /**
      * Port of Austin Appleby's Murmur Hash implementation
      * http://murmurhash.googlepages.com/
      * TODO: Use this to hash not just strings, but any type of object
-     * @param key The key to hash
-     * @param seed The seed value
+     * @param Object key The key to hash
+     * @param Int len The size of the key (in bytes)
+     * @param UInt seed The seed value
      */
-    murmurHash: func (keyTagazok: K) -> UInt {
+    murmurHash: func (keyTagazok: T, seed: UInt) -> UInt {
         
-        seed: UInt = 1 // TODO: figure out what makes a good seed value?
-        
-        len := K size
+        len := T size
         m = 0x5bd1e995 : const UInt
         r = 24 : const Int
-        l := len
 
         h : UInt = seed ^ len
-        data := (keyTagazok&) as Octet*
+        data := const keyTagazok as Octet*
 
         while (len >= 4) {
-            k := (data as UInt*)@
+            k := (data as UInt*) @
 
             k *= m
             k ^= k >> r
@@ -103,23 +81,11 @@ HashMap: class <K, V> extends Iterable<V> {
             len -= 4
         }
 
-        t := 0
-
-        /*
-        match(len) {
-            case 3 => h ^= data[2] << 16
-            case 2 => h ^= data[1] << 8
-            case 1 => h ^= data[0]
-        }
-        */
-        
         if(len == 3) h ^= data[2] << 16
         if(len == 2) h ^= data[1] << 8
         if(len == 1) h ^= data[0]
-        
-        t *= m; t ^= t >> r; t *= m; h *= m; h ^= t;
-        l *= m; l ^= l >> r; l *= m; h *= m; h ^= l;
-        
+        else         h *= m    
+                
         h ^= h >> 13
         h *= m
         h ^= h >> 15
@@ -131,7 +97,7 @@ HashMap: class <K, V> extends Iterable<V> {
      * khash's ac_X31_hash_string
      * http://attractivechaos.awardspace.com/khash.h.html
      * @access private
-     * @param s The string to hash
+     * @param String s The string to hash
      * @return UInt
      */
     ac_X31_hash: func (s: Char*) -> UInt {
@@ -149,17 +115,16 @@ HashMap: class <K, V> extends Iterable<V> {
     /**
      * Returns the HashEntry associated with a key.
      * @access private
-     * @param key The key associated with the HashEntry
+     * @param String key The key associated with the HashEntry
      * @return HashEntry
      */
-    getEntry: func (key: K) -> HashEntry<K, V> {
-        entry = null : HashEntry<K, V>
-        //hash : UInt = ac_X31_hash(key) % capacity
-        hash : UInt = murmurHash(key) % capacity
+    getEntry: func (key: String) -> HashEntry<T> {
+        entry = null : HashEntry<T>
+        hash : UInt = ac_X31_hash(key) % capacity
         iter := buckets[hash] iterator()
         while (iter hasNext()) {
             entry = iter next()
-            if(keyEquals(entry key, key)) {
+            if (entry key equals(key)) {
                 return entry
             }
         }
@@ -169,11 +134,11 @@ HashMap: class <K, V> extends Iterable<V> {
     /**
      * Puts a key/value pair in the hash table. If the pair already exists,
      * it is overwritten.
-     * @param key The key to be hashed
-     * @param value The value associated with the key
+     * @param String key The key to be hashed
+     * @param Object value The value associated with the key
      * @return Bool
      */
-    put: func (key: K, value: V) -> Bool {
+    put: func (key: String, value: T) -> Bool {
         load: Float
         hash: UInt
         entry := getEntry(key)
@@ -182,9 +147,8 @@ HashMap: class <K, V> extends Iterable<V> {
         }
         else {
             keys add(key)
-            //hash = ac_X31_hash(key) % capacity
-            hash = murmurHash(key) % capacity
-            entry = HashEntry<K, V> new(key, value)
+            hash = ac_X31_hash(key) % capacity
+            entry = HashEntry<T> new(key, value)
             buckets[hash] add(entry)
             size += 1
             load = size / capacity as Float
@@ -200,17 +164,17 @@ HashMap: class <K, V> extends Iterable<V> {
     /**
      * Alias of put
      */
-    add: func (key: K, value: V) -> Bool {
+    add: func (key: String, value: T) -> Bool {
         return put(key, value)
     }
 
     /**
      * Returns the value associated with the key. Returns null if the key
      * does not exist.
-     * @param key The key associated with the value
+     * @param String key The key associated with the value
      * @return Object
      */
-    get: func (key: K) -> V {
+    get: func (key: String) -> T {
         entry := getEntry(key)
         if (entry) {
 	    return entry value
@@ -225,26 +189,25 @@ HashMap: class <K, V> extends Iterable<V> {
 
     /**
      * Returns whether or not the key exists in the hash table.
-     * @param key The key to check
+     * @param String key The key to check
      * @return Bool
      */
-    contains: func (key: K) -> Bool {
+    contains: func (key: String) -> Bool {
         getEntry(key) ? true : false
     }
 
     /**
      * Removes the entry associated with the key
-     * @param key The key to remove
+     * @param String key The key to remove
      * @return Bool
      */
-    remove: func (key: K) -> Bool {
+    remove: func (key: String) -> Bool {
         entry := getEntry(key)
-        //hash : UInt = ac_X31_hash(key) % capacity
-        hash : UInt = murmurHash(key) % capacity
+        hash : UInt = ac_X31_hash(key) % capacity
         if (entry) {
             for (i: UInt in 0.. keys size()) {
                 cKey := keys get(i)
-                if(keyEquals(key, cKey)) {
+                if (key equals(cKey)) {
                     keys removeAt(i)
                     break
                 }
@@ -264,7 +227,7 @@ HashMap: class <K, V> extends Iterable<V> {
         
         /* Keep track of old settings */
         old_capacity := capacity
-        old_buckets := gc_malloc(old_capacity * Pointer size) as ArrayList<V>*
+        old_buckets := gc_malloc(old_capacity * Pointer size) as ArrayList<T>*
         if (!old_buckets) {
             Exception new(This, "Out of memory: failed to allocate %d bytes\n" + (old_capacity * Pointer size)) throw()
         }
@@ -282,9 +245,9 @@ HashMap: class <K, V> extends Iterable<V> {
             Exception new(This, "Out of memory: failed to allocate %d bytes\n" + (capacity * Pointer size)) throw()
         }
         for (i: UInt in 0..capacity) {
-            buckets[i] = ArrayList<V> new()
+            buckets[i] = ArrayList<T> new()
         }
-        entry : HashEntry<K, V>
+        entry : HashEntry<T>
         for (bucket: UInt in 0..old_capacity) {
             if (old_buckets[bucket] size() > 0) {
                 iter := old_buckets[bucket] iterator()
@@ -298,8 +261,8 @@ HashMap: class <K, V> extends Iterable<V> {
         return true
     }
     
-    iterator: func -> Iterator<V> {
-        HashMapValueIterator<K, V> new(this)
+    iterator: func -> Iterator<T> {
+        HashMapValueIterator<T> new(this)
     }
 
     clear: func {
@@ -308,13 +271,13 @@ HashMap: class <K, V> extends Iterable<V> {
     
     size: func -> UInt { size }
     
-    getKeys: func -> ArrayList<K> { keys }
+    getKeys: func -> ArrayList<String> { keys }
 
 }
 
-HashMapValueIterator: class <K, T> extends Iterator<T> {
+HashMapValueIterator: class <T> extends Iterator<T> {
 
-    map: HashMap<K, T>
+    map: HashMap<T>
     index := 0
     
     init: func ~withMap (=map) {}
@@ -343,10 +306,10 @@ HashMapValueIterator: class <K, T> extends Iterator<T> {
     
 }
 
-operator [] <K, V> (map: HashMap<K, V>, key: K) -> V {
+operator [] <T> (map: HashMap<T>, key: String) -> T {
     map get(key)
 }
 
-operator []= <K, V> (map: HashMap<K, V>, key: K, value: V) {
+operator []= <T> (map: HashMap<T>, key: String, value: T) {
     map put(key, value)
 }
