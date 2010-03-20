@@ -66,6 +66,7 @@ FunctionDecl: class extends Declaration {
     isProto:    func -> Bool { isProto }
     setProto:   func (=isProto) {}
     
+    isAnon:     func -> Bool {name == ""}
     setOwner: func (=owner) {
         if(isStatic) return
         staticVariant = new(name, token)
@@ -205,6 +206,15 @@ FunctionDecl: class extends Declaration {
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
+        
+        if (isAnon()) {
+            module := trail module()
+            name = generateTempName(module getUnderName() + "_closure")
+            varAcc := VariableAccess new(name, token)
+            varAcc setRef(this)
+            trail peek() replace(this, varAcc)
+            module body add(this)
+        }
         
         trail push(this)
         
