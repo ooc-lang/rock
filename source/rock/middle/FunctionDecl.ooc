@@ -213,7 +213,7 @@ FunctionDecl: class extends Declaration {
             varAcc := VariableAccess new(name, token)
             varAcc setRef(this)
             trail peek() replace(this, varAcc)
-            module body add(this)
+            module addFunction(this)
         }
         
         trail push(this)
