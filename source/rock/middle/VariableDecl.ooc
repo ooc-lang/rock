@@ -1,7 +1,7 @@
 import structs/[ArrayList]
 import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
        Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast, Module,
-       Block, Scope
+       Block, Scope, FunctionDecl, Argument
 import tinker/[Response, Resolver, Trail]
 import ../frontend/BuildParams
 
@@ -20,6 +20,9 @@ VariableDecl: class extends Declaration {
     isStatic := false
     externName: String = null
     unmangledName: String = null
+    
+    /** if this VariableDecl is a Func, it can be called! */
+    fDecl : FunctionDecl = null
 
     init: func ~vDecl (.type, .name, .token) {
         this(type, name, null, token)
@@ -135,6 +138,14 @@ VariableDecl: class extends Declaration {
                 return response
             }
         }
+        
+        if(fDecl != null) {
+            response := fDecl resolve(trail, res)
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
+        }
 
         trail pop(this)
 
@@ -219,6 +230,30 @@ VariableDecl: class extends Declaration {
             case type => type = kiddo; true
             case => false
         }
+    }
+    
+    getFunctionDecl: func -> FunctionDecl {
+        if(getType() instanceOf(FuncType) && fDecl == null) {
+            fType := getType() as FuncType
+            fDecl = FunctionDecl new(name, token)
+            if(owner) fDecl setOwner(owner)
+            if(fType typeArgs != null && !fType typeArgs isEmpty()) {
+                classType := BaseType new("Class", fType token)
+                for(typeArg in fType typeArgs) {
+                    vDecl := VariableDecl new(classType, typeArg name, typeArg token)
+                    fDecl typeArgs add(vDecl)
+                    typeArg setRef(vDecl)
+                }
+            }
+            for(argType in fType argTypes) {
+                fDecl args add(Argument new(argType, "", token))
+            }
+            if(fType returnType != null) {
+                fDecl setReturnType(fType returnType)
+            }
+            fDecl vDecl = this
+        }
+        return fDecl
     }
 
     isMember: func -> Bool { owner != null }

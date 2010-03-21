@@ -1,6 +1,7 @@
 import structs/List
 import ../../middle/[Module, Include, Import, TypeDecl, FunctionDecl,
-       CoverDecl, ClassDecl, OperatorDecl, InterfaceDecl, VariableDecl]
+       CoverDecl, ClassDecl, OperatorDecl, InterfaceDecl, VariableDecl,
+       Type]
 import CoverDeclWriter, ClassDeclWriter, VersionWriter
 import Skeleton
 
@@ -32,7 +33,7 @@ ModuleWriter: abstract class extends Skeleton {
 				current nl(). app("#include <"). app(ynclude). app(">")
 			}
 		}
-
+        
         // write all type forward declarations
         writeTypesForward(this, module, false) // non-metas first
         writeTypesForward(this, module, true)  // then metas
@@ -43,6 +44,30 @@ ModuleWriter: abstract class extends Skeleton {
         for(imp in imports) {
             inc := imp getModule() getPath(imp isTight ? ".h" : "-fwd.h")
             current nl(). app("#include <"). app(inc). app(">")
+        }
+        
+        // write all func types typedefs
+        for(funcType in module funcTypesMap) {
+            current nl(). app("typedef ");
+            if(funcType returnType == null) {
+                current app("void")
+            } else {
+                current app(funcType returnType)
+            }
+            current app(" (*"). app(funcType toMangledString()). app(")(")
+            
+            isFirst := true
+            for(typeArg in funcType typeArgs) {
+                if(isFirst) isFirst = false
+                else        current app(", ")
+                current app(typeArg getType())
+            }
+            for(argType in funcType argTypes) {
+                if(isFirst) isFirst = false
+                else        current app(", ")
+                current app(argType)
+            }
+            current app(");")
         }
 
         /* write the .h file */

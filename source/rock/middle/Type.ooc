@@ -97,24 +97,33 @@ Type: abstract class extends Expression {
 
 FuncType: class extends Type {
     
-    init: func ~funcType (.token) { super(token) }
+    ref : TypeDecl = null
+    argTypes := ArrayList<Type> new()
+    typeArgs := ArrayList<VariableAccess> new()
+    returnType : Type = null
+    cached := false
+    
+    init: func ~funcType (.token) {
+        super(token)
+        CoverDecl new("", token)
+    }
     
     write: func (w: AwesomeWriter, name: String) {
-        w app ("Func")
-        if(name != null) w app(' '). app(name)
+        w app (toMangledString())
+        if(name) w app(' '). app(name)
     }
     
     pointerLevel: func -> Int { 0 }
     refLevel:     func -> Int { 0 }
     equals: func (other: This) -> Bool {
         if(other class != this class) return false
-        // FIXME compare types
+        // FIXME compare argument's types, return type, etc.
         return true
     }
     
     getName: func -> String { "Func" }
     
-    getRef: func -> Declaration { null }
+    getRef: func -> Declaration { this }
     setRef: func (d: Declaration) {}
     
     // should we throw an error or something?
@@ -123,13 +132,58 @@ FuncType: class extends Type {
     // TODO: clone arguments, when the FuncType is fleshed out
     clone: func -> This { new(token) }
     
-    getTypeArgs: func -> List<VariableAccess> { null }
+    getTypeArgs: func -> List<VariableAccess> { typeArgs }
+    
+    addTypeArg: func (typeArg: VariableAccess) -> Bool {
+        if(!typeArgs) typeArgs = ArrayList<VariableAccess> new()
+        typeArgs add(typeArg); true
+    }
     
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
         if(other instanceOf(FuncType)) {
             return scoreSeed
         }
         return NOLUCK_SCORE
+    }
+    
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        if(typeArgs && !typeArgs isEmpty()) {
+            trail push(this)
+            for(typeArg in typeArgs) {
+                response := typeArg resolve(trail, res)
+                if(!response ok()) {
+                    trail pop(this)
+                    return response
+                }
+            }
+            trail pop(this)
+        }
+        
+        if(!cached) {
+            cached = true
+            trail module() addFuncType(toMangledString(), this)
+            res wholeAgain(this, "Added funcType!")
+        }
+        
+        return Responses OK
+    }
+    
+    toMangledString: func -> String {
+        b := Buffer new()
+        b append("__FUNC__")
+        for(typeArg in typeArgs) {
+            /*
+            b append('_'). append(typeArg getRef() as Type toMangledString())
+            */
+            b append('_'). append(typeArg getName())
+        }
+        for(argType in argTypes) {
+            b append('_'). append(argType toMangledString())
+        }
+        if(returnType != null) {
+            b append('_'). append(returnType toMangledString())
+        }
+        b toString()
     }
     
     isPointer: func -> Bool { true }
@@ -261,6 +315,10 @@ BaseType: class extends Type {
     getTypeArgs: func -> List<VariableAccess> { typeArgs }
     
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
+        if(isGeneric()) {
+            // every type is always a match against a generic type
+            return scoreSeed
+        }
         if(other instanceOf(BaseType)) {
             return (other getName() equals(getName()) ? scoreSeed : NOLUCK_SCORE)
         }

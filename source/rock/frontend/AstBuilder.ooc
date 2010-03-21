@@ -375,8 +375,20 @@ AstBuilder: class {
         type addTypeArg(VariableAccess new(typeInner, token()))
     }
 
-    onFuncTypeNew: unmangled(nq_onFuncTypeNew) func -> Type {
+    /*
+     * Function types
+     */
+
+    onFuncTypeNew: unmangled(nq_onFuncTypeNew) func -> FuncType {
         FuncType new(token())
+    }
+    
+    onFuncTypeArgument: unmangled(nq_onFuncTypeArgument) func (f: FuncType, argType: Type) {
+        f argTypes add(argType)
+    }
+    
+    onFuncTypeReturnType: unmangled(nq_onFuncTypeReturnType) func (f: FuncType, returnType: Type) {
+        f returnType = returnType
     }
 
     /*

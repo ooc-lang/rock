@@ -51,7 +51,7 @@ Node: abstract class {
     
     generateTempName: func (origin: String) -> String {
         nameSeed += 1
-        return origin + nameSeed
+        return "__" + origin + nameSeed
     }
 
 }

@@ -1,5 +1,6 @@
 import structs/[ArrayList], text/Buffer
-import VariableAccess, VariableDecl, Statement, Node, Visitor
+import VariableAccess, VariableDecl, Statement, Node, Visitor,
+       FunctionCall, Type
 import tinker/[Trail, Resolver, Response]
 import ../frontend/[BuildParams]
 
@@ -12,8 +13,40 @@ Scope: class extends Node {
     accept: func (v: Visitor) { v visitScope(this) }
     
     resolveAccess: func (access: VariableAccess) {
+        // FIXME: this is *wrong* because the following code would compile with it:
+        //
+        // main: func {
+        //   printf("%d", x)
+        //   x := 42 // x is declared *after* it's used but it doesn't complain..
+        // }
+        //
+        // even worse, the following code would also compile:
+        //
+        // main: func {
+        //   for(i in 0..3) {
+        //     // do things
+        //   }
+        //   printf("%d", i) // i is not even in the scope, but it doesn't complain..
+        // }
+        
         for(stat in this) {
             stat resolveAccess(access)
+        }
+    }
+    
+    resolveCall: func (call: FunctionCall) {
+        // FIXME: this is as wrong as resolveAccess, see the comments up there.
+        // KALAMAZOO
+
+        for(stat in this) {
+            if(stat instanceOf(VariableDecl)) {
+                vDecl := stat as VariableDecl
+                if(vDecl getType() instanceOf(FuncType) &&
+                   vDecl getName() == call getName() &&
+                   call suggest(vDecl getFunctionDecl())) {
+                    break
+                }
+            }
         }
     }
     

@@ -3,16 +3,16 @@ import ../frontend/[Token, BuildParams]
 import Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, Else,
        VariableDecl, Node, Statement, Module, FunctionCall, Declaration,
-       Version
+       Version, StringLiteral
 import tinker/[Resolver, Response, Trail]
 
 FunctionDecl: class extends Declaration {
 
     name = "", suffix = null, fullName = null : String
     returnType := voidType
-    type: static Type = BaseType new("Func", nullToken)
+    type : static Type = FuncType new(nullToken)
     
-    // /** Attributes *//*
+    /** Attributes */
     isAbstract := false
     isStatic := false
     isInline := false
@@ -20,6 +20,9 @@ FunctionDecl: class extends Declaration {
     isProto := false
     externName : String = null
     unmangledName: String = null
+    
+    /** If this FunctionDecl is a shim to make a VariableDecl callable, then vDecl is set to that variable decl. */
+    vDecl : VariableDecl = null
     
     typeArgs := ArrayList<VariableDecl> new()
     args := ArrayList<Argument> new()
@@ -63,6 +66,8 @@ FunctionDecl: class extends Declaration {
     isProto:    func -> Bool { isProto }
     setProto:   func (=isProto) {}
     
+    isAnon:     func -> Bool {name isEmpty()}
+
     setOwner: func (=owner) {
         if(isStatic) return
         staticVariant = new(name, token)
@@ -137,12 +142,22 @@ FunctionDecl: class extends Declaration {
     getArgsRepr: func -> String {
         if(args size() == 0) return ""
         sb := Buffer new()
+        if(typeArgs != null && !typeArgs isEmpty()) {
+            sb append("<")
+            isFirst := true
+            for(typeArg in typeArgs) {
+                if(isFirst) isFirst = false
+                else        sb append(", ")
+                sb append(typeArg getName())
+            }
+            sb append("> ")
+        }
         sb append("(")
         isFirst := true
         for(arg in args) {
-            if(!isFirst) sb append(", ")
-            sb append(arg toString())
             if(isFirst) isFirst = false
+            else        sb append(", ")
+            sb append(arg toString())
         }
         sb append(")")
         return sb toString()
@@ -187,15 +202,22 @@ FunctionDecl: class extends Declaration {
                 if(access suggest(arg)) return
             }
         }
-        
         body resolveAccess(access)
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
+        if (isAnon()) {
+            module := trail module()
+            name = generateTempName(module getUnderName() + "_closure")
+            varAcc := VariableAccess new(name, token)
+            varAcc setRef(this)
+            trail peek() replace(this, varAcc)
+            module addFunction(this)
+        }
         trail push(this)
         
-        //printf("** Resolving function decl %s\n", name)
+        if(res params veryVerbose) printf("** Resolving function decl %s\n", name)
 
         for(arg in args) {
             response := arg resolve(trail, res)
@@ -234,7 +256,7 @@ FunctionDecl: class extends Declaration {
             }
         }
         
-        if(!isAbstract) {
+        if(!isAbstract && vDecl == null) {
             response := autoReturn(trail, res)
             if(!response ok()) {
                 if(res params veryVerbose) printf("))))))) For %s, response of autoReturn = %s\n", toString(), response toString())

@@ -6,7 +6,7 @@ CastWriter: abstract class extends Skeleton {
 
     write: static func ~cast (this: This, cast: Cast) {
         
-        if(cast inner getType() isGeneric()) {
+        if(cast inner getType() isGeneric() && cast inner getType() pointerLevel() == 0) {
             
             current app("(* ("). app(cast type). app("*)"). app(cast inner). app(')')
             

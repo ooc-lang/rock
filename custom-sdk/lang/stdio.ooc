@@ -40,46 +40,55 @@ vscanf: extern func (format: String, ap: VaList)
 vfscanf: extern func (stream: FStream, format: String, ap: VaList)
 vsscanf: extern func (str: String, format: String, ap: VaList)
 
-fgets: extern func (str: String, length: SizeT, stream: FStream)
+fgets: extern func (str: String, length: SizeT, stream: FStream) -> Char*
 
 FILE: extern cover
 FStream: cover from FILE* {
-	
+	open: static func (filename, mode: const String) -> This {
+        fopen(filename, mode)
+    }
+
+    close: func -> Int {
+        fclose(this)
+    }
+
+    flush: func {
+        fflush(this)
+    }
+    
 	// TODO encodings
 	readChar: func -> Char {
-		c : Char
-		fread(c&, 1, 1, this)
-		return c
+        c : Char
+        count := fread(c&, 1, 1, this)
+        if(count < 1) Exception new(This, "Trying to read a char at the end of a file!") throw()
+        return c
 	}
 	
 	readLine: func -> String {
-		// 128 is a reasonable default. Most terminals are 80x25
-		chunk := 128
-		length := chunk
-		pos := 0
-		str := gc_malloc(length) as String
-		
-		fgets(str, chunk, this)
-		
-		// while it's not '\n' it means not all the line has been read
-		while(str last() != '\n') {
-			// now insert the rest of the line in str
-			pos += chunk - 1 // -1 cause we want to insert the rest before the '\0'
-			
-			// try to grow the string
-			length += chunk
-			tmp := gc_realloc(str, length) as String
+        // 128 is a reasonable default. Most terminals are 80x25
+        chunk := 128
+        length := chunk
+        pos := 0
+        str := gc_malloc(length) as Char*
+        
+        returnVal := fgets(str, chunk, this)
+        
+        // while it's not '\n' it means not all the line has been read
+        while(str[strlen(str)] != '\n' && returnVal != null) {
+            // now insert the rest of the line in str
+            pos += chunk - 1 // -1 cause we want to insert the rest before the '\0'
             
-			if(!tmp) Exception new(This, "Ran out of memory while reading a (apparently never-ending) line!") throw()
-            
-			str = tmp
+            // try to grow the string
+            length += chunk
+            tmp := gc_realloc(str, length) as String
+            if(!tmp) Exception new(This, "Ran out of memory while reading a (apparently never-ending) line!") throw()
+            str = tmp
 
-			// we cast as Char* to avoid operator overloading
-			// TODO encodings
-			fgets(str as Char* + pos, chunk, this)
-		}
-		
-		return str
+            // TODO encodings
+            returnVal = fgets(str, chunk, this)
+        }
+        
+        return str
 	}
     
     hasNext: func -> Bool {

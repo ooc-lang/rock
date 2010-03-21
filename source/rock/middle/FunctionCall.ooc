@@ -133,6 +133,10 @@ FunctionCall: class extends Expression {
                     printf("============ [FunctionCall] expr ref is a NamespaceDecl!!\n")
                     expr as VariableAccess getRef() resolveCall(this)
                 } else if(expr getType() != null && expr getType() getRef() != null) {
+                    if(!expr getType() getRef() instanceOf(TypeDecl)) {
+                        message := "No such function %s.%s%s (you can't call methods on generic types! you have to cast them to something sane first)" format(expr getType() getName(), name, getArgsTypesRepr())
+                        token throwError(message)
+                    }
                     tDecl := expr getType() getRef() as TypeDecl
 		            meta := tDecl getMeta()
 		            if(meta) {
@@ -379,6 +383,10 @@ FunctionCall: class extends Expression {
             
             callArg := args get(j)
             typeResult := callArg getType()
+            if(typeResult == null) {
+                res wholeAgain(this, "null callArg, need to resolve it first.")
+                return Responses OK
+            }
             
             isGood := (callArg instanceOf(AddressOf) || typeResult isGeneric())
             if(!isGood) { // FIXME this is probably wrong - what if we want an address's address? etc.
@@ -517,6 +525,11 @@ FunctionCall: class extends Expression {
         
         if(!anyType instanceOf(BaseType)) return null
         type := anyType as BaseType
+        
+        if(!type getRef() instanceOf(TypeDecl)) {
+            // only TypeDecl have typeArgs anyway.
+            return null
+        }
         
         typeRef := type getRef() as TypeDecl
         if(typeRef typeArgs == null) return null

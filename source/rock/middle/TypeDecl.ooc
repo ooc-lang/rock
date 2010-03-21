@@ -74,14 +74,6 @@ TypeDecl: abstract class extends Declaration {
                 meta setSuperType(BaseType new(this superType getName() + "Class", nullToken))
             }
         }
-        
-        if(superType != null && superType getTypeArgs()) {
-            for(typeArg in getTypeArgs()) for(candidate in superType getTypeArgs()) {
-                if(typeArg getName() == candidate getName()) {
-                    variables remove(typeArg getName())
-                }
-            }
-        }
     }
     
     getSuperType: func -> Type { superType }
@@ -291,11 +283,30 @@ TypeDecl: abstract class extends Declaration {
             }
         }
         
+        // remove ghost type arguments
         if(superType) {
             response := superType resolve(trail, res)
             if(!response ok()) {
                 trail pop(this)
                 return response
+            }
+            
+            sType := this superType
+            while(sType != null) {
+                sTypeRef := sType getRef() as TypeDecl
+                if(sTypeRef == null) {
+                    res wholeAgain(this, "Need super type ref of " + sType toString())
+                    trail pop(this)
+                    return Responses OK
+                }
+                for(typeArg in getTypeArgs()) {
+                    for(candidate in sTypeRef getTypeArgs()) {
+                        if(typeArg getName() == candidate getName()) {
+                            variables remove(typeArg getName())
+                        }
+                    }
+                }
+                sType = sTypeRef superType
             }
         }
         
@@ -402,7 +413,6 @@ TypeDecl: abstract class extends Declaration {
             if(access suggest(getNonMeta() ? getNonMeta() thisDecl : thisDecl)) return
         }
         
-        //printf("? Looking for variable %s in %s\n", access name, name)
         if(access getName() == "This") {
             //printf("Asking for 'This' in %s (non-meta %s)\n", toString(), getNonMeta() ? getNonMeta() toString() : "(nil)")
             if(access suggest(getNonMeta() ? getNonMeta() : this)) return
@@ -455,6 +465,20 @@ TypeDecl: abstract class extends Declaration {
         } else if(getSuperRef() != null) {
             //printf("  <== going in superRef %s\n", getSuperRef() toString())
             getSuperRef() resolveCall(call)
+        }
+        
+        if(call getRef() == null) {
+            vDecl := getVariable(call getName())
+            if(vDecl != null) {
+                // FIXME this is far from good.
+                if(vDecl getType() instanceOf(FuncType)) {
+                    if(call suggest(vDecl getFunctionDecl())) {
+                        if(call getExpr() == null) {
+                            call setExpr(VariableAccess new("this", call token))
+                        }
+                    }
+                }
+            }
         }
         
     }
