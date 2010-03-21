@@ -241,8 +241,7 @@ HashMap: class <K, V> extends Iterable<V> {
      */
     remove: func (key: K) -> Bool {
         entry := getEntry(key)
-        //hash : UInt = ac_X31_hash(key) % capacity
-        hash : UInt = murmurHash(key) % capacity
+        hash : UInt = hashKey(key) % capacity
         if (entry) {
             for (i: UInt in 0.. keys size()) {
                 cKey := keys get(i)

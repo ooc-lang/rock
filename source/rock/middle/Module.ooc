@@ -211,7 +211,7 @@ Module: class extends Node {
         finalResponse := Responses OK
 
         trail push(this)
-
+        
         {
             response := body resolve(trail, res)
             if(!response ok()) {
@@ -219,7 +219,7 @@ Module: class extends Node {
                 finalResponse = response
             }
         }
-
+        
         for(tDecl in types) {
             if(tDecl isResolved()) continue
             response := tDecl resolve(trail, res)

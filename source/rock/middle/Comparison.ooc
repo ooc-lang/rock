@@ -152,7 +152,9 @@ Comparison: class extends Expression {
             
             if(!trail peek() replace(this, node)) {
                 if(res fatal) token throwError("Couldn't replace %s with %s!" format(toString(), node toString()))
-                return Responses LOOP
+                res wholeAgain(this, "failed to replace oneself, gotta try again =)")
+                return Responses OK
+                //return Responses LOOP
             }
             res wholeAgain(this, "Just replaced with an operator overloading")
         }

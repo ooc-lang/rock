@@ -27,8 +27,7 @@ Tinkerer: class {
             
             round += 1
             if(params veryVerbose)
-                println("\n=======================================\n\nTinkerer, round " + 
-                    round + ", " + resolvers size() + " left")
+                println("\n=======================================\n\nTinkerer, round " + round + ", " + resolvers size() + " left")
             
             iter := resolvers iterator()
             

@@ -1,5 +1,6 @@
 import structs/[ArrayList, List, HashMap]
 import ../frontend/[Token, BuildParams]
+import text/Buffer
 import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
     FunctionDecl, FunctionCall, Module, VariableAccess, Node,
     InterfaceImpl, Version
@@ -269,6 +270,49 @@ TypeDecl: abstract class extends Declaration {
 
     isResolved: func -> Bool { false }
     
+    ghostTypeParams: func (trail: Trail, res: Resolver) -> Response {
+        
+        // remove ghost type arguments
+        if(this superType && !isMeta && !getTypeArgs() isEmpty()) {
+            sType := this superType
+            while(sType != null) {
+                response := sType resolve(trail, res)
+                if(!response ok()) {
+                    trail pop(this)
+                    printf("[KALAMAZOO] looping because of sType %s\n", sType toString())
+                    return response
+                }
+                
+                sTypeRef := sType getRef() as TypeDecl
+                if(sTypeRef == null) {
+                    trail pop(this)
+                    printf("[KALAMAZOO] whole-againing because of ref of sType %s\n", sType toString())
+                    res wholeAgain(this, "Need super type ref of " + sType toString())
+                    return Responses OK
+                }
+                
+                if(!sTypeRef getTypeArgs() isEmpty()) {
+                    printf("[KALAMAZOO] Exploring typeArgs %s vs %s\n", toString(), sTypeRef toString())
+                    for(typeArg in getTypeArgs()) {
+                        for(candidate in sTypeRef getTypeArgs()) {
+                            printf("[KALAMAZOO] %s vs %s\n", typeArg getName(), candidate getName())
+                            if(typeArg getName() == candidate getName()) {
+                                if(variables remove(typeArg getName())) {
+                                    printf(" >> [KALAMAZOO] Removed duplicate typeArg %s in %s cause it's in %s. Now we get\n", typeArg getName(), toString(), sTypeRef toString())
+                                    for(v in variables) {
+                                        printf(" << still got variable %s\n", v toString())
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                sType = sTypeRef superType
+            }
+        }
+        
+    }
+    
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
         trail push(this)
@@ -283,33 +327,11 @@ TypeDecl: abstract class extends Declaration {
             }
         }
         
-        // remove ghost type arguments
-        if(superType) {
-            //printf("[KALAMAZOO] Reviewing type arguments of %s\n", toString())
-            response := superType resolve(trail, res)
+        if(this superType) {
+            response := this superType resolve(trail, res)
             if(!response ok()) {
                 trail pop(this)
                 return response
-            }
-            
-            sType := this superType
-            while(sType != null) {
-                sTypeRef := sType getRef() as TypeDecl
-                if(sTypeRef == null) {
-                    res wholeAgain(this, "Need super type ref of " + sType toString())
-                    trail pop(this)
-                    return Responses OK
-                }
-                for(typeArg in getTypeArgs()) {
-                    for(candidate in sTypeRef getTypeArgs()) {
-                        if(typeArg getName() == candidate getName()) {
-                            if(variables remove(typeArg getName())) {
-                                printf("[KALAMAZOO] Removing duplicate typeArg %s in %s cause it's in %s\n", typeArg getName(), toString(), sTypeRef toString())
-                            }
-                        }
-                    }
-                }
-                sType = sTypeRef superType
             }
         }
         
@@ -423,7 +445,7 @@ TypeDecl: abstract class extends Declaration {
         
         vDecl := variables get(access name)
         if(vDecl) {
-            //"&&&&&&&& Found vDecl %s for %s" format(vDecl toString(), access name) println()
+            "&&&&&&&& Found vDecl %s for %s in %s" format(vDecl toString(), access name, name) println()
             if(access suggest(vDecl)) {
             	if(access expr == null) {
 	                varAcc := VariableAccess new("this", nullToken)
@@ -497,7 +519,18 @@ TypeDecl: abstract class extends Declaration {
     }
     
     toString: func -> String {
-        class name + ' ' + name
+        repr := class name + ' ' + name
+        if(getTypeArgs() isEmpty()) return repr
+        b := Buffer new()
+        b append(repr). append('<')
+        isFirst := true
+        for(typeArg in getTypeArgs()) {
+            if(isFirst) isFirst = false
+            else        b append(", ")
+            b append(typeArg getName())
+        }
+        b append('>')
+        return b toString()
     }
     
     getMeta: func -> ClassDecl { meta }

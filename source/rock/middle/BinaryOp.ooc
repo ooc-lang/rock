@@ -283,7 +283,9 @@ BinaryOp: class extends Expression {
             fCall getArguments() add(right)
             if(!trail peek() replace(this, fCall)) {
                 if(res fatal) token throwError("Couldn't replace %s with %s! trail = %s" format(toString(), fCall toString(), trail toString()))
-                return Responses LOOP
+                res wholeAgain(this, "failed to replace oneself, gotta try again =)")
+                return Responses OK
+                //return Responses LOOP
             }
             res wholeAgain(this, "Just replaced with an operator overloading")
         }
