@@ -11,15 +11,15 @@ version(gc) {
     }
 }
 
-//version(!gc) {
-    //gc_malloc: extern(malloc) func (size: SizeT) -> Pointer
+version(!gc) {
+    gc_malloc: extern(malloc) func (size: SizeT) -> Pointer
     /*gc_malloc: func (size: SizeT) -> Pointer {
         gc_calloc(1, size)
     }*/
-    //gc_malloc_atomic: extern(malloc) func (size: SizeT) -> Pointer
-    //gc_realloc: extern(realloc) func (ptr: Pointer, size: SizeT) -> Pointer
-    //gc_calloc: extern(calloc) func (nmemb: SizeT, size: SizeT) -> Pointer
-//}
+    gc_malloc_atomic: extern(malloc) func (size: SizeT) -> Pointer
+    gc_realloc: extern(realloc) func (ptr: Pointer, size: SizeT) -> Pointer
+    gc_calloc: extern(calloc) func (nmemb: SizeT, size: SizeT) -> Pointer
+}
 
 // memory management
 sizeof: extern func (...) -> SizeT
