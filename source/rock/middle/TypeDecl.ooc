@@ -12,8 +12,8 @@ TypeDecl: abstract class extends Declaration {
 
     typeArgs := ArrayList<VariableDecl> new()
 
-    variables := HashMap<VariableDecl> new()
-    functions := HashMap<FunctionDecl> new()
+    variables := HashMap<String, VariableDecl> new()
+    functions := HashMap<String, FunctionDecl> new()
     
     interfaceTypes := ArrayList<Type> new()
     interfaceDecls := ArrayList<InterfaceImpl> new()
@@ -171,8 +171,8 @@ TypeDecl: abstract class extends Declaration {
         return null
     }
     
-    getVariables: func -> HashMap<VariableDecl> { variables }
-    getFunctions: func -> HashMap<VariableDecl> { functions }
+    getVariables: func -> HashMap<String, VariableDecl> { variables }
+    getFunctions: func -> HashMap<String, VariableDecl> { functions }
     
     underName: func -> String {
         

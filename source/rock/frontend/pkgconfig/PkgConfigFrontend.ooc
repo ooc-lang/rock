@@ -9,7 +9,7 @@ import PkgInfo
  */
 PkgConfigFrontend: class {
 
-    cache := static HashMap<PkgInfo> new()
+    cache := static HashMap<String, PkgInfo> new()
 	
 	/**
 	 * 

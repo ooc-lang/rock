@@ -17,7 +17,7 @@ nq_parse: extern proto func (AstBuilder, String) -> Int
 
 AstBuilder: class {
 
-    cache := static HashMap<Module> new()
+    cache := static HashMap<String, Module> new()
 
     params: BuildParams
     modulePath: String
@@ -107,7 +107,7 @@ AstBuilder: class {
 
     printCache: func {
         printf("==== Cache ====\n")
-        for(key in cache keys) {
+        for(key in cache getKeys()) {
             printf("cache %s => %s\n", key, cache get(key) fullName)
         }
         printf("===============\n")
