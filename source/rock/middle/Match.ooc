@@ -1,11 +1,13 @@
 import structs/[ArrayList, List]
 import ../frontend/Token
 import ControlStatement, Statement, Expression, Visitor, VariableDecl,
-       Node, VariableAccess, Scope, BoolLiteral, Comparison
+       Node, VariableAccess, Scope, BoolLiteral, Comparison, Type,
+       FunctionDecl, Return
 import tinker/[Trail, Resolver, Response]
 
-Match: class extends Statement {
+Match: class extends Expression {
     
+    type: Type = null
     expr: Expression = null
     cases := ArrayList<Case> new()
 
@@ -48,19 +50,60 @@ Match: class extends Statement {
         }
         
         trail push(this)
-        for (c in cases) {
-            response := c resolve(trail, res)
+        for (caze in cases) {
+            response := caze resolve(trail, res)
             if(!response ok()) {
                 trail pop(this)
                 return response
             }
         }
         
+        if(type == null) {
+            response := inferType(trail, res)
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
+            if(type == null && !(trail peek() instanceOf(Scope))) {
+                if(res fatal) token throwError("Couldn't figure out type of match")
+                res wholeAgain(this, "need to resolve type")
+            }
+        }
+        
         trail pop(this)
+
         
         return Responses OK
         
     }
+    
+    inferType: func (trail: Trail, res: Resolver) -> Response {
+        
+		funcIndex   := trail find(FunctionDecl)
+		returnIndex := trail find(Return)
+		
+		if(funcIndex != -1 && returnIndex != -1) {
+			funcDecl := trail get(funcIndex) as FunctionDecl
+			if(funcDecl getReturnType() isGeneric()) {
+				type = funcDecl getReturnType()
+			}
+		}
+		
+		if(type == null) {
+			// TODO make it more intelligent e.g. cycle through all cases and
+			// check that all types are compatible and find a common denominator
+			if(cases isEmpty()) return
+            
+            first := cases first()
+			if(first getBody() isEmpty()) return
+			statement := first getBody() first()
+			if(!statement instanceOf(Expression)) return
+			type = statement as Expression getType()
+		}
+		
+    }
+    
+    getType: func -> Type { type }
     
 }
 

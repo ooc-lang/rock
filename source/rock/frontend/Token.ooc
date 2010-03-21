@@ -79,7 +79,7 @@ Token: cover {
         fr reset(lastNewLine == 0 ? 0 : lastNewLine + 1)
         over := Buffer new()
         
-        "%s:%d:%d [%s] %s" format(module path, lines, start - lastNewLine, type, message) println()
+        "%s:%d:%d [%s] %s" format(module path + ".ooc", lines, start - lastNewLine, type, message) println()
         
         end := getEnd()
         for(i in (lastNewLine + 1)..idx) {

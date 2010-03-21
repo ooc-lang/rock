@@ -1,5 +1,4 @@
 import text/Buffer
-use math
 
 EscapeSequence: class {
     valid := static 1
