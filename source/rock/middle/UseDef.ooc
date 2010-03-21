@@ -14,7 +14,7 @@ Requirement: class {
 }
 
 UseDef: class {
-    cache := static HashMap<UseDef> new()
+    cache := static HashMap<String, UseDef> new()
     
     identifier, name = "", description = "": String
     

@@ -8,9 +8,9 @@ import structs/[ArrayList, List, HashMap]
  * @author Amos Wenger
  */
 PathList: class {
-    paths := HashMap<File> new()
+    paths := HashMap<String, File> new()
 
-    getPaths : func -> HashMap<File> { paths }
+    getPaths : func -> HashMap<String, File> { paths }
 
     /**
      * Add an element to the classpath

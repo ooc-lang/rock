@@ -47,7 +47,7 @@ VersionSpec: abstract class {
     
 }
 
-builtinNames := HashMap<String> new()
+builtinNames := HashMap<String, String> new()
 
 {
     // ooc's excuse for a map literal (so far ^^)    

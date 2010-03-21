@@ -15,7 +15,7 @@ FunctionAlias: class {
 InterfaceImpl: class extends ClassDecl {
     
     impl: ClassDecl
-    aliases := HashMap<FunctionAlias> new()
+    aliases := HashMap<String, FunctionAlias> new()
     
     init: func ~interf(.name, interfaceType: Type, =impl, .token) {
         super(name, interfaceType, token)
@@ -23,7 +23,7 @@ InterfaceImpl: class extends ClassDecl {
         meta module = impl module
     }
     
-    getAliases: func -> HashMap<FunctionDecl> { aliases }
+    getAliases: func -> HashMap<String, FunctionDecl> { aliases }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
