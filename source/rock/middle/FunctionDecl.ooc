@@ -3,7 +3,7 @@ import ../frontend/[Token, BuildParams]
 import Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, Else,
        VariableDecl, Node, Statement, Module, FunctionCall, Declaration,
-       Version
+       Version, StringLiteral
 import tinker/[Resolver, Response, Trail]
 
 FunctionDecl: class extends Declaration {
@@ -66,7 +66,8 @@ FunctionDecl: class extends Declaration {
     isProto:    func -> Bool { isProto }
     setProto:   func (=isProto) {}
     
-    isAnon:     func -> Bool {name == ""}
+    isAnon:     func -> Bool {name isEmpty()}
+
     setOwner: func (=owner) {
         if(isStatic) return
         staticVariant = new(name, token)
@@ -201,7 +202,6 @@ FunctionDecl: class extends Declaration {
                 if(access suggest(arg)) return
             }
         }
-        
         body resolveAccess(access)
     }
     
@@ -215,7 +215,6 @@ FunctionDecl: class extends Declaration {
             trail peek() replace(this, varAcc)
             module addFunction(this)
         }
-        
         trail push(this)
         
         if(res params veryVerbose) printf("** Resolving function decl %s\n", name)

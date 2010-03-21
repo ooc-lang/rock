@@ -92,7 +92,9 @@ VariableAccess: class extends Expression {
          * Try to resolve the access from the expr
          */
         if(!ref && expr) {
-            if(expr instanceOf(VariableAccess) && expr as VariableAccess getRef() != null && expr as VariableAccess getRef() instanceOf(NamespaceDecl)) {
+            if(expr instanceOf(VariableAccess) && expr as VariableAccess getRef() != null \
+              && expr as VariableAccess getRef() instanceOf(NamespaceDecl)) {
+                
                 printf("============ [VariableAccess] expr ref is a NamespaceDecl!!\n")
                 expr as VariableAccess getRef() resolveAccess(this)
             } else {
@@ -105,7 +107,8 @@ VariableAccess: class extends Expression {
                 typeDecl := exprType getRef()
                 if(!typeDecl) {
                     if(res fatal) expr token throwError("Can't resolve type %s" format(expr getType() toString()))
-                    res wholeAgain(this, "     - access to %s%s still not resolved, looping (ref = %s)\n" format(expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)"))
+                    res wholeAgain(this, "     - access to %s%s still not resolved, looping (ref = %s)\n" \
+                      format(expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)"))
                     return Responses OK
                 }
                 typeDecl resolveAccess(this)
@@ -137,17 +140,31 @@ VariableAccess: class extends Expression {
                 println("trail = " + trail toString())
                 token throwError("No such variable %s" format(toString()))
             }
-            if(res params verbose) printf("     - access to %s%s still not resolved, looping (ref = %s)\n", expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)")
+            if(res params verbose) {
+                printf("     - access to %s%s still not resolved, looping (ref = %s)\n", \
+                expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)")
+            }
             res wholeAgain(this, "Couldn't resolve %s" format(toString()))
         }
         
+        closureIndex := trail find(FunctionDecl)
+        if (closureIndex != -1) {
+            closure := trail get(closureIndex) as FunctionDecl
+            if (closure isAnon()) {
+                "buuuh" println()
+            } else {
+                closure getName() println()
+                closureIndex = -1
+            }
+        }
         return Responses OK
         
     }
-
+    
     getRef: func -> Declaration { ref }
     
     getType: func -> Type {
+           
         if(!ref) return null
         if(ref instanceOf(Expression)) {
             return ref as Expression getType()
