@@ -238,7 +238,6 @@ FunctionDecl: class extends Declaration {
         }
         
         {
-            printf("Resolving return type %s\n", returnType toString())
             response := returnType resolve(trail, res)
             if(!response ok()) {
                 if(res params veryVerbose) printf("))))))) For %s, response of return type %s = %s\n", toString(), returnType toString(), response toString()) 

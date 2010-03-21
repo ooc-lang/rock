@@ -9,7 +9,6 @@ Resolver: class {
     fatal := false
     module: Module
     params: BuildParams
-    magicCount := 10
     
     init: func (=module, =params) {}
     
@@ -18,17 +17,6 @@ Resolver: class {
         response : Response = null
         wholeAgain = false
 
-        magicCount -= 1
-        if(magicCount > 0) {
-            printf("KALAMAZOO magic tour %d\n", magicCount)
-            trail := Trail new()
-            trail push(module)
-            for(tDecl in module types) {
-                tDecl ghostTypeParams(trail, this)
-            }
-            return true
-        }
-        
         response = module resolve(Trail new(), this)
         
         if(params veryVerbose) printf("[Module] response = %s (wholeAgain = %s)\n", response toString(), wholeAgain toString())

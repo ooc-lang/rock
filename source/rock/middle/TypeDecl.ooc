@@ -33,6 +33,8 @@ TypeDecl: abstract class extends Declaration {
     
     verzion: VersionSpec = null
     
+    _finishedGhosting := false
+    
     init: func ~typeDeclNoSuper (=name, .token) {
         super(token)
         type = BaseType new("Class", token)
@@ -271,6 +273,8 @@ TypeDecl: abstract class extends Declaration {
     isResolved: func -> Bool { false }
     
     ghostTypeParams: func (trail: Trail, res: Resolver) -> Response {
+
+        if(_finishedGhosting) return Responses OK
         
         // remove ghost type arguments
         if(this superType && !isMeta && !getTypeArgs() isEmpty()) {
@@ -311,6 +315,9 @@ TypeDecl: abstract class extends Declaration {
             }
         }
         
+        _finishedGhosting = true
+        return Responses OK
+        
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
@@ -329,6 +336,14 @@ TypeDecl: abstract class extends Declaration {
         
         if(this superType) {
             response := this superType resolve(trail, res)
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
+        }
+        
+        if(!_finishedGhosting) {
+            response := ghostTypeParams(trail, res)
             if(!response ok()) {
                 trail pop(this)
                 return response
@@ -434,6 +449,12 @@ TypeDecl: abstract class extends Declaration {
 
     resolveAccess: func (access: VariableAccess) {
         
+        // don't allow to resolve any access before finishing ghosting
+        if(!_finishedGhosting) {
+            println("[KOOLAIDMAYDAY] Haven't finished ghosting yet, refusing to resolve " + access toString())
+            return;
+        }
+        
         if(access getName() == "this") {
             if(access suggest(getNonMeta() ? getNonMeta() thisDecl : thisDecl)) return
         }
@@ -445,7 +466,7 @@ TypeDecl: abstract class extends Declaration {
         
         vDecl := variables get(access name)
         if(vDecl) {
-            "&&&&&&&& Found vDecl %s for %s in %s" format(vDecl toString(), access name, name) println()
+            //"&&&&&&&& Found vDecl %s for %s in %s" format(vDecl toString(), access name, name) println()
             if(access suggest(vDecl)) {
             	if(access expr == null) {
 	                varAcc := VariableAccess new("this", nullToken)
