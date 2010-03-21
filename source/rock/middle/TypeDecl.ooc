@@ -285,6 +285,7 @@ TypeDecl: abstract class extends Declaration {
         
         // remove ghost type arguments
         if(superType) {
+            //printf("[KALAMAZOO] Reviewing type arguments of %s\n", toString())
             response := superType resolve(trail, res)
             if(!response ok()) {
                 trail pop(this)
@@ -302,7 +303,9 @@ TypeDecl: abstract class extends Declaration {
                 for(typeArg in getTypeArgs()) {
                     for(candidate in sTypeRef getTypeArgs()) {
                         if(typeArg getName() == candidate getName()) {
-                            variables remove(typeArg getName())
+                            if(variables remove(typeArg getName())) {
+                                printf("[KALAMAZOO] Removing duplicate typeArg %s in %s cause it's in %s\n", typeArg getName(), toString(), sTypeRef toString())
+                            }
                         }
                     }
                 }

@@ -153,7 +153,7 @@ VariableAccess: class extends Expression {
             if (closure isAnon()) {
                 "buuuh" println()
             } else {
-                closure getName() println()
+                //closure getName() println()
                 closureIndex = -1
             }
         }
