@@ -8,6 +8,9 @@ import ../middle/Module
 
 BuildParams: class {
     
+    /* Builtin defines */
+	GC_DEFINE := static const "__OOC_USE_GC__"
+    
     init: func {
         path := Env get("OOC_LIBS")
         if(path == null) {
@@ -15,6 +18,9 @@ BuildParams: class {
             path = "/usr/lib/ooc/"
         }
         libsPath = File new(path)
+        
+        // use the GC by default =)
+		defines add(GC_DEFINE)
     }
     
     compiler: AbstractCompiler = null
@@ -29,6 +35,9 @@ BuildParams: class {
     libsPath: File
     
     outPath: File = File new("rock_tmp")
+    
+    // list of symbols defined e.g. by -Dblah
+	defines := ArrayList<String> new()
     
     // Path to place the binary
     binaryPath: String = ""
@@ -81,7 +90,6 @@ BuildParams: class {
     blowup: Int = 16
     
     includeLang := true
-    //includeLang := false // false as long as we're debugging
     
     dynamicLibs := ArrayList<String> new()
 
@@ -98,5 +106,15 @@ BuildParams: class {
     getOutputPath: func (module: Module, extension: String) -> String {
         outPath path + File separator + module getPath(extension)
     }
+    
+    defineSymbol: func (symbol: String) {
+		if(!defines contains(symbol)) {
+			defines add(symbol)
+		}
+	}
+	
+	undefineSymbol: func (symbol: String) {
+		defines remove(symbol)
+	}
     
 }

@@ -1,6 +1,6 @@
 include memory
 
-//version(gc) {
+version(gc) {
     include gc/gc
     
     gc_malloc: extern(GC_MALLOC) func (size: SizeT) -> Pointer
@@ -9,7 +9,7 @@ include memory
     gc_calloc: func (nmemb: SizeT, size: SizeT) -> Pointer {
         gc_malloc(nmemb * size)
     }
-//}
+}
 
 //version(!gc) {
     //gc_malloc: extern(malloc) func (size: SizeT) -> Pointer

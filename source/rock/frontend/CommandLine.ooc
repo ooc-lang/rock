@@ -86,27 +86,20 @@ CommandLine: class {
                     
                     params includeLang = false
                     
-                } else if (option == "dyngc") {
-                    
-                    "Deprecated option -dyngc, you should use -gc=dynamic instead." println()
-                    params dynGC = true
-                    
-                } else if (option == "nogc") {
-                    
-                    "Deprecated option -nogc, you should use -gc=off instead." println()
-                    params enableGC = false
-                    
                 } else if (option startsWith("gc=")) {
                     
                     suboption := option substring(3)
                     if (suboption == "off") {
                         params enableGC = false
+                        params undefineSymbol(BuildParams GC_DEFINE)
                     } else if (suboption == "dynamic") {
                         params enableGC = true
                         params dynGC = true
+                        params defineSymbol(BuildParams GC_DEFINE)
                     } else if (suboption == "static") {
                         params enableGC = true
                         params dynGC = false
+                        params defineSymbol(BuildParams GC_DEFINE)
                     } else {
                         ("Unrecognized option " + option + ". Valid values are gc=off, gc=dynamic, gc=static") println()
                     }

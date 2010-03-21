@@ -7,45 +7,49 @@ import BaseCompiler
  */
 Gcc: class extends BaseCompiler {
     
-    init: func~withGcc() {
+    init: func~withGcc {
         super("gcc")
     }
     
-    init: func~withExecutableName(executableName: String) {
+    init: func~withExecutableName (executableName: String) {
         super(executableName)
     }
     
-    addDynamicLibrary: func(library: String) {
+    addDynamicLibrary: func (library: String) {
         command add("-l" + library)
     }
 
-    addIncludePath: func(path: String) {
+    addIncludePath: func (path: String) {
         command add("-I" + path)
     }
 
-    addLibraryPath: func(path: String) {
+    addLibraryPath: func (path: String) {
         command add("-L"+path)
     }
 
-    addObjectFile: func(file: String) {
+    addObjectFile: func (file: String) {
         command add(file)
     }
 
-    addOption: func(option: String) {
+    addOption: func (option: String) {
         command add(option)
     }
 
-    setOutputPath: func(path: String) {
+    setOutputPath: func (path: String) {
         command add("-o")
         command add(path)
     }
 
-    setCompileOnly: func() {
+    setCompileOnly: func {
         command add("-c")
     }
 
-    setDebugEnabled: func() {
+    setDebugEnabled: func {
         command add("-g")
+    }
+    
+    defineSymbol: func (symbol: String) {
+        command add("-D" + symbol)
     }
     
     reset: func() {
