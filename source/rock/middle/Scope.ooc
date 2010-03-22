@@ -113,7 +113,8 @@ Scope: class extends Node {
     first: func -> Statement { list first() }
     
     lastIndex: func -> Int { list lastIndex() }
-    
+
+    get: func (i: Int) -> Statement  { list get(i) }
     set: func (i: Int, s: Statement) { list set(i, s) }
     add: func (i: Int, s: Statement) { list add(i, s) }
     

@@ -1,9 +1,9 @@
 import structs/[Stack, ArrayList], text/Buffer
 import ../frontend/[Token, BuildParams]
 import Expression, Type, Visitor, Argument, TypeDecl, Scope,
-       VariableAccess, ControlStatement, Return, IntLiteral, Else,
+       VariableAccess, ControlStatement, Return, IntLiteral, If, Else,
        VariableDecl, Node, Statement, Module, FunctionCall, Declaration,
-       Version, StringLiteral
+       Version, StringLiteral, Conditional
 import tinker/[Resolver, Response, Trail]
 
 FunctionDecl: class extends Declaration {
@@ -302,19 +302,25 @@ FunctionDecl: class extends Declaration {
             returnNeeded(trail)
             return
         }
-                
-        last := scope last()
+
+        handleLastStatement(trail, res, scope, scope lastIndex())
         
-        if(last instanceOf(Return)) {
+    }
+    
+    handleLastStatement: func (trail: Trail, res: Resolver, scope: Scope, index: Int) {
+        
+        stmt := scope get(index)
+        
+        if(stmt instanceOf(Return)) {
             //printf("[autoReturn] Oh, it's a %s already. Nice =D!\n",  last toString())
             return
         }
         
-        if(last instanceOf(Expression)) {
-            expr := last as Expression
+        if(stmt instanceOf(Expression)) {
+            expr := stmt as Expression
             if(expr getType() == null) {
-                //printf("[autoReturn] LOOPing because last's type (%s) is null.", expr toString())
-                res wholeAgain(this, "last's type is null")
+                //printf("[autoReturn] LOOPing because stmt's type (%s) is null.", expr toString())
+                res wholeAgain(this, "stmt's type is null")
                 return
             }
             
@@ -325,9 +331,20 @@ FunctionDecl: class extends Declaration {
             }
             
             if(!expr getType() equals(voidType)) {
-                //printf("[autoReturn] Hmm it's a %s\n", last toString())
-                scope set(scope lastIndex(), Return new(last, last token))
-                //printf("[autoReturn] Replaced with a %s!\n", scope last() toString())
+                //printf("[autoReturn] Hmm it's a %s\n", stmt toString())
+                scope set(index, Return new(stmt, stmt token))
+                //printf("[autoReturn] Replaced with a %s!\n", scope get(index) toString())
+            }
+        } else if(stmt instanceOf(ControlStatement)) {
+            cStat := stmt as ControlStatement
+            if(cStat isDeadEnd()) {
+                autoReturnExplore(trail, res, cStat getBody())
+                if(cStat instanceOf(Else) && index > 0 && scope get(index - 1) instanceOf(Conditional)) {
+                    printf("[autoReturn] Should handle the if too!\n")
+                    handleLastStatement(trail, res, scope, index - 1)
+                }
+            } else {
+                returnNeeded(trail)
             }
         } else {
             //printf("[autoReturn] Huh, last is a %s, needing return\n", last toString())

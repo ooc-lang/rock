@@ -451,7 +451,6 @@ TypeDecl: abstract class extends Declaration {
         
         // don't allow to resolve any access before finishing ghosting
         if(!_finishedGhosting) {
-            println("[KOOLAIDMAYDAY] Haven't finished ghosting yet, refusing to resolve " + access toString())
             return;
         }
         
