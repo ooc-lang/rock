@@ -282,14 +282,12 @@ TypeDecl: abstract class extends Declaration {
             while(sType != null) {
                 response := sType resolve(trail, res)
                 if(!response ok()) {
-                    trail pop(this)
                     printf("[KALAMAZOO] looping because of sType %s\n", sType toString())
                     return response
                 }
                 
                 sTypeRef := sType getRef() as TypeDecl
                 if(sTypeRef == null) {
-                    trail pop(this)
                     printf("[KALAMAZOO] whole-againing because of ref of sType %s\n", sType toString())
                     res wholeAgain(this, "Need super type ref of " + sType toString())
                     return Responses OK
@@ -463,7 +461,7 @@ TypeDecl: abstract class extends Declaration {
             if(access suggest(getNonMeta() ? getNonMeta() : this)) return
         }
         
-        vDecl := variables get(access name)
+        vDecl := variables get(access getName())
         if(vDecl) {
             //"&&&&&&&& Found vDecl %s for %s in %s" format(vDecl toString(), access name, name) println()
             if(access suggest(vDecl)) {

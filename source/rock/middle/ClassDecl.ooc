@@ -45,11 +45,11 @@ ClassDecl: class extends TypeDecl {
 			}
 	    }
         
-	    if(shouldDefault && functions get(DEFAULTS_FUNC_NAME) == null) {
-			addFunction(FunctionDecl new(DEFAULTS_FUNC_NAME, token))
+	    if(shouldDefault && functions get(This DEFAULTS_FUNC_NAME) == null) {
+			addFunction(FunctionDecl new(This DEFAULTS_FUNC_NAME, token))
 	    }
-        if(shouldLoad && functions get(LOAD_FUNC_NAME) == null) {
-            fDecl := FunctionDecl new(LOAD_FUNC_NAME, token)
+        if(shouldLoad && functions get(This LOAD_FUNC_NAME) == null) {
+            fDecl := FunctionDecl new(This LOAD_FUNC_NAME, token)
             fDecl setStatic(true)
 			addFunction(fDecl)
 	    }

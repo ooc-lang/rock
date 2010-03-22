@@ -23,23 +23,23 @@ Target: class {
     guessHost: static func -> Int {
         
         version(linux) {
-            return LINUX
+            return This LINUX
         }
         version(windows) {
-            return WIN
+            return This WIN
         }
         version(solaris) {
-            return SOLARIS
+            return This SOLARIS
         }
         version(haiku) {
-            return HAIKU
+            return This HAIKU
         }
         version(apple) {
-            return OSX
+            return This OSX
         }
         
         fprintf(stderr, "Unknown operating system, assuming Linux...\n")
-        return LINUX
+        return This LINUX
         
     }
     
@@ -48,7 +48,7 @@ Target: class {
      */
     is64: static func -> Bool {
         version(64)  { return true }
-        version(!64) { return false }
+        /*version(!64) {*/ return false /*}*/
     }
     
     /**
@@ -69,12 +69,12 @@ Target: class {
     toString: static func(target: Int, arch: String) -> String {
         
         return match(target) {
-            case WIN     => "win" + arch
-            case LINUX   => "linux" + arch
-            case SOLARIS => "solaris" + arch
-            case HAIKU   => "haiku" + arch
-            case OSX     => "osx"
-            case         => Exception new("Invalid arch: " + target) throw(); ""
+            case This WIN     => "win" + arch
+            case This LINUX   => "linux" + arch
+            case This SOLARIS => "solaris" + arch
+            case This HAIKU   => "haiku" + arch
+            case This OSX     => "osx"
+            case              => Exception new("Invalid arch: " + target) throw(); ""
         }
         
     }

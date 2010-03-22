@@ -32,7 +32,7 @@ AstBuilder: class {
         if(params verbose) {
             printf("- Parsing %s (for module %s)\n", modulePath, module fullName)
         }
-        cache put(modulePath, module)
+        This cache put(modulePath, module)
 
         stack = Stack<Node> new()
         stack push(module)
@@ -89,7 +89,7 @@ AstBuilder: class {
 
             //println("Trying to get "+impPath path+" from cache")
             cached : Module = null
-            cached = cache get(impPath path)
+            cached = This cache get(impPath path)
 
             //if(!cached || File new(impPath path) lastModified() > cached lastModified) {
             if(!cached) {
@@ -107,8 +107,8 @@ AstBuilder: class {
 
     printCache: func {
         printf("==== Cache ====\n")
-        for(key in cache getKeys()) {
-            printf("cache %s => %s\n", key, cache get(key) fullName)
+        for(key in This cache getKeys()) {
+            printf("cache %s => %s\n", key, This cache get(key) fullName)
         }
         printf("===============\n")
     }

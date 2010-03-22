@@ -5,8 +5,8 @@ import Skeleton, FunctionDeclWriter, CGenerator, VersionWriter
 
 ClassDeclWriter: abstract class extends CGenerator {
 
-    LANG_PREFIX := static const "lang_types__";
-    CLASS_NAME := static const LANG_PREFIX + "Class";
+    LANG_PREFIX := static const "lang_types__"
+    CLASS_NAME := static const This LANG_PREFIX + "Class"
     
     write: static func ~_class (this: This, cDecl: ClassDecl) {
 
@@ -239,7 +239,7 @@ ClassDeclWriter: abstract class extends CGenerator {
         current nl(). nl(). app(underName). app(" *"). app(cDecl getNonMeta() getFullName()). app("_class()"). openBlock(). nl()
         
         if (cDecl getNonMeta() getSuperRef()) {
-            current app("static "). app(LANG_PREFIX). app("Bool __done__ = false;"). nl()
+            current app("static "). app(This LANG_PREFIX). app("Bool __done__ = false;"). nl()
         }
         current app("static "). app(underName). app(" class = "). nl()
         
@@ -247,9 +247,9 @@ ClassDeclWriter: abstract class extends CGenerator {
         
         current app(';')
         if (cDecl getNonMeta() getSuperRef()) {
-            current nl(). app(CLASS_NAME). app(" *classPtr = ("). app(CLASS_NAME). app(" *) &class;")
+            current nl(). app(This CLASS_NAME). app(" *classPtr = ("). app(This CLASS_NAME). app(" *) &class;")
             current nl(). app("if(!__done__)"). openBlock().
-                    nl(). app("classPtr->super = ("). app(CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getFullName()). app("_class();").
+                    nl(). app("classPtr->super = ("). app(This CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getFullName()). app("_class();").
                     nl(). app("__done__ = true;").
             closeBlock()
         }

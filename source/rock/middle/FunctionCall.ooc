@@ -84,7 +84,7 @@ FunctionCall: class extends Expression {
             response := expr resolve(trail, res)
             trail pop(this)
             if(!response ok()) {
-                if(res params verbose) printf("Failed to resolve expr %s of call %s, looping\n", expr toString(), toString())
+                if(res params veryVerbose) printf("Failed to resolve expr %s of call %s, looping\n", expr toString(), toString())
                 return response
             }
         }
@@ -280,7 +280,7 @@ FunctionCall: class extends Expression {
             }
             
             if(ref returnType isGeneric()) {
-                if(res params verbose) printf("\t$$$$ resolving returnType %s for %s\n", ref returnType toString(), toString())
+                if(res params veryVerbose) printf("\t$$$$ resolving returnType %s for %s\n", ref returnType toString(), toString())
                 returnType = resolveTypeArg(ref returnType getName(), trail, res)
                 if(returnType == null && res fatal) {
                     token throwError("Not enough info to resolve return type %s of function call\n" format(ref returnType toString()))
@@ -408,17 +408,16 @@ FunctionCall: class extends Expression {
             return Responses OK // already resolved
         }
         
-        //if(res params verbose) printf("\t$$$$ resolving typeArgs of %s (call = %d, ref = %d)\n", toString(), typeArgs size(), ref typeArgs size())
-        //if(res params verbose) printf("trail = %s\n", trail toString())
+        //if(res params veryVerbose) printf("\t$$$$ resolving typeArgs of %s (call = %d, ref = %d)\n", toString(), typeArgs size(), ref typeArgs size())
+        //if(res params veryVerbose) printf("trail = %s\n", trail toString())
         
         i := typeArgs size()
         while(i < ref typeArgs size()) {
             typeArg := ref typeArgs get(i)
-            //if(res params verbose) printf("\t$$$$ resolving typeArg %s\n", typeArg name)
+            //if(res params veryVerbose) printf("\t$$$$ resolving typeArg %s\n", typeArg name)
             
             typeResult := resolveTypeArg(typeArg name, trail, res)
             if(typeResult) {
-                //typeArgs add(VariableAccess new(typeResult, nullToken))
                 typeArgs add(VariableAccess new(typeResult getName(), nullToken))
             } else break // typeArgs must be in order
             
@@ -448,7 +447,7 @@ FunctionCall: class extends Expression {
     
     resolveTypeArg: func (typeArgName: String, trail: Trail, res: Resolver) -> Type {
         
-        //printf("Should resolve typeArg %s\n", typeArgName)
+        //printf("Should resolve typeArg %s in call%s\n", typeArgName, toString())
         
         /* myFunction: func <T> (myArg: T) */
         j := 0
@@ -467,9 +466,13 @@ FunctionCall: class extends Expression {
         for(arg in ref args) {
             if(arg getName() == typeArgName) {
                 implArg := args get(j)
-                result := BaseType new(implArg as VariableAccess getName(), implArg token)
-                //" >> Found ref-arg %s for typeArgName %s, returning %s" format(implArg toString(), typeArgName, result toString()) println()
-                return result
+                if(implArg instanceOf(VariableAccess)) {
+                    result := BaseType new(implArg as VariableAccess getName(), implArg token)
+                    //" >> Found ref-arg %s for typeArgName %s, returning %s" format(implArg toString(), typeArgName, result toString()) println()
+                    return result
+                } else if(implArg instanceOf(Type)) {
+                    return implArg
+                }
             }
             j += 1
         }
@@ -490,7 +493,7 @@ FunctionCall: class extends Expression {
                 //printf("Looking for typeArg %s in expr-type %s\n", typeArgName, expr toString())
                 result := searchInTypeDecl(typeArgName, expr)
                 if(result) {
-                    //printf("Found match for arg %s! Hence, result = %s (cause expr = %s)\n", typeArgName, result toString(), expr toString())
+                    printf("Found match for arg %s! Hence, result = %s (cause expr = %s)\n", typeArgName, result toString(), expr toString())
                     return result
                 }
             } else {
