@@ -2,7 +2,7 @@ import structs/[ArrayList, List]
 import ../frontend/Token
 import ControlStatement, Statement, Expression, Visitor, VariableDecl,
        Node, VariableAccess, Scope, BoolLiteral, Comparison, Type,
-       FunctionDecl, Return
+       FunctionDecl, Return, BinaryOp
 import tinker/[Trail, Resolver, Response]
 
 Match: class extends Expression {
@@ -59,15 +59,33 @@ Match: class extends Expression {
         }
         trail pop(this)
         
-        if(!trail peek() instanceOf(Scope) && type == null) {
-            printf("[Match] So far, type of match = %s\n", type ? type toString() : "(nil)")
-            response := inferType(trail, res)
-            if(!response ok()) {
-                return response
+        printf("[Match] resolving match!! trail peek() = %s\n", trail peek() class name)
+        if(!trail peek() instanceOf(Scope)) {
+            if(type == null) {
+                printf("[Match] So far, type of match = %s\n", type ? type toString() : "(nil)")
+                response := inferType(trail, res)
+                if(!response ok()) {
+                    return response
+                }
+                if(type == null && !(trail peek() instanceOf(Scope))) {
+                    if(res fatal) token throwError("Couldn't figure out type of match")
+                    res wholeAgain(this, "need to resolve type")
+                    return Responses OK
+                }
             }
-            if(type == null && !(trail peek() instanceOf(Scope))) {
-                if(res fatal) token throwError("Couldn't figure out type of match")
-                res wholeAgain(this, "need to resolve type")
+            
+            if(type != null) {
+                vDecl := VariableDecl new(type, generateTempName("match"), token)
+                varAcc := VariableAccess new(vDecl, token)
+                trail addBeforeInScope(this, vDecl)
+                trail addBeforeInScope(this, this)
+                trail peek() replace(this, varAcc)
+                for(caze in cases) {
+                    ass := BinaryOp new(varAcc, caze getBody() last(), OpTypes ass, caze token)
+                    caze getBody() set(caze getBody() lastIndex(), ass)
+                }
+                res wholeAgain(this, "just unwrapped")
+                return Responses OK
             }
         }
 
@@ -98,11 +116,16 @@ Match: class extends Expression {
 			statement := first getBody() first()
 			if(!statement instanceOf(Expression)) return
 			type = statement as Expression getType()
+            printf("Got type %s\n", type toString())
 		}
+        
+        return Responses OK
 		
     }
     
     getType: func -> Type { type }
+    
+    toString: func -> String { class name }
     
 }
 
