@@ -699,7 +699,8 @@ AstBuilder: class {
     }
 
     onCaseEnd: unmangled(nq_onCaseEnd) func {
-        pop(Case)
+        caze := pop(Case)
+        peek(Match) addCase(caze)
     }
 
     onBreak: unmangled(nq_onBreak) func -> FlowControl {

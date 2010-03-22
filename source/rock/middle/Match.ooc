@@ -57,11 +57,12 @@ Match: class extends Expression {
                 return response
             }
         }
+        trail pop(this)
         
-        if(type == null) {
+        if(!trail peek() instanceOf(Scope) && type == null) {
+            printf("[Match] So far, type of match = %s\n", type ? type toString() : "(nil)")
             response := inferType(trail, res)
             if(!response ok()) {
-                trail pop(this)
                 return response
             }
             if(type == null && !(trail peek() instanceOf(Scope))) {
@@ -69,10 +70,7 @@ Match: class extends Expression {
                 res wholeAgain(this, "need to resolve type")
             }
         }
-        
-        trail pop(this)
 
-        
         return Responses OK
         
     }
@@ -82,6 +80,7 @@ Match: class extends Expression {
 		funcIndex   := trail find(FunctionDecl)
 		returnIndex := trail find(Return)
 		
+        printf("[Match inferType] funcIndex = %d, returnIndex = %d\n", funcIndex, returnIndex)
 		if(funcIndex != -1 && returnIndex != -1) {
 			funcDecl := trail get(funcIndex) as FunctionDecl
 			if(funcDecl getReturnType() isGeneric()) {
