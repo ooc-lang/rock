@@ -33,7 +33,7 @@ Trail: class extends Stack<Node> {
         
         i := size() - 1
         while(i >= 0) {
-            node : Node = data get(i)
+            node := data get(i) as Node
             if(node class inheritsFrom(T)) {
                 break
             }
@@ -53,7 +53,7 @@ Trail: class extends Stack<Node> {
         
         i := size() - 1
         while(i >= 0) {
-            node : Node = data get(i)
+            node := data get(i) as Node
             if(node instanceOf(Scope)) break
             i -= 1
         }
@@ -73,7 +73,7 @@ Trail: class extends Stack<Node> {
         
         i := size() - 1
         while(i >= 0) {
-            node : Node = data get(i)
+            node := data get(i) as Node
             if(node instanceOf(Scope) &&
                get(i) addBefore(i + 1 >= size() ? mark : get(i + 1), newcomer)) {
                 return true
@@ -95,7 +95,7 @@ Trail: class extends Stack<Node> {
         
         i := size() - 1
         while(i >= 0) {
-            node : Node = data get(i)
+            node := data get(i) as Node
             if(node instanceOf(Scope) &&
                get(i) addAfter(i + 1 >= size() ? mark : get(i + 1), newcomer)) {
                 return true

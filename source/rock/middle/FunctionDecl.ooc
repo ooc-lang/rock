@@ -164,7 +164,7 @@ FunctionDecl: class extends Declaration {
     }
     
     toString: func -> String {
-        (suffix ? (name + "~" + suffix) : name) + (isStatic ? ": static func " : ": func ") + getArgsRepr() + (hasReturn() ? " -> " + returnType toString() : "")
+        (owner ? owner getName() + "." : "") + (suffix ? (name + "~" + suffix) : name) + (isStatic ? ": static func " : ": func ") + getArgsRepr() + (hasReturn() ? " -> " + returnType toString() : "")
     }
     
     isResolved: func -> Bool { false }

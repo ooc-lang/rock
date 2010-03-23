@@ -493,7 +493,7 @@ FunctionCall: class extends Expression {
                 //printf("Looking for typeArg %s in expr-type %s\n", typeArgName, expr toString())
                 result := searchInTypeDecl(typeArgName, expr)
                 if(result) {
-                    printf("Found match for arg %s! Hence, result = %s (cause expr = %s)\n", typeArgName, result toString(), expr toString())
+                    //printf("Found match for arg %s! Hence, result = %s (cause expr = %s)\n", typeArgName, result toString(), expr toString())
                     return result
                 }
             } else {

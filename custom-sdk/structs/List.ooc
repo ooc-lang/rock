@@ -205,12 +205,12 @@ List: abstract class <T> extends Iterable<T> {
         /* TODO: A more performant implementation is possible. */
         result := Buffer new()
         first := true
-        for(item: String in this) {
+        for(item in this) {
             if(first)
                 first = false
             else
                 result append(str)
-            result append(item)
+            result append(item as String)
         }
         result toString()
     }

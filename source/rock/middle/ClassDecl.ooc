@@ -45,10 +45,12 @@ ClassDecl: class extends TypeDecl {
 			}
 	    }
         
-	    if(shouldDefault && functions get(This DEFAULTS_FUNC_NAME) == null) {
+        // TODO: a more elegant solution maybe?
+        meat : ClassDecl = isMeta ? this : getMeta()
+        if(shouldDefault && !meat functions contains(This DEFAULTS_FUNC_NAME)) {
 			addFunction(FunctionDecl new(This DEFAULTS_FUNC_NAME, token))
 	    }
-        if(shouldLoad && functions get(This LOAD_FUNC_NAME) == null) {
+        if(shouldLoad && !meat functions contains(This LOAD_FUNC_NAME)) {
             fDecl := FunctionDecl new(This LOAD_FUNC_NAME, token)
             fDecl setStatic(true)
 			addFunction(fDecl)
@@ -60,6 +62,28 @@ ClassDecl: class extends TypeDecl {
         }
         
         return Responses OK
+    }
+    
+    getLoadFunc: func -> FunctionDecl {
+        // TODO: a more elegant solution maybe?
+        meat : ClassDecl = isMeta ? this : getMeta()
+        fDecl := meat functions get(This LOAD_FUNC_NAME)
+        if(fDecl == null) {
+            fDecl = FunctionDecl new(This LOAD_FUNC_NAME, token)
+            addFunction(fDecl)
+        }
+        return fDecl
+    }
+    
+    getDefaultsFunc: func -> FunctionDecl {
+        // TODO: a more elegant solution maybe?
+        meat : ClassDecl = isMeta ? this : getMeta()
+        fDecl := meat functions get(This DEFAULTS_FUNC_NAME)
+        if(fDecl == null) {
+            fDecl = FunctionDecl new(This DEFAULTS_FUNC_NAME, token)
+            addFunction(fDecl)
+        }
+        return fDecl
     }
     
     getBaseClass: func (fDecl: FunctionDecl) -> ClassDecl {

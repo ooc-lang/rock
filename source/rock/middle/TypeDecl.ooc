@@ -282,29 +282,20 @@ TypeDecl: abstract class extends Declaration {
             while(sType != null) {
                 response := sType resolve(trail, res)
                 if(!response ok()) {
-                    printf("[KALAMAZOO] looping because of sType %s\n", sType toString())
                     return response
                 }
                 
                 sTypeRef := sType getRef() as TypeDecl
                 if(sTypeRef == null) {
-                    printf("[KALAMAZOO] whole-againing because of ref of sType %s\n", sType toString())
                     res wholeAgain(this, "Need super type ref of " + sType toString())
                     return Responses OK
                 }
                 
                 if(!sTypeRef getTypeArgs() isEmpty()) {
-                    printf("[KALAMAZOO] Exploring typeArgs %s vs %s\n", toString(), sTypeRef toString())
                     for(typeArg in getTypeArgs()) {
                         for(candidate in sTypeRef getTypeArgs()) {
-                            printf("[KALAMAZOO] %s vs %s\n", typeArg getName(), candidate getName())
                             if(typeArg getName() == candidate getName()) {
-                                if(variables remove(typeArg getName())) {
-                                    printf(" >> [KALAMAZOO] Removed duplicate typeArg %s in %s cause it's in %s. Now we get\n", typeArg getName(), toString(), sTypeRef toString())
-                                    for(v in variables) {
-                                        printf(" << still got variable %s\n", v toString())
-                                    }
-                                }
+                                variables remove(typeArg getName())
                             }
                         }
                     }
