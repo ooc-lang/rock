@@ -10,7 +10,7 @@ BoolLiteral: class extends Literal {
     
     accept: func (visitor: Visitor) { visitor visitBoolLiteral(this) }
 
-    getType: func -> Type { type }
+    getType: func -> Type { This type }
     getValue: func -> Bool { value }
     
     toString: func -> String {

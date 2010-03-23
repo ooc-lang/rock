@@ -48,7 +48,7 @@ Comparison: class extends Expression {
         visitor visitComparison(this)
     }
     
-    getType: func -> Type { type }
+    getType: func -> Type { This type }
     
     toString: func -> String {
         return left toString() + " " + CompTypes repr get(compType) + " " + right toString()
@@ -72,7 +72,7 @@ Comparison: class extends Expression {
             }
         }
         {
-            response := type resolve(trail, res)
+            response := This type resolve(trail, res)
             if(!response ok()) {
                 trail pop(this)
                 return response

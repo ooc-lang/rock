@@ -137,7 +137,7 @@ FunctionDecl: class extends Declaration {
         fullName
     }
     
-    getType: func -> Type { type }
+    getType: func -> Type { This type }
 
     getArgsRepr: func -> String {
         if(args size() == 0) return ""

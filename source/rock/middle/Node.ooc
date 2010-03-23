@@ -50,8 +50,8 @@ Node: abstract class {
     addTypeArg: func (typeArg: VariableDecl) -> Bool { false }
     
     generateTempName: func (origin: String) -> String {
-        nameSeed += 1
-        return "__" + origin + nameSeed
+        This nameSeed += 1
+        return "__" + origin + This nameSeed
     }
 
 }

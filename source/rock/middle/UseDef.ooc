@@ -35,13 +35,13 @@ UseDef: class {
     getIncludePaths: func -> List<String>      { includePaths }
 
     parse: static func (identifier: String, params: BuildParams) -> UseDef {
-        cached := cache get(identifier)
+        cached := This cache get(identifier)
         if(!cached) {
             cached = UseDef new(identifier)
             file := findUse(identifier + ".use", params)
             if(!file) return null
             cached read(file, params)
-            cache put(identifier, cached)
+            This cache put(identifier, cached)
         }
         
         cached

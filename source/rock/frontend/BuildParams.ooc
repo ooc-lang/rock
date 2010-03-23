@@ -20,7 +20,7 @@ BuildParams: class {
         libsPath = File new(path)
         
         // use the GC by default =)
-		defines add(GC_DEFINE)
+		defines add(This GC_DEFINE)
     }
     
     compiler: AbstractCompiler = null

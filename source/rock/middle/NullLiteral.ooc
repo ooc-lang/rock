@@ -8,8 +8,10 @@ NullLiteral: class extends Literal {
 
     init: func ~nullLiteral (.token) { super(token) }
     
-    getType: func -> Type { type }
+    getType: func -> Type { This type }
     
     accept: func (visitor: Visitor) { visitor visitNullLiteral(this) }
+    
+    toString: func -> String { "null" }
 
 }

@@ -53,6 +53,16 @@ ArrayLiteral: class extends Literal {
             }
         }
         
+        trail push(this)
+        for(element in elements) {
+            response := element resolve(trail, res)
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
+        }
+        trail pop(this)
+        
         if(type == null) {
             innerType := elements first() getType()
             if(innerType == null || !innerType isResolved()) {

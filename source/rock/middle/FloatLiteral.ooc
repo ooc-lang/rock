@@ -10,7 +10,7 @@ FloatLiteral: class extends Literal {
     
     accept: func (visitor: Visitor) { visitor visitFloatLiteral(this) }
 
-    getType: func -> Type { type }
+    getType: func -> Type { This type }
     
     toString: func -> String { "%f" format(value) }
 

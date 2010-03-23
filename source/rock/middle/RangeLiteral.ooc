@@ -42,7 +42,7 @@ RangeLiteral: class extends Literal {
         return Responses OK
     }
     
-    getType: func -> Type { type }
+    getType: func -> Type { This type }
     
     replace: func (oldie, kiddo: Node) -> Bool {
         match oldie {

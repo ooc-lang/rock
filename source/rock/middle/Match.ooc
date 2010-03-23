@@ -59,21 +59,19 @@ Match: class extends Expression {
         }
         trail pop(this)
         
-        printf("[Match] resolving match!! trail peek() = %s\n", trail peek() class name)
-        if(!trail peek() instanceOf(Scope)) {
-            if(type == null) {
-                printf("[Match] So far, type of match = %s\n", type ? type toString() : "(nil)")
-                response := inferType(trail, res)
-                if(!response ok()) {
-                    return response
-                }
-                if(type == null && !(trail peek() instanceOf(Scope))) {
-                    if(res fatal) token throwError("Couldn't figure out type of match")
-                    res wholeAgain(this, "need to resolve type")
-                    return Responses OK
-                }
+        if(type == null) {
+            response := inferType(trail, res)
+            if(!response ok()) {
+                return response
             }
-            
+            if(type == null && !(trail peek() instanceOf(Scope))) {
+                if(res fatal) token throwError("Couldn't figure out type of match")
+                res wholeAgain(this, "need to resolve type")
+                return Responses OK
+            }
+        }
+        
+        if(!trail peek() instanceOf(Scope)) {
             if(type != null) {
                 vDecl := VariableDecl new(type, generateTempName("match"), token)
                 varAcc := VariableAccess new(vDecl, token)
@@ -98,7 +96,6 @@ Match: class extends Expression {
 		funcIndex   := trail find(FunctionDecl)
 		returnIndex := trail find(Return)
 		
-        printf("[Match inferType] funcIndex = %d, returnIndex = %d\n", funcIndex, returnIndex)
 		if(funcIndex != -1 && returnIndex != -1) {
 			funcDecl := trail get(funcIndex) as FunctionDecl
 			if(funcDecl getReturnType() isGeneric()) {
@@ -109,14 +106,21 @@ Match: class extends Expression {
 		if(type == null) {
 			// TODO make it more intelligent e.g. cycle through all cases and
 			// check that all types are compatible and find a common denominator
-			if(cases isEmpty()) return
+			if(cases isEmpty()) {
+                return Responses OK
+            }
             
             first := cases first()
-			if(first getBody() isEmpty()) return
-			statement := first getBody() first()
-			if(!statement instanceOf(Expression)) return
+			if(first getBody() isEmpty()) {
+                return Responses OK
+            }
+            
+			statement := first getBody() last()
+			if(!statement instanceOf(Expression)) {
+                return Responses OK
+            }
+            
 			type = statement as Expression getType()
-            printf("Got type %s\n", type toString())
 		}
         
         return Responses OK

@@ -12,6 +12,6 @@ CharLiteral: class extends Literal {
     
     accept: func (visitor: Visitor) { visitor visitCharLiteral(this) }
     
-    getType: func -> Type { type }
+    getType: func -> Type { This type }
 
 }

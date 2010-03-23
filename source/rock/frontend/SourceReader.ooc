@@ -183,7 +183,7 @@ SourceReader: class extends Reader {
         count := 0
         
         for (candidate: String in candidates) {
-            if (matches(candidate, keepEnd, SENSITIVE))
+            if (matches(candidate, keepEnd, This SENSITIVE))
                 index = count
             
             count += 1
@@ -216,7 +216,7 @@ SourceReader: class extends Reader {
     }
     
     matches: func~withString(candidate: String, keepEnd: Bool) -> Bool {
-        return matches(candidate, keepEnd, SENSITIVE)
+        return matches(candidate, keepEnd, This SENSITIVE)
     }
     
     matches: func~withCaseMode(candidate: String, keepEnd: Bool, caseMode: Int) -> Bool {
@@ -229,7 +229,7 @@ SourceReader: class extends Reader {
             c = read()
             c2 = candidate charAt(i)
             if (c2 != c) {
-                if ((caseMode == SENSITIVE) || (c2 toLower() != c toLower())) {
+                if ((caseMode == This SENSITIVE) || (c2 toLower() != c toLower())) {
                     result = false
                     break
                 }
@@ -354,7 +354,7 @@ SourceReader: class extends Reader {
         
         while(hasNext()) {
             for(candidate: String in candidates) {
-                if(matches(candidate, keepEnd, SENSITIVE)) {
+                if(matches(candidate, keepEnd, This SENSITIVE)) {
                     if(keepEnd) {
                         sB append(candidate)
                     }
@@ -373,7 +373,7 @@ SourceReader: class extends Reader {
     }
     
     readMultiComment: func {
-        while (!matches("*/", true, SENSITIVE)) 
+        while (!matches("*/", true, This SENSITIVE)) 
             read()
     }
     

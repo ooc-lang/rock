@@ -13,12 +13,12 @@ StringLiteral: class extends Literal {
     
     accept: func (visitor: Visitor) { visitor visitStringLiteral(this) }
 
-    getType: func -> Type { type }
+    getType: func -> Type { This type }
     
     toString: func -> String { "\"" + value + "\"" }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        return type resolve(trail, res)
+        return This type resolve(trail, res)
     }
 
 }

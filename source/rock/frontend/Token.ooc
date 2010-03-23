@@ -37,12 +37,6 @@ Token: cover {
     
     toString: func -> String { "[%d, %d]" format(getStart(), getEnd()) }
     
-    /*
-    get: func(sReader: SourceReader) -> String {
-        return sReader getSlice(start, length)
-    }
-    */
-    
     throwWarning: func (message: String) {
         printMessage(message, "WARNING")
     }
