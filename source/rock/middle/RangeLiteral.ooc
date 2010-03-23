@@ -15,7 +15,7 @@ RangeLiteral: class extends Literal {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         {
-            response := super resolve(trail, res)
+            response := super(trail, res)
             if(!response ok()) return response
         }
         

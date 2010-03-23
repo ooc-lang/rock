@@ -25,14 +25,14 @@ InterfaceDecl: class extends ClassDecl {
     
     addFunction: func (fDecl: FunctionDecl) {
         if(fDecl getBody() isEmpty()) fDecl setAbstract(true)
-        super addFunction(fDecl)
+        super(fDecl)
     }
     
     getFatType: func -> CoverDecl { fatType }
     
     resolve: func(trail: Trail, res: Resolver) -> Response {
         
-        if(!super resolve(trail, res) ok()) return Responses LOOP
+        if(!super(trail, res) ok()) return Responses LOOP
         
         return fatType resolve(trail, res)
         

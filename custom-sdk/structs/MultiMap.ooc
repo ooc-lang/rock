@@ -3,88 +3,97 @@ import HashMap, ArrayList, List
 /**
  * A MultiMap allows a mapping from one key to several values
  */
-MultiMap: class <T> extends HashMap<T> {
+MultiMap: class <K, V> extends HashMap<K, V> {
 
     init: func ~multiMap {
-        super()
-        if(!T inheritsFrom(Object)) {
-            Exception new(This, "Can't create multimaps of %s, which doesn't inherit from Object" format(T name)) throw()
-        }
+        init(10)
     }
     
-    put: func (key: String, value: T) -> Bool {
-        already := super get(key) as Object
+    init: func ~multiMapWithCapa(.capacity) {
+        if(!V inheritsFrom(Object)) {
+            Exception new(This, "Can't create multimaps of %s, V must inherit from object." format(V name)) throw()
+        }
+        super(capacity)
+    }
+    
+    get: func ~_super (key: K) -> K {
+        super(key)
+    }
+    
+    put: func ~_super (key: K, value: V) -> Bool {
+        super(key, value)
+    }
+    
+    put: func (key: K, value: V) -> Bool {
+        already := get~_super(key) as Object
         if(already == null) {
             // First of the kind - just put it
-            super put(key, value)
+            put~_super(key, value)
         } else if(already instanceOf(List)) {
             // Already at least two - append to the list
-            list := already as List<T>
+            list := already as List<V>
             list add(value)
         } else {
             // Second of the kind - create a list
-            list := ArrayList<T> new()
+            list := ArrayList<V> new()
             list add(already)
             list add(value)
-            super put(key, list)
+            put~_super(key, list)
         }
-        
         return true
     }
     
-    remove: func (key: String) -> Bool {
-        already := super get(key) as Object
+    remove: func (key: K) -> Bool {
+        already := get~_super(key) as Object
         if(already == null) {
             // Doesn't contain it
             return false
         } else if (already instanceOf(List)) {
             // Already at least two - remove from the list, from last to first
-            list := already as List<T>
+            list := already as List<V>
             list removeAt(list lastIndex())
             if(list size() == 1) {
                 // Only one left - turn the list into a single element
-                super put(key, list first())
+                put~_super(key, list first())
             }
         } else {
             // Only one - remove it
-            return super remove(key)
+            return super(key)
         }
-        // work-around
-        return false
     }
     
-    getAll: func (key: String) -> T {
-        super get(key)
+    getAll: func (key: K) -> V {
+        get~_super(key)
     }
     
-    get: func (key: String) -> T {
-        val := super get(key) as Object
+    get: func (key: K) -> V {
+        val := super(key) as Object
         if(val == null) {
             return val
         } else if(val instanceOf(List)) {
-            list := val as List<T>
+            list := val as List<V>
             return list last()
         }
         return val
     }
     
-    iterator: func -> Iterator<T> {
-        MultiMapValueIterator<T> new(this)
+    iterator: func -> Iterator<V> {
+        MultiMapValueIterator<K, V> new(this)
     }
 
 }
 
-MultiMapValueIterator: class <T> extends Iterator<T> {
+MultiMapValueIterator: class <K, V> extends Iterator<V> {
 
-    map: MultiMap<T>
+    map: MultiMap<K, V>
     index := 0
-    sub : Iterator<T>
+    sub : Iterator<V>
     
     init: func(=map) {}
     
     hasNext: func -> Bool { index < map getKeys() size() && (sub == null || sub hasNext()) }
     
-    next: func -> T {
+    next: func -> V {
 
         // not in list mode
         if(!sub) {
@@ -93,7 +102,7 @@ MultiMapValueIterator: class <T> extends Iterator<T> {
             val := map getAll(key) as Object
             if(val instanceOf(List)) {
                 // switch in list mode
-                sub = val as List<T> iterator()
+                sub = val as List<V> iterator()
             } else {
                 // no list - go to next element and return
                 index += 1
@@ -119,7 +128,7 @@ MultiMapValueIterator: class <T> extends Iterator<T> {
     
     hasPrev: func -> Bool { false }
     
-    prev: func -> T {
+    prev: func -> V {
         null
     }
     
@@ -129,10 +138,10 @@ MultiMapValueIterator: class <T> extends Iterator<T> {
     
 }
 
-operator [] <T> (map: MultiMap<T>, key: String) -> T {
+operator [] <K, V> (map: MultiMap<K, V>, key: K) -> V {
     map get(key)
 }
 
-operator []= <T> (map: MultiMap<T>, key: String, value: T) {
+operator []= <K, V> (map: MultiMap<K, V>, key: K, value: V) {
     map put(key, value)
 }

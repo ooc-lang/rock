@@ -31,7 +31,7 @@ ArrayAccess: class extends Expression {
             arrAcc setIndex(BinaryOp new(arrAcc getIndex(), sizeAcc, OpTypes mul, arrAcc token))
             return AddressOf new(arrAcc, arrAcc token)
         }
-        return super getGenericOperand()
+        return super()
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {

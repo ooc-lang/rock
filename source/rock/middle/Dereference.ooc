@@ -19,7 +19,7 @@ Dereference: class extends Expression {
         if(expr getType() isGeneric() && expr getType() pointerLevel() > 0) {
             return expr
         }
-        return super getGenericOperand()
+        return super()
     }
     
     getType: func -> Type { expr getType() ? expr getType() dereference() : null }

@@ -430,7 +430,7 @@ PointerType: class extends SugarType {
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        return super resolve(trail, res)
+        return super(trail, res)
     }
     
     toString: func -> String { inner toString() + "*" }
@@ -476,7 +476,7 @@ ArrayType: class extends PointerType {
             }
         }
         
-        return super resolve(trail, res)
+        return super(trail, res)
         
     }
     

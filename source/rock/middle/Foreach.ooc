@@ -24,7 +24,7 @@ Foreach: class extends ControlStatement {
             case variable   => variable   = kiddo; replaced = true; return true
             case collection => collection = kiddo; return true
         }
-        return super replace(oldie, kiddo)
+        return super(oldie, kiddo)
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
@@ -117,7 +117,7 @@ Foreach: class extends ControlStatement {
             return Responses OK
         }
         
-        return super resolve(trail, res)
+        return super(trail, res)
         
     }
     
@@ -127,7 +127,7 @@ Foreach: class extends ControlStatement {
             vDecl := variable as VariableDecl
             if(vDecl name == access name && access suggest(vDecl)) return
         }
-        super resolveAccess(access)
+        super(access)
         
     }
     

@@ -19,7 +19,7 @@ Conditional: abstract class extends ControlStatement {
             }
         }
         
-        return super resolve(trail, res)
+        return super(trail, res)
         
     }
     
@@ -29,7 +29,7 @@ Conditional: abstract class extends ControlStatement {
             return true
         }
         
-        return super replace(oldie, kiddo)
+        return super(oldie, kiddo)
     }
     
     isDeadEnd: func -> Bool { true }

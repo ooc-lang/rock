@@ -7,7 +7,7 @@ Argument: abstract class extends VariableDecl {
     
     init: func ~argument (.type, .name, .token) { super(type, name, token) }
     
-    toString: func -> String { name isEmpty() ? type toString() : super toString() }
+    toString: func -> String { name isEmpty() ? type toString() : super() }
     
 }
 
@@ -76,7 +76,7 @@ AssArg: class extends DotArg {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        super resolve(trail, res)
+        super(trail, res)
         
         if(unwrapped) return Responses OK
         

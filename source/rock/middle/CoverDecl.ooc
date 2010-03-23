@@ -24,7 +24,7 @@ CoverDecl: class extends TypeDecl {
     addFunction: func (fDecl: FunctionDecl) {
         
         fDecl isFinal = true
-        super addFunction(fDecl)
+        super(fDecl)
         
     }
     
@@ -32,7 +32,7 @@ CoverDecl: class extends TypeDecl {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         {
-            response := super resolve(trail, res)
+            response := super(trail, res)
             if(!response ok()) return response
         }
         

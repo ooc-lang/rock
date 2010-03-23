@@ -55,7 +55,7 @@ ClassDecl: class extends TypeDecl {
 	    }
     
         {
-            response := super resolve(trail, res)
+            response := super(trail, res)
             if(!response ok()) return response
         }
         
@@ -116,7 +116,7 @@ ClassDecl: class extends TypeDecl {
             }
         }
 	
-		super addFunction(fDecl)
+		super(fDecl)
         
     }
 

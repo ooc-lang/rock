@@ -27,7 +27,7 @@ InterfaceImpl: class extends ClassDecl {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
-        if(!super resolve(trail, res) ok()) return Responses LOOP
+        if(!super(trail, res) ok()) return Responses LOOP
         
         ref := superType getRef() as TypeDecl
         if(ref == null) return Responses LOOP

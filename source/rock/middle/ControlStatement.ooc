@@ -7,7 +7,7 @@ ControlStatement: abstract class extends Statement {
 
     body := Scope new()
     
-    init: func (.token) { super(token) }
+    init: func ~controlStatement (.token) { super(token) }
     
     resolveAccess: func (access: VariableAccess) {
         body resolveAccess(access)

@@ -1,33 +1,33 @@
-import MultiMap, ArrayList
+import MultiMap, HashMap, ArrayList
 
-OrderedMultiMap: class <T> extends MultiMap<T> {
+OrderedMultiMap: class <K, V> extends MultiMap<K, V> {
     
-    orderedKeys := ArrayList<String> new()
+    orderedKeys := ArrayList<K> new()
     
     // MultiMapValueIterator uses getKeys(), so it will iterate in order =)
-    getKeys: func -> ArrayList<String> { orderedKeys }
+    getKeys: func -> ArrayList<K> { orderedKeys }
     
-    _containsKey: func (key: String) -> Bool {
+    _containsKey: func (key: K) -> Bool {
         result := false
         for(candidate in orderedKeys) {
-            if(candidate equals(key)) {
+            if((this as HashMap<K, V>) keyEquals(candidate, key)) {
                 result = true; break
             }
         }
         return result
     }
     
-    put: func (key: String, value: T) -> Bool {
+    put: func (key: K, value: V) -> Bool {
         // in a MultiMap, the same key can have several values
         // we only add the key to the list if there's no value for this key yet
         if(!_containsKey(key)) {
             orderedKeys add(key)
         }
-        return super put(key clone(), value)
+        return super(key, value)
     }
     
-    remove: func (key: String) -> Bool {
-        super remove(key)
+    remove: func (key: K) -> Bool {
+        super(key)
         // in a MultiMap, the same key can have several values
         // we only remove the key from the list if there are no values left
         if(!contains(key)) {
