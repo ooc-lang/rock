@@ -131,7 +131,7 @@ ArrayLiteral: class extends Literal {
             block getBody() add(addCall)
         }
         
-        if(!grandpa addAfter(parent, block)) {
+        if(!trail addAfterInScope(parent, block)) {
             if(grandpa instanceOf(ClassDecl) && parent instanceOf(VariableDecl)) {
                 cDecl := grandpa as ClassDecl
                 vDecl := parent as VariableDecl
