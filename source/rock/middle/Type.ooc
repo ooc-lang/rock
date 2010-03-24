@@ -147,8 +147,9 @@ FuncType: class extends Type {
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
+        trail push(this)
+        
         if(typeArgs && !typeArgs isEmpty()) {
-            trail push(this)
             for(typeArg in typeArgs) {
                 response := typeArg resolve(trail, res)
                 if(!response ok()) {
@@ -156,8 +157,16 @@ FuncType: class extends Type {
                     return response
                 }
             }
-            trail pop(this)
         }
+        
+        for(argType in argTypes) {
+            response := argType resolve(trail, res)
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
+        }
+        trail pop(this)
         
         if(!cached) {
             cached = true
