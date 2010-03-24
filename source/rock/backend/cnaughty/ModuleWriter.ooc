@@ -42,7 +42,7 @@ ModuleWriter: abstract class extends Skeleton {
         // write imports' includes
         imports := classifyImports(this, module)
         for(imp in imports) {
-            inc := imp getModule() getPath(imp isTight ? ".h" : "-fwd.h")
+            inc := imp getModule() getPath("-fwd.h")
             current nl(). app("#include <"). app(inc). app(">")
         }
         
@@ -76,11 +76,28 @@ ModuleWriter: abstract class extends Skeleton {
         current nl(). app("#define "). app(hName). nl()
 
         current nl(). app("#include \""). app(module simpleName). app("-fwd.h\""). nl()
+        
+		// include .h-level imports (which contains types we extend)
+        for(imp in imports) {
+            if(!imp isTight()) continue
+            inc := imp getModule() getPath(".h")
+            current nl(). app("#include <"). app(inc). app(">")
+        }
+        current nl()
 
         /* write the .c file */
         current = cw
+        
         // write include to the module's. h file
         current nl(). app("#include \""). app(module simpleName). app(".h\""). nl()
+        
+        // now loose imports, in the .c it's safe =)
+        for(imp in imports) {
+            if(imp isTight()) continue
+            inc := imp getModule() getPath(".h")
+            current nl(). app("#include <"). app(inc). app(">")
+        }
+        current nl()
 
         // write all types, non-metas first, then metas
         for(tDecl: TypeDecl in module types) {

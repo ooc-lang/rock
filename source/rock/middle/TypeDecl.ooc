@@ -58,14 +58,14 @@ TypeDecl: abstract class extends Declaration {
             setSuperType(BaseType new("Object", token))
         }
     }
+    
+    init: func ~typeDecl (.name, .superType, .token) {
+        init(name, token)
+        setSuperType(superType)
+    }
 
     getFullName: func -> String {
         underName()
-    }
-    
-    init: func ~typeDecl (.name, =superType, .token) {
-        this(name, token)
-        setSuperType(superType)
     }
     
     setSuperType: func(=superType) {
@@ -74,7 +74,7 @@ TypeDecl: abstract class extends Declaration {
             if(superType getName() == "Object" && name != "Class") {
                 meta setSuperType(BaseType new("ClassClass", nullToken))
             } else {
-                meta setSuperType(BaseType new(this superType getName() + "Class", nullToken))
+                meta setSuperType(BaseType new(superType getName() + "Class", nullToken))
             }
         }
     }
