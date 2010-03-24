@@ -8,7 +8,7 @@ CoverDecl: class extends TypeDecl {
     fromType: Type
     
     init: func ~coverDeclNoSuper(.name, .token) {
-        super(name, token)
+        init(name, null, token)
     }
     
     init: func ~coverDecl(.name, .superType, .token) {
@@ -22,10 +22,8 @@ CoverDecl: class extends TypeDecl {
     
     // all functions of a cover are final, because we don't have a 'class' field
     addFunction: func (fDecl: FunctionDecl) {
-        
         fDecl isFinal = true
         super(fDecl)
-        
     }
     
     isAddon: func -> Bool { false }

@@ -1,6 +1,6 @@
 import structs/[List, ArrayList, HashMap]
 import ../../middle/[ClassDecl, FunctionDecl, VariableDecl, TypeDecl,
-        Type, Node, InterfaceDecl, InterfaceImpl]
+        Type, Node, InterfaceDecl, InterfaceImpl, CoverDecl]
 import Skeleton, FunctionDeclWriter, CGenerator, VersionWriter
 
 ClassDeclWriter: abstract class extends CGenerator {
@@ -61,10 +61,10 @@ ClassDeclWriter: abstract class extends CGenerator {
     
     writeObjectStruct: static func (this: This, cDecl: ClassDecl) {
         
-        current nl(). app("struct _"). app(cDecl underName()). app(' '). openBlock(). nl()
+        current nl(). app("struct _"). app(cDecl underName()). app(' '). openBlock()
 
-        if (!(cDecl name equals("Object"))) {
-            current app("struct _"). app(cDecl getSuperRef() underName()). app(" __super__;")
+        if (cDecl name != "Object" && cDecl getSuperRef() != null) {
+            current nl(). app("struct _"). app(cDecl getSuperRef() underName()). app(" __super__;")
         }
         
         for(vDecl in cDecl variables) {

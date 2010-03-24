@@ -320,6 +320,9 @@ BaseType: class extends Type {
             return scoreSeed
         }
         if(other instanceOf(BaseType)) {
+            if(getRef() != null && other getRef() != null) {
+                if(getRef() == other getRef()) return true
+            }
             return (other getName() equals(getName()) ? scoreSeed : NOLUCK_SCORE)
         }
         return NOLUCK_SCORE // no luck.
@@ -474,6 +477,9 @@ ArrayType: class extends PointerType {
                     vd setExpr(fCall)
                 }
             }
+        } else {
+            response := expr resolve(trail, res)
+            if(!response ok()) return response
         }
         
         return super(trail, res)

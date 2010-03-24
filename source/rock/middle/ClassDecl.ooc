@@ -17,11 +17,11 @@ ClassDecl: class extends TypeDecl {
     defaultInit := null as FunctionDecl
     
     init: func ~classDeclNoSuper(.name, .token) {
-        super(name, token)
+        init(name, null, token)
     }
     
     init: func ~classDeclNotMeta(.name, .superType, .token) {
-        this(name, superType, false, token)
+        init(name, superType, false, token)
     }
 
     init: func ~classDecl(.name, .superType, =isMeta, .token) {
