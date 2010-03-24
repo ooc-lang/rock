@@ -48,8 +48,9 @@ PipeUnix: class extends Pipe {
     /** read 'len' bytes at most from the pipe */
     read: func(len: Int) -> Pointer {
         //return readFD read(len)
-        buf := gc_malloc(len)
-        read(readFD, buf, len)
+        buf := String new(len)
+        howmuch := read(readFD, buf, len)
+        buf[howmuch] = '\0'
         return buf
     }
     
