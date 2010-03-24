@@ -175,7 +175,8 @@ VariableDecl: class extends Declaration {
                 }
                 
                 res wholeAgain(this, "parent isn't scope nor typedecl, unwrapped")
-                return Responses OK
+                //return Responses OK
+                return Responses LOOP
             }
         }
 

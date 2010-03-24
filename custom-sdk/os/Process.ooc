@@ -11,7 +11,7 @@ Process: abstract class {
     stdIn  = null: Pipe
     stdErr = null: Pipe
     buf : String*
-    env: HashMap<String>
+    env: HashMap<String, String>
     cwd: String
 
     new: static func (args: ArrayList<String>) -> This {

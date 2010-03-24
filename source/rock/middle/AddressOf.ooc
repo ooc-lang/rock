@@ -35,8 +35,7 @@ AddressOf: class extends Expression {
         
         if(!expr isReferencable()) {
             expr = VariableDecl new(null, generateTempName("wakaref"), expr, expr token)
-            if(res params verbose) printf("LOOPing because %s has been replaced by a VDecl\n", toString())
-            return Responses LOOP
+            res wholeAgain(this, "replaced expr with varDecl, need to unwrap")
         }
         
         return Responses OK

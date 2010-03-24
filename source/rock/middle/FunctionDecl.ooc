@@ -340,7 +340,7 @@ FunctionDecl: class extends Declaration {
             if(cStat isDeadEnd()) {
                 autoReturnExplore(trail, res, cStat getBody())
                 if(cStat instanceOf(Else) && index > 0 && scope get(index - 1) instanceOf(Conditional)) {
-                    printf("[autoReturn] Should handle the if too!\n")
+                    //printf("[autoReturn] Should handle the if too!\n")
                     handleLastStatement(trail, res, scope, index - 1)
                 }
             } else {

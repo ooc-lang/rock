@@ -26,7 +26,7 @@ Resolver: class {
     }
     
     wholeAgain: func (node: Node, reason: String) {
-        if(params veryVerbose) printf("%s (of type %s) wants to wholeAgain() because '%s'\n", node toString(), node class name, reason)
+        if(params debugLoop) printf("LOOP %s : %s because '%s'\n", node toString(), node class name, reason)
         wholeAgain = true
     }
     

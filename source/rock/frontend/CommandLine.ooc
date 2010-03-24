@@ -73,6 +73,10 @@ CommandLine: class {
                 } else if (option == "c") {
                     
                     params link = false
+        
+                } else if(option == "debugloop") {
+
+                    params debugLoop = true
                     
                 } else if (option startsWith("L")) {
                     

@@ -351,7 +351,7 @@ TypeDecl: abstract class extends Declaration {
         for(vDecl in variables) {
             response := vDecl resolve(trail, res)
             if(!response ok()) {
-                if(res params verbose) printf("Response of vDecl %s = %s\n", vDecl toString(), response toString())
+                if(res params veryVerbose) printf("Response of vDecl %s = %s\n", vDecl toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -360,7 +360,7 @@ TypeDecl: abstract class extends Declaration {
         for(fDecl in functions) {
             response := fDecl resolve(trail, res)
             if(!response ok()) {
-                if(res params verbose) printf("Response of fDecl %s = %s\n", fDecl toString(), response toString())
+                if(res params veryVerbose) printf("Response of fDecl %s = %s\n", fDecl toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -370,7 +370,7 @@ TypeDecl: abstract class extends Declaration {
             meta module = module
             response := meta resolve(trail, res)
             if(!response ok()) {
-                if(res params verbose) printf("-- %s, meta of %s, isn't resolved, looping.\n", meta toString(), toString())
+                if(res params veryVerbose) printf("-- %s, meta of %s, isn't resolved, looping.\n", meta toString(), toString())
                 trail pop(this)
                 return response
             }
@@ -380,7 +380,7 @@ TypeDecl: abstract class extends Declaration {
         for(interfaceType in interfaceTypes) {
             response := interfaceType resolve(trail, res)
             if(!response ok()) {
-                if(res params verbose) printf("-- %s, interfaceType of %s, isn't resolved, looping.\n", interfaceType toString(), toString())
+                if(res params veryVerbose) printf("-- %s, interfaceType of %s, isn't resolved, looping.\n", interfaceType toString(), toString())
                 trail pop(this)
                 return response
             }
@@ -401,7 +401,7 @@ TypeDecl: abstract class extends Declaration {
                 response = interfaceDecl getMeta() resolve(trail, res)
             }
             if(!response ok()) {
-                if(res params verbose) printf("-- %s, interfaceDecl, isn't resolved, looping.\n", interfaceDecl toString(), toString())
+                if(res params veryVerbose) printf("-- %s, interfaceDecl, isn't resolved, looping.\n", interfaceDecl toString(), toString())
                 trail pop(this)
                 return response
             }

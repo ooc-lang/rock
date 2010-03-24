@@ -9,6 +9,6 @@ Block: class extends ControlStatement {
 
     accept: func (v: Visitor) { v visitBlock(this) }
     
-    toString: func -> String { "{}" }
+    toString: func -> String { getBody() toString() }
     
 }

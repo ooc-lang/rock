@@ -1,5 +1,5 @@
-//import structs/[List, ArrayList] /* for Iterable<T> toArrayList */
-//import text/Buffer /* for String replace ~string */
+import structs/[List, ArrayList] /* for Iterable<T> toArrayList */
+import text/Buffer /* for String replace ~string */
 
 include stddef, stdlib, stdio, ctype, stdint, stdbool
 include float
@@ -635,7 +635,6 @@ String: cover from Char* {
     }
 
     /** clone myself, return all occurences of *oldie* with *kiddo* and return it. */
-    /*
     replace: func ~string (oldie, kiddo: This) -> This {
         if(!contains(oldie)) return this
 
@@ -649,14 +648,13 @@ String: cover from Char* {
                 buffer append(kiddo)
                 i += oldieLength
             } else {
-                // TODO optimize: don't appepnd char by char, append chunk by chunk.
-                buffer append(this as Char* [i])
+                // TODO optimize: don't append char by char, append chunk by chunk.
+                buffer append((this as Char*)[i])
                 i += 1
             }
         }
         buffer toString()
     }
-    */
 
     /** return a new string containg *other* followed by *this*. */
     prepend: func (other: This) -> This {
@@ -914,7 +912,6 @@ Iterable: abstract class <T> {
     iterator: abstract func -> Iterator<T>
 
     /** return the contents of the iterable as ArrayList. */
-    /*
     toArrayList: func -> ArrayList<T> {
         result := ArrayList<T> new()
         for(elem: T in this) {
@@ -922,7 +919,6 @@ Iterable: abstract class <T> {
         }
         result
     }
-    */
     
 }
 

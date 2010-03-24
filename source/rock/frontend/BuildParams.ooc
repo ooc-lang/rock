@@ -57,6 +57,9 @@ BuildParams: class {
     // More debug messages
     veryVerbose: Bool = false
     
+    // Debugging purposes
+    debugLoop: Bool = false
+    
     // Displays [ OK ] or [FAIL] at the end of the compilation
     //shout: Bool = false
     shout: Bool = true // true as long as we're debugging

@@ -29,9 +29,7 @@ AstBuilder: class {
 
     init: func (=modulePath, =module, =params) {
 
-        if(params verbose) {
-            printf("- Parsing %s (for module %s)\n", modulePath, module fullName)
-        }
+        if(params verbose) printf("- Parsing %s\n", modulePath)
         This cache put(modulePath, module)
 
         stack = Stack<Node> new()

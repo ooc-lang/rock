@@ -52,7 +52,7 @@ ProcessUnix: class extends Process {
             }
             /* amend the environment if needed */
             if(this env) {
-                for(key: String in this env keys) {
+                for(key in this env getKeys()) {
                     Env set(key, env[key], true)
                 }
             }

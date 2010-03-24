@@ -64,7 +64,7 @@ VariableAccess: class extends Expression {
 	    return false
     }
     
-    isResolved: func -> Bool { ref != null }
+    isResolved: func -> Bool { ref != null && getType() != null }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
@@ -140,7 +140,7 @@ VariableAccess: class extends Expression {
                 println("trail = " + trail toString())
                 token throwError("No such variable %s" format(toString()))
             }
-            if(res params verbose) {
+            if(res params veryVerbose) {
                 printf("     - access to %s%s still not resolved, looping (ref = %s)\n", \
                 expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)")
             }

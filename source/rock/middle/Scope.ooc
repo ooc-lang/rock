@@ -56,7 +56,7 @@ Scope: class extends Node {
         for(stat in this) {
             response := stat resolve(trail, res)
             if(!response ok()) {
-                if(res params verbose) printf("Response of statement [%s] %s = %s\n", stat class name, stat toString(), response toString())
+                if(res params veryVerbose) printf("Response of statement [%s] %s = %s\n", stat class name, stat toString(), response toString())
                 trail pop(this)
                 return response
             }

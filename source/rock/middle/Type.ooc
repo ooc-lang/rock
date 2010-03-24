@@ -282,6 +282,13 @@ BaseType: class extends Type {
                 printf("     - type %s still not resolved, looping (ref = %p)\n", name, ref)
             }
             return Responses LOOP
+        } else if(ref instanceOf(TypeDecl)) {
+            tDecl := ref as TypeDecl
+            if(!tDecl isMeta && !tDecl getTypeArgs() isEmpty()) {
+                if(typeArgs == null || typeArgs size() != tDecl getTypeArgs() size()) {
+                    token throwError("Missing type parameters for "+toString()+". It should match "+tDecl getInstanceType() toString())
+                }
+            }
         }
         
         if(typeArgs) {
