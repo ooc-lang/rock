@@ -64,15 +64,13 @@ Foreach: class extends ControlStatement {
             }
             collection getType() resolve(trail, res)
 
-            printf("Turning %s into a While, collection is a %s, and its type is %s and its type ref is %s!\n", toString(), collection class name, collection getType() toString(), collection getType() getRef() ? collection getType() getRef() toString() : "(nil)")
-            
             iterCall := FunctionCall new(collection, "iterator", token)
             
             response := Responses LOOP
             while(response == Responses LOOP) {
                 response = iterCall resolve(trail, res)
             }
-            printf("iterCall = %s, ref = %s\n", iterCall toString(), iterCall getRef() ? iterCall getRef() toString() : "(nil)")
+            //printf("iterCall = %s, ref = %s\n", iterCall toString(), iterCall getRef() ? iterCall getRef() toString() : "(nil)")
             
             iterType := iterCall getType()
             if(iterType == null) {
@@ -124,7 +122,6 @@ Foreach: class extends ControlStatement {
                             
             //res wholeAgain(this, "Just turned into a while =)")
             //return Responses OK
-            printf("Just turned into a while, looping\n")
             return Responses LOOP
         }
         

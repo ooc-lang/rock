@@ -7,6 +7,7 @@ import text/Buffer
 
 ArrayLiteral: class extends Literal {
 
+    unwrapped := false
     elements := ArrayList<Expression> new()
     type : Type = null
     
@@ -46,17 +47,12 @@ ArrayLiteral: class extends Literal {
                 parentIdx += 1
                 grandpa := trail peek(parentIdx)
                 
-                // bitchjump the cast & move up in the node hierarchy
-                grandpa replace(parent, this)
-                parent = grandpa
-                grandpa = trail peek(parentIdx + 1)
-                
                 if(type == null)  {
                     type = cast getType()
                     if(type != null) {
                         if(res params veryVerbose) printf(">> Inferred type %s of %s by outer cast %s\n", type toString(), toString(), parent toString())
-                        response := unwrapToArrayList(trail, res, parent, grandpa)
-                        if(!response ok()) return response
+                        // bitchjump the cast
+                        grandpa replace(parent, this)
                     }
                 }
             }
@@ -84,28 +80,33 @@ ArrayLiteral: class extends Literal {
                 
             type = BaseType new("ArrayList", token)
             type addTypeArg(innerType)
-            printf("Inferred type %s for %s\n", type toString(), toString())
-            
-            return unwrapToArrayList(trail, res, trail peek(), trail peek(2))
+            if(res params veryVerbose) printf("Inferred type %s for %s\n", type toString(), toString())
         }
         
-        if(type != null) return type resolve(trail, res)
+        if(type != null) {
+            response := type resolve(trail, res)
+            if(!response ok()) return response
+            
+            if(!unwrapped) {
+                parentIdx := 1
+                while(trail peek(parentIdx) instanceOf(Cast)) parentIdx+= 1
+                
+                response = unwrapToArrayList(trail, res, trail peek(parentIdx), trail peek(parentIdx + 1))
+                if(!response ok()) return response
+            }
+        }
         
         return Responses OK
         
     }
     
+    // TODO: refactor..
     unwrapToArrayList: func (trail: Trail, res: Resolver, parent, grandpa: Node) -> Response {
         
-        /*if(res params veryVerbose)*/ printf("Unwrapping %s to ArrayList, parent = %s, grandpa = %s\n", toString(), parent toString(), grandpa toString())
-        
         realParent := trail peek()
-        printf("realParent = %s\n", realParent toString())
-        
-        printf("Replacing with new\n")
         newCall := FunctionCall new(type, "new", token)
         
-        expr : Expression = this
+        expr : Expression = parent
         if(expr instanceOf(VariableDecl)) {
             if(!parent replace(this, newCall)) {
                 token throwError("Couldn't replace %s with %s in %s\n" format(toString(), newCall toString(), parent toString()))
@@ -121,11 +122,11 @@ ArrayLiteral: class extends Literal {
                 }
             }
             expr = vAcc
-        } else  {
-            printf("parent isn't VariableDecl, unwrapping\n")
+        } else {
+            // not in a variable-decl = need to unwrap.
             varDecl := VariableDecl new(type, generateTempName("arrLit"), newCall, token)
             if(!trail addBeforeInScope(realParent, varDecl)) {
-                if(res fatal) token throwError("Couldn't add " + varDecl toString() + " before " + parent toString() + " in scope")
+                if(res fatal) token throwError("Couldn't add " + varDecl toString() + " before " + parent toString() + " in " + trail toString())
                 return Responses LOOP
             }
             expr = VariableAccess new(varDecl, token)
@@ -143,8 +144,9 @@ ArrayLiteral: class extends Literal {
             block getBody() add(addCall)
         }
         
-        printf("expr = %s, parent = %s, trail = %s\n", expr toString(), parent toString(), trail toString())
-        if(!trail addBeforeInScope(realParent, block)) {
+        // if we're in a varDecl, the initialization is done after. If we're somewhere else, we need to initialize before!
+        result := (realParent instanceOf(VariableDecl) ? trail addAfterInScope(realParent, block) : trail addBeforeInScope(realParent, block))
+        if(!result) {
             if(grandpa instanceOf(ClassDecl) && parent instanceOf(VariableDecl)) {
                 cDecl := grandpa as ClassDecl
                 vDecl := parent as VariableDecl
@@ -156,7 +158,8 @@ ArrayLiteral: class extends Literal {
                 return Responses LOOP
             }
         }
-        
+
+        unwrapped = true
         res wholeAgain(this, "just replaced")
         return Responses OK
         
