@@ -116,7 +116,6 @@ AstBuilder: class {
     }
 
     onUse: unmangled(nq_onUse) func (identifier: String) {
-        printf("Got use %s for module %s\n", identifier, module getFullName())
         module addUse(Use new(identifier, params, token()))
     }
 

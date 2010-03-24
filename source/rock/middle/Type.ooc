@@ -488,7 +488,6 @@ ArrayType: class extends PointerType {
             if(parent instanceOf(VariableDecl)) {
                 vd := parent as VariableDecl
                 if(!vd isArg && vd getType() == kiddo) {
-                    printf("Should add initializer to %s\n", vd toString())
                     fCall := FunctionCall new(kiddo, "new", token)
                     vd setExpr(fCall)
                 }

@@ -40,7 +40,7 @@ CombineDriver: class extends Driver {
             }
             libs := getFlagsFromUse(module)
             for(lib in libs) {
-                printf("[CombineDriver] Adding lib %s from use\n", lib)
+                //printf("[CombineDriver] Adding lib %s from use\n", lib)
                 params compiler addObjectFile(lib)
             }
             

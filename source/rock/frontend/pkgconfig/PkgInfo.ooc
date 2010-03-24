@@ -29,7 +29,7 @@ PkgInfo: class {
 	 * Create a new Package info
 	 */
     init: func (=name, =libsString, =cflagsString) {
-        printf("Created PkgInfo %s, %s, %s\n", name, libsString, cflagsString)
+        //printf("Created PkgInfo %s, %s, %s\n", name, libsString, cflagsString)
         
 		extractTokens("-l", libsString, libraries);
 		extractTokens("-I", cflagsString, includePaths);

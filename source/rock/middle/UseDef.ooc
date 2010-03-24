@@ -123,13 +123,12 @@ UseDef: class {
                     requirements add(Requirement new(req trim(), "0")) // TODO: Version support!
                 }
             } else if(id == "SourcePath") {
-                printf("value = %s, file = %s\n", value, file getPath())
                 sourcePathFile := File new(value)
                 if(sourcePathFile isRelative()) {
                     /* is relative. TODO: better check? */
                     sourcePathFile = file parent() getChild(value) getAbsoluteFile()
                 }
-                if(params verbose) "Adding %s to sourcepath ..." format(sourcePathFile path) println()
+                if(params veryVerbose) "Adding %s to sourcepath ..." format(sourcePathFile path) println()
                 params sourcePath add(sourcePathFile path)
             }
             reader hasWhitespace(true)

@@ -58,8 +58,6 @@ ControlStatementWriter: abstract class extends Skeleton {
     }
     
     write: static func ~_match (this: This, mat: Match) {
-        printf("Writing match with %d cases\n", mat getCases() size())
-        
         isFirst := true
 		for(caze in mat getCases()) {
 			if(!isFirst) current app(" else ")
