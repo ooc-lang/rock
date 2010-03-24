@@ -13,7 +13,7 @@ LinkedList: class <T> extends List<T> {
 	first: Node<T>
 	last: Node<T>
 	
-	init: func {
+	init: func ~ll {
 		first = null
 		last = null
 	}
@@ -247,7 +247,7 @@ LinkedListIterator: class <T> extends Iterator<T>  {
 	current: Node<T>
 	list: LinkedList<T>
 	
-	init: func(=list) {
+	init: func ~ll (=list) {
 		current = list first
 	}
 	
