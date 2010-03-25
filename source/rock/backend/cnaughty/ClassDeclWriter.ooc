@@ -36,7 +36,11 @@ ClassDeclWriter: abstract class extends CGenerator {
                 if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
             }
 
-            writeClassGettingFunction(this, cDecl)
+            // don't write class-getting functions of extern covers - it hurts
+            if(cDecl getNonMeta() == null || !cDecl getNonMeta() instanceOf(CoverDecl) || !cDecl getNonMeta() as CoverDecl isExtern()) {
+                writeClassGettingFunction(this, cDecl)
+            }
+            
             if(cDecl getVersion()) VersionWriter writeEnd(this)
             
             for(interfaceDecl in cDecl getNonMeta() getInterfaceDecls()) {

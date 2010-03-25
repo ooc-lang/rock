@@ -23,8 +23,6 @@ SequenceDriver: class extends Driver {
 		
 		for(currentModule in toCompile) {
             
-            printf("[%s] Compiling %s\n", This name, currentModule getFullName())
-            
             initCompiler(params compiler)    
             params compiler setCompileOnly()
             
