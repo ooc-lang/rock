@@ -154,7 +154,8 @@ ClassDeclWriter: abstract class extends CGenerator {
             
             if(decl getName() == ClassDecl LOAD_FUNC_NAME) {
                 superRef := cDecl getSuperRef()
-            	superLoad := superRef getFunction(ClassDecl LOAD_FUNC_NAME, null, null)
+                finalScore: Int
+            	superLoad := superRef getFunction(ClassDecl LOAD_FUNC_NAME, null, null, finalScore&)
             	if(superLoad) {
 					FunctionDeclWriter writeFullName(this, superLoad)
 					current app("_impl(("). app(superLoad owner getInstanceType()). app(") this);")
@@ -215,7 +216,8 @@ ClassDeclWriter: abstract class extends CGenerator {
 
             if(decl getName() == ClassDecl DEFAULTS_FUNC_NAME) {
             	superRef := cDecl getSuperRef()
-            	superDefaults := superRef getFunction(ClassDecl DEFAULTS_FUNC_NAME, null, null)
+                finalScore: Int
+            	superDefaults := superRef getFunction(ClassDecl DEFAULTS_FUNC_NAME, null, null, finalScore&)
             	if(superDefaults) {
 					FunctionDeclWriter writeFullName(this, superDefaults)
 					current app("_impl(("). app(superDefaults owner getInstanceType()). app(") this);")

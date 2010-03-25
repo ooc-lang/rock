@@ -148,7 +148,6 @@ CommandLine: class {
                     if(driverName == "combine") {
                         driver = CombineDriver new(params) 
                     } else if (driverName == "sequence") {
-                        printf("Switched to SequenceDriver!\n")
                         driver = SequenceDriver new(params) 
                     } else {
                         ("Unknown driver: " + driverName) println()

@@ -210,26 +210,30 @@ TypeDecl: abstract class extends Declaration {
         superType ? superType getRef() : null
     }
     
-    getFunction: func ~call (call: FunctionCall) -> FunctionDecl {
-        return getFunction(call name, call suffix, call)
+    getFunction: func ~call (call: FunctionCall, finalScore: Int@) -> FunctionDecl {
+        return getFunction(call name, call suffix, call, finalScore&)
     }
     
-    getFunction: func ~nameSuffCall (name, suffix: String, call: FunctionCall) -> FunctionDecl {
-        return getFunction(name, suffix, call, true);
+    getFunction: func ~nameSuffCall (name, suffix: String, call: FunctionCall, finalScore: Int@) -> FunctionDecl {
+        return getFunction(name, suffix, call, true, finalScore&)
     }
     
-    getFunction: func ~nameSuffCallRec (name, suffix: String, call: FunctionCall, recursive: Bool) -> FunctionDecl {
-        return getFunction(name, suffix, call, recursive, 0, null)
+    getFunction: func ~nameSuffCallRec (name, suffix: String, call: FunctionCall, recursive: Bool, finalScore: Int@) -> FunctionDecl {
+        return getFunction(name, suffix, call, recursive, 0, null, finalScore&)
     }
     
     getFunction: func ~real (name, suffix: String, call: FunctionCall,
-        recursive: Bool, bestScore: Int, bestMatch: FunctionDecl) -> FunctionDecl {
+        recursive: Bool, bestScore: Int, bestMatch: FunctionDecl, finalScore: Int@) -> FunctionDecl {
 
         for(fDecl: FunctionDecl in functions) {
             if(fDecl name equals(name) && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix equals(suffix))) {
                 if(!call) return fDecl
                 score := call getScore(fDecl)
-                if(score == -1) return null // special score that means "something isn't resolved"
+                if(call debugCondition()) "Considering fDecl %s for fCall %s, score = %d\n" format(fDecl toString(), call toString(), score) println()
+                if(score == -1) {
+                    finalScore = -1
+                    return null // special score that means "something isn't resolved"
+                }
 
                 if(score > bestScore) {
                     bestScore = score
@@ -259,8 +263,9 @@ TypeDecl: abstract class extends Declaration {
         }
         
         if(recursive && getSuperRef() != null) {
-            return getSuperRef() getFunction(name, suffix, call, true, bestScore, bestMatch)
+            return getSuperRef() getFunction(name, suffix, call, true, bestScore, bestMatch, finalScore&)
         }
+        finalScore = bestScore
         return bestMatch
         
     }
@@ -464,7 +469,11 @@ TypeDecl: abstract class extends Declaration {
             }
         }
 
-		fDecl := getFunction(access name, null, null)
+        finalScore: Int
+		fDecl := getFunction(access name, null, null, finalScore&)
+        if(finalScore == -1) {
+            return // something's not resolved
+        }
 		if(fDecl) {
             //"&&&&&&&& Found fDecl %s for %s" format(fDecl toString(), access name) println()
             if(access suggest(fDecl)) {
@@ -481,23 +490,29 @@ TypeDecl: abstract class extends Declaration {
     
     resolveCall: func (call : FunctionCall) {
 
-		//printf("\n====> Search %s in %s\n", call toString(), name)
-        //for(f in functions) {
-        //    printf("  - Got %s!\n", f toString())
-        //}
+        if(call debugCondition()) {
+            printf("\n====> Search %s in %s\n", call toString(), name)
+            for(f in functions) {
+                printf("  - Got %s!\n", f toString())
+            }
+        }
         
-        fDecl := getFunction(call)
+        finalScore: Int
+        fDecl := getFunction(call, finalScore&)
+        if(finalScore == -1) {
+            return // something's not resolved
+        }
         if(fDecl) {
-            //"    \\o/ Found fDecl for %s, it's %s" format(call name, fDecl toString()) println()
+            if(call debugCondition()) "    \\o/ Found fDecl for %s, it's %s" format(call name, fDecl toString()) println()
             if(call suggest(fDecl)) {
 	            if(call getExpr() == null) {
 	            	call setExpr(VariableAccess new("this", call token))
             	}
-            	//"   returning..." println()
+            	if(call debugCondition()) "   returning..." println()
 	            return
             }
         } else if(getSuperRef() != null) {
-            //printf("  <== going in superRef %s\n", getSuperRef() toString())
+            if(call debugCondition()) printf("  <== going in superRef %s\n", getSuperRef() toString())
             getSuperRef() resolveCall(call)
         }
         

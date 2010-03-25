@@ -41,9 +41,14 @@ FunctionCall: class extends Expression {
         visitor visitFunctionCall(this)
     }
     
+    debugCondition: func -> Bool {
+        name == "new" && expr != null && expr toString() contains("GLConsole")
+    }
+    
     suggest: func (candidate: FunctionDecl) -> Bool {
         
-        //"** Got suggestion %s for %s" format(candidate toString(), toString()) println()
+        if(debugCondition()) "** Got suggestion %s for %s" format(candidate toString(), toString()) println()
+        
         if(isMember() && candidate owner == null) {
             //printf("** %s is no fit!, we need something to fit %s\n", candidate toString(), toString())
             return false
@@ -118,7 +123,12 @@ FunctionCall: class extends Expression {
         	if(name == "super") {
 				fDecl := trail get(trail find(FunctionDecl)) as FunctionDecl
                 superTypeDecl := fDecl owner getSuperRef()
-                ref = superTypeDecl getMeta() getFunction(fDecl getName(), null, this)
+                finalScore: Int
+                ref = superTypeDecl getMeta() getFunction(fDecl getName(), null, this, finalScore&)
+                if(finalScore == -1) {
+                    res wholeAgain(this, "something in our typedecl's functions needs resolving!")
+                    return Responses OK
+                }
                 refScore = 1
 				expr = VariableAccess new(superTypeDecl getThisDecl(), token)
         	} else {

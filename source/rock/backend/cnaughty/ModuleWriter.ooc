@@ -136,7 +136,8 @@ ModuleWriter: abstract class extends Skeleton {
         for (type in module types) {
             if(type instanceOf(ClassDecl)) {
                 cDecl := type as ClassDecl
-                loadFunc := cDecl getFunction(ClassDecl LOAD_FUNC_NAME, null, null)
+                finalScore: Int
+                loadFunc := cDecl getFunction(ClassDecl LOAD_FUNC_NAME, null, null, finalScore&)
                 if(loadFunc) {
                     if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
                     current nl(). app(loadFunc getFullName()). app("();")

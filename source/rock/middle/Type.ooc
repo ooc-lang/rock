@@ -206,7 +206,7 @@ BaseType: class extends Type {
     ref: Declaration = null
     name: String
     
-    typeArgs: List<VariableAccess>
+    typeArgs: List<VariableAccess> = null
     
     init: func ~baseType (=name, .token) { super(token) }
     
