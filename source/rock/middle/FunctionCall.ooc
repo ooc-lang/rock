@@ -42,7 +42,7 @@ FunctionCall: class extends Expression {
     }
     
     debugCondition: func -> Bool {
-        name == "new" && expr != null && expr toString() contains("GLConsole")
+        false
     }
     
     suggest: func (candidate: FunctionDecl) -> Bool {
