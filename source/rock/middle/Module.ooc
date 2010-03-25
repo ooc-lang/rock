@@ -174,14 +174,14 @@ Module: class extends Node {
         fDecl = functions get(call name)
         if(fDecl) {
             //"&&&&&&&& Found fDecl for call %s\n" format(call name) println()
-            if(call suggest(fDecl)) return
+            call suggest(fDecl)
         }
 
         for(imp in getGlobalImports()) {
             fDecl = imp getModule() functions get(call name)
             if(fDecl) {
                 //"&&&&&&&& Found fDecl for call %s in module %s\n" format(call name, imp getModule() fullName) println()
-                if(call suggest(fDecl)) return
+                call suggest(fDecl)
             }
         }
     }

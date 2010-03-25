@@ -36,6 +36,12 @@ BuildParams: class {
     
     outPath: File = File new("rock_tmp")
     
+    // if non-null, use 'linker' as the last step of the compile process, with driver=sequence
+	linker := null as String
+    
+    // threads used by the sequence driver
+    sequenceThreads := 1
+    
     // list of symbols defined e.g. by -Dblah
 	defines := ArrayList<String> new()
     
@@ -88,6 +94,9 @@ BuildParams: class {
     
     // either "32" or "64"
     arch: String = ""
+    
+    // if non-null, will create a static library with 'ar rcs <outlib> <all .o files>'
+	outlib := null as String
     
     // maximum number of rounds the {@link Tinkerer} will do before blowing up.
     blowup: Int = 16

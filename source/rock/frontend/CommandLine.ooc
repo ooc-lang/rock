@@ -4,7 +4,7 @@ import text/StringTokenizer
 
 import Help, Token, BuildParams, AstBuilder
 import compilers/[Gcc, Clang, Icc, Tcc]
-import drivers/[Driver, CombineDriver]
+import drivers/[Driver, CombineDriver, SequenceDriver]
 import ../backend/cnaughty/CGenerator
 //import ../backend/json/JSONGenerator
 import ../middle/[Module, Import]
@@ -144,15 +144,12 @@ CommandLine: class {
                     
                 } else if (option startsWith("driver=")) {
                     
-                    driverName := option .substring("driver=" length())
+                    driverName := option substring("driver=" length())
                     if(driverName == "combine") {
-                        // TODO
-                        "FIXME! CombineDriver" println()
-                        //driver = CombineDriver new(params) 
+                        driver = CombineDriver new(params) 
                     } else if (driverName == "sequence") {
-                        // TODO
-                        "FIXME! SequenceDriver" println()
-                        //driver = SequenceDriver new(params) 
+                        printf("Switched to SequenceDriver!\n")
+                        driver = SequenceDriver new(params) 
                     } else {
                         ("Unknown driver: " + driverName) println()
                     }

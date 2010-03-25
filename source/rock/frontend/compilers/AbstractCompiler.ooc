@@ -1,4 +1,6 @@
 AbstractCompiler: abstract class {
+
+    setExecutable: abstract func(executableName: String)
     
     /** -o option in gcc */
     setOutputPath: abstract func(path: String)

@@ -1,7 +1,6 @@
 import io/File
 import structs/[List, ArrayList]
-import ../[BuildParams]
-import ../Target
+import ../[BuildParams, Target]
 import ../../middle/Module
 import Driver
 
@@ -19,6 +18,7 @@ CombineDriver: class extends Driver {
         params compiler addIncludePath(File new(params distLocation, "libs/headers/") getPath())
         params compiler addIncludePath(params outPath getPath())
         addDeps(module, ArrayList<Module> new(), ArrayList<String> new())
+        
         for(define in params defines) {
 			params compiler defineSymbol(define)
 		}

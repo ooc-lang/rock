@@ -12,10 +12,13 @@ BaseCompiler: abstract class extends AbstractCompiler {
     executablePath: String
     
     init: func(executableName: String) {
-        
         command = ArrayList<String> new();
         executablePath = ""
         
+        setExecutable(executableName)
+    }
+    
+    setExecutable: func (executableName: String) {
         execFile := File new(executableName)
         
         if (!execFile exists()) {
@@ -29,7 +32,11 @@ BaseCompiler: abstract class extends AbstractCompiler {
         }
         
         executablePath = execFile name()
-        reset()
+        if(command isEmpty()) {
+            command add(executablePath)
+        } else {
+            command set(0, executablePath)
+        }
     }
     
     launch: func() -> Int {
@@ -38,8 +45,8 @@ BaseCompiler: abstract class extends AbstractCompiler {
     }
     
     reset: func() {
-        command clear();
-        command add(executablePath);
+        command clear()
+        command add(executablePath)
     }
     
     getCommandLine: func() -> String {
