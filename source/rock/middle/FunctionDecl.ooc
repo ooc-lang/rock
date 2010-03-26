@@ -208,6 +208,9 @@ FunctionDecl: class extends Declaration {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
+        // FIXME KALAMAZOO
+        printf("resolving FunctionDecl %s\n", toString())
+        
         if (isAnon()) {
             module := trail module()
             name = generateTempName(module getUnderName() + "_closure")

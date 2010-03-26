@@ -50,7 +50,7 @@ Type: abstract class extends Expression {
     
     isGeneric: func -> Bool {
         if(getRef()) {
-            //printf("ref of %s is %s %s\n", toString(), getRef() class name, getRef() toString())
+            printf("we're a %s, ref of %s is %s, %p\n", class name, toString(), getRef() class name, getRef())
             return getRef() instanceOf(VariableDecl)
         }
         return false
