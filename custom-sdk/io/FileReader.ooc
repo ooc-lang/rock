@@ -16,7 +16,11 @@ FileReader: class extends Reader {
     }
     
     init: func ~withName (fileName: String) {
-        file = fopen(fileName, "r")
+        init (fileName, "r")
+    }
+        
+    init: func ~withMode (fileName, mode: String) {
+        file = fopen(fileName, mode)
         if (!file) 
             Exception new(This, "File not found: " + fileName) throw()
     }
