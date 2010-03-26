@@ -89,7 +89,7 @@ FunctionDeclWriter: abstract class extends CGenerator {
         if(fDecl isMember() && !fDecl isStatic()) {
             isFirst = false
             
-            type := fDecl owner thisDecl getType()
+            type := (fDecl isThisRef ? fDecl owner thisRefDecl : fDecl owner thisDecl) getType()
                         
             match mode {
                 case ArgsWriteModes NAMES_ONLY =>

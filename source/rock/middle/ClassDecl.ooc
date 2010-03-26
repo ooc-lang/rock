@@ -2,7 +2,8 @@ import structs/ArrayList
 
 import ../frontend/Token
 import Expression, Type, Visitor, TypeDecl, Cast, FunctionCall, FunctionDecl,
-	   Module, Node, VariableDecl, VariableAccess, BinaryOp, Argument, Return
+	   Module, Node, VariableDecl, VariableAccess, BinaryOp, Argument,
+       Return, CoverDecl
 import tinker/[Response, Resolver, Trail]
 
 ClassDecl: class extends TypeDecl {
@@ -147,6 +148,8 @@ ClassDecl: class extends TypeDecl {
 
 	addInit: func(fDecl: FunctionDecl) {
         
+        isCover := (getNonMeta() instanceOf(CoverDecl))
+        
 		if(defaultInit != null) {
             /*
              * As soon as we've got another init defined, remove the
@@ -172,10 +175,16 @@ ClassDecl: class extends TypeDecl {
         // meta-class, remember?
         newTypeAccess := VariableAccess new(newType, fDecl token)
         newTypeAccess setRef(getNonMeta())
-        allocCall := FunctionCall new(newTypeAccess, "alloc", fDecl token)
-		cast := Cast new(allocCall, newType, fDecl token)
-		vdfe := VariableDecl new(null, "this", cast, fDecl token)
-		constructor getBody() add(vdfe)
+        
+        vdfe : VariableDecl = null
+        if(!isCover) {
+            allocCall := FunctionCall new(newTypeAccess, "alloc", fDecl token)
+            expr := Cast new(allocCall, newType, fDecl token)
+            vdfe = VariableDecl new(null, "this", expr, fDecl token)
+        } else {
+            vdfe = VariableDecl new(newType clone(), "this", fDecl token)
+        }
+        constructor getBody() add(vdfe)
 		
         for (typeArg in getTypeArgs()) {
         	e := VariableAccess new(typeArg getName(), constructor token)
@@ -192,8 +201,10 @@ ClassDecl: class extends TypeDecl {
 		thisAccess := VariableAccess new(vdfe, fDecl token)
 		thisAccess setRef(vdfe)
 		
-        defaultsCall := FunctionCall new("__defaults__", fDecl token)
-        constructor getBody() add(defaultsCall)
+        if(!isCover) {
+            defaultsCall := FunctionCall new("__defaults__", fDecl token)
+            constructor getBody() add(defaultsCall)
+        }
         
         initCall := FunctionCall new(fDecl getName(), fDecl token)
         initCall setSuffix(fDecl getSuffix())

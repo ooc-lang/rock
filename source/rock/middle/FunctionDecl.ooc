@@ -21,6 +21,9 @@ FunctionDecl: class extends Declaration {
     externName : String = null
     unmangledName: String = null
     
+    // if true, 'this' has byref semantics
+    isThisRef := false
+    
     /** If this FunctionDecl is a shim to make a VariableDecl callable, then vDecl is set to that variable decl. */
     vDecl : VariableDecl = null
     
@@ -188,7 +191,8 @@ FunctionDecl: class extends Declaration {
         //printf("Looking for %s in %s\n", access toString(), toString())
         
         if(owner && access name == "this") {
-            if(access suggest(owner thisDecl)) return
+            if(isThisRef) printf("Looking for %s in thisRef func %s\n", access toString(), toString())
+            if(access suggest(isThisRef ? owner thisRefDecl : owner thisDecl)) return
         }
         
         for(typeArg in typeArgs) {

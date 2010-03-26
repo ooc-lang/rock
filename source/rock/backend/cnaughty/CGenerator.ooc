@@ -153,17 +153,32 @@ CGenerator: class extends Skeleton {
 
                 if(casted) current app(")")
 
+                refLevel := 0
+                
+                
                 if(varAcc expr getType() getRef() instanceOf(ClassDecl)) {
-                    current app("->")
-                } else {
-                    current app('.')
+                    refLevel += 1
                 }
+                
+                current app(match (refLevel) {
+                    case 0 => "."
+                    case 1 => "->"
+                    case   => varAcc token throwError("This is too much reference %d! Can't write it." format(refLevel)); ""
+                })
             }
+            paren := false
+            if(varAcc getRef() getType() instanceOf(ReferenceType)) {
+                current app("(*")
+                paren = true
+            }
+            
             if(vDecl isExternWithName()) {
                 current app(vDecl getExternName())
             } else {
                 current app(vDecl getFullName())
             }
+            
+            if(paren) current app(')')
         } else if(varAcc ref instanceOf(TypeDecl)) {
             tDecl := varAcc ref as TypeDecl
             current app(tDecl getFullName()). app("_class()")

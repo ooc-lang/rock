@@ -40,8 +40,9 @@ FunctionCallWriter: abstract class extends Skeleton {
             if(!(callType equals(declType))) {
                 current app("("). app(declType). app(") ")
             }
-            
-            current app(fCall expr) 
+        
+            if(fDecl isThisRef) current app("&("). app(fCall expr). app(")")
+            else                current app(fCall expr) 
         }
     
         /* Step 2 : write generic return arg, if any */
