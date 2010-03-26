@@ -191,7 +191,6 @@ FunctionDecl: class extends Declaration {
         //printf("Looking for %s in %s\n", access toString(), toString())
         
         if(owner && access name == "this") {
-            if(isThisRef) printf("Looking for %s in thisRef func %s\n", access toString(), toString())
             if(access suggest(isThisRef ? owner thisRefDecl : owner thisDecl)) return
         }
         
