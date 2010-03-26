@@ -33,9 +33,6 @@ ClassDecl: class extends TypeDecl {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        // FIXME KALAMAZOO
-        printf("resolving ClassDecl %s\n", toString())
-
         shouldLoad := false
     	shouldDefault := false
 	    for(vDecl in variables) {
@@ -164,7 +161,6 @@ ClassDecl: class extends TypeDecl {
         }
 		
         newType := getNonMeta() getInstanceType() as BaseType
-        printf("[KALAMAZOO newType] = %s, %p, ref = %s, %p\n", newType toString(), newType, newType getRef() toString(), newType getRef())
         
 		constructor := FunctionDecl new("new", fDecl token)
         constructor setStatic(true)

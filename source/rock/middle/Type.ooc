@@ -21,6 +21,7 @@ Type: abstract class extends Expression {
     accept: func (visitor: Visitor) { visitor visitType(this) }
     
     pointerLevel: abstract func -> Int
+    moreMagic:     func -> Int {} // FIXME: when one removes that function, rock segfaults - can you find out why?
     
     write: abstract func (w: AwesomeWriter, name: String)
     
@@ -50,7 +51,7 @@ Type: abstract class extends Expression {
     
     isGeneric: func -> Bool {
         if(getRef()) {
-            printf("we're a %s, ref of %s is %s, %p\n", class name, toString(), getRef() class name, getRef())
+            //printf("ref of %s is %s %s\n", toString(), getRef() class name, getRef() toString())
             return getRef() instanceOf(VariableDecl)
         }
         return false
@@ -113,6 +114,7 @@ FuncType: class extends Type {
     }
     
     pointerLevel: func -> Int { 0 }
+    
     equals: func (other: This) -> Bool {
         if(other class != this class) return false
         // FIXME compare argument's types, return type, etc.
@@ -213,13 +215,13 @@ BaseType: class extends Type {
     isPointer: func -> Bool { name == "Pointer" }
     
     write: func (w: AwesomeWriter, name: String) {
-        if(ref == null) {
+        if(getRef() == null) {
             Exception new(This, "Trying to write unresolved type " + toString()) throw()
         }
         match {
-            case ref instanceOf(InterfaceDecl)=> writeInterfaceType(w, ref)
-            case ref instanceOf(TypeDecl)     => writeRegularType(w, ref)
-            case ref instanceOf(VariableDecl) => writeGenericType(w, ref)
+            case getRef() instanceOf(InterfaceDecl)=> writeInterfaceType(w, getRef())
+            case getRef() instanceOf(TypeDecl)     => writeRegularType  (w, getRef())
+            case getRef() instanceOf(VariableDecl) => writeGenericType  (w, getRef())
         }
         if(name != null) w app(' '). app(name)
     }
@@ -258,9 +260,9 @@ BaseType: class extends Type {
     
     suggest: func (decl: Declaration) -> Bool {
         ref = decl
-        if(name == "This" && ref instanceOf(TypeDecl)) {
+        if(name == "This" && getRef() instanceOf(TypeDecl)) {
             // not exactly sure how good an idea it is
-            tDecl := ref as TypeDecl
+            tDecl := getRef() as TypeDecl
             name = tDecl getName()
         }
         return true
@@ -270,26 +272,26 @@ BaseType: class extends Type {
     
         if(isResolved()) return Responses OK
         
-        if(!ref) {
+        if(!getRef()) {
             depth := trail size() - 1
             while(depth >= 0) {
                 node := trail get(depth)
                 node resolveType(this)
-                if(ref) break // break on first match
+                if(getRef()) break // break on first match
                 depth -= 1
             }
         }
         
-        if(ref == null) {
+        if(getRef() == null) {
             if(res fatal) {
                 token throwError("Can't resolve type %s!" format(getName()))
             }
             if(res params veryVerbose) {
-                printf("     - type %s still not resolved, looping (ref = %p)\n", name, ref)
+                printf("     - type %s still not resolved, looping (ref = %p)\n", name, getRef())
             }
             return Responses LOOP
-        } else if(ref instanceOf(TypeDecl)) {
-            tDecl := ref as TypeDecl
+        } else if(getRef() instanceOf(TypeDecl)) {
+            tDecl := getRef() as TypeDecl
             if(!tDecl isMeta && !tDecl getTypeArgs() isEmpty()) {
                 if(typeArgs == null || typeArgs size() != tDecl getTypeArgs() size()) {
                     token throwError("Missing type parameters for "+toString()+". It should match "+tDecl getInstanceType() toString())
@@ -314,7 +316,7 @@ BaseType: class extends Type {
     }
     
     isResolved: func -> Bool {
-        if(ref == null) return false
+        if(getRef() == null) return false
         if(typeArgs == null) return true
         for(typeArg in typeArgs) if(!typeArg isResolved()) {
             return false
@@ -359,7 +361,7 @@ BaseType: class extends Type {
     }
     
     dig: func -> Type {
-        if(ref != null && ref instanceOf(CoverDecl)) {
+        if(getRef() != null && getRef() instanceOf(CoverDecl)) {
             return ref as CoverDecl getFromType()
         }
         return null
@@ -457,20 +459,6 @@ PointerType: class extends SugarType {
     
 }
 
-ReferenceType: class extends PointerType {
-    
-    init: func ~refType (.inner, .token) { super(inner, token) }
-    
-    pointerLevel: func -> Int { inner pointerLevel() }
-    
-    toString: func -> String { inner toString() + "@" }
-    
-    dereference : func -> This { inner dereference() }
-    
-    clone: func -> This { new(inner, token) }
-    
-}
-
 ArrayType: class extends PointerType {
     
     expr : Expression = null
@@ -513,5 +501,31 @@ ArrayType: class extends PointerType {
     
     toString: func -> String { inner toString() append(expr != null ? "[%s]" format(expr toString()) : "[]") }
     toMangledString: func -> String { inner toString() + "__array" }
+    
+}
+
+ReferenceType: class extends SugarType {
+    
+    init: func ~referenceType (.inner, .token) { super(inner, token) }
+    
+    pointerLevel: func -> Int { inner pointerLevel() }
+    
+    write: func (w: AwesomeWriter, name: String) {
+        inner write(w, null)
+        w app("*")
+        if(name != null) w app(' '). app(name)
+    }
+    
+    equals: func (other: This) -> Bool {
+        if(other class != this class) return false
+        return (other as PointerType inner equals(inner))
+    }
+    
+    toString: func -> String { inner toString() + "@" }
+    toMangledString: func -> String { inner toString() + "__star" }
+    
+    dereference : func -> This { inner }
+    
+    clone: func -> This { new(inner, token) }
     
 }

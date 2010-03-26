@@ -14,13 +14,15 @@ FunctionDecl: class extends Declaration {
     
     /** Attributes */
     isAbstract := false
-    isThisRef := false // func@ (for 'this' byref semantics for covers)
     isStatic := false
     isInline := false
     isFinal := false
     isProto := false
     externName : String = null
     unmangledName: String = null
+    
+    // if true, 'this' has byref semantics
+    isThisRef := false
     
     /** If this FunctionDecl is a shim to make a VariableDecl callable, then vDecl is set to that variable decl. */
     vDecl : VariableDecl = null
@@ -189,6 +191,7 @@ FunctionDecl: class extends Declaration {
         //printf("Looking for %s in %s\n", access toString(), toString())
         
         if(owner && access name == "this") {
+            if(isThisRef) printf("Looking for %s in thisRef func %s\n", access toString(), toString())
             if(access suggest(isThisRef ? owner thisRefDecl : owner thisDecl)) return
         }
         
@@ -207,9 +210,6 @@ FunctionDecl: class extends Declaration {
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        
-        // FIXME KALAMAZOO
-        printf("resolving FunctionDecl %s\n", toString())
         
         if (isAnon()) {
             module := trail module()
