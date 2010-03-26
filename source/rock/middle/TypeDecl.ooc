@@ -19,7 +19,7 @@ TypeDecl: abstract class extends Declaration {
     interfaceTypes := ArrayList<Type> new()
     interfaceDecls := ArrayList<InterfaceImpl> new()
 
-    thisDecl : VariableDecl
+    thisDecl, thisRefDecl: VariableDecl
 
     instanceType: Type
     type: Type
@@ -40,7 +40,8 @@ TypeDecl: abstract class extends Declaration {
         type = BaseType new("Class", token)
         instanceType = BaseType new(name, token)
         instanceType as BaseType ref = this
-        thisDecl = VariableDecl new(instanceType, "this", nullToken)
+        thisDecl    = VariableDecl new(instanceType, "this", token)
+        thisRefDecl = VariableDecl new(ReferenceType new(instanceType, token), "this", token)
         
         if(!isMeta) {
             meta = ClassDecl new(name + "Class", null, true, token)

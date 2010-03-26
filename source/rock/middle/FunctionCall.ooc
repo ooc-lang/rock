@@ -561,8 +561,7 @@ FunctionCall: class extends Expression {
                 if(ref instanceOf(TypeDecl)) {
                     // resolves to a known type
                     result = candidate getRef() as TypeDecl getInstanceType()
-                } else {
-                    // resolves to an access to another generic type
+                } else if(ref instanceOf(VariableDecl)) {
                     result = BaseType new(ref as VariableDecl getName(), token)
                 }
                 return result

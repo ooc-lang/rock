@@ -14,6 +14,7 @@ FunctionDecl: class extends Declaration {
     
     /** Attributes */
     isAbstract := false
+    isThisRef := false // func@ (for 'this' byref semantics for covers)
     isStatic := false
     isInline := false
     isFinal := false
@@ -188,7 +189,7 @@ FunctionDecl: class extends Declaration {
         //printf("Looking for %s in %s\n", access toString(), toString())
         
         if(owner && access name == "this") {
-            if(access suggest(owner thisDecl)) return
+            if(access suggest(isThisRef ? owner thisRefDecl : owner thisDecl)) return
         }
         
         for(typeArg in typeArgs) {

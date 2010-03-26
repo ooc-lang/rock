@@ -21,7 +21,6 @@ Type: abstract class extends Expression {
     accept: func (visitor: Visitor) { visitor visitType(this) }
     
     pointerLevel: abstract func -> Int
-    refLevel:     abstract func -> Int
     
     write: abstract func (w: AwesomeWriter, name: String)
     
@@ -114,7 +113,6 @@ FuncType: class extends Type {
     }
     
     pointerLevel: func -> Int { 0 }
-    refLevel:     func -> Int { 0 }
     equals: func (other: This) -> Bool {
         if(other class != this class) return false
         // FIXME compare argument's types, return type, etc.
@@ -211,7 +209,6 @@ BaseType: class extends Type {
     init: func ~baseType (=name, .token) { super(token) }
     
     pointerLevel: func -> Int { 0 }
-    refLevel:     func -> Int { 0 }
     
     isPointer: func -> Bool { name == "Pointer" }
     
@@ -435,7 +432,6 @@ PointerType: class extends SugarType {
     init: func ~pointerType (.inner, .token) { super(inner, token) }
     
     pointerLevel: func -> Int { inner pointerLevel() + 1 }
-    refLevel:     func -> Int { inner refLevel() }
     
     write: func (w: AwesomeWriter, name: String) {
         inner write(w, null)
@@ -456,6 +452,20 @@ PointerType: class extends SugarType {
     toMangledString: func -> String { inner toString() + "__star" }
     
     dereference : func -> This { inner }
+    
+    clone: func -> This { new(inner, token) }
+    
+}
+
+ReferenceType: class extends PointerType {
+    
+    init: func ~refType (.inner, .token) { super(inner, token) }
+    
+    pointerLevel: func -> Int { inner pointerLevel() }
+    
+    toString: func -> String { inner toString() + "@" }
+    
+    dereference : func -> This { inner dereference() }
     
     clone: func -> This { new(inner, token) }
     
@@ -503,32 +513,5 @@ ArrayType: class extends PointerType {
     
     toString: func -> String { inner toString() append(expr != null ? "[%s]" format(expr toString()) : "[]") }
     toMangledString: func -> String { inner toString() + "__array" }
-    
-}
-
-ReferenceType: class extends SugarType {
-    
-    init: func ~pointerType (.inner, .token) { super(inner, token) }
-    
-    pointerLevel: func -> Int { inner pointerLevel() }
-    refLevel:     func -> Int { inner refLevel() + 1 }
-    
-    write: func (w: AwesomeWriter, name: String) {
-        inner write(w, null)
-        w app("*")
-        if(name != null) w app(' '). app(name)
-    }
-    
-    equals: func (other: This) -> Bool {
-        if(other class != this class) return false
-        return (other as PointerType inner equals(inner))
-    }
-    
-    toString: func -> String { inner toString() + "@" }
-    toMangledString: func -> String { inner toString() + "__star" }
-    
-    dereference : func -> This { inner }
-    
-    clone: func -> This { new(inner, token) }
     
 }

@@ -364,6 +364,10 @@ AstBuilder: class {
         PointerType new(type, token())
     }
     
+    onTypeReference: unmangled(nq_onTypeReference) func (type: Type) -> Type {
+        ReferenceType new(type, token())
+    }
+    
     onTypeBrackets: unmangled(nq_onTypeBrackets) func (type: Type, inner: Expression) -> Type {
         ArrayType new(type, inner, token())
     }
@@ -425,6 +429,9 @@ AstBuilder: class {
 
     onFunctionAbstract: unmangled(nq_onFunctionAbstract) func {
         peek(FunctionDecl) isAbstract = true
+    }
+    onFunctionThisRef: unmangled(nq_onFunctionThisRef) func {
+        peek(FunctionDecl) isThisRef = true
     }
     onFunctionStatic: unmangled(nq_onFunctionStatic) func {
         peek(FunctionDecl) isStatic = true
