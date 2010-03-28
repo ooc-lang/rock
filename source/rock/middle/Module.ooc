@@ -236,10 +236,12 @@ Module: class extends Node {
                 if(cached) {
                     println(path+" has been changed, recompiling...");
                 }
-                cached = This new(path , impElement path, params, Token new(token start, This))
+                cached = This new(path , impElement path, params, nullToken)
+                //Token new(token start, This))
                 imp setModule(cached)
-                AstBuilder new(impPath path substring(0, path length() - 4), cached, params)
+                AstBuilder new(impPath path , cached, params)
             }
+                //substring(0, path length() - 4)          }
             imp setModule(cached)
         }
     }
