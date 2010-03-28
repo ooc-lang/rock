@@ -230,6 +230,8 @@ Module: class extends Node {
             cached : Module = null
             cached = AstBuilder cache get(impPath path)
 
+            impLastModified := File new(impPath path) lastModified()
+
             if(!cached || File new(impPath path) lastModified() > cached lastModified) {
             //if(!imp getModule()) {
                 if(cached) {
@@ -239,6 +241,7 @@ Module: class extends Node {
                 cached = Module new(path, impElement path, params, token)
                 // Token new(token start, This)
                 imp setModule(cached)
+                cached lastModified = impLastModified
                 AstBuilder new(impPath path, cached, params)
             }
             imp setModule(cached)
