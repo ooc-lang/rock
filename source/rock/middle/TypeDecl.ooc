@@ -204,7 +204,7 @@ TypeDecl: abstract class extends Declaration {
         if(module != null && !module underName isEmpty() && !isExtern()) {
             return module underName + "__" + name
         }
-	return name       
+        return name
     }
     
 	getTypeArgs: func -> List<VariableDecl> { isMeta ? getNonMeta() typeArgs : typeArgs }
@@ -528,9 +528,9 @@ TypeDecl: abstract class extends Declaration {
             getSuperRef() resolveCall(call)
         }
         
-        if(base != null) {
-            printf("Looking in base %s\n", base toString())
-            base resolveCall(call)
+        if(getBase() != null) {
+            printf("Looking in base %s\n", getBase() toString())
+            getBase() resolveCall(call)
         }
         
         if(call getRef() == null) {

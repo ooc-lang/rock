@@ -58,7 +58,7 @@ AstBuilder: class {
                 impName := path substring(0, path length() - 4)
                 if(impName != module fullName) {
                     //printf("Adding import %s to %s\n", impName, module fullName)
-                    module addImport(Import new(impName))
+                    module addImport(Import new(impName, nullToken))
                 }
             }
         }
@@ -81,7 +81,7 @@ AstBuilder: class {
                 }
                 if(impPath == null) {
                     //throw new OocCompilationError(imp, module, "Module not found in sourcepath: "+imp path);
-                    Exception new(This, "Module not found in sourcepath: " + imp path) throw()
+                    imp token throwError("Module not found in sourcepath " + imp path)
                 }
             }
 
@@ -130,7 +130,7 @@ AstBuilder: class {
     }
 
     onImport: unmangled(nq_onImport) func (path, name: String) {
-        module addImport(Import new(path isEmpty() ? name : path + name))
+        module addImport(Import new(path isEmpty() ? name : path + name, token()))
     }
     
     onImportNamespace: unmangled(nq_onImportNamespace) func (namespace: String, quantity: Int) {

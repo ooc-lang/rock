@@ -42,7 +42,7 @@ FunctionCall: class extends Expression {
     }
     
     debugCondition: func -> Bool {
-        name equals("format")
+        name equals("length")
     }
     
     suggest: func (candidate: FunctionDecl) -> Bool {
