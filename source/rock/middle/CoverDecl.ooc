@@ -1,10 +1,11 @@
 import structs/ArrayList
 import ../frontend/Token
-import Expression, Type, Visitor, TypeDecl, Node, FunctionDecl
+import Expression, Type, Visitor, TypeDecl, Node, FunctionDecl,
+       FunctionCall
 import tinker/[Response, Resolver, Trail]
 
 CoverDecl: class extends TypeDecl {
-    
+
     fromType: Type
     
     init: func ~coverDeclNoSuper(.name, .token) {
@@ -47,6 +48,21 @@ CoverDecl: class extends TypeDecl {
         trail pop(this)
         
         return Responses OK
+    }
+    
+    absorb: func (node: CoverDecl) {
+        if(!variables isEmpty()) {
+            node token printMessage("...while extending cover " + node toString(), "DETAIL")
+            token throwError("Attempting to add variables to another cover!")
+        }
+        getMeta() base = node getMeta()
+        printf("%s from %s is absorbing %s from %s\n", toString(), token module toString(), node toString(), node token module toString())
+        node addAddon(this)
+    }
+    
+    addAddon: func (node: CoverDecl) {
+        getMeta() getAddons() add(node getMeta())
+        printf("%s from %s got %s from %s as addon\n", getMeta() toString(), token module toString(), node getMeta() toString(), node token module toString())
     }
     
     replace: func (oldie, kiddo: Node) -> Bool { false }

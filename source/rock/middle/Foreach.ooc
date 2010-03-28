@@ -74,13 +74,13 @@ Foreach: class extends ControlStatement {
             
             iterType := iterCall getType()
             if(iterType == null) {
-                if(res fatal) token throwError("Couldn't resolve iterType %s" format(iterType))
+                if(res fatal) token throwError("Couldn't resolve iterType %s" format(iterType toString()))
                 res wholeAgain(this, "need iterType")
                 return Responses OK
             }
             iterType resolve(trail, res)
             if(!iterType isResolved()) {
-                if(res fatal) token throwError("Couldn't resolve iterType %s" format(iterType))
+                if(res fatal) token throwError("Couldn't resolve iterType %s" format(iterType toString()))
                 res wholeAgain(this, "need iterType")
                 return Responses OK
             }

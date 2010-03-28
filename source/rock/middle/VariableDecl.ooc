@@ -25,7 +25,7 @@ VariableDecl: class extends Declaration {
     fDecl : FunctionDecl = null
 
     init: func ~vDecl (.type, .name, .token) {
-        this(type, name, null, token)
+        init(type, name, null, token)
     }
 
     init: func ~vDeclWithAtom (=type, =name, =expr, .token) {

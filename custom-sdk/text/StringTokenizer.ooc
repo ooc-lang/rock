@@ -7,15 +7,15 @@ StringTokenizer: class extends Iterable<String> {
     empties: Bool
 
     init: func~withCharWithoutMaxSplits(input: String, delim: Char) {
-        this~withChar(input, delim, -1)
+        init~withChar(input, delim, -1)
     }
 
     init: func~withStringWithoutMaxSplits(input: String, delim: String) {
-        this~withString(input, delim, -1)
+        init~withString(input, delim, -1)
     }
 
     init: func~withChar(input: String, delim: Char, maxSplits: Int) {
-        this~withString(input, String new(delim), maxSplits)
+        init~withString(input, String new(delim), maxSplits)
     }
     
     init: func~withString(=input, =delim, =maxSplits) {
@@ -25,7 +25,7 @@ StringTokenizer: class extends Iterable<String> {
         empties = false
     }
     
-    iterator: func -> Iterator<String> { StringTokenizerIterator new(this) }
+    iterator: func -> Iterator<String> { StringTokenizerIterator<String> new(this) }
     
     hasNext: func -> Bool { index < length }
     
@@ -66,7 +66,7 @@ StringTokenizerIterator: class <T> extends Iterator<T> {
     st: StringTokenizer
     index := 0
     
-    init: func(=st) {}
+    init: func ~sti (=st) {}
     hasNext: func -> Bool { st hasNext() }
     next: func -> T       { st nextToken() }
     hasPrev: func -> Bool { false }

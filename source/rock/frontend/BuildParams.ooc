@@ -8,6 +8,8 @@ import ../middle/Module
 
 BuildParams: class {
     
+    fatalError := static true
+    
     /* Builtin defines */
 	GC_DEFINE := static const "__OOC_USE_GC__"
     

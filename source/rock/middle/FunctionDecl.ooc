@@ -287,8 +287,7 @@ FunctionDecl: class extends Declaration {
         
         if(isMain() && isVoid()) {
             returnType = IntLiteral type
-            //printf("Looping %s because of returnType, now %s\n", toString(), returnType toString())
-            finalResponse = Responses LOOP
+            res wholeAgain(this, "because changed returnType to %s\n")
         }
         
         if(returnType == voidType || isExtern()) return Responses OK
@@ -323,7 +322,7 @@ FunctionDecl: class extends Declaration {
             expr := stmt as Expression
             if(expr getType() == null) {
                 //printf("[autoReturn] LOOPing because stmt's type (%s) is null.", expr toString())
-                res wholeAgain(this, "stmt's type is null")
+                res wholeAgain(this, "need the type of %s in autoReturn" format(stmt toString()))
                 return
             }
             

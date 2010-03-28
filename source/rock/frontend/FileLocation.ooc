@@ -7,7 +7,7 @@ FileLocation: class {
     length: Int
     
     init: func(fileName: String, lineNumber: Int, linePos: Int, index: Int) {
-        this(fileName, lineNumber, linePos, index, 1)
+        init(fileName, lineNumber, linePos, index, 1)
     }
     
     init: func~withLength(=fileName, =lineNumber, =linePos, =index, =length) { }

@@ -78,6 +78,10 @@ CommandLine: class {
 
                     params debugLoop = true
                     
+                } else if (option == "allerrors") {
+                    
+                    BuildParams fatalError = false
+                    
                 } else if (option startsWith("L")) {
                     
                     params libPath add(arg substring(2))

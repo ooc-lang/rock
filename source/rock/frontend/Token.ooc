@@ -1,5 +1,5 @@
 
-import ../frontend/CommandLine
+import ../frontend/[BuildParams, CommandLine]
 import text/Buffer
 import io/[FileReader, File]
 import ../middle/Module
@@ -43,7 +43,7 @@ Token: cover {
     
     throwError: func (message: String) {
         printMessage(message, "ERROR")
-        CommandLine failure()
+        if(BuildParams fatalError) CommandLine failure()
     }
     
     printMessage: func (message, type: String) {

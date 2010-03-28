@@ -42,7 +42,7 @@ FunctionCall: class extends Expression {
     }
     
     debugCondition: func -> Bool {
-        false
+        name equals("format")
     }
     
     suggest: func (candidate: FunctionDecl) -> Bool {
@@ -120,6 +120,7 @@ FunctionCall: class extends Expression {
          * trail from top to bottom
          */
         if(refScore == -1) {
+            if(debugCondition()) printf("\n===============\nResolving call %s\n", toString())
         	if(name == "super") {
 				fDecl := trail get(trail find(FunctionDecl)) as FunctionDecl
                 superTypeDecl := fDecl owner getSuperRef()
@@ -129,8 +130,10 @@ FunctionCall: class extends Expression {
                     res wholeAgain(this, "something in our typedecl's functions needs resolving!")
                     return Responses OK
                 }
-                refScore = 1
-				expr = VariableAccess new(superTypeDecl getThisDecl(), token)
+                if(ref != null) {
+                    refScore = 1
+                    expr = VariableAccess new(superTypeDecl getThisDecl(), token)
+                }
         	} else {
         		if(expr == null) {
 				    depth := trail size() - 1
@@ -149,6 +152,7 @@ FunctionCall: class extends Expression {
                     }
                     tDecl := expr getType() getRef() as TypeDecl
 		            meta := tDecl getMeta()
+                    if(debugCondition()) printf("Got tDecl %s, resolving, meta = %s\n", tDecl toString(), meta == null ? "(nil)" : meta toString())
 		            if(meta) {
 		                meta resolveCall(this)
 		            } else {
@@ -178,22 +182,22 @@ FunctionCall: class extends Expression {
                 return Responses OK
             }
             
-        }
-        
-        if(typeArgs size() > 0) {
-            trail push(this)
-            for(typeArg in typeArgs) {
-                response := typeArg resolve(trail, res)
-                if(!response ok()) {
-                    trail pop(this)
-                    res wholeAgain(this, "typeArg %s failed to resolve\n" format(typeArg toString()))
-                    return Responses OK
+            if(typeArgs size() > 0) {
+                trail push(this)
+                for(typeArg in typeArgs) {
+                    response := typeArg resolve(trail, res)
+                    if(!response ok()) {
+                        trail pop(this)
+                        res wholeAgain(this, "typeArg %s failed to resolve\n" format(typeArg toString()))
+                        return Responses OK
+                    }
                 }
+                trail pop(this)
             }
-            trail pop(this)
+            
+            unwrapIfNeeded(trail, res)
+            
         }
-        
-        unwrapIfNeeded(trail, res)
 
         if(refScore == -1 && res fatal) {
             message : String
@@ -208,7 +212,7 @@ FunctionCall: class extends Expression {
         }
 
         if(refScore == -1) {
-            res wholeAgain(this, "%s looping because not resolved!" format(toString()))
+            res wholeAgain(this, "not resolved")
             return Responses OK
         }
         

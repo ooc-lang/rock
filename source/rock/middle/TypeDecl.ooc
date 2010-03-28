@@ -32,6 +32,9 @@ TypeDecl: abstract class extends Declaration {
     nonMeta : TypeDecl = null
     
     verzion: VersionSpec = null
+
+    base: TypeDecl = null    
+    addons := ArrayList<TypeDecl> new()
     
     _finishedGhosting := false
     
@@ -63,6 +66,14 @@ TypeDecl: abstract class extends Declaration {
     init: func ~typeDecl (.name, .superType, .token) {
         init(name, token)
         setSuperType(superType)
+    }
+
+    getBase: func -> TypeDecl {
+        return isMeta ? base : getMeta() base
+    }
+
+    getAddons: func -> ArrayList<TypeDecl> {
+        return isMeta ? addons : getMeta() addons
     }
 
     getFullName: func -> String {
@@ -492,7 +503,7 @@ TypeDecl: abstract class extends Declaration {
     resolveCall: func (call : FunctionCall) {
 
         if(call debugCondition()) {
-            printf("\n====> Search %s in %s\n", call toString(), name)
+            printf("\n====> Search %s in %s (which has %d functions)\n", call toString(), name, functions size())
             for(f in functions) {
                 printf("  - Got %s!\n", f toString())
             }
@@ -515,6 +526,11 @@ TypeDecl: abstract class extends Declaration {
         } else if(getSuperRef() != null) {
             if(call debugCondition()) printf("  <== going in superRef %s\n", getSuperRef() toString())
             getSuperRef() resolveCall(call)
+        }
+        
+        if(base != null) {
+            printf("Looking in base %s\n", base toString())
+            base resolveCall(call)
         }
         
         if(call getRef() == null) {
