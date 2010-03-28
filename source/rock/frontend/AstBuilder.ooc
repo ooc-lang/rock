@@ -41,9 +41,11 @@ AstBuilder: class {
             Exception new(This, "File " +modulePath + " not found") throw()
         }
 
+        /*
         if(params includeLang && !module fullName startsWith("/")) {
             addLangImports()
         }
+        */
         parseImports()
 
     }
@@ -94,7 +96,7 @@ AstBuilder: class {
                 if(cached) {
                     println(path+" has been changed, recompiling...");
                 }
-                cached = Module new(path substring(0, path length() - 4), impElement path, Token new(this tokenPos, this module))
+                cached = Module new(path substring(0, path length() - 4), impElement path, params sourcePath, Token new(this tokenPos, this module))
                 imp setModule(cached)
                 This new(impPath path, cached, params)
             }

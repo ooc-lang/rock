@@ -1,6 +1,7 @@
 import io/File, text/EscapeSequence
 import structs/[HashMap, ArrayList, List, OrderedMultiMap]
-import ../frontend/[Token, SourceReader, BuildParams]
+import ../frontend/[Token, SourceReader, BuildParams, PathList, AstBuilder]
+import ../utils/FileUtils
 import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl,
        FunctionCall, Type, Declaration, VariableAccess, OperatorDecl,
        Scope, NamespaceDecl
@@ -25,7 +26,8 @@ Module: class extends Node {
 
     lastModified : Long
 
-    init: func ~module (.fullName, =pathElement, .token) {
+    params: BuildParams
+    init: func ~module (.fullName, =pathElement, =params, .token) {
         super(token)
         this path = fullName clone()
         this fullName = fullName replace(File separator, '/')
@@ -42,6 +44,8 @@ Module: class extends Node {
 
         underName = sanitize(this fullName clone())
         packageName = sanitize(packageName)
+        
+        parseImports()
     }
 
     getLoadFuncName: func -> String { getUnderName() + "_load" }
@@ -204,6 +208,42 @@ Module: class extends Node {
             }
         }
 
+    }
+
+    parseImports: func {
+
+        for(imp: Import in getAllImports()) {
+            path := FileUtils resolveRedundancies(imp path + ".ooc")
+            impElement := params sourcePath getElement(path)
+            impPath := params sourcePath getFile(path)
+            if(impPath == null) {
+                parent := File new(getPath()) parent()
+                if(parent != null) {
+                    path = FileUtils resolveRedundancies(File new(getPath()) parent() path + File separator + imp path + ".ooc")
+                    impElement = params sourcePath getElement(path)
+                    impPath = params sourcePath getFile(path)
+                }
+                if(impPath == null) {
+                    //throw new OocCompilationError(imp, module, "Module not found in sourcepath: "+imp path);
+                    Exception new(This, "Module not found in sourcepath: " + imp path) throw()
+                }
+            }
+
+            //println("Trying to get "+impPath path+" from cache")
+            cached : Module = null
+            //cached = This cache get(impPath path)
+
+            //if(!cached || File new(impPath path) lastModified() > cached lastModified) {
+            if(!imp getModule()) {
+                if(cached) {
+                    println(path+" has been changed, recompiling...");
+                }
+                cached = This new(path , impElement path, params, Token new(token start, This))
+                imp setModule(cached)
+                AstBuilder new(impPath path substring(0, path length() - 4), cached, params)
+            }
+            imp setModule(cached)
+        }
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
