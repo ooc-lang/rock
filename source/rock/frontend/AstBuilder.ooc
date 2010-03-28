@@ -41,13 +41,9 @@ AstBuilder: class {
             Exception new(This, "File " +modulePath + " not found") throw()
         }
 
-        /*
         if(params includeLang && !module fullName startsWith("/")) {
             addLangImports()
         }
-        */
-        parseImports()
-
     }
 
     addLangImports: func {
@@ -66,45 +62,7 @@ AstBuilder: class {
         }
 
     }
-
-    parseImports: func {
-
-        for(imp: Import in module getAllImports()) {
-            path := FileUtils resolveRedundancies(imp path + ".ooc")
-
-            impElement := params sourcePath getElement(path)
-            impPath := params sourcePath getFile(path)
-            if(impPath == null) {
-                parent := File new(module getPath()) parent()
-                if(parent != null) {
-                    path = FileUtils resolveRedundancies(File new(module getPath()) parent() path + File separator + imp path + ".ooc")
-                    impElement = params sourcePath getElement(path)
-                    impPath = params sourcePath getFile(path)
-                }
-                if(impPath == null) {
-                    //throw new OocCompilationError(imp, module, "Module not found in sourcepath: "+imp path);
-                    Exception new(This, "Module not found in sourcepath: " + imp path) throw()
-                }
-            }
-
-            //println("Trying to get "+impPath path+" from cache")
-            cached : Module = null
-            cached = This cache get(impPath path)
-
-            //if(!cached || File new(impPath path) lastModified() > cached lastModified) {
-            if(!cached) {
-                if(cached) {
-                    println(path+" has been changed, recompiling...");
-                }
-                cached = Module new(path substring(0, path length() - 4), impElement path, params sourcePath, Token new(this tokenPos, this module))
-                imp setModule(cached)
-                This new(impPath path, cached, params)
-            }
-            imp setModule(cached)
-        }
-
-    }
-
+    
     printCache: func {
         printf("==== Cache ====\n")
         for(key in This cache getKeys()) {
