@@ -44,8 +44,6 @@ Module: class extends Node {
 
         underName = sanitize(this fullName clone())
         packageName = sanitize(packageName)
-        
-        parseImports()
     }
 
     getLoadFuncName: func -> String { getUnderName() + "_load" }

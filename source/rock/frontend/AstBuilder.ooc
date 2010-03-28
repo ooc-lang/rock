@@ -44,6 +44,7 @@ AstBuilder: class {
         if(params includeLang && !module fullName startsWith("/")) {
             addLangImports()
         }
+        module parseImports()
     }
 
     addLangImports: func {
