@@ -11,7 +11,7 @@ VariableAccess: class extends Expression {
     ref: Declaration
     
     init: func ~variableAccess (.name, .token) {
-        this(null, name, token)
+        init(null, name, token)
     }
     
     init: func ~variableAccessWithExpr (=expr, =name, .token) {

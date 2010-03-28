@@ -222,26 +222,25 @@ Module: class extends Node {
                     impPath = params sourcePath getFile(path)
                 }
                 if(impPath == null) {
-                    //throw new OocCompilationError(imp, module, "Module not found in sourcepath: "+imp path);
                     Exception new(This, "Module not found in sourcepath: " + imp path) throw()
                 }
             }
 
-            //println("Trying to get "+impPath path+" from cache")
+            println("Trying to get "+impPath path+" from cache")
             cached : Module = null
-            //cached = This cache get(impPath path)
+            cached = AstBuilder cache get(impPath path)
 
-            //if(!cached || File new(impPath path) lastModified() > cached lastModified) {
-            if(!imp getModule()) {
+            if(!cached || File new(impPath path) lastModified() > cached lastModified) {
+            //if(!imp getModule()) {
                 if(cached) {
-                    println(path+" has been changed, recompiling...");
+                    printf("%s has been changed, recompiling... (%d vs %d), impPath = %s", path, File new(impPath path) lastModified(), cached lastModified, impPath path);
                 }
-                cached = This new(path , impElement path, params, nullToken)
-                //Token new(token start, This))
+                printf("impElement path = %s, impPath = %s\n", impElement path, impPath path)
+                cached = Module new(path, impElement path, params, token)
+                // Token new(token start, This)
                 imp setModule(cached)
-                AstBuilder new(impPath path , cached, params)
+                AstBuilder new(impPath path, cached, params)
             }
-                //substring(0, path length() - 4)          }
             imp setModule(cached)
         }
     }
