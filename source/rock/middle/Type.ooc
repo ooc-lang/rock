@@ -166,6 +166,14 @@ FuncType: class extends Type {
                 return response
             }
         }
+        
+        if(returnType != null) {
+            response := returnType resolve(trail, res)
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
+        }
         trail pop(this)
         
         if(!cached) {

@@ -2,7 +2,7 @@
 import structs/List
 
 import ../../middle/Visitor
-import ../../io/TabbedWriter, io/[File, FileWriter, Writer], AwesomeWriter
+import ../../io/TabbedWriter, io/[File, FileWriter, Writer], AwesomeWriter, CachedFileWriter
 
 import ../../frontend/BuildParams
 
@@ -28,6 +28,7 @@ CGenerator: class extends Skeleton {
     init: func (=params, =module) {
         outPath := params getOutputPath(module, "")
         File new(outPath) parent() mkdirs()
+        // CachedFileWriter should be used here, but it's broken atm.
         hw = AwesomeWriter new(this, FileWriter new(outPath + ".h"))
         fw = AwesomeWriter new(this, FileWriter new(outPath + "-fwd.h"))
         cw = AwesomeWriter new(this, FileWriter new(outPath + ".c"))
