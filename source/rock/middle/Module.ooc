@@ -9,6 +9,7 @@ import tinker/[Response, Resolver, Trail]
 Module: class extends Node {
 
     path, fullName, simpleName, packageName, underName, pathElement : String
+    main := false
 
     types      := OrderedMultiMap<String, TypeDecl> new()
     functions  := OrderedMultiMap<String, FunctionDecl> new()

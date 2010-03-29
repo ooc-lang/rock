@@ -43,6 +43,24 @@ CGenerator: class extends Skeleton {
     /** Write the whole module */
     write: func {
         visitModule(module)
+
+        // Write a default main if none provided in source
+        if(module main && !module functions contains("main")) {
+            writeDefaultMain()
+        }
+    }
+
+    /** Write default main function */
+    writeDefaultMain: func {
+        // If just outputing .o files, do not add a default main
+        if(!params link) return
+
+        cw nl(). nl(). app("int main() "). openBlock()
+        if(params enableGC) {
+            cw nl(). app("GC_INIT();")
+        }
+        cw nl(). app(module getLoadFuncName()). app("();")
+        cw closeBlock(). nl()
     }
 
     /** Write a module */

@@ -306,6 +306,7 @@ CommandLine: class {
         
         fullName := moduleName substring(0, moduleName length() - 4)
         module := Module new(fullName, params sourcePath getElement(moduleName) path, nullToken)
+        module main = true
         
         // phase 1: parse
         AstBuilder new(modulePath, module, params)
