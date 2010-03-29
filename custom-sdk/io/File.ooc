@@ -14,6 +14,7 @@ include stdio
 
 import structs/ArrayList
 import FileReader, FileWriter
+import text/Buffer
 import native/[FileWin32, FileUnix]
 
 File: abstract class {
@@ -25,10 +26,6 @@ File: abstract class {
     // overriden in FileWin32 & friends
     separator = '/' : static Char
     pathDelimiter = ':' : static Char
-
-    getPath: func -> String {
-        return path
-    }
 
     new: static func (.path) -> This {
         version(unix || apple) {
@@ -187,6 +184,11 @@ File: abstract class {
     isRelative: abstract func -> Bool
 
     /**
+     * the path this file has been created with
+     */
+    getPath: func -> String { path }
+
+    /**
      * The absolute path, e.g. "my/dir" => "/current/directory/my/dir"
      */
     getAbsolutePath: abstract func -> String
@@ -237,6 +239,17 @@ File: abstract class {
         dst close()
         src close()
     }
+    
+    read: func -> String {
+        fR := FileReader new(this)
+        bW := BufferWriter new() .write(fR) .close()
+        fR close()
+        bW buffer toString()
+    }
+    
+    write: func (str: String) {
+        FileWriter new(this) write(BufferReader new(Buffer new(str))) .close()
+    }
 
     /**
      * Get a child of this path
@@ -252,7 +265,9 @@ File: abstract class {
      */
     getCwd: static func -> String {
         ret := String new(File MAX_PATH_LENGTH + 1)
-        _getcwd(ret, File MAX_PATH_LENGTH)
+        if(!_getcwd(ret, File MAX_PATH_LENGTH)) {
+            Exception new("Failed to get current directory!") throw()
+        }
         return ret
     }
 
