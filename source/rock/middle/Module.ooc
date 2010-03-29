@@ -64,7 +64,7 @@ Module: class extends Node {
     }
 
     addFunction: func (fDecl: FunctionDecl) {
-        functions add(fDecl name, fDecl)
+        functions put(TypeDecl hashName(fDecl), fDecl)
     }
 
     addType: func (tDecl: TypeDecl) {
@@ -168,22 +168,30 @@ Module: class extends Node {
         if(call isMember()) {
             return // hmm no member calls for us
         }
-
+        
+        resolveCallNonRecursive(call)
+        
+        for(imp in getGlobalImports()) {
+            imp getModule() resolveCallNonRecursive(call)
+        }
+    }
+    
+    resolveCallNonRecursive: func (call: FunctionCall) {
+        
         //printf(" >> Looking for function %s in module %s!\n", call name, fullName)
         fDecl : FunctionDecl = null
-        fDecl = functions get(call name)
+        fDecl = functions get(TypeDecl hashName(call name, call suffix))
         if(fDecl) {
-            //"&&&&&&&& Found fDecl for call %s\n" format(call name) println()
             call suggest(fDecl)
         }
-
-        for(imp in getGlobalImports()) {
-            fDecl = imp getModule() functions get(call name)
-            if(fDecl) {
-                //"&&&&&&&& Found fDecl for call %s in module %s\n" format(call name, imp getModule() fullName) println()
+        
+        for(fDecl in functions) {
+            if(fDecl getName() == call getName() && (call getSuffix() == null || call getSuffix() == fDecl getSuffix)) {
+                if(call debugCondition()) printf("Suggesting fDecl %s for call %s\n", fDecl toString(), call toString())
                 call suggest(fDecl)
             }
         }
+        
     }
 
     resolveType: func (type: BaseType) {
