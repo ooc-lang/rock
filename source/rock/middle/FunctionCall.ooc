@@ -42,7 +42,7 @@ FunctionCall: class extends Expression {
     }
     
     debugCondition: func -> Bool {
-        name == "memcpy"
+        false
     }
     
     suggest: func (candidate: FunctionDecl) -> Bool {
@@ -586,7 +586,7 @@ FunctionCall: class extends Expression {
         
         declArgs := decl args
         if(matchesArgs(decl)) {
-            score += Type SCORE_SEED
+            score += 10
         } else {
             return 0
         }
@@ -603,14 +603,9 @@ FunctionCall: class extends Expression {
             if(declArg instanceOf(VarArg)) break
             if(declArg getType() == null) return -1
             if(callArg getType() == null) return -1
-            
-            typeScore := callArg getType() getScore(declArg getType())
-            if(typeScore == -1) return -1
-            
-            if(debugCondition()) {
-                printf("typeScore for %s vs %s == %d    for call %s (%s vs %s)\n", callArg getType() toString(), declArg getType() toString(), typeScore, toString(), callArg getType() getGroundType() toString(), declArg getType() getGroundType() toString())
+            if(declArg type equals(callArg getType())) {
+                score += 10
             }
-            score += typeScore
         }
         
         return score

@@ -214,7 +214,7 @@ version(windows) {
                 }
                 running = FindNextFile(hFile, ffd&)
             }
-            FindClose(hFile)
+            FindClose(ffd&)
 
             result
         }
@@ -234,7 +234,7 @@ version(windows) {
                 }
                 running = FindNextFile(hFile, ffd&)
             }
-            FindClose(hFile)
+            FindClose(ffd&)
 
             result
         }
