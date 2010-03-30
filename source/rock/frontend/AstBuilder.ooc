@@ -11,7 +11,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     NullLiteral, Argument, Parenthesis, AddressOf, Dereference, Foreach,
     OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess, Match, FlowControl,
     While, CharLiteral, InterfaceDecl, NamespaceDecl, Version, Use, Block,
-    ArrayLiteral]
+    ArrayLiteral, EnumDecl]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -213,10 +213,16 @@ AstBuilder: class {
 
     onEnumStart: unmangled(nq_onEnumStart) func (name: String) {
         "Started enum %s" format(name) println()
+
+        eDecl := EnumDecl new(name clone(), token())
+        eDecl module = module
+        eDecl setVersion(getVersion())
+        module addType(eDecl)
+        stack push(eDecl)
     }
 
-    onEnumStartElement: unmangled(nq_onEnumStartElement) func(name: String) {
-        "Start element %s" format(name) println()
+    onEnumElement: unmangled(nq_onEnumElement) func (name: String) {
+        "Element %s" format(name) println()
     }
 
     onEnumElementValue: unmangled(nq_onEnumElementValue) func (value: IntLiteral) {
@@ -225,6 +231,7 @@ AstBuilder: class {
 
     onEnumEnd: unmangled(nq_onEnumEnd) func {
         "Enum ended" println()
+        pop(EnumDecl)
     }
 
     /*
