@@ -97,8 +97,6 @@ Type: abstract class extends Expression {
 
 FuncType: class extends Type {
     
-    type := static BaseType new("Pointer", nullToken)
-    
     argTypes := ArrayList<Type> new()
     typeArgs := ArrayList<VariableAccess> new()
     returnType : Type = null
@@ -124,8 +122,8 @@ FuncType: class extends Type {
     
     getName: func -> String { "Func" }
     
-    getType: func -> Type { This type }
-    getRef: func -> Declaration { This type getRef() }
+    getType: func -> Type { this }
+    getRef: func -> Declaration { this }
     setRef: func (d: Declaration) {}
     
     // should we throw an error or something?
@@ -171,14 +169,6 @@ FuncType: class extends Type {
         
         if(returnType != null) {
             response := returnType resolve(trail, res)
-            if(!response ok()) {
-                trail pop(this)
-                return response
-            }
-        }
-        
-        if(!This type isResolved()) {
-            response := This type resolve(trail, res)
             if(!response ok()) {
                 trail pop(this)
                 return response
