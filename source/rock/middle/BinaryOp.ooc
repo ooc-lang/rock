@@ -2,7 +2,7 @@ import structs/ArrayList
 import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
        Import, Module, FunctionCall, ClassDecl, CoverDecl, AddressOf,
-       ArrayAccess, VariableAccess, Cast
+       ArrayAccess, VariableAccess, Cast, NullLiteral
 import tinker/[Trail, Resolver, Response]
 
 include stdint
@@ -170,6 +170,7 @@ BinaryOp: class extends Expression {
                 sizeAcc := VariableAccess new(VariableAccess new(left getType() getName(), token), "size", token)
 
                 fCall := FunctionCall new("memcpy", token)
+                
                 fCall args add(left  getGenericOperand())
                 fCall args add(right getGenericOperand())
                 fCall args add(sizeAcc)

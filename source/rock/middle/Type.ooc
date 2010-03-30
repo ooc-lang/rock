@@ -74,13 +74,21 @@ Type: abstract class extends Expression {
     getScore: func (other: This) -> Int {
         bestScore := This NOLUCK_SCORE
         scoreSeed := This SCORE_SEED
-        current := this
-        while(current != null) {
-            score := getScoreImpl(other, scoreSeed)
-            if(score > bestScore) {
-                bestScore = score
+        
+        left := this
+        while(left != null) {
+            right := other
+            scoreSeed2 := scoreSeed
+            while(right != null) {
+                score := left getScoreImpl(right, scoreSeed2)
+                //printf(" >> Compared %s with %s, got score %d\n", left toString(), right toString(), score)
+                if(score > bestScore) {
+                    bestScore = score
+                }
+                right = right dig()
+                scoreSeed2 -= 1
             }
-            current = current dig()
+            left = left dig()
             scoreSeed -= 1
         }
         return bestScore
@@ -353,7 +361,7 @@ BaseType: class extends Type {
     getTypeArgs: func -> List<VariableAccess> { typeArgs }
     
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
-        if(isGeneric()) {
+        if(isGeneric() || (other isGeneric() && other pointerLevel() == 0)) {
             // every type is always a match against a generic type
             return scoreSeed
         }
@@ -379,16 +387,6 @@ BaseType: class extends Type {
                 // Only half a match - it's not too good to mix integer types. Maybe we need more safety here?
                 return scoreSeed / 2
             }
-        }
-        
-        if(pointerLevel() == other pointerLevel()) {
-            // Only half a match - it's no good either to mix pointer types. What about safety?
-            return scoreSeed / 2
-        }
-        
-        if(getGroundType() pointerLevel() == other getGroundType() pointerLevel()) {
-            // Only  half a match too
-            return scoreSeed / 2
         }
         
         return This NOLUCK_SCORE // no luck.
@@ -463,7 +461,15 @@ SugarType: abstract class extends Type {
     getTypeArgs: func -> List<VariableAccess> { inner getTypeArgs() }
     
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
-        return (other instanceOf(class) ? inner getScore(other as SugarType inner) : This NOLUCK_SCORE)
+        if(other instanceOf(class)) {
+            score := inner getScore(other as SugarType inner)
+            if(score >= -1) return score
+        }
+        if(pointerLevel() == other pointerLevel() && (getName() == "void" || other getName() == "void")) {
+            // void pointers, half match!
+            return scoreSeed / 2
+        }
+        return This NOLUCK_SCORE
     }
     
     getName: func -> String { inner getName() }
