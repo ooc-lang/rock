@@ -4,7 +4,7 @@ import ../frontend/[Token, BuildParams]
 import ../backend/cnaughty/AwesomeWriter
 import Node, Visitor, Declaration, TypeDecl, ClassDecl, VariableDecl,
        Module, Import, CoverDecl, VariableAccess, Expression,
-       InterfaceDecl, FunctionCall
+       InterfaceDecl, FunctionCall, NullLiteral
 import tinker/[Response, Resolver, Trail]
 
 voidType := BaseType new("void", nullToken)
@@ -97,7 +97,8 @@ Type: abstract class extends Expression {
 
 FuncType: class extends Type {
     
-    ref : TypeDecl = null
+    type := static BaseType new("Pointer", nullToken)
+    
     argTypes := ArrayList<Type> new()
     typeArgs := ArrayList<VariableAccess> new()
     returnType : Type = null
@@ -123,7 +124,8 @@ FuncType: class extends Type {
     
     getName: func -> String { "Func" }
     
-    getRef: func -> Declaration { this }
+    getType: func -> Type { This type }
+    getRef: func -> Declaration { This type getRef() }
     setRef: func (d: Declaration) {}
     
     // should we throw an error or something?
@@ -169,6 +171,14 @@ FuncType: class extends Type {
         
         if(returnType != null) {
             response := returnType resolve(trail, res)
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
+        }
+        
+        if(!This type isResolved()) {
+            response := This type resolve(trail, res)
             if(!response ok()) {
                 trail pop(this)
                 return response
