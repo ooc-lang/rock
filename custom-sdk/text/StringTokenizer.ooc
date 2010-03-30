@@ -75,6 +75,7 @@ StringTokenizerIterator: class <T> extends Iterator<T> {
     
 }
 
+/*
 String: cover from Char* {
 
     split: func~withString(s: String, maxSplits: Int) -> StringTokenizer {
@@ -106,3 +107,4 @@ String: cover from Char* {
     }
 
 }
+*/
