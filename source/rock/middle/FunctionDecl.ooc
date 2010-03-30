@@ -185,6 +185,15 @@ FunctionDecl: class extends Declaration {
         }
         
     }
+
+    resolveCall: func (call: FunctionCall) {
+        for(arg: Argument in args) {
+            if(arg getName() == call getName() && arg getType() instanceOf(FuncType)) {
+                call suggest(arg getFunctionDecl())
+                break
+            }
+        }
+    }
     
     resolveAccess: func (access: VariableAccess) {
         

@@ -4,7 +4,7 @@ import ../frontend/[Token, BuildParams]
 import ../backend/cnaughty/AwesomeWriter
 import Node, Visitor, Declaration, TypeDecl, ClassDecl, VariableDecl,
        Module, Import, CoverDecl, VariableAccess, Expression,
-       InterfaceDecl, FunctionCall
+       InterfaceDecl, FunctionCall, NullLiteral
 import tinker/[Response, Resolver, Trail]
 
 voidType := BaseType new("void", nullToken)
@@ -97,7 +97,6 @@ Type: abstract class extends Expression {
 
 FuncType: class extends Type {
     
-    ref : TypeDecl = null
     argTypes := ArrayList<Type> new()
     typeArgs := ArrayList<VariableAccess> new()
     returnType : Type = null
@@ -123,6 +122,7 @@ FuncType: class extends Type {
     
     getName: func -> String { "Func" }
     
+    getType: func -> Type { this }
     getRef: func -> Declaration { this }
     setRef: func (d: Declaration) {}
     

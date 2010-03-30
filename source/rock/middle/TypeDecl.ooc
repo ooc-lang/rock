@@ -129,17 +129,17 @@ TypeDecl: abstract class extends Declaration {
     getInterfaceTypes: func -> List<Type>          { interfaceTypes }
     getInterfaceDecls: func -> List<InterfaceImpl> { interfaceDecls }
 
-	hashName: func (name, suffix: String) -> String {
+	hashName: static func (name, suffix: String) -> String {
 		suffix ? "%s~%s" format(name, suffix) : name
 	}
 
-	hashName: func ~fromFuncDecl (fDecl: FunctionDecl) -> String {
-		hashName(fDecl getName(), fDecl getSuffix())
+	hashName: static func ~fromFuncDecl (fDecl: FunctionDecl) -> String {
+		This hashName(fDecl getName(), fDecl getSuffix())
 	}
     
     addFunction: func (fDecl: FunctionDecl) {
         if(isMeta) {
-            functions put(hashName(fDecl), fDecl)
+            functions put(This hashName(fDecl), fDecl)
             fDecl setOwner(getNonMeta())
         } else {
             meta addFunction(fDecl)
@@ -147,14 +147,14 @@ TypeDecl: abstract class extends Declaration {
     }
 
 	removeFunction: func(fDecl: FunctionDecl) {
-		functions remove(hashName(fDecl))
+		functions remove(This hashName(fDecl))
 	}
     
     lookupFunction: func (fName, fSuffix: String) -> FunctionDecl {
     
     	// quick lookup, if we're lucky (exact suffix or no suffix)
         fDecl : FunctionDecl = null
-        fDecl = functions get(hashName(fName, fSuffix))
+        fDecl = functions get(This hashName(fName, fSuffix))
 		if(fDecl) return fDecl
 
 		// slow lookup, if we have a vague query
