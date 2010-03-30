@@ -171,6 +171,15 @@ LinkedList: class <T> extends List<T> {
         return true // FIXME: probably not right.
 	}
 	
+	removeLast: func -> Bool {
+		if(last != null) {
+			removed := last 
+			removeNode(last)
+			return true
+		}
+		return false
+	}
+	
 	set: func (index: Int, data: T) -> T {
         // FIXME: stub
         return null
