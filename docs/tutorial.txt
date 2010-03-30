@@ -108,7 +108,7 @@ member calls
 Is created with
 
     vDecl := VariableDecl new(null, "msg", StringLiteral new("Hi world", nullToken), nullToken)
-    vAcc := variableAccess new(vDecl, nullToken)
+    vAcc := VariableAccess new(vDecl, nullToken)
     fCall := FunctionCall new(vAcc, "println", nullToken)
 
 variable accesses
