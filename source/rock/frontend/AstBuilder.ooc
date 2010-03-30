@@ -208,6 +208,26 @@ AstBuilder: class {
     }
 
     /*
+     * Enums
+     */
+
+    onEnumStart: unmangled(nq_onEnumStart) func (name: String) {
+        "Started enum %s" format(name) println()
+    }
+
+    onEnumStartElement: unmangled(nq_onEnumStartElement) func(name: String) {
+        "Start element %s" format(name) println()
+    }
+
+    onEnumElementValue: unmangled(nq_onEnumElementValue) func (value: IntLiteral) {
+        "Enum value %d" format(value value) println()
+    }
+
+    onEnumEnd: unmangled(nq_onEnumEnd) func {
+        "Enum ended" println()
+    }
+
+    /*
      * Classes
      */
 
