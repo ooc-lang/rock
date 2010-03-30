@@ -32,10 +32,10 @@ SequenceDriver: class extends Driver {
             oPaths add(oPath)
             
             cFile := File new(cPath)
-            oFile := File new(oFile)
+            oFile := File new(oPath)
             
             if(cFile lastModified() > oFile lastModified()) {
-            
+                
                 params compiler addObjectFile(cPath)    
                 params compiler setOutputPath(oPath)    
                 

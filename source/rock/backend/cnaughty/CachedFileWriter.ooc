@@ -1,4 +1,4 @@
-import io/File, text/Buffer
+import io/File, text/Buffer, structs/HashMap
 
 CachedFileWriter: class extends BufferWriter {
 
@@ -21,16 +21,16 @@ CachedFileWriter: class extends BufferWriter {
         // BufferReader / BufferWriter / others don't like
         // to play nice together.. should debug that.
         
-        printf("Closing CachedFileWriter %s\n", file path)
-		
-		if(!file exists()) {
-            printf("..doesn't exist, writing.\n")
+        if(!file exists()) {
             file write(BufferReader new(buffer))
-		} else {		
+		} else {
             thisContent := buffer toString()
             fileContent := file read()
-			if(fileContent != thisContent) {
-                printf("..differs, writing.\n")
+            
+            hash1 := ac_X31_hash(thisContent)
+            hash2 := ac_X31_hash(fileContent)
+            
+			if(hash1 != hash2) {
                 file write(BufferReader new(buffer))
 			}
 		}
