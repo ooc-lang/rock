@@ -11,8 +11,9 @@ voidType := BaseType new("void", nullToken)
 voidType ref = BuiltinType new("void", nullToken)
 
 Type: abstract class extends Expression {
-    
-    NOLUCK_SCORE := const -100000
+
+    SCORE_SEED := const static 1024
+    NOLUCK_SCORE := const static -100000
     
     init: func ~type (.token) {
         super(token)
@@ -71,8 +72,8 @@ Type: abstract class extends Expression {
     }
     
     getScore: func (other: This) -> Int {
-        bestScore := NOLUCK_SCORE
-        scoreSeed := 1024
+        bestScore := This NOLUCK_SCORE
+        scoreSeed := This SCORE_SEED
         current := this
         while(current != null) {
             score := getScoreImpl(other, scoreSeed)
@@ -83,6 +84,20 @@ Type: abstract class extends Expression {
             scoreSeed -= 1
         }
         return bestScore
+    }
+    
+    isNumericType: func -> Bool {
+        // FIXME: that's quite ugly - and what about custom types?
+        name := getName()
+        return (
+           name == "Int"   || name == "UInt"  || name == "Short" ||
+		   name == "UShort"|| name == "Long"  || name == "ULong" ||
+		   name == "LLong" || name == "ULLong"|| name == "Char"  ||
+		   name == "UChar" || name == "Int8"  || name == "Int16" ||
+		   name == "Int32" || name == "Int64" || name == "UInt8" ||
+		   name == "UInt16"|| name == "UInt32"|| name == "UInt64"||
+		   name == "SizeT" || name == "Float" || name == "Double"
+		)
     }
     
     isPointer: func -> Bool { pointerLevel() > 0 }
@@ -143,7 +158,7 @@ FuncType: class extends Type {
         if(other instanceOf(FuncType)) {
             return scoreSeed
         }
-        return NOLUCK_SCORE
+        return This NOLUCK_SCORE
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
@@ -343,12 +358,40 @@ BaseType: class extends Type {
             return scoreSeed
         }
         if(other instanceOf(BaseType)) {
-            if(getRef() != null && other getRef() != null) {
-                if(getRef() == other getRef()) return true
+            if(getRef() == null || other getRef() == null) return -1
+            
+            if(getRef() == other getRef()) {
+                // perfect match
+                return scoreSeed
             }
-            return (other getName() equals(getName()) ? scoreSeed : NOLUCK_SCORE)
+            
+            if(getRef() instanceOf(ClassDecl) && other getRef() instanceOf(ClassDecl)) {
+                inheritsScore := getRef() as TypeDecl inheritsScore(other getRef() as TypeDecl, scoreSeed)
+                
+                // something needs resolving
+                if(inheritsScore == -1) return inheritsScore
+                
+                // cool, a match =)
+                if(inheritsScore > 0) return inheritsScore
+            }
+            
+            if(isNumericType() && other isNumericType()) {
+                // Only half a match - it's not too good to mix integer types. Maybe we need more safety here?
+                return scoreSeed / 2
+            }
         }
-        return NOLUCK_SCORE // no luck.
+        
+        if(pointerLevel() == other pointerLevel()) {
+            // Only half a match - it's no good either to mix pointer types. What about safety?
+            return scoreSeed / 2
+        }
+        
+        if(getGroundType() pointerLevel() == other getGroundType() pointerLevel()) {
+            // Only  half a match too
+            return scoreSeed / 2
+        }
+        
+        return This NOLUCK_SCORE // no luck.
     }
     
     dereference: func -> This {
@@ -420,7 +463,7 @@ SugarType: abstract class extends Type {
     getTypeArgs: func -> List<VariableAccess> { inner getTypeArgs() }
     
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
-        return (other instanceOf(class) ? inner getScore(other as SugarType inner) : NOLUCK_SCORE)
+        return (other instanceOf(class) ? inner getScore(other as SugarType inner) : This NOLUCK_SCORE)
     }
     
     getName: func -> String { inner getName() }

@@ -147,8 +147,8 @@ ArrayAccess: class extends Expression {
             return -1
         }
         
-        score += opArray getType() getScore(array getType())
-        score += opIndex getType() getScore(index getType())        
+        score += array getType() getScore(opArray getType())
+        score += index getType() getScore(opIndex getType())        
         if(reqType) {
             score += fDecl getReturnType() getScore(reqType)
         }

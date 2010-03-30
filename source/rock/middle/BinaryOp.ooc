@@ -326,8 +326,8 @@ BinaryOp: class extends Expression {
             return -1
         }
         
-        score += opLeft  getType() getScore(left getType())
-        score += opRight getType() getScore(right getType())        
+        score += left getType() getScore(opLeft  getType())
+        score += right getType() getScore(opRight getType())        
         if(reqType) {
             score += fDecl getReturnType() getScore(reqType)
         }

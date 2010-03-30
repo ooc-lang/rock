@@ -41,11 +41,16 @@ Buffer: class {
         if(offset >= size) {
             Exception new(This, "Buffer overflow! Offset is larger than buffer size.") throw()
         }
-        if((offset + length) >= size) {
-            Exception new(This, "Buffer overflow! Offset + Length is larger than buffer size.") throw()
+
+        copySize: Int
+        if((offset + length) > size) {
+            copySize = size - offset
+        }
+        else {
+            copySize = length
         }
 
-        memcpy(str as Char*, data as Char* + offset, length)
+        memcpy(str as Char*, (data as Char*) + offset, copySize)
     }
 
     get: func ~chr (offset: Int) -> Char {
@@ -68,20 +73,14 @@ Buffer: class {
     }
     
     toString: func -> String {
-        if(size + 1 < capacity) {
-            newCapa := size + 1
-            tmp := gc_realloc(data as Char*, newCapa)
-            if(!tmp) Exception new(This, "Not enough memory to reallocate string in buffer for toString() call") throw()
-            data = tmp
-            capacity = newCapa
-        }
+        checkLength(size + 1)
         data[size] = '\0'
         return data // ugly hack. or is it?
     }
 }
 
 /**
- * This deprecates and replaces Buffer
+ * This deprecates and replaces StringBuffer
  */
 BufferWriter: class extends Writer {
     
@@ -96,7 +95,7 @@ BufferWriter: class extends Writer {
     buffer: func -> Buffer {
         return buffer
     }
-    
+
     close: func {
         /* do nothing. */
     }
@@ -123,9 +122,10 @@ BufferReader: class extends Reader {
     buffer: func -> Buffer {
         return buffer
     }
-    
+
     read: func(chars: String, offset: Int, count: Int) -> SizeT {
-        buffer get(chars, offset, count)
+        buffer get(chars as Char* + offset, marker, count)
+        marker += count
         return count
     }
 

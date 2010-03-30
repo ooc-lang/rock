@@ -79,6 +79,7 @@ You can add member variables, e.g.
 With
 
     vDecl := VariableDecl new(StringLiteral type, "name", nullToken)
+    dogClass addVariable(vDecl)
 
 
 function calls
@@ -148,5 +149,17 @@ We'd do
     intAccess := VariableAccess new(IntLiteral type, nullToken)
     sizeAccess := VariableAccess new(intAccess, "size", nullToken)
 
+instanciating objects
+---------------------
+
+    dog := Dog new()
+    
+Is constructed like
+
+    dogClass := VariableAccess new("DogClass", nullToken)
+    newCall := FunctionCall new("new", nullToken)
+    dogDecl := VariableDecl new("dog", newCall, nullToken)
+    
+    
 
 
