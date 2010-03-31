@@ -73,7 +73,8 @@ FunctionDecl: class extends Declaration {
     isProto:    func -> Bool { isProto }
     setProto:   func (=isProto) {}
     
-    isAnon: func -> Bool { isAnon }    
+    isAnon: func -> Bool { isAnon }
+    
     markForPartialing: func(var: VariableDecl) {
         if (!variablesToPartial contains(var)) variablesToPartial add(var)
     }
@@ -297,10 +298,13 @@ FunctionDecl: class extends Declaration {
             fCall := FunctionCall new("blub", token)
             trail addBeforeInScope(This, fCall)
             */
+            
+            /*
             for (e in variablesToPartial) {
                 e getName() println()
-                args add(i,Argument new(e getType(), e getName(), token))
+                args add(i, Argument new(e getType(), e getName(), token))
             }
+            */
         }
         trail pop(this)
         
