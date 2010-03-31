@@ -363,6 +363,10 @@ BaseType: class extends Type {
             // a generic value is a match for a pointer
             return scoreSeed / 2
         }
+        if(isPointer() && other getRef() instanceOf(ClassDecl)) {
+            // objects are references in ooc
+            return scoreSeed
+        }
         if(other instanceOf(BaseType)) {
             if(getRef() == null || other getRef() == null) return -1
             
