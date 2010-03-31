@@ -48,6 +48,8 @@ ModuleWriter: abstract class extends Skeleton {
         
         // write all func types typedefs
         for(funcType in module funcTypesMap) {
+            current nl(). nl().  app("#ifndef "). app(funcType toMangledString()). app("__DEFINE")
+            current nl(). app("#define "). app(funcType toMangledString()). app("__DEFINE"). nl()
             current nl(). app("typedef ");
             if(funcType returnType == null) {
                 current app("void")
@@ -68,6 +70,7 @@ ModuleWriter: abstract class extends Skeleton {
                 current app(argType)
             }
             current app(");")
+            current nl(). nl().  app("#endif"). nl() 
         }
 
         /* write the .h file */
