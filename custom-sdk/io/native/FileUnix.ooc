@@ -1,9 +1,25 @@
+import ../File, os/Time, structs/ArrayList
 
-import ../File
-import os/Time
-import structs/ArrayList
+include dirent
 
-import dirent
+/*
+ * Directory covers
+ */
+
+DIR: extern cover
+
+DirEnt: cover from struct dirent {
+    name: extern(d_name) String
+    /* TODO: the struct has more members, actually */
+}
+
+closedir: extern func (DIR*) -> Int
+opendir: extern func (const String) -> DIR*
+readdir: extern func (DIR*) -> DirEnt*
+readdir_r: extern func (DIR*, DirEnt*, DirEnt**) -> Int
+rewinddir: extern func (DIR*)
+seekdir: extern func (DIR*, Long)
+telldir: extern func (DIR*) -> Long 
 
 realpath: extern func(path: String, resolved: String) -> String
 
@@ -23,20 +39,17 @@ version(unix || apple) {
     _getcwd: extern (getcwd) func(buf: String, size: SizeT) -> String
 
     ModeT: cover from mode_t
+    
     FileStat: cover from struct stat {
         st_mode: extern ModeT
         st_size: extern SizeT
-        st_atime: extern TimeT
-        st_mtime: extern TimeT
-        st_ctime: extern TimeT
+        st_atime, st_mtime, st_ctime: extern TimeT
     }
 
     S_ISDIR: extern func(...) -> Bool
     S_ISREG: extern func(...) -> Bool
     S_ISLNK: extern func(...) -> Bool
-    S_IRWXU: extern func(...)
-    S_IRWXG: extern func(...)
-    S_IRWXO: extern func(...)
+    S_IRWXU, S_IRWXG, S_IRWXO: extern Int // constants
 
     lstat: extern func(String, FileStat*) -> Int
     _mkdir: extern(mkdir) func(String, ModeT) -> Int
@@ -214,7 +227,7 @@ version(unix || apple) {
         }
 
         mkdir: func ~withMode (mode: Int32) -> Int {
-            _mkdir(path, mode)
+            _mkdir(path, mode as ModeT)
         }
 
     }

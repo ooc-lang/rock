@@ -25,7 +25,7 @@ FileWriter: class extends Writer {
         init(fileName, false)
     }
 
-    write: func(chars: String, length: SizeT) -> SizeT {
+    write: func(chars: Char*, length: SizeT) -> SizeT {
         file write(chars, 0, length)
     }
     
