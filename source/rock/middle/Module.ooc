@@ -1,6 +1,7 @@
 import io/File, text/EscapeSequence
 import structs/[HashMap, ArrayList, List, OrderedMultiMap]
-import ../frontend/[Token, SourceReader, BuildParams]
+import ../frontend/[Token, SourceReader, BuildParams, PathList, AstBuilder]
+import ../utils/FileUtils
 import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl,
        FunctionCall, Type, Declaration, VariableAccess, OperatorDecl,
        Scope, NamespaceDecl
@@ -26,7 +27,8 @@ Module: class extends Node {
 
     lastModified : Long
 
-    init: func ~module (.fullName, =pathElement, .token) {
+    params: BuildParams
+    init: func ~module (.fullName, =pathElement, =params, .token) {
         super(token)
         this path = fullName clone()
         this fullName = fullName replace(File separator, '/')
@@ -213,6 +215,44 @@ Module: class extends Node {
             }
         }
 
+    }
+
+    parseImports: func {
+
+        for(imp: Import in getAllImports()) {
+            path := FileUtils resolveRedundancies(imp path + ".ooc")
+            impElement := params sourcePath getElement(path)
+            impPath := params sourcePath getFile(path)
+            if(impPath == null) {
+                parent := File new(getPath()) parent()
+                if(parent != null) {
+                    path = FileUtils resolveRedundancies(File new(getPath()) parent() path + File separator + imp path + ".ooc")
+                    impElement = params sourcePath getElement(path)
+                    impPath = params sourcePath getFile(path)
+                }
+                if(impPath == null) {
+                    Exception new(This, "Module not found in sourcepath: " + imp path) throw()
+                }
+            }
+
+            //println("Trying to get "+impPath path+" from cache")
+            cached : Module = null
+            cached = AstBuilder cache get(impPath path)
+
+            impLastModified := File new(impPath path) lastModified()
+
+            if(!cached || File new(impPath path) lastModified() > cached lastModified) {
+                if(cached) {
+                    printf("%s has been changed, recompiling... (%d vs %d), impPath = %s", path, File new(impPath path) lastModified(), cached lastModified, impPath path);
+                }
+                //printf("impElement path = %s, impPath = %s\n", impElement path, impPath path)
+                cached = Module new(path[0..(path length()-4)], impElement path, params, token)
+                imp setModule(cached)
+                cached lastModified = impLastModified
+                AstBuilder new(impPath path, cached, params)
+            }
+            imp setModule(cached)
+        }
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
