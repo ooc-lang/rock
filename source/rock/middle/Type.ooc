@@ -361,9 +361,13 @@ BaseType: class extends Type {
     getTypeArgs: func -> List<VariableAccess> { typeArgs }
     
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
-        if(isGeneric() || (other isGeneric() && other pointerLevel() == 0)) {
-            // every type is always a match against a generic type
+        if(other isGeneric() && other pointerLevel() == 0) {
+            // every type is always a match against a flat generic type
             return scoreSeed
+        }
+        if(isGeneric() && other pointerLevel() == 1 && other getName() == "void") {
+            // a generic value is a match for a pointer
+            return scoreSeed / 2
         }
         if(other instanceOf(BaseType)) {
             if(getRef() == null || other getRef() == null) return -1

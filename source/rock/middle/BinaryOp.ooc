@@ -318,8 +318,6 @@ BinaryOp: class extends Expression {
                 "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol, args size()))
         }
         
-        score := 0
-        
         opLeft  := args get(0)
         opRight := args get(1)
         
@@ -327,14 +325,16 @@ BinaryOp: class extends Expression {
             return -1
         }
         
-        score += left getType() getScore(opLeft  getType())
-        score += right getType() getScore(opRight getType())        
-        if(reqType) {
-            score += fDecl getReturnType() getScore(reqType)
-        }
-        if(half) {
-            score /= 2
-        }
+        leftScore  := left  getType() getScore(opLeft  getType())
+        if(leftScore  == -1) return -1
+        rightScore := right getType() getScore(opRight getType())
+        if(rightScore == -1) return -1
+        reqScore   := reqType ? fDecl getReturnType() getScore(reqType) : 0
+        if(reqScore   == -1) return -1
+        
+        score := leftScore + rightScore + reqScore
+        
+        if(half) score /= 2  // used to prioritize '+=', '-=', and blah, over '+ and =', etc.
         
         return score
         

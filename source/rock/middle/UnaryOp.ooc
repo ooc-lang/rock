@@ -135,16 +135,14 @@ UnaryOp: class extends Expression {
                 "Argl, you need 1 argument to override the '%s' operator, not %d" format(symbol, args size()))
         }
         
-        score := 0
-        
         if(args get(0) getType() == null || inner getType() == null) { return -1 }
+
+        argScore := args get(0) getType() getScore(inner getType())
+        if(argScore == -1) return -1
+        reqScore := reqType ? fDecl getReturnType() getScore(reqType) : 0
+        if(reqScore == -1) return -1
         
-        score += args get(0) getType() getScore(inner getType())
-        if(reqType) {
-            score += fDecl getReturnType() getScore(reqType)
-        }
-        
-        return score
+        return argScore + reqScore
         
     }
     
