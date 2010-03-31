@@ -77,16 +77,10 @@ Type: abstract class extends Expression {
         
         left := this
         while(left != null) {
-            right := other
-            scoreSeed2 := scoreSeed
-            while(right != null) {
-                score := left getScoreImpl(right, scoreSeed2)
-                //printf(" >> Compared %s with %s, got score %d\n", left toString(), right toString(), score)
-                if(score > bestScore) {
-                    bestScore = score
-                }
-                right = right dig()
-                scoreSeed2 -= 1
+            score := left getScoreImpl(other, scoreSeed)
+            //printf(" >> Compared %s with %s, got score %d\n", left toString(), right toString(), score)
+            if(score > bestScore) {
+                bestScore = score
             }
             left = left dig()
             scoreSeed -= 1
@@ -108,7 +102,7 @@ Type: abstract class extends Expression {
 		)
     }
     
-    isPointer: func -> Bool { pointerLevel() > 0 }
+    isPointer: func -> Bool { (pointerLevel() == 1) || (getName() == "Pointer") }
     
     getScoreImpl: abstract func (other: This, scoreSeed: Int) -> Int
     
@@ -365,7 +359,7 @@ BaseType: class extends Type {
             // every type is always a match against a flat generic type
             return scoreSeed
         }
-        if(isGeneric() && other pointerLevel() == 1 && other getName() == "void") {
+        if(isGeneric() && other isPointer()) {
             // a generic value is a match for a pointer
             return scoreSeed / 2
         }
@@ -469,8 +463,8 @@ SugarType: abstract class extends Type {
             score := inner getScore(other as SugarType inner)
             if(score >= -1) return score
         }
-        if(pointerLevel() == other pointerLevel() && (getName() == "void" || other getName() == "void")) {
-            // void pointers, half match!
+        if(pointerLevel() == 1 && other isPointer()) {
+            // void pointer, half match!
             return scoreSeed / 2
         }
         return This NOLUCK_SCORE

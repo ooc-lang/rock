@@ -27,7 +27,7 @@ Buffer: class {
 
     append: func ~strWithLength (str: String, length: SizeT) {
         checkLength(size + length)
-        memcpy(data as Char* + size, str, length)
+        memcpy(data as Char* + size, str as Char*, length)
         size += length
     }
  
@@ -37,7 +37,7 @@ Buffer: class {
         size += 1
     }
 
-    get: func ~strWithLengthOffset (str: String, offset: SizeT, length: SizeT) {
+    get: func ~strWithLengthOffset (dest: Char*, offset: SizeT, length: SizeT) {
         if(offset >= size) {
             Exception new(This, "Buffer overflow! Offset is larger than buffer size.") throw()
         }
@@ -50,7 +50,7 @@ Buffer: class {
             copySize = length
         }
 
-        memcpy(str as Char*, (data as Char*) + offset, copySize)
+        memcpy(dest, (data as Char*) + offset, copySize)
     }
 
     get: func ~chr (offset: Int) -> Char {
