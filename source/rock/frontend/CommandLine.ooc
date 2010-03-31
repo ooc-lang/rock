@@ -305,7 +305,7 @@ CommandLine: class {
         modulePath := moduleFile path
         
         fullName := moduleName substring(0, moduleName length() - 4)
-        module := Module new(fullName, params sourcePath getElement(moduleName) path, nullToken)
+        module := Module new(fullName, params sourcePath getElement(moduleName) path, params , nullToken)
         module main = true
         
         // phase 1: parse

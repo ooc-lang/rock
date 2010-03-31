@@ -3,7 +3,7 @@ import ../frontend/[Token, BuildParams]
 import Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, If, Else,
        VariableDecl, Node, Statement, Module, FunctionCall, Declaration,
-       Version, StringLiteral, Conditional
+       Version, StringLiteral, Conditional, Import
 import tinker/[Resolver, Response, Trail]
 
 FunctionDecl: class extends Declaration {
@@ -32,13 +32,17 @@ FunctionDecl: class extends Declaration {
     returnArg : Argument = null
     body := Scope new()
     
+    variablesToPartial := ArrayList<VariableDecl> new()
+
     owner : TypeDecl = null
     staticVariant : This = null
     
     verzion: VersionSpec = null
+    isAnon: Bool
 
     init: func ~funcDecl (=name, .token) {
         super(token)
+        this isAnon = name isEmpty()
     }
     
     accept: func (visitor: Visitor) { visitor visitFunctionDecl(this) }
@@ -69,8 +73,12 @@ FunctionDecl: class extends Declaration {
     isProto:    func -> Bool { isProto }
     setProto:   func (=isProto) {}
     
-    isAnon:     func -> Bool {name isEmpty()}
+    isAnon: func -> Bool { isAnon }    
+    markForPartialing: func(var: VariableDecl) {
+        if (!variablesToPartial contains(var)) variablesToPartial add(var)
+    }
 
+    
     setOwner: func (=owner) {
         if(isStatic) return
         staticVariant = new(name, token)
@@ -219,13 +227,15 @@ FunctionDecl: class extends Declaration {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
-        if (isAnon()) {
+        isClosure := false
+        if (name isEmpty()) {
             module := trail module()
             name = generateTempName(module getUnderName() + "_closure")
             varAcc := VariableAccess new(name, token)
             varAcc setRef(this)
             trail peek() replace(this, varAcc)
             module addFunction(this)
+            isClosure = true
         }
         trail push(this)
         
@@ -279,6 +289,19 @@ FunctionDecl: class extends Declaration {
             }
         }
         
+        if (isClosure) {
+            i := 0 // The context-vars have to be placed before the other args
+            /* Simple tests
+            tmp := VariableDecl new (variablesToPartial get(0) getType(),"blah", StringLiteral new("buuh", token),token)
+            trail addBeforeInScope(This, tmp) 
+            fCall := FunctionCall new("blub", token)
+            trail addBeforeInScope(This, fCall)
+            */
+            for (e in variablesToPartial) {
+                e getName() println()
+                args add(i,Argument new(e getType(), e getName(), token))
+            }
+        }
         trail pop(this)
         
         if(verzion) {
