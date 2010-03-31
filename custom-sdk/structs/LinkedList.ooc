@@ -191,8 +191,11 @@ LinkedList: class <T> extends List<T> {
 		LinkedListIterator new(this)
 	}
 	
-	clone: func -> LinkedList<T> {return 0}
+	clone: func -> LinkedList<T> { null }
 	
+    last: func -> T { last data }
+    
+    first: func -> T { first data }
 	
 	print: func {
 		println()
