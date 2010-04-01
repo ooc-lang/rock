@@ -182,7 +182,10 @@ LinkedList: class <T> extends List<T> {
 	
 	set: func (index: Int, data: T) -> T {
         // FIXME: stub
-        return null
+		node := getNode(index)
+		ret := node data
+		node data = data
+        return ret
     }
 	
 	size: func -> Int {return size}
