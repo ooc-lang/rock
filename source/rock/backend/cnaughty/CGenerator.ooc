@@ -22,9 +22,6 @@ import Skeleton, FunctionDeclWriter, ControlStatementWriter,
 
 CGenerator: class extends Skeleton {
 
-    params: BuildParams
-    module: Module
-
     init: func (=params, =module) {
         outPath := params getOutputPath(module, "")
         File new(outPath) parent() mkdirs()
