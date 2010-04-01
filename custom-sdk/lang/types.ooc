@@ -995,7 +995,6 @@ Exception: class {
     
     print: func {
         fprintf(stderr, "%s", getMessage())
-        printf("%s", getMessage())
     }
     
     throw: func {

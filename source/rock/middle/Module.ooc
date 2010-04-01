@@ -231,7 +231,7 @@ Module: class extends Node {
                     impPath = params sourcePath getFile(path)
                 }
                 if(impPath == null) {
-                    Exception new(This, "Module not found in sourcepath: " + imp path) throw()
+                    imp token throwError("Module not found in sourcepath " + imp path)
                 }
             }
 
