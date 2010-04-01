@@ -115,7 +115,10 @@ LinkedList: class <T> extends List<T> {
 	}
 	
 	last: func -> T {
-		return last data
+		if(last != null)
+			return last data
+		else
+			return null
 	}
 	
 	removeAt: func (index: Int) -> T {
