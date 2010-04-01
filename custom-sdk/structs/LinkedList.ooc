@@ -31,6 +31,7 @@ LinkedList: class <T> extends List<T> {
 		size += 1
 	}
 	
+	
 	add: func ~withIndex(index: Int, data: T) {
 		if(index > 0 && index <= lastIndex()) {
 			prevNode := getNode(index - 1)
@@ -111,6 +112,10 @@ LinkedList: class <T> extends List<T> {
 			current = current prev
 		}
 		return -1
+	}
+	
+	last: func -> T {
+		return last data
 	}
 	
 	removeAt: func (index: Int) -> T {
