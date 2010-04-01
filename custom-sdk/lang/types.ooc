@@ -967,6 +967,12 @@ StringIterator: class <T> extends Iterator<T> {
     
 }
 
+/** An object storing a value and its class. */
+Cell: class <T> {
+    val: T
+    init: func(=val) {}
+}
+
 /**
  * exceptions
  */
