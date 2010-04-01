@@ -1,3 +1,4 @@
+
 import io/File, text/[Buffer, EscapeSequence]
 
 import structs/[ArrayList, List, Stack, HashMap]
@@ -11,7 +12,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     NullLiteral, Argument, Parenthesis, AddressOf, Dereference, Foreach,
     OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess, Match, FlowControl,
     While, CharLiteral, InterfaceDecl, NamespaceDecl, Version, Use, Block,
-    ArrayLiteral]
+    ArrayLiteral, PropertyDecl]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -344,6 +345,47 @@ AstBuilder: class {
     }
 
     /*
+     * Properties
+     */
+
+    onPropertyDeclStart: unmangled(nq_onPropertyDeclStart) func (name: String) {
+        " -- property '%s'" format(name) println()
+        stack push(PropertyDecl new(null, name clone(), token()))
+    }
+
+    onPropertyDeclType: unmangled(nq_onPropertyDeclType) func (type: Type) {
+        " -- property type '%s'" format(type toString()) println()
+        peek(PropertyDecl) type = type
+    }
+
+    onPropertyDeclGetterStart: unmangled(nq_onPropertyDeclGetterStart) func {
+        " -- property getter start" println()
+    }
+
+    onPropertyDeclGetterEnd: unmangled(nq_onPropertyDeclGetterEnd) func {
+        " -- property getter end" println()
+    }
+
+    onPropertyDeclSetterStart: unmangled(nq_onPropertyDeclSetterStart) func {
+        " -- property setter start" println()
+        stack push(ArrayList<Node> new())
+    }
+
+    onPropertyDeclSetterArgument: unmangled(nq_onPropertyDeclSetterArgument) func (name: String, conventional: Char) {
+        " -- property setter argument '%s' (%d)" format(name, conventional) println()
+        pop(ArrayList<Node>)
+    }
+
+    onPropertyDeclSetterEnd: unmangled(nq_onPropertyDeclSetterEnd) func {
+        " -- property setter end" println()
+    }
+
+    onPropertyDeclEnd: unmangled(nq_onPropertyDeclEnd) func -> PropertyDecl {
+        " -- property end" println()
+        pop(PropertyDecl)
+    }
+
+    /*
      * Types
      */
 
@@ -532,6 +574,9 @@ AstBuilder: class {
         if(stmt instanceOf(VariableDecl)) {
             //printf("[onStatement] stmt %s is a VariableDecl, calling gotVarDecl\n", stmt toString())
             gotVarDecl(stmt)
+            return
+        } else if(stmt instanceOf(PropertyDecl)) {
+            "[onStatement] Property: %s" format(stmt toString()) println()
             return
         } else if(stmt instanceOf(Stack<VariableDecl>)) {
             stack : Stack<VariableDecl> = stmt
