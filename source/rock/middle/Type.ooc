@@ -136,6 +136,7 @@ FuncType: class extends Type {
     
     argTypes := ArrayList<Type> new()
     typeArgs := ArrayList<VariableAccess> new()
+    varArg := false
     returnType : Type = null
     cached := false
     
@@ -166,8 +167,14 @@ FuncType: class extends Type {
     // should we throw an error or something?
     dereference : func -> This { null }
     
-    // TODO: clone arguments, when the FuncType is fleshed out
-    clone: func -> This { new(token) }
+    clone: func -> This {
+        copy := new(token)
+        copy typeArgs addAll(typeArgs)
+        copy argTypes addAll(argTypes)
+        copy returnType = returnType
+        copy varArg = varArg
+        copy
+    }
     
     getTypeArgs: func -> List<VariableAccess> { typeArgs }
     

@@ -379,6 +379,10 @@ AstBuilder: class {
         f argTypes add(argType)
     }
     
+    onFuncTypeVarArg: unmangled(nq_onFuncTypeVarArg) func (f: FuncType) {
+        f varArg = true
+    }
+    
     onFuncTypeReturnType: unmangled(nq_onFuncTypeReturnType) func (f: FuncType, returnType: Type) {
         f returnType = returnType
     }

@@ -596,7 +596,7 @@ FunctionCall: class extends Expression {
                 printf("matchesArg, score is now %d\n", score)
             }
         } else {
-            return 0
+            return Type NOLUCK_SCORE
         }
         
         /*
@@ -647,9 +647,10 @@ FunctionCall: class extends Expression {
             return true
         }
         
-        // or, at least one arg, and the last is a varArg
-        if(declArgs > 0) {
+        // or, vararg
+        if(decl args size() > 0) {
             last := decl args last()
+            
             // and less fixed decl args than call args ;)
             if(last instanceOf(VarArg) && declArgs - 1 <= callArgs) {
                 return true
