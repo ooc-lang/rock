@@ -41,8 +41,6 @@ FunctionCall: class extends Expression {
         visitor visitFunctionCall(this)
     }
     
-    DEBUG := false
-    
     debugCondition: func -> Bool {
         false
     }
@@ -213,7 +211,6 @@ FunctionCall: class extends Expression {
             }
             printf("name = %s, refScore = %d, ref = %s\n", name, refScore, ref ? ref toString() : "(nil)")
             if(ref) {
-                DEBUG = true
                 getScore(ref)
             }
             token throwError(message)
@@ -624,6 +621,8 @@ FunctionCall: class extends Expression {
 
             typeScore := callArg getType() getScore(declArg getType())
             if(typeScore == -1) return -1
+            
+            score += typeScore
             
             if(debugCondition()) {
                 printf("typeScore for %s vs %s == %d    for call %s (%s vs %s) [%p vs %p]\n", callArg getType() toString(), declArg getType() toString(), typeScore, toString(), callArg getType() getGroundType() toString(), declArg getType() getGroundType() toString(), callArg getType() getRef(), declArg getType() getRef())
