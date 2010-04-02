@@ -291,20 +291,24 @@ FunctionDecl: class extends Declaration {
         }
         
         if (isClosure) {
-            i := 0 // The context-vars have to be placed before the other args
+            //i := 0 // The context-vars have to be placed before the other args
             /* Simple tests
             tmp := VariableDecl new (variablesToPartial get(0) getType(),"blah", StringLiteral new("buuh", token),token)
             trail addBeforeInScope(This, tmp) 
             fCall := FunctionCall new("blub", token)
             trail addBeforeInScope(This, fCall)
-            */
             imp := Import new("internals/yajit/Partial", nullToken) 
             module := trail module()
             module addImport(imp)
             module parseImports()
+            */
+            partialClass := VariableAccess new("PartialClass", nullToken)
+            newCall := FunctionCall new("new", nullToken)
+            partialDecl := VariableDecl new(null, "partial", newCall, nullToken)
+            trail addBeforeInScope(this, partialDecl) 
             for (e in variablesToPartial) {
                 e getName() println()
-                args add(i, Argument new(e getType(), e getName(), token))
+                args add(Argument new(e getType(), e getName(), token))
             }
         }
         trail pop(this)
