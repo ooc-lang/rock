@@ -44,7 +44,7 @@ FunctionCall: class extends Expression {
     DEBUG := false
     
     debugCondition: func -> Bool {
-        false
+        name == "round"
     }
     
     suggest: func (candidate: FunctionDecl) -> Bool {
@@ -141,7 +141,10 @@ FunctionCall: class extends Expression {
 				    depth := trail size() - 1
 				    while(depth >= 0) {
 				        node := trail get(depth)
-				        node resolveCall(this)
+				        if(node resolveCall(this) == -1) {
+                            res wholeAgain(this, "Waiting on other nodes to resolve before resolving call.")
+                            return Responses OK
+                        }
 				        depth -= 1
 				    }
 			    } else if(expr instanceOf(VariableAccess) && expr as VariableAccess getRef() != null && expr as VariableAccess getRef() instanceOf(NamespaceDecl)) {
@@ -598,6 +601,13 @@ FunctionCall: class extends Expression {
         } else {
             return 0
         }
+        
+        /*
+        if(decl getOwner() != null) {
+            // Will suffice to make a member call stronger
+            score += Type SCORE_SEED
+        }
+        */
         
         if(declArgs size() == 0) return score
         
