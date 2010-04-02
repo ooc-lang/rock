@@ -6,9 +6,14 @@ import rock/rock
 DistLocator: class {
     
     locate: static func -> File {
-        envDist := Env get("OOC_DIST")
-        if (envDist != null) {
-            return File new(envDist)
+        rockDist := Env get("ROCK_DIST")
+        if (rockDist != null) {
+            return File new(rockDist)
+        }
+        
+        oocDist := Env get("OOC_DIST")
+        if (oocDist != null) {
+            return File new(oocDist)
         }
     
         exec := ShellUtils findExecutable(Rock execName, false)

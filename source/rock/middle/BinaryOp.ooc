@@ -279,9 +279,9 @@ BinaryOp: class extends Expression {
             
             fDecl := candidate getFunctionDecl()
             fCall := FunctionCall new(fDecl getName(), token)
-            fCall setRef(fDecl)
             fCall getArguments() add(left)
             fCall getArguments() add(right)
+            fCall setRef(fDecl)
             if(!trail peek() replace(this, fCall)) {
                 if(res fatal) token throwError("Couldn't replace %s with %s! trail = %s" format(toString(), fCall toString(), trail toString()))
                 res wholeAgain(this, "failed to replace oneself, gotta try again =)")
@@ -325,10 +325,12 @@ BinaryOp: class extends Expression {
             return -1
         }
         
-        leftScore  := left  getType() getScore(opLeft  getType())
+        leftScore  := left  getType() getStrictScore(opLeft  getType())
         if(leftScore  == -1) return -1
-        rightScore := right getType() getScore(opRight getType())
+        
+        rightScore := right getType() getStrictScore(opRight getType())
         if(rightScore == -1) return -1
+        
         reqScore   := reqType ? fDecl getReturnType() getScore(reqType) : 0
         if(reqScore   == -1) return -1
         

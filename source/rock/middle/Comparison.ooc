@@ -190,9 +190,9 @@ Comparison: class extends Expression {
         }
         
         
-        leftScore  := left  getType() getScore(opLeft  getType())
+        leftScore  := left  getType() getStrictScore(opLeft  getType())
         if(leftScore  == -1) return -1
-        rightScore := right getType() getScore(opRight getType())
+        rightScore := right getType() getStrictScore(opRight getType())
         if(rightScore == -1) return -1
         reqScore   := reqType ? fDecl getReturnType() getScore(reqType) : 0
         if(reqScore   == -1) return -1

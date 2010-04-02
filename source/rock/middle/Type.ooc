@@ -70,6 +70,19 @@ Type: abstract class extends Expression {
     getType: func -> This {
         getRef() ? getRef() getType() : null
     }
+
+    getStrictScore: func (other: This) -> Int {
+        score := getScoreImpl(other, This SCORE_SEED)
+        if(score == -1) {
+            // something needs resolving
+            return -1
+        }
+        if(score != This SCORE_SEED) {
+            // imperfect match, failing
+            return This NOLUCK_SCORE
+        }
+        score
+    }
     
     getScore: func (other: This) -> Int {
         bestScore := This NOLUCK_SCORE
@@ -78,7 +91,7 @@ Type: abstract class extends Expression {
         left := this
         while(left != null) {
             score := left getScoreImpl(other, scoreSeed)
-            //printf(" >> Compared %s with %s, got score %d\n", left toString(), right toString(), score)
+            //printf(" >> Compared %s with %s, got score %d\n", left toString(), other toString(), score)
             if(score > bestScore) {
                 bestScore = score
             }
@@ -89,9 +102,11 @@ Type: abstract class extends Expression {
     }
     
     isNumericType: func -> Bool {
+        if(pointerLevel() != 0) return false
+        
         // FIXME: that's quite ugly - and what about custom types?
         name := getName()
-        return (
+        if ((
            name == "Int"   || name == "UInt"  || name == "Short" ||
 		   name == "UShort"|| name == "Long"  || name == "ULong" ||
 		   name == "LLong" || name == "ULLong"|| name == "Char"  ||
@@ -99,7 +114,12 @@ Type: abstract class extends Expression {
 		   name == "Int32" || name == "Int64" || name == "UInt8" ||
 		   name == "UInt16"|| name == "UInt32"|| name == "UInt64"||
 		   name == "SizeT" || name == "Float" || name == "Double"
-		)
+		)) return true
+        
+        down := dig()
+        if(down) return down isNumericType()
+        
+        return false
     }
     
     isPointer: func -> Bool { (pointerLevel() == 1) || (getName() == "Pointer") }
@@ -357,7 +377,7 @@ BaseType: class extends Type {
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
         if(other isGeneric() && other pointerLevel() == 0) {
             // every type is always a match against a flat generic type
-            return scoreSeed
+            return scoreSeed / 2
         }
         if(isGeneric() && other isPointer()) {
             // a generic value is a match for a pointer
@@ -365,7 +385,15 @@ BaseType: class extends Type {
         }
         if(isPointer() && other getRef() instanceOf(ClassDecl)) {
             // objects are references in ooc
-            return scoreSeed
+            return scoreSeed / 2
+        }
+        if(getRef() instanceOf(ClassDecl) && other isPointer()) {
+            // objects are still references in ooc
+            return scoreSeed / 2
+        }
+        if(isPointer() && other getGroundType() isPointer()) {
+            // two pointers = okay
+            return scoreSeed / 2
         }
         if(other instanceOf(BaseType)) {
             if(getRef() == null || other getRef() == null) return -1
@@ -375,7 +403,12 @@ BaseType: class extends Type {
                 return scoreSeed
             }
             
-            if(getRef() instanceOf(ClassDecl) && other getRef() instanceOf(ClassDecl)) {
+            if(getName() == other getName()) {
+                // *sigh* I wish we didn't have to do that
+                return scoreSeed / 2
+            }
+            
+            if(getRef() instanceOf(TypeDecl) && other getRef() instanceOf(TypeDecl)) {
                 inheritsScore := getRef() as TypeDecl inheritsScore(other getRef() as TypeDecl, scoreSeed)
                 
                 // something needs resolving

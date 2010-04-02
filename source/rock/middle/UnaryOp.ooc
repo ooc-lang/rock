@@ -100,8 +100,8 @@ UnaryOp: class extends Expression {
         if(candidate != null) {
             fDecl := candidate getFunctionDecl()
             fCall := FunctionCall new(fDecl getName(), token)
-            fCall setRef(fDecl)
             fCall getArguments() add(inner)
+            fCall setRef(fDecl)
             if(!trail peek() replace(this, fCall)) {
                 if(res fatal) token throwError("Couldn't replace %s with %s!" format(toString(), fCall toString()))
                 res wholeAgain(this, "failed to replace oneself, gotta try again =)")
@@ -137,7 +137,7 @@ UnaryOp: class extends Expression {
         
         if(args get(0) getType() == null || inner getType() == null) { return -1 }
 
-        argScore := args get(0) getType() getScore(inner getType())
+        argScore := args get(0) getType() getStrictScore(inner getType())
         if(argScore == -1) return -1
         reqScore := reqType ? fDecl getReturnType() getScore(reqType) : 0
         if(reqScore == -1) return -1

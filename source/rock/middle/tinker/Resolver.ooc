@@ -1,5 +1,5 @@
 import ../[Module, Node]
-import ../../frontend/[BuildParams]
+import ../../frontend/[BuildParams, Token]
 import Response, Trail
 
 Resolver: class {
@@ -26,7 +26,13 @@ Resolver: class {
     }
     
     wholeAgain: func (node: Node, reason: String) {
-        if(params debugLoop) printf("LOOP %s : %s because '%s'\n", node toString(), node class name, reason)
+        if(fatal) {
+            node token throwError(reason)
+        }
+        
+        if(params debugLoop) {
+            printf("LOOP %s : %s because '%s'\n", node toString(), node class name, reason)
+        }
         wholeAgain = true
     }
     

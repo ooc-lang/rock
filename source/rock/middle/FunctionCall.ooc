@@ -18,7 +18,7 @@ FunctionCall: class extends Expression {
     args := ArrayList<Expression> new()    
     
     ref = null : FunctionDecl
-    refScore := -1
+    refScore := INT_MIN
     
     init: func ~funcCall (=name, .token) {
         super(token)
@@ -41,6 +41,8 @@ FunctionCall: class extends Expression {
         visitor visitFunctionCall(this)
     }
     
+    DEBUG := false
+    
     debugCondition: func -> Bool {
         false
     }
@@ -55,7 +57,7 @@ FunctionCall: class extends Expression {
         }
         
         score := getScore(candidate)
-        if(score > 0 && score > refScore) {
+        if(score > refScore) {
             if(debugCondition()) "** New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
             refScore = score
             ref = candidate
@@ -119,7 +121,7 @@ FunctionCall: class extends Expression {
          * Since we're looking for the best, we have to do the whole
          * trail from top to bottom
          */
-        if(refScore == -1) {
+        if(refScore <= 0) {
             if(debugCondition()) printf("\n===============\nResolving call %s\n", toString())
         	if(name == "super") {
 				fDecl := trail get(trail find(FunctionDecl)) as FunctionDecl
@@ -165,7 +167,7 @@ FunctionCall: class extends Expression {
         /*
          * Now resolve return type, generic type arguments, and interfaces
          */
-        if(refScore != -1) {
+        if(refScore > 0) {
             
             if(!resolveReturnType(trail, res) ok()) {
                 res wholeAgain(this, "%s looping because of return type!" format(toString()))
@@ -199,19 +201,22 @@ FunctionCall: class extends Expression {
             
         }
 
-        if(refScore == -1 && res fatal) {
+        if(refScore <= 0 && res fatal) {
             message : String
             if(expr && expr getType()) {
                 message = "No such function %s.%s%s" format(expr getType() getName(), name, getArgsTypesRepr())
             } else {
                 message = "No such function %s%s" format(name, getArgsTypesRepr())
             }
-            printf("name = %s, refScore = %d, ref = %s\n",
-            	name, refScore, ref ? ref toString() : "(nil)")
+            printf("name = %s, refScore = %d, ref = %s\n", name, refScore, ref ? ref toString() : "(nil)")
+            if(ref) {
+                DEBUG = true
+                getScore(ref)
+            }
             token throwError(message)
         }
 
-        if(refScore == -1) {
+        if(refScore <= 0) {
             res wholeAgain(this, "not resolved")
             return Responses OK
         }
@@ -587,6 +592,9 @@ FunctionCall: class extends Expression {
         declArgs := decl args
         if(matchesArgs(decl)) {
             score += Type SCORE_SEED
+            if(debugCondition()) {
+                printf("matchesArg, score is now %d\n", score)
+            }
         } else {
             return 0
         }
@@ -608,9 +616,12 @@ FunctionCall: class extends Expression {
             if(typeScore == -1) return -1
             
             if(debugCondition()) {
-                printf("typeScore for %s vs %s == %d    for call %s (%s vs %s)\n", callArg getType() toString(), declArg getType() toString(), typeScore, toString(), callArg getType() getGroundType() toString(), declArg getType() getGroundType() toString())
+                printf("typeScore for %s vs %s == %d    for call %s (%s vs %s) [%p vs %p]\n", callArg getType() toString(), declArg getType() toString(), typeScore, toString(), callArg getType() getGroundType() toString(), declArg getType() getGroundType() toString(), callArg getType() getRef(), declArg getType() getRef())
             }
             score += typeScore
+        }
+        if(debugCondition()) {
+            printf("Final score = %d\n", score)
         }
         
         return score
@@ -693,7 +704,7 @@ FunctionCall: class extends Expression {
     getReturnArg: func -> Expression { returnArg }
     
     getRef: func -> FunctionDecl { ref }
-    setRef: func (=ref) { refScore = 0; /* or it'll keep trying to resolve it =) */ }
+    setRef: func (=ref) { refScore = 1; /* or it'll keep trying to resolve it =) */ }
 
 	getArguments: func ->  ArrayList<Expression> { args }
 
