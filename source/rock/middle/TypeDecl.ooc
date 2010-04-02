@@ -561,6 +561,17 @@ TypeDecl: abstract class extends Declaration {
         return false
     }
     
+    inheritsScore: func (tDecl: TypeDecl, scoreSeed: Int) -> Int {
+        if(getSuperType() != null) {
+            superRef := getSuperRef()
+            if(superRef == null) return -1            
+            if(superRef == tDecl) return scoreSeed
+            return superRef inheritsScore(tDecl, scoreSeed / 2)
+        }
+        
+        return Type NOLUCK_SCORE
+    }
+    
     toString: func -> String {
         repr := class name + ' ' + name
         if(getTypeArgs() isEmpty()) return repr

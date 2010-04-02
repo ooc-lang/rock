@@ -180,7 +180,7 @@ FuncType: class extends Type {
         if(other instanceOf(FuncType)) {
             return scoreSeed
         }
-        return NOLUCK_SCORE
+        return This NOLUCK_SCORE
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
