@@ -249,6 +249,9 @@ VariableDecl: class extends Declaration {
             for(argType in fType argTypes) {
                 fDecl args add(Argument new(argType, "", token))
             }
+            if(fType varArg) {
+                fDecl args add(VarArg new(token))
+            }
             if(fType returnType != null) {
                 fDecl setReturnType(fType returnType)
             }

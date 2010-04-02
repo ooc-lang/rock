@@ -363,7 +363,7 @@ FunctionDecl: class extends Declaration {
             expr := stmt as Expression
             if(expr getType() == null) {
                 //printf("[autoReturn] LOOPing because stmt's type (%s) is null.", expr toString())
-                res wholeAgain(this, "need the type of %s in autoReturn" format(stmt toString()))
+                res wholeAgain(stmt, "Couldn't infer type of the %s used as a expression" format(stmt toString()))
                 return
             }
             

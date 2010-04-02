@@ -660,7 +660,7 @@ String: cover from Char* {
     prepend: func (other: This) -> This {
         other append(this)
     }
-    
+
     /** return a new string containing *other* followed by *this*. */
     prepend: func ~char (other: Char) -> This {
         length := length()
@@ -717,10 +717,8 @@ String: cover from Char* {
     
     scanf: func (format: This, ...) -> Int {
         list: VaList
-        retval: Int
-
         va_start(list, format)
-        retval = vsscanf(this, format, list)
+        retval := vsscanf(this, format, list)
         va_end(list)
 
         return retval
@@ -825,13 +823,8 @@ LLong: cover from signed long long {
 }
     
 Long:  cover from signed long  extends LLong
+Int:   cover from signed int   extends LLong
 Short: cover from signed short extends LLong
-Int:   cover from signed int   extends LLong {
-	// temporary workaround until covers inheritance is duplication
-	compareTo: func<T>(other: T) -> Int {
-        (T == This) ? (this <=> other as This) : -1
-    }
-}
 
 ULLong: cover from unsigned long long extends LLong {
 
@@ -847,6 +840,12 @@ ULong:  cover from unsigned long  extends ULLong
 UInt:   cover from unsigned int   extends ULLong
 UShort: cover from unsigned short extends ULLong
 
+INT_MIN,    INT_MAX  : extern const static Int
+UINT_MAX 			 : extern const static UInt
+LONG_MIN,  LONG_MAX  : extern const static Long
+ULONG_MAX			 : extern const static ULong
+LLONG_MIN, LLONG_MAX : extern const static LLong
+ULLONG_MAX			 : extern const static ULLong
 
 /**
  * fixed-size integer types
@@ -886,6 +885,10 @@ LDouble: cover from long double {
 }
 Float: cover from float extends LDouble
 Double: cover from double extends LDouble
+
+DBL_MIN,  DBL_MAX : extern static const Double
+FLT_MIN,  FLT_MAX : extern static const Float
+LDBL_MIN, LDBL_MAX: extern static const LDouble
 
 /**
  * custom types

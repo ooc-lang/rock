@@ -18,7 +18,7 @@ FunctionCall: class extends Expression {
     args := ArrayList<Expression> new()    
     
     ref = null : FunctionDecl
-    refScore := -1
+    refScore := INT_MIN
     
     init: func ~funcCall (=name, .token) {
         super(token)
@@ -50,13 +50,13 @@ FunctionCall: class extends Expression {
         if(debugCondition()) "** Got suggestion %s for %s" format(candidate toString(), toString()) println()
         
         if(isMember() && candidate owner == null) {
-            //printf("** %s is no fit!, we need something to fit %s\n", candidate toString(), toString())
+            if(debugCondition()) printf("** %s is no fit!, we need something to fit %s\n", candidate toString(), toString())
             return false
         }
         
         score := getScore(candidate)
         if(score > refScore) {
-            //"** New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
+            if(debugCondition()) "** New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
             refScore = score
             ref = candidate
             return true
@@ -119,7 +119,7 @@ FunctionCall: class extends Expression {
          * Since we're looking for the best, we have to do the whole
          * trail from top to bottom
          */
-        if(refScore == -1) {
+        if(refScore <= 0) {
             if(debugCondition()) printf("\n===============\nResolving call %s\n", toString())
         	if(name == "super") {
 				fDecl := trail get(trail find(FunctionDecl)) as FunctionDecl
@@ -139,7 +139,10 @@ FunctionCall: class extends Expression {
 				    depth := trail size() - 1
 				    while(depth >= 0) {
 				        node := trail get(depth)
-				        node resolveCall(this)
+				        if(node resolveCall(this) == -1) {
+                            res wholeAgain(this, "Waiting on other nodes to resolve before resolving call.")
+                            return Responses OK
+                        }
 				        depth -= 1
 				    }
 			    } else if(expr instanceOf(VariableAccess) && expr as VariableAccess getRef() != null && expr as VariableAccess getRef() instanceOf(NamespaceDecl)) {
@@ -165,7 +168,7 @@ FunctionCall: class extends Expression {
         /*
          * Now resolve return type, generic type arguments, and interfaces
          */
-        if(refScore != -1) {
+        if(refScore > 0) {
             
             if(!resolveReturnType(trail, res) ok()) {
                 res wholeAgain(this, "%s looping because of return type!" format(toString()))
@@ -199,19 +202,21 @@ FunctionCall: class extends Expression {
             
         }
 
-        if(refScore == -1 && res fatal) {
+        if(refScore <= 0 && res fatal) {
             message : String
             if(expr && expr getType()) {
                 message = "No such function %s.%s%s" format(expr getType() getName(), name, getArgsTypesRepr())
             } else {
                 message = "No such function %s%s" format(name, getArgsTypesRepr())
             }
-            printf("name = %s, refScore = %d, ref = %s\n",
-            	name, refScore, ref ? ref toString() : "(nil)")
+            printf("name = %s, refScore = %d, ref = %s\n", name, refScore, ref ? ref toString() : "(nil)")
+            if(ref) {
+                getScore(ref)
+            }
             token throwError(message)
         }
 
-        if(refScore == -1) {
+        if(refScore <= 0) {
             res wholeAgain(this, "not resolved")
             return Responses OK
         }
@@ -586,10 +591,20 @@ FunctionCall: class extends Expression {
         
         declArgs := decl args
         if(matchesArgs(decl)) {
-            score += 10
+            score += Type SCORE_SEED
+            if(debugCondition()) {
+                printf("matchesArg, score is now %d\n", score)
+            }
         } else {
-            return 0
+            return Type NOLUCK_SCORE
         }
+        
+        /*
+        if(decl getOwner() != null) {
+            // Will suffice to make a member call stronger
+            score += Type SCORE_SEED
+        }
+        */
         
         if(declArgs size() == 0) return score
         
@@ -603,9 +618,18 @@ FunctionCall: class extends Expression {
             if(declArg instanceOf(VarArg)) break
             if(declArg getType() == null) return -1
             if(callArg getType() == null) return -1
-            if(declArg type equals(callArg getType())) {
-                score += 10
+
+            typeScore := callArg getType() getScore(declArg getType())
+            if(typeScore == -1) return -1
+            
+            score += typeScore
+            
+            if(debugCondition()) {
+                printf("typeScore for %s vs %s == %d    for call %s (%s vs %s) [%p vs %p]\n", callArg getType() toString(), declArg getType() toString(), typeScore, toString(), callArg getType() getGroundType() toString(), declArg getType() getGroundType() toString(), callArg getType() getRef(), declArg getType() getRef())
             }
+        }
+        if(debugCondition()) {
+            printf("Final score = %d\n", score)
         }
         
         return score
@@ -623,9 +647,10 @@ FunctionCall: class extends Expression {
             return true
         }
         
-        // or, at least one arg, and the last is a varArg
-        if(declArgs > 0) {
+        // or, vararg
+        if(decl args size() > 0) {
             last := decl args last()
+            
             // and less fixed decl args than call args ;)
             if(last instanceOf(VarArg) && declArgs - 1 <= callArgs) {
                 return true
@@ -688,7 +713,7 @@ FunctionCall: class extends Expression {
     getReturnArg: func -> Expression { returnArg }
     
     getRef: func -> FunctionDecl { ref }
-    setRef: func (=ref) { refScore = 0; /* or it'll keep trying to resolve it =) */ }
+    setRef: func (=ref) { refScore = 1; /* or it'll keep trying to resolve it =) */ }
 
 	getArguments: func ->  ArrayList<Expression> { args }
 
