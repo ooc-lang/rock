@@ -11,8 +11,9 @@ voidType := BaseType new("void", nullToken)
 voidType ref = BuiltinType new("void", nullToken)
 
 Type: abstract class extends Expression {
-    
-    NOLUCK_SCORE := const -100000
+
+    SCORE_SEED := const static 1024
+    NOLUCK_SCORE := const static -100000
     
     init: func ~type (.token) {
         super(token)
