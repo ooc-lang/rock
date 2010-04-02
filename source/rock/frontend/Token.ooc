@@ -48,7 +48,7 @@ Token: cover {
     
     printMessage: func (message, type: String) {
         if(module == null) {
-            Exception new(This, "? [%s] %s" format(type, message)) throw()
+            Exception new(This, "From unknown source [%s] %s" format(type, message)) throw()
         }
         
         fr := FileReader new(getPath())
