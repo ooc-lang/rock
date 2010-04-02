@@ -500,7 +500,7 @@ TypeDecl: abstract class extends Declaration {
         
     }
     
-    resolveCall: func (call : FunctionCall) {
+    resolveCall: func (call : FunctionCall) -> Int {
 
         if(call debugCondition()) {
             printf("\n====> Search %s in %s (which has %d functions)\n", call toString(), name, functions size())
@@ -512,7 +512,7 @@ TypeDecl: abstract class extends Declaration {
         finalScore: Int
         fDecl := getFunction(call, finalScore&)
         if(finalScore == -1) {
-            return // something's not resolved
+            return -1 // something's not resolved
         }
         if(fDecl) {
             if(call debugCondition()) "    \\o/ Found fDecl for %s, it's %s" format(call name, fDecl toString()) println()
@@ -521,16 +521,16 @@ TypeDecl: abstract class extends Declaration {
 	            	call setExpr(VariableAccess new("this", call token))
             	}
             	if(call debugCondition()) "   returning..." println()
-	            return
+	            return 0
             }
         } else if(getSuperRef() != null) {
             if(call debugCondition()) printf("  <== going in superRef %s\n", getSuperRef() toString())
-            getSuperRef() resolveCall(call)
+            if(getSuperRef() resolveCall(call) == -1) return -1
         }
         
         if(getBase() != null) {
             printf("Looking in base %s\n", getBase() toString())
-            getBase() resolveCall(call)
+            if(getBase() resolveCall(call) == -1) return -1
         }
         
         if(call getRef() == null) {
@@ -546,6 +546,8 @@ TypeDecl: abstract class extends Declaration {
                 }
             }
         }
+        
+        return 0
         
     }
     
