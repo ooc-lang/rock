@@ -31,6 +31,7 @@ LinkedList: class <T> extends List<T> {
 		size += 1
 	}
 	
+	
 	add: func ~withIndex(index: Int, data: T) {
 		if(index > 0 && index <= lastIndex()) {
 			prevNode := getNode(index - 1)
@@ -113,6 +114,13 @@ LinkedList: class <T> extends List<T> {
 		return -1
 	}
 	
+	last: func -> T {
+		if(last != null)
+			return last data
+		else
+			return null
+	}
+	
 	removeAt: func (index: Int) -> T {
 		if(first != null && index >= 0 && index < size) {
 			toRemove := getNode(index)
@@ -171,9 +179,21 @@ LinkedList: class <T> extends List<T> {
         return true // FIXME: probably not right.
 	}
 	
+	removeLast: func -> Bool {
+		if(last != null) {
+			removed := last 
+			removeNode(last)
+			return true
+		}
+		return false
+	}
+	
 	set: func (index: Int, data: T) -> T {
         // FIXME: stub
-        return null
+		node := getNode(index)
+		ret := node data
+		node data = data
+        return ret
     }
 	
 	size: func -> Int {return size}
@@ -182,8 +202,11 @@ LinkedList: class <T> extends List<T> {
 		LinkedListIterator new(this)
 	}
 	
-	clone: func -> LinkedList<T> {return 0}
+	clone: func -> LinkedList<T> { null }
 	
+    last: func -> T { last data }
+    
+    first: func -> T { first data }
 	
 	print: func {
 		println()
