@@ -302,14 +302,21 @@ FunctionDecl: class extends Declaration {
             module addImport(imp)
             module parseImports()
             */
-            partialClass := VariableAccess new("PartialClass", nullToken)
-            newCall := FunctionCall new("new", nullToken)
-            partialDecl := VariableDecl new(null, "partial", newCall, nullToken)
+            partialClass := VariableAccess new("Partial", token)
+            newCall := FunctionCall new(partialClass, "new", token)
+            partialDecl := VariableDecl new(null, "partial", newCall, token)
             trail addBeforeInScope(this, partialDecl) 
+            partialAcc := VariableAccess new("partial", token)
+            fCall := FunctionCall new(partialAcc, "genCode", token)
+            fCall getArguments() add(VariableAccess new(name, token)) 
             for (e in variablesToPartial) {
                 e getName() println()
+                fCall getArguments() add(e)
                 args add(Argument new(e getType(), e getName(), token))
             }
+            fCall getArguments() add(StringLiteral new("", token))
+            //trail addBeforeInScope(this, fCall)
+            trail peek() replace(this, fCall)
         }
         trail pop(this)
         
@@ -363,7 +370,7 @@ FunctionDecl: class extends Declaration {
             expr := stmt as Expression
             if(expr getType() == null) {
                 //printf("[autoReturn] LOOPing because stmt's type (%s) is null.", expr toString())
-                res wholeAgain(stmt, "Couldn't infer type of the %s used as a expression" format(stmt toString()))
+                res wholeAgain(this, "need the type of %s in autoReturn" format(stmt toString()))
                 return
             }
             
