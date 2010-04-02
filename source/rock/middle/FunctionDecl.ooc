@@ -298,13 +298,14 @@ FunctionDecl: class extends Declaration {
             fCall := FunctionCall new("blub", token)
             trail addBeforeInScope(This, fCall)
             */
-            
-            /*
+            imp := Import new("internals/yajit/Partial", nullToken) 
+            module := trail module()
+            module addImport(imp)
+            module parseImports()
             for (e in variablesToPartial) {
                 e getName() println()
                 args add(i, Argument new(e getType(), e getName(), token))
             }
-            */
         }
         trail pop(this)
         
