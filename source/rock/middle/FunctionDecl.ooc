@@ -302,8 +302,8 @@ FunctionDecl: class extends Declaration {
             module addImport(imp)
             module parseImports()
             */
-            partialClass := VariableAccess new("PartialClass", nullToken)
-            newCall := FunctionCall new("new", nullToken)
+            partialClass := VariableAccess new("Partial", nullToken)
+            newCall := FunctionCall new(partialClass, "new", nullToken)
             partialDecl := VariableDecl new(null, "partial", newCall, nullToken)
             trail addBeforeInScope(this, partialDecl) 
             for (e in variablesToPartial) {
