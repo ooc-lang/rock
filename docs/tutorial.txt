@@ -157,7 +157,7 @@ instanciating objects
 Is constructed like
 
     dogClass := VariableAccess new("DogClass", nullToken)
-    newCall := FunctionCall new("new", nullToken)
+    newCall := FunctionCall new(dogClass, "new", nullToken)
     dogDecl := VariableDecl new(null, "dog", newCall, nullToken)
     
     
