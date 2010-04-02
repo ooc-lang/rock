@@ -156,10 +156,21 @@ instanciating objects
     
 Is constructed like
 
-    dogClass := VariableAccess new("DogClass", nullToken)
-    newCall := FunctionCall new("new", nullToken)
+    dogClass := VariableAccess new("Dog", nullToken)
+    newCall := FunctionCall new(dogClass, "new", nullToken)
     dogDecl := VariableDecl new(null, "dog", newCall, nullToken)
     
     
+function call arguments
+-----------------------
+    
+    printf("Hai, world!\n")
+
+Is constructed with
+
+    call := FunctionCall new("printf", nullToken)
+    arg1 := StringLiteral new("Hai, world!\n", nullToken)
+    call getArguments() add(arg1)
+
 
 

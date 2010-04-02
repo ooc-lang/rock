@@ -305,6 +305,7 @@ FunctionDecl: class extends Declaration {
             partialClass := VariableAccess new("Partial", token)
             newCall := FunctionCall new(partialClass, "new", token)
             partialDecl := VariableDecl new(null, "partial", newCall, token)
+            
             trail addBeforeInScope(this, partialDecl) 
             partialAcc := VariableAccess new("partial", token)
             fCall := FunctionCall new(partialAcc, "genCode", token)
