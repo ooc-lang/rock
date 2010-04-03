@@ -80,6 +80,8 @@ ClassDeclWriter: abstract class extends CGenerator {
         // Now write all virtual functions prototypes in the class struct
         for (fDecl in cDecl functions) {
             
+            if(fDecl isExtern()) continue
+            
             if(cDecl getSuperRef() != null) {
                 superDecl : FunctionDecl = null
                 superDecl = cDecl getSuperRef() lookupFunction(fDecl name, fDecl suffix)
@@ -119,7 +121,7 @@ ClassDeclWriter: abstract class extends CGenerator {
 
         for(fDecl: FunctionDecl in cDecl functions) {
             
-            if(fDecl isExtern() && !fDecl externName isEmpty()) {
+            if(fDecl isExternWithName()) {
                 continue
             }
             
