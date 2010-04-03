@@ -44,7 +44,7 @@ AstBuilder: class {
         if(params includeLang && !module fullName startsWith("/")) {
             addLangImports()
         }
-        module parseImports()
+        
     }
 
     addLangImports: func {
@@ -100,7 +100,6 @@ AstBuilder: class {
             nDecl addImport(module getGlobalImports() last())
             module getGlobalImports() removeAt(module getGlobalImports() lastIndex()) // no longer a global import
         }
-        printf("Just got namespaced import %s!\n", nDecl toString())
         module addNamespace(nDecl)
     }
 

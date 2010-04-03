@@ -228,16 +228,6 @@ FunctionDecl: class extends Declaration {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
-        isClosure := false
-        if (name isEmpty()) {
-            module := trail module()
-            name = generateTempName(module getUnderName() + "_closure")
-            varAcc := VariableAccess new(name, token)
-            varAcc setRef(this)
-            trail peek() replace(this, varAcc)
-            module addFunction(this)
-            isClosure = true
-        }
         trail push(this)
         
         //if(res params veryVerbose) printf("** Resolving function decl %s\n", name)
@@ -289,24 +279,39 @@ FunctionDecl: class extends Declaration {
                 return response
             }
         }
-        
-        if (isClosure) {
-            i := 0 // The context-vars have to be placed before the other args
-            /* Simple tests
-            tmp := VariableDecl new (variablesToPartial get(0) getType(),"blah", StringLiteral new("buuh", token),token)
-            trail addBeforeInScope(This, tmp) 
-            fCall := FunctionCall new("blub", token)
-            trail addBeforeInScope(This, fCall)
-            */
-            
-            /*
-            for (e in variablesToPartial) {
-                e getName() println()
-                args add(i, Argument new(e getType(), e getName(), token))
-            }
-            */
-        }
         trail pop(this)
+        
+        isClosure := false
+        if (name isEmpty()) {
+            module := trail module()
+            name = generateTempName(module getUnderName() + "_closure")
+            varAcc := VariableAccess new(name, token)
+            varAcc setRef(this)
+            module addFunction(this)
+         
+            imp := Import new("internals/yajit/Partial", token) 
+            module addImport(imp)
+            module parseImports(res)
+            
+            if(variablesToPartial isEmpty()) {
+                trail peek() replace(this, varAcc)
+            } else {
+                partialClass := VariableAccess new("Partial", token)
+                newCall := FunctionCall new(partialClass, "new", token)
+                partialDecl := VariableDecl new(null, "partial", newCall, token)
+                
+                trail addBeforeInScope(this, partialDecl) 
+                partialAcc := VariableAccess new("partial", token)
+                fCall := FunctionCall new(partialAcc, "genCode", token)
+                fCall getArguments() add(VariableAccess new(name, token)) 
+                for (e in variablesToPartial) {
+                    fCall getArguments() add(VariableAccess new(e, e token))
+                    args add(Argument new(e getType(), e getName(), token))
+                }
+                fCall getArguments() add(StringLiteral new("", token))
+                trail peek() replace(this, fCall)
+            }
+        }
         
         if(verzion) {
             response := verzion resolve()
@@ -358,7 +363,7 @@ FunctionDecl: class extends Declaration {
             expr := stmt as Expression
             if(expr getType() == null) {
                 //printf("[autoReturn] LOOPing because stmt's type (%s) is null.", expr toString())
-                res wholeAgain(stmt, "Couldn't infer type of the %s used as a expression" format(stmt toString()))
+                res wholeAgain(this, "need the type of %s in autoReturn" format(stmt toString()))
                 return
             }
             

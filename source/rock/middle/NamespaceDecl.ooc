@@ -38,7 +38,6 @@ NamespaceDecl: class extends Declaration {
     
     resolveType: func (type: Type) {
         
-        printf("[Namespace] Looking for type %s in %s\n", type toString(), toString())
         for(imp in imports) {
             imp getModule() resolveType(type)
         }
@@ -47,7 +46,6 @@ NamespaceDecl: class extends Declaration {
     
     resolveCall: func (call: FunctionCall) {
         
-        printf("[Namespace] Looking for %s in %s\n", call toString(), toString())
         for(imp in imports) {
             imp getModule() resolveCall(call)
         }
@@ -56,7 +54,6 @@ NamespaceDecl: class extends Declaration {
     
     resolveAccess: func (access: VariableAccess) {
         
-        printf("[Namespace] Looking for %s in %s\n", access toString(), toString())
         for(imp in imports) {
             imp getModule() resolveAccess(access)
         }
