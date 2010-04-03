@@ -29,6 +29,9 @@ tmp[0] = 0x89
 tmp[1] = 0xe5
 MOV_EBP_ESP := static const BinarySeq new(2, tmp) 
 
+tmp[0] = 0xb8
+MOV_EAX_ADDRESS := static const BinarySeq new(1, tmp)
+
 tmp[0] = 0xbb
 MOV_EBX_ADDRESS := static const BinarySeq new(1, tmp)
 
@@ -47,6 +50,10 @@ tmp[0] = 0xe8
 CALL_ADDRESS := static const BinarySeq new(1, tmp)
 
 tmp[0] = 0xff
+tmp[1] = 0xd0
+CALL_EAX := static const BinarySeq new(2, tmp)
+
+tmp[0] = 0xff
 tmp[1] = 0xd3
 CALL_EBX := static const BinarySeq new(2, tmp)
 
@@ -60,6 +67,9 @@ tmp[0] = 0x83
 tmp[1] = 0xec
 tmp[2] = 0x18
 RESERVE_STACK_SPACE := static const BinarySeq new(3, tmp)
+
+tmp[0] = 0x90
+NOP := static const BinarySeq new(1, tmp)
 
 //OpCodes: class  {
     

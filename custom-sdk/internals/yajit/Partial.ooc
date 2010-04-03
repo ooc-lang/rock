@@ -111,11 +111,32 @@ Partial: class {
     }
 
     finishSequence: func(funcPtr: Func) {
-        bseq append(OpCodes MOV_EBX_ADDRESS)
+        // Directly calling the address (method 1)
+        // causes a segfault *before* calling the function.
+        // No idea why - with an extern nasm module it works fine
+        
+        // Copying the address to EBX causes a segfault after
+        // calling the function. This behaviour is consistent with nasm
+        
+        // Copying the address to EAX seems to work =)
+        
+        //bseq append(OpCodes CALL_ADDRESS)
+        //bseq append((funcPtr&) as UInt8*, Pointer size)
+        
+        //bseq append(OpCodes MOV_EBX_ADDRESS)
+        //bseq append((funcPtr&) as UInt8*, Pointer size)
+        //bseq append(OpCodes CALL_EBX)
+        
+        bseq append(OpCodes MOV_EAX_ADDRESS)
         bseq append((funcPtr&) as UInt8*, Pointer size)
-        bseq append(OpCodes CALL_EBX)
+        bseq append(OpCodes CALL_EAX)
+        
         bseq append(OpCodes LEAVE)
         bseq append(OpCodes RET)
+        //bseq append(OpCodes NOP)
+        //bseq append(OpCodes NOP)
+        //bseq append(OpCodes NOP)
+        //bseq append(OpCodes NOP)
     }
 
     converseFloat: static func(f: Float) -> Int {((f&) as Int32*)@}
