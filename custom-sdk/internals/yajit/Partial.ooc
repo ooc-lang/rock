@@ -54,11 +54,10 @@ Partial: class {
         arguments add(arg)
     }
     
-    genCode: func <T>(function: Func, closure: T, argSizes: String) -> Func {
+    genCode: func <T> (function: Func, closure: T, argSizes: String) -> Func {
         pushNonClosureArgs(getBase(argSizes, bseq), argSizes)
         pushClosure(closure)
         finishSequence(function)
-        bseq print()
         return bseq data as Func
     }
     

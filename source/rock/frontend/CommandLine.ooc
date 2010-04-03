@@ -310,6 +310,7 @@ CommandLine: class {
         
         // phase 1: parse
         AstBuilder new(modulePath, module, params)
+        module parseImports(null)
         
         // phase 2: tinker
         moduleList := ArrayList<Module> new()

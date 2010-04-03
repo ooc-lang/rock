@@ -1,6 +1,6 @@
 import ../[Module, Node]
 import ../../frontend/[BuildParams, Token]
-import Response, Trail
+import Response, Trail, Tinkerer
 
 Resolver: class {
  
@@ -9,8 +9,9 @@ Resolver: class {
     fatal := false
     module: Module
     params: BuildParams
+    tinkerer: Tinkerer
     
-    init: func (=module, =params) {}
+    init: func (=module, =params, =tinkerer) {}
     
     process: func -> Bool {
  
@@ -34,6 +35,14 @@ Resolver: class {
             printf("LOOP %s : %s because '%s'\n", node toString(), node class name, reason)
         }
         wholeAgain = true
+    }
+    
+    /**
+     * Add a module for resolution
+     */
+    addModule: func (module: Module) {
+        tinkerer resolvers add(Resolver new(module, params, tinkerer))
+        tinkerer modules add(module)
     }
     
 }
