@@ -213,7 +213,7 @@ ClassDeclWriter: abstract class extends CGenerator {
             }
             
             current nl(). nl()
-            FunctionDeclWriter writeFuncPrototype(this, decl, decl isFinal ? null : "_impl")
+            FunctionDeclWriter writeFuncPrototype(this, decl, (decl isFinal()) ? null : "_impl")
             current app(' '). openBlock()
 
             if(decl getName() == ClassDecl DEFAULTS_FUNC_NAME) {
@@ -325,7 +325,7 @@ ClassDeclWriter: abstract class extends CGenerator {
             for(alias: FunctionAlias in interfaceImpl getAliases()) {
                 current nl(). app('.'). app(alias key getName()). app(" = (void*) ")
                 FunctionDeclWriter writeFullName(this, alias value)
-                if(!alias value isFinal()) current app("_impl")
+                if(!alias value isFinal() && !alias value isAbstract()) current app("_impl")
                 current app(",")
             }
         }
