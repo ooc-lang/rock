@@ -562,6 +562,13 @@ TypeDecl: abstract class extends Declaration {
     }
     
     inheritsScore: func (tDecl: TypeDecl, scoreSeed: Int) -> Int {
+        for(interfaceDecl in interfaceDecls) {
+            if(interfaceTypes size() != interfaceDecls size()) return -1
+            if(interfaceDecl == tDecl) return scoreSeed
+            score := interfaceDecl inheritsScore(tDecl, scoreSeed / 2)
+            if(score != Type NOLUCK_SCORE) return score
+        }
+        
         if(getSuperType() != null) {
             superRef := getSuperRef()
             if(superRef == null) return -1            
