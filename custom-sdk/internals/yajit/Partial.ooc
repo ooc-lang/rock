@@ -20,12 +20,11 @@ Partial: class {
         bseq = BinarySeq new(size)
         bseq append(OpCodes PUSH_EBP)
         bseq append(OpCodes MOV_EBP_ESP)
-        bseq append(OpCodes RESERVE_STACK_SPACE)
         return bseq
     }
     
     pushClosure: func <T> (arg: T) {
-        if (T size == 1) { bseq append(OpCodes PUSH_BYTE) }
+        if     (T size == 1) { bseq append(OpCodes PUSH_BYTE) }
         elseif (T size == 2) { bseq append(OpCodes PUSH_WORD) }
         elseif (T size == 4) { bseq append(OpCodes PUSH_DWORD) }
         else { 

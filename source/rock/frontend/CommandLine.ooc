@@ -82,6 +82,10 @@ CommandLine: class {
                     
                     BuildParams fatalError = false
                     
+                } else if(option startsWith("linker=")) {
+                    
+                    params linker = option substring(7)
+                    
                 } else if (option startsWith("L")) {
                     
                     params libPath add(arg substring(2))
@@ -156,10 +160,6 @@ CommandLine: class {
                     } else {
                         ("Unknown driver: " + driverName) println()
                     }
-                    
-                } else if(option startsWith("linker=")) {
-                    
-                    params linker = option substring(7)
                     
                 } else if (option startsWith("blowup=")) {
                     
