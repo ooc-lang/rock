@@ -42,7 +42,7 @@ FunctionCall: class extends Expression {
     }
     
     debugCondition: func -> Bool {
-        false
+        name == "sayHi"
     }
     
     suggest: func (candidate: FunctionDecl) -> Bool {
@@ -619,7 +619,7 @@ FunctionCall: class extends Expression {
             if(declArg getType() == null) return -1
             if(callArg getType() == null) return -1
 
-            typeScore := callArg getType() getScore(declArg getType())
+            typeScore := callArg getType() getScore(declArg getType() refToPointer())
             if(typeScore == -1) return -1
             
             score += typeScore

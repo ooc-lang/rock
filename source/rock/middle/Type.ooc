@@ -130,6 +130,14 @@ Type: abstract class extends Expression {
     
     dig: abstract func -> This
     
+    // Used in FunctionCall scoring - When we have a reftype, say, Int@,
+    // from the inside it should have type 'Int', but from the outside, 'Int*'.
+    // This converts Int@ to Int*.
+    // Note that the pointerLevel() for Int@ is 0, whereas for Int* it's 1.
+    refToPointer: func -> This {
+        this
+    }
+    
 }
 
 FuncType: class extends Type {
@@ -626,5 +634,9 @@ ReferenceType: class extends SugarType {
     dereference : func -> This { inner }
     
     clone: func -> This { new(inner, token) }
+    
+    refToPointer: func -> Type {
+        PointerType new(inner refToPointer(), token)
+    }
     
 }
