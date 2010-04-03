@@ -217,9 +217,17 @@ Module: class extends Node {
 
     }
 
-    parseImports: func {
+    /**
+     * Parse the imports of this module.
+     * 
+     * If resolver is non-null, it means there's a new import that
+     * we expect to add to the resolvers list.
+     */
+    parseImports: func (resolver: Resolver) {
 
         for(imp: Import in getAllImports()) {
+            if(imp getModule() != null) continue
+            
             path := FileUtils resolveRedundancies(imp path + ".ooc")
             impElement := params sourcePath getElement(path)
             impPath := params sourcePath getFile(path)
@@ -247,9 +255,13 @@ Module: class extends Node {
                 }
                 //printf("impElement path = %s, impPath = %s\n", impElement path, impPath path)
                 cached = Module new(path[0..(path length()-4)], impElement path, params, token)
+                if(resolver != null) {
+                    resolver addModule(cached)
+                }
                 imp setModule(cached)
                 cached lastModified = impLastModified
                 AstBuilder new(impPath path, cached, params)
+                cached parseImports(resolver)
             }
             imp setModule(cached)
         }

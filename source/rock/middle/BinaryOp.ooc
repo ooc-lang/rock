@@ -2,7 +2,7 @@ import structs/ArrayList
 import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
        Import, Module, FunctionCall, ClassDecl, CoverDecl, AddressOf,
-       ArrayAccess, VariableAccess, Cast
+       ArrayAccess, VariableAccess, Cast, NullLiteral
 import tinker/[Trail, Resolver, Response]
 
 include stdint
@@ -170,6 +170,7 @@ BinaryOp: class extends Expression {
                 sizeAcc := VariableAccess new(VariableAccess new(left getType() getName(), token), "size", token)
 
                 fCall := FunctionCall new("memcpy", token)
+                
                 fCall args add(left  getGenericOperand())
                 fCall args add(right getGenericOperand())
                 fCall args add(sizeAcc)
@@ -278,9 +279,9 @@ BinaryOp: class extends Expression {
             
             fDecl := candidate getFunctionDecl()
             fCall := FunctionCall new(fDecl getName(), token)
-            fCall setRef(fDecl)
             fCall getArguments() add(left)
             fCall getArguments() add(right)
+            fCall setRef(fDecl)
             if(!trail peek() replace(this, fCall)) {
                 if(res fatal) token throwError("Couldn't replace %s with %s! trail = %s" format(toString(), fCall toString(), trail toString()))
                 res wholeAgain(this, "failed to replace oneself, gotta try again =)")
@@ -317,8 +318,6 @@ BinaryOp: class extends Expression {
                 "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol, args size()))
         }
         
-        score := 0
-        
         opLeft  := args get(0)
         opRight := args get(1)
         
@@ -326,14 +325,18 @@ BinaryOp: class extends Expression {
             return -1
         }
         
-        score += opLeft  getType() getScore(left getType())
-        score += opRight getType() getScore(right getType())        
-        if(reqType) {
-            score += fDecl getReturnType() getScore(reqType)
-        }
-        if(half) {
-            score /= 2
-        }
+        leftScore  := left  getType() getStrictScore(opLeft  getType())
+        if(leftScore  == -1) return -1
+        
+        rightScore := right getType() getStrictScore(opRight getType())
+        if(rightScore == -1) return -1
+        
+        reqScore   := reqType ? fDecl getReturnType() getScore(reqType) : 0
+        if(reqScore   == -1) return -1
+        
+        score := leftScore + rightScore + reqScore
+        
+        if(half) score /= 2  // used to prioritize '+=', '-=', and blah, over '+ and =', etc.
         
         return score
         

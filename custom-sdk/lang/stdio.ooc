@@ -33,12 +33,12 @@ fputc: extern func (Char, FStream)
 fputs: extern func (Char*, FStream)
 
 scanf: extern func (format: Char*, ...) -> Int
-fscanf: extern func (stream: FStream, format: Char*, ...)
+fscanf: extern func (stream: FStream, format: Char*, ...) -> Int
 sscanf: extern func (str: Char*, format: Char*, ...) -> Int
 
-vscanf: extern func (format: Char*, ap: VaList)
-vfscanf: extern func (file: FILE*, format: Char*, ap: VaList)
-vsscanf: extern func (str: Char*, format: Char*, ap: VaList)
+vscanf: extern func (format: Char*, ap: VaList) -> Int
+vfscanf: extern func (file: FILE*, format: Char*, ap: VaList) -> Int
+vsscanf: extern func (str: Char*, format: Char*, ap: VaList) -> Int
 
 fgets: extern func (str: Char*, length: SizeT, stream: FStream) -> Char*
 

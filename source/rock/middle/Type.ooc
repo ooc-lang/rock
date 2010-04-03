@@ -11,8 +11,9 @@ voidType := BaseType new("void", nullToken)
 voidType ref = BuiltinType new("void", nullToken)
 
 Type: abstract class extends Expression {
-    
-    NOLUCK_SCORE := const -100000
+
+    SCORE_SEED := const static 1024
+    NOLUCK_SCORE := const static -100000
     
     init: func ~type (.token) {
         super(token)
@@ -69,23 +70,59 @@ Type: abstract class extends Expression {
     getType: func -> This {
         getRef() ? getRef() getType() : null
     }
+
+    getStrictScore: func (other: This) -> Int {
+        score := getScoreImpl(other, This SCORE_SEED)
+        if(score == -1) {
+            // something needs resolving
+            return -1
+        }
+        if(score != This SCORE_SEED) {
+            // imperfect match, failing
+            return This NOLUCK_SCORE
+        }
+        score
+    }
     
     getScore: func (other: This) -> Int {
-        bestScore := NOLUCK_SCORE
-        scoreSeed := 1024
-        current := this
-        while(current != null) {
-            score := getScoreImpl(other, scoreSeed)
+        bestScore := This NOLUCK_SCORE
+        scoreSeed := This SCORE_SEED
+        
+        left := this
+        while(left != null) {
+            score := left getScoreImpl(other, scoreSeed)
+            //printf(" >> Compared %s with %s, got score %d\n", left toString(), other toString(), score)
             if(score > bestScore) {
                 bestScore = score
             }
-            current = current dig()
+            left = left dig()
             scoreSeed -= 1
         }
         return bestScore
     }
     
-    isPointer: func -> Bool { pointerLevel() > 0 }
+    isNumericType: func -> Bool {
+        if(pointerLevel() != 0) return false
+        
+        // FIXME: that's quite ugly - and what about custom types?
+        name := getName()
+        if ((
+           name == "Int"   || name == "UInt"  || name == "Short" ||
+		   name == "UShort"|| name == "Long"  || name == "ULong" ||
+		   name == "LLong" || name == "ULLong"|| name == "Char"  ||
+		   name == "UChar" || name == "Int8"  || name == "Int16" ||
+		   name == "Int32" || name == "Int64" || name == "UInt8" ||
+		   name == "UInt16"|| name == "UInt32"|| name == "UInt64"||
+		   name == "SizeT" || name == "Float" || name == "Double"
+		)) return true
+        
+        down := dig()
+        if(down) return down isNumericType()
+        
+        return false
+    }
+    
+    isPointer: func -> Bool { (pointerLevel() == 1) || (getName() == "Pointer") }
     
     getScoreImpl: abstract func (other: This, scoreSeed: Int) -> Int
     
@@ -99,6 +136,7 @@ FuncType: class extends Type {
     
     argTypes := ArrayList<Type> new()
     typeArgs := ArrayList<VariableAccess> new()
+    varArg := false
     returnType : Type = null
     cached := false
     
@@ -129,8 +167,14 @@ FuncType: class extends Type {
     // should we throw an error or something?
     dereference : func -> This { null }
     
-    // TODO: clone arguments, when the FuncType is fleshed out
-    clone: func -> This { new(token) }
+    clone: func -> This {
+        copy := new(token)
+        copy typeArgs addAll(typeArgs)
+        copy argTypes addAll(argTypes)
+        copy returnType = returnType
+        copy varArg = varArg
+        copy
+    }
     
     getTypeArgs: func -> List<VariableAccess> { typeArgs }
     
@@ -143,7 +187,7 @@ FuncType: class extends Type {
         if(other instanceOf(FuncType)) {
             return scoreSeed
         }
-        return NOLUCK_SCORE
+        return This NOLUCK_SCORE
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
@@ -338,17 +382,56 @@ BaseType: class extends Type {
     getTypeArgs: func -> List<VariableAccess> { typeArgs }
     
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
-        if(isGeneric()) {
-            // every type is always a match against a generic type
-            return scoreSeed
+        if(other isGeneric() && other pointerLevel() == 0) {
+            // every type is always a match against a flat generic type
+            return scoreSeed / 2
+        }
+        if(isGeneric() && other isPointer()) {
+            // a generic value is a match for a pointer
+            return scoreSeed / 2
+        }
+        if(isPointer() && other getRef() instanceOf(ClassDecl)) {
+            // objects are references in ooc
+            return scoreSeed / 2
+        }
+        if(getRef() instanceOf(ClassDecl) && other isPointer()) {
+            // objects are still references in ooc
+            return scoreSeed / 2
+        }
+        if(isPointer() && other getGroundType() isPointer()) {
+            // two pointers = okay
+            return scoreSeed / 2
         }
         if(other instanceOf(BaseType)) {
-            if(getRef() != null && other getRef() != null) {
-                if(getRef() == other getRef()) return true
+            if(getRef() == null || other getRef() == null) return -1
+            
+            if(getRef() == other getRef()) {
+                // perfect match
+                return scoreSeed
             }
-            return (other getName() equals(getName()) ? scoreSeed : NOLUCK_SCORE)
+            
+            if(getName() == other getName()) {
+                // *sigh* I wish we didn't have to do that
+                return scoreSeed / 2
+            }
+            
+            if(getRef() instanceOf(TypeDecl) && other getRef() instanceOf(TypeDecl)) {
+                inheritsScore := getRef() as TypeDecl inheritsScore(other getRef() as TypeDecl, scoreSeed)
+                
+                // something needs resolving
+                if(inheritsScore == -1) return inheritsScore
+                
+                // cool, a match =)
+                if(inheritsScore > 0) return inheritsScore
+            }
+            
+            if(isNumericType() && other isNumericType()) {
+                // Only half a match - it's not too good to mix integer types. Maybe we need more safety here?
+                return scoreSeed / 2
+            }
         }
-        return NOLUCK_SCORE // no luck.
+        
+        return This NOLUCK_SCORE // no luck.
     }
     
     dereference: func -> This {
@@ -420,7 +503,15 @@ SugarType: abstract class extends Type {
     getTypeArgs: func -> List<VariableAccess> { inner getTypeArgs() }
     
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
-        return (other instanceOf(class) ? inner getScore(other as SugarType inner) : NOLUCK_SCORE)
+        if(other instanceOf(class)) {
+            score := inner getScore(other as SugarType inner)
+            if(score >= -1) return score
+        }
+        if(pointerLevel() == 1 && other isPointer()) {
+            // void pointer, half match!
+            return scoreSeed / 2
+        }
+        return This NOLUCK_SCORE
     }
     
     getName: func -> String { inner getName() }

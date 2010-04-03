@@ -80,6 +80,8 @@ ClassDeclWriter: abstract class extends CGenerator {
         // Now write all virtual functions prototypes in the class struct
         for (fDecl in cDecl functions) {
             
+            if(fDecl isExtern()) continue
+            
             if(cDecl getSuperRef() != null) {
                 superDecl : FunctionDecl = null
                 superDecl = cDecl getSuperRef() lookupFunction(fDecl name, fDecl suffix)
@@ -119,7 +121,7 @@ ClassDeclWriter: abstract class extends CGenerator {
 
         for(fDecl: FunctionDecl in cDecl functions) {
             
-            if(fDecl isExtern() && !fDecl externName isEmpty()) {
+            if(fDecl isExternWithName()) {
                 continue
             }
             
@@ -211,7 +213,7 @@ ClassDeclWriter: abstract class extends CGenerator {
             }
             
             current nl(). nl()
-            FunctionDeclWriter writeFuncPrototype(this, decl, decl isFinal ? null : "_impl")
+            FunctionDeclWriter writeFuncPrototype(this, decl, (decl isFinal()) ? null : "_impl")
             current app(' '). openBlock()
 
             if(decl getName() == ClassDecl DEFAULTS_FUNC_NAME) {
@@ -273,9 +275,13 @@ ClassDeclWriter: abstract class extends CGenerator {
         current openBlock(). nl()
 
         if (parentClass name equals("Class")) {
-            current app(".instanceSize = "). app("sizeof("). app(realClass getNonMeta() underName()). app("),").
-              nl() .app(".size = "). app("sizeof(void*),").
-              nl() .app(".name = "). app('"'). app(realClass getNonMeta() name). app("\",")
+            current app(".instanceSize = "). app("sizeof("). app(realClass getNonMeta() underName()). app("),")
+            if(realClass instanceOf(ClassDecl)) {
+                current nl() .app(".size = "). app("sizeof(void*),")
+            } else {
+                current nl() .app(".size = "). app("sizeof("). app(realClass getNonMeta() underName()). app("),")
+            }
+            current nl() .app(".name = "). app('"'). app(realClass getNonMeta() name). app("\",")
         } else {
             writeClassStructInitializers(this, parentClass getSuperRef(), realClass, done, false)
         }
@@ -319,7 +325,7 @@ ClassDeclWriter: abstract class extends CGenerator {
             for(alias: FunctionAlias in interfaceImpl getAliases()) {
                 current nl(). app('.'). app(alias key getName()). app(" = (void*) ")
                 FunctionDeclWriter writeFullName(this, alias value)
-                if(!alias value isFinal()) current app("_impl")
+                if(!alias value isFinal() && !alias value isAbstract()) current app("_impl")
                 current app(",")
             }
         }

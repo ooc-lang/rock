@@ -82,6 +82,10 @@ CommandLine: class {
                     
                     BuildParams fatalError = false
                     
+                } else if(option startsWith("linker=")) {
+                    
+                    params linker = option substring(7)
+                    
                 } else if (option startsWith("L")) {
                     
                     params libPath add(arg substring(2))
@@ -159,12 +163,10 @@ CommandLine: class {
                     
                 } else if (option startsWith("blowup=")) {
                     
-                    // TODO
                     params blowup = option substring(7) toInt()
                     
                 } else if (option == "V" || option == "-version" || option == "version") {
                     
-                    // TODO
                     printf("rock head, built on %s at %s\n", ROCK_BUILD_DATE, ROCK_BUILD_TIME)
                     exit(0)
                     
@@ -310,6 +312,7 @@ CommandLine: class {
         
         // phase 1: parse
         AstBuilder new(modulePath, module, params)
+        module parseImports(null)
         
         // phase 2: tinker
         moduleList := ArrayList<Module> new()

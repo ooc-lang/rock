@@ -138,8 +138,6 @@ ArrayAccess: class extends Expression {
         }
         */
         
-        score := 0
-
         opArray  := args get(0)
         opIndex := args get(1)
 
@@ -147,13 +145,14 @@ ArrayAccess: class extends Expression {
             return -1
         }
         
-        score += opArray getType() getScore(array getType())
-        score += opIndex getType() getScore(index getType())        
-        if(reqType) {
-            score += fDecl getReturnType() getScore(reqType)
-        }
+        arrayScore := array getType() getScore(opArray getType())
+        if(arrayScore == -1) return -1
+        indexScore := index getType() getScore(opIndex getType())        
+        if(indexScore == -1) return -1
+        reqScore   := reqType ? fDecl getReturnType() getScore(reqType) : 0
+        if(reqScore   == -1) return -1
         
-        return score
+        return arrayScore + indexScore + reqScore
         
     }
     

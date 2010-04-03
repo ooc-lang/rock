@@ -55,6 +55,8 @@ UseDef: class {
         while(!set isEmpty()) {
             nextSet := ArrayList<File> new()
             for(candidate in set) {
+                if(candidate getPath() == null) continue
+                
                 if(candidate getPath() endsWith(fileName)) {
                     return candidate
                 } else if(candidate isDir()) {

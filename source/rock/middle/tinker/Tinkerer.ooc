@@ -7,6 +7,8 @@ import Resolver
 Tinkerer: class {
 
     params: BuildParams
+    resolvers := ArrayList<Resolver> new()
+    modules: List<Module>
     
     init: func (=params) {}
     
@@ -15,11 +17,10 @@ Tinkerer: class {
      * 
      * @return true on success, false on failure
      */
-    process: func (modules: List<Module>) -> Bool {
+    process: func (=modules) -> Bool {
         
-        resolvers := ArrayList<Resolver> new()
         for(module in modules) {
-            resolvers add(Resolver new(module, params))
+            resolvers add(Resolver new(module, params, this))
         }
         
         round := 0
