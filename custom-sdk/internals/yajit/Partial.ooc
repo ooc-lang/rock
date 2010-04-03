@@ -7,8 +7,22 @@ Partial: class {
     bseq: BinarySeq
 
     arguments := ArrayList<Cell<Pointer>> new()
-    init: func {initSequence(1024)}
-    init: func ~withSize(s: Int) {initSequence(s)}
+    
+    init: func {
+        init(1024)
+    }
+    
+    init: func ~withSize(size: Int) {
+        initSequence(size)
+    }
+    
+    initSequence: func(size: Int) -> BinarySeq {
+        bseq = BinarySeq new(size)
+        bseq append(OpCodes PUSH_EBP)
+        bseq append(OpCodes MOV_EBP_ESP)
+        bseq append(OpCodes RESERVE_STACK_SPACE)
+        return bseq
+    }
     
     pushClosure: func <T> (arg: T) {
         if (T size == 1) { bseq append(OpCodes PUSH_BYTE) }
@@ -58,6 +72,7 @@ Partial: class {
         pushNonClosureArgs(getBase(argSizes, bseq), argSizes)
         pushClosure(closure)
         finishSequence(function)
+        bseq print()
         return bseq data as Func
     }
     
@@ -79,13 +94,6 @@ Partial: class {
         bseq print()
         */
         return bseq data as Func
-    }
-    
-    initSequence: func(s: Int) -> BinarySeq {
-        bseq = BinarySeq new(s)
-        bseq append(OpCodes PUSH_EBP)
-        bseq append(OpCodes MOV_EBP_ESP)
-        return bseq
     }
     
     pushNonClosureArgs: func(base: UChar, argSizes: String)  {

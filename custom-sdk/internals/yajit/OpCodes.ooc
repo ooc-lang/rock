@@ -56,6 +56,11 @@ LEAVE := static const BinarySeq new(1, tmp)
 tmp[0] = 0xc3
 RET := static const BinarySeq new(1, tmp)
 
+tmp[0] = 0x83
+tmp[1] = 0xec
+tmp[2] = 0x18
+RESERVE_STACK_SPACE := static const BinarySeq new(3, tmp)
+
 //OpCodes: class  {
     
 //    }

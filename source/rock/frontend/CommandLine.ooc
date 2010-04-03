@@ -157,14 +157,16 @@ CommandLine: class {
                         ("Unknown driver: " + driverName) println()
                     }
                     
+                } else if(option startsWith("linker=")) {
+                    
+                    params linker = option substring(7)
+                    
                 } else if (option startsWith("blowup=")) {
                     
-                    // TODO
                     params blowup = option substring(7) toInt()
                     
                 } else if (option == "V" || option == "-version" || option == "version") {
                     
-                    // TODO
                     printf("rock head, built on %s at %s\n", ROCK_BUILD_DATE, ROCK_BUILD_TIME)
                     exit(0)
                     
