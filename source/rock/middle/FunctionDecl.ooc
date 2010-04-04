@@ -3,7 +3,7 @@ import ../frontend/[Token, BuildParams]
 import Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, If, Else,
        VariableDecl, Node, Statement, Module, FunctionCall, Declaration,
-       Version, StringLiteral, Conditional, Import
+       Version, StringLiteral, Conditional, Import, ClassDecl
 import tinker/[Resolver, Response, Trail]
 
 FunctionDecl: class extends Declaration {
@@ -321,6 +321,26 @@ FunctionDecl: class extends Declaration {
             partialDecl := VariableDecl new(null, "partial", newCall, token)
             
             trail addBeforeInScope(this, partialDecl) 
+
+            argsSizes := String new(args size())
+            for(i in 0..args size()) {
+                arg := args[i]
+                typeName := arg getType() getName() toLower()
+                val : Char = match (typeName) {
+                    case "char"   => 'c'
+                    case "double" => 's'
+                    case "float"  => 'f'
+                    case "short"  => 'h'
+                    case "int"    => 'i'
+                    case "long"   => 'l'
+                    case          =>
+                        if(!arg getType() isPointer() && !arg getType() getGroundType() isPointer() && !arg getType() getRef() instanceOf(ClassDecl)) {
+                            arg token throwError("Unknown closure arg type %s\n" format(arg getType() toString()))
+                        }
+                        'P'
+                }
+                argsSizes[i] = val
+            }
             
             partialAcc := VariableAccess new("partial", token)
             for (e in variablesToPartial) {
@@ -332,7 +352,7 @@ FunctionDecl: class extends Declaration {
             
             fCall := FunctionCall new(partialAcc, "genCode", token)
             fCall getArguments() add(VariableAccess new(name, token)) 
-            fCall getArguments() add(StringLiteral new("", token))
+            fCall getArguments() add(StringLiteral new(argsSizes, token))
             trail peek() replace(this, fCall)
             
             res wholeAgain(this, "Unwrapped closure")

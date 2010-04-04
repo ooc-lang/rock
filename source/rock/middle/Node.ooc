@@ -37,6 +37,7 @@ Node: abstract class {
      */
     resolveCall: func (call : FunctionCall) -> Int {
         // overridden in sub-classes
+        0
     }
     
     resolveAccess: func (access: VariableAccess) {

@@ -96,11 +96,13 @@ Partial: class {
     }
     
     pushNonClosureArgs: func(base: UChar, argSizes: String)  {
-        for (c: Char in argSizes) {
+        //for (c: Char in argSizes) {
+        for(i in 0..argSizes length()) {
+            c := argSizes[i]
             s := String new(c)
             pushCallerArg(bseq transTable get(s))
             bseq append((base&) as UChar*, 1)
-            base = base - bseq transTable get(s)
+            base = base as Int - bseq transTable get(s)
         }
         /*
         printf("EndBase: %d\n", base)
@@ -143,12 +145,14 @@ Partial: class {
         (f& as Int32*)@
     }
     
-    getBase: func(argSizes: String, bseq: BinarySeq) -> UChar{
-        base := 0x04
-        for (c: Char in argSizes) {
+    getBase: func(argSizes: String, bseq: BinarySeq) -> UChar {
+        base := 0x04 as Int
+        //for (c: Char in argSizes) {
+        for(i in 0..argSizes length()) {
+            c := argSizes[i]
             base = base + bseq transTable get(String new(c))
         }
-        return base
+        return base as UChar
     }
 }
 
