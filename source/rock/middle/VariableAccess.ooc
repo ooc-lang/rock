@@ -68,13 +68,6 @@ VariableAccess: class extends Expression {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
-        closure : FunctionDecl = null
-        closureIndex := trail find(FunctionDecl)
-        if (closureIndex != -1) {
-            closure = trail get(closureIndex) as FunctionDecl
-            if (!closure isAnon()) closureIndex = -1
-        } 
-        
         if(expr) {
             trail push(this)
             response := expr resolve(trail, res)
@@ -135,8 +128,20 @@ VariableAccess: class extends Expression {
                     if(tDecl isMeta) node = tDecl getNonMeta()
                 }
                 node resolveAccess(this)
-                if (closureIndex != -1 && closureIndex > depth) closure markForPartialing(ref)
-                if(ref) break // break on first match
+                
+                if(ref) {
+                    // only accesses to variable decls need to be partialed (not type decls)
+                    if (ref instanceOf(VariableDecl)) {
+                        closureIndex := trail find(FunctionDecl)
+                        if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
+                            closure := trail get(closureIndex, FunctionDecl)
+                            if (closure isAnon()) {
+                                closure markForPartialing(ref)
+                            }
+                        }
+                    }
+                    break // break on first match
+                }
                 depth -= 1
             }
         }

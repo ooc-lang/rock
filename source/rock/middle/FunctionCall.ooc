@@ -122,7 +122,7 @@ FunctionCall: class extends Expression {
         if(refScore <= 0) {
             if(debugCondition()) printf("\n===============\nResolving call %s\n", toString())
         	if(name == "super") {
-				fDecl := trail get(trail find(FunctionDecl)) as FunctionDecl
+				fDecl := trail get(trail find(FunctionDecl), FunctionDecl)
                 superTypeDecl := fDecl owner getSuperRef()
                 finalScore: Int
                 ref = superTypeDecl getMeta() getFunction(fDecl getName(), null, this, finalScore&)
@@ -138,7 +138,7 @@ FunctionCall: class extends Expression {
         		if(expr == null) {
 				    depth := trail size() - 1
 				    while(depth >= 0) {
-				        node := trail get(depth)
+				        node := trail get(depth, Node)
 				        if(node resolveCall(this) == -1) {
                             res wholeAgain(this, "Waiting on other nodes to resolve before resolving call.")
                             return Responses OK
@@ -528,7 +528,7 @@ FunctionCall: class extends Expression {
         
         idx := trail find(TypeDecl)
         if(idx != -1) {
-            tDecl := trail get(idx) as TypeDecl
+            tDecl := trail get(idx, TypeDecl)
             for(typeArg in tDecl getTypeArgs()) {
                 if(typeArg getName() == typeArgName) {
                     result := BaseType new(typeArgName, token)

@@ -97,7 +97,7 @@ Match: class extends Expression {
 		returnIndex := trail find(Return)
 		
 		if(funcIndex != -1 && returnIndex != -1) {
-			funcDecl := trail get(funcIndex) as FunctionDecl
+			funcDecl := trail get(funcIndex, FunctionDecl)
 			if(funcDecl getReturnType() isGeneric()) {
 				type = funcDecl getReturnType()
 			}

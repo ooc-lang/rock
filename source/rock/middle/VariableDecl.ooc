@@ -161,9 +161,9 @@ VariableDecl: class extends Declaration {
                 }
                 
                 idx := trail findScope()
-                scope := trail get(idx) as Scope
+                scope := trail get(idx, Scope)
                 
-                parent := trail get(idx + 1)
+                parent := trail get(idx + 1, Node)
                 
                 block := Block new(token)
                 block getBody() add(this)

@@ -335,7 +335,7 @@ BaseType: class extends Type {
         if(!getRef()) {
             depth := trail size() - 1
             while(depth >= 0) {
-                node := trail get(depth)
+                node := trail get(depth, Node)
                 node resolveType(this)
                 if(getRef()) break // break on first match
                 depth -= 1

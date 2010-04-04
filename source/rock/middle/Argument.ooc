@@ -44,7 +44,7 @@ DotArg: class extends Argument {
         idx := trail find(TypeDecl)
         if(idx == -1) token throwError("Use of a %s outside a type declaration! That's nonsensical." format(class name))
         
-        tDecl := trail get(idx) as TypeDecl
+        tDecl := trail get(idx, TypeDecl)
         ref = tDecl getVariable(name)
         if(ref == null) {
             if(res fatal) token throwError("%s refers to non-existing member variable '%s' in type '%s'" format(class name, name, tDecl getName()))
@@ -83,7 +83,7 @@ AssArg: class extends DotArg {
         if(ref == null) {
             res wholeAgain(this, "Yet has to be unwrapped =)")
         } else {
-            fDecl := trail get(trail find(FunctionDecl)) as FunctionDecl
+            fDecl := trail get(trail find(FunctionDecl), FunctionDecl)
 	    	//printf("Unwrapping AssArg %s in function %s\n", toString(), fDecl toString())
             if(fDecl getName() != "new") {
                 fDecl getBody() add(0, BinaryOp new(
