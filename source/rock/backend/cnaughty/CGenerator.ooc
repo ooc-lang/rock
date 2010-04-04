@@ -158,7 +158,7 @@ CGenerator: class extends Skeleton {
 
         if(varAcc ref instanceOf(VariableDecl)) {
             vDecl := varAcc ref as VariableDecl
-            if(varAcc isMember()) {
+            if(varAcc isMember() && !vDecl isExtern()) {
                 casted := false
                 if(vDecl owner != varAcc expr getType() getRef()) {
                     casted = true
