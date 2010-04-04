@@ -35,7 +35,7 @@ CastWriter: abstract class extends Skeleton {
         
         printf("Searching for implementor of %s in %s\n", haystack toString(), typeDecl toString())
         for(impl in typeDecl getInterfaceDecls()) {
-            printf("%s vs %s\n", impl getSuperType() toString(), haystack toString())
+            printf("%s vs %s\n", impl getSuperRef() getType() toString(), haystack toString())
             if(impl getSuperRef() getType() equals(haystack)) {
                 printf("Found %s\n", impl toString())
                 return typeDecl
@@ -46,13 +46,6 @@ CastWriter: abstract class extends Skeleton {
             result := getImplementor(typeDecl getSuperRef(), haystack)
             if(result != null) return result
         }
-        
-        // TODO: add for interface extending other interfaces
-        /*
-        for(impl in typeDecl getInterfaceDecls()) {
-            result := getImplementor()
-        }
-        */
         
         return null
         

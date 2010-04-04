@@ -408,6 +408,27 @@ TypeDecl: abstract class extends Declaration {
                 iName := getName() + "__impl__" + interfaceType getName()
                 interfaceDecl := InterfaceImpl new(iName, interfaceType, this, token)
                 interfaceDecls add(interfaceDecl)
+                
+                // It's easier to handle interfaces this way: if we implement ReaderWriter,
+                // an interface that implements both the Reader and Writer interfaces,
+                // instead of generating intermediate methods, we say that 
+                transitiveInterfaces := interfaceType getRef() as TypeDecl getInterfaceTypes()
+                if(!transitiveInterfaces isEmpty()) {
+                    for(candidate in transitiveInterfaces) {
+                        has := false
+                        for(champion in getInterfaceTypes()) {
+                            printf("%s vs %s\n", champion toString(), candidate toString())
+                            if(candidate equals(champion)) {
+                                has = true; break
+                            }
+                        }
+                        if(!has) {
+                            interfaceTypes add(candidate)
+                            printf("Got new interface %s in %s by interface-implementation transitivity.\n", candidate toString(), toString())
+                            res wholeAgain(this, "Got new interface by interface-implementation transitivity.")
+                        }
+                    }
+                }
             }
             i += 1
         }

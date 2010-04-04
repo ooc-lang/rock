@@ -281,36 +281,8 @@ FunctionDecl: class extends Declaration {
         }
         trail pop(this)
         
-        isClosure := false
         if (name isEmpty()) {
-            module := trail module()
-            name = generateTempName(module getUnderName() + "_closure")
-            varAcc := VariableAccess new(name, token)
-            varAcc setRef(this)
-            module addFunction(this)
-         
-            imp := Import new("internals/yajit/Partial", token) 
-            module addImport(imp)
-            module parseImports(res)
-            
-            if(variablesToPartial isEmpty()) {
-                trail peek() replace(this, varAcc)
-            } else {
-                partialClass := VariableAccess new("Partial", token)
-                newCall := FunctionCall new(partialClass, "new", token)
-                partialDecl := VariableDecl new(null, "partial", newCall, token)
-                
-                trail addBeforeInScope(this, partialDecl) 
-                partialAcc := VariableAccess new("partial", token)
-                fCall := FunctionCall new(partialAcc, "genCode", token)
-                fCall getArguments() add(VariableAccess new(name, token)) 
-                for (e in variablesToPartial) {
-                    fCall getArguments() add(VariableAccess new(e, e token))
-                    args add(Argument new(e getType(), e getName(), token))
-                }
-                fCall getArguments() add(StringLiteral new("", token))
-                trail peek() replace(this, fCall)
-            }
+            unwrapClosure(trail, res)
         }
         
         if(verzion) {
@@ -319,6 +291,52 @@ FunctionDecl: class extends Declaration {
         }
         
         return Responses OK
+        
+    }
+    
+    unwrapClosure: func (trail: Trail, res: Resolver) {
+        
+        for(e in variablesToPartial) {
+            if(e getType() == null || !e getType() isResolved()) {
+                res wholeAgain(this, "Need variables-to-partieled's return types")
+                return
+            }
+        }
+        
+        module := trail module()
+        name = generateTempName(module getUnderName() + "_closure")
+        varAcc := VariableAccess new(name, token)
+        varAcc setRef(this)
+        module addFunction(this)
+     
+        imp := Import new("internals/yajit/Partial", token) 
+        module addImport(imp)
+        module parseImports(res)
+        
+        if(variablesToPartial isEmpty()) {
+            trail peek() replace(this, varAcc)
+        } else {
+            partialClass := VariableAccess new("Partial", token)
+            newCall := FunctionCall new(partialClass, "new", token)
+            partialDecl := VariableDecl new(null, "partial", newCall, token)
+            
+            trail addBeforeInScope(this, partialDecl) 
+            
+            partialAcc := VariableAccess new("partial", token)
+            for (e in variablesToPartial) {
+                addArg := FunctionCall new(partialAcc, "addArgument", token)
+                addArg getArguments() add(VariableAccess new(e, e token))
+                trail addBeforeInScope(this, addArg)
+                args add(Argument new(e getType(), e getName(), token))
+            }
+            
+            fCall := FunctionCall new(partialAcc, "genCode", token)
+            fCall getArguments() add(VariableAccess new(name, token)) 
+            fCall getArguments() add(StringLiteral new("", token))
+            trail peek() replace(this, fCall)
+            
+            res wholeAgain(this, "Unwrapped closure")
+        }
         
     }
 

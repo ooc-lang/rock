@@ -47,8 +47,19 @@ InterfaceImpl: class extends ClassDecl {
                     return Responses OK
                 }
                 if(value == null) {
-                    token throwError("%s must implement function %s, from interface %s\n" format(
-                        impl getName(), key toString(), superType toString()))
+                    if(impl isAbstract) {
+                        // relay unimplemented interface methods into an abstract class
+                        value = FunctionDecl new(key getName(), key token)
+                        value suffix = key suffix
+                        value args = key args clone()
+                        value returnType = key returnType
+                        value setAbstract(true)
+                        impl addFunction(value)
+                    } else {
+                        // but err on concrete class, cause they should implement everything
+                        token throwError("%s must implement function %s, from interface %s\n" format(
+                            impl getName(), key toString(), superType toString()))
+                    }
                 }
                 aliases put(hash, FunctionAlias new(key, value))
             }
