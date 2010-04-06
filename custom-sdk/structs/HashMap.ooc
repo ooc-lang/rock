@@ -310,6 +310,12 @@ HashMap: class <K, V> extends Iterable<V> {
     size: func -> UInt { size }
     
     getKeys: func -> ArrayList<K> { keys }
+    
+    each: func (f: Func (K, V)) {
+        for(key in getKeys()) {
+            f(key, get(key))
+        }
+    }
 
 }
 
