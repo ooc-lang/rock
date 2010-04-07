@@ -63,7 +63,7 @@ VariableDecl: class extends Declaration {
     setConst: func (=isConst) {}
     
     isProto: func -> Bool { isProto }
-    setProto: func (=isProto) {}
+    setProto: func (=isProto) { "%s is now proto!" format(name) println() }
     
     isGlobal: func -> Bool { isGlobal }
     setGlobal: func (=isGlobal) {}

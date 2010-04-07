@@ -118,7 +118,7 @@ ModuleWriter: abstract class extends Skeleton {
             if(stmt instanceOf(VariableDecl)) {
                 vd := stmt as VariableDecl
                 // TODO: add 'local'
-                if(vd isExtern()) continue
+                if(vd isExtern() && !vd isProto()) continue
                 current = fw
                 current nl(). app("extern "). app(vd getType()). app(' '). app(vd getFullName()). app(';')
                 current = cw
