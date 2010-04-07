@@ -536,11 +536,10 @@ FunctionCall: class extends Expression {
                 }
             }
             
-            if(tDecl getSuperRef() != null) {
-                superDecl := tDecl getSuperRef()
+            if(tDecl getNonMeta() != null && tDecl getNonMeta() getSuperType() != null) {
                 superTypeArgs := tDecl getNonMeta() getSuperType() getTypeArgs()
                 i := 0
-                for(typeArg in superDecl getTypeArgs()) {
+                for(typeArg in tDecl getSuperRef() getTypeArgs()) {
                     if(typeArg getName() == typeArgName) {
                         if(i < superTypeArgs size()) {
                             implArg := superTypeArgs get(i)

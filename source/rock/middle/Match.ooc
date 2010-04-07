@@ -153,8 +153,13 @@ Case: class extends ControlStatement {
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
         if (expr != null) {
+            trail push(this)
             response := expr resolve(trail, res)
-            if(!response ok()) return response
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
+            trail pop(this)
         }
         
         return body resolve(trail, res)
