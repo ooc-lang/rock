@@ -146,7 +146,6 @@ FunctionCall: class extends Expression {
 				        depth -= 1
 				    }
 			    } else if(expr instanceOf(VariableAccess) && expr as VariableAccess getRef() != null && expr as VariableAccess getRef() instanceOf(NamespaceDecl)) {
-                    printf("============ [FunctionCall] expr ref is a NamespaceDecl!!\n")
                     expr as VariableAccess getRef() resolveCall(this)
                 } else if(expr getType() != null && expr getType() getRef() != null) {
                     if(!expr getType() getRef() instanceOf(TypeDecl)) {
