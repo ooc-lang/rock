@@ -102,6 +102,10 @@ CommandLine: class {
                     
                     params includeLang = false
                     
+                } else if (option == "nomain") {
+                    
+                    params defaultMain = false
+                    
                 } else if (option startsWith("gc=")) {
                     
                     suboption := option substring(3)

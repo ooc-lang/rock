@@ -2,6 +2,7 @@ import structs/List
 import ../../middle/[Module, Include, Import, TypeDecl, FunctionDecl,
        CoverDecl, ClassDecl, OperatorDecl, InterfaceDecl, VariableDecl,
        Type]
+import ../../frontend/BuildParams
 import CoverDeclWriter, ClassDeclWriter, VersionWriter
 import Skeleton
 
@@ -178,7 +179,25 @@ ModuleWriter: abstract class extends Skeleton {
         // forward-header end
         current = fw
         current nl(). nl(). app("#endif // "). app(hFwdName)
+        
+        // Write a default main if none provided in source
+        if(module main && !module functions contains("main")) {
+            writeDefaultMain(this)
+        }
 
+    }
+    
+    /** Write default main function */
+    writeDefaultMain: static func (this: This) {
+        // If just outputing .o files, do not add a default main
+        if(!params link || !params defaultMain) return
+
+        cw nl(). nl(). app("int main() "). openBlock()
+        if(params enableGC) {
+            cw nl(). app("GC_INIT();")
+        }
+        cw nl(). app(module getLoadFuncName()). app("();")
+        cw closeBlock(). nl()
     }
 
     /** Classify imports between 'tight' and 'loose' */

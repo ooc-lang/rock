@@ -103,6 +103,9 @@ BuildParams: class {
     // if non-null, will create a static library with 'ar rcs <outlib> <all .o files>'
 	outlib := null as String
     
+    // add a main method if there's none in the specified ooc file
+	defaultMain := true
+    
     // maximum number of rounds the {@link Tinkerer} will do before blowing up.
     blowup: Int = 16
     
