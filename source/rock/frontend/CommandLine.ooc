@@ -70,6 +70,10 @@ CommandLine: class {
                     
                     params editor = arg substring(arg indexOf('=') + 1)
                     
+                } else if (option startsWith("entrypoint")) {
+                    
+                    params entryPoint = arg substring(arg indexOf('=') + 1)
+                    
                 } else if (option == "c") {
                     
                     params link = false

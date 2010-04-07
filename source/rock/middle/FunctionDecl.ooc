@@ -128,7 +128,7 @@ FunctionDecl: class extends Declaration {
         if(fullName == null) {
             if(isUnmangled()) {
                 fullName = getUnmangledName()
-            } else if(isMain()) { // FIXME: This should be isEntryPoint.
+            } else if(isEntryPoint()) {
                 fullName = name
             } else if(isExtern()) {
                 if(isExternWithName()) {
@@ -148,6 +148,10 @@ FunctionDecl: class extends Declaration {
             }
         }
         fullName
+    }
+    
+    isEntryPoint: func -> Bool {
+        !isMember() && token module params entryPoint == name
     }
     
     getType: func -> Type { This type }
