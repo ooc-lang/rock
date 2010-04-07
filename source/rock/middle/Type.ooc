@@ -192,6 +192,12 @@ FuncType: class extends Type {
     }
     
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
+        if(other isPointer()) {
+            // close enough.
+            return scoreSeed / 2
+        }
+        
+        // TODO: compare args, return types, i otras cosas.
         if(other instanceOf(FuncType)) {
             return scoreSeed
         }
