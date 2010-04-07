@@ -203,7 +203,7 @@ FunctionCall: class extends Expression {
 
         if(refScore <= 0 && res fatal) {
             message : String
-            if(expr && expr getType()) {
+            if(expr != null && expr getType() != null) {
                 message = "No such function %s.%s%s" format(expr getType() getName(), name, getArgsTypesRepr())
             } else {
                 message = "No such function %s%s" format(name, getArgsTypesRepr())
@@ -533,6 +533,27 @@ FunctionCall: class extends Expression {
                 if(typeArg getName() == typeArgName) {
                     result := BaseType new(typeArgName, token)
                     return result
+                }
+            }
+            
+            if(tDecl getSuperRef() != null) {
+                superDecl := tDecl getSuperRef()
+                superTypeArgs := tDecl getNonMeta() getSuperType() getTypeArgs()
+                i := 0
+                for(typeArg in superDecl getTypeArgs()) {
+                    if(typeArg getName() == typeArgName) {
+                        if(i < superTypeArgs size()) {
+                            implArg := superTypeArgs get(i)
+                            if(implArg instanceOf(VariableAccess)) {
+                                result := BaseType new(implArg as VariableAccess getName(), implArg token)
+                                //" >> Found ref-arg %s for typeArgName %s, returning %s" format(implArg toString(), typeArgName, result toString()) println()
+                                return result
+                            } else if(implArg instanceOf(Type)) {
+                                return implArg
+                            }
+                        }
+                    }
+                    i += 1
                 }
             }
         }

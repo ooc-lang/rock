@@ -213,7 +213,7 @@ FunctionDecl: class extends Declaration {
         
         //printf("Looking for %s in %s\n", access toString(), toString())
         
-        if(owner && access name == "this") {
+        if(owner != null && access name == "this") {
             if(access suggest(isThisRef ? owner thisRefDecl : owner thisDecl)) return
         }
         
