@@ -749,6 +749,10 @@ AstBuilder: class {
     onOctLiteral: unmangled(nq_onOctLiteral) func (value: String) -> IntLiteral {
         IntLiteral new(value replace("_", "") substring(2) toLLong(8), token())
     }
+
+    onBinLiteral: unmangled(nq_onBinLiteral) func (value: String) -> IntLiteral {
+        IntLiteral new(value replace("_", "") substring(2) toLLong(2), token())
+    }
     
     onHexLiteral: unmangled(nq_onHexLiteral) func (value: String) -> IntLiteral {
         IntLiteral new(value replace("_", "") toLLong(16), token())
