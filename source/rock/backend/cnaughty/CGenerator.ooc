@@ -125,7 +125,7 @@ CGenerator: class extends Skeleton {
 
     /** Write a variable declaration */
     visitVariableDecl: func (vDecl: VariableDecl) {
-        if(vDecl isExtern()) return
+        if(vDecl isExtern() && !vDecl isProto()) return
        
         vDecl getType() write(current, vDecl getFullName())
         if(vDecl expr)

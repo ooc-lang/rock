@@ -18,6 +18,7 @@ VariableDecl: class extends Declaration {
     isGlobal := false
     isConst := false
     isStatic := false
+    isProto := false
     externName: String = null
     unmangledName: String = null
     
@@ -60,6 +61,9 @@ VariableDecl: class extends Declaration {
     
     isConst: func -> Bool { isConst }
     setConst: func (=isConst) {}
+    
+    isProto: func -> Bool { isProto }
+    setProto: func (=isProto) {}
     
     isGlobal: func -> Bool { isGlobal }
     setGlobal: func (=isGlobal) {}

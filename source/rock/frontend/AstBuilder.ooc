@@ -308,6 +308,12 @@ AstBuilder: class {
         }
     }
     
+    onVarDeclProto: unmangled(nq_onVarDeclProto) func {
+        for(vd: VariableDecl in peek(Stack<VariableDecl>)) {
+            vd setProto(true)
+        }
+    }
+    
     onVarDeclConst: unmangled(nq_onVarDeclConst) func {
         for(vd: VariableDecl in peek(Stack<VariableDecl>)) {
             vd setConst(true)
