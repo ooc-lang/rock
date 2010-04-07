@@ -393,10 +393,12 @@ FunctionCall: class extends Expression {
         j := 0
         for(implArg in ref args) {
             if(implArg instanceOf(VarArg)) { j += 1; continue }
-            if(implArg getType() == null || !implArg getType() isResolved()) {
-                res wholeAgain(this, "need ref arg type"); break // we'll do it later
+            implType := implArg getType()
+            
+            if(implType == null || !implType isResolved()) {
+                res wholeAgain(this, "need impl arg type"); break // we'll do it later
             }
-            if(!implArg getType() isGeneric()) { j += 1; continue }
+            if(!implType isGeneric() || implType pointerLevel() > 0) { j += 1; continue }
             
             //printf(" >> Reviewing arg %s in call %s\n", arg toString(), toString())
             
@@ -417,8 +419,7 @@ FunctionCall: class extends Expression {
                     }
                     target = VariableAccess new(varDecl, callArg token)
                 }
-                args set(j, AddressOf new(target, target token))
-            
+                args set(j, AddressOf new(target, target token))            
             }
             j += 1
         }
