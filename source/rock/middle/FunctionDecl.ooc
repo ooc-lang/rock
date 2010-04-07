@@ -3,7 +3,8 @@ import ../frontend/[Token, BuildParams]
 import Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, If, Else,
        VariableDecl, Node, Statement, Module, FunctionCall, Declaration,
-       Version, StringLiteral, Conditional, Import, ClassDecl
+       Version, StringLiteral, Conditional, Import, ClassDecl, StringLiteral,
+       IntLiteral, NullLiteral
 import tinker/[Resolver, Response, Trail]
 
 FunctionDecl: class extends Declaration {
@@ -280,6 +281,26 @@ FunctionDecl: class extends Declaration {
             }
         }
         trail pop(this)
+
+        if(name == "main" && owner == null) {
+			if(args size() == 1 && args first() getType() getName() == "ArrayList") {
+                arg := args first()
+				args clear()
+                argc := Argument new(IntLiteral type, "argc", arg token)
+                argv := Argument new(PointerType new(StringLiteral type, arg token), "argv", arg token)
+                args add(argc)
+                args add(argv)
+
+				constructCall := FunctionCall new(VariableAccess new(arg getType(), arg token), "new", arg token)
+                constructCall setSuffix("withData")
+				constructCall typeArgs add(VariableAccess new(NullLiteral type, arg token))
+				constructCall args add(VariableAccess new(argv, arg token)) \
+                                  .add(VariableAccess new(argc, arg token))
+
+                vdfe := VariableDecl new(null, arg getName(), constructCall, token)
+				body add(0, vdfe)
+			}
+		}
         
         if (name isEmpty()) {
             unwrapClosure(trail, res)

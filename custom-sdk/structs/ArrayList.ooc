@@ -22,7 +22,8 @@ ArrayList: class <T> extends List<T> {
 		data = gc_malloc(capacity * T size)
 	}
     
-    init: func ~withData (.data, =size) {
+    //init: func ~withData (.data, =size) {
+    init: func ~withData (data: Pointer, =size) {
         this data = gc_malloc(size * T size)
         memcpy(this data, data, size * T size)
         capacity = size

@@ -42,7 +42,7 @@ FunctionCall: class extends Expression {
     }
     
     debugCondition: func -> Bool {
-        name == "sayHi"
+        false
     }
     
     suggest: func (candidate: FunctionDecl) -> Bool {
