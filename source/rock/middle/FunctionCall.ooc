@@ -636,21 +636,27 @@ FunctionCall: class extends Expression {
             callArg := callIter next()
             // avoid null types
             if(declArg instanceOf(VarArg)) break
-            if(declArg getType() == null) return -1
-            if(callArg getType() == null) return -1
+            if(declArg getType() == null) {
+                return -1
+            }
+            if(callArg getType() == null) {
+                return -1
+            }
 
             typeScore := callArg getType() getScore(declArg getType() refToPointer())
-            if(typeScore == -1) return -1
+            if(typeScore == -1) {
+                return -1
+            }
             
             score += typeScore
             
-            if(debugCondition()) {
-                printf("typeScore for %s vs %s == %d    for call %s (%s vs %s) [%p vs %p]\n", callArg getType() toString(), declArg getType() toString(), typeScore, toString(), callArg getType() getGroundType() toString(), declArg getType() getGroundType() toString(), callArg getType() getRef(), declArg getType() getRef())
-            }
+            //if(debugCondition()) {
+            //    printf("typeScore for %s vs %s == %d    for call %s (%s vs %s) [%p vs %p]\n", callArg getType() toString(), declArg getType() toString(), typeScore, toString(), callArg getType() getGroundType() toString(), declArg getType() getGroundType() toString(), callArg getType() getRef(), declArg getType() getRef())
+            //}
         }
-        if(debugCondition()) {
-            printf("Final score = %d\n", score)
-        }
+        //if(debugCondition()) {
+        //    printf("Final score = %d\n", score)
+        //}
         
         return score
     }

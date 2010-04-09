@@ -417,7 +417,9 @@ BaseType: class extends Type {
             return scoreSeed / 2
         }
         if(other instanceOf(BaseType)) {
-            if(getRef() == null || other getRef() == null) return -1
+            if(getRef() == null || other getRef() == null) {
+                return -1
+            }
             
             if(getRef() == other getRef()) {
                 // perfect match
@@ -433,7 +435,9 @@ BaseType: class extends Type {
                 inheritsScore := getRef() as TypeDecl inheritsScore(other getRef() as TypeDecl, scoreSeed)
                 
                 // something needs resolving
-                if(inheritsScore == -1) return inheritsScore
+                if(inheritsScore == -1) {
+                    return inheritsScore
+                }
                 
                 // cool, a match =)
                 if(inheritsScore > 0) return inheritsScore

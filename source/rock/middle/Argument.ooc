@@ -58,6 +58,15 @@ DotArg: class extends Argument {
                 token throwError("Couldn't resolve %s referring to '%s' in type '%s'" format(class name, name, tDecl getName()))
             }
             res wholeAgain(this, "Hasn't resolved type yet :x")
+            return Responses OK
+        }
+        
+        if(!type isResolved() || type getRef() == null) {
+            response := type resolve(trail, res)
+            if(!response ok()) {
+                return response
+            }
+            if(!type isResolved() || type getRef() == null) res wholeAgain(this, "Hasn't resolved type yet!")
         }
         
         return Responses OK

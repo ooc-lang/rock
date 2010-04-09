@@ -166,5 +166,13 @@ Case: class extends ControlStatement {
         
     }
     
+    replace: func (oldie, kiddo: Node) -> Bool {
+        if(oldie == expr) {
+            expr = kiddo as Expression
+            return true
+        }
+        false
+    }
+    
 }
 
