@@ -594,6 +594,7 @@ ArrayType: class extends PointerType {
         if(expr == null) {
             kiddo := BaseType new("ArrayList", token)
             kiddo addTypeArg(VariableAccess new(getName(), token))
+            kiddo resolve(trail, res)
             parent := trail peek()
             
             if(!parent replace(this, kiddo)) {

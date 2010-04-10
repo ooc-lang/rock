@@ -63,6 +63,13 @@ ArrayAccess: class extends Expression {
     
     resolveOverload: func (trail: Trail, res: Resolver) -> Response {
         
+        /*
+        printf("Looking for an overload of %s[%s], %s\n",
+            array getType() ? array getType() toString() : "(nil)",
+            index getType() ? index getType() toString() : "(nil)",
+            array getType() && array getType() getRef() ? array getType() getRef() toString() : "(nil)")
+        */
+        
         // so here's the plan: we give each operator overload a score
         // depending on how well it fits our requirements (types)
         

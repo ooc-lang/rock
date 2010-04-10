@@ -9,6 +9,25 @@ Argument: abstract class extends VariableDecl {
     
     toString: func -> String { name isEmpty() ? type toString() : super() }
     
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+    
+        if(type == null) {
+            res wholeAgain(this, "null type")
+            return Responses OK
+        }
+    
+        if(!type isResolved() || type getRef() == null) {
+            response := type resolve(trail, res)
+            if(!response ok()) {
+                return response
+            }
+            if(!type isResolved() || type getRef() == null) res wholeAgain(this, "Hasn't resolved type yet!")
+        }
+        
+        return Responses OK
+        
+    }
+    
 }
 
 VarArg: class extends Argument {
@@ -24,7 +43,9 @@ VarArg: class extends Argument {
     isResolved: func -> Bool { true }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
+        
         return Responses OK
+        
     }
     
     toString: func -> String { "..." }
@@ -61,15 +82,7 @@ DotArg: class extends Argument {
             return Responses OK
         }
         
-        if(!type isResolved() || type getRef() == null) {
-            response := type resolve(trail, res)
-            if(!response ok()) {
-                return response
-            }
-            if(!type isResolved() || type getRef() == null) res wholeAgain(this, "Hasn't resolved type yet!")
-        }
-        
-        return Responses OK
+        return super(trail, res)
         
     }
     
