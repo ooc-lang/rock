@@ -5,9 +5,8 @@ EnumDecl: class extends TypeDecl {
     lastElementValue: Int = 0
     elements := HashMap<String, EnumElementDecl> new()
 
-    init: func ~enumDecl(=name, .token) {
-        super(token)
-        type = BaseType new(name, token)
+    init: func ~enumDecl(.name, .token) {
+        super(name, token)
     }
 
     addElement: func (element: EnumElementDecl) {
@@ -21,7 +20,7 @@ EnumDecl: class extends TypeDecl {
             lastElementValue = element getValue()
         }
 
-        element setType(type)
+        element setType(instanceType)
         elements add(element name, element)
     }
 
