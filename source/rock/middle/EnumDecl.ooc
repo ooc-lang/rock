@@ -12,11 +12,11 @@ EnumDecl: class extends TypeDecl {
     addElement: func (element: EnumElementDecl) {
         // If no value is provided, increment the last used
         // value and use that for this element.
+        // TODO: support custom steps. Ex: *2, +1
         if(!element valueSet) {
             lastElementValue += 1
             element setValue(lastElementValue)
-        }
-        else {
+        } else {
             lastElementValue = element getValue()
         }
 
@@ -52,7 +52,7 @@ EnumElementDecl: class extends Declaration {
     setType: func (=type) {}
     getType: func -> Type { type }
 
-    accept: func (visitor: Visitor) { visitor visitEnumElementDecl(this) }
+    accept: func (visitor: Visitor) {}
 
     replace: func (oldie, kiddo: Node) -> Bool { false }
 }

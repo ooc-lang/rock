@@ -6,14 +6,13 @@ import Return, ClassDecl, CoverDecl, FunctionDecl, VariableDecl, Type,
         VariableAccess, FunctionCall, BinaryOp, Parenthesis, Return,
         Cast, Comparison, Ternary, Argument, AddressOf, Dereference,
         CommaSequence, UnaryOp, ArrayAccess, Match, FlowControl,
-        InterfaceDecl, Version, Block, Scope, EnumDecl
+        InterfaceDecl, Version, Block, Scope
 
 Visitor: abstract class {
     
     visitInterfaceDecl:     func (node: InterfaceDecl) {}
     visitClassDecl:         func (node: ClassDecl) {}
     visitCoverDecl:         func (node: CoverDecl) {}
-    visitEnumElementDecl:   func (node: EnumElementDecl) {}
     visitFunctionDecl:      func (node: FunctionDecl) {}
     visitVariableDecl:      func (node: VariableDecl) {}
     
