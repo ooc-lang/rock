@@ -1,5 +1,5 @@
 import structs/HashMap
-import TypeDecl, Declaration, Visitor, Node, VariableAccess, Type
+import TypeDecl, Declaration, Visitor, Node, VariableAccess, Type, VariableDecl
 
 EnumDecl: class extends TypeDecl {
     lastElementValue: Int = 0
@@ -22,6 +22,10 @@ EnumDecl: class extends TypeDecl {
 
         element setType(instanceType)
         elements add(element name, element)
+        
+        vDecl := VariableDecl new(instanceType, element name, element token)
+        vDecl setOwner(this)
+        getMeta() addVariable(vDecl)
     }
 
     accept: func (visitor: Visitor) {}
@@ -29,6 +33,8 @@ EnumDecl: class extends TypeDecl {
     replace: func (oldie, kiddo: Node) -> Bool { false }
 
     resolveAccess: func (access: VariableAccess) {
+        printf("Resolving access to %s in enum %s\n", access getName(), name)
+        
         value := elements get(access name)
         if(value) {
             access suggest(value)
