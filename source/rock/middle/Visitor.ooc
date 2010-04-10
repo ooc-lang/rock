@@ -13,7 +13,7 @@ Visitor: abstract class {
     visitInterfaceDecl:     func (node: InterfaceDecl) {}
     visitClassDecl:         func (node: ClassDecl) {}
     visitCoverDecl:         func (node: CoverDecl) {}
-    visitEnumDecl:          func (node: EnumDecl) {}
+    visitEnumElementDecl:   func (node: EnumElementDecl) {}
     visitFunctionDecl:      func (node: FunctionDecl) {}
     visitVariableDecl:      func (node: VariableDecl) {}
     

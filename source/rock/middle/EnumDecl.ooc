@@ -1,20 +1,59 @@
-import TypeDecl, Visitor, Node, IntLiteral
+import structs/HashMap
+import TypeDecl, Declaration, Visitor, Node, VariableAccess, Type
 
 EnumDecl: class extends TypeDecl {
-    lastElementValue: Int64 = 0
+    lastElementValue: Int = 0
+    elements := HashMap<String, EnumElementDecl> new()
 
-    init: func ~enumDeclNoSuper(.name, .token) {
-        super(name, null, token)
+    init: func ~enumDecl(=name, .token) {
+        super(token)
+        type = BaseType new(name, token)
     }
 
-    getNextElementValue: func -> Int64 {
-        lastElementValue += 1
-        return lastElementValue
+    addElement: func (element: EnumElementDecl) {
+        // If no value is provided, increment the last used
+        // value and use that for this element.
+        if(!element valueSet) {
+            lastElementValue += 1
+            element setValue(lastElementValue)
+        }
+        else {
+            lastElementValue = element getValue()
+        }
+
+        element setType(type)
+        elements add(element name, element)
     }
 
-    setLastElementValue: func (value: Int64) { lastElementValue = value }
+    accept: func (visitor: Visitor) {}
 
-    accept: func (visitor: Visitor) { visitor visitEnumDecl(this) }
+    replace: func (oldie, kiddo: Node) -> Bool { false }
+
+    resolveAccess: func (access: VariableAccess) {
+        value := elements get(access name)
+        if(value) {
+            access suggest(value)
+        }
+    }
+}
+
+EnumElementDecl: class extends Declaration {
+    type: Type
+    name: String
+    value: Int
+    valueSet: Bool = false
+
+    init: func ~enumElementDecl(=name, .token) {
+        super(token)
+    }
+
+    setValue: func (=value) { valueSet = true }
+    getValue: func -> Int { value }
+
+    setType: func (=type) {}
+    getType: func -> Type { type }
+
+    accept: func (visitor: Visitor) { visitor visitEnumElementDecl(this) }
 
     replace: func (oldie, kiddo: Node) -> Bool { false }
 }
