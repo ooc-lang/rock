@@ -182,7 +182,7 @@ AstBuilder: class {
 
     onEnumElementStart: unmangled(nq_onEnumElementStart) func (name: String) {
         "Element %s start" format(name) println()
-        element := VariableDecl new(BaseType new("Int", nullToken), name, token())
+        element := VariableDecl new(BaseType new("Int", nullToken), name clone(), token())
         element setConst(true)
         stack push(element)
     }
@@ -203,8 +203,6 @@ AstBuilder: class {
             value := element getExpr() as IntLiteral
             peek(EnumDecl) setLastElementValue(value value)
         }
-
-        "enum element address: %p" format(element) println()
 
         peek(EnumDecl) addVariable(element)
     }
