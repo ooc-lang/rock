@@ -26,8 +26,8 @@ FileReader: class extends Reader {
             Exception new(This, "File not found: " + fileName) throw()
     }
 
-    read: func(chars: String, offset: Int, count: Int) -> SizeT {
-        fread(chars as Char* + offset, 1, count, file)
+    read: func(chars: Char*, offset: Int, count: Int) -> SizeT {
+        fread(chars + offset, 1, count, file)
     }
 
     read: func ~char -> Char {

@@ -48,14 +48,15 @@ Token: cover {
     
     printMessage: func (message, type: String) {
         if(module == null) {
-            Exception new(This, "? [%s] %s" format(type, message)) throw()
+            Exception new(This, "From unknown source [%s] %s" format(type, message)) throw()
         }
         
-        fr := FileReader new(module getPathElement() + File separator + module getFullName() + ".ooc")
+        fr := FileReader new(getPath())
         
         lastNewLine := 0
         lines := 1
         idx := 0
+        // zap the lines before we start
         while(fr hasNext() && idx < start) {
             c := fr read()
             if(c == '\n') {
@@ -65,6 +66,7 @@ Token: cover {
             idx += 1
         }
         
+        // zap the end of the line that contains us
         while(true) {
             if(!fr hasNext() || fr read() == '\n') break
             idx += 1
@@ -92,6 +94,31 @@ Token: cover {
         }
         println()
         over toString() println()
+        
+        fr close()
+    }
+    
+    getPath: func -> String {
+        module getPathElement() + File separator + module getPath() + ".ooc"
+    }
+    
+    getLineNumber: func -> Int {
+        lines := 1
+        idx := 0
+        
+        fr := FileReader new(getPath())
+        
+        // zap the lines before we start
+        while(fr hasNext() && idx < start) {
+            c := fr read()
+            if(c == '\n') {
+                lines += 1
+            }
+            idx += 1
+        }
+        fr close()
+        
+        return lines
     }
     
     getLength: func -> SizeT {

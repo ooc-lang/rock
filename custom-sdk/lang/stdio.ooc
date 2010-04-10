@@ -2,7 +2,7 @@ include stdio
 
 stdout, stderr, stdin: extern FStream
 
-println: func ~withStr (str: String) {
+println: func ~withStr (str: Char*) {
 	printf("%s\n", str)
 }
 println: func {
@@ -10,37 +10,37 @@ println: func {
 }
 
 // input/output
-printf: extern func (String, ...) -> Int
+printf: extern func (Char*, ...) -> Int
 
-fprintf: extern func (FStream, String, ...) -> Int
-sprintf: extern func (String, String, ...) -> Int
-snprintf: extern func (String, Int, String, ...) -> Int
+fprintf: extern func (FStream, Char*, ...) -> Int
+sprintf: extern func (Char*, Char*, ...) -> Int
+snprintf: extern func (Char*, Int, Char*, ...) -> Int
 
-vprintf: extern func (String, VaList) -> Int
-vfprintf: extern func (FStream, String, VaList) -> Int
-vsprintf: extern func (String, String, VaList) -> Int
-vsnprintf: extern func (String, Int, String, VaList) -> Int
+vprintf: extern func (Char*, VaList) -> Int
+vfprintf: extern func (FStream, Char*, VaList) -> Int
+vsprintf: extern func (Char*, Char*, VaList) -> Int
+vsnprintf: extern func (Char*, Int, Char*, VaList) -> Int
 
 fread: extern func (ptr: Pointer, size: SizeT, nmemb: SizeT, stream: FStream) -> SizeT
 fwrite: extern func (ptr: Pointer, size: SizeT, nmemb: SizeT, stream: FStream) -> SizeT
 feof: extern func (stream: FStream) -> Int
 
-fopen: extern func (String, String) -> FStream
-fclose: extern func (FStream) -> Int
-fflush: extern func (stream: FStream)
+fopen: extern func (Char*, Char*) -> FStream
+fclose: extern func (file: FILE*) -> Int
+fflush: extern func (file: FILE*)
 
 fputc: extern func (Char, FStream)
-fputs: extern func (String, FStream)
+fputs: extern func (Char*, FStream)
 
-scanf: extern func (format: String, ...) -> Int
-fscanf: extern func (stream: FStream, format: String, ...)
-sscanf: extern func (str: String, format: String, ...) -> Int
+scanf: extern func (format: Char*, ...) -> Int
+fscanf: extern func (stream: FStream, format: Char*, ...) -> Int
+sscanf: extern func (str: Char*, format: Char*, ...) -> Int
 
-vscanf: extern func (format: String, ap: VaList)
-vfscanf: extern func (stream: FStream, format: String, ap: VaList)
-vsscanf: extern func (str: String, format: String, ap: VaList)
+vscanf: extern func (format: Char*, ap: VaList) -> Int
+vfscanf: extern func (file: FILE*, format: Char*, ap: VaList) -> Int
+vsscanf: extern func (str: Char*, format: Char*, ap: VaList) -> Int
 
-fgets: extern func (str: String, length: SizeT, stream: FStream) -> Char*
+fgets: extern func (str: Char*, length: SizeT, stream: FStream) -> Char*
 
 FILE: extern cover
 FStream: cover from FILE* {

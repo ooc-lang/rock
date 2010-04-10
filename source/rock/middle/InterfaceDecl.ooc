@@ -8,6 +8,9 @@ InterfaceDecl: class extends ClassDecl {
     
     init: func ~interfaceDeclNoSuper(.name, .token) {
         super(name, token)
+     
+        // an interface is somehow like an abstract class, correct?
+        isAbstract = true
         
         fatType = CoverDecl new(name + "__reference", token)
         // "If you're gonna crash, do it as soon and as noisily as possible"

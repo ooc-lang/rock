@@ -33,10 +33,8 @@ FunctionDeclWriter: abstract class extends CGenerator {
         writeFuncPrototype(this, fDecl)
         current app(" {"). tab()
         
-        if(params enableGC && fDecl isMain()) current nl(). app("GC_INIT();")
-        
-        //FIXME: this should be isEntryPoint()
-        if(fDecl isMain()) current nl(). app(module getLoadFuncName()). app("();")
+        if(params enableGC && fDecl isEntryPoint()) current nl(). app("GC_INIT();")
+        if(fDecl isEntryPoint()) current nl(). app(module getLoadFuncName()). app("();")
         
         for(stat in fDecl body) {
             writeLine(stat)

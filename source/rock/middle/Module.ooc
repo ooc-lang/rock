@@ -1,6 +1,7 @@
 import io/File, text/EscapeSequence
 import structs/[HashMap, ArrayList, List, OrderedMultiMap]
-import ../frontend/[Token, SourceReader, BuildParams]
+import ../frontend/[Token, SourceReader, BuildParams, PathList, AstBuilder]
+import ../utils/FileUtils
 import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl,
        FunctionCall, Type, Declaration, VariableAccess, OperatorDecl,
        Scope, NamespaceDecl
@@ -26,7 +27,8 @@ Module: class extends Node {
 
     lastModified : Long
 
-    init: func ~module (.fullName, =pathElement, .token) {
+    params: BuildParams
+    init: func ~module (.fullName, =pathElement, =params, .token) {
         super(token)
         this path = fullName clone()
         this fullName = fullName replace(File separator, '/')
@@ -187,7 +189,7 @@ Module: class extends Node {
         }
         
         for(fDecl in functions) {
-            if(fDecl getName() == call getName() && (call getSuffix() == null || call getSuffix() == fDecl getSuffix)) {
+            if(fDecl getName() == call getName() && (call getSuffix() == null || call getSuffix() == fDecl getSuffix())) {
                 if(call debugCondition()) printf("Suggesting fDecl %s for call %s\n", fDecl toString(), call toString())
                 call suggest(fDecl)
             }
@@ -213,6 +215,56 @@ Module: class extends Node {
             }
         }
 
+    }
+
+    /**
+     * Parse the imports of this module.
+     * 
+     * If resolver is non-null, it means there's a new import that
+     * we expect to add to the resolvers list.
+     */
+    parseImports: func (resolver: Resolver) {
+
+        for(imp: Import in getAllImports()) {
+            if(imp getModule() != null) continue
+            
+            path := FileUtils resolveRedundancies(imp path + ".ooc")
+            impElement := params sourcePath getElement(path)
+            impPath := params sourcePath getFile(path)
+            if(impPath == null) {
+                parent := File new(getPath()) parent()
+                if(parent != null) {
+                    path = FileUtils resolveRedundancies(File new(getPath()) parent() path + File separator + imp path + ".ooc")
+                    impElement = params sourcePath getElement(path)
+                    impPath = params sourcePath getFile(path)
+                }
+                if(impPath == null) {
+                    imp token throwError("Module not found in sourcepath " + imp path)
+                }
+            }
+
+            //println("Trying to get "+impPath path+" from cache")
+            cached : Module = null
+            cached = AstBuilder cache get(impPath path)
+
+            impLastModified := File new(impPath path) lastModified()
+
+            if(cached == null || File new(impPath path) lastModified() > cached lastModified) {
+                if(cached) {
+                    printf("%s has been changed, recompiling... (%d vs %d), impPath = %s", path, File new(impPath path) lastModified(), cached lastModified, impPath path);
+                }
+                //printf("impElement path = %s, impPath = %s\n", impElement path, impPath path)
+                cached = Module new(path[0..(path length()-4)], impElement path, params, token)
+                if(resolver != null) {
+                    resolver addModule(cached)
+                }
+                imp setModule(cached)
+                cached lastModified = impLastModified
+                AstBuilder new(impPath path, cached, params)
+                cached parseImports(resolver)
+            }
+            imp setModule(cached)
+        }
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
@@ -257,7 +309,7 @@ Module: class extends Node {
         }
 
         for(inc in includes) {
-            if(inc getVersion() && !inc getVersion() resolve() ok()) return Responses LOOP
+            if(inc getVersion() != null && !inc getVersion() resolve() ok()) return Responses LOOP
         }
 
         trail pop(this)

@@ -34,7 +34,7 @@ Scope: class extends Node {
         }
     }
     
-    resolveCall: func (call: FunctionCall) {
+    resolveCall: func (call: FunctionCall) -> Int {
         // FIXME: this is as wrong as resolveAccess, see the comments up there.
         // KALAMAZOO
 
@@ -48,6 +48,9 @@ Scope: class extends Node {
                 }
             }
         }
+        
+        // see the definition of resolveCall in Node
+        return 0
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {

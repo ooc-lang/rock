@@ -18,6 +18,7 @@ VariableDecl: class extends Declaration {
     isGlobal := false
     isConst := false
     isStatic := false
+    isProto := false
     externName: String = null
     unmangledName: String = null
     
@@ -60,6 +61,9 @@ VariableDecl: class extends Declaration {
     
     isConst: func -> Bool { isConst }
     setConst: func (=isConst) {}
+    
+    isProto: func -> Bool { isProto }
+    setProto: func (=isProto) { "%s is now proto!" format(name) println() }
     
     isGlobal: func -> Bool { isGlobal }
     setGlobal: func (=isGlobal) {}
@@ -161,9 +165,9 @@ VariableDecl: class extends Declaration {
                 }
                 
                 idx := trail findScope()
-                scope := trail get(idx) as Scope
+                scope := trail get(idx, Scope)
                 
-                parent := trail get(idx + 1)
+                parent := trail get(idx + 1, Node)
                 
                 block := Block new(token)
                 block getBody() add(this)
@@ -248,6 +252,9 @@ VariableDecl: class extends Declaration {
             }
             for(argType in fType argTypes) {
                 fDecl args add(Argument new(argType, "", token))
+            }
+            if(fType varArg) {
+                fDecl args add(VarArg new(token))
             }
             if(fType returnType != null) {
                 fDecl setReturnType(fType returnType)

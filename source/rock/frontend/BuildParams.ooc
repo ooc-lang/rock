@@ -97,18 +97,27 @@ BuildParams: class {
     // either "32" or "64"
     arch: String = ""
     
+    // name of the entryPoint to the program
+    entryPoint := "main"
+    
     // if non-null, will create a static library with 'ar rcs <outlib> <all .o files>'
 	outlib := null as String
+    
+    // add a main method if there's none in the specified ooc file
+	defaultMain := true
     
     // maximum number of rounds the {@link Tinkerer} will do before blowing up.
     blowup: Int = 16
     
+    // include or not lang/ packages (for testing)
     includeLang := true
     
+    // dynamic libraries to be linked into the executable
     dynamicLibs := ArrayList<String> new()
 
     // backend; can be "c" or "json".
     backend: String = "c"
+    
     
     /**
      * Build the output path for an .ooc file.

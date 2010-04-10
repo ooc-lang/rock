@@ -97,7 +97,7 @@ Match: class extends Expression {
 		returnIndex := trail find(Return)
 		
 		if(funcIndex != -1 && returnIndex != -1) {
-			funcDecl := trail get(funcIndex) as FunctionDecl
+			funcDecl := trail get(funcIndex, FunctionDecl)
 			if(funcDecl getReturnType() isGeneric()) {
 				type = funcDecl getReturnType()
 			}
@@ -153,12 +153,25 @@ Case: class extends ControlStatement {
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
         if (expr != null) {
+            trail push(this)
             response := expr resolve(trail, res)
-            if(!response ok()) return response
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
+            trail pop(this)
         }
         
         return body resolve(trail, res)
         
+    }
+    
+    replace: func (oldie, kiddo: Node) -> Bool {
+        if(oldie == expr) {
+            expr = kiddo as Expression
+            return true
+        }
+        false
     }
     
 }

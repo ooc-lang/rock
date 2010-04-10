@@ -85,7 +85,7 @@ Foreach: class extends ControlStatement {
                 return Responses OK
             }
             
-            list := trail get(trail findScope()) as Node
+            list := trail get(trail findScope(), Scope)
             block := Block new(token)
             
             vdfe := VariableDecl new(iterType, generateTempName("iter"), iterCall, token)

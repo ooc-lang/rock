@@ -30,9 +30,14 @@ Node: abstract class {
     /**
      * resolveCall should look for a function declaration satisfying call,
      * and suggest it with call suggest(fDecl)
+     * 
+     * :return: -1 if unresolved types prevented the call resolving
+     * process from finishing, and it should be repeated later, any
+     * other value else.
      */
-    resolveCall: func (call : FunctionCall) {
+    resolveCall: func (call : FunctionCall) -> Int {
         // overridden in sub-classes
+        0
     }
     
     resolveAccess: func (access: VariableAccess) {
@@ -44,7 +49,7 @@ Node: abstract class {
     }
     
     /**
-     * @return true if the node supports type arguments and it's been
+     * :return: true if the node supports type arguments and it's been
      * successfully added, false if not
      */
     addTypeArg: func (typeArg: VariableDecl) -> Bool { false }

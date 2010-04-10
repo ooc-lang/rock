@@ -94,8 +94,6 @@ VariableAccess: class extends Expression {
         if(!ref && expr) {
             if(expr instanceOf(VariableAccess) && expr as VariableAccess getRef() != null \
               && expr as VariableAccess getRef() instanceOf(NamespaceDecl)) {
-                
-                printf("============ [VariableAccess] expr ref is a NamespaceDecl!!\n")
                 expr as VariableAccess getRef() resolveAccess(this)
             } else {
                 exprType := expr getType()
@@ -130,7 +128,20 @@ VariableAccess: class extends Expression {
                     if(tDecl isMeta) node = tDecl getNonMeta()
                 }
                 node resolveAccess(this)
-                if(ref) break // break on first match
+                
+                if(ref) {
+                    // only accesses to variable decls need to be partialed (not type decls)
+                    if (ref instanceOf(VariableDecl) && expr == null) {
+                        closureIndex := trail find(FunctionDecl)
+                        if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
+                            closure := trail get(closureIndex, FunctionDecl)
+                            if (closure isAnon()) {
+                                closure markForPartialing(ref)
+                            }
+                        }
+                    }
+                    break // break on first match
+                }
                 depth -= 1
             }
         }
@@ -147,16 +158,6 @@ VariableAccess: class extends Expression {
             res wholeAgain(this, "Couldn't resolve %s" format(toString()))
         }
         
-        closureIndex := trail find(FunctionDecl)
-        if (closureIndex != -1) {
-            closure := trail get(closureIndex) as FunctionDecl
-            if (closure isAnon()) {
-                "buuuh" println()
-            } else {
-                //closure getName() println()
-                closureIndex = -1
-            }
-        }
         return Responses OK
         
     }

@@ -14,6 +14,9 @@ OOC?=ooc
 OOC_CMD=${OOC} ${OOC_OWN_FLAGS} ${OOC_FLAGS}
 
 all:
+	make clean noclean
+
+noclean:
 	mkdir -p source/rock/parser/
 	${PARSER_GEN} ../nagaqueen/grammar/nagaqueen.leg > source/rock/frontend/NagaQueen.c
 	${OOC_CMD} $(shell find source/ -name "*.c") rock/rock -o=bin/rock

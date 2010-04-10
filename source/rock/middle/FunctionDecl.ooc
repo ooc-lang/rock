@@ -3,7 +3,8 @@ import ../frontend/[Token, BuildParams]
 import Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, If, Else,
        VariableDecl, Node, Statement, Module, FunctionCall, Declaration,
-       Version, StringLiteral, Conditional
+       Version, StringLiteral, Conditional, Import, ClassDecl, StringLiteral,
+       IntLiteral, NullLiteral
 import tinker/[Resolver, Response, Trail]
 
 FunctionDecl: class extends Declaration {
@@ -32,13 +33,17 @@ FunctionDecl: class extends Declaration {
     returnArg : Argument = null
     body := Scope new()
     
+    variablesToPartial := ArrayList<VariableDecl> new()
+
     owner : TypeDecl = null
     staticVariant : This = null
     
     verzion: VersionSpec = null
+    isAnon: Bool
 
     init: func ~funcDecl (=name, .token) {
         super(token)
+        this isAnon = name isEmpty()
     }
     
     accept: func (visitor: Visitor) { visitor visitFunctionDecl(this) }
@@ -69,8 +74,13 @@ FunctionDecl: class extends Declaration {
     isProto:    func -> Bool { isProto }
     setProto:   func (=isProto) {}
     
-    isAnon:     func -> Bool {name isEmpty()}
+    isAnon: func -> Bool { isAnon }
+    
+    markForPartialing: func(var: VariableDecl) {
+        if (!variablesToPartial contains(var)) variablesToPartial add(var)
+    }
 
+    
     setOwner: func (=owner) {
         if(isStatic) return
         staticVariant = new(name, token)
@@ -118,7 +128,7 @@ FunctionDecl: class extends Declaration {
         if(fullName == null) {
             if(isUnmangled()) {
                 fullName = getUnmangledName()
-            } else if(isMain()) { // FIXME: This should be isEntryPoint.
+            } else if(isEntryPoint()) {
                 fullName = name
             } else if(isExtern()) {
                 if(isExternWithName()) {
@@ -138,6 +148,10 @@ FunctionDecl: class extends Declaration {
             }
         }
         fullName
+    }
+    
+    isEntryPoint: func -> Bool {
+        !isMember() && token module params entryPoint == name
     }
     
     getType: func -> Type { This type }
@@ -199,7 +213,7 @@ FunctionDecl: class extends Declaration {
         
         //printf("Looking for %s in %s\n", access toString(), toString())
         
-        if(owner && access name == "this") {
+        if(owner != null && access name == "this") {
             if(access suggest(isThisRef ? owner thisRefDecl : owner thisDecl)) return
         }
         
@@ -219,14 +233,6 @@ FunctionDecl: class extends Declaration {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
-        if (isAnon()) {
-            module := trail module()
-            name = generateTempName(module getUnderName() + "_closure")
-            varAcc := VariableAccess new(name, token)
-            varAcc setRef(this)
-            trail peek() replace(this, varAcc)
-            module addFunction(this)
-        }
         trail push(this)
         
         //if(res params veryVerbose) printf("** Resolving function decl %s\n", name)
@@ -278,8 +284,31 @@ FunctionDecl: class extends Declaration {
                 return response
             }
         }
-        
         trail pop(this)
+
+        if(name == "main" && owner == null) {
+			if(args size() == 1 && args first() getType() getName() == "ArrayList") {
+                arg := args first()
+				args clear()
+                argc := Argument new(IntLiteral type, "argc", arg token)
+                argv := Argument new(PointerType new(StringLiteral type, arg token), "argv", arg token)
+                args add(argc)
+                args add(argv)
+
+				constructCall := FunctionCall new(VariableAccess new(arg getType(), arg token), "new", arg token)
+                constructCall setSuffix("withData")
+				constructCall typeArgs add(VariableAccess new(NullLiteral type, arg token))
+				constructCall args add(VariableAccess new(argv, arg token)) \
+                                  .add(VariableAccess new(argc, arg token))
+
+                vdfe := VariableDecl new(null, arg getName(), constructCall, token)
+				body add(0, vdfe)
+			}
+		}
+        
+        if (name isEmpty()) {
+            unwrapClosure(trail, res)
+        }
         
         if(verzion) {
             response := verzion resolve()
@@ -287,6 +316,72 @@ FunctionDecl: class extends Declaration {
         }
         
         return Responses OK
+        
+    }
+    
+    unwrapClosure: func (trail: Trail, res: Resolver) {
+        
+        for(e in variablesToPartial) {
+            if(e getType() == null || !e getType() isResolved()) {
+                res wholeAgain(this, "Need variables-to-partieled's return types")
+                return
+            }
+        }
+        
+        module := trail module()
+        name = generateTempName(module getUnderName() + "_closure")
+        varAcc := VariableAccess new(name, token)
+        varAcc setRef(this)
+        module addFunction(this)
+     
+        imp := Import new("internals/yajit/Partial", token) 
+        module addImport(imp)
+        module parseImports(res)
+        
+        if(variablesToPartial isEmpty()) {
+            trail peek() replace(this, varAcc)
+        } else {
+            partialClass := VariableAccess new("Partial", token)
+            newCall := FunctionCall new(partialClass, "new", token)
+            partialDecl := VariableDecl new(null, "partial", newCall, token)
+            
+            trail addBeforeInScope(this, partialDecl) 
+
+            argsSizes := String new(args size())
+            for(i in 0..args size()) {
+                arg := args[i]
+                typeName := arg getType() getName() toLower()
+                val : Char = match (typeName) {
+                    case "char"   => 'c'
+                    case "double" => 's'
+                    case "float"  => 'f'
+                    case "short"  => 'h'
+                    case "int"    => 'i'
+                    case "long"   => 'l'
+                    case          =>
+                        if(!arg getType() isPointer() && !arg getType() getGroundType() isPointer() && !arg getType() getRef() instanceOf(ClassDecl)) {
+                            arg token throwError("Unknown closure arg type %s\n" format(arg getType() toString()))
+                        }
+                        'P'
+                }
+                argsSizes[i] = val
+            }
+            
+            partialAcc := VariableAccess new("partial", token)
+            for (e in variablesToPartial) {
+                addArg := FunctionCall new(partialAcc, "addArgument", token)
+                addArg getArguments() add(VariableAccess new(e, e token))
+                trail addBeforeInScope(this, addArg)
+                args add(Argument new(e getType(), e getName(), token))
+            }
+            
+            fCall := FunctionCall new(partialAcc, "genCode", token)
+            fCall getArguments() add(VariableAccess new(name, token)) 
+            fCall getArguments() add(StringLiteral new(argsSizes, token))
+            trail peek() replace(this, fCall)
+            
+            res wholeAgain(this, "Unwrapped closure")
+        }
         
     }
 

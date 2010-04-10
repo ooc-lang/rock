@@ -2,6 +2,7 @@ import structs/List
 import ../../middle/[Module, Include, Import, TypeDecl, FunctionDecl,
        CoverDecl, ClassDecl, OperatorDecl, InterfaceDecl, VariableDecl,
        Type]
+import ../../frontend/BuildParams
 import CoverDeclWriter, ClassDeclWriter, VersionWriter
 import Skeleton
 
@@ -48,6 +49,8 @@ ModuleWriter: abstract class extends Skeleton {
         
         // write all func types typedefs
         for(funcType in module funcTypesMap) {
+            current nl(). nl().  app("#ifndef "). app(funcType toMangledString()). app("__DEFINE")
+            current nl(). app("#define "). app(funcType toMangledString()). app("__DEFINE"). nl()
             current nl(). app("typedef ");
             if(funcType returnType == null) {
                 current app("void")
@@ -68,6 +71,7 @@ ModuleWriter: abstract class extends Skeleton {
                 current app(argType)
             }
             current app(");")
+            current nl(). nl().  app("#endif"). nl() 
         }
 
         /* write the .h file */
@@ -114,7 +118,7 @@ ModuleWriter: abstract class extends Skeleton {
             if(stmt instanceOf(VariableDecl)) {
                 vd := stmt as VariableDecl
                 // TODO: add 'local'
-                if(vd isExtern()) continue
+                if(vd isExtern() && !vd isProto()) continue
                 current = fw
                 current nl(). app("extern "). app(vd getType()). app(' '). app(vd getFullName()). app(';')
                 current = cw
@@ -175,7 +179,25 @@ ModuleWriter: abstract class extends Skeleton {
         // forward-header end
         current = fw
         current nl(). nl(). app("#endif // "). app(hFwdName)
+        
+        // Write a default main if none provided in source
+        if(module main && !module functions contains("main")) {
+            writeDefaultMain(this)
+        }
 
+    }
+    
+    /** Write default main function */
+    writeDefaultMain: static func (this: This) {
+        // If just outputing .o files, do not add a default main
+        if(!params link || !params defaultMain) return
+
+        cw nl(). nl(). app("int main() "). openBlock()
+        if(params enableGC) {
+            cw nl(). app("GC_INIT();")
+        }
+        cw nl(). app(module getLoadFuncName()). app("();")
+        cw closeBlock(). nl()
     }
 
     /** Classify imports between 'tight' and 'loose' */
@@ -213,9 +235,11 @@ ModuleWriter: abstract class extends Skeleton {
     writeTypesForward: static func (this: This, module: Module, meta: Bool) {
 
         for(tDecl: TypeDecl in module types) {
-            for(interfaceDecl in tDecl getInterfaceDecls()) {
-                if(!meta) {
-                    CoverDeclWriter writeTypedef(this, interfaceDecl)
+            if(tDecl getInterfaceTypes() size() > 0) {
+                for(interfaceDecl in tDecl getInterfaceDecls()) {
+                    if(!meta) {
+                        ClassDeclWriter writeStructTypedef(this, interfaceDecl)
+                    }
                 }
             }
             
