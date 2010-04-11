@@ -89,7 +89,7 @@ MultiMapValueIterator: class <K, V> extends Iterator<V> {
     index := 0
     sub : Iterator<V>
     
-    init: func(=map) {}
+    init: func ~multiMap (=map) {}
     
     hasNext: func -> Bool { index < map getKeys() size() && (sub == null || sub hasNext()) }
     
