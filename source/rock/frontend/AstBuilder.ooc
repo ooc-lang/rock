@@ -171,8 +171,6 @@ AstBuilder: class {
      */
 
     onEnumStart: unmangled(nq_onEnumStart) func (name: String) {
-        "Started enum %s" format(name) println()
-
         eDecl := EnumDecl new(name clone(), token())
         eDecl module = module
         eDecl setVersion(getVersion())
@@ -181,39 +179,32 @@ AstBuilder: class {
     }
 
     onEnumExtern: unmangled(nq_onEnumExtern) func (externName: String) {
-        "Enum extern %s" format(externName) println()
         peek(EnumDecl) setExternName(externName clone())
     }
 
     onEnumIncrementExpr: unmangled(nq_onEnumIncrementExpr) func (oper: Char, step: IntLiteral) {
-        "Enum increment: oper=%c step=%d" format(oper, step value) println()
         peek(EnumDecl) setIncrement(oper, step value)
     }
 
     onEnumElementStart: unmangled(nq_onEnumElementStart) func (name: String) {
-        "Element %s start" format(name) println()
         element := EnumElement new(peek(EnumDecl) getInstanceType(), name clone(), token())
         stack push(element)
     }
 
     onEnumElementValue: unmangled(nq_onEnumElementValue) func (value: IntLiteral) {
-        "Enum value %d" format(value value) println()
         peek(EnumElement) setValue(value value)
     }
 
     onEnumElementExtern: unmangled(nq_onEnumElementExtern) func (externName: String) {
-        "Enum value is extern %s" format(externName) println()
         peek(EnumElement) setExternName(externName clone())
     }
 
     onEnumElementEnd: unmangled(nq_onEnumElementEnd) func {
-        "Enum element end." println()
         element := pop(EnumElement)
         peek(EnumDecl) addElement(element)
     }
 
     onEnumEnd: unmangled(nq_onEnumEnd) func {
-        "Enum ended" println()
         pop(EnumDecl)
     }
 

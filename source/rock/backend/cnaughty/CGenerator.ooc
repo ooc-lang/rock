@@ -155,7 +155,6 @@ CGenerator: class extends Skeleton {
         }
 
         if(varAcc ref instanceOf(EnumElement)) {
-            printf("varAcc ref is an EnumElement %s!\n", varAcc ref toString())
             element := varAcc ref as EnumElement
 
             if(element isExtern()) {
