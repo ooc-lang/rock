@@ -136,7 +136,7 @@ CGenerator: class extends Skeleton {
     
     visitEnumDecl: func (eDecl: EnumDecl) {
         current = fw
-        
+
         current nl(). app("typedef int "). app(eDecl underName()). app(';')
     }
 
@@ -149,7 +149,12 @@ CGenerator: class extends Skeleton {
         if(varAcc ref instanceOf(EnumElement)) {
             printf("varAcc ref is an EnumElement %s!\n", varAcc ref toString())
             element := varAcc ref as EnumElement
-            current app(element getValue() toString())
+
+            if(element isExtern()) {
+                current app(element getExternName())
+            } else {
+                current app(element getValue() toString())
+            }
         } else if(varAcc ref instanceOf(VariableDecl)) {
             vDecl := varAcc ref as VariableDecl
             if(varAcc isMember()) {
