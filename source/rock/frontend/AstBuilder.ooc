@@ -180,6 +180,11 @@ AstBuilder: class {
         stack push(eDecl)
     }
 
+    onEnumIncrementExpr: unmangled(nq_onEnumIncrementExpr) func (oper: Char, step: IntLiteral) {
+        "Enum increment: oper=%c step=%d" format(oper, step value) println()
+        peek(EnumDecl) setIncrement(oper, step value)
+    }
+
     onEnumElementStart: unmangled(nq_onEnumElementStart) func (name: String) {
         "Element %s start" format(name) println()
         element := EnumElement new(peek(EnumDecl) getInstanceType(), name clone(), token())

@@ -5,17 +5,23 @@ import TypeDecl, Declaration, Visitor, Node, VariableAccess, Type, VariableDecl
 EnumDecl: class extends TypeDecl {
     lastElementValue: Int = 0
     elements := HashMap<String, EnumElement> new()
+    incrementOper: Char = '+'
+    incrementStep: Int = 1
 
     init: func ~enumDecl(.name, .token) {
         super(name, token)
     }
 
     addElement: func (element: EnumElement) {
-        // If no value is provided, increment the last used
-        // value and use that for this element.
-        // TODO: support custom steps. Ex: *2, +1
+        // If no value is provided for an element,
+        // calculate it by incrementing the last used value.
         if(!element valueSet) {
-            lastElementValue += 1
+            if(incrementOper == '+') {
+                lastElementValue += incrementStep
+            } else if(incrementOper == '*') {
+                lastElementValue *= incrementStep
+            }
+ 
             element setValue(lastElementValue)
         } else {
             lastElementValue = element getValue()
@@ -24,6 +30,8 @@ EnumDecl: class extends TypeDecl {
         element setType(instanceType)
         getMeta() addVariable(element)
     }
+
+    setIncrement: func (=incrementOper, =incrementStep) {}
     
     writeSize: func (w: TabbedWriter, instance: Bool) {
         w app("sizeof(int)")
