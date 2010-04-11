@@ -529,31 +529,10 @@ FunctionCall: class extends Expression {
         idx := trail find(TypeDecl)
         if(idx != -1) {
             tDecl := trail get(idx, TypeDecl)
-            for(typeArg in tDecl getTypeArgs()) {
-                if(typeArg getName() == typeArgName) {
-                    result := BaseType new(typeArgName, token)
-                    return result
-                }
-            }
-            
-            if(tDecl getNonMeta() != null && tDecl getNonMeta() getSuperType() != null) {
-                superTypeArgs := tDecl getNonMeta() getSuperType() getTypeArgs()
-                i := 0
-                for(typeArg in tDecl getSuperRef() getTypeArgs()) {
-                    if(typeArg getName() == typeArgName) {
-                        if(i < superTypeArgs size()) {
-                            implArg := superTypeArgs get(i)
-                            if(implArg instanceOf(VariableAccess)) {
-                                result := BaseType new(implArg as VariableAccess getName(), implArg token)
-                                //" >> Found ref-arg %s for typeArgName %s, returning %s" format(implArg toString(), typeArgName, result toString()) println()
-                                return result
-                            } else if(implArg instanceOf(Type)) {
-                                return implArg
-                            }
-                        }
-                    }
-                    i += 1
-                }
+            result := searchInTypeDecl(typeArgName, tDecl getNonMeta() getInstanceType())
+             if(result) {
+                //printf("Found in-TypeDecl match for arg %s! Hence, result = %s (cause expr type = %s)\n", typeArgName, result toString(), tDecl getNonMeta() getInstanceType() toString())
+                return result
             }
         }
         
@@ -598,6 +577,13 @@ FunctionCall: class extends Expression {
             }
             j += 1
         }
+        
+        superType := typeRef getSuperType()
+        if(superType != null) {
+            //printf("Searching for <%s> in super-type %s\n", typeArgName, superType toString())
+            return searchInTypeDecl(typeArgName, superType)
+        }
+        
         return null
     }
     

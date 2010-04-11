@@ -33,7 +33,7 @@ EnumDecl: class extends TypeDecl {
         visitor visitEnumDecl(this)
     }
 
-    replace: func (oldie, kiddo: Node) -> Bool {}
+    replace: func (oldie, kiddo: Node) -> Bool { false }
 
     resolveAccess: func (access: VariableAccess) {
         printf("Resolving access to %s in enum %s\n", access getName(), name)
