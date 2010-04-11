@@ -101,6 +101,10 @@ TypeDecl: abstract class extends Declaration {
         getTypeArgs() add(typeArg)
         
         variables put(typeArg getName(), typeArg)
+        
+        acc := VariableAccess new(typeArg, typeArg token)
+        thisDecl    getType() addTypeArg(acc)
+        thisRefDecl getType() addTypeArg(acc)
         true
     }
     

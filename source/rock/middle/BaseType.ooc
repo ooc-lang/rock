@@ -259,6 +259,7 @@ BaseType: class extends Type {
         j := 0
         for(arg in typeRef typeArgs) {
             if(arg getName() == typeArgName) {
+                //printf("Looking for %s in %s (ref %s), candidate = %s, j = %d, typeArgs size() = %d\n", typeArgName, toString(), typeRef toString(), arg getName(), j, typeArgs ? typeArgs size() : -1)
                 if(typeArgs == null || typeArgs size() <= j) {
                     continue
                 }
@@ -266,6 +267,7 @@ BaseType: class extends Type {
                 ref := candidate getRef()
                 if(ref == null) return null
                 result : Type = null
+                
                 //printf("Found candidate %s for typeArg %s\n", candidate toString(), typeArgName)
                 if(ref instanceOf(TypeDecl)) {
                     // resolves to a known type
