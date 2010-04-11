@@ -70,7 +70,6 @@ Foreach: class extends ControlStatement {
             while(response == Responses LOOP) {
                 response = iterCall resolve(trail, res)
             }
-            //printf("iterCall = %s, ref = %s\n", iterCall toString(), iterCall getRef() ? iterCall getRef() toString() : "(nil)")
             
             iterType := iterCall getType()
             if(iterType == null) {
@@ -84,6 +83,8 @@ Foreach: class extends ControlStatement {
                 res wholeAgain(this, "need iterType")
                 return Responses OK
             }
+            //printf("iterCall = %s, ref = %s, iterType name = %s\n", iterCall toString(), iterCall getRef() ? iterCall getRef() toString() : "(nil)", iterType getName())
+            //printf("iterType = %s\n", iterType toString())
             
             list := trail get(trail findScope(), Scope)
             block := Block new(token)
