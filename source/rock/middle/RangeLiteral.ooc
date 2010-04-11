@@ -1,5 +1,6 @@
 import ../frontend/Token
-import Literal, Expression, Visitor, Type, Node, BaseType
+import Literal, Expression, Visitor, Type, Node, BaseType, Foreach,
+       FunctionCall, VariableAccess
 import tinker/[Resolver, Response, Trail]
 
 RangeLiteral: class extends Literal {
@@ -38,6 +39,17 @@ RangeLiteral: class extends Literal {
         }
         
         trail pop(this)
+        
+        parent := trail peek() as Node
+        if(!parent instanceOf(Foreach)) {
+            newCall := FunctionCall new(VariableAccess new("Range", token), "new", token)
+            newCall args add(lower) .add(upper)
+            
+			if(!parent replace(this, newCall)) {
+                printf("Couldn't replace %s with %s in %s\n", toString(), newCall toString(), parent toString())
+            }
+			res wholeAgain(this, "replaced with range constructor!")
+        }
         
         return Responses OK
     }

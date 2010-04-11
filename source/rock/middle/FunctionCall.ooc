@@ -539,10 +539,12 @@ FunctionCall: class extends Expression {
                 }
             }
             
-            result := tDecl getNonMeta() getInstanceType() searchTypeArg(typeArgName)
-            if(result) {
-                //printf("Found in-TypeDecl match for arg %s! Hence, result = %s (cause expr type = %s)\n", typeArgName, result toString(), tDecl getNonMeta() getInstanceType() toString())
-                return result
+            if(tDecl getNonMeta() != null) {
+                result := tDecl getNonMeta() getInstanceType() searchTypeArg(typeArgName)
+                if(result) {
+                    //printf("Found in-TypeDecl match for arg %s! Hence, result = %s (cause expr type = %s)\n", typeArgName, result toString(), tDecl getNonMeta() getInstanceType() toString())
+                    return result
+                }
             }
         }
         

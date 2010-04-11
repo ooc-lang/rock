@@ -36,11 +36,23 @@ ArrayAccess: class extends Expression {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
+        trail push(this)
+        
         if(!index resolve(trail, res) ok()) {
             res wholeAgain(this, "because of index!")
         }
         if(!array resolve(trail, res) ok()) {
             res wholeAgain(this, "because of array!")
+        }
+        
+        trail pop(this)
+        
+        {
+            response := resolveOverload(trail, res)
+            if(!response ok()) {
+                res wholeAgain(this, "overload says some things aren't resolved yet")
+                return Responses OK
+            }
         }
         
         if(array getType() == null) {
@@ -49,12 +61,9 @@ ArrayAccess: class extends Expression {
             type = array getType() dereference()
             if(type == null) {
                 res wholeAgain(this, "because of array dereference type!")
+            } else {
+                printf("Deduced type %s for arrayAccess %s\n", type toString(), toString())
             }
-        }
-        
-        {
-            response := resolveOverload(trail, res)
-            if(!response ok()) return response
         }
         
         return Responses OK
@@ -85,6 +94,7 @@ ArrayAccess: class extends Expression {
         
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType, inAssign)
+            if(score == -1) return Responses LOOP
             if(score > bestScore) {
                 bestScore = score
                 candidate = opDecl
@@ -95,6 +105,7 @@ ArrayAccess: class extends Expression {
             module := imp getModule()
             for(opDecl in module getOperators()) {
                 score := getScore(opDecl, reqType, inAssign)
+                if(score == -1) return Responses LOOP
                 if(score > bestScore) {
                     bestScore = score
                     candidate = opDecl
@@ -123,6 +134,7 @@ ArrayAccess: class extends Expression {
             }
             
             res wholeAgain(this, "Just been replaced with an overload")
+            return Responses LOOP
         }
         
         return Responses OK
