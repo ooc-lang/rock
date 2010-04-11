@@ -4,7 +4,7 @@ import ../io/TabbedWriter
 import text/Buffer
 import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
     FunctionDecl, FunctionCall, Module, VariableAccess, Node,
-    InterfaceImpl, Version
+    InterfaceImpl, Version, EnumDecl
 import tinker/[Resolver, Response, Trail]
 
 TypeDecl: abstract class extends Declaration {
@@ -117,6 +117,7 @@ TypeDecl: abstract class extends Declaration {
     }
     
     addVariable: func (vDecl: VariableDecl) {
+        if(vDecl instanceOf(EnumElement)) { "%s got element %s\n" format(toString(), vDecl toString()) println() }
         if(vDecl isStatic() && !isMeta) {
             meta addVariable(vDecl)
         } else {

@@ -182,18 +182,18 @@ AstBuilder: class {
 
     onEnumElementStart: unmangled(nq_onEnumElementStart) func (name: String) {
         "Element %s start" format(name) println()
-        element := EnumElementDecl new(name clone(), token())
+        element := EnumElement new(peek(EnumDecl) getInstanceType(), name clone(), token())
         stack push(element)
     }
 
     onEnumElementValue: unmangled(nq_onEnumElementValue) func (value: IntLiteral) {
         "Enum value %d" format(value value) println()
-        peek(EnumElementDecl) setValue(value value)
+        peek(EnumElement) setValue(value value)
     }
 
     onEnumElementEnd: unmangled(nq_onEnumElementEnd) func {
         "Enum element end." println()
-        element := pop(EnumElementDecl)
+        element := pop(EnumElement)
         peek(EnumDecl) addElement(element)
     }
 

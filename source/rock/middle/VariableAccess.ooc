@@ -1,6 +1,6 @@
 import ../frontend/[Token, BuildParams]
 import Visitor, Expression, VariableDecl, FunctionDecl, TypeDecl,
-	   Declaration, Type, Node, ClassDecl, NamespaceDecl
+	   Declaration, Type, Node, ClassDecl, NamespaceDecl, EnumDecl
 import tinker/[Resolver, Response, Trail]
 
 VariableAccess: class extends Expression {
@@ -36,6 +36,10 @@ VariableAccess: class extends Expression {
     
     suggest: func (node: Node) -> Bool {
         if(node instanceOf(VariableDecl)) {
+            if(node instanceOf(EnumElement)) {
+                printf("Suggested element %s for %s\n", node toString(), toString())
+            }
+            
 			candidate := node as VariableDecl
 		    // if we're accessing a member, we're expecting the candidate
 		    // to belong to a TypeDecl..

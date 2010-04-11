@@ -13,7 +13,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Use, TypeDecl, ClassDecl, CoverDecl, Node, Parenthesis, Return,
     Cast, Comparison, Ternary, BoolLiteral, Argument, Statement,
     AddressOf, Dereference, CommaSequence, UnaryOp, ArrayAccess, Match,
-    FlowControl, InterfaceDecl, Version, Block]
+    FlowControl, InterfaceDecl, Version, Block, EnumDecl]
 
 import Skeleton, FunctionDeclWriter, ControlStatementWriter,
     ClassDeclWriter, ModuleWriter, CoverDeclWriter, FunctionCallWriter,
@@ -133,6 +133,12 @@ CGenerator: class extends Skeleton {
         if(vDecl expr)
             current app(" = "). app(vDecl expr)
     }
+    
+    visitEnumDecl: func (eDecl: EnumDecl) {
+        current = fw
+        
+        current nl(). app("typedef int "). app(eDecl underName()). app(';')
+    }
 
     /** Write a variable access */
     visitVariableAccess: func (varAcc: VariableAccess) {
@@ -140,7 +146,11 @@ CGenerator: class extends Skeleton {
             Exception new(This, "Trying to write unresolved variable access %s" format(varAcc getName())) throw()
         }
 
-        if(varAcc ref instanceOf(VariableDecl)) {
+        if(varAcc ref instanceOf(EnumElement)) {
+            printf("varAcc ref is an EnumElement %s!\n", varAcc ref toString())
+            element := varAcc ref as EnumElement
+            current app(element getValue() toString())
+        } else if(varAcc ref instanceOf(VariableDecl)) {
             vDecl := varAcc ref as VariableDecl
             if(varAcc isMember()) {
                 casted := false

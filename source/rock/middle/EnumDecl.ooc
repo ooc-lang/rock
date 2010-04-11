@@ -4,13 +4,13 @@ import TypeDecl, Declaration, Visitor, Node, VariableAccess, Type, VariableDecl
 
 EnumDecl: class extends TypeDecl {
     lastElementValue: Int = 0
-    elements := HashMap<String, EnumElementDecl> new()
+    elements := HashMap<String, EnumElement> new()
 
     init: func ~enumDecl(.name, .token) {
         super(name, token)
     }
 
-    addElement: func (element: EnumElementDecl) {
+    addElement: func (element: EnumElement) {
         // If no value is provided, increment the last used
         // value and use that for this element.
         // TODO: support custom steps. Ex: *2, +1
@@ -22,20 +22,18 @@ EnumDecl: class extends TypeDecl {
         }
 
         element setType(instanceType)
-        elements add(element name, element)
-        
-        vDecl := VariableDecl new(instanceType, element name, element token)
-        vDecl setOwner(this)
-        getMeta() addVariable(vDecl)
+        getMeta() addVariable(element)
     }
     
     writeSize: func (w: TabbedWriter, instance: Bool) {
         w app("sizeof(int)")
     }
 
-    accept: func (visitor: Visitor) {}
+    accept: func (visitor: Visitor) {
+        visitor visitEnumDecl(this)
+    }
 
-    replace: func (oldie, kiddo: Node) -> Bool { false }
+    replace: func (oldie, kiddo: Node) -> Bool {}
 
     resolveAccess: func (access: VariableAccess) {
         printf("Resolving access to %s in enum %s\n", access getName(), name)
@@ -47,14 +45,13 @@ EnumDecl: class extends TypeDecl {
     }
 }
 
-EnumElementDecl: class extends Declaration {
+EnumElement: class extends VariableDecl {
     type: Type
-    name: String
     value: Int
     valueSet: Bool = false
 
-    init: func ~enumElementDecl(=name, .token) {
-        super(token)
+    init: func ~enumElementDecl(.type, .name, .token) {
+        super(type, name, token)
     }
 
     setValue: func (=value) { valueSet = true }
