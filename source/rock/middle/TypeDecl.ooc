@@ -1,5 +1,6 @@
 import structs/[ArrayList, List, HashMap]
 import ../frontend/[Token, BuildParams]
+import ../io/TabbedWriter
 import text/Buffer
 import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
     FunctionDecl, FunctionCall, Module, VariableAccess, Node,
@@ -67,6 +68,8 @@ TypeDecl: abstract class extends Declaration {
         init(name, token)
         setSuperType(superType)
     }
+    
+    writeSize: abstract func (w: TabbedWriter, instance: Bool)
 
     getBase: func -> TypeDecl {
         return isMeta ? base : getMeta() base
@@ -632,6 +635,8 @@ BuiltinType: class extends TypeDecl {
     underName: func -> String { name }
     
     accept: func (v: Visitor) { /* yeah, right. */ }
+    
+    writeSize: func (w: TabbedWriter, instance: Bool) { Exception new(This, "writeSize() called on a BuiltinType. wtf?") /* if this happens, we're screwed */ }
     
     replace: func (oldie, kiddo: Node) -> Bool { false }
     

@@ -1,4 +1,5 @@
 import structs/ArrayList
+import ../io/TabbedWriter
 import ../frontend/Token
 import Expression, Type, Visitor, TypeDecl, Node, FunctionDecl,
        FunctionCall
@@ -48,6 +49,10 @@ CoverDecl: class extends TypeDecl {
         trail pop(this)
         
         return Responses OK
+    }
+    
+    writeSize: func (w: TabbedWriter, instance: Bool) {
+        w app("sizeof("). app(underName()). app(")")
     }
     
     absorb: func (node: CoverDecl) {

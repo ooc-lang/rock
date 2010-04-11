@@ -1,4 +1,5 @@
 import structs/HashMap
+import ../io/TabbedWriter
 import TypeDecl, Declaration, Visitor, Node, VariableAccess, Type, VariableDecl
 
 EnumDecl: class extends TypeDecl {
@@ -26,6 +27,10 @@ EnumDecl: class extends TypeDecl {
         vDecl := VariableDecl new(instanceType, element name, element token)
         vDecl setOwner(this)
         getMeta() addVariable(vDecl)
+    }
+    
+    writeSize: func (w: TabbedWriter, instance: Bool) {
+        w app("sizeof(int)")
     }
 
     accept: func (visitor: Visitor) {}

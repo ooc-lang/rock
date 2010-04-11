@@ -275,13 +275,13 @@ ClassDeclWriter: abstract class extends CGenerator {
         current openBlock(). nl()
 
         if (parentClass name equals("Class")) {
-            current app(".instanceSize = "). app("sizeof("). app(realClass getNonMeta() underName()). app("),")
-            if(realClass instanceOf(ClassDecl)) {
-                current nl() .app(".size = "). app("sizeof(void*),")
-            } else {
-                current nl() .app(".size = "). app("sizeof("). app(realClass getNonMeta() underName()). app("),")
-            }
-            current nl() .app(".name = "). app('"'). app(realClass getNonMeta() name). app("\",")
+            current app(".instanceSize = ")
+            realClass getNonMeta() writeSize(current, true) // instance = true
+            
+            current app(','). nl(). app(".size = ")
+            realClass getNonMeta() writeSize(current, false) // instance = false
+        
+            current app(','). nl(). app(".name = "). app('"'). app(realClass getNonMeta() name). app("\",")
         } else {
             writeClassStructInitializers(this, parentClass getSuperRef(), realClass, done, false)
         }
