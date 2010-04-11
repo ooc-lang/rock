@@ -4,7 +4,7 @@ import ../frontend/[Token, SourceReader, BuildParams, PathList, AstBuilder]
 import ../utils/FileUtils
 import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl,
        FunctionCall, Type, Declaration, VariableAccess, OperatorDecl,
-       Scope, NamespaceDecl, BaseType
+       Scope, NamespaceDecl, BaseType, FuncType
 import tinker/[Response, Resolver, Trail]
 
 Module: class extends Node {

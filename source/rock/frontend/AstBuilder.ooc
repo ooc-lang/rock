@@ -11,7 +11,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     NullLiteral, Argument, Parenthesis, AddressOf, Dereference, Foreach,
     OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess, Match, FlowControl,
     While, CharLiteral, InterfaceDecl, NamespaceDecl, Version, Use, Block,
-    ArrayLiteral, EnumDecl, BaseType]
+    ArrayLiteral, EnumDecl, BaseType, FuncType]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
