@@ -1,6 +1,6 @@
 import ../frontend/[Token, BuildParams]
 import Literal, Visitor, Type, Expression, FunctionCall, Block,
-       VariableDecl, VariableAccess, Cast, Node, ClassDecl, TypeDecl
+       VariableDecl, VariableAccess, Cast, Node, ClassDecl, TypeDecl, BaseType
 import tinker/[Response, Resolver, Trail]
 import structs/[List, ArrayList]
 import text/Buffer

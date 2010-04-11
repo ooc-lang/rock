@@ -1,5 +1,5 @@
 import ../frontend/Token
-import Literal, Expression, Visitor, Type, Node
+import Literal, Expression, Visitor, Type, Node, BaseType
 import tinker/[Resolver, Response, Trail]
 
 RangeLiteral: class extends Literal {

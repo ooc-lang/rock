@@ -2,7 +2,7 @@ import structs/ArrayList, text/Buffer
 import ../frontend/[Token, BuildParams]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
-       InterfaceDecl, Cast, NamespaceDecl
+       InterfaceDecl, Cast, NamespaceDecl, BaseType
 import tinker/[Response, Resolver, Trail]
 
 FunctionCall: class extends Expression {

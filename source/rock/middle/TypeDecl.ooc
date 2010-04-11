@@ -4,7 +4,7 @@ import ../io/TabbedWriter
 import text/Buffer
 import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
     FunctionDecl, FunctionCall, Module, VariableAccess, Node,
-    InterfaceImpl, Version, EnumDecl
+    InterfaceImpl, Version, EnumDecl, BaseType
 import tinker/[Resolver, Response, Trail]
 
 TypeDecl: abstract class extends Declaration {

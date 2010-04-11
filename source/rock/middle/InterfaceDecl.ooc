@@ -1,6 +1,6 @@
 import ../frontend/Token
 import tinker/[Response, Resolver, Trail]
-import ClassDecl, FunctionDecl, Visitor, CoverDecl, VariableDecl, Type
+import ClassDecl, FunctionDecl, Visitor, CoverDecl, VariableDecl, Type, BaseType
 
 InterfaceDecl: class extends ClassDecl {
     

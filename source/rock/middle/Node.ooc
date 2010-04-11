@@ -1,4 +1,4 @@
-import Visitor, FunctionCall, VariableAccess, VariableDecl, Type
+import Visitor, FunctionCall, VariableAccess, VariableDecl, Type, BaseType
 import ../frontend/Token
 import tinker/[Resolver, Response, Trail]
 
