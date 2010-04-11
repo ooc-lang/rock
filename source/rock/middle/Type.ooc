@@ -130,12 +130,27 @@ Type: abstract class extends Expression {
     
     dig: abstract func -> This
     
-    // Used in FunctionCall scoring - When we have a reftype, say, Int@,
-    // from the inside it should have type 'Int', but from the outside, 'Int*'.
-    // This converts Int@ to Int*.
-    // Note that the pointerLevel() for Int@ is 0, whereas for Int* it's 1.
+    /** 
+        Used in FunctionCall scoring - When we have a reftype, say, Int@,
+        from the inside it should have type 'Int', but from the outside, 'Int*'.
+        This converts Int@ to Int*.
+        Note that the pointerLevel() for Int@ is 0, whereas for Int* it's 1.
+    */
     refToPointer: func -> This {
         this
+    }
+    
+    /**
+        Search for a type argument, e.g. <T> in a type.
+        This is less trivial than it sounds. In the simplest case, we have
+        ArrayList<Int> for example, so T -> Int
+        But in some other cases, we have Trail extends Stack<Node>
+        and thus T -> Node.
+        
+        :return: The real type corresponding to a TypeArg, or null if none is found.
+    */
+    searchTypeArg: func (typeArgName: String) -> Type {
+        null
     }
     
 }
@@ -504,6 +519,49 @@ BaseType: class extends Type {
         }
         sb append(">")
         return sb toString()
+    }
+    
+    searchTypeArg: func (typeArgName: String) -> Type {
+        if(getRef() == null) return null
+        
+        if(!getRef() instanceOf(TypeDecl)) {
+            // only TypeDecl have typeArgs anyway.
+            return null
+        }
+        
+        typeRef := getRef() as TypeDecl
+        if(typeRef typeArgs == null) return null
+        
+        j := 0
+        for(arg in typeRef typeArgs) {
+            if(arg getName() == typeArgName) {
+                if(typeArgs == null || typeArgs size() <= j) {
+                    continue
+                }
+                candidate := typeArgs get(j)
+                ref := candidate getRef()
+                if(ref == null) return null
+                result : Type = null
+                //printf("Found candidate %s for typeArg %s\n", candidate toString(), typeArgName)
+                if(ref instanceOf(TypeDecl)) {
+                    // resolves to a known type
+                    result = candidate getRef() as TypeDecl getInstanceType()
+                } else {
+                    // resolves to an access to another generic type
+                    result = BaseType new(ref as VariableDecl getName(), token)
+                }
+                return result
+            }
+            j += 1
+        }
+        
+        superType := typeRef getSuperType()
+        if(superType != null) {
+            //printf("Searching for <%s> in super-type %s\n", typeArgName, superType toString())
+            return superType searchTypeArg(typeArgName)
+        }
+        
+        return null
     }
 
 }
