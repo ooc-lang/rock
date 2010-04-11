@@ -42,15 +42,6 @@ EnumDecl: class extends TypeDecl {
     }
 
     replace: func (oldie, kiddo: Node) -> Bool { false }
-
-    resolveAccess: func (access: VariableAccess) {
-        printf("Resolving access to %s in enum %s\n", access getName(), name)
-        
-        value := elements get(access name)
-        if(value) {
-            access suggest(value)
-        }
-    }
 }
 
 EnumElement: class extends VariableDecl {
