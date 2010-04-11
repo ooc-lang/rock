@@ -117,7 +117,6 @@ TypeDecl: abstract class extends Declaration {
     }
     
     addVariable: func (vDecl: VariableDecl) {
-        if(vDecl instanceOf(EnumElement)) { "%s got element %s\n" format(toString(), vDecl toString()) println() }
         if(vDecl isStatic() && !isMeta) {
             meta addVariable(vDecl)
         } else {
