@@ -532,8 +532,15 @@ FunctionCall: class extends Expression {
         if(idx != -1) {
             tDecl := trail get(idx, TypeDecl)
             //"\n===\nFound tDecl %s" format(tDecl toString()) println()
+            for(typeArg in tDecl getTypeArgs()) {
+                if(typeArg getName() == typeArgName) {
+                    result := BaseType new(typeArgName, token)
+                    return result
+                }
+            }
+            
             result := tDecl getNonMeta() getInstanceType() searchTypeArg(typeArgName)
-             if(result) {
+            if(result) {
                 //printf("Found in-TypeDecl match for arg %s! Hence, result = %s (cause expr type = %s)\n", typeArgName, result toString(), tDecl getNonMeta() getInstanceType() toString())
                 return result
             }
