@@ -61,8 +61,6 @@ ArrayAccess: class extends Expression {
             type = array getType() dereference()
             if(type == null) {
                 res wholeAgain(this, "because of array dereference type!")
-            } else {
-                printf("Deduced type %s for arrayAccess %s\n", type toString(), toString())
             }
         }
         
