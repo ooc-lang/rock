@@ -182,8 +182,7 @@ AstBuilder: class {
 
     onEnumExtern: unmangled(nq_onEnumExtern) func (externName: String) {
         "Enum extern %s" format(externName) println()
-        fullExternName := "enum %s" format(externName)
-        peek(EnumDecl) setExternName(fullExternName)
+        peek(EnumDecl) setExternName(externName clone())
     }
 
     onEnumIncrementExpr: unmangled(nq_onEnumIncrementExpr) func (oper: Char, step: IntLiteral) {

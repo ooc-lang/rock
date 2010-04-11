@@ -137,7 +137,15 @@ CGenerator: class extends Skeleton {
     visitEnumDecl: func (eDecl: EnumDecl) {
         current = fw
 
-        current nl(). app("typedef int "). app(eDecl underName()). app(';')
+        current nl(). app("typedef int ")
+
+        if(eDecl isExtern()) {
+            current app(eDecl getExternName())
+        } else {
+            current app(eDecl underName())
+        }
+
+        current app(';')
     }
 
     /** Write a variable access */
