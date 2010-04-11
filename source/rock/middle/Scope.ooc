@@ -1,6 +1,6 @@
 import structs/[ArrayList], text/Buffer
 import VariableAccess, VariableDecl, Statement, Node, Visitor,
-       FunctionCall, Type
+       FunctionCall, Type, FuncType
 import tinker/[Trail, Resolver, Response]
 import ../frontend/[BuildParams]
 

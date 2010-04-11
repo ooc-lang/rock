@@ -4,7 +4,7 @@ import Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, If, Else,
        VariableDecl, Node, Statement, Module, FunctionCall, Declaration,
        Version, StringLiteral, Conditional, Import, ClassDecl, StringLiteral,
-       IntLiteral, NullLiteral
+       IntLiteral, NullLiteral, BaseType, FuncType
 import tinker/[Resolver, Response, Trail]
 
 FunctionDecl: class extends Declaration {

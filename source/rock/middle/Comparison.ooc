@@ -1,7 +1,7 @@
 import structs/ArrayList
 import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
-       IntLiteral, Ternary
+       IntLiteral, Ternary, BaseType
 import tinker/[Resolver, Trail, Response]
 
 include stdint

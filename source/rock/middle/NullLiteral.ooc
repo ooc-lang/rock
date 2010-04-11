@@ -1,5 +1,5 @@
 import ../frontend/Token
-import Expression, Node, Literal, Visitor, Type
+import Expression, Node, Literal, Visitor, Type, BaseType
 import tinker/[Resolver, Response, Trail]
 
 NullLiteral: class extends Literal {

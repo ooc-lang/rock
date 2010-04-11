@@ -1,10 +1,10 @@
 import ../frontend/Token
-import Literal, Visitor, Type
+import Literal, Visitor, Type, BaseType
 
 FloatLiteral: class extends Literal {
 
     value: Float
-    type : static Type = BaseType new("Float", nullToken)
+    type := static BaseType new("Float", nullToken)
     
     init: func ~floatLiteral (=value, .token) { super(token) }
     

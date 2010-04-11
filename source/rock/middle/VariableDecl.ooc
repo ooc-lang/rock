@@ -1,7 +1,7 @@
 import structs/[ArrayList]
 import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
        Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast, Module,
-       Block, Scope, FunctionDecl, Argument
+       Block, Scope, FunctionDecl, Argument, BaseType, FuncType
 import tinker/[Response, Resolver, Trail]
 import ../frontend/BuildParams
 

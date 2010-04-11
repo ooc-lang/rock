@@ -1,7 +1,7 @@
 import structs/List
 import ../../middle/[Module, Include, Import, TypeDecl, FunctionDecl,
        CoverDecl, ClassDecl, OperatorDecl, InterfaceDecl, VariableDecl,
-       Type]
+       Type, FuncType]
 import ../../frontend/BuildParams
 import CoverDeclWriter, ClassDeclWriter, VersionWriter
 import Skeleton

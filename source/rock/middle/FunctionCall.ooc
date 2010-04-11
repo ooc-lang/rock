@@ -2,7 +2,7 @@ import structs/ArrayList, text/Buffer
 import ../frontend/[Token, BuildParams]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
-       InterfaceDecl, Cast, NamespaceDecl
+       InterfaceDecl, Cast, NamespaceDecl, BaseType
 import tinker/[Response, Resolver, Trail]
 
 FunctionCall: class extends Expression {
@@ -498,8 +498,10 @@ FunctionCall: class extends Expression {
 
         /* myFunction: func <T> (myArg: OtherType<T>) */
         for(arg in args) {
+            if(arg getType() == null) continue
+            
             //printf("Looking for typeArg %s in arg's type %s\n", typeArgName, arg getType() toString())
-            result := searchInTypeDecl(typeArgName, arg getType())
+            result := arg getType() searchTypeArg(typeArgName)
             if(result) {
                 //printf("Found match for arg %s! Hence, result = %s (cause arg = %s)\n", typeArgName, result toString(), arg toString())
                 return result
@@ -510,15 +512,15 @@ FunctionCall: class extends Expression {
             if(expr instanceOf(Type)) {
                 /* Type<T> myFunction() */
                 //printf("Looking for typeArg %s in expr-type %s\n", typeArgName, expr toString())
-                result := searchInTypeDecl(typeArgName, expr)
+                result := expr as Type searchTypeArg(typeArgName)
                 if(result) {
                     //printf("Found match for arg %s! Hence, result = %s (cause expr = %s)\n", typeArgName, result toString(), expr toString())
                     return result
                 }
-            } else {
+            } else if(expr getType() != null) {
                 /* expr: Type<T>; expr myFunction() */
                 //printf("Looking for typeArg %s in expr %s\n", typeArgName, expr toString())
-                result := searchInTypeDecl(typeArgName, expr getType())
+                result := expr getType() searchTypeArg(typeArgName)
                 if(result) {
                     //printf("Found match for arg %s! Hence, result = %s (cause expr type = %s)\n", typeArgName, result toString(), expr getType() toString())
                     return result
@@ -529,7 +531,8 @@ FunctionCall: class extends Expression {
         idx := trail find(TypeDecl)
         if(idx != -1) {
             tDecl := trail get(idx, TypeDecl)
-            result := searchInTypeDecl(typeArgName, tDecl getNonMeta() getInstanceType())
+            //"\n===\nFound tDecl %s" format(tDecl toString()) println()
+            result := tDecl getNonMeta() getInstanceType() searchTypeArg(typeArgName)
              if(result) {
                 //printf("Found in-TypeDecl match for arg %s! Hence, result = %s (cause expr type = %s)\n", typeArgName, result toString(), tDecl getNonMeta() getInstanceType() toString())
                 return result
@@ -539,52 +542,6 @@ FunctionCall: class extends Expression {
         //printf("Couldn't resolve typeArg %s\n", typeArgName)
         return null
         
-    }
-    
-    searchInTypeDecl: func (typeArgName: String, anyType: Type) -> Type {
-        if(anyType == null || anyType getRef() == null) return null
-        
-        if(!anyType instanceOf(BaseType)) return null
-        type := anyType as BaseType
-        
-        if(!type getRef() instanceOf(TypeDecl)) {
-            // only TypeDecl have typeArgs anyway.
-            return null
-        }
-        
-        typeRef := type getRef() as TypeDecl
-        if(typeRef typeArgs == null) return null
-        
-        j := 0
-        for(arg in typeRef typeArgs) {
-            if(arg getName() == typeArgName) {
-                if(type typeArgs == null || type typeArgs size() <= j) {
-                    continue
-                }
-                candidate := type typeArgs get(j)
-                ref := candidate getRef()
-                if(ref == null) return null
-                result: Type = null
-                //printf("Found candidate %s for typeArg %s\n", candidate toString(), typeArgName)
-                if(ref instanceOf(TypeDecl)) {
-                    // resolves to a known type
-                    result = candidate getRef() as TypeDecl getInstanceType()
-                } else {
-                    // resolves to an access to another generic type
-                    result = BaseType new(ref as VariableDecl getName(), token)
-                }
-                return result
-            }
-            j += 1
-        }
-        
-        superType := typeRef getSuperType()
-        if(superType != null) {
-            //printf("Searching for <%s> in super-type %s\n", typeArgName, superType toString())
-            return searchInTypeDecl(typeArgName, superType)
-        }
-        
-        return null
     }
     
     /**

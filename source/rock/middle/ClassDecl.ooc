@@ -4,7 +4,7 @@ import ../io/TabbedWriter
 import ../frontend/Token
 import Expression, Type, Visitor, TypeDecl, Cast, FunctionCall, FunctionDecl,
 	   Module, Node, VariableDecl, VariableAccess, BinaryOp, Argument,
-       Return, CoverDecl
+       Return, CoverDecl, BaseType
 import tinker/[Response, Resolver, Trail]
 
 ClassDecl: class extends TypeDecl {

@@ -1,10 +1,10 @@
 import ../frontend/Token
-import Literal, Visitor, Type
+import Literal, Visitor, Type, BaseType
 
 IntLiteral: class extends Literal {
 
     value: Int64
-    type : static Type = BaseType new("Int", nullToken)
+    type := static BaseType new("Int", nullToken)
     
     init: func ~intLiteral (=value, .token) { super(token) }
     
