@@ -13,18 +13,25 @@ EnumDecl: class extends TypeDecl {
     }
 
     addElement: func (element: EnumElement) {
-        // If no value is provided for an element,
-        // calculate it by incrementing the last used value.
-        if(!element valueSet) {
-            if(incrementOper == '+') {
-                lastElementValue += incrementStep
-            } else if(incrementOper == '*') {
-                lastElementValue *= incrementStep
+        if(isExtern()) {
+            if(!element isExtern()) {
+                // Provide a default extern name if none is provided
+                element setExternName(element getName())
             }
- 
-            element setValue(lastElementValue)
         } else {
-            lastElementValue = element getValue()
+            // If no value is provided for a non-extern element,
+            // calculate it by incrementing the last used value.
+            if(!element valueSet) {
+                if(incrementOper == '+') {
+                    lastElementValue += incrementStep
+                } else if(incrementOper == '*') {
+                    lastElementValue *= incrementStep
+                }
+
+                element setValue(lastElementValue)
+            } else {
+                lastElementValue = element getValue()
+            }
         }
 
         element setType(instanceType)
