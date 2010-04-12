@@ -88,10 +88,7 @@ SourceReader: class extends Reader {
     
     read: func ~char -> Char {
         if (index + 1 > content length()) {
-            max := 128
-            msg : Char[max]
-            snprintf(msg, max, "Parsing ended. Parsed %zd chars. %d lines total", index, getLineNumber())
-            Exception new(msg) throw()
+            Exception new("Parsing ended. Parsed %zd chars. %d lines total" format(index, getLineNumber())) throw()
         }
 
         character := content[index]

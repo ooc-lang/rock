@@ -438,7 +438,7 @@ FunctionDecl: class extends Declaration {
             
             if(!expr getType() equals(voidType)) {
                 //printf("[autoReturn] Hmm it's a %s\n", stmt toString())
-                scope set(index, Return new(stmt, stmt token))
+                scope set(index, Return new(expr, expr token))
                 //printf("[autoReturn] Replaced with a %s!\n", scope get(index) toString())
             }
         } else if(stmt instanceOf(ControlStatement)) {

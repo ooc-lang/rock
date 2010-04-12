@@ -12,6 +12,8 @@ FunctionCallWriter: abstract class extends Skeleton {
         }
         fDecl : FunctionDecl = fCall ref
         
+        shouldCastThis := false
+        
         // write the function name
         if(fDecl vDecl != null) {
             if(fCall expr != null) {
@@ -22,6 +24,7 @@ FunctionCallWriter: abstract class extends Skeleton {
             FunctionDeclWriter writeFullName(this, fDecl)
             if(!fDecl isFinal && fCall getName() == "super") {
                 current app("_impl")
+                shouldCastThis = true
             }
         }
         
@@ -37,7 +40,7 @@ FunctionCallWriter: abstract class extends Skeleton {
             
             // TODO maybe check there's some kind of inheritance/compatibility here?
             // or in the tinker phase?
-            if(!(callType equals(declType))) {
+            if(shouldCastThis || !(callType equals(declType))) {
                 current app("("). app(declType). app(") ")
             }
         
