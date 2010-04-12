@@ -100,6 +100,8 @@ FunctionCallWriter: abstract class extends Skeleton {
                 current app(", ")
             }
             
+            writeCast := false
+            
             declArg : Argument = null
             if(i < fDecl args size())                         declArg = fDecl args get(i)
             if(declArg != null && declArg instanceOf(VarArg)) declArg = null
@@ -109,11 +111,13 @@ FunctionCallWriter: abstract class extends Skeleton {
                     current app("(uint8_t*) ")
                 } else if(arg getType() != null && declArg getType() != null && arg getType() inheritsFrom(declArg getType())) {
                     //printf("%s inherits from %s, casting!\n", arg getType() toString(), declArg getType() toString())
-                    current app("("). app(declArg getType()). app(")")
+                    current app("("). app(declArg getType()). app(") (")
+                    writeCast = true
                 }
             }
             
             arg accept(this)
+            if(writeCast) current app(')')
             i += 1
         }
         current app(')')

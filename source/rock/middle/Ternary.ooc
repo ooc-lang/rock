@@ -4,6 +4,10 @@ import tinker/[Response, Resolver, Trail]
 
 Ternary: class extends Expression {
     
+    /*
+     * TODO: We must check if 'ifTrue' and 'ifFalse' have compatible types,
+     * and cast one of them if needed
+     */
     condition, ifTrue, ifFalse : Expression
 
     init: func ~ternary (=condition, =ifTrue, =ifFalse, .token) {

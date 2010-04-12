@@ -25,7 +25,7 @@ CastWriter: abstract class extends Skeleton {
                 
         } else {
             
-            current app("(("). app(cast type). app(") "). app(cast inner). app(')')
+            current app("(("). app(cast type). app(") ("). app(cast inner). app("))")
             
         }
         
