@@ -1,5 +1,5 @@
 import structs/ArrayList, text/Buffer
-import ../frontend/[Token, BuildParams]
+import ../frontend/[Token, BuildParams, CommandLine]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
        InterfaceDecl, Cast, NamespaceDecl, BaseType
@@ -42,7 +42,7 @@ FunctionCall: class extends Expression {
     }
     
     debugCondition: func -> Bool {
-        name == "aloha"
+        false
     }
     
     suggest: func (candidate: FunctionDecl) -> Bool {
@@ -55,6 +55,7 @@ FunctionCall: class extends Expression {
         }
         
         score := getScore(candidate)
+        if(score == -1) return false
         if(score > refScore) {
             if(debugCondition()) "** New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
             refScore = score
@@ -208,11 +209,14 @@ FunctionCall: class extends Expression {
             } else {
                 message = "No such function %s%s" format(name, getArgsTypesRepr())
             }
-            printf("name = %s, refScore = %d, ref = %s\n", name, refScore, ref ? ref toString() : "(nil)")
+            //printf("name = %s, refScore = %d, ref = %s\n", name, refScore, ref ? ref toString() : "(nil)")
             if(ref) {
-                getScore(ref)
+                token printMessage(message, "ERROR")
+                showNearestMatch()
+                if(BuildParams fatalError) CommandLine failure()
+            } else {
+                token throwError(message)
             }
-            token throwError(message)
         }
 
         if(refScore <= 0) {
@@ -222,6 +226,35 @@ FunctionCall: class extends Expression {
         
         return Responses OK
         
+    }
+    
+    showNearestMatch: func {
+        "\tNearest match is:\n\n\t\t%s\n" format(ref toString()) println()
+        
+        callIter := args iterator()
+        declIter := ref args iterator()
+        
+        while(callIter hasNext() && declIter hasNext()) {
+            declArg := declIter next()
+            if(declArg instanceOf(VarArg)) break
+            callArg := callIter next()
+            
+            if(declArg getType() == null) {
+                declArg token printMessage("\t..but couldn't resolve type of this argument in the declaration\n", "")
+                continue
+            }
+            
+            if(callArg getType() == null) {
+                callArg token printMessage("\t..but coultn't resolve type of this argument in the call\n", "")
+                continue
+            }
+            
+            score := callArg getType() getScore(declArg getType())
+            if(score < 0) {
+                "\t..but the type of this arg should be %s, not %s\n" format(declArg getType() toString(), callArg getType() toString()) println()
+                callArg token printMessage("\t\t", "", "")
+            }
+        }
     }
     
     unwrapIfNeeded: func (trail: Trail, res: Resolver) -> Response {
@@ -612,9 +645,9 @@ FunctionCall: class extends Expression {
                 printf("typeScore for %s vs %s == %d    for call %s (%s vs %s) [%p vs %p]\n", callArg getType() toString(), declArg getType() toString(), typeScore, toString(), callArg getType() getGroundType() toString(), declArg getType() getGroundType() toString(), callArg getType() getRef(), declArg getType() getRef())
             }
         }
-        //if(debugCondition()) {
-        //    printf("Final score = %d\n", score)
-        //}
+        if(debugCondition()) {
+            printf("Final score = %d\n", score)
+        }
         
         return score
     }
