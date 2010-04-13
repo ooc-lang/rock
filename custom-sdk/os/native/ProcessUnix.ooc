@@ -21,7 +21,7 @@ ProcessUnix: class extends Process {
         if(stdIn != null) {
             stdIn close('w')
         }
-        waitpid(-1, status&, null)
+        waitpid(-1, status&, 0)
         if (WIFEXITED(status)) {
             result = WEXITSTATUS(status)
             if (stdOut != null) {

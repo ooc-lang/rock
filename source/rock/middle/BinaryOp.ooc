@@ -80,12 +80,14 @@ BinaryOp: class extends Expression {
     
     isAssign: func -> Bool { (type >= OpTypes ass) && (type <= OpTypes bAndAss) }
     
+    isBooleanOp: func -> Bool { type == OpTypes or || type == OpTypes and }
+    
     accept: func (visitor: Visitor) {
         visitor visitBinaryOp(this)
     }
     
     // It's just an access, it has no side-effects whatsoever
-    hasSideEffects : func -> Bool { !isAssign }
+    hasSideEffects : func -> Bool { !isAssign() }
     
     // that's probably not right (haha)
     getType: func -> Type { left getType() }
@@ -227,7 +229,7 @@ BinaryOp: class extends Expression {
         if(left getType() getRef() instanceOf(ClassDecl) ||
            right getType() getRef() instanceOf(ClassDecl)) {
             // you can only assign - all others must be overloaded
-            return (type == OpTypes ass)
+            return (type == OpTypes ass || isBooleanOp())
         }
         if((left  getType() getRef() instanceOf(CoverDecl) &&
             left  getType() getRef() as CoverDecl getFromType() == null) ||
