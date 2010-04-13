@@ -42,7 +42,7 @@ FunctionCall: class extends Expression {
     }
     
     debugCondition: func -> Bool {
-        false
+        name == "aloha"
     }
     
     suggest: func (candidate: FunctionDecl) -> Bool {
@@ -568,6 +568,9 @@ FunctionCall: class extends Expression {
                 printf("matchesArg, score is now %d\n", score)
             }
         } else {
+            if(debugCondition()) {
+                printf("doesn't match args, too bad!\n", score)
+            }
             return Type NOLUCK_SCORE
         }
         
@@ -597,14 +600,17 @@ FunctionCall: class extends Expression {
 
             typeScore := callArg getType() getScore(declArg getType() refToPointer())
             if(typeScore == -1) {
+                if(debugCondition()) {
+                    printf("-1 because of type score between %s and %s\n", callArg getType() toString(), declArg getType() refToPointer() toString())
+                }
                 return -1
             }
             
             score += typeScore
             
-            //if(debugCondition()) {
-            //    printf("typeScore for %s vs %s == %d    for call %s (%s vs %s) [%p vs %p]\n", callArg getType() toString(), declArg getType() toString(), typeScore, toString(), callArg getType() getGroundType() toString(), declArg getType() getGroundType() toString(), callArg getType() getRef(), declArg getType() getRef())
-            //}
+            if(debugCondition()) {
+                printf("typeScore for %s vs %s == %d    for call %s (%s vs %s) [%p vs %p]\n", callArg getType() toString(), declArg getType() toString(), typeScore, toString(), callArg getType() getGroundType() toString(), declArg getType() getGroundType() toString(), callArg getType() getRef(), declArg getType() getRef())
+            }
         }
         //if(debugCondition()) {
         //    printf("Final score = %d\n", score)
@@ -633,6 +639,10 @@ FunctionCall: class extends Expression {
             if(last instanceOf(VarArg) && declArgs - 1 <= callArgs) {
                 return true
             }
+        }
+        
+        if(debugCondition()) {
+            "Args don't match! declArgs = %d, callArgs = %d" format(declArgs, callArgs) println()
         }
         
         return false

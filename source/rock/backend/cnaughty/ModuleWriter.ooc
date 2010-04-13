@@ -8,7 +8,7 @@ import Skeleton
 
 ModuleWriter: abstract class extends Skeleton {
 
-    write: static func (this: This, module: Module) {
+    write: static func (this: Skeleton, module: Module) {
 
         hw app("/* "). app(module fullName). app(" header file, generated with rock, the ooc compiler written in ooc */"). nl()
         fw app("/* "). app(module fullName). app(" header-forward file, generated with rock, the ooc compiler written in ooc */"). nl()
@@ -188,7 +188,7 @@ ModuleWriter: abstract class extends Skeleton {
     }
     
     /** Write default main function */
-    writeDefaultMain: static func (this: This) {
+    writeDefaultMain: static func (this: Skeleton) {
         // If just outputing .o files, do not add a default main
         if(!params link || !params defaultMain) return
 
@@ -201,7 +201,7 @@ ModuleWriter: abstract class extends Skeleton {
     }
 
     /** Classify imports between 'tight' and 'loose' */
-    classifyImports: static func (this: This, module: Module) -> List<Import> {
+    classifyImports: static func (this: Skeleton, module: Module) -> List<Import> {
 
         imports := module getAllImports() clone()
 
@@ -232,7 +232,7 @@ ModuleWriter: abstract class extends Skeleton {
 
     }
 
-    writeTypesForward: static func (this: This, module: Module, meta: Bool) {
+    writeTypesForward: static func (this: Skeleton, module: Module, meta: Bool) {
 
         for(tDecl: TypeDecl in module types) {
             if(tDecl getInterfaceTypes() size() > 0) {
@@ -259,7 +259,7 @@ ModuleWriter: abstract class extends Skeleton {
     }
 
     /** Write an include */
-    visitInclude: static func (this: This, inc: Include) {
+    visitInclude: static func (this: Skeleton, inc: Include) {
         
         if(inc getVersion()) VersionWriter writeStart(this, inc getVersion())
         

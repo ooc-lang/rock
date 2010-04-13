@@ -4,7 +4,7 @@ import Skeleton, FunctionDeclWriter
 FunctionCallWriter: abstract class extends Skeleton {
     
     /** @see FunctionDeclWriter */
-    write: static func ~functionCall (this: This, fCall: FunctionCall) {
+    write: static func ~functionCall (this: Skeleton, fCall: FunctionCall) {
         //"|| Writing function call %s (expr = %s)" format(fCall name, fCall expr ? fCall expr toString() : "(nil)") println()
 
         if(!fCall ref) {

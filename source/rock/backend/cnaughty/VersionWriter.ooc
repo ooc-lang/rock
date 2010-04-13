@@ -1,14 +1,14 @@
 import ../../middle/[Version]
-import CGenerator
+import Skeleton
 
-VersionWriter: abstract class extends CGenerator {
+VersionWriter: abstract class extends Skeleton {
 
-    writeStart: static func ~_version (this: This, _version: VersionSpec) {
+    writeStart: static func ~_version (this: Skeleton, _version: VersionSpec) {
         current nl(). app("#if ")
         _version write(current)
     }
     
-    writeEnd: static func ~_version (this: This) {
+    writeEnd: static func ~_version (this: Skeleton) {
         current nl(). app("#endif")
     }
     

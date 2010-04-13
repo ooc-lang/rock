@@ -66,7 +66,6 @@ BaseType: class extends Type {
     suggest: func (decl: Declaration) -> Bool {
         ref = decl
         if(name == "This" && getRef() instanceOf(TypeDecl)) {
-            // not exactly sure how good an idea it is
             tDecl := getRef() as TypeDecl
             name = tDecl getName()
         }

@@ -509,8 +509,6 @@ String: cover from Char* {
     substring: func (start, end: Int) -> This {
         len = this length() : Int
         
-        printf("Substring(%d, %d) on %s, a string of length %d\n", start, end, this, len)
-
         if(start == end) return ""
 
         if(end < 0) {
