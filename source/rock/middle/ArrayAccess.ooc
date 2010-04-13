@@ -23,6 +23,9 @@ ArrayAccess: class extends Expression {
         visitor visitArrayAccess(this)
     }
     
+    // It's just an access, it has no side-effects whatsoever
+    hasSideEffects : func -> Bool { false }
+    
     getGenericOperand: func -> Expression {
         if(getType() isGeneric() && getType() pointerLevel() == 0) {
             sizeAcc := VariableAccess new(VariableAccess new(getType() getName(), token), "size", token)

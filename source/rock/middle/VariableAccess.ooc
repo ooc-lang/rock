@@ -34,6 +34,9 @@ VariableAccess: class extends Expression {
         visitor visitVariableAccess(this)
     }
     
+    // It's just an access, it has no side-effects whatsoever
+    hasSideEffects : func -> Bool { false }
+    
     suggest: func (node: Node) -> Bool {
         if(node instanceOf(VariableDecl)) {
 			candidate := node as VariableDecl

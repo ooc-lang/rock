@@ -58,5 +58,8 @@ Node: abstract class {
         This nameSeed += 1
         return "__" + origin + This nameSeed
     }
+    
+    // Just to be on the safe side - everything has side effects by default
+    hasSideEffects : func -> Bool { true }
 
 }

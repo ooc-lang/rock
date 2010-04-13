@@ -15,6 +15,8 @@ AddressOf: class extends Expression {
         visitor visitAddressOf(this)
     }
     
+    hasSideEffects : func -> Bool { expr hasSideEffects() }
+    
     getType: func -> Type { expr getType() ? expr getType() reference() : null }
     
     toString: func -> String {

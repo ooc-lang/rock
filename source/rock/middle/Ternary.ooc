@@ -23,6 +23,8 @@ Ternary: class extends Expression {
         visitor visitTernary(this)
     }
     
+    hasSideEffects : func -> Bool { condition hasSideEffects() || ifTrue hasSideEffects() || ifFalse hasSideEffects() }
+    
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
         trail push(this)

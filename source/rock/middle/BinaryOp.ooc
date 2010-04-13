@@ -84,6 +84,9 @@ BinaryOp: class extends Expression {
         visitor visitBinaryOp(this)
     }
     
+    // It's just an access, it has no side-effects whatsoever
+    hasSideEffects : func -> Bool { !isAssign }
+    
     // that's probably not right (haha)
     getType: func -> Type { left getType() }
     getLeft:  func -> Expression { left  }

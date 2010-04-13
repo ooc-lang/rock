@@ -6,6 +6,8 @@ Literal: abstract class extends Expression {
 
     init: func (.token) { super(token) }
     
+    hasSideEffects : func -> Bool { false }
+    
     replace: func (oldie, kiddo: Node) -> Bool { false }
     
     isResolved: func -> Bool { getType() isResolved() }
