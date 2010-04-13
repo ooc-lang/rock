@@ -47,7 +47,7 @@ FunctionCall: class extends Expression {
     
     suggest: func (candidate: FunctionDecl) -> Bool {
         
-        if(debugCondition()) "** Got suggestion %s for %s" format(candidate toString(), toString()) println()
+        if(debugCondition()) "** [refScore = %d] Got suggestion %s for %s" format(refScore, candidate toString(), toString()) println()
         
         if(isMember() && candidate owner == null) {
             if(debugCondition()) printf("** %s is no fit!, we need something to fit %s\n", candidate toString(), toString())
@@ -55,7 +55,11 @@ FunctionCall: class extends Expression {
         }
         
         score := getScore(candidate)
-        if(score == -1) return false
+        if(score == -1) {
+            if(debugCondition()) "** Score = -1! Aboort" println()
+            return false
+        }
+        
         if(score > refScore) {
             if(debugCondition()) "** New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
             refScore = score
@@ -209,7 +213,7 @@ FunctionCall: class extends Expression {
             } else {
                 message = "No such function %s%s" format(name, getArgsTypesRepr())
             }
-            //printf("name = %s, refScore = %d, ref = %s\n", name, refScore, ref ? ref toString() : "(nil)")
+            printf("name = %s, refScore = %d, ref = %s\n", name, refScore, ref ? ref toString() : "(nil)")
             if(ref) {
                 token printMessage(message, "ERROR")
                 showNearestMatch()
@@ -625,9 +629,11 @@ FunctionCall: class extends Expression {
             // avoid null types
             if(declArg instanceOf(VarArg)) break
             if(declArg getType() == null) {
+                if(debugCondition()) "Score is -1 because of declArg %s\n" format(declArg toString()) println()
                 return -1
             }
             if(callArg getType() == null) {
+                if(debugCondition()) "Score is -1 because of callArg %s\n" format(callArg toString()) println()
                 return -1
             }
 

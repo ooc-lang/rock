@@ -234,7 +234,7 @@ TypeDecl: abstract class extends Declaration {
     }
     
     getFunction: func ~nameSuffCallRec (name, suffix: String, call: FunctionCall, recursive: Bool, finalScore: Int@) -> FunctionDecl {
-        return getFunction(name, suffix, call, recursive, 0, null, finalScore&)
+        return getFunction(name, suffix, call, recursive, INT_MIN, null, finalScore&)
     }
     
     getFunction: func ~real (name, suffix: String, call: FunctionCall,
