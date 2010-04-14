@@ -42,7 +42,7 @@ FunctionCall: class extends Expression {
     }
     
     debugCondition: func -> Bool {
-        false
+        name == "writeTypesForward"
     }
     
     suggest: func (candidate: FunctionDecl) -> Bool {

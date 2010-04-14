@@ -940,7 +940,7 @@ AstBuilder: class {
     }
 
     onAddressOf: unmangled(nq_onAddressOf) func (inner: Expression) -> AddressOf {
-        AddressOf new(inner, token())
+        AddressOf new(inner, inner token)
     }
 
     onDereference: unmangled(nq_onDereference) func (inner: Expression) -> Dereference {
