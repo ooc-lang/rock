@@ -1,8 +1,8 @@
 import structs/ArrayList, text/Buffer
-import ../frontend/[Token, BuildParams]
+import ../frontend/[Token, BuildParams, CommandLine]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
-       InterfaceDecl, Cast, NamespaceDecl
+       InterfaceDecl, Cast, NamespaceDecl, BaseType
 import tinker/[Response, Resolver, Trail]
 
 FunctionCall: class extends Expression {
@@ -47,7 +47,7 @@ FunctionCall: class extends Expression {
     
     suggest: func (candidate: FunctionDecl) -> Bool {
         
-        if(debugCondition()) "** Got suggestion %s for %s" format(candidate toString(), toString()) println()
+        if(debugCondition()) "** [refScore = %d] Got suggestion %s for %s" format(refScore, candidate toString(), toString()) println()
         
         if(isMember() && candidate owner == null) {
             if(debugCondition()) printf("** %s is no fit!, we need something to fit %s\n", candidate toString(), toString())
@@ -55,11 +55,16 @@ FunctionCall: class extends Expression {
         }
         
         score := getScore(candidate)
+        if(score == -1) {
+            if(debugCondition()) "** Score = -1! Aboort" println()
+            return false
+        }
+        
         if(score > refScore) {
             if(debugCondition()) "** New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
             refScore = score
             ref = candidate
-            return true
+            return score > 0
         }
         return false
         
@@ -122,7 +127,7 @@ FunctionCall: class extends Expression {
         if(refScore <= 0) {
             if(debugCondition()) printf("\n===============\nResolving call %s\n", toString())
         	if(name == "super") {
-				fDecl := trail get(trail find(FunctionDecl)) as FunctionDecl
+				fDecl := trail get(trail find(FunctionDecl), FunctionDecl)
                 superTypeDecl := fDecl owner getSuperRef()
                 finalScore: Int
                 ref = superTypeDecl getMeta() getFunction(fDecl getName(), null, this, finalScore&)
@@ -138,16 +143,15 @@ FunctionCall: class extends Expression {
         		if(expr == null) {
 				    depth := trail size() - 1
 				    while(depth >= 0) {
-				        node := trail get(depth)
-				        if(node resolveCall(this) == -1) {
+				        node := trail get(depth, Node)
+				        if(node resolveCall(this, res) == -1) {
                             res wholeAgain(this, "Waiting on other nodes to resolve before resolving call.")
                             return Responses OK
                         }
 				        depth -= 1
 				    }
 			    } else if(expr instanceOf(VariableAccess) && expr as VariableAccess getRef() != null && expr as VariableAccess getRef() instanceOf(NamespaceDecl)) {
-                    printf("============ [FunctionCall] expr ref is a NamespaceDecl!!\n")
-                    expr as VariableAccess getRef() resolveCall(this)
+                    expr as VariableAccess getRef() resolveCall(this, res)
                 } else if(expr getType() != null && expr getType() getRef() != null) {
                     if(!expr getType() getRef() instanceOf(TypeDecl)) {
                         message := "No such function %s.%s%s (you can't call methods on generic types! you have to cast them to something sane first)" format(expr getType() getName(), name, getArgsTypesRepr())
@@ -157,9 +161,9 @@ FunctionCall: class extends Expression {
 		            meta := tDecl getMeta()
                     if(debugCondition()) printf("Got tDecl %s, resolving, meta = %s\n", tDecl toString(), meta == null ? "(nil)" : meta toString())
 		            if(meta) {
-		                meta resolveCall(this)
+		                meta resolveCall(this, res)
 		            } else {
-		                tDecl resolveCall(this)
+		                tDecl resolveCall(this, res)
 		            }
 		        }
             }
@@ -204,16 +208,19 @@ FunctionCall: class extends Expression {
 
         if(refScore <= 0 && res fatal) {
             message : String
-            if(expr && expr getType()) {
+            if(expr != null && expr getType() != null) {
                 message = "No such function %s.%s%s" format(expr getType() getName(), name, getArgsTypesRepr())
             } else {
                 message = "No such function %s%s" format(name, getArgsTypesRepr())
             }
-            printf("name = %s, refScore = %d, ref = %s\n", name, refScore, ref ? ref toString() : "(nil)")
+            //printf("name = %s, refScore = %d, ref = %s\n", name, refScore, ref ? ref toString() : "(nil)")
             if(ref) {
-                getScore(ref)
+                token printMessage(message, "ERROR")
+                showNearestMatch()
+                if(BuildParams fatalError) CommandLine failure()
+            } else {
+                token throwError(message)
             }
-            token throwError(message)
         }
 
         if(refScore <= 0) {
@@ -223,6 +230,35 @@ FunctionCall: class extends Expression {
         
         return Responses OK
         
+    }
+    
+    showNearestMatch: func {
+        "\tNearest match is:\n\n\t\t%s\n" format(ref toString()) println()
+        
+        callIter := args iterator()
+        declIter := ref args iterator()
+        
+        while(callIter hasNext() && declIter hasNext()) {
+            declArg := declIter next()
+            if(declArg instanceOf(VarArg)) break
+            callArg := callIter next()
+            
+            if(declArg getType() == null) {
+                declArg token printMessage("\t..but couldn't resolve type of this argument in the declaration\n", "")
+                continue
+            }
+            
+            if(callArg getType() == null) {
+                callArg token printMessage("\t..but coultn't resolve type of this argument in the call\n", "")
+                continue
+            }
+            
+            score := callArg getType() getScore(declArg getType())
+            if(score < 0) {
+                "\t..but the type of this arg should be %s, not %s\n" format(declArg getType() toString(), callArg getType() toString()) println()
+                callArg token printMessage("\t\t", "", "")
+            }
+        }
     }
     
     unwrapIfNeeded: func (trail: Trail, res: Resolver) -> Response {
@@ -393,10 +429,12 @@ FunctionCall: class extends Expression {
         j := 0
         for(implArg in ref args) {
             if(implArg instanceOf(VarArg)) { j += 1; continue }
-            if(implArg getType() == null || !implArg getType() isResolved()) {
-                res wholeAgain(this, "need ref arg type"); break // we'll do it later
+            implType := implArg getType()
+            
+            if(implType == null || !implType isResolved()) {
+                res wholeAgain(this, "need impl arg type"); break // we'll do it later
             }
-            if(!implArg getType() isGeneric()) { j += 1; continue }
+            if(!implType isGeneric() || implType pointerLevel() > 0) { j += 1; continue }
             
             //printf(" >> Reviewing arg %s in call %s\n", arg toString(), toString())
             
@@ -417,8 +455,7 @@ FunctionCall: class extends Expression {
                     }
                     target = VariableAccess new(varDecl, callArg token)
                 }
-                args set(j, AddressOf new(target, target token))
-            
+                args set(j, AddressOf new(target, target token))            
             }
             j += 1
         }
@@ -498,8 +535,10 @@ FunctionCall: class extends Expression {
 
         /* myFunction: func <T> (myArg: OtherType<T>) */
         for(arg in args) {
+            if(arg getType() == null) continue
+            
             //printf("Looking for typeArg %s in arg's type %s\n", typeArgName, arg getType() toString())
-            result := searchInTypeDecl(typeArgName, arg getType())
+            result := arg getType() searchTypeArg(typeArgName)
             if(result) {
                 //printf("Found match for arg %s! Hence, result = %s (cause arg = %s)\n", typeArgName, result toString(), arg toString())
                 return result
@@ -510,15 +549,15 @@ FunctionCall: class extends Expression {
             if(expr instanceOf(Type)) {
                 /* Type<T> myFunction() */
                 //printf("Looking for typeArg %s in expr-type %s\n", typeArgName, expr toString())
-                result := searchInTypeDecl(typeArgName, expr)
+                result := expr as Type searchTypeArg(typeArgName)
                 if(result) {
                     //printf("Found match for arg %s! Hence, result = %s (cause expr = %s)\n", typeArgName, result toString(), expr toString())
                     return result
                 }
-            } else {
+            } else if(expr getType() != null) {
                 /* expr: Type<T>; expr myFunction() */
                 //printf("Looking for typeArg %s in expr %s\n", typeArgName, expr toString())
-                result := searchInTypeDecl(typeArgName, expr getType())
+                result := expr getType() searchTypeArg(typeArgName)
                 if(result) {
                     //printf("Found match for arg %s! Hence, result = %s (cause expr type = %s)\n", typeArgName, result toString(), expr getType() toString())
                     return result
@@ -528,10 +567,19 @@ FunctionCall: class extends Expression {
         
         idx := trail find(TypeDecl)
         if(idx != -1) {
-            tDecl := trail get(idx) as TypeDecl
+            tDecl := trail get(idx, TypeDecl)
+            //"\n===\nFound tDecl %s" format(tDecl toString()) println()
             for(typeArg in tDecl getTypeArgs()) {
                 if(typeArg getName() == typeArgName) {
                     result := BaseType new(typeArgName, token)
+                    return result
+                }
+            }
+            
+            if(tDecl getNonMeta() != null) {
+                result := tDecl getNonMeta() getInstanceType() searchTypeArg(typeArgName)
+                if(result) {
+                    //printf("Found in-TypeDecl match for arg %s! Hence, result = %s (cause expr type = %s)\n", typeArgName, result toString(), tDecl getNonMeta() getInstanceType() toString())
                     return result
                 }
             }
@@ -540,45 +588,6 @@ FunctionCall: class extends Expression {
         //printf("Couldn't resolve typeArg %s\n", typeArgName)
         return null
         
-    }
-    
-    searchInTypeDecl: func (typeArgName: String, anyType: Type) -> Type {
-        if(anyType == null || anyType getRef() == null) return null
-        
-        if(!anyType instanceOf(BaseType)) return null
-        type := anyType as BaseType
-        
-        if(!type getRef() instanceOf(TypeDecl)) {
-            // only TypeDecl have typeArgs anyway.
-            return null
-        }
-        
-        typeRef := type getRef() as TypeDecl
-        if(typeRef typeArgs == null) return null
-        
-        j := 0
-        for(arg in typeRef typeArgs) {
-            if(arg getName() == typeArgName) {
-                if(type typeArgs == null || type typeArgs size() <= j) {
-                    continue
-                }
-                candidate := type typeArgs get(j)
-                ref := candidate getRef()
-                if(ref == null) return null
-                result: Type = null
-                //printf("Found candidate %s for typeArg %s\n", candidate toString(), typeArgName)
-                if(ref instanceOf(TypeDecl)) {
-                    // resolves to a known type
-                    result = candidate getRef() as TypeDecl getInstanceType()
-                } else {
-                    // resolves to an access to another generic type
-                    result = BaseType new(ref as VariableDecl getName(), token)
-                }
-                return result
-            }
-            j += 1
-        }
-        return null
     }
     
     /**
@@ -596,6 +605,9 @@ FunctionCall: class extends Expression {
                 printf("matchesArg, score is now %d\n", score)
             }
         } else {
+            if(debugCondition()) {
+                printf("doesn't match args, too bad!\n", score)
+            }
             return Type NOLUCK_SCORE
         }
         
@@ -616,11 +628,22 @@ FunctionCall: class extends Expression {
             callArg := callIter next()
             // avoid null types
             if(declArg instanceOf(VarArg)) break
-            if(declArg getType() == null) return -1
-            if(callArg getType() == null) return -1
+            if(declArg getType() == null) {
+                if(debugCondition()) "Score is -1 because of declArg %s\n" format(declArg toString()) println()
+                return -1
+            }
+            if(callArg getType() == null) {
+                if(debugCondition()) "Score is -1 because of callArg %s\n" format(callArg toString()) println()
+                return -1
+            }
 
-            typeScore := callArg getType() getScore(declArg getType())
-            if(typeScore == -1) return -1
+            typeScore := callArg getType() getScore(declArg getType() refToPointer())
+            if(typeScore == -1) {
+                if(debugCondition()) {
+                    printf("-1 because of type score between %s and %s\n", callArg getType() toString(), declArg getType() refToPointer() toString())
+                }
+                return -1
+            }
             
             score += typeScore
             
@@ -655,6 +678,10 @@ FunctionCall: class extends Expression {
             if(last instanceOf(VarArg) && declArgs - 1 <= callArgs) {
                 return true
             }
+        }
+        
+        if(debugCondition()) {
+            "Args don't match! declArgs = %d, callArgs = %d" format(declArgs, callArgs) println()
         }
         
         return false

@@ -13,7 +13,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Use, TypeDecl, ClassDecl, CoverDecl, Node, Parenthesis, Return,
     Cast, Comparison, Ternary, BoolLiteral, Argument, Statement,
     AddressOf, Dereference, CommaSequence, UnaryOp, ArrayAccess, Match,
-    FlowControl, InterfaceDecl, Version, Block]
+    FlowControl, InterfaceDecl, Version, Block, EnumDecl]
 
 import Skeleton, FunctionDeclWriter, ControlStatementWriter,
     ClassDeclWriter, ModuleWriter, CoverDeclWriter, FunctionCallWriter,
@@ -40,24 +40,6 @@ CGenerator: class extends Skeleton {
     /** Write the whole module */
     write: func {
         visitModule(module)
-
-        // Write a default main if none provided in source
-        if(module main && !module functions contains("main")) {
-            writeDefaultMain()
-        }
-    }
-
-    /** Write default main function */
-    writeDefaultMain: func {
-        // If just outputing .o files, do not add a default main
-        if(!params link) return
-
-        cw nl(). nl(). app("int main() "). openBlock()
-        if(params enableGC) {
-            cw nl(). app("GC_INIT();")
-        }
-        cw nl(). app(module getLoadFuncName()). app("();")
-        cw closeBlock(). nl()
     }
 
     /** Write a module */
@@ -143,11 +125,27 @@ CGenerator: class extends Skeleton {
 
     /** Write a variable declaration */
     visitVariableDecl: func (vDecl: VariableDecl) {
-        if(vDecl isExtern()) return
+        if(vDecl isExtern() && !vDecl isProto()) {
+            return
+        }
        
         vDecl getType() write(current, vDecl getFullName())
         if(vDecl expr)
             current app(" = "). app(vDecl expr)
+    }
+    
+    visitEnumDecl: func (eDecl: EnumDecl) {
+        current = fw
+
+        current nl(). app("typedef int ")
+
+        if(eDecl isExtern()) {
+            current app(eDecl getExternName())
+        } else {
+            current app(eDecl underName())
+        }
+
+        current app(';')
     }
 
     /** Write a variable access */
@@ -156,7 +154,15 @@ CGenerator: class extends Skeleton {
             Exception new(This, "Trying to write unresolved variable access %s" format(varAcc getName())) throw()
         }
 
-        if(varAcc ref instanceOf(VariableDecl)) {
+        if(varAcc ref instanceOf(EnumElement)) {
+            element := varAcc ref as EnumElement
+
+            if(element isExtern()) {
+                current app(element getExternName())
+            } else {
+                current app(element getValue() toString())
+            }
+        } else if(varAcc ref instanceOf(VariableDecl)) {
             vDecl := varAcc ref as VariableDecl
             if(varAcc isMember()) {
                 casted := false

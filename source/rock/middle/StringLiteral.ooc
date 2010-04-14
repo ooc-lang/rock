@@ -1,11 +1,11 @@
 import ../frontend/Token
-import Literal, Visitor, Type
+import Literal, Visitor, Type, BaseType
 import tinker/[Response, Resolver, Trail]
 
 StringLiteral: class extends Literal {
 
     value: String
-    type : static Type = BaseType new("String", nullToken)
+    type := static BaseType new("String", nullToken)
     
     init: func ~stringLiteral (=value, .token) {
         super(token)

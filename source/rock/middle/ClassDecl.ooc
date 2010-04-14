@@ -1,9 +1,10 @@
 import structs/ArrayList
+import ../io/TabbedWriter
 
 import ../frontend/Token
 import Expression, Type, Visitor, TypeDecl, Cast, FunctionCall, FunctionDecl,
 	   Module, Node, VariableDecl, VariableAccess, BinaryOp, Argument,
-       Return, CoverDecl
+       Return, CoverDecl, BaseType
 import tinker/[Response, Resolver, Trail]
 
 ClassDecl: class extends TypeDecl {
@@ -63,6 +64,14 @@ ClassDecl: class extends TypeDecl {
         }
         
         return Responses OK
+    }
+    
+    writeSize: func (w: TabbedWriter, instance: Bool) {
+        if(instance) {
+            w app("sizeof("). app(underName()). app(')')
+        } else {
+            w app("sizeof(void*)") // objects are references in ooc
+        }
     }
     
     getLoadFunc: func -> FunctionDecl {

@@ -4,7 +4,7 @@ import Skeleton, FunctionDeclWriter, TypeWriter, ClassDeclWriter, VersionWriter
 
 CoverDeclWriter: abstract class extends Skeleton {
 
-    write: static func ~_cover (this: This, cDecl: CoverDecl) {
+    write: static func ~_cover (this: Skeleton, cDecl: CoverDecl) {
         
         current = hw
 
@@ -25,7 +25,7 @@ CoverDeclWriter: abstract class extends Skeleton {
         
     }
     
-    writeGuts: static func (this: This, cDecl: CoverDecl) {
+    writeGuts: static func (this: Skeleton, cDecl: CoverDecl) {
         
         if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
         
@@ -43,7 +43,7 @@ CoverDeclWriter: abstract class extends Skeleton {
         
     }
     
-    writeTypedef: static func (this: This, cDecl: CoverDecl) {
+    writeTypedef: static func (this: Skeleton, cDecl: CoverDecl) {
         
         if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
         

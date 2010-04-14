@@ -1,14 +1,14 @@
 import structs/[List, ArrayList, HashMap]
 import ../../middle/[ClassDecl, FunctionDecl, VariableDecl, TypeDecl,
         Type, Node, InterfaceDecl, InterfaceImpl, CoverDecl]
-import Skeleton, FunctionDeclWriter, CGenerator, VersionWriter
+import Skeleton, FunctionDeclWriter, VersionWriter
 
-ClassDeclWriter: abstract class extends CGenerator {
+ClassDeclWriter: abstract class extends Skeleton {
 
     LANG_PREFIX := static const "lang_types__"
     CLASS_NAME := static const This LANG_PREFIX + "Class"
     
-    write: static func ~_class (this: This, cDecl: ClassDecl) {
+    write: static func ~_class (this: Skeleton, cDecl: ClassDecl) {
 
         //printf(" << Writing class decl %s with version %s\n", cDecl toString(), cDecl getVersion() ? cDecl getVersion() toString() : "(nil)")
                 
@@ -63,7 +63,7 @@ ClassDeclWriter: abstract class extends CGenerator {
         
     }
     
-    writeObjectStruct: static func (this: This, cDecl: ClassDecl) {
+    writeObjectStruct: static func (this: Skeleton, cDecl: ClassDecl) {
         
         current nl(). app("struct _"). app(cDecl underName()). app(' '). openBlock()
 
@@ -102,7 +102,7 @@ ClassDeclWriter: abstract class extends CGenerator {
     }
     
     /** Write a function declaration's pointer */
-    writeFunctionDeclPointer: static func (this: This, fDecl: FunctionDecl, doName: Bool) {
+    writeFunctionDeclPointer: static func (this: Skeleton, fDecl: FunctionDecl, doName: Bool) {
         
         current app((fDecl hasReturn() ? fDecl getReturnType() : voidType) as Node)
         
@@ -115,7 +115,7 @@ ClassDeclWriter: abstract class extends CGenerator {
     }
    
     /** Write the prototypes of member functions */
-    writeMemberFuncPrototypes: static func (this: This, cDecl: ClassDecl) {
+    writeMemberFuncPrototypes: static func (this: Skeleton, cDecl: ClassDecl) {
 
         current nl(). app(cDecl underName()). app(" *"). app(cDecl getNonMeta() getFullName()). app("_class();")
 
@@ -138,7 +138,7 @@ ClassDeclWriter: abstract class extends CGenerator {
         
     }
 
-    writeStaticFuncs: static func (this: This, cDecl: ClassDecl) {
+    writeStaticFuncs: static func (this: Skeleton, cDecl: ClassDecl) {
 
 		for (decl: FunctionDecl in cDecl functions) {
 
@@ -176,7 +176,7 @@ ClassDeclWriter: abstract class extends CGenerator {
 		}
 	}
     
-    writeInstanceVirtualFuncs: static func (this: This, cDecl: ClassDecl) {
+    writeInstanceVirtualFuncs: static func (this: Skeleton, cDecl: ClassDecl) {
 
 		for(fDecl: FunctionDecl in cDecl functions) {
 
@@ -204,7 +204,7 @@ ClassDeclWriter: abstract class extends CGenerator {
 		}
 	}
     
-    writeInstanceImplFuncs: static func (this: This, cDecl: ClassDecl) {
+    writeInstanceImplFuncs: static func (this: Skeleton, cDecl: ClassDecl) {
 
         // Non-static (ie  instance) functions
         for (decl: FunctionDecl in cDecl functions) {
@@ -239,7 +239,7 @@ ClassDeclWriter: abstract class extends CGenerator {
 
     }
 
-    writeClassGettingFunction: static func (this: This, cDecl: ClassDecl) {
+    writeClassGettingFunction: static func (this: Skeleton, cDecl: ClassDecl) {
 
         isInterface := (cDecl getNonMeta() != null && cDecl getNonMeta() instanceOf(InterfaceImpl)) as Bool
         underName := isInterface ? cDecl getSuperRef() underName() : cDecl underName()
@@ -269,19 +269,19 @@ ClassDeclWriter: abstract class extends CGenerator {
      * Write class initializers
      * @param parentClass 
      */
-    writeClassStructInitializers: static func (this: This, parentClass: ClassDecl,
+    writeClassStructInitializers: static func (this: Skeleton, parentClass: ClassDecl,
         realClass: ClassDecl, done: List<FunctionDecl>, root: Bool) {
 
         current openBlock(). nl()
 
         if (parentClass name equals("Class")) {
-            current app(".instanceSize = "). app("sizeof("). app(realClass getNonMeta() underName()). app("),")
-            if(realClass instanceOf(ClassDecl)) {
-                current nl() .app(".size = "). app("sizeof(void*),")
-            } else {
-                current nl() .app(".size = "). app("sizeof("). app(realClass getNonMeta() underName()). app("),")
-            }
-            current nl() .app(".name = "). app('"'). app(realClass getNonMeta() name). app("\",")
+            current app(".instanceSize = ")
+            realClass getNonMeta() writeSize(current, true) // instance = true
+            
+            current app(','). nl(). app(".size = ")
+            realClass getNonMeta() writeSize(current, false) // instance = false
+        
+            current app(','). nl(). app(".name = "). app('"'). app(realClass getNonMeta() name). app("\",")
         } else {
             writeClassStructInitializers(this, parentClass getSuperRef(), realClass, done, false)
         }
@@ -306,7 +306,7 @@ ClassDeclWriter: abstract class extends CGenerator {
                     }
                 }
                 
-                if (parentDecl isFinal()) continue; // skip it.
+                if (parentDecl isFinal() || parentDecl isExtern() || (realDecl != null && realDecl isExtern())) continue; // skip it.
                 
                 if (parentDecl isStatic() || (realDecl == null && parentDecl isAbstract())) {
                     writeDesignatedInit(this, parentDecl, realDecl, false)
@@ -335,7 +335,7 @@ ClassDeclWriter: abstract class extends CGenerator {
             current app(',')
     }
     
-    writeDesignatedInit: static func (this: This, parentDecl, realDecl: FunctionDecl, impl: Bool) {
+    writeDesignatedInit: static func (this: Skeleton, parentDecl, realDecl: FunctionDecl, impl: Bool) {
 
         if(realDecl != null && realDecl isAbstract) return
             
@@ -356,7 +356,7 @@ ClassDeclWriter: abstract class extends CGenerator {
 
     }
     
-    writeStructTypedef: static func (this: This, cDecl: ClassDecl) {
+    writeStructTypedef: static func (this: Skeleton, cDecl: ClassDecl) {
 
         structName := cDecl underName()
         if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())

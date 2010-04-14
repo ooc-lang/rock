@@ -1,4 +1,4 @@
-import Visitor, FunctionCall, VariableAccess, VariableDecl, Type
+import Visitor, FunctionCall, VariableAccess, VariableDecl, Type, BaseType
 import ../frontend/Token
 import tinker/[Resolver, Response, Trail]
 
@@ -35,8 +35,9 @@ Node: abstract class {
      * process from finishing, and it should be repeated later, any
      * other value else.
      */
-    resolveCall: func (call : FunctionCall) -> Int {
+    resolveCall: func (call : FunctionCall, res: Resolver) -> Int {
         // overridden in sub-classes
+        0
     }
     
     resolveAccess: func (access: VariableAccess) {
@@ -47,15 +48,12 @@ Node: abstract class {
         // overridden in sub-classes
     }
     
-    /**
-     * :return: true if the node supports type arguments and it's been
-     * successfully added, false if not
-     */
-    addTypeArg: func (typeArg: VariableDecl) -> Bool { false }
-    
     generateTempName: func (origin: String) -> String {
         This nameSeed += 1
         return "__" + origin + This nameSeed
     }
+    
+    // Just to be on the safe side - everything has side effects by default
+    hasSideEffects : func -> Bool { true }
 
 }

@@ -70,6 +70,10 @@ CommandLine: class {
                     
                     params editor = arg substring(arg indexOf('=') + 1)
                     
+                } else if (option startsWith("entrypoint")) {
+                    
+                    params entryPoint = arg substring(arg indexOf('=') + 1)
+                    
                 } else if (option == "c") {
                     
                     params link = false
@@ -97,6 +101,10 @@ CommandLine: class {
                 } else if (option == "nolang") { // FIXME debug option.
                     
                     params includeLang = false
+                    
+                } else if (option == "nomain") {
+                    
+                    params defaultMain = false
                     
                 } else if (option startsWith("gc=")) {
                     

@@ -12,7 +12,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     NullLiteral, Argument, Parenthesis, AddressOf, Dereference, Foreach,
     OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess, Match, FlowControl,
     While, CharLiteral, InterfaceDecl, NamespaceDecl, Version, Use, Block,
-    ArrayLiteral, PropertyDecl]
+    ArrayLiteral, EnumDecl, BaseType, FuncType, Declaration, PropertyDecl]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -168,6 +168,48 @@ AstBuilder: class {
     }
 
     /*
+     * Enums
+     */
+
+    onEnumStart: unmangled(nq_onEnumStart) func (name: String) {
+        eDecl := EnumDecl new(name clone(), token())
+        eDecl module = module
+        eDecl setVersion(getVersion())
+        module addType(eDecl)
+        stack push(eDecl)
+    }
+
+    onEnumExtern: unmangled(nq_onEnumExtern) func (externName: String) {
+        peek(EnumDecl) setExternName(externName clone())
+    }
+
+    onEnumIncrementExpr: unmangled(nq_onEnumIncrementExpr) func (oper: Char, step: IntLiteral) {
+        peek(EnumDecl) setIncrement(oper, step value)
+    }
+
+    onEnumElementStart: unmangled(nq_onEnumElementStart) func (name: String) {
+        element := EnumElement new(peek(EnumDecl) getInstanceType(), name clone(), token())
+        stack push(element)
+    }
+
+    onEnumElementValue: unmangled(nq_onEnumElementValue) func (value: IntLiteral) {
+        peek(EnumElement) setValue(value value)
+    }
+
+    onEnumElementExtern: unmangled(nq_onEnumElementExtern) func (externName: String) {
+        peek(EnumElement) setExternName(externName clone())
+    }
+
+    onEnumElementEnd: unmangled(nq_onEnumElementEnd) func {
+        element := pop(EnumElement)
+        peek(EnumDecl) addElement(element)
+    }
+
+    onEnumEnd: unmangled(nq_onEnumEnd) func {
+        pop(EnumDecl)
+    }
+
+    /*
      * Classes
      */
 
@@ -306,6 +348,12 @@ AstBuilder: class {
     onVarDeclStatic: unmangled(nq_onVarDeclStatic) func {
         for(vd: VariableDecl in peek(Stack<VariableDecl>)) {
             vd setStatic(true)
+        }
+    }
+    
+    onVarDeclProto: unmangled(nq_onVarDeclProto) func {
+        for(vd: VariableDecl in peek(Stack<VariableDecl>)) {
+            vd setProto(true)
         }
     }
     
@@ -576,7 +624,7 @@ AstBuilder: class {
     onStatement: unmangled(nq_onStatement) func (stmt: Statement) {
         if(stmt instanceOf(VariableDecl)) {
             //printf("[onStatement] stmt %s is a VariableDecl, calling gotVarDecl\n", stmt toString())
-            gotVarDecl(stmt)
+            gotVarDecl(stmt as VariableDecl)
             return
         } else if(stmt instanceOf(PropertyDecl)) {
             "[onStatement] Property: %s" format(stmt toString()) println()
@@ -788,6 +836,10 @@ AstBuilder: class {
     onOctLiteral: unmangled(nq_onOctLiteral) func (value: String) -> IntLiteral {
         IntLiteral new(value replace("_", "") substring(2) toLLong(8), token())
     }
+
+    onBinLiteral: unmangled(nq_onBinLiteral) func (value: String) -> IntLiteral {
+        IntLiteral new(value replace("_", "") substring(2) toLLong(2), token())
+    }
     
     onHexLiteral: unmangled(nq_onHexLiteral) func (value: String) -> IntLiteral {
         IntLiteral new(value replace("_", "") toLLong(16), token())
@@ -919,12 +971,16 @@ AstBuilder: class {
 
     onGenericArgument: unmangled(nq_onGenericArgument) func (name: String) {
         node := peek(Node)
+        
         //printf("======= Got generic argument %s, and node is a %s\n", name, node class name)
-
         vDecl := VariableDecl new(BaseType new("Class", token()), name clone(), token())
-        if(!node addTypeArg(vDecl)) {
-            token() throwError("Unexpected type argument in a %s declaration!" format(node class name))
+
+        done := false
+        if(node instanceOf(Declaration)) {
+            done = node as Declaration addTypeArg(vDecl)
         }
+        
+        if(!done) token() throwError("Unexpected type argument in a %s declaration!" format(node class name))
 
     }
 

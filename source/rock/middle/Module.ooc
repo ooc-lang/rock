@@ -4,7 +4,7 @@ import ../frontend/[Token, SourceReader, BuildParams, PathList, AstBuilder]
 import ../utils/FileUtils
 import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl,
        FunctionCall, Type, Declaration, VariableAccess, OperatorDecl,
-       Scope, NamespaceDecl
+       Scope, NamespaceDecl, BaseType, FuncType
 import tinker/[Response, Resolver, Trail]
 
 Module: class extends Node {
@@ -167,19 +167,19 @@ Module: class extends Node {
 
     }
     
-    resolveCall: func (call: FunctionCall) {
+    resolveCall: func (call: FunctionCall, res: Resolver) {
         if(call isMember()) {
             return // hmm no member calls for us
         }
         
-        resolveCallNonRecursive(call)
+        resolveCallNonRecursive(call, res)
         
         for(imp in getGlobalImports()) {
-            imp getModule() resolveCallNonRecursive(call)
+            imp getModule() resolveCallNonRecursive(call, res)
         }
     }
     
-    resolveCallNonRecursive: func (call: FunctionCall) {
+    resolveCallNonRecursive: func (call: FunctionCall, res: Resolver) {
         
         //printf(" >> Looking for function %s in module %s!\n", call name, fullName)
         fDecl : FunctionDecl = null
@@ -189,7 +189,7 @@ Module: class extends Node {
         }
         
         for(fDecl in functions) {
-            if(fDecl getName() == call getName() && (call getSuffix() == null || call getSuffix() == fDecl getSuffix)) {
+            if(fDecl getName() == call getName() && (call getSuffix() == null || call getSuffix() == fDecl getSuffix())) {
                 if(call debugCondition()) printf("Suggesting fDecl %s for call %s\n", fDecl toString(), call toString())
                 call suggest(fDecl)
             }
@@ -249,7 +249,7 @@ Module: class extends Node {
 
             impLastModified := File new(impPath path) lastModified()
 
-            if(!cached || File new(impPath path) lastModified() > cached lastModified) {
+            if(cached == null || File new(impPath path) lastModified() > cached lastModified) {
                 if(cached) {
                     printf("%s has been changed, recompiling... (%d vs %d), impPath = %s", path, File new(impPath path) lastModified(), cached lastModified, impPath path);
                 }
@@ -309,7 +309,7 @@ Module: class extends Node {
         }
 
         for(inc in includes) {
-            if(inc getVersion() && !inc getVersion() resolve() ok()) return Responses LOOP
+            if(inc getVersion() != null && !inc getVersion() resolve() ok()) return Responses LOOP
         }
 
         trail pop(this)

@@ -38,16 +38,7 @@ CommaSequence: class extends Expression {
     }
     
     replace: func (oldie, kiddo: Node) -> Bool {
-        i := 0
-        for(statement in body) {
-            if(statement == oldie) {
-                body set(statement, kiddo)
-                return true
-            }
-            i += 1
-        }
-
-        return false
+        body replace(oldie, kiddo)
     }
     
     getBody: func -> List<Statement> { body }

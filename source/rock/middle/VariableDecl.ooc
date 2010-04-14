@@ -1,7 +1,7 @@
 import structs/[ArrayList]
 import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
        Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast, Module,
-       Block, Scope, FunctionDecl, Argument
+       Block, Scope, FunctionDecl, Argument, BaseType, FuncType
 import tinker/[Response, Resolver, Trail]
 import ../frontend/BuildParams
 
@@ -18,6 +18,7 @@ VariableDecl: class extends Declaration {
     isGlobal := false
     isConst := false
     isStatic := false
+    isProto := false
     externName: String = null
     unmangledName: String = null
     
@@ -60,6 +61,9 @@ VariableDecl: class extends Declaration {
     
     isConst: func -> Bool { isConst }
     setConst: func (=isConst) {}
+    
+    isProto: func -> Bool { isProto }
+    setProto: func (=isProto) { "%s is now proto!" format(name) println() }
     
     isGlobal: func -> Bool { isGlobal }
     setGlobal: func (=isGlobal) {}
@@ -161,9 +165,9 @@ VariableDecl: class extends Declaration {
                 }
                 
                 idx := trail findScope()
-                scope := trail get(idx) as Scope
+                scope := trail get(idx, Scope)
                 
-                parent := trail get(idx + 1)
+                parent := trail get(idx + 1, Node)
                 
                 block := Block new(token)
                 block getBody() add(this)

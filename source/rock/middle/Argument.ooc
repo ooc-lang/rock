@@ -9,6 +9,25 @@ Argument: abstract class extends VariableDecl {
     
     toString: func -> String { name isEmpty() ? type toString() : super() }
     
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+    
+        if(type == null) {
+            res wholeAgain(this, "null type")
+            return Responses OK
+        }
+    
+        if(!type isResolved() || type getRef() == null) {
+            response := type resolve(trail, res)
+            if(!response ok()) {
+                return response
+            }
+            if(!type isResolved() || type getRef() == null) res wholeAgain(this, "Hasn't resolved type yet!")
+        }
+        
+        return Responses OK
+        
+    }
+    
 }
 
 VarArg: class extends Argument {
@@ -24,7 +43,9 @@ VarArg: class extends Argument {
     isResolved: func -> Bool { true }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
+        
         return Responses OK
+        
     }
     
     toString: func -> String { "..." }
@@ -44,7 +65,7 @@ DotArg: class extends Argument {
         idx := trail find(TypeDecl)
         if(idx == -1) token throwError("Use of a %s outside a type declaration! That's nonsensical." format(class name))
         
-        tDecl := trail get(idx) as TypeDecl
+        tDecl := trail get(idx, TypeDecl)
         ref = tDecl getVariable(name)
         if(ref == null) {
             if(res fatal) token throwError("%s refers to non-existing member variable '%s' in type '%s'" format(class name, name, tDecl getName()))
@@ -58,9 +79,10 @@ DotArg: class extends Argument {
                 token throwError("Couldn't resolve %s referring to '%s' in type '%s'" format(class name, name, tDecl getName()))
             }
             res wholeAgain(this, "Hasn't resolved type yet :x")
+            return Responses OK
         }
         
-        return Responses OK
+        return super(trail, res)
         
     }
     
@@ -83,7 +105,7 @@ AssArg: class extends DotArg {
         if(ref == null) {
             res wholeAgain(this, "Yet has to be unwrapped =)")
         } else {
-            fDecl := trail get(trail find(FunctionDecl)) as FunctionDecl
+            fDecl := trail get(trail find(FunctionDecl), FunctionDecl)
 	    	//printf("Unwrapping AssArg %s in function %s\n", toString(), fDecl toString())
             if(fDecl getName() != "new") {
                 fDecl getBody() add(0, BinaryOp new(

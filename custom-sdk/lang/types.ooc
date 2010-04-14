@@ -201,9 +201,9 @@ String: cover from Char* {
     /** Create a new string exactly *length* characters long (without the nullbyte).
         The contents of the string are undefined. */
     new: static func~withLength (length: Int) -> This {
-        result := gc_malloc(length + 1) as This
+        result := gc_malloc(length + 1) as Char*
         result[length] = '\0'
-        result
+        result as This
     }
 
     /** Create a new string of the length 1 containing only the character *c* */
@@ -508,7 +508,7 @@ String: cover from Char* {
         range ``start..end``. */
     substring: func (start, end: Int) -> This {
         len = this length() : Int
-
+        
         if(start == end) return ""
 
         if(end < 0) {
@@ -522,7 +522,6 @@ String: cover from Char* {
 
         diff = (end - start) : Int
         sub := This new(diff)
-        sub[diff] = 0
         memcpy(sub, (this as Char*) + start, diff)
         return sub
     }
@@ -740,19 +739,20 @@ operator != (str1: String, str2: String) -> Bool {
 
 // FIXME: later. for now, it fails with "couldn't replace blah"
 
-/*
 operator [] (string: String, index: SizeT) -> Char {
     string charAt(index)
 }
 
 operator []= (string: String, index: SizeT, value: Char) {
+    if(index < 0 || index > string length()) {
+        Exception new(String, "Writing to a String out of bounds index = %d, length = %d!" format(index, string length())) throw()
+    }
     (string as Char*)[index] = value
 }
 
 operator [] (string: String, range: Range) -> String {
     string substring(range min, range max)
 }
-*/
          
 operator * (str: String, count: Int) -> String {
     return str times(count)

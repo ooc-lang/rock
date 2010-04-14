@@ -5,7 +5,7 @@ import Skeleton
 ControlStatementWriter: abstract class extends Skeleton {
     
     /** Write a conditional */
-    writeConditional: static func (this: This, name: String, cond: Conditional) {
+    writeConditional: static func (this: Skeleton, name: String, cond: Conditional) {
         current app(name)
         if(cond condition != null) {
             current app(" (" ). app(cond condition). app(")")
@@ -17,11 +17,11 @@ ControlStatementWriter: abstract class extends Skeleton {
         current untab(). nl(). app("}")
     }
     
-    write: static func ~_if (this: This, if1: If) {
+    write: static func ~_if (this: Skeleton, if1: If) {
         writeConditional(this, "if", if1)
     }
     
-    write: static func ~_else (this: This, else1: Else) {
+    write: static func ~_else (this: Skeleton, else1: Else) {
         isIf := else1 getBody() size() == 1 && else1 getBody() first() instanceOf(If)
         
         if(isIf) {
@@ -32,11 +32,11 @@ ControlStatementWriter: abstract class extends Skeleton {
         }
     }
     
-    write: static func ~_while (this: This, while1: While) {
+    write: static func ~_while (this: Skeleton, while1: While) {
         writeConditional(this, "while", while1)
     }
     
-    write: static func ~_foreach (this: This, foreach: Foreach) {
+    write: static func ~_foreach (this: Skeleton, foreach: Foreach) {
         if(!foreach collection instanceOf(RangeLiteral)) {
             Exception new(This, "Iterating over not a range but a " + foreach collection class name) throw()
         }
@@ -57,7 +57,7 @@ ControlStatementWriter: abstract class extends Skeleton {
         current untab(). nl(). app("}")
     }
     
-    write: static func ~_match (this: This, mat: Match) {
+    write: static func ~_match (this: Skeleton, mat: Match) {
         isFirst := true
 		for(caze in mat getCases()) {
 			if(!isFirst) current app(" else ")

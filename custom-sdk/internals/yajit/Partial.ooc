@@ -23,7 +23,7 @@ Partial: class {
         return bseq
     }
     
-    pushClosure: func <T> (arg: T) {
+    pushClosureArg: func <T> (arg: T) {
         if     (T size == 1) { bseq append(OpCodes PUSH_BYTE) }
         elseif (T size == 2) { bseq append(OpCodes PUSH_WORD) }
         elseif (T size == 4) { bseq append(OpCodes PUSH_DWORD) }
@@ -62,14 +62,14 @@ Partial: class {
         */ 
     }
     
-    addArgument: func<T>(param: T) {
+    addArgument: func<T> (param: T) {
         arg := Cell<T> new(param)
         arguments add(arg)
     }
     
-    genCode: func <T> (function: Func, closure: T, argSizes: String) -> Func {
+    genCode: func <T> (function: Func, closureArg: T, argSizes: String) -> Func {
         pushNonClosureArgs(getBase(argSizes, bseq), argSizes)
-        pushClosure(closure)
+        pushClosureArg(closureArg)
         finishSequence(function)
         bseq print()
         return bseq data as Func
@@ -85,7 +85,7 @@ Partial: class {
         pushNonClosureArgs(getBase(argSizes, bseq), argSizes)
         for (item: Cell<Pointer> in arguments) {
             T := item T
-            pushClosure(item val as Pointer)
+            pushClosureArg(item val as Pointer)
         } 
         finishSequence(function)
         /*
@@ -96,11 +96,13 @@ Partial: class {
     }
     
     pushNonClosureArgs: func(base: UChar, argSizes: String)  {
-        for (c: Char in argSizes) {
+        //for (c: Char in argSizes) {
+        for(i in 0..argSizes length()) {
+            c := argSizes[i]
             s := String new(c)
             pushCallerArg(bseq transTable get(s))
             bseq append((base&) as UChar*, 1)
-            base = base - bseq transTable get(s)
+            base = base as Int - bseq transTable get(s)
         }
         /*
         printf("EndBase: %d\n", base)
@@ -139,13 +141,18 @@ Partial: class {
         //bseq append(OpCodes NOP)
     }
 
-    converseFloat: static func(f: Float) -> Int {((f&) as Int32*)@}
-    getBase: func(argSizes: String, bseq: BinarySeq) -> UChar{
-        base := 0x04
-        for (c: Char in argSizes) {
+    converseFloat: static func(f: Float) -> Int {
+        (f& as Int32*)@
+    }
+    
+    getBase: func(argSizes: String, bseq: BinarySeq) -> UChar {
+        base := 0x04 as Int
+        //for (c: Char in argSizes) {
+        for(i in 0..argSizes length()) {
+            c := argSizes[i]
             base = base + bseq transTable get(String new(c))
         }
-        return base
+        return base as UChar
     }
 }
 

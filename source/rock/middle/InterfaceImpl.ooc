@@ -14,7 +14,7 @@ FunctionAlias: class {
 
 InterfaceImpl: class extends ClassDecl {
     
-    impl: ClassDecl
+    impl: TypeDecl
     aliases := HashMap<String, FunctionAlias> new()
     
     init: func ~interf(.name, interfaceType: Type, =impl, .token) {
@@ -40,10 +40,26 @@ InterfaceImpl: class extends ClassDecl {
             alias := aliases get(hash)
             if(alias == null) {
                 //FIXME: smarter strategy needed here to match functions - also, check signatures
-                value := impl getMeta() getFunction(key getName(), key getSuffix(), null, true)
+                finalScore : Int
+                value := impl getMeta() getFunction(key getName(), key getSuffix(), null, true, finalScore&)
+                if(finalScore == -1) {
+                    res wholeAgain(this, "Not finished checking every function is implemented")
+                    return Responses OK
+                }
                 if(value == null) {
-                    token throwError("%s must implement function %s, from interface %s\n" format(
-                        impl getName(), key toString(), superType toString()))
+                    if(impl instanceOf(ClassDecl) && impl as ClassDecl isAbstract) {
+                        // relay unimplemented interface methods into an abstract class
+                        value = FunctionDecl new(key getName(), key token)
+                        value suffix = key suffix
+                        value args = key args clone()
+                        value returnType = key returnType
+                        value setAbstract(true)
+                        impl addFunction(value)
+                    } else {
+                        // but err on concrete class, cause they should implement everything
+                        token throwError("%s must implement function %s, from interface %s\n" format(
+                            impl getName(), key toString(), superType toString()))
+                    }
                 }
                 aliases put(hash, FunctionAlias new(key, value))
             }

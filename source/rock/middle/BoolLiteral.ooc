@@ -1,10 +1,10 @@
 import ../frontend/Token
-import Literal, Visitor, Type
+import Literal, Visitor, Type, BaseType
 
 BoolLiteral: class extends Literal {
 
     value: Bool
-    type : static Type = BaseType new("Bool", nullToken)
+    type := static BaseType new("Bool", nullToken)
     
     init: func ~boolLiteral (=value, .token) { super(token) }
     

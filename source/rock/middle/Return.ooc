@@ -47,14 +47,18 @@ Return: class extends Statement {
                 returnAcc := VariableAccess new(fDecl getReturnArg(), token)
                 
                 if1 := If new(returnAcc, token)
-                vdfe := VariableDecl new(null, generateTempName("returnVal"), expr, expr token)
                 
-                ass := BinaryOp new(returnAcc, VariableAccess new(vdfe, vdfe token), OpTypes ass, token)
+                if(expr hasSideEffects()) {
+                    vdfe := VariableDecl new(null, generateTempName("returnVal"), expr, expr token)
+                    if(!trail peek() addBefore(this, vdfe)) {
+                        token throwError("Couldn't add the vdfe before the generic return in a %s! trail = %s" format(trail peek() as Node class name, trail toString()))
+                    }
+                    expr = VariableAccess new(vdfe, vdfe token)
+                }
+                
+                ass := BinaryOp new(returnAcc, expr, OpTypes ass, token)
                 if1 getBody() add(ass)
                 
-                if(!trail peek() addBefore(this, vdfe)) {
-                    token throwError("Couldn't add the vdfe before the generic return in a %s! trail = %s" format(trail peek() as Node class name, trail toString()))
-                }
                 if(!trail peek() addBefore(this, if1)) {
                     token throwError("Couldn't add the assignment before the generic return in a %s! trail = %s" format(trail peek() as Node class name, trail toString()))
                 }

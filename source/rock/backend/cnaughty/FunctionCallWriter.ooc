@@ -4,13 +4,15 @@ import Skeleton, FunctionDeclWriter
 FunctionCallWriter: abstract class extends Skeleton {
     
     /** @see FunctionDeclWriter */
-    write: static func ~functionCall (this: This, fCall: FunctionCall) {
+    write: static func ~functionCall (this: Skeleton, fCall: FunctionCall) {
         //"|| Writing function call %s (expr = %s)" format(fCall name, fCall expr ? fCall expr toString() : "(nil)") println()
 
         if(!fCall ref) {
             Exception new(This, "Trying to write unresolved function %s\n" format(fCall toString())) throw()
         }
         fDecl : FunctionDecl = fCall ref
+        
+        shouldCastThis := false
         
         // write the function name
         if(fDecl vDecl != null) {
@@ -22,6 +24,7 @@ FunctionCallWriter: abstract class extends Skeleton {
             FunctionDeclWriter writeFullName(this, fDecl)
             if(!fDecl isFinal && fCall getName() == "super") {
                 current app("_impl")
+                shouldCastThis = true
             }
         }
         
@@ -37,7 +40,7 @@ FunctionCallWriter: abstract class extends Skeleton {
             
             // TODO maybe check there's some kind of inheritance/compatibility here?
             // or in the tinker phase?
-            if(!(callType equals(declType))) {
+            if(shouldCastThis || !(callType equals(declType))) {
                 current app("("). app(declType). app(") ")
             }
         
@@ -97,6 +100,8 @@ FunctionCallWriter: abstract class extends Skeleton {
                 current app(", ")
             }
             
+            writeCast := false
+            
             declArg : Argument = null
             if(i < fDecl args size())                         declArg = fDecl args get(i)
             if(declArg != null && declArg instanceOf(VarArg)) declArg = null
@@ -106,11 +111,13 @@ FunctionCallWriter: abstract class extends Skeleton {
                     current app("(uint8_t*) ")
                 } else if(arg getType() != null && declArg getType() != null && arg getType() inheritsFrom(declArg getType())) {
                     //printf("%s inherits from %s, casting!\n", arg getType() toString(), declArg getType() toString())
-                    current app("("). app(declArg getType()). app(")")
+                    current app("("). app(declArg getType()). app(") (")
+                    writeCast = true
                 }
             }
             
             arg accept(this)
+            if(writeCast) current app(')')
             i += 1
         }
         current app(')')

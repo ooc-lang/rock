@@ -38,15 +38,19 @@ Token: cover {
     toString: func -> String { "[%d, %d]" format(getStart(), getEnd()) }
     
     throwWarning: func (message: String) {
-        printMessage(message, "WARNING")
+        printMessage(message, "[WARNING]")
     }
     
     throwError: func (message: String) {
-        printMessage(message, "ERROR")
+        printMessage(message, "[ERROR]")
         if(BuildParams fatalError) CommandLine failure()
     }
     
-    printMessage: func (message, type: String) {
+    printMessage: func ~noPrefix (message, type: String) {
+        printMessage("", message, type)
+    }
+        
+    printMessage: func (prefix, message, type: String) {
         if(module == null) {
             Exception new(This, "From unknown source [%s] %s" format(type, message)) throw()
         }
@@ -75,8 +79,15 @@ Token: cover {
         fr reset(lastNewLine == 0 ? 0 : lastNewLine + 1)
         over := Buffer new()
         
-        "%s:%d:%d [%s] %s" format(module path + ".ooc", lines, start - lastNewLine, type, message) println()
+        if(type != "") {
+            prefix print()
+            "%s:%d:%d %s %s" format(module path + ".ooc", lines, start - lastNewLine, type, message) println()
+        } else if(message != "") {
+            prefix print()
+            message println()
+        }
         
+        prefix print()
         end := getEnd()
         for(i in (lastNewLine + 1)..idx) {
             c := fr read()
@@ -93,6 +104,7 @@ Token: cover {
             }
         }
         println()
+        prefix print()
         over toString() println()
         
         fr close()

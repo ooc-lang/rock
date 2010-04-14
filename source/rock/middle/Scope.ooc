@@ -1,6 +1,6 @@
 import structs/[ArrayList], text/Buffer
 import VariableAccess, VariableDecl, Statement, Node, Visitor,
-       FunctionCall, Type
+       FunctionCall, Type, FuncType
 import tinker/[Trail, Resolver, Response]
 import ../frontend/[BuildParams]
 
@@ -34,9 +34,8 @@ Scope: class extends Node {
         }
     }
     
-    resolveCall: func (call: FunctionCall) -> Int {
+    resolveCall: func (call: FunctionCall, res: Resolver) -> Int {
         // FIXME: this is as wrong as resolveAccess, see the comments up there.
-        // KALAMAZOO
 
         for(stat in this) {
             if(stat instanceOf(VariableDecl)) {
@@ -70,7 +69,7 @@ Scope: class extends Node {
         
     }
     
-    addBefore: func (mark, newcomer: Node) -> Bool {
+    addBefore: func (mark, newcomer: Statement) -> Bool {
         
         //printf("Should add %s before %s\n", newcomer toString(), mark toString())
         
@@ -86,7 +85,7 @@ Scope: class extends Node {
         
     }
     
-    addAfter: func (mark, newcomer: Node) -> Bool {
+    addAfter: func (mark, newcomer: Statement) -> Bool {
         
         //printf("Should add %s after %s\n", newcomer toString(), mark toString())
         
@@ -125,7 +124,7 @@ Scope: class extends Node {
     
     indexOf: func (s: Statement) -> Int { list indexOf(s) }
     
-    replace: func (oldie, kiddo: Node) -> Bool { list replace(oldie, kiddo) }
+    replace: func (oldie, kiddo: Statement) -> Bool { list replace(oldie, kiddo) }
     
     size: func -> Int { list size() }
     

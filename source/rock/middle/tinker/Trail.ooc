@@ -131,6 +131,14 @@ Trail: class extends Stack<Node> {
      */
     get: func (index: Int) -> Node { return data get(index) as Node }
     
+    get: func ~checked <T> (index: Int, T: Class) -> T {
+        node := data get(index) as Node
+        if(!node instanceOf(T)) {
+            Exception new(This, "In Trail get(), expecting getting %s, got %s\n" format(T name, node class name))
+        }
+        return node
+    }
+    
     /**
      * Returns the 0th element of the trail, which should always
      * be a Module

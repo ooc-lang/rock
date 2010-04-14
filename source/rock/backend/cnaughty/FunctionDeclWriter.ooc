@@ -11,9 +11,9 @@ ArgsWriteModes: class {
     TYPES_ONLY = 3 : static const Int32
 }
 
-FunctionDeclWriter: abstract class extends CGenerator {
+FunctionDeclWriter: abstract class extends Skeleton {
     
-    write: static func ~function (this: This, fDecl: FunctionDecl) {
+    write: static func ~function (this: Skeleton, fDecl: FunctionDecl) {
         //"|| Writing function %s" format(fDecl name) println()
         
         if(fDecl isExtern()) return
@@ -33,10 +33,8 @@ FunctionDeclWriter: abstract class extends CGenerator {
         writeFuncPrototype(this, fDecl)
         current app(" {"). tab()
         
-        if(params enableGC && fDecl isMain()) current nl(). app("GC_INIT();")
-        
-        //FIXME: this should be isEntryPoint()
-        if(fDecl isMain()) current nl(). app(module getLoadFuncName()). app("();")
+        if(params enableGC && fDecl isEntryPoint()) current nl(). app("GC_INIT();")
+        if(fDecl isEntryPoint()) current nl(). app(module getLoadFuncName()). app("();")
         
         for(stat in fDecl body) {
             writeLine(stat)
@@ -46,14 +44,14 @@ FunctionDeclWriter: abstract class extends CGenerator {
     }
     
     /** Write the name of a function, with its suffix, and prefixed by its owner if any */
-    writeFullName: static func (this: This, fDecl: FunctionDecl) {
+    writeFullName: static func (this: Skeleton, fDecl: FunctionDecl) {
 
         //printf("Writing full name of %s, owner = %s\n", fDecl name, fDecl owner ? fDecl owner toString() : "(nil)")
         current app(fDecl getFullName())
     }
 
     /** Write the name of a function, with its suffix and without any module prefixes */
-    writeSuffixedName: static func (this: This, fDecl: FunctionDecl) {
+    writeSuffixedName: static func (this: Skeleton, fDecl: FunctionDecl) {
         current app(fDecl name)
         if(fDecl suffix) {
             current app("_"). app(fDecl suffix)
@@ -61,7 +59,7 @@ FunctionDeclWriter: abstract class extends CGenerator {
     }
     
     /** Write the arguments of a function (default params) */
-    writeFuncArgs: static func ~defaults (this: This, fDecl: FunctionDecl) {
+    writeFuncArgs: static func ~defaults (this: Skeleton, fDecl: FunctionDecl) {
         writeFuncArgs(this, fDecl, ArgsWriteModes FULL, null)
     }
     
@@ -74,7 +72,7 @@ FunctionDeclWriter: abstract class extends CGenerator {
      * 
      * @see FunctionCallWriter
      */
-    writeFuncArgs: static func (this: This, fDecl: FunctionDecl, mode: ArgsWriteMode, baseType: TypeDecl) {
+    writeFuncArgs: static func (this: Skeleton, fDecl: FunctionDecl, mode: ArgsWriteMode, baseType: TypeDecl) {
         
         current app('(')
         isFirst := true
@@ -179,12 +177,12 @@ FunctionDeclWriter: abstract class extends CGenerator {
         
     }
     
-    writeFuncPrototype: static func ~defaults (this: This, fDecl: FunctionDecl) {
+    writeFuncPrototype: static func ~defaults (this: Skeleton, fDecl: FunctionDecl) {
         writeFuncPrototype(this, fDecl, null)
     }
     
     
-    writeFuncPrototype: static func (this: This, fDecl: FunctionDecl, additionalSuffix: String) {
+    writeFuncPrototype: static func (this: Skeleton, fDecl: FunctionDecl, additionalSuffix: String) {
         
         //"|| Writing prototype of fDecl %s" format(fDecl name) println()
         

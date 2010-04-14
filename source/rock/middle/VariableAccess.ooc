@@ -1,6 +1,6 @@
 import ../frontend/[Token, BuildParams]
 import Visitor, Expression, VariableDecl, FunctionDecl, TypeDecl,
-	   Declaration, Type, Node, ClassDecl, NamespaceDecl
+	   Declaration, Type, Node, ClassDecl, NamespaceDecl, EnumDecl
 import tinker/[Resolver, Response, Trail]
 
 VariableAccess: class extends Expression {
@@ -33,6 +33,9 @@ VariableAccess: class extends Expression {
     accept: func (visitor: Visitor) {
         visitor visitVariableAccess(this)
     }
+    
+    // It's just an access, it has no side-effects whatsoever
+    hasSideEffects : func -> Bool { false }
     
     suggest: func (node: Node) -> Bool {
         if(node instanceOf(VariableDecl)) {
@@ -67,13 +70,6 @@ VariableAccess: class extends Expression {
     isResolved: func -> Bool { ref != null && getType() != null }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        
-        closure : FunctionDecl = null
-        closureIndex := trail find(FunctionDecl)
-        if (closureIndex != -1) {
-            closure = trail get(closureIndex) as FunctionDecl
-            if (!closure isAnon()) closureIndex = -1
-        } 
         
         if(expr) {
             trail push(this)
@@ -135,8 +131,20 @@ VariableAccess: class extends Expression {
                     if(tDecl isMeta) node = tDecl getNonMeta()
                 }
                 node resolveAccess(this)
-                if (closureIndex != -1 && closureIndex > depth) closure markForPartialing(ref)
-                if(ref) break // break on first match
+                
+                if(ref) {
+                    // only accesses to variable decls need to be partialed (not type decls)
+                    if (ref instanceOf(VariableDecl) && expr == null) {
+                        closureIndex := trail find(FunctionDecl)
+                        if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
+                            closure := trail get(closureIndex, FunctionDecl)
+                            if (closure isAnon()) {
+                                closure markForPartialing(ref)
+                            }
+                        }
+                    }
+                    break // break on first match
+                }
                 depth -= 1
             }
         }
