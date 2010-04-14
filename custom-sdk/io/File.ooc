@@ -13,7 +13,7 @@
 include stdio
 
 import structs/ArrayList
-import FileReader, FileWriter
+import FileReader, FileWriter, Reader
 import text/Buffer
 import native/[FileWin32, FileUnix]
 
