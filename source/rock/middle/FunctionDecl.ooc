@@ -343,8 +343,8 @@ FunctionDecl: class extends Declaration {
         } else {
             partialClass := VariableAccess new("Partial", token)
             newCall := FunctionCall new(partialClass, "new", token)
-            partialDecl := VariableDecl new(null, "partial", newCall, token)
-            
+            partialName := generateTempName("partial")
+            partialDecl := VariableDecl new(null, partialName, newCall, token)
             trail addBeforeInScope(this, partialDecl) 
 
             argsSizes := String new(args size())
@@ -367,7 +367,7 @@ FunctionDecl: class extends Declaration {
                 argsSizes[i] = val
             }
             
-            partialAcc := VariableAccess new("partial", token)
+            partialAcc := VariableAccess new(partialName, token)
             for (e in variablesToPartial) {
                 addArg := FunctionCall new(partialAcc, "addArgument", token)
                 addArg getArguments() add(VariableAccess new(e, e token))
