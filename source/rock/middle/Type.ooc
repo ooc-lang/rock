@@ -179,6 +179,12 @@ SugarType: abstract class extends Type {
             score := inner getScore(other as SugarType inner)
             if(score >= -1) return score
         }
+        
+        if(other isGeneric() && other pointerLevel() == 0) {
+            // every type is always a match against a flat generic type
+            return scoreSeed / 2
+        }
+        
         if(pointerLevel() == 1 && other isPointer()) {
             // void pointer, half match!
             return scoreSeed / 2
