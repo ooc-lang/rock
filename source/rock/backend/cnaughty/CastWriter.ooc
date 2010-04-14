@@ -4,7 +4,7 @@ import Skeleton
 
 CastWriter: abstract class extends Skeleton {
 
-    write: static func ~cast (this: This, cast: Cast) {
+    write: static func ~cast (this: Skeleton, cast: Cast) {
         
         if(cast inner getType() isGeneric() && cast inner getType() pointerLevel() == 0) {
             

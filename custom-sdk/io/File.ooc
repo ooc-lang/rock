@@ -247,8 +247,12 @@ File: abstract class {
         bW buffer toString()
     }
     
-    write: func (str: String) {
+    write: func ~string (str: String) {
         FileWriter new(this) write(BufferReader new(Buffer new(str))) .close()
+    }
+    
+    write: func ~reader (reader: Reader) {
+        FileWriter new(this) write(reader) .close()
     }
 
     /**
