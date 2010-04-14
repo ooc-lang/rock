@@ -67,5 +67,5 @@ operator += (b1, b2 : BinarySeq) -> BinarySeq {
 }
 
 operator += <T> (b1 : BinarySeq, addon: T) -> BinarySeq {
-    b1 append(addon&, T size)
+    b1 append(addon& as Pointer, T size)
 }
