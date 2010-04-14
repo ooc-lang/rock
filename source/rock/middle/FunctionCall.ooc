@@ -64,7 +64,7 @@ FunctionCall: class extends Expression {
             if(debugCondition()) "** New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
             refScore = score
             ref = candidate
-            return true
+            return score > 0
         }
         return false
         
@@ -213,7 +213,7 @@ FunctionCall: class extends Expression {
             } else {
                 message = "No such function %s%s" format(name, getArgsTypesRepr())
             }
-            printf("name = %s, refScore = %d, ref = %s\n", name, refScore, ref ? ref toString() : "(nil)")
+            //printf("name = %s, refScore = %d, ref = %s\n", name, refScore, ref ? ref toString() : "(nil)")
             if(ref) {
                 token printMessage(message, "ERROR")
                 showNearestMatch()

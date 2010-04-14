@@ -147,7 +147,7 @@ Comparison: class extends Expression {
             node := fCall as Node
             
             if(candidate getSymbol() equals("<=>")) {
-                node = Comparison new(node, IntLiteral new(0, token), compType, token)
+                node = Comparison new(node as Expression, IntLiteral new(0, token), compType, token)
             }
             
             if(!trail peek() replace(this, node)) {

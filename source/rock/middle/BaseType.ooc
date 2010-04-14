@@ -24,9 +24,9 @@ BaseType: class extends Type {
             Exception new(This, "Trying to write unresolved type " + toString()) throw()
         }
         match {
-            case getRef() instanceOf(InterfaceDecl)=> writeInterfaceType(w, getRef())
-            case getRef() instanceOf(TypeDecl)     => writeRegularType  (w, getRef())
-            case getRef() instanceOf(VariableDecl) => writeGenericType  (w, getRef())
+            case getRef() instanceOf(InterfaceDecl)=> writeInterfaceType(w, getRef() as InterfaceDecl)
+            case getRef() instanceOf(TypeDecl)     => writeRegularType  (w, getRef() as TypeDecl)
+            case getRef() instanceOf(VariableDecl) => writeGenericType  (w, getRef() as VariableDecl)
         }
         if(name != null) w app(' '). app(name)
     }

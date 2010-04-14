@@ -1,4 +1,6 @@
+include sys/types, sys/stat, unistd
 include fcntl
+
 import unistd
 
 open:  extern func(String, Int) -> Int

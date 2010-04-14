@@ -48,12 +48,6 @@ Node: abstract class {
         // overridden in sub-classes
     }
     
-    /**
-     * :return: true if the node supports type arguments and it's been
-     * successfully added, false if not
-     */
-    addTypeArg: func (typeArg: VariableDecl) -> Bool { false }
-    
     generateTempName: func (origin: String) -> String {
         This nameSeed += 1
         return "__" + origin + This nameSeed

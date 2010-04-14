@@ -79,7 +79,7 @@ ArrayLiteral: class extends Literal {
             }
                 
             type = BaseType new("ArrayList", token)
-            type addTypeArg(innerType)
+            type addTypeArg(VariableAccess new(innerType, innerType token))
             if(res params veryVerbose) printf("Inferred type %s for %s\n", type toString(), toString())
         }
         

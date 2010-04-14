@@ -11,7 +11,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     NullLiteral, Argument, Parenthesis, AddressOf, Dereference, Foreach,
     OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess, Match, FlowControl,
     While, CharLiteral, InterfaceDecl, NamespaceDecl, Version, Use, Block,
-    ArrayLiteral, EnumDecl, BaseType, FuncType]
+    ArrayLiteral, EnumDecl, BaseType, FuncType, Declaration]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -582,7 +582,7 @@ AstBuilder: class {
     onStatement: unmangled(nq_onStatement) func (stmt: Statement) {
         if(stmt instanceOf(VariableDecl)) {
             //printf("[onStatement] stmt %s is a VariableDecl, calling gotVarDecl\n", stmt toString())
-            gotVarDecl(stmt)
+            gotVarDecl(stmt as VariableDecl)
             return
         } else if(stmt instanceOf(Stack<VariableDecl>)) {
             stack : Stack<VariableDecl> = stmt
@@ -926,12 +926,16 @@ AstBuilder: class {
 
     onGenericArgument: unmangled(nq_onGenericArgument) func (name: String) {
         node := peek(Node)
+        
         //printf("======= Got generic argument %s, and node is a %s\n", name, node class name)
-
         vDecl := VariableDecl new(BaseType new("Class", token()), name clone(), token())
-        if(!node addTypeArg(vDecl)) {
-            token() throwError("Unexpected type argument in a %s declaration!" format(node class name))
+
+        done := false
+        if(node instanceOf(Declaration)) {
+            done = node as Declaration addTypeArg(vDecl)
         }
+        
+        if(!done) token() throwError("Unexpected type argument in a %s declaration!" format(node class name))
 
     }
 

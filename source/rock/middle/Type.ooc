@@ -66,6 +66,12 @@ Type: abstract class extends Expression {
     reference:   func          -> This { p := PointerType new(this, token); p setRef(getRef()); p }
     dereference: abstract func -> This
     
+    /**
+     * :return: true if the node supports type arguments and it's been
+     * successfully added, false if not
+     */
+    addTypeArg: func (typeArg: VariableAccess) -> Bool { false }
+    
     getTypeArgs: abstract func -> List<VariableAccess>
     
     getType: func -> This {

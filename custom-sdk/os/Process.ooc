@@ -5,7 +5,7 @@ import native/[ProcessUnix, ProcessWin32]
 
 Process: abstract class {
 
-    args: ArrayList<String>
+    args: List<String>
     executable: String
     stdOut = null: Pipe
     stdIn  = null: Pipe
@@ -14,7 +14,7 @@ Process: abstract class {
     env: HashMap<String, String>
     cwd: String
 
-    new: static func (args: ArrayList<String>) -> This {
+    new: static func (args: List<String>) -> This {
         version(unix || apple) {
             return ProcessUnix new(args) as This
         }

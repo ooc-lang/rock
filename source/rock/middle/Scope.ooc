@@ -70,7 +70,7 @@ Scope: class extends Node {
         
     }
     
-    addBefore: func (mark, newcomer: Node) -> Bool {
+    addBefore: func (mark, newcomer: Statement) -> Bool {
         
         //printf("Should add %s before %s\n", newcomer toString(), mark toString())
         
@@ -86,7 +86,7 @@ Scope: class extends Node {
         
     }
     
-    addAfter: func (mark, newcomer: Node) -> Bool {
+    addAfter: func (mark, newcomer: Statement) -> Bool {
         
         //printf("Should add %s after %s\n", newcomer toString(), mark toString())
         
@@ -125,7 +125,7 @@ Scope: class extends Node {
     
     indexOf: func (s: Statement) -> Int { list indexOf(s) }
     
-    replace: func (oldie, kiddo: Node) -> Bool { list replace(oldie, kiddo) }
+    replace: func (oldie, kiddo: Statement) -> Bool { list replace(oldie, kiddo) }
     
     size: func -> Int { list size() }
     

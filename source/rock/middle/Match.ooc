@@ -79,7 +79,11 @@ Match: class extends Expression {
                 trail addBeforeInScope(this, this)
                 trail peek() replace(this, varAcc)
                 for(caze in cases) {
-                    ass := BinaryOp new(varAcc, caze getBody() last(), OpTypes ass, caze token)
+                    last := caze getBody() last()
+                    if(!last instanceOf(Expression)) {
+                        last token throwError("Last statement of a match used an expression should be an expression itself!")
+                    }
+                    ass := BinaryOp new(varAcc, last as Expression, OpTypes ass, caze token)
                     caze getBody() set(caze getBody() lastIndex(), ass)
                 }
                 res wholeAgain(this, "just unwrapped")

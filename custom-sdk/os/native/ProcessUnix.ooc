@@ -9,7 +9,7 @@ ProcessUnix: class extends Process {
     init: func ~unix (=args) {
         this executable = this args get(0)
         this args add(null) // execvp wants NULL to end the array
-        buf = this args toArray() // ArrayList<String> => String*
+        buf = this args toArray() // List<String> => String*
         env = null
         cwd = null
     }

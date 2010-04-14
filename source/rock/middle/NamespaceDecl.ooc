@@ -2,7 +2,8 @@ import structs/[ArrayList, List]
 import text/Buffer
 
 import ../frontend/Token
-import Declaration, Import, Type, Visitor, Node, VariableAccess, FunctionCall
+import Declaration, Import, Type, Visitor, Node, VariableAccess,
+       FunctionCall, BaseType
 
 NamespaceDecl: class extends Declaration {
     
@@ -36,7 +37,7 @@ NamespaceDecl: class extends Declaration {
         sb toString()
     }
     
-    resolveType: func (type: Type) {
+    resolveType: func (type: BaseType) {
         
         for(imp in imports) {
             imp getModule() resolveType(type)

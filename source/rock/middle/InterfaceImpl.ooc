@@ -14,7 +14,7 @@ FunctionAlias: class {
 
 InterfaceImpl: class extends ClassDecl {
     
-    impl: ClassDecl
+    impl: TypeDecl
     aliases := HashMap<String, FunctionAlias> new()
     
     init: func ~interf(.name, interfaceType: Type, =impl, .token) {
@@ -47,7 +47,7 @@ InterfaceImpl: class extends ClassDecl {
                     return Responses OK
                 }
                 if(value == null) {
-                    if(impl isAbstract) {
+                    if(impl instanceOf(ClassDecl) && impl as ClassDecl isAbstract) {
                         // relay unimplemented interface methods into an abstract class
                         value = FunctionDecl new(key getName(), key token)
                         value suffix = key suffix
