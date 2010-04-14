@@ -167,19 +167,19 @@ Module: class extends Node {
 
     }
     
-    resolveCall: func (call: FunctionCall) {
+    resolveCall: func (call: FunctionCall, res: Resolver) {
         if(call isMember()) {
             return // hmm no member calls for us
         }
         
-        resolveCallNonRecursive(call)
+        resolveCallNonRecursive(call, res)
         
         for(imp in getGlobalImports()) {
-            imp getModule() resolveCallNonRecursive(call)
+            imp getModule() resolveCallNonRecursive(call, res)
         }
     }
     
-    resolveCallNonRecursive: func (call: FunctionCall) {
+    resolveCallNonRecursive: func (call: FunctionCall, res: Resolver) {
         
         //printf(" >> Looking for function %s in module %s!\n", call name, fullName)
         fDecl : FunctionDecl = null

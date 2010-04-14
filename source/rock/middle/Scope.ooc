@@ -34,9 +34,8 @@ Scope: class extends Node {
         }
     }
     
-    resolveCall: func (call: FunctionCall) -> Int {
+    resolveCall: func (call: FunctionCall, res: Resolver) -> Int {
         // FIXME: this is as wrong as resolveAccess, see the comments up there.
-        // KALAMAZOO
 
         for(stat in this) {
             if(stat instanceOf(VariableDecl)) {

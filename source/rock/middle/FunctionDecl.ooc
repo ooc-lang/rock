@@ -200,7 +200,7 @@ FunctionDecl: class extends Declaration {
         
     }
 
-    resolveCall: func (call: FunctionCall) {
+    resolveCall: func (call: FunctionCall, res: Resolver) {
         for(arg: Argument in args) {
             if(arg getName() == call getName() && arg getType() instanceOf(FuncType)) {
                 call suggest(arg getFunctionDecl())

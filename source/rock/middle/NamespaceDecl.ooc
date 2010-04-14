@@ -2,6 +2,8 @@ import structs/[ArrayList, List]
 import text/Buffer
 
 import ../frontend/Token
+
+import tinker/[Resolver]
 import Declaration, Import, Type, Visitor, Node, VariableAccess,
        FunctionCall, BaseType
 
@@ -45,10 +47,10 @@ NamespaceDecl: class extends Declaration {
         
     }
     
-    resolveCall: func (call: FunctionCall) {
+    resolveCall: func (call: FunctionCall, res: Resolver) {
         
         for(imp in imports) {
-            imp getModule() resolveCall(call)
+            imp getModule() resolveCall(call, res)
         }
         
     }

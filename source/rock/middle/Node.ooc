@@ -35,7 +35,7 @@ Node: abstract class {
      * process from finishing, and it should be repeated later, any
      * other value else.
      */
-    resolveCall: func (call : FunctionCall) -> Int {
+    resolveCall: func (call : FunctionCall, res: Resolver) -> Int {
         // overridden in sub-classes
         0
     }
