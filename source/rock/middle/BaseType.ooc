@@ -156,6 +156,7 @@ BaseType: class extends Type {
         }
         if(other instanceOf(BaseType)) {
             if(getRef() == null || other getRef() == null) {
+                //printf("%s ref = %s, other %s ref = %s\n", toString(), getRef() ? getRef() toString() : "(nil)", other toString(), other getRef() ? other getRef() toString() : "(nil)")
                 return -1
             }
             

@@ -251,7 +251,7 @@ ClassDeclWriter: abstract class extends Skeleton {
         }
         current app("static "). app(underName). app(" class = "). nl()
         
-        writeClassStructInitializers(this, isInterface ? cDecl getSuperRef() : cDecl, cDecl, ArrayList<FunctionDecl> new(), true)
+        writeClassStructInitializers(this, isInterface ? cDecl getSuperRef() as ClassDecl : cDecl, cDecl, ArrayList<FunctionDecl> new(), true)
         
         current app(';')
         if (cDecl getNonMeta() getSuperRef()) {
@@ -283,7 +283,7 @@ ClassDeclWriter: abstract class extends Skeleton {
         
             current app(','). nl(). app(".name = "). app('"'). app(realClass getNonMeta() name). app("\",")
         } else {
-            writeClassStructInitializers(this, parentClass getSuperRef(), realClass, done, false)
+            writeClassStructInitializers(this, parentClass getSuperRef() as ClassDecl, realClass, done, false)
         }
 
         if(parentClass != realClass ||
@@ -296,7 +296,8 @@ ClassDeclWriter: abstract class extends Skeleton {
                 
                 realDecl : FunctionDecl = null
                 if(realClass != parentClass) {
-                    realDecl = realClass getFunction(parentDecl name, parentDecl suffix ? parentDecl suffix : "", null, true)
+                    finalScore: Int
+                    realDecl = realClass getFunction(parentDecl name, parentDecl suffix ? parentDecl suffix : "", null, true, finalScore&)
                     
                     if(realDecl != parentDecl) {
                         if(done contains(realDecl)) {

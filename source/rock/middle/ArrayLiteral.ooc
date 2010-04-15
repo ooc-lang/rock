@@ -1,6 +1,7 @@
 import ../frontend/[Token, BuildParams]
 import Literal, Visitor, Type, Expression, FunctionCall, Block,
-       VariableDecl, VariableAccess, Cast, Node, ClassDecl, TypeDecl, BaseType
+       VariableDecl, VariableAccess, Cast, Node, ClassDecl, TypeDecl, BaseType,
+       Statement
 import tinker/[Response, Resolver, Trail]
 import structs/[List, ArrayList]
 import text/Buffer
@@ -125,7 +126,7 @@ ArrayLiteral: class extends Literal {
         } else {
             // not in a variable-decl = need to unwrap.
             varDecl := VariableDecl new(type, generateTempName("arrLit"), newCall, token)
-            if(!trail addBeforeInScope(realParent, varDecl)) {
+            if(!trail addBeforeInScope(realParent as Statement, varDecl)) {
                 if(res fatal) token throwError("Couldn't add " + varDecl toString() + " before " + parent toString() + " in " + trail toString())
                 return Responses LOOP
             }
@@ -145,7 +146,7 @@ ArrayLiteral: class extends Literal {
         }
         
         // if we're in a varDecl, the initialization is done after. If we're somewhere else, we need to initialize before!
-        result := (realParent instanceOf(VariableDecl) ? trail addAfterInScope(realParent, block) : trail addBeforeInScope(realParent, block))
+        result := (realParent instanceOf(VariableDecl) ? trail addAfterInScope(realParent as Statement, block) : trail addBeforeInScope(realParent as Statement, block))
         if(!result) {
             if(grandpa instanceOf(ClassDecl) && parent instanceOf(VariableDecl)) {
                 cDecl := grandpa as ClassDecl

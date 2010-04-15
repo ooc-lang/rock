@@ -1,7 +1,7 @@
 import structs/[ArrayList]
 import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
        Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast, Module,
-       Block, Scope, FunctionDecl, Argument, BaseType, FuncType
+       Block, Scope, FunctionDecl, Argument, BaseType, FuncType, Statement
 import tinker/[Response, Resolver, Trail]
 import ../frontend/BuildParams
 
@@ -171,7 +171,7 @@ VariableDecl: class extends Declaration {
                 
                 block := Block new(token)
                 block getBody() add(this)
-                block getBody() add(parent)
+                block getBody() add(parent as Statement)
                 
                 result = scope replace(trail get(idx + 1), block)
                 if(!result) {

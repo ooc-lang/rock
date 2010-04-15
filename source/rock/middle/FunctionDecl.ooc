@@ -76,10 +76,13 @@ FunctionDecl: class extends Declaration {
     
     isAnon: func -> Bool { isAnon }
     
+    debugCondition: func -> Bool {
+        false
+    }
+    
     markForPartialing: func(var: VariableDecl) {
         if (!variablesToPartial contains(var)) variablesToPartial add(var)
     }
-
     
     setOwner: func (=owner) {
         if(isStatic) return
@@ -235,12 +238,12 @@ FunctionDecl: class extends Declaration {
         
         trail push(this)
         
-        //if(res params veryVerbose) printf("** Resolving function decl %s\n", name)
+        if(debugCondition() || res params veryVerbose) printf("** Resolving function decl %s\n", name)
 
         for(arg in args) {
             response := arg resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("Response of arg %s = %s\n", arg toString(), response toString())
+                if(debugCondition() || res params veryVerbose) printf("Response of arg %s = %s\n", arg toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -249,7 +252,7 @@ FunctionDecl: class extends Declaration {
         for(typeArg in typeArgs) {
             response := typeArg resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("Response of typeArg %s = %s\n", typeArg toString(), response toString())
+                if(debugCondition() || res params veryVerbose) printf("Response of typeArg %s = %s\n", typeArg toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -258,7 +261,7 @@ FunctionDecl: class extends Declaration {
         {
             response := returnType resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("))))))) For %s, response of return type %s = %s\n", toString(), returnType toString(), response toString()) 
+                if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of return type %s = %s\n", toString(), returnType toString(), response toString()) 
                 trail pop(this)
                 return response
             }
@@ -270,16 +273,22 @@ FunctionDecl: class extends Declaration {
         {
             response := body resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("))))))) For %s, response of body = %s\n", toString(), response toString())
+                if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of body = %s\n", toString(), response toString())
                 trail pop(this)
-                return response
+                res wholeAgain(this, "we be body-movin'")
+                return Responses OK
+                
+                // Why aren't we relaying the response of the body? Because 
+                // the trail is usually clean below the body and it would
+                // blow-up way too soon if we LOOP-ed on every foreach/evil thing
+                //return response
             }
         }
         
         if(!isAbstract && vDecl == null) {
             response := autoReturn(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("))))))) For %s, response of autoReturn = %s\n", toString(), response toString())
+                if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of autoReturn = %s\n", toString(), response toString())
                 trail pop(this)
                 return response
             }

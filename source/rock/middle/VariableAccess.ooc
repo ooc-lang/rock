@@ -134,12 +134,12 @@ VariableAccess: class extends Expression {
                 
                 if(ref) {
                     // only accesses to variable decls need to be partialed (not type decls)
-                    if (ref instanceOf(VariableDecl) && expr == null) {
+                    if(ref instanceOf(VariableDecl) && expr == null) {
                         closureIndex := trail find(FunctionDecl)
                         if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
                             closure := trail get(closureIndex, FunctionDecl)
-                            if (closure isAnon()) {
-                                closure markForPartialing(ref)
+                            if(closure isAnon()) {
+                                closure markForPartialing(ref as VariableDecl)
                             }
                         }
                     }

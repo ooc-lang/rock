@@ -42,7 +42,7 @@ FunctionCall: class extends Expression {
     }
     
     debugCondition: func -> Bool {
-        name == "writeTypesForward"
+        false
     }
     
     suggest: func (candidate: FunctionDecl) -> Bool {
@@ -330,7 +330,7 @@ FunctionCall: class extends Expression {
         
         if(returnType == null && ref != null) {
             if(ref returnType getRef() == null) {
-                res wholeAgain(this, "need to know if the return type of our ref is generic.")
+                res wholeAgain(this, "need resolve the return type of our ref (%s) to see if it's generic" format(ref returnType toString()))
                 return Responses OK
             }
             

@@ -64,6 +64,10 @@ TypeDecl: abstract class extends Declaration {
         }
     }
     
+    debugCondition: func -> Bool {
+        false
+    }
+    
     init: func ~typeDecl (.name, .superType, .token) {
         init(name, token)
         setSuperType(superType)
@@ -333,11 +337,12 @@ TypeDecl: abstract class extends Declaration {
         
         trail push(this)
         
-        //if(res params veryVerbose) printf("====== Resolving type decl %s\n", toString())
+        if(debugCondition() || res params veryVerbose) printf("====== Resolving type decl %s\n", toString())
         
         {
             response := type resolve(trail, res)
             if(!response ok()) {
+                if(debugCondition() || res params veryVerbose) printf("====== Response of type of %s == %s\n", toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -346,6 +351,7 @@ TypeDecl: abstract class extends Declaration {
         if(this superType) {
             response := this superType resolve(trail, res)
             if(!response ok()) {
+                if(debugCondition() || res params veryVerbose) printf("====== Response of superType of %s == %s\n", toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -354,6 +360,7 @@ TypeDecl: abstract class extends Declaration {
         if(!_finishedGhosting) {
             response := ghostTypeParams(trail, res)
             if(!response ok()) {
+                if(debugCondition() || res params veryVerbose) printf("====== Response of type-param ghosting of %s == %s\n", toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -362,7 +369,7 @@ TypeDecl: abstract class extends Declaration {
         for(typeArg in getTypeArgs()) {
             response := typeArg resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("Response of typeArg %s = %s\n", typeArg toString(), response toString())
+                if(debugCondition() || res params veryVerbose) printf("====== Response of typeArg %s of %s == %s\n", typeArg toString(), toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -371,7 +378,7 @@ TypeDecl: abstract class extends Declaration {
         for(vDecl in variables) {
             response := vDecl resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("Response of vDecl %s = %s\n", vDecl toString(), response toString())
+                if(debugCondition() || res params veryVerbose) printf("====== Response of vDecl %s of %s == %s\n", vDecl toString(), toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -380,7 +387,7 @@ TypeDecl: abstract class extends Declaration {
         for(fDecl in functions) {
             response := fDecl resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("Response of fDecl %s = %s\n", fDecl toString(), response toString())
+                if(debugCondition() || res params veryVerbose) printf("====== Response of fDecl %s of %s == %s\n", fDecl toString(), toString(), response toString())
                 trail pop(this)
                 return response
             }
