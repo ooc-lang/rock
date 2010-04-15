@@ -39,7 +39,7 @@ Partial: class {
             case 4 => bseq append(OpCodes PUSH_DWORD)
             case => {        }
         */
-        bseq append((arg&) as UInt8*, T size)
+        bseq append((arg&) as Pointer, T size)
     }
 
     pushCallerArg: func <T> (arg: T) {
@@ -101,7 +101,7 @@ Partial: class {
             c := argSizes[i]
             s := String new(c)
             pushCallerArg(bseq transTable get(s))
-            bseq append((base&) as UChar*, 1)
+            bseq append((base&) as Pointer, 1)
             base = base as Int - bseq transTable get(s)
         }
         /*
@@ -130,7 +130,7 @@ Partial: class {
         //bseq append(OpCodes CALL_EBX)
         
         bseq append(OpCodes MOV_EAX_ADDRESS)
-        bseq append((funcPtr&) as UInt8*, Pointer size)
+        bseq append((funcPtr&) as Pointer, Pointer size)
         bseq append(OpCodes CALL_EAX)
         
         bseq append(OpCodes LEAVE)

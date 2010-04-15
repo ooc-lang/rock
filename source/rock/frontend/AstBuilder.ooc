@@ -79,8 +79,17 @@ AstBuilder: class {
         module addUse(Use new(identifier, params, token()))
     }
 
-    onInclude: unmangled(nq_onInclude) func (path, name: String) {
-        inc := Include new(path isEmpty() ? name : path + name, IncludeModes PATHY)
+    onInclude: unmangled(nq_onInclude) func (path: String) {
+        mode: IncludeMode
+        if(path startsWith("./")) {
+            mode = IncludeModes LOCAL
+            path = path substring(2) // remove ./ from path
+        }
+        else {
+            mode = IncludeModes PATHY
+        }
+
+        inc := Include new(path, mode)
         module addInclude(inc)
         inc setVersion(getVersion())
     }
