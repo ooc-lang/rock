@@ -42,7 +42,7 @@ FunctionCall: class extends Expression {
     }
     
     debugCondition: func -> Bool {
-        false
+        expr != null && expr toString() startsWith("FuncType") && name == "new"
     }
     
     suggest: func (candidate: FunctionDecl) -> Bool {

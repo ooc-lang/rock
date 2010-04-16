@@ -541,7 +541,7 @@ TypeDecl: abstract class extends Declaration {
         }
         
         finalScore: Int
-        fDecl := getFunction(call, finalScore&)
+        fDecl := getFunction(call name, call suffix, call, true, finalScore&)
         if(finalScore == -1) {
             res wholeAgain(call, "Got -1 from finalScore!")
             //return -1 // something's not resolved
@@ -555,10 +555,10 @@ TypeDecl: abstract class extends Declaration {
             	if(call debugCondition()) "   returning..." println()
 	            return 0
             }
-        } else if(getSuperRef() != null) {
+        }/* else if(getSuperRef() != null) {
             if(call debugCondition()) printf("  <== going in superRef %s\n", getSuperRef() toString())
             if(getSuperRef() resolveCall(call, res) == -1) return -1
-        }
+        }*/ // FIXME: uncomment when we're sure this doesn't cause any problems
         
         if(getBase() != null) {
             if(call debugCondition()) printf("Looking in base %s\n", getBase() toString())
