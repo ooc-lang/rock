@@ -299,14 +299,14 @@ FunctionDecl: class extends Declaration {
 			if(args size() == 1 && args first() getType() getName() == "ArrayList") {
                 arg := args first()
 				args clear()
-                argc := Argument new(IntLiteral type, "argc", arg token)
-                argv := Argument new(PointerType new(StringLiteral type, arg token), "argv", arg token)
+                argc := Argument new(BaseType new("Int", arg token), "argc", arg token)
+                argv := Argument new(PointerType new(BaseType new("String", arg token), arg token), "argv", arg token)
                 args add(argc)
                 args add(argv)
 
 				constructCall := FunctionCall new(VariableAccess new(arg getType(), arg token), "new", arg token)
                 constructCall setSuffix("withData")
-				constructCall typeArgs add(VariableAccess new(NullLiteral type, arg token))
+				constructCall typeArgs add(VariableAccess new(BaseType new("Pointer", arg token), arg token))
 				constructCall args add(VariableAccess new(argv, arg token)) \
                                   .add(VariableAccess new(argc, arg token))
 
@@ -399,7 +399,7 @@ FunctionDecl: class extends Declaration {
         finalResponse := Responses OK
         
         if(isMain() && isVoid()) {
-            returnType = IntLiteral type
+            returnType = BaseType new("Int", token)
             res wholeAgain(this, "because changed returnType to %s\n")
         }
         
@@ -439,7 +439,7 @@ FunctionDecl: class extends Declaration {
                 return
             }
             
-            if(isMain() && !expr getType() equals(IntLiteral type)) {
+            if(isMain() && !(expr getType() getName() == "Int" && expr getType() pointerLevel() == 0)) {
                 returnNeeded(trail)
                 res wholeAgain(this, "was needing return")
                 return

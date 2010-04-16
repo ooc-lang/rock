@@ -35,7 +35,13 @@ Token: cover {
         return origin
     }
     
-    toString: func -> String { "[%d, %d]" format(getStart(), getEnd()) }
+    toString: func -> String {
+        module != null ? (
+            "%s [%d, %d]" format(module getFullName(), getStart(), getEnd())
+        ) : (
+            "[%d, %d]" format(getStart(), getEnd())
+        )
+    }
     
     throwWarning: func (message: String) {
         printMessage(message, "[WARNING]")

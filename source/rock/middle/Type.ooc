@@ -85,6 +85,9 @@ Type: abstract class extends Expression {
             return -1
         }
         if(score != This SCORE_SEED) {
+            //printf("Failing %s (%s) vs %s (%s) with strict score %d\n", toString(), getRef() ? getRef() token toString() : "(unknown)",
+            //                                                            other toString(), other getRef() ? other getRef() token toString() : "(unknown)", score)
+            
             // imperfect match, failing
             return This NOLUCK_SCORE
         }

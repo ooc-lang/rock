@@ -561,7 +561,7 @@ TypeDecl: abstract class extends Declaration {
         }
         
         if(getBase() != null) {
-            printf("Looking in base %s\n", getBase() toString())
+            if(call debugCondition()) printf("Looking in base %s\n", getBase() toString())
             if(getBase() resolveCall(call, res) == -1) return -1
         }
         

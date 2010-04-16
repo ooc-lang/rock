@@ -51,8 +51,8 @@ Driver: abstract class {
         params compiler addObjectFile(objFile) 
         
         for(imp: Import in module getAllImports()) {
-            if(!done contains(imp module fullName)) {
-                addDeps(imp module, toCompile, done) 
+            if(!done contains(imp getModule() fullName)) {
+                addDeps(imp getModule(), toCompile, done) 
             }
         }
         

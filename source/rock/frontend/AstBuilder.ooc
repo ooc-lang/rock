@@ -36,13 +36,13 @@ AstBuilder: class {
         stack push(module)
         versionStack = Stack<VersionSpec> new()
         
+        if(params includeLang && !module fullName startsWith("/")) {
+            addLangImports()
+        }
+        
         result := nq_parse(this, modulePath)
         if(result == -1) {
             Exception new(This, "File " +modulePath + " not found") throw()
-        }
-
-        if(params includeLang && !module fullName startsWith("/")) {
-            addLangImports()
         }
         
     }
@@ -57,13 +57,34 @@ AstBuilder: class {
                 impName := path substring(0, path length() - 4)
                 if(impName != module fullName) {
                     //printf("Adding import %s to %s\n", impName, module fullName)
-                    module addImport(Import new(impName, nullToken))
+                    module addImport(Import new(impName, module token))
                 }
             }
         }
 
     }
-    printCache: func {
+    
+    /**
+     * Turn import paths like "../frontend/AstBuilder" into "/opt/ooc/rock/source/rock/frontend/AstBuilder"
+     */
+    getRealImportPath: static func (imp: Import, module: Module, params: BuildParams, path: String@, impPath, impElement: File@) -> File {
+        
+        path = FileUtils resolveRedundancies(imp path + ".ooc")
+        impElement = params sourcePath getElement(path)
+        impPath    = params sourcePath getFile(path)
+        if(impPath == null) {
+            parent := File new(module getPath()) parent()
+            if(parent != null) {
+                path = FileUtils resolveRedundancies(parent path + File separator + imp path + ".ooc")
+                impElement = params sourcePath getElement(path)
+                impPath    = params sourcePath getFile(path)
+            }
+        }
+        return impPath
+        
+    }
+    
+    printCache: static func {
         printf("==== Cache ====\n")
         for(key in This cache getKeys()) {
             printf("cache %s => %s\n", key, This cache get(key) fullName)
@@ -127,6 +148,7 @@ AstBuilder: class {
         absorbed := false
         for(imp in module getGlobalImports()) { // TODO: what about namespaced imports?
             depMod := imp getModule()
+            //printf("Treating import %s, depMod = %s\n", imp path, depMod ? depMod getFullName() : "(nil)")
             if(depMod != null) {
                 base := depMod getTypes() get(name)
                 if(base != null) {

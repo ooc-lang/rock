@@ -4,13 +4,16 @@ import Literal, Visitor, Type, BaseType
 FloatLiteral: class extends Literal {
 
     value: Float
-    type := static BaseType new("Float", nullToken)
+    type : BaseType
     
-    init: func ~floatLiteral (=value, .token) { super(token) }
+    init: func ~floatLiteral (=value, .token) {
+        super(token)
+        type = BaseType new("Float", token)
+    }
     
     accept: func (visitor: Visitor) { visitor visitFloatLiteral(this) }
 
-    getType: func -> Type { This type }
+    getType: func -> Type { type }
     
     toString: func -> String { "%f" format(value) }
 

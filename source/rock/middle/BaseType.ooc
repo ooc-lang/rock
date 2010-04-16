@@ -41,6 +41,10 @@ BaseType: class extends Type {
             return
         }
         
+        while(td instanceOf(CoverDecl) && td as CoverDecl isAddon()) {
+            td = td as CoverDecl getBase() getNonMeta()
+        }
+
         w app(td underName())
         if(td instanceOf(ClassDecl)) {
             w app("*")
@@ -64,6 +68,10 @@ BaseType: class extends Type {
     getName: func -> String { name }
     
     suggest: func (decl: Declaration) -> Bool {
+        //if(name == "String") {
+        //    printf("Got suggestion %s (%s) for type at %s\n", decl toString(), decl token toString(), token toString())
+        //}
+        // TODO: only accept if decl is a better match than ref (ie. in ref's addons, for examples)
         ref = decl
         if(name == "This" && getRef() instanceOf(TypeDecl)) {
             tDecl := getRef() as TypeDecl
@@ -163,6 +171,19 @@ BaseType: class extends Type {
             if(getRef() == other getRef()) {
                 // perfect match
                 return scoreSeed
+            }
+            
+            // if we are one of his addons, we're good
+            if(other getRef() instanceOf(TypeDecl)) {
+                for(addon in other getRef() as TypeDecl getAddons()) {
+                    hisRef := addon getNonMeta()
+                    ourRef := getRef()
+                    //printf("Reviewing addon %s, ref %s (%s), vs %s (%s)\n", addon getNonMeta() toString(), ourRef toString(), ourRef token toString(), hisRef toString(), hisRef token toString())
+                    if(ourRef == hisRef) {
+                        // perfect match
+                        return scoreSeed
+                    }
+                }
             }
             
             if(getName() == other getName()) {

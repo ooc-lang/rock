@@ -19,7 +19,11 @@ CoverDecl: class extends TypeDecl {
     
     accept: func (visitor: Visitor) { visitor visitCoverDecl(this) }
     
-    setFromType: func (=fromType) {}    
+    setFromType: func (=fromType) {
+        for(addon in getAddons()) {
+            addon getNonMeta() as CoverDecl setFromType(fromType)
+        }
+    }    
     getFromType: func -> Type { fromType }
     
     // all functions of a cover are final, because we don't have a 'class' field
@@ -28,7 +32,7 @@ CoverDecl: class extends TypeDecl {
         super(fDecl)
     }
     
-    isAddon: func -> Bool { false }
+    isAddon: func -> Bool { getBase() != null }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         {

@@ -253,6 +253,7 @@ BinaryOp: class extends Expression {
         
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType)
+            //printf("Considering %s for %s, score = %d\n", opDecl toString(), toString(), score)
             if(score == -1) { res wholeAgain(this, "score of %s == -1 !!" format(opDecl toString())); return Responses OK }
             if(score > bestScore) {
                 bestScore = score
@@ -264,6 +265,7 @@ BinaryOp: class extends Expression {
             module := imp getModule()
             for(opDecl in module getOperators()) {
                 score := getScore(opDecl, reqType)
+                //printf("Considering %s for %s, score = %d\n", opDecl toString(), toString(), score)
                 if(score == -1) { res wholeAgain(this, "score of %s == -1 !!" format(opDecl toString())); return Responses OK }
                 if(score > bestScore) {
                     bestScore = score
@@ -338,6 +340,8 @@ BinaryOp: class extends Expression {
         
         reqScore   := reqType ? fDecl getReturnType() getScore(reqType) : 0
         if(reqScore   == -1) return -1
+        
+        //printf("leftScore = %d, rightScore = %d\n", leftScore, rightScore)
         
         score := leftScore + rightScore + reqScore
         
