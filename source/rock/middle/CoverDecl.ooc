@@ -66,6 +66,7 @@ CoverDecl: class extends TypeDecl {
         }
         getMeta() base = node getMeta()
         printf("%s from %s is absorbing %s from %s\n", toString(), token module toString(), node toString(), node token module toString())
+        setFromType(node getFromType())
         node addAddon(this)
     }
     

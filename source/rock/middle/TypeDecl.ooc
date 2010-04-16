@@ -565,6 +565,22 @@ TypeDecl: abstract class extends Declaration {
             if(getBase() resolveCall(call, res) == -1) return -1
         }
         
+        for(addon in addons) {
+            has := false
+            // TODO: What about namespaced imports?
+            for(imp in call token module getGlobalImports()) {
+                if(imp getModule() == addon token module) {
+                    has = true
+                    break
+                }
+            }
+            
+            if(!has) continue
+            
+            if(call debugCondition()) printf("Looking into addon %s\n", addon toString())
+            if(addon resolveCall(call, res) == -1) return -1
+        }
+        
         if(call getRef() == null) {
             vDecl := getVariable(call getName())
             if(vDecl != null) {

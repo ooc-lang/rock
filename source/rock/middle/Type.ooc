@@ -313,4 +313,8 @@ ReferenceType: class extends SugarType {
         PointerType new(inner refToPointer(), token)
     }
     
+    getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
+        inner getScoreImpl(other, scoreSeed)
+    }
+    
 }

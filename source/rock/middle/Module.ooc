@@ -204,7 +204,7 @@ Module: class extends Node {
 
         ref = types get(type name)
         if(ref != null && type suggest(ref)) {
-            //return
+            return
         }
 
         for(imp in getGlobalImports()) {
@@ -212,7 +212,7 @@ Module: class extends Node {
             ref = imp getModule() types get(type name)
             if(ref != null && type suggest(ref)) {
                 //("Found type " + name + " in " + imp getModule() fullName)
-                //break
+                break
             }
         }
 

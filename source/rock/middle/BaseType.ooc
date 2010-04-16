@@ -71,8 +71,15 @@ BaseType: class extends Type {
         //if(name == "String") {
         //    printf("Got suggestion %s (%s) for type at %s\n", decl toString(), decl token toString(), token toString())
         //}
-        // TODO: only accept if decl is a better match than ref (ie. in ref's addons, for examples)
-        ref = decl
+        
+        // TODO: only accept if decl is a better match than ref (ie. in an addon, for example)
+        if(ref == null || (decl instanceOf(CoverDecl) && decl as CoverDecl isAddon())) {
+            //if(decl instanceOf(CoverDecl) && decl as CoverDecl isAddon() && ref != null) {
+            //    printf("In %s superseded %s (%s) with %s (%s)\n", token toString(), ref toString(), ref token toString(), decl toString(), decl token toString())
+            //}
+            ref = decl
+        }
+        
         if(name == "This" && getRef() instanceOf(TypeDecl)) {
             tDecl := getRef() as TypeDecl
             name = tDecl getName()

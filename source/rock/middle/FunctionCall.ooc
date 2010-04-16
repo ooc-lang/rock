@@ -209,7 +209,8 @@ FunctionCall: class extends Expression {
         if(refScore <= 0 && res fatal) {
             message : String
             if(expr != null && expr getType() != null) {
-                message = "No such function %s.%s%s" format(expr getType() getName(), name, getArgsTypesRepr())
+                message = "No such function %s (%s).%s%s" format(expr getType() getName(),
+                    expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)", name, getArgsTypesRepr())
             } else {
                 message = "No such function %s%s" format(name, getArgsTypesRepr())
             }
@@ -255,7 +256,8 @@ FunctionCall: class extends Expression {
             
             score := callArg getType() getScore(declArg getType())
             if(score < 0) {
-                "\t..but the type of this arg should be %s, not %s\n" format(declArg getType() toString(), callArg getType() toString()) println()
+                "\t..but the type of this arg should be %s (%s), not %s (%s)\n" format(declArg getType() toString(), declArg getType() getRef() ? declArg getType() getRef() token toString() : "(nil)",
+                                                                                       callArg getType() toString(), callArg getType() getRef() ? callArg getType() getRef() token toString() : "(nil)") println()
                 callArg token printMessage("\t\t", "", "")
             }
         }
@@ -342,6 +344,7 @@ FunctionCall: class extends Expression {
                 }
             } else {
                 returnType = ref returnType clone()
+                returnType resolve(trail, res)
             }
             if(returnType != null && !realTypize(returnType, trail, res)) {
                 res wholeAgain(this, "because couldn't properly realTypize return type.")
