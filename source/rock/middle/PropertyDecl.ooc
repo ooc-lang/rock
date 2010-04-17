@@ -25,17 +25,31 @@ PropertyDecl: class extends VariableDecl {
         "__get%s__" format(name)
     }
 
+    getValueName: func -> String {
+        "__%s__" format(name)
+    }
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        // first, add the getter / setter to the class
+        // get and store the class.
         node := trail peek()
         if(!node instanceOf(ClassDecl)) {
             token throwError("Expected ClassDecl, got %s" format(node toString()))
         }
         cls = node as ClassDecl
+        // setup value
+        // TODO: only do this if there actually is an access to the value in getter/setter. (non-virtual property)
+        vDecl := VariableDecl new(type, getValueName(), token)
+        cls addVariable(vDecl)
+        // setup getter
         if(getter != null) {
-            getter setName(getGetterName())
+            getter setName(getGetterName()) .setReturnType(type)
             cls addFunction(getter)
+            // resolve!
+            trail push(this)
+            getter resolve(trail, res)
+            trail pop(this)
         }
+        // setup setter
         if(setter != null) {
             // set name, argument type ...
             setter setName(getSetterName())
@@ -47,7 +61,6 @@ PropertyDecl: class extends VariableDecl {
                 arg setType(this type)
             }
             cls addFunction(setter)
-            "EY %d" format(cls functions size()) println()
             // let's even resolve it!
             trail push(this)
             setter resolve(trail, res)
@@ -71,7 +84,12 @@ PropertyDecl: class extends VariableDecl {
         0
     }
     
+    /** resolve $name accesses to actual value. */
     resolveAccess: func (access: VariableAccess) {
         "--- oh you asking me to resolve %s" format(access toString()) println()
+        if(access name == this name) {
+            access name = getValueName()
+            cls resolveAccess(access)
+        }
     }
 }
