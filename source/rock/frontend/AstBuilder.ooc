@@ -427,35 +427,29 @@ AstBuilder: class {
      */
 
     onPropertyDeclStart: unmangled(nq_onPropertyDeclStart) func (name: String) {
-        " -- property '%s'" format(name) println()
         stack push(PropertyDecl new(null, name clone(), token()))
     }
 
     onPropertyDeclType: unmangled(nq_onPropertyDeclType) func (type: Type) {
-        " -- property type '%s'" format(type toString()) println()
         peek(PropertyDecl) type = type
     }
 
     onPropertyDeclGetterStart: unmangled(nq_onPropertyDeclGetterStart) func {
-        " -- property getter start" println()
         getter := FunctionDecl new("", token())
         stack push(getter)
     }
 
     onPropertyDeclGetterEnd: unmangled(nq_onPropertyDeclGetterEnd) func {
-        " -- property getter end" println()
         getter := pop(FunctionDecl)
         peek(PropertyDecl) setGetter(getter)
     }
 
     onPropertyDeclSetterStart: unmangled(nq_onPropertyDeclSetterStart) func {
-        " -- property setter start" println()
         setter := FunctionDecl new("", token())
         stack push(setter)
     }
 
     onPropertyDeclSetterArgument: unmangled(nq_onPropertyDeclSetterArgument) func (name: String, conventional: Bool) {
-        " -- property setter argument '%s' (%d)" format(name, conventional) println()
         arg: Argument = match conventional {
             case true => Argument new(null, name clone(), token())
             case false => AssArg new(name clone(), token())
@@ -464,7 +458,6 @@ AstBuilder: class {
     }
 
     onPropertyDeclSetterEnd: unmangled(nq_onPropertyDeclSetterEnd) func {
-        " -- property setter end" println()
         setter := pop(FunctionDecl)
         peek(PropertyDecl) setSetter(setter)
     }
@@ -473,7 +466,6 @@ AstBuilder: class {
         decl := pop(PropertyDecl)
         node := peek(ClassDecl)
         node addVariable(decl)
-        " -- added property to %s" format(node toString()) println()
         decl
     }
 

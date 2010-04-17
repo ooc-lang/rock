@@ -2,7 +2,7 @@ import structs/ArrayList
 import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
        Import, Module, FunctionCall, ClassDecl, CoverDecl, AddressOf,
-       ArrayAccess, VariableAccess, Cast, NullLiteral
+       ArrayAccess, VariableAccess, Cast, NullLiteral, PropertyDecl
 import tinker/[Trail, Resolver, Response]
 
 include stdint
@@ -144,6 +144,15 @@ BinaryOp: class extends Expression {
             }
             if(right getType() == null || !right isResolved()) {
                 res wholeAgain(this, "right type is unresolved"); return Responses OK
+            }
+
+            // Left side is a property access? Replace myself with a setter call.
+            if(left instanceOf(VariableAccess) && left as VariableAccess ref instanceOf(PropertyDecl)) {
+                leftProperty := left as VariableAccess ref as PropertyDecl
+                fCall := FunctionCall new(left as VariableAccess expr, leftProperty getSetterName(), token)
+                fCall getArguments() add(right)
+                trail peek() replace(this, fCall)
+                return Responses OK
             }
             
             cast : Cast = null

@@ -86,7 +86,6 @@ PropertyDecl: class extends VariableDecl {
     
     /** resolve $name accesses to actual value. */
     resolveAccess: func (access: VariableAccess) {
-        "--- oh you asking me to resolve %s" format(access toString()) println()
         if(access name == this name) {
             access name = getValueName()
             cls resolveAccess(access)
