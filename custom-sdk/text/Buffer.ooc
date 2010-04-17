@@ -3,7 +3,7 @@ import io/[Writer, Reader]
 Buffer: class {
     size: SizeT
     capacity: SizeT
-    data: String
+    data: Char*
 
     init: func {
         init(128)
@@ -14,7 +14,7 @@ Buffer: class {
         size = 0
     }
 
-    init: func ~withContent (.data) {
+    init: func ~withContent (data: String) {
         this data = data clone()
         size = data length()
         capacity = data length()
@@ -75,7 +75,7 @@ Buffer: class {
     toString: func -> String {
         checkLength(size + 1)
         data[size] = '\0'
-        return data // ugly hack. or is it?
+        return data as String // ugly hack. or is it?
     }
 }
 
