@@ -604,7 +604,7 @@ FunctionCall: class extends Expression {
         
         declArgs := decl args
         if(matchesArgs(decl)) {
-            score += Type SCORE_SEED
+            score += Type SCORE_SEED / 4
             if(debugCondition()) {
                 printf("matchesArg, score is now %d\n", score)
             }
@@ -617,7 +617,7 @@ FunctionCall: class extends Expression {
         
         if(decl getOwner() != null && isMember()) {
             // Will suffice to make a member call stronger
-            score += Type SCORE_SEED
+            score += Type SCORE_SEED / 4
         }
         
         if(declArgs size() == 0) return score
