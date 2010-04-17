@@ -344,15 +344,17 @@ FunctionCall: class extends Expression {
                 }
             } else {
                 returnType = ref returnType clone()
-                returnType resolve(trail, res)
+                // Two question: why was this even here in the first place? And: can we remove it safely?
+                //returnType resolve(trail, res)
             }
+            
             if(returnType != null && !realTypize(returnType, trail, res)) {
                 res wholeAgain(this, "because couldn't properly realTypize return type.")
                 returnType = null
             }
             
             if(returnType) {
-                res wholeAgain(this, "because of return type %s" format(returnType toString()))
+                res wholeAgain(this, "because of return type %s (%s)" format(returnType toString(), returnType token toString()))
                 return Responses OK
             }
         }
