@@ -1,5 +1,3 @@
-import os/Time
-
 /**
  * Contain the online (rather inline) help of the ooc compiler
  * 
