@@ -344,8 +344,7 @@ FunctionCall: class extends Expression {
                 }
             } else {
                 returnType = ref returnType clone()
-                // Two question: why was this even here in the first place? And: can we remove it safely?
-                //returnType resolve(trail, res)
+                returnType resolve(trail, res)
             }
             
             if(returnType != null && !realTypize(returnType, trail, res)) {
