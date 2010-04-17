@@ -61,6 +61,9 @@ BaseType: class extends Type {
     }
     
     addTypeArg: func (typeArg: VariableAccess) -> Bool {
+        if(typeArg class != VariableAccess) {
+            Exception new(This, "Got a %s instead of a VariableAccess" format(typeArg toString())) throw()
+        }
         if(!typeArgs) typeArgs = ArrayList<VariableAccess> new()
         typeArgs add(typeArg); true
     }
@@ -103,7 +106,10 @@ BaseType: class extends Type {
         
         if(getRef() == null) {
             if(res fatal) {
-                token throwError("Can't resolve type %s!" format(getName()))
+                trail toString() println()
+                //token printMessage("In %s, Can't resolve type %s!" format(token toString(), getName()), "ERROR")
+                //Exception new(This, "Debugging") throw()
+                token throwError("In %s, Can't resolve type %s!" format(token toString(), getName()))
             }
             if(res params veryVerbose) {
                 printf("     - type %s still not resolved, looping (ref = %p)\n", name, getRef())
@@ -300,7 +306,7 @@ BaseType: class extends Type {
                 if(ref instanceOf(TypeDecl)) {
                     // resolves to a known type
                     result = candidate getRef() as TypeDecl getInstanceType()
-                } else {
+                } else if(ref instanceOf(VariableDecl)) {
                     // resolves to an access to another generic type
                     result = BaseType new(ref as VariableDecl getName(), token)
                 }

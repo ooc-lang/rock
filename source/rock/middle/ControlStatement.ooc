@@ -22,7 +22,7 @@ ControlStatement: abstract class extends Statement {
     }
     
     replace: func (oldie, kiddo: Node) -> Bool {
-        body replace(oldie, kiddo) != null
+        body replace(oldie, kiddo)
     }
     
     addBefore: func (mark, newcomer: Node) -> Bool {

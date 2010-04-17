@@ -42,7 +42,7 @@ FunctionCall: class extends Expression {
     }
     
     debugCondition: func -> Bool {
-        expr != null && expr toString() startsWith("FuncType") && name == "new"
+        false
     }
     
     suggest: func (candidate: FunctionDecl) -> Bool {
@@ -386,7 +386,7 @@ FunctionCall: class extends Expression {
                     typeArgName := typeArg getRef() as VariableDecl getName()
                     result := resolveTypeArg(typeArgName, trail, res)
                     //printf("[realTypize] result = %s\n", result ? result toString() : "(nil)")
-                    if(result) baseType typeArgs set(j, result)
+                    if(result) baseType typeArgs set(j, VariableAccess new(result, typeArg token))
                 }
                 j += 1
             }
@@ -736,7 +736,7 @@ FunctionCall: class extends Expression {
             return true;
         }
         
-        return (args replace(oldie, kiddo) != null)
+        args replace(oldie, kiddo)
     }
     
     setReturnArg: func (=returnArg) {}

@@ -484,10 +484,12 @@ FunctionDecl: class extends Declaration {
     }
     
     replace: func (oldie, kiddo: Node) -> Bool {
-        match oldie {
-            case returnType => returnType = kiddo; true
-            case => body replace(oldie, kiddo) != null
+        if(oldie == returnType) {
+            returnType = kiddo
+            return true
         }
+        
+        body replace(oldie, kiddo)
     }
     
     addBefore: func (mark, newcomer: Node) -> Bool {

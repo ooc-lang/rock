@@ -52,6 +52,9 @@ FuncType: class extends Type {
     getTypeArgs: func -> List<VariableAccess> { typeArgs }
     
     addTypeArg: func (typeArg: VariableAccess) -> Bool {
+        if(typeArg class != VariableAccess) {
+            Exception new(This, "Got a %s instead of a VariableAccess" format(typeArg toString())) throw()
+        }
         if(!typeArgs) typeArgs = ArrayList<VariableAccess> new()
         typeArgs add(typeArg); true
     }
