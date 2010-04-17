@@ -5,20 +5,17 @@ import tinker/[Response, Resolver, Trail]
 StringLiteral: class extends Literal {
 
     value: String
-    type := static BaseType new("String", nullToken)
+    type : BaseType
     
     init: func ~stringLiteral (=value, .token) {
         super(token)
+        type = BaseType new("String", token)
     }
     
     accept: func (visitor: Visitor) { visitor visitStringLiteral(this) }
 
-    getType: func -> Type { This type }
+    getType: func -> Type { type }
     
     toString: func -> String { "\"" + value + "\"" }
     
-    resolve: func (trail: Trail, res: Resolver) -> Response {
-        return This type resolve(trail, res)
-    }
-
 }

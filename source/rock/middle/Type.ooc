@@ -85,6 +85,9 @@ Type: abstract class extends Expression {
             return -1
         }
         if(score != This SCORE_SEED) {
+            //printf("Failing %s (%s) vs %s (%s) with strict score %d\n", toString(), getRef() ? getRef() token toString() : "(unknown)",
+            //                                                            other toString(), other getRef() ? other getRef() token toString() : "(unknown)", score)
+            
             // imperfect match, failing
             return This NOLUCK_SCORE
         }
@@ -179,6 +182,12 @@ SugarType: abstract class extends Type {
             score := inner getScore(other as SugarType inner)
             if(score >= -1) return score
         }
+        
+        if(other isGeneric() && other pointerLevel() == 0) {
+            // every type is always a match against a flat generic type
+            return scoreSeed / 2
+        }
+        
         if(pointerLevel() == 1 && other isPointer()) {
             // void pointer, half match!
             return scoreSeed / 2
@@ -302,6 +311,10 @@ ReferenceType: class extends SugarType {
     
     refToPointer: func -> Type {
         PointerType new(inner refToPointer(), token)
+    }
+    
+    getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
+        inner getScoreImpl(other, scoreSeed)
     }
     
 }

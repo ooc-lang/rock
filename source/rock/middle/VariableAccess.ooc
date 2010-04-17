@@ -37,6 +37,8 @@ VariableAccess: class extends Expression {
     // It's just an access, it has no side-effects whatsoever
     hasSideEffects : func -> Bool { false }
     
+    debugCondition: func -> Bool { false }
+    
     suggest: func (node: Node) -> Bool {
         if(node instanceOf(VariableDecl)) {
 			candidate := node as VariableDecl
@@ -70,6 +72,10 @@ VariableAccess: class extends Expression {
     isResolved: func -> Bool { ref != null && getType() != null }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
+        
+        if(debugCondition()) {
+            "%s is of type %s\n" format(name, getType() ? getType() toString() : "(nil)") println()
+        }
         
         if(expr) {
             trail push(this)
@@ -134,12 +140,12 @@ VariableAccess: class extends Expression {
                 
                 if(ref) {
                     // only accesses to variable decls need to be partialed (not type decls)
-                    if (ref instanceOf(VariableDecl) && expr == null) {
+                    if(ref instanceOf(VariableDecl) && expr == null) {
                         closureIndex := trail find(FunctionDecl)
                         if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
                             closure := trail get(closureIndex, FunctionDecl)
-                            if (closure isAnon()) {
-                                closure markForPartialing(ref)
+                            if(closure isAnon()) {
+                                closure markForPartialing(ref as VariableDecl)
                             }
                         }
                     }

@@ -41,6 +41,10 @@ BaseType: class extends Type {
             return
         }
         
+        while(td instanceOf(CoverDecl) && td as CoverDecl isAddon()) {
+            td = td as CoverDecl getBase() getNonMeta()
+        }
+
         w app(td underName())
         if(td instanceOf(ClassDecl)) {
             w app("*")
@@ -64,7 +68,18 @@ BaseType: class extends Type {
     getName: func -> String { name }
     
     suggest: func (decl: Declaration) -> Bool {
-        ref = decl
+        //if(name == "String") {
+        //    printf("Got suggestion %s (%s) for type at %s\n", decl toString(), decl token toString(), token toString())
+        //}
+        
+        // TODO: only accept if decl is a better match than ref (ie. in an addon, for example)
+        if(ref == null || (decl instanceOf(CoverDecl) && decl as CoverDecl isAddon())) {
+            //if(decl instanceOf(CoverDecl) && decl as CoverDecl isAddon() && ref != null) {
+            //    printf("In %s superseded %s (%s) with %s (%s)\n", token toString(), ref toString(), ref token toString(), decl toString(), decl token toString())
+            //}
+            ref = decl
+        }
+        
         if(name == "This" && getRef() instanceOf(TypeDecl)) {
             tDecl := getRef() as TypeDecl
             name = tDecl getName()
@@ -88,7 +103,10 @@ BaseType: class extends Type {
         
         if(getRef() == null) {
             if(res fatal) {
-                token throwError("Can't resolve type %s!" format(getName()))
+                trail toString() println()
+                //token printMessage("In %s, Can't resolve type %s!" format(token toString(), getName()), "ERROR")
+                //Exception new(This, "Debugging") throw()
+                token throwError("In %s, Can't resolve type %s!" format(token toString(), getName()))
             }
             if(res params veryVerbose) {
                 printf("     - type %s still not resolved, looping (ref = %p)\n", name, getRef())
@@ -97,8 +115,11 @@ BaseType: class extends Type {
         } else if(getRef() instanceOf(TypeDecl)) {
             tDecl := getRef() as TypeDecl
             if(!tDecl isMeta && !tDecl getTypeArgs() isEmpty()) {
-                if(typeArgs == null || typeArgs size() != tDecl getTypeArgs() size()) {
-                    token throwError("Missing type parameters for "+toString()+". It should match "+tDecl getInstanceType() toString())
+                size1 := typeArgs size()
+                size2 := tDecl getTypeArgs() size()
+                if(typeArgs == null || size1 != size2) {
+                    token throwError("%s type parameters for %s. It should match %s" format(
+                        size1 < size2 ? "Missing" : "Too many", toString(), tDecl getInstanceType() toString()))
                 }
             }
         }
@@ -156,12 +177,26 @@ BaseType: class extends Type {
         }
         if(other instanceOf(BaseType)) {
             if(getRef() == null || other getRef() == null) {
+                //printf("%s ref = %s, other %s ref = %s\n", toString(), getRef() ? getRef() toString() : "(nil)", other toString(), other getRef() ? other getRef() toString() : "(nil)")
                 return -1
             }
             
             if(getRef() == other getRef()) {
                 // perfect match
                 return scoreSeed
+            }
+            
+            // if we are one of his addons, we're good
+            if(other getRef() instanceOf(TypeDecl)) {
+                for(addon in other getRef() as TypeDecl getAddons()) {
+                    hisRef := addon getNonMeta()
+                    ourRef := getRef()
+                    //printf("Reviewing addon %s, ref %s (%s), vs %s (%s)\n", addon getNonMeta() toString(), ourRef toString(), ourRef token toString(), hisRef toString(), hisRef token toString())
+                    if(ourRef == hisRef) {
+                        // perfect match
+                        return scoreSeed
+                    }
+                }
             }
             
             if(getName() == other getName()) {
@@ -271,7 +306,7 @@ BaseType: class extends Type {
                 if(ref instanceOf(TypeDecl)) {
                     // resolves to a known type
                     result = candidate getRef() as TypeDecl getInstanceType()
-                } else {
+                } else if(ref instanceOf(VariableDecl)) {
                     // resolves to an access to another generic type
                     result = BaseType new(ref as VariableDecl getName(), token)
                 }

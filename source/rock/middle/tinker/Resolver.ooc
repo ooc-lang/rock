@@ -27,11 +27,11 @@ Resolver: class {
     }
     
     wholeAgain: func (node: Node, reason: String) {
-        if(fatal && params fatalError) {
+        if(fatal && BuildParams fatalError) {
             node token throwError(reason)
         }
         
-        if(params debugLoop) {
+        if(fatal && params debugLoop) {
             printf("LOOP %s : %s because '%s'\n", node toString(), node class name, reason)
         }
         wholeAgain = true

@@ -209,7 +209,8 @@ FunctionCall: class extends Expression {
         if(refScore <= 0 && res fatal) {
             message : String
             if(expr != null && expr getType() != null) {
-                message = "No such function %s.%s%s" format(expr getType() getName(), name, getArgsTypesRepr())
+                message = "No such function %s (%s).%s%s" format(expr getType() getName(),
+                    expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)", name, getArgsTypesRepr())
             } else {
                 message = "No such function %s%s" format(name, getArgsTypesRepr())
             }
@@ -255,7 +256,8 @@ FunctionCall: class extends Expression {
             
             score := callArg getType() getScore(declArg getType())
             if(score < 0) {
-                "\t..but the type of this arg should be %s, not %s\n" format(declArg getType() toString(), callArg getType() toString()) println()
+                "\t..but the type of this arg should be %s (%s), not %s (%s)\n" format(declArg getType() toString(), declArg getType() getRef() ? declArg getType() getRef() token toString() : "(nil)",
+                                                                                       callArg getType() toString(), callArg getType() getRef() ? callArg getType() getRef() token toString() : "(nil)") println()
                 callArg token printMessage("\t\t", "", "")
             }
         }
@@ -330,7 +332,7 @@ FunctionCall: class extends Expression {
         
         if(returnType == null && ref != null) {
             if(ref returnType getRef() == null) {
-                res wholeAgain(this, "need to know if the return type of our ref is generic.")
+                res wholeAgain(this, "need resolve the return type of our ref (%s) to see if it's generic" format(ref returnType toString()))
                 return Responses OK
             }
             
@@ -342,6 +344,7 @@ FunctionCall: class extends Expression {
                 }
             } else {
                 returnType = ref returnType clone()
+                returnType resolve(trail, res)
             }
             if(returnType != null && !realTypize(returnType, trail, res)) {
                 res wholeAgain(this, "because couldn't properly realTypize return type.")
@@ -383,7 +386,7 @@ FunctionCall: class extends Expression {
                     typeArgName := typeArg getRef() as VariableDecl getName()
                     result := resolveTypeArg(typeArgName, trail, res)
                     //printf("[realTypize] result = %s\n", result ? result toString() : "(nil)")
-                    if(result) baseType typeArgs set(j, result)
+                    if(result) baseType typeArgs set(j, VariableAccess new(result, typeArg token))
                 }
                 j += 1
             }
@@ -733,7 +736,7 @@ FunctionCall: class extends Expression {
             return true;
         }
         
-        return (args replace(oldie, kiddo) != null)
+        args replace(oldie, kiddo)
     }
     
     setReturnArg: func (=returnArg) {}

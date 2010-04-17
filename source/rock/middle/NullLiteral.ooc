@@ -4,11 +4,14 @@ import tinker/[Resolver, Response, Trail]
 
 NullLiteral: class extends Literal {
 
-    type : static Type = BaseType new("Pointer", nullToken)
+    type : BaseType
 
-    init: func ~nullLiteral (.token) { super(token) }
+    init: func ~nullLiteral (.token) {
+        super(token)
+        type = BaseType new("Pointer", token)
+    }
     
-    getType: func -> Type { This type }
+    getType: func -> Type { type }
     
     accept: func (visitor: Visitor) { visitor visitNullLiteral(this) }
     

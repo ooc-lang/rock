@@ -1,5 +1,6 @@
+import io/File
 import Module
-import ../frontend/Token
+import ../frontend/[Token, AstBuilder]
 
 Import: class {
     
@@ -13,6 +14,16 @@ Import: class {
     setModule: func(=module) {}
     
     getModule: func -> Module {
+        if(module == null && token module != null) {
+            impPath = null, impElement = null : File
+            path = null: String
+            AstBuilder getRealImportPath(this, token module, token module params, path&, impPath&, impElement&)
+            
+            if(impPath != null) {
+                module = AstBuilder cache get(impPath path)
+            }
+        }
+        
         module
     }
     

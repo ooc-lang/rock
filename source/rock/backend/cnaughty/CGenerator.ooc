@@ -203,6 +203,9 @@ CGenerator: class extends Skeleton {
             if(paren) current app(')')
         } else if(varAcc ref instanceOf(TypeDecl)) {
             tDecl := varAcc ref as TypeDecl
+            while(tDecl instanceOf(CoverDecl) && tDecl as CoverDecl isAddon()) {
+                tDecl = tDecl as CoverDecl getBase() getNonMeta()
+            }
             current app(tDecl getFullName()). app("_class()")
         } else if(varAcc ref instanceOf(FunctionDecl)) {
             fDecl := varAcc ref as FunctionDecl

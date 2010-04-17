@@ -41,7 +41,7 @@ FuncType: class extends Type {
     dereference : func -> This { null }
     
     clone: func -> This {
-        copy := new(token)
+        copy := This new(token)
         copy typeArgs addAll(typeArgs)
         copy argTypes addAll(argTypes)
         copy returnType = returnType

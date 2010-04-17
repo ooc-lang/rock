@@ -1,7 +1,7 @@
 import ../frontend/Token
 import ControlStatement, Expression, Visitor, VariableDecl, Node,
        VariableAccess, VariableDecl, IntLiteral, Type, RangeLiteral,
-       FunctionCall, Block, Scope, While, BinaryOp
+       FunctionCall, Block, Scope, While, BinaryOp, BaseType
 import tinker/[Trail, Resolver, Response]
 
 Foreach: class extends ControlStatement {
@@ -32,7 +32,7 @@ Foreach: class extends ControlStatement {
         if(variable instanceOf(VariableAccess) && !replaced) {
             varType : Type = null
             if(collection instanceOf(RangeLiteral)) {
-                varType = IntLiteral type
+                varType = BaseType new("Int", variable token)
             }
             variable = VariableDecl new(varType, variable as VariableAccess getName(), variable token)
         }

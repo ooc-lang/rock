@@ -3,8 +3,7 @@ import ../../middle/[Module, Include, Import, TypeDecl, FunctionDecl,
        CoverDecl, ClassDecl, OperatorDecl, InterfaceDecl, VariableDecl,
        Type, FuncType]
 import ../../frontend/BuildParams
-import CoverDeclWriter, ClassDeclWriter, VersionWriter
-import Skeleton
+import CoverDeclWriter, ClassDeclWriter, VersionWriter, Skeleton
 
 ModuleWriter: abstract class extends Skeleton {
 

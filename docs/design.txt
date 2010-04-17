@@ -1,8 +1,0 @@
-
-Definitions:
-
-
-  - Token: a token is a string of characters assembled into a named piece, e.g. '=', or 'cacou'
-  - Node: a node is what the AST is made of, it represents a piece of code in an meaningful way
-  - Rules: a rule assemble one or more tokens into a Node
-  - Leaf:

@@ -64,6 +64,10 @@ TypeDecl: abstract class extends Declaration {
         }
     }
     
+    debugCondition: func -> Bool {
+        false
+    }
+    
     init: func ~typeDecl (.name, .superType, .token) {
         init(name, token)
         setSuperType(superType)
@@ -333,11 +337,12 @@ TypeDecl: abstract class extends Declaration {
         
         trail push(this)
         
-        //if(res params veryVerbose) printf("====== Resolving type decl %s\n", toString())
+        if(debugCondition() || res params veryVerbose) printf("====== Resolving type decl %s\n", toString())
         
         {
             response := type resolve(trail, res)
             if(!response ok()) {
+                if(debugCondition() || res params veryVerbose) printf("====== Response of type of %s == %s\n", toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -346,6 +351,7 @@ TypeDecl: abstract class extends Declaration {
         if(this superType) {
             response := this superType resolve(trail, res)
             if(!response ok()) {
+                if(debugCondition() || res params veryVerbose) printf("====== Response of superType of %s == %s\n", toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -354,6 +360,7 @@ TypeDecl: abstract class extends Declaration {
         if(!_finishedGhosting) {
             response := ghostTypeParams(trail, res)
             if(!response ok()) {
+                if(debugCondition() || res params veryVerbose) printf("====== Response of type-param ghosting of %s == %s\n", toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -362,7 +369,7 @@ TypeDecl: abstract class extends Declaration {
         for(typeArg in getTypeArgs()) {
             response := typeArg resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("Response of typeArg %s = %s\n", typeArg toString(), response toString())
+                if(debugCondition() || res params veryVerbose) printf("====== Response of typeArg %s of %s == %s\n", typeArg toString(), toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -371,7 +378,7 @@ TypeDecl: abstract class extends Declaration {
         for(vDecl in variables) {
             response := vDecl resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("Response of vDecl %s = %s\n", vDecl toString(), response toString())
+                if(debugCondition() || res params veryVerbose) printf("====== Response of vDecl %s of %s == %s\n", vDecl toString(), toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -380,7 +387,7 @@ TypeDecl: abstract class extends Declaration {
         for(fDecl in functions) {
             response := fDecl resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("Response of fDecl %s = %s\n", fDecl toString(), response toString())
+                if(debugCondition() || res params veryVerbose) printf("====== Response of fDecl %s of %s == %s\n", fDecl toString(), toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -493,6 +500,10 @@ TypeDecl: abstract class extends Declaration {
             if(access suggest(getNonMeta() ? getNonMeta() : this)) return
         }
         
+        for(v in variables) {
+            if(access debugCondition()) printf("Got var %s.%s\n", toString(), v toString())
+        }
+        
         vDecl := variables get(access getName())
         if(vDecl) {
             //"&&&&&&&& Found vDecl %s for %s in %s" format(vDecl toString(), access name, name) println()
@@ -534,7 +545,7 @@ TypeDecl: abstract class extends Declaration {
         }
         
         finalScore: Int
-        fDecl := getFunction(call, finalScore&)
+        fDecl := getFunction(call name, call suffix, call, true, finalScore&)
         if(finalScore == -1) {
             res wholeAgain(call, "Got -1 from finalScore!")
             //return -1 // something's not resolved
@@ -548,14 +559,30 @@ TypeDecl: abstract class extends Declaration {
             	if(call debugCondition()) "   returning..." println()
 	            return 0
             }
-        } else if(getSuperRef() != null) {
+        }/* else if(getSuperRef() != null) {
             if(call debugCondition()) printf("  <== going in superRef %s\n", getSuperRef() toString())
             if(getSuperRef() resolveCall(call, res) == -1) return -1
-        }
+        }*/ // FIXME: uncomment when we're sure this doesn't cause any problems
         
         if(getBase() != null) {
-            printf("Looking in base %s\n", getBase() toString())
+            if(call debugCondition()) printf("Looking in base %s\n", getBase() toString())
             if(getBase() resolveCall(call, res) == -1) return -1
+        }
+        
+        for(addon in addons) {
+            has := false
+            // TODO: What about namespaced imports?
+            for(imp in call token module getGlobalImports()) {
+                if(imp getModule() == addon token module) {
+                    has = true
+                    break
+                }
+            }
+            
+            if(!has) continue
+            
+            if(call debugCondition()) printf("Looking into addon %s\n", addon toString())
+            if(addon resolveCall(call, res) == -1) return -1
         }
         
         if(call getRef() == null) {

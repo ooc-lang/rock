@@ -76,10 +76,13 @@ FunctionDecl: class extends Declaration {
     
     isAnon: func -> Bool { isAnon }
     
+    debugCondition: func -> Bool {
+        false
+    }
+    
     markForPartialing: func(var: VariableDecl) {
         if (!variablesToPartial contains(var)) variablesToPartial add(var)
     }
-
     
     setOwner: func (=owner) {
         if(isStatic) return
@@ -235,12 +238,12 @@ FunctionDecl: class extends Declaration {
         
         trail push(this)
         
-        //if(res params veryVerbose) printf("** Resolving function decl %s\n", name)
+        if(debugCondition() || res params veryVerbose) printf("** Resolving function decl %s\n", name)
 
         for(arg in args) {
             response := arg resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("Response of arg %s = %s\n", arg toString(), response toString())
+                if(debugCondition() || res params veryVerbose) printf("Response of arg %s = %s\n", arg toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -249,7 +252,7 @@ FunctionDecl: class extends Declaration {
         for(typeArg in typeArgs) {
             response := typeArg resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("Response of typeArg %s = %s\n", typeArg toString(), response toString())
+                if(debugCondition() || res params veryVerbose) printf("Response of typeArg %s = %s\n", typeArg toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -258,7 +261,7 @@ FunctionDecl: class extends Declaration {
         {
             response := returnType resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("))))))) For %s, response of return type %s = %s\n", toString(), returnType toString(), response toString()) 
+                if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of return type %s = %s\n", toString(), returnType toString(), response toString()) 
                 trail pop(this)
                 return response
             }
@@ -270,16 +273,22 @@ FunctionDecl: class extends Declaration {
         {
             response := body resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("))))))) For %s, response of body = %s\n", toString(), response toString())
+                if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of body = %s\n", toString(), response toString())
                 trail pop(this)
-                return response
+                res wholeAgain(this, "we be body-movin'")
+                return Responses OK
+                
+                // Why aren't we relaying the response of the body? Because 
+                // the trail is usually clean below the body and it would
+                // blow-up way too soon if we LOOP-ed on every foreach/evil thing
+                //return response
             }
         }
         
         if(!isAbstract && vDecl == null) {
             response := autoReturn(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("))))))) For %s, response of autoReturn = %s\n", toString(), response toString())
+                if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of autoReturn = %s\n", toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -290,14 +299,14 @@ FunctionDecl: class extends Declaration {
 			if(args size() == 1 && args first() getType() getName() == "ArrayList") {
                 arg := args first()
 				args clear()
-                argc := Argument new(IntLiteral type, "argc", arg token)
-                argv := Argument new(PointerType new(StringLiteral type, arg token), "argv", arg token)
+                argc := Argument new(BaseType new("Int", arg token), "argc", arg token)
+                argv := Argument new(PointerType new(BaseType new("String", arg token), arg token), "argv", arg token)
                 args add(argc)
                 args add(argv)
 
 				constructCall := FunctionCall new(VariableAccess new(arg getType(), arg token), "new", arg token)
                 constructCall setSuffix("withData")
-				constructCall typeArgs add(VariableAccess new(NullLiteral type, arg token))
+				constructCall typeArgs add(VariableAccess new(BaseType new("Pointer", arg token), arg token))
 				constructCall args add(VariableAccess new(argv, arg token)) \
                                   .add(VariableAccess new(argc, arg token))
 
@@ -343,8 +352,8 @@ FunctionDecl: class extends Declaration {
         } else {
             partialClass := VariableAccess new("Partial", token)
             newCall := FunctionCall new(partialClass, "new", token)
-            partialDecl := VariableDecl new(null, "partial", newCall, token)
-            
+            partialName := generateTempName("partial")
+            partialDecl := VariableDecl new(null, partialName, newCall, token)
             trail addBeforeInScope(this, partialDecl) 
 
             argsSizes := String new(args size())
@@ -367,7 +376,7 @@ FunctionDecl: class extends Declaration {
                 argsSizes[i] = val
             }
             
-            partialAcc := VariableAccess new("partial", token)
+            partialAcc := VariableAccess new(partialName, token)
             for (e in variablesToPartial) {
                 addArg := FunctionCall new(partialAcc, "addArgument", token)
                 addArg getArguments() add(VariableAccess new(e, e token))
@@ -390,7 +399,7 @@ FunctionDecl: class extends Declaration {
         finalResponse := Responses OK
         
         if(isMain() && isVoid()) {
-            returnType = IntLiteral type
+            returnType = BaseType new("Int", token)
             res wholeAgain(this, "because changed returnType to %s\n")
         }
         
@@ -430,7 +439,7 @@ FunctionDecl: class extends Declaration {
                 return
             }
             
-            if(isMain() && !expr getType() equals(IntLiteral type)) {
+            if(isMain() && !(expr getType() getName() == "Int" && expr getType() pointerLevel() == 0)) {
                 returnNeeded(trail)
                 res wholeAgain(this, "was needing return")
                 return
@@ -475,10 +484,12 @@ FunctionDecl: class extends Declaration {
     }
     
     replace: func (oldie, kiddo: Node) -> Bool {
-        match oldie {
-            case returnType => returnType = kiddo; true
-            case => body replace(oldie, kiddo) != null
+        if(oldie == returnType) {
+            returnType = kiddo
+            return true
         }
+        
+        body replace(oldie, kiddo)
     }
     
     addBefore: func (mark, newcomer: Node) -> Bool {

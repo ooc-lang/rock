@@ -6,9 +6,12 @@ import tinker/[Resolver, Response, Trail]
 RangeLiteral: class extends Literal {
     
     lower, upper: Expression
-    type : static Type = BaseType new("Range", nullToken)
+    type : Type
     
-    init: func ~rangeLiteral (=lower, =upper, .token) { super(token) }
+    init: func ~rangeLiteral (=lower, =upper, .token) {
+        super(token)
+        type = BaseType new("Range", token)
+    }
     
     accept: func (visitor: Visitor) {
         visitor visitRangeLiteral(this)
@@ -54,7 +57,7 @@ RangeLiteral: class extends Literal {
         return Responses OK
     }
     
-    getType: func -> Type { This type }
+    getType: func -> Type { type }
     
     replace: func (oldie, kiddo: Node) -> Bool {
         match oldie {

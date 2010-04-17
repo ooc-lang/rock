@@ -316,11 +316,13 @@ CommandLine: class {
         
         fullName := moduleName substring(0, moduleName length() - 4)
         module := Module new(fullName, params sourcePath getElement(moduleName) path, params , nullToken)
+        module token = Token new(0, 0, module)
         module main = true
         
         // phase 1: parse
         AstBuilder new(modulePath, module, params)
         module parseImports(null)
+        if(params verbose) printf("Finished parsing\n")
         
         // phase 2: tinker
         moduleList := ArrayList<Module> new()

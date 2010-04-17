@@ -4,13 +4,16 @@ import Literal, Visitor, Type, BaseType
 IntLiteral: class extends Literal {
 
     value: Int64
-    type := static BaseType new("Int", nullToken)
+    type : BaseType
     
-    init: func ~intLiteral (=value, .token) { super(token) }
+    init: func ~intLiteral (=value, .token) {
+        super(token)
+        type = BaseType new("Int", token)
+    }
     
     accept: func (visitor: Visitor) { visitor visitIntLiteral(this) }
 
-    getType: func -> Type { This type }
+    getType: func -> Type { type }
     
     toString: func -> String { "%lld" format(value) }
 

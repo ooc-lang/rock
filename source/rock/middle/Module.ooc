@@ -28,6 +28,7 @@ Module: class extends Node {
     lastModified : Long
 
     params: BuildParams
+    
     init: func ~module (.fullName, =pathElement, =params, .token) {
         super(token)
         this path = fullName clone()
@@ -228,19 +229,11 @@ Module: class extends Node {
         for(imp: Import in getAllImports()) {
             if(imp getModule() != null) continue
             
-            path := FileUtils resolveRedundancies(imp path + ".ooc")
-            impElement := params sourcePath getElement(path)
-            impPath := params sourcePath getFile(path)
+            impPath = null, impElement = null : File
+            path = null: String
+            AstBuilder getRealImportPath(imp, this, params, path&, impPath&, impElement&)
             if(impPath == null) {
-                parent := File new(getPath()) parent()
-                if(parent != null) {
-                    path = FileUtils resolveRedundancies(File new(getPath()) parent() path + File separator + imp path + ".ooc")
-                    impElement = params sourcePath getElement(path)
-                    impPath = params sourcePath getFile(path)
-                }
-                if(impPath == null) {
-                    imp token throwError("Module not found in sourcepath " + imp path)
-                }
+                imp token throwError("Module not found in sourcepath " + imp path)
             }
 
             //println("Trying to get "+impPath path+" from cache")
@@ -254,7 +247,8 @@ Module: class extends Node {
                     printf("%s has been changed, recompiling... (%d vs %d), impPath = %s", path, File new(impPath path) lastModified(), cached lastModified, impPath path);
                 }
                 //printf("impElement path = %s, impPath = %s\n", impElement path, impPath path)
-                cached = Module new(path[0..(path length()-4)], impElement path, params, token)
+                cached = Module new(path[0..(path length()-4)], impElement path, params, nullToken)
+                cached token = Token new(0, 0, cached)
                 if(resolver != null) {
                     resolver addModule(cached)
                 }
