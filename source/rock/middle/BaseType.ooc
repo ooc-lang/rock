@@ -305,7 +305,7 @@ BaseType: class extends Type {
                 //printf("Found candidate %s for typeArg %s\n", candidate toString(), typeArgName)
                 if(ref instanceOf(TypeDecl)) {
                     // resolves to a known type
-                    result = candidate getRef() as TypeDecl getInstanceType()
+                    result = ref as TypeDecl getInstanceType()
                 } else if(ref instanceOf(VariableDecl)) {
                     // resolves to an access to another generic type
                     result = BaseType new(ref as VariableDecl getName(), token)
@@ -313,6 +313,45 @@ BaseType: class extends Type {
                 return result
             }
             j += 1
+        }
+        
+        // translate things like:
+        // HashMap<K, V> extends Iterator<V>
+        current := typeRef
+        while(current != null) {
+            if(current getSuperType() == null) break
+            if(current getSuperRef() == null) return null // something needs to be resolved further
+            
+            j := 0
+            superArgs := current getSuperRef() getTypeArgs()
+            for(superArg in superArgs) {
+                if(superArg getName() == typeArgName) {
+                    //printf("Found match for <%s> in %s extends %s (aka %s)\n", typeArgName, current toString(), current getSuperType() toString(), current getSuperRef() toString())
+                    superRealArgs := current getSuperType() getTypeArgs()
+                    if(superRealArgs == null || superRealArgs size() < j) {
+                        current getSuperType() token throwError("Missing type arguments to fully infer <%s>. It must match %s" format(typeArgName, current getSuperRef() toString()))
+                    }
+                    // FIXME: That's awful, and will give us plenty o'trouble. We'll be warned!
+                    candidate := superRealArgs get(j)
+                    ref := candidate getRef()
+                    
+                    if(ref == null) return null
+                    result : Type = null
+                    
+                    //printf("Found candidate %s for typeArg %s\n", candidate toString(), typeArgName)
+                    if(ref instanceOf(TypeDecl)) {
+                        // resolves to a known type
+                        result = ref as TypeDecl getInstanceType()
+                    } else if(ref instanceOf(VariableDecl)) {
+                        // resolves to an access to another generic type
+                        result = BaseType new(ref as VariableDecl getName(), token)
+                    }
+                    return result
+                }
+                j += 1
+            }
+            
+            current = current getSuperRef()
         }
         
         superType := typeRef getSuperType()
