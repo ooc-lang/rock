@@ -61,9 +61,6 @@ BaseType: class extends Type {
     }
     
     addTypeArg: func (typeArg: VariableAccess) -> Bool {
-        if(typeArg class != VariableAccess) {
-            Exception new(This, "Got a %s instead of a VariableAccess" format(typeArg toString())) throw()
-        }
         if(!typeArgs) typeArgs = ArrayList<VariableAccess> new()
         typeArgs add(typeArg); true
     }
@@ -118,8 +115,11 @@ BaseType: class extends Type {
         } else if(getRef() instanceOf(TypeDecl)) {
             tDecl := getRef() as TypeDecl
             if(!tDecl isMeta && !tDecl getTypeArgs() isEmpty()) {
-                if(typeArgs == null || typeArgs size() != tDecl getTypeArgs() size()) {
-                    token throwError("Missing type parameters for "+toString()+". It should match "+tDecl getInstanceType() toString())
+                size1 := typeArgs size()
+                size2 := tDecl getTypeArgs() size()
+                if(typeArgs == null || size1 != size2) {
+                    token throwError("%s type parameters for %s. It should match %s" format(
+                        size1 < size2 ? "Missing" : "Too many", toString(), tDecl getInstanceType() toString()))
                 }
             }
         }

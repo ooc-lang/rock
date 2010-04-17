@@ -48,7 +48,7 @@ Type: abstract class extends Expression {
         return under
     }
     
-    getRef: func -> Declaration { null }
+    getRef: abstract func -> Declaration
     setRef: abstract func (d: Declaration)
     
     isGeneric: func -> Bool {
