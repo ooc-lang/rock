@@ -271,7 +271,10 @@ TypeDecl: abstract class extends Declaration {
                 if(fDecl name equals(name) && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix equals(suffix))) {
                     if(!call) return fDecl
                     score := call getScore(fDecl)
-                    if(score == -1) return null // special score that means "something isn't resolved"
+                    if(score == -1) {
+                        finalScore = -1
+                        return null // special score that means "something isn't resolved"
+                    }
 
                     if(score > bestScore) {
                         bestScore = score
@@ -284,6 +287,8 @@ TypeDecl: abstract class extends Declaration {
         if(recursive && getSuperRef() != null) {
             return getSuperRef() getFunction(name, suffix, call, true, bestScore, bestMatch, finalScore&)
         }
+        if(finalScore == -1) return null
+        
         finalScore = bestScore
         return bestMatch
         
@@ -548,7 +553,7 @@ TypeDecl: abstract class extends Declaration {
         fDecl := getFunction(call name, call suffix, call, true, finalScore&)
         if(finalScore == -1) {
             res wholeAgain(call, "Got -1 from finalScore!")
-            //return -1 // something's not resolved
+            return -1 // something's not resolved
         }
         if(fDecl) {
             if(call debugCondition()) "    \\o/ Found fDecl for %s, it's %s" format(call name, fDecl toString()) println()

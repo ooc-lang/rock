@@ -42,6 +42,7 @@ FunctionCall: class extends Expression {
     }
     
     debugCondition: func -> Bool {
+        //toString() startsWith("OrderedMultiMap.orderedKeys iterator()")
         false
     }
     
@@ -614,12 +615,10 @@ FunctionCall: class extends Expression {
             return Type NOLUCK_SCORE
         }
         
-        /*
-        if(decl getOwner() != null) {
+        if(decl getOwner() != null && isMember()) {
             // Will suffice to make a member call stronger
             score += Type SCORE_SEED
         }
-        */
         
         if(declArgs size() == 0) return score
         
