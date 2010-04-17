@@ -1,4 +1,4 @@
-import text/Buffer
+import text/Buffer, math
 
 EscapeSequence: class {
     valid := static 1
