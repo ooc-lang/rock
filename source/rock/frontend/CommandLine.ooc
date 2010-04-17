@@ -231,11 +231,6 @@ CommandLine: class {
                     Help printHelpMake()
                     exit(0)
                     
-                } else if (option == "help-none" || option == "-help-none") {
-                    
-                    Help printHelpNone()
-                    exit(0)
-                    
                 } else if (option == "slave") {
                     
                     params slave = true
