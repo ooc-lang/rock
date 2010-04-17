@@ -27,7 +27,7 @@ Resolver: class {
     }
     
     wholeAgain: func (node: Node, reason: String) {
-        if(fatal && params fatalError) {
+        if(fatal && BuildParams fatalError) {
             node token throwError(reason)
         }
         

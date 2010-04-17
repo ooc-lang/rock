@@ -37,7 +37,7 @@ VariableAccess: class extends Expression {
     // It's just an access, it has no side-effects whatsoever
     hasSideEffects : func -> Bool { false }
     
-    debugCondition: func -> Bool { name == "orderedKeys" }
+    debugCondition: func -> Bool { false }
     
     suggest: func (node: Node) -> Bool {
         if(node instanceOf(VariableDecl)) {

@@ -500,6 +500,10 @@ TypeDecl: abstract class extends Declaration {
             if(access suggest(getNonMeta() ? getNonMeta() : this)) return
         }
         
+        for(v in variables) {
+            if(access debugCondition()) printf("Got var %s.%s\n", toString(), v toString())
+        }
+        
         vDecl := variables get(access getName())
         if(vDecl) {
             //"&&&&&&&& Found vDecl %s for %s in %s" format(vDecl toString(), access name, name) println()
