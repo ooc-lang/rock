@@ -3,7 +3,7 @@ import text/Buffer
 
 import ../frontend/Token
 
-import tinker/[Resolver]
+import tinker/[Resolver, Trail]
 import Declaration, Import, Type, Visitor, Node, VariableAccess,
        FunctionCall, BaseType
 
@@ -47,19 +47,23 @@ NamespaceDecl: class extends Declaration {
         
     }
     
-    resolveCall: func (call: FunctionCall, res: Resolver) {
+    resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
         
         for(imp in imports) {
-            imp getModule() resolveCall(call, res)
+            imp getModule() resolveCall(call, res, trail)
         }
+        
+        0
         
     }
     
-    resolveAccess: func (access: VariableAccess) {
+    resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
         
         for(imp in imports) {
-            imp getModule() resolveAccess(access)
+            imp getModule() resolveAccess(access, res, trail)
         }
+        
+        0
         
     }
     

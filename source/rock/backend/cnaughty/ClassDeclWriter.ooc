@@ -160,7 +160,7 @@ ClassDeclWriter: abstract class extends Skeleton {
             	superLoad := superRef getFunction(ClassDecl LOAD_FUNC_NAME, null, null, finalScore&)
             	if(superLoad) {
 					FunctionDeclWriter writeFullName(this, superLoad)
-					current app("_impl();")
+					current app("();")
             	}
             	for(vDecl in cDecl variables) {
 					if(vDecl getExpr() == null) continue

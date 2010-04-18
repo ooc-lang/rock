@@ -105,10 +105,14 @@ VariableDecl: class extends Declaration {
         fullName
     }
 
-    resolveAccess: func (access: VariableAccess) {
+    resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
+        // FIXME: This, huh, shouldn't be needed at all, right?
+        // ie. it should all be handled in Scope anyway, I think.
         if(name == access name) {
             access suggest(this)
         }
+        
+        0
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {

@@ -150,8 +150,11 @@ Case: class extends ControlStatement {
     getExpr: func -> Expression { expr }
     setExpr: func (=expr) {}
     
-    resolveAccess: func (access: VariableAccess) {
-        body resolveAccess(access)
+    resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) {
+        
+        // FIXME: probably not necessary (harmful, even)
+        body resolveAccess(access, res, trail)
+        
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {

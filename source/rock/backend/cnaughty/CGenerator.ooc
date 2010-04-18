@@ -22,7 +22,7 @@ import Skeleton, FunctionDeclWriter, ControlStatementWriter,
 
 CGenerator: class extends Skeleton {
 
-    init: func (=params, =module) {
+    init: func ~cgenerator (=params, =module) {
         outPath := params getOutputPath(module, "")
         File new(outPath) parent() mkdirs()
         // CachedFileWriter should be used here, but it's broken atm.

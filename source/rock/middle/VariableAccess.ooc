@@ -103,7 +103,7 @@ VariableAccess: class extends Expression {
         if(!ref && expr) {
             if(expr instanceOf(VariableAccess) && expr as VariableAccess getRef() != null \
               && expr as VariableAccess getRef() instanceOf(NamespaceDecl)) {
-                expr as VariableAccess getRef() resolveAccess(this)
+                expr as VariableAccess getRef() resolveAccess(this, res, trail)
             } else {
                 exprType := expr getType()
                 if(exprType == null) {
@@ -118,7 +118,7 @@ VariableAccess: class extends Expression {
                       format(expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)"))
                     return Responses OK
                 }
-                typeDecl resolveAccess(this)
+                typeDecl resolveAccess(this, res, trail)
             }
         }
         
@@ -136,7 +136,7 @@ VariableAccess: class extends Expression {
                     tDecl := node as TypeDecl
                     if(tDecl isMeta) node = tDecl getNonMeta()
                 }
-                node resolveAccess(this)
+                node resolveAccess(this, res, trail)
                 
                 if(ref) {
                     // only accesses to variable decls need to be partialed (not type decls)

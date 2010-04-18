@@ -489,24 +489,26 @@ TypeDecl: abstract class extends Declaration {
         
     }
 
-    resolveAccess: func (access: VariableAccess) {
+    resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
         
         // don't allow to resolve any access before finishing ghosting
         if(!_finishedGhosting) {
-            return;
+            return -1
         }
         
         if(access getName() == "this") {
-            if(access suggest(getNonMeta() ? getNonMeta() thisDecl : thisDecl)) return
+            if(access suggest(getNonMeta() ? getNonMeta() thisDecl : thisDecl)) return 0
         }
         
         if(access getName() == "This") {
             //printf("Asking for 'This' in %s (non-meta %s)\n", toString(), getNonMeta() ? getNonMeta() toString() : "(nil)")
-            if(access suggest(getNonMeta() ? getNonMeta() : this)) return
+            if(access suggest(getNonMeta() ? getNonMeta() : this)) return 0
         }
         
-        for(v in variables) {
-            if(access debugCondition()) printf("Got var %s.%s\n", toString(), v toString())
+        if(access debugCondition()) {
+            for(v in variables) {
+                printf("Got var %s.%s\n", toString(), v toString())
+            }
         }
         
         vDecl := variables get(access getName())
@@ -517,30 +519,32 @@ TypeDecl: abstract class extends Declaration {
 	                varAcc := VariableAccess new("this", nullToken)
 	                access expr = varAcc
                 }
-                return
+                return 0
             }
         }
 
         finalScore: Int
 		fDecl := getFunction(access name, null, null, finalScore&)
         if(finalScore == -1) {
-            return // something's not resolved
+            return -1 // something's not resolved
         }
 		if(fDecl) {
             //"&&&&&&&& Found fDecl %s for %s" format(fDecl toString(), access name) println()
             if(access suggest(fDecl)) {
-            	return
+            	return 0
             }
 		}
 		
         if(getSuperRef() != null) {
         	//FIXME: should return here if success
-            getSuperRef() resolveAccess(access)
+            getSuperRef() resolveAccess(access, res, trail)
         }
+        
+        0
         
     }
     
-    resolveCall: func (call : FunctionCall, res: Resolver) -> Int {
+    resolveCall: func (call : FunctionCall, res: Resolver, trail: Trail) -> Int {
 
         if(call debugCondition()) {
             printf("\n====> Search %s in %s (which has %d functions)\n", call toString(), name, functions size())
@@ -566,12 +570,12 @@ TypeDecl: abstract class extends Declaration {
             }
         }/* else if(getSuperRef() != null) {
             if(call debugCondition()) printf("  <== going in superRef %s\n", getSuperRef() toString())
-            if(getSuperRef() resolveCall(call, res) == -1) return -1
+            if(getSuperRef() resolveCall(call, res, trail) == -1) return -1
         }*/ // FIXME: uncomment when we're sure this doesn't cause any problems
         
         if(getBase() != null) {
             if(call debugCondition()) printf("Looking in base %s\n", getBase() toString())
-            if(getBase() resolveCall(call, res) == -1) return -1
+            if(getBase() resolveCall(call, res, trail) == -1) return -1
         }
         
         for(addon in addons) {
@@ -587,7 +591,7 @@ TypeDecl: abstract class extends Declaration {
             if(!has) continue
             
             if(call debugCondition()) printf("Looking into addon %s\n", addon toString())
-            if(addon resolveCall(call, res) == -1) return -1
+            if(addon resolveCall(call, res, trail) == -1) return -1
         }
         
         if(call getRef() == null) {
@@ -604,7 +608,7 @@ TypeDecl: abstract class extends Declaration {
             }
         }
         
-        return 0
+        0
         
     }
     

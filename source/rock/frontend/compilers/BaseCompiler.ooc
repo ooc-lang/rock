@@ -11,7 +11,7 @@ BaseCompiler: abstract class extends AbstractCompiler {
     command: List<String>
     executablePath: String
     
-    init: func(executableName: String) {
+    init: func ~baseCompiler (executableName: String) {
         command = ArrayList<String> new();
         executablePath = ""
         

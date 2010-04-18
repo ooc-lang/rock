@@ -203,16 +203,17 @@ FunctionDecl: class extends Declaration {
         
     }
 
-    resolveCall: func (call: FunctionCall, res: Resolver) {
+    resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
         for(arg: Argument in args) {
             if(arg getName() == call getName() && arg getType() instanceOf(FuncType)) {
                 call suggest(arg getFunctionDecl())
                 break
             }
         }
+        0
     }
     
-    resolveAccess: func (access: VariableAccess) {
+    resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
         
         //printf("Looking for %s in %s\n", access toString(), toString())
         
@@ -231,7 +232,12 @@ FunctionDecl: class extends Declaration {
                 if(access suggest(arg)) return
             }
         }
-        body resolveAccess(access)
+        
+        // FIXME: I'm pretty sure this isn't necessary (harmful, even)
+        body resolveAccess(access, res, trail)
+        
+        0
+        
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {

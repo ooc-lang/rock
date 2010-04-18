@@ -4,7 +4,7 @@ import ../backend/cnaughty/AwesomeWriter, ../frontend/BuildParams
 import tinker/[Response, Resolver, Trail]
 
 import Type, Declaration, VariableAccess, VariableDecl, TypeDecl,
-       InterfaceDecl, Node, ClassDecl, CoverDecl
+       InterfaceDecl, Node, ClassDecl, CoverDecl, Cast
 
 BaseType: class extends Type {
 
@@ -115,11 +115,17 @@ BaseType: class extends Type {
         } else if(getRef() instanceOf(TypeDecl)) {
             tDecl := getRef() as TypeDecl
             if(!tDecl isMeta && !tDecl getTypeArgs() isEmpty()) {
-                size1 := typeArgs size()
-                size2 := tDecl getTypeArgs() size()
-                if(typeArgs == null || size1 != size2) {
-                    token throwError("%s type parameters for %s. It should match %s" format(
-                        size1 < size2 ? "Missing" : "Too many", toString(), tDecl getInstanceType() toString()))
+                if((typeArgs == null || typeArgs size() != tDecl getTypeArgs() size()) && !trail peek() instanceOf(Cast)) {
+                    message : String = match {
+                        case typeArgs == null =>
+                            "No"
+                        case typeArgs size() < tDecl getTypeArgs() size() =>
+                            "Missing"
+                        case =>
+                            "Too many"
+                    }
+                    
+                    token throwError("%s type parameters for %s. It should match %s" format(message, toString(), tDecl getInstanceType() toString()))
                 }
             }
         }

@@ -144,14 +144,14 @@ FunctionCall: class extends Expression {
 				    depth := trail size() - 1
 				    while(depth >= 0) {
 				        node := trail get(depth, Node)
-				        if(node resolveCall(this, res) == -1) {
+				        if(node resolveCall(this, res, trail) == -1) {
                             res wholeAgain(this, "Waiting on other nodes to resolve before resolving call.")
                             return Responses OK
                         }
 				        depth -= 1
 				    }
 			    } else if(expr instanceOf(VariableAccess) && expr as VariableAccess getRef() != null && expr as VariableAccess getRef() instanceOf(NamespaceDecl)) {
-                    expr as VariableAccess getRef() resolveCall(this, res)
+                    expr as VariableAccess getRef() resolveCall(this, res, trail)
                 } else if(expr getType() != null && expr getType() getRef() != null) {
                     if(!expr getType() getRef() instanceOf(TypeDecl)) {
                         message := "No such function %s.%s%s (you can't call methods on generic types! you have to cast them to something sane first)" format(expr getType() getName(), name, getArgsTypesRepr())
@@ -161,9 +161,9 @@ FunctionCall: class extends Expression {
 		            meta := tDecl getMeta()
                     if(debugCondition()) printf("Got tDecl %s, resolving, meta = %s\n", tDecl toString(), meta == null ? "(nil)" : meta toString())
 		            if(meta) {
-		                meta resolveCall(this, res)
+		                meta resolveCall(this, res, trail)
 		            } else {
-		                tDecl resolveCall(this, res)
+		                tDecl resolveCall(this, res, trail)
 		            }
 		        }
             }
