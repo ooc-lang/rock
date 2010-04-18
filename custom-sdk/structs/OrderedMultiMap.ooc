@@ -4,6 +4,14 @@ OrderedMultiMap: class <K, V> extends MultiMap<K, V> {
     
     orderedKeys := ArrayList<K> new()
     
+    init: func ~ommWithCapa (capacity: Int) {
+        super(capacity)
+    }
+    
+    init: func ~omm {
+        super()
+    }
+    
     // MultiMapValueIterator uses getKeys(), so it will iterate in order =)
     getKeys: func -> ArrayList<K> { orderedKeys }
     

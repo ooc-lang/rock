@@ -285,7 +285,7 @@ BaseType: class extends Type {
         return sb toString()
     }
     
-    searchTypeArg: func (typeArgName: String) -> Type {
+    searchTypeArg: func (typeArgName: String, finalScore: Int@) -> Type {
         if(getRef() == null) return null
         
         if(!getRef() instanceOf(TypeDecl)) {
@@ -326,25 +326,34 @@ BaseType: class extends Type {
         current := typeRef
         while(current != null) {
             if(current getSuperType() == null) break
-            if(current getSuperRef() == null) return null // something needs to be resolved further
+            if(current getSuperRef() == null) {
+                finalScore = -1
+                printf("current superRef() is null, looping")
+                return null // something needs to be resolved further
+            }
             
             j := 0
             superArgs := current getSuperRef() getTypeArgs()
             for(superArg in superArgs) {
                 if(superArg getName() == typeArgName) {
-                    //printf("Found match for <%s> in %s extends %s (aka %s)\n", typeArgName, current toString(), current getSuperType() toString(), current getSuperRef() toString())
+                    printf("Found match for <%s> in %s extends %s (aka %s)\n", typeArgName, current toString(), current getSuperType() toString(), current getSuperRef() toString())
                     superRealArgs := current getSuperType() getTypeArgs()
                     if(superRealArgs == null || superRealArgs size() < j) {
                         current getSuperType() token throwError("Missing type arguments to fully infer <%s>. It must match %s" format(typeArgName, current getSuperRef() toString()))
                     }
                     // FIXME: That's awful, and will give us plenty o'trouble. We'll be warned!
                     candidate := superRealArgs get(j)
+                    
                     ref := candidate getRef()
                     
-                    if(ref == null) return null
+                    if(ref == null) {
+                        printf("ref of %s is null, looping\n", candidate toString())
+                        finalScore = -1
+                        return null
+                    }
                     result : Type = null
                     
-                    //printf("Found candidate %s for typeArg %s\n", candidate toString(), typeArgName)
+                    printf("Found candidate %s for typeArg %s, ref is a %s\n", candidate toString(), typeArgName, ref class name)
                     if(ref instanceOf(TypeDecl)) {
                         // resolves to a known type
                         result = ref as TypeDecl getInstanceType()
@@ -352,6 +361,7 @@ BaseType: class extends Type {
                         // resolves to an access to another generic type
                         result = BaseType new(ref as VariableDecl getName(), token)
                     }
+                    printf("Final result = %s\n", result toString())
                     return result
                 }
                 j += 1
@@ -363,7 +373,7 @@ BaseType: class extends Type {
         superType := typeRef getSuperType()
         if(superType != null) {
             //printf("Searching for <%s> in super-type %s\n", typeArgName, superType toString())
-            return superType searchTypeArg(typeArgName)
+            return superType searchTypeArg(typeArgName, finalScore&)
         }
         
         return null

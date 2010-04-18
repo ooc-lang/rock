@@ -42,7 +42,8 @@ FunctionCall: class extends Expression {
     }
     
     debugCondition: func -> Bool {
-        false
+        //false
+        name == "iterator"
     }
     
     suggest: func (candidate: FunctionDecl) -> Bool {
@@ -336,10 +337,11 @@ FunctionCall: class extends Expression {
                 return Responses OK
             }
             
+            finalScore := 0
             if(ref returnType isGeneric()) {
                 if(res params veryVerbose) printf("\t$$$$ resolving returnType %s for %s\n", ref returnType toString(), toString())
-                returnType = resolveTypeArg(ref returnType getName(), trail, res)
-                if(returnType == null && res fatal) {
+                returnType = resolveTypeArg(ref returnType getName(), trail, res, finalScore&)
+                if((finalScore == -1 || returnType == null) && res fatal) {
                     token throwError("Not enough info to resolve return type %s of function call\n" format(ref returnType toString()))
                 }
             } else {
@@ -351,6 +353,7 @@ FunctionCall: class extends Expression {
                 res wholeAgain(this, "because couldn't properly realTypize return type.")
                 returnType = null
             }
+            if(debugCondition()) printf("Realtypized return of %s = %s\n", toString(), returnType ? returnType toString() : "(nil)")
             
             if(returnType) {
                 res wholeAgain(this, "because of return type %s (%s)" format(returnType toString(), returnType token toString()))
@@ -385,7 +388,9 @@ FunctionCall: class extends Expression {
                 // if it's generic-unspecific, it needs to be resolved
                 if(typeArg getRef() instanceOf(VariableDecl)) {
                     typeArgName := typeArg getRef() as VariableDecl getName()
-                    result := resolveTypeArg(typeArgName, trail, res)
+                    finalScore := 0
+                    result := resolveTypeArg(typeArgName, trail, res, finalScore&)
+                    if(finalScore == -1) return false
                     if(debugCondition()) printf("[realTypize] result = %s\n", result ? result toString() : "(nil)")
                     if(result) baseType typeArgs set(j, VariableAccess new(result, typeArg token))
                 }
@@ -476,7 +481,9 @@ FunctionCall: class extends Expression {
             typeArg := ref typeArgs get(i)
             //if(res params veryVerbose) printf("\t$$$$ resolving typeArg %s\n", typeArg name)
             
-            typeResult := resolveTypeArg(typeArg name, trail, res)
+            finalScore := 0
+            typeResult := resolveTypeArg(typeArg name, trail, res, finalScore&)
+            if(finalScore == -1) break
             if(typeResult) {
                 typeArgs add(VariableAccess new(typeResult getName(), nullToken))
             } else break // typeArgs must be in order
@@ -505,7 +512,7 @@ FunctionCall: class extends Expression {
         
     }
     
-    resolveTypeArg: func (typeArgName: String, trail: Trail, res: Resolver) -> Type {
+    resolveTypeArg: func (typeArgName: String, trail: Trail, res: Resolver, finalScore: Int@) -> Type {
         
         if(debugCondition()) printf("Should resolve typeArg %s in call%s\n", typeArgName, toString())
         
@@ -544,7 +551,8 @@ FunctionCall: class extends Expression {
             if(arg getType() == null) continue
             
             if(debugCondition()) printf("Looking for typeArg %s in arg's type %s\n", typeArgName, arg getType() toString())
-            result := arg getType() searchTypeArg(typeArgName)
+            result := arg getType() searchTypeArg(typeArgName, finalScore&)
+            if(finalScore == -1) return null // something has to be resolved further!
             if(result) {
                 if(debugCondition()) printf("Found match for arg %s! Hence, result = %s (cause arg = %s)\n", typeArgName, result toString(), arg toString())
                 return result
@@ -563,7 +571,8 @@ FunctionCall: class extends Expression {
             }
             
             if(tDecl getNonMeta() != null) {
-                result := tDecl getNonMeta() getInstanceType() searchTypeArg(typeArgName)
+                result := tDecl getNonMeta() getInstanceType() searchTypeArg(typeArgName, finalScore&)
+                if(finalScore == -1) return null // something has to be resolved further!
                 if(result) {
                     if(debugCondition()) printf("Found in-TypeDecl match for arg %s! Hence, result = %s (cause expr type = %s)\n", typeArgName, result toString(), tDecl getNonMeta() getInstanceType() toString())
                     return result
@@ -575,7 +584,8 @@ FunctionCall: class extends Expression {
             if(expr instanceOf(Type)) {
                 /* Type<T> myFunction() */
                 if(debugCondition()) printf("Looking for typeArg %s in expr-type %s\n", typeArgName, expr toString())
-                result := expr as Type searchTypeArg(typeArgName)
+                result := expr as Type searchTypeArg(typeArgName, finalScore&)
+                if(finalScore == -1) return null // something has to be resolved further!
                 if(result) {
                     if(debugCondition()) printf("Found match for arg %s! Hence, result = %s (cause expr = %s)\n", typeArgName, result toString(), expr toString())
                     return result
@@ -583,7 +593,8 @@ FunctionCall: class extends Expression {
             } else if(expr getType() != null) {
                 /* expr: Type<T>; expr myFunction() */
                 if(debugCondition()) printf("Looking for typeArg %s in expr %s\n", typeArgName, expr toString())
-                result := expr getType() searchTypeArg(typeArgName)
+                result := expr getType() searchTypeArg(typeArgName, finalScore&)
+                if(finalScore == -1) return null // something has to be resolved further!
                 if(result) {
                     if(debugCondition()) printf("Found match for arg %s! Hence, result = %s (cause expr type = %s)\n", typeArgName, result toString(), expr getType() toString())
                     return result

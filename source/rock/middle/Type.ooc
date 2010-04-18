@@ -159,7 +159,7 @@ Type: abstract class extends Expression {
         
         :return: The real type corresponding to a TypeArg, or null if none is found.
     */
-    searchTypeArg: func (typeArgName: String) -> Type {
+    searchTypeArg: func (typeArgName: String, finalScore: Int@) -> Type {
         null
     }
     
@@ -202,8 +202,8 @@ TypeAccess: class extends Type {
     
     dig: func -> Type { inner dig() }
     
-    searchTypeArg: func (typeArgName: String) -> Type {
-        inner searchTypeArg(typeArgName)
+    searchTypeArg: func (typeArgName: String, finalScore: Int@) -> Type {
+        inner searchTypeArg(typeArgName, finalScore&)
     }
     
 }
