@@ -152,7 +152,7 @@ ClassDeclWriter: abstract class extends Skeleton {
             current nl()
 			FunctionDeclWriter writeFuncPrototype(this, decl);
             
-			current app(' '). openBlock()
+			current app(' '). openBlock(). nl()
             
             if(decl getName() == ClassDecl LOAD_FUNC_NAME) {
                 superRef := cDecl getSuperRef()
@@ -160,7 +160,7 @@ ClassDeclWriter: abstract class extends Skeleton {
             	superLoad := superRef getFunction(ClassDecl LOAD_FUNC_NAME, null, null, finalScore&)
             	if(superLoad) {
 					FunctionDeclWriter writeFullName(this, superLoad)
-					current app("_impl(("). app(superLoad owner getInstanceType()). app(") this);")
+					current app("_impl();")
             	}
             	for(vDecl in cDecl variables) {
 					if(vDecl getExpr() == null) continue
