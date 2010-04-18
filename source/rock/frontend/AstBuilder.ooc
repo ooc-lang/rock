@@ -335,6 +335,10 @@ AstBuilder: class {
         pop(InterfaceDecl)
     }
 
+    onTypeAccess: unmangled(nq_onTypeAccess) func (t: Type) -> TypeAccess {
+        TypeAccess new(t, t token)
+    }
+
     /*
      * Variable declarations
      */

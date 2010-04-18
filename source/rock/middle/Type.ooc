@@ -165,6 +165,49 @@ Type: abstract class extends Expression {
     
 }
 
+TypeAccess: class extends Type {
+    
+    inner: Type
+    
+    init: func ~typeAccess (=inner, .token) {
+        super(token)
+    }
+    
+    accept: func (visitor: Visitor) {
+        visitor visitTypeAccess(this)
+    }
+    
+    resolve: func (trail: Trail, res: Resolver) -> Response { inner resolve(trail, res) }
+    
+    write: func (w: AwesomeWriter, name: String) {}
+    
+    getName: func -> String { inner getName() }
+    
+    getTypeArgs: func -> List<VariableAccess> { inner getTypeArgs() }
+    
+    pointerLevel: func -> Int { inner pointerLevel() }
+    
+    equals: func (other: Type) -> Bool { inner equals(other) }
+    
+    getRef: func -> Declaration { inner getRef() }
+    setRef: func (d: Declaration) { inner setRef(d) }
+    
+    clone: func -> Type { inner clone() }
+    
+    dereference: func -> Type { inner dereference() }
+    
+    getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
+        inner getScoreImpl(other, scoreSeed)
+    }
+    
+    dig: func -> Type { inner dig() }
+    
+    searchTypeArg: func (typeArgName: String) -> Type {
+        inner searchTypeArg(typeArgName)
+    }
+    
+}
+
 SugarType: abstract class extends Type {
     
     inner: Type

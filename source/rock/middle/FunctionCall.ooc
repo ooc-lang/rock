@@ -496,7 +496,7 @@ FunctionCall: class extends Expression {
         
         if(typeArgs size() != ref typeArgs size()) {
             if(res fatal) {
-                token throwError("Missing info for type argument %s. Have you forgotten to qualify, e.g. List<Int>?" format(ref typeArgs get(typeArgs size()) getName()))
+                token throwError("Missing info for type argument %s. Have you forgotten to qualify %s, e.g. List<Int>?" format(ref typeArgs get(typeArgs size()) getName(), ref toString()))
             }
             res wholeAgain(this, "Looping %s because of typeArgs\n" format(toString()))
         }
@@ -530,6 +530,8 @@ FunctionCall: class extends Expression {
                     result := BaseType new(implArg as VariableAccess getName(), implArg token)
                     if(debugCondition()) " >> Found ref-arg %s for typeArgName %s, returning %s" format(implArg toString(), typeArgName, result toString()) println()
                     return result
+                } else if(implArg instanceOf(TypeAccess)) {
+                    return implArg as TypeAccess inner
                 } else if(implArg instanceOf(Type)) {
                     return implArg
                 }

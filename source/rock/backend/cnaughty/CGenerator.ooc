@@ -57,6 +57,14 @@ CGenerator: class extends Skeleton {
     visitType: func (type: Type) {
         type write(current, null)
     }
+    
+    visitTypeAccess: func (typeAccess: TypeAccess) {
+        ref := typeAccess getRef()
+        if(!ref instanceOf(TypeDecl)) {
+            Exception new(This, "Ref of TypeAccess %s isn't a TypeDecl but a %s! wtf?" format(typeAccess toString(), ref class name))
+        }
+        current app(ref as TypeDecl underName()). app("_class()")
+    }
 
     /** Write a binary operation */
     visitBinaryOp: func (op: BinaryOp) {
