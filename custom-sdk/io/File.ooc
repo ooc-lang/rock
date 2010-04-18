@@ -230,8 +230,9 @@ File: abstract class {
         dstFile parent() mkdirs()
         src := FileReader new(this)
         dst := FileWriter new(dstFile)
+        
         max := 8192
-        buffer : Char[max]
+        buffer : Char[8192] // tcc is, like, kinda stupid.
         while(src hasNext()) {
             num := src read(buffer, 0, max)
             dst write(buffer, num)
