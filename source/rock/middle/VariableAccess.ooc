@@ -50,6 +50,10 @@ VariableAccess: class extends Expression {
 		    }
 		    
 		    ref = candidate
+            if(isMember() && candidate owner isMeta) {
+                expr = VariableAccess new(candidate owner getNonMeta() getInstanceType(), candidate token)
+            }
+            
 		    return true
 	    } else if(node instanceOf(FunctionDecl)) {
 			candidate := node as FunctionDecl
