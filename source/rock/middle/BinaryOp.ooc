@@ -147,7 +147,9 @@ BinaryOp: class extends Expression {
             }
 
             // Left side is a property access? Replace myself with a setter call.
-            if(left instanceOf(VariableAccess) && left as VariableAccess ref instanceOf(PropertyDecl)) {
+            // Make sure we're not in the getter/setter.
+            if(left instanceOf(VariableAccess) && left as VariableAccess ref instanceOf(PropertyDecl) \
+                && left as VariableAccess ref as PropertyDecl inOuterSpace(trail)) {
                 leftProperty := left as VariableAccess ref as PropertyDecl
                 fCall := FunctionCall new(left as VariableAccess expr, leftProperty getSetterName(), token)
                 fCall getArguments() add(right)

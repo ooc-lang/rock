@@ -25,10 +25,6 @@ PropertyDecl: class extends VariableDecl {
         "__get%s__" format(name)
     }
 
-    getValueName: func -> String {
-        "__%s__" format(name)
-    }
-
     resolve: func (trail: Trail, res: Resolver) -> Response {
         // get and store the class.
         node := trail peek()
@@ -36,10 +32,6 @@ PropertyDecl: class extends VariableDecl {
             token throwError("Expected ClassDecl, got %s" format(node toString()))
         }
         cls = node as ClassDecl
-        // setup value
-        // TODO: only do this if there actually is an access to the value in getter/setter. (non-virtual property)
-        vDecl := VariableDecl new(type, getValueName(), token)
-        cls addVariable(vDecl)
         // setup getter
         if(getter != null) {
             getter setName(getGetterName()) .setReturnType(type)
@@ -61,11 +53,11 @@ PropertyDecl: class extends VariableDecl {
                 arg setType(this type)
             }
             cls addFunction(setter)
-            // let's even resolve it!
             trail push(this)
             setter resolve(trail, res)
             trail pop(this)
         }
+        super(trail, res)
         return Responses OK
     }
 
@@ -83,12 +75,16 @@ PropertyDecl: class extends VariableDecl {
         }
         0
     }
-    
-    /** resolve $name accesses to actual value. */
+
+    /** here for the resolving phase in `init`. Not the nicest way, but works. */
     resolveAccess: func (access: VariableAccess) {
         if(access name == this name) {
-            access name = getValueName()
             cls resolveAccess(access)
         }
+    }
+
+    /** return true if getters and setters should be used in this context */
+    inOuterSpace: func (trail: Trail) -> Bool {
+        !trail data contains(setter) && !trail data contains(getter) && !trail data contains(this)
     }
 }

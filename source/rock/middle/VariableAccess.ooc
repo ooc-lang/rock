@@ -156,7 +156,9 @@ VariableAccess: class extends Expression {
         }
 
         // Simple property access? Replace myself with a getter call.
-        if(ref && ref instanceOf(PropertyDecl)) {
+        // Make sure we're not in a getter/setter yet (the trail would
+        // contain `ref` then)
+        if(ref && ref instanceOf(PropertyDecl) && ref as PropertyDecl inOuterSpace(trail)) {
             // Test that we're not part of an assignment (which will be replaced by a setter call)
             // TODO: This should be nicer.
             if(!(trail peek() instanceOf(BinaryOp) && trail peek() as BinaryOp type == OpTypes ass)) {
