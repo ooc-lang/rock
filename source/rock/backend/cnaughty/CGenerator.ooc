@@ -89,11 +89,14 @@ CGenerator: class extends Skeleton {
         if(isFunc) {
             current app("(void*) ")
         } else if(op type == OpTypes ass) {
-            if(op left  getType() isPointer() ||
-               op right getType() isPointer()) {
+            leftType  := op left  getType()
+            rightType := op right getType()
+            
+            if(leftType  isPointer() ||
+               rightType isPointer()) {
                 current app("(void*) ")
-            } else if(op right getType() inheritsFrom(op left getType())) {
-                current app('('). app(op left getType()). app(") ")
+            } else if(rightType inheritsFrom(leftType)) {
+                current app('('). app(leftType). app(") ")
             }
         }
         

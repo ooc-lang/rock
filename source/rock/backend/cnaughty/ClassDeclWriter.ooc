@@ -11,7 +11,7 @@ ClassDeclWriter: abstract class extends Skeleton {
     write: static func ~_class (this: Skeleton, cDecl: ClassDecl) {
 
         //printf(" << Writing class decl %s with version %s\n", cDecl toString(), cDecl getVersion() ? cDecl getVersion() toString() : "(nil)")
-                
+        
         if(cDecl isMeta) {
             
             current = hw
@@ -307,7 +307,9 @@ ClassDeclWriter: abstract class extends Skeleton {
                     }
                 }
                 
-                if (parentDecl isFinal() || parentDecl isExtern() || (realDecl != null && realDecl isExtern())) continue; // skip it.
+                if (parentDecl isFinal() || parentDecl isExtern() || (realDecl != null && realDecl isExtern())) {
+                    continue // skip it.
+                }
                 
                 if (parentDecl isStatic() || (realDecl == null && parentDecl isAbstract())) {
                     writeDesignatedInit(this, parentDecl, realDecl, false)
