@@ -107,7 +107,7 @@ BuildParams: class {
 	defaultMain := true
     
     // maximum number of rounds the {@link Tinkerer} will do before blowing up.
-    blowup: Int = 16
+    blowup: Int = 32
     
     // include or not lang/ packages (for testing)
     includeLang := true

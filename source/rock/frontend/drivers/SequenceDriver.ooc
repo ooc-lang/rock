@@ -48,9 +48,6 @@ SequenceDriver: class extends Driver {
                 for(dynamicLib in params dynamicLibs) {
                     params compiler addDynamicLibrary(dynamicLib)
                 }
-                for(additional in additionals) {
-                    params compiler addObjectFile(additional)
-                }
                 for(compilerArg in compilerArgs) {
                     params compiler addObjectFile(compilerArg)
                 }

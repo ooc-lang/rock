@@ -22,7 +22,7 @@ import Skeleton, FunctionDeclWriter, ControlStatementWriter,
 
 CGenerator: class extends Skeleton {
 
-    init: func (=params, =module) {
+    init: func ~cgenerator (=params, =module) {
         outPath := params getOutputPath(module, "")
         File new(outPath) parent() mkdirs()
         // CachedFileWriter should be used here, but it's broken atm.
@@ -56,6 +56,14 @@ CGenerator: class extends Skeleton {
     /** Write a type */
     visitType: func (type: Type) {
         type write(current, null)
+    }
+    
+    visitTypeAccess: func (typeAccess: TypeAccess) {
+        ref := typeAccess getRef()
+        if(!ref instanceOf(TypeDecl)) {
+            Exception new(This, "Ref of TypeAccess %s isn't a TypeDecl but a %s! wtf?" format(typeAccess toString(), ref class name))
+        }
+        current app(ref as TypeDecl underName()). app("_class()")
     }
 
     /** Write a binary operation */

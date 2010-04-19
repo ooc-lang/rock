@@ -130,15 +130,15 @@ Module: class extends Node {
         return list
     }
 
-    resolveAccess: func (access: VariableAccess) {
+    resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
 
         //printf("Looking for %s in %s\n", access toString(), toString())
 
         // TODO: optimize by returning as soon as the access is resolved
-        resolveAccessNonRecursive(access)
+        resolveAccessNonRecursive(access, res, trail)
 
         for(imp in getGlobalImports()) {
-            imp getModule() resolveAccessNonRecursive(access)
+            imp getModule() resolveAccessNonRecursive(access, res, trail)
         }
 
         namespace := namespaces get(access getName())
@@ -146,10 +146,12 @@ Module: class extends Node {
             //printf("resolved access %s to namespace %s!\n", access getName(), namespace toString())
             access suggest(namespace)
         }
+        
+        0
 
     }
 
-    resolveAccessNonRecursive: func (access: VariableAccess) {
+    resolveAccessNonRecursive: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
 
         ref := null as Declaration
 
@@ -164,11 +166,15 @@ Module: class extends Node {
             return
         }
 
-        body resolveAccess(access)
+        // That's actually the only place we want to resolve variables from the
+        // body - precisely because they're global
+        body resolveAccess(access, res, trail)
+
+        0
 
     }
     
-    resolveCall: func (call: FunctionCall, res: Resolver) {
+    resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
         if(call isMember()) {
             return // hmm no member calls for us
         }
@@ -178,6 +184,8 @@ Module: class extends Node {
         for(imp in getGlobalImports()) {
             imp getModule() resolveCallNonRecursive(call, res)
         }
+        
+        0
     }
     
     resolveCallNonRecursive: func (call: FunctionCall, res: Resolver) {

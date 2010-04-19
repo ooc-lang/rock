@@ -12,7 +12,7 @@ Scope: class extends Node {
     
     accept: func (v: Visitor) { v visitScope(this) }
     
-    resolveAccess: func (access: VariableAccess) {
+    resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
         // FIXME: this is *wrong* because the following code would compile with it:
         //
         // main: func {
@@ -29,12 +29,42 @@ Scope: class extends Node {
         //   printf("%d", i) // i is not even in the scope, but it doesn't complain..
         // }
         
-        for(stat in this) {
-            stat resolveAccess(access)
+        //debug := false
+        
+        index := list size()
+        ourIndex := trail indexOf(this)
+        //if(debug) {
+        //    printf("ourIndex = %d, trail = %s\n", ourIndex, trail toString())
+        //}
+        
+        if(ourIndex != -1) {
+            node : Node = null
+            
+            if(ourIndex + 1 >= trail size()) node = access
+            else                             node = trail get(ourIndex + 1)
+            index = list indexOf(node)
         }
+        
+        //if(debug) {
+        //    printf("index = %d\n", index)
+        //}
+        
+        // probably a global
+        if(index == -1) index = list size()
+        
+        for(i in 0..index) {
+            candidate := list get(i)
+            if(candidate instanceOf(VariableDecl) && candidate as VariableDecl getName() == access getName()) {
+                if(access suggest(candidate as VariableDecl)) {
+                    return 0
+                }
+            }
+        }
+        
+        0
     }
     
-    resolveCall: func (call: FunctionCall, res: Resolver) -> Int {
+    resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
         // FIXME: this is as wrong as resolveAccess, see the comments up there.
 
         for(stat in this) {

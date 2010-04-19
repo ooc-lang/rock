@@ -70,7 +70,7 @@ SourceReader: class extends Reader {
      * error messages @see SyntaxError
      * @param content The content to read from.
      */
-    init: func(=fileName, =content) {
+    init: func ~sourceReader (=fileName, =content) {
         index = 0
         mark = 0
         newlineIndicies = ArrayList<SizeT> new()

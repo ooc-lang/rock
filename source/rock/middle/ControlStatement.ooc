@@ -9,8 +9,10 @@ ControlStatement: abstract class extends Statement {
     
     init: func ~controlStatement (.token) { super(token) }
     
-    resolveAccess: func (access: VariableAccess) {
-        body resolveAccess(access)
+    resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
+        // FIXME: this probably isn't needed. Harmful, even.
+        body resolveAccess(access, res, trail)
+        0
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {

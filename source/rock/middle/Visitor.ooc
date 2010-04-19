@@ -18,6 +18,7 @@ Visitor: abstract class {
     visitVariableDecl:      func (node: VariableDecl) {}
     
     visitType:              func (node: Type) {}
+    visitTypeAccess:        func (node: TypeAccess) {}
     
     visitModule:            func (node: Module) {}
     

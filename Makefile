@@ -33,5 +33,11 @@ slave:
 clean:
 	rm -rf ooc_tmp/
 
-mrproper: clean
-	rm -rf bin/rock
+frock:
+	OOC="ooc +-O0" make noclean && mv bin/rock bin/frock
+
+rock:
+	OOC="frock +-O0 -nolines" make noclean
+
+mrproper:
+	rm -rf bin/rock bin/frock *_tmp/

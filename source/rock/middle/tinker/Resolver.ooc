@@ -32,7 +32,7 @@ Resolver: class {
         }
         
         if(fatal && params debugLoop) {
-            printf("LOOP %s : %s because '%s'\n", node toString(), node class name, reason)
+            node token printMessage("%s : %s because '%s'\n" format(node toString(), node class name, reason), "LOOP")
         }
         wholeAgain = true
     }

@@ -130,13 +130,13 @@ Foreach: class extends ControlStatement {
         
     }
     
-    resolveAccess: func (access: VariableAccess) {
+    resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
         
         if(variable instanceOf(VariableDecl)) {
             vDecl := variable as VariableDecl
             if(vDecl name == access name && access suggest(vDecl)) return
         }
-        super(access)
+        super(access, res, trail)
         
     }
     

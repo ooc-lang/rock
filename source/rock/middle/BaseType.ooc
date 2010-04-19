@@ -4,7 +4,7 @@ import ../backend/cnaughty/AwesomeWriter, ../frontend/BuildParams
 import tinker/[Response, Resolver, Trail]
 
 import Type, Declaration, VariableAccess, VariableDecl, TypeDecl,
-       InterfaceDecl, Node, ClassDecl, CoverDecl
+       InterfaceDecl, Node, ClassDecl, CoverDecl, Cast
 
 BaseType: class extends Type {
 
@@ -115,11 +115,17 @@ BaseType: class extends Type {
         } else if(getRef() instanceOf(TypeDecl)) {
             tDecl := getRef() as TypeDecl
             if(!tDecl isMeta && !tDecl getTypeArgs() isEmpty()) {
-                size1 := typeArgs size()
-                size2 := tDecl getTypeArgs() size()
-                if(typeArgs == null || size1 != size2) {
-                    token throwError("%s type parameters for %s. It should match %s" format(
-                        size1 < size2 ? "Missing" : "Too many", toString(), tDecl getInstanceType() toString()))
+                if((typeArgs == null || typeArgs size() != tDecl getTypeArgs() size()) && !trail peek() instanceOf(Cast)) {
+                    message : String = match {
+                        case typeArgs == null =>
+                            "No"
+                        case typeArgs size() < tDecl getTypeArgs() size() =>
+                            "Missing"
+                        case =>
+                            "Too many"
+                    }
+                    
+                    token throwError("%s type parameters for %s. It should match %s" format(message, toString(), tDecl getInstanceType() toString()))
                 }
             }
         }
@@ -279,7 +285,7 @@ BaseType: class extends Type {
         return sb toString()
     }
     
-    searchTypeArg: func (typeArgName: String) -> Type {
+    searchTypeArg: func (typeArgName: String, finalScore: Int@) -> Type {
         if(getRef() == null) return null
         
         if(!getRef() instanceOf(TypeDecl)) {
@@ -305,7 +311,7 @@ BaseType: class extends Type {
                 //printf("Found candidate %s for typeArg %s\n", candidate toString(), typeArgName)
                 if(ref instanceOf(TypeDecl)) {
                     // resolves to a known type
-                    result = candidate getRef() as TypeDecl getInstanceType()
+                    result = ref as TypeDecl getInstanceType()
                 } else if(ref instanceOf(VariableDecl)) {
                     // resolves to an access to another generic type
                     result = BaseType new(ref as VariableDecl getName(), token)
@@ -315,10 +321,59 @@ BaseType: class extends Type {
             j += 1
         }
         
+        // translate things like:
+        // HashMap<K, V> extends Iterator<V>
+        current := typeRef
+        while(current != null) {
+            if(current getSuperType() == null) break
+            if(current getSuperRef() == null) {
+                finalScore = -1
+                printf("current superRef() is null, looping")
+                return null // something needs to be resolved further
+            }
+            
+            j := 0
+            superArgs := current getSuperRef() getTypeArgs()
+            for(superArg in superArgs) {
+                if(superArg getName() == typeArgName) {
+                    printf("Found match for <%s> in %s extends %s (aka %s)\n", typeArgName, current toString(), current getSuperType() toString(), current getSuperRef() toString())
+                    superRealArgs := current getSuperType() getTypeArgs()
+                    if(superRealArgs == null || superRealArgs size() < j) {
+                        current getSuperType() token throwError("Missing type arguments to fully infer <%s>. It must match %s" format(typeArgName, current getSuperRef() toString()))
+                    }
+                    // FIXME: That's awful, and will give us plenty o'trouble. We'll be warned!
+                    candidate := superRealArgs get(j)
+                    
+                    ref := candidate getRef()
+                    
+                    if(ref == null) {
+                        printf("ref of %s is null, looping\n", candidate toString())
+                        finalScore = -1
+                        return null
+                    }
+                    result : Type = null
+                    
+                    printf("Found candidate %s for typeArg %s, ref is a %s\n", candidate toString(), typeArgName, ref class name)
+                    if(ref instanceOf(TypeDecl)) {
+                        // resolves to a known type
+                        result = ref as TypeDecl getInstanceType()
+                    } else if(ref instanceOf(VariableDecl)) {
+                        // resolves to an access to another generic type
+                        result = BaseType new(ref as VariableDecl getName(), token)
+                    }
+                    printf("Final result = %s\n", result toString())
+                    return result
+                }
+                j += 1
+            }
+            
+            current = current getSuperRef()
+        }
+        
         superType := typeRef getSuperType()
         if(superType != null) {
             //printf("Searching for <%s> in super-type %s\n", typeArgName, superType toString())
-            return superType searchTypeArg(typeArgName)
+            return superType searchTypeArg(typeArgName, finalScore&)
         }
         
         return null

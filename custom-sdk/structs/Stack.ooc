@@ -35,6 +35,10 @@ Stack: class <T> extends Iterable<T> {
         
         return data get(size - index)
     }
+    
+    indexOf: func(element: T) -> Int {
+        return data indexOf(element)
+    }
 	
 	size: func -> Int {	
 		return data size()
