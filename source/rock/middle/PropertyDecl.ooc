@@ -17,6 +17,16 @@ PropertyDecl: class extends VariableDecl {
     setSetter: func (=setter) {}
     setGetter: func (=getter) {}
 
+    /** create default getter for me. */
+    setDefaultGetter: func {
+        // a default getter just returns the value.
+        decl := FunctionDecl new("__defaultGet__", token)
+        access := VariableAccess new(this name, token)
+        decl body add(access)
+        setGetter(decl)
+        decl body toString() println()
+    }
+
     getSetterName: func -> String {
         "__set%s__" format(name)
     }

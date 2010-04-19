@@ -445,7 +445,12 @@ AstBuilder: class {
 
     onPropertyDeclGetterEnd: unmangled(nq_onPropertyDeclGetterEnd) func {
         getter := pop(FunctionDecl)
-        peek(PropertyDecl) setGetter(getter)
+        // getter has 0 statements? use default getter
+        if(getter body size() == 0) {
+            peek(PropertyDecl) setDefaultGetter()
+        } else {
+            peek(PropertyDecl) setGetter(getter)
+        }
     }
 
     onPropertyDeclSetterStart: unmangled(nq_onPropertyDeclSetterStart) func {
