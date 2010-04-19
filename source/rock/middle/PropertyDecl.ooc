@@ -24,7 +24,14 @@ PropertyDecl: class extends VariableDecl {
         access := VariableAccess new(this name, token)
         decl body add(access)
         setGetter(decl)
-        decl body toString() println()
+    }
+
+    /** create default setter for me. */
+    setDefaultSetter: func {
+        // a default setter just sets
+        decl := FunctionDecl new("__defaultSet__", token)
+        decl args add(AssArg new(this name, token))
+        setSetter(decl)
     }
 
     getSetterName: func -> String {
@@ -58,7 +65,15 @@ PropertyDecl: class extends VariableDecl {
             arg := setter args[0]
             // replace `assign` with `conventional`.
             if(arg instanceOf(AssArg)) {
-                token throwError("AssArg not yet supported!")
+                // create AST nodes, add setter contents
+                this_ := VariableAccess new("this", token)
+                left := VariableAccess new(this_, this name, token)
+                right := VariableAccess new(this name, token)
+                assignment := BinaryOp new(left, right, OpTypes ass, token)
+                setter body add(assignment)
+                // replace argument
+                newArg := Argument new(this type, this name, token)
+                setter args[0] = newArg
             } else {
                 arg setType(this type)
             }

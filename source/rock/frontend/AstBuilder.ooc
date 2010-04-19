@@ -468,7 +468,12 @@ AstBuilder: class {
 
     onPropertyDeclSetterEnd: unmangled(nq_onPropertyDeclSetterEnd) func {
         setter := pop(FunctionDecl)
-        peek(PropertyDecl) setSetter(setter)
+        // setter has 0 statements? use default setter
+        if(setter body size() == 0) {
+            peek(PropertyDecl) setDefaultSetter()
+        } else {
+            peek(PropertyDecl) setSetter(setter)
+        }
     }
 
     onPropertyDeclEnd: unmangled(nq_onPropertyDeclEnd) func -> PropertyDecl {
