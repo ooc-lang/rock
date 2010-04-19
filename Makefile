@@ -37,7 +37,7 @@ frock:
 	OOC="ooc +-O0" make noclean && mv bin/rock bin/frock
 
 rock:
-	OOC="frock +-O0 -nolines" make noclean
+	OOC="frock +-O0 -nolines -allerrors -debugloop" make noclean
 
 mrproper:
 	rm -rf bin/rock bin/frock *_tmp/

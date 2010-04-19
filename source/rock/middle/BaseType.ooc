@@ -315,6 +315,7 @@ BaseType: class extends Type {
                 } else if(ref instanceOf(VariableDecl)) {
                     // resolves to an access to another generic type
                     result = BaseType new(ref as VariableDecl getName(), token)
+                    result setRef(ref) // FIXME: that is experimental. is that a good idea?
                 }
                 return result
             }
@@ -328,7 +329,7 @@ BaseType: class extends Type {
             if(current getSuperType() == null) break
             if(current getSuperRef() == null) {
                 finalScore = -1
-                printf("current superRef() is null, looping")
+                printf("%s superRef() is null, while looking for %s in %s, looping.\n", current toString(), typeArgName, toString())
                 return null // something needs to be resolved further
             }
             
@@ -347,7 +348,7 @@ BaseType: class extends Type {
                     ref := candidate getRef()
                     
                     if(ref == null) {
-                        printf("ref of %s is null, looping\n", candidate toString())
+                        printf("ref of %s is null, while looking for %s in %s, looping.\n", candidate toString(), typeArgName, toString())
                         finalScore = -1
                         return null
                     }
@@ -360,6 +361,7 @@ BaseType: class extends Type {
                     } else if(ref instanceOf(VariableDecl)) {
                         // resolves to an access to another generic type
                         result = BaseType new(ref as VariableDecl getName(), token)
+                        result setRef(ref) // FIXME: that is experimental. is that a good idea?
                     }
                     printf("Final result = %s\n", result toString())
                     return result
