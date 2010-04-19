@@ -62,24 +62,24 @@ PropertyDecl: class extends VariableDecl {
     }
 
     /** resolve `set` and `get` functions to `getter` and `setter` */
-    resolveCall: func (call: FunctionCall, res: Resolver) -> Int {
+    resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
         match call name {
             case "get" => {
                 call setName(getGetterName())
-                cls resolveCall(call, res)
+                cls resolveCall(call, res, trail)
             }
             case "set" => {
                 call setName(getSetterName())
-                cls resolveCall(call, res)
+                cls resolveCall(call, res, trail)
             }
         }
         0
     }
 
     /** here for the resolving phase in `init`. Not the nicest way, but works. */
-    resolveAccess: func (access: VariableAccess) {
+    resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) {
         if(access name == this name) {
-            cls resolveAccess(access)
+            cls resolveAccess(access, res, trail)
         }
     }
 
