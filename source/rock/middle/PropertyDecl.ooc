@@ -110,6 +110,8 @@ PropertyDecl: class extends VariableDecl {
 
     /** return true if getters and setters should be used in this context */
     inOuterSpace: func (trail: Trail) -> Bool {
-        !trail data contains(setter) && !trail data contains(getter) && !trail data contains(this)
+           !(setter ? trail data contains(setter) : false) \
+        && !(getter ? trail data contains(getter) : false) \
+        && !trail data contains(this)
     }
 }
