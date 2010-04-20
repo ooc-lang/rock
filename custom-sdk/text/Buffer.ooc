@@ -37,7 +37,7 @@ Buffer: class {
         size += 1
     }
 
-    get: func ~strWithLengthOffset (dest: Char*, offset: SizeT, length: SizeT) {
+    get: func ~strWithLengthOffset (str: Char*, offset: SizeT, length: SizeT) -> Int {
         if(offset >= size) {
             Exception new(This, "Buffer overflow! Offset is larger than buffer size.") throw()
         }
@@ -50,7 +50,8 @@ Buffer: class {
             copySize = length
         }
 
-        memcpy(dest, (data as Char*) + offset, copySize)
+        memcpy(str, (data as Char*) + offset, copySize)
+        copySize
     }
 
     get: func ~chr (offset: Int) -> Char {
@@ -124,9 +125,9 @@ BufferReader: class extends Reader {
     }
 
     read: func(chars: String, offset: Int, count: Int) -> SizeT {
-        buffer get(chars as Char* + offset, marker, count)
-        marker += count
-        return count
+        copySize := buffer get(chars as Char* + offset, marker, count)
+        marker += copySize
+        return copySize
     }
 
     read: func ~char -> Char {
