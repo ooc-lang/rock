@@ -10,6 +10,9 @@ BuildParams: class {
     
     fatalError := static true
     
+    additionals  := ArrayList<String> new() 
+    compilerArgs := ArrayList<String> new() 
+    
     /* Builtin defines */
 	GC_DEFINE := static const "__OOC_USE_GC__"
     

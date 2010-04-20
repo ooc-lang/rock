@@ -10,34 +10,32 @@ else
 	OOC_OWN_FLAGS+=+-DROCK_BUILD_DATE=\"${DATE}\" +-DROCK_BUILD_TIME=\"${TIME}\"
 endif
 
-OOC?=ooc
+OOC?=rock
 OOC_CMD=${OOC} ${OOC_OWN_FLAGS} ${OOC_FLAGS}
 
 all:
 	make clean noclean
 
 noclean:
-	mkdir -p source/rock/parser/
-	${PARSER_GEN} ../nagaqueen/grammar/nagaqueen.leg > source/rock/frontend/NagaQueen.c
 	${OOC_CMD} $(shell find source/ -name "*.c") rock/rock -o=bin/rock
 
-test-ast:
-	${OOC_CMD} rock/test-ast
+# Regenerate NagaQueen.c from the greg grammar
+# you need ../nagaqueen and greg to be in your path
+#
+# http://github.com/nddrylliog/nagaqueen
+# http://github.com/nddrylliog/greg
+grammar:
+	mkdir -p source/rock/parser/
+	${PARSER_GEN} ../nagaqueen/grammar/nagaqueen.leg > source/rock/frontend/NagaQueen.c
 
-test:
-	make all && bin/rock < samples/ooc/hi-world.ooc
-
-slave:
-	OOC_FLAGS="${OOC_FLAGS} -slave -noclean" make
+# For c-source based rock releases, 'make bootstrap' will compile a version
+# of rock from the C sources in build/, then use that version to re-compile itself
+bootstrap:
+	@echo "Compiling from C source"
+	cd build/ && make
+	mv build/rock bin/rock
+	@echo "Now re-compiling ourself"
+	make all
 
 clean:
-	rm -rf ooc_tmp/
-
-frock:
-	OOC="ooc +-O0" make noclean && mv bin/rock bin/frock
-
-rock:
-	OOC="frock +-O0 -nolines -allerrors -debugloop" make noclean
-
-mrproper:
-	rm -rf bin/rock bin/frock *_tmp/
+	rm -rf *_tmp/
