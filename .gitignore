@@ -1,4 +1,5 @@
 .anjuta*
+build
 *~
 bin
 test-ast
@@ -8,4 +9,3 @@ hi-42
 *tmp*
 declassign
 vardecl
-NagaQueen.c
