@@ -16,10 +16,11 @@ import ../../utils/[ShellUtils]
 Driver: abstract class {
 
     params: BuildParams
-    additionals  := ArrayList<String> new() 
-    compilerArgs := ArrayList<String> new() 
     
     init: func(=params) {}
+    
+    // Called before code generation, leaves a chance to the driver to adjust the params themselves
+    setup: func {}
     
     compile: abstract func (module: Module) -> Int
     

@@ -4,7 +4,7 @@ import text/StringTokenizer
 
 import Help, Token, BuildParams, AstBuilder
 import compilers/[Gcc, Clang, Icc, Tcc]
-import drivers/[Driver, CombineDriver, SequenceDriver]
+import drivers/[Driver, CombineDriver, SequenceDriver, MakeDriver]
 import ../backend/cnaughty/CGenerator
 //import ../backend/json/JSONGenerator
 import ../middle/[Module, Import]
@@ -46,6 +46,7 @@ CommandLine: class {
                     
                     params outPath = File new(arg substring(arg indexOf('=') + 1))
                     params clean = false
+                    
                 } else if(option startsWith("backend")) {
                     params backend = arg substring(arg indexOf('=') + 1)
                     
@@ -159,12 +160,15 @@ CommandLine: class {
                     params run = true
                     
                 } else if (option startsWith("driver=")) {
-                    
+
                     driverName := option substring("driver=" length())
                     if(driverName == "combine") {
                         driver = CombineDriver new(params) 
                     } else if (driverName == "sequence") {
                         driver = SequenceDriver new(params) 
+                    } else if (driverName == "make") {
+                        driver = MakeDriver new(params) 
+                        params clean = false // obviously.
                     } else {
                         ("Unknown driver: " + driverName) println()
                     }
@@ -209,6 +213,7 @@ CommandLine: class {
                         params compiler = Clang new()
                     }
                 } else if (option == "onlygen") {
+                    
                     params compiler = null
                     params clean = false
                     
@@ -250,7 +255,7 @@ CommandLine: class {
                 }
             } else if(arg startsWith("+")) {
                 
-                driver compilerArgs add(arg substring(1))
+                params compilerArgs add(arg substring(1))
                 
             } else {
                 lowerArg := arg toLower()
@@ -258,7 +263,7 @@ CommandLine: class {
                     modulePaths add(arg)
                 } else {
                    if(lowerArg contains('.')) {
-                        driver additionals add(arg)
+                        params additionals add(arg)
                     } else {
                         modulePaths add(arg+".ooc")
                     }
@@ -326,11 +331,12 @@ CommandLine: class {
         
         if(params backend == "c") {
             // c phase 3: generate.
+            driver setup()
             params outPath mkdirs()
             for(candidate in moduleList) {
                 CGenerator new(params, candidate) write() .close()
             }
-            // c phase 4: launch the C compiler
+            // c phase 4: launch the driver
             if(params compiler) {
                 result := driver compile(module)
                 if(result == 0) {

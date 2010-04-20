@@ -1,4 +1,9 @@
+import structs/ArrayList
+
 AbstractCompiler: abstract class {
+
+    command := ArrayList<String> new()
+    executablePath = "", executableName = "" : String
 
     setExecutable: abstract func(executableName: String)
     

@@ -1,5 +1,4 @@
 import io/File
-import structs/[List, ArrayList]
 import text/Buffer
 import os/Process
 
@@ -8,17 +7,11 @@ import ../../utils/ShellUtils
 
 BaseCompiler: abstract class extends AbstractCompiler {
     
-    command: List<String>
-    executablePath: String
-    
-    init: func ~baseCompiler (executableName: String) {
-        command = ArrayList<String> new();
-        executablePath = ""
-        
+    init: func ~baseCompiler (.executableName) {
         setExecutable(executableName)
     }
     
-    setExecutable: func (executableName: String) {
+    setExecutable: func (=executableName) {
         execFile := File new(executableName)
         
         if (!execFile exists()) {
