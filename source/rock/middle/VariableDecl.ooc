@@ -169,15 +169,20 @@ VariableDecl: class extends Declaration {
                 }
                 
                 idx := trail findScope()
-                scope := trail get(idx, Scope)
+                scope := trail get(idx) as Scope
                 
                 parent := trail get(idx + 1, Node)
                 
-                block := Block new(token)
-                block getBody() add(this)
-                block getBody() add(parent as Statement)
+                if(parent instanceOf(FunctionCall)) {
+                    result = trail addBeforeInScope(parent as Statement, this)              
+                } else {
+                    block := Block new(token)
+                    block getBody() add(this)
+                    block getBody() add(parent as Statement)
+                    
+                    result = scope replace(trail get(idx + 1), block)
+                }
                 
-                result = scope replace(trail get(idx + 1), block)
                 if(!result) {
                     token throwError("Couldn't unwrap " + toString() + " , trail = " + trail toString())
                 }

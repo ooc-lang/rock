@@ -582,7 +582,13 @@ AstBuilder: class {
     onFunctionCallChain: unmangled(nq_onFunctionCallChain) func (call: FunctionCall, node: Node) {
         if(node instanceOf(FunctionCall)) {
             prevCall := node as FunctionCall
-            call expr = prevCall expr
+            if(!prevCall expr instanceOf(VariableAccess)) {
+                vDecl := VariableDecl new(null, prevCall generateTempName("callroot"), prevCall expr, prevCall expr token)
+                prevCall expr = vDecl
+                call expr = VariableAccess new(vDecl, vDecl token)
+            } else {
+                call expr = prevCall expr
+            }
         } else if(node instanceOf(VariableDecl)) {
             varDecl := node as VariableDecl
             call expr = VariableAccess new(varDecl, call token)
