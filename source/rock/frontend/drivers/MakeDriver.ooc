@@ -110,7 +110,7 @@ MakeDriver: class extends SequenceDriver {
         
         libs := getFlagsFromUse(module)
         for(lib in libs) {
-            fW write(" -l "). write(lib)
+            fW write(" "). write(lib)
         }
         
         if(params enableGC) {
