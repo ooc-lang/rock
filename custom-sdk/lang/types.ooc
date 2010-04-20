@@ -49,7 +49,7 @@ Class: abstract class {
     super: const Class
     
     /// Create a new instance of the object of type defined by this class
-    alloc: final func -> Object {
+    alloc: final func ~_class -> Object {
         object := gc_malloc(instanceSize) as Object
         if(object) {
             object class = this
@@ -57,7 +57,7 @@ Class: abstract class {
         return object
     }
     
-    inheritsFrom: final func (T: Class) -> Bool {
+    inheritsFrom: final func ~_class (T: Class) -> Bool {
         if(this == T) return true
         return (super ? super inheritsFrom(T) : false)
     }

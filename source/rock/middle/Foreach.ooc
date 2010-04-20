@@ -100,6 +100,11 @@ Foreach: class extends ControlStatement {
             nextCall := FunctionCall new(iterAcc, "next", token)
             nextCall resolve(trail, res)
             
+            if(nextCall getType() == null || !nextCall getType() isResolved()) {
+                res wholeAgain(this, "need nextCall type")
+                return Responses OK
+            }
+            
             while1 getBody() add(BinaryOp new(variable, nextCall, OpTypes ass, token)).
                              addAll(getBody())
             

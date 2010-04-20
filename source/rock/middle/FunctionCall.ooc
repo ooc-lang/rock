@@ -42,8 +42,7 @@ FunctionCall: class extends Expression {
     }
     
     debugCondition: func -> Bool {
-        //false
-        name == "iterator"
+        false
     }
     
     suggest: func (candidate: FunctionDecl) -> Bool {
@@ -353,7 +352,9 @@ FunctionCall: class extends Expression {
                 res wholeAgain(this, "because couldn't properly realTypize return type.")
                 returnType = null
             }
-            if(debugCondition()) printf("Realtypized return of %s = %s\n", toString(), returnType ? returnType toString() : "(nil)")
+            if(returnType != null) {
+                if(debugCondition()) printf("Realtypized return of %s = %s, isResolved = %s ?\n", toString(), returnType toString(), returnType isResolved() toString())
+            }
             
             if(returnType) {
                 res wholeAgain(this, "because of return type %s (%s)" format(returnType toString(), returnType token toString()))
@@ -534,7 +535,13 @@ FunctionCall: class extends Expression {
             if(arg getName() == typeArgName) {
                 implArg := args get(j)
                 if(implArg instanceOf(VariableAccess)) {
+                    if(implArg as VariableAccess getRef() == null) {
+                        finalScore == -1
+                        return null
+                    }
                     result := BaseType new(implArg as VariableAccess getName(), implArg token)
+                    result setRef(implArg as VariableAccess getRef()) // FIXME: that is experimental. is that a good idea?
+                    
                     if(debugCondition()) " >> Found ref-arg %s for typeArgName %s, returning %s" format(implArg toString(), typeArgName, result toString()) println()
                     return result
                 } else if(implArg instanceOf(TypeAccess)) {
@@ -566,6 +573,7 @@ FunctionCall: class extends Expression {
             for(typeArg in tDecl getTypeArgs()) {
                 if(typeArg getName() == typeArgName) {
                     result := BaseType new(typeArgName, token)
+                    result setRef(typeArg)
                     return result
                 }
             }

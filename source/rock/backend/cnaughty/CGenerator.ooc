@@ -25,7 +25,7 @@ CGenerator: class extends Skeleton {
     init: func ~cgenerator (=params, =module) {
         outPath := params getOutputPath(module, "")
         File new(outPath) parent() mkdirs()
-        // CachedFileWriter should be used here, but it's broken atm.
+        
         hw = AwesomeWriter new(this, CachedFileWriter new(outPath + ".h"))
         fw = AwesomeWriter new(this, CachedFileWriter new(outPath + "-fwd.h"))
         cw = AwesomeWriter new(this, CachedFileWriter new(outPath + ".c"))
@@ -89,11 +89,14 @@ CGenerator: class extends Skeleton {
         if(isFunc) {
             current app("(void*) ")
         } else if(op type == OpTypes ass) {
-            if(op left  getType() isPointer() ||
-               op right getType() isPointer()) {
+            leftType  := op left  getType()
+            rightType := op right getType()
+            
+            if(leftType  isPointer() ||
+               rightType isPointer()) {
                 current app("(void*) ")
-            } else if(op right getType() inheritsFrom(op left getType())) {
-                current app('('). app(op left getType()). app(") ")
+            } else if(rightType inheritsFrom(leftType)) {
+                current app('('). app(leftType). app(") ")
             }
         }
         

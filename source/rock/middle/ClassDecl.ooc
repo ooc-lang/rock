@@ -105,7 +105,7 @@ ClassDecl: class extends TypeDecl {
             }
 		}
         finalScore : Int
-		if(getFunction(fDecl name, fDecl suffix, null, false, finalScore&) != null) return this
+		if(getFunction(fDecl name, fDecl suffix ? fDecl suffix : "", null, false, finalScore&) != null) return this
 		return null
 	}
     

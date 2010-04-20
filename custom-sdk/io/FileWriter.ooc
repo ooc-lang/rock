@@ -1,6 +1,6 @@
 import io/Writer, io/File
  
-FileWriter: class extends Writer {    
+FileWriter: class extends Writer {
     file: FStream
 
     init: func ~withFile (fileObject: File, append: Bool) {
@@ -12,7 +12,7 @@ FileWriter: class extends Writer {
     }
     
     init: func ~withName (fileName: String, append: Bool) {
-        file = fopen(fileName, append ? "a" : "w");
+        file = FStream open(fileName, append ? "a" : "w");
         if (!file) 
             Exception new(This, "File not found: " + fileName) throw()
     }
@@ -34,7 +34,7 @@ FileWriter: class extends Writer {
     }
     
     close: func() {
-        fclose(file);
+        file close()
     }
     
     writef: final func(fmt: String, ...) {
