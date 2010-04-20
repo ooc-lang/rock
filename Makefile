@@ -21,23 +21,8 @@ noclean:
 	${PARSER_GEN} ../nagaqueen/grammar/nagaqueen.leg > source/rock/frontend/NagaQueen.c
 	${OOC_CMD} $(shell find source/ -name "*.c") rock/rock -o=bin/rock
 
-test-ast:
-	${OOC_CMD} rock/test-ast
-
-test:
-	make all && bin/rock < samples/ooc/hi-world.ooc
-
-slave:
-	OOC_FLAGS="${OOC_FLAGS} -slave -noclean" make
-
 clean:
-	rm -rf ooc_tmp/
-
-frock:
-	OOC="ooc +-O0" make noclean && mv bin/rock bin/frock
-
-rock:
-	OOC="frock +-O0 -nolines -allerrors -debugloop" make noclean
+	rm -rf *_tmp/
 
 mrproper:
 	rm -rf bin/rock bin/frock *_tmp/
