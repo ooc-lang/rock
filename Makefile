@@ -3,7 +3,7 @@ PARSER_GEN=greg
 NQ_PATH=source/rock/frontend/NagaQueen.c
 DATE=$(shell date +%Y-%m-%d)
 TIME=$(shell date +%H:%M)
-OOC_OWN_FLAGS=-sourcepath=source/ -driver=sequence -noclean -g -v -shout +-w 
+OOC_OWN_FLAGS=-sourcepath=source -driver=sequence -noclean -g -v -shout +-w 
 
 ifdef WINDIR
 	OOC_OWN_FLAGS+=+-DROCK_BUILD_DATE=\\\"${DATE}\\\" +-DROCK_BUILD_TIME=\\\"${TIME}\\\"
@@ -34,9 +34,8 @@ grammar:
 prepare_bootstrap:
 	@echo "Preparing boostrap (in build/ directory)"
 	rm -rf build/
-	${OOC} -driver=make -sourcepath=source/ -outpath=c-source/ rock/rock -o=../bin/rock c-source/${NQ_PATH} -v +-w
-	sed s/-w.*/-w\ -DROCK_BUILD_DATE=\\\"\\\\\"bootstrapped\\\\\"\\\"\ -DROCK_BUILD_TIME=\\\"\\\\\"\\\\\"\\\"/ < build/Makefile > build/Makefile.2
-	mv -f build/Makefile.2 build/Makefile
+	${OOC} -driver=make -sourcepath=source/ -outpath=c-source/ rock/rock -o=../bin/c_rock c-source/${NQ_PATH} -v +-w
+	sed s/-w.*/-w\ -DROCK_BUILD_DATE=\\\"\\\\\"bootstrapped\\\\\"\\\"\ -DROCK_BUILD_TIME=\\\"\\\\\"\\\\\"\\\"/ -i build/Makefile
 	cp ${NQ_PATH} build/c-source/${NQ_PATH}
 	@echo "Done!"
 
@@ -44,8 +43,7 @@ prepare_bootstrap:
 # of rock from the C sources in build/, then use that version to re-compile itself
 bootstrap:
 	@echo "Compiling from C source"
-	cd build/ && make
-	mv bin/rock bin/c_rock
+	cd build/ && ROCK_DIST=.. make
 	@echo "Now re-compiling ourself"
 	OOC=bin/c_rock ROCK_DIST=. make all
 	@echo "Congrats! you have a boostrapped version of rock in bin/rock now. Have fun!"
