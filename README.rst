@@ -18,9 +18,6 @@ Install
 
   - clone nagaqueen, so that rock/ and nagaqueen/ are in the same folder (ie. they should be brothers) http://github.com/nddrylliog/nagaqueen
   - build and install greg http://github.com/nddrylliog/greg
-  - build and install libyajl http://lloyd.github.com/yajl/ (make sure to `./configure --prefix=/usr` cause it defaults to /usr/local by default,
-    and may not be found by gcc/ld)
-  - install ooc-yajl http://github.com/fredreichbier/ooc-yajl (make sure it's in /usr/lib/ooc/, or whatever your $OOC_LIBS is defined to)
 
 Finally,
 
@@ -62,5 +59,5 @@ Porting is not-so-hard, just refer to the cheat sheet here: http://ooc-lang.org/
 License
 -------
 
-rock is distributed under a BSD license
+rock is distributed under a BSD license, see LICENSE for details.
 
