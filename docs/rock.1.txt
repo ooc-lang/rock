@@ -22,7 +22,7 @@ OPTIONS
     Print more information during the build process, useful for debugging.
 
 *-vv, -veryVerbose*::
-    Print even more information! Use '-v -vv' for the information overkill.
+    Print even more information! *-vv* implies *-v*.
 
 *-g, -debug*::
     Compile with debug information.
@@ -35,13 +35,16 @@ OPTIONS
 
 *-gcc,-tcc,-icc,-clang,-onlygen*::
     Choose the compiler backend. (default=gcc)
+    Available compilers are the GNU Compiler Collection, TinyCC, Intel C++ Compiler
+    and the LLVM's clang frontend. Also, you can pass 'onlygen' to only generate the code
+    and not to run any compiler.
 
 *-gc=[dynamic,static,off]*::
     Link dynamically, link statically, or don't link with the boehm GC at all.
 
-*-driver=[combine,sequence]*::
+*-driver=[combine,sequence,make]*::
     Choose the compile driver to use. 'combine' compiles all C files combined, 
-    'sequence' compiles them sequentially.
+    'sequence' compiles them sequentially, 'make' creates a Makefile.
 
 *-sourcepath=PATH*::
     Pass the location of your source files. (default=current directory)
@@ -98,7 +101,7 @@ OPTIONS
     Specify the architecture (either 32 or 64).
 
 *+...*::
-    Pass extra arguments to the compiler.
+    Pass extra arguments to the compiler. Example: '+-Wall' will pass '-Wall' to gcc.
 
 EXIT STATUS
 -----------
