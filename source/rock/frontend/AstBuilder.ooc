@@ -51,26 +51,25 @@ AstBuilder: class {
 
     addLangImports: func {
 
-	langImports : static List<String>
+		langImports : static List<String> = null
 
-	if(langImports == null) {
-	    langImports = ArrayList<String> new()
+		if(langImports == null) {
+			langImports = ArrayList<String> new()
+			paths := params sourcePath getRelativePaths("lang")
+			for(path in paths) {
+				if(path endsWith(".ooc")) {
+					impName := path substring(0, path length() - 4) replace(File separator, '/')
+					langImports add(impName)
+				}
+			}
+		}
 
-            paths := params sourcePath getRelativePaths("lang")
-            for(path in paths) {
-                if(path endsWith(".ooc")) {
-                    impName := path substring(0, path length() - 4) replace(File separator, '/')
-                    langImports add(impName)
-                }
-            }
-	}
-
-        for(impName in langImports) {
-            if(impName != module fullName) {
-                //printf("Adding import %s to %s\n", impName, module fullName)
-                module addImport(Import new(impName, module token))
-            }
-	}
+		for(impName in langImports) {
+			if(impName != module fullName) {
+				//printf("Adding import %s to %s\n", impName, module fullName)
+				module addImport(Import new(impName, module token))
+			}
+		}
 
     }
     
