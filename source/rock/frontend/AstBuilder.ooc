@@ -621,7 +621,7 @@ AstBuilder: class {
     }
 
     onStringLiteral: unmangled(nq_onStringLiteral) func (text: String) -> StringLiteral {
-        StringLiteral new(EscapeSequence escape(text clone()), token())
+        StringLiteral new(text clone() replace("\n", "\\n") replace("\t", "\\t"), token())
     }
 
     onCharLiteral: unmangled(nq_onCharLiteral) func (value: String) -> CharLiteral {

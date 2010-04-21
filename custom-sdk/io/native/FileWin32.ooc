@@ -174,6 +174,8 @@ version(windows) {
          * @return the time of last access
          */
         lastAccessed: func -> Long {
+            if(!exists()) return -1
+            
             ffd: FindData
             findSingle(ffd&)
             return toTimestamp(ffd lastAccessTime)
@@ -183,6 +185,8 @@ version(windows) {
          * @return the time of last modification
          */
         lastModified: func -> Long {
+            if(!exists()) return -1
+            
             ffd: FindData
             findSingle(ffd&)
             return toTimestamp(ffd lastWriteTime)
@@ -192,6 +196,8 @@ version(windows) {
          * @return the time of creation
          */
         created: func -> Long {
+            if(!exists()) return -1
+            
             ffd: FindData
             findSingle(ffd&)
             return toTimestamp(ffd creationTime)
