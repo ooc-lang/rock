@@ -70,6 +70,10 @@ MakeDriver: class extends SequenceDriver {
         fW write("CFLAGS+=-I %s" format(originalOutPath getPath()))
         fW write(" -I ${ROCK_DIST}/libs/headers/")
         
+        if(params debug) {
+            fW write(" -g")
+        }
+        
         params compiler reset()
         iter := params compiler command iterator()
         iter next()
@@ -99,34 +103,44 @@ MakeDriver: class extends SequenceDriver {
         }
         fW write("\n")
         
-        fW write(".PHONY: compile link\n\n")
+        fW write("OBJECT_FILES:=")
+        
+        toCompile := collectDeps(module, ArrayList<Module> new(), ArrayList<String> new())
+        
+        for(currentModule in toCompile) {
+            path := File new(originalOutPath, currentModule getPath("")) getPath()
+            fW write(path). write(".o ")
+        }
+        
+        fW write("\n\n.PHONY: compile link\n\n")
         
         fW write("all: compile link\n\n")
         
-        fW write("compile:\n")
+        fW write("compile: ${OBJECT_FILES}")
         
-        fW write("\t@echo \"Compiling for arch ${ARCH}\"\n")
+        fW write("\n\t@echo \"Finished compiling for arch ${ARCH}\"\n")
         
-        toCompile := collectDeps(module, ArrayList<Module> new(), ArrayList<String> new())
+        fW write("\n\n")
         
         oPaths := ArrayList<String> new()
         
         for(currentModule in toCompile) {
             path := File new(originalOutPath, currentModule getPath("")) getPath()
-            oPath := path + ".o"    
+            oPath := path + ".o"  
             cPath := path + ".c"    
             oPaths add(oPath)
+            
+            fW write(oPath). write(": ").
+               write(cPath). write(" ").
+               write(path). write(".h ").
+               write(path). write("-fwd.h\n")
             
             fW write("\t${CC} ${CFLAGS} -c %s -o %s\n" format(cPath, oPath))
         }
         
-        fW write("\nlink: compile\n\n")
+        fW write("\nlink: ${OBJECT_FILES}\n")
         
-        fW write("\t${CC} ${CFLAGS}")
-        
-        for(oPath in oPaths) {
-            fW write(" "). write(oPath)
-        }
+        fW write("\t${CC} ${CFLAGS} ${OBJECT_FILES} ")
         
         for(dynamicLib in params dynamicLibs) {
             fW write(" -l "). write(dynamicLib)

@@ -1,6 +1,6 @@
 import structs/[ArrayList], text/Buffer
 import VariableAccess, VariableDecl, Statement, Node, Visitor,
-       FunctionCall, Type, FuncType
+       FunctionCall, Type, FuncType, Version
 import tinker/[Trail, Resolver, Response]
 import ../frontend/[BuildParams]
 
@@ -13,29 +13,8 @@ Scope: class extends Node {
     accept: func (v: Visitor) { v visitScope(this) }
     
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
-        // FIXME: this is *wrong* because the following code would compile with it:
-        //
-        // main: func {
-        //   printf("%d", x)
-        //   x := 42 // x is declared *after* it's used but it doesn't complain..
-        // }
-        //
-        // even worse, the following code would also compile:
-        //
-        // main: func {
-        //   for(i in 0..3) {
-        //     // do things
-        //   }
-        //   printf("%d", i) // i is not even in the scope, but it doesn't complain..
-        // }
-        
-        //debug := false
-        
         index := list size()
         ourIndex := trail indexOf(this)
-        //if(debug) {
-        //    printf("ourIndex = %d, trail = %s\n", ourIndex, trail toString())
-        //}
         
         if(ourIndex != -1) {
             node : Node = null
@@ -45,10 +24,6 @@ Scope: class extends Node {
             index = list indexOf(node)
         }
         
-        //if(debug) {
-        //    printf("index = %d\n", index)
-        //}
-        
         // probably a global
         if(index == -1) index = list size()
         
@@ -57,6 +32,16 @@ Scope: class extends Node {
             if(candidate instanceOf(VariableDecl) && candidate as VariableDecl getName() == access getName()) {
                 if(access suggest(candidate as VariableDecl)) {
                     return 0
+                }
+            } else if(candidate instanceOf(VersionBlock)) {
+                vb := candidate as VersionBlock
+                for(stmt in vb getBody()) {
+                    if(stmt instanceOf(VariableDecl) && stmt as VariableDecl getName() == access getName()) {
+                        //printf("Suggesting %s from version block %s\n", stmt toString(), vb toString())
+                        if(access suggest(stmt as VariableDecl)) {
+                            return 0
+                        }
+                    }
                 }
             }
         }

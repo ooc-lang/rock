@@ -34,7 +34,7 @@ grammar:
 prepare_bootstrap:
 	@echo "Preparing boostrap (in build/ directory)"
 	rm -rf build/
-	${OOC} -driver=make -sourcepath=source/ -outpath=c-source/ rock/rock -o=../bin/c_rock c-source/${NQ_PATH} -v +-w
+	${OOC} -driver=make -sourcepath=source/ -outpath=c-source/ rock/rock -o=../bin/c_rock c-source/${NQ_PATH} -v -g +-w
 	sed s/-w.*/-w\ -DROCK_BUILD_DATE=\\\"\\\\\"bootstrapped\\\\\"\\\"\ -DROCK_BUILD_TIME=\\\"\\\\\"\\\\\"\\\"/ -i build/Makefile
 	cp ${NQ_PATH} build/c-source/${NQ_PATH}
 	@echo "Done!"

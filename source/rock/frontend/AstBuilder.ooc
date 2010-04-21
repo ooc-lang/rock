@@ -19,6 +19,8 @@ AstBuilder: class {
 
     cache := static HashMap<String, Module> new()
 
+    langImports : List<String>
+
     params: BuildParams
     modulePath: String
     module: Module
@@ -49,18 +51,26 @@ AstBuilder: class {
 
     addLangImports: func {
 
-        //printf("Should add lang imports\n")
-        paths := params sourcePath getRelativePaths("lang")
-        for(path in paths) {
-            //printf("Considering path %s\n", path)
-            if(path endsWith(".ooc")) {
-                impName := path substring(0, path length() - 4)
-                if(impName != module fullName) {
-                    //printf("Adding import %s to %s\n", impName, module fullName)
-                    module addImport(Import new(impName, module token))
+	langImports : static List<String>
+
+	if(langImports == null) {
+	    langImports = ArrayList<String> new()
+
+            paths := params sourcePath getRelativePaths("lang")
+            for(path in paths) {
+                if(path endsWith(".ooc")) {
+                    impName := path substring(0, path length() - 4) replace(File separator, '/')
+                    langImports add(impName)
                 }
             }
-        }
+	}
+
+        for(impName in langImports) {
+            if(impName != module fullName) {
+                //printf("Adding import %s to %s\n", impName, module fullName)
+                module addImport(Import new(impName, module token))
+            }
+	}
 
     }
     
@@ -656,7 +666,15 @@ AstBuilder: class {
                     vd setGlobal(true)
                 }
                 module := node as Module
-                module body add(stmt)
+                
+                spec := getVersion()
+                if(spec != null) {
+                    vb := VersionBlock new(spec, token())
+                    vb getBody() add(stmt)
+                    module body add(vb)
+                } else {
+                    module body add(stmt)
+                }
             case node instanceOf(ClassDecl) =>
                 cDecl := node as ClassDecl
                 fDecl := cDecl lookupFunction(ClassDecl DEFAULTS_FUNC_NAME, "")
