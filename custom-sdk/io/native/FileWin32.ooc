@@ -54,8 +54,7 @@ version(windows) {
     FileWin32: class extends File {
 
         init: func ~win32 (=path) {
-            this path = this path replace('/', File separator)
-            //printf("Created FileWin32 %s, fixed path = %s, separator = %c\n", path, this path, File separator)
+           //printf("Created FileWin32 %s, fixed path = %s, separator = %c\n", path, this path, File separator)
         }
 
         /**
