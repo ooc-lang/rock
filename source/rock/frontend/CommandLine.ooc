@@ -283,7 +283,7 @@ CommandLine: class {
         successCount := 0
         for(modulePath in modulePaths) {
             //try {
-                code := parse(modulePath)
+                code := parse(modulePath replace('/', File separator))
                 if(code == 0) {
                     successCount += 1
                 } else {
