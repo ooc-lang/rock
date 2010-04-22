@@ -33,7 +33,7 @@ grammar:
 # and a nice Makefile, too
 prepare_bootstrap:
 	@echo "Preparing boostrap (in build/ directory)"
-	#rm -rf build/
+	rm -rf build/
 	${OOC} -driver=make -sourcepath=source -outpath=c-source rock/rock -o=../bin/c_rock c-source/${NQ_PATH} -v -g +-w
 	sed s/-w.*/-w\ -DROCK_BUILD_DATE=\\\"\\\\\"bootstrapped\\\\\"\\\"\ -DROCK_BUILD_TIME=\\\"\\\\\"\\\\\"\\\"/ -i build/Makefile
 	cp ${NQ_PATH} build/c-source/${NQ_PATH}
@@ -45,7 +45,7 @@ bootstrap:
 	@echo "Compiling from C source"
 	cd build/ && ROCK_DIST=.. make
 	@echo "Now re-compiling ourself"
-	OOC=bin/c_rock ROCK_DIST=. make all
+	OOC=bin/c_rock ROCK_DIST=. make self
 	@echo "Congrats! you have a boostrapped version of rock in bin/rock now. Have fun!"
 	
 # Copy the manpage and create a symlink to the binary
