@@ -1,0 +1,130 @@
+ROCK(1)
+=======
+
+NAME
+----
+rock - rapid ooc compiler without kludges
+
+SYNOPSIS
+--------
+
+*rock* ['OPTIONS'] 'FILES'
+
+DESCRIPTION
+-----------
+
+By default, rock takes the input files and compiles each, producing executables. However, this behaviour can be adjusted via command line options.
+
+OPTIONS
+-------
+
+*-v, -verbose*::
+    Print more information during the build process, useful for debugging.
+
+*-vv, -veryVerbose*::
+    Print even more information! *-vv* implies *-v*.
+
+*-g, -debug*::
+    Compile with debug information.
+
+*-noclean*::
+    Don't delete any temporary file produced by the backend, useful for debugging.
+
+*-backend=[c]*::
+    Choose the rock backend. Currently, only the default backend 'c' is supported.
+
+*-gcc,-tcc,-icc,-clang,-onlygen*::
+    Choose the compiler backend. (default=gcc)
+    Available compilers are the GNU Compiler Collection, TinyCC, Intel C++ Compiler
+    and the LLVM's clang frontend. Also, you can pass 'onlygen' to only generate the code
+    and not to run any compiler.
+
+*-gc=[dynamic,static,off]*::
+    Link dynamically, link statically, or don't link with the boehm GC at all.
+    Linking dynamically is -lgc, linking statically uses libs/'ARCH'/libgc.a
+    where 'ARCH' is one of linux32, linux64, win32, osx, etc.
+    -gc=off replace all calls of gc_malloc() with malloc(), and similarly
+    with calloc, realloc, free. For more infos, see http://docs.ooc-lang.org/
+
+*-driver=[combine,sequence,make]*::
+    Choose the compile driver to use. 'combine' compiles all C files combined, 
+    'sequence' compiles them sequentially, 'make' creates a build/ directory
+    with all the .c files and a Makefile.
+
+*-sourcepath=PATH*::
+    Specify a colon-separated (for *nix) or semicolon-separated path list
+    in which rock should look for your source files. (default=current directory)
+
+*-outpath=PATH*::
+    Place all .c and .h files in 'PATH'. (default='rock_tmp/')
+
+*-IPATH, -incpath=PATH*::
+    Add 'PATH' to the C header search path.
+
+*-LPATH, -libpath=PATH*::
+    Add 'PATH' to the C library search path.
+
+*-lLIB*::
+    Link dynamically with library 'LIB'.
+
+*-t, -timing*::
+    Print how much time the compilation took.
+
+*-r, -run*::
+    Run the exectuable after a successful compilation.
+
+*-editor=EDITOR*::
+    The editor to run when an error in a ooc file was encountered.
+
+*-entrypoint=FUNC*::
+    Use FUNC as entrypoint. (default='main')
+
+*-c*::
+    Compile, but skip the linking step. Useful if you want to
+    use your ooc code from a program written in another language.
+
+*-linker=LINKER*::
+    Use 'LINKER' in the last step of the sequence driver.
+
+*-nomain*::
+    Don't write a default main function.
+
+*-nolines*::
+    Print no #line directives in the C files.
+
+*-shout*::
+    Print a big fat status indicator (usually '[ OK ]') when a build process is finished.
+
+*-blowup=ROUNDS*::
+    Debugging option: Terminate rock after 'ROUNDS' tinkerer rounds. (default=32)
+
+*-V, -version, --version*::
+    Print rock's version and exit.
+
+*-h, -help, --help*::
+    Print this help and exit.
+
+*-mARCH*::
+    Specify the architecture (either 32 or 64).
+
+*+...*::
+    Pass extra arguments to the compiler. Example: '+-Wall' will pass '-Wall' to gcc.
+
+EXIT STATUS
+-----------
+
+*0*::
+    Success.
+*1*::
+    Failure.
+
+RESOURCES
+---------
+
+Website: <http://ooc-lang.org>
+
+COPYING
+-------
+
+rock is (c) 2009-2010 by Amos Wenger & the ooc crew, licensed under a two-clause BSD license.
+See 'LICENSE' for details.

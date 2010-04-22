@@ -122,7 +122,7 @@ EscapeSequence: class {
     escape: static func (s: String) -> String {
         buf := Buffer new()
         for(chr in s) {
-            if(!chr isPrintable()) {
+            if(!chr isPrintable() || chr == '\'' || chr == '"' || chr == '\\') {
                 buf append(match chr {
                     case '\'' => "\\'"
                     case '"' => "\\\""

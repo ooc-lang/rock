@@ -23,9 +23,9 @@ File: abstract class {
 
     path: String
 
-    // overriden in FileWin32 & friends
-    separator = '/' : static Char
-    pathDelimiter = ':' : static Char
+    // assigned in FileWin32 & friends
+    separator : static Char
+    pathDelimiter : static Char
 
     new: static func (.path) -> This {
         version(unix || apple) {

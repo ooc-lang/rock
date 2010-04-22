@@ -840,12 +840,15 @@ ULong:  cover from unsigned long  extends ULLong
 UInt:   cover from unsigned int   extends ULLong
 UShort: cover from unsigned short extends ULLong
 
-INT_MIN,    INT_MAX  : extern const static Int
-UINT_MAX 			 : extern const static UInt
-LONG_MIN,  LONG_MAX  : extern const static Long
-ULONG_MAX			 : extern const static ULong
-LLONG_MIN, LLONG_MAX : extern const static LLong
-ULLONG_MAX			 : extern const static ULLong
+//INT_MIN,    INT_MAX  : extern const static Int
+//UINT_MAX 			 : extern const static UInt
+//LONG_MIN,  LONG_MAX  : extern const static Long
+//ULONG_MAX			 : extern const static ULong
+//LLONG_MIN, LLONG_MAX : extern const static LLong
+//ULLONG_MAX			 : extern const static ULLong
+
+INT_MAX := 2147483647
+INT_MIN := -INT_MAX - 1
 
 /**
  * fixed-size integer types

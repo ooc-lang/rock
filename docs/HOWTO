@@ -1,0 +1,4 @@
+Howto
+=====
+
+How to create a manpage from this tasty rock.1.txt? Install asciidoc and run `a2x -f manpage rock.1.txt`.

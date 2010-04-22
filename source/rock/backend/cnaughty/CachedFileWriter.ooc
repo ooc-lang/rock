@@ -17,10 +17,6 @@ CachedFileWriter: class extends BufferWriter {
     }
 
 	close: func {
-        //FIXME: for some reason, file write() / file read() /
-        // BufferReader / BufferWriter / others don't like
-        // to play nice together.. should debug that.
-        
         if(!file exists()) {
             file write(BufferReader new(buffer))
 		} else {

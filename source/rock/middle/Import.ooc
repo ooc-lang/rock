@@ -9,7 +9,9 @@ Import: class {
     isTight := false // tight imports include '.h', loose imports include '-fwd.h'
     token: Token
     
-    init: func ~imp (=path, =token) {}
+    init: func ~imp (=path, =token) {
+        this path = this path replace('/', File separator)
+    }
     
     setModule: func(=module) {}
     

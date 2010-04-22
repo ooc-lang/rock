@@ -25,10 +25,10 @@ CombineDriver: class extends Driver {
         for(dynamicLib in params dynamicLibs) {
             params compiler addDynamicLibrary(dynamicLib)
         }
-        for(additional in additionals) {
+        for(additional in params additionals) {
             params compiler addObjectFile(additional)
         }
-        for(compilerArg in compilerArgs) {
+        for(compilerArg in params compilerArgs) {
             params compiler addObjectFile(compilerArg)
         }
         

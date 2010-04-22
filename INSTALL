@@ -1,0 +1,45 @@
+
+Note: make install does two things
+  1) Copy the manpage to /usr/local/man/man1 (override with MAN_INSTALL_PATH)
+  2) Create a symbolic link from bin/rock to /usr/bin/rock
+     (override with PREFIX=/usr/local or BIN_INSTALL_PATH=~/bin)
+
+You have a -source release
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+'make && sudo make install'
+
+You have a binary release (e.g. rock-X.X.X-linux32, rock-X.X.X-win32, etc.)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+'sudo make install'
+
+Troubleshooting
+---------------
+
+Help! rock doesn't find its sdk!
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Here's how rock tries to find it:
+
+1) If the ROCK_SDK environment variable is set, take that path
+2) If the ROCK_DIST environment variable is set, take $ROCK_DIST/custom-sdk
+3) If none of the above are set, tries to locate itself and tries ../custom-sdk
+   (works if you've symlinked the rock executable to /usr/bin or something.)
+
+Help! rock doesn't find its libraries!
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The only lib rock depends on is the Boehm GC (if you don't turn it off
+via -gc=off)
+
+We have static binary builds of the Boehm GC for most platforms/archs,
+look in rock/libs/
+
+If we don't have your platform/arch, try to install the Boehm GC yourself,
+and compile with -gc=dynamic (it'll link with -lgc instead of the static
+binary builds)
+
+http://www.hpl.hp.com/personal/Hans_Boehm/gc/
+
+Don't be afraid to open Makefile and build/Makefile

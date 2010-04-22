@@ -53,46 +53,60 @@ version(windows) {
      */
     FileWin32: class extends File {
 
-        init: func ~win32 (=path) {}
+        init: func ~win32 (=path) {
+           //printf("Created FileWin32 %s, fixed path = %s, separator = %c\n", path, this path, File separator)
+        }
 
         /**
          * @return true if the file exists and can be
          * opened for reading
          */
         exists: func -> Bool {
-            (0xFFFFFFFF != GetFileAttributes(path))
+            result := true
+            ffd: FindData
+            hFind := FindFirstFile(path, ffd&)
+            if(hFind == INVALID_HANDLE_VALUE) {
+                result = false
+            }
+            FindClose(hFind)
+            
+            //printf("%s exists? %s\n", path, result toString())
+            result
         }
 
         findSingle: func (ffdPtr: FindData*) {
-            hFind := findFirst(ffdPtr)
-            if(hFind == INVALID_HANDLE_VALUE) {
-                Exception new("[findSingle] Got invalid handle for file %s" format(path)) throw()
-            }
-            FindClose(hFind)
+            FindClose(findFirst(ffdPtr))
         }
 
         findFirst: func (ffdPtr: FindData*) -> Handle {
             hFind := FindFirstFile(path, ffdPtr)
             if(hFind == INVALID_HANDLE_VALUE) {
-                Exception new("[findFirst] Got invalid handle for file %s" format(path)) throw()
+                Exception new(This, "File not found: %s" format(path)) throw()
             }
             return hFind
         }
 
         /**
-         * @return true if it's a directory
+         * @return true if it's a directory (return false if it doesn't exist)
          */
         isDir: func -> Bool {
             ffd: FindData
-            findSingle(ffd&)
+            hFind := FindFirstFile(path, ffd&)
+            if(hFind == INVALID_HANDLE_VALUE) return false // it's not a directory if it doesn't exist
+            FindClose(hFind)
+            
             return ((ffd attr) & FILE_ATTRIBUTE_DIRECTORY)
         }
 
         /**
-         * @return true if it's a file (ie. not a directory nor a symbolic link)
+         * @return true if it's a file (ie. exists and is not a directory nor a symbolic link)
          */
         isFile: func -> Bool {
             ffd: FindData
+            hFind := FindFirstFile(path, ffd&)
+            if(hFind == INVALID_HANDLE_VALUE) return false // it's not a file if it doesn't exist
+            FindClose(hFind)
+            
             findSingle(ffd&)
             // our definition of a file: neither a directory or a link
             // (and no, FILE_ATTRIBUTE_NORMAL isn't true when we need it..)
@@ -105,7 +119,10 @@ version(windows) {
          */
         isLink: func -> Bool {
             ffd: FindData
-            findSingle(ffd&)
+            hFind := FindFirstFile(path, ffd&)
+            if(hFind == INVALID_HANDLE_VALUE) return false // it's not a link if it doesn't exist
+            FindClose(hFind)
+            
             return ((ffd attr) & FILE_ATTRIBUTE_REPARSE_POINT)
         }
 
@@ -157,6 +174,8 @@ version(windows) {
          * @return the time of last access
          */
         lastAccessed: func -> Long {
+            if(!exists()) return -1
+            
             ffd: FindData
             findSingle(ffd&)
             return toTimestamp(ffd lastAccessTime)
@@ -166,6 +185,8 @@ version(windows) {
          * @return the time of last modification
          */
         lastModified: func -> Long {
+            if(!exists()) return -1
+            
             ffd: FindData
             findSingle(ffd&)
             return toTimestamp(ffd lastWriteTime)
@@ -175,6 +196,8 @@ version(windows) {
          * @return the time of creation
          */
         created: func -> Long {
+            if(!exists()) return -1
+            
             ffd: FindData
             findSingle(ffd&)
             return toTimestamp(ffd creationTime)
