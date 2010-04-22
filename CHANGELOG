@@ -1,0 +1,39 @@
+
+0.9.0 release
+
+  - 2010-04 : rock bootstraps under Gentoo, Ubuntu, Win32, the first release of the
+    0.9.x branch is out
+
+pre-history
+
+  - 2010-02 : rock compiles most, if not all, generic collection classes, produces correct code.
+    we're going toward self-hosting, fixing bugs as we encounter them.
+  - 2010-02 : twitter announcement: for the first time, rock, a 10k SLOC pure ooc codebase,
+    compiles under Win32, and produces executables with gcc. party?
+  - 2010-01 : Copying chunks of the sdk from j/ooc to rock/custom-sdk, generics for functions are mostly implemented,
+    classes still to come. Most control flow structures are implemented
+    (if/else/while/foreach/match/case/break/continue), decl-assign, 'This', member calls, covers, etc.
+  - 2009-11 : Wohow, resolving spree. Pretty much everything resolves now, straight/member accesses/calls
+    even accross different modules, with imports and all. Most of the syntax is parsed,
+    except generics, and only a few AST node types are missing. The code is a lot shorter and
+    clearer than j/ooc's, I have high hopes as to the maintainability of rock. Plus, it's still *fast*.
+  - 2009-11 : Most of the resolving architecture is now there, it resolve types at module scope
+    correctly. Still need to implement planned implementations that weren't in j/ooc
+    (e.g. sharing Types per module, except for generics, to group resolves)
+  - 2009-11 : Overwhelmed by complexity, rewrote the grammar as a reusable piece, in a separate
+    github project. nagaqueen (its fancy name) is now needed to make rock compile
+  - 2009-10 : Made a leg frontend, builds the AST, ported a lot of Java code with itrekkie,
+    rock now compiles things =)
+  - 2009-10 : Creating the AST structure, code generation works well, putting the 
+    frontend on hold for a moment
+  - 2009-09 : The tokenizing code is all there, and it's working simply great.
+    Now onto constructing AST nodes.
+  - 2009-06 : Basic structure, it's gonna be some time till it can do anything useful
+
+
+
+
+
+
+
+

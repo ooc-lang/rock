@@ -6,58 +6,79 @@ where things begin to become really exciting.
 
 'r.o.c.k' stands for 'rapid ooc compiler without kludges'.
 Also, it's short and it sounds cool.
-If you can think of a better acronym, let us know.
-
-It should compile fine under the latest j/ooc,
-which you can get at http://github.com/nddrylliog/ooc
 
 Install
 -------
 
-*rock is alpha software*, don't cry if it breaks things
+Note: rock will install a launching script to /usr/bin/ by default,
+and its manpage to /usr/man/man1 (on *nix platforms)
 
-  - clone nagaqueen, so that rock/ and nagaqueen/ are in the same folder (ie. they should be brothers) http://github.com/nddrylliog/nagaqueen
-  - build and install greg http://github.com/nddrylliog/greg
+You can change the prefix by running PREFIX=/usr/local/ sudo make install
+for example, or even install it by hand (it's not that hard)
 
-Finally,
+You have a -source release
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  - create a script in /usr/bin/rock where you export OOC_DIST and call /path/to/your/rock/bin/rock
-  - OR "ln -s /path/to/your/rock/bin/rock /usr/bin" and then make sure rock/ is besides ooc/ (ie. they should be brothers)
+'make bootstrap && sudo make install'
 
-Progress report
+You have a binary release (e.g. rock-X.X.X-linux32, rock-X.X.X-win32, etc.)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+'sudo make install'
+
+Troubleshooting
 ---------------
 
-  - 2009-06 : Basic structure, it's gonna be some time till it can do anything useful
-  - 2009-09 : The tokenizing code is all there, and it's working simply great.
-    Now onto constructing AST nodes.
-  - 2009-10 : Creating the AST structure, code generation works well, putting the 
-    frontend on hold for a moment
-  - 2009-10 : Made a leg frontend, builds the AST, ported a lot of Java code with itrekkie,
-    rock now compiles things =)
-  - 2009-11 : Overwhelmed by complexity, rewrote the grammar as a reusable piece, in a separate
-    github project. nagaqueen (its fancy name) is now needed to make rock compile
-  - 2009-11 : Most of the resolving architecture is now there, it resolve types at module scope
-    correctly. Still need to implement planned implementations that weren't in j/ooc
-    (e.g. sharing Types per module, except for generics, to group resolves)
-  - 2009-11 : Wohow, resolving spree. Pretty much everything resolves now, straight/member accesses/calls
-    even accross different modules, with imports and all. Most of the syntax is parsed,
-    except generics, and only a few AST node types are missing. The code is a lot shorter and
-    clearer than j/ooc's, I have high hopes as to the maintainability of rock. Plus, it's still *fast*.
-  - 2010-01 : Copying chunks of the sdk from j/ooc to rock/custom-sdk, generics for functions are mostly implemented,
-    classes still to come. Most control flow structures are implemented
-    (if/else/while/foreach/match/case/break/continue), decl-assign, 'This', member calls, covers, etc.
-  - 2010-02 : twitter announcement: for the first time, rock, a 10k SLOC pure ooc codebase,
-    compiles under Win32, and produces executables with gcc. party?
-  - 2010-02 : rock compiles most, if not all, generic collection classes, produces correct code.
-    we're going toward self-hosting, fixing bugs as we encounter them.
+Help! rock doesn't find its sdk!
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can help! We can probably re-use like 50% of the source code from the
-j/ooc codebase, so please come on #ooc-lang to know which classes need porting.
+Here's how rock tries to find it:
 
-Porting is not-so-hard, just refer to the cheat sheet here: http://ooc-lang.org/cheat
+1) If the ROCK_SDK environment variable is set, take that path
+2) If the ROCK_DIST environment variable is set, take $ROCK_DIST/custom-sdk
+3) If none of the above are set, tries to locate itself and tries ../custom-sdk
+   (works if you've symlinked the rock executable to /usr/bin or something.)
+
+Help! rock doesn't find its libraries!
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The only lib rock depends on is the Boehm GC (if you don't turn it off
+via -gc=off)
+
+We have static binary builds of the Boehm GC for most platforms/archs,
+look in rock/libs/
+
+If we don't have your platform/arch, try to install the Boehm GC yourself,
+and compile with -gc=dynamic (it'll link with -lgc instead of the static
+binary builds)
+
+http://www.hpl.hp.com/personal/Hans_Boehm/gc/
+
+FAQ
+---
+
+Q: How did you bootstrap?
+A: From Java: http://github.com/nddrylliog/ooc It was a lot of fun and frustration
+
+Q: Do I need that j/ooc (java) version of the compiler to compile this?
+A: No. Let it die. We distribute rock as C sources now. (Remember, ooc
+   usually compiles down to C)
+
+Q: If I don't need another ooc compiler to compile this one, how does it work?
+Q: What does 'make bootstrap' do?
+A: 'make bootstrap' builds a rock binary from the C sources in build/c-source,
+   calls it bin/c_rock, and uses it to recompile itself to bin/rock
+   
+Q: I'm a naughty boy and I've read the Makefile. What does 'make prepare_bootstrap' do?
+A: It uses rock to generate the build/ directory, with -driver=make. Yes, it's awesome.
+   
+Q: What platforms/OSes are supported?
+A: It has been tested on Gentoo, Ubuntu, Windows XP (with Mingw32 and GCC 4.4),
+   and OSX. 'make prepare_bootstrap' may be shaky on Windows/OSX because of 
+   sed syntax differences (used to patch the produced build/Makefile). You're
+   better off running it on Gentoo/Ubuntu, just like we do for source releases.
 
 License
 -------
 
 rock is distributed under a BSD license, see LICENSE for details.
-
