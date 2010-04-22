@@ -1,0 +1,212 @@
+'\" t
+.\"     Title: rock
+.\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
+.\" Generator: DocBook XSL Stylesheets v1.75.2 <http://docbook.sf.net/>
+.\"      Date: 04/22/2010
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "ROCK" "1" "04/22/2010" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+rock \- rapid ooc compiler without kludges
+.SH "SYNOPSIS"
+.sp
+\fBrock\fR [\fIOPTIONS\fR] \fIFILES\fR
+.SH "DESCRIPTION"
+.sp
+By default, rock takes the input files and compiles each, producing executables\&. However, this behaviour can be adjusted via command line options\&.
+.SH "OPTIONS"
+.PP
+\fB\-v, \-verbose\fR
+.RS 4
+Print more information during the build process, useful for debugging\&.
+.RE
+.PP
+\fB\-vv, \-veryVerbose\fR
+.RS 4
+Print even more information!
+\fB\-vv\fR
+implies
+\fB\-v\fR\&.
+.RE
+.PP
+\fB\-g, \-debug\fR
+.RS 4
+Compile with debug information\&.
+.RE
+.PP
+\fB\-noclean\fR
+.RS 4
+Don\(cqt delete any temporary file produced by the backend, useful for debugging\&.
+.RE
+.PP
+\fB\-backend=[c]\fR
+.RS 4
+Choose the rock backend\&. Currently, only the default backend
+\fIc\fR
+is supported\&.
+.RE
+.PP
+\fB\-gcc,\-tcc,\-icc,\-clang,\-onlygen\fR
+.RS 4
+Choose the compiler backend\&. (default=gcc) Available compilers are the GNU Compiler Collection, TinyCC, Intel C++ Compiler and the LLVM\(cqs clang frontend\&. Also, you can pass
+\fIonlygen\fR
+to only generate the code and not to run any compiler\&.
+.RE
+.PP
+\fB\-gc=[dynamic,static,off]\fR
+.RS 4
+Link dynamically, link statically, or don\(cqt link with the boehm GC at all\&. Linking dynamically is \-lgc, linking statically uses libs/\fIARCH\fR/libgc\&.a where
+\fIARCH\fR
+is one of linux32, linux64, win32, osx, etc\&. \-gc=off replace all calls of gc_malloc() with malloc(), and similarly with calloc, realloc, free\&. For more infos, see
+http://docs\&.ooc\-lang\&.org/
+.RE
+.PP
+\fB\-driver=[combine,sequence,make]\fR
+.RS 4
+Choose the compile driver to use\&.
+\fIcombine\fR
+compiles all C files combined,
+\fIsequence\fR
+compiles them sequentially,
+\fImake\fR
+creates a build/ directory with all the \&.c files and a Makefile\&.
+.RE
+.PP
+\fB\-sourcepath=PATH\fR
+.RS 4
+Specify a colon\-separated (for *nix) or semicolon\-separated path list in which rock should look for your source files\&. (default=current directory)
+.RE
+.PP
+\fB\-outpath=PATH\fR
+.RS 4
+Place all \&.c and \&.h files in
+\fIPATH\fR\&. (default=\fIrock_tmp/\fR)
+.RE
+.PP
+\fB\-IPATH, \-incpath=PATH\fR
+.RS 4
+Add
+\fIPATH\fR
+to the C header search path\&.
+.RE
+.PP
+\fB\-LPATH, \-libpath=PATH\fR
+.RS 4
+Add
+\fIPATH\fR
+to the C library search path\&.
+.RE
+.PP
+\fB\-lLIB\fR
+.RS 4
+Link dynamically with library
+\fILIB\fR\&.
+.RE
+.PP
+\fB\-t, \-timing\fR
+.RS 4
+Print how much time the compilation took\&.
+.RE
+.PP
+\fB\-r, \-run\fR
+.RS 4
+Run the exectuable after a successful compilation\&.
+.RE
+.PP
+\fB\-editor=EDITOR\fR
+.RS 4
+The editor to run when an error in a ooc file was encountered\&.
+.RE
+.PP
+\fB\-entrypoint=FUNC\fR
+.RS 4
+Use FUNC as entrypoint\&. (default=\fImain\fR)
+.RE
+.PP
+\fB\-c\fR
+.RS 4
+Compile, but skip the linking step\&. Useful if you want to use your ooc code from a program written in another language\&.
+.RE
+.PP
+\fB\-linker=LINKER\fR
+.RS 4
+Use
+\fILINKER\fR
+in the last step of the sequence driver\&.
+.RE
+.PP
+\fB\-nomain\fR
+.RS 4
+Don\(cqt write a default main function\&.
+.RE
+.PP
+\fB\-nolines\fR
+.RS 4
+Print no #line directives in the C files\&.
+.RE
+.PP
+\fB\-shout\fR
+.RS 4
+Print a big fat status indicator (usually
+\fI[ OK ]\fR) when a build process is finished\&.
+.RE
+.PP
+\fB\-blowup=ROUNDS\fR
+.RS 4
+Debugging option: Terminate rock after
+\fIROUNDS\fR
+tinkerer rounds\&. (default=32)
+.RE
+.PP
+\fB\-V, \-version, \-\-version\fR
+.RS 4
+Print rock\(cqs version and exit\&.
+.RE
+.PP
+\fB\-h, \-help, \-\-help\fR
+.RS 4
+Print this help and exit\&.
+.RE
+.PP
+\fB\-mARCH\fR
+.RS 4
+Specify the architecture (either 32 or 64)\&.
+.RE
+.PP
+\fB+\&...\fR
+.RS 4
+Pass extra arguments to the compiler\&. Example:
+\fI+\-Wall\fR
+will pass
+\fI\-Wall\fR
+to gcc\&.
+.RE
+.SH "EXIT STATUS"
+.PP
+\fB0\fR
+.RS 4
+Success\&.
+.RE
+.PP
+\fB1\fR
+.RS 4
+Failure\&.
+.RE
+.SH "RESOURCES"
+.sp
+Website: http://ooc\-lang\&.org
+.SH "COPYING"
+.sp
+rock is (c) 2009\-2010 by Amos Wenger & the ooc crew, licensed under a two\-clause BSD license\&. See \fILICENSE\fR for details\&.

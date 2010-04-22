@@ -1,13 +1,13 @@
-Note: rock will install a launching script to /usr/bin/ by default,
-and its manpage to /usr/man/man1 (on *nix platforms)
 
-You can change the prefix by running PREFIX=/usr/local/ sudo make install
-for example, or even install it by hand (it's not that hard)
+Note: make install does two things
+  1) Copy the manpage to /usr/local/man/man1 (override with MAN_INSTALL_PATH)
+  2) Create a symbolic link from bin/rock to /usr/bin/rock
+     (override with PREFIX=/usr/local or BIN_INSTALL_PATH=~/bin)
 
 You have a -source release
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-'make bootstrap && sudo make install'
+'make && sudo make install'
 
 You have a binary release (e.g. rock-X.X.X-linux32, rock-X.X.X-win32, etc.)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -41,3 +41,5 @@ and compile with -gc=dynamic (it'll link with -lgc instead of the static
 binary builds)
 
 http://www.hpl.hp.com/personal/Hans_Boehm/gc/
+
+Don't be afraid to open Makefile and build/Makefile

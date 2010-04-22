@@ -1,9 +1,13 @@
-.PHONY:all clean mrproper test-ast
+.PHONY: all clean mrproper prepare_bootstrap bootstrap
 PARSER_GEN=greg
 NQ_PATH=source/rock/frontend/NagaQueen.c
 DATE=$(shell date +%Y-%m-%d)
 TIME=$(shell date +%H:%M)
 OOC_OWN_FLAGS=-sourcepath=source -driver=sequence -noclean -g -v -shout +-w
+
+PREFIX?=/usr
+MAN_INSTALL_PATH?=/usr/local/man/man1
+BIN_INSTALL_PATH?=${PREFIX}/bin
 
 ifdef WINDIR
 	OOC_OWN_FLAGS+=+-DROCK_BUILD_DATE=\\\"${DATE}\\\" +-DROCK_BUILD_TIME=\\\"${TIME}\\\"
@@ -14,11 +18,7 @@ endif
 OOC?=rock
 OOC_CMD=${OOC} ${OOC_OWN_FLAGS} ${OOC_FLAGS}
 
-all:
-	make clean noclean
-
-noclean:
-	${OOC_CMD} rock/rock -o=bin/rock ${NQ_PATH}
+all: bootstrap
 
 # Regenerate NagaQueen.c from the greg grammar
 # you need ../nagaqueen and greg to be in your path
@@ -47,6 +47,26 @@ bootstrap:
 	@echo "Now re-compiling ourself"
 	OOC=bin/c_rock ROCK_DIST=. make all
 	@echo "Congrats! you have a boostrapped version of rock in bin/rock now. Have fun!"
+	
+# Copy the manpage and create a symlink to the binary
+install:
+	cp -f docs/rock.1 ${MAN_INSTALL_PATH}/
+	ln -s $(shell pwd)/bin/rock* ${BIN_INSTALL_PATH}/
+	
+# Regenerate the man page from docs/rock.1.txt You need ascidoc for that
+man:
+	cd docs/ && a2x -f manpage rock.1.txt
+
+# Compile a clean rock with itself
+self:
+	make clean noclean
+
+# For rock developers - recompile without cleaning, for small changes
+# that don't trigger the fragile base class problem.
+#  - http://en.wikipedia.org/wiki/Fragile_base_class
+# This should be fixed by caching the class hierarchy with the json backend
+noclean:
+	${OOC_CMD} rock/rock -o=bin/rock ${NQ_PATH}
 
 clean:
 	rm -rf *_tmp/
