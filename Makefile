@@ -50,8 +50,9 @@ bootstrap:
 	
 # Copy the manpage and create a symlink to the binary
 install:
-	cp -f docs/rock.1 ${MAN_INSTALL_PATH}/
+	chmod +x bin/*
 	ln -s $(shell pwd)/bin/rock* ${BIN_INSTALL_PATH}/
+	cp -f docs/rock.1 ${MAN_INSTALL_PATH}/
 	
 # Regenerate the man page from docs/rock.1.txt You need ascidoc for that
 man:
