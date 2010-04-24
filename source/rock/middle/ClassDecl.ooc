@@ -130,7 +130,6 @@ ClassDecl: class extends TypeDecl {
             
             // TODO: check if the super-type actually has a no-arg constructor, throw an error if not
             if(superType != null && superType getName() != "ClassClass") {
-                printf("Added super-call to class %s with super-type %s\n", getName(), superType ? superType toString() : "(nil)")
                 init getBody() add(FunctionCall new("super", token))
             }
             
