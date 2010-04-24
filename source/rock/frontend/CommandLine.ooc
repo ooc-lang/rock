@@ -179,7 +179,7 @@ CommandLine: class {
                     
                 } else if (option == "V" || option == "-version" || option == "version") {
                     
-                    printf("rock 0.9.0, built on %s at %s\n", ROCK_BUILD_DATE, ROCK_BUILD_TIME)
+                    printf("rock head, built on %s at %s\n", ROCK_BUILD_DATE, ROCK_BUILD_TIME)
                     exit(0)
                     
                 } else if (option == "h" || option == "-help" || option == "help") {
