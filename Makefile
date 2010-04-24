@@ -1,4 +1,4 @@
-.PHONY: all clean mrproper prepare_bootstrap bootstrap
+.PHONY: all clean mrproper prepare_bootstrap bootstrap install
 PARSER_GEN=greg
 NQ_PATH=source/rock/frontend/NagaQueen.c
 DATE=$(shell date +%Y-%m-%d)
