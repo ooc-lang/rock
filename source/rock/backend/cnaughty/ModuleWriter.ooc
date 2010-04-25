@@ -13,8 +13,8 @@ ModuleWriter: abstract class extends Skeleton {
         fw app("/* "). app(module fullName). app(" header-forward file, generated with rock, the ooc compiler written in ooc */"). nl()
         cw app("/* "). app(module fullName). app(" source file, generated with rock, the ooc compiler written in ooc */"). nl()
 
-        hName    := "___"+ module fullName clone() replace('/', '_') replace('\\', '_') replace('-', '_') + "___"
-        hFwdName := "___"+ module fullName clone() replace('/', '_') replace('\\', '_') replace('-', '_') + "_fwd___"
+        hName    := "___"+ module getUnderName() + "___"
+        hFwdName := "___"+ module getUnderName() + "_fwd___"
 
         /* write the fwd-.h file */
         current = fw

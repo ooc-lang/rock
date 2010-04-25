@@ -60,9 +60,13 @@ Module: class extends Node {
     }
 
     sanitize: func(str: String) -> String {
-        // FIXME this is incomplete, the correct way is actually
-        // to replace everything non-alphanumeric with underscores
-        result := str replace('/', '_') replace(File separator, '_') replace('-', '_')
+        result := str clone()
+        for(i in 0..result length()) {
+            current := result[i]
+            if(!current isAlphaNumeric()) {
+                result[i] = '_'
+            }
+        }
         if(!result[0] isAlpha()) result = '_' + result
         result
     }
