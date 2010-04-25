@@ -72,7 +72,8 @@ ClassDeclWriter: abstract class extends Skeleton {
         }
         
         for(vDecl in cDecl variables) {
-            if(vDecl isExtern()) continue;
+            // ignore extern and virtual variables (usually properties)
+            if(vDecl isExtern() || vDecl isVirtual()) continue;
             
             current nl(). app(vDecl getType()). app(" "). app(vDecl getName()). app(';')
         }

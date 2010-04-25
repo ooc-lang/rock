@@ -160,16 +160,22 @@ VariableAccess: class extends Expression {
         }
 
         // Simple property access? Replace myself with a getter call.
-        // Make sure we're not in a getter/setter yet (the trail would
-        // contain `ref` then)
-        if(ref && ref instanceOf(PropertyDecl) && ref as PropertyDecl inOuterSpace(trail)) {
-            // Test that we're not part of an assignment (which will be replaced by a setter call)
-            // TODO: This should be nicer.
-            if(!(trail peek() instanceOf(BinaryOp) && trail peek() as BinaryOp type == OpTypes ass)) {
-                property := ref as PropertyDecl
-                fCall := FunctionCall new(expr, property getGetterName(), token)
-                trail peek() replace(this, fCall)
-                return Responses OK
+        if(ref && ref instanceOf(PropertyDecl)) {
+            // Make sure we're not in a getter/setter yet (the trail would
+            // contain `ref` then)
+            if(ref as PropertyDecl inOuterSpace(trail)) {
+                // Test that we're not part of an assignment (which will be replaced by a setter call)
+                // TODO: This should be nicer.
+                if(!(trail peek() instanceOf(BinaryOp) && trail peek() as BinaryOp type == OpTypes ass)) {
+                    property := ref as PropertyDecl
+                    fCall := FunctionCall new(expr, property getGetterName(), token)
+                    trail peek() replace(this, fCall)
+                    return Responses OK
+                }
+            } else {
+                // We are in a setter/getter and we're having a variable access. That means
+                // the property is not virtual.
+                ref as PropertyDecl setVirtual(false) 
             }
         }
         

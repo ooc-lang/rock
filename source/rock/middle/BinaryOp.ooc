@@ -148,13 +148,17 @@ BinaryOp: class extends Expression {
 
             // Left side is a property access? Replace myself with a setter call.
             // Make sure we're not in the getter/setter.
-            if(left instanceOf(VariableAccess) && left as VariableAccess ref instanceOf(PropertyDecl) \
-                && left as VariableAccess ref as PropertyDecl inOuterSpace(trail)) {
+            if(left instanceOf(VariableAccess) && left as VariableAccess ref instanceOf(PropertyDecl)) {
                 leftProperty := left as VariableAccess ref as PropertyDecl
-                fCall := FunctionCall new(left as VariableAccess expr, leftProperty getSetterName(), token)
-                fCall getArguments() add(right)
-                trail peek() replace(this, fCall)
-                return Responses OK
+                if(leftProperty inOuterSpace(trail)) {
+                    fCall := FunctionCall new(left as VariableAccess expr, leftProperty getSetterName(), token)
+                    fCall getArguments() add(right)
+                    trail peek() replace(this, fCall)
+                    return Responses OK
+                } else {
+                    // We're in a setter/getter. This means the property is not virtual.
+                    leftProperty setVirtual(false)
+                }
             }
             
             cast : Cast = null

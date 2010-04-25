@@ -10,10 +10,14 @@ PropertyDecl: class extends VariableDecl {
     setter: FunctionDecl = null
     cls: ClassDecl = null
     resolved := false
+    virtual := true // see `VariableAccess resolve` and `BinaryOp resolve`
 
     init: func ~pDecl (.type, .name, .token) {
         init(type, name, null, token)
     }
+
+    isVirtual: func -> Bool { virtual }
+    setVirtual: func (=virtual) {}
 
     setSetter: func (=setter) {}
     setGetter: func (=getter) {}
