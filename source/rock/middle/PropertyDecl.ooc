@@ -100,7 +100,7 @@ PropertyDecl: class extends VariableDecl {
 
     /** resolve `set` and `get` functions to `getter` and `setter` */
     resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
-        match call name {
+        match (call name) {
             case "get" => {
                 call setName(getGetterName())
                 cls resolveCall(call, res, trail)
