@@ -480,8 +480,8 @@ AstBuilder: class {
 
     onPropertyDeclGetterEnd: unmangled(nq_onPropertyDeclGetterEnd) func {
         getter := pop(FunctionDecl)
-        // getter has 0 statements? use default getter
-        if(getter body size() == 0) {
+        // getter has 0 statements and isn't extern? use default getter
+        if(getter body size() == 0 && !getter isExtern()) {
             peek(PropertyDecl) setDefaultGetter()
         } else {
             peek(PropertyDecl) setGetter(getter)
@@ -503,8 +503,8 @@ AstBuilder: class {
 
     onPropertyDeclSetterEnd: unmangled(nq_onPropertyDeclSetterEnd) func {
         setter := pop(FunctionDecl)
-        // setter has 0 statements? use default setter
-        if(setter body size() == 0) {
+        // setter has 0 statements and isn't extern? use default setter
+        if(setter body size() == 0 && !setter isExtern()) {
             peek(PropertyDecl) setDefaultSetter()
         } else {
             peek(PropertyDecl) setSetter(setter)

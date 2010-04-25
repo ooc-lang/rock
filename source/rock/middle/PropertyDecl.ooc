@@ -9,6 +9,7 @@ PropertyDecl: class extends VariableDecl {
     getter: FunctionDecl = null
     setter: FunctionDecl = null
     cls: ClassDecl = null
+    resolved := false
 
     init: func ~pDecl (.type, .name, .token) {
         init(type, name, null, token)
@@ -43,6 +44,9 @@ PropertyDecl: class extends VariableDecl {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
+        if(resolved) {
+            return Responses OK
+        }
         // get and store the class.
         node := trail peek()
         if(!node instanceOf(ClassDecl)) {
@@ -51,6 +55,7 @@ PropertyDecl: class extends VariableDecl {
         cls = node as ClassDecl
         // setup getter
         if(getter != null) {
+            // this is also done for extern getters.
             getter setName(getGetterName()) .setReturnType(type)
             cls addFunction(getter)
             // resolve!
@@ -62,20 +67,26 @@ PropertyDecl: class extends VariableDecl {
         if(setter != null) {
             // set name, argument type ...
             setter setName(getSetterName())
-            arg := setter args[0]
-            // replace `assign` with `conventional`.
-            if(arg instanceOf(AssArg)) {
-                // create AST nodes, add setter contents
-                this_ := VariableAccess new("this", token)
-                left := VariableAccess new(this_, this name, token)
-                right := VariableAccess new(this name, token)
-                assignment := BinaryOp new(left, right, OpTypes ass, token)
-                setter body add(assignment)
-                // replace argument
+            if(setter isExtern()) {
+                // add single arg
                 newArg := Argument new(this type, this name, token)
-                setter args[0] = newArg
+                setter args add(newArg)
             } else {
-                arg setType(this type)
+                arg := setter args[0]
+                // replace `assign` with `conventional`.
+                if(arg instanceOf(AssArg)) {
+                    // create AST nodes, add setter contents
+                    this_ := VariableAccess new("this", token)
+                    left := VariableAccess new(this_, this name, token)
+                    right := VariableAccess new(this name, token)
+                    assignment := BinaryOp new(left, right, OpTypes ass, token)
+                    setter body add(assignment)
+                    // replace argument
+                    newArg := Argument new(this type, this name, token)
+                    setter args[0] = newArg
+                } else {
+                    arg setType(this type)
+                }
             }
             cls addFunction(setter)
             trail push(this)
@@ -83,6 +94,7 @@ PropertyDecl: class extends VariableDecl {
             trail pop(this)
         }
         super(trail, res)
+        resolved = true
         return Responses OK
     }
 
