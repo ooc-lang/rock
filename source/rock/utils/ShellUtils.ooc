@@ -16,6 +16,11 @@ ShellUtils: class {
      */
     findExecutable: static func (executableName: String, crucial: Bool) -> File {
 
+        simple := File new(executableName)
+        if(simple exists()) {
+            return simple
+        }
+
         pathVar := Env get("PATH")
         if (pathVar == null) {
             pathVar = Env get("Path")

@@ -127,6 +127,12 @@ ClassDecl: class extends TypeDecl {
              */
             init := FunctionDecl new("init", token)
 			addFunction(init)
+            
+            // TODO: check if the super-type actually has a no-arg constructor, throw an error if not
+            if(superType != null && superType getName() != "ClassClass") {
+                init getBody() add(FunctionCall new("super", token))
+            }
+            
             defaultInit = init // if defaultInit is set earlier, it'll try to remove it..
         }
 	}

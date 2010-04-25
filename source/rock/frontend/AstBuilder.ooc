@@ -16,6 +16,27 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
+// Having to do this sucks. There should clearly be a more elegant way
+reservedWords := ArrayList<UInt> new()
+reservedWords add(ac_X31_hash("auto"))
+reservedWords add(ac_X31_hash("int"))
+reservedWords add(ac_X31_hash("long"))
+reservedWords add(ac_X31_hash("char"))
+reservedWords add(ac_X31_hash("register"))
+reservedWords add(ac_X31_hash("short"))
+reservedWords add(ac_X31_hash("do"))
+reservedWords add(ac_X31_hash("sizeof"))
+reservedWords add(ac_X31_hash("double"))
+reservedWords add(ac_X31_hash("struct"))
+reservedWords add(ac_X31_hash("switch"))
+reservedWords add(ac_X31_hash("typedef"))
+reservedWords add(ac_X31_hash("union"))
+reservedWords add(ac_X31_hash("unsigned"))
+reservedWords add(ac_X31_hash("signed"))
+reservedWords add(ac_X31_hash("goto"))
+reservedWords add(ac_X31_hash("enum"))
+reservedWords add(ac_X31_hash("const"))
+
 AstBuilder: class {
 
     cache := static HashMap<String, Module> new()
@@ -421,6 +442,11 @@ AstBuilder: class {
     }
 
     gotVarDecl: func (vd: VariableDecl) {
+        hash := ac_X31_hash(vd getName())
+        if(reservedWords contains(hash)) {
+            vd token throwError("%s is a reserved C99 keyword, you can't use it in a variable declaration" format(vd getName()))
+        }
+        
         node : Node = stack peek()
         //printf("[gotVarDecl] Got variable decl %s, and parent is a %s\n", vd toString(), node class name)
         if(node instanceOf(TypeDecl)) {

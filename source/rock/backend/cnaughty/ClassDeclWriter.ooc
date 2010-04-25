@@ -180,7 +180,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
 		for(fDecl: FunctionDecl in cDecl functions) {
 
-			if (fDecl isStatic() || fDecl isFinal()) {
+			if (fDecl isStatic() || fDecl isFinal() || fDecl isExternWithName()) {
 				continue
             }
 
