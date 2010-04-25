@@ -5017,11 +5017,11 @@ YY_RULE(int) yy_GET_KW(GREG *G)
 }
 YY_RULE(int) yy_PropertyDeclSetter(GREG *G)
 {  int yypos0= G->pos, yythunkpos0= G->thunkpos;  yyDo(G, yyPush, 2, 0);
-  yyprintf((stderr, "%s\n", "PropertyDeclSetter"));  yyDo(G, yy_1_PropertyDeclSetter, G->begin, G->end);  if (!yy_WS(G)) { goto l372; }
-  {  int yypos373= G->pos, yythunkpos373= G->thunkpos;  if (!yy_ExternName(G)) { goto l373; }  yyDo(G, yySet, -2, 0);  yyDo(G, yy_2_PropertyDeclSetter, G->begin, G->end);  goto l374;
+  yyprintf((stderr, "%s\n", "PropertyDeclSetter"));  yyDo(G, yy_1_PropertyDeclSetter, G->begin, G->end);  if (!yy_WS(G)) { goto l372; }  if (!yy_SET_KW(G)) { goto l372; }  if (!yy_WS(G)) { goto l372; }
+  {  int yypos373= G->pos, yythunkpos373= G->thunkpos;  if (!yy_COLON(G)) { goto l373; }  if (!yy_WS(G)) { goto l373; }  if (!yy_ExternName(G)) { goto l373; }  yyDo(G, yySet, -2, 0);  yyDo(G, yy_2_PropertyDeclSetter, G->begin, G->end);  goto l374;
   l373:;	  G->pos= yypos373; G->thunkpos= yythunkpos373;
   }
-  l374:;	  if (!yy_WS(G)) { goto l372; }  if (!yy_SET_KW(G)) { goto l372; }  if (!yy_WS(G)) { goto l372; }
+  l374:;	
   {  int yypos375= G->pos, yythunkpos375= G->thunkpos;  if (!yy_OPEN_PAREN(G)) { goto l375; }  if (!yy_WS(G)) { goto l375; }  if (!yy_IDENT(G)) { goto l375; }  yyDo(G, yy_3_PropertyDeclSetter, G->begin, G->end);  if (!yy_CLOS_PAREN(G)) { goto l375; }  if (!yy_WS(G)) { goto l375; }  if (!yy_OPEN_BRACK(G)) { goto l375; }
   l377:;	
   {  int yypos378= G->pos, yythunkpos378= G->thunkpos;  if (!yy_WS(G)) { goto l378; }  if (!yy_Stmt(G)) { goto l378; }  yyDo(G, yySet, -1, 0);  yyDo(G, yy_4_PropertyDeclSetter, G->begin, G->end);  if (!yy_WS(G)) { goto l378; }  goto l377;
@@ -5038,11 +5038,11 @@ YY_RULE(int) yy_PropertyDeclSetter(GREG *G)
 }
 YY_RULE(int) yy_PropertyDeclGetter(GREG *G)
 {  int yypos0= G->pos, yythunkpos0= G->thunkpos;  yyDo(G, yyPush, 2, 0);
-  yyprintf((stderr, "%s\n", "PropertyDeclGetter"));  yyDo(G, yy_1_PropertyDeclGetter, G->begin, G->end);  if (!yy_WS(G)) { goto l379; }
-  {  int yypos380= G->pos, yythunkpos380= G->thunkpos;  if (!yy_ExternName(G)) { goto l380; }  yyDo(G, yySet, -2, 0);  yyDo(G, yy_2_PropertyDeclGetter, G->begin, G->end);  goto l381;
+  yyprintf((stderr, "%s\n", "PropertyDeclGetter"));  yyDo(G, yy_1_PropertyDeclGetter, G->begin, G->end);  if (!yy_WS(G)) { goto l379; }  if (!yy_GET_KW(G)) { goto l379; }  if (!yy_WS(G)) { goto l379; }
+  {  int yypos380= G->pos, yythunkpos380= G->thunkpos;  if (!yy_COLON(G)) { goto l380; }  if (!yy_WS(G)) { goto l380; }  if (!yy_ExternName(G)) { goto l380; }  yyDo(G, yySet, -2, 0);  yyDo(G, yy_2_PropertyDeclGetter, G->begin, G->end);  goto l381;
   l380:;	  G->pos= yypos380; G->thunkpos= yythunkpos380;
   }
-  l381:;	  if (!yy_WS(G)) { goto l379; }  if (!yy_GET_KW(G)) { goto l379; }  if (!yy_WS(G)) { goto l379; }
+  l381:;	
   {  int yypos382= G->pos, yythunkpos382= G->thunkpos;  if (!yy_OPEN_BRACK(G)) { goto l382; }
   l384:;	
   {  int yypos385= G->pos, yythunkpos385= G->thunkpos;  if (!yy_WS(G)) { goto l385; }  if (!yy_Stmt(G)) { goto l385; }  yyDo(G, yySet, -1, 0);  yyDo(G, yy_3_PropertyDeclGetter, G->begin, G->end);  if (!yy_WS(G)) { goto l385; }  goto l384;
