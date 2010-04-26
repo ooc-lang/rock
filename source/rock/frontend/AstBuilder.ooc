@@ -1,3 +1,4 @@
+
 import io/File, text/[Buffer, EscapeSequence]
 
 import structs/[ArrayList, List, Stack, HashMap]
@@ -11,7 +12,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     NullLiteral, Argument, Parenthesis, AddressOf, Dereference, Foreach,
     OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess, Match, FlowControl,
     While, CharLiteral, InterfaceDecl, NamespaceDecl, Version, Use, Block,
-    ArrayLiteral, EnumDecl, BaseType, FuncType, Declaration]
+    ArrayLiteral, EnumDecl, BaseType, FuncType, Declaration, PropertyDecl]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -458,6 +459,63 @@ AstBuilder: class {
             //printf("[gotVarDecl] Parent is a %s, don't know what to do, calling gotStatement()\n", node class name)
             gotStatement(vd)
         }
+    }
+
+    /*
+     * Properties
+     */
+
+    onPropertyDeclStart: unmangled(nq_onPropertyDeclStart) func (name: String) {
+        stack push(PropertyDecl new(null, name clone(), token()))
+    }
+
+    onPropertyDeclType: unmangled(nq_onPropertyDeclType) func (type: Type) {
+        peek(PropertyDecl) type = type
+    }
+
+    onPropertyDeclGetterStart: unmangled(nq_onPropertyDeclGetterStart) func {
+        getter := FunctionDecl new("", token())
+        stack push(getter)
+    }
+
+    onPropertyDeclGetterEnd: unmangled(nq_onPropertyDeclGetterEnd) func {
+        getter := pop(FunctionDecl)
+        // getter has 0 statements and isn't extern? use default getter
+        if(getter body size() == 0 && !getter isExtern()) {
+            peek(PropertyDecl) setDefaultGetter()
+        } else {
+            peek(PropertyDecl) setGetter(getter)
+        }
+    }
+
+    onPropertyDeclSetterStart: unmangled(nq_onPropertyDeclSetterStart) func {
+        setter := FunctionDecl new("", token())
+        stack push(setter)
+    }
+
+    onPropertyDeclSetterArgument: unmangled(nq_onPropertyDeclSetterArgument) func (name: String, conventional: Bool) {
+        arg: Argument = match conventional {
+            case true => Argument new(null, name clone(), token())
+            case false => AssArg new(name clone(), token())
+        }
+        peek(FunctionDecl) args add(arg)
+    }
+
+    onPropertyDeclSetterEnd: unmangled(nq_onPropertyDeclSetterEnd) func {
+        setter := pop(FunctionDecl)
+        // setter has 0 statements and isn't extern? use default setter
+        if(setter body size() == 0 && !setter isExtern()) {
+            peek(PropertyDecl) setDefaultSetter()
+        } else {
+            peek(PropertyDecl) setSetter(setter)
+        }
+    }
+
+    onPropertyDeclEnd: unmangled(nq_onPropertyDeclEnd) func -> PropertyDecl {
+        decl := pop(PropertyDecl)
+        node := peek(ClassDecl)
+        node addVariable(decl)
+        decl
     }
 
     /*

@@ -1,6 +1,6 @@
 import ../frontend/[Token, BuildParams]
-import Visitor, Expression, VariableDecl, FunctionDecl, TypeDecl,
-	   Declaration, Type, Node, ClassDecl, NamespaceDecl, EnumDecl
+import BinaryOp, Visitor, Expression, VariableDecl, FunctionDecl, TypeDecl,
+	   Declaration, Type, Node, ClassDecl, NamespaceDecl, EnumDecl, PropertyDecl, FunctionCall
 import tinker/[Resolver, Response, Trail]
 
 VariableAccess: class extends Expression {
@@ -156,6 +156,26 @@ VariableAccess: class extends Expression {
                     break // break on first match
                 }
                 depth -= 1
+            }
+        }
+
+        // Simple property access? Replace myself with a getter call.
+        if(ref && ref instanceOf(PropertyDecl)) {
+            // Make sure we're not in a getter/setter yet (the trail would
+            // contain `ref` then)
+            if(ref as PropertyDecl inOuterSpace(trail)) {
+                // Test that we're not part of an assignment (which will be replaced by a setter call)
+                // TODO: This should be nicer.
+                if(!(trail peek() instanceOf(BinaryOp) && trail peek() as BinaryOp type == OpTypes ass)) {
+                    property := ref as PropertyDecl
+                    fCall := FunctionCall new(expr, property getGetterName(), token)
+                    trail peek() replace(this, fCall)
+                    return Responses OK
+                }
+            } else {
+                // We are in a setter/getter and we're having a variable access. That means
+                // the property is not virtual.
+                ref as PropertyDecl setVirtual(false) 
             }
         }
         

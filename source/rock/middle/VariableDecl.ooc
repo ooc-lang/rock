@@ -51,6 +51,11 @@ VariableDecl: class extends Declaration {
         )
     }
 
+    /** If `true`, the property should not be added to the instance struct as a member.
+        Ordinary variables never are virtual. Properties can be.
+      */
+    isVirtual: func -> Bool { false }
+
     setOwner: func (=owner) {}
 
     setExpr: func (=expr) {}
