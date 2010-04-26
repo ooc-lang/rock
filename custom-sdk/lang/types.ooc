@@ -71,7 +71,8 @@ None: class {init: func {}}
  * Pointer type
  */
 Void: cover from void
-Pointer: cover from void* {
+
+Pointer: cover from Void* {
     toString: func -> String { "%p" format(this) }
 }
 

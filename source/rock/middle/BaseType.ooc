@@ -47,7 +47,7 @@ BaseType: class extends Type {
 
         w app(td underName())
         if(td instanceOf(ClassDecl)) {
-            w app("*")
+            w app('*')
         }
     }
     

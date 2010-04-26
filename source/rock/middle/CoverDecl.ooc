@@ -45,8 +45,7 @@ CoverDecl: class extends TypeDecl {
         if(fromType) {
             response := fromType resolve(trail, res)
             if(!response ok()) {
-                //printf("Giving up on cover type %s\n", fromType toString())
-                fromType setRef(BuiltinType new(fromType toString(), nullToken))
+                fromType setRef(BuiltinType new(fromType getName(), nullToken))
             }
         }
         
