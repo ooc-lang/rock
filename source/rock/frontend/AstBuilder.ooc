@@ -183,7 +183,7 @@ AstBuilder: class {
             if(depMod != null) {
                 base := depMod getTypes() get(name)
                 if(base != null) {
-                    println(" >> While parsing "+cDecl getName()+" in "+module getFullName()+", found base in "+depMod getFullName())
+                    //println(" >> While parsing "+cDecl getName()+" in "+module getFullName()+", found base in "+depMod getFullName())
                     cDecl absorb(base as CoverDecl)
                     absorbed = true
                     break
@@ -196,7 +196,7 @@ AstBuilder: class {
                     if(imp path == module getFullName()) {
                         addon := other getTypes() get(name)
                         if(addon != null) {
-                            println(" >> [From cache] While parsing "+cDecl getName()+" in "+module getFullName() +", found addon in "+other getFullName())
+                            //println(" >> [From cache] While parsing "+cDecl getName()+" in "+module getFullName() +", found addon in "+other getFullName())
                             addon as CoverDecl absorb(cDecl)
                             absorbed = true
                             break

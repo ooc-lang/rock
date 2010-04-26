@@ -64,14 +64,14 @@ CoverDecl: class extends TypeDecl {
             token throwError("Attempting to add variables to another cover!")
         }
         getMeta() base = node getMeta()
-        printf("%s from %s is absorbing %s from %s\n", toString(), token module toString(), node toString(), node token module toString())
+        //printf("%s from %s is absorbing %s from %s\n", toString(), token module toString(), node toString(), node token module toString())
         setFromType(node getFromType())
         node addAddon(this)
     }
     
     addAddon: func (node: CoverDecl) {
         getMeta() getAddons() add(node getMeta())
-        printf("%s from %s got %s from %s as addon\n", getMeta() toString(), token module toString(), node getMeta() toString(), node token module toString())
+        //printf("%s from %s got %s from %s as addon\n", getMeta() toString(), token module toString(), node getMeta() toString(), node token module toString())
     }
     
     replace: func (oldie, kiddo: Node) -> Bool { false }

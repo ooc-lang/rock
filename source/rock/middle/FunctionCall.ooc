@@ -217,7 +217,7 @@ FunctionCall: class extends Expression {
             //printf("name = %s, refScore = %d, ref = %s\n", name, refScore, ref ? ref toString() : "(nil)")
             if(ref) {
                 token printMessage(message, "ERROR")
-                showNearestMatch()
+                showNearestMatch(res params)
                 if(BuildParams fatalError) CommandLine failure()
             } else {
                 token throwError(message)
@@ -233,7 +233,7 @@ FunctionCall: class extends Expression {
         
     }
     
-    showNearestMatch: func {
+    showNearestMatch: func (params: BuildParams) {
         "\tNearest match is:\n\n\t\t%s\n" format(ref toString()) println()
         
         callIter := args iterator()
@@ -256,8 +256,12 @@ FunctionCall: class extends Expression {
             
             score := callArg getType() getScore(declArg getType())
             if(score < 0) {
-                "\t..but the type of this arg should be %s (%s), not %s (%s)\n" format(declArg getType() toString(), declArg getType() getRef() ? declArg getType() getRef() token toString() : "(nil)",
-                                                                                       callArg getType() toString(), callArg getType() getRef() ? callArg getType() getRef() token toString() : "(nil)") println()
+                if(params veryVerbose) {
+                    "\t..but the type of this arg should be %s (%s), not %s (%s)\n" format(declArg getType() toString(), declArg getType() getRef() ? declArg getType() getRef() token toString() : "(nil)",
+                                                                                           callArg getType() toString(), callArg getType() getRef() ? callArg getType() getRef() token toString() : "(nil)") println()
+                } else {
+                    "\t..but the type of this arg should be %s, not %s\n" format(declArg getType() toString(), callArg getType() toString()) println()
+                }
                 callArg token printMessage("\t\t", "", "")
             }
         }
