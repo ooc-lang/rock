@@ -1,6 +1,6 @@
 import structs/[ArrayList]
 import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
-       Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast, Module,
+       Node, ClassDecl, CoverDecl, FunctionCall, Argument, BinaryOp, Cast, Module,
        Block, Scope, FunctionDecl, Argument, VariableDecl
 import tinker/[Response, Resolver, Trail]
 import ../frontend/BuildParams
@@ -8,7 +8,7 @@ import ../frontend/BuildParams
 PropertyDecl: class extends VariableDecl {
     getter: FunctionDecl = null
     setter: FunctionDecl = null
-    cls: ClassDecl = null
+    cls: TypeDecl = null
     resolved := false
     virtual := true // see `VariableAccess resolve` and `BinaryOp resolve`
 
@@ -53,8 +53,8 @@ PropertyDecl: class extends VariableDecl {
         }
         // get and store the class.
         node := trail peek()
-        if(!node instanceOf(ClassDecl)) {
-            token throwError("Expected ClassDecl, got %s" format(node toString()))
+        if(!node instanceOf(TypeDecl)) {
+            token throwError("Expected TypeDecl, got %s" format(node toString()))
         }
         cls = node as ClassDecl
         // setup getter
@@ -62,6 +62,10 @@ PropertyDecl: class extends VariableDecl {
             // this is also done for extern getters.
             getter setName(getGetterName()) .setReturnType(type)
             cls addFunction(getter)
+            // are we a cover? if yes, use func@
+            if(cls instanceOf(CoverDecl)) {
+                getter isThisRef = true
+            }
             // resolve!
             trail push(this)
             getter resolve(trail, res)
@@ -71,6 +75,10 @@ PropertyDecl: class extends VariableDecl {
         if(setter != null) {
             // set name, argument type ...
             setter setName(getSetterName())
+            // are we a cover? if yes, use func@
+            if(cls instanceOf(CoverDecl)) {
+                setter isThisRef = true
+            }
             if(setter isExtern()) {
                 // add single arg
                 newArg := Argument new(this type, this name, token)

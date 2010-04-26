@@ -513,7 +513,7 @@ AstBuilder: class {
 
     onPropertyDeclEnd: unmangled(nq_onPropertyDeclEnd) func -> PropertyDecl {
         decl := pop(PropertyDecl)
-        node := peek(ClassDecl)
+        node := peek(TypeDecl)
         node addVariable(decl)
         decl
     }
