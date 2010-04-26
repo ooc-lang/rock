@@ -3,29 +3,28 @@ include pthread, unistd
 
 version(unix || apple) {
 
-/* covers & extern functions */
+    /* covers & extern functions */
+    PThread: cover from pthread_t
+    pthread_create: extern func (...) -> Int
+    pthread_join:   extern func (...) -> Int
 
-PThread: cover from pthread_t
-pthread_create: extern func (...) -> Int
-pthread_join:   extern func (...) -> Int
+    ThreadUnix: class extends Thread {
 
-ThreadUnix: class extends Thread {
+        pthread: PThread
 
-    pthread: PThread
+        init: func ~unix (=runnable) {}
 
-    init: func ~unix (=runnable) {}
+        start: func -> Int {
+            // Feinte du loup des bois. We pass a pointer to the runnable
+            // to pthread_create so that it corresponds to the 'this' argument
+            // of our member method. Easy enough, huh ?
+            return pthread_create(pthread&, null, Runnable run as Func(Pointer) -> Pointer, runnable)
+        }
 
-    start: func -> Int {
-        // Feinte du loup des bois. We pass a pointer to the runnable
-        // to pthread_create so that it corresponds to the 'this' argument
-        // of our member method. Easy enough, huh ?
-        return pthread_create(pthread&, null, Runnable run as Pointer, runnable)
+        wait: func -> Int {
+            return pthread_join(pthread, null)
+        }
+
     }
-
-    wait: func -> Int {
-        return pthread_join(pthread, null)
-    }
-
-}
 
 }

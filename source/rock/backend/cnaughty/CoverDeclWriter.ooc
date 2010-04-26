@@ -54,8 +54,7 @@ CoverDeclWriter: abstract class extends Skeleton {
 					app(' '). app(cDecl underName()). app(';')
 			} else {
 				current nl(). app("typedef ")
-                current app(fromType getGroundType()). app(' '). app(cDecl underName())
-				current app(';')
+                current app(fromType getGroundType()). app(' '). app(cDecl underName()). app(';')
 			}
 		}
         

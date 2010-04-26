@@ -260,7 +260,7 @@ PointerType: class extends SugarType {
     
     write: func (w: AwesomeWriter, name: String) {
         inner write(w, null)
-        if(!inner isGeneric()) w app("*")
+        if(!inner isGeneric()) w app('*')
         if(name != null) w app(' '). app(name)
     }
     
