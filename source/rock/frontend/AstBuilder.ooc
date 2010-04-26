@@ -469,6 +469,10 @@ AstBuilder: class {
         stack push(PropertyDecl new(null, name clone(), token()))
     }
 
+    onPropertyDeclStatic: unmangled(nq_onPropertyDeclStatic) func {
+        peek(PropertyDecl) setStatic(true)
+    }
+
     onPropertyDeclType: unmangled(nq_onPropertyDeclType) func (type: Type) {
         peek(PropertyDecl) type = type
     }
