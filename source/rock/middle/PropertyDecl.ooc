@@ -26,7 +26,14 @@ PropertyDecl: class extends VariableDecl {
     setDefaultGetter: func {
         // a default getter just returns the value.
         decl := FunctionDecl new("__defaultGet__", token)
-        access := VariableAccess new(this name, token)
+        access: VariableAccess
+        if(isStatic()) {
+            // `This $name`
+            access = VariableAccess new(VariableAccess new("This", token), this name, token)
+        } else {
+            // `name`
+            access = VariableAccess new(this name, token)
+        }
         decl body add(access)
         setGetter(decl)
     }
@@ -66,6 +73,10 @@ PropertyDecl: class extends VariableDecl {
             if(cls instanceOf(CoverDecl)) {
                 getter isThisRef = true
             }
+            // static property -> static getter
+            if(isStatic()) {
+                getter setStatic(true)
+            }
             // resolve!
             trail push(this)
             getter resolve(trail, res)
@@ -79,6 +90,10 @@ PropertyDecl: class extends VariableDecl {
             if(cls instanceOf(CoverDecl)) {
                 setter isThisRef = true
             }
+            // static property -> static setter
+            if(isStatic()) {
+                setter setStatic(true)
+            }
             if(setter isExtern()) {
                 // add single arg
                 newArg := Argument new(this type, this name, token)
@@ -88,7 +103,14 @@ PropertyDecl: class extends VariableDecl {
                 // replace `assign` with `conventional`.
                 if(arg instanceOf(AssArg)) {
                     // create AST nodes, add setter contents
-                    this_ := VariableAccess new("this", token)
+                    this_: VariableAccess
+                    if(isStatic()) {
+                        // `This`
+                        this_ = VariableAccess new("This", token)
+                    } else {
+                        // `this`
+                        this_ = VariableAccess new("this", token)
+                    }
                     left := VariableAccess new(this_, this name, token)
                     right := VariableAccess new(this name, token)
                     assignment := BinaryOp new(left, right, OpTypes ass, token)
