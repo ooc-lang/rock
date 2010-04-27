@@ -119,9 +119,13 @@ ModuleWriter: abstract class extends Skeleton {
                 // TODO: add 'local'
                 if(vd isExtern() && !vd isProto()) continue
                 current = fw
-                current nl(). app("extern "). app(vd getType()). app(' '). app(vd getFullName()). app(';')
+                current nl(). app("extern ")
+                vd getType() write(current, vd getFullName())
+                current app(';')
                 current = cw
-                current nl().                 app(vd getType()). app(' '). app(vd getFullName()). app(';')
+                current nl()
+                vd getType() write(current, vd getFullName())
+                current app(';')
             }
         }
         
