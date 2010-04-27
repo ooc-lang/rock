@@ -19,7 +19,11 @@ FunctionCallWriter: abstract class extends Skeleton {
             if(fCall expr != null) {
                 current app(fCall expr). app("->")
             }
-            current app(fCall getName())
+            if(fDecl vDecl == null) {
+                current app(fCall getName())
+            } else {
+                current app(fDecl vDecl getFullName())
+            }
         } else {
             FunctionDeclWriter writeFullName(this, fDecl)
             if(!fDecl isFinal && fCall getName() == "super") {
