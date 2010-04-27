@@ -1,4 +1,4 @@
-import io/File, os/Terminal
+import io/File, os/[Terminal, Process]
 import structs/[ArrayList, List, Stack]
 import text/StringTokenizer
 
@@ -341,6 +341,11 @@ CommandLine: class {
                 result := driver compile(module)
                 if(result == 0) {
                     success()
+                    
+                    if(params run) {
+                        p := Process new(["./" + module simpleName])
+                        p execute()
+                    }
                 } else {
                     failure()
                 }
