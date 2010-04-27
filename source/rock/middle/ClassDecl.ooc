@@ -174,6 +174,11 @@ ClassDecl: class extends TypeDecl {
             functions remove(hashName("new", null))
             defaultInit = null
         }
+        
+        if(isAbstract || (getNonMeta() instanceOf(ClassDecl) && getNonMeta() as ClassDecl isAbstract)) {
+            // don't generate new for abstract classes
+            return
+        }
 		
         newType := getNonMeta() getInstanceType() as BaseType
         
