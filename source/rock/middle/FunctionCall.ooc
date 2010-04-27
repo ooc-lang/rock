@@ -209,8 +209,12 @@ FunctionCall: class extends Expression {
         if(refScore <= 0 && res fatal) {
             message : String
             if(expr != null && expr getType() != null) {
-                message = "No such function %s (%s).%s%s" format(expr getType() getName(),
-                    expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)", name, getArgsTypesRepr())
+                if(res params veryVerbose) {
+                    message = "No such function %s (%s).%s%s" format(expr getType() getName(),
+                        expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)", name, getArgsTypesRepr())
+                } else {
+                    message = "No such function %s.%s%s" format(expr getType() getName(), name, getArgsTypesRepr())
+                }
             } else {
                 message = "No such function %s%s" format(name, getArgsTypesRepr())
             }
