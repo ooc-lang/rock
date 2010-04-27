@@ -17,7 +17,7 @@ ShellUtils: class {
     findExecutable: static func (executableName: String, crucial: Bool) -> File {
 
         simple := File new(executableName)
-        if(simple exists()) {
+        if(simple exists() && simple isFile()) {
             return simple
         }
 
