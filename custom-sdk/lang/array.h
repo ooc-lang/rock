@@ -1,4 +1,7 @@
 
+#ifndef ___lang_array___
+#define ___lang_array___
+
 #define _lang_array__Array_new(type, size) { size, malloc(size * sizeof(type)) };
 
 #define _lang_array__Array_get(array, index, type) ( \
@@ -12,9 +15,11 @@
         exit(1); \
     } \
     ((type* restrict) array.data)[index] = value;
-    
 
 typedef struct {
     int length;
     void* restrict data;
 } _lang_array__Array;
+
+#endif // ___lang_array___
+

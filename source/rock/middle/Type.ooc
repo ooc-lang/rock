@@ -289,10 +289,18 @@ ArrayType: class extends PointerType {
     init: func ~arrayType (.inner, =expr, .token) { super(inner, token) }
     
     write: func (w: AwesomeWriter, name: String) {
-        inner write(w, null)
-        if(name != null) w app(' '). app(name)
-        if(expr != null) w app("["). app(expr). app("]")
-        else             w app("[]")
+        if(expr != null) {
+            w app("_lang_array__Array")
+            
+            if(name != null) {
+                w app(' '). app(name). app(" = _lang_array__Array_new(")
+                inner write(w, null)
+                w app(", "). app(expr). app(")")
+            }
+        } else {
+            inner write(w, null)
+            w app("[]")
+        }
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
