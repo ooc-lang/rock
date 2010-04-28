@@ -67,6 +67,7 @@ self:
 #  - http://en.wikipedia.org/wiki/Fragile_base_class
 # This should be fixed by caching the class hierarchy with the json backend
 noclean:
+	mkdir -p bin/
 	${OOC_CMD} rock/rock -o=bin/rock ${NQ_PATH}
 
 clean:
