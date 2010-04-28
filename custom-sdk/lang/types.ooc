@@ -3,6 +3,7 @@ import text/Buffer /* for String replace ~string */
 
 include stddef, stdlib, stdio, ctype, stdint, stdbool
 include float
+include ./array
 
 /**
  * objects
@@ -65,7 +66,6 @@ Class: abstract class {
 }
 
 None: class {init: func {}}
-
 
 /**
  * Pointer type
