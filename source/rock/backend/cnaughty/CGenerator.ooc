@@ -69,6 +69,21 @@ CGenerator: class extends Skeleton {
     /** Write a binary operation */
     visitBinaryOp: func (op: BinaryOp) {
         
+        // when assigning to an array, use Array_set rather than assigning to _get
+        isArray := op type == OpTypes ass &&
+                   op left instanceOf(ArrayAccess) &&
+                   op left as ArrayAccess getArray() getType() instanceOf(ArrayType)
+                   
+        if(isArray) {
+            arrAcc := op left as ArrayAccess
+            type := arrAcc getArray() getType() as ArrayType
+            current app("_lang_array__Array_set("). app(arrAcc getArray()).
+                    app(", "). app(arrAcc getIndex()).
+                    app(", "). app(type inner).
+                    app(", "). app(op right). app(")")
+            return
+        }
+        
         // when assigning to a member function (e.g. for hotswapping),
         // you want to change the class field, not just the function name
         isFunc := op type == OpTypes ass &&
