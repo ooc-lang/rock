@@ -226,7 +226,13 @@ CGenerator: class extends Skeleton {
 
     /** Write an array access */
     visitArrayAccess: func (arrAcc: ArrayAccess) {
-        current app(arrAcc getArray()). app('['). app(arrAcc getIndex()). app(']')
+        arrType := arrAcc getArray() getType()
+        if(arrType instanceOf(ArrayType)) {
+            inner := arrType as ArrayType inner
+            current app("_lang_array__Array_get("). app(arrAcc getArray()). app(", "). app(arrAcc getIndex()). app(", "). app(inner). app(")")
+        } else {
+            current app(arrAcc getArray()). app('['). app(arrAcc getIndex()). app(']')
+        }
     }
 
     /** Control statements */

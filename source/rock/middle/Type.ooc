@@ -296,6 +296,13 @@ ArrayType: class extends PointerType {
                 w app(' '). app(name). app(" = _lang_array__Array_new(")
                 inner write(w, null)
                 w app(", "). app(expr). app(")")
+                
+                if(inner instanceOf(ArrayType)) {
+                    w app(';'). nl(). app("{ int __i; for(__i = 0; __i < "). app(expr). app("; __i++) { "). nl()
+                    inner as ArrayType write(w, name + "_sub")
+                    w app(";"). nl(). app("_lang_array__Array_set("). app(name). app(", __i, "). app(inner). app(", "). app(name). app("_sub);").
+                      app(" }}")
+                }
             }
         } else {
             inner write(w, null)
