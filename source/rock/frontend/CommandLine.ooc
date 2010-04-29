@@ -272,7 +272,7 @@ CommandLine: class {
         }
         
         if(modulePaths isEmpty()) {
-            printf("rock: no files\n")
+            printf("rock: no ooc files\n")
             exit(1)
         }
         
