@@ -1,7 +1,7 @@
 import ../frontend/[Token, BuildParams]
 import Literal, Visitor, Type, Expression, FunctionCall, Block,
        VariableDecl, VariableAccess, Cast, Node, ClassDecl, TypeDecl, BaseType,
-       Statement, IntLiteral
+       Statement, IntLiteral, BinaryOp, Block
 import tinker/[Response, Resolver, Trail]
 import structs/[List, ArrayList]
 import text/Buffer
@@ -88,6 +88,35 @@ ArrayLiteral: class extends Literal {
         if(type != null) {
             response := type resolve(trail, res)
             if(!response ok()) return response
+        }
+        
+        if(type instanceOf(ArrayType)) {
+            arrType := type as ArrayType
+            parent := trail peek()
+            if(parent instanceOf(VariableDecl)) {
+                vDecl := parent as VariableDecl
+                vDecl setType(type)
+                vDecl setExpr(null)
+                ptrDecl := VariableDecl new(null, generateTempName("arrLit"), this, token)
+                
+                block := Block new(token)
+                trail addAfterInScope(vDecl, block)
+                
+                block getBody() add(ptrDecl)
+                
+                declAcc := VariableAccess new(vDecl, token)
+                
+                innerTypeAcc := VariableAccess new(arrType inner, token)
+                copySize := BinaryOp new(arrType expr, VariableAccess new(innerTypeAcc, "size", token), OpTypes mul, token)
+                
+                memcpyCall := FunctionCall new("memcpy", token)
+                memcpyCall args add(VariableAccess new(declAcc, "data", token))
+                memcpyCall args add(VariableAccess new(ptrDecl, token))
+                memcpyCall args add(copySize)
+                block getBody() add(memcpyCall)
+                
+                type = PointerType new(arrType inner, arrType token)
+            }
         }
         
         return Responses OK
