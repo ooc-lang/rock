@@ -577,8 +577,8 @@ TypeDecl: abstract class extends Declaration {
             if(call debugCondition()) printf("Looking in base %s\n", getBase() toString())
             if(getBase() resolveCall(call, res, trail) == -1) return -1
         }
-        
-        for(addon in addons) {
+       
+        for(addon in getAddons()) {
             has := false
             // TODO: What about namespaced imports?
             for(imp in call token module getGlobalImports()) {
@@ -587,7 +587,12 @@ TypeDecl: abstract class extends Declaration {
                     break
                 }
             }
-            
+
+            // It's also possible that the addon was defined in the
+            // function call's module.
+            if(call token module == addon token module)
+                has = true
+
             if(!has) continue
             
             if(call debugCondition()) printf("Looking into addon %s\n", addon toString())
