@@ -13,7 +13,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Use, TypeDecl, ClassDecl, CoverDecl, Node, Parenthesis, Return,
     Cast, Comparison, Ternary, BoolLiteral, Argument, Statement,
     AddressOf, Dereference, CommaSequence, UnaryOp, ArrayAccess, Match,
-    FlowControl, InterfaceDecl, Version, Block, EnumDecl]
+    FlowControl, InterfaceDecl, Version, Block, EnumDecl, ArrayLiteral]
 
 import Skeleton, FunctionDeclWriter, ControlStatementWriter,
     ClassDeclWriter, ModuleWriter, CoverDeclWriter, FunctionCallWriter,
@@ -248,6 +248,20 @@ CGenerator: class extends Skeleton {
         } else {
             current app(arrAcc getArray()). app('['). app(arrAcc getIndex()). app(']')
         }
+    }
+    
+    visitArrayLiteral: func (arrLit: ArrayLiteral) {
+        type := arrLit getType()
+        if(!type instanceOf(PointerType)) Exception new(This, "Array literal type %s isn't a PointerType but a %s, wtf?" format(arrLit toString(), type toString())) throw()
+        
+        current app("("). app(arrLit getType() as PointerType inner). app("[]) { ")
+        isFirst := true
+        for(element in arrLit elements) {
+            if(!isFirst) current app(", ")
+            current app(element)
+            isFirst = false
+        }
+        current app(" }")
     }
 
     /** Control statements */

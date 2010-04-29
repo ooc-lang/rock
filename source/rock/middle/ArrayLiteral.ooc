@@ -1,7 +1,7 @@
 import ../frontend/[Token, BuildParams]
 import Literal, Visitor, Type, Expression, FunctionCall, Block,
        VariableDecl, VariableAccess, Cast, Node, ClassDecl, TypeDecl, BaseType,
-       Statement
+       Statement, IntLiteral
 import tinker/[Response, Resolver, Trail]
 import structs/[List, ArrayList]
 import text/Buffer
@@ -18,7 +18,9 @@ ArrayLiteral: class extends Literal {
     
     getElements: func -> List<Expression> { elements }
     
-    accept: func (visitor: Visitor) { Exception new(This, "Writing an ArrayLiteral as is!") throw() }
+    accept: func (visitor: Visitor) { 
+        visitor visitArrayLiteral(this)
+    }
 
     getType: func -> Type { type }
     
@@ -79,89 +81,15 @@ ArrayLiteral: class extends Literal {
                 return Responses OK
             }
                 
-            type = BaseType new("ArrayList", token)
-            type addTypeArg(VariableAccess new(innerType, innerType token))
+            type = ArrayType new(innerType, IntLiteral new(elements size(), token), token)
             if(res params veryVerbose) printf("Inferred type %s for %s\n", type toString(), toString())
         }
         
         if(type != null) {
             response := type resolve(trail, res)
             if(!response ok()) return response
-            
-            if(!unwrapped) {
-                parentIdx := 1
-                while(trail peek(parentIdx) instanceOf(Cast)) parentIdx+= 1
-                
-                response = unwrapToArrayList(trail, res, trail peek(parentIdx), trail peek(parentIdx + 1))
-                if(!response ok()) return response
-            }
         }
         
-        return Responses OK
-        
-    }
-    
-    // TODO: refactor..
-    unwrapToArrayList: func (trail: Trail, res: Resolver, parent, grandpa: Node) -> Response {
-        
-        realParent := trail peek()
-        newCall := FunctionCall new(type, "new", token)
-        
-        expr : Expression = parent
-        if(expr instanceOf(VariableDecl)) {
-            if(!parent replace(this, newCall)) {
-                token throwError("Couldn't replace %s with %s in %s\n" format(toString(), newCall toString(), parent toString()))
-                return Responses LOOP
-            }
-            
-            vAcc := VariableAccess new(expr as VariableDecl, expr token)
-            if(grandpa instanceOf(TypeDecl)) {
-                if(expr as VariableDecl isStatic()) {
-                    vAcc expr = VariableAccess new(grandpa as TypeDecl getNonMeta() getInstanceType(), expr token)
-                } else {
-                    vAcc expr = VariableAccess new(grandpa as TypeDecl getThisDecl(), expr token)
-                }
-            }
-            expr = vAcc
-        } else {
-            // not in a variable-decl = need to unwrap.
-            varDecl := VariableDecl new(type, generateTempName("arrLit"), newCall, token)
-            if(!trail addBeforeInScope(realParent as Statement, varDecl)) {
-                if(res fatal) token throwError("Couldn't add " + varDecl toString() + " before " + parent toString() + " in " + trail toString())
-                return Responses LOOP
-            }
-            expr = VariableAccess new(varDecl, token)
-            parent replace(this, expr)
-            res wholeAgain(this, "replaced ourselves with varAcc")
-            
-            parent = varDecl
-            grandpa = trail get(trail findScope())
-        }
-        
-        block := Block new(token)
-        for(element in elements) {
-            addCall := FunctionCall new(expr, "add", token)
-            addCall args add(element)
-            block getBody() add(addCall)
-        }
-        
-        // if we're in a varDecl, the initialization is done after. If we're somewhere else, we need to initialize before!
-        result := (realParent instanceOf(VariableDecl) ? trail addAfterInScope(realParent as Statement, block) : trail addBeforeInScope(realParent as Statement, block))
-        if(!result) {
-            if(grandpa instanceOf(ClassDecl) && parent instanceOf(VariableDecl)) {
-                cDecl := grandpa as ClassDecl
-                vDecl := parent as VariableDecl
-                fDecl := (vDecl isStatic() ? cDecl getLoadFunc() : cDecl getDefaultsFunc())
-                fDecl getBody() add(block)
-                if(res params veryVerbose) printf("Just added block with %d statemens to fDecl %s, now fDecl body has %d statements\n", block getBody() size(), fDecl toString(), fDecl getBody() size())
-            } else {
-                if(res fatal) token throwError("Couldn't add %s before %s in %s\n" format(block toString(), realParent toString(), trail toString()))
-                return Responses LOOP
-            }
-        }
-
-        unwrapped = true
-        res wholeAgain(this, "just replaced")
         return Responses OK
         
     }

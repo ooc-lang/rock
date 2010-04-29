@@ -2,6 +2,8 @@
 #ifndef ___lang_array___
 #define ___lang_array___
 
+#include <stdint.h>
+
 #define _lang_array__Array_new(type, size) { size, malloc(size * sizeof(type)) };
 
 #define _lang_array__Array_get(array, index, type) ( \
@@ -18,7 +20,7 @@
     ((type* restrict) array.data)[index] = value;
 
 typedef struct {
-    int length;
+    size_t length;
     void* restrict data;
 } _lang_array__Array;
 

@@ -124,7 +124,7 @@ VariableDecl: class extends Declaration {
 
         trail push(this)
 
-        //if(res params veryVerbose) printf("Resolving variable decl %s\n", toString());
+        //if(res params veryVerbose) printf("Resolving variable decl %s\n", toString())
 
         if(expr) {
             response := expr resolve(trail, res)
@@ -145,6 +145,7 @@ VariableDecl: class extends Declaration {
         }
 
         if(type != null) {
+            //if(res params veryVerbose) printf("Resolving type %s, of type %s\n", type toString(), type class name)
             response := type resolve(trail, res)
             if(!response ok()) {
                 trail pop(this)

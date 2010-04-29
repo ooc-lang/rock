@@ -285,8 +285,20 @@ PointerType: class extends SugarType {
 ArrayType: class extends PointerType {
     
     expr : Expression = null
+    realType := static BaseType new("Array", nullToken)
     
     init: func ~arrayType (.inner, =expr, .token) { super(inner, token) }
+    
+    setRef: func (ref: Declaration) {
+        Exception new(This, "Trying to set ref of an ArrayType! wtf? ref (%s) = %s" format(ref class name, ref toString())) throw()
+    }
+    getRef: func -> Declaration {
+        This realType getRef()
+    }
+    
+    isResolved: func -> Bool {
+        inner isResolved() && This realType isResolved()
+    }
     
     write: func (w: AwesomeWriter, name: String) {
         if(expr != null) {
@@ -318,6 +330,9 @@ ArrayType: class extends PointerType {
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
+        if(!This realType resolve(trail, res) ok()) {
+            return Responses LOOP
+        }
         
         if(expr == null) {
             kiddo := BaseType new("ArrayList", token)
