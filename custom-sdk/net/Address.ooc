@@ -156,7 +156,7 @@ IP4Address: class extends IPAddress {
     }
 
     init: func ~wildcard {
-        this("0.0.0.0")
+        init("0.0.0.0")
     }
 
     init: func ~withAddr(addr: InAddr) {
