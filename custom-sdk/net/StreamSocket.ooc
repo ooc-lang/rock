@@ -15,11 +15,11 @@ StreamSocket: class extends Socket {
         super(remote family(), SocketType STREAM, 0, descriptor)
     }
     init: func ~hostAndPort(host: String, port: Int) {
-        this(host, port, SocketFamily UNSPEC)
+        init(host, port, SocketFamily UNSPEC)
     }
     init: func ~family(host: String, port: Int, family: Int) {
         ip := DNS resolveOne(host, SocketType STREAM, family)
-        this(SocketAddress new(ip, port))
+        init(SocketAddress new(ip, port))
     }
 
     connect: func {

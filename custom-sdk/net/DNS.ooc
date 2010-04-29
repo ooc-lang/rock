@@ -17,7 +17,7 @@ DNS: class {
         hints ai_family = socketFamily
         hints ai_socktype = socketType
         if(rv := getaddrinfo(hostname, null, hints&, info&) != 0) {
-            DNSError new(gai_strerror(rv) as String) throw()
+            DNSError new(gai_strerror(rv as Int) as String) throw()
         }
         return HostInfo new(info)
     }
@@ -45,7 +45,7 @@ DNS: class {
     reverse: static func ~withSockAddr(sockaddr: SocketAddress) -> String {
         hostname := String new(1024)
         if(rv := getnameinfo(sockaddr addr(), sockaddr length(), hostname, 1024, null, 0, 0) != 0) {
-            DNSError new(gai_strerror(rv) as String) throw()
+            DNSError new(gai_strerror(rv as Int) as String) throw()
         }
         return hostname
     }
