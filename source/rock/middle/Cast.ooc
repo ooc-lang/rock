@@ -1,6 +1,7 @@
 import structs/ArrayList
 import ../frontend/Token
-import Expression, Visitor, Type, Node
+import Expression, Visitor, Type, Node, FunctionCall, VariableDecl,
+       VariableAccess, BinaryOp
 import tinker/[Response, Resolver, Trail]
 
 Cast: class extends Expression {
@@ -43,6 +44,30 @@ Cast: class extends Expression {
         }
         
         trail pop(this)
+        
+        // Casting to an arrayType isn't innocent
+        if(type instanceOf(ArrayType)) {
+            arrType := type as ArrayType
+            parent := trail peek()
+            
+            if(parent instanceOf(VariableDecl)) {
+                varDecl := parent as VariableDecl
+                varDecl setType(type)
+                varDecl setExpr(null)
+                
+                arrTypeAcc := VariableAccess new(arrType inner, token)
+                copySize := BinaryOp new(arrType expr, VariableAccess new(arrTypeAcc, "size", token), OpTypes mul, token)
+                
+                memcpyCall := FunctionCall new("memcpy", token)
+                memcpyCall args add(VariableAccess new(VariableAccess new(varDecl, token), "data", token))
+                memcpyCall args add(inner)
+                memcpyCall args add(copySize)
+                
+                trail addAfterInScope(varDecl, memcpyCall)
+            } else {
+                Exception new(This, "Casting to ArrayType %s in unrecognized parent node %s (%s)!" format(type toString(), parent toString(), parent class name)) throw()
+            }
+        }
         
         return Responses OK
         
