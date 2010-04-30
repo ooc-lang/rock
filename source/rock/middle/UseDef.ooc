@@ -52,20 +52,17 @@ UseDef: class {
         set add(params libsPath)
         set add(params sdkLocation)
         
-        while(!set isEmpty()) {
-            nextSet := ArrayList<File> new()
-            for(candidate in set) {
-                if(candidate getPath() == null) continue
+        for(path in set) {
+            if(path getPath() == null) continue
+            
+            for(subPath in path getChildren()) {
+                if(!subPath isDir()) continue
                 
-                if(candidate getPath() endsWith(fileName)) {
+                candidate := File new(subPath, fileName)
+                if(candidate exists()) {
                     return candidate
-                } else if(candidate isDir()) {
-                    for(child in candidate getChildren()) {
-                        nextSet add(child getAbsoluteFile())
-                    }
                 }
             }
-            set = nextSet
         }
         
 		return null
