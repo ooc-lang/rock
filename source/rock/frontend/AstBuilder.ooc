@@ -676,11 +676,18 @@ AstBuilder: class {
         call expr = expr
     }
     
+    onFunctionCallCombo: unmangled(nq_onFunctionCallCombo) func (call: FunctionCall, expr: Expression) {
+        name := call generateTempName("comboRoot")
+        call setName(name)
+        vDecl := VariableDecl new(null, name, expr, expr token)
+        onStatement(vDecl)
+    }
+    
     onFunctionCallChain: unmangled(nq_onFunctionCallChain) func (call: FunctionCall, node: Node) {
         if(node instanceOf(FunctionCall)) {
             prevCall := node as FunctionCall
             if(!prevCall expr instanceOf(VariableAccess)) {
-                vDecl := VariableDecl new(null, prevCall generateTempName("callroot"), prevCall expr, prevCall expr token)
+                vDecl := VariableDecl new(null, prevCall generateTempName("chainRoot"), prevCall expr, prevCall expr token)
                 prevCall expr = vDecl
                 call expr = VariableAccess new(vDecl, vDecl token)
             } else {
