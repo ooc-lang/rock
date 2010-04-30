@@ -48,11 +48,11 @@ SequenceDriver: class extends Driver {
                 for(dynamicLib in params dynamicLibs) {
                     params compiler addDynamicLibrary(dynamicLib)
                 }
+                for(incPath in params incPath getPaths()) {
+                    params compiler addIncludePath(incPath getPath())
+                }
                 for(compilerArg in params compilerArgs) {
                     params compiler addObjectFile(compilerArg)
-                }
-                for(incPath in params incPath getPaths()) {
-                    params compiler addIncludePath(incPath getAbsolutePath())
                 }
                 
                 /*
@@ -106,10 +106,12 @@ SequenceDriver: class extends Driver {
             for(dynamicLib in params dynamicLibs) {
                 params compiler addDynamicLibrary(dynamicLib)
             }
+            for(incPath in params incPath getPaths()) {
+                params compiler addIncludePath(incPath getPath())
+            }
             for(additional in params additionals) {
                 params compiler addObjectFile(additional)
             }
-		
 			for(libPath in params libPath getPaths()) {
 				params compiler addLibraryPath(libPath getAbsolutePath())    
 			}

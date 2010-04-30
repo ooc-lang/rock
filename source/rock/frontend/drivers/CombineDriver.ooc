@@ -25,6 +25,9 @@ CombineDriver: class extends Driver {
         for(dynamicLib in params dynamicLibs) {
             params compiler addDynamicLibrary(dynamicLib)
         }
+        for(incPath in params incPath getPaths()) {
+            params compiler addIncludePath(incPath getPath())
+        }
         for(additional in params additionals) {
             params compiler addObjectFile(additional)
         }
@@ -42,6 +45,9 @@ CombineDriver: class extends Driver {
             for(lib in libs) {
                 //printf("[CombineDriver] Adding lib %s from use\n", lib)
                 params compiler addObjectFile(lib)
+            }
+            for(libPath in params libPath getPaths()) {
+                params compiler addLibraryPath(libPath getPath())
             }
             
             if(params enableGC) {
