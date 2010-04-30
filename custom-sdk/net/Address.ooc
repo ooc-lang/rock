@@ -44,7 +44,7 @@ IPAddress: abstract class {
         Returns true if the address is a link local unicast address.
 
         IPv4 addresses are in the 169.254.0.0/16 range (RFC 3927).
-        IPv6 addresses have 1111 1110 10 as the first 10 bits, followed by 54 zeros. 
+        IPv6 addresses have 1111 1110 10 as the first 10 bits, followed by 54 zeros.
     */
     isLinkLocal: abstract func -> Bool
 
@@ -144,7 +144,7 @@ IPAddress: abstract class {
 IP4Address: class extends IPAddress {
     ai: InAddr
 
-    init: func(ipAddress: String) {
+    init: func ~IP4Address (ipAddress: String) {
         if(ipAddress isEmpty()) {
             InvalidAddress new("Address must not be blank") throw()
         }
@@ -209,7 +209,7 @@ IP4Address: class extends IPAddress {
 IP6Address: class extends IPAddress {
     ai: In6Addr
 
-    init: func(ipAddress: String) {
+    init: func ~IP6Address (ipAddress: String) {
         if(ipAddress isEmpty()) {
             InvalidAddress new("Address must not be blank") throw()
         }
@@ -230,7 +230,7 @@ IP6Address: class extends IPAddress {
     isBroadcast: func -> Bool { false }
     isWildcard: func -> Bool {
         words := toWords()
-        return words[0] == 0 && words[1] == 0 && words[2] == 0 && words[3] == 0 && 
+        return words[0] == 0 && words[1] == 0 && words[2] == 0 && words[3] == 0 &&
             words[4] == 0 && words[5] == 0 && words[6] == 0 && words[7] == 0
     }
     isGlobalMulticast: func -> Bool {
@@ -257,7 +257,7 @@ IP6Address: class extends IPAddress {
     }
     isLoopback: func -> Bool {
         words := toWords()
-        return words[0] == 0 && words[1] == 0 && words[2] == 0 && words[3] == 0 && 
+        return words[0] == 0 && words[1] == 0 && words[2] == 0 && words[3] == 0 &&
             words[4] == 0 && words[5] == 0 && words[6] == 0 && words[7] == 1
     }
     isMulticast: func -> Bool {
@@ -344,7 +344,7 @@ SocketAddress: abstract class {
 SocketAddressIP4: class extends SocketAddress {
     sa: SockAddrIn
 
-    init: func (addr: InAddr, port: Int) {
+    init: func ~SocketAddressIP4 (addr: InAddr, port: Int) {
         memset(sa&, 0, sizeof(SockAddrIn))
         sa sin_family = SocketFamily IP4
         memcpy(sa sin_addr&, addr&, sizeof(InAddr))
@@ -365,7 +365,7 @@ SocketAddressIP4: class extends SocketAddress {
 SocketAddressIP6: class extends SocketAddress {
     sa: SockAddrIn6
 
-    init: func(addr: In6Addr, port: Int) {
+    init: func ~SocketAddressIP6 (addr: In6Addr, port: Int) {
         memset(sa&, 0, sizeof(SockAddrIn6))
         sa sin6_family = SocketFamily IP6
         memcpy(sa sin6_addr&, addr&, sizeof(In6Addr))

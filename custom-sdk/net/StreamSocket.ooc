@@ -76,7 +76,7 @@ StreamSocket: class extends Socket {
 StreamSocketReader: class extends Reader {
     source: StreamSocket
 
-    init: func(=source) { marker = 0 }
+    init: func ~StreamSocketReader (=source) { marker = 0 }
 
     read: func(chars: String, offset: Int, count: Int) -> SizeT {
         skip(offset - marker)
@@ -105,7 +105,7 @@ StreamSocketReader: class extends Reader {
 StreamSocketWriter: class extends Writer {
     dest: StreamSocket
 
-    init: func(=dest) {}
+    init: func ~StreamSocketWriter (=dest) {}
 
     close: func { dest close() }
 
