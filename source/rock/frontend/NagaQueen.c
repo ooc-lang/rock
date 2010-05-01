@@ -1116,12 +1116,21 @@ YY_ACTION(void) yy_1_Value(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY
 #undef inner
 #undef value
 }
+YY_ACTION(void) yy_6_ACS(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
+{
+#define s G->val[-1]
+#define i G->val[-2]
+  yyprintf((stderr, "do yy_6_ACS\n"));
+   tokenPos; yy=nq_onFunctionEnd(core->this); ;
+#undef s
+#undef i
+}
 YY_ACTION(void) yy_5_ACS(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
 #define s G->val[-1]
 #define i G->val[-2]
   yyprintf((stderr, "do yy_5_ACS\n"));
-   tokenPos; yy=nq_onFunctionEnd(core->this); ;
+   nq_onStatement(core->this, s); ;
 #undef s
 #undef i
 }
@@ -1130,7 +1139,7 @@ YY_ACTION(void) yy_4_ACS(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_X
 #define s G->val[-1]
 #define i G->val[-2]
   yyprintf((stderr, "do yy_4_ACS\n"));
-   nq_onStatement(core->this, s); ;
+   nq_onFunctionArgsEnd(core->this); ;
 #undef s
 #undef i
 }
@@ -1157,7 +1166,7 @@ YY_ACTION(void) yy_1_ACS(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_X
 #define s G->val[-1]
 #define i G->val[-2]
   yyprintf((stderr, "do yy_1_ACS\n"));
-   tokenPos; nq_onFunctionStart(core->this, ""); ;
+   tokenPos; nq_onFunctionStart(core->this, ""); nq_onFunctionArgsStart(core->this); ;
 #undef s
 #undef i
 }
@@ -4068,7 +4077,7 @@ YY_RULE(int) yy_ACS(GREG *G)
   l116:;	
   {  int yypos117= G->pos, yythunkpos117= G->thunkpos;  if (!yy_WS(G)) { goto l117; }  if (!yy_COMMA(G)) { goto l117; }  if (!yy_WS(G)) { goto l117; }  if (!yy_IDENT(G)) { goto l117; }  yyDo(G, yySet, -2, 0);  yyDo(G, yy_3_ACS, G->begin, G->end);  goto l116;
   l117:;	  G->pos= yypos117; G->thunkpos= yythunkpos117;
-  }  if (!yy_WS(G)) { goto l115; }  if (!yy_B_OR(G)) { goto l115; }  if (!yy_WS(G)) { goto l115; }  if (!yy_Stmt(G)) { goto l115; }  yyDo(G, yySet, -1, 0);  yyDo(G, yy_4_ACS, G->begin, G->end);  yyDo(G, yy_5_ACS, G->begin, G->end);
+  }  if (!yy_WS(G)) { goto l115; }  if (!yy_B_OR(G)) { goto l115; }  if (!yy_WS(G)) { goto l115; }  yyDo(G, yy_4_ACS, G->begin, G->end);  if (!yy_Stmt(G)) { goto l115; }  yyDo(G, yySet, -1, 0);  yyDo(G, yy_5_ACS, G->begin, G->end);  yyDo(G, yy_6_ACS, G->begin, G->end);
   yyprintf((stderr, "  ok   %s @ %s\n", "ACS", G->buf+G->pos));  yyDo(G, yyPop, 2, 0);
   return 1;
   l115:;	  G->pos= yypos0; G->thunkpos= yythunkpos0;
