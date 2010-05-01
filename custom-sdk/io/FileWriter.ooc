@@ -40,7 +40,7 @@ FileWriter: class extends Writer {
     writef: final func(fmt: String, ...) {
         ap: VaList
         va_start(ap, fmt)
-        fprintf(file, fmt, ap)
+        vfprintf(file, fmt, ap)
         va_end(ap)
     }
     
