@@ -73,19 +73,19 @@ ArrayList: class <T> extends List<T> {
 	}
 
 	indexOf: func(element: T) -> Int {
-		index := -1
+		index := 0
 		while(index < size) {
-			index += 1
 			candidate : T
 			candidate = data[index]
 			if(memcmp(candidate, element, T size) == 0) return index
+            index += 1
 		}
 		return -1
 	}
 
 	lastIndexOf: func(element: T) -> Int {
 		index := size
-		while(index) {
+		while(index > -1) {
 			candidate : T
 			candidate = data[index]
 			if(memcmp(candidate, element, T size) == 0) return index
