@@ -34,6 +34,18 @@ ModuleWriter: abstract class extends Skeleton {
 			}
 		}
         
+        // write all type forward declarations
+        writeTypesForward(this, module, false) // non-metas first
+        writeTypesForward(this, module, true)  // then metas
+        if(!module types isEmpty()) current nl()
+
+        // write imports' includes
+        imports := classifyImports(this, module)
+        for(imp in imports) {
+            inc := imp getModule() getPath("-fwd.h")
+            current nl(). app("#include <"). app(inc). app(">")
+        }
+        
         // write all func types typedefs
         for(funcType in module funcTypesMap) {
             current nl(). nl().  app("#ifndef "). app(funcType toMangledString()). app("__DEFINE")
@@ -61,19 +73,6 @@ ModuleWriter: abstract class extends Skeleton {
             current nl(). nl().  app("#endif"). nl() 
         }
 
-        
-        // write all type forward declarations
-        writeTypesForward(this, module, false) // non-metas first
-        writeTypesForward(this, module, true)  // then metas
-        if(!module types isEmpty()) current nl()
-
-        // write imports' includes
-        imports := classifyImports(this, module)
-        for(imp in imports) {
-            inc := imp getModule() getPath("-fwd.h")
-            current nl(). app("#include <"). app(inc). app(">")
-        }
-        
         /* write the .h file */
         current = hw
         current nl(). app("#ifndef "). app(hName)
