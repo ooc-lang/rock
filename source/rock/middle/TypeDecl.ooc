@@ -360,6 +360,10 @@ TypeDecl: abstract class extends Declaration {
                 trail pop(this)
                 return response
             }
+            
+            if(superType getRef() != null) {
+                checkInheritanceLoop(res)
+            }
         }
         
         if(!_finishedGhosting) {
@@ -468,6 +472,36 @@ TypeDecl: abstract class extends Declaration {
         }
         
         return Responses OK
+        
+    }
+    
+    checkInheritanceLoop: func (res: Resolver) {
+        
+        list := ArrayList<TypeDecl> new()
+        current := this
+        
+        while(current != null) {
+            if(current getSuperType() == null) break // it's alright
+            
+            next := current getSuperRef()
+            if(next == null) {
+                res wholeAgain(this, "need superRef to check inheritance loop")
+            }
+            
+            list add(current)
+            if(list contains(next)) {
+                buff := Buffer new()
+                isFirst := true
+                for(t in list) {
+                    if(!isFirst) buff append(" -> ")
+                    buff append(t getName())
+                    isFirst = false
+                }
+                list first() token throwError("Loop in type declaration: %s -> %s -> ..." format(buff toString(), next getName(), list size()))
+            }
+            
+            current = next
+        }
         
     }
     
