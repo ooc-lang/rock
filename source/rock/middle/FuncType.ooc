@@ -130,4 +130,6 @@ FuncType: class extends Type {
     
     dig: func -> Type { null }
     
+    checkedDigImpl: func (list: List<Type>, res: Resolver) {}
+    
 }
