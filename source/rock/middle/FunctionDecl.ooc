@@ -278,7 +278,6 @@ FunctionDecl: class extends Declaration {
                 }
             }
             
-            printf("FuncType = %s\n", funcPointer toString())
             if (!funcPointer) {
                 res wholeAgain(this, "Missing type-info in func-pointer")
                 trail pop(this)
@@ -286,11 +285,6 @@ FunctionDecl: class extends Declaration {
             } 
             ix := 0
             tmp := funcPointer argTypes
-            if (funcPointer argTypes instanceOf(ArrayList<Type>)) "yay" println()
-            printf("%d\n", tmp size)
-            printf("argTypes size: %d\n", funcPointer argTypes size())
-            printf("argTypes: %p\n", funcPointer argTypes)
-                        
             for (fType in funcPointer argTypes) {
                 args get(ix) type = fType
                 ix += 1
