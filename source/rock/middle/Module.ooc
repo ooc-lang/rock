@@ -76,6 +76,12 @@ Module: class extends Node {
     }
 
     addType: func (tDecl: TypeDecl) {
+        old := types get(tDecl name) as TypeDecl
+        if(old != null) {
+            tDecl token printMessage("Redefinition of type %s" format(tDecl name), "[ERROR]")
+            old   token throwError("...first definition was here: ")
+        }
+        
         types put(tDecl name, tDecl)
         if(tDecl getMeta()) types put(tDecl getMeta() name, tDecl getMeta())
     }
