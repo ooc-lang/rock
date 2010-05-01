@@ -240,6 +240,13 @@ FunctionDecl: class extends Declaration {
         
     }
     
+    argumentsReady: func -> Bool {
+        for (arg in args) {
+            if (arg getType() == null) return false
+        }
+        return true
+    }
+    
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
         trail push(this)
@@ -254,7 +261,38 @@ FunctionDecl: class extends Declaration {
                 return response
             }
         }
-        
+        if (name isEmpty() && !argumentsReady()) { // Is this an ACS?
+            n := trail find(FunctionCall)
+            fCall_ := trail get(trail find(FunctionCall)) as FunctionCall
+            fRef_ := fCall_ getRef()
+            if (!fRef_) {
+                res wholeAgain(this, "Need ACS ref.")
+                trail pop(this)
+                return Responses OK
+            }
+            funcPointer: FuncType = null
+            for (arg in fRef_ args) {
+                if (arg getType() instanceOf(FuncType)) {
+                    funcPointer = arg
+                    break
+                }
+            }
+            if (!funcPointer) {
+                res wholeAgain(this, "Missing type-info in func-pointer")
+                trail pop(this)
+                return Responses OK
+            } 
+            i := 0
+            printf("argTypes size: %d\n", funcPointer argTypes size())
+            printf("argTypes: %p\n", funcPointer argTypes)
+            
+            for (fType in funcPointer argTypes) {
+                args get(i) type = fType
+                i += 1
+            }
+             
+
+        }
         for(typeArg in typeArgs) {
             response := typeArg resolve(trail, res)
             if(!response ok()) {
