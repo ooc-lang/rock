@@ -56,11 +56,15 @@ UseDef: class {
             if(path getPath() == null) continue
             
             for(subPath in path getChildren()) {
-                if(!subPath isDir()) continue
-                
-                candidate := File new(subPath, fileName)
-                if(candidate exists()) {
-                    return candidate
+                if(subPath isDir()) {
+                    candidate := File new(subPath, fileName)
+                    if(candidate exists()) {
+                        return candidate
+                    }
+                } else if(subPath isFile()) {
+                    if(subPath getPath() endsWith(fileName)) {
+                        return subPath
+                    }
                 }
             }
         }
