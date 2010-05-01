@@ -4,7 +4,8 @@ import net/[berkeley, Exceptions, Socket, StreamSocket, Address]
     A server based socket interface.
 */
 ServerSocket: class extends Socket {
-    init: func {
+    
+    init: func ~server {
         super(SocketFamily IP4, SocketType STREAM, 0)
     }
 

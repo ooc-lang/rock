@@ -88,7 +88,7 @@ INADDR_NONE: extern ULong
 AI_CANONNAME: extern Int
 
 socket: extern func(family, type, protocol: Int) -> Int
-accept: extern func(s: Int, addr: SockAddr*, addrlen: UInt) -> Int
+accept: extern func(s: Int, addr: SockAddr*, addrlen: UInt*) -> Int
 bind: extern func(sockfd: Int, my_addr: SockAddr*, addrlen: UInt) -> Int
 connect: extern func(sockfd: Int, serv_addr: SockAddr*, addrlen: UInt) -> Int
 close: extern func(descriptor: Int) -> Int
