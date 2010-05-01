@@ -140,6 +140,15 @@ Type: abstract class extends Expression {
     
     dig: abstract func -> This
     
+    /**
+        Check for any loop in cover declaration
+     */
+    checkedDig: func (res: Resolver) {
+        checkedDigImpl(ArrayList<Type> new(), res)
+    }
+    
+    checkedDigImpl: abstract func (list: List<Type>, res: Resolver)
+    
     /** 
         Used in FunctionCall scoring - When we have a reftype, say, Int@,
         from the inside it should have type 'Int', but from the outside, 'Int*'.
@@ -202,6 +211,10 @@ TypeAccess: class extends Type {
     
     dig: func -> Type { inner dig() }
     
+    checkedDigImpl: func (list: List<Type>, res: Resolver) {
+        inner checkedDigImpl(list, res)
+    }
+    
     searchTypeArg: func (typeArgName: String, finalScore: Int@) -> Type {
         inner searchTypeArg(typeArgName, finalScore&)
     }
@@ -248,6 +261,10 @@ SugarType: abstract class extends Type {
             return under
         }
         return null
+    }
+    
+    checkedDigImpl: func (list: List<Type>, res: Resolver) {
+        inner checkedDigImpl(list, res)
     }
     
 }

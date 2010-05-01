@@ -255,6 +255,32 @@ BaseType: class extends Type {
         return null
     }
     
+    checkedDigImpl: func (list: List<Type>, res: Resolver) {
+        if(getRef() == null) {
+            res wholeAgain(this, "Null ref while check-digging")
+            return
+        }
+        
+        list add(this)
+        
+        if(getRef() != null && getRef() instanceOf(CoverDecl)) {
+            next := ref as CoverDecl getFromType()
+            if(next != null) {
+                if(list contains(next)) {
+                    buff := Buffer new()
+                    isFirst := true
+                    for(t in list) {
+                        if(!isFirst) buff append(" -> ")
+                        buff append(t toString())
+                        isFirst = false
+                    }
+                    list first() token throwError("Loop in cover declaration: %s -> %s -> ..." format(buff toString(), next toString(), list size()))
+                }
+                next checkedDigImpl(list, res)
+            }
+        }
+    }
+    
     inheritsFrom: func (t: Type) -> Bool {
         if(!t instanceOf(BaseType)) return false
         bt := t as BaseType

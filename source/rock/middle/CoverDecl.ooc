@@ -47,6 +47,10 @@ CoverDecl: class extends TypeDecl {
             if(!response ok()) {
                 fromType setRef(BuiltinType new(fromType getName(), nullToken))
             }
+            
+            if(fromType getRef() != null) {
+                fromType checkedDig(res)
+            }
         }
         
         trail pop(this)
