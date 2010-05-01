@@ -273,10 +273,12 @@ FunctionDecl: class extends Declaration {
             funcPointer: FuncType = null
             for (arg in fRef_ args) {
                 if (arg getType() instanceOf(FuncType)) {
-                    funcPointer = arg
+                    funcPointer = arg getType()
                     break
                 }
             }
+            
+            printf("FuncType = %s\n", funcPointer toString())
             if (!funcPointer) {
                 res wholeAgain(this, "Missing type-info in func-pointer")
                 trail pop(this)
