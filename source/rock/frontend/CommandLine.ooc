@@ -343,7 +343,7 @@ CommandLine: class {
                     success()
                     
                     if(params run) {
-                        p := Process new(["./" + module simpleName])
+                        p := Process new(["./" + module simpleName] as ArrayList<String>)
                         p execute()
                     }
                 } else {
