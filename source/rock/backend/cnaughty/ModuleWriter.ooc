@@ -48,29 +48,7 @@ ModuleWriter: abstract class extends Skeleton {
         
         // write all func types typedefs
         for(funcType in module funcTypesMap) {
-            current nl(). nl().  app("#ifndef "). app(funcType toMangledString()). app("__DEFINE")
-            current nl(). app("#define "). app(funcType toMangledString()). app("__DEFINE"). nl()
-            current nl(). app("typedef ");
-            if(funcType returnType == null) {
-                current app("void")
-            } else {
-                current app(funcType returnType)
-            }
-            current app(" (*"). app(funcType toMangledString()). app(")(")
-            
-            isFirst := true
-            for(typeArg in funcType typeArgs) {
-                if(isFirst) isFirst = false
-                else        current app(", ")
-                current app(typeArg getType())
-            }
-            for(argType in funcType argTypes) {
-                if(isFirst) isFirst = false
-                else        current app(", ")
-                current app(argType)
-            }
-            current app(");")
-            current nl(). nl().  app("#endif"). nl() 
+            writeFuncType(this, funcType, null)
         }
 
         /* write the .h file */
@@ -201,6 +179,33 @@ ModuleWriter: abstract class extends Skeleton {
         }
         cw nl(). app(module getLoadFuncName()). app("();")
         cw closeBlock(). nl()
+    }
+
+    writeFuncType: static func (this: Skeleton, funcType: FuncType, customName: String) {
+        name: String = customName ? customName : funcType toMangledString()
+        current nl(). nl().  app("#ifndef "). app(name). app("__DEFINE")
+        current nl(). app("#define "). app(name). app("__DEFINE"). nl()
+        current nl(). app("typedef ");
+        if(funcType returnType == null) {
+            current app("void")
+        } else {
+            current app(funcType returnType)
+        }
+        current app(" (*"). app(name). app(")(")
+        
+        isFirst := true
+        for(typeArg in funcType typeArgs) {
+            if(isFirst) isFirst = false
+            else        current app(", ")
+            current app(typeArg getType())
+        }
+        for(argType in funcType argTypes) {
+            if(isFirst) isFirst = false
+            else        current app(", ")
+            current app(argType)
+        }
+        current app(");")
+        current nl(). nl().  app("#endif"). nl()
     }
 
     /** Classify imports between 'tight' and 'loose' */
