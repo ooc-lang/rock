@@ -71,7 +71,9 @@ PropertyDecl: class extends VariableDecl {
             cls addFunction(getter)
             // are we a cover? if yes, use func@
             if(cls instanceOf(CoverDecl)) {
-                getter isThisRef = true
+                if(cls as CoverDecl fromType == null || !cls as CoverDecl fromType isPointer()) {
+                    getter isThisRef = true
+                }
             }
             // static property -> static getter
             if(isStatic()) {
@@ -88,7 +90,9 @@ PropertyDecl: class extends VariableDecl {
             setter setName(getSetterName())
             // are we a cover? if yes, use func@
             if(cls instanceOf(CoverDecl)) {
-                setter isThisRef = true
+                if(cls as CoverDecl fromType == null || !cls as CoverDecl fromType isPointer()) {
+                    setter isThisRef = true
+                }
             }
             // static property -> static setter
             if(isStatic()) {
