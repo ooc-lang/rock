@@ -49,7 +49,9 @@ UseDef: class {
     
     findUse: static func (fileName: String, params: BuildParams) -> File {
         set := ArrayList<File> new()
-        set add(params libsPath)
+        if(params libsPath exists()) {
+            set add(params libsPath)
+        }
         set add(params sdkLocation)
         
         for(path in set) {
