@@ -178,17 +178,17 @@ TypeDecl: abstract class extends Declaration {
     
     getVariable: func (vName: String) -> VariableDecl {
     	{
-	        result := variables get(vName)
-	        if(result) return result
-	    }
+            result := variables get(vName)
+            if(result) return result
+        }
         
         if(isMeta) {
-			result := getNonMeta() getVariable(vName)
-			if(result) return result
+            result := getNonMeta() getVariable(vName)
+            if(result) return result
         }
 
         if(getSuperRef()) {
-			return getSuperRef() getVariable(vName)
+            return getSuperRef() getVariable(vName)
         }
         return null
     }
@@ -265,7 +265,7 @@ TypeDecl: abstract class extends Declaration {
            call expr getType() getRef() instanceOf(ClassDecl) &&
            call expr getType() getRef() as ClassDecl isMeta) {
             for(_fDecl: FunctionDecl in functions) {
-                if(_fDecl isStatic()) continue
+                // Not ignoring static methods is intended; we want static member access without explicit `This`.
                 fDecl := _fDecl getStaticVariant()
                 if(!fDecl) continue
                 if(fDecl name equals(name) && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix equals(suffix))) {
@@ -542,6 +542,18 @@ TypeDecl: abstract class extends Declaration {
         if(access debugCondition()) {
             for(v in variables) {
                 printf("Got var %s.%s\n", toString(), v toString())
+            }
+        }
+
+        // ask the metaclass for the variable (makes static member access without explicit `This` possible)
+        if(!isMeta) {
+            mvDecl := getMeta() variables get(access getName())
+            if(access suggest(mvDecl)) {
+            	if(access expr == null) {
+                    varAcc := VariableAccess new("This", nullToken)
+                    access expr = varAcc
+                }
+                return 0
             }
         }
         
