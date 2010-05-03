@@ -153,9 +153,7 @@ PropertyDecl: class extends VariableDecl {
 
     /** here for the resolving phase in `init`. Not the nicest way, but works. */
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) {
-        if(access name == this name) {
-            cls resolveAccess(access, res, trail)
-        }
+        // just do nothing. This will make VariableAccess go up the trail.
     }
 
     /** return true if getters and setters should be used in this context */
