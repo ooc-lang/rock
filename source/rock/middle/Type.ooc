@@ -301,9 +301,8 @@ ArrayType: class extends PointerType {
     }
     
     write: func (w: AwesomeWriter, name: String) {
+        w app("_lang_array__Array")
         if(expr != null) {
-            w app("_lang_array__Array")
-            
             if(name != null) {
                 w app(' '). app(name). app(" = _lang_array__Array_new(")
                 inner write(w, null)
@@ -324,8 +323,9 @@ ArrayType: class extends PointerType {
                 }
             }
         } else {
-            inner write(w, null)
-            w app("[]")
+            if(name != null) {
+                w app(' '). app(name)
+            }
         }
     }
     
@@ -334,24 +334,7 @@ ArrayType: class extends PointerType {
             return Responses LOOP
         }
         
-        if(expr == null) {
-            kiddo := BaseType new("ArrayList", token)
-            kiddo addTypeArg(VariableAccess new(getName(), token))
-            kiddo resolve(trail, res)
-            parent := trail peek()
-            
-            if(!parent replace(this, kiddo)) {
-                printf("Couldn't replace %s with %s in %s, trail = %s\n", toString(), kiddo toString(), parent toString(), trail toString())
-            }
-            
-            if(parent instanceOf(VariableDecl)) {
-                vd := parent as VariableDecl
-                if(!vd isArg && vd getType() == kiddo) {
-                    fCall := FunctionCall new(kiddo, "new", token)
-                    vd setExpr(fCall)
-                }
-            }
-        } else {
+        if(expr != null) {
             response := expr resolve(trail, res)
             if(!response ok()) return response
         }
