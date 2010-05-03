@@ -3,7 +3,8 @@ import Type, Expression, Visitor, Node
 import tinker/[Trail, Resolver, Response]
 
 ArrayCreation: class extends Expression {
-    
+
+    name: String = null
     arrayType : ArrayType
 
     init: func ~arrayCrea(=arrayType, .token) {

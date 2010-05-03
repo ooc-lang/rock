@@ -266,12 +266,10 @@ CGenerator: class extends Skeleton {
     }
     
     visitArrayCreation: func (node: ArrayCreation) {
-        writeArrayCreation(node arrayType)
+        writeArrayCreation(node arrayType, node name ? node name : node generateTempName("arrayCreation"))
     }
     
-    writeArrayCreation: func (arrayType: ArrayType) {
-        name := arrayType generateTempName("arrayCreation")
-        
+    writeArrayCreation: func (arrayType: ArrayType, name: String) {
         current app("_lang_array__Array_new(")
         arrayType inner write(current, null)
         current app(", "). app(arrayType expr). app(")")
@@ -283,7 +281,7 @@ CGenerator: class extends Skeleton {
                     app(name). app("__i++) { "). nl()
               
             current app("_lang_array__Array "). app(name). app("_sub = ")
-            writeArrayCreation(arrayType inner as ArrayType)
+            writeArrayCreation(arrayType inner as ArrayType, name + "_sub")
             
             current app(";"). nl(). app("_lang_array__Array_set("). app(name).
                     app(", "). app(name). app("__i, ").
