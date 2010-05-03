@@ -1,7 +1,7 @@
 import structs/ArrayList
 import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, VariableDecl,
-       VariableAccess, BinaryOp
+       VariableAccess, BinaryOp, ArrayCreation
 import tinker/[Response, Resolver, Trail]
 
 Cast: class extends Expression {
@@ -52,8 +52,8 @@ Cast: class extends Expression {
             
             if(parent instanceOf(VariableDecl)) {
                 varDecl := parent as VariableDecl
-                varDecl setType(type)
-                varDecl setExpr(null)
+                varDecl setType(null)
+                varDecl setExpr(ArrayCreation new(type as ArrayType, token))
                 
                 arrTypeAcc := VariableAccess new(arrType inner, token)
                 copySize := BinaryOp new(arrType expr, VariableAccess new(arrTypeAcc, "size", token), OpTypes mul, token)

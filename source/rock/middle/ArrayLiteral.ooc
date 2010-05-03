@@ -1,7 +1,7 @@
 import ../frontend/[Token, BuildParams]
 import Literal, Visitor, Type, Expression, FunctionCall, Block,
        VariableDecl, VariableAccess, Cast, Node, ClassDecl, TypeDecl, BaseType,
-       Statement, IntLiteral, BinaryOp, Block
+       Statement, IntLiteral, BinaryOp, Block, ArrayCreation
 import tinker/[Response, Resolver, Trail]
 import structs/[List, ArrayList]
 import text/Buffer
@@ -95,8 +95,8 @@ ArrayLiteral: class extends Literal {
             parent := trail peek()
             if(parent instanceOf(VariableDecl)) {
                 vDecl := parent as VariableDecl
-                vDecl setType(type)
-                vDecl setExpr(null)
+                vDecl setType(null)
+                vDecl setExpr(ArrayCreation new(type as ArrayType, token))
                 ptrDecl := VariableDecl new(null, generateTempName("arrLit"), this, token)
                 
                 block := Block new(token)
