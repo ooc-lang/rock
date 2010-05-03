@@ -302,30 +302,8 @@ ArrayType: class extends PointerType {
     
     write: func (w: AwesomeWriter, name: String) {
         w app("_lang_array__Array")
-        if(expr != null) {
-            if(name != null) {
-                w app(' '). app(name). app(" = _lang_array__Array_new(")
-                inner write(w, null)
-                w app(", "). app(expr). app(")")
-                
-                if(inner instanceOf(ArrayType)) {
-                    w app(';'). nl(). app("{"). tab(). nl(). app("int "). app(name). app("__i;"). nl().
-                      app("for("). app(name). app("__i = 0; ").
-                      app(name). app("__i < "). app(expr). app("; ").
-                      app(name). app("__i++) { "). nl()
-                      
-                    inner as ArrayType write(w, name + "_sub")
-                    
-                    w app(";"). nl(). app("_lang_array__Array_set("). app(name).
-                      app(", "). app(name). app("__i, ").
-                      app(inner). app(", "). app(name). app("_sub);").
-                      untab(). nl(). app("}}")
-                }
-            }
-        } else {
-            if(name != null) {
-                w app(' '). app(name)
-            }
+        if(name != null) {
+            w app(' '). app(name)
         }
     }
     

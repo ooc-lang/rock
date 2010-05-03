@@ -13,7 +13,8 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Use, TypeDecl, ClassDecl, CoverDecl, Node, Parenthesis, Return,
     Cast, Comparison, Ternary, BoolLiteral, Argument, Statement,
     AddressOf, Dereference, CommaSequence, UnaryOp, ArrayAccess, Match,
-    FlowControl, InterfaceDecl, Version, Block, EnumDecl, ArrayLiteral]
+    FlowControl, InterfaceDecl, Version, Block, EnumDecl, ArrayLiteral,
+    ArrayCreation]
 
 import Skeleton, FunctionDeclWriter, ControlStatementWriter,
     ClassDeclWriter, ModuleWriter, CoverDeclWriter, FunctionCallWriter,
@@ -262,6 +263,33 @@ CGenerator: class extends Skeleton {
             isFirst = false
         }
         current app(" }")
+    }
+    
+    visitArrayCreation: func (node: ArrayCreation) {
+        writeArrayCreation(node arrayType)
+    }
+    
+    writeArrayCreation: func (arrayType: ArrayType) {
+        name := arrayType generateTempName("arrayCreation")
+        
+        current app("_lang_array__Array_new(")
+        arrayType inner write(current, null)
+        current app(", "). app(arrayType expr). app(")")
+        
+        if(arrayType inner instanceOf(ArrayType)) {
+            current app(';'). nl(). app("{"). tab(). nl(). app("int "). app(name). app("__i;"). nl().
+                    app("for("). app(name). app("__i = 0; ").
+                    app(name). app("__i < "). app(arrayType expr). app("; ").
+                    app(name). app("__i++) { "). nl()
+              
+            current app("_lang_array__Array "). app(name). app("_sub = ")
+            writeArrayCreation(arrayType inner as ArrayType)
+            
+            current app(";"). nl(). app("_lang_array__Array_set("). app(name).
+                    app(", "). app(name). app("__i, ").
+                    app(arrayType inner). app(", "). app(name). app("_sub);").
+                    untab(). nl(). app("}}")
+        }
     }
 
     /** Control statements */

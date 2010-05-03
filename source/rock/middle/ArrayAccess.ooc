@@ -2,7 +2,7 @@ import structs/[ArrayList]
 import ../frontend/[Token, BuildParams]
 import Visitor, Expression, VariableDecl, Declaration, Type, Node,
        OperatorDecl, FunctionCall, Import, Module, BinaryOp,
-       VariableAccess, AddressOf
+       VariableAccess, AddressOf, ArrayCreation, TypeDecl
 import tinker/[Resolver, Response, Trail]
 
 ArrayAccess: class extends Expression {
@@ -60,7 +60,39 @@ ArrayAccess: class extends Expression {
         
         if(array getType() == null) {
             res wholeAgain(this, "because of array type!")
-        } else {
+        } else {            
+            if(array getType() == null) {
+                res wholeAgain(this, "because of array type ref")
+                return Responses OK
+            }
+            
+            if(array instanceOf(VariableAccess) && array as VariableAccess getRef() instanceOf(TypeDecl)) {
+                varAcc := array as VariableAccess
+                tDecl := varAcc getRef() as TypeDecl
+                "%s is a TypeDecl!" format(toString()) println()
+                
+                parent := trail peek()
+                
+                if(!parent instanceOf(FunctionCall)) {
+                    token throwError("Unexpected ArrayAccess to a type.")
+                }
+                
+                fCall := parent as FunctionCall
+                if(fCall getName() != "new") {
+                    token throwError("Good lord, what are you trying to call on that array type?")
+                }
+                
+                grandpa := trail peek(2)
+                
+                arrayType := ArrayType new(tDecl getInstanceType(), index, token)
+                arrayCreation := ArrayCreation new(arrayType, token)
+                grandpa replace(fCall, arrayCreation)
+                
+                // TODO: do we really need a LOOP here? Wouldn't a wholeAgain+OK suffice?
+                return Responses LOOP
+                
+            }
+            
             type = array getType() dereference()
             if(type == null) {
                 res wholeAgain(this, "because of array dereference type!")
