@@ -1149,5 +1149,7 @@ nq_setTokenPositionPointer: unmangled func (this: AstBuilder, tokenPos: Int*) { 
 
 // string handling
 nq_StringClone: unmangled func (string: String) -> String             { string clone() }
+nq_trailingQuest: unmangled func (string: String) -> String           { string + "__quest" }
+nq_trailingBang:  unmangled func (string: String) -> String           { string + "__bang" }
 nq_error: unmangled func (this: AstBuilder, errorID: Int, message: String, index: Int) { this error(errorID, message, index) }
 
