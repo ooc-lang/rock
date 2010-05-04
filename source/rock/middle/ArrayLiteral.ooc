@@ -116,6 +116,8 @@ ArrayLiteral: class extends Literal {
                 block getBody() add(memcpyCall)
                 
                 type = PointerType new(arrType inner, arrType token)
+                
+                return Responses LOOP
             }
         }
         

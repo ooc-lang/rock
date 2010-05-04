@@ -73,7 +73,8 @@ CGenerator: class extends Skeleton {
         // when assigning to an array, use Array_set rather than assigning to _get
         isArray := op type == OpTypes ass &&
                    op left instanceOf(ArrayAccess) &&
-                   op left as ArrayAccess getArray() getType() instanceOf(ArrayType)
+                   op left as ArrayAccess getArray() getType() instanceOf(ArrayType) &&
+                   op left as ArrayAccess getArray() getType() as ArrayType expr == null
                    
         if(isArray) {
             arrAcc := op left as ArrayAccess
@@ -243,7 +244,7 @@ CGenerator: class extends Skeleton {
     /** Write an array access */
     visitArrayAccess: func (arrAcc: ArrayAccess) {
         arrType := arrAcc getArray() getType()
-        if(arrType instanceOf(ArrayType)) {
+        if(arrType instanceOf(ArrayType) && arrType as ArrayType expr == null) {
             inner := arrType as ArrayType inner
             current app("_lang_array__Array_get("). app(arrAcc getArray()). app(", "). app(arrAcc getIndex()). app(", "). app(inner). app(")")
         } else {
@@ -285,7 +286,7 @@ CGenerator: class extends Skeleton {
             
             current app(";"). nl(). app("_lang_array__Array_set("). app(name).
                     app(", "). app(name). app("__i, ").
-                    app(arrayType inner). app(", "). app(name). app("_sub);").
+                    app(arrayType inner as ArrayType exprLessClone()). app(", "). app(name). app("_sub);").
                     untab(). nl(). app("}}")
         }
     }

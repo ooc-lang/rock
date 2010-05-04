@@ -5,10 +5,11 @@ import tinker/[Trail, Resolver, Response]
 ArrayCreation: class extends Expression {
 
     name: String = null
-    arrayType : ArrayType
+    arrayType, realType : ArrayType
 
     init: func ~arrayCrea(=arrayType, .token) {
         super(token)
+        realType = arrayType exprLessClone()
     }
     
     accept: func (visitor: Visitor) {
@@ -17,6 +18,10 @@ ArrayCreation: class extends Expression {
         
     resolve: func (trail: Trail, res: Resolver) -> Response {
         if(!arrayType resolve(trail, res) ok()) {
+            return Responses LOOP
+        }
+        
+        if(!realType  resolve(trail, res) ok()) {
             return Responses LOOP
         }
         
@@ -36,7 +41,7 @@ ArrayCreation: class extends Expression {
     }
     
     getType: func -> Type {
-        arrayType
+        realType
     }
     
 }

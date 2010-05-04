@@ -301,9 +301,17 @@ ArrayType: class extends PointerType {
     }
     
     write: func (w: AwesomeWriter, name: String) {
-        w app("_lang_array__Array")
-        if(name != null) {
-            w app(' '). app(name)
+        if(expr == null) {
+            w app("_lang_array__Array")
+            if(name != null) {
+                w app(' '). app(name)
+            }
+        } else {
+            inner write(w, null)
+            w app(' ')            
+            if(name) w app(name)
+            if(expr) w app('['). app(expr). app(']')
+            else     w app('*')
         }
     }
     
@@ -319,6 +327,21 @@ ArrayType: class extends PointerType {
         
         return super(trail, res)
         
+    }
+    
+    clone: func -> This { new(inner clone(), expr, token) }
+    
+    exprLessClone: func -> This {
+        copy := clone()
+        
+        current := copy as Type
+        while(current instanceOf(ArrayType)) {
+            innerType := current as ArrayType
+            innerType expr = null
+            current = innerType inner
+        }
+        
+        copy
     }
     
     toString: func -> String { inner toString() append(expr != null ? "[%s]" format(expr toString()) : "[]") }
