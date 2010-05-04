@@ -15,11 +15,11 @@ BinarySeq: class {
     init: func ~withData (=size, d: UChar*) {
         init(size)
         index = size
-        memcpy(data, d, size * sizeof(UChar))
+        memcpy(data, d, size * UChar size)
     }
     
     init: func ~withSize (=size) {
-        memsize := size * sizeof(UChar)
+        memsize := size * UChar size
         // at least 4096, and a multiple of 4096 that is bigger than memsize
         realsize := memsize + 4096 - (memsize % 4096)
         data = gc_malloc(realsize)

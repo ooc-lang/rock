@@ -161,7 +161,7 @@ IP4Address: class extends IPAddress {
 
     init: func ~withAddr(addr: InAddr) {
         family = SocketFamily IP4
-        memcpy(ai&, addr&, sizeof(InAddr))
+        memcpy(ai&, addr&, InAddr size)
     }
 
     isBroadcast: func -> Bool { ai s_addr == INADDR_NONE }
@@ -222,7 +222,7 @@ IP6Address: class extends IPAddress {
 
     init: func ~withAddr(addr: In6Addr) {
         family = SocketFamily IP6
-        memcpy(ai&, addr&, sizeof(In6Addr))
+        memcpy(ai&, addr&, In6Addr size)
     }
 
     toWords: func -> UInt16* { ai& as UInt16* }
@@ -317,10 +317,10 @@ SocketAddress: abstract class {
     }
 
     newFromSock: static func(addr: SockAddr*, len: UInt) -> This {
-        if(len == sizeof(SockAddrIn)) {
+        if(len == SockAddrIn size) {
             return SocketAddressIP4 new(addr as SockAddrIn*)
         }
-        else if(len == sizeof(SockAddrIn6)) {
+        else if(len == SockAddrIn6 size) {
             return SocketAddressIP6 new(addr as SockAddrIn6*)
         }
         else {
@@ -345,13 +345,13 @@ SocketAddressIP4: class extends SocketAddress {
     sa: SockAddrIn
 
     init: func ~SocketAddressIP4 (addr: InAddr, port: Int) {
-        memset(sa&, 0, sizeof(SockAddrIn))
+        memset(sa&, 0, SockAddrIn size)
         sa sin_family = SocketFamily IP4
-        memcpy(sa sin_addr&, addr&, sizeof(InAddr))
+        memcpy(sa sin_addr&, addr&, InAddr size)
         sa sin_port = port
     }
     init: func ~sock(sockAddr: SockAddrIn*) {
-        memcpy(sa&, sockAddr, sizeof(SockAddrIn))
+        memcpy(sa&, sockAddr, SockAddrIn size)
     }
 
     family: func -> Int { sa sin_family }
@@ -366,13 +366,13 @@ SocketAddressIP6: class extends SocketAddress {
     sa: SockAddrIn6
 
     init: func ~SocketAddressIP6 (addr: In6Addr, port: Int) {
-        memset(sa&, 0, sizeof(SockAddrIn6))
+        memset(sa&, 0, SockAddrIn6 size)
         sa sin6_family = SocketFamily IP6
-        memcpy(sa sin6_addr&, addr&, sizeof(In6Addr))
+        memcpy(sa sin6_addr&, addr&, In6Addr size)
         sa sin6_port = port
     }
     init: func ~sock6(sockAddr: SockAddrIn6*) {
-        memcpy(sa&, sockAddr, sizeof(SockAddrIn6))
+        memcpy(sa&, sockAddr, SockAddrIn6 size)
     }
 
     family: func -> Int { sa sin6_family }
@@ -380,5 +380,5 @@ SocketAddressIP6: class extends SocketAddress {
     port: func -> Int { ntohs(sa sin6_port) }
 
     addr: func -> SockAddr* { (sa&) as SockAddr* }
-    length: func -> UInt32 { sizeof(SockAddrIn6) }
+    length: func -> UInt32 { SockAddrIn6 size }
 }

@@ -74,7 +74,7 @@ Regexp: class {
         :return: Match object if a match was found, otherwise null
     */
     matches: func ~withLengthAndStart(subject: String, start: Int, length: SizeT) -> Match {
-        ovector: Int* = gc_malloc(sizeof(Int) * maxSubstrings)
+        ovector: Int* = gc_malloc(Int size * maxSubstrings)
         count := pcre exec(null, subject, length, start, 0, ovector, maxSubstrings)
         if(count > 0) {
             return Match new(this, count, subject, ovector)

@@ -48,7 +48,7 @@ StreamSocket: class extends Socket {
     send: func(data: String) -> Int { send(data, 0) }
 
     sendByte: func ~withFlags(byte: Char, flags: Int) {
-        if(socket send(descriptor, byte&, sizeof(Char), flags) == -1) {
+        if(socket send(descriptor, byte&, Char size, flags) == -1) {
             SocketError new() throw()
         }
     }
@@ -65,7 +65,7 @@ StreamSocket: class extends Socket {
 
     receiveByte: func ~withFlags(flags: Int) -> Char {
         c: Char
-        if(socket recv(descriptor, c&, sizeof(Char), flags) == -1) {
+        if(socket recv(descriptor, c&, Char size, flags) == -1) {
             SocketError new() throw()
         }
         return c
