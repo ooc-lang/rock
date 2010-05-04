@@ -359,7 +359,7 @@ SocketAddressIP4: class extends SocketAddress {
     port: func -> Int { ntohs(sa sin_port) }
 
     addr: func -> SockAddr* { (sa&) as SockAddr* }
-    length: func -> UInt32 { sizeof(SockAddrIn) }
+    length: func -> UInt32 { SockAddrIn size }
 }
 
 SocketAddressIP6: class extends SocketAddress {
