@@ -12,7 +12,7 @@ DNS: class {
     resolve: static func ~filter(hostname: String, socketType: Int, socketFamily: Int) -> HostInfo {
         hints: AddrInfo
         info: AddrInfo*
-        memset(hints&, 0, hints size)
+        memset(hints&, 0, hints class size)
         hints ai_flags = AI_CANONNAME
         hints ai_family = socketFamily
         hints ai_socktype = socketType
