@@ -23,9 +23,13 @@ version(!gc) {
 }*/
 
 // memory management
-sizeof: extern func (...) -> SizeT
 memset: extern func (Pointer, Int, SizeT) -> Pointer
 memcmp: extern func (Pointer, Pointer, SizeT) -> Int
 memmove: extern func (Pointer, Pointer, SizeT)
 memcpy: extern func (Pointer, Pointer, SizeT)
 free: extern func (Pointer)
+
+// note: sizeof is intentionally not here. sizeof(Int) will be translated
+// to sizeof(Int_class()), and thus will always give the same value for
+// all types. 'Int size' should be used instead, which will be translated
+// to 'Int_class()->size'
