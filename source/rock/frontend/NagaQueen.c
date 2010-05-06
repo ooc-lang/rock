@@ -5644,7 +5644,7 @@ YY_RULE(int) yy_EnumElement(GREG *G)
   yyprintf((stderr, "%s\n", "EnumElement"));  if (!yy_IDENT(G)) { goto l442; }  yyDo(G, yySet, -3, 0);  yyDo(G, yy_1_EnumElement, G->begin, G->end);  if (!yy__(G)) { goto l442; }
   {  int yypos443= G->pos, yythunkpos443= G->thunkpos;
   {  int yypos445= G->pos, yythunkpos445= G->thunkpos;  if (!yy_ASS(G)) { goto l446; }  if (!yy_IntLiteral(G)) { goto l446; }  yyDo(G, yySet, -2, 0);  yyDo(G, yy_2_EnumElement, G->begin, G->end);  goto l445;
-  l446:;	  G->pos= yypos445; G->thunkpos= yythunkpos445;  if (!yy_ExternName(G)) { goto l443; }  yyDo(G, yySet, -1, 0);  yyDo(G, yy_3_EnumElement, G->begin, G->end);
+  l446:;	  G->pos= yypos445; G->thunkpos= yythunkpos445;  if (!yy_COLON(G)) { goto l443; }  if (!yy__(G)) { goto l443; }  if (!yy_ExternName(G)) { goto l443; }  yyDo(G, yySet, -1, 0);  yyDo(G, yy_3_EnumElement, G->begin, G->end);
   }
   l445:;	  goto l444;
   l443:;	  G->pos= yypos443; G->thunkpos= yythunkpos443;
