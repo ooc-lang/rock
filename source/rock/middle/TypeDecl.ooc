@@ -674,6 +674,9 @@ TypeDecl: abstract class extends Declaration {
     }
     
     inheritsScore: func (tDecl: TypeDecl, scoreSeed: Int) -> Int {
+        
+        if(debugCondition()) printf("inheritsScore between %s and %s. scoreSeed = %d\n", toString(), tDecl toString(), scoreSeed)
+        
         for(interfaceDecl in interfaceDecls) {
             if(interfaceTypes size() != interfaceDecls size()) return -1
             if(interfaceDecl == tDecl) return scoreSeed
@@ -683,6 +686,8 @@ TypeDecl: abstract class extends Declaration {
         
         if(getSuperType() != null) {
             superRef := getSuperRef()
+            if(debugCondition()) printf("superRef = %s\n", superRef toString())
+            
             if(superRef == null) return -1            
             if(superRef == tDecl) return scoreSeed
             return superRef inheritsScore(tDecl, scoreSeed / 2)

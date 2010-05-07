@@ -132,7 +132,7 @@ Type: abstract class extends Expression {
         return false
     }
     
-    isPointer: func -> Bool { (pointerLevel() == 1) || (getName() == "Pointer") }
+    isPointer: func -> Bool { (pointerLevel() >= 1) || (getName() == "Pointer") }
     
     getScoreImpl: abstract func (other: This, scoreSeed: Int) -> Int
     

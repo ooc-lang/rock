@@ -181,6 +181,7 @@ BaseType: class extends Type {
             // two pointers = okay
             return scoreSeed / 2
         }
+        
         if(other instanceOf(BaseType)) {
             if(getRef() == null || other getRef() == null) {
                 //printf("%s ref = %s, other %s ref = %s\n", toString(), getRef() ? getRef() toString() : "(nil)", other toString(), other getRef() ? other getRef() toString() : "(nil)")
@@ -216,6 +217,11 @@ BaseType: class extends Type {
                 // something needs resolving
                 if(inheritsScore == -1) {
                     return inheritsScore
+                }
+                
+                if(inheritsScore <= 0 && getRef() instanceOf(CoverDecl) && other getRef() instanceOf(CoverDecl)) {
+                    // well, try the other way around - covers are lax - but it'll be weaker this time
+                    inheritsScore = other getRef() as TypeDecl inheritsScore(getRef() as TypeDecl, scoreSeed / 2)
                 }
                 
                 // cool, a match =)
