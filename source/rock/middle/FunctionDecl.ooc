@@ -1,6 +1,6 @@
 import structs/[Stack, ArrayList], text/Buffer
 import ../frontend/[Token, BuildParams]
-import Expression, Type, Visitor, Argument, TypeDecl, Scope,
+import Cast, Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, If, Else,
        VariableDecl, Node, Statement, Module, FunctionCall, Declaration,
        Version, StringLiteral, Conditional, Import, ClassDecl, StringLiteral,
@@ -284,12 +284,57 @@ FunctionDecl: class extends Declaration {
                 return Responses OK
             } 
             ix := 0
+            fScore: Int
+            /*
+            if (argT isGeneric()) {
+                    fCall_ resolveTypeArg(argT getName(), trail, res, fScore&) toString() println()
+                }
+            }
+            */
+            //t := fCall_ resolveTypeArg(funcPointer argTypes get(0) getName(), trail, res, fScore&)
+            //for (arg in args) {
+
             tmp := funcPointer argTypes
+            needTrampoline := false
             for (fType in funcPointer argTypes) {
+                if (!fType isResolved()) {
+                    res wholeAgain(this, "Can't figure out the arg-type.")
+                    trail pop(this)
+                    return Responses OK
+                }
+                if (fType isGeneric()) needTrampoline = true
                 args get(ix) type = fType
                 ix += 1
             }
-             
+            if (needTrampoline) {
+                trampoline := FunctionDecl new("trampoline", token)
+                for (arg in args) {
+                    buffer := gc_malloc(arg class instanceSize)
+                    memcpy(buffer, arg, arg class instanceSize)
+                    tArg: Argument = buffer
+                    if (tArg getType() isGeneric()) {
+                        tArg type = fCall_ resolveTypeArg(tArg getType() getName(), trail, res, fScore&)
+                    }
+                    trampoline args add(tArg)
+                }
+                for (st in body) {
+                    trampoline body add(st)
+                }
+                funcCall := FunctionCall new("trampoline", token)
+                for (arg in args) {
+                    vAccess := VariableAccess new(arg getName(), arg token)
+                    argToPass: Expression = vAccess
+                    if (arg getType() isGeneric()) {
+                        argToPass = Cast new(vAccess, fCall_ resolveTypeArg(arg getType() getName(), trail, res, fScore&), token)
+                    }
+                    funcCall args add(argToPass)
+                }
+                body set(0, funcCall)
+                //body add(funcCall)
+                                        
+                trail module() addFunction(trampoline)
+
+            } 
 
         }
         for(typeArg in typeArgs) {
