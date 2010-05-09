@@ -285,16 +285,7 @@ FunctionDecl: class extends Declaration {
             } 
             ix := 0
             fScore: Int
-            /*
-            if (argT isGeneric()) {
-                    fCall_ resolveTypeArg(argT getName(), trail, res, fScore&) toString() println()
-                }
-            }
-            */
-            //t := fCall_ resolveTypeArg(funcPointer argTypes get(0) getName(), trail, res, fScore&)
-            //for (arg in args) {
-
-            tmp := funcPointer argTypes
+            
             needTrampoline := false
             for (fType in funcPointer argTypes) {
                 if (!fType isResolved()) {
@@ -306,33 +297,46 @@ FunctionDecl: class extends Declaration {
                 args get(ix) type = fType
                 ix += 1
             }
-            if (needTrampoline) {
-                trampoline := FunctionDecl new("trampoline", token)
+            if (needTrampoline) { // This function becomes the trampoline which calls the actual ACS
+                _name := generateTempName(trail module() getUnderName() + "_ACS")
+                actualACS := FunctionDecl new(_name, token)
+                actualTypes := ArrayList<Type> new(args size()) // Let's cache the types behind the generics
+                t: Type
+                i := 0
                 for (arg in args) {
-                    buffer := gc_malloc(arg class instanceSize)
+                    buffer := gc_malloc(arg class instanceSize) // evil clone, maybe add to Argument?
                     memcpy(buffer, arg, arg class instanceSize)
                     tArg: Argument = buffer
                     if (tArg getType() isGeneric()) {
-                        tArg type = fCall_ resolveTypeArg(tArg getType() getName(), trail, res, fScore&)
-                    }
-                    trampoline args add(tArg)
+                        t = fCall_ resolveTypeArg(tArg getType() getName(), trail, res, fScore&)
+                        if (fScore == -1) {
+                            res wholeAgain(this, "Can't figure out the actual type of generic")
+                            trail pop(this)
+                            return Responses OK
+                        }
+                        tArg type = t
+                        actualTypes add(t)
+                        i += 1
+                    }                        
+                    actualACS args add(tArg)
                 }
-                for (st in body) {
-                    trampoline body add(st)
+                for (st in body) { // actualACS body set(0, body get(0)) ??
+                    actualACS body add(st)
                 }
-                funcCall := FunctionCall new("trampoline", token)
+                funcCall := FunctionCall new(_name, token)
+                i = 0
                 for (arg in args) {
                     vAccess := VariableAccess new(arg getName(), arg token)
                     argToPass: Expression = vAccess
                     if (arg getType() isGeneric()) {
-                        argToPass = Cast new(vAccess, fCall_ resolveTypeArg(arg getType() getName(), trail, res, fScore&), token)
+                        argToPass = Cast new(vAccess, actualTypes get(i), token)
+                        i += 1
                     }
+                    "hahahahaha" println()
                     funcCall args add(argToPass)
                 }
                 body set(0, funcCall)
-                //body add(funcCall)
-                                        
-                trail module() addFunction(trampoline)
+                trail module() addFunction(actualACS)
 
             } 
 
