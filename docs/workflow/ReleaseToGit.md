@@ -28,6 +28,19 @@ Don't forget to check that you're really using the latest rock you
 compiled, with 'rock -V', which should display 'head', and the build
 date and time. Have fun!
 
+Long way with detailed explanations
+-----------------------------------
+
+Rock is a <a href="http://en.wikipedia.org/wiki/Self-hosting">self-hosting</a> compiler, each release of rock is used to build the next release of rock. To use the git version, simply follow these steps (specific steps may vary depending on your OS):
+
+1. Check that you have a stable release of rock (0.9.0 as of 8/05/2010), you can download the release from <a href="http://github.com/nddrylliog/rock/downloads">here</a>.
+
+2. Let's assume that you unpackaged the folder to /usr/share/rock-0.9.0. "cd /usr/share/" and clone the latest development copy "git clone git://github.com/nddrylliog/rock.git"
+
+3. "cd rock/", inside this directory execute "OOC=../rock-0.9.0/bin/rock ROCK_DIST=. make self". This will build the latest binary for rock using the stable release. This is self-hosting in action :)
+
+4. Finally do "/path/to/rock -version" this should display "rock head, built on 2010-05-08 at 23:45". If it reports head as the version you are now using the latest release of rock. Enjoy living on the edge :)
+
 
 Makefile, thou art a heartless witch
 ------------------------------------
