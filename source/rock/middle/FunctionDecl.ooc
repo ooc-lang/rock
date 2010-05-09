@@ -285,7 +285,6 @@ FunctionDecl: class extends Declaration {
             } 
             ix := 0
             fScore: Int
-            
             needTrampoline := false
             for (fType in funcPointer argTypes) {
                 if (!fType isResolved()) {
@@ -297,6 +296,8 @@ FunctionDecl: class extends Declaration {
                 args get(ix) type = fType
                 ix += 1
             }
+            if (funcPointer returnType) returnType = funcPointer returnType
+            
             if (needTrampoline) { // This function becomes the trampoline which calls the actual ACS
                 _name := generateTempName(trail module() getUnderName() + "_ACS")
                 actualACS := FunctionDecl new(_name, token)
@@ -332,9 +333,9 @@ FunctionDecl: class extends Declaration {
                         argToPass = Cast new(vAccess, actualTypes get(i), token)
                         i += 1
                     }
-                    "hahahahaha" println()
                     funcCall args add(argToPass)
                 }
+                if (returnType) actualACS returnType = returnType
                 body set(0, funcCall)
                 trail module() addFunction(actualACS)
 
