@@ -190,13 +190,11 @@ List: abstract class <T> extends Iterable<T> {
         return arr&
     }
 
-    /*
     each: func (f: Func (T)) {
         for(i in 0..size()) {
             f(get(i))
         }
     }
-    */
 
     join: func ~string (str: String) -> String {
         if(!this T inheritsFrom(String)) {
