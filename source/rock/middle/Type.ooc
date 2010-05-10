@@ -289,8 +289,6 @@ ArrayType: class extends PointerType {
     
     init: func ~arrayType (.inner, =expr, .token) { super(inner, token) }
     
-    pointerLevel: func -> Int { inner pointerLevel() }
-    
     setRef: func (ref: Declaration) {
         Exception new(This, "Trying to set ref of an ArrayType! wtf? ref (%s) = %s" format(ref class name, ref toString())) throw()
     }
@@ -356,6 +354,8 @@ ArrayType: class extends PointerType {
 ReferenceType: class extends SugarType {
     
     init: func ~referenceType (.inner, .token) { super(inner, token) }
+    
+    pointerLevel: func -> Int { inner pointerLevel() }
     
     write: func (w: AwesomeWriter, name: String) {
         inner write(w, null)

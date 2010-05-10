@@ -9,7 +9,7 @@ include stdint
 CompType: cover from Int8 {
 
     toString: func -> String {
-        CompTypes repr get(this)
+        CompTypes repr[this]
     }
     
 }
@@ -30,7 +30,7 @@ CompTypes: class {
         "<",
         ">=",
         "<=",
-        "<=>"] as ArrayList<String>
+        "<=>"]
 }
 
 
@@ -51,7 +51,7 @@ Comparison: class extends Expression {
     getType: func -> Type { This type }
     
     toString: func -> String {
-        return left toString() + " " + CompTypes repr get(compType) + " " + right toString()
+        return left toString() + " " + CompTypes repr[compType] + " " + right toString()
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
