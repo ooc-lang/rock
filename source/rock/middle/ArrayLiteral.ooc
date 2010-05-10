@@ -132,12 +132,21 @@ ArrayLiteral: class extends Literal {
             }
             
             vDecl : VariableDecl = null
+            vAcc : VariableAccess = null
             
             if(parent instanceOf(VariableDecl)) {
                 vDecl = parent as VariableDecl
+                vAcc = VariableAccess new(vDecl, token)
+                if(vDecl isMember()) {
+                    vAcc expr = vDecl isStatic() ? VariableAccess new(vDecl owner getNonMeta() getInstanceType(), token) : VariableAccess new("this", token)
+                }
             } else {
                 vDecl = VariableDecl new(null, generateTempName("arrLit"), token)
-                if(!parent replace(this, VariableAccess new(vDecl, token))) {
+                vAcc = VariableAccess new(vDecl, token)
+                if(vDecl isMember()) {
+                    vAcc expr = vDecl isStatic() ? VariableAccess new(vDecl owner getNonMeta() getInstanceType(), token) : VariableAccess new("this", token)
+                }
+                if(!parent replace(this, vAcc)) {
                     if(res fatal) {
                         token throwError("Couldn't replace %s with varAcc in %s" format(toString(), parent toString()))
                     }
@@ -155,22 +164,37 @@ ArrayLiteral: class extends Literal {
             
             block := Block new(token)
             if(parent instanceOf(VariableDecl)) {
-                trail addAfterInScope(vDecl, block)
+                if(!trail addAfterInScope(vDecl, block)) {
+                    grandpa := trail peek(parentIdx + 1)
+                    if(grandpa instanceOf(ClassDecl)) {
+                        cDecl := grandpa as ClassDecl
+                        fDecl: FunctionDecl
+                        if(vDecl isStatic()) {
+                            fDecl = cDecl getLoadFunc()
+                        } else {
+                            fDecl = cDecl getDefaultsFunc()
+                        }
+                        fDecl getBody() add(block)
+                    } else {
+                        token throwError("Couldn't add block after %s in scope! trail = %s" format(vDecl toString(), trail toString()))
+                    }
+                }
             } else {
-                trail addBeforeInScope(this, block)
+                if(!trail addBeforeInScope(this, block)) {
+                    token throwError("Couldn't add block before %s in scope! trail = %s" format(toString(), trail toString()))
+                }
             }
+            
             
             block getBody() add(ptrDecl)
             
-            declAcc := VariableAccess new(vDecl, token)
-            
             innerTypeAcc := VariableAccess new(arrType inner, token)
             
-            sizeExpr : Expression = (arrType expr ? arrType expr : VariableAccess new(declAcc, "length", token))
+            sizeExpr : Expression = (arrType expr ? arrType expr : VariableAccess new(vAcc, "length", token))
             copySize := BinaryOp new(sizeExpr, VariableAccess new(innerTypeAcc, "size", token), OpTypes mul, token)
             
             memcpyCall := FunctionCall new("memcpy", token)
-            memcpyCall args add(VariableAccess new(declAcc, "data", token))
+            memcpyCall args add(VariableAccess new(vAcc, "data", token))
             memcpyCall args add(VariableAccess new(ptrDecl, token))
             memcpyCall args add(copySize)
             block getBody() add(memcpyCall)
