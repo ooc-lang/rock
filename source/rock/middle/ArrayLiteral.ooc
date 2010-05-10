@@ -92,37 +92,67 @@ ArrayLiteral: class extends Literal {
         
         if(type instanceOf(ArrayType)) {
             arrType := type as ArrayType
-            parent := trail peek()
-            if(parent instanceOf(VariableDecl)) {
-                vDecl := parent as VariableDecl
-                vDecl setType(null)
-                vDecl setExpr(ArrayCreation new(type as ArrayType, token))
-                ptrDecl := VariableDecl new(null, generateTempName("arrLit"), this, token)
-                
-                block := Block new(token)
-                trail addAfterInScope(vDecl, block)
-                
-                block getBody() add(ptrDecl)
-                
-                declAcc := VariableAccess new(vDecl, token)
-                
-                innerTypeAcc := VariableAccess new(arrType inner, token)
-                copySize := BinaryOp new(arrType expr, VariableAccess new(innerTypeAcc, "size", token), OpTypes mul, token)
-                
-                memcpyCall := FunctionCall new("memcpy", token)
-                memcpyCall args add(VariableAccess new(declAcc, "data", token))
-                memcpyCall args add(VariableAccess new(ptrDecl, token))
-                memcpyCall args add(copySize)
-                block getBody() add(memcpyCall)
-                
-                type = PointerType new(arrType inner, arrType token)
-                
-                return Responses LOOP
+            
+            parentIdx := 1
+            parent := trail peek(parentIdx)
+            while(parent instanceOf(Cast)) {
+                parentIdx += 1
+                parent = trail peek(parentIdx)
             }
+            
+            vDecl : VariableDecl = null
+            
+            if(parent instanceOf(VariableDecl)) {
+                vDecl = parent as VariableDecl
+            } else {
+                vDecl = VariableDecl new(null, generateTempName("arrLit"), token)
+                if(!parent replace(this, VariableAccess new(vDecl, token))) {
+                    if(res fatal) {
+                        token throwError("Couldn't replace %s with varAcc in %s" format(toString(), parent toString()))
+                    }
+                    res wholeAgain(this, "Trail is messed up, gotta loop.")
+                    return Responses OK
+                }
+                if(!trail addBeforeInScope(this, vDecl)) {
+                    token throwError("Couldn't add %s before in scope." format(vDecl toString()))
+                }
+            }
+    
+            vDecl setType(null)
+            vDecl setExpr(ArrayCreation new(type as ArrayType, token))
+            ptrDecl := VariableDecl new(null, generateTempName("ptrLit"), this, token)
+            
+            block := Block new(token)
+            if(parent instanceOf(VariableDecl)) {
+                trail addAfterInScope(vDecl, block)
+            } else {
+                trail addBeforeInScope(this, block)
+            }
+            
+            block getBody() add(ptrDecl)
+            
+            declAcc := VariableAccess new(vDecl, token)
+            
+            innerTypeAcc := VariableAccess new(arrType inner, token)
+            copySize := BinaryOp new(arrType expr, VariableAccess new(innerTypeAcc, "size", token), OpTypes mul, token)
+            
+            memcpyCall := FunctionCall new("memcpy", token)
+            memcpyCall args add(VariableAccess new(declAcc, "data", token))
+            memcpyCall args add(VariableAccess new(ptrDecl, token))
+            memcpyCall args add(copySize)
+            block getBody() add(memcpyCall)
+            
+            type = PointerType new(arrType inner, arrType token)
+            
+            return Responses LOOP
         }
         
         return Responses OK
         
+    }
+    
+    replace: func (oldie, kiddo: Node) -> Bool {
+        elements replace(oldie, kiddo)
     }
 
 }

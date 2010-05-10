@@ -65,7 +65,11 @@ Cast: class extends Expression {
                 
                 trail addAfterInScope(varDecl, memcpyCall)
             } else {
-                Exception new(This, "Casting to ArrayType %s in unrecognized parent node %s (%s)!" format(type toString(), parent toString(), parent class name)) throw()
+                if(res fatal) {
+                    Exception new(This, "Casting to ArrayType %s in unrecognized parent node %s (%s)!" format(type toString(), parent toString(), parent class name)) throw()
+                } else {
+                    res wholeAgain(this, "Mysterious parent.")
+                }
             }
         }
         
