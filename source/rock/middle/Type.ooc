@@ -232,7 +232,7 @@ SugarType: abstract class extends Type {
         }
         
         if(pointerLevel() == 1 && other isPointer()) {
-            // void pointer, half match!
+            // void pointer, fourth of a match!
             return scoreSeed / 2
         }
         return This NOLUCK_SCORE
@@ -288,6 +288,8 @@ ArrayType: class extends PointerType {
     realType := static BaseType new("Array", nullToken)
     
     init: func ~arrayType (.inner, =expr, .token) { super(inner, token) }
+    
+    pointerLevel: func -> Int { inner pointerLevel() }
     
     setRef: func (ref: Declaration) {
         Exception new(This, "Trying to set ref of an ArrayType! wtf? ref (%s) = %s" format(ref class name, ref toString())) throw()
@@ -347,13 +349,13 @@ ArrayType: class extends PointerType {
     toString: func -> String { inner toString() append(expr != null ? "[%s]" format(expr toString()) : "[]") }
     toMangledString: func -> String { inner toString() + "__array" }
     
+    isPointer: func -> Bool { false }
+    
 }
 
 ReferenceType: class extends SugarType {
     
     init: func ~referenceType (.inner, .token) { super(inner, token) }
-    
-    pointerLevel: func -> Int { inner pointerLevel() }
     
     write: func (w: AwesomeWriter, name: String) {
         inner write(w, null)

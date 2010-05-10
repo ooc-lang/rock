@@ -310,7 +310,7 @@ BinaryOp: class extends Expression {
                 return Responses OK
                 //return Responses LOOP
             }
-            res wholeAgain(this, "Just replaced with an operator overloading")
+            res wholeAgain(this, "Just replaced with an operator overload")
         }
         
         return Responses OK

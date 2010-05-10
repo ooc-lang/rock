@@ -53,7 +53,9 @@ ArrayLiteral: class extends Literal {
                 parentIdx += 1
                 grandpa := trail peek(parentIdx)
                 
-                if(type == null || !type equals(cast getType()))  {
+                if( (type == null || !type equals(cast getType())) &&
+                    (cast getType() instanceOf(ArrayType) || cast getType() isPointer()) &&
+                    (!cast getType() as SugarType inner isGeneric())) {
                     type = cast getType()
                     if(type != null) {
                         if(res params veryVerbose) printf(">> Inferred type %s of %s by outer cast %s\n", type toString(), toString(), parent toString())
@@ -77,7 +79,8 @@ ArrayLiteral: class extends Literal {
                         readyToUnwrap = false
                     } else {
                         targetType := fCall getRef() args get(index) getType()
-                        if(type == null || !type equals(targetType)) {
+                        if((type == null || !type equals(targetType)) &&
+                           (!targetType instanceOf(SugarType) || !targetType as SugarType inner isGeneric())) {
                             cast := Cast new(this, targetType, token)
                             if(!parent replace(this, cast)) {
                                 token throwError("Couldn't replace %s with %s in %s" format(toString(), cast toString(), parent toString()))
@@ -108,7 +111,7 @@ ArrayLiteral: class extends Literal {
                 res wholeAgain(this, "need innerType")
                 return Responses OK
             }
-                
+            
             type = ArrayType new(innerType, IntLiteral new(elements size(), token), token)
             if(res params veryVerbose) printf("Inferred type %s for %s\n", type toString(), toString())
         }
@@ -162,7 +165,9 @@ ArrayLiteral: class extends Literal {
             declAcc := VariableAccess new(vDecl, token)
             
             innerTypeAcc := VariableAccess new(arrType inner, token)
-            copySize := BinaryOp new(arrType expr, VariableAccess new(innerTypeAcc, "size", token), OpTypes mul, token)
+            
+            sizeExpr : Expression = (arrType expr ? arrType expr : VariableAccess new(declAcc, "length", token))
+            copySize := BinaryOp new(sizeExpr, VariableAccess new(innerTypeAcc, "size", token), OpTypes mul, token)
             
             memcpyCall := FunctionCall new("memcpy", token)
             memcpyCall args add(VariableAccess new(declAcc, "data", token))
