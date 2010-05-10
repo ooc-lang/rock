@@ -8,7 +8,7 @@ include stdint
 UnaryOpType: cover from Int8 {
 
     toString: func -> String {
-        UnaryOpTypes repr[this]
+        UnaryOpTypes repr get(this)
     }
     
 }
@@ -21,7 +21,7 @@ UnaryOpTypes: class {
     repr := static ["no-op",
         "~",
         "!",
-        "-"]
+        "-"] as ArrayList<String>
 }
 
 UnaryOp: class extends Expression {
@@ -40,7 +40,7 @@ UnaryOp: class extends Expression {
     getType: func -> Type { inner getType() }
     
     toString: func -> String {
-        return UnaryOpTypes repr[type] + inner toString()
+        return UnaryOpTypes repr get(type) + inner toString()
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {

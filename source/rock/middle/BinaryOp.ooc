@@ -10,7 +10,7 @@ include stdint
 OpType: cover from Int8 {
 
     toString: func -> String {
-        OpTypes repr[this]
+        OpTypes repr get(this)
     }
     
 }
@@ -66,7 +66,7 @@ OpTypes: class {
         "&=",
         
         "||",
-        "&&"]
+        "&&"] as ArrayList<String>
 }
 
 BinaryOp: class extends Expression {
@@ -95,7 +95,7 @@ BinaryOp: class extends Expression {
     getRight: func -> Expression { right }
     
     toString: func -> String {
-        return left toString() + " " + type toString() + " " + right toString()
+        return left toString() + " " + OpTypes repr get(type) + " " + right toString()
     }
     
     unwrapAssign: func (trail: Trail, res: Resolver) -> Bool {
@@ -208,7 +208,7 @@ BinaryOp: class extends Expression {
         if(!isLegal(res)) {
             if(res fatal) {
                 token throwError("Invalid use of operator %s between operands of type %s and %s\n" format(
-                    type toString(), left getType() toString(), right getType() toString()))
+                    OpTypes repr get(type), left getType() toString(), right getType() toString()))
             }
             res wholeAgain(this, "Illegal use, looping in hope.")
         }
@@ -319,7 +319,7 @@ BinaryOp: class extends Expression {
     
     getScore: func (op: OperatorDecl, reqType: Type) -> Int {
         
-        symbol : String = type toString()
+        symbol : String = OpTypes repr[type]
         
         half := false
         

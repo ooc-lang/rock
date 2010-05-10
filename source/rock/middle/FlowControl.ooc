@@ -7,7 +7,7 @@ include stdint
 FlowAction: cover from Int8 {
 
     toString: func -> String {
-        FlowActions repr[this]
+        FlowActions repr get(this)
     }
     
 }
@@ -18,7 +18,7 @@ FlowActions: class {
     
     repr := static ["no-op",
         "break",
-        "continue"]
+        "continue"] as ArrayList<String>
 }
 
 FlowControl: class extends Statement {
