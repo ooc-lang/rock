@@ -1,7 +1,8 @@
 import ../frontend/[Token, BuildParams]
 import Literal, Visitor, Type, Expression, FunctionCall, Block,
        VariableDecl, VariableAccess, Cast, Node, ClassDecl, TypeDecl, BaseType,
-       Statement, IntLiteral, BinaryOp, Block, ArrayCreation
+       Statement, IntLiteral, BinaryOp, Block, ArrayCreation, FunctionCall,
+       FunctionDecl
 import tinker/[Response, Resolver, Trail]
 import structs/[List, ArrayList]
 import text/Buffer
@@ -41,6 +42,8 @@ ArrayLiteral: class extends Literal {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
+        readyToUnwrap := true
+        
         // bitchjump casts and infer type from them, if they're there (damn you, j/ooc)
         {
             parentIdx := 1
@@ -50,7 +53,7 @@ ArrayLiteral: class extends Literal {
                 parentIdx += 1
                 grandpa := trail peek(parentIdx)
                 
-                if(type == null)  {
+                if(type == null || !type equals(cast getType()))  {
                     type = cast getType()
                     if(type != null) {
                         if(res params veryVerbose) printf(">> Inferred type %s of %s by outer cast %s\n", type toString(), toString(), parent toString())
@@ -60,6 +63,31 @@ ArrayLiteral: class extends Literal {
                 }
             }
             grandpa := trail peek(parentIdx + 1)
+        }
+        
+        // infer type from parent function call, if any, and add an implicit cast
+        {
+            parent := trail peek()
+            if(parent instanceOf(FunctionCall)) {
+                fCall := parent as FunctionCall
+                index := fCall args indexOf(this)
+                if(index != -1) {
+                    if(fCall getRef() == null) {
+                        res wholeAgain(this, "Need call ref to infer type")
+                        readyToUnwrap = false
+                    } else {
+                        targetType := fCall getRef() args get(index) getType()
+                        if(type == null || !type equals(targetType)) {
+                            cast := Cast new(this, targetType, token)
+                            if(!parent replace(this, cast)) {
+                                token throwError("Couldn't replace %s with %s in %s" format(toString(), cast toString(), parent toString()))
+                            }
+                            res wholeAgain(this, "Replaced with a cast")
+                            return Responses OK
+                        }
+                    }
+                }
+            }
         }
         
         // resolve all elements
@@ -90,7 +118,7 @@ ArrayLiteral: class extends Literal {
             if(!response ok()) return response
         }
         
-        if(type instanceOf(ArrayType)) {
+        if(readyToUnwrap && type instanceOf(ArrayType)) {
             arrType := type as ArrayType
             
             parentIdx := 1

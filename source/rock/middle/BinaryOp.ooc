@@ -112,9 +112,9 @@ BinaryOp: class extends Expression {
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        
+
         trail push(this)
-        
+
         {
             response := left resolve(trail, res)
             if(!response ok()) {
