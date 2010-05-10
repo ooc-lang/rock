@@ -47,9 +47,9 @@ CoverDeclWriter: abstract class extends Skeleton {
         
         if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
        
-        if(cDecl fromType && cDecl fromType instanceOf(FuncType)) {
+        if(cDecl fromType && cDecl fromType getGroundType() instanceOf(FuncType)) {
             // write func types covers as func types.
-            ModuleWriter writeFuncType(this, cDecl fromType as FuncType, cDecl underName())
+            ModuleWriter writeFuncType(this, cDecl fromType getGroundType() as FuncType, cDecl underName())
         } else if(!cDecl isAddon() && !cDecl isExtern()) {
             fromType := cDecl fromType
             if(!fromType) {
