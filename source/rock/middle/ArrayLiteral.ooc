@@ -49,6 +49,7 @@ ArrayLiteral: class extends Literal {
             parentIdx := 1
             parent := trail peek(parentIdx)
             if(parent instanceOf(Cast)) {
+                readyToUnwrap = false
                 cast := parent as Cast
                 parentIdx += 1
                 grandpa := trail peek(parentIdx)
@@ -122,89 +123,142 @@ ArrayLiteral: class extends Literal {
         }
         
         if(readyToUnwrap && type instanceOf(ArrayType)) {
-            arrType := type as ArrayType
-            
-            parentIdx := 1
-            parent := trail peek(parentIdx)
-            while(parent instanceOf(Cast)) {
-                parentIdx += 1
-                parent = trail peek(parentIdx)
-            }
-            
-            vDecl : VariableDecl = null
-            vAcc : VariableAccess = null
-            
-            if(parent instanceOf(VariableDecl)) {
-                vDecl = parent as VariableDecl
-                vAcc = VariableAccess new(vDecl, token)
-                if(vDecl isMember()) {
-                    vAcc expr = vDecl isStatic() ? VariableAccess new(vDecl owner getNonMeta() getInstanceType(), token) : VariableAccess new("this", token)
-                }
-            } else {
-                vDecl = VariableDecl new(null, generateTempName("arrLit"), token)
-                vAcc = VariableAccess new(vDecl, token)
-                if(vDecl isMember()) {
-                    vAcc expr = vDecl isStatic() ? VariableAccess new(vDecl owner getNonMeta() getInstanceType(), token) : VariableAccess new("this", token)
-                }
-                if(!parent replace(this, vAcc)) {
-                    if(res fatal) {
-                        token throwError("Couldn't replace %s with varAcc in %s" format(toString(), parent toString()))
-                    }
-                    res wholeAgain(this, "Trail is messed up, gotta loop.")
-                    return Responses OK
-                }
-                if(!trail addBeforeInScope(this, vDecl)) {
-                    token throwError("Couldn't add %s before in scope." format(vDecl toString()))
-                }
-            }
-    
-            vDecl setType(null)
-            vDecl setExpr(ArrayCreation new(type as ArrayType, token))
-            ptrDecl := VariableDecl new(null, generateTempName("ptrLit"), this, token)
-            
-            block := Block new(token)
-            if(parent instanceOf(VariableDecl)) {
-                if(!trail addAfterInScope(vDecl, block)) {
-                    grandpa := trail peek(parentIdx + 1)
-                    if(grandpa instanceOf(ClassDecl)) {
-                        cDecl := grandpa as ClassDecl
-                        fDecl: FunctionDecl
-                        if(vDecl isStatic()) {
-                            fDecl = cDecl getLoadFunc()
-                        } else {
-                            fDecl = cDecl getDefaultsFunc()
-                        }
-                        fDecl getBody() add(block)
-                    } else {
-                        token throwError("Couldn't add block after %s in scope! trail = %s" format(vDecl toString(), trail toString()))
-                    }
-                }
-            } else {
-                if(!trail addBeforeInScope(this, block)) {
-                    token throwError("Couldn't add block before %s in scope! trail = %s" format(toString(), trail toString()))
-                }
-            }
-            
-            
-            block getBody() add(ptrDecl)
-            
-            innerTypeAcc := VariableAccess new(arrType inner, token)
-            
-            sizeExpr : Expression = (arrType expr ? arrType expr : VariableAccess new(vAcc, "length", token))
-            copySize := BinaryOp new(sizeExpr, VariableAccess new(innerTypeAcc, "size", token), OpTypes mul, token)
-            
-            memcpyCall := FunctionCall new("memcpy", token)
-            memcpyCall args add(VariableAccess new(vAcc, "data", token))
-            memcpyCall args add(VariableAccess new(ptrDecl, token))
-            memcpyCall args add(copySize)
-            block getBody() add(memcpyCall)
-            
-            type = PointerType new(arrType inner, arrType token)
-            
-            return Responses LOOP
+            return unwrapToArrayInit(trail, res)
         }
         
         return Responses OK
+        
+    }
+    
+    /**
+        unwrap something like:
+       
+            array := [1, 2, 3]
+        
+        to something like:
+       
+            arrLit := [1, 2, 3] as Int*
+            array := Int[3] new()
+            memcpy(array data, arrLit, Int size * 3)
+        
+    */
+    unwrapToArrayInit: func (trail: Trail, res: Resolver) -> Response {
+        
+        // set to true if a VDFE should become a simple VD with
+        // explicit initialization in getDefaultsFunc()/getLoadFunc()
+        // this happens when the order of initialization becomes
+        // important, especially when casting an array literal to an ArrayList
+        memberInitShouldMove := false
+        
+        arrType := type as ArrayType
+            
+        parentIdx := 1
+        parent := trail peek(parentIdx)
+        while(parent instanceOf(Cast)) {
+            parentIdx += 1
+            parent = trail peek(parentIdx)
+        }
+        
+        vDecl : VariableDecl = null
+        vAcc : VariableAccess = null
+        
+        if(parent instanceOf(VariableDecl)) {
+            vDecl = parent as VariableDecl
+            vAcc = VariableAccess new(vDecl, token)
+            if(vDecl isMember()) {
+                vAcc expr = vDecl isStatic() ? VariableAccess new(vDecl owner getNonMeta() getInstanceType(), token) : VariableAccess new("this", token)
+            }
+        } else {
+            vDecl = VariableDecl new(null, generateTempName("arrLit"), token)
+            vAcc = VariableAccess new(vDecl, token)
+            if(vDecl isMember()) {
+                vAcc expr = vDecl isStatic() ? VariableAccess new(vDecl owner getNonMeta() getInstanceType(), token) : VariableAccess new("this", token)
+            }
+            if(!trail addBeforeInScope(this, vDecl)) {
+                grandpa := trail peek(parentIdx + 2)
+                printf("Grandpa is a %s, trail = %s\n", grandpa class name, trail toString())
+                if(grandpa instanceOf(ClassDecl)) {
+                    cDecl := grandpa as ClassDecl
+                    fDecl: FunctionDecl
+                    if(vDecl isStatic()) {
+                        fDecl = cDecl getLoadFunc()
+                    } else {
+                        fDecl = cDecl getDefaultsFunc()
+                    }
+                    fDecl getBody() add(vDecl)
+                    memberInitShouldMove = true
+                } else {
+                    token printMessage("Couldn't add %s before in scope." format(vDecl toString()), "ERROR")
+                    Exception new(This, "Couldn't add, debugging") throw()
+                }
+            }
+            if(!parent replace(this, vAcc)) {
+                if(res fatal) {
+                    token throwError("Couldn't replace %s with varAcc in %s" format(toString(), parent toString()))
+                }
+                res wholeAgain(this, "Trail is messed up, gotta loop.")
+                return Responses OK
+            }
+        }
+
+        vDecl setType(null)
+        vDecl setExpr(ArrayCreation new(type as ArrayType, token))
+        ptrDecl := VariableDecl new(null, generateTempName("ptrLit"), this, token)
+        
+        // add memcpy from C-pointer literal block
+        block := Block new(token)
+        
+        varDeclIdx := trail find(VariableDecl)
+        if(varDeclIdx != -1) {
+            if(!trail addAfterInScope(vDecl, block)) {
+                grandpa := trail peek(varDeclIdx + 1)
+                if(grandpa instanceOf(ClassDecl)) {
+                    cDecl := grandpa as ClassDecl
+                    fDecl: FunctionDecl
+                    if(vDecl isStatic()) {
+                        fDecl = cDecl getLoadFunc()
+                    } else {
+                        fDecl = cDecl getDefaultsFunc()
+                    }
+                    fDecl getBody() add(block)
+                    if(memberInitShouldMove) {
+                        // now we should move the 'expr' of our VariableDecl into fDecl's body,
+                        // because order matters here.
+                        printf("Member init should move! parent vDecl = %s\nvDecl = %s\nptrDecl = %s\n", trail get(varDeclIdx) toString(), vDecl toString(), ptrDecl toString())
+                        memberDecl := trail get(varDeclIdx) as VariableDecl
+                        memberAcc := VariableAccess new(memberDecl, token)
+                        memberAcc expr = memberDecl isStatic() ? VariableAccess new(memberDecl owner getNonMeta() getInstanceType(), token) : VariableAccess new("this", token)
+                        
+                        init := BinaryOp new(memberAcc, memberDecl expr, OpTypes ass, token)
+                        fDecl getBody() add(init)
+                        memberDecl setExpr(null)
+                    }
+                } else {
+                    token throwError("Couldn't add block after %s in scope! trail = %s" format(vDecl toString(), trail toString()))
+                }
+            }
+        } else {
+            if(!trail addBeforeInScope(this, block)) {
+                token throwError("Couldn't add block before %s in scope! trail = %s" format(toString(), trail toString()))
+            }
+        }
+        
+        block getBody() add(ptrDecl)
+        
+        innerTypeAcc := VariableAccess new(arrType inner, token)
+        
+        sizeExpr : Expression = (arrType expr ? arrType expr : VariableAccess new(vAcc, "length", token))
+        copySize := BinaryOp new(sizeExpr, VariableAccess new(innerTypeAcc, "size", token), OpTypes mul, token)
+        
+        memcpyCall := FunctionCall new("memcpy", token)
+        memcpyCall args add(VariableAccess new(vAcc, "data", token))
+        memcpyCall args add(VariableAccess new(ptrDecl, token))
+        memcpyCall args add(copySize)
+        block getBody() add(memcpyCall)
+        
+        type = PointerType new(arrType inner, arrType token)
+        
+        return Responses LOOP
         
     }
     
