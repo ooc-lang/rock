@@ -84,7 +84,6 @@ Partial: class {
         arguments reverse()
         pushNonClosureArgs(getBase(argSizes, bseq), argSizes)
         for (item: Cell<Pointer> in arguments) {
-            T := item T
             pushClosureArg(item val as Pointer)
         } 
         finishSequence(function)
@@ -140,10 +139,11 @@ Partial: class {
         //bseq append(OpCodes NOP)
         //bseq append(OpCodes NOP)
     }
-
+    /*
     converseFloat: static func(f: Float) -> Int {
         (f& as Int32*)@
     }
+    */
     
     getBase: func(argSizes: String, bseq: BinarySeq) -> UChar {
         base := 0x04 as Int
