@@ -1,6 +1,13 @@
 Workflow - release to git
 ==========================
 
+Single-line Method
+------------------
+
+Giving Rock a run for its money is now quicker and easier than ever. Run the following command in your shell, and life is good. Tested and working on OS X and Ubuntu. Should work on any POSIX compliant system.
+
+``bash -c "`curl -L http://github.com/nddrylliog/rock/raw/master/utils/ooc-install.sh`"``
+
 
 So you've tried rock..
 ----------------------
