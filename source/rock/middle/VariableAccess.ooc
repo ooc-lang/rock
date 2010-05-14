@@ -67,6 +67,9 @@ VariableAccess: class extends Expression {
 		    ref = candidate
 		    return true
 	    } else if(node instanceOf(TypeDecl) || node instanceOf(NamespaceDecl)) {
+            if(name == "String") {
+                printf("Access to String got ref %s\n", node toString())
+            }
 			ref = node
             return true
 	    }
@@ -230,6 +233,9 @@ VariableAccess: class extends Expression {
     }
 
 	setRef: func(ref: Declaration) {
+        if(name == "String") {
+            printf("String been set ref to %s, a %s\n", ref toString(), ref class name)
+        }
 		this ref = ref
 	}
 

@@ -151,7 +151,19 @@ ArrayLiteral: class extends Literal {
         memberInitShouldMove := false
         
         arrType := type as ArrayType
+        
+        // check outer var-decl
+        varDeclIdx := trail find(VariableDecl)
+        if(varDeclIdx != -1) {
+            memberDecl := trail get(varDeclIdx) as VariableDecl
+            if(memberDecl getType() == null) {
+                printf("memberDecl %s has null type, looping...!\n", memberDecl toString())
+                res wholeAgain(this, "need memberDecl type")
+                return Responses OK
+            }
+        }
             
+        // bitch-jump casts
         parentIdx := 1
         parent := trail peek(parentIdx)
         while(parent instanceOf(Cast)) {
@@ -208,7 +220,6 @@ ArrayLiteral: class extends Literal {
         // add memcpy from C-pointer literal block
         block := Block new(token)
         
-        varDeclIdx := trail find(VariableDecl)
         if(varDeclIdx != -1) {
             if(!trail addAfterInScope(vDecl, block)) {
                 grandpa := trail peek(varDeclIdx + 1)
@@ -224,8 +235,10 @@ ArrayLiteral: class extends Literal {
                     if(memberInitShouldMove) {
                         // now we should move the 'expr' of our VariableDecl into fDecl's body,
                         // because order matters here.
-                        printf("Member init should move! parent vDecl = %s\nvDecl = %s\nptrDecl = %s\n", trail get(varDeclIdx) toString(), vDecl toString(), ptrDecl toString())
                         memberDecl := trail get(varDeclIdx) as VariableDecl
+                        printf("Member init should move! parent vDecl = %s\nparent expr = %s\nvDecl = %s\nptrDecl = %s\n",
+                            memberDecl toString(), memberDecl expr getType() ? memberDecl expr getType() toString() : "(nil)", vDecl toString(), ptrDecl toString())
+                        if(memberDecl getType() == null) memberDecl setType(memberDecl expr getType()) // fixate type
                         memberAcc := VariableAccess new(memberDecl, token)
                         memberAcc expr = memberDecl isStatic() ? VariableAccess new(memberDecl owner getNonMeta() getInstanceType(), token) : VariableAccess new("this", token)
                         

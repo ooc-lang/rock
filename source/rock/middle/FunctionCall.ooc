@@ -42,7 +42,8 @@ FunctionCall: class extends Expression {
     }
     
     debugCondition: func -> Bool {
-        false
+        //false
+        "OpTypesClass.repr get(type)" equals(toString())
     }
     
     suggest: func (candidate: FunctionDecl) -> Bool {
@@ -365,6 +366,10 @@ FunctionCall: class extends Expression {
             }
             
             if(returnType) {
+                if(debugCondition()) {
+                    printf("Determined return type of %s (whose ref rt is %s) to be %s\n", toString(), ref getReturnType() toString(), returnType toString())
+                    if(expr) printf("expr = %s, type = %s\n", expr toString(), expr getType() ? expr getType() toString() : "(nil)")
+                }
                 res wholeAgain(this, "because of return type %s (%s)" format(returnType toString(), returnType token toString()))
                 return Responses OK
             }
