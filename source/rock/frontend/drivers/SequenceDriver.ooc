@@ -122,6 +122,22 @@ SequenceDriver: class extends Driver {
      */
     buildSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>) {
         
+        outlib := File new(File new(".libs"), sourceFolder name + ".a")
+        objectFiles add(outlib getPath())
+        
+        if(outlib exists()) {
+            good := true
+            lastModified := outlib lastModified()
+            for(module in sourceFolder modules) {
+                if(lastModified < File new(module path + ".ooc") lastModified()) {
+                    good = false
+                    printf("Recompiling because of %s\n", module fullName)
+                    break
+                }
+            }
+            if(good) return
+        }
+        
         oPaths := ArrayList<String> new()
         
         for(currentModule in sourceFolder modules) {
@@ -196,12 +212,10 @@ SequenceDriver: class extends Driver {
         }
         
         // now build a static library
-        outlib := File new(File new(".libs"), sourceFolder name + ".a")
         outlib parent() mkdirs()
         if(params verbose) printf("Saving to library %s\n", outlib getPath())
         
         buildArchive(outlib getPath(), sourceFolder modules)
-        objectFiles add(outlib getPath())
         
     }
     

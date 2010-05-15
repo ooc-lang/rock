@@ -18,7 +18,7 @@ CommandLine: class {
     
     init: func(args : ArrayList<String>) {
         params = BuildParams new()
-        driver = CombineDriver new(params)
+        driver = SequenceDriver new(params)
         
         modulePaths := ArrayList<String> new()
         params compiler = Gcc new()
