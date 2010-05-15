@@ -19,10 +19,10 @@ SdkLocator: class {
         exec := ShellUtils findExecutable(Rock execName, false)
         if(exec) {
             realpath := exec getAbsolutePath()
-            return File new(File new(realpath) parent() parent(), "custom-sdk")
+            return File new(File new(realpath) parent() parent(), "sdk")
         }
         
-        return File new(DistLocator locate(), "custom-sdk")
+        return File new(DistLocator locate(), "sdk")
     }
     
 }
