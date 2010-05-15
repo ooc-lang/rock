@@ -141,8 +141,6 @@ VariableDecl: class extends Declaration {
                 trail pop(this)
                 res wholeAgain(this, "must determine type of %s\n" format(toString()))
                 return Responses OK
-            } else {
-                if(name == "symbol") printf("Just determined type of %s to %s\n", toString(), type toString())
             }
         }
 

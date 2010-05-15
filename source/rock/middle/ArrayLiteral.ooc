@@ -59,7 +59,7 @@ ArrayLiteral: class extends Literal {
                     (!cast getType() as SugarType inner isGeneric())) {
                     type = cast getType()
                     if(type != null) {
-                        if(res params veryVerbose) printf(">> Inferred type %s of %s by outer cast %s\n", type toString(), toString(), parent toString())
+                        //if(res params veryVerbose) printf(">> Inferred type %s of %s by outer cast %s\n", type toString(), toString(), parent toString())
                         // bitchjump the cast
                         grandpa replace(parent, this)
                     }
@@ -114,7 +114,7 @@ ArrayLiteral: class extends Literal {
             }
             
             type = ArrayType new(innerType, IntLiteral new(elements size(), token), token)
-            if(res params veryVerbose) printf("Inferred type %s for %s\n", type toString(), toString())
+            //if(res params veryVerbose) printf("Inferred type %s for %s\n", type toString(), toString())
         }
         
         if(type != null) {
@@ -157,7 +157,6 @@ ArrayLiteral: class extends Literal {
         if(varDeclIdx != -1) {
             memberDecl := trail get(varDeclIdx) as VariableDecl
             if(memberDecl getType() == null) {
-                printf("memberDecl %s has null type, looping...!\n", memberDecl toString())
                 res wholeAgain(this, "need memberDecl type")
                 return Responses OK
             }
@@ -190,7 +189,6 @@ ArrayLiteral: class extends Literal {
                 grandpa := trail peek(parentIdx + 2)
                 memberDecl := trail get(varDeclIdx) as VariableDecl
                 
-                printf("Grandpa is a %s, trail = %s\n", grandpa class name, trail toString())
                 if(grandpa instanceOf(ClassDecl)) {
                     cDecl := grandpa as ClassDecl
                     fDecl: FunctionDecl
@@ -222,8 +220,6 @@ ArrayLiteral: class extends Literal {
         // add memcpy from C-pointer literal block
         block := Block new(token)
         
-        printf("When pointer-unwrapping %s, varDeclIdx = %d, trail size() = %d, diff = %d\n", toString(), varDeclIdx, trail size(), trail size() - varDeclIdx)
-        
         // if varDecl is our immediate parent
         success := false
         if(trail size() - varDeclIdx == 1) {
@@ -233,7 +229,6 @@ ArrayLiteral: class extends Literal {
         }
         
         if(!success) {
-            printf("Unwrapping %s, varDeclIdx = %d, trail = \n%s\n", toString(), varDeclIdx, trail toString())
             grandpa := trail get(varDeclIdx - 1)
             memberDecl := trail get(varDeclIdx) as VariableDecl
             
@@ -250,8 +245,6 @@ ArrayLiteral: class extends Literal {
                 if(memberInitShouldMove) {
                     // now we should move the 'expr' of our VariableDecl into fDecl's body,
                     // because order matters here.
-                    printf("Member init should move! parent vDecl = %s, isStatic = %s\nparent expr = %s\nvDecl = %s\nptrDecl = %s\n",
-                        memberDecl toString(), memberDecl isStatic toString(), memberDecl expr getType() ? memberDecl expr getType() toString() : "(nil)", vDecl toString(), ptrDecl toString())
                     if(memberDecl getType() == null) memberDecl setType(memberDecl expr getType()) // fixate type
                     memberAcc := VariableAccess new(memberDecl, token)
                     memberAcc expr = memberDecl isStatic() ? VariableAccess new(memberDecl owner getNonMeta() getInstanceType(), token) : VariableAccess new("this", token)
