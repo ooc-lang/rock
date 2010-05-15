@@ -2,7 +2,7 @@ import structs/[ArrayList]
 import ../frontend/[Token, BuildParams]
 import Visitor, Expression, VariableDecl, Declaration, Type, Node,
        OperatorDecl, FunctionCall, Import, Module, BinaryOp,
-       VariableAccess, AddressOf
+       VariableAccess, AddressOf, ArrayCreation, TypeDecl
 import tinker/[Resolver, Response, Trail]
 
 ArrayAccess: class extends Expression {
@@ -50,6 +50,11 @@ ArrayAccess: class extends Expression {
         
         trail pop(this)
         
+        // TODO: put that in a function
+        if(!handleArrayCreation(trail, res) ok()) {
+            return Responses LOOP
+        }
+        
         {
             response := resolveOverload(trail, res)
             if(!response ok()) {
@@ -60,11 +65,67 @@ ArrayAccess: class extends Expression {
         
         if(array getType() == null) {
             res wholeAgain(this, "because of array type!")
-        } else {
+        } else {            
             type = array getType() dereference()
             if(type == null) {
                 res wholeAgain(this, "because of array dereference type!")
             }
+        }
+        
+        return Responses OK
+        
+    }
+    
+    handleArrayCreation: func (trail: Trail, res: Resolver) -> Response {
+        
+        deepDown := this as Expression
+        while(deepDown instanceOf(ArrayAccess)) {
+            deepDown = deepDown as ArrayAccess array
+        }
+        
+        if(deepDown instanceOf(VariableAccess) && deepDown as VariableAccess getRef() instanceOf(TypeDecl)) {
+            varAcc := deepDown as VariableAccess
+            tDecl := varAcc getRef() as TypeDecl
+            innerType := tDecl getInstanceType()
+            
+            parent := trail peek()
+            
+            if(!parent instanceOf(FunctionCall)) {
+                if(parent instanceOf(ArrayAccess)) {
+                    // will be taken care of later
+                    return Responses OK
+                }
+                token throwError("Unexpected ArrayAccess to a type, parent is a %s, ie. %s" format(parent class name, parent toString()))
+            }
+            
+            fCall := parent as FunctionCall
+            if(fCall getName() != "new") {
+                token throwError("Good lord, what are you trying to call on that array type?")
+            }
+            
+            grandpa := trail peek(2)
+            
+            arrayType := ArrayType new(innerType, index, token)
+            
+            deepDown = array
+            while(deepDown instanceOf(ArrayAccess)) {
+                arrAcc := deepDown as ArrayAccess
+                arrayType = ArrayType new(arrayType, arrAcc index, token)
+                deepDown = deepDown as ArrayAccess array
+            }
+            arrayCreation := ArrayCreation new(arrayType, token)
+            
+            // TODO: this is all very hackish. More checking is needed
+            if(grandpa instanceOf(VariableDecl)) {
+                arrayCreation name = grandpa as VariableDecl getName()
+            } else if(grandpa instanceOf(BinaryOp)) {
+                arrayCreation name = grandpa as BinaryOp getLeft() as VariableAccess getName()
+            }
+            grandpa replace(fCall, arrayCreation)
+            
+            // TODO: do we really need a LOOP here? Wouldn't a wholeAgain+OK suffice?
+            return Responses LOOP
+            
         }
         
         return Responses OK

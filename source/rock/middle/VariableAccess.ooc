@@ -230,6 +230,9 @@ VariableAccess: class extends Expression {
     }
 
 	setRef: func(ref: Declaration) {
+        if(name == "String") {
+            printf("String been set ref to %s, a %s\n", ref toString(), ref class name)
+        }
 		this ref = ref
 	}
 

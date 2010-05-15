@@ -112,9 +112,9 @@ BinaryOp: class extends Expression {
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        
+
         trail push(this)
-        
+
         {
             response := left resolve(trail, res)
             if(!response ok()) {
@@ -310,7 +310,7 @@ BinaryOp: class extends Expression {
                 return Responses OK
                 //return Responses LOOP
             }
-            res wholeAgain(this, "Just replaced with an operator overloading")
+            res wholeAgain(this, "Just replaced with an operator overload")
         }
         
         return Responses OK

@@ -13,7 +13,8 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Use, TypeDecl, ClassDecl, CoverDecl, Node, Parenthesis, Return,
     Cast, Comparison, Ternary, BoolLiteral, Argument, Statement,
     AddressOf, Dereference, CommaSequence, UnaryOp, ArrayAccess, Match,
-    FlowControl, InterfaceDecl, Version, Block, EnumDecl]
+    FlowControl, InterfaceDecl, Version, Block, EnumDecl, ArrayLiteral,
+    ArrayCreation]
 
 import Skeleton, FunctionDeclWriter, ControlStatementWriter,
     ClassDeclWriter, ModuleWriter, CoverDeclWriter, FunctionCallWriter,
@@ -68,6 +69,22 @@ CGenerator: class extends Skeleton {
 
     /** Write a binary operation */
     visitBinaryOp: func (op: BinaryOp) {
+        
+        // when assigning to an array, use Array_set rather than assigning to _get
+        isArray := op type == OpTypes ass &&
+                   op left instanceOf(ArrayAccess) &&
+                   op left as ArrayAccess getArray() getType() instanceOf(ArrayType) &&
+                   op left as ArrayAccess getArray() getType() as ArrayType expr == null
+                   
+        if(isArray) {
+            arrAcc := op left as ArrayAccess
+            type := arrAcc getArray() getType() as ArrayType
+            current app("_lang_array__Array_set("). app(arrAcc getArray()).
+                    app(", "). app(arrAcc getIndex()).
+                    app(", "). app(type inner).
+                    app(", "). app(op right). app(")")
+            return
+        }
         
         // when assigning to a member function (e.g. for hotswapping),
         // you want to change the class field, not just the function name
@@ -226,7 +243,52 @@ CGenerator: class extends Skeleton {
 
     /** Write an array access */
     visitArrayAccess: func (arrAcc: ArrayAccess) {
-        current app(arrAcc getArray()). app('['). app(arrAcc getIndex()). app(']')
+        arrType := arrAcc getArray() getType()
+        if(arrType instanceOf(ArrayType) && arrType as ArrayType expr == null) {
+            inner := arrType as ArrayType inner
+            current app("_lang_array__Array_get("). app(arrAcc getArray()). app(", "). app(arrAcc getIndex()). app(", "). app(inner). app(")")
+        } else {
+            current app(arrAcc getArray()). app('['). app(arrAcc getIndex()). app(']')
+        }
+    }
+    
+    visitArrayLiteral: func (arrLit: ArrayLiteral) {
+        type := arrLit getType()
+        if(!type instanceOf(PointerType)) Exception new(This, "Array literal type %s isn't a PointerType but a %s, wtf?" format(arrLit toString(), type toString())) throw()
+        
+        current app("("). app(arrLit getType() as PointerType inner). app("[]) { ")
+        isFirst := true
+        for(element in arrLit elements) {
+            if(!isFirst) current app(", ")
+            current app(element)
+            isFirst = false
+        }
+        current app(" }")
+    }
+    
+    visitArrayCreation: func (node: ArrayCreation) {
+        writeArrayCreation(node arrayType, node name ? node name : node generateTempName("arrayCreation"))
+    }
+    
+    writeArrayCreation: func (arrayType: ArrayType, name: String) {
+        current app("_lang_array__Array_new(")
+        arrayType inner write(current, null)
+        current app(", "). app(arrayType expr). app(")")
+        
+        if(arrayType inner instanceOf(ArrayType)) {
+            current app(';'). nl(). app("{"). tab(). nl(). app("int "). app(name). app("__i;"). nl().
+                    app("for("). app(name). app("__i = 0; ").
+                    app(name). app("__i < "). app(arrayType expr). app("; ").
+                    app(name). app("__i++) { "). nl()
+              
+            current app("_lang_array__Array "). app(name). app("_sub = ")
+            writeArrayCreation(arrayType inner as ArrayType, name + "_sub")
+            
+            current app(";"). nl(). app("_lang_array__Array_set("). app(name).
+                    app(", "). app(name). app("__i, ").
+                    app(arrayType inner as ArrayType exprLessClone()). app(", "). app(name). app("_sub);").
+                    untab(). nl(). app("}}")
+        }
     }
 
     /** Control statements */
