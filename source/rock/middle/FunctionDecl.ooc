@@ -4,7 +4,7 @@ import Cast, Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, If, Else,
        VariableDecl, Node, Statement, Module, FunctionCall, Declaration,
        Version, StringLiteral, Conditional, Import, ClassDecl, StringLiteral,
-       IntLiteral, NullLiteral, BaseType, FuncType
+       IntLiteral, NullLiteral, BaseType, FuncType, AddressOf
 import tinker/[Resolver, Response, Trail]
 
 FunctionDecl: class extends Declaration {
@@ -21,7 +21,6 @@ FunctionDecl: class extends Declaration {
     isProto := false
     externName : String = null
     unmangledName: String = null
-    
     // if true, 'this' has byref semantics
     isThisRef := false
     
@@ -33,7 +32,8 @@ FunctionDecl: class extends Declaration {
     returnArg : Argument = null
     body := Scope new()
     
-    variablesToPartial := ArrayList<VariableDecl> new()
+    partialByReference := ArrayList<VariableDecl> new()
+    partialByValue := ArrayList<VariableDecl> new()
 
     owner : TypeDecl = null
     staticVariant : This = null
@@ -80,8 +80,18 @@ FunctionDecl: class extends Declaration {
         false
     }
     
-    markForPartialing: func(var: VariableDecl) {
-        if (!variablesToPartial contains(var)) variablesToPartial add(var)
+    markForPartialing: func(var: VariableDecl, mode: String) {
+        if (!partialByReference contains(var) && !partialByValue contains(var)) {
+            printf("var: %s\n", var toString())
+            printf("mode: %s\n", mode)
+
+            match (mode) {
+                case "r" => partialByReference add(var)
+                case "v" => partialByValue add(var)
+            }
+        }
+        printf("ref: %d\n", partialByReference size())
+        printf("val: %d\n", partialByValue size())
     }
     
     setOwner: func (=owner) {
@@ -388,6 +398,7 @@ FunctionDecl: class extends Declaration {
         }
         trail pop(this)
 
+        
         if(name == "main" && owner == null) {
 			if(args size() == 1 && args first() getType() getName() == "ArrayList") {
                 arg := args first()
@@ -417,15 +428,29 @@ FunctionDecl: class extends Declaration {
             if(!response ok()) return response
         }
         
+        if (name == "main" ) {
+            partialByValue size() toString() println()
+            partialByReference size() toString() println()
+            /*for (e in body) {
+                e toString() println()
+            }*/
+        }
+
         return Responses OK
-        
     }
     
     unwrapClosure: func (trail: Trail, res: Resolver) {
         
-        for(e in variablesToPartial) {
+        for(e in partialByReference) {
             if(e getType() == null || !e getType() isResolved()) {
-                res wholeAgain(this, "Need variables-to-partieled's return types")
+                res wholeAgain(this, "Need partial-by-reference's return types")
+                return
+            }
+        }
+
+        for (e in partialByValue) {
+            if(e getType() == null || !getType() isResolved()) {
+                res wholeAgain(this, "Need partial-by-value's return types")
                 return
             }
         }
@@ -440,7 +465,7 @@ FunctionDecl: class extends Declaration {
         module addImport(imp)
         module parseImports(res)
         
-        if(variablesToPartial isEmpty()) {
+        if(partialByReference isEmpty() && partialByValue isEmpty()) {
             trail peek() replace(this, varAcc)
         } else {
             partialClass := VariableAccess new("Partial", token)
@@ -470,13 +495,24 @@ FunctionDecl: class extends Declaration {
             }
             
             partialAcc := VariableAccess new(partialName, token)
-            for (e in variablesToPartial) {
+            
+            for (e in partialByReference) {
+                "yaay" println()
+                e type = ReferenceType new(e getType(), e token)
+                addArg := FunctionCall new(partialAcc, "addArgument", token)
+                addArg getArguments() add(AddressOf new(e, e token))
+                trail addBeforeInScope(this, addArg)
+                args add(Argument new(e getType(), e getName(), token))
+            }
+            
+            for (e in partialByValue) {
+                "yoo" println()
                 addArg := FunctionCall new(partialAcc, "addArgument", token)
                 addArg getArguments() add(VariableAccess new(e, e token))
                 trail addBeforeInScope(this, addArg)
                 args add(Argument new(e getType(), e getName(), token))
             }
-            
+
             fCall := FunctionCall new(partialAcc, "genCode", token)
             fCall getArguments() add(VariableAccess new(name, token)) 
             fCall getArguments() add(StringLiteral new(argsSizes, token))
