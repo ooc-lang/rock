@@ -43,7 +43,7 @@ FunctionCall: class extends Expression {
     
     debugCondition: func -> Bool {
         //false
-        "OpTypesClass.repr get(type)" equals(toString())
+        "getFirst" == getName()
     }
     
     suggest: func (candidate: FunctionDecl) -> Bool {
@@ -533,9 +533,16 @@ FunctionCall: class extends Expression {
         /* myFunction: func <T> (myArg: T) */
         j := 0
         for(arg in ref args) {
-            if(arg type getName() == typeArgName) {
+            argType := arg type
+            while(argType instanceOf(SugarType)) {
+                argType = argType as SugarType inner
+            }
+            if(argType getName() == typeArgName) {
                 implArg := args get(j)
                 result := implArg getType()
+                while(result instanceOf(SugarType)) {
+                    result = result as SugarType inner
+                }
                 if(debugCondition()) printf(" >> Found arg-arg %s for typeArgName %s, returning %s\n", implArg toString(), typeArgName, result toString())
                 return result
             }

@@ -188,11 +188,13 @@ ArrayLiteral: class extends Literal {
             }
             if(!trail addBeforeInScope(this, vDecl)) {
                 grandpa := trail peek(parentIdx + 2)
+                memberDecl := trail get(varDeclIdx) as VariableDecl
+                
                 printf("Grandpa is a %s, trail = %s\n", grandpa class name, trail toString())
                 if(grandpa instanceOf(ClassDecl)) {
                     cDecl := grandpa as ClassDecl
                     fDecl: FunctionDecl
-                    if(vDecl isStatic()) {
+                    if(memberDecl isStatic()) {
                         fDecl = cDecl getLoadFunc()
                     } else {
                         fDecl = cDecl getDefaultsFunc()
@@ -220,39 +222,46 @@ ArrayLiteral: class extends Literal {
         // add memcpy from C-pointer literal block
         block := Block new(token)
         
-        if(varDeclIdx != -1) {
-            if(!trail addAfterInScope(vDecl, block)) {
-                grandpa := trail peek(varDeclIdx + 1)
-                if(grandpa instanceOf(ClassDecl)) {
-                    cDecl := grandpa as ClassDecl
-                    fDecl: FunctionDecl
-                    if(vDecl isStatic()) {
-                        fDecl = cDecl getLoadFunc()
-                    } else {
-                        fDecl = cDecl getDefaultsFunc()
-                    }
-                    fDecl getBody() add(block)
-                    if(memberInitShouldMove) {
-                        // now we should move the 'expr' of our VariableDecl into fDecl's body,
-                        // because order matters here.
-                        memberDecl := trail get(varDeclIdx) as VariableDecl
-                        printf("Member init should move! parent vDecl = %s\nparent expr = %s\nvDecl = %s\nptrDecl = %s\n",
-                            memberDecl toString(), memberDecl expr getType() ? memberDecl expr getType() toString() : "(nil)", vDecl toString(), ptrDecl toString())
-                        if(memberDecl getType() == null) memberDecl setType(memberDecl expr getType()) // fixate type
-                        memberAcc := VariableAccess new(memberDecl, token)
-                        memberAcc expr = memberDecl isStatic() ? VariableAccess new(memberDecl owner getNonMeta() getInstanceType(), token) : VariableAccess new("this", token)
-                        
-                        init := BinaryOp new(memberAcc, memberDecl expr, OpTypes ass, token)
-                        fDecl getBody() add(init)
-                        memberDecl setExpr(null)
-                    }
-                } else {
-                    token throwError("Couldn't add block after %s in scope! trail = %s" format(vDecl toString(), trail toString()))
-                }
-            }
+        printf("When pointer-unwrapping %s, varDeclIdx = %d, trail size() = %d, diff = %d\n", toString(), varDeclIdx, trail size(), trail size() - varDeclIdx)
+        
+        // if varDecl is our immediate parent
+        success := false
+        if(trail size() - varDeclIdx == 1) {
+            success = trail addAfterInScope(vDecl, block)
         } else {
-            if(!trail addBeforeInScope(this, block)) {
-                token throwError("Couldn't add block before %s in scope! trail = %s" format(toString(), trail toString()))
+            success = trail addBeforeInScope(this, block)
+        }
+        
+        if(!success) {
+            printf("Unwrapping %s, varDeclIdx = %d, trail = \n%s\n", toString(), varDeclIdx, trail toString())
+            grandpa := trail get(varDeclIdx - 1)
+            memberDecl := trail get(varDeclIdx) as VariableDecl
+            
+            if(grandpa instanceOf(ClassDecl)) {
+                cDecl := grandpa as ClassDecl
+                fDecl: FunctionDecl
+                if(memberDecl isStatic()) {
+                    fDecl = cDecl getLoadFunc()
+                } else {
+                    fDecl = cDecl getDefaultsFunc()
+                }
+                fDecl getBody() add(block)
+                
+                if(memberInitShouldMove) {
+                    // now we should move the 'expr' of our VariableDecl into fDecl's body,
+                    // because order matters here.
+                    printf("Member init should move! parent vDecl = %s, isStatic = %s\nparent expr = %s\nvDecl = %s\nptrDecl = %s\n",
+                        memberDecl toString(), memberDecl isStatic toString(), memberDecl expr getType() ? memberDecl expr getType() toString() : "(nil)", vDecl toString(), ptrDecl toString())
+                    if(memberDecl getType() == null) memberDecl setType(memberDecl expr getType()) // fixate type
+                    memberAcc := VariableAccess new(memberDecl, token)
+                    memberAcc expr = memberDecl isStatic() ? VariableAccess new(memberDecl owner getNonMeta() getInstanceType(), token) : VariableAccess new("this", token)
+                    
+                    init := BinaryOp new(memberAcc, memberDecl expr, OpTypes ass, token)
+                    fDecl getBody() add(init)
+                    memberDecl setExpr(null)
+                }
+            } else {
+                token throwError("Couldn't add block after %s in scope! trail = %s" format(vDecl toString(), trail toString()))
             }
         }
         

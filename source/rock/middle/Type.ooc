@@ -63,7 +63,11 @@ Type: abstract class extends Expression {
     
     clone: abstract func -> This
     
-    reference:   func          -> This { p := PointerType new(this, token); p setRef(getRef()); p }
+    reference:   func          -> This {
+        p := PointerType new(this, token)
+        //p setRef(getRef())
+        p
+    }
     dereference: abstract func -> This
     
     /**

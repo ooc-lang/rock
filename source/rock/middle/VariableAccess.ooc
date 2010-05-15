@@ -67,9 +67,6 @@ VariableAccess: class extends Expression {
 		    ref = candidate
 		    return true
 	    } else if(node instanceOf(TypeDecl) || node instanceOf(NamespaceDecl)) {
-            if(name == "String") {
-                printf("Access to String got ref %s\n", node toString())
-            }
 			ref = node
             return true
 	    }

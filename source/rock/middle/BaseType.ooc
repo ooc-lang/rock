@@ -286,7 +286,10 @@ BaseType: class extends Type {
     }
     
     searchTypeArg: func (typeArgName: String, finalScore: Int@) -> Type {
-        if(getRef() == null) return null
+        if(getRef() == null) {
+            finalScore = -1
+            return null
+        }
         
         if(!getRef() instanceOf(TypeDecl)) {
             // only TypeDecl have typeArgs anyway.
@@ -295,8 +298,6 @@ BaseType: class extends Type {
         
         typeRef := getRef() as TypeDecl
         if(typeRef typeArgs == null) return null
-        
-        printf("We're a %s, our ref is a %s, = %s\n", class name, typeRef class name, typeRef toString())
         
         j := 0
         for(arg in typeRef typeArgs) {
@@ -310,7 +311,7 @@ BaseType: class extends Type {
                 if(ref == null) return null
                 result : Type = null
                 
-                printf("Found candidate %s (which is a %s) for typeArg %s, ref is a %s, = %s\n", candidate toString(), candidate class name, typeArgName, ref class name, ref toString())
+                //printf("Found candidate %s (which is a %s) for typeArg %s, ref is a %s, = %s\n", candidate toString(), candidate class name, typeArgName, ref class name, ref toString())
                 if(ref instanceOf(TypeDecl)) {
                     // resolves to a known type
                     result = ref as TypeDecl getInstanceType()
