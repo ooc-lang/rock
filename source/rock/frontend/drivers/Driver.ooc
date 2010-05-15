@@ -61,10 +61,10 @@ Driver: abstract class {
     
     getFlagsFromUse: func ~defaults (module: Module) -> List<String> {
 
-        list := ArrayList<String> new() 
-        done := ArrayList<Module> new() 
-        getFlagsFromUse(module, list, done, ArrayList<UseDef> new()) 
-        return list 
+        flagsDone := ArrayList<String> new()
+        modulesDone := ArrayList<Module> new() 
+        getFlagsFromUse(module, flagsDone, modulesDone, ArrayList<UseDef> new()) 
+        return flagsDone 
         
     }
 

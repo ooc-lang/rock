@@ -47,6 +47,10 @@ CommandLine: class {
                     params outPath = File new(arg substring(arg indexOf('=') + 1))
                     params clean = false
                     
+                } else if (option startsWith("outlib")) {
+                    
+                    params outlib = arg substring(arg indexOf('=') + 1)
+                    
                 } else if(option startsWith("backend")) {
                     params backend = arg substring(arg indexOf('=') + 1)
                     
