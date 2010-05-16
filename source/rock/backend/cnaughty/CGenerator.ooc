@@ -158,9 +158,11 @@ CGenerator: class extends Skeleton {
 
         current app(';')
     }
-
+    
     /** Write a variable access */
-    visitVariableAccess: func (varAcc: VariableAccess) {
+    visitVariableAccess: func(varAcc: VariableAccess) { visitVariableAccess ~refAddr(varAcc, true)}
+    
+    visitVariableAccess: func ~refAddr(varAcc: VariableAccess, writeReferenceAddrOf: Bool) {
         if(varAcc ref == null) {
             Exception new(This, "Trying to write unresolved variable access %s" format(varAcc getName())) throw()
         }
@@ -201,8 +203,12 @@ CGenerator: class extends Skeleton {
             }
             paren := false
             if(varAcc getRef() getType() instanceOf(ReferenceType)) {
-                current app("(*")
-                paren = true
+                if (writeReferenceAddrOf) {
+                    current app("(*")
+                    paren = true
+                } else {
+                    if (varAcc ref instanceOf(VariableDecl)) varAcc ref as VariableDecl name println()
+                }
             }
             
             if(vDecl isExternWithName()) {

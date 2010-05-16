@@ -39,7 +39,8 @@ Visitor: abstract class {
     visitFloatLiteral:      func (node: FloatLiteral) {}
     visitNullLiteral:       func (node: NullLiteral) {}
     
-    visitVariableAccess:    func (node: VariableAccess) {}
+    visitVariableAccess:    func (node: VariableAccess) {visitVariableAccess ~refAddr(node, false) }
+    visitVariableAccess:    func ~refAddr (node: VariableAccess, writeRefAddrOf: Bool)
     visitArrayAccess:       func (node: ArrayAccess) {}
     visitFunctionCall:      func (node: FunctionCall) {}
     
