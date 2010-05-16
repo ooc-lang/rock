@@ -48,7 +48,7 @@ Target: class {
      */
     is64: static func -> Bool {
         version(64)  { return true }
-        /*version(!64) {*/ return false /*}*/
+        return false
     }
     
     /**

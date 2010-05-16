@@ -59,6 +59,9 @@ BuildParams: class {
     // Remove the rock_tmp/ directory after the C compiler has finished
     clean: Bool = true
     
+    // Cache libs in a .libs/ directory
+    libcache: Bool = true
+    
     // Add debug info to the generated C files (e.g. -g switch for gcc)
     debug: Bool = false
     

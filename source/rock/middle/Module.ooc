@@ -52,6 +52,9 @@ Module: class extends Node {
     getFullName:     func -> String { fullName }
     getUnderName:    func -> String { underName }
     getPathElement:  func -> String { pathElement }
+    getSourceFolderName: func -> String {
+        File new(File new(getPathElement()) getAbsolutePath()) name()
+    }
 
     addFuncType: func (hashName: String, funcType: FuncType) {
         if(!funcTypesMap contains(hashName)) {

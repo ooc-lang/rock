@@ -133,6 +133,10 @@ CommandLine: class {
                     
                     params clean = false
                     
+                } else if (option == "nolibcache") {
+                    
+                    params libcache = false
+                    
                 } else if (option == "nolines") {
                     
                     params lineDirectives = false

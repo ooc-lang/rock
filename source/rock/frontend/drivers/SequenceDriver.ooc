@@ -58,15 +58,6 @@ SequenceDriver: class extends Driver {
 			for(libPath in params libPath getPaths()) {
 				params compiler addLibraryPath(libPath getAbsolutePath())    
 			}
-			
-            /*
-			if(params fatArchitectures != null) {
-				params compiler setFatArchitectures(params fatArchitectures)    
-			}
-			if(params osxSDKAndDeploymentTarget != null) {
-				params compiler setOSXSDKAndDeploymentTarget(params osxSDKAndDeploymentTarget)    
-			}
-            */
 
 			if(params binaryPath != "") {
                 params compiler setOutputPath(params binaryPath)
@@ -122,20 +113,26 @@ SequenceDriver: class extends Driver {
      */
     buildSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>) {
         
-        outlib := File new(File new(".libs"), sourceFolder name + ".a")
-        objectFiles add(outlib getPath())
+        outlib := File new(File new(".libs"), "%s-%s.a" format(sourceFolder name, Target toString()))
         
-        if(outlib exists()) {
-            good := true
-            lastModified := outlib lastModified()
-            for(module in sourceFolder modules) {
-                if(lastModified < File new(module path + ".ooc") lastModified()) {
-                    good = false
-                    printf("Recompiling because of %s\n", module fullName)
-                    break
+        // if lib-caching, we compile every object file to a .a static lib
+        if(params libcache) {
+            objectFiles add(outlib getPath())
+        
+            if(outlib exists()) {
+                good := true
+                lastModified := outlib lastModified()
+                for(module in sourceFolder modules) {
+                    file := File new(module pathElement + File separator + module path + ".ooc")
+                    if(params veryVerbose) printf("Comparing %ld vs %ld, ie. %s vs %s\n", lastModified, file lastModified(), outlib path, file path)
+                    if(lastModified < file lastModified()) {
+                        good = false
+                        if(params veryVerbose) printf("Recompiling because of %s\n", module fullName)
+                        break
+                    }
                 }
+                if(good) return
             }
-            if(good) return
         }
         
         oPaths := ArrayList<String> new()
@@ -173,28 +170,15 @@ SequenceDriver: class extends Driver {
                 for(compilerArg in params compilerArgs) {
                     params compiler addObjectFile(compilerArg)
                 }
-                
-                /*
-                if(params fatArchitectures != null) {
-                    params compiler setFatArchitectures(params fatArchitectures)    
-                }
-                if(params osxSDKAndDeploymentTarget != null) {
-                    params compiler setOSXSDKAndDeploymentTarget(params osxSDKAndDeploymentTarget)    
-                }
-                */
 
                 libs := getFlagsFromUse(sourceFolder)
                 for(lib in libs) {
-                    //printf("[SequenceDriver] Adding lib %s from use\n", lib)
                     params compiler addObjectFile(lib)
                 }
                 
                 if(params verbose) params compiler getCommandLine() println()
                 
-                //long tt1 = System.nanoTime()    
                 code := params compiler launch()    
-                //long tt2 = System.nanoTime()    
-                //if(params timing) System.out.println("  (" + ((tt2 - tt1) / 1000000)+")")    
                     
                 if(code != 0) {
                     fprintf(stderr, "C compiler failed, aborting compilation process\n")
@@ -202,20 +186,20 @@ SequenceDriver: class extends Driver {
                 }
                 
             } else {
-                
-                if(params veryVerbose) {
-                    ("Skipping "+cPath+", just the same.") println()
-                }
-                
+                if(params veryVerbose) printf("Skipping %s, unchanged source.\n", cPath)
             }
             
         }
         
-        // now build a static library
-        outlib parent() mkdirs()
-        if(params verbose) printf("Saving to library %s\n", outlib getPath())
-        
-        buildArchive(outlib getPath(), sourceFolder modules)
+        if(params libcache) {
+            // now build a static library
+            outlib parent() mkdirs()
+            if(params verbose) printf("Saving to library %s\n", outlib getPath())
+            buildArchive(outlib getPath(), sourceFolder modules)
+        } else {
+            if(params verbose) printf("Lib caching disabled, building from .o files\n")
+            objectFiles addAll(oPaths)
+        }
         
     }
     
