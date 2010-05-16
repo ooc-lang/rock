@@ -4,7 +4,7 @@ import Cast, Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, If, Else,
        VariableDecl, Node, Statement, Module, FunctionCall, Declaration,
        Version, StringLiteral, Conditional, Import, ClassDecl, StringLiteral,
-       IntLiteral, NullLiteral, BaseType, FuncType, AddressOf
+       IntLiteral, NullLiteral, BaseType, FuncType, AddressOf, BinaryOp
 import tinker/[Resolver, Response, Trail]
 
 FunctionDecl: class extends Declaration {
@@ -497,12 +497,26 @@ FunctionDecl: class extends Declaration {
             partialAcc := VariableAccess new(partialName, token)
             
             for (e in partialByReference) {
-                "yaay" println()
-                e type = ReferenceType new(e getType(), e token)
+                // We need a to create an extra reference pointing to the actual variable.
+                newRefType := ReferenceType new(e getType(), e token)
+                eAccess := VariableAccess new(e, e token)
+                newRef := VariableDecl new(newRefType, e getName()+"_ptr", AddressOf new(eAccess, e token), e token)
+                trail addBeforeInScope(this, newRef) 
+                
                 addArg := FunctionCall new(partialAcc, "addArgument", token)
-                addArg getArguments() add(AddressOf new(e, e token))
+                addArg getArguments() add(VariableAccess new(newRef, newRef token))
                 trail addBeforeInScope(this, addArg)
-                args add(Argument new(e getType(), e getName(), token))
+                args add(Argument new(newRef getType(), newRef getName(), token))
+
+                // Now we have to change every access within the body from e name to newRef name.
+                for (stmt in body) {
+                   if (stmt instanceOf(BinaryOp)) {
+                       tmp: VariableAccess = stmt as BinaryOp getLeft()
+                       tmp setRef(newRef)
+                   } 
+                } 
+
+
             }
             
             for (e in partialByValue) {

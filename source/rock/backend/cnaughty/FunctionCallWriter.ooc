@@ -1,4 +1,4 @@
-import ../../middle/[FunctionDecl, FunctionCall, TypeDecl, Argument, Type, Expression, InterfaceDecl]
+import ../../middle/[FunctionDecl, FunctionCall, TypeDecl, Argument, Type, Expression, InterfaceDecl, VariableAccess, VariableDecl]
 import Skeleton, FunctionDeclWriter
 
 FunctionCallWriter: abstract class extends Skeleton {
@@ -110,9 +110,14 @@ FunctionCallWriter: abstract class extends Skeleton {
             if(i < fDecl args size())                         declArg = fDecl args get(i)
             if(declArg != null && declArg instanceOf(VarArg)) declArg = null
             
+            writeRefAddrOf := true
             if(declArg != null) {
                 if(declArg getType() isGeneric()) {
                     current app("(uint8_t*) ")
+                    if (arg instanceOf(VariableAccess)) {
+                        writeRefAddrOf = false
+                        arg as VariableAccess ref as VariableDecl name println()
+                    }
                 } else if(arg getType() != null && declArg getType() != null && arg getType() inheritsFrom(declArg getType())) {
                     //printf("%s inherits from %s, casting!\n", arg getType() toString(), declArg getType() toString())
                     current app("("). app(declArg getType()). app(") (")
@@ -120,7 +125,10 @@ FunctionCallWriter: abstract class extends Skeleton {
                 }
             }
             
-            arg accept(this)
+            match (writeRefAddrOf) {
+                case true => arg accept(this)
+                case false => visitVariableAccess(arg as VariableAccess, false)
+            }
             if(writeCast) current app(')')
             i += 1
         }
