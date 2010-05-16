@@ -31,6 +31,8 @@ MakeDriver: class extends SequenceDriver {
            "Make driver" println()
         }
         
+        copyLocalHeaders(module, params, ArrayList<Module> new())
+        
         printf("Writing to %s\n", makefile path)
         fW := FileWriter new(makefile)
         

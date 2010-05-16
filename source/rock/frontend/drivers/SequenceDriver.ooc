@@ -18,7 +18,7 @@ SequenceDriver: class extends Driver {
 
 	compile: func (module: Module) -> Int {
 		
-		copyLocalHeaders(module, params, ArrayList<Module> new())    
+		copyLocalHeaders(module, params, ArrayList<Module> new())
 		
 		if(params verbose) {
 			("Sequence driver, using " + params sequenceThreads + " thread(s).") println()

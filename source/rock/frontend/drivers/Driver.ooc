@@ -7,11 +7,10 @@ import ../../middle/[Import, Include, Module, Use, UseDef]
 import ../../utils/[ShellUtils]
 
 /**
- * Drives the compilation process, e.g. chooses in which order
- * files are compiled, optionally checks for timestamps and stuff.
- * Great fun.
- * 
- * @author Amos Wenger
+   Drives the compilation process, e.g. chooses in which order
+   files are compiled, optionally checks for timestamps and stuff.
+ 
+   :author: Amos Wenger (nddrylliog)
  */
 Driver: abstract class {
 
