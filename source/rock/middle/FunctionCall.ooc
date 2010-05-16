@@ -463,7 +463,7 @@ FunctionCall: class extends Expression {
                 return Responses OK
             }
             
-            isGood := (callArg instanceOf(AddressOf) || typeResult isGeneric())
+            isGood := ((callArg instanceOf(AddressOf) && callArg as AddressOf isForGenerics) || typeResult isGeneric())
             if(!isGood) { // FIXME this is probably wrong - what if we want an address's address? etc.
                 target : Expression = callArg
                 if(!callArg isReferencable()) {
@@ -473,7 +473,9 @@ FunctionCall: class extends Expression {
                     }
                     target = VariableAccess new(varDecl, callArg token)
                 }
-                args set(j, AddressOf new(target, target token))            
+                addrOf := AddressOf new(target, target token)
+                addrOf isForGenerics = true
+                args set(j, addrOf)
             }
             j += 1
         }
