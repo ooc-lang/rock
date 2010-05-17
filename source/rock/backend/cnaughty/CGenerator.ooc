@@ -279,7 +279,7 @@ CGenerator: class extends Skeleton {
             current app(';'). nl(). app("{"). tab(). nl(). app("int "). app(name). app("__i;"). nl().
                     app("for("). app(name). app("__i = 0; ").
                     app(name). app("__i < "). app(arrayType expr). app("; ").
-                    app(name). app("__i++) { "). nl()
+                    app(name). app("__i++) { "). tab(). nl()
               
             current app("_lang_array__Array "). app(name). app("_sub = ")
             writeArrayCreation(arrayType inner as ArrayType, null, name + "_sub")
@@ -293,7 +293,7 @@ CGenerator: class extends Skeleton {
             
             current app(", "). app(name). app("__i, ").
                     app(arrayType inner as ArrayType exprLessClone()). app(", "). app(name). app("_sub);").
-                    untab(). nl(). app("}}")
+                    untab(). nl(). app("}"). untab(). nl(). app("}")
         }
     }
 
