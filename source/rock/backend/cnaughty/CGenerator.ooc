@@ -272,7 +272,15 @@ CGenerator: class extends Skeleton {
     
     writeArrayCreation: func (arrayType: ArrayType, expr: Expression, name: String) {
         current app("_lang_array__Array_new(")
-        arrayType inner write(current, null)
+        if(arrayType inner instanceOf(ArrayType)) {
+            // otherwise, something like _lang_types__Bool[rows] is written
+            // and that's the size of a pointer for C - which is wrong.
+            // Array is larger than a pointer, it's a struct with several
+            // members, see lang/array.h
+            current app("_lang_array__Array")
+        } else {
+            arrayType inner write(current, null)
+        }
         current app(", "). app(arrayType expr). app(")")
         
         if(arrayType inner instanceOf(ArrayType)) {
