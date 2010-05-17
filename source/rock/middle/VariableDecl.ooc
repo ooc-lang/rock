@@ -57,6 +57,7 @@ VariableDecl: class extends Declaration {
     isVirtual: func -> Bool { false }
 
     setOwner: func (=owner) {}
+    getOwner: func -> TypeDecl { owner }
 
     setExpr: func (=expr) {}
     getExpr: func -> Expression { expr }

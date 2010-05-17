@@ -117,9 +117,18 @@ ArrayAccess: class extends Expression {
             
             // TODO: this is all very hackish. More checking is needed
             if(grandpa instanceOf(VariableDecl)) {
-                arrayCreation name = grandpa as VariableDecl getName()
+                vDecl := grandpa as VariableDecl
+                vAcc := VariableAccess new(vDecl, token)
+                if(vDecl isMember()) {
+                    if(vDecl isStatic()) {
+                        vAcc expr = VariableAccess new(vDecl getOwner() getInstanceType(), token)
+                    } else {
+                        vAcc expr = VariableAccess new("this", token)
+                    }
+                }
+                arrayCreation expr = vAcc
             } else if(grandpa instanceOf(BinaryOp)) {
-                arrayCreation name = grandpa as BinaryOp getLeft() as VariableAccess getName()
+                arrayCreation expr = grandpa as BinaryOp getLeft()
             }
             grandpa replace(fCall, arrayCreation)
             

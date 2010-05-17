@@ -4,7 +4,7 @@ import tinker/[Trail, Resolver, Response]
 
 ArrayCreation: class extends Expression {
 
-    name: String = null
+    expr: Expression = null
     arrayType, realType : ArrayType
 
     init: func ~arrayCrea(=arrayType, .token) {
