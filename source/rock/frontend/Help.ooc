@@ -46,7 +46,8 @@ Help: class {
     processes speedups in the .libs/ directory. When the source files
     change, the static library will be recompiled automatically.
     However, if you want to turn off library caching for some reason,
-    use this option.-outpath=PATH
+    use this option.
+-outpath=PATH
     Place all .c and .h files in PATH. (default=rock_tmp/)
 -IPATH, -incpath=PATH
     Add PATH to the C header search path.
