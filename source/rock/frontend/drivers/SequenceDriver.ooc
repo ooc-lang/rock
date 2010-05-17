@@ -1,4 +1,4 @@
-import io/File, os/Process, text/Buffer
+import io/[File, FileWriter, FileReader], os/Process, text/Buffer
 import structs/[List, ArrayList, HashMap]
 import ../[BuildParams, Target]
 import ../compilers/AbstractCompiler
@@ -120,14 +120,31 @@ SequenceDriver: class extends Driver {
             objectFiles add(outlib getPath())
         
             if(outlib exists()) {
+                fR := FileReader new(outlib path + ".cacheinfo")
+                cacheSize := fR readLine() toInt()
+                if(params veryVerbose) printf("Got %d files in cache %s\n", cacheSize, outlib path)
+                
+                cache := HashMap<String, Long> new()
+                for(i in 0..cacheSize) {
+                    name := fR readLine()
+                    lastModified := fR readLine() toLong()
+                    cache put(name, lastModified)
+                }
+                
                 good := true
-                lastModified := outlib lastModified()
                 for(module in sourceFolder modules) {
                     file := File new(module pathElement + File separator + module path + ".ooc")
-                    if(params veryVerbose) printf("Comparing %ld vs %ld, ie. %s vs %s\n", lastModified, file lastModified(), outlib path, file path)
-                    if(lastModified < file lastModified()) {
+                    
+                    if(!cache contains(file path)) {
                         good = false
-                        if(params veryVerbose) printf("Recompiling because of %s\n", module fullName)
+                        if(params veryVerbose) printf("%s not in cache, recompiling\n", file path)
+                        break
+                    }
+                    
+                    lastModified := cache get(file path)
+                    if(lastModified != file lastModified()) {
+                        good = false
+                        if(params veryVerbose) printf("%s out of date (%ld vs %ld), recompiling\n", file path, lastModified, file lastModified())
                         break
                     }
                 }
@@ -223,7 +240,8 @@ SequenceDriver: class extends Driver {
     }
     
     /**
-       Build an archive named `outlib` from the .o files 
+       Build an archive named `outlib` from the .o files of the given
+       modules.
      */
     buildArchive: func (outlib: String, modules: List<Module>) {
         
@@ -233,9 +251,18 @@ SequenceDriver: class extends Driver {
         args add("rcs")     // r = insert files, c = create archive, s = create/update .o file index
         args add(outlib)
         
-        for(dep in modules) {
-            args add(File new(params outPath, dep getPath("")) getPath() + ".o")    
+        fW := FileWriter new(outlib + ".cacheinfo")
+        fW writef("%d\n", modules size())
+        
+        for(module in modules) {
+            oocPath := module pathElement + File separator + module path + ".ooc"
+            
+            oPath := File new(params outPath, module getPath("")) getPath() + ".o"
+            args add(oPath)
+            
+            fW writef("%s\n%ld\n", oocPath, File new(oocPath) lastModified())
         }
+        fW close()
         
         if(params verbose) {
             command := Buffer new()
