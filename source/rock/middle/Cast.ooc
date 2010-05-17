@@ -127,9 +127,8 @@ Cast: class extends Expression {
                 if(res fatal) token throwError("Couldn't replace %s with %s! trail = %s" format(toString(), fCall toString(), trail toString()))
                 res wholeAgain(this, "failed to replace oneself, gotta try again =)")
                 return Responses OK
-                //return Responses LOOP
             }
-            //res wholeAgain(this, "Just replaced with an operator overload")
+            // Just replaced with an operator overload
             return Responses LOOP
         }
         
@@ -156,15 +155,16 @@ Cast: class extends Expression {
         }
         
         srcScore  := inner getType() getScore(srcType)
-        if(srcScore < Type SCORE_SEED / 2) srcScore = -10000
+        if(srcScore < Type SCORE_SEED / 2) srcScore = Type NOLUCK_SCORE
         if(srcScore  == -1) return -1
         
         dstScore := type getStrictScore(dstType)
         if(dstScore == -1) return -1
         
-        //if(inner instanceOf(ArrayLiteral)) printf("srcScore = %d (%s vs %s), dstScore = %d (%s vs %s)\n",
-        //    srcScore, inner getType() toString(), srcType toString(), dstScore, type toString(), dstType toString())
         score := srcScore + dstScore
+        
+        //if(score > 0) printf("srcScore = %d (%s vs %s), dstScore = %d (%s vs %s)\n",
+        //    srcScore, inner getType() toString(), srcType toString(), dstScore, type toString(), dstType toString())
         
         return score
         

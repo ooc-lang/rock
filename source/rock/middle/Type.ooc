@@ -249,7 +249,7 @@ SugarType: abstract class extends Type {
         }
         
         if(pointerLevel() == 1 && other isPointer()) {
-            // void pointer, fourth of a match!
+            // void pointer, a half match!
             return scoreSeed / 2
         }
         return This NOLUCK_SCORE
@@ -319,6 +319,15 @@ ArrayType: class extends PointerType {
     
     isResolved: func -> Bool {
         inner isResolved() && This realType isResolved()
+    }
+    
+    getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
+        if(other instanceOf(class)) {
+            score := inner getScore(other as SugarType inner)
+            if(score >= -1) return score
+        }
+        
+        return This NOLUCK_SCORE
     }
     
     write: func (w: AwesomeWriter, name: String) {

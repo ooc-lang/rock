@@ -161,6 +161,9 @@ BaseType: class extends Type {
     getTypeArgs: func -> List<VariableAccess> { typeArgs }
     
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
+        //printf("%s vs %s, other isGeneric ? %s pointerLevel ? %d\n", toString(), other toString(), other isGeneric() toString(), other pointerLevel())
+        if(name == "void" || name == "Void") return This NOLUCK_SCORE
+        
         if(other isGeneric() && other pointerLevel() == 0) {
             // every type is always a match against a flat generic type
             return scoreSeed / 2
