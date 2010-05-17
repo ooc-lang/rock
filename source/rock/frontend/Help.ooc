@@ -40,7 +40,13 @@ Help: class {
 -sourcepath=PATH
     Pass the location of your source files. (default=current
     directory)
--outpath=PATH
+-nolibcache
+    Don’t use a library cache. By default, rock compiles related
+    bunches of .ooc files to a static library for further compilation
+    processes speedups in the .libs/ directory. When the source files
+    change, the static library will be recompiled automatically.
+    However, if you want to turn off library caching for some reason,
+    use this option.-outpath=PATH
     Place all .c and .h files in PATH. (default=rock_tmp/)
 -IPATH, -incpath=PATH
     Add PATH to the C header search path.
