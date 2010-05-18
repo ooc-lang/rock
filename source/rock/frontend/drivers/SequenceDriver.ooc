@@ -3,7 +3,7 @@ import structs/[List, ArrayList, HashMap]
 import ../[BuildParams, Target]
 import ../compilers/AbstractCompiler
 import ../../middle/[Module, UseDef]
-import Driver
+import Driver, Archive
 
 SourceFolder: class {
     name: String
