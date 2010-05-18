@@ -30,7 +30,8 @@ SequenceDriver: class extends Driver {
 		
         for(sourceFolder in toCompile) {
             if(params verbose) printf("Building source folder %s\n", sourceFolder name)
-            buildSourceFolder(sourceFolder, oPaths)
+            code := buildSourceFolder(sourceFolder, oPaths)
+            if(code != 0) return code
         }
 		
 		if(params link) {
@@ -111,15 +112,16 @@ SequenceDriver: class extends Driver {
     /**
        Build a source folder into object files or a static library
      */
-    buildSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>) {
+    buildSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>) -> Int {
         
         outlib := File new(File new(".libs"), "%s-%s.a" format(sourceFolder name, Target toString()))
+        hasOutLib := outlib exists()
         
         // if lib-caching, we compile every object file to a .a static lib
         if(params libcache) {
             objectFiles add(outlib getPath())
         
-            if(outlib exists()) {
+            if(hasOutLib) {
                 fR := FileReader new(outlib path + ".cacheinfo")
                 cacheSize := fR readLine() toInt()
                 if(params veryVerbose) printf("Got %d files in cache %s\n", cacheSize, outlib path)
@@ -155,57 +157,8 @@ SequenceDriver: class extends Driver {
         oPaths := ArrayList<String> new()
         
         for(currentModule in sourceFolder modules) {
-            
-            initCompiler(params compiler)    
-            params compiler setCompileOnly()
-            
-            path := File new(params outPath, currentModule getPath("")) getPath()
-            oPath := path + ".o"    
-            cPath := path + ".c"    
-            oPaths add(oPath)
-            
-            cFile := File new(cPath)
-            oFile := File new(oPath)
-            
-            if(cFile lastModified() > oFile lastModified()) {
-                
-                params compiler addObjectFile(cPath)    
-                params compiler setOutputPath(oPath)    
-                
-                params compiler addIncludePath(File new(params distLocation, "libs/headers/") getPath())
-                params compiler addIncludePath(params outPath getPath())
-                        
-                for(define in params defines) {
-                    params compiler defineSymbol(define)
-                }
-                for(dynamicLib in params dynamicLibs) {
-                    params compiler addDynamicLibrary(dynamicLib)
-                }
-                for(incPath in params incPath getPaths()) {
-                    params compiler addIncludePath(incPath getPath())
-                }
-                for(compilerArg in params compilerArgs) {
-                    params compiler addObjectFile(compilerArg)
-                }
-
-                libs := getFlagsFromUse(sourceFolder)
-                for(lib in libs) {
-                    params compiler addObjectFile(lib)
-                }
-                
-                if(params verbose) params compiler getCommandLine() println()
-                
-                code := params compiler launch()    
-                    
-                if(code != 0) {
-                    fprintf(stderr, "C compiler failed, aborting compilation process\n")
-                    return code 
-                }
-                
-            } else {
-                if(params veryVerbose) printf("Skipping %s, unchanged source.\n", cPath)
-            }
-            
+            code := buildIndividual(currentModule, sourceFolder, oPaths)
+            if(code != 0) return code
         }
         
         if(params libcache) {
@@ -217,6 +170,67 @@ SequenceDriver: class extends Driver {
             if(params verbose) printf("Lib caching disabled, building from .o files\n")
             objectFiles addAll(oPaths)
         }
+        
+        return 0
+        
+    }
+    
+    /**
+       Build an individual ooc files to its .o file, add it to oPaths
+     */
+    buildIndividual: func (currentModule: Module, sourceFolder: SourceFolder, oPaths: List<String>) -> Int {
+        
+        initCompiler(params compiler)
+        params compiler setCompileOnly()
+        
+        path := File new(params outPath, currentModule getPath("")) getPath()
+        oPath := path + ".o"    
+        cPath := path + ".c"    
+        oPaths add(oPath)
+        
+        cFile := File new(cPath)
+        oFile := File new(oPath)
+        
+        if(cFile lastModified() > oFile lastModified()) {
+            
+            params compiler addObjectFile(cPath)    
+            params compiler setOutputPath(oPath)    
+            
+            params compiler addIncludePath(File new(params distLocation, "libs/headers/") getPath())
+            params compiler addIncludePath(params outPath getPath())
+                    
+            for(define in params defines) {
+                params compiler defineSymbol(define)
+            }
+            for(dynamicLib in params dynamicLibs) {
+                params compiler addDynamicLibrary(dynamicLib)
+            }
+            for(incPath in params incPath getPaths()) {
+                params compiler addIncludePath(incPath getPath())
+            }
+            for(compilerArg in params compilerArgs) {
+                params compiler addObjectFile(compilerArg)
+            }
+
+            libs := getFlagsFromUse(sourceFolder)
+            for(lib in libs) {
+                params compiler addObjectFile(lib)
+            }
+            
+            if(params verbose) params compiler getCommandLine() println()
+            
+            code := params compiler launch()    
+                
+            if(code != 0) {
+                fprintf(stderr, "C compiler failed, aborting compilation process\n")
+                return code 
+            }
+            
+        } else {
+            if(params veryVerbose) printf("Skipping %s, unchanged source.\n", cPath)
+        }
+        
+        return 0
         
     }
     

@@ -121,6 +121,10 @@ Module: class extends Node {
         last := (File new(pathElement) name())
         return (last + File separator) + fullName replace('/', File separator) + suffix
     }
+    
+    getOocPath: func -> String {
+        pathElement + File separator + path + ".ooc"
+    }
 
     getParentPath: func -> String {
         // FIXME that's sub-optimal
