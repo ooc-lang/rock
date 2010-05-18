@@ -3,17 +3,38 @@ import structs/[List, ArrayList, HashMap]
 import text/Buffer
 import native/[ProcessUnix, ProcessWin32]
 
+/**
+   Allows to launch processes with arbitrary arguments, redirect
+   standard input, output, and error, get the error code, and wait
+   for the end of the execution
+   
+   :author: Yannic Ahrens (showstopper)
+   :author: Amos Wenger (nddrylliog)
+ */
 Process: abstract class {
 
+    /**
+       Arguments passed to the executable. The first argument
+       should be the path to the executable.
+     */
     args: List<String>
-    executable: String
+    
+    /** Pipe to which standard output will be redirected if it's non-null */
     stdOut = null: Pipe
+    /** Pipe to which standard input will be redirected if it's non-null */
     stdIn  = null: Pipe
+    /** Pipe to which standard error will be redirected if it's non-null */
     stdErr = null: Pipe
-    buf : String*
-    env: HashMap<String, String>
-    cwd: String
+    
+    /** Environment variables that should be defined for the launched process */
+    env = null : HashMap<String, String>
+    
+    /** Current working directory of the launched process */
+    cwd = null : String
 
+    /**
+       Create a new process from a list of arguments
+     */
     new: static func (args: List<String>) -> This {
         version(unix || apple) {
             return ProcessUnix new(args) as This
@@ -25,6 +46,10 @@ Process: abstract class {
         null
     }
 
+    /**
+       Create a new process with given arguments and environment
+       variables.
+     */
     new: static func ~withEnv (.args, .env) -> This {
         p := new(args)
         p env = env
@@ -34,6 +59,7 @@ Process: abstract class {
     setStdout: func(=stdOut){}
     setStdin:  func(=stdIn) {}
     setStderr: func(=stdErr) {}
+    
     setEnv: func(=env) {}
     setCwd: func(=cwd) {}
 
@@ -43,10 +69,16 @@ Process: abstract class {
         wait()
     }
 
-    /** Wait for the process to end. Bad things will happen if you haven't called `executeNoWait` before. */
+    /**
+     * Wait for the process to end. Bad things will happen
+     * if you haven't called `executeNoWait` before.
+     */
     wait: abstract func -> Int
 
-    /** Execute the process without waiting for it to end. You have to call `wait` manually. */
+    /**
+     * Execute the process without waiting for it to end.
+     * You have to call `wait` manually.
+     */
     executeNoWait: abstract func
 
     /**
