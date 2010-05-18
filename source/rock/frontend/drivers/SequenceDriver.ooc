@@ -1,4 +1,4 @@
-import io/[File, FileWriter, FileReader], os/Process, text/Buffer
+import io/[File], os/Process, text/Buffer
 import structs/[List, ArrayList, HashMap]
 import ../[BuildParams, Target]
 import ../compilers/AbstractCompiler
@@ -101,7 +101,12 @@ SequenceDriver: class extends Driver {
 			}
             
             if(params verbose) "Building archive %s with all object files." format(params outlib) println()
-            buildArchive(params outlib, modules)
+            
+            archive := Archive new(params outlib)
+            for(module in modules) {
+                archive add(module)
+            }
+            archive save(params)
 		}
 		
 		
@@ -114,58 +119,41 @@ SequenceDriver: class extends Driver {
      */
     buildSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>) -> Int {
         
-        outlib := File new(File new(".libs"), "%s-%s.a" format(sourceFolder name, Target toString()))
-        hasOutLib := outlib exists()
+        outlib := ".libs%c%s-%s.a" format(File separator, sourceFolder name, Target toString())
+        archive := Archive new(outlib)
         
         // if lib-caching, we compile every object file to a .a static lib
         if(params libcache) {
-            objectFiles add(outlib getPath())
+            objectFiles add(outlib)
         
-            if(hasOutLib) {
-                fR := FileReader new(outlib path + ".cacheinfo")
-                cacheSize := fR readLine() toInt()
-                if(params veryVerbose) printf("Got %d files in cache %s\n", cacheSize, outlib path)
-                
-                cache := HashMap<String, Long> new()
-                for(i in 0..cacheSize) {
-                    name := fR readLine()
-                    lastModified := fR readLine() toLong()
-                    cache put(name, lastModified)
-                }
-                
-                good := true
+            if(archive exists?) {
                 for(module in sourceFolder modules) {
-                    file := File new(module pathElement + File separator + module path + ".ooc")
-                    
-                    if(!cache contains(file path)) {
-                        good = false
-                        if(params veryVerbose) printf("%s not in cache, recompiling\n", file path)
-                        break
-                    }
-                    
-                    lastModified := cache get(file path)
-                    if(lastModified != file lastModified()) {
-                        good = false
-                        if(params veryVerbose) printf("%s out of date (%ld vs %ld), recompiling\n", file path, lastModified, file lastModified())
-                        break
+                    if(!archive isUpToDate(module)) {
+                        if(params veryVerbose) printf("%s not in cache or out of date, recompiling\n", module getFullName())
+                        code := buildIndividual(module, sourceFolder, null)
+                        archive add(module)
+                        if(code != 0) return code
+                    } else {
+                        if(params veryVerbose) printf("%s is up-to-date, skipping.", module getFullName())
                     }
                 }
-                if(good) return
+                
+                archive save(params)
+                return 0
             }
         }
         
         oPaths := ArrayList<String> new()
-        
-        for(currentModule in sourceFolder modules) {
-            code := buildIndividual(currentModule, sourceFolder, oPaths)
+        for(module in sourceFolder modules) {
+            code := buildIndividual(module, sourceFolder, oPaths)
+            archive add(module)
             if(code != 0) return code
         }
         
         if(params libcache) {
             // now build a static library
-            outlib parent() mkdirs()
-            if(params verbose) printf("Saving to library %s\n", outlib getPath())
-            buildArchive(outlib getPath(), sourceFolder modules)
+            if(params verbose) printf("Saving to library %s\n", outlib)
+            archive save(params)
         } else {
             if(params verbose) printf("Lib caching disabled, building from .o files\n")
             objectFiles addAll(oPaths)
@@ -178,15 +166,17 @@ SequenceDriver: class extends Driver {
     /**
        Build an individual ooc files to its .o file, add it to oPaths
      */
-    buildIndividual: func (currentModule: Module, sourceFolder: SourceFolder, oPaths: List<String>) -> Int {
+    buildIndividual: func (module: Module, sourceFolder: SourceFolder, oPaths: List<String>) -> Int {
         
         initCompiler(params compiler)
         params compiler setCompileOnly()
         
-        path := File new(params outPath, currentModule getPath("")) getPath()
+        path := File new(params outPath, module getPath("")) getPath()
         oPath := path + ".o"    
         cPath := path + ".c"    
-        oPaths add(oPath)
+        if(oPaths) {
+            oPaths add(oPath)
+        }
         
         cFile := File new(cPath)
         oFile := File new(oPath)
@@ -251,44 +241,6 @@ SequenceDriver: class extends Driver {
         
         
         flagsDone
-    }
-    
-    /**
-       Build an archive named `outlib` from the .o files of the given
-       modules.
-     */
-    buildArchive: func (outlib: String, modules: List<Module>) {
-        
-        // TODO: make this platform-independant (for now it's a linux-friendly hack)
-        args := ArrayList<String> new()
-        args add("ar")      // ar = archive tool
-        args add("rcs")     // r = insert files, c = create archive, s = create/update .o file index
-        args add(outlib)
-        
-        fW := FileWriter new(outlib + ".cacheinfo")
-        fW writef("%d\n", modules size())
-        
-        for(module in modules) {
-            oocPath := module pathElement + File separator + module path + ".ooc"
-            
-            oPath := File new(params outPath, module getPath("")) getPath() + ".o"
-            args add(oPath)
-            
-            fW writef("%s\n%ld\n", oocPath, File new(oocPath) lastModified())
-        }
-        fW close()
-        
-        if(params verbose) {
-            command := Buffer new()
-            for(arg in args) {
-                command append(arg) .append(" ")
-            }
-            command toString() println()
-        }
-        
-        process := Process new(args)
-        process getOutput() print() // not ideal, should redirect to stdin+stdout instead
-        
     }
 
 	initCompiler: func (compiler: AbstractCompiler) {

@@ -57,7 +57,18 @@ Archive: class {
        modules can be added all at once.
      */
     add: func (module: Module) {
+        printf("Added module %s to archive %s\n", module getFullName(), outlib)
         toAdd add(module)
+    }
+    
+    /**
+       true if the .a file storing this archive has already been
+       written to disk once.
+     */
+    exists?: Bool {
+        get {
+            File new(outlib) exists()
+        }
     }
     
     /**
@@ -80,13 +91,16 @@ Archive: class {
        to the archives.
      */
     save: func (params: BuildParams) {
+        if(toAdd isEmpty()) return
+        
         args := ArrayList<String> new()
         args add("ar") // GNU ar tool, manages archives
-        args add("rs") // r = add with replacement, s = create/update index
         
-        if(!File new(outlib) exists()) {
+        if(!this exists?) {
             // if the archive doesn't exist, c = create it
-            args add("c")
+            args add("crs") // r = add with replacement, s = create/update index
+        } else {
+            args add("rs") // r = add with replacement, s = create/update index
         }
         
         // output path
@@ -94,13 +108,22 @@ Archive: class {
         
         for(module in toAdd) {
             // we add .o (object files) to the archive
-            oPath := "%s%s%s.o" format(params outPath, File separator, module getPath(""))
+            oPath := "%s%c%s.o" format(params outPath path, File separator, module getPath(""))
             args add(oPath)
             
             element := ArchiveElement new(module)
+            
+            elements remove(element oocPath) // replace
             elements put(element oocPath, element)
         }
+        toAdd clear()
         
+        if(params verbose) {
+            printf("%s archive %s\n", this exists? ? "Updating" : "Creating", outlib)
+            args join(" ") println()
+        }
+        
+        File new(outlib) parent() mkdirs()
         Process new(args) getOutput() println()
         
         _write()
