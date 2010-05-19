@@ -103,9 +103,11 @@ BaseType: class extends Type {
         
         if(getRef() == null) {
             if(res fatal) {
-                trail toString() println()
-                //token printMessage("In %s, Can't resolve type %s!" format(token toString(), getName()), "ERROR")
-                //Exception new(This, "Debugging") throw()
+                if(res params veryVerbose) {
+                    trail toString() println()
+                    //token printMessage("In %s, Can't resolve type %s!" format(token toString(), getName()), "ERROR")
+                    //Exception new(This, "Debugging") throw()
+                }
                 token throwError("In %s, Can't resolve type %s!" format(token toString(), getName()))
             }
             if(res params veryVerbose) {

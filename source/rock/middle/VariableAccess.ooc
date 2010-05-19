@@ -181,7 +181,9 @@ VariableAccess: class extends Expression {
         
         if(!ref) {
             if(res fatal) {
-                println("trail = " + trail toString())
+                if(res params veryVerbose) {
+                    println("trail = " + trail toString())
+                }
                 token throwError("No such variable %s" format(toString()))
             }
             if(res params veryVerbose) {
