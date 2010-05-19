@@ -29,9 +29,16 @@ SequenceDriver: class extends Driver {
         oPaths := ArrayList<String> new()
 		
         for(sourceFolder in toCompile) {
-            if(params verbose) printf("Building source folder %s\n", sourceFolder name)
+            if(params verbose) printf("Building %s/\n", sourceFolder name)
             code := buildSourceFolder(sourceFolder, oPaths)
             if(code != 0) return code
+        }
+        
+        if(params libcache) {
+            path := ".libs" + File separator + module getUnderName() + ".a"
+            Archive saveAll(oPaths, path)
+            oPaths clear()
+            oPaths add(path)
         }
 		
 		if(params link) {
@@ -125,37 +132,20 @@ SequenceDriver: class extends Driver {
         // if lib-caching, we compile every object file to a .a static lib
         if(params libcache) {
             objectFiles add(outlib)
-        
-            if(archive exists?) {
-                for(module in sourceFolder modules) {
-                    if(!archive isUpToDate(module)) {
-                        if(params veryVerbose) printf("%s not in cache or out of date, recompiling\n", module getFullName())
-                        code := buildIndividual(module, sourceFolder, null)
-                        archive add(module)
-                        if(code != 0) return code
-                    } else {
-                        if(params veryVerbose) printf("%s is up-to-date, skipping.", module getFullName())
-                    }
-                }
-                
-                archive save(params)
-                return 0
-            }
         }
         
         oPaths := ArrayList<String> new()
         for(module in sourceFolder modules) {
-            code := buildIndividual(module, sourceFolder, oPaths)
-            archive add(module)
+            code := buildIndividual(module, sourceFolder, oPaths, archive)
             if(code != 0) return code
         }
         
         if(params libcache) {
             // now build a static library
-            if(params verbose) printf("Saving to library %s\n", outlib)
+            if(params veryVerbose) printf("Saving to library %s\n", outlib)
             archive save(params)
         } else {
-            if(params verbose) printf("Lib caching disabled, building from .o files\n")
+            if(params veryVerbose) printf("Lib caching disabled, building from .o files\n")
             objectFiles addAll(oPaths)
         }
         
@@ -166,7 +156,7 @@ SequenceDriver: class extends Driver {
     /**
        Build an individual ooc files to its .o file, add it to oPaths
      */
-    buildIndividual: func (module: Module, sourceFolder: SourceFolder, oPaths: List<String>) -> Int {
+    buildIndividual: func (module: Module, sourceFolder: SourceFolder, oPaths: List<String>, archive: Archive) -> Int {
         
         initCompiler(params compiler)
         params compiler setCompileOnly()
@@ -181,7 +171,11 @@ SequenceDriver: class extends Driver {
         cFile := File new(cPath)
         oFile := File new(oPath)
         
-        if(cFile lastModified() > oFile lastModified()) {
+        comparison := (archive ? File new(archive outlib) lastModified() : oFile lastModified())
+        
+        if(cFile lastModified() > comparison) {
+            
+            if(params veryVerbose) printf("%s not in cache or out of date, recompiling\n", module getFullName())
             
             params compiler addObjectFile(cPath)    
             params compiler setOutputPath(oPath)    
@@ -215,6 +209,8 @@ SequenceDriver: class extends Driver {
                 fprintf(stderr, "C compiler failed, aborting compilation process\n")
                 return code 
             }
+            
+            if(archive) archive add(module)
             
         } else {
             if(params veryVerbose) printf("Skipping %s, unchanged source.\n", cPath)

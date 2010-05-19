@@ -57,10 +57,13 @@ BuildParams: class {
     editor: String = ""
     
     // Remove the rock_tmp/ directory after the C compiler has finished
-    clean: Bool = true
+    clean: Bool = false
     
-    // Cache libs in a .libs/ directory
+    // Cache libs in `libcachePath` directory
     libcache: Bool = true
+    
+    // Path to store cache-libs
+    libcachePath := ".libs"
     
     // Add debug info to the generated C files (e.g. -g switch for gcc)
     debug: Bool = false

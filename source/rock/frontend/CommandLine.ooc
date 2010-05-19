@@ -137,6 +137,10 @@ CommandLine: class {
                     
                     params libcache = false
                     
+                } else if (option == "libcachepath") {
+                    
+                    params libcachePath = option substring(option indexOf('=') + 1)
+                    
                 } else if (option == "nolines") {
                     
                     params lineDirectives = false

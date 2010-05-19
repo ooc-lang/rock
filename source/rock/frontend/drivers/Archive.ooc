@@ -57,7 +57,6 @@ Archive: class {
        modules can be added all at once.
      */
     add: func (module: Module) {
-        printf("Added module %s to archive %s\n", module getFullName(), outlib)
         toAdd add(module)
     }
     
@@ -124,9 +123,26 @@ Archive: class {
         }
         
         File new(outlib) parent() mkdirs()
-        Process new(args) getOutput() println()
+        Process new(args) getOutput() print()
         
         _write()
+    }
+    
+    saveAll: static func (archives: List<String>, path: String) {
+        File new(path) remove() // if any
+        
+        args := ArrayList<String> new()
+        args add("ar")
+        // r = add with replacement
+        // s = create/update index
+        // c = create the .a library
+        // T = thin archive (allows to combine several .a into a single one)
+        args add("rcsT")
+        args add(path)
+        args addAll(archives)
+        
+        File new(path) parent() mkdirs()
+        Process new(args) getOutput() print()
     }
     
 }
