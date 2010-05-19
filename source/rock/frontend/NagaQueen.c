@@ -796,17 +796,19 @@ YY_ACTION(void) yy_1_EOL(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_X
 }
 YY_ACTION(void) yy_10_ValueCore(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
-#define t G->val[-1]
-#define m G->val[-2]
-#define c G->val[-3]
-#define s G->val[-4]
-#define d G->val[-5]
-#define f G->val[-6]
-#define b G->val[-7]
-#define h G->val[-8]
-#define o G->val[-9]
+#define v G->val[-1]
+#define t G->val[-2]
+#define m G->val[-3]
+#define c G->val[-4]
+#define s G->val[-5]
+#define d G->val[-6]
+#define f G->val[-7]
+#define b G->val[-8]
+#define h G->val[-9]
+#define o G->val[-10]
   yyprintf((stderr, "do yy_10_ValueCore\n"));
-   tokenPos; yy=nq_onVarAccess(core->this, NULL, yytext); ;
+   tokenPos; yy=nq_onVarAccess(core->this, NULL, v); ;
+#undef v
 #undef t
 #undef m
 #undef c
@@ -819,17 +821,19 @@ YY_ACTION(void) yy_10_ValueCore(GREG *G, char *yytext, int yyleng, yythunk *thun
 }
 YY_ACTION(void) yy_9_ValueCore(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
-#define t G->val[-1]
-#define m G->val[-2]
-#define c G->val[-3]
-#define s G->val[-4]
-#define d G->val[-5]
-#define f G->val[-6]
-#define b G->val[-7]
-#define h G->val[-8]
-#define o G->val[-9]
+#define v G->val[-1]
+#define t G->val[-2]
+#define m G->val[-3]
+#define c G->val[-4]
+#define s G->val[-5]
+#define d G->val[-6]
+#define f G->val[-7]
+#define b G->val[-8]
+#define h G->val[-9]
+#define o G->val[-10]
   yyprintf((stderr, "do yy_9_ValueCore\n"));
    yy=nq_onTypeAccess(core->this, t); ;
+#undef v
 #undef t
 #undef m
 #undef c
@@ -842,17 +846,19 @@ YY_ACTION(void) yy_9_ValueCore(GREG *G, char *yytext, int yyleng, yythunk *thunk
 }
 YY_ACTION(void) yy_8_ValueCore(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
-#define t G->val[-1]
-#define m G->val[-2]
-#define c G->val[-3]
-#define s G->val[-4]
-#define d G->val[-5]
-#define f G->val[-6]
-#define b G->val[-7]
-#define h G->val[-8]
-#define o G->val[-9]
+#define v G->val[-1]
+#define t G->val[-2]
+#define m G->val[-3]
+#define c G->val[-4]
+#define s G->val[-5]
+#define d G->val[-6]
+#define f G->val[-7]
+#define b G->val[-8]
+#define h G->val[-9]
+#define o G->val[-10]
   yyprintf((stderr, "do yy_8_ValueCore\n"));
    tokenPos; yy=nq_onNull(core->this); ;
+#undef v
 #undef t
 #undef m
 #undef c
@@ -865,17 +871,19 @@ YY_ACTION(void) yy_8_ValueCore(GREG *G, char *yytext, int yyleng, yythunk *thunk
 }
 YY_ACTION(void) yy_7_ValueCore(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
-#define t G->val[-1]
-#define m G->val[-2]
-#define c G->val[-3]
-#define s G->val[-4]
-#define d G->val[-5]
-#define f G->val[-6]
-#define b G->val[-7]
-#define h G->val[-8]
-#define o G->val[-9]
+#define v G->val[-1]
+#define t G->val[-2]
+#define m G->val[-3]
+#define c G->val[-4]
+#define s G->val[-5]
+#define d G->val[-6]
+#define f G->val[-7]
+#define b G->val[-8]
+#define h G->val[-9]
+#define o G->val[-10]
   yyprintf((stderr, "do yy_7_ValueCore\n"));
    yy=m; ;
+#undef v
 #undef t
 #undef m
 #undef c
@@ -888,17 +896,19 @@ YY_ACTION(void) yy_7_ValueCore(GREG *G, char *yytext, int yyleng, yythunk *thunk
 }
 YY_ACTION(void) yy_6_ValueCore(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
-#define t G->val[-1]
-#define m G->val[-2]
-#define c G->val[-3]
-#define s G->val[-4]
-#define d G->val[-5]
-#define f G->val[-6]
-#define b G->val[-7]
-#define h G->val[-8]
-#define o G->val[-9]
+#define v G->val[-1]
+#define t G->val[-2]
+#define m G->val[-3]
+#define c G->val[-4]
+#define s G->val[-5]
+#define d G->val[-6]
+#define f G->val[-7]
+#define b G->val[-8]
+#define h G->val[-9]
+#define o G->val[-10]
   yyprintf((stderr, "do yy_6_ValueCore\n"));
    tokenPos; yy=nq_onBoolLiteral(core->this, yy); ;
+#undef v
 #undef t
 #undef m
 #undef c
@@ -911,17 +921,19 @@ YY_ACTION(void) yy_6_ValueCore(GREG *G, char *yytext, int yyleng, yythunk *thunk
 }
 YY_ACTION(void) yy_5_ValueCore(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
-#define t G->val[-1]
-#define m G->val[-2]
-#define c G->val[-3]
-#define s G->val[-4]
-#define d G->val[-5]
-#define f G->val[-6]
-#define b G->val[-7]
-#define h G->val[-8]
-#define o G->val[-9]
+#define v G->val[-1]
+#define t G->val[-2]
+#define m G->val[-3]
+#define c G->val[-4]
+#define s G->val[-5]
+#define d G->val[-6]
+#define f G->val[-7]
+#define b G->val[-8]
+#define h G->val[-9]
+#define o G->val[-10]
   yyprintf((stderr, "do yy_5_ValueCore\n"));
    tokenPos; yy=nq_onDecLiteral(core->this, yytext); ;
+#undef v
 #undef t
 #undef m
 #undef c
@@ -934,17 +946,19 @@ YY_ACTION(void) yy_5_ValueCore(GREG *G, char *yytext, int yyleng, yythunk *thunk
 }
 YY_ACTION(void) yy_4_ValueCore(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
-#define t G->val[-1]
-#define m G->val[-2]
-#define c G->val[-3]
-#define s G->val[-4]
-#define d G->val[-5]
-#define f G->val[-6]
-#define b G->val[-7]
-#define h G->val[-8]
-#define o G->val[-9]
+#define v G->val[-1]
+#define t G->val[-2]
+#define m G->val[-3]
+#define c G->val[-4]
+#define s G->val[-5]
+#define d G->val[-6]
+#define f G->val[-7]
+#define b G->val[-8]
+#define h G->val[-9]
+#define o G->val[-10]
   yyprintf((stderr, "do yy_4_ValueCore\n"));
    tokenPos; yy=nq_onFloatLiteral(core->this, yytext); ;
+#undef v
 #undef t
 #undef m
 #undef c
@@ -957,17 +971,19 @@ YY_ACTION(void) yy_4_ValueCore(GREG *G, char *yytext, int yyleng, yythunk *thunk
 }
 YY_ACTION(void) yy_3_ValueCore(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
-#define t G->val[-1]
-#define m G->val[-2]
-#define c G->val[-3]
-#define s G->val[-4]
-#define d G->val[-5]
-#define f G->val[-6]
-#define b G->val[-7]
-#define h G->val[-8]
-#define o G->val[-9]
+#define v G->val[-1]
+#define t G->val[-2]
+#define m G->val[-3]
+#define c G->val[-4]
+#define s G->val[-5]
+#define d G->val[-6]
+#define f G->val[-7]
+#define b G->val[-8]
+#define h G->val[-9]
+#define o G->val[-10]
   yyprintf((stderr, "do yy_3_ValueCore\n"));
    tokenPos; yy=nq_onBinLiteral(core->this, yytext); ;
+#undef v
 #undef t
 #undef m
 #undef c
@@ -980,17 +996,19 @@ YY_ACTION(void) yy_3_ValueCore(GREG *G, char *yytext, int yyleng, yythunk *thunk
 }
 YY_ACTION(void) yy_2_ValueCore(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
-#define t G->val[-1]
-#define m G->val[-2]
-#define c G->val[-3]
-#define s G->val[-4]
-#define d G->val[-5]
-#define f G->val[-6]
-#define b G->val[-7]
-#define h G->val[-8]
-#define o G->val[-9]
+#define v G->val[-1]
+#define t G->val[-2]
+#define m G->val[-3]
+#define c G->val[-4]
+#define s G->val[-5]
+#define d G->val[-6]
+#define f G->val[-7]
+#define b G->val[-8]
+#define h G->val[-9]
+#define o G->val[-10]
   yyprintf((stderr, "do yy_2_ValueCore\n"));
    tokenPos; yy=nq_onHexLiteral(core->this, yytext); ;
+#undef v
 #undef t
 #undef m
 #undef c
@@ -1003,17 +1021,19 @@ YY_ACTION(void) yy_2_ValueCore(GREG *G, char *yytext, int yyleng, yythunk *thunk
 }
 YY_ACTION(void) yy_1_ValueCore(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
-#define t G->val[-1]
-#define m G->val[-2]
-#define c G->val[-3]
-#define s G->val[-4]
-#define d G->val[-5]
-#define f G->val[-6]
-#define b G->val[-7]
-#define h G->val[-8]
-#define o G->val[-9]
+#define v G->val[-1]
+#define t G->val[-2]
+#define m G->val[-3]
+#define c G->val[-4]
+#define s G->val[-5]
+#define d G->val[-6]
+#define f G->val[-7]
+#define b G->val[-8]
+#define h G->val[-9]
+#define o G->val[-10]
   yyprintf((stderr, "do yy_1_ValueCore\n"));
    tokenPos; yy=nq_onOctLiteral(core->this, yytext); ;
+#undef v
 #undef t
 #undef m
 #undef c
@@ -2100,7 +2120,7 @@ YY_ACTION(void) yy_2_ImplicitDecl(GREG *G, char *yytext, int yyleng, yythunk *th
 #define i G->val[-1]
 #define v G->val[-2]
   yyprintf((stderr, "do yy_2_ImplicitDecl\n"));
-   yy=nq_onVarAccess(core->this, NULL, yytext); ;
+   yy=nq_onVarAccess(core->this, NULL, i); ;
 #undef i
 #undef v
 }
@@ -4264,27 +4284,27 @@ YY_RULE(int) yy_ArrayLiteral(GREG *G)
   return 0;
 }
 YY_RULE(int) yy_ValueCore(GREG *G)
-{  int yypos0= G->pos, yythunkpos0= G->thunkpos;  yyDo(G, yyPush, 9, 0);
+{  int yypos0= G->pos, yythunkpos0= G->thunkpos;  yyDo(G, yyPush, 10, 0);
   yyprintf((stderr, "%s\n", "ValueCore"));
-  {  int yypos99= G->pos, yythunkpos99= G->thunkpos;  if (!yy_OCT_LIT(G)) { goto l100; }  yyDo(G, yySet, -9, 0);  if (!yy__(G)) { goto l100; }  yyDo(G, yy_1_ValueCore, G->begin, G->end);  goto l99;
-  l100:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_HEX_LIT(G)) { goto l101; }  yyDo(G, yySet, -8, 0);  if (!yy__(G)) { goto l101; }  yyDo(G, yy_2_ValueCore, G->begin, G->end);  goto l99;
-  l101:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_BIN_LIT(G)) { goto l102; }  yyDo(G, yySet, -7, 0);  if (!yy__(G)) { goto l102; }  yyDo(G, yy_3_ValueCore, G->begin, G->end);  goto l99;
-  l102:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_FLOAT_LIT(G)) { goto l103; }  yyDo(G, yySet, -6, 0);  if (!yy__(G)) { goto l103; }  yyDo(G, yy_4_ValueCore, G->begin, G->end);  goto l99;
-  l103:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_DEC_LIT(G)) { goto l104; }  yyDo(G, yySet, -5, 0);  if (!yy__(G)) { goto l104; }  yyDo(G, yy_5_ValueCore, G->begin, G->end);  goto l99;
-  l104:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_STRING_LIT(G)) { goto l105; }  yyDo(G, yySet, -4, 0);  if (!yy__(G)) { goto l105; }  goto l99;
-  l105:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_CHAR_LIT(G)) { goto l106; }  yyDo(G, yySet, -3, 0);  if (!yy__(G)) { goto l106; }  goto l99;
-  l106:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_BOOL_LIT(G)) { goto l107; }  yyDo(G, yySet, -7, 0);  if (!yy__(G)) { goto l107; }  yyDo(G, yy_6_ValueCore, G->begin, G->end);  goto l99;
-  l107:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_Match(G)) { goto l108; }  yyDo(G, yySet, -2, 0);  yyDo(G, yy_7_ValueCore, G->begin, G->end);  goto l99;
+  {  int yypos99= G->pos, yythunkpos99= G->thunkpos;  if (!yy_OCT_LIT(G)) { goto l100; }  yyDo(G, yySet, -10, 0);  if (!yy__(G)) { goto l100; }  yyDo(G, yy_1_ValueCore, G->begin, G->end);  goto l99;
+  l100:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_HEX_LIT(G)) { goto l101; }  yyDo(G, yySet, -9, 0);  if (!yy__(G)) { goto l101; }  yyDo(G, yy_2_ValueCore, G->begin, G->end);  goto l99;
+  l101:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_BIN_LIT(G)) { goto l102; }  yyDo(G, yySet, -8, 0);  if (!yy__(G)) { goto l102; }  yyDo(G, yy_3_ValueCore, G->begin, G->end);  goto l99;
+  l102:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_FLOAT_LIT(G)) { goto l103; }  yyDo(G, yySet, -7, 0);  if (!yy__(G)) { goto l103; }  yyDo(G, yy_4_ValueCore, G->begin, G->end);  goto l99;
+  l103:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_DEC_LIT(G)) { goto l104; }  yyDo(G, yySet, -6, 0);  if (!yy__(G)) { goto l104; }  yyDo(G, yy_5_ValueCore, G->begin, G->end);  goto l99;
+  l104:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_STRING_LIT(G)) { goto l105; }  yyDo(G, yySet, -5, 0);  if (!yy__(G)) { goto l105; }  goto l99;
+  l105:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_CHAR_LIT(G)) { goto l106; }  yyDo(G, yySet, -4, 0);  if (!yy__(G)) { goto l106; }  goto l99;
+  l106:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_BOOL_LIT(G)) { goto l107; }  yyDo(G, yySet, -8, 0);  if (!yy__(G)) { goto l107; }  yyDo(G, yy_6_ValueCore, G->begin, G->end);  goto l99;
+  l107:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_Match(G)) { goto l108; }  yyDo(G, yySet, -3, 0);  yyDo(G, yy_7_ValueCore, G->begin, G->end);  goto l99;
   l108:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_NULL_KW(G)) { goto l109; }
   {  int yypos110= G->pos, yythunkpos110= G->thunkpos;  if (!yymatchClass(G, (unsigned char *)"\377\377\377\377\377\377\377\377\001\000\000\170\001\000\000\370\377\377\377\377\377\377\377\377\377\377\377\377\377\377\377\377")) goto l109;  G->pos= yypos110; G->thunkpos= yythunkpos110;
   }  if (!yy__(G)) { goto l109; }  yyDo(G, yy_8_ValueCore, G->begin, G->end);  goto l99;
   l109:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_ArrayLiteral(G)) { goto l111; }  goto l99;
   l111:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_FunctionCall(G)) { goto l112; }  goto l99;
-  l112:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_GenericType(G)) { goto l113; }  yyDo(G, yySet, -1, 0);  yyDo(G, yy_9_ValueCore, G->begin, G->end);  goto l99;
-  l113:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_VariableAccess(G)) { goto l98; }  yyDo(G, yy_10_ValueCore, G->begin, G->end);
+  l112:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_GenericType(G)) { goto l113; }  yyDo(G, yySet, -2, 0);  yyDo(G, yy_9_ValueCore, G->begin, G->end);  goto l99;
+  l113:;	  G->pos= yypos99; G->thunkpos= yythunkpos99;  if (!yy_VariableAccess(G)) { goto l98; }  yyDo(G, yySet, -1, 0);  yyDo(G, yy_10_ValueCore, G->begin, G->end);
   }
   l99:;	
-  yyprintf((stderr, "  ok   %s @ %s\n", "ValueCore", G->buf+G->pos));  yyDo(G, yyPop, 9, 0);
+  yyprintf((stderr, "  ok   %s @ %s\n", "ValueCore", G->buf+G->pos));  yyDo(G, yyPop, 10, 0);
   return 1;
   l98:;	  G->pos= yypos0; G->thunkpos= yythunkpos0;
   yyprintf((stderr, "  fail %s @ %s\n", "ValueCore", G->buf+G->pos));
