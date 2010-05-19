@@ -57,7 +57,7 @@ BuildParams: class {
     editor: String = ""
     
     // Remove the rock_tmp/ directory after the C compiler has finished
-    clean: Bool = false
+    clean: Bool = true
     
     // Cache libs in `libcachePath` directory
     libcache: Bool = true
