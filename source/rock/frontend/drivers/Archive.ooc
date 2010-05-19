@@ -3,7 +3,8 @@ import structs/[List, ArrayList, HashMap]
 import io/[File, FileReader, FileWriter], os/Process
 
 import ../[AstBuilder, BuildParams]
-import ../../middle/[Module]
+
+import ../../middle/[Module, TypeDecl, VariableDecl, FunctionDecl]
 
 /**
    Manage .a files stored in .libs/, with their .a.cacheinfo
@@ -19,7 +20,7 @@ Archive: class {
     outlib: String
     
     /** List of elements contained in the archive */
-    elements := HashMap<String, ArchiveElement> new()
+    elements := HashMap<String, ArchiveModule> new()
     
     /** List of elements to add to the archive when save() is called */
     toAdd := ArrayList<Module> new()
@@ -34,9 +35,10 @@ Archive: class {
     _read: func {
         fR := FileReader new(outlib + ".cacheinfo")
         cacheSize := fR readLine() toInt()
+        printf("Got %d elements in cache\n", cacheSize)
         
         for(i in 0..cacheSize) {
-            element := ArchiveElement new(fR)
+            element := ArchiveModule new(fR)
             map put(element module, this)
             elements put(element oocPath, element)
         }
@@ -45,8 +47,8 @@ Archive: class {
     
     _write: func {
         fW := FileWriter new(outlib + ".cacheinfo")
-        fW writef("%d\n", elements size())
         
+        fW writef("%d\n", elements size())
         for(element in elements) {
             element write(fW)
         }
@@ -137,7 +139,7 @@ Archive: class {
             oPath := "%s%c%s.o" format(params outPath path, File separator, module getPath(""))
             args add(oPath)
             
-            element := ArchiveElement new(module)
+            element := ArchiveModule new(module)
             
             elements remove(element oocPath) // replace
             elements put(element oocPath, element)
@@ -177,19 +179,25 @@ Archive: class {
 /**
    Information about an ooc module in an archive
  */
-ArchiveElement: class {
+ArchiveModule: class {
     
     oocPath: String
     lastModified: Long
     module: Module
     
+    types := HashMap<String, ArchiveType> new()
+    
     /**
        Create info about a module
      */
-    init: func ~fromModule (module: Module) {
-        module = module
+    init: func ~fromModule (=module) {
         oocPath = module getOocPath()
         lastModified = File new(oocPath) lastModified()
+        
+        for(tDecl in module getTypes()) {
+            archType := ArchiveType new(tDecl)
+            types put(archType name, archType)
+        }
     }
     
     /**
@@ -198,6 +206,18 @@ ArchiveElement: class {
     init: func ~fromFileReader(fR: FileReader) {
         oocPath = fR readLine()
         lastModified = fR readLine() toLong()
+        
+        printf("oocPath = %s, lastModified = %ld\n", oocPath, lastModified)
+        
+        typesSize := fR readLine() toInt()
+        printf("Got %d types to read\n", typesSize)
+        
+        for(i in 0..typesSize) {
+            printf("reading %d, ", i)
+            archType := ArchiveType new(fR)
+            types put(archType name, archType)
+        }
+        println()
         
         _getModule()
     }
@@ -227,7 +247,98 @@ ArchiveElement: class {
        Write info about this archive element to a .cacheinfo file
      */
     write: func (fW: FileWriter) {
-        fW writef("%s\n%ld\n", oocPath, lastModified)
+        // ooc path
+        // lastModified
+        // number of types
+        fW writef("%s\n%ld\n%d\n", oocPath, lastModified, types size())
+     
+        printf("%d types to write (keys size = %d)\n", types size(), types getKeys() size())
+        // write each type
+        i := 0
+        for(type in types) {
+            printf("writing %d, ", i)
+            type write(fW)
+            i += 1
+        }
+        println()
     }
     
 }
+
+/**
+   Information about an ooc type
+ */
+ArchiveType: class {
+
+    name: String
+
+    staticVariables := ArrayList<String> new()
+    variables := ArrayList<String> new()
+    functions := ArrayList<String> new()
+    
+    /**
+       Create type info from a TypeDecl
+     */
+    init: func ~fromTypeDecl (typeDecl: TypeDecl) {
+        name = typeDecl getFullName()
+        
+        printf("Initializing from TypeDecl %s\n", typeDecl getFullName())
+        
+        for (vDecl in typeDecl getVariables()) {
+            list := (vDecl isStatic() ? staticVariables : variables)
+            list add(vDecl getName())
+        }
+        
+        for (fDecl in typeDecl getFunctions()) {
+            functions add(fDecl getFullName())
+        }
+    }
+    
+    init: func ~fromFileReader (fR: FileReader) {
+        name = fR readLine()
+        printf("Read type %s\n", name)
+        
+        // read static variables
+        staticVariablesSize := fR readLine() toInt()
+        for(i in 0..staticVariablesSize) {
+            staticVariables add(fR readLine())
+        }
+        
+        // read instance variables
+        variablesSize := fR readLine() toInt()
+        for(i in 0..variablesSize) {
+            variables add(fR readLine())
+        }
+        
+        // read functions
+        functionsSize := fR readLine() toInt()
+        for(i in 0..functionsSize) {
+            functions add(fR readLine())
+        }
+    }
+    
+    write: func (fW: FileWriter) {
+        fW writef("%s\n", name)
+        
+        // write static variables
+        fW writef("%d\n", staticVariables size())
+        for(variable in staticVariables) {
+            fW writef("%s\n", variable)
+        }
+        
+        // write instance variables
+        fW writef("%d\n", variables size())
+        for(variable in variables) {
+            fW writef("%s\n", variable)
+        }
+        
+        // write functions
+        fW writef("%d\n", functions size())
+        for(function in functions) {
+            fW writef("%s\n", function)
+        }
+    }
+    
+}
+
+
