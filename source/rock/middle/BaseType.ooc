@@ -4,7 +4,7 @@ import ../backend/cnaughty/AwesomeWriter, ../frontend/BuildParams
 import tinker/[Response, Resolver, Trail]
 
 import Type, Declaration, VariableAccess, VariableDecl, TypeDecl,
-       InterfaceDecl, Node, ClassDecl, CoverDecl, Cast
+       InterfaceDecl, Node, ClassDecl, CoverDecl, Cast, FuncType
 
 BaseType: class extends Type {
 
@@ -356,6 +356,9 @@ BaseType: class extends Type {
                     // resolves to an access to another generic type
                     result = BaseType new(ref as VariableDecl getName(), token)
                     result setRef(ref) // FIXME: that is experimental. is that a good idea?
+                } else if(ref instanceOf(FuncType)) {
+                    printf("ref of %s is a %s!\n", candidate toString(), ref class name)
+                    result = ref as FuncType
                 }
                 return result
             }

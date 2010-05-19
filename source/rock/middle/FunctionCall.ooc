@@ -2,7 +2,7 @@ import structs/ArrayList, text/Buffer
 import ../frontend/[Token, BuildParams, CommandLine]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
-       InterfaceDecl, Cast, NamespaceDecl, BaseType
+       InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType
 import tinker/[Response, Resolver, Trail]
 
 FunctionCall: class extends Expression {
@@ -499,7 +499,10 @@ FunctionCall: class extends Expression {
             typeResult := resolveTypeArg(typeArg name, trail, res, finalScore&)
             if(finalScore == -1) break
             if(typeResult) {
-                typeArgs add(VariableAccess new(typeResult getName(), nullToken))
+                result := typeResult instanceOf(FuncType) ? \
+                    VariableAccess new("Pointer", typeResult token) : \
+                    VariableAccess new(typeResult getName(), typeResult token)
+                typeArgs add(result)
             } else break // typeArgs must be in order
             
             i += 1
