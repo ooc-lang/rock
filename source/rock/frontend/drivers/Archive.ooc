@@ -88,7 +88,7 @@ Archive: class {
         oocPath := module getOocPath()
         element := elements get(oocPath)
         if(element == null) {
-            printf("%s not in the cache, recompiling...\n", module getFullName())
+            //printf("%s not in the cache, recompiling...\n", module getFullName())
             return false
         }
     
@@ -99,7 +99,7 @@ Archive: class {
         if(ourself) {
             lastModified := File new(oocPath) lastModified()
             if(lastModified != element lastModified) {
-                printf("%s out-of-date, recompiling... (%d vs %d, oocPath = %s)\n", module getFullName(), lastModified, element lastModified, oocPath)
+                //printf("%s out-of-date, recompiling... (%d vs %d, oocPath = %s)\n", module getFullName(), lastModified, element lastModified, oocPath)
                 return false
             }
         }
@@ -110,8 +110,8 @@ Archive: class {
             subArchive := map get(imp getModule())
             
             if(subArchive == null || !subArchive _upToDate?(imp getModule(), done, false)) {
-                printf("%s recompiling because of dependency %s (subArchive = %s)\n",
-                   module getFullName(), imp getModule() getFullName(), subArchive ? subArchive outlib : "(nil)")
+                //printf("%s recompiling because of dependency %s (subArchive = %s)\n",
+                //   module getFullName(), imp getModule() getFullName(), subArchive ? subArchive outlib : "(nil)")
                 return false
             }
         }
@@ -233,32 +233,32 @@ ArchiveModule: class {
                 for (variable in tDecl getVariables()) {
                     if(variable isStatic) {
                         if(!statVarIter hasNext()) {
-                            printf("Static var %s has changed, %s not up-to-date\n", variable getName(), oocPath)
+                            //printf("Static var %s has changed, %s not up-to-date\n", variable getName(), oocPath)
                             return false
                         }
                         next := statVarIter next()
                         if(next != variable getName()) {
-                            printf("Static var %s has changed, %s not up-to-date\n", variable getName(), oocPath)
+                            //printf("Static var %s has changed, %s not up-to-date\n", variable getName(), oocPath)
                             return false
                         }
                     } else {
                         if(!instanceVarIter hasNext()) {
-                            printf("Instance var %s has changed, %s not up-to-date\n", variable getName(), oocPath)
+                            //printf("Instance var %s has changed, %s not up-to-date\n", variable getName(), oocPath)
                             return false
                         }
                         next := instanceVarIter next()
                         if(next != variable getName()) {
-                            printf("Instance var %s has changed, %s not up-to-date\n", variable getName(), oocPath)
+                            //printf("Instance var %s has changed, %s not up-to-date\n", variable getName(), oocPath)
                             return false
                         }
                     }
                 }
                 if(statVarIter hasNext()) {
-                    printf("Less static vars, %s not up-to-date\n", oocPath)
+                    //printf("Less static vars, %s not up-to-date\n", oocPath)
                     return false
                 }
                 if(instanceVarIter hasNext()) {
-                    printf("Less instance vars, %s not up-to-date\n", oocPath)
+                    //printf("Less instance vars, %s not up-to-date\n", oocPath)
                     return false
                 }
                 
@@ -266,18 +266,18 @@ ArchiveModule: class {
                 
                 for (function in tDecl getFunctions()) {
                     if(!functionIter hasNext()) {
-                        printf("Function %s has changed, %s not up-to-date\n", function getFullName(), oocPath)
+                        //printf("Function %s has changed, %s not up-to-date\n", function getFullName(), oocPath)
                         return false
                     }
                     next := functionIter next()
                     if(next != function getFullName()) {
-                        printf("Function %s has changed, %s not up-to-date\n", function getFullName(), oocPath)
+                        //printf("Function %s has changed, %s not up-to-date\n", function getFullName(), oocPath)
                         return false
                     }
                 }
                 
                 if(functionIter hasNext()) {
-                    printf("Less methods, %s not up-to-date\n", oocPath)
+                    //printf("Less methods, %s not up-to-date\n", oocPath)
                     return false
                 }
             }
