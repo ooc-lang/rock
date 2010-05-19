@@ -194,7 +194,7 @@ TypeDecl: abstract class extends Declaration {
     }
     
     getVariables: func -> HashMap<String, VariableDecl> { variables }
-    getFunctions: func -> HashMap<String, VariableDecl> { functions }
+    getFunctions: func -> HashMap<String, FunctionDecl> { functions }
     
     underName: func -> String {
         
