@@ -33,30 +33,19 @@ ClassDecl: class extends TypeDecl {
     accept: func (visitor: Visitor) { visitor visitClassDecl(this) }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
-
-        shouldLoad := false
-    	shouldDefault := false
-	    for(vDecl in variables) {
-			if(vDecl getExpr() != null) {
-                if(vDecl isStatic()) {
-                    shouldLoad = true
-                } else {
-                    shouldDefault = true
-                }
-                if(shouldLoad && shouldDefault) break
-			}
-	    }
         
-        // TODO: a more elegant solution maybe?
-        meat : ClassDecl = isMeta ? this : getMeta()
-        if(shouldDefault && !meat functions contains(This DEFAULTS_FUNC_NAME)) {
-			addFunction(FunctionDecl new(This DEFAULTS_FUNC_NAME, token))
-	    }
-        if(shouldLoad && !meat functions contains(This LOAD_FUNC_NAME)) {
-            fDecl := FunctionDecl new(This LOAD_FUNC_NAME, token)
-            fDecl setStatic(true)
-			addFunction(fDecl)
-	    }
+        if(isMeta && getNonMeta() class == ClassDecl) {
+        
+            if(!functions contains(This DEFAULTS_FUNC_NAME)) {
+                addFunction(FunctionDecl new(This DEFAULTS_FUNC_NAME, token))
+            }
+            if(!functions contains(This LOAD_FUNC_NAME)) {
+                fDecl := FunctionDecl new(This LOAD_FUNC_NAME, token)
+                fDecl setStatic(true)
+                addFunction(fDecl)
+            }
+            
+        }
     
         {
             response := super(trail, res)
