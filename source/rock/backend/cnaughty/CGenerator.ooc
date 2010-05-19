@@ -164,16 +164,11 @@ CGenerator: class extends Skeleton {
     
     visitEnumDecl: func (eDecl: EnumDecl) {
         current = fw
-
-        current nl(). app("typedef int ")
-
-        if(eDecl isExtern()) {
-            current app(eDecl getExternName())
-        } else {
-            current app(eDecl underName())
+        
+        // extern EnumDecls shouldn't print a typedef.
+        if(!eDecl isExtern()) {
+            current nl(). app("typedef int "). app(eDecl underName()). app(';')
         }
-
-        current app(';')
     }
 
     /** Write a variable access */
