@@ -371,11 +371,15 @@ String: cover from Char* {
         if(length() == 0) return this
 
         start := 0
-        while(this[start] == c) start += 1;
+        while(this[start] == c) {
+            start += 1
+        }
 
         end := length()
         if(start >= end) return ""
-        while(this[end - 1] == c) end -= 1;
+        while(this[end - 1] == c) {
+            end -= 1
+        }
 
         if(start != 0 || end != length()) return substring(start, end)
 
