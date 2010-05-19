@@ -2,7 +2,7 @@ import structs/[List, ArrayList, HashMap]
 
 import io/[File, FileReader, FileWriter], os/Process
 
-import ../BuildParams
+import ../[AstBuilder, BuildParams]
 import ../../middle/[Module]
 
 /**
@@ -12,6 +12,8 @@ import ../../middle/[Module]
    :author: Amos Wenger (nddrylliog)
  */
 Archive: class {
+
+    map := static HashMap<Module, Archive> new()
 
     /** Path of the file where the archive is stored */
     outlib: String
@@ -34,9 +36,9 @@ Archive: class {
         cacheSize := fR readLine() toInt()
         
         for(i in 0..cacheSize) {
-            name := fR readLine()
-            lastModified := fR readLine() toLong()
-            elements put(name, ArchiveElement new(name, lastModified))
+            element := ArchiveElement new(fR)
+            map put(element module, this)
+            elements put(element oocPath, element)
         }
         fR close()
     }
@@ -46,7 +48,7 @@ Archive: class {
         fW writef("%d\n", elements size())
         
         for(element in elements) {
-            fW writef("%s\n%ld\n", element oocPath, element lastModified)
+            element write(fW)
         }
         fW close()
     }
@@ -58,6 +60,7 @@ Archive: class {
      */
     add: func (module: Module) {
         toAdd add(module)
+        map put(module, this)
     }
     
     /**
@@ -74,13 +77,37 @@ Archive: class {
        Check if a module is present and up-to-date
        in the given archive.
      */
-    isUpToDate: func (module: Module) -> Bool {
+    upToDate?: func (module: Module) -> Bool {
+        _upToDate?(module, ArrayList<Module> new())
+    }
+    
+    _upToDate?: func (module: Module, done: List<Module>) -> Bool {
+        done add(module)
+        
         oocPath := module getOocPath()
-        
         element := elements get(oocPath)
+        if(element == null) {
+            //printf("%s not in the cache, recompiling...\n", module getFullName())
+            return false
+        }
         
-        if(element == null) return false
-        if(File new(oocPath) lastModified() != element lastModified) return false
+        lastModified := File new(oocPath) lastModified()
+        if(lastModified != element lastModified) {
+            //printf("%s out-of-date, recompiling... (%d vs %d, oocPath = %s)\n", module getFullName(), lastModified, element lastModified, oocPath)
+            return false
+        }
+        
+        for(imp in module getAllImports()) {
+            if(done contains(imp getModule())) continue
+            
+            subArchive := map get(imp getModule())
+            
+            if(subArchive == null || !subArchive _upToDate?(imp getModule(), done)) {
+                //printf("%s recompiling because of dependency %s (subArchive = %s)\n",
+                //   module getFullName(), imp getModule() getFullName(), subArchive ? subArchive outlib : "(nil)")
+                return false
+            }
+        }
         
         return true
     }
@@ -154,12 +181,53 @@ ArchiveElement: class {
     
     oocPath: String
     lastModified: Long
+    module: Module
     
+    /**
+       Create info about a module
+     */
     init: func ~fromModule (module: Module) {
+        module = module
         oocPath = module getOocPath()
         lastModified = File new(oocPath) lastModified()
     }
     
-    init: func ~pathLastMod(=oocPath, =lastModified) {}
+    /**
+       Read info about an archive element from a .cacheinfo file
+     */
+    init: func ~fromFileReader(fR: FileReader) {
+        oocPath = fR readLine()
+        lastModified = fR readLine() toLong()
+        
+        _getModule()
+    }
+    
+    /**
+       Retrieve the module from the AstBuilder's cache, and throw
+       an exception if it's not found
+     */
+    _getModule: func {
+        module = AstBuilder cache get(oocPath)
+        
+        if(module == null) {
+            realPath := File new(oocPath) getAbsolutePath()
+            module = AstBuilder cache get(realPath)
+            if(module == null) {
+                printf("Cache has keys:\n")
+                for(key in AstBuilder cache getKeys()) {
+                    printf(" - %s\n", key)
+                }
+
+                Exception new(This, "Module not found in cache " + realPath) throw()
+            }
+        }
+    }
+
+    /**
+       Write info about this archive element to a .cacheinfo file
+     */
+    write: func (fW: FileWriter) {
+        fW writef("%s\n%ld\n", oocPath, lastModified)
+    }
     
 }

@@ -132,11 +132,23 @@ SequenceDriver: class extends Driver {
         // if lib-caching, we compile every object file to a .a static lib
         if(params libcache) {
             objectFiles add(outlib)
+            
+            if(archive exists?) {
+                for(module in sourceFolder modules) {
+                    if(!archive upToDate?(module)) {
+                        code := buildIndividual(module, sourceFolder, null, archive, true)
+                        if(code != 0) return code
+                    }
+                }
+                
+                archive save(params)
+                return 0
+            }
         }
         
         oPaths := ArrayList<String> new()
         for(module in sourceFolder modules) {
-            code := buildIndividual(module, sourceFolder, oPaths, archive)
+            code := buildIndividual(module, sourceFolder, oPaths, archive, false)
             if(code != 0) return code
         }
         
@@ -156,7 +168,7 @@ SequenceDriver: class extends Driver {
     /**
        Build an individual ooc files to its .o file, add it to oPaths
      */
-    buildIndividual: func (module: Module, sourceFolder: SourceFolder, oPaths: List<String>, archive: Archive) -> Int {
+    buildIndividual: func (module: Module, sourceFolder: SourceFolder, oPaths: List<String>, archive: Archive, force: Bool) -> Int {
         
         initCompiler(params compiler)
         params compiler setCompileOnly()
@@ -173,7 +185,7 @@ SequenceDriver: class extends Driver {
         
         comparison := (archive ? File new(archive outlib) lastModified() : oFile lastModified())
         
-        if(cFile lastModified() > comparison) {
+        if(force || cFile lastModified() > comparison) {
             
             if(params veryVerbose) printf("%s not in cache or out of date, recompiling\n", module getFullName())
             
