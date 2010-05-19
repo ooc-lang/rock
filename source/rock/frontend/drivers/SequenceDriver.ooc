@@ -7,9 +7,16 @@ import Driver, Archive
 
 SourceFolder: class {
     name: String
-    modules := ArrayList<Module> new()
+    params: BuildParams
+    outlib: String
     
-    init: func (=name) {}
+    modules := ArrayList<Module> new()
+    archive : Archive
+    
+    init: func (=name, =params) {
+        outlib = "%s%c%s-%s.a" format(params libcachePath, File separator, name, Target toString())
+        archive = Archive new(outlib)
+    }
 }
 
 SequenceDriver: class extends Driver {
@@ -35,7 +42,7 @@ SequenceDriver: class extends Driver {
         }
         
         if(params libcache) {
-            path := ".libs" + File separator + module getUnderName() + ".a"
+            path := "%s%c%s.a" format(params libcachePath, File separator, module getUnderName())
             Archive saveAll(oPaths, path)
             oPaths clear()
             oPaths add(path)
@@ -126,12 +133,11 @@ SequenceDriver: class extends Driver {
      */
     buildSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>) -> Int {
         
-        outlib := ".libs%c%s-%s.a" format(File separator, sourceFolder name, Target toString())
-        archive := Archive new(outlib)
+        archive := sourceFolder archive
         
         // if lib-caching, we compile every object file to a .a static lib
         if(params libcache) {
-            objectFiles add(outlib)
+            objectFiles add(sourceFolder outlib)
             
             if(archive exists?) {
                 for(module in sourceFolder modules) {
@@ -154,7 +160,7 @@ SequenceDriver: class extends Driver {
         
         if(params libcache) {
             // now build a static library
-            if(params veryVerbose) printf("Saving to library %s\n", outlib)
+            if(params veryVerbose) printf("Saving to library %s\n", sourceFolder outlib)
             archive save(params)
         } else {
             if(params veryVerbose) printf("Lib caching disabled, building from .o files\n")
@@ -273,7 +279,7 @@ SequenceDriver: class extends Driver {
         
         sourceFolder := toCompile get(name)
         if(sourceFolder == null) {
-            sourceFolder = SourceFolder new(name)
+            sourceFolder = SourceFolder new(name, params)
             toCompile put(name, sourceFolder)
         }
         
