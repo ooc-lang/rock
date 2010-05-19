@@ -91,15 +91,11 @@ Archive: class {
             //printf("%s not in the cache, recompiling...\n", module getFullName())
             return false
         }
-    
-        if(!element upToDate?) {
-            return false
-        }
-        
-        if(ourself) {
-            lastModified := File new(oocPath) lastModified()
-            if(lastModified != element lastModified) {
-                //printf("%s out-of-date, recompiling... (%d vs %d, oocPath = %s)\n", module getFullName(), lastModified, element lastModified, oocPath)
+
+        lastModified := File new(oocPath) lastModified()
+        if(lastModified != element lastModified) {
+            //printf("%s out-of-date, recompiling... (%d vs %d, oocPath = %s)\n", module getFullName(), lastModified, element lastModified, oocPath)
+            if(ourself || !element upToDate?) {
                 return false
             }
         }
