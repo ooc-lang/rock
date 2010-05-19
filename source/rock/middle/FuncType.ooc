@@ -57,8 +57,14 @@ FuncType: class extends Type {
     }
     
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
+        
         if(other isPointer()) {
             // close enough.
+            return scoreSeed / 2
+        }
+        
+        if(other isGeneric() && other pointerLevel() == 0) {
+            // every type is always a match against a flat generic type
             return scoreSeed / 2
         }
         
