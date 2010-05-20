@@ -3,7 +3,7 @@ PARSER_GEN=greg
 NQ_PATH=source/rock/frontend/NagaQueen.c
 DATE=$(shell date +%Y-%m-%d)
 TIME=$(shell date +%H:%M)
-OOC_OWN_FLAGS=-sourcepath=source -g -v +-w +-Os
+OOC_OWN_FLAGS=-sourcepath=source -v +-w +-O0 -g
 
 PREFIX?=/usr
 MAN_INSTALL_PATH?=/usr/local/man/man1
