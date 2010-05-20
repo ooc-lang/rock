@@ -89,7 +89,7 @@ Trail: class extends Stack<Node> {
                         
                         if(idx != -1) {
                             previous := scope list[idx - 1]
-                            while(idx > 0 && (previous instanceOf(If) || previous instanceOf(Else))) {
+                            while(idx > 1 && (previous instanceOf(If) || previous instanceOf(Else))) {
                                 idx -= 1
                                 previous = scope list[idx - 1]
                             }
