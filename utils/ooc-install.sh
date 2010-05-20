@@ -23,6 +23,14 @@ function intro {
         echo ""
         exit 1
     else
+        if [ ! -x "`which curl`" ] && [ ! -x "`which wget`" ]; then
+            echo "Sorry, you need either curl or wget installed."
+            echo ""
+            echo "Ubuntu: sudo apt-get install curl"
+            echo "OS X: brew install wget"
+            echo ""
+            exit 1
+        fi
         echo ""
         read -p "Will install rock HEAD (latest revision), ok? [y/N] " f
         [[ "$f" == y* ]]
@@ -43,23 +51,27 @@ function do_install {
         if [[ ! $c == y* ]]; then
             exit 1
         fi
-        sudo rm -rf "$f"
+        rm -rf "$f"
     fi
            
-    curl -L "http://github.com/downloads/nddrylliog/rock/rock-0.9.0-source.tar.bz2" | tar xvj
+    if [ -x "`which curl`" ]; then
+        curl -L -\# "http://github.com/downloads/nddrylliog/rock/rock-0.9.1-source-alpha2.tar.bz2" | tar -zxf -
+    elif [ -x "`which wget`" ]; then
+        wget --progress=bar "http://github.com/downloads/nddrylliog/rock/rock-0.9.1-source-alpha2.tar.bz2" -O - | tar -zxf -
+    fi
     git clone "http://github.com/nddrylliog/rock.git" "$f"
     
     PS=$(pwd)
     
-    cd "$PS/rock-0.9.0-source"
+    cd "$PS/rock-0.9.1-source"
     make bootstrap
     
     cd "$f"
-    export OOC="$PS/rock-0.9.0-source/bin/rock"
-    export ROCK_DIST="$PS/rock-0.9.0-source" 
+    export OOC="$PS/rock-0.9.1-source/bin/rock"
+    export ROCK_DIST="$PS/rock-0.9.1-source" 
     make self
     
-    sudo rm -rf "$PS/rock-0.9.0-source"
+    rm -rf "$PS/rock-0.9.1-source"
     
     echo "========================================"
     echo ""
