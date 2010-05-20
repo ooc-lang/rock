@@ -1,6 +1,6 @@
-import structs/Stack
+import structs/[Stack, ArrayList]
 import text/Buffer
-import ../[Node, Module, Statement, Scope]
+import ../[Node, Module, Statement, Scope, If, Else]
 
 Trail: class extends Stack<Node> {
 
@@ -73,10 +73,38 @@ Trail: class extends Stack<Node> {
         
         i := size() - 1
         while(i >= 0) {
-            node := data get(i) as Node
-            if(node instanceOf(Scope) &&
-               get(i) addBefore(i + 1 >= size() ? mark : get(i + 1), newcomer)) {
-                return true
+            node := get(i)
+            if(node instanceOf(Scope)) {
+                // if we're in an else - maybe we're in an if-else chain!
+                if(i - 2 >= 0 && get(i - 1) instanceOf(Else)) {
+                    // the mark is now the Else. We wanna be before it!
+                    mark = get(i - 1)
+                    node = get(i - 2)
+                    if(node instanceOf(Scope)) {
+                        // yup, definitely. Now, in that scope are several
+                        // elses and ifs. We want to go to the previous statement
+                        // until we encounter something that's not an if nor an else.
+                        scope := node as Scope
+                        idx := scope list indexOf(mark)
+                        
+                        if(idx != -1) {
+                            previous := scope list[idx - 1]
+                            while(idx > 0 && (previous instanceOf(If) || previous instanceOf(Else))) {
+                                idx -= 1
+                                previous = scope list[idx - 1]
+                            }
+                            
+                            // we skipped'em all, now let's add the newcomer
+                            // to the list and say we succeeded!
+                            scope list add(idx, newcomer)
+                            return true
+                        }
+                    }
+                }
+                
+                if(node addBefore(i + 1 >= size() ? mark : get(i + 1), newcomer)) {
+                    return true
+                }
             }
             i -= 1
         }
