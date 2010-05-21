@@ -55,6 +55,20 @@ Module: class extends Node {
     getSourceFolderName: func -> String {
         File new(File new(getPathElement()) getAbsolutePath()) name()
     }
+    
+    collectDeps: func -> List<Module> {
+        _collectDeps(ArrayList<Module> new())
+    }
+    
+    _collectDeps: func (list: List<Module>) -> List<Module> {
+        list add(this)
+		for(imp in getAllImports()) {
+			if(!list contains(imp getModule())) {
+				imp getModule() _collectDeps(list)
+			}
+		}
+        list
+    }
 
     addFuncType: func (hashName: String, funcType: FuncType) {
         if(!funcTypesMap contains(hashName)) {

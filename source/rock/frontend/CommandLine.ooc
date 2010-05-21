@@ -5,7 +5,6 @@ import text/StringTokenizer
 import Help, Token, BuildParams, AstBuilder
 import compilers/[Gcc, Clang, Icc, Tcc]
 import drivers/[Driver, CombineDriver, SequenceDriver, MakeDriver]
-import ../backend/cnaughty/CGenerator
 //import ../backend/json/JSONGenerator
 import ../middle/[Module, Import]
 import ../middle/tinker/Tinkerer
@@ -343,35 +342,24 @@ CommandLine: class {
         if(params verbose) printf("Finished parsing, now tinkering...\n")
         
         // phase 2: tinker
-        moduleList := ArrayList<Module> new()
-        collectModules(module, moduleList)
-        if(!Tinkerer new(params) process(moduleList)) failure()
+        if(!Tinkerer new(params) process(module collectDeps())) failure()
         
-        // if we're slave, re-create the module list. otherwise, old modules
-        // will still be in imports
-        if(params slave)
-        for(candidate in moduleList) for(imp in candidate getAllImports()) {
+        // Clear the import's module cache so that they will be updated
+        // with re-parsed modules (from the modified AstBuilder cache)
+        // during the next collectDeps()
+        if(params slave) for(candidate in module collectDeps()) for(imp in candidate getAllImports()) {
             imp setModule(null)
         }
-        moduleList clear()
-        collectModules(module, moduleList)
         
         if(params backend == "c") {
-            // c phase 3: generate.
-            driver setup()
-            params outPath mkdirs()
-            for(candidate in moduleList) {
-                CGenerator new(params, candidate) write() .close()
-            }
-            // c phase 4: launch the driver
+            // c phase 3: launch the driver
             if(params compiler) {
                 result := driver compile(module)
                 if(result == 0) {
                     success()
                     
                     if(params run) {
-                        p := Process new(["./" + module simpleName] as ArrayList<String>)
-                        p execute()
+                        Process new(["./" + module simpleName] as ArrayList<String>) execute()
                     }
                 } else {
                     failure()
@@ -379,10 +367,11 @@ CommandLine: class {
             }
         } else if(params backend == "json") {
             // json phase 3: generate.
-            for(candidate in moduleList) {
-                "FIXME! JSON generator disabled for now" println()
+            "FIXME! JSON generator disabled for now" println()
+            
+            //for(candidate in module collectDeps()) {
                 //JSONGenerator new(params, candidate) write() .close()
-            }
+            //}
         }
         return 0
         
@@ -401,17 +390,6 @@ CommandLine: class {
         "[FAIL]" println()
         Terminal reset()
         exit(1)
-    }
-    
-    collectModules: func (module: Module, list: List<Module>) {
-        
-        list add(module)
-		for(imp in module getAllImports()) {
-			if(!list contains(imp getModule())) {
-				collectModules(imp getModule(), list)
-			}
-		}
-        
     }
     
 }

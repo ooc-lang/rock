@@ -3,6 +3,7 @@ import structs/[List, ArrayList, HashMap]
 import ../[BuildParams, Target]
 import ../compilers/AbstractCompiler
 import ../../middle/[Module, UseDef]
+import ../../backend/cnaughty/CGenerator
 import Driver, Archive
 
 SourceFolder: class {
@@ -25,6 +26,13 @@ SequenceDriver: class extends Driver {
 
 	compile: func (module: Module) -> Int {
 		
+        if(params clean) {
+            params outPath mkdirs()
+            for(candidate in module collectDeps()) {
+                CGenerator new(params, candidate) write() .close()
+            }
+        }
+        
 		copyLocalHeaders(module, params, ArrayList<Module> new())
 		
 		if(params verbose) {

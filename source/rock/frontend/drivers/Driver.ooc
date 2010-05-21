@@ -18,9 +18,6 @@ Driver: abstract class {
 
     init: func(=params) {}
 
-    // Called before code generation, leaves a chance to the driver to adjust the params themselves
-    setup: func {}
-
     compile: abstract func (module: Module) -> Int
 
     copyLocalHeaders: func (module: Module, params: BuildParams, done: List<Module>) {

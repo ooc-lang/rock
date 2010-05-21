@@ -4,6 +4,7 @@ import structs/[List, ArrayList, HashMap]
 import ../[BuildParams, Target]
 import ../compilers/AbstractCompiler
 import ../../middle/Module
+import ../../backend/cnaughty/CGenerator
 import Driver, SequenceDriver
 
 MakeDriver: class extends SequenceDriver {
@@ -13,6 +14,9 @@ MakeDriver: class extends SequenceDriver {
     init: func (.params) { super(params) }
     
     setup: func {
+        wasSetup := static false
+        if(wasSetup) return
+        
         // build/
         builddir = File new("build")
         
@@ -23,12 +27,21 @@ MakeDriver: class extends SequenceDriver {
         
         // build/Makefile
         makefile = File new(builddir, "Makefile")
+        
+        wasSetup = true
     }
 
 	compile: func (module: Module) -> Int {
         
         if(params verbose) {
            "Make driver" println()
+        }
+        
+        setup()
+        
+        params outPath mkdirs()
+        for(candidate in module collectDeps()) {
+            CGenerator new(params, candidate) write() .close()
         }
         
         copyLocalHeaders(module, params, ArrayList<Module> new())
