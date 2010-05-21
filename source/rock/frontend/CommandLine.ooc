@@ -322,6 +322,8 @@ CommandLine: class {
     
     parse: func (moduleName: String) -> Int {
         
+        first := static true
+        
         moduleFile := params sourcePath getFile(moduleName)
         
         if(!moduleFile) {
@@ -338,7 +340,16 @@ CommandLine: class {
         
         // phase 1: parse
         AstBuilder new(modulePath, module, params)
-        module parseImports(null)
+        if(params slave && !first) {
+            // slave and non-first = cache is filled, we must re-parse every import.
+            for(dep in module collectDeps()) {
+                dep parseImports(null)
+            }
+        } else {
+            // non-slave or first = cache is empty, everything will be parsed
+            // anyway.
+            module parseImports(null)
+        }
         if(params verbose) printf("Finished parsing, now tinkering...\n")
         
         // phase 2: tinker
@@ -373,6 +384,9 @@ CommandLine: class {
                 //JSONGenerator new(params, candidate) write() .close()
             //}
         }
+        
+        first = false
+        
         return 0
         
     }

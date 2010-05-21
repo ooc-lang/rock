@@ -34,7 +34,7 @@ Driver: abstract class {
         }
 
         for(imp: Import in module getAllImports()) {
-            copyLocalHeaders(imp module, params, done)
+            copyLocalHeaders(imp getModule(), params, done)
         }
 
     }

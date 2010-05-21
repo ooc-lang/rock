@@ -26,18 +26,17 @@ SequenceDriver: class extends Driver {
 
 	compile: func (module: Module) -> Int {
 		
-        if(params clean) {
+		if(params verbose) {
+			("Sequence driver, using " + params sequenceThreads + " thread" + (params sequenceThreads > 1 ? "s" : "")) println()
+		}
+        
+        if(params clean || !params outPath exists()) {
             params outPath mkdirs()
             for(candidate in module collectDeps()) {
                 CGenerator new(params, candidate) write() .close()
             }
         }
-        
-		copyLocalHeaders(module, params, ArrayList<Module> new())
-		
-		if(params verbose) {
-			("Sequence driver, using " + params sequenceThreads + " thread(s).") println()
-		}
+        copyLocalHeaders(module, params, ArrayList<Module> new())
 		
 		toCompile := collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<String> new())
         
@@ -148,11 +147,16 @@ SequenceDriver: class extends Driver {
             objectFiles add(sourceFolder outlib)
             
             if(archive exists?) {
+                reGenerated := ArrayList<Module> new()
                 for(module in sourceFolder modules) {
                     if(!archive upToDate?(module)) {
-                        code := buildIndividual(module, sourceFolder, null, archive, true)
-                        if(code != 0) return code
+                        CGenerator new(params, module) write() .close()
+                        reGenerated add(module)
                     }
+                }
+                for(module in reGenerated) {
+                    code := buildIndividual(module, sourceFolder, null, archive, true)
+                    if(code != 0) return code
                 }
                 
                 archive save(params)
@@ -161,6 +165,9 @@ SequenceDriver: class extends Driver {
         }
         
         oPaths := ArrayList<String> new()
+        for(module in sourceFolder modules) {
+            CGenerator new(params, module) write() .close()
+        }
         for(module in sourceFolder modules) {
             code := buildIndividual(module, sourceFolder, oPaths, archive, false)
             if(code != 0) return code
