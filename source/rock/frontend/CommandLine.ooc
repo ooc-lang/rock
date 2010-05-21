@@ -17,6 +17,7 @@ CommandLine: class {
     driver: Driver
     
     init: func(args : ArrayList<String>) {
+        
         params = BuildParams new()
         driver = SequenceDriver new(params)
         
@@ -274,7 +275,7 @@ CommandLine: class {
                 if(lowerArg endsWith(".ooc")) {
                     modulePaths add(arg)
                 } else {
-                   if(lowerArg contains('.')) {
+                    if(lowerArg contains('.')) {
                         params additionals add(arg)
                     } else {
                         modulePaths add(arg+".ooc")
@@ -292,25 +293,30 @@ CommandLine: class {
         params sourcePath add(params sdkLocation path)
         
         errorCode := 0
-        successCount := 0
-        for(modulePath in modulePaths) {
-            //try {
+        
+        while(true) {         
+            for(modulePath in modulePaths) {
                 code := parse(modulePath replace('/', File separator))
-                if(code == 0) {
-                    successCount += 1
-                } else {
+                if(code != 0) {
                     errorCode = 2 // C compiler failure.
+                    break
                 }
-            //} catch(CompilationFailedError err) {
-                //if(errorCode == 0) errorCode = 1 // ooc failure
-                //System.err.println(err)
-                //fail()
-                //if(!params editor isEmpty()) {
-                    //launchEditor(params editor, err)
-                //}
-            //}
+            }
             
-            //if(params clean) params outPath deleteRecursive()
+            if(!params slave) break
+            
+            Terminal setFgColor(Color yellow). setAttr(Attr bright)
+            "-- press [Enter] to re-compile --" println()
+            Terminal reset()
+            
+            stdin readChar()
+        }
+        
+        // c phase 5: clean up
+
+        // oh that's a hack.
+        if(params clean) {
+            system("rm -rf %s" format(params outPath path))
         }
         
     }
@@ -334,12 +340,21 @@ CommandLine: class {
         // phase 1: parse
         AstBuilder new(modulePath, module, params)
         module parseImports(null)
-        if(params verbose) printf("Finished parsing\n")
+        if(params verbose) printf("Finished parsing, now tinkering...\n")
         
         // phase 2: tinker
         moduleList := ArrayList<Module> new()
         collectModules(module, moduleList)
         if(!Tinkerer new(params) process(moduleList)) failure()
+        
+        // if we're slave, re-create the module list. otherwise, old modules
+        // will still be in imports
+        if(params slave)
+        for(candidate in moduleList) for(imp in candidate getAllImports()) {
+            imp setModule(null)
+        }
+        moduleList clear()
+        collectModules(module, moduleList)
         
         if(params backend == "c") {
             // c phase 3: generate.
@@ -360,12 +375,6 @@ CommandLine: class {
                     }
                 } else {
                     failure()
-                }
-                // c phase 5: clean up
-
-                // oh that's a hack.
-                if(params clean) {
-                    system("rm -rf %s" format(params outPath path))
                 }
             }
         } else if(params backend == "json") {

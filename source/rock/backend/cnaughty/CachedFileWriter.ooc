@@ -19,6 +19,7 @@ CachedFileWriter: class extends BufferWriter {
 	close: func {
         if(!file exists()) {
             file write(BufferReader new(buffer))
+            return
 		} else {
             thisContent := buffer toString()
             fileContent := file read()
@@ -28,6 +29,7 @@ CachedFileWriter: class extends BufferWriter {
             
 			if(hash1 != hash2) {
                 file write(BufferReader new(buffer))
+                return
 			}
 		}
         

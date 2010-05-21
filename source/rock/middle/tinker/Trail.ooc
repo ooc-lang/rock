@@ -76,7 +76,7 @@ Trail: class extends Stack<Node> {
             node := get(i)
             if(node instanceOf(Scope)) {
                 // if we're in an else - maybe we're in an if-else chain!
-                if(i - 2 >= 0 && get(i - 1) instanceOf(Else)) {
+                if(i - 2 >= 0 && get(i - 1) instanceOf(Else) && i + 1 < size() && get(i + 1) instanceOf(If)) {
                     // the mark is now the Else. We wanna be before it!
                     mark = get(i - 1)
                     node = get(i - 2)

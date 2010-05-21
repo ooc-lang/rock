@@ -250,9 +250,9 @@ Module: class extends Node {
      * we expect to add to the resolvers list.
      */
     parseImports: func (resolver: Resolver) {
-
+        
         for(imp: Import in getAllImports()) {
-            if(imp getModule() != null) continue
+            if(imp module != null) continue
             
             impPath = null, impElement = null : File
             path = null: String
@@ -261,23 +261,25 @@ Module: class extends Node {
                 imp token throwError("Module not found in sourcepath " + imp path)
             }
 
-            //println("Trying to get "+impPath path+" from cache")
             cached : Module = null
             cached = AstBuilder cache get(impPath path)
 
             impLastModified := File new(impPath path) lastModified()
 
-            if(cached == null || File new(impPath path) lastModified() > cached lastModified) {
+            if(cached == null || impLastModified > cached lastModified) {
                 if(cached) {
-                    printf("%s has been changed, recompiling... (%d vs %d), impPath = %s", path, File new(impPath path) lastModified(), cached lastModified, impPath path);
+                    printf("%s has been changed, recompiling... (%d vs %d), impPath = %s\n", path, File new(impPath path) lastModified(), cached lastModified, impPath path);
                 }
                 //printf("impElement path = %s, impPath = %s\n", impElement path, impPath path)
                 cached = Module new(path[0..(path length()-4)], impElement path, params, nullToken)
+                AstBuilder cache remove(impPath path)
+                AstBuilder cache put(impPath path, cached)
+                imp setModule(cached)
+                
                 cached token = Token new(0, 0, cached)
                 if(resolver != null) {
                     resolver addModule(cached)
                 }
-                imp setModule(cached)
                 cached lastModified = impLastModified
                 AstBuilder new(impPath path, cached, params)
                 cached parseImports(resolver)
