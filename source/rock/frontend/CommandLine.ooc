@@ -343,6 +343,11 @@ CommandLine: class {
         if(params slave && !first) {
             // slave and non-first = cache is filled, we must re-parse every import.
             for(dep in module collectDeps()) {
+                for(imp in dep getAllImports()) {
+                    imp setModule(null)
+                }
+            }
+            for(dep in module collectDeps()) {
                 dep parseImports(null)
             }
         } else {

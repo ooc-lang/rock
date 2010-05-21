@@ -525,6 +525,10 @@ TypeDecl: abstract class extends Declaration {
 
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
         
+        if(access debugCondition()) {
+            "Resolving access %s. isMeta = %s\n" format(access toString(), isMeta toString()) println()
+        }
+        
         // don't allow to resolve any access before finishing ghosting
         if(!_finishedGhosting) {
             return -1
@@ -543,17 +547,8 @@ TypeDecl: abstract class extends Declaration {
             for(v in variables) {
                 printf("Got var %s.%s\n", toString(), v toString())
             }
-        }
-
-        // ask the metaclass for the variable (makes static member access without explicit `This` possible)
-        if(!isMeta) {
-            mvDecl := getMeta() variables get(access getName())
-            if(access suggest(mvDecl)) {
-            	if(access expr == null) {
-                    varAcc := VariableAccess new("This", nullToken)
-                    access expr = varAcc
-                }
-                return 0
+            for(f in functions) {
+                printf("Got function %s.%s\n", toString(), f toString())
             }
         }
         
@@ -584,6 +579,24 @@ TypeDecl: abstract class extends Declaration {
         if(getSuperRef() != null) {
         	//FIXME: should return here if success
             getSuperRef() resolveAccess(access, res, trail)
+        }
+        
+        // ask the metaclass for the variable (makes static member access without explicit `This` possible)
+        if(!isMeta) {
+            mvDecl : Declaration
+            
+            mvDecl = getMeta() variables get(access getName())
+            if(mvDecl == null) {
+                mvDecl = getMeta() functions get(access getName())
+            }
+            
+            if(mvDecl != null && access suggest(mvDecl)) {
+            	if(access expr == null) {
+                    varAcc := VariableAccess new("This", nullToken)
+                    access expr = varAcc
+                }
+                return 0
+            }
         }
         
         0
