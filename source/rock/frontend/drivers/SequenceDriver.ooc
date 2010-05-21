@@ -9,10 +9,11 @@ import Driver, Archive
 /**
    Drives the compilation process of an ooc project.
    
-   
    :author: Amos Wenger
  */
 SequenceDriver: class extends Driver {
+
+    sourceFolders: List<SourceFolder>
 
     init: func (.params) { super(params) }
 
@@ -22,7 +23,7 @@ SequenceDriver: class extends Driver {
 			("Sequence driver, using " + params sequenceThreads + " thread" + (params sequenceThreads > 1 ? "s" : "")) println()
 		}
         
-        if(params clean && !params libcache && !params outPath exists()) {
+        if((params clean && !params libcache && !params outPath exists()) || !File new(params libcachePath) exists()) {
             if(params verbose)  printf("Must clean and %s doesn't exist, re-generating\n", params outPath path)
             params outPath mkdirs()
             for(candidate in module collectDeps()) {
@@ -32,11 +33,11 @@ SequenceDriver: class extends Driver {
         if(params verbose) printf("Copying local headers\n")
         copyLocalHeaders(module, params, ArrayList<Module> new())
 		
-		toCompile := collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<String> new())
+		sourceFolders = collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<String> new())
         
         oPaths := ArrayList<String> new()
 		
-        for(sourceFolder in toCompile) {
+        for(sourceFolder in sourceFolders) {
             if(params verbose) {
                 hash := ac_X31_hash(sourceFolder name) + 42
                 Terminal setFgColor((hash % (Color cyan - Color red)) + Color red)
@@ -75,6 +76,9 @@ SequenceDriver: class extends Driver {
             }
             for(incPath in params incPath getPaths()) {
                 params compiler addIncludePath(incPath getPath())
+            }
+            for(sourceFolder in sourceFolders) {
+                params compiler addIncludePath(params libcachePath + File separator + sourceFolder name)
             }
             for(additional in params additionals) {
                 params compiler addObjectFile(additional)
@@ -235,6 +239,9 @@ SequenceDriver: class extends Driver {
             }
             for(incPath in params incPath getPaths()) {
                 params compiler addIncludePath(incPath getPath())
+            }
+            for(sourceFolder in sourceFolders) {
+                params compiler addIncludePath(params libcachePath + File separator + sourceFolder name)
             }
             for(compilerArg in params compilerArgs) {
                 params compiler addObjectFile(compilerArg)
