@@ -12,7 +12,7 @@ Attr: class {
     /* Dim    */            
     dim =     2,    
     /* Underline */                
-    under =   3,        
+    under =   4,        
     /* Blink (Does this really work?????) */        
     blink =   5,    
     /* Reverse (swap background and foreground colors) */                

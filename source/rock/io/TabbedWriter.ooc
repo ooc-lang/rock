@@ -1,5 +1,8 @@
 import io/Writer
 
+/**
+   Wrapper upon io/Writer to allow easy writing of tabbed text.
+ */
 TabbedWriter: class {
 
     stream: Writer

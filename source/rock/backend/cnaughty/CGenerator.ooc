@@ -1,8 +1,7 @@
-
 import structs/List
 
 import ../../middle/Visitor
-import ../../io/TabbedWriter, io/[File, FileWriter, Writer], AwesomeWriter, CachedFileWriter
+import ../../io/[CachedFileWriter, TabbedWriter], io/[File, FileWriter, Writer], AwesomeWriter
 
 import ../../frontend/BuildParams
 
@@ -20,27 +19,42 @@ import Skeleton, FunctionDeclWriter, ControlStatementWriter,
     ClassDeclWriter, ModuleWriter, CoverDeclWriter, FunctionCallWriter,
     CastWriter, InterfaceDeclWriter, VersionWriter
 
-
+/**
+   Generate .c/.h/-fwd.h files from the AST of an ooc module
+    
+   The two .h files are useful to work around some limitations in
+   C's inclusion mechanism, especially concerning forward declarations,
+   since ooc allows declarations in almost any order, but C doesn't.
+    
+   :author: Amos Wenger
+ */
 CGenerator: class extends Skeleton {
 
     init: func ~cgenerator (=params, =module) {
-        outPath := params getOutputPath(module, "")
-        File new(outPath) parent() mkdirs()
         
-        hw = AwesomeWriter new(this, CachedFileWriter new(outPath + ".h"))
-        fw = AwesomeWriter new(this, CachedFileWriter new(outPath + "-fwd.h"))
-        cw = AwesomeWriter new(this, CachedFileWriter new(outPath + ".c"))
+        hOutPath := File new(params libcachePath + File separator + module getSourceFolderName(), module getPath(""))
+        hOutPath parent() mkdirs()
+        hw = AwesomeWriter new(this, CachedFileWriter new(hOutPath path + ".h"))
+        fw = AwesomeWriter new(this, CachedFileWriter new(hOutPath path + "-fwd.h"))
+        
+        cOutPath := File new(params outPath path, module getPath(".c"))
+        cOutPath parent() mkdirs()
+        cw = AwesomeWriter new(this, CachedFileWriter new(cOutPath path))
+        
     }
 
-    close: func {
-        hw nl(). close()
-        fw nl(). close()
-        cw nl(). close()
-    }
-
-    /** Write the whole module */
-    write: func {
+    /** Write the whole module, return true if files were modified on-disk */
+    write: func -> Bool {
+        
         visitModule(module)
+        
+        hw nl(); fw nl(); cw nl()
+        
+        written := hw stream as CachedFileWriter flushAndClose()
+        written |= fw stream as CachedFileWriter flushAndClose()
+        written |= cw stream as CachedFileWriter flushAndClose()
+        written
+        
     }
 
     /** Write a module */

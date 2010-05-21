@@ -41,7 +41,7 @@ MakeDriver: class extends SequenceDriver {
         
         params outPath mkdirs()
         for(candidate in module collectDeps()) {
-            CGenerator new(params, candidate) write() .close()
+            CGenerator new(params, candidate) write()
         }
         
         copyLocalHeaders(module, params, ArrayList<Module> new())

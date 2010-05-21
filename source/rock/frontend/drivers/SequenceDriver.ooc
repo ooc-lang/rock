@@ -1,4 +1,4 @@
-import io/[File], os/Process, text/Buffer
+import io/[File], os/[Terminal, Process], text/Buffer
 import structs/[List, ArrayList, HashMap]
 import ../[BuildParams, Target]
 import ../compilers/AbstractCompiler
@@ -6,20 +6,12 @@ import ../../middle/[Module, UseDef]
 import ../../backend/cnaughty/CGenerator
 import Driver, Archive
 
-SourceFolder: class {
-    name: String
-    params: BuildParams
-    outlib: String
-    
-    modules := ArrayList<Module> new()
-    archive : Archive
-    
-    init: func (=name, =params) {
-        outlib = "%s%c%s-%s.a" format(params libcachePath, File separator, name, Target toString())
-        archive = Archive new(outlib)
-    }
-}
-
+/**
+   Drives the compilation process of an ooc project.
+   
+   
+   :author: Amos Wenger
+ */
 SequenceDriver: class extends Driver {
 
     init: func (.params) { super(params) }
@@ -30,12 +22,14 @@ SequenceDriver: class extends Driver {
 			("Sequence driver, using " + params sequenceThreads + " thread" + (params sequenceThreads > 1 ? "s" : "")) println()
 		}
         
-        if(params clean || !params outPath exists()) {
+        if(params clean && !params libcache && !params outPath exists()) {
+            if(params verbose)  printf("Must clean and %s doesn't exist, re-generating\n", params outPath path)
             params outPath mkdirs()
             for(candidate in module collectDeps()) {
-                CGenerator new(params, candidate) write() .close()
+                CGenerator new(params, candidate) write()
             }
         }
+        if(params verbose) printf("Copying local headers\n")
         copyLocalHeaders(module, params, ArrayList<Module> new())
 		
 		toCompile := collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<String> new())
@@ -43,10 +37,18 @@ SequenceDriver: class extends Driver {
         oPaths := ArrayList<String> new()
 		
         for(sourceFolder in toCompile) {
-            if(params verbose) printf("Building %s/\n", sourceFolder name)
+            if(params verbose) {
+                hash := ac_X31_hash(sourceFolder name) + 42
+                Terminal setFgColor((hash % (Color cyan - Color red)) + Color red)
+                if(hash & 0b01) Terminal setAttr(Attr bright)
+                printf("%s, ", sourceFolder name)
+                Terminal reset()
+                fflush(stdout)
+            }
             code := buildSourceFolder(sourceFolder, oPaths)
             if(code != 0) return code
         }
+        println()
         
         if(params libcache) {
             path := "%s%c%s.a" format(params libcachePath, File separator, module getUnderName())
@@ -150,24 +152,33 @@ SequenceDriver: class extends Driver {
                 reGenerated := ArrayList<Module> new()
                 for(module in sourceFolder modules) {
                     if(!archive upToDate?(module)) {
-                        CGenerator new(params, module) write() .close()
-                        reGenerated add(module)
+                        if(CGenerator new(params, module) write()) {
+                            // was the file really written? then compile.
+                            reGenerated add(module)
+                        }
                     }
                 }
-                for(module in reGenerated) {
-                    code := buildIndividual(module, sourceFolder, null, archive, true)
-                    if(code != 0) return code
-                }
                 
-                archive save(params)
+                if(reGenerated size() > 0) {
+                    if(params verbose) printf("\n%d new/updated modules to compile\n", reGenerated size())
+                    for(module in reGenerated) {
+                        code := buildIndividual(module, sourceFolder, null, archive, true)
+                        if(code != 0) return code
+                    }
+                
+                    archive save(params)
+                }
                 return 0
             }
+            if(params verbose) printf("\nFirst compilation with lib-caching, we have to generate + compile everything\n")
         }
         
         oPaths := ArrayList<String> new()
+        if(params verbose) printf("Re-generating all modules...\n")
         for(module in sourceFolder modules) {
-            CGenerator new(params, module) write() .close()
+            CGenerator new(params, module) write()
         }
+        if(params verbose) printf("Compiling all modules...\n")
         for(module in sourceFolder modules) {
             code := buildIndividual(module, sourceFolder, oPaths, archive, false)
             if(code != 0) return code
@@ -254,7 +265,7 @@ SequenceDriver: class extends Driver {
     }
     
     /**
-       Get all the flags from uses in 
+       Get all the flags from uses in a source folder
      */
     getFlagsFromUse: func ~sourceFolder (sourceFolder: SourceFolder) -> List<String> {
         
@@ -311,3 +322,18 @@ SequenceDriver: class extends Driver {
 	}
 	
 }
+
+SourceFolder: class {
+    name: String
+    params: BuildParams
+    outlib: String
+    
+    modules := ArrayList<Module> new()
+    archive : Archive
+    
+    init: func (=name, =params) {
+        outlib = "%s%c%s-%s.a" format(params libcachePath, File separator, name, Target toString())
+        archive = Archive new(outlib)
+    }
+}
+

@@ -159,7 +159,6 @@ Archive: class {
     }
     
     saveAll: static func (archives: List<String>, path: String) {
-        printf("Saving all archives %s to %s\n", archives join(" "), path)
         File new(path) remove() // if any
         
         args := ArrayList<String> new()

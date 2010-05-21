@@ -127,18 +127,6 @@ BuildParams: class {
     // backend; can be "c" or "json".
     backend: String = "c"
     
-    
-    /**
-     * Build the output path for an .ooc file.
-     * For example, if the file was found in
-     *    `<sourcepath>/my/package/file.ooc`
-     * The output path will be built like this:
-     *     <outpath>/my/package/file<extension>
-     */
-    getOutputPath: func (module: Module, extension: String) -> String {
-        outPath path + File separator + module getPath(extension)
-    }
-    
     defineSymbol: func (symbol: String) {
 		if(!defines contains(symbol)) {
 			defines add(symbol)

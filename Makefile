@@ -58,17 +58,10 @@ install:
 man:
 	cd docs/ && a2x -f manpage rock.1.txt
 
-# Compile a clean rock with itself
+# Compile rock with itself
 self:
-	make clean noclean
-
-# For rock developers - recompile without cleaning, for small changes
-# that don't trigger the fragile base class problem.
-#  - http://en.wikipedia.org/wiki/Fragile_base_class
-# This should be fixed by caching the class hierarchy with the json backend
-noclean:
 	mkdir -p bin/
 	${OOC_CMD} rock/rock -o=bin/rock ${NQ_PATH}
 
 clean:
-	rm -rf *_tmp/
+	rm -rf *_tmp/ .libs/

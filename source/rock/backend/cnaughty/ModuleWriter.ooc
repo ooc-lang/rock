@@ -56,7 +56,7 @@ ModuleWriter: abstract class extends Skeleton {
         current nl(). app("#ifndef "). app(hName)
         current nl(). app("#define "). app(hName). nl()
 
-        current nl(). app("#include \""). app(module simpleName). app("-fwd.h\""). nl()
+        current nl(). app("#include <"). app(module getPath("-fwd.h")). app(">")
         
 		// include .h-level imports (which contains types we extend)
         for(imp in imports) {
@@ -70,7 +70,7 @@ ModuleWriter: abstract class extends Skeleton {
         current = cw
         
         // write include to the module's. h file
-        current nl(). app("#include \""). app(module simpleName). app(".h\""). nl()
+        current nl(). app("#include <"). app(module getPath(".h")). app(">")
         
         // now loose imports, in the .c it's safe =)
         for(imp in imports) {

@@ -13,7 +13,7 @@ CombineDriver: class extends Driver {
         
         params outPath mkdirs()
         for(candidate in module collectDeps()) {
-            CGenerator new(params, candidate) write() .close()
+            CGenerator new(params, candidate) write()
         }
         
         params compiler reset()
