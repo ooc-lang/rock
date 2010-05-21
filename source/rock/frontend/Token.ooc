@@ -109,7 +109,6 @@ Token: cover {
                 }
             }
         }
-        println()
         prefix print()
         over toString() println()
         
