@@ -63,5 +63,11 @@ self:
 	mkdir -p bin/
 	${OOC_CMD} rock/rock -o=bin/rock ${NQ_PATH}
 
+backup:
+	cp bin/rock bin/safe_rock
+
+safe:
+	OOC=bin/safe_rock make self
+
 clean:
 	rm -rf *_tmp/ .libs/
