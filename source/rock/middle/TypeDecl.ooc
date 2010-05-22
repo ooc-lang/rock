@@ -194,7 +194,7 @@ TypeDecl: abstract class extends Declaration {
     }
     
     getVariables: func -> HashMap<String, VariableDecl> { variables }
-    getFunctions: func -> HashMap<String, VariableDecl> { functions }
+    getFunctions: func -> HashMap<String, FunctionDecl> { functions }
     
     underName: func -> String {
         
@@ -525,6 +525,10 @@ TypeDecl: abstract class extends Declaration {
 
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
         
+        if(access debugCondition()) {
+            "Resolving access %s. isMeta = %s\n" format(access toString(), isMeta toString()) println()
+        }
+        
         // don't allow to resolve any access before finishing ghosting
         if(!_finishedGhosting) {
             return -1
@@ -543,17 +547,8 @@ TypeDecl: abstract class extends Declaration {
             for(v in variables) {
                 printf("Got var %s.%s\n", toString(), v toString())
             }
-        }
-
-        // ask the metaclass for the variable (makes static member access without explicit `This` possible)
-        if(!isMeta) {
-            mvDecl := getMeta() variables get(access getName())
-            if(access suggest(mvDecl)) {
-            	if(access expr == null) {
-                    varAcc := VariableAccess new("This", nullToken)
-                    access expr = varAcc
-                }
-                return 0
+            for(f in functions) {
+                printf("Got function %s.%s\n", toString(), f toString())
             }
         }
         
@@ -584,6 +579,24 @@ TypeDecl: abstract class extends Declaration {
         if(getSuperRef() != null) {
         	//FIXME: should return here if success
             getSuperRef() resolveAccess(access, res, trail)
+        }
+        
+        // ask the metaclass for the variable (makes static member access without explicit `This` possible)
+        if(!isMeta) {
+            mvDecl : Declaration
+            
+            mvDecl = getMeta() variables get(access getName())
+            if(mvDecl == null) {
+                mvDecl = getMeta() functions get(access getName())
+            }
+            
+            if(mvDecl != null && access suggest(mvDecl)) {
+            	if(access expr == null) {
+                    varAcc := VariableAccess new("This", nullToken)
+                    access expr = varAcc
+                }
+                return 0
+            }
         }
         
         0
@@ -629,19 +642,23 @@ TypeDecl: abstract class extends Declaration {
             // TODO: What about namespaced imports?
             for(imp in call token module getGlobalImports()) {
                 if(imp getModule() == addon token module) {
+                    //printf("has because of import %s which equals %s\n", imp getModule() getFullName(), addon token toString())
                     has = true
                     break
                 }
             }
-
+            
             // It's also possible that the addon was defined in the
             // function call's module.
-            if(call token module == addon token module)
+            if(call token module == addon token module && call token module == token module) {
+                //printf("has because call token module %s is the same as addon token module %s\n", call token toString(), addon token toString())
                 has = true
-
+            }
+            
             if(!has) continue
             
-            if(call debugCondition()) printf("Looking into addon %s\n", addon toString())
+            //if(call debugCondition()) printf("From %s (%s), looking into addon %s (%s)\n",
+            //    toString(), token toString(), addon toString(), addon token toString())
             if(addon resolveCall(call, res, trail) == -1) return -1
         }
         

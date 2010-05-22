@@ -3,7 +3,7 @@ PARSER_GEN=greg
 NQ_PATH=source/rock/frontend/NagaQueen.c
 DATE=$(shell date +%Y-%m-%d)
 TIME=$(shell date +%H:%M)
-OOC_OWN_FLAGS=-sourcepath=source -driver=sequence -noclean -g -v -shout +-w
+OOC_OWN_FLAGS=-sourcepath=source -v +-w +-O0 -g
 
 PREFIX?=/usr
 MAN_INSTALL_PATH?=/usr/local/man/man1
@@ -58,17 +58,16 @@ install:
 man:
 	cd docs/ && a2x -f manpage rock.1.txt
 
-# Compile a clean rock with itself
+# Compile rock with itself
 self:
-	make clean noclean
-
-# For rock developers - recompile without cleaning, for small changes
-# that don't trigger the fragile base class problem.
-#  - http://en.wikipedia.org/wiki/Fragile_base_class
-# This should be fixed by caching the class hierarchy with the json backend
-noclean:
 	mkdir -p bin/
 	${OOC_CMD} rock/rock -o=bin/rock ${NQ_PATH}
 
+backup:
+	cp bin/rock bin/safe_rock
+
+safe:
+	OOC=bin/safe_rock make self
+
 clean:
-	rm -rf *_tmp/
+	rm -rf *_tmp/ .libs/

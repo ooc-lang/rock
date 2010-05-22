@@ -8,12 +8,12 @@ DistLocator: class {
     locate: static func -> File {
         rockDist := Env get("ROCK_DIST")
         if (rockDist != null) {
-            return File new(rockDist)
+            return File new(rockDist trimRight(File separator))
         }
         
         oocDist := Env get("OOC_DIST")
         if (oocDist != null) {
-            return File new(oocDist)
+            return File new(oocDist trimRight(File separator))
         }
     
         exec := ShellUtils findExecutable(Rock execName, false)

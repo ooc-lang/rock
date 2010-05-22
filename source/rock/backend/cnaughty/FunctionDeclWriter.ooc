@@ -16,15 +16,20 @@ FunctionDeclWriter: abstract class extends Skeleton {
     write: static func ~function (this: Skeleton, fDecl: FunctionDecl) {
         //"|| Writing function %s" format(fDecl name) println()
         
-        if(fDecl isExtern()) return
+        if(!fDecl isExtern() || fDecl isProto()) {
         
-        // header
-        current = fw
-        if(fDecl getVersion()) VersionWriter writeStart(this, fDecl getVersion())
-        current nl()
-        writeFuncPrototype(this, fDecl)
-        current app(';')
-        if(fDecl getVersion()) VersionWriter writeEnd(this)
+            // header
+            current = fw
+            if(fDecl getVersion()) VersionWriter writeStart(this, fDecl getVersion())
+            current nl()
+            if(fDecl isProto()) current app("extern ")
+            writeFuncPrototype(this, fDecl)
+            current app(';')
+            if(fDecl getVersion()) VersionWriter writeEnd(this)
+        
+        }
+        
+        if(fDecl isExtern()) return // don't write it in source if it's extern :)
         
         // source
         current = cw

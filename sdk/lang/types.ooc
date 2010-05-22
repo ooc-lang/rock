@@ -3,6 +3,7 @@ import text/Buffer /* for String replace ~string */
 
 include stddef, stdlib, stdio, ctype, stdint, stdbool
 include float
+include ./array
 
 /**
  * objects
@@ -64,8 +65,12 @@ Class: abstract class {
     
 }
 
-None: class {init: func {}}
+Array: cover from _lang_array__Array {
+    length: extern Int
+    data: extern Pointer
+}
 
+None: class {init: func {}}
 
 /**
  * Pointer type
@@ -366,11 +371,15 @@ String: cover from Char* {
         if(length() == 0) return this
 
         start := 0
-        while(this[start] == c) start += 1;
+        while(this[start] == c) {
+            start += 1
+        }
 
         end := length()
         if(start >= end) return ""
-        while(this[end - 1] == c) end -= 1;
+        while(this[end - 1] == c) {
+            end -= 1
+        }
 
         if(start != 0 || end != length()) return substring(start, end)
 

@@ -206,6 +206,14 @@ IP4Address: class extends IPAddress {
     }
 }
 
+operator == (a1, a2: IP4Address) -> Bool {
+    memcmp(a1 ai&, a2 ai&, InAddr size) == 0
+}
+
+operator != (a1, a2: IP4Address) -> Bool {
+    ! (a1 == a2)
+}
+
 IP6Address: class extends IPAddress {
     ai: In6Addr
 
@@ -298,6 +306,28 @@ IP6Address: class extends IPAddress {
     }
 }
 
+operator == (a1, a2: IP6Address) -> Bool {
+    memcmp(a1 ai&, a2 ai&, In6Addr size) == 0
+}
+
+operator != (a1, a2: IP6Address) -> Bool {
+    ! (a1 == a2)
+}
+
+operator == (a1, a2: IPAddress) -> Bool {
+    if (a1 family != a2 family)
+        return false
+
+    if (a1 family == SocketFamily IP4)
+        return (a1 as IP4Address) == (a2 as IP4Address)
+    else
+        return (a1 as IP6Address) == (a2 as IP6Address)
+}
+
+operator != (a1, a2: IPAddress) -> Bool {
+    ! (a1 == a2)
+}
+
 SocketAddress: abstract class {
     new: static func(host: IPAddress, port: Int) -> This {
         nPort: Int = htons(port)
@@ -339,6 +369,14 @@ SocketAddress: abstract class {
     toString: func -> String {
         "[%s]:%d" format(host() toString(), port())
     }
+}
+
+operator == (sa1, sa2: SocketAddress) -> Bool {
+    (sa1 family() == sa2 family()) && (memcmp(sa1 addr(), sa2 addr(), sa1 length()) == 0)
+}
+
+operator != (sa1, sa2: SocketAddress) -> Bool {
+    ! (sa1 == sa2)
 }
 
 SocketAddressIP4: class extends SocketAddress {

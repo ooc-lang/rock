@@ -25,11 +25,11 @@ genericKeyEquals: func <K> (k1, k2: K) -> Bool {
 }
 
 /**
- * Port of Austin Appleby's Murmur Hash implementation
- * http://murmurhash.googlepages.com/
- * TODO: Use this to hash not just strings, but any type of object
- * @param key The key to hash
- * @param seed The seed value
+   Port of Austin Appleby's Murmur Hash implementation
+   http://murmurhash.googlepages.com/
+   
+   :param: key The key to hash
+   :param: seed The seed value
  */
 murmurHash: func <K> (keyTagazok: K) -> UInt {
     
@@ -107,7 +107,7 @@ ac_X31_hash: func <K> (key: K) -> UInt {
 
 HashMap: class <K, V> extends Iterable<V> {
 
-    size, capacity: UInt
+    size, capacity: Int
     keyEquals: Func <K> (K, K) -> Bool
     hashKey: Func <K> (K) -> UInt
 
@@ -135,7 +135,7 @@ HashMap: class <K, V> extends Iterable<V> {
             Exception new(This,
             "Out of memory: failed to allocate " + (capacity * Pointer size) + " bytes\n") throw()
         }
-        for (i: UInt in 0..capacity) {
+        for (i: Int in 0..capacity) {
             buckets[i] = ArrayList<V> new()
         }
         keys = ArrayList<K> new()
@@ -243,7 +243,7 @@ HashMap: class <K, V> extends Iterable<V> {
         entry := getEntry(key)
         hash : UInt = hashKey(key) % capacity
         if (entry) {
-            for (i: UInt in 0.. keys size()) {
+            for (i: Int in 0.. keys size()) {
                 cKey := keys get(i)
                 if(keyEquals(key, cKey)) {
                     keys removeAt(i)
@@ -258,10 +258,10 @@ HashMap: class <K, V> extends Iterable<V> {
 
     /**
      * Resizes the hash table to a new capacity
-     * @param UInt _capacity The new table capacity
-     * @return Bool
+     * :param: _capacity The new table capacity
+     * :return:
      */
-    resize: func (_capacity: UInt) -> Bool {
+    resize: func (_capacity: Int) -> Bool {
         
         /* Keep track of old settings */
         old_capacity := capacity
@@ -269,12 +269,13 @@ HashMap: class <K, V> extends Iterable<V> {
         if (!old_buckets) {
             Exception new(This, "Out of memory: failed to allocate %d bytes\n" + (old_capacity * Pointer size)) throw()
         }
-        for (i: UInt in 0..old_capacity) {
+        for (i: Int in 0..old_capacity) {
             old_buckets[i] = buckets[i] clone()
         }
         
-        /* Clear key list */
+        /* Clear key list and size */
         keys clear()
+        size = 0
         
         /* Transfer old buckets to new buckets! */
         capacity = _capacity
@@ -282,11 +283,11 @@ HashMap: class <K, V> extends Iterable<V> {
         if (!buckets) {
             Exception new(This, "Out of memory: failed to allocate %d bytes\n" + (capacity * Pointer size)) throw()
         }
-        for (i: UInt in 0..capacity) {
+        for (i: Int in 0..capacity) {
             buckets[i] = ArrayList<V> new()
         }
         entry : HashEntry<K, V>
-        for (bucket: UInt in 0..old_capacity) {
+        for (bucket: Int in 0..old_capacity) {
             if (old_buckets[bucket] size() > 0) {
                 iter := old_buckets[bucket] iterator()
                 while (iter hasNext()) {
@@ -307,7 +308,7 @@ HashMap: class <K, V> extends Iterable<V> {
         init(capacity)
     }
     
-    size: func -> UInt { size }
+    size: func -> Int { size }
     
     getKeys: func -> ArrayList<K> { keys }
     

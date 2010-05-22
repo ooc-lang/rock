@@ -4,17 +4,22 @@ import PipeUnix
 
 version(unix || apple) {
 
+/**
+   Process implementation for *nix
+    
+   :author: Yannic Ahrens (showstopper)
+   :author: Amos Wenger (nddrylliog)
+ */
 ProcessUnix: class extends Process {
 
     init: func ~unix (=args) {
-        this executable = this args get(0)
         this args add(null) // execvp wants NULL to end the array
-        buf = this args toArray() // List<String> => String*
-        env = null
-        cwd = null
     }
 
-    /** Wait for the process to end. Bad things will happen if you haven't called `executeNoWait` before. */
+    /**
+       Wait for the process to end. Bad things will happen if you
+       haven't called `executeNoWait` before.
+     */
     wait: func -> Int {
         status: Int
         result := -555
@@ -34,7 +39,10 @@ ProcessUnix: class extends Process {
         return result
     }
 
-    /** Execute the process without waiting for it to end. You have to call `wait` manually. */
+    /**
+       Execute the process without waiting for it to end.
+       You have to call `wait` manually.
+    */
     executeNoWait: func {
         pid := fork()
         if (pid == 0) {
@@ -50,18 +58,21 @@ ProcessUnix: class extends Process {
                 stdErr close('r')
                 dup2(stdErr as PipeUnix writeFD, 2)
             }
+            
             /* amend the environment if needed */
-            if(this env) {
-                for(key in this env getKeys()) {
+            if(env) {
+                for(key in env getKeys()) {
                     Env set(key, env[key], true)
                 }
             }
+            
             /* set a new cwd? */
             if(cwd != null) {
                 chdir(cwd)
             }
+            
             /* run the stuff. */
-            execvp(executable, buf)
+            execvp(args get(0), args toArray()) // List<String> => String*
         }
     }
 

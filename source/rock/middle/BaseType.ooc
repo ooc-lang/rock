@@ -4,7 +4,7 @@ import ../backend/cnaughty/AwesomeWriter, ../frontend/BuildParams
 import tinker/[Response, Resolver, Trail]
 
 import Type, Declaration, VariableAccess, VariableDecl, TypeDecl,
-       InterfaceDecl, Node, ClassDecl, CoverDecl, Cast
+       InterfaceDecl, Node, ClassDecl, CoverDecl, Cast, FuncType
 
 BaseType: class extends Type {
 
@@ -103,9 +103,11 @@ BaseType: class extends Type {
         
         if(getRef() == null) {
             if(res fatal) {
-                trail toString() println()
-                //token printMessage("In %s, Can't resolve type %s!" format(token toString(), getName()), "ERROR")
-                //Exception new(This, "Debugging") throw()
+                if(res params veryVerbose) {
+                    trail toString() println()
+                    //token printMessage("In %s, Can't resolve type %s!" format(token toString(), getName()), "ERROR")
+                    //Exception new(This, "Debugging") throw()
+                }
                 token throwError("In %s, Can't resolve type %s!" format(token toString(), getName()))
             }
             if(res params veryVerbose) {
@@ -161,6 +163,9 @@ BaseType: class extends Type {
     getTypeArgs: func -> List<VariableAccess> { typeArgs }
     
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
+        //printf("%s vs %s, other isGeneric ? %s pointerLevel ? %d\n", toString(), other toString(), other isGeneric() toString(), other pointerLevel())
+        if(name == "void" || name == "Void") return This NOLUCK_SCORE
+        
         if(other isGeneric() && other pointerLevel() == 0) {
             // every type is always a match against a flat generic type
             return scoreSeed / 2
@@ -318,7 +323,10 @@ BaseType: class extends Type {
     }
     
     searchTypeArg: func (typeArgName: String, finalScore: Int@) -> Type {
-        if(getRef() == null) return null
+        if(getRef() == null) {
+            finalScore = -1
+            return null
+        }
         
         if(!getRef() instanceOf(TypeDecl)) {
             // only TypeDecl have typeArgs anyway.
@@ -340,7 +348,7 @@ BaseType: class extends Type {
                 if(ref == null) return null
                 result : Type = null
                 
-                //printf("Found candidate %s for typeArg %s\n", candidate toString(), typeArgName)
+                //printf("Found candidate %s (which is a %s) for typeArg %s, ref is a %s, = %s\n", candidate toString(), candidate class name, typeArgName, ref class name, ref toString())
                 if(ref instanceOf(TypeDecl)) {
                     // resolves to a known type
                     result = ref as TypeDecl getInstanceType()
@@ -348,6 +356,9 @@ BaseType: class extends Type {
                     // resolves to an access to another generic type
                     result = BaseType new(ref as VariableDecl getName(), token)
                     result setRef(ref) // FIXME: that is experimental. is that a good idea?
+                } else if(ref instanceOf(FuncType)) {
+                    printf("ref of %s is a %s!\n", candidate toString(), ref class name)
+                    result = ref as FuncType
                 }
                 return result
             }

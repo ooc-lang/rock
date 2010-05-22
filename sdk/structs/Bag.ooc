@@ -18,7 +18,7 @@ Bag: class {
         data add(tmp)
     }
 
-    add: func <T> ~withIndex(index: Int, element: T) {
+    add: func ~withIndex <T> (index: Int, element: T) {
         tmp := Cell<T> new(element)
         data add(index, tmp)
     }

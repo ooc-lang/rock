@@ -59,6 +59,12 @@ BuildParams: class {
     // Remove the rock_tmp/ directory after the C compiler has finished
     clean: Bool = true
     
+    // Cache libs in `libcachePath` directory
+    libcache: Bool = true
+    
+    // Path to store cache-libs
+    libcachePath := ".libs"
+    
     // Add debug info to the generated C files (e.g. -g switch for gcc)
     debug: Bool = false
     
@@ -120,18 +126,6 @@ BuildParams: class {
 
     // backend; can be "c" or "json".
     backend: String = "c"
-    
-    
-    /**
-     * Build the output path for an .ooc file.
-     * For example, if the file was found in
-     *    `<sourcepath>/my/package/file.ooc`
-     * The output path will be built like this:
-     *     <outpath>/my/package/file<extension>
-     */
-    getOutputPath: func (module: Module, extension: String) -> String {
-        outPath path + File separator + module getPath(extension)
-    }
     
     defineSymbol: func (symbol: String) {
 		if(!defines contains(symbol)) {

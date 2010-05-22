@@ -63,7 +63,11 @@ Type: abstract class extends Expression {
     
     clone: abstract func -> This
     
-    reference:   func          -> This { p := PointerType new(this, token); p setRef(getRef()); p }
+    reference:   func          -> This {
+        p := PointerType new(this, token)
+        //p setRef(getRef())
+        p
+    }
     dereference: abstract func -> This
     
     /**
@@ -245,7 +249,7 @@ SugarType: abstract class extends Type {
         }
         
         if(pointerLevel() == 1 && other isPointer()) {
-            // void pointer, half match!
+            // void pointer, a half match!
             return scoreSeed / 2
         }
         return This NOLUCK_SCORE
@@ -293,7 +297,7 @@ PointerType: class extends SugarType {
     toString: func -> String { inner toString() + "*" }
     toMangledString: func -> String { inner toString() + "__star" }
     
-    dereference : func -> This { inner }
+    dereference: func -> This { inner }
     
     clone: func -> This { new(inner, token) }
     
@@ -302,36 +306,51 @@ PointerType: class extends SugarType {
 ArrayType: class extends PointerType {
     
     expr : Expression = null
+    realType := static BaseType new("Array", nullToken)
     
     init: func ~arrayType (.inner, =expr, .token) { super(inner, token) }
     
+    setRef: func (ref: Declaration) {
+        Exception new(This, "Trying to set ref of an ArrayType! wtf? ref (%s) = %s" format(ref class name, ref toString())) throw()
+    }
+    getRef: func -> Declaration {
+        This realType getRef()
+    }
+    
+    isResolved: func -> Bool {
+        inner isResolved() && This realType isResolved()
+    }
+    
+    getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
+        if(other instanceOf(class)) {
+            score := inner getScore(other as SugarType inner)
+            if(score >= -1) return score
+        }
+        
+        return This NOLUCK_SCORE
+    }
+    
     write: func (w: AwesomeWriter, name: String) {
-        inner write(w, null)
-        if(name != null) w app(' '). app(name)
-        if(expr != null) w app("["). app(expr). app("]")
-        else             w app("[]")
+        if(expr == null) {
+            w app("_lang_array__Array")
+            if(name != null) {
+                w app(' '). app(name)
+            }
+        } else {
+            inner write(w, null)
+            w app(' ')            
+            if(name) w app(name)
+            if(expr) w app('['). app(expr). app(']')
+            else     w app('*')
+        }
     }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
+        if(!This realType resolve(trail, res) ok()) {
+            return Responses LOOP
+        }
         
-        if(expr == null) {
-            kiddo := BaseType new("ArrayList", token)
-            kiddo addTypeArg(VariableAccess new(getName(), token))
-            kiddo resolve(trail, res)
-            parent := trail peek()
-            
-            if(!parent replace(this, kiddo)) {
-                printf("Couldn't replace %s with %s in %s, trail = %s\n", toString(), kiddo toString(), parent toString(), trail toString())
-            }
-            
-            if(parent instanceOf(VariableDecl)) {
-                vd := parent as VariableDecl
-                if(!vd isArg && vd getType() == kiddo) {
-                    fCall := FunctionCall new(kiddo, "new", token)
-                    vd setExpr(fCall)
-                }
-            }
-        } else {
+        if(expr != null) {
             response := expr resolve(trail, res)
             if(!response ok()) return response
         }
@@ -340,8 +359,25 @@ ArrayType: class extends PointerType {
         
     }
     
+    clone: func -> This { new(inner clone(), expr, token) }
+    
+    exprLessClone: func -> This {
+        copy := clone()
+        
+        current := copy as Type
+        while(current instanceOf(ArrayType)) {
+            innerType := current as ArrayType
+            innerType expr = null
+            current = innerType inner
+        }
+        
+        copy
+    }
+    
     toString: func -> String { inner toString() append(expr != null ? "[%s]" format(expr toString()) : "[]") }
     toMangledString: func -> String { inner toString() + "__array" }
+    
+    isPointer: func -> Bool { false }
     
 }
 

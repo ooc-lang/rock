@@ -8,13 +8,13 @@ String: cover from Char* {
         Example::
 
             import text/StringTemplate
-            values := HashMap<String> new()
+            values := HashMap<String, String> new()
             values put("what", "world") .put("suffix", "... yay")
             "Hello {{ what }}! {{   suffix}}" formatTermplate(values) println()
             // -> Hello world! ... yay
 
     */
-    formatTemplate: func (values: HashMap<String>) -> String {
+    formatTemplate: func (values: HashMap<String, String>) -> String {
         length := this length()
         buffer := Buffer new(length)
         p: Char* = this

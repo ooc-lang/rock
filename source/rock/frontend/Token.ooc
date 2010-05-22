@@ -95,7 +95,7 @@ Token: cover {
         
         prefix print()
         end := getEnd()
-        for(i in (lastNewLine + 1)..idx) {
+        for(i in (lastNewLine + 1)..(idx + 1)) {
             c := fr read()
             if(c == '\t') {
                 printf("    ")
@@ -109,7 +109,6 @@ Token: cover {
                 }
             }
         }
-        println()
         prefix print()
         over toString() println()
         

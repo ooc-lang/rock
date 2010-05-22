@@ -42,8 +42,8 @@ VariableAccess: class extends Expression {
     suggest: func (node: Node) -> Bool {
         if(node instanceOf(VariableDecl)) {
 			candidate := node as VariableDecl
-		    // if we're accessing a member, we're expecting the candidate
-		    // to belong to a TypeDecl..
+		    // if we're accessing a member, we're expecting the
+            // candidate to belong to a TypeDecl..
 		    if(isMember() && candidate owner == null) {
                 printf("%s is no fit!, we need something to fit %s\n", candidate toString(), toString())
 		        return false
@@ -187,7 +187,9 @@ VariableAccess: class extends Expression {
         
         if(!ref) {
             if(res fatal) {
-                println("trail = " + trail toString())
+                if(res params veryVerbose) {
+                    println("trail = " + trail toString())
+                }
                 token throwError("No such variable %s" format(toString()))
             }
             if(res params veryVerbose) {
@@ -236,6 +238,9 @@ VariableAccess: class extends Expression {
     }
 
 	setRef: func(ref: Declaration) {
+        if(name == "String") {
+            printf("String been set ref to %s, a %s\n", ref toString(), ref class name)
+        }
 		this ref = ref
 	}
 

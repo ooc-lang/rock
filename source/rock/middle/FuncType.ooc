@@ -3,7 +3,7 @@ import structs/[List, ArrayList], text/Buffer
 import ../backend/cnaughty/AwesomeWriter, ../frontend/BuildParams
 import tinker/[Response, Resolver, Trail]
 
-import Type, VariableAccess, Declaration, CoverDecl
+import Type, BaseType, VariableAccess, Declaration, CoverDecl, TypeDecl
 
 FuncType: class extends Type {
     
@@ -57,8 +57,14 @@ FuncType: class extends Type {
     }
     
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
+        
         if(other isPointer()) {
             // close enough.
+            return scoreSeed / 2
+        }
+        
+        if(other isGeneric() && other pointerLevel() == 0) {
+            // every type is always a match against a flat generic type
             return scoreSeed / 2
         }
         
@@ -106,6 +112,18 @@ FuncType: class extends Type {
         }
         
         return Responses OK
+    }
+    
+    resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
+        
+        if(access getName() == "size") {
+            // a func is the size of a pointer
+            access expr = VariableAccess new("Pointer", token)
+            return 0
+        }
+        
+        super(access, res, trail)
+        
     }
     
     toMangledString: func -> String {

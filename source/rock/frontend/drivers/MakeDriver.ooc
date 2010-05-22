@@ -1,9 +1,10 @@
 import io/[File, FileWriter], text/Buffer
 
-import structs/[List, ArrayList]
+import structs/[List, ArrayList, HashMap]
 import ../[BuildParams, Target]
 import ../compilers/AbstractCompiler
 import ../../middle/Module
+import ../../backend/cnaughty/CGenerator
 import Driver, SequenceDriver
 
 MakeDriver: class extends SequenceDriver {
@@ -13,6 +14,9 @@ MakeDriver: class extends SequenceDriver {
     init: func (.params) { super(params) }
     
     setup: func {
+        wasSetup := static false
+        if(wasSetup) return
+        
         // build/
         builddir = File new("build")
         
@@ -23,6 +27,8 @@ MakeDriver: class extends SequenceDriver {
         
         // build/Makefile
         makefile = File new(builddir, "Makefile")
+        
+        wasSetup = true
     }
 
 	compile: func (module: Module) -> Int {
@@ -30,6 +36,15 @@ MakeDriver: class extends SequenceDriver {
         if(params verbose) {
            "Make driver" println()
         }
+        
+        setup()
+        
+        params outPath mkdirs()
+        for(candidate in module collectDeps()) {
+            CGenerator new(params, candidate) write()
+        }
+        
+        copyLocalHeaders(module, params, ArrayList<Module> new())
         
         printf("Writing to %s\n", makefile path)
         fW := FileWriter new(makefile)
@@ -105,11 +120,13 @@ MakeDriver: class extends SequenceDriver {
         
         fW write("OBJECT_FILES:=")
         
-        toCompile := collectDeps(module, ArrayList<Module> new(), ArrayList<String> new())
+        toCompile := collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<String> new())
         
-        for(currentModule in toCompile) {
-            path := File new(originalOutPath, currentModule getPath("")) getPath()
-            fW write(path). write(".o ")
+        for(sourceFolder in toCompile) {
+            for(currentModule in sourceFolder modules) {
+                path := File new(originalOutPath, currentModule getPath("")) getPath()
+                fW write(path). write(".o ")
+            }
         }
         
         fW write("\n\n.PHONY: compile link\n\n")
@@ -124,18 +141,20 @@ MakeDriver: class extends SequenceDriver {
         
         oPaths := ArrayList<String> new()
         
-        for(currentModule in toCompile) {
-            path := File new(originalOutPath, currentModule getPath("")) getPath()
-            oPath := path + ".o"  
-            cPath := path + ".c"    
-            oPaths add(oPath)
-            
-            fW write(oPath). write(": ").
-               write(cPath). write(" ").
-               write(path). write(".h ").
-               write(path). write("-fwd.h\n")
-            
-            fW write("\t${CC} ${CFLAGS} -c %s -o %s\n" format(cPath, oPath))
+        for(sourceFolder in toCompile) {
+            for(currentModule in sourceFolder modules) {
+                path := File new(originalOutPath, currentModule getPath("")) getPath()
+                oPath := path + ".o"  
+                cPath := path + ".c"    
+                oPaths add(oPath)
+                
+                fW write(oPath). write(": ").
+                   write(cPath). write(" ").
+                   write(path). write(".h ").
+                   write(path). write("-fwd.h\n")
+                
+                fW write("\t${CC} ${CFLAGS} -c %s -o %s\n" format(cPath, oPath))
+            }
         }
         
         fW write("\nlink: ${OBJECT_FILES}\n")

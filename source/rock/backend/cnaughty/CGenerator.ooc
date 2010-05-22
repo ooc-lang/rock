@@ -1,8 +1,7 @@
-
 import structs/List
 
 import ../../middle/Visitor
-import ../../io/TabbedWriter, io/[File, FileWriter, Writer], AwesomeWriter, CachedFileWriter
+import ../../io/[CachedFileWriter, TabbedWriter], io/[File, FileWriter, Writer], AwesomeWriter
 
 import ../../frontend/BuildParams
 
@@ -13,33 +12,49 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Use, TypeDecl, ClassDecl, CoverDecl, Node, Parenthesis, Return,
     Cast, Comparison, Ternary, BoolLiteral, Argument, Statement,
     AddressOf, Dereference, CommaSequence, UnaryOp, ArrayAccess, Match,
-    FlowControl, InterfaceDecl, Version, Block, EnumDecl]
+    FlowControl, InterfaceDecl, Version, Block, EnumDecl, ArrayLiteral,
+    ArrayCreation]
 
 import Skeleton, FunctionDeclWriter, ControlStatementWriter,
     ClassDeclWriter, ModuleWriter, CoverDeclWriter, FunctionCallWriter,
     CastWriter, InterfaceDeclWriter, VersionWriter
 
-
+/**
+   Generate .c/.h/-fwd.h files from the AST of an ooc module
+    
+   The two .h files are useful to work around some limitations in
+   C's inclusion mechanism, especially concerning forward declarations,
+   since ooc allows declarations in almost any order, but C doesn't.
+    
+   :author: Amos Wenger
+ */
 CGenerator: class extends Skeleton {
 
     init: func ~cgenerator (=params, =module) {
-        outPath := params getOutputPath(module, "")
-        File new(outPath) parent() mkdirs()
         
-        hw = AwesomeWriter new(this, CachedFileWriter new(outPath + ".h"))
-        fw = AwesomeWriter new(this, CachedFileWriter new(outPath + "-fwd.h"))
-        cw = AwesomeWriter new(this, CachedFileWriter new(outPath + ".c"))
+        hOutPath := File new(params libcachePath + File separator + module getSourceFolderName(), module getPath(""))
+        hOutPath parent() mkdirs()
+        hw = AwesomeWriter new(this, CachedFileWriter new(hOutPath path + ".h"))
+        fw = AwesomeWriter new(this, CachedFileWriter new(hOutPath path + "-fwd.h"))
+        
+        cOutPath := File new(params outPath path, module getPath(".c"))
+        cOutPath parent() mkdirs()
+        cw = AwesomeWriter new(this, CachedFileWriter new(cOutPath path))
+        
     }
 
-    close: func {
-        hw nl(). close()
-        fw nl(). close()
-        cw nl(). close()
-    }
-
-    /** Write the whole module */
-    write: func {
+    /** Write the whole module, return true if files were modified on-disk */
+    write: func -> Bool {
+        
         visitModule(module)
+        
+        hw nl(); fw nl(); cw nl()
+        
+        written := hw stream as CachedFileWriter flushAndClose()
+        written |= fw stream as CachedFileWriter flushAndClose()
+        written |= cw stream as CachedFileWriter flushAndClose()
+        written
+        
     }
 
     /** Write a module */
@@ -68,6 +83,22 @@ CGenerator: class extends Skeleton {
 
     /** Write a binary operation */
     visitBinaryOp: func (op: BinaryOp) {
+        
+        // when assigning to an array, use Array_set rather than assigning to _get
+        isArray := op type == OpTypes ass &&
+                   op left instanceOf(ArrayAccess) &&
+                   op left as ArrayAccess getArray() getType() instanceOf(ArrayType) &&
+                   op left as ArrayAccess getArray() getType() as ArrayType expr == null
+                   
+        if(isArray) {
+            arrAcc := op left as ArrayAccess
+            type := arrAcc getArray() getType() as ArrayType
+            current app("_lang_array__Array_set("). app(arrAcc getArray()).
+                    app(", "). app(arrAcc getIndex()).
+                    app(", "). app(type inner).
+                    app(", "). app(op right). app(")")
+            return
+        }
         
         // when assigning to a member function (e.g. for hotswapping),
         // you want to change the class field, not just the function name
@@ -147,16 +178,11 @@ CGenerator: class extends Skeleton {
     
     visitEnumDecl: func (eDecl: EnumDecl) {
         current = fw
-
-        current nl(). app("typedef int ")
-
-        if(eDecl isExtern()) {
-            current app(eDecl getExternName())
-        } else {
-            current app(eDecl underName())
+        
+        // extern EnumDecls shouldn't print a typedef.
+        if(!eDecl isExtern()) {
+            current nl(). app("typedef int "). app(eDecl underName()). app(';')
         }
-
-        current app(';')
     }
     
     /** Write a variable access */
@@ -232,7 +258,66 @@ CGenerator: class extends Skeleton {
 
     /** Write an array access */
     visitArrayAccess: func (arrAcc: ArrayAccess) {
-        current app(arrAcc getArray()). app('['). app(arrAcc getIndex()). app(']')
+        arrType := arrAcc getArray() getType()
+        if(arrType instanceOf(ArrayType) && arrType as ArrayType expr == null) {
+            inner := arrType as ArrayType inner
+            current app("_lang_array__Array_get("). app(arrAcc getArray()). app(", "). app(arrAcc getIndex()). app(", "). app(inner). app(")")
+        } else {
+            current app(arrAcc getArray()). app('['). app(arrAcc getIndex()). app(']')
+        }
+    }
+    
+    visitArrayLiteral: func (arrLit: ArrayLiteral) {
+        type := arrLit getType()
+        if(!type instanceOf(PointerType)) Exception new(This, "Array literal type %s isn't a PointerType but a %s, wtf?" format(arrLit toString(), type toString())) throw()
+        
+        current app("("). app(arrLit getType() as PointerType inner). app("[]) { ")
+        isFirst := true
+        for(element in arrLit elements) {
+            if(!isFirst) current app(", ")
+            current app(element)
+            isFirst = false
+        }
+        current app(" }")
+    }
+    
+    visitArrayCreation: func (node: ArrayCreation) {
+        writeArrayCreation(node arrayType, node expr, node generateTempName("arrayCrea"))
+    }
+    
+    writeArrayCreation: func (arrayType: ArrayType, expr: Expression, name: String) {
+        current app("_lang_array__Array_new(")
+        if(arrayType inner instanceOf(ArrayType)) {
+            // otherwise, something like _lang_types__Bool[rows] is written
+            // and that's the size of a pointer for C - which is wrong.
+            // Array is larger than a pointer, it's a struct with several
+            // members, see lang/array.h
+            current app("_lang_array__Array")
+        } else {
+            arrayType inner write(current, null)
+        }
+        current app(", "). app(arrayType expr). app(")")
+        
+        if(arrayType inner instanceOf(ArrayType)) {
+            current app(';'). nl(). app("{"). tab(). nl(). app("int "). app(name). app("__i;"). nl().
+                    app("for("). app(name). app("__i = 0; ").
+                    app(name). app("__i < "). app(arrayType expr). app("; ").
+                    app(name). app("__i++) { "). tab(). nl()
+              
+            current app("_lang_array__Array "). app(name). app("_sub = ")
+            writeArrayCreation(arrayType inner as ArrayType, null, name + "_sub")
+            
+            current app(";"). nl(). app("_lang_array__Array_set(")
+            if(expr) {
+                current app(expr)
+            } else {
+                current app(name)
+            }
+            
+            current app(", "). app(name). app("__i, ").
+                    app(arrayType inner as ArrayType exprLessClone()). app(", "). app(name). app("_sub);").
+                    untab(). nl(). app("}"). untab(). nl(). app("}")
+        }
     }
 
     /** Control statements */

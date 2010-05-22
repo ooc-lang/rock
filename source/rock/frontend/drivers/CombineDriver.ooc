@@ -2,6 +2,7 @@ import io/File
 import structs/[List, ArrayList]
 import ../[BuildParams, Target]
 import ../../middle/Module
+import ../../backend/cnaughty/CGenerator
 import Driver
 
 CombineDriver: class extends Driver {
@@ -9,6 +10,11 @@ CombineDriver: class extends Driver {
     init: func (.params) { super(params) }
 
     compile: func (module: Module) -> Int {
+        
+        params outPath mkdirs()
+        for(candidate in module collectDeps()) {
+            CGenerator new(params, candidate) write()
+        }
         
         params compiler reset()
         

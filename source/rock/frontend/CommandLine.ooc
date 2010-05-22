@@ -5,7 +5,6 @@ import text/StringTokenizer
 import Help, Token, BuildParams, AstBuilder
 import compilers/[Gcc, Clang, Icc, Tcc]
 import drivers/[Driver, CombineDriver, SequenceDriver, MakeDriver]
-import ../backend/cnaughty/CGenerator
 //import ../backend/json/JSONGenerator
 import ../middle/[Module, Import]
 import ../middle/tinker/Tinkerer
@@ -17,8 +16,9 @@ CommandLine: class {
     driver: Driver
     
     init: func(args : ArrayList<String>) {
+        
         params = BuildParams new()
-        driver = CombineDriver new(params)
+        driver = SequenceDriver new(params)
         
         modulePaths := ArrayList<String> new()
         params compiler = Gcc new()
@@ -46,6 +46,10 @@ CommandLine: class {
                     
                     params outPath = File new(arg substring(arg indexOf('=') + 1))
                     params clean = false
+                    
+                } else if (option startsWith("outlib")) {
+                    
+                    params outlib = arg substring(arg indexOf('=') + 1)
                     
                 } else if(option startsWith("backend")) {
                     params backend = arg substring(arg indexOf('=') + 1)
@@ -128,6 +132,14 @@ CommandLine: class {
                 } else if (option == "noclean") {
                     
                     params clean = false
+                    
+                } else if (option == "nolibcache") {
+                    
+                    params libcache = false
+                    
+                } else if (option == "libcachepath") {
+                    
+                    params libcachePath = option substring(option indexOf('=') + 1)
                     
                 } else if (option == "nolines") {
                     
@@ -262,7 +274,7 @@ CommandLine: class {
                 if(lowerArg endsWith(".ooc")) {
                     modulePaths add(arg)
                 } else {
-                   if(lowerArg contains('.')) {
+                    if(lowerArg contains('.')) {
                         params additionals add(arg)
                     } else {
                         modulePaths add(arg+".ooc")
@@ -280,30 +292,37 @@ CommandLine: class {
         params sourcePath add(params sdkLocation path)
         
         errorCode := 0
-        successCount := 0
-        for(modulePath in modulePaths) {
-            //try {
+        
+        while(true) {         
+            for(modulePath in modulePaths) {
                 code := parse(modulePath replace('/', File separator))
-                if(code == 0) {
-                    successCount += 1
-                } else {
+                if(code != 0) {
                     errorCode = 2 // C compiler failure.
+                    break
                 }
-            //} catch(CompilationFailedError err) {
-                //if(errorCode == 0) errorCode = 1 // ooc failure
-                //System.err.println(err)
-                //fail()
-                //if(!params editor isEmpty()) {
-                    //launchEditor(params editor, err)
-                //}
-            //}
+            }
             
-            //if(params clean) params outPath deleteRecursive()
+            if(!params slave) break
+            
+            Terminal setFgColor(Color yellow). setAttr(Attr bright)
+            "-- press [Enter] to re-compile --" println()
+            Terminal reset()
+            
+            stdin readChar()
+        }
+        
+        // c phase 5: clean up
+
+        // oh that's a hack.
+        if(params clean) {
+            system("rm -rf %s" format(params outPath path))
         }
         
     }
     
     parse: func (moduleName: String) -> Int {
+        
+        first := static true
         
         moduleFile := params sourcePath getFile(moduleName)
         
@@ -321,48 +340,58 @@ CommandLine: class {
         
         // phase 1: parse
         AstBuilder new(modulePath, module, params)
-        module parseImports(null)
-        if(params verbose) printf("Finished parsing\n")
+        if(params slave && !first) {
+            // slave and non-first = cache is filled, we must re-parse every import.
+            for(dep in module collectDeps()) {
+                for(imp in dep getAllImports()) {
+                    imp setModule(null)
+                }
+            }
+            for(dep in module collectDeps()) {
+                dep parseImports(null)
+            }
+        } else {
+            // non-slave or first = cache is empty, everything will be parsed
+            // anyway.
+            module parseImports(null)
+        }
+        if(params verbose) printf("Finished parsing, now tinkering...\n")
         
         // phase 2: tinker
-        moduleList := ArrayList<Module> new()
-        collectModules(module, moduleList)
-        if(!Tinkerer new(params) process(moduleList)) failure()
+        if(!Tinkerer new(params) process(module collectDeps())) failure()
+        
+        // Clear the import's module cache so that they will be updated
+        // with re-parsed modules (from the modified AstBuilder cache)
+        // during the next collectDeps()
+        if(params slave) for(candidate in module collectDeps()) for(imp in candidate getAllImports()) {
+            imp setModule(null)
+        }
         
         if(params backend == "c") {
-            // c phase 3: generate.
-            driver setup()
-            params outPath mkdirs()
-            for(candidate in moduleList) {
-                CGenerator new(params, candidate) write() .close()
-            }
-            // c phase 4: launch the driver
+            // c phase 3: launch the driver
             if(params compiler) {
                 result := driver compile(module)
                 if(result == 0) {
                     success()
                     
                     if(params run) {
-                        p := Process new(["./" + module simpleName] as ArrayList<String>)
-                        p execute()
+                        Process new(["./" + module simpleName] as ArrayList<String>) execute()
                     }
                 } else {
                     failure()
                 }
-                // c phase 5: clean up
-
-                // oh that's a hack.
-                if(params clean) {
-                    system("rm -rf %s" format(params outPath path))
-                }
             }
         } else if(params backend == "json") {
             // json phase 3: generate.
-            for(candidate in moduleList) {
-                "FIXME! JSON generator disabled for now" println()
+            "FIXME! JSON generator disabled for now" println()
+            
+            //for(candidate in module collectDeps()) {
                 //JSONGenerator new(params, candidate) write() .close()
-            }
+            //}
         }
+        
+        first = false
+        
         return 0
         
     }
@@ -380,17 +409,6 @@ CommandLine: class {
         "[FAIL]" println()
         Terminal reset()
         exit(1)
-    }
-    
-    collectModules: func (module: Module, list: List<Module>) {
-        
-        list add(module)
-		for(imp in module getAllImports()) {
-			if(!list contains(imp getModule())) {
-				collectModules(imp getModule(), list)
-			}
-		}
-        
     }
     
 }

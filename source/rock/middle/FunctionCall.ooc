@@ -2,7 +2,7 @@ import structs/ArrayList, text/Buffer
 import ../frontend/[Token, BuildParams, CommandLine]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
-       InterfaceDecl, Cast, NamespaceDecl, BaseType
+       InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType
 import tinker/[Response, Resolver, Trail]
 
 FunctionCall: class extends Expression {
@@ -42,7 +42,8 @@ FunctionCall: class extends Expression {
     }
     
     debugCondition: func -> Bool {
-        false
+        //false
+        "getFirst" == getName()
     }
     
     suggest: func (candidate: FunctionDecl) -> Bool {
@@ -365,6 +366,10 @@ FunctionCall: class extends Expression {
             }
             
             if(returnType) {
+                if(debugCondition()) {
+                    printf("Determined return type of %s (whose ref rt is %s) to be %s\n", toString(), ref getReturnType() toString(), returnType toString())
+                    if(expr) printf("expr = %s, type = %s\n", expr toString(), expr getType() ? expr getType() toString() : "(nil)")
+                }
                 res wholeAgain(this, "because of return type %s (%s)" format(returnType toString(), returnType token toString()))
                 return Responses OK
             }
@@ -496,7 +501,10 @@ FunctionCall: class extends Expression {
             typeResult := resolveTypeArg(typeArg name, trail, res, finalScore&)
             if(finalScore == -1) break
             if(typeResult) {
-                typeArgs add(VariableAccess new(typeResult getName(), nullToken))
+                result := typeResult instanceOf(FuncType) ? \
+                    VariableAccess new("Pointer", typeResult token) : \
+                    VariableAccess new(typeResult getName(), typeResult token)
+                typeArgs add(result)
             } else break // typeArgs must be in order
             
             i += 1
@@ -530,9 +538,16 @@ FunctionCall: class extends Expression {
         /* myFunction: func <T> (myArg: T) */
         j := 0
         for(arg in ref args) {
-            if(arg type getName() == typeArgName) {
+            argType := arg type
+            while(argType instanceOf(SugarType)) {
+                argType = argType as SugarType inner
+            }
+            if(argType getName() == typeArgName) {
                 implArg := args get(j)
                 result := implArg getType()
+                while(result instanceOf(SugarType)) {
+                    result = result as SugarType inner
+                }
                 if(debugCondition()) printf(" >> Found arg-arg %s for typeArgName %s, returning %s\n", implArg toString(), typeArgName, result toString())
                 return result
             }

@@ -232,7 +232,7 @@ File: abstract class {
         dst := FileWriter new(dstFile)
         
         max := 8192
-        buffer : Char[8192] // tcc is, like, kinda stupid.
+        buffer : Char* = gc_malloc(max * Char size)
         while(src hasNext()) {
             num := src read(buffer, 0, max)
             dst write(buffer, num)
