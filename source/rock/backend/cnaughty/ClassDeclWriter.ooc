@@ -124,7 +124,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
         for(fDecl: FunctionDecl in cDecl functions) {
 
-            if(fDecl isExternWithName()) {
+            if(fDecl isExternWithName() && !fDecl isProto()) {
                 continue
             }
 
