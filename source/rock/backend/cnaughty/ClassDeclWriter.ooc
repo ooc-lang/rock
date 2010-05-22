@@ -129,6 +129,7 @@ ClassDeclWriter: abstract class extends Skeleton {
             }
 
             current nl()
+            if(fDecl isProto()) current app("extern ")
             FunctionDeclWriter writeFuncPrototype(this, fDecl, null)
             current app(';')
             if(!fDecl isStatic() && !fDecl isAbstract() && !fDecl isFinal()) {

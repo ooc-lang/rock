@@ -22,6 +22,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
             current = fw
             if(fDecl getVersion()) VersionWriter writeStart(this, fDecl getVersion())
             current nl()
+            if(fDecl isProto()) current app("extern ")
             writeFuncPrototype(this, fDecl)
             current app(';')
             if(fDecl getVersion()) VersionWriter writeEnd(this)
