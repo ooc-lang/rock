@@ -1,11 +1,14 @@
 import os/Time
 import structs/[ArrayList,List]
 
+srand: extern func(Int)
+rand: extern func -> Int
+
 __STATE := Time microtime()
 srand(__STATE)
 
 Random: class {
-    state = __STATE  :static Long
+    state := static __STATE
     
     random: static func -> Int {
         return rand()
@@ -16,7 +19,7 @@ Random: class {
     }
     
     randInt: static func ~exclude(start, end: Int, ex: List<Int>) -> Int {
-        return exclude(start, end, ex, randInt as Func)
+        return exclude(start, end, ex, randInt)
     }
 
     randRange: static func(start, end: Int) -> Int {
@@ -25,7 +28,7 @@ Random: class {
     }
 
     randRange: static func ~exclude(start, end: Int, ex: List<Int>) -> Int {
-        return exclude(start, end, ex, randRange as Func)
+        return exclude(start, end, ex, randRange)
     }
     
     choice: static func <T> (l: List<T>) -> T {
@@ -51,7 +54,7 @@ Random: class {
     }
     
     fastRandInt: static func ~exclude(start, end: Int, ex: List<Int>) -> Int {
-        return exclude(start, end, ex, fastRandInt as Func)
+        return exclude(start, end, ex, fastRandInt)
     }
 
     fastRandRange: static func(start, end: Int) -> Int {
@@ -60,7 +63,7 @@ Random: class {
     }
 
     fastRandRange: static func ~exclude(start, end: Int, ex: List<Int>) -> Int {
-        return exclude(start, end, ex, fastRandRange as Func)
+        return exclude(start, end, ex, fastRandRange)
     }
     
 } 
