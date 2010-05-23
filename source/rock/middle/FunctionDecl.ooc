@@ -34,7 +34,8 @@ FunctionDecl: class extends Declaration {
     
     partialByReference := ArrayList<VariableDecl> new()
     partialByValue := ArrayList<VariableDecl> new()
-
+    clsAccesses := ArrayList<VariableAccess> new()
+    
     owner : TypeDecl = null
     staticVariant : This = null
     
@@ -82,16 +83,11 @@ FunctionDecl: class extends Declaration {
     
     markForPartialing: func(var: VariableDecl, mode: String) {
         if (!partialByReference contains(var) && !partialByValue contains(var)) {
-            printf("var: %s\n", var toString())
-            printf("mode: %s\n", mode)
-
             match (mode) {
                 case "r" => partialByReference add(var)
                 case "v" => partialByValue add(var)
             }
         }
-        printf("ref: %d\n", partialByReference size())
-        printf("val: %d\n", partialByValue size())
     }
     
     setOwner: func (=owner) {
@@ -271,7 +267,8 @@ FunctionDecl: class extends Declaration {
                 return response
             }
         }
-        if (name isEmpty() && !argumentsReady()) { // Is this an ACS?
+        isClosure := name isEmpty()
+        if (isClosure && !argumentsReady()) { // Is this an ACS?
             n := trail find(FunctionCall)
             fCall_ := trail get(trail find(FunctionCall)) as FunctionCall
             fRef_ := fCall_ getRef()
@@ -309,8 +306,7 @@ FunctionDecl: class extends Declaration {
             if (funcPointer returnType) returnType = funcPointer returnType
             
             if (needTrampoline) { // This function becomes the trampoline which calls the actual ACS
-                _name := generateTempName(trail module() getUnderName() + "_ACS")
-                actualACS := FunctionDecl new(_name, token)
+                actualACS := FunctionDecl new("", token)
                 actualTypes := ArrayList<Type> new(args size()) // Let's cache the types behind the generics
                 t: Type
                 i := 0
@@ -334,7 +330,8 @@ FunctionDecl: class extends Declaration {
                 for (st in body) { // actualACS body set(0, body get(0)) ??
                     actualACS body add(st)
                 }
-                funcCall := FunctionCall new(_name, token)
+                funcCall := FunctionCall new("", token)
+                funcCall setRef(actualACS)
                 i = 0
                 for (arg in args) {
                     vAccess := VariableAccess new(arg getName(), arg token)
@@ -348,9 +345,7 @@ FunctionDecl: class extends Declaration {
                 if (returnType) actualACS returnType = returnType
                 body set(0, funcCall)
                 trail module() addFunction(actualACS)
-
             } 
-
         }
         for(typeArg in typeArgs) {
             response := typeArg resolve(trail, res)
@@ -419,7 +414,7 @@ FunctionDecl: class extends Declaration {
 			}
 		}
         
-        if (name isEmpty()) {
+        if (isClosure) {
             unwrapClosure(trail, res)
         }
         
@@ -428,20 +423,12 @@ FunctionDecl: class extends Declaration {
             if(!response ok()) return response
         }
         
-        if (name == "main" ) {
-            partialByValue size() toString() println()
-            partialByReference size() toString() println()
-            /*for (e in body) {
-                e toString() println()
-            }*/
-        }
-
         return Responses OK
     }
     
     unwrapClosure: func (trail: Trail, res: Resolver) {
-        
         for(e in partialByReference) {
+            e toString() println()
             if(e getType() == null || !e getType() isResolved()) {
                 res wholeAgain(this, "Need partial-by-reference's return types")
                 return
@@ -449,6 +436,7 @@ FunctionDecl: class extends Declaration {
         }
 
         for (e in partialByValue) {
+            e toString() println()
             if(e getType() == null || !getType() isResolved()) {
                 res wholeAgain(this, "Need partial-by-value's return types")
                 return
@@ -497,36 +485,26 @@ FunctionDecl: class extends Declaration {
             partialAcc := VariableAccess new(partialName, token)
             
             for (e in partialByReference) {
-                // We need a to create an extra reference pointing to the actual variable.
                 newRefType := ReferenceType new(e getType(), e token)
                 eAccess := VariableAccess new(e, e token)
-                newRef := VariableDecl new(newRefType, e getName()+"_ptr", AddressOf new(eAccess, e token), e token)
-                trail addBeforeInScope(this, newRef) 
-                
+                                
                 addArg := FunctionCall new(partialAcc, "addArgument", token)
-                addArg getArguments() add(VariableAccess new(newRef, newRef token))
+                addArg getArguments() add (AddressOf new (eAccess, e token))
                 trail addBeforeInScope(this, addArg)
-                args add(Argument new(newRef getType(), newRef getName(), token))
-
-                // Now we have to change every access within the body from e name to newRef name.
-                for (stmt in body) {
-                   if (stmt instanceOf(BinaryOp)) {
-                       tmp: VariableAccess = stmt as BinaryOp getLeft()
-                       tmp setRef(newRef)
-                   } 
-                } 
-
-
+                argument := Argument new(newRefType, e getName(), token)
+                args add(0, argument)
+                for (acs in clsAccesses) {
+                    if (acs ref == e) acs ref = argument
+                }
             }
             
             for (e in partialByValue) {
-                "yoo" println()
                 addArg := FunctionCall new(partialAcc, "addArgument", token)
                 addArg getArguments() add(VariableAccess new(e, e token))
                 trail addBeforeInScope(this, addArg)
-                args add(Argument new(e getType(), e getName(), token))
+                argument := Argument new(e getType(), e getName(), e token)
+                args add(0, argument)
             }
-
             fCall := FunctionCall new(partialAcc, "genCode", token)
             fCall getArguments() add(VariableAccess new(name, token)) 
             fCall getArguments() add(StringLiteral new(argsSizes, token))

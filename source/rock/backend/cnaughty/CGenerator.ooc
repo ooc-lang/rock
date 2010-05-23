@@ -232,9 +232,7 @@ CGenerator: class extends Skeleton {
                 if (writeReferenceAddrOf) {
                     current app("(*")
                     paren = true
-                } else {
-                    if (varAcc ref instanceOf(VariableDecl)) varAcc ref as VariableDecl name println()
-                }
+                }             
             }
             
             if(vDecl isExternWithName()) {

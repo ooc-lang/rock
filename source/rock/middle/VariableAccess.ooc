@@ -156,6 +156,7 @@ VariableAccess: class extends Expression {
                                     if (bOp getLeft() == this && bOp isAssign()) mode = "r"
                                 }
                                 closure markForPartialing(ref as VariableDecl, mode)
+                                closure clsAccesses add(this)
                             }
                         }
                     }
