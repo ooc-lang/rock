@@ -1,11 +1,13 @@
 import os/Time
 import structs/[ArrayList,List]
 
+import math
+
 __STATE := Time microtime()
 srand(__STATE)
 
 Random: class {
-    state = __STATE  :static Long
+    state := static __STATE
     
     random: static func -> Int {
         return rand()
