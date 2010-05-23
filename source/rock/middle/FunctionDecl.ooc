@@ -306,45 +306,22 @@ FunctionDecl: class extends Declaration {
             if (funcPointer returnType) returnType = funcPointer returnType
             
             if (needTrampoline) { // This function becomes the trampoline which calls the actual ACS
-                actualACS := FunctionDecl new("", token)
-                actualTypes := ArrayList<Type> new(args size()) // Let's cache the types behind the generics
-                t: Type
-                i := 0
                 for (arg in args) {
-                    buffer := gc_malloc(arg class instanceSize) // evil clone, maybe add to Argument?
-                    memcpy(buffer, arg, arg class instanceSize)
-                    tArg: Argument = buffer
-                    if (tArg getType() isGeneric()) {
-                        t = fCall_ resolveTypeArg(tArg getType() getName(), trail, res, fScore&)
+                    t: Type
+                    if (arg getType() isGeneric()) {
+                        n := arg name
+                        arg name = arg name + "_generic"
+                        t = fCall_ resolveTypeArg(arg getType() getName(), trail, res, fScore&)
                         if (fScore == -1) {
                             res wholeAgain(this, "Can't figure out the actual type of generic")
                             trail pop(this)
                             return Responses OK
                         }
-                        tArg type = t
-                        actualTypes add(t)
-                        i += 1
-                    }                        
-                    actualACS args add(tArg)
-                }
-                for (st in body) { // actualACS body set(0, body get(0)) ??
-                    actualACS body add(st)
-                }
-                funcCall := FunctionCall new("", token)
-                funcCall setRef(actualACS)
-                i = 0
-                for (arg in args) {
-                    vAccess := VariableAccess new(arg getName(), arg token)
-                    argToPass: Expression = vAccess
-                    if (arg getType() isGeneric()) {
-                        argToPass = Cast new(vAccess, actualTypes get(i), token)
-                        i += 1
+                        castedArg := VariableDecl new(t, n, Cast new(VariableAccess new(arg name, arg token), t, arg token), arg token)
+                        body list add(0, castedArg)  
                     }
-                    funcCall args add(argToPass)
                 }
-                if (returnType) actualACS returnType = returnType
-                body set(0, funcCall)
-                trail module() addFunction(actualACS)
+                     
             } 
         }
         for(typeArg in typeArgs) {
@@ -428,7 +405,6 @@ FunctionDecl: class extends Declaration {
     
     unwrapClosure: func (trail: Trail, res: Resolver) {
         for(e in partialByReference) {
-            e toString() println()
             if(e getType() == null || !e getType() isResolved()) {
                 res wholeAgain(this, "Need partial-by-reference's return types")
                 return
@@ -436,7 +412,6 @@ FunctionDecl: class extends Declaration {
         }
 
         for (e in partialByValue) {
-            e toString() println()
             if(e getType() == null || !getType() isResolved()) {
                 res wholeAgain(this, "Need partial-by-value's return types")
                 return
@@ -461,11 +436,25 @@ FunctionDecl: class extends Declaration {
             partialName := generateTempName("partial")
             partialDecl := VariableDecl new(null, partialName, newCall, token)
             trail addBeforeInScope(this, partialDecl) 
-
+            
+            fCall_ := trail get(trail find(FunctionCall)) as FunctionCall
             argsSizes := String new(args size())
             for(i in 0..args size()) {
                 arg := args[i]
-                typeName := arg getType() getName() toLower()
+                typeName: String
+                t: Type
+                if (arg getType() isGeneric()) {
+                    fScore: Int
+                    t = fCall_ resolveTypeArg(arg getType() getName(), trail, res, fScore&)
+                    if (fScore == -1) {
+                            res wholeAgain(this, "Can't figure out the actual type of generic")
+                            trail pop(this)
+                            return Responses OK
+                    }
+                } else {
+                    t = arg getType()
+                }
+                typeName = t getName() toLower()
                 val : Char = match (typeName) {
                     case "char"   => 'c'
                     case "double" => 's'
@@ -474,6 +463,7 @@ FunctionDecl: class extends Declaration {
                     case "int"    => 'i'
                     case "long"   => 'l'
                     case          =>
+                        
                         if(!arg getType() isPointer() && !arg getType() getGroundType() isPointer() && !arg getType() getRef() instanceOf(ClassDecl)) {
                             arg token throwError("Unknown closure arg type %s\n" format(arg getType() toString()))
                         }
