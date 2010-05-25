@@ -937,6 +937,17 @@ Iterator: abstract class <T> {
 Iterable: abstract class <T> {
 
     iterator: abstract func -> Iterator<T>
+    
+    front: func -> Iterator<T> {
+        iterator()
+    }
+    
+    /** return an iterator at the back or end of the Iterable */
+    back: func -> Iterator<T> {
+        iter := front()
+        while (iter hasNext()) iter next()
+        return iter
+    }
 
     /** return the contents of the iterable as ArrayList. */
     toArrayList: func -> ArrayList<T> {
