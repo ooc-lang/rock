@@ -736,6 +736,17 @@ String: cover from Char* {
     iterator: func -> StringIterator<Char> {
         StringIterator<Char> new(this)
     }
+    
+    /** this is here mainly to be consistent */
+    front: func -> StringIterator<Char> {
+        iterator()
+    }
+    
+    back: func -> StringIterator<Char> {
+        iter := StringIterator<Char> new(this)
+        iter i = length()
+        return iter
+    }
 
 }
 
