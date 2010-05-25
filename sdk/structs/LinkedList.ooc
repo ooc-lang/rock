@@ -164,7 +164,15 @@ LinkedList: class <T> extends List<T> {
 	    return iter
 	}
 	
-	clone: func -> LinkedList<T> { null }
+	clone: func -> This<T> {
+	    list := This<T> new()
+        if (head next != head) {
+    	    iter := front()
+    	    while (iter hasNext())
+    	        list add(iter next())
+        }
+	    return list
+	}
 	
 	print: func {
 		println()
