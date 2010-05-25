@@ -303,6 +303,12 @@ HashMap: class <K, V> extends Iterable<V> {
     iterator: func -> Iterator<V> {
         HashMapValueIterator<K, V> new(this)
     }
+    
+    back: func -> Iterator<V> {
+        iter := HashMapValueIterator<K, V> new(this)
+        iter index = keys size()
+        return iter
+    }
 
     clear: func {
         init(capacity)

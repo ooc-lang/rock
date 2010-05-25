@@ -57,4 +57,6 @@ Stack: class <T> extends Iterable<T> {
     }
     
     iterator: func -> Iterator<T> { data iterator() }
+    
+    back: func -> Iterator<T> { data back() }
 }
