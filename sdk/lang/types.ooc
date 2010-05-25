@@ -931,7 +931,29 @@ Iterator: abstract class <T> {
     prev: abstract func -> T
 
     remove: abstract func -> Bool
+    
+    reversed: func -> Iterator<T> {
+        reversed := ReverseIterator<T> new()
+        reversed iterator = this
+        return reversed
+    }
+    
+}
 
+ReverseIterator: class <T> extends Iterator<T> {
+    
+    iterator: Iterator<T> = null
+    
+    hasNext: func -> Bool { iterator hasPrev() }
+    next: func -> T { iterator prev() }
+    
+    hasPrev: func -> Bool { iterator hasNext() }
+    prev: func -> T { iterator next() }
+    
+    remove: func -> Bool { iterator remove() }
+    
+    reversed: func -> Iterable<T> { return iterator }
+    
 }
 
 Iterable: abstract class <T> {
