@@ -10,7 +10,7 @@ SourceReader: class extends Reader {
     
     SENSITIVE = 0, INSENSITIVE = 1 : static const Int
     
-    newlineIndicies: ArrayList<Int>
+    newlineIndicies: ArrayList<SizeT>
     fileName: String
     content: String
     index: SizeT
@@ -98,7 +98,7 @@ SourceReader: class extends Reader {
             if (newlineIndicies isEmpty()) {
                 newlineIndicies add(index)
             }
-            if (newlineIndicies get(newlineIndicies lastIndex()) < index) {
+            if (newlineIndicies last() < index) {
                 newlineIndicies add(index)
             }
         }

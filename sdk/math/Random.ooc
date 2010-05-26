@@ -1,8 +1,12 @@
 import os/Time
 import structs/[ArrayList,List]
 
+<<<<<<< HEAD
 srand: extern func(Int)
 rand: extern func -> Int
+=======
+import math
+>>>>>>> 85f13c805e57466adc4e899d623dd7b20d05bac5
 
 __STATE := Time microtime()
 srand(__STATE)

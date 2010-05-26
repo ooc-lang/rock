@@ -2,10 +2,6 @@
 build
 *~
 bin
-test-ast
-hi-world
-hi-42
-003-functions-and-calls
 *tmp*
 .libs
 declassign

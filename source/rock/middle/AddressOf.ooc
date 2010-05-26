@@ -6,6 +6,7 @@ import tinker/[Trail, Resolver, Response]
 AddressOf: class extends Expression {
 
     expr: Expression
+    isForGenerics := false // hack - see FunctionCall handleGenerics()
     
     init: func ~addressOf (=expr, .token) {
         super(token)

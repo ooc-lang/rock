@@ -468,7 +468,7 @@ FunctionCall: class extends Expression {
                 return Responses OK
             }
             
-            isGood := (callArg instanceOf(AddressOf) || typeResult isGeneric())
+            isGood := ((callArg instanceOf(AddressOf) && callArg as AddressOf isForGenerics) || typeResult isGeneric())
             if(!isGood) { // FIXME this is probably wrong - what if we want an address's address? etc.
                 target : Expression = callArg
                 if(!callArg isReferencable()) {
@@ -478,7 +478,9 @@ FunctionCall: class extends Expression {
                     }
                     target = VariableAccess new(varDecl, callArg token)
                 }
-                args set(j, AddressOf new(target, target token))            
+                addrOf := AddressOf new(target, target token)
+                addrOf isForGenerics = true
+                args set(j, addrOf)
             }
             j += 1
         }
@@ -664,6 +666,15 @@ FunctionCall: class extends Expression {
             score += Type SCORE_SEED / 4
         }
         
+         if(suffix == null && decl suffix == null) {
+            printf("Suffix are both null for %s\n", toString())
+            
+            // even though an unsuffixed call could be a call
+            // to any of the suffixed versions, if both the call
+            // and the decl don't have a suffix, that's a good sign.
+            score += Type SCORE_SEED / 4
+        }
+        
         if(declArgs size() == 0) return score
         
         declIter : Iterator<Argument> = declArgs iterator()
@@ -697,6 +708,7 @@ FunctionCall: class extends Expression {
                 printf("typeScore for %s vs %s == %d    for call %s (%s vs %s) [%p vs %p]\n", callArg getType() toString(), declArg getType() toString(), typeScore, toString(), callArg getType() getGroundType() toString(), declArg getType() getGroundType() toString(), callArg getType() getRef(), declArg getType() getRef())
             }
         }
+        
         if(debugCondition()) {
             printf("Final score = %d\n", score)
         }
@@ -733,7 +745,7 @@ FunctionCall: class extends Expression {
         return false
     }
     
-    getType: func -> Type { returnType }
+    getType: func -> Type { returnType } 
     
     isMember: func -> Bool {
         (expr != null) &&

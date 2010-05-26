@@ -38,8 +38,34 @@ Archive: class {
         
         for(i in 0..cacheSize) {
             element := ArchiveModule new(fR)
-            map put(element module, this)
-            elements put(element oocPath, element)
+            if(element module == null) {
+                map put(element module, this)
+                elements put(element oocPath, element)
+            } else {
+                // If the element' module is null, it means that there are files
+                // in the cache that we don't need to compile for this run.
+                // Typically, the compiler has been launched several times
+                // in the same folder for different .ooc files
+                
+                // If it contains a main, then it *needs* to be removed
+                // from the archive file, otherwise there would be two mains
+                // and the resulting app would probably launch the wrong main..
+                
+                // For now, we remove it anyway - later, we might want to check
+                // if it does really contain a main
+                printf("Removing %s from archive %s\n", element oocPath, outlib)
+                
+                // turn "blah/file.ooc" into "file.o". GOTCHA: later we might
+                // wanna produce .o files with better names, so that there are
+                // no conflicts when storing them in archive files.
+                
+                name := File new(element oocPath) name()
+                
+                args := ["ar", "d", outlib, name substring(0, name length() - 2)] as ArrayList<String>
+                args T = String
+                args join(" ") println()
+                Process new(args) execute()
+            }
         }
         fR close()
     }
@@ -291,14 +317,6 @@ ArchiveModule: class {
         if(module == null) {
             realPath := File new(oocPath) getAbsolutePath()
             module = AstBuilder cache get(realPath)
-            if(module == null) {
-                printf("Cache has keys:\n")
-                for(key in AstBuilder cache getKeys()) {
-                    printf(" - %s\n", key)
-                }
-
-                Exception new(This, "Module not found in cache " + realPath) throw()
-            }
         }
     }
 

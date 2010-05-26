@@ -148,8 +148,15 @@ VariableAccess: class extends Expression {
                         closureIndex := trail find(FunctionDecl)
                         if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
                             closure := trail get(closureIndex, FunctionDecl)
+                            mode := "v"
                             if(closure isAnon()) {
-                                closure markForPartialing(ref as VariableDecl)
+                                bOpIDX := trail find(BinaryOp)
+                                if (trail find(BinaryOp) != -1) {
+                                    bOp: BinaryOp = trail get(bOpIDX)
+                                    if (bOp getLeft() == this && bOp isAssign()) mode = "r"
+                                }
+                                closure markForPartialing(ref as VariableDecl, mode)
+                                closure clsAccesses add(this)
                             }
                         }
                     }
