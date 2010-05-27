@@ -89,9 +89,6 @@ Module: class extends Node {
     }
 
     addFunction: func (fDecl: FunctionDecl) {
-        if(fDecl verzion) {
-            printf("Got function %s with version %s\n", TypeDecl hashName(fDecl), fDecl verzion toString())
-        }
         functions put(TypeDecl hashName(fDecl), fDecl)
     }
 
