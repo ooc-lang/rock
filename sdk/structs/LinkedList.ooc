@@ -127,13 +127,12 @@ LinkedList: class <T> extends List<T> {
 		return false
 	}
 	
-	removeNode: func(toRemove: Node<T>) -> Bool {
+	removeNode: func(toRemove: Node<T>) {
 		toRemove prev next = toRemove next
 		toRemove next prev = toRemove prev
 		toRemove prev = null
 		toRemove next = null
         size -= 1
-        return true // FIXME: probably not right.
 	}
 	
 	removeLast: func -> Bool {
