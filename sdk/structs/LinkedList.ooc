@@ -40,7 +40,7 @@ LinkedList: class <T> extends List<T> {
 			head next = node
 			size += 1
 		} else {
-			Exception new(This, "Check index: 0 <= " + index + " < " + size) throw()
+			Exception new(This, "Check index: 0 <= " + index + " < " + size()) throw()
 		}
     }
     
@@ -49,8 +49,8 @@ LinkedList: class <T> extends List<T> {
 	}
     
     getNode: func(index: Int) -> Node<T> {
-		if(index < 0 || index >= size) {
-			Exception new(This, "Check index: 0 <= " + index + " < " + size) throw()
+		if(index < 0 || index >= size()) {
+			Exception new(This, "Check index: 0 <= " + index + " < " + size()) throw()
 		}
 		
 		i = 0 : Int
@@ -82,7 +82,7 @@ LinkedList: class <T> extends List<T> {
 	
 	lastIndexOf: func (data: T) -> Int {
 		current := head prev
-		i := size - 1
+		i := size() - 1
 		while(current != head) {
 			if(current data == data){
 				return i
@@ -108,13 +108,13 @@ LinkedList: class <T> extends List<T> {
 	}
 	
 	removeAt: func (index: Int) -> T {
-		if(head next != head && index >= 0 && index < size) {
+		if(head next != head && index >= 0 && index < size()) {
 			toRemove := getNode(index)
 			removeNode(toRemove)
 			size -= 1
 			return toRemove data
 		} //else {
-			Exception new(This, "Check index: 0 <= " + index + " < " + size) throw()
+			Exception new(This, "Check index: 0 <= " + index + " < " + size()) throw()
 		//}
 	}
 	
