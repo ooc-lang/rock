@@ -667,8 +667,6 @@ FunctionCall: class extends Expression {
         }
         
          if(suffix == null && decl suffix == null) {
-            printf("Suffix are both null for %s\n", toString())
-            
             // even though an unsuffixed call could be a call
             // to any of the suffixed versions, if both the call
             // and the decl don't have a suffix, that's a good sign.
