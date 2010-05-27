@@ -144,7 +144,6 @@ LinkedList: class <T> extends List<T> {
 	}
 	
 	set: func (index: Int, data: T) -> T {
-        // FIXME: stub
 		node := getNode(index)
 		ret := node data
 		node data = data
@@ -259,13 +258,18 @@ LinkedListIterator: class <T> extends Iterator<T>  {
     }
     
     remove: func -> Bool {
+        if (current == list head) {
+            return false
+        }
+        
         old := current
-        if(current next != list head) {
+        if(hasNext()) {
             current = current next
         } else {
             current = current prev
         }
-        return list removeNode(old)
+        list removeNode(old)
+        return true
     }
 	
 }
