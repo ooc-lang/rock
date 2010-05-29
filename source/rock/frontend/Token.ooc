@@ -97,18 +97,22 @@ Token: cover {
         end := getEnd()
         for(i in (lastNewLine + 1)..(idx + 1)) {
             c := fr read()
-            if(c == '\t') {
-                printf("    ")
-                over append("    ")
-            } else {
-                printf("%c", c)
-                if(i < start || i >= end) {
-                    over append(' ')
-                } else {
-                    over append('^')
-                }
+            match (c) {
+                case '\t' =>
+                    printf("    ")
+                    over append("    ")
+                case '\n' =>
+                    break // the outer loop, not the match.
+                case =>
+                    printf("%c", c)
+                    if(i < start || i >= end) {
+                        over append(' ')
+                    } else {
+                        over append('^')
+                    }
             }
         }
+        println()
         prefix print()
         over toString() println()
         
