@@ -25,7 +25,7 @@ BinarySeq: class {
         data = gc_malloc(realsize)
         result := mprotect(data, realsize, PROT_READ | PROT_WRITE | PROT_EXEC)
         if(result != 0) {
-            printf("mprotect(%p, %d) failed with code %d. Message = %s\n", data, realsize, result, strerror(errno))
+            printf("mprotect(%p, %zd) failed with code %d. Message = %s\n", data, realsize, result, strerror(errno))
         }
         initTransTable()
         // mmap is leaking (cause we don't know when to free), and apparently not needed, but just in case, here's the correct call

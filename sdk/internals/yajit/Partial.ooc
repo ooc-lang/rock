@@ -28,7 +28,7 @@ Partial: class {
         elseif (T size == 2) { bseq append(OpCodes PUSH_WORD) }
         elseif (T size == 4) { bseq append(OpCodes PUSH_DWORD) }
         else { 
-            fprintf(stderr, "Trying to push unknown size: %d\n", T size)
+            fprintf(stderr, "Trying to push unknown size: %zd\n", T size)
             x := 0
             x = 10 / x // dirty way of throwing an exception
         }
@@ -46,7 +46,7 @@ Partial: class {
         if (T size == 1 || T size == 2) { bseq append(OpCodes PUSHW_EBP_VAL) }
         elseif (T size == 4) { bseq append(OpCodes PUSHDW_EBP_VAL) }
         else {
-            fprintf(stderr, "Trying to push unknown size: %d\n", T size)
+            fprintf(stderr, "Trying to push unknown size: %zd\n", T size)
             x := 0
             x = 10 / x // dirty way of throwing an exception
         }
