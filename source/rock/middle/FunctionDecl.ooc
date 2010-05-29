@@ -436,17 +436,15 @@ FunctionDecl: class extends Declaration {
             partialName := generateTempName("partial")
             partialDecl := VariableDecl new(null, partialName, newCall, token)
             trail addBeforeInScope(this, partialDecl) 
-            
-            fCall_: FunctionCall
+            parentCall: FunctionCall = null // ACS related, function call passing an ACS
             argsSizes := String new(args size())
-            for(i in 0..args size()) {
-                arg := args[i]
-                typeName: String
+            i := 0
+            for(arg in args) {
                 t: Type
                 if (arg getType() isGeneric()) {
-                    if (!fCall_) fCall_ = trail get(trail find(FunctionCall)) as FunctionCall
+                    if (!parentCall) parentCall = trail get(trail find(FunctionCall)) as FunctionCall 
                     fScore: Int
-                    t = fCall_ resolveTypeArg(arg getType() getName(), trail, res, fScore&)
+                    t = parentCall resolveTypeArg(arg getType() getName(), trail, res, fScore&) 
                     if (fScore == -1) {
                             res wholeAgain(this, "Can't figure out the actual type of generic")
                             trail pop(this)
@@ -455,7 +453,7 @@ FunctionDecl: class extends Declaration {
                 } else {
                     t = arg getType()
                 }
-                typeName = t getName() toLower()
+                typeName := t getName() toLower()
                 val : Char = match (typeName) {
                     case "char"   => 'c'
                     case "double" => 's'
@@ -471,6 +469,7 @@ FunctionDecl: class extends Declaration {
                         'P'
                 }
                 argsSizes[i] = val
+                i += 1
             }
             
             partialAcc := VariableAccess new(partialName, token)
