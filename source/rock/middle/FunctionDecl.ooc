@@ -437,13 +437,14 @@ FunctionDecl: class extends Declaration {
             partialDecl := VariableDecl new(null, partialName, newCall, token)
             trail addBeforeInScope(this, partialDecl) 
             
-            fCall_ := trail get(trail find(FunctionCall)) as FunctionCall
+            fCall_: FunctionCall
             argsSizes := String new(args size())
             for(i in 0..args size()) {
                 arg := args[i]
                 typeName: String
                 t: Type
                 if (arg getType() isGeneric()) {
+                    if (!fCall_) fCall_ = trail get(trail find(FunctionCall)) as FunctionCall
                     fScore: Int
                     t = fCall_ resolveTypeArg(arg getType() getName(), trail, res, fScore&)
                     if (fScore == -1) {
