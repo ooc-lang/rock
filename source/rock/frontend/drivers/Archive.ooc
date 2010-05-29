@@ -39,9 +39,6 @@ Archive: class {
         for(i in 0..cacheSize) {
             element := ArchiveModule new(fR)
             if(element module == null) {
-                map put(element module, this)
-                elements put(element oocPath, element)
-            } else {
                 // If the element' module is null, it means that there are files
                 // in the cache that we don't need to compile for this run.
                 // Typically, the compiler has been launched several times
@@ -65,6 +62,9 @@ Archive: class {
                 args T = String
                 args join(" ") println()
                 Process new(args) execute()
+            } else {
+                map put(element module, this)
+                elements put(element oocPath, element)
             }
         }
         fR close()
