@@ -1,4 +1,4 @@
-import ../[Thread, Runnable]
+import ../Thread
 include pthread, unistd
 
 version(unix || apple) {
@@ -12,13 +12,10 @@ version(unix || apple) {
 
         pthread: PThread
 
-        init: func ~unix (=runnable) {}
+        init: func ~unix (=closure) {}
 
         start: func -> Int {
-            // Feinte du loup des bois. We pass a pointer to the runnable
-            // to pthread_create so that it corresponds to the 'this' argument
-            // of our member method. Easy enough, huh ?
-            return pthread_create(pthread&, null, Runnable run as Func(Pointer) -> Pointer, runnable)
+            return pthread_create(pthread&, null, closure as Func(Pointer) -> Pointer, null)
         }
 
         wait: func -> Int {

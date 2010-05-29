@@ -1,4 +1,4 @@
-import ../[Thread, Runnable]
+import ../Thread
 import native/win32/[types, errors]
 
 version(windows) {
@@ -15,14 +15,14 @@ version(windows) {
         handle: Handle
         threadID: Long
 
-        init: func ~win (=runnable) {}
+        init: func ~win (=closure) {}
 
         start: func -> Int {
             handle = CreateThread(
                 null,                    // default security attributes
                 0,                       // use default stack size
-                Runnable run as Pointer, // thread function name
-                runnable,                // argument to thread function
+                closure,                 // thread function name
+                null,                    // argument to thread function
                 0,                       // use default creation flags
                 threadID&)               // returns the thread identifier
             return (handle == INVALID_HANDLE_VALUE ? -1 : 0)

@@ -1,17 +1,17 @@
-import Runnable, native/[ThreadUnix, ThreadWin32]
+import native/[ThreadUnix, ThreadWin32]
 
 Thread: abstract class {
 
-    runnable: Runnable
+    closure: Func
 
-    new: static func ~fromRunnable (.runnable) -> This {
+    new: static func ~fromRunnable (.closure) -> This {
 
-        //version (unix || apple) {
-            return ThreadUnix new(runnable) as This
-        //}
-        //version (windows) {
-        //  return ThreadWin32 new(runnable) as This
-        //}
+        version (unix || apple) {
+            return ThreadUnix new(closure) as This
+        }
+        version (windows) {
+            return ThreadWin32 new(closure) as This
+        }
 
         Exception new(This, "Unsupported platform!\n") throw()
         null
