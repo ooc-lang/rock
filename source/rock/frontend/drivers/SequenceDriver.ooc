@@ -39,6 +39,7 @@ SequenceDriver: class extends Driver {
 		
         for(sourceFolder in sourceFolders) {
             if(params verbose) {
+                // generate random colors for every source folder
                 hash := ac_X31_hash(sourceFolder name) + 42
                 Terminal setFgColor((hash % (Color cyan - Color red)) + Color red)
                 if(hash & 0b01) Terminal setAttr(Attr bright)
@@ -50,13 +51,6 @@ SequenceDriver: class extends Driver {
             if(code != 0) return code
         }
         println()
-        
-        if(params libcache) {
-            path := "%s%c%s.a" format(params libcachePath, File separator, module getUnderName())
-            Archive saveAll(oPaths, path)
-            oPaths clear()
-            oPaths add(path)
-        }
 		
 		if(params link) {
 			

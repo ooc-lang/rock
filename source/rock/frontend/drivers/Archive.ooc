@@ -184,23 +184,6 @@ Archive: class {
         _write()
     }
     
-    saveAll: static func (archives: List<String>, path: String) {
-        File new(path) remove() // if any
-        
-        args := ArrayList<String> new()
-        args add("ar")
-        // r = add with replacement
-        // s = create/update index
-        // c = create the .a library
-        // T = thin archive (allows to combine several .a into a single one)
-        args add("rcsT")
-        args add(path)
-        args addAll(archives)
-        
-        File new(path) parent() mkdirs()
-        Process new(args) getOutput() print()
-    }
-    
 }
 
 /**
