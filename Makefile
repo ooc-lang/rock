@@ -50,9 +50,10 @@ bootstrap:
 	
 # Copy the manpage and create a symlink to the binary
 install:
-	chmod +x bin/*
+	if [ -e ${BIN_INSTALL_PATH}/rock ]; then echo "${BIN_INSTALL_PATH}/rock already exists, overwriting."; rm ${BIN_INSTALL_PATH}/rock ${BIN_INSTALL_PATH}/rock.exe; fi
 	ln -s $(shell pwd)/bin/rock* ${BIN_INSTALL_PATH}/
-	cp -f docs/rock.1 ${MAN_INSTALL_PATH}/
+	install -d ${MAN_INSTALL_PATH}
+	install docs/rock.1 ${MAN_INSTALL_PATH}/
 	
 # Regenerate the man page from docs/rock.1.txt You need ascidoc for that
 man:
