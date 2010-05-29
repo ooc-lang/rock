@@ -178,7 +178,8 @@ SequenceDriver: class extends Driver {
         }
         if(params verbose) printf("Compiling all modules...\n")
         for(module in sourceFolder modules) {
-            code := buildIndividual(module, sourceFolder, oPaths, archive, false)
+            code := buildIndividual(module, sourceFolder, oPaths, null, false)
+            archive add(module)
             if(code != 0) return code
         }
         

@@ -13,6 +13,8 @@ import ../../middle/[Module, TypeDecl, VariableDecl, FunctionDecl]
    :author: Amos Wenger (nddrylliog)
  */
 Archive: class {
+    
+    version := static "0.1"
 
     map := static HashMap<Module, Archive> new()
 
@@ -32,8 +34,28 @@ Archive: class {
         }
     }
     
+    _readHeader: func (fR: FileReader) -> Bool {
+        if(fR readLine() != "cacheversion") {
+            printf("Couldn't read cacheversion in %s!", outlib)
+            return false // invalid .cacheinfo format
+        }
+        
+        if(fR readLine() != version) {
+            printf("Invalid version for %s!", outlib)
+            return false // invalid .cacheinfo version
+        }
+        
+        return true
+    }
+    
     _read: func {
         fR := FileReader new(outlib + ".cacheinfo")
+        
+        if(!_readHeader(fR)) {
+            fR close()
+            return
+        }
+        
         cacheSize := fR readLine() toInt()
         
         for(i in 0..cacheSize) {
@@ -72,7 +94,8 @@ Archive: class {
     
     _write: func {
         fW := FileWriter new(outlib + ".cacheinfo")
-        
+
+        fW writef("cacheversion\n%s\n", version)
         fW writef("%d\n", elements size())
         for(element in elements) {
             element write(fW)
@@ -96,7 +119,11 @@ Archive: class {
      */
     exists?: Bool {
         get {
-            File new(outlib) exists()
+            if(!File new(outlib) exists()) return false
+            fR := FileReader new(outlib)
+            result := _readHeader(fR)
+            fR close()
+            return result
         }
     }
     
