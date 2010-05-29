@@ -35,17 +35,11 @@ Archive: class {
     }
     
     _readHeader: func (fR: FileReader) -> Bool {
-        if(fR readLine() != "cacheversion") {
-            printf("Couldn't read cacheversion in %s!", outlib)
-            return false // invalid .cacheinfo format
+        if(fR readLine() == "cacheversion" && fR readLine() == version) {
+            return true
         }
-        
-        if(fR readLine() != version) {
-            printf("Invalid version for %s!", outlib)
-            return false // invalid .cacheinfo version
-        }
-        
-        return true
+    
+        false
     }
     
     _read: func {
@@ -120,7 +114,7 @@ Archive: class {
     exists?: Bool {
         get {
             if(!File new(outlib) exists()) return false
-            fR := FileReader new(outlib)
+            fR := FileReader new(outlib + ".cacheinfo")
             result := _readHeader(fR)
             fR close()
             return result
