@@ -5,8 +5,9 @@ version(unix || apple) {
 
     /* covers & extern functions */
     PThread: cover from pthread_t
-    pthread_create: extern func (...) -> Int
-    pthread_join:   extern func (...) -> Int
+    
+    pthread_create: extern func (PThread*, Pointer, Func(Pointer) -> Pointer, Pointer) -> Int
+    pthread_join:   extern func (thread: PThread, retval: Pointer*) -> Int
 
     ThreadUnix: class extends Thread {
 

@@ -181,7 +181,6 @@ LinkedList: class <T> extends List<T> {
 	
 	removeLast: func -> Bool {
 		if(last != null) {
-			removed := last 
 			removeNode(last)
 			return true
 		}
@@ -214,7 +213,7 @@ LinkedList: class <T> extends List<T> {
 		current := first
 		while(current) {
 			if(current prev) {
-				Terminal setFgColor(Color red + current prev as Int % 7)
+				Terminal setFgColor(Color red + current prev as SizeT % 7)
 				printf("|%p|", current prev)
 				Terminal reset()
 			}
@@ -227,7 +226,7 @@ LinkedList: class <T> extends List<T> {
 		printf("this: ")
 		current = first
 		while(current) {	
-			Terminal setFgColor(Color red + current as Int % 7)
+			Terminal setFgColor(Color red + current as SizeT % 7)
 			printf("|%p|", current)
 			Terminal reset()
 			current = current next
@@ -238,7 +237,7 @@ LinkedList: class <T> extends List<T> {
 		current = first
 		while(current) {
 			if(current next) {
-				Terminal setFgColor(Color red + current next as Int % 7)
+				Terminal setFgColor(Color red + current next as SizeT % 7)
 				printf("|%p|", current next)
 				Terminal reset()
 			}
