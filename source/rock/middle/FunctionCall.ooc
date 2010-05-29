@@ -666,7 +666,7 @@ FunctionCall: class extends Expression {
             score += Type SCORE_SEED / 4
         }
         
-         if(suffix == null && decl suffix == null) {
+        if(suffix == null && decl suffix == null && getName() != "new") {
             // even though an unsuffixed call could be a call
             // to any of the suffixed versions, if both the call
             // and the decl don't have a suffix, that's a good sign.
