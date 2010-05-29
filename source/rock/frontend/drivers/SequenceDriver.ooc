@@ -50,7 +50,7 @@ SequenceDriver: class extends Driver {
             code := buildSourceFolder(sourceFolder, oPaths)
             if(code != 0) return code
         }
-        println()
+        if(params verbose) println()
 		
 		if(params link) {
 			

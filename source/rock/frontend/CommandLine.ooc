@@ -170,6 +170,7 @@ CommandLine: class {
                 } else if (option == "run" || option == "r") {
                     
                     params run = true
+                    params shout = false
                     
                 } else if (option startsWith("driver=")) {
 
@@ -372,13 +373,12 @@ CommandLine: class {
             if(params compiler) {
                 result := driver compile(module)
                 if(result == 0) {
-                    success()
-                    
+                    if(params shout) success()
                     if(params run) {
                         Process new(["./" + module simpleName] as ArrayList<String>) execute()
                     }
                 } else {
-                    failure()
+                    if(params shout) failure()
                 }
             }
         } else if(params backend == "json") {
