@@ -108,7 +108,7 @@ Token: cover {
                     if(i < start || i >= end) {
                         over append(' ')
                     } else {
-                        over append('^')
+                        over append('~')
                     }
             }
         }

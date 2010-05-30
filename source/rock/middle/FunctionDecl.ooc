@@ -45,6 +45,7 @@ FunctionDecl: class extends Declaration {
     init: func ~funcDecl (=name, .token) {
         super(token)
         this isAnon = name isEmpty()
+        this isFinal = (name == "init")
     }
     
     accept: func (visitor: Visitor) { visitor visitFunctionDecl(this) }
@@ -344,7 +345,7 @@ FunctionDecl: class extends Declaration {
                 res wholeAgain(this, "need returnType of decl " + name)
             }
         }
-        
+
         {
             response := body resolve(trail, res)
             if(!response ok()) {
