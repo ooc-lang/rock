@@ -99,7 +99,7 @@ recv: extern func(s: Int, buf: Pointer, len: SizeT, flags: Int) -> Int
 recvFrom: extern func(s: Int, buf: Pointer, len: SizeT, flags: Int, s_from: SockAddr*, fromlen: UInt) -> Int
 send: extern func(s: Int, buf: Pointer, len: SizeT, flags: Int) -> Int
 sendTo: extern func(s: Int, buf: Pointer, len: SizeT, flags: Int, s_to: SockAddr*, tolen: UInt) -> Int
-select: extern func(n: Int, readfds: FdSet*, writefds: FdSet, exceptfds: FdSet*, timeout: TimeVal*) -> Int
+select: extern func(n: Int, readfds: FdSet*, writefds: FdSet*, exceptfds: FdSet*, timeout: TimeVal*) -> Int
 getsockopt: extern func(s: Int, level: Int, optname: Int, optval: Pointer, optlen: UInt) -> Int
 setsockopt: extern func(s: Int, level: Int, optname: Int, optval: Pointer, optlen: UInt) -> Int
 getaddrinfo: extern func(nodename: String, servname: String, hints: AddrInfo*, servinfo: AddrInfo**) -> Int
