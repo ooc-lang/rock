@@ -737,12 +737,15 @@ String: cover from Char* {
         StringIterator<Char> new(this)
     }
     
-    /** this is here mainly to be consistent */
-    front: func -> StringIterator<Char> {
+    forward: func -> StringIterator<Char> {
         iterator()
     }
     
-    back: func -> StringIterator<Char> {
+    backward: func -> BackIterator<Char> {
+        backIterator() reversed()
+    }
+    
+    backIterator: func -> StringIterator<Char> {
         iter := StringIterator<Char> new(this)
         iter i = length()
         return iter
@@ -1009,7 +1012,7 @@ ReverseIterator: class <T> extends BackIterator<T> {
  * iterators
  */
 
-StringIterator: class <T> extends Iterator<T> {
+StringIterator: class <T> extends BackIterator<T> {
 
     i := 0
     str: String
