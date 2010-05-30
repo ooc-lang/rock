@@ -98,7 +98,7 @@ LinkedList: class <T> extends List<T> {
 		current := head next
 		i := 0
 		while(current != head) {
-			if(current data == data){
+			if(memcmp(current data, data, T size) == 0){
 				return i
 			}
 			i += 1
@@ -114,7 +114,7 @@ LinkedList: class <T> extends List<T> {
 		current := head prev
 		i := size() - 1
 		while(current != head) {
-			if(current data == data){
+			if(memcmp(current data, data, T size) == 0){
 				return i
 			}
 			i -= 1
@@ -149,14 +149,12 @@ LinkedList: class <T> extends List<T> {
 	    Throws an exception when the index is out of range.
 	*/
 	removeAt: func (index: Int) -> T {
-		if(head next != head && index >= 0 && index < size()) {
+		if(head next != head && 0 <= index && index < size()) {
 			toRemove := getNode(index)
 			removeNode(toRemove)
-			size -= 1
 			return toRemove data
-		} //else {
-			Exception new(This, "Check index: 0 <= " + index + " < " + size()) throw()
-		//}
+		}
+		Exception new(This, "Check index: 0 <= " + index + " < " + size()) throw()
 	}
 	
 	/**
