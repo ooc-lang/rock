@@ -249,7 +249,7 @@ LinkedList: class <T> extends List<T> {
 		printf("prev: ")
 		current := head next
 		while(current != head) {
-			if(current prev) {
+			if(current prev != head) {
 				Terminal setFgColor(Color red + current prev as SizeT % 7)
 				printf("|%p|", current prev)
 				Terminal reset()
@@ -273,7 +273,7 @@ LinkedList: class <T> extends List<T> {
 		printf("next: ")
 		current = head next
 		while(current != head) {
-			if(current next) {
+			if(current next != head) {
 				Terminal setFgColor(Color red + current next as SizeT % 7)
 				printf("|%p|", current next)
 				Terminal reset()
