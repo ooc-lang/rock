@@ -105,7 +105,7 @@ ac_X31_hash: func <K> (key: K) -> UInt {
  * Simple hash table implementation
  */
 
-HashMap: class <K, V> extends Iterable<V> {
+HashMap: class <K, V> extends BackIterable<V> {
 
     size, capacity: Int
     keyEquals: Func <K> (K, K) -> Bool
@@ -300,8 +300,14 @@ HashMap: class <K, V> extends Iterable<V> {
         return true
     }
     
-    iterator: func -> Iterator<V> {
+    iterator: func -> BackIterator<V> {
         HashMapValueIterator<K, V> new(this)
+    }
+    
+    backIterator: func -> BackIterator<V> {
+        iter := HashMapValueIterator<K, V> new(this)
+        iter index = keys size()
+        return iter
     }
 
     clear: func {
@@ -320,7 +326,7 @@ HashMap: class <K, V> extends Iterable<V> {
 
 }
 
-HashMapValueIterator: class <K, T> extends Iterator<T> {
+HashMapValueIterator: class <K, T> extends BackIterator<T> {
 
     map: HashMap<K, T>
     index := 0
