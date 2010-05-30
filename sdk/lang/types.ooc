@@ -736,6 +736,20 @@ String: cover from Char* {
     iterator: func -> StringIterator<Char> {
         StringIterator<Char> new(this)
     }
+    
+    forward: func -> StringIterator<Char> {
+        iterator()
+    }
+    
+    backward: func -> BackIterator<Char> {
+        backIterator() reversed()
+    }
+    
+    backIterator: func -> StringIterator<Char> {
+        iter := StringIterator<Char> new(this)
+        iter i = length()
+        return iter
+    }
 
 }
 
@@ -922,23 +936,11 @@ Range: cover {
 /**
  * iterators
  */
-Iterator: abstract class <T> {
-
-    hasNext: abstract func -> Bool
-    next: abstract func -> T
-
-    hasPrev: abstract func -> Bool
-    prev: abstract func -> T
-
-    remove: abstract func -> Bool
-
-}
-
 Iterable: abstract class <T> {
 
     iterator: abstract func -> Iterator<T>
 
-    /** return the contents of the iterable as ArrayList. */
+    /** Return the contents of the iterable as ArrayList. */
     toArrayList: func -> ArrayList<T> {
         result := ArrayList<T> new()
         for(elem: T in this) {
@@ -949,11 +951,68 @@ Iterable: abstract class <T> {
     
 }
 
+BackIterable: abstract class <T> extends Iterable<T> {
+    
+    iterator: abstract func -> BackIterator<T>
+    
+    /** Returns an iterator at the back or end of the Iterable. */
+    backIterator: func -> BackIterator<T> {
+        iter := iterator()
+        while (iter hasNext()) iter next()
+        return iter
+    }
+    
+    forward: func -> BackIterator<T> {iterator()}
+    backward: func -> BackIterator<T> {backIterator() reversed()}
+}
+
+Iterator: abstract class <T> extends Iterable<T> {
+
+    hasNext: abstract func -> Bool
+    next: abstract func -> T
+
+    remove: abstract func -> Bool
+    
+    iterator: func -> Iterator<T> {this}
+    
+}
+
+BackIterator: abstract class <T> extends Iterator<T> {
+    hasPrev: abstract func -> Bool
+    prev: abstract func -> T
+    
+    iterator: func -> BackIterator<T> {this}
+    
+    reversed: func -> ReverseIterator<T> {
+        iter := ReverseIterator<T> new()
+        iter iterator = this
+        return iter
+    }
+}
+
+ReverseIterator: class <T> extends BackIterator<T> {
+    
+    iterator: BackIterator<T> = null
+    
+    hasNext: func -> Bool { iterator hasPrev() }
+    next: func -> T { iterator prev() }
+    
+    hasPrev: func -> Bool { iterator hasNext() }
+    prev: func -> T { iterator next() }
+    
+    remove: func -> Bool { iterator remove() }
+    
+    reversed: func -> BackIterator<T> { iterator }
+    
+    iterator: func -> ReverseIterator<T> { this }
+    
+}
+
 /**
  * iterators
  */
 
-StringIterator: class <T> extends Iterator<T> {
+StringIterator: class <T> extends BackIterator<T> {
 
     i := 0
     str: String

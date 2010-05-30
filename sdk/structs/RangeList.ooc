@@ -1,3 +1,5 @@
+import structs/List
+
 RangeList: class extends List<T> {
     
     data : List<T>
@@ -9,8 +11,9 @@ RangeList: class extends List<T> {
     
 }
 
-RangeListIterator: class extends Iterator<T> {
+RangeListIterator: class extends BackIterator<T> {
 
+    list: RangeList<T>
     remaining : Int
     subIter : Iterator<T>
     
@@ -30,5 +33,13 @@ RangeListIterator: class extends Iterator<T> {
     hasNext: func -> Bool {
         remaining > 0
     }
+    
+    /* TODO: stub */
+    
+    prev: func -> T { null }
+    
+    hasPrev: func -> Bool { false }
+    
+    remove: func -> Bool { false }
     
 }

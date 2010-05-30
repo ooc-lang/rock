@@ -77,13 +77,18 @@ MultiMap: class <K, V> extends HashMap<K, V> {
         return val
     }
     
-    iterator: func -> Iterator<V> {
+    iterator: func -> MultiMapValueIterator<K, V> {
         MultiMapValueIterator<K, V> new(this)
     }
-
+    
+    backIterator: func -> MultiMapValueIterator<K, V> {
+        /* TODO: stub */
+        return null
+    }
+    
 }
 
-MultiMapValueIterator: class <K, V> extends Iterator<V> {
+MultiMapValueIterator: class <K, V> extends BackIterator<V> {
 
     map: MultiMap<K, V>
     index := 0

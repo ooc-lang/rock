@@ -1,7 +1,8 @@
 import structs/[ArrayList]
 import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
        Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast, Module,
-       Block, Scope, FunctionDecl, Argument, BaseType, FuncType, Statement
+       Block, Scope, FunctionDecl, Argument, BaseType, FuncType, Statement,
+       NullLiteral
 import tinker/[Response, Resolver, Trail]
 import ../frontend/BuildParams
 
@@ -219,6 +220,22 @@ VariableDecl: class extends Declaration {
                         token throwError("Couldn't add a " + ass toString() + " after a " + toString() + ", trail = " + trail toString())
                     }
                     expr = null
+                }
+            }
+        } else { // Set pointer references to NULL
+            if (!owner && trail peek() instanceOf(Scope)) { // don't touch a member-variable or an argument
+                t := getType()
+                if (!t) {
+                    res wholeAgain(this, "Need Type.")
+                    return Responses OK
+                }
+                reference := t getRef()
+                if (!reference || !getType()) {
+                    res wholeAgain(this, "Need reference.")
+                    return Responses OK
+                }
+                if (t isPointer() || reference instanceOf(ClassDecl)) { // Pointer OR object
+                    expr = NullLiteral new(token)
                 }
             }
         }
