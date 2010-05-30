@@ -227,7 +227,7 @@ LinkedList: class <T> extends List<T> {
 	/**
 	    Returns an Iterator pointing to the back of the list.
 	*/
-	back: func -> LinkedListIterator<T> {
+	backIterator: func -> LinkedListIterator<T> {
 	    iter := LinkedListIterator new(this)
 	    iter current = head prev
 	    return iter
@@ -239,7 +239,7 @@ LinkedList: class <T> extends List<T> {
 	clone: func -> This<T> {
 	    list := This<T> new()
         if (head next != head) {
-    	    iter := front()
+    	    iter := iterator()
     	    while (iter hasNext())
     	        list add(iter next())
         }
@@ -309,7 +309,7 @@ Node: class <T>{
 	
 }
 
-LinkedListIterator: class <T> extends Iterator<T>  {
+LinkedListIterator: class <T> extends BackIterator<T>  {
 	
 	current: Node<T>
 	list: LinkedList<T>

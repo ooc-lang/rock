@@ -163,9 +163,9 @@ ArrayList: class <T> extends List<T> {
 		if (index >= size) Exception new(This, "Index too big! " + index + " >= " + size()) throw()
 	}
 	
-	iterator: func -> Iterator<T> { return ArrayListIterator<T> new(this) }
+	iterator: func -> BackIterator<T> { return ArrayListIterator<T> new(this) }
 	
-	back: func -> Iterator<T> {
+	backIterator: func -> BackIterator<T> {
 	    iter := ArrayListIterator<T> new(this)
 	    iter index = size()
 	    return iter
@@ -182,7 +182,7 @@ ArrayList: class <T> extends List<T> {
 	
 }
 
-ArrayListIterator: class <T> extends Iterator<T> {
+ArrayListIterator: class <T> extends BackIterator<T> {
 
 	list: ArrayList<T>
 	index := 0

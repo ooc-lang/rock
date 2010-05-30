@@ -3,7 +3,7 @@ import text/Buffer /* for List join */
 /**
  * List interface for a data container
  */
-List: abstract class <T> extends Iterable<T> {
+List: abstract class <T> extends BackIterable<T> {
 
     /**
      * Appends the specified element to the end of this list.
@@ -138,7 +138,7 @@ List: abstract class <T> extends Iterable<T> {
     /**
      * @return an interator on this list
      */
-    iterator: abstract func -> Iterator<T>
+    iterator: abstract func -> BackIterator<T>
     
     /**
      * @return a copy of this list

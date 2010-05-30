@@ -1,6 +1,6 @@
 import structs/ArrayList
 
-Stack: class <T> extends Iterable<T> {
+Stack: class <T> extends BackIterable<T> {
 	data: ArrayList<T>
 	
 	init: func {
@@ -56,7 +56,7 @@ Stack: class <T> extends Iterable<T> {
         data clear()
     }
     
-    iterator: func -> Iterator<T> { data iterator() }
+    iterator: func -> BackIterator<T> { data iterator() }
     
-    back: func -> Iterator<T> { data back() }
+    backIterator: func -> BackIterator<T> { data backIterator() }
 }
