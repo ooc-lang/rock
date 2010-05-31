@@ -139,6 +139,11 @@ FunctionCall: class extends Expression {
                 if(ref != null) {
                     refScore = 1
                     expr = VariableAccess new(superTypeDecl getThisDecl(), token)
+                    if(args isEmpty() && !ref getArguments() isEmpty()) {
+                        for(declArg in fDecl getArguments()) {
+                            args add(VariableAccess new(declArg, token))
+                        }
+                    }
                 }
         	} else {
         		if(expr == null) {

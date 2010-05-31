@@ -135,7 +135,11 @@ ClassDecl: class extends TypeDecl {
                  * objects can be created like:
                  * dog := Dog new()
                  */
-                addInit(fDecl)
+                if(!fDecl isSuper) {
+                    // don't add super-funcs, because they don't have their complete
+                    // signature yet. They will be re-added later
+                    addInit(fDecl)
+                }
             } else if (fDecl getName() == "new") {
                 /*
                  * ..but you can also define the new function yourself,
