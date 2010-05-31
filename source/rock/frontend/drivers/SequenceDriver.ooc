@@ -37,6 +37,11 @@ SequenceDriver: class extends Driver {
         
         oPaths := ArrayList<String> new()
 		
+        
+        for(sourceFolder in sourceFolders) {
+            prepareSourceFolder(sourceFolder, oPaths)
+        }
+        
         for(sourceFolder in sourceFolders) {
             if(params verbose) {
                 // generate random colors for every source folder
@@ -138,7 +143,7 @@ SequenceDriver: class extends Driver {
     /**
        Build a source folder into object files or a static library
      */
-    buildSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>) -> Int {
+    prepareSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>) {
         
         archive := sourceFolder archive
         
@@ -157,6 +162,40 @@ SequenceDriver: class extends Driver {
                     }
                 }
                 
+                return
+            }
+            if(params verbose) printf("\nFirst compilation with lib-caching, we have to generate + compile everything\n")
+        }
+        
+        oPaths := ArrayList<String> new()
+        if(params verbose) printf("Re-generating all modules...\n")
+        for(module in sourceFolder modules) {
+            CGenerator new(params, module) write()
+        }
+        
+        return
+        
+    }
+    
+    /**
+       Build a source folder into object files or a static library
+     */
+    buildSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>) -> Int {
+        
+        archive := sourceFolder archive
+        
+        // if lib-caching, we compile every object file to a .a static lib
+        if(params libcache) {
+            objectFiles add(sourceFolder outlib)
+            
+            if(archive exists?) {
+                reGenerated := ArrayList<Module> new()
+                for(module in sourceFolder modules) {
+                    if(!archive upToDate?(module)) {
+                        reGenerated add(module)
+                    }
+                }
+                
                 if(reGenerated size() > 0) {
                     if(params verbose) printf("\n%d new/updated modules to compile\n", reGenerated size())
                     for(module in reGenerated) {
@@ -168,14 +207,10 @@ SequenceDriver: class extends Driver {
                 }
                 return 0
             }
-            if(params verbose) printf("\nFirst compilation with lib-caching, we have to generate + compile everything\n")
         }
         
         oPaths := ArrayList<String> new()
-        if(params verbose) printf("Re-generating all modules...\n")
-        for(module in sourceFolder modules) {
-            CGenerator new(params, module) write()
-        }
+        
         if(params verbose) printf("Compiling all modules...\n")
         for(module in sourceFolder modules) {
             code := buildIndividual(module, sourceFolder, oPaths, null, false)
