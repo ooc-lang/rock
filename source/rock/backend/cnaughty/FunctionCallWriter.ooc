@@ -29,8 +29,10 @@ FunctionCallWriter: abstract class extends Skeleton {
             }
         } else {
             FunctionDeclWriter writeFullName(this, fDecl)
-            if(fDecl isFinal && fDecl owner != null && fDecl owner getNonMeta() instanceOf(ClassDecl)) {
-                shouldCastThis = true
+            if(fDecl isFinal) {
+                if(fDecl owner instanceOf(ClassDecl)) {
+                    shouldCastThis = true
+                }
             } else if(fCall getName() == "super") {
                 // if super call to a non-final method, add _impl
                 // and still need casting
