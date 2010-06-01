@@ -6,7 +6,6 @@ TypeWriter: abstract class extends Skeleton {
 
     write: static func ~_type (this: Skeleton, type: Type) {
     
-        //type write(current)
         current app(type toString())
         
     }
