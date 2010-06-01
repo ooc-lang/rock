@@ -253,6 +253,11 @@ ArchiveModule: class {
             for(tDecl in module getTypes()) {
                 archType := types get(tDecl getFullName())
                 
+                // if the type wasn't there last time - we're not up-to date!
+                if(archType == null) {
+                    return false
+                }
+                
                 statVarIter   := archType staticVariables iterator()
                 instanceVarIter := archType variables iterator()
                 
