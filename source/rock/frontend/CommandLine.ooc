@@ -149,6 +149,13 @@ CommandLine: class {
                     
                     params shout = true
                     
+                } else if (option == "q") {
+                    
+                    // quiet mode
+                    params shout = false
+                    params verbose = false
+                    params veryVerbose = false
+                    
                 } else if (option == "timing" || option == "t") {
                     
                     params timing = true
