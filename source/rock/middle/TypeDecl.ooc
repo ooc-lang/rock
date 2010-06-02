@@ -592,7 +592,7 @@ TypeDecl: abstract class extends Declaration {
             
             if(mvDecl != null && access suggest(mvDecl)) {
             	if(access expr == null) {
-                    varAcc := VariableAccess new("This", nullToken)
+                    varAcc := VariableAccess new(getInstanceType(), nullToken)
                     access expr = varAcc
                 }
                 return 0

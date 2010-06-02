@@ -18,6 +18,8 @@ Install
 
 See the INSTALL file
 
+To switch to the most recent git, read docs/workflow/ReleaseToGit.md
+
 FAQ
 ---
 

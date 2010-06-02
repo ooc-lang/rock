@@ -219,8 +219,6 @@ operator []= <T> (list: ArrayList<T>, i: Int, element: T) { list set(i, element)
 operator += <T> (list: ArrayList<T>, element: T) { list add(element) }
 operator -= <T> (list: ArrayList<T>, element: T) -> Bool { list remove(element) }
 
-// comment the following line to make rock-0.9.0 compile rock-ooc-arrays
-// uncomment it to make rock-ooc-arrays compile its tests.
 operator as <T> (array: T[]) -> ArrayList<T> { ArrayList<T> new(array data, array length) }
 
 

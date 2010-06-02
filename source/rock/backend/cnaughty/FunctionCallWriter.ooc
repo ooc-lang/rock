@@ -1,4 +1,7 @@
-import ../../middle/[FunctionDecl, FunctionCall, TypeDecl, Argument, Type, Expression, InterfaceDecl, VariableAccess, VariableDecl]
+
+import ../../middle/[FunctionDecl, FunctionCall, TypeDecl, Argument,
+        Type, Expression, InterfaceDecl, VariableAccess, VariableDecl,
+        ClassDecl]
 import Skeleton, FunctionDeclWriter
 
 FunctionCallWriter: abstract class extends Skeleton {
@@ -26,7 +29,13 @@ FunctionCallWriter: abstract class extends Skeleton {
             }
         } else {
             FunctionDeclWriter writeFullName(this, fDecl)
-            if(!fDecl isFinal && fCall getName() == "super") {
+            if(fDecl isFinal) {
+                if(fDecl owner instanceOf(ClassDecl)) {
+                    shouldCastThis = true
+                }
+            } else if(fCall getName() == "super") {
+                // if super call to a non-final method, add _impl
+                // and still need casting
                 current app("_impl")
                 shouldCastThis = true
             }

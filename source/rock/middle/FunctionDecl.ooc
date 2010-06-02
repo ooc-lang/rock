@@ -19,6 +19,7 @@ FunctionDecl: class extends Declaration {
     isInline := false
     isFinal := false
     isProto := false
+    isSuper := false
     externName : String = null
     unmangledName: String = null
     // if true, 'this' has byref semantics
@@ -45,6 +46,7 @@ FunctionDecl: class extends Declaration {
     init: func ~funcDecl (=name, .token) {
         super(token)
         this isAnon = name isEmpty()
+        this isFinal = (name == "init")
     }
     
     accept: func (visitor: Visitor) { visitor visitFunctionDecl(this) }
@@ -74,6 +76,9 @@ FunctionDecl: class extends Declaration {
     
     isProto:    func -> Bool { isProto }
     setProto:   func (=isProto) {}
+    
+    isSuper:    func -> Bool { isSuper }
+    setSuper:   func (=isSuper) {}
     
     isAnon: func -> Bool { isAnon }
     
@@ -360,6 +365,41 @@ FunctionDecl: class extends Declaration {
             }
         }
         
+        if(isSuper) {
+            if(!owner) {
+                token throwError("super funcs are only legal in type declarations!")
+            }
+            
+            superTypeDecl := owner getSuperRef()
+            finalScore: Int
+            ref := superTypeDecl getMeta() getFunction(name, suffix, null, finalScore&)
+            if(finalScore == -1) {
+                res wholeAgain(this, "something in our typedecl's functions needs resolving!")
+                return Responses OK
+            }
+            if(ref != null) {
+                for(arg in ref args) {
+                    if(!arg isResolved()) {
+                        res wholeAgain(arg, "some arg we need to copy needs resolving!")
+                        return Responses OK
+                    }
+                }
+                
+                args addAll(ref args)
+                printf("We've stolen %s! now we're %s\n", ref toString(), toString())
+                body add(FunctionCall new("super", token))
+                
+                isSuper = false
+                
+                if(name == "init") {
+                    // add ourselves again, for new-generation from init
+                    owner removeFunction(this). addFunction(this)
+                }
+            } else {
+                token throwError("There is no such super-func in %s!" format(superTypeDecl toString()))
+            }
+        }
+
         {
             response := body resolve(trail, res)
             if(!response ok()) {

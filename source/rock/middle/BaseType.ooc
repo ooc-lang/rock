@@ -36,7 +36,20 @@ BaseType: class extends Type {
     }
     
     writeRegularType: func (w: AwesomeWriter, td: TypeDecl) {
+        
         if(td isExtern()) {
+            if(td instanceOf(CoverDecl)) {
+                cDecl := getRef() as CoverDecl
+                fromType := cDecl getFromType()
+                if(fromType != null && cDecl isExtern()) {
+                    // for extern covers, write directly the underlying
+                    // type - since we don't even write a typedef.
+                    w app(fromType toString())
+                    return
+                }
+            }
+            
+            // still have a chance to have an extern name
             w app(td getExternName())
             return
         }

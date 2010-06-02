@@ -5,6 +5,9 @@ import Response, Trail, Tinkerer
 Resolver: class {
  
     wholeAgain := false
+    
+    lastNode  : Node
+    lastReason: String
  
     fatal := false
     module: Module
@@ -28,7 +31,8 @@ Resolver: class {
     
     wholeAgain: func (node: Node, reason: String) {
         if(fatal && BuildParams fatalError) {
-            node token throwError(reason)
+            lastNode   = node
+            lastReason = reason
         }
         
         if(fatal && params debugLoop) {

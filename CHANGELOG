@@ -1,5 +1,20 @@
 
-0.9.0 release
+0.9.1 release ()
+
+  - 2010-05 reverse iterators / backIterator() added to collection classes
+    by Noel Cower (nilium)
+  - 2010-05 lib-caching was added to rock, and partial recompilation is
+    much smarter with the .libs/ directory and .cacheinfo files.
+    Can be disabled with -nolibcache. Added by Amos Wenger (nddrylliog)
+  - 2010-05 ACS (awesome closure syntax) is in! Our closures capture syntax
+    and even generate trampoline functions to translate generic types
+    into specific types. Thanks Yannic Ahrens (showstopper) !
+  - 2010-05 oos now compiles under rock - we still have to figure out
+    a good syntax for stack-allocation of C arrays.
+  - 2010-04 Added support for ooc arrays, early implementation of this
+    proposal: https://lists.launchpad.net/ooc-dev/msg00146.html
+
+0.9.0 release (2010-04-23 - 600+ downloads)
 
   - 2010-04 : rock bootstraps under Gentoo, Ubuntu, Win32, OSX,
     the first release of the 0.9.x branch is out!
@@ -26,9 +41,9 @@ pre-history
     rock now compiles things =)
   - 2009-10 : Creating the AST structure, code generation works well, putting the 
     frontend on hold for a moment
-  - 2009-09 : The tokenizing code is all there, and it's working simply great.
+  - 20.9.19 : The tokenizing code is all there, and it's working simply great.
     Now onto constructing AST nodes.
-  - 2009-06 : Basic structure, it's gonna be some time till it can do anything useful
+  - 20.9.16 : Basic structure, it's gonna be some time till it can do anything useful
 
 
 

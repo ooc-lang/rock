@@ -29,7 +29,7 @@ In that case you should already have a working bin\rock.exe
 Getting comfortable
 ~~~~~~~~~~~~~~~~~~~
 
-You probably want to add C:\mingw\rock-0.9.0\bin (or wherever you
+You probably want to add C:\mingw\rock-0.9.1\bin (or wherever you
 extracted rock) to your PATH. Here's how to do it:
 
   * From the desktop, right-click My Computer and click Properties.

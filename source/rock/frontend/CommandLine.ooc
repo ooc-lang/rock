@@ -149,6 +149,13 @@ CommandLine: class {
                     
                     params shout = true
                     
+                } else if (option == "q" || option == "quiet") {
+                    
+                    // quiet mode
+                    params shout = false
+                    params verbose = false
+                    params veryVerbose = false
+                    
                 } else if (option == "timing" || option == "t") {
                     
                     params timing = true
@@ -192,7 +199,7 @@ CommandLine: class {
                     
                 } else if (option == "V" || option == "-version" || option == "version") {
                     
-                    printf("rock head, built on %s at %s\n", ROCK_BUILD_DATE, ROCK_BUILD_TIME)
+                    printf("rock 0.9.1, built on %s at %s\n", ROCK_BUILD_DATE, ROCK_BUILD_TIME)
                     exit(0)
                     
                 } else if (option == "h" || option == "-help" || option == "help") {
@@ -338,6 +345,7 @@ CommandLine: class {
         module := Module new(fullName, params sourcePath getElement(moduleName) path, params , nullToken)
         module token = Token new(0, 0, module)
         module main = true
+        module lastModified = moduleFile lastModified()
         
         // phase 1: parse
         AstBuilder new(modulePath, module, params)

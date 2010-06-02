@@ -72,8 +72,10 @@ Help: class {
 -nolines
     Print no lines directives to the C files.
 -shout
-    Print a big fat status indicator (usually [ OK ]) when a build
+    Print a big fat status indicator (usually [ OK ] or [FAIL]) when a build
     process is finished.
+-q, -quiet
+    Makes rock shut up. Disables any previous shout, verbose, veryVerbose.
 -blowup=ROUNDS
     Terminate rock after ROUNDS tinkerer rounds. (default=32)
 -V, -version, --version

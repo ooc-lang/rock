@@ -139,6 +139,11 @@ FunctionCall: class extends Expression {
                 if(ref != null) {
                     refScore = 1
                     expr = VariableAccess new(superTypeDecl getThisDecl(), token)
+                    if(args isEmpty() && !ref getArguments() isEmpty()) {
+                        for(declArg in fDecl getArguments()) {
+                            args add(VariableAccess new(declArg, token))
+                        }
+                    }
                 }
         	} else {
         		if(expr == null) {
@@ -666,14 +671,10 @@ FunctionCall: class extends Expression {
             score += Type SCORE_SEED / 4
         }
         
-        if(suffix == null && decl suffix == null && getName() != "new") {
+        if(suffix == null && decl suffix == null && !decl isStatic()) {
             // even though an unsuffixed call could be a call
             // to any of the suffixed versions, if both the call
             // and the decl don't have a suffix, that's a good sign.
-            //
-            // we don't apply that bonus for new() calls though, because
-            // unsuffixed new(s) may well call suffixed constructors
-            // (both of which are very common)
             score += Type SCORE_SEED / 4
         }
         
