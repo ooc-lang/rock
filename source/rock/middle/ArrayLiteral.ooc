@@ -106,7 +106,7 @@ ArrayLiteral: class extends Literal {
         trail pop(this)
         
         // if we still don't know our type, resolve from elements' innerTypes
-        if(type == null) {
+        if(type == null && !elements isEmpty()) {
             innerType := elements first() getType()
             if(innerType == null || !innerType isResolved()) {
                 res wholeAgain(this, "need innerType")
