@@ -73,31 +73,29 @@ ArrayLiteral: class extends Literal {
             parent := trail peek()
             if(parent instanceOf(FunctionCall)) {
                 fCall := parent as FunctionCall
-                if(fCall refScore <= 0) {
-                    res wholeAgain(this, "Need outer fCall to be resolved")
-                    return Responses OK
-                }
-                index := fCall args indexOf(this)
-                if(index != -1) {
-                    if(fCall getRef() == null) {
-                        res wholeAgain(this, "Need call ref to infer type")
-                        readyToUnwrap = false
-                    } else if(fCall getRef() args size() > index) {
-                        targetType := fCall getRef() args get(index) getType()
-                        if((type == null || !type equals(targetType)) &&
-                           (!targetType instanceOf(SugarType) || !targetType as SugarType inner isGeneric())) {
-                            cast := Cast new(this, targetType, token)
-                            if(!parent replace(this, cast)) {
-                                token throwError("Couldn't replace %s with %s in %s" format(toString(), cast toString(), parent toString()))
+                if(fCall refScore > 0) {
+                    index := fCall args indexOf(this)
+                    if(index != -1) {
+                        if(fCall getRef() == null) {
+                            res wholeAgain(this, "Need call ref to infer type")
+                            readyToUnwrap = false
+                        } else if(fCall getRef() args size() > index) {
+                            targetType := fCall getRef() args get(index) getType()
+                            if((type == null || !type equals(targetType)) &&
+                               (!targetType instanceOf(SugarType) || !targetType as SugarType inner isGeneric())) {
+                                cast := Cast new(this, targetType, token)
+                                if(!parent replace(this, cast)) {
+                                    token throwError("Couldn't replace %s with %s in %s" format(toString(), cast toString(), parent toString()))
+                                }
+                                res wholeAgain(this, "Replaced with a cast")
+                                return Responses OK
                             }
-                            res wholeAgain(this, "Replaced with a cast")
-                            return Responses OK
+                        } else {
+                            printf("%s is the %dth argument of %s, ref is %s with %d arguments\n",
+                                toString(), index, fCall toString(), fCall getRef() toString(), fCall getRef() args size())
                         }
-                    } else {
-                        printf("%s is the %dth argument of %s, ref is %s with %d arguments\n",
-                            toString(), index, fCall toString(), fCall getRef() toString(), fCall getRef() args size())
                     }
-                }
+                }   
             }
         }
         
