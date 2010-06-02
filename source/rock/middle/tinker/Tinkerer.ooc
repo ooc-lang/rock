@@ -42,19 +42,13 @@ Tinkerer: class {
                     printf("\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
                 }
                 
-                // returns true = dirty, must do again
-                if(resolver process()) {
-                    continue
+                // returns false = finished resolving
+                if(!resolver process()) {
+                    if(params veryVerbose) println("++++++++++++++++ Module " + resolver module fullName + " finished resolving.");
+                
+                    // done? check it and remove it from the processing queue
+                    iter remove()
                 }
-            
-                if(params veryVerbose) println("++++++++++++++++ Module " + resolver module fullName + " finished resolving.");
-                
-                // done? check it and remove it from the processing queue
-                /*
-                Checker new() process(resolver module, params)
-                */
-                
-                iter remove()
                 
             }
             
@@ -63,7 +57,12 @@ Tinkerer: class {
             }
             
             if(round > params blowup) {
-                //CompilationFailedError new(null, "Tinkerer going round in circles. Remaining modules = " + resolvers toString()) throw()
+                for(res in resolvers) {
+                    if(res lastNode != null) {
+                        res lastNode token throwError(res lastReason)
+                    }
+                }
+                
                 println("Tinkerer going round in circles. " + resolvers size() + " modules remaining.")
                 return false
             }
