@@ -345,6 +345,7 @@ CommandLine: class {
         module := Module new(fullName, params sourcePath getElement(moduleName) path, params , nullToken)
         module token = Token new(0, 0, module)
         module main = true
+        module lastModified = moduleFile lastModified()
         
         // phase 1: parse
         AstBuilder new(modulePath, module, params)

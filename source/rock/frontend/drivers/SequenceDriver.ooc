@@ -336,7 +336,7 @@ SequenceDriver: class extends Driver {
        Collect all modules imported from `module`, sort them by SourceFolder,
        put them in `toCompile`, and return it.
      */
-	collectDeps: func (module: Module, toCompile: HashMap<String, SourceFolder>, done: ArrayList<String>) -> HashMap<String, SourceFolder> {
+	collectDeps: func (module: Module, toCompile: HashMap<String, SourceFolder>, done: ArrayList<Module>) -> HashMap<String, SourceFolder> {
 		
         name := File new(File new(module getPathElement()) getAbsolutePath()) name()
         
@@ -347,10 +347,10 @@ SequenceDriver: class extends Driver {
         }
         
 		sourceFolder modules add(module)    
-		done add(module getPath())
+		done add(module)
 		
 		for(import1 in module getAllImports()) {
-			if(done contains(import1 getModule() getPath())) continue
+			if(done contains(import1 getModule())) continue
 			collectDeps(import1 getModule(), toCompile, done)    
 		}
 		
