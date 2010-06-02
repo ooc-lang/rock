@@ -275,6 +275,9 @@ FunctionDecl: class extends Declaration {
         isClosure := name isEmpty()
         
         if (isClosure && !argumentsReady()) {
+            if (!unwrapACS(trail, res)) return Responses OK
+        }
+            /*
             parentCall := trail get(trail find(FunctionCall)) as FunctionCall
             parentFunc: FunctionDecl = null
                             
@@ -344,6 +347,7 @@ FunctionDecl: class extends Declaration {
                 }
             } 
         }
+        */
         for(typeArg in typeArgs) {
             response := typeArg resolve(trail, res)
             if(!response ok()) {
@@ -456,17 +460,18 @@ FunctionDecl: class extends Declaration {
         return Responses OK
     }
     
-    unwrapACS: func (trail: Trail, res: Resolver) {
+    unwrapACS: func (trail: Trail, res: Resolver) -> Bool{
        
-        //ind := trail find(FunctionCall)
-        parentCall := trail get(trail find(FunctionCall)) as FunctionCall
+        ind := trail find(FunctionCall)
+        if (ind == -1) token throwError("Got an ACS without any function-call. THIS IS NOT SUPPOSED TO HAPPEN\ntrail= %s" format(trail toString()))
+        parentCall := trail get(ind) as FunctionCall
         parentFunc: FunctionDecl = null
         parentFunc = parentCall getRef()
         
         if (!parentFunc) {
             res wholeAgain(this, "Need ACS reference.")
             trail pop(this)
-            return Responses OK
+            return false
         }
         
         funcPointer: FuncType = null
@@ -479,7 +484,7 @@ FunctionDecl: class extends Declaration {
         if (!funcPointer) {
             res wholeAgain(this, "Missing type informantion in the function pointer.")
             trail pop(this)
-            return Responses OK
+            return false
         }
         ix := 0
 
@@ -489,7 +494,7 @@ FunctionDecl: class extends Declaration {
             if (!fType isResolved()) {
                 res wholeAgain(this, "Can't figure out the type of the argument.")
                 trail pop(this)
-                return Responses OK
+                return false
             }
             if (fType isGeneric()) needTrampoline = true
             args get(ix) type = fType
@@ -518,13 +523,14 @@ FunctionDecl: class extends Declaration {
                     if (fScore == -1) {
                         res wholeAgain(this, "Can't figure out the actual type of the generic.")
                         trail pop(this)
-                        return Responses OK
+                        return false
                     } 
                     castedArg := VariableDecl new(t, n, Cast new(VariableAccess new(arg name, arg token), t, arg token), arg token)
                     body list add(0, castedArg)  
                 }
             }
-        } 
+        }
+        return true 
     }
    
     unwrapClosure: func (trail: Trail, res: Resolver) {
