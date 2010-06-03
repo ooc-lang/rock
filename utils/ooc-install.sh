@@ -32,7 +32,7 @@ function intro {
             exit 1
         fi
         echo ""
-        read -p "Will install rock HEAD (latest revision), ok? [y/N] " f
+        read -p "Will install rock v0.9.1 (latest stable), ok? [y/N] " f
         [[ "$f" == y* ]]
     fi
 }
@@ -55,9 +55,9 @@ function do_install {
     fi
            
     if [ -x "`which curl`" ]; then
-        curl -L -\# "http://github.com/nddrylliog/rock/tarball/v0.9.1" | tar -zxf -
+        curl -L -\# "http://github.com/downloads/nddrylliog/rock/rock-0.9.1-source.tar.bz2" | tar -zxf -
     elif [ -x "`which wget`" ]; then
-        wget --progress=bar "http://github.com/nddrylliog/rock/tarball/v0.9.1" -O - | tar -zxf -
+        wget --progress=bar "http://github.com/downloads/nddrylliog/rock/rock-0.9.1-source.tar.bz2" -O - | tar -zxf -
     fi
     git clone "http://github.com/nddrylliog/rock.git" "$f"
     
