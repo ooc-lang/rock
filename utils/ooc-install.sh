@@ -32,7 +32,7 @@ function intro {
             exit 1
         fi
         echo ""
-        read -p "Will install rock v0.9.1 (latest stable), ok? [y/N] " f
+        read -p "Will install rock head from v0.9.1 source, ok? [y/N] " f
         [[ "$f" == y* ]]
     fi
 }
