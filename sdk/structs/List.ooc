@@ -187,7 +187,7 @@ List: abstract class <T> extends BackIterable<T> {
         for(i in 0..size()) {
             arr[i] = this[i]
         }
-        return arr&
+        return arr& as Pointer
     }
 
     each: func (f: Func (T)) {

@@ -1,13 +1,13 @@
-import ../frontend/Token
+import ../frontend/[Token,BuildParams]
 import Visitor, Statement, Expression, Node, FunctionDecl, FunctionCall,
        VariableAccess, VariableDecl, AddressOf, ArrayAccess, If,
-       BinaryOp, Cast
+       BinaryOp, Cast, Type, Module
 import tinker/[Response, Resolver, Trail]
 
 Return: class extends Statement {
-
-    expr: Expression
     
+    expr: Expression = null
+        
     init: func ~ret (.token) {
         init(null, token)
     }
@@ -19,8 +19,25 @@ Return: class extends Statement {
     accept: func (visitor: Visitor) { visitor visitReturn(this) }
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
+                
+        idx := trail find(FunctionDecl)
+        fDecl: FunctionDecl = null
+        retType: Type = null
+        if(idx != -1) {
+            fDecl = trail get(idx) as FunctionDecl
+            retType = fDecl getReturnType()
+            if (!retType isResolved()) {
+                return Responses LOOP
+            }
+        }
         
-        if(!expr) return Responses OK
+        if(!expr) {
+            if (!retType isGeneric() && retType != voidType) { 
+                token throwError("Function is not declared to return `null`! trail = %s" format(trail toString()))
+            } else {
+                return Responses OK
+            }
+        }
         
         {
             trail push(this)
@@ -31,15 +48,9 @@ Return: class extends Statement {
             }
         }
         
-        idx := trail find(FunctionDecl)
-        if(idx != -1) {
-            fDecl := trail get(idx) as FunctionDecl
-            retType := fDecl getReturnType()
-            if(!retType isResolved()) {
-                return Responses LOOP
-            }
-            
-            if(fDecl getReturnType() isGeneric()) {
+        if (retType) {            
+                        
+            if(retType isGeneric()) {
                 if(expr getType() == null || !expr getType() isResolved()) {
                     res wholeAgain(this, "expr type is unresolved"); return Responses OK
                 }
@@ -69,15 +80,37 @@ Return: class extends Statement {
                 return Responses LOOP
             }
             
-            if(expr != null) {
+            if(expr) {
                 if(expr getType() == null || !expr getType() isResolved()) {
                     res wholeAgain(this, "Need info about the expr type")
                     return Responses OK
                 }
                 if(!retType getName() toLower() equals("void") && !retType equals(expr getType())) {
-                    // TODO: add checking to see if the types are compatible
+                    score := expr getType() getScore(retType)
+                    if (score < (Type SCORE_SEED / 2)) {
+                        
+                        msg: String
+                        if (res params veryVerbose) {
+                            msg = "The declared return type (%s) and the returned value (%s) do not match!\nscore = %d\ntrail = %s" format(retType toString(), expr getType() toString(), score, trail toString())
+                        } else {
+                            msg = "The declared return type (%s) and the returned value (%s) do not match!" format(retType toString(), expr getType() toString())
+                        }
+                        res wholeAgain(this, msg)    
+                        return Responses OK
+                    }                       
+                       //token throwError("The function's return type (%s) and the actual return value (%s) do not match!\nscore = %d\ntrail = %s"format(retType toString(), expr getType() toString(),score, trail toString()))
+                    
                     expr = Cast new(expr, retType, expr token)
                 }
+            }
+            
+            if (retType == voidType && !expr) 
+                token throwError("Function is declared to return `null`, not %s! trail = %s" format(expr getType() toString(), trail toString()))
+            
+            module := trail module()
+            if (module simpleName == "ret_missmatch") {
+                                score := retType getScore(expr getType())
+                score toString() println()
             }
         }
         

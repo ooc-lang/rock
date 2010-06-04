@@ -511,7 +511,7 @@ String: cover from Char* {
         sub := This new(diff)
         memcpy(sub, (this as Char*) + start, diff)
         sub[diff] = '\0'
-        return sub
+        return sub as This
     }
 
     /** return a substring of *this* only containing the characters in the
@@ -533,7 +533,7 @@ String: cover from Char* {
         diff = (end - start) : Int
         sub := This new(diff)
         memcpy(sub, (this as Char*) + start, diff)
-        return sub
+        return sub as This
     }
 
     /** return a reversed copy of *this*. */
@@ -551,7 +551,7 @@ String: cover from Char* {
         }
         result[len] = 0
 
-        return result
+        return result as This
     }
 
     /** print *this* to stdout without a following newline. Flush stdout. */
@@ -573,7 +573,7 @@ String: cover from Char* {
             memcpy(result + (i * length), this, length)
         }
         result[length * count] = '\0';
-        return result
+        return result as This
     }
 
     /** return a copy of *this*. */
@@ -581,7 +581,7 @@ String: cover from Char* {
         length := length()
         copy := This new(length)
         memcpy(copy, this, length + 1)
-        return copy
+        return copy as This
     }
 
     /** return a string that contains *this* followed by *other*. */
@@ -591,7 +591,7 @@ String: cover from Char* {
         copy := This new(length + rlength) as Char*
         memcpy(copy, this, length)
         memcpy(copy + length, other, rlength + 1) // copy the final '\0'
-        return copy
+        return copy as This
     }
 
     /** return a string containing *this* followed by *other*. */
@@ -601,7 +601,7 @@ String: cover from Char* {
         memcpy(copy, this, length)
         copy[length] = other
         copy[length + 1] = '\0'
-        return copy
+        return copy as This
     }
 
     /** return the number of *what*'s occurences in *this*. */
@@ -676,7 +676,7 @@ String: cover from Char* {
         copy := This new(length + 1) as Char*
         copy[0] = other
         memcpy(copy + 1, this, length)
-        return copy
+        return copy as This
     }
 
     /** return a new string with all characters lowercased (if possible). */
@@ -686,7 +686,7 @@ String: cover from Char* {
         for(i in 0..length) {
             copy[i] = this[i] as Char toLower()
         }
-        return copy
+        return copy as This
     }
 
     /** return a new string with all characters uppercased (if possible). */
@@ -696,7 +696,7 @@ String: cover from Char* {
         for(i in 0..length) {
             copy[i] = this[i] as Char toUpper()
         }
-        return copy
+        return copy as This
     }
 
     /** return the character at position #*index* (starting at 0) */
