@@ -277,77 +277,7 @@ FunctionDecl: class extends Declaration {
         if (isClosure && !argumentsReady()) {
             if (!unwrapACS(trail, res)) return Responses OK
         }
-            /*
-            parentCall := trail get(trail find(FunctionCall)) as FunctionCall
-            parentFunc: FunctionDecl = null
-                            
-            parentFunc = parentCall getRef()
         
-            if (!parentFunc) {
-                res wholeAgain(this, "Need ACS reference.")
-                trail pop(this)
-                return Responses OK
-            }
-
-            funcPointer: FuncType = null
-            for (arg in parentFunc args) {
-                if (arg getType() instanceOf(FuncType)) {
-                    funcPointer = arg getType()
-                    break
-                }
-            
-            }
-            if (!funcPointer) {
-                 res wholeAgain(this, "Missing type informantion in the function pointer.")
-                 trail pop(this)
-                 return Responses OK
-            }
-            ix := 0
-
-            fScore: Int
-            needTrampoline := false
-            for (fType in funcPointer argTypes) {
-                if (!fType isResolved()) {
-                    res wholeAgain(this, "Can't figure out the type of the argument.")
-                    trail pop(this)
-                    return Responses OK
-                }
-                if (fType isGeneric()) needTrampoline = true
-                args get(ix) type = fType
-                ix += 1
-            }
-            if (funcPointer returnType) returnType = funcPointer returnType
-
-            if (needTrampoline) {              
-
-                //
-                // 1. The generic function arguments get the postfix "_generic".
-                // 2. The type of each generic argument is figured out.
-                // 3. Right at the beginning of the function casts to the actual types
-                // are added.
-                // Example:
-                //   test: func<T> (b: T) { b println() }
-                // becomes
-                //   test: func<T> (b_generic: T) { b := b_generic as String; b println() }
-                //
-
-                for (arg in args) {
-                    if (arg getType() isGeneric()) {
-                        n := arg name
-                        arg name = arg name + "_generic"
-                        t := parentCall resolveTypeArg(arg getType() getName(), trail, res, fScore&)
-                        if (fScore == -1) {
-                            res wholeAgain(this, "Can't figure out the actual type of the generic.")
-                            trail pop(this)
-                            return Responses OK
-                        }     
-                        castedArg := VariableDecl new(t, n, Cast new(VariableAccess new(arg name, arg token), t, arg token), arg token)
-                        body list add(0, castedArg)  
-                    }
-                }
-            } 
-        }
-        */
         for(typeArg in typeArgs) {
             response := typeArg resolve(trail, res)
             if(!response ok()) {
