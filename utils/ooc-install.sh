@@ -38,7 +38,7 @@ function intro {
 }
 
 function do_install {
-    read -p "Enter installation directory [/home/$USER/ooc]: " f
+    read -p "Enter installation directory [$HOME/ooc]: " f
     if [[ ! -a $f ]]; then
         read -p "$f doesn't exist, create? [y/N] " c
         if [[ $c == y* ]]; then
