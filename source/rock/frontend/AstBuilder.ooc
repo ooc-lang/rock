@@ -429,11 +429,11 @@ AstBuilder: class {
         }
     }
 
-    onVarDeclEnd: unmangled(nq_onVarDeclEnd) func -> Stack<VariableDecl> {
+    onVarDeclEnd: unmangled(nq_onVarDeclEnd) func -> Object {
         stack := pop(Stack<VariableDecl>)
-        if(stack size() == 1) return stack peek()
+        if(stack size() == 1) return stack peek() as Object
         // FIXME: Better detection to avoid 'stack' being passed as a Statement to, say, an If
-        return stack
+        return stack as Object
     }
 
     gotVarDecl: func (vd: VariableDecl) {
@@ -949,7 +949,7 @@ AstBuilder: class {
         IntLiteral new(value replace("_", "") toLLong(16), token())
     }
 
-    onFloatLiteral: unmangled(nq_onFloatLiteral) func (value: String) -> IntLiteral {
+    onFloatLiteral: unmangled(nq_onFloatLiteral) func (value: String) -> FloatLiteral {
         FloatLiteral new(value replace("_", "") toFloat(), token())
     }
 

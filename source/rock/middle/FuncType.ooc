@@ -34,7 +34,7 @@ FuncType: class extends Type {
     getName: func -> String { "Func" }
     
     getType: func -> Type { this }
-    getRef: func -> Declaration { this }
+    getRef: func -> Declaration { this as Declaration /* hmm that's wrong. FuncType doesn't inherit from Declaration :x */ }
     setRef: func (d: Declaration) {}
     
     // should we throw an error or something?

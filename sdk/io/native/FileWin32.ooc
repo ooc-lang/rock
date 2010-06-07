@@ -95,7 +95,7 @@ version(windows) {
             if(hFind == INVALID_HANDLE_VALUE) return false // it's not a directory if it doesn't exist
             FindClose(hFind)
             
-            return ((ffd attr) & FILE_ATTRIBUTE_DIRECTORY)
+            return ((ffd attr) & FILE_ATTRIBUTE_DIRECTORY) != 0
         }
 
         /**
@@ -123,7 +123,7 @@ version(windows) {
             if(hFind == INVALID_HANDLE_VALUE) return false // it's not a link if it doesn't exist
             FindClose(hFind)
             
-            return ((ffd attr) & FILE_ATTRIBUTE_REPARSE_POINT)
+            return ((ffd attr) & FILE_ATTRIBUTE_REPARSE_POINT) != 0
         }
 
         /**
@@ -161,8 +161,7 @@ version(windows) {
 
         mkdir: func ~withMode (mode: Int32) -> Int {
             if(isRelative()) {
-                getAbsoluteFile() mkdir()
-                return
+                return getAbsoluteFile() mkdir()
             }
 
             parent := parent()

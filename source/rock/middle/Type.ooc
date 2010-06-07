@@ -297,9 +297,9 @@ PointerType: class extends SugarType {
     toString: func -> String { inner toString() + "*" }
     toMangledString: func -> String { inner toString() + "__star" }
     
-    dereference: func -> This { inner }
+    dereference: func -> Type { inner }
     
-    clone: func -> This { new(inner, token) }
+    clone: func -> Type { new(inner, token) }
     
 }
 
@@ -401,9 +401,9 @@ ReferenceType: class extends SugarType {
     toString: func -> String { inner toString() + "@" }
     toMangledString: func -> String { inner toString() + "__star" }
     
-    dereference : func -> This { inner }
+    dereference : func -> Type { inner }
     
-    clone: func -> This { new(inner, token) }
+    clone: func -> Type { new(inner, token) }
     
     refToPointer: func -> Type {
         PointerType new(inner refToPointer(), token)

@@ -194,7 +194,7 @@ Module: class extends Node {
 
         ref = types get(access name)
         if(ref != null && access suggest(ref)) {
-            return
+            return 0
         }
 
         // That's actually the only place we want to resolve variables from the
@@ -207,7 +207,7 @@ Module: class extends Node {
     
     resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
         if(call isMember()) {
-            return // hmm no member calls for us
+            return 0 // hmm no member calls for us
         }
         
         resolveCallNonRecursive(call, res)

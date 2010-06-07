@@ -255,7 +255,7 @@ BaseType: class extends Type {
         return This NOLUCK_SCORE // no luck.
     }
     
-    dereference: func -> This {
+    dereference: func -> Type {
         digged := dig()
         if(digged) {
             return digged dereference()

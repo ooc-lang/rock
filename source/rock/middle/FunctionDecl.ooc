@@ -229,18 +229,18 @@ FunctionDecl: class extends Declaration {
         //printf("Looking for %s in %s\n", access toString(), toString())
         
         if(owner != null && access name == "this") {
-            if(access suggest(isThisRef ? owner thisRefDecl : owner thisDecl)) return
+            if(access suggest(isThisRef ? owner thisRefDecl : owner thisDecl)) return 0
         }
         
         for(typeArg in typeArgs) {
             if(access name == typeArg name) {
-                if(access suggest(typeArg)) return
+                if(access suggest(typeArg)) return 0
             }
         }
         
         for(arg in args) {
             if(access name == arg name) {
-                if(access suggest(arg)) return
+                if(access suggest(arg)) return 0
             }
         }
         

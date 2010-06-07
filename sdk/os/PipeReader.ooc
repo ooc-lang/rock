@@ -17,7 +17,7 @@ PipeReader: class {
         buf = pipe read(This BUF_SIZE)
         if(buf as String == "\0") eof = true
 
-        return buf
+        return buf as String
     }
 
     hasNext: func() -> Bool {

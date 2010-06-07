@@ -98,7 +98,7 @@ version(unix || apple) {
         size: func -> LLong {
             stat: FileStat
             lstat(path, stat&)
-            return stat st_size
+            return stat st_size as LLong
         }
 
         /**
@@ -107,7 +107,7 @@ version(unix || apple) {
         ownerPerm: func -> Int {
             stat: FileStat
             lstat(path, stat&)
-            return (stat st_mode) & S_IRWXU
+            return ((stat st_mode) & S_IRWXU) as Int
         }
 
         /**
@@ -116,7 +116,7 @@ version(unix || apple) {
         groupPerm: func -> Int {
             stat: FileStat
             lstat(path, stat&)
-            return (stat st_mode) & S_IRWXG
+            return ((stat st_mode) & S_IRWXG) as Int
         }
 
         /**
@@ -125,7 +125,7 @@ version(unix || apple) {
         otherPerm: func -> Int {
             stat: FileStat
             lstat(path, stat&)
-            return (stat st_mode) & S_IRWXO
+            return ((stat st_mode) & S_IRWXO) as Int
         }
 
         /**
@@ -135,7 +135,7 @@ version(unix || apple) {
             if(!exists()) return -1
             stat: FileStat
             lstat(path, stat&)
-            return stat st_atime
+            return stat st_atime as Long
         }
 
         /**
@@ -145,7 +145,7 @@ version(unix || apple) {
             if(!exists()) return -1
             stat: FileStat
             lstat(path, stat&)
-            return stat st_mtime
+            return stat st_mtime as Long
         }
 
         /**
@@ -155,7 +155,7 @@ version(unix || apple) {
             if(!exists()) return -1
             stat: FileStat
             lstat(path, stat&)
-            return stat st_ctime
+            return stat st_ctime as Long
         }
 
         /**

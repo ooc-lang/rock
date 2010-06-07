@@ -139,7 +139,7 @@ Foreach: class extends ControlStatement {
         
         if(variable instanceOf(VariableDecl)) {
             vDecl := variable as VariableDecl
-            if(vDecl name == access name && access suggest(vDecl)) return
+            if(vDecl name == access name && access suggest(vDecl)) return 0
         }
         super(access, res, trail)
         

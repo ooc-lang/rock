@@ -226,7 +226,7 @@ TypeDecl: abstract class extends Declaration {
     isExtern: func -> Bool { externName != null }
     
     getSuperRef: func -> TypeDecl {
-        superType ? superType getRef() : null
+        superType ? superType getRef() as TypeDecl : null
     }
     
     getFunction: func ~call (call: FunctionCall, finalScore: Int@) -> FunctionDecl {

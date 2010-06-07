@@ -577,7 +577,7 @@ FunctionCall: class extends Expression {
                 } else if(implArg instanceOf(TypeAccess)) {
                     return implArg as TypeAccess inner
                 } else if(implArg instanceOf(Type)) {
-                    return implArg
+                    return implArg as Type
                 }
             }
             j += 1

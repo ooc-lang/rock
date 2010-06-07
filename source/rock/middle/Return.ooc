@@ -87,19 +87,20 @@ Return: class extends Statement {
                 }
                 if(!retType getName() toLower() equals("void") && !retType equals(expr getType())) {
                     score := expr getType() getScore(retType)
-                    if (score < (Type SCORE_SEED / 2)) {
-                        
+                    if (score == -1) {
+                        res wholeAgain(this, "something's unresolved in declared ret type vs returned type.")
+                        return Responses OK
+                    }
+                    
+                    if (score < 0) {
                         msg: String
                         if (res params veryVerbose) {
                             msg = "The declared return type (%s) and the returned value (%s) do not match!\nscore = %d\ntrail = %s" format(retType toString(), expr getType() toString(), score, trail toString())
                         } else {
                             msg = "The declared return type (%s) and the returned value (%s) do not match!" format(retType toString(), expr getType() toString())
                         }
-                        res wholeAgain(this, msg)    
-                        return Responses OK
+                        token throwError(msg)
                     }                       
-                       //token throwError("The function's return type (%s) and the actual return value (%s) do not match!\nscore = %d\ntrail = %s"format(retType toString(), expr getType() toString(),score, trail toString()))
-                    
                     expr = Cast new(expr, retType, expr token)
                 }
             }
