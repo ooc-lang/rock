@@ -105,6 +105,13 @@ Driver: abstract class {
                     flagsDone add(lpath)
                 }
             }
+            for(libPath in info libPaths) {
+                // FIXME just goin' with the flow
+                lpath := "-L"+libPath
+                if(!flagsDone contains(lpath)) {
+                    flagsDone add(lpath)
+                }
+            }
         }
 
         for(includePath in useDef getIncludePaths()) {

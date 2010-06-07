@@ -88,7 +88,7 @@ FStream: cover from FILE* {
             returnVal = fgets(str, chunk, this)
         }
         
-        return str
+        return str as String
 	}
     
     hasNext: func -> Bool {
