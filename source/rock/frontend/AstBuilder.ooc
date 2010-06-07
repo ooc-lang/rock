@@ -12,11 +12,12 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     NullLiteral, Argument, Parenthesis, AddressOf, Dereference, Foreach,
     OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess, Match, FlowControl,
     While, CharLiteral, InterfaceDecl, NamespaceDecl, Version, Use, Block,
-    ArrayLiteral, EnumDecl, BaseType, FuncType, Declaration, PropertyDecl]
+    ArrayLiteral, EnumDecl, BaseType, FuncType, Declaration, PropertyDecl,
+    CallChain]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
-// Having to do this sucks. There should clearly be a more elegant way
+// reserved C99 keywords
 reservedWords := ["auto", "int", "long", "char", "register", "short", "do",
                   "sizeof", "double", "struct", "switch", "typedef", "union",
                   "unsigned", "signed", "goto", "enum", "const"]
@@ -48,7 +49,7 @@ AstBuilder: class {
     init: func (=modulePath, =module, =params) {
 
         if(params verbose) printf("- Parsing %s\n", modulePath)
-        This cache put(modulePath, module)
+        cache put(modulePath, module)
 
         stack = Stack<Node> new()
         stack push(module)
@@ -111,8 +112,8 @@ AstBuilder: class {
     
     printCache: static func {
         printf("==== Cache ====\n")
-        for(key in This cache getKeys()) {
-            printf("cache %s => %s\n", key, This cache get(key) fullName)
+        for(key in cache getKeys()) {
+            printf("cache %s => %s\n", key, cache get(key) fullName)
         }
         printf("===============\n")
     }
@@ -185,7 +186,7 @@ AstBuilder: class {
             }
         }
         if(!absorbed) {
-            for(other in This cache) {
+            for(other in cache) {
                 for(imp in other getGlobalImports()) {
                     if(imp path == module getFullName()) {
                         addon := other getTypes() get(name)
@@ -686,23 +687,15 @@ AstBuilder: class {
         onStatement(vDecl)
     }
     
-    onFunctionCallChain: unmangled(nq_onFunctionCallChain) func (call: FunctionCall, node: Node) {
-        if(node instanceOf(FunctionCall)) {
-            prevCall := node as FunctionCall
-            if(!prevCall expr instanceOf(VariableAccess)) {
-                vDecl := VariableDecl new(null, prevCall generateTempName("chainRoot"), prevCall expr, prevCall expr token)
-                prevCall expr = vDecl
-                call expr = VariableAccess new(vDecl, vDecl token)
-            } else {
-                call expr = prevCall expr
-            }
-        } else if(node instanceOf(VariableDecl)) {
-            varDecl := node as VariableDecl
-            call expr = VariableAccess new(varDecl, call token)
-        } else if(node instanceOf(Expression)) {
-            call expr = node as Expression
+    onFunctionCallChain: unmangled(nq_onFunctionCallChain) func (expr: Expression, call: FunctionCall) -> CallChain {
+        if(expr instanceOf(CallChain)) {
+            chain := expr as CallChain
+            //printf("Adding %s to existing callchain %s\n", call toString(), chain toString())
+            chain calls add(call)
+            return chain
         } else {
-            token() throwError("Can't chain a %s with %s\n" format(node class name, call toString()))
+            //printf("Creating new call chain with expr %s and call %s\n", expr toString(), call toString())
+            return CallChain new(expr, call)
         }
     }
 
