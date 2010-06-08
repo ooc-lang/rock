@@ -24,12 +24,18 @@ Driver: abstract class {
 
         if(done contains(module)) return
         done add(module)
+        
         for(inc: Include in module includes) {
             if(inc mode == IncludeModes LOCAL) {
+                destPath := (params libcache) ? \
+                    params libcachePath + File separator + module getSourceFolderName() : \
+                    params outPath
+                
                 path := module path + ".ooc"
                 pathElement := params sourcePath getFile(path) parent()
-                File new(pathElement,    inc path + ".h") copyTo(
-                File new(params outPath, inc path + ".h"))
+                
+                File new(pathElement, inc path + ".h") copyTo(
+                File new(destPath,    inc path + ".h"))
             }
         }
 

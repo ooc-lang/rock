@@ -30,6 +30,7 @@ SequenceDriver: class extends Driver {
                 CGenerator new(params, candidate) write()
             }
         }
+        
         if(params verbose) printf("Copying local headers\n")
         copyLocalHeaders(module, params, ArrayList<Module> new())
 		
