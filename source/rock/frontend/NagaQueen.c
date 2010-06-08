@@ -4963,7 +4963,7 @@ YY_RULE(int) yy_ASS_ADD(GREG *G)
 YY_RULE(int) yy_Ternary(GREG *G)
 {  int yypos0= G->pos, yythunkpos0= G->thunkpos;  yyDo(G, yyPush, 3, 0);
   yyprintf((stderr, "%s\n", "Ternary"));  if (!yy_LogicalOr(G)) { goto l253; }  yyDo(G, yySet, -3, 0);
-  {  int yypos254= G->pos, yythunkpos254= G->thunkpos;  if (!yy__(G)) { goto l254; }  if (!yy_QUEST(G)) { goto l254; }  yyDo(G, yy_1_Ternary, G->begin, G->end);  if (!yy__(G)) { goto l254; }  if (!yy_LogicalOr(G)) { goto l254; }  yyDo(G, yySet, -2, 0);  if (!yy__(G)) { goto l254; }  if (!yy_COLON(G)) { goto l254; }  if (!yy__(G)) { goto l254; }  if (!yy_LogicalOr(G)) { goto l254; }  yyDo(G, yySet, -1, 0);  yyDo(G, yy_2_Ternary, G->begin, G->end);  goto l255;
+  {  int yypos254= G->pos, yythunkpos254= G->thunkpos;  if (!yy__(G)) { goto l254; }  if (!yy_QUEST(G)) { goto l254; }  yyDo(G, yy_1_Ternary, G->begin, G->end);  if (!yy_WS(G)) { goto l254; }  if (!yy_LogicalOr(G)) { goto l254; }  yyDo(G, yySet, -2, 0);  if (!yy__(G)) { goto l254; }  if (!yy_COLON(G)) { goto l254; }  if (!yy_WS(G)) { goto l254; }  if (!yy_LogicalOr(G)) { goto l254; }  yyDo(G, yySet, -1, 0);  yyDo(G, yy_2_Ternary, G->begin, G->end);  goto l255;
   l254:;	  G->pos= yypos254; G->thunkpos= yythunkpos254;
   }
   l255:;	
