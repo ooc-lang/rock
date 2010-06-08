@@ -228,14 +228,15 @@ File: abstract class {
      */
     copyTo: func(dstFile: This) {
         dstFile parent() mkdirs()
+        
         src := FileReader new(this)
         dst := FileWriter new(dstFile)
         
         max := 8192
-        buffer : Char* = gc_malloc(max * Char size)
+        buffer := Char[max] new()
         while(src hasNext()) {
-            num := src read(buffer, 0, max)
-            dst write(buffer, num)
+            num := src read(buffer data, 0, max)
+            dst write(buffer data, num)
         }
         dst close()
         src close()

@@ -49,7 +49,7 @@ FileReader: class extends Reader {
     }
     
     hasNext: func -> Bool {
-        return feof(file) != 0
+        return feof(file) == 0
     }
 
     rewind: func(offset: Int) {
