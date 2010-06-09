@@ -48,7 +48,9 @@ Return: class extends Statement {
             }
         }
         
-        if (retType) {            
+        if (retType) {
+            
+            retType = retType refToPointer()
                         
             if(retType isGeneric()) {
                 if(expr getType() == null || !expr getType() isResolved()) {
