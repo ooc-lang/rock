@@ -45,10 +45,16 @@ version(!windows) {
 
 Time: class {
 	
+	/**
+	    Returns the microseconds that have elapsed in the current minute.
+	*/
 	microtime: static func -> LLong {
 		return microsec() as LLong + (sec() as LLong) * 1_000_000
 	}
 	
+	/**
+	    Returns the microseconds that have elapsed in the current second.
+	*/
 	microsec: static func -> UInt {
 		version(windows) {
 			st: SystemTime
@@ -63,6 +69,9 @@ Time: class {
 		return -1
 	}
 	
+	/**
+	    Returns the seconds that have elapsed in the current minute.
+	*/
 	sec: static func -> UInt {
 		version(windows) {
 			st: SystemTime
@@ -77,6 +86,9 @@ Time: class {
 		return -1
 	}
 	
+	/**
+	    Returns the minutes that have elapsed in the current hour.
+	*/
 	min: static func -> UInt {
 		version(windows) {
 			st: SystemTime
@@ -91,6 +103,9 @@ Time: class {
 		return -1
 	}
 	
+	/**
+	    Returns the hours that have elapsed in the current day.
+	*/
 	hour: static func -> UInt {
 		version(windows) {
 			st: SystemTime
