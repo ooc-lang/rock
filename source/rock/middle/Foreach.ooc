@@ -126,9 +126,9 @@ Foreach: class extends ControlStatement {
                 decl setType(nextCall getType())
             }
                             
-            //res wholeAgain(this, "Just turned into a while =)")
-            //return Responses OK
-            return Responses LOOP
+            res wholeAgain(this, "Just turned into a while =)")
+            return Responses OK
+            //return Responses LOOP
         }
         
         return super(trail, res)

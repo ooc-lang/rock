@@ -6646,7 +6646,7 @@ YY_RULE(int) yy_Decl(GREG *G)
 }
 YY_RULE(int) yy_Use(GREG *G)
 {  int yypos0= G->pos, yythunkpos0= G->thunkpos;
-  yyprintf((stderr, "%s\n", "Use"));  if (!yy_USE_KW(G)) { goto l738; }  if (!yy__(G)) { goto l738; }  if (!yy_UseCore(G)) { goto l738; }
+  yyprintf((stderr, "%s\n", "Use"));  if (!yy_USE_KW(G)) { goto l738; }  if (!yymatchClass(G, (unsigned char *)"\000\002\000\000\001\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000")) goto l738;  if (!yy__(G)) { goto l738; }  if (!yy_UseCore(G)) { goto l738; }
   l739:;	
   {  int yypos740= G->pos, yythunkpos740= G->thunkpos;  if (!yy__(G)) { goto l740; }  if (!yy_COMMA(G)) { goto l740; }  if (!yy__(G)) { goto l740; }  if (!yy_UseCore(G)) { goto l740; }  goto l739;
   l740:;	  G->pos= yypos740; G->thunkpos= yythunkpos740;
@@ -6659,7 +6659,7 @@ YY_RULE(int) yy_Use(GREG *G)
 }
 YY_RULE(int) yy_Import(GREG *G)
 {  int yypos0= G->pos, yythunkpos0= G->thunkpos;
-  yyprintf((stderr, "%s\n", "Import"));  if (!yy_IMPORT_KW(G)) { goto l741; }  if (!yy__(G)) { goto l741; }  if (!yy_ImportAtom(G)) { goto l741; }
+  yyprintf((stderr, "%s\n", "Import"));  if (!yy_IMPORT_KW(G)) { goto l741; }  if (!yymatchClass(G, (unsigned char *)"\000\002\000\000\001\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000")) goto l741;  if (!yy__(G)) { goto l741; }  if (!yy_ImportAtom(G)) { goto l741; }
   l742:;	
   {  int yypos743= G->pos, yythunkpos743= G->thunkpos;  if (!yy_COMMA(G)) { goto l743; }  if (!yy_WS(G)) { goto l743; }  if (!yy__(G)) { goto l743; }  if (!yy_ImportAtom(G)) { goto l743; }  goto l742;
   l743:;	  G->pos= yypos743; G->thunkpos= yythunkpos743;
@@ -6672,7 +6672,7 @@ YY_RULE(int) yy_Import(GREG *G)
 }
 YY_RULE(int) yy_Include(GREG *G)
 {  int yypos0= G->pos, yythunkpos0= G->thunkpos;
-  yyprintf((stderr, "%s\n", "Include"));  if (!yy_INCLUDE_KW(G)) { goto l744; }  if (!yy__(G)) { goto l744; }  if (!yy_IncludeCore(G)) { goto l744; }
+  yyprintf((stderr, "%s\n", "Include"));  if (!yy_INCLUDE_KW(G)) { goto l744; }  if (!yymatchClass(G, (unsigned char *)"\000\002\000\000\001\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000")) goto l744;  if (!yy__(G)) { goto l744; }  if (!yy_IncludeCore(G)) { goto l744; }
   l745:;	
   {  int yypos746= G->pos, yythunkpos746= G->thunkpos;  if (!yy__(G)) { goto l746; }  if (!yy_COMMA(G)) { goto l746; }  if (!yy__(G)) { goto l746; }  if (!yy_IncludeCore(G)) { goto l746; }  goto l745;
   l746:;	  G->pos= yypos746; G->thunkpos= yythunkpos746;

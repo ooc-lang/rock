@@ -13,7 +13,11 @@ Import: class {
         this path = this path replace('/', File separator)
     }
     
-    setModule: func(=module) {}
+    setModule: func(=module) {
+        if(module != null) {
+            module timesImported += 1
+        }
+    }
     
     getModule: func -> Module {
         if(module == null && token module != null) {
@@ -22,7 +26,7 @@ Import: class {
             AstBuilder getRealImportPath(this, token module, token module params, path&, impPath&, impElement&)
             
             if(impPath != null) {
-                module = AstBuilder cache get(impPath path)
+                setModule(AstBuilder cache get(impPath path))
             }
         }
         

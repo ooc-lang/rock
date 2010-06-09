@@ -44,7 +44,7 @@ BaseType: class extends Type {
                 if(fromType != null && cDecl isExtern()) {
                     // for extern covers, write directly the underlying
                     // type - since we don't even write a typedef.
-                    w app(fromType toString())
+                    w app(fromType getGroundType() toString())
                     return
                 }
             }
