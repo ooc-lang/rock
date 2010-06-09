@@ -23,7 +23,6 @@ Type: abstract class extends Expression {
     accept: func (visitor: Visitor) { visitor visitType(this) }
     
     pointerLevel: abstract func -> Int
-    moreMagic:     func {} // FIXME: when one removes that function, rock segfaults - can you find out why?
     
     write: abstract func (w: AwesomeWriter, name: String)
     
