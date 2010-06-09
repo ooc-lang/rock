@@ -75,9 +75,10 @@ Match: class extends Expression {
             if(type != null) {
                 vDecl := VariableDecl new(type, generateTempName("match"), token)
                 varAcc := VariableAccess new(vDecl, token)
-                trail addBeforeInScope(this, vDecl)
-                trail addBeforeInScope(this, this)
-                trail peek() replace(this, varAcc)
+                parent := trail peek() as Statement
+                trail addBeforeInScope(parent, vDecl)
+                trail addBeforeInScope(parent, this)
+                parent replace(this, varAcc)
                 for(caze in cases) {
                     last := caze getBody() last()
                     if(!last instanceOf(Expression)) {
