@@ -320,8 +320,12 @@ FunctionDecl: class extends Declaration {
                 }
                 
                 args addAll(ref args)
-                printf("We've stolen %s! now we're %s\n", ref toString(), toString())
-                body add(FunctionCall new("super", token))
+                
+                superCall := FunctionCall new("super", token)
+                for(arg in ref args) {
+                    superCall args add(VariableAccess new(arg, arg token))
+                }
+                body add(superCall)
                 
                 isSuper = false
                 
