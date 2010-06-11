@@ -48,6 +48,11 @@ void GC_free(void *);
 // for a non-trivial grammar like ooc's
 #define YY_STACK_SIZE 1024
 
+// the default is 1024, but it causes buffers to be reallocated 4 or 5
+// times during the parsing. 32Ki is a better default for us, only a few
+// modules need to reallocate with that setting
+#define YY_BUFFER_START_SIZE 32768
+
 //#define YY_DEBUG
 
 ///////////////////// main struct, for the sake of being re-entrant ////////////////////////
