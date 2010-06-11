@@ -10,6 +10,7 @@ import tinker/[Response, Resolver, Trail]
 Module: class extends Node {
 
     timesImported := 0
+    timesLooped := 0
 
     path, fullName, simpleName, packageName, underName, pathElement : String
     main := false

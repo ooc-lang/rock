@@ -42,6 +42,8 @@ Tinkerer: class {
                     printf("\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
                 }
                 
+                resolver module timesLooped += 1
+                
                 // returns false = finished resolving
                 if(!resolver process()) {
                     if(params veryVerbose) println("++++++++++++++++ Module " + resolver module fullName + " finished resolving.");
@@ -67,6 +69,18 @@ Tinkerer: class {
                 return false
             }
             
+        }
+ 
+        if(params stats) {
+            totalImports := 0
+            totalLoops := 0
+            for(module in modules) {
+                printf(" - imported %dx, has %d deps, looped %d x, %s\n", module timesImported, module getAllImports() size(),
+                    module timesLooped, module fullName)
+                totalImports += module getAllImports() size()
+                totalLoops += module timesLooped
+            }
+            printf("Total imports = %d, total modules looped = %d, final round = %d\n", totalImports, totalLoops, round)
         }
         
         true

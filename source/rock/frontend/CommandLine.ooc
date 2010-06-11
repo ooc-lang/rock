@@ -174,6 +174,10 @@ CommandLine: class {
                     params verbose = true
                     params veryVerbose = true
                     
+                } else if (option == "stats") {
+
+                    params stats = true
+                    
                 } else if (option == "run" || option == "r") {
                     
                     params run = true
