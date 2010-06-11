@@ -44,14 +44,14 @@ void GC_free(void *);
 
 #define YYSTYPE void*
 
+// the default is 1024, but it causes buffers to be reallocated 4 or 5
+// times during the parsing. This is a better default for us, only a few
+// modules need to reallocate with that setting
+#define YY_BUFFER_START_SIZE 16384
+
 // in old peg/leg versions, this was set to 32, but it's wayyy too small
 // for a non-trivial grammar like ooc's
-#define YY_STACK_SIZE 1024
-
-// the default is 1024, but it causes buffers to be reallocated 4 or 5
-// times during the parsing. 32Ki is a better default for us, only a few
-// modules need to reallocate with that setting
-#define YY_BUFFER_START_SIZE 32768
+#define YY_STACK_SIZE YY_BUFFER_START_SIZE
 
 //#define YY_DEBUG
 
