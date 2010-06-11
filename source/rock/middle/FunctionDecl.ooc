@@ -82,7 +82,7 @@ FunctionDecl: class extends Declaration {
     
     isAnon: func -> Bool { isAnon }
     
-    debugCondition: func -> Bool {
+    debugCondition: inline func -> Bool {
         false
     }
     
