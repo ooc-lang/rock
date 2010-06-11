@@ -41,9 +41,8 @@ FunctionCall: class extends Expression {
         visitor visitFunctionCall(this)
     }
     
-    debugCondition: func -> Bool {
-        //false
-        "getFirst" == getName()
+    debugCondition: inline func -> Bool {
+        false
     }
     
     suggest: func (candidate: FunctionDecl) -> Bool {
