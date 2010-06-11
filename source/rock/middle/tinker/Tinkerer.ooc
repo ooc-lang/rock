@@ -1,4 +1,4 @@
-import structs/[ArrayList, List]
+import structs/[ArrayList, List], os/Env
 
 import ../../frontend/[BuildParams]
 import ../[Module]
@@ -21,6 +21,21 @@ Tinkerer: class {
         
         for(module in modules) {
             resolvers add(Resolver new(module, params, this))
+        }
+        
+        if (Env get("ROCK_SORT") == "1") {
+            printf("Sorting!\n")
+            resolvers sort(|r1, r2|
+                r1 module timesImported < r2 module timesImported
+            )
+        }
+        
+        if(params stats) {
+            for(res in resolvers) {
+                module := res module
+                printf(" - imported %dx, has %d deps, %s\n", module timesImported, module getAllImports() size(), module fullName)
+            }
+            printf("End final order.\n")
         }
         
         round := 0
@@ -70,8 +85,8 @@ Tinkerer: class {
             }
             
         }
- 
-        if(params stats) {
+        
+         if(params stats) {
             totalImports := 0
             totalLoops := 0
             for(module in modules) {
