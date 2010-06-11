@@ -4,5 +4,4 @@ build
 bin
 *tmp*
 .libs
-declassign
-vardecl
+callgrind.out.*
