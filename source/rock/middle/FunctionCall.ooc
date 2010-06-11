@@ -2,7 +2,7 @@ import structs/ArrayList, text/Buffer
 import ../frontend/[Token, BuildParams, CommandLine]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
-       InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType
+       InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType, Return
 import tinker/[Response, Resolver, Trail]
 
 FunctionCall: class extends Expression {
@@ -292,6 +292,22 @@ FunctionCall: class extends Expression {
         }
         
         if(ref returnType isGeneric() && !isFriendlyHost(parent)) {
+            if(parent instanceOf(Return)) {
+                fDeclIdx := trail find(FunctionDecl)
+                if(fDeclIdx != -1) {
+                    fDecl := trail get(fDeclIdx) as FunctionDecl
+                    retType := fDecl getReturnType()
+                    if(!retType isResolved()) {
+                        res wholeAgain(this, "Need fDecl returnType to be resolved")
+                        return Responses OK
+                    }
+                    if(retType isGeneric()) {
+                        // will be handled by Return resolve()
+                        return Responses OK
+                    }
+                }
+            }
+            
             vDecl := VariableDecl new(getType(), generateTempName("genCall"), token)
             if(!trail addBeforeInScope(this, vDecl)) {
                 if(res fatal) token throwError("Couldn't add a " + vDecl toString() + " before a " + toString() + ", trail = " + trail toString())
