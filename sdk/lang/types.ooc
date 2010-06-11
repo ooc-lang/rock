@@ -250,11 +250,16 @@ String: cover from Char* {
         if ((this == null) || (other == null)) {
             return false
         }
-        if (this length() != other length()) {
+        
+        otherlen := other length()
+        if (this length() != otherlen) {
             return false
         }
-        for (i : Int in 0..other length()) {
-            if (this[i] != other[i]) {
+        
+        s1 := this as Char*
+        s2 := other as Char*
+        for (i in 0..otherlen) {
+            if (s1[i] != s2[i]) {
                 return false
             }
         }
