@@ -118,10 +118,13 @@ BaseType: class extends Type {
             if(res fatal) {
                 if(res params veryVerbose) {
                     trail toString() println()
-                    //token printMessage("In %s, Can't resolve type %s!" format(token toString(), getName()), "ERROR")
-                    //Exception new(This, "Debugging") throw()
                 }
-                token throwError("In %s, Can't resolve type %s!" format(token toString(), getName()))
+                msg := "Undefined type '%s'" format(getName())
+                similar := findSimilar(res)
+                if(similar) {
+                    msg += similar
+                }
+                token throwError(msg)
             }
             if(res params veryVerbose) {
                 printf("     - type %s still not resolved, looping (ref = %p)\n", name, getRef())
@@ -158,6 +161,23 @@ BaseType: class extends Type {
         }
         
         return Responses OK
+        
+    }
+    
+    findSimilar: func (res: Resolver) -> String {
+        
+        buff := Buffer new()
+        
+        for(imp in res collectAllImports()) {
+            module := imp getModule()
+            
+            type := module getTypes() get(name)
+            if(type) {
+                buff append(" (Hint: there's such a type in "). append(imp getPath()). append(")")
+            }
+        }
+        
+        buff toString()
         
     }
     

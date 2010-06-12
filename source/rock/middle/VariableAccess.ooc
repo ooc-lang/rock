@@ -214,35 +214,7 @@ VariableAccess: class extends Expression {
         
         buff := Buffer new()
         
-        dummyModule := Module new("dummy", ".", res params, nullToken)
-        
-        for (pathElem in res params sourcePath getPaths()) {
-            
-            //printf("[out] this = %p, buff = %p, dummyModule = %p, pathElem = %p\n", this, buff, dummyModule, pathElem)
-            tokPointer := nullToken& // yay workarounds (yajit can't push structs)
-            
-            pathElem walk(|f|
-                buff // yay workarounds (otherwise 'buff' is not found.)
-                
-                //printf("[in ] this = %p, buff = %p, dummyModule = %p, pathElem = %p, f = %p\n", this, buff, dummyModule, pathElem, f)
-                path := f getPath()
-                if (!path endsWith(".ooc")) return true
-                
-                module := AstBuilder cache get(f getAbsolutePath())
-                
-                fullName := f getAbsolutePath()
-                fullName = fullName substring(pathElem getAbsolutePath() length() + 1, fullName length() - 4)
-                
-                dummyModule addImport(Import new(fullName, tokPointer@))                
-                true
-            )
-        }
-        
-        res params verbose = false
-        res params veryVerbose = false
-        dummyModule parseImports(res)
-        
-        for(imp in dummyModule getGlobalImports()) {
+        for(imp in res collectAllImports()) {
             module := imp getModule()
             
             type := module getTypes() get(name)

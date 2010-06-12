@@ -459,6 +459,8 @@ FunctionDecl: class extends Declaration {
                         trail pop(this)
                         return false
                     } 
+                    t = t clone()
+                    t token = arg token
                     castedArg := VariableDecl new(t, n, Cast new(VariableAccess new(arg name, arg token), t, arg token), arg token)
                     body list add(0, castedArg)  
                 }
@@ -517,6 +519,9 @@ FunctionDecl: class extends Declaration {
                 } else {
                     t = arg getType()
                 }
+                t = t clone()
+                t token = arg token
+                
                 typeName := t getName() toLower()
                 val : Char = match (typeName) {
                     case "char"   => 'c'
