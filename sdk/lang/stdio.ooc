@@ -41,6 +41,7 @@ vfscanf: extern func (file: FILE*, format: Char*, ap: VaList) -> Int
 vsscanf: extern func (str: Char*, format: Char*, ap: VaList) -> Int
 
 fgets: extern func (str: Char*, length: SizeT, stream: FStream) -> Char*
+fgetc: extern func (stream: FStream) -> Int
 
 FILE: extern cover
 FStream: cover from FILE* {
@@ -64,28 +65,40 @@ FStream: cover from FILE* {
         return c
 	}
 	
-	readLine: func -> String {
+    readLine: func ~defaults -> String {
+        readLine(128)
+    }
+    
+	readLine: func (chunk: Int) -> String {
         // 128 is a reasonable default. Most terminals are 80x25
-        chunk := 128
-        length := chunk
+        length := 128
         pos := 0
         str := gc_malloc(length) as Char*
         
-        returnVal := fgets(str, chunk, this)
-        
         // while it's not '\n' it means not all the line has been read
-        while(str[strlen(str)] != '\n' && returnVal != null) {
-            // now insert the rest of the line in str
-            pos += chunk - 1 // -1 cause we want to insert the rest before the '\0'
+        while (true) {
+            c := fgetc(this)
             
-            // try to grow the string
-            length += chunk
-            tmp := gc_realloc(str, length) as String
-            if(!tmp) Exception new(This, "Ran out of memory while reading a (apparently never-ending) line!") throw()
-            str = tmp
-
-            // TODO encodings
-            returnVal = fgets(str, chunk, this)
+            if(c == '\n') {
+                str[pos] = '\0'
+                break
+            }
+            
+            str[pos] = c
+            pos += 1
+            
+            if (pos >= length) {
+                // try to grow the string
+                length += chunk
+                tmp := gc_realloc(str, length) as String
+                if(!tmp) Exception new(This, "Ran out of memory while reading a (apparently never-ending) line!") throw()
+                str = tmp
+            }
+            
+            if(!hasNext()) {
+                str[pos] = '\0'
+                break
+            }
         }
         
         return str as String

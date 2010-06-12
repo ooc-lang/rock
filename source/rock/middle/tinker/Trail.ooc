@@ -77,9 +77,11 @@ Trail: class extends Stack<Node> {
             if(node instanceOf(Scope)) {
                 // if we're in an else - maybe we're in an if-else chain!
                 if(i - 2 >= 0 && get(i - 1) instanceOf(Else) && i + 1 < size() && get(i + 1) instanceOf(If)) {
+                    
                     // the mark is now the Else. We wanna be before it!
                     mark = get(i - 1)
                     node = get(i - 2)
+                    
                     if(node instanceOf(Scope)) {
                         // yup, definitely. Now, in that scope are several
                         // elses and ifs. We want to go to the previous statement
@@ -89,8 +91,9 @@ Trail: class extends Stack<Node> {
                         
                         if(idx != -1) {
                             previous := scope list[idx - 1]
-                            while(idx > 1 && (previous instanceOf(If) || previous instanceOf(Else))) {
+                            while(previous instanceOf(If) || previous instanceOf(Else)) {
                                 idx -= 1
+                                if(idx == 0) break
                                 previous = scope list[idx - 1]
                             }
                             

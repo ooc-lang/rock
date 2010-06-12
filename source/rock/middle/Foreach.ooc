@@ -73,7 +73,7 @@ Foreach: class extends ControlStatement {
             
             iterType := iterCall getType()
             if(iterType == null) {
-                if(res fatal) token throwError("Couldn't resolve iterType %s" format(iterType toString()))
+                if(res fatal) token throwError("Couldn't resolve iterType of %s" format(toString()))
                 res wholeAgain(this, "need iterType")
                 return Responses OK
             }
@@ -126,9 +126,9 @@ Foreach: class extends ControlStatement {
                 decl setType(nextCall getType())
             }
                             
-            //res wholeAgain(this, "Just turned into a while =)")
-            //return Responses OK
-            return Responses LOOP
+            res wholeAgain(this, "Just turned into a while =)")
+            return Responses OK
+            //return Responses LOOP
         }
         
         return super(trail, res)

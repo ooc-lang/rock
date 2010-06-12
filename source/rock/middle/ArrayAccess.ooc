@@ -132,9 +132,9 @@ ArrayAccess: class extends Expression {
             }
             grandpa replace(fCall, arrayCreation)
             
-            // TODO: do we really need a LOOP here? Wouldn't a wholeAgain+OK suffice?
-            return Responses LOOP
-            
+            // used to be a LOOP
+            res wholeAgain(this, "ArrayAccess turned into ArrayCreation!")
+            return Responses OK
         }
         
         return Responses OK

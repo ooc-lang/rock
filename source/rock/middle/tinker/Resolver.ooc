@@ -35,7 +35,7 @@ Resolver: class {
             lastReason = reason
         }
         
-        if(fatal && params debugLoop) {
+        if((params veryVerbose || fatal) && params debugLoop) {
             node token printMessage("%s : %s because '%s'\n" format(node toString(), node class name, reason), "LOOP")
         }
         wholeAgain = true

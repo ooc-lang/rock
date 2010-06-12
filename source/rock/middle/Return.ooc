@@ -48,7 +48,9 @@ Return: class extends Statement {
             }
         }
         
-        if (retType) {            
+        if (retType) {
+            
+            retType = retType refToPointer()
                         
             if(retType isGeneric()) {
                 if(expr getType() == null || !expr getType() isResolved()) {
@@ -56,6 +58,24 @@ Return: class extends Statement {
                 }
                 
                 returnAcc := VariableAccess new(fDecl getReturnArg(), token)
+                
+                if(expr instanceOf(FunctionCall)) {
+                    fCall := expr as FunctionCall
+                    if(fCall getRef() == null ||
+                       fCall getRef() getReturnType() == null ||
+                       !fCall getRef() getReturnType() isResolved()) {
+                        res wholeAgain(this, "We need the fcall to be fully resolved before resolving ourselves")
+                    }
+                    if(fCall getRef() getReturnType() isGeneric()) {
+                        fCall setReturnArg(returnAcc)
+                        if(!trail peek() addBefore(this, fCall)) {
+                            token throwError("Couldn't replace %s with %s in %s. Trail = \n%s\n" format(toString(), fCall toString(), trail peek() toString(), trail toString()))
+                        }
+                        expr = null
+                        res wholeAgain(this, "Unwrapped into outer fCall")
+                        return Responses OK
+                    }
+                }
                 
                 if1 := If new(returnAcc, token)
                 

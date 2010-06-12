@@ -20,6 +20,7 @@ version(windows) {
 		wHour, wMinute, wSecond, wMilliseconds : extern UShort
 	}
 
+    timeGetTime: extern func -> UInt32
 	GetLocalTime: extern func (SystemTime*)
 	Sleep: extern func (UInt)
 }
@@ -44,11 +45,18 @@ version(!windows) {
 /* implementation */
 
 Time: class {
-	
+    __time_millisec_base := static This runTime
+    
+	/**
+	    Returns the microseconds that have elapsed in the current minute.
+	*/
 	microtime: static func -> LLong {
 		return microsec() as LLong + (sec() as LLong) * 1_000_000
 	}
 	
+	/**
+	    Returns the microseconds that have elapsed in the current second.
+	*/
 	microsec: static func -> UInt {
 		version(windows) {
 			st: SystemTime
@@ -63,6 +71,30 @@ Time: class {
 		return -1
 	}
 	
+	/**
+	    Gets the number of milliseconds elapsed since program start.
+	*/
+	runTime: static UInt {
+	    get {
+    	    t: ULLong
+    	    version(windows) {
+    	        // NOTE: timeGetTime only returns a 32-bit integer.  the upside is
+    	        // that it's accurate to 1ms, but unfortunately rollover is very
+    	        // possible
+    	        timeGetTime() as UInt - __time_millisec_base
+    	    }
+            version(!windows) {
+                tv : TimeVal
+                gettimeofday(tv&, null)
+                return ((tv tv_usec / 1000 + tv tv_sec * 1000) - __time_millisec_base) as UInt
+    		}
+    	    return -1
+	    }
+	}
+	
+	/**
+	    Returns the seconds that have elapsed in the current minute.
+	*/
 	sec: static func -> UInt {
 		version(windows) {
 			st: SystemTime
@@ -77,6 +109,9 @@ Time: class {
 		return -1
 	}
 	
+	/**
+	    Returns the minutes that have elapsed in the current hour.
+	*/
 	min: static func -> UInt {
 		version(windows) {
 			st: SystemTime
@@ -91,6 +126,9 @@ Time: class {
 		return -1
 	}
 	
+	/**
+	    Returns the hours that have elapsed in the current day.
+	*/
 	hour: static func -> UInt {
 		version(windows) {
 			st: SystemTime

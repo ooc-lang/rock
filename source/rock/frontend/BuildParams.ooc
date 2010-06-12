@@ -57,51 +57,54 @@ BuildParams: class {
     editor: String = ""
     
     // Remove the rock_tmp/ directory after the C compiler has finished
-    clean: Bool = true
+    clean := true
     
     // Cache libs in `libcachePath` directory
-    libcache: Bool = true
+    libcache := true
     
     // Path to store cache-libs
     libcachePath := ".libs"
     
     // Add debug info to the generated C files (e.g. -g switch for gcc)
-    debug: Bool = false
+    debug := false
     
     // Displays which files it parses, and a few debug infos
-    verbose: Bool = false
+    verbose := false
+    
+    // Display compilation statistics
+    stats := false
     
     // More debug messages
-    veryVerbose: Bool = false
+    veryVerbose := false
     
     // Debugging purposes
-    debugLoop: Bool = false
+    debugLoop := false
     
     // Displays [ OK ] or [FAIL] at the end of the compilation
-    //shout: Bool = false
-    shout: Bool = true // true as long as we're debugging
+    //shout := false
+    shout := true // true as long as we're debugging
     
     // If false, output .o files. Otherwise output exectuables
-    link: Bool = true
+    link := true
     
     // Run files after compilation
-    run: Bool = false
+    run := false
     
     // Display compilation times for all .ooc files passed to the compiler
-    timing: Bool = false
+    timing := false
     
     // Compile once, then wait for the user to press enter, then compile again, etc.
-    slave: Bool = false
+    slave := false
 
     // Should link with libgc at all.
-    enableGC: Bool = true
+    enableGC := true
     
     // link dynamically with libgc (Boehm)
-    dynGC: Bool = false
+    dynGC := false
     
     // add #line directives in the generated .c for debugging.
     // depends on "debug" flag
-    lineDirectives: Bool = true
+    lineDirectives := true
     
     // either "32" or "64"
     arch: String = ""

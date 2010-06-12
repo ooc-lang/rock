@@ -75,9 +75,7 @@ ArrayList: class <T> extends List<T> {
 	indexOf: func(element: T) -> Int {
 		index := 0
 		while(index < size) {
-			candidate : T
-			candidate = data[index]
-			if(memcmp(candidate, element, T size) == 0) return index
+			if(memcmp(data + index * T size, element, T size) == 0) return index
             index += 1
 		}
 		return -1
@@ -86,9 +84,7 @@ ArrayList: class <T> extends List<T> {
 	lastIndexOf: func(element: T) -> Int {
 		index := size
 		while(index > -1) {
-			candidate : T
-			candidate = data[index]
-			if(memcmp(candidate, element, T size) == 0) return index
+			if(memcmp(data + index * T size, element, T size) == 0) return index
 			index -= 1
 		}
 		return -1
@@ -100,6 +96,24 @@ ArrayList: class <T> extends List<T> {
 		size -= 1
 		return element
 	}
+    
+    /**
+     * Does an in-place sort, with the given comparison function
+     */
+    sort: func (greaterThan: Func (T, T) -> Bool) {
+        inOrder := false
+        while (!inOrder) {
+            inOrder = true
+            for (i in 0..size - 1) {
+                if (greaterThan(this[i], this[i + 1])) {
+                    inOrder = false
+                    tmp := this[i]
+                    this[i] = this[i + 1]
+                    this[i + 1] = tmp
+                }
+            }
+        }
+    }
 
 	/**
 	 * Removes a single instance of the specified element from this list,

@@ -64,7 +64,7 @@ TypeDecl: abstract class extends Declaration {
         }
     }
     
-    debugCondition: func -> Bool {
+    debugCondition: inline func -> Bool {
         false
     }
     
@@ -225,7 +225,7 @@ TypeDecl: abstract class extends Declaration {
     
     isExtern: func -> Bool { externName != null }
     
-    getSuperRef: func -> TypeDecl {
+    getSuperRef: inline func -> TypeDecl {
         superType ? superType getRef() as TypeDecl : null
     }
     
