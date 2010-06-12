@@ -107,12 +107,6 @@ Return: class extends Statement {
             
             if (retType == voidType && !expr) 
                 token throwError("Function is declared to return `null`, not %s! trail = %s" format(expr getType() toString(), trail toString()))
-            
-            module := trail module()
-            if (module simpleName == "ret_missmatch") {
-                                score := retType getScore(expr getType())
-                score toString() println()
-            }
         }
         
         return Responses OK
