@@ -290,7 +290,8 @@ File: abstract class {
     }
     
     /**
-       Walk this directory and call `f` on all files it contains.
+       Walk this directory and call `f` on all files it contains, recursively.
+       
        If `f` returns false, stop walking.
         
        If we're not a directory, calls f(this) once and returns true.
