@@ -86,7 +86,7 @@ FunctionDecl: class extends Declaration {
         false
     }
     
-    markForPartialing: func(var: VariableDecl, mode: String) {
+    markForPartialing: func(var: VariableDecl, mode: String) -> Bool {
         if (!partialByReference contains(var) && !partialByValue contains(var)) {
             match (mode) {
                 case "r" => partialByReference add(var)
@@ -395,7 +395,7 @@ FunctionDecl: class extends Declaration {
         ind := trail find(FunctionCall)
         if (ind == -1) token throwError("Got an ACS without any function-call. THIS IS NOT SUPPOSED TO HAPPEN\ntrail= %s" format(trail toString()))
         parentCall := trail get(ind) as FunctionCall
-        parentFunc: FunctionDecl = null
+        parentFunc: FunctionDecl
         parentFunc = parentCall getRef()
         
         if (!parentFunc) {
@@ -488,8 +488,8 @@ FunctionDecl: class extends Declaration {
         module addImport(imp)
         module parseImports(res)
         
-        if(partialByReference isEmpty() && partialByValue isEmpty()) {
-            trail peek() replace(this, varAcc)
+        if(partialByReference isEmpty() && partialByValue isEmpty()) { // function without any foreign accesses
+            trail peek() replace(this, varAcc) 
         } else {
             partialClass := VariableAccess new("Partial", token)
             newCall := FunctionCall new(partialClass, "new", token)
@@ -498,7 +498,7 @@ FunctionDecl: class extends Declaration {
             trail addBeforeInScope(this, partialDecl) 
             parentCall: FunctionCall = null // ACS related, function call passing an ACS
             argsSizes := String new(args size())
-            i := 0
+            ix := 0
             for(arg in args) {
                 t: Type
                 if (arg getType() isGeneric()) {
@@ -528,8 +528,8 @@ FunctionDecl: class extends Declaration {
                         }
                         'P'
                 }
-                argsSizes[i] = val
-                i += 1
+                argsSizes[ix] = val
+                ix += 1
             }
             
             partialAcc := VariableAccess new(partialName, token)
@@ -555,6 +555,7 @@ FunctionDecl: class extends Declaration {
                 argument := Argument new(e getType(), e getName(), e token)
                 args add(0, argument)
             }
+            
             fCall := FunctionCall new(partialAcc, "genCode", token)
             fCall getArguments() add(VariableAccess new(name, token)) 
             fCall getArguments() add(StringLiteral new(argsSizes, token))
