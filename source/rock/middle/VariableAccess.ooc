@@ -1,6 +1,7 @@
-import ../frontend/[Token, BuildParams]
-import BinaryOp, Visitor, Expression, VariableDecl, FunctionDecl, TypeDecl,
-	   Declaration, Type, Node, ClassDecl, NamespaceDecl, EnumDecl, PropertyDecl, FunctionCall
+import ../frontend/[Token, BuildParams, AstBuilder], text/Buffer, io/File
+import BinaryOp, Visitor, Expression, VariableDecl, FunctionDecl,
+       TypeDecl, Declaration, Type, Node, ClassDecl, NamespaceDecl,
+       EnumDecl, PropertyDecl, FunctionCall, Module, Import
 import tinker/[Resolver, Response, Trail]
 
 VariableAccess: class extends Expression {
@@ -191,7 +192,12 @@ VariableAccess: class extends Expression {
                 if(res params veryVerbose) {
                     println("trail = " + trail toString())
                 }
-                token throwError("No such variable %s" format(toString()))
+                msg := "Undefined symbol '%s'" format(toString())
+                similar := findSimilar(res)
+                if(similar) {
+                    msg += similar
+                }
+                token throwError(msg)
             }
             if(res params veryVerbose) {
                 printf("     - access to %s%s still not resolved, looping (ref = %s)\n", \
@@ -201,6 +207,51 @@ VariableAccess: class extends Expression {
         }
         
         return Responses OK
+        
+    }
+    
+    findSimilar: func (res: Resolver) -> String {
+        
+        buff := Buffer new()
+        
+        dummyModule := Module new("dummy", ".", res params, nullToken)
+        
+        for (pathElem in res params sourcePath getPaths()) {
+            
+            //printf("[out] this = %p, buff = %p, dummyModule = %p, pathElem = %p\n", this, buff, dummyModule, pathElem)
+            tokPointer := nullToken& // yay workarounds (yajit can't push structs)
+            
+            pathElem walk(|f|
+                buff // yay workarounds (otherwise 'buff' is not found.)
+                
+                //printf("[in ] this = %p, buff = %p, dummyModule = %p, pathElem = %p, f = %p\n", this, buff, dummyModule, pathElem, f)
+                path := f getPath()
+                if (!path endsWith(".ooc")) return true
+                
+                module := AstBuilder cache get(f getAbsolutePath())
+                
+                fullName := f getAbsolutePath()
+                fullName = fullName substring(pathElem getAbsolutePath() length() + 1, fullName length() - 4)
+                
+                dummyModule addImport(Import new(fullName, tokPointer@))                
+                true
+            )
+        }
+        
+        res params verbose = false
+        res params veryVerbose = false
+        dummyModule parseImports(res)
+        
+        for(imp in dummyModule getGlobalImports()) {
+            module := imp getModule()
+            
+            type := module getTypes() get(name)
+            if(type) {
+                buff append(" (Hint: there's such a type in "). append(imp getPath()). append(")")
+            }
+        }
+        
+        buff toString()
         
     }
     

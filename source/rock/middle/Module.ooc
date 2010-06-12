@@ -277,20 +277,22 @@ Module: class extends Node {
             if(impPath == null) {
                 imp token throwError("Module not found in sourcepath " + imp path)
             }
+            
+            absolutePath := File new(impPath path) getAbsolutePath()
 
             cached : Module = null
-            cached = AstBuilder cache get(impPath path)
+            cached = AstBuilder cache get(absolutePath)
 
-            impLastModified := File new(impPath path) lastModified()
+            impLastModified := impPath lastModified()
 
             if(cached == null || impLastModified > cached lastModified) {
-                if(cached) {
+                if(cached && resolver params veryVerbose) {
                     printf("%s has been changed, recompiling... (%d vs %d), impPath = %s\n", path, File new(impPath path) lastModified(), cached lastModified, impPath path);
                 }
-                //printf("impElement path = %s, impPath = %s\n", impElement path, impPath path)
+                
                 cached = Module new(path[0..(path length()-4)], impElement path, params, nullToken)
                 AstBuilder cache remove(impPath path)
-                AstBuilder cache put(impPath path, cached)
+                AstBuilder cache put(File new(impPath path) getAbsolutePath(), cached)
                 imp setModule(cached)
                 
                 cached token = Token new(0, 0, cached)

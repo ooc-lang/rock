@@ -49,7 +49,7 @@ AstBuilder: class {
     init: func (=modulePath, =module, =params) {
 
         if(params verbose) printf("- Parsing %s\n", modulePath)
-        cache put(modulePath, module)
+        cache put(File new(modulePath) getAbsolutePath(), module)
 
         stack = Stack<Node> new()
         stack push(module)
