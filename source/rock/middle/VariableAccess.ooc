@@ -198,6 +198,10 @@ VariableAccess: class extends Expression {
                     msg += similar
                 }
                 token throwError(msg)
+                // DEBUG
+                if (!res params fatalError) {
+                    Exception new(This, "Debug!") throw()
+                }
             }
             if(res params veryVerbose) {
                 printf("     - access to %s%s still not resolved, looping (ref = %s)\n", \

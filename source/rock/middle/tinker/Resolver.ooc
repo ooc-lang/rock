@@ -1,4 +1,4 @@
-import ../[Module, Node, Import], structs/List, io/File
+import ../[Module, Node, Import], structs/List
 import ../../frontend/[BuildParams, Token, AstBuilder]
 import Response, Trail, Tinkerer
 
