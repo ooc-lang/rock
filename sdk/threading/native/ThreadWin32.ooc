@@ -5,6 +5,7 @@ version(windows) {
 
     include windows
 
+    /* covers & extern functions */
     CreateThread: extern func (...) -> Handle
     WaitForSingleObject: extern func (...) -> Long // laziness
     INFINITE: extern Long
@@ -12,7 +13,7 @@ version(windows) {
 
     /**
      * Win32 implementation of threads.
-     * 
+     *
      * :author: Amos Wenger (nddrylliog)
      */
     ThreadWin32: class extends Thread {
