@@ -1,5 +1,5 @@
-import ../[Module, Node]
-import ../../frontend/[BuildParams, Token]
+import ../[Module, Node, Import], structs/List, io/File
+import ../../frontend/[BuildParams, Token, AstBuilder]
 import Response, Trail, Tinkerer
 
 Resolver: class {
@@ -42,11 +42,47 @@ Resolver: class {
     }
     
     /**
-     * Add a module for resolution
+       Add a module for resolution
      */
     addModule: func (module: Module) {
         tinkerer resolvers add(Resolver new(module, params, tinkerer))
         tinkerer modules add(module)
+    }
+    
+    /**
+       Collect a list of imports to *all* modules present in all the
+       sourcepath, and parse these modules so that import getModule()
+       correspond to them.
+        
+       Used in smart error messages that guess where something is defined.
+     */
+    collectAllImports: func -> List<Import> {
+        
+        dummyModule := Module new("dummy", ".", params, nullToken)
+        
+        for (pathElem in params sourcePath getPaths()) {
+            
+            tokPointer := nullToken& // yay workarounds (yajit can't push structs)
+            
+            pathElem walk(|f|
+                path := f getPath()
+                if (!path endsWith(".ooc")) return true
+                
+                module := AstBuilder cache get(f getAbsolutePath())
+                
+                fullName := f getAbsolutePath()
+                fullName = fullName substring(pathElem getAbsolutePath() length() + 1, fullName length() - 4)
+                
+                dummyModule addImport(Import new(fullName, tokPointer@))                
+                true
+            )
+        }
+        
+        params verbose = false
+        params veryVerbose = false
+        dummyModule parseImports(this)
+        dummyModule getGlobalImports()
+        
     }
     
 }

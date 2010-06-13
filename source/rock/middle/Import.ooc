@@ -33,6 +33,8 @@ Import: class {
         module
     }
     
+    getPath: func -> String { path }
+    
     isTight: func -> Bool { isTight }
     setTight: func (=isTight) {}
     

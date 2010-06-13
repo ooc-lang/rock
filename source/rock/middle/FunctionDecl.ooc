@@ -459,6 +459,8 @@ FunctionDecl: class extends Declaration {
                         trail pop(this)
                         return false
                     } 
+                    t = t clone()
+                    t token = arg token
                     castedArg := VariableDecl new(t, n, Cast new(VariableAccess new(arg name, arg token), t, arg token), arg token)
                     body list add(0, castedArg)  
                 }
@@ -517,6 +519,9 @@ FunctionDecl: class extends Declaration {
                 } else {
                     t = arg getType()
                 }
+                t = t clone()
+                t token = arg token
+                
                 typeName := t getName() toLower()
                 val : Char = match (typeName) {
                     case "char"   => 'c'
@@ -538,6 +543,8 @@ FunctionDecl: class extends Declaration {
             
             partialAcc := VariableAccess new(partialName, token)
             
+            argOffset := 0
+            
             for (e in partialByReference) {
                 newRefType := ReferenceType new(e getType(), e token)
                 eAccess := VariableAccess new(e, e token)
@@ -546,7 +553,8 @@ FunctionDecl: class extends Declaration {
                 addArg getArguments() add (AddressOf new (eAccess, e token))
                 trail addBeforeInScope(this, addArg)
                 argument := Argument new(newRefType, e getName(), token)
-                args add(0, argument)
+                args add(argOffset, argument); argOffset += 1
+                args add(argument)
                 for (acs in clsAccesses) {
                     if (acs ref == e) acs ref = argument
                 }
@@ -557,7 +565,7 @@ FunctionDecl: class extends Declaration {
                 addArg getArguments() add(VariableAccess new(e, e token))
                 trail addBeforeInScope(this, addArg)
                 argument := Argument new(e getType(), e getName(), e token)
-                args add(0, argument)
+                args add(argOffset, argument); argOffset += 1
             }
             
             fCall := FunctionCall new(partialAcc, "genCode", token)

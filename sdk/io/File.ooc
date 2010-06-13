@@ -1,15 +1,3 @@
-/**
- * Allows to test various file attributes, list the children
- * of a directory, etc.
- *
- * :author: Pierre-Alexandre Croiset
- * :author: fredreichbier
- * :author: Amos Wenger, aka nddrylliog
- */
-
-// the pipe (e.g. '|') and __USE_BSD are used like #define
-// before includes. In this case, we need __USE_BSD to get lstat()
-
 include stdio
 
 import structs/ArrayList
@@ -17,16 +5,41 @@ import FileReader, FileWriter, Reader
 import text/Buffer
 import native/[FileWin32, FileUnix]
 
+/**
+   Represents a file/directory path, allows to retrieve informations like
+   last date of creation/access/modification, permissions, size,
+   existence, content, type, children...
+    
+   You can also create directories, remove files, read their content,
+   copy them, write to them.
+    
+   For input/output (I/O) beyond 'reading to a String' and
+   'writing a String', see the FileReader and FileWriter classes
+     
+   :author: Pierre-Alexandre Croiset
+   :author: Friedrich Weber (fredreichbier)
+   :author: Amos Wenger (nddrylliog)
+ */
 File: abstract class {
-
-    MAX_PATH_LENGTH := static const 16383 // cause we alloc +1
-
+    
+    /** The path we're representing */
     path: String
-
-    // assigned in FileWin32 & friends
+    
+    /** Separator for path elements. Usually '/' on *nix and '\\' on Windows. */
     separator : static Char
+    
+    /** Delimiter for lists of paths. Usually ':' on *nix and ';' on Windows. */
     pathDelimiter : static Char
 
+    /**
+     * Maximum path length used to retrieve the current working directory (cwd)
+     * We use our own constant
+     */
+    MAX_PATH_LENGTH := static const 16383 // cause we alloc +1
+
+    /**
+       Create a File object from the given path
+     */
     new: static func (.path) -> This {
         version(unix || apple) {
             return FileUnix new(path)
@@ -38,10 +51,16 @@ File: abstract class {
         null
     }
 
+    /**
+       Create a File object, relative to the given parent file
+     */
     new: static func ~parentFile(parent: File, .path) -> This {
         return new(parent path + This separator + path)
     }
 
+    /**
+       Create a File object, relative to the given parent path
+     */
     new: static func ~parentPath(parent: String, .path) -> This {
         return new(parent + This separator + path)
     }
@@ -242,6 +261,9 @@ File: abstract class {
         src close()
     }
     
+    /**
+       :return: The content of this file, as a String
+     */
     read: func -> String {
         fR := FileReader new(this)
         bW := BufferWriter new() .write(fR) .close()
@@ -249,25 +271,57 @@ File: abstract class {
         bW buffer toString()
     }
     
+    /**
+       Write a string to this file.
+       
+       :param str: The string to write
+     */
     write: func ~string (str: String) {
         FileWriter new(this) write(BufferReader new(Buffer new(str))) .close()
     }
     
+    /**
+       Write from a reader to this file
+       
+       :param reader: What to write in the file
+     */
     write: func ~reader (reader: Reader) {
         FileWriter new(this) write(reader) .close()
     }
+    
+    /**
+       Walk this directory and call `f` on all files it contains, recursively.
+       
+       If `f` returns false, stop walking.
+        
+       If we're not a directory, calls f(this) once and returns true.
+       
+       :return: true if we finished walking normally, false if we
+       got cancelled by `f` returning false.
+     */
+    walk: func (f: Func(File) -> Bool) -> Bool {
+        if (isFile()) {
+            if (!f(this)) return false
+        } else if (isDir()) {
+            for (child in getChildren()) {
+                if (!child walk(f)) return false
+            }
+        }
+        
+        true
+    }
 
     /**
-     * Get a child of this path
-     *
-     * :param name: The name of the child, relatively to this path
+       Get a child of this path
+      
+       :param name: The name of the child, relatively to this path
      */
     getChild: func (name: String) -> This {
         new(this path + This separator + name)
     }
 
     /**
-     * :return: the current working directory
+       :return: the current working directory
      */
     getCwd: static func -> String {
         ret := String new(File MAX_PATH_LENGTH + 1)
