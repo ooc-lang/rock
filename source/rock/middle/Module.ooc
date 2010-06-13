@@ -127,7 +127,8 @@ Module: class extends Node {
     }
 
     getOperators: func -> List<OperatorDecl> { operators }
-    getTypes:     func -> HashMap<String, TypeDecl>  { types }
+    getFunctions: func -> OrderedMultiMap<String, FunctionDecl>  { functions }
+    getTypes:     func -> OrderedMultiMap<String, TypeDecl>  { types }
     getUses:      func -> List<Use>          { uses }
 
     accept: func (visitor: Visitor) { visitor visitModule(this) }

@@ -230,6 +230,10 @@ FunctionCall: class extends Expression {
                 showNearestMatch(res params)
                 if(BuildParams fatalError) CommandLine failure()
             } else {
+                similar := findSimilar(res)
+                if(similar) {
+                    message += similar
+                }
                 token throwError(message)
             }
         }
@@ -240,6 +244,23 @@ FunctionCall: class extends Expression {
         }
         
         return Responses OK
+        
+    }
+    
+    findSimilar: func (res: Resolver) -> String {
+        
+        buff := Buffer new()
+        
+        for(imp in res collectAllImports()) {
+            module := imp getModule()
+            
+            fDecl := module getFunctions() get(name)
+            if(fDecl) {
+                buff append(" (Hint: there's such a function in "). append(imp getPath()). append(")")
+            }
+        }
+        
+        buff toString()
         
     }
     
