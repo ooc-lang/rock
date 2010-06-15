@@ -48,6 +48,21 @@ Reader: abstract class {
         readUntil('\n') trimRight('\r')
     }
 
+
+    /**
+       Read every line, and call `f` on it until `f` returns false
+       or we have reached the end of the file.
+
+       :return: true if we have reached the end of the file, false
+       if we were cancelled by `f` returning false.
+     */
+    eachLine: func (f: Func(String) -> Bool) -> Bool {
+        while(hasNext()) {
+            if(!f(readLine())) return false
+        }
+        true
+    }
+
     /**
        Attempts to read one character and then rewind the stream
        by one.
