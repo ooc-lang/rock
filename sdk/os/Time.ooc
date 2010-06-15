@@ -83,7 +83,7 @@ Time: class {
                 // possible
 
                 // FIXME: getting undefined reference for now :x
-                //timeGetTime() as UInt - __time_millisec_base
+                timeGetTime() as UInt - __time_millisec_base
             }
             version(!windows) {
                 tv : TimeVal
