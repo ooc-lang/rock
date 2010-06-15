@@ -1,6 +1,7 @@
 .anjuta*
 build
 *~
+*.swp
 bin
 *tmp*
 .libs
