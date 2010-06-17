@@ -729,6 +729,27 @@ String: cover from Char* {
         return output
     }
     
+    printf: func (...) {
+        list: VaList
+
+        va_start(list, this)
+        vprintf(this, list)
+        va_end(list)
+    }
+    
+    vprintf: func (list: VaList) {
+        vprintf(this, list)
+    }
+    
+    printfln: func (...) {
+        list: VaList
+        
+        va_start(list, this)
+        vprintf(this, list)
+        va_end(list)
+        '\n' print()
+    }
+    
     scanf: func (format: This, ...) -> Int {
         list: VaList
         va_start(list, format)
