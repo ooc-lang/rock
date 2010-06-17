@@ -123,3 +123,70 @@ Mutex: abstract class {
 
 }
 
+/**
+   A mutex is a mechanism used for synchronizing threads.
+   A recursive mutex can be locked several times in a row. unlock() should be
+   called as many times to properly unlock it.
+
+   To avoid portions of code to be executed by several threads in parallel,
+   potentially yielding incorrect results
+
+   :author: Amos Wenger (nddrylliog)
+ */
+RecursiveMutex: abstract class {
+
+    /**
+       :return: an intialized mutex, unlocked.
+
+       IMPORTANT: mutexes are special beasts. Don't attempt to access
+       the class of a mutex. Depending on the underlying implementation,
+       it may not be a real ooc object but only a pointer.
+     */
+    new: static func -> This {
+
+        version (unix || apple) {
+            return RecursiveMutexUnix new()
+        }
+        //version (windows) {
+        //    return RecursiveMutexWin32 new()
+        //}
+
+        Exception new(This, "Unsupported platform!\n") throw()
+        null
+
+    }
+
+    /**
+       Destroy a mutex and its associated ressources.
+
+       Don't call destroy() twice on the same mutex - doing that
+       results in undefined behavior.
+     */
+    destroy: final func {
+        ooc_recursive_mutex_destroy(this)
+    }
+
+    /**
+       Acquire this mutex for the current thread. No other thread may
+       acquire it until it's released (with the unlock() method)
+
+       If this mutex is already locked from thread A, and lock() is
+       called from thread B, then thread B will sleep until thread A
+       calls unlock() on it.
+     */
+    lock: final func {
+        // must be defined in native/
+        ooc_recursive_mutex_lock(this)
+    }
+
+    /**
+       Unlock this mutex, allowing other threads to acquire it.
+     */
+    unlock: final func {
+        // must be defined in native/
+        ooc_recursive_mutex_unlock(this)
+    }
+
+}
+
+
