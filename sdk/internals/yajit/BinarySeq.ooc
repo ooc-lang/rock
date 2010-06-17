@@ -5,12 +5,21 @@ include errno
 errno: extern Int
 strerror: extern func (Int) -> String
 
+BinarySeq transTable = HashMap<String, Int> new()
+BinarySeq transTable["c"] = Char size
+BinarySeq transTable["d"] = Double size
+BinarySeq transTable["f"] = Float size
+BinarySeq transTable["h"] = Short size
+BinarySeq transTable["i"] = Int size
+BinarySeq transTable["l"] = Long size
+BinarySeq transTable["P"] = Pointer size
+
 BinarySeq: class {
 
     data : UChar*
     size : SizeT
     index := 0
-    transTable := HashMap<String, Int> new()
+    transTable: static HashMap<String, Int>
 
     init: func ~withData (=size, d: UChar*) {
         init(size)
@@ -48,18 +57,6 @@ BinarySeq: class {
         version (!(linux || apple || windows)) {
             Exception new(This, "Closures aren't supported on your platform (yet) !") throw()
         }
-
-        initTransTable()
-    }
-
-    initTransTable: func {
-        transTable["c"] = Char size
-        transTable["d"] = Double size
-        transTable["f"] = Float size
-        transTable["h"] = Short size
-        transTable["i"] = Int size
-        transTable["l"] = Long size
-        transTable["P"] = Pointer size
     }
 
     append: func ~other (other: BinarySeq) -> BinarySeq {
