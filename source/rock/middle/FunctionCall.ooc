@@ -234,7 +234,11 @@ FunctionCall: class extends Expression {
                     if(similar) {
                         message += similar
                     }
-                    token throwError(message)
+                    if(expr) {
+                        expr token enclosing(token) throwError(message)
+                    } else {
+                        token throwError(message)
+                    }
                 }
             }
         }

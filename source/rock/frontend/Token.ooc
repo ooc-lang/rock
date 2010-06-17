@@ -18,7 +18,7 @@ Token: cover {
         this start =  data[0]
         this length = data[1]
         this module = module
-        return this
+        this
     }
     
     new: static func (.start, .length, .module) -> This {
@@ -26,13 +26,21 @@ Token: cover {
         this start =  start
         this length = length
         this module = module
-        return this
+        this
     }
     
     new: static func~copy (origin: This) -> This {
         // well that's quite stupid. but covers have value semantics
         // already, so no action is needed to make a "copy" of it.
         return origin
+    }
+    
+    enclosing: func (next: This) -> This {
+        ex : This
+        ex start = start
+        ex length = (next start + next length) - start
+        ex module = module
+        ex
     }
     
     toString: func -> String {
