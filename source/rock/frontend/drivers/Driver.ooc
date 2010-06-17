@@ -29,7 +29,7 @@ Driver: abstract class {
             if(inc mode == IncludeModes LOCAL) {
                 destPath := (params libcache) ? \
                     params libcachePath + File separator + module getSourceFolderName() : \
-                    params outPath
+                    params outPath path
                 
                 path := module path + ".ooc"
                 pathElement := params sourcePath getFile(path) parent()
