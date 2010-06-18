@@ -175,12 +175,12 @@ Char: cover from char {
 
     /** write this character to stdout without a following newline. */
     print: func {
-        printf("%c", this)
+        "%c" printf(this)
     }
 
     /** write this character to stdout, followed by a newline */
     println: func {
-        printf("%c\n", this)
+        "%c\n" printf(this)
     }
     
 }
@@ -561,13 +561,12 @@ String: cover from Char* {
 
     /** print *this* to stdout without a following newline. Flush stdout. */
     print: func {
-        printf("%s", this)
-        fflush(stdout)
+        "%s" printf(this); stdout flush()
     }
 
     /** print *this* followed by a newline. */
     println: func {
-        printf("%s\n", this)
+        "%s\n" printf(this)
     }
 
     /** return a string that contains *this*, repeated *count* times. */
