@@ -67,7 +67,7 @@ ArrayList: class <T> extends List<T> {
 		size = 0
 	}
 
-	get: func(index: Int) -> T {
+	get: inline func(index: Int) -> T {
 		checkIndex(index)
 		return data[index]
 	}
@@ -144,7 +144,7 @@ ArrayList: class <T> extends List<T> {
 	/**
 	 * @return the number of elements in this list.
 	 */
-	size: func() -> Int { size }
+	size: inline func -> Int { size }
 	
 	/** 
 	 * Increases the capacity of this ArrayList instance, if necessary,
@@ -172,7 +172,7 @@ ArrayList: class <T> extends List<T> {
 	}
 	
 	/** private */
-	checkIndex: func (index: Int) {
+	checkIndex: inline func (index: Int) {
 		if (index < 0) Exception new(This, "Index too small! " + index + " < 0") throw()
 		if (index >= size) Exception new(This, "Index too big! " + index + " >= " + size()) throw()
 	}
