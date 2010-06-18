@@ -42,8 +42,9 @@ Tinkerer: class {
         while(!resolvers isEmpty()) {
             
             round += 1
-            if(params veryVerbose)
+            if(params veryVerbose) {
                 println("\n=======================================\n\nTinkerer, round " + round + ", " + resolvers size() + " left")
+            }
             
             iter := resolvers iterator()
             
@@ -79,8 +80,10 @@ Tinkerer: class {
                         res lastNode token throwError(res lastReason)
                     }
                 }
-                
-                println("Tinkerer going round in circles. " + resolvers size() + " modules remaining.")
+
+                if(params fatalError) {
+                    println("Tinkerer going round in circles. " + resolvers size() + " modules remaining.")
+                }
                 return false
             }
             

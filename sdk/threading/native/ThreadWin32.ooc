@@ -5,23 +5,29 @@ version(windows) {
 
     include windows
 
+    /* covers & extern functions */
     CreateThread: extern func (...) -> Handle
     WaitForSingleObject: extern func (...) -> Long // laziness
     INFINITE: extern Long
     WAIT_OBJECT_0: extern Long
 
+    /**
+     * Win32 implementation of threads.
+     *
+     * :author: Amos Wenger (nddrylliog)
+     */
     ThreadWin32: class extends Thread {
 
         handle: Handle
         threadID: Long
 
-        init: func ~win (=closure) {}
+        init: func ~win (=_code) {}
 
         start: func -> Int {
             handle = CreateThread(
                 null,                    // default security attributes
                 0,                       // use default stack size
-                closure,                 // thread function name
+                _code,                 // thread function name
                 null,                    // argument to thread function
                 0,                       // use default creation flags
                 threadID&)               // returns the thread identifier

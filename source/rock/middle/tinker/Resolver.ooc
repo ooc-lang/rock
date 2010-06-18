@@ -61,8 +61,12 @@ Resolver: class {
         dummyModule := Module new("dummy", ".", params, nullToken)
         
         for (pathElem in params sourcePath getPaths()) {
+    
+            // This is beautiful, wonderful code that can't be used in rock
+            // right now because it still breaks on 64-bit.
             
-            tokPointer := nullToken& // yay workarounds (yajit can't push structs)
+            /*
+            tokPointer := nullToken& // yay workarounds (yajit can't push structs)\
             
             pathElem walk(|f|
                 path := f getPath()
@@ -76,6 +80,9 @@ Resolver: class {
                 dummyModule addImport(Import new(fullName, tokPointer@))                
                 true
             )
+            */
+            
+            walkForImports(pathElem, pathElem, dummyModule)
         }
         
         params verbose = false
@@ -85,4 +92,22 @@ Resolver: class {
         
     }
     
+    walkForImports: func (f: File, pathElem: File, dummyModule: Module) {
+        
+        if(f isDir()) {
+            for(child in f getChildren()) {
+                walkForImports(child, pathElem, dummyModule)
+            }
+        } else {
+            if (!f getPath() endsWith(".ooc")) return
+            
+            fullName := f getAbsolutePath()
+            module := AstBuilder cache get(fullName)
+            
+            fullName = fullName substring(pathElem getAbsolutePath() length() + 1, fullName length() - 4)
+            dummyModule addImport(Import new(fullName, nullToken))       
+        }
+    }
+    
 }
+

@@ -175,12 +175,12 @@ Char: cover from char {
 
     /** write this character to stdout without a following newline. */
     print: func {
-        printf("%c", this)
+        "%c" printf(this)
     }
 
     /** write this character to stdout, followed by a newline */
     println: func {
-        printf("%c\n", this)
+        "%c\n" printf(this)
     }
     
 }
@@ -561,13 +561,12 @@ String: cover from Char* {
 
     /** print *this* to stdout without a following newline. Flush stdout. */
     print: func {
-        printf("%s", this)
-        fflush(stdout)
+        "%s" printf(this); stdout flush()
     }
 
     /** print *this* followed by a newline. */
     println: func {
-        printf("%s\n", this)
+        "%s\n" printf(this)
     }
 
     /** return a string that contains *this*, repeated *count* times. */
@@ -727,6 +726,27 @@ String: cover from Char* {
         va_end(list)
 
         return output
+    }
+    
+    printf: func (...) {
+        list: VaList
+
+        va_start(list, this)
+        vprintf(this, list)
+        va_end(list)
+    }
+    
+    vprintf: func (list: VaList) {
+        vprintf(this, list)
+    }
+    
+    printfln: func (...) {
+        list: VaList
+        
+        va_start(list, this)
+        vprintf(this, list)
+        va_end(list)
+        '\n' print()
     }
     
     scanf: func (format: This, ...) -> Int {

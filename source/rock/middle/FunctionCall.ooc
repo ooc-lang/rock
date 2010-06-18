@@ -212,25 +212,34 @@ FunctionCall: class extends Expression {
         }
 
         if(refScore <= 0 && res fatal) {
-            message : String
-            if(expr != null && expr getType() != null) {
-                expr resolve(trail, res)
+            message : String = null
+            if(expr == null) {
+                message = "No such function %s%s" format(name, getArgsTypesRepr())
+            } else if(expr getType() != null) {
                 if(res params veryVerbose) {
                     message = "No such function %s (%s).%s%s" format(expr getType() getName(),
                         expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)", name, getArgsTypesRepr())
                 } else {
                     message = "No such function %s.%s%s" format(expr getType() getName(), name, getArgsTypesRepr())
                 }
-            } else {
-                message = "No such function %s%s" format(name, getArgsTypesRepr())
             }
             //printf("name = %s, refScore = %d, ref = %s\n", name, refScore, ref ? ref toString() : "(nil)")
-            if(ref) {
-                token printMessage(message, "ERROR")
-                showNearestMatch(res params)
-                if(BuildParams fatalError) CommandLine failure()
-            } else {
-                token throwError(message)
+            if(message != null) {
+                if(ref) {
+                    token printMessage(message, "ERROR")
+                    showNearestMatch(res params)
+                    if(BuildParams fatalError) CommandLine failure()
+                } else {
+                    similar := findSimilar(res)
+                    if(similar) {
+                        message += similar
+                    }
+                    if(expr) {
+                        expr token enclosing(token) throwError(message)
+                    } else {
+                        token throwError(message)
+                    }
+                }
             }
         }
 
@@ -240,6 +249,23 @@ FunctionCall: class extends Expression {
         }
         
         return Responses OK
+        
+    }
+    
+    findSimilar: func (res: Resolver) -> String {
+        
+        buff := Buffer new()
+        
+        for(imp in res collectAllImports()) {
+            module := imp getModule()
+            
+            fDecl := module getFunctions() get(name)
+            if(fDecl) {
+                buff append(" (Hint: there's such a function in "). append(imp getPath()). append(")")
+            }
+        }
+        
+        buff toString()
         
     }
     
@@ -522,9 +548,12 @@ FunctionCall: class extends Expression {
             typeResult := resolveTypeArg(typeArg name, trail, res, finalScore&)
             if(finalScore == -1) break
             if(typeResult) {
-                result := typeResult instanceOf(FuncType) ? \
-                    VariableAccess new("Pointer", typeResult token) : \
-                    VariableAccess new(typeResult getName(), typeResult token)
+                result := typeResult instanceOf(FuncType) ?
+                    VariableAccess new("Pointer", token) :
+                    VariableAccess new(typeResult, token)
+                if (typeResult isGeneric()) {
+                    result setRef(null) // force re-resolution - we may not be in the correct context
+                }
                 typeArgs add(result)
             } else break // typeArgs must be in order
             

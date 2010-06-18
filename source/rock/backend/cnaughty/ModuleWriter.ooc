@@ -274,10 +274,10 @@ ModuleWriter: abstract class extends Skeleton {
         for(define in inc getDefines()) {
 			current nl(). app("#ifndef "). app(define name)
 			current nl(). app("#define "). app(define name)
-            current nl(). app("#define "). app(define name). app("___defined")
-			if(define value != null) {
+            if(define value != null) {
                 current app(' '). app(define value)
             }
+            current nl(). app("#define "). app(define name). app("___defined")
 			current nl(). app("#endif");
 		}
         

@@ -18,10 +18,33 @@ stringKeyEquals: func <K> (k1, k2: K) -> Bool {
     k1 as String equals(k2 as String)
 }
 
+intKeyEquals: func <K> (k1, k2: K) -> Bool {
+    // FIXME those casts shouldn't be needed,
+    // and this method doesn't belong here
+    k1 as Int == k2 as Int
+}
+
+charKeyEquals: func <K> (k1, k2: K) -> Bool {
+    // FIXME those casts shouldn't be needed,
+    // and this method doesn't belong here
+    k1 as Char == k2 as Char
+}
+
 /** used when we don't have a custom comparing function for the key type */
 genericKeyEquals: func <K> (k1, k2: K) -> Bool {
     // FIXME rock should turn == between generic vars into a memcmp itself
     memcmp(k1, k2, K size) == 0
+}
+
+intHash: func <K> (key: K) -> UInt {
+    return key as UInt
+}
+
+charHash: func <K> (key: K) -> UInt {
+    // both casts are necessary
+    // Casting 'key' directly to UInt would deref a pointer to UInt
+    // which would read random memory just after the char, which is not a good idea..
+    return (key as Char) as UInt
 }
 
 /**
@@ -58,14 +81,6 @@ murmurHash: func <K> (keyTagazok: K) -> UInt {
     }
 
     t := 0
-
-    /*
-    match(len) {
-        case 3 => h ^= data[2] << 16
-        case 2 => h ^= data[1] << 8
-        case 1 => h ^= data[0]
-    }
-    */
     
     if(len == 3) h ^= data[2] << 16
     if(len == 2) h ^= data[1] << 8
@@ -128,23 +143,34 @@ HashMap: class <K, V> extends BackIterable<V> {
      * @param UInt capacity The number of buckets to use
      * @return HashTable
      */
-    init: func ~withCapacity (=capacity) {
+    init: func ~withCapacity (capaArg: Int) {
         size = 0
+        capacity = capaArg * 1.5
         buckets = gc_malloc(capacity * Pointer size)
         if (!buckets) {
             Exception new(This,
             "Out of memory: failed to allocate " + (capacity * Pointer size) + " bytes\n") throw()
         }
         for (i: Int in 0..capacity) {
-            buckets[i] = ArrayList<V> new()
+            buckets[i] = ArrayList<V> new(2)
         }
-        keys = ArrayList<K> new()
+        keys = ArrayList<K> new(capacity)
         
         // choose comparing function for key type
         if(K == String) {
+            //"Choosing string hashing function" println()
             keyEquals = stringKeyEquals
             hashKey = ac_X31_hash
+        } else if(K size == UInt size) {
+            //"Choosing int hashing function" println()
+            keyEquals = intKeyEquals
+            hashKey = intHash
+        } else if(K size == Char size) {
+            //"Choosing char hashing function" println()
+            keyEquals = charKeyEquals
+            hashKey = charHash
         } else {
+            //"Choosing generic hashing function" println()
             keyEquals = genericKeyEquals
             hashKey = murmurHash
         }
@@ -159,9 +185,10 @@ HashMap: class <K, V> extends BackIterable<V> {
     getEntry: func (key: K) -> HashEntry<K, V> {
         entry = null : HashEntry<K, V>
         hash : UInt = hashKey(key) % capacity
-        iter := buckets[hash] iterator()
-        while (iter hasNext()) {
-            entry = iter next()
+        
+        bucket := buckets[hash]
+        for(i in 0..bucket size()) {
+            entry = bucket[i]
             if(keyEquals(entry key, key)) {
                 return entry
             }
@@ -193,7 +220,9 @@ HashMap: class <K, V> extends BackIterable<V> {
             // was >= 0.8, * 2
             if (load > 0.7) {
                 v1 = capacity / 0.7, v2 = capacity * 2 : Int
+                printf("load = %.2f, resizing to %d\n", load, v1 > v2 ? v1 : v2)
                 resize(v1 > v2 ? v1 : v2)
+                printf("done resizing")
             }
         }
         return true
@@ -284,14 +313,14 @@ HashMap: class <K, V> extends BackIterable<V> {
             Exception new(This, "Out of memory: failed to allocate %d bytes\n" + (capacity * Pointer size)) throw()
         }
         for (i: Int in 0..capacity) {
-            buckets[i] = ArrayList<V> new()
+            buckets[i] = ArrayList<V> new(2)
         }
         entry : HashEntry<K, V>
         for (bucket: Int in 0..old_capacity) {
             if (old_buckets[bucket] size() > 0) {
-                iter := old_buckets[bucket] iterator()
-                while (iter hasNext()) {
-                    entry = iter next()
+                old_bucket := old_buckets[bucket]
+                for (i in 0..old_bucket size) {
+                    entry = old_bucket[i]
                     put(entry key, entry value)
                 }
             }

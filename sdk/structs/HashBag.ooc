@@ -25,7 +25,7 @@ HashBag: class {
         return HashEntry<String, V> new(key, None new())
     }
 
-    put: func <T>(key: String, value: T) -> Bool {
+    put: func <T> (key: String, value: T) -> Bool {
         tmp := Cell<T> new(value)
         return myMap put(key, tmp)
     }

@@ -33,9 +33,16 @@ Process: abstract class {
     cwd = null : String
 
     /**
+       Create a new process from an array of arguments
+     */
+    new: static func ~fromArray (args: String[]) -> This {
+        new(args as ArrayList<String>)
+    }
+
+    /**
        Create a new process from a list of arguments
      */
-    new: static func (args: List<String>) -> This {
+    new: static func (.args) -> This {
         version(unix || apple) {
             return ProcessUnix new(args) as This
         }
@@ -44,6 +51,16 @@ Process: abstract class {
         }
         Exception new(This, "Unsupported platform!\n") throw()
         null
+    }
+
+    /**
+       Create a new process with given arguments and environment
+       variables
+     */
+    new: static func ~withEnvFromArray (args: String[], .env) {
+        p := new(args)
+	p env = env
+	p
     }
 
     /**
