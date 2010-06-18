@@ -188,7 +188,7 @@ HashMap: class <K, V> extends BackIterable<V> {
         
         bucket := buckets[hash]
         for(i in 0..bucket size()) {
-            entry = buckets[i]
+            entry = bucket[i]
             if(keyEquals(entry key, key)) {
                 return entry
             }
