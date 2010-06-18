@@ -92,13 +92,20 @@ Module: class extends Node {
     }
 
     addFunction: func (fDecl: FunctionDecl) {
-        functions put(TypeDecl hashName(fDecl), fDecl)
+        hash := TypeDecl hashName(fDecl)
+        old := functions get(hash)
+        if (old != null) {
+            "Old token = (%d, %d)" printfln(old token start, old token length)
+            fDecl token printMessage("Redefinition of '%s'" format(old getName(), fullName), "[ERROR]")
+            old   token throwError("...first definition was here: ")
+        }
+        functions put(hash, fDecl)
     }
 
     addType: func (tDecl: TypeDecl) {
         old := types get(tDecl name) as TypeDecl
-        if(old != null) {
-            tDecl token printMessage("Redefinition of type %s" format(tDecl name), "[ERROR]")
+        if (old != null) {
+            tDecl token printMessage("Redefinition of '%s'" format(tDecl name), "[ERROR]")
             old   token throwError("...first definition was here: ")
         }
         
