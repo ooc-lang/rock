@@ -289,10 +289,10 @@ HashMap: class <K, V> extends BackIterable<V> {
                 
                 buckets[hash] = entry
             }
+            size += 1
             
-            if (size / capacity as Float > 0.8) {
+            if ((size as Float / capacity as Float) > 0.8) {
                 v1 = capacity / 0.8, v2 = capacity * 2 : Int
-                printf("[HashMap] load = %.2f, resizing to %d\n", size / capacity as Float, v1 > v2 ? v1 : v2)
                 resize(v1 > v2 ? v1 : v2)
             }
         }
@@ -413,7 +413,7 @@ HashMap: class <K, V> extends BackIterable<V> {
                 
             while (entry next) {
                 entry = entry next@
-                put(entry key, entry value)
+                put(entry key as K, entry value as V)
             }
         }
         
