@@ -291,9 +291,8 @@ HashMap: class <K, V> extends BackIterable<V> {
             }
             size += 1
             
-            if ((size as Float / capacity as Float) > 0.8) {
-                v1 = capacity / 0.8, v2 = capacity * 2 : Int
-                resize(v1 > v2 ? v1 : v2)
+            if ((size as Float / capacity as Float) > 0.75) {
+                resize(size * (size > 50000 ? 2 : 4))
             }
         }
         return true

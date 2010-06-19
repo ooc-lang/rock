@@ -152,29 +152,25 @@ ArrayList: class <T> extends List<T> {
 	 * specified by the minimum capacity argument.
 	 */
 	ensureCapacity: inline func (newSize: Int) {
-		while(newSize > capacity) {
-			grow()
+		if(newSize > capacity) {
+			capacity = newSize * (newSize > 50000 ? 2 : 4)
+            tmpData := gc_realloc(data, capacity * T size)
+            if (tmpData) {
+                data = tmpData
+            } else {
+                Exception new(This, "Failed to allocate %zu bytes of memory for array to grow! Exiting..\n" format(capacity * T size)) throw()
+            }
 		}
 	}
-
-	/** private */
-	grow: inline func {
-		capacity = capacity * 1.1 + 10
-		tmpData := gc_realloc(data, capacity * T size)
-		if (tmpData) {
-			data = tmpData
-		} else {
-			printf("Failed to allocate %zu bytes of memory for array to grow! Exiting..\n",
-				capacity * T size)
-			x := 0
-			x = 1 / x
-		}
-	}
-	
+    
 	/** private */
 	checkIndex: inline func (index: Int) {
-		if (index < 0) Exception new(This, "Index too small! " + index + " < 0") throw()
-		if (index >= size) Exception new(This, "Index too big! " + index + " >= " + size()) throw()
+		if (index < 0) {
+            Exception new(This, "Index too small! " + index + " < 0") throw()
+        }
+		if (index >= size) {
+            Exception new(This, "Index too big! " + index + " >= " + size()) throw()
+        }
 	}
 	
 	iterator: func -> BackIterator<T> { return ArrayListIterator<T> new(this) }
