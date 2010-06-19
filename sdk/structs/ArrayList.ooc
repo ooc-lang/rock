@@ -151,14 +151,14 @@ ArrayList: class <T> extends List<T> {
 	 * to ensure that it can hold at least the number of elements
 	 * specified by the minimum capacity argument.
 	 */
-	ensureCapacity: func (newSize: Int) {
+	ensureCapacity: inline func (newSize: Int) {
 		while(newSize > capacity) {
 			grow()
 		}
 	}
 
 	/** private */
-	grow: func {
+	grow: inline func {
 		capacity = capacity * 1.1 + 10
 		tmpData := gc_realloc(data, capacity * T size)
 		if (tmpData) {
