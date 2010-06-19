@@ -12,7 +12,9 @@ OperatorDecl: class extends Expression {
         super(token)
     }
     
-    setFunctionDecl: func (=fDecl) {}
+    setFunctionDecl: func (=fDecl) {
+        fDecl setInline(true)
+    }
     getFunctionDecl: func -> FunctionDecl { fDecl }
     
     getSymbol: func -> String { symbol }
