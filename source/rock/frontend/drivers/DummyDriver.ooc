@@ -19,6 +19,9 @@ DummyDriver: class extends Driver {
         
         // Generating the sources is the *whole point* of onlygen.
         params clean = false
+        
+        // Don't do lib-caching, we don't want things in .libs/
+        params libcache = false
     }
 
     compile: func (module: Module) -> Int {
