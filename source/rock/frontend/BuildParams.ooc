@@ -80,6 +80,9 @@ BuildParams: class {
     // Debugging purposes
     debugLoop := false
     
+    // Tries to find types/functions in not-imported nodules, etc. Disable with -noshit
+    helpful := true
+    
     // Displays [ OK ] or [FAIL] at the end of the compilation
     //shout := false
     shout := true // true as long as we're debugging

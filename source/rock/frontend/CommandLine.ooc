@@ -133,6 +133,10 @@ CommandLine: class {
                     
                     params clean = false
                     
+                } else if (option == "noshit") {
+                    
+                    params helpful = false
+                    
                 } else if (option == "nolibcache") {
                     
                     params libcache = false

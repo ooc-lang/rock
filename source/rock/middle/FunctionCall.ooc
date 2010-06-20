@@ -230,9 +230,11 @@ FunctionCall: class extends Expression {
                     showNearestMatch(res params)
                     if(BuildParams fatalError) CommandLine failure()
                 } else {
-                    similar := findSimilar(res)
-                    if(similar) {
-                        message += similar
+                    if(res params helpful) {
+                        similar := findSimilar(res)
+                        if(similar) {
+                            message += similar
+                        }
                     }
                     if(expr) {
                         expr token enclosing(token) throwError(message)
