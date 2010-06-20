@@ -23,8 +23,6 @@ DummyDriver: class extends Driver {
 
     compile: func (module: Module) -> Int {
         
-        "Running dummy driver" println()
-        
         params outPath mkdirs()
         for(candidate in module collectDeps()) {
             CGenerator new(params, candidate) write()
@@ -33,6 +31,12 @@ DummyDriver: class extends Driver {
         params compiler reset()
         
         copyLocalHeaders(module, params, ArrayList<Module> new())
+        
+        if (params verbose) {
+            "Generated sources in %s, enjoy!" printfln(params outPath path)
+        }
+        
+        0
         
     }
     
