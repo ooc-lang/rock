@@ -4,7 +4,7 @@ import text/StringTokenizer
 
 import Help, Token, BuildParams, AstBuilder
 import compilers/[Gcc, Clang, Icc, Tcc]
-import drivers/[Driver, CombineDriver, SequenceDriver, MakeDriver]
+import drivers/[Driver, CombineDriver, SequenceDriver, MakeDriver, DummyDriver]
 //import ../backend/json/JSONGenerator
 import ../middle/[Module, Import]
 import ../middle/tinker/Tinkerer
@@ -190,15 +190,18 @@ CommandLine: class {
                 } else if (option startsWith("driver=")) {
 
                     driverName := option substring("driver=" length())
-                    if(driverName == "combine") {
-                        driver = CombineDriver new(params) 
-                    } else if (driverName == "sequence") {
-                        driver = SequenceDriver new(params) 
-                    } else if (driverName == "make") {
-                        driver = MakeDriver new(params) 
-                        params clean = false // obviously.
-                    } else {
-                        ("Unknown driver: " + driverName) println()
+                    driver = match (driverName) {
+                        case "combine" =>
+                            CombineDriver new(params) 
+                        case "sequence" =>
+                            SequenceDriver new(params)
+                        case "make" =>
+                            MakeDriver new(params)
+                        case "dummy" =>
+                            DummyDriver new(params)
+                        case =>
+                            "Unknown driver: %s" printfln(driverName)
+                            null
                     }
                     
                 } else if (option startsWith("blowup=")) {
@@ -242,8 +245,7 @@ CommandLine: class {
                     }
                 } else if (option == "onlygen") {
                     
-                    params compiler = null
-                    params clean = false
+                    driver = DummyDriver new(params)
                     
                 } else if (option startsWith("o=")) {
                     

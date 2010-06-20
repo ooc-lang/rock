@@ -7,9 +7,35 @@ import ../../backend/cnaughty/CGenerator
 import Driver, Archive
 
 /**
-   Drives the compilation process of an ooc project.
+   Sequence driver, which compiles .c files one by one as needed.
    
-   :author: Amos Wenger
+   With -noclean, the rock_tmp/ folder (or whatever your -outpath is set to)
+   will not be deleted and the sequence driver will take advantage of that.
+   
+   But sequence driver allows partial recompilation even without the rock_tmp
+   folder, thanks to lib-caching. By default, the result of the compilation is
+   put into a .libs/ folder, cached by source-folder name, for example after
+   a simple compilation you may end up with:
+   
+     - .libs/sdk-linux32.a
+     - .libs/sdk-linux32.a.cacheinfo
+     - .libs/helloworld-linux32.a
+     - .libs/helloworld-linux32.a.cacheinfo
+     
+   The .a files are archives that contain the object files (.o) that result
+   of the compilation of your program.
+   
+   When you recompile a program with an existing .libs/ directory,
+   the SequenceDriver will use the .cacheinfo files to determine
+   what needs to be re-compile, update the .a files with the new object
+   files, and link again.
+   
+   However, there are times (for example, when you upgrade rock) where
+   .libs/ can be harmful and prevent a program from compiling/running
+   normally. If you experience any weird behavior, be sure to *remove it
+   completely* and re-try with a clean compile before reporting issues.
+      
+   :author: Amos Wenger (nddrylliog)
  */
 SequenceDriver: class extends Driver {
 
