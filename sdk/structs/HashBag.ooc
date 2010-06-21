@@ -17,12 +17,13 @@ HashBag: class {
     }
 
     getEntry: func <V> (key: String, V: Class) -> HashEntry<String, Pointer> {
-        entry := myMap getEntry(key) as HashEntry<String, Cell<V>>
-        if (entry) {
+        entry: HashEntry<String, Cell<V>>
+        if(myMap getEntry(key, entry&)) {
             cell := entry value as Cell<V>
             return HashEntry<String, V> new(key, cell val)
+        } else {
+            return HashEntry<String, V> new(key, None new())
         }
-        return HashEntry<String, V> new(key, None new())
     }
 
     put: func <T> (key: String, value: T) -> Bool {
