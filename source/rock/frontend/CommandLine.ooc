@@ -133,7 +133,7 @@ CommandLine: class {
                     
                     params clean = false
                     
-                } else if (option == "noshit") {
+                } else if (option == "nohints") {
                     
                     params helpful = false
                     
