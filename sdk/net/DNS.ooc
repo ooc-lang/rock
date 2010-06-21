@@ -1,6 +1,9 @@
 import structs/LinkedList
 import net/[berkeley, Address, Exceptions, Socket]
 
+/**
+   Allows DNS lookups and reserve lookups
+ */
 DNS: class {
     /**
         Perform DNS lookup using the hostname.
@@ -69,10 +72,19 @@ DNS: class {
     }
 }
 
+/**
+   Information about an host, ie. its name and different addresses
+ */
 HostInfo: class {
     name: String
     addresses: LinkedList<IPAddress>
 
+    /**
+       Create a new HostInfo from an AddrInfo chain.
+        
+       You shouldn't have to call this function yourself, but rather
+       get a HostInfo instance from calls to the DNS class.
+     */
     init: func(addrinfo: AddrInfo*) {
         addresses = LinkedList<IPAddress> new()
 
