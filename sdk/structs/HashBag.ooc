@@ -2,7 +2,7 @@ import structs/HashMap
 
 HashBag: class {
 
-    myMap: HashMap<String, Cell<Pointer>>
+    myMap: HashMap<String, Cell>
     
     init: func {
         init ~withCapacity(10)
@@ -17,12 +17,14 @@ HashBag: class {
     }
 
     getEntry: func <V> (key: String, V: Class) -> HashEntry<String, Pointer> {
-        entry := myMap getEntry(key) as HashEntry<String, Cell<V>>
-        if (entry) {
-            cell := entry value as Cell<V>
-            return HashEntry<String, V> new(key, cell val)
+        entry: HashEntry
+        if(myMap getEntry(key, entry&)) {
+            cell := (entry value as Cell<V>*)@ as Cell<V>
+            return HashEntry<String, V> new(key, cell val&)
+        } else {
+            none := None new()
+            return HashEntry<String, V> new(key, none&)
         }
-        return HashEntry<String, V> new(key, None new())
     }
 
     put: func <T> (key: String, value: T) -> Bool {
