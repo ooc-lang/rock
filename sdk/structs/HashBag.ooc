@@ -1,4 +1,4 @@
-import structs/HashMap
+import structs/[ArrayList, HashMap]
 
 HashBag: class {
 
@@ -13,7 +13,11 @@ HashBag: class {
     }
 
     get: func <T> (key: String, T: Class) -> T {
-        return getEntry(key, T) value as T
+        return getEntry(key, T) value as T // TODO: segfault if `key` is not in this
+    }
+
+    getClass: func (key: String) -> Class {
+        return myMap get(key) as Cell T
     }
 
     getEntry: func <V> (key: String, V: Class) -> HashEntry<String, Pointer> {
@@ -46,6 +50,10 @@ HashBag: class {
     
     contains: func(key: String) -> Bool {
         myMap get(key) ? true : false
+    }
+
+    getKeys: func -> ArrayList<String> {
+        myMap getKeys()
     }
 }
 
