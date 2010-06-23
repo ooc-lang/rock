@@ -1,7 +1,6 @@
-use yajl
-
 import io/[File, FileWriter]
-import yajl/Yajl
+import structs/[Bag, HashBag]
+import text/json/Generator
 
 import ../../frontend/BuildParams
 
@@ -12,19 +11,19 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     VariableDecl, If, Else, While, Foreach, Conditional, ControlStatement,
     VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,
     Node, Parenthesis, Return, Cast, Comparison, Ternary, BoolLiteral,
-    Argument, Statement, AddressOf, Dereference]
+    Argument, Statement, AddressOf, Dereference, FuncType, BaseType, BaseType]
     
 JSONGenerator: class extends Visitor {
     
     params: BuildParams
     outFile: File
     module: Module
-    root: ValueMap
+    root: HashBag
 
     init: func (=params, =module) {
-        outFile = File new(params getOutputPath(module, ".json"))
+        outFile = File new(params outPath getPath() + File separator + module getSourceFolderName(), module getPath("json"))
         outFile parent() mkdirs()
-        root = ValueMap new()
+        root = HashBag new()
     }
 
     write: func {
@@ -48,200 +47,198 @@ JSONGenerator: class extends Visitor {
     close: func {
         /* don't beautify, don't indent. */
         writer := FileWriter new(outFile)
-        gen := Gen new(func (writer_: FileWriter, s: String, len: UInt) { writer_ write(s, len) }, writer)
-        value := Value<ValueMap> new(ValueMap, root)
-        value _generate(gen)
+        generate(writer, root)
         writer close()
     }
 
     visitClassDecl: func (node: ClassDecl) {
         if(node isMeta)
             return
-        obj := ValueMap new()
+        obj := HashBag new()
         /* `name` */
-        obj putValue("name", node name as String)
+        obj put("name", node name as String)
         /* `type` */
-        obj putValue("type", "class")
+        obj put("type", "class")
         /* `tag` */
-        obj putValue("tag", node name as String)
+        obj put("tag", node name as String)
         /* `extends` */
         if(node getSuperRef() != null) {
-            obj putValue("extends", node getSuperRef() name as String)
+            obj put("extends", node getSuperRef() name as String)
         } else {
-            obj putValue("extends", null)
+            obj put("extends", null)
         }
         /* TODO: genericTypes */
         /* `members` */
-        members := ValueList new()
+        members := Bag new()
         /* member functions */
         for(function in node meta functions) {
-            member := ValueList new()
-            member addValue(function name) .addValue(buildFunctionDecl(function, "memberFunction"))
-            members addValue(member)
+            member := Bag new()
+            member add(function name) .add(buildFunctionDecl(function, "memberFunction"))
+            members add(member)
         }
         /* variables */
         for(variable in node variables) {
-            member := ValueList new()
-            member addValue(variable name) .addValue(buildVariableDecl(variable, "field"))
-            members addValue(member)
+            member := Bag new()
+            member add(variable name) .add(buildVariableDecl(variable, "field"))
+            members add(member)
         }
         /* static variables */
         for(variable in node meta variables) {
-            member := ValueList new()
-            member addValue(variable name) .addValue(buildVariableDecl(variable, "field"))
-            members addValue(member)
+            member := Bag new()
+            member add(variable name) .add(buildVariableDecl(variable, "field"))
+            members add(member)
         }
-        obj putValue("members", members)
-        root putValue(node name, obj)
+        obj put("members", members)
+        root put(node name, obj)
     }
 
     visitCoverDecl: func (node: CoverDecl) {
-        obj := ValueMap new()
+        obj := HashBag new()
         /* `name` */
-        obj putValue("name", node name as String)
+        obj put("name", node name as String)
         /* `type` */
-        obj putValue("type", "cover")
+        obj put("type", "cover")
         /* `tag` */
-        obj putValue("tag", node name as String)
+        obj put("tag", node name as String)
         /* `extends` */
         if(node getSuperRef() != null) {
-            obj putValue("extends", node getSuperRef() name as String)
+            obj put("extends", node getSuperRef() name as String)
         } else {
-            obj putValue("extends", null)
+            obj put("extends", null)
         }
         /* `from` */
         if(node fromType != null) {
-            obj putValue("from", node fromType toString())
+            obj put("from", node fromType toString())
         } else {
-            obj putValue("from", null)
+            obj put("from", null)
         }
         /* `members` */
-        members := ValueList new()
+        members := Bag new()
         for(function in node functions) {
-            member := ValueList new()
-            member addValue(function name) .addValue(buildFunctionDecl(function, "memberFunction"))
-            members addValue(member)
+            member := Bag new()
+            member add(function name) .add(buildFunctionDecl(function, "memberFunction"))
+            members add(member)
         }
         for(variable: VariableDecl in node variables) {
-            member := ValueList new()
-            member addValue(variable name) .addValue(buildVariableDecl(variable, "field"))
-            members addValue(member)
+            member := Bag new()
+            member add(variable name) .add(buildVariableDecl(variable, "field"))
+            members add(member)
         }
-        obj putValue("members", members)
-        root putValue(node name, obj)
+        obj put("members", members)
+        root put(node name, obj)
     }
 
     visitFunctionDecl: func (node: FunctionDecl) {
         /* add to the root */
         obj := buildFunctionDecl(node, "function")
-        root putValue(node name, obj)
+        root put(node name, obj)
     }
 
-    buildFunctionDecl: func ~typed (node: FunctionDecl, type: String) -> ValueMap {
-        obj := ValueMap new()
+    buildFunctionDecl: func ~typed (node: FunctionDecl, type: String) -> HashBag {
+        obj := HashBag new()
         /* `name` */
-        obj putValue("name", node name)
+        obj put("name", node name)
         /* `tag` */
         if(type == "memberFunction") {
-            obj putValue("tag", "memberFunction(%s, %s)" format(node owner name, node name))
+            obj put("tag", "memberFunction(%s, %s)" format(node owner name, node name))
         } else {
-            obj putValue("tag", node name)
+            obj put("tag", node name)
         }
         /* `type` */
-        obj putValue("type", type)
+        obj put("type", type)
         /* `extern` */
         if(node isExtern()) {
             if(!node isExternWithName())
-                obj putValue("extern", true)
+                obj put("extern", true)
             else
-                obj putValue("extern", node externName)
+                obj put("extern", node externName)
         } else {
-            obj putValue("extern", false)
+            obj put("extern", false)
         }
         /* `modifiers` */
-        modifiers := ValueList new()
+        modifiers := Bag new()
         if(node isAbstract())
-            modifiers addValue("abstract")
+            modifiers add("abstract")
         if(node isStatic())
-            modifiers addValue("static")
+            modifiers add("static")
         if(node isInline())
-            modifiers addValue("inline")
+            modifiers add("inline")
         if(node isFinal())
-            modifiers addValue("final")
-        obj putValue("modifiers", modifiers)
+            modifiers add("final")
+        obj put("modifiers", modifiers)
         /* generic types */
-        genericTypes := ValueList new()
+        genericTypes := Bag new()
         for(typeArg in node typeArgs) {
-            genericTypes addValue(typeArg name as String)
+            genericTypes add(typeArg name as String)
         }
-        obj putValue("genericTypes", genericTypes)
+        obj put("genericTypes", genericTypes)
         /* return type */
         if(node hasReturn()) {
-            obj putValue("returnType", resolveType(node getReturnType()))
+            obj put("returnType", resolveType(node getReturnType()))
         } else {
-            obj putValue("returnType", null)
+            obj put("returnType", null)
         }
         /* arguments */
-        args := ValueList new()
+        args := Bag new()
         for(arg in node args) {
-            l := ValueList new()
-            l addValue(arg name as String) /* TODO: why is that needed? */
-            l addValue(resolveType(arg type)) /* this handles generic types well. */
+            l := Bag new()
+            l add(arg name as String) /* TODO: why is that needed? */
+            l add(resolveType(arg type)) /* this handles generic types well. */
             if(arg isConst) {
-                m := ValueList new()
-                m addValue("const")
-                l addValue(m)
+                m := Bag new()
+                m add("const")
+                l add(m)
             } else {
-                l addValue(null)
+                l add(null)
             }
-            args addValue(l)
+            args add(l)
         }
-        obj putValue("arguments", args)
+        obj put("arguments", args)
         obj
     }
 
     visitVariableDecl: func (node: VariableDecl) {
         /* add to the root */
         obj := buildVariableDecl(node, "globalVariable")
-        root putValue(node name, obj)
+        root put(node name, obj)
     }
 
-    buildVariableDecl: func (node: VariableDecl, type: String) -> ValueMap {
-        obj := ValueMap new()
+    buildVariableDecl: func (node: VariableDecl, type: String) -> HashBag {
+        obj := HashBag new()
         /* `name` */
-        obj putValue("name", node name)
+        obj put("name", node name)
         /* `extern` */
         if(node isExtern()) {
             if(node externName isEmpty())
-                obj putValue("extern", true)
+                obj put("extern", true)
             else
-                obj putValue("extern", node externName)
+                obj put("extern", node externName)
         } else {
-            obj putValue("extern", false)
+            obj put("extern", false)
         }
         /* `type` */
-        obj putValue("type", type)
+        obj put("type", type)
         /* `tag` */
         if(type == "field") {
-            obj putValue("tag", "field(%s, %s)" format(node owner name, node name))
+            obj put("tag", "field(%s, %s)" format(node owner name, node name))
         } else {
-            obj putValue("tag", node name)
+            obj put("tag", node name)
         }
         /* `modifiers` */
-        modifiers := ValueList new()
+        modifiers := Bag new()
         if(node isStatic)
-            modifiers addValue("static")
+            modifiers add("static")
         if(node isConst)
-            modifiers addValue("const")
-        obj putValue("modifiers", modifiers)
+            modifiers add("const")
+        obj put("modifiers", modifiers)
         /* `value` */
         if(node expr != null) {
-            obj putValue("value", node expr toString())
+            obj put("value", node expr toString())
         } else {
-            obj putValue("value", null)
+            obj put("value", null)
         }
         /* `varType` */
-        obj putValue("varType", resolveType(node type))
+        obj put("varType", resolveType(node type))
         obj
     }
     
