@@ -84,6 +84,8 @@ JSONGenerator: class extends Visitor {
         obj put("name", node name as String)
         /* `type` */
         obj put("type", "class")
+        /* `fullName` */
+        obj put("fullName", node underName())
         /* `tag` */
         obj put("tag", node name as String)
         /* `extends` */
@@ -125,6 +127,8 @@ JSONGenerator: class extends Visitor {
         obj put("type", "cover")
         /* `tag` */
         obj put("tag", node name as String)
+        /* `fullName` */
+        obj put("fullName", node underName())
         /* `extends` */
         if(node getSuperRef() != null) {
             obj put("extends", node getSuperRef() name as String)
@@ -180,6 +184,18 @@ JSONGenerator: class extends Visitor {
         } else {
             obj put("extern", false)
         }
+        /* `unmangled` */
+        if(node isUnmangled()) {
+            if(!node isUnmangledWithName())
+                obj put("unmangled", true)
+            else
+                obj put("unmangled", node getUnmangledName())
+        }
+        else {
+            obj put("unmangled", false)
+        }
+        /* `fullName` */
+        obj put("fullName", node getFullName())
         /* `modifiers` */
         modifiers := Bag new()
         if(node isAbstract())
@@ -243,6 +259,18 @@ JSONGenerator: class extends Visitor {
                 obj put("extern", node externName)
         } else {
             obj put("extern", false)
+        }
+        /* `fullName` */
+        obj put("fullName", node getFullName())
+         /* `unmangled` */
+        if(node isUnmangled()) {
+            if(!node isUnmangledWithName())
+                obj put("unmangled", true)
+            else
+                obj put("unmangled", node getUnmangledName())
+        }
+        else {
+            obj put("unmangled", false)
         }
         /* `type` */
         obj put("type", type)
