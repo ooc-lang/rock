@@ -97,10 +97,10 @@ JSONGenerator: class extends Visitor {
         /* TODO: genericTypes */
         /* `members` */
         members := Bag new()
-        /* member functions */
+        /* methods */
         for(function in node meta functions) {
             member := Bag new()
-            member add(function name) .add(buildFunctionDecl(function, "memberFunction"))
+            member add(function name) .add(buildFunctionDecl(function, "method"))
             members add(member)
         }
         /* variables */
@@ -145,7 +145,7 @@ JSONGenerator: class extends Visitor {
         members := Bag new()
         for(function in node functions) {
             member := Bag new()
-            member add(function name) .add(buildFunctionDecl(function, "memberFunction"))
+            member add(function name) .add(buildFunctionDecl(function, "method"))
             members add(member)
         }
         for(variable: VariableDecl in node variables) {
@@ -168,8 +168,8 @@ JSONGenerator: class extends Visitor {
         /* `name` */
         obj put("name", node name)
         /* `tag` */
-        if(type == "memberFunction") {
-            obj put("tag", "memberFunction(%s, %s)" format(node owner name, node name))
+        if(type == "method") {
+            obj put("tag", "method(%s, %s)" format(node owner name, node name))
         } else {
             obj put("tag", node name)
         }
