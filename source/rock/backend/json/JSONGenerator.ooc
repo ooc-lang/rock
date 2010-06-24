@@ -98,7 +98,12 @@ JSONGenerator: class extends Visitor {
         } else {
             obj put("extends", null)
         }
-        /* TODO: genericTypes */
+        /* generic types */
+        genericTypes := Bag new()
+        for(typeArg in node typeArgs) {
+            genericTypes add(typeArg name as String)
+        }
+        obj put("genericTypes", genericTypes)
         /* `members` */
         members := Bag new()
         /* methods */
