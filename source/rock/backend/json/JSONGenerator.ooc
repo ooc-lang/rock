@@ -37,13 +37,18 @@ JSONGenerator: class extends Visitor {
         namespacedImports := HashBag new()
         for(ns in module namespaces) {
             modules := Bag new()
-            "NS: %s %d" format(ns getName(), ns getImports() size()) println()
             for(imp in ns getImports()) {
                 modules add(imp getModule() getPath())
             }
             namespacedImports put(ns getName(), modules)
         }
         root put("namespacedImports", namespacedImports)
+
+        uses := Bag new()
+        for(uze in module getUses()) {
+            uses add(uze identifier)
+        }
+        root put("uses", uses)
     }
 
     write: func {
