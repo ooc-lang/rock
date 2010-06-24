@@ -3,14 +3,19 @@ import ArrayList
 /**
  * Container for key/value entries in the hash table
  */
-HashEntry: class <K, V> {
+HashEntry: cover {
 
-    key: K
-    value: V
+    key, value: Pointer
+    next: HashEntry*
 
-    init: func ~keyVal (=key, =value) {}
+    init: func@ ~keyVal (=key, =value) {
+        next = null
+    }
 
 }
+
+nullHashEntry: HashEntry <None, None>
+memset(nullHashEntry&, 0, HashEntry size)
 
 stringKeyEquals: func <K> (k1, k2: K) -> Bool {
     // FIXME those casts shouldn't be needed,
@@ -126,7 +131,7 @@ HashMap: class <K, V> extends BackIterable<V> {
     keyEquals: Func <K> (K, K) -> Bool
     hashKey: Func <K> (K) -> UInt
 
-    buckets: ArrayList<V>*
+    buckets: HashEntry[]
     keys: ArrayList<K>
     
     /**
@@ -146,14 +151,9 @@ HashMap: class <K, V> extends BackIterable<V> {
     init: func ~withCapacity (capaArg: Int) {
         size = 0
         capacity = capaArg * 1.5
-        buckets = gc_malloc(capacity * Pointer size)
-        if (!buckets) {
-            Exception new(This,
-            "Out of memory: failed to allocate " + (capacity * Pointer size) + " bytes\n") throw()
-        }
-        for (i: Int in 0..capacity) {
-            buckets[i] = ArrayList<V> new(2)
-        }
+        
+        buckets = HashEntry[capacity] new()
+        
         keys = ArrayList<K> new(capacity)
         
         // choose comparing function for key type
@@ -178,22 +178,61 @@ HashMap: class <K, V> extends BackIterable<V> {
 
     /**
      * Returns the HashEntry associated with a key.
+     * @param key The key associated with the HashEntry
+     * @return HashEntry
+     */
+    getEntry: func (key: K, result: HashEntry*) -> Bool {
+        hash : UInt = hashKey(key) % capacity
+        
+        entry := buckets[hash]
+        
+        if(entry key == null) { return false }
+        
+        while (true) {
+            if (keyEquals(entry key as K, key)) {
+                if(result) {
+                    result@ = entry
+                }
+                return true
+            }
+            
+            if (entry next) {
+                entry = entry next@
+            } else {
+                return false
+            }
+        }
+        return false
+    }
+    
+    /**
+     * Returns the HashEntry associated with a key.
      * @access private
      * @param key The key associated with the HashEntry
      * @return HashEntry
      */
-    getEntry: func (key: K) -> HashEntry<K, V> {
-        entry = null : HashEntry<K, V>
-        hash : UInt = hashKey(key) % capacity
+    getEntryForHash: func (key: K, hash: UInt, result: HashEntry*) -> Bool {
+        entry := buckets[hash]
         
-        bucket := buckets[hash]
-        for(i in 0..bucket size()) {
-            entry = bucket[i]
-            if(keyEquals(entry key, key)) {
-                return entry
+        if(entry key == null) {
+            return false
+        }
+        
+        while (true) {
+            if (keyEquals(entry key as K, key)) {
+                if(result) {
+                    result@ = entry
+                }
+                return true
+            }
+            
+            if (entry next) {
+                entry = entry next@
+            } else {
+                return false
             }
         }
-        return null
+        return false
     }
 
     /**
@@ -204,25 +243,56 @@ HashMap: class <K, V> extends BackIterable<V> {
      * @return Bool
      */
     put: func (key: K, value: V) -> Bool {
-        load: Float
-        hash: UInt
-        entry := getEntry(key)
-        if (entry) {
-            entry value = value
-        }
-        else {
+        
+        hash : UInt = hashKey(key) % capacity
+        entry : HashEntry
+        //printf("\nput(%s, value %p\n", key as String, value)
+        
+        if (getEntryForHash(key, hash, entry&)) {
+            // replace value if the key is already existing
+            //" - Replacing! Address = %p, size = %d" printfln(entry value, V size)
+            memcpy(entry value, value, V size)
+        } else {
             keys add(key)
-            hash = hashKey(key) % capacity
-            entry = HashEntry<K, V> new(key, value)
-            buckets[hash] add(entry)
+            
+            current := buckets[hash]
+            if (current key != null) {
+                //" - Appending!" println()
+                currentPointer := (buckets data as HashEntry*)[hash]&
+                
+                while (currentPointer@ next) {
+                    //" - Skipping!" println()
+                    currentPointer = currentPointer@ next
+                }
+                newEntry := gc_malloc(HashEntry size) as HashEntry*
+                
+                newEntry@ key   = gc_malloc(K size)
+                memcpy(newEntry@ key,   key, K size)
+                
+                newEntry@ value = gc_malloc(V size)
+                memcpy(newEntry@ value, value, V size)
+                
+                currentPointer@ next = newEntry
+            } else {
+                //" - Adding normally!! HashEntry size = %d, Address of buckets data = %p" printfln(HashEntry size, buckets data)
+
+                entry key   = gc_malloc(K size)
+                memcpy(entry key,   key, K size)
+                
+                entry value = gc_malloc(V size)
+                memcpy(entry value, value, V size)
+                
+                entry next = null
+                
+                //"     - entry key   = %p, size = %d, hash = %u" printfln(entry key, K size, hash)
+                //"     - entry value = %p, size = %d, next = %p" printfln(entry value, V size, entry next)
+                
+                buckets[hash] = entry
+            }
             size += 1
-            load = size / capacity as Float
-            // was >= 0.8, * 2
-            if (load > 0.7) {
-                v1 = capacity / 0.7, v2 = capacity * 2 : Int
-                printf("load = %.2f, resizing to %d\n", load, v1 > v2 ? v1 : v2)
-                resize(v1 > v2 ? v1 : v2)
-                printf("done resizing")
+            
+            if ((size as Float / capacity as Float) > 0.75) {
+                resize(size * (size > 50000 ? 2 : 4))
             }
         }
         return true
@@ -231,7 +301,7 @@ HashMap: class <K, V> extends BackIterable<V> {
     /**
      * Alias of put
      */
-    add: func (key: K, value: V) -> Bool {
+    add: inline func (key: K, value: V) -> Bool {
         return put(key, value)
     }
 
@@ -242,9 +312,11 @@ HashMap: class <K, V> extends BackIterable<V> {
      * @return Object
      */
     get: func (key: K) -> V {
-        entry := getEntry(key)
-        if (entry) {
-	    return entry value
+        entry: HashEntry
+
+        //"\nget(%s" printfln(key as String)
+        if (getEntry(key, entry&)) {
+            return entry value as V
         }
         return null
     }
@@ -260,7 +332,7 @@ HashMap: class <K, V> extends BackIterable<V> {
      * @return Bool
      */
     contains: func (key: K) -> Bool {
-        getEntry(key) ? true : false
+        getEntry(key, null)
     }
 
     /**
@@ -269,20 +341,48 @@ HashMap: class <K, V> extends BackIterable<V> {
      * @return Bool
      */
     remove: func (key: K) -> Bool {
-        entry := getEntry(key)
         hash : UInt = hashKey(key) % capacity
-        if (entry) {
-            for (i: Int in 0.. keys size()) {
-                cKey := keys get(i)
-                if(keyEquals(key, cKey)) {
-                    keys removeAt(i)
-                    break
+        
+        prev = null : HashEntry*
+        
+        entry := buckets[hash]
+        if(entry key == null) return false
+        
+        while (true) {
+            if (keyEquals(entry key as K, key)) {
+                if(prev) {
+                    // re-connect the previous to the next one
+                    prev@ next = entry next
+                } else {
+                    // just put the next one instead of us
+                    if(entry next) {
+                        buckets[hash] = entry next@
+                    } else {
+                        buckets[hash] = nullHashEntry
+                    }
                 }
+                for (i in 0..keys size()) {
+                    cKey := keys get(i)
+                    if(keyEquals(key, cKey)) {
+                        keys removeAt(i)
+                        break
+                    }
+                }
+                size -= 1
+                return true
             }
-            size -= 1
-            return buckets[hash] remove(entry)
+            
+            // do we have a next element?
+            if(entry next) {
+                // save the previous just to know where to reconnect
+                prev = entry&
+                entry = entry next@
+            } else {
+                return false
+            }
         }
-        return false
+        
+        return false        
     }
 
     /**
@@ -293,14 +393,8 @@ HashMap: class <K, V> extends BackIterable<V> {
     resize: func (_capacity: Int) -> Bool {
         
         /* Keep track of old settings */
-        old_capacity := capacity
-        old_buckets := gc_malloc(old_capacity * Pointer size) as ArrayList<V>*
-        if (!old_buckets) {
-            Exception new(This, "Out of memory: failed to allocate %d bytes\n" + (old_capacity * Pointer size)) throw()
-        }
-        for (i: Int in 0..old_capacity) {
-            old_buckets[i] = buckets[i] clone()
-        }
+        oldCapacity := capacity
+        oldBuckets := buckets
         
         /* Clear key list and size */
         keys clear()
@@ -308,21 +402,17 @@ HashMap: class <K, V> extends BackIterable<V> {
         
         /* Transfer old buckets to new buckets! */
         capacity = _capacity
-        buckets = gc_malloc(capacity * Pointer size)
-        if (!buckets) {
-            Exception new(This, "Out of memory: failed to allocate %d bytes\n" + (capacity * Pointer size)) throw()
-        }
-        for (i: Int in 0..capacity) {
-            buckets[i] = ArrayList<V> new(2)
-        }
-        entry : HashEntry<K, V>
-        for (bucket: Int in 0..old_capacity) {
-            if (old_buckets[bucket] size() > 0) {
-                old_bucket := old_buckets[bucket]
-                for (i in 0..old_bucket size) {
-                    entry = old_bucket[i]
-                    put(entry key, entry value)
-                }
+        buckets = HashEntry[capacity] new()
+        
+        for (i in 0..oldCapacity) {
+            entry := oldBuckets[i]
+            if (entry key == null) continue
+            
+            put(entry key as K, entry value as V)
+                
+            while (entry next) {
+                entry = entry next@
+                put(entry key as K, entry value as V)
             }
         }
         

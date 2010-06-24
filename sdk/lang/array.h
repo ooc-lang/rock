@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 
-#define _lang_array__Array_new(type, size) ((_lang_array__Array) { size, malloc(size * sizeof(type)) });
+#define _lang_array__Array_new(type, size) ((_lang_array__Array) { size, GC_malloc(size * sizeof(type)) });
 
 #define _lang_array__Array_get(array, index, type) ( \
     (index < 0 || index >= array.length) ? \

@@ -7,6 +7,13 @@ import ../../middle/Module
 import ../../backend/cnaughty/CGenerator
 import Driver, SequenceDriver
 
+/**
+   Generate the .c source files in a build/ directory, along with a
+   Makefile that allows to build a version of your program without any
+   ooc-related dependency.
+   
+   :author: Amos Wenger (nddrylliog)
+ */
 MakeDriver: class extends SequenceDriver {
 
     builddir, makefile, originalOutPath: File
@@ -19,6 +26,9 @@ MakeDriver: class extends SequenceDriver {
         
         // no lib-caching for the make driver!
         params libcache = false
+        
+        // keeping them for later (ie. Makefile invocation)
+        params clean = false
         
         // build/
         builddir = File new("build")

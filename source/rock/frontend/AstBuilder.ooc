@@ -150,13 +150,18 @@ AstBuilder: class {
     }
     
     onImportNamespace: unmangled(nq_onImportNamespace) func (namespace: String, quantity: Int) {
-        nDecl := NamespaceDecl new(namespace clone())
+        nDecl: NamespaceDecl
+        if(!module hasNamespace(namespace)) {
+            nDecl = NamespaceDecl new(namespace clone())
+            module addNamespace(nDecl)
+        } else {
+            nDecl = module getNamespace(namespace)
+        }
         peek(Module) // ensure we're a at root level
         for(i in 0..quantity) {
             nDecl addImport(module getGlobalImports() last())
             module getGlobalImports() removeAt(module getGlobalImports() lastIndex()) // no longer a global import
         }
-        module addNamespace(nDecl)
     }
 
     /*

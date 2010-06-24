@@ -1,5 +1,8 @@
 import net/[berkeley, Socket, Exceptions]
 
+/**
+    Abstract way of representing an IP address
+ */
 IPAddress: abstract class {
     family: Int
 

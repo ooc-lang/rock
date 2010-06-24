@@ -69,6 +69,10 @@ Bag: class {
     }
 
     size: func -> Int {data size}
+
+    getClass: func (index: SizeT) -> Class {
+        data get(index) T
+    }
 }
 
 

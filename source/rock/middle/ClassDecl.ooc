@@ -10,8 +10,8 @@ import tinker/[Response, Resolver, Trail]
 ClassDecl: class extends TypeDecl {
 
     DESTROY_FUNC_NAME   := static const "__destroy__"
-    DEFAULTS_FUNC_NAME  := static const "__defaults__"
     LOAD_FUNC_NAME      := static const "__load__"
+    DEFAULTS_FUNC_NAME  := static const "__defaults__"
 
     isAbstract := false
     isFinal := false
@@ -34,17 +34,19 @@ ClassDecl: class extends TypeDecl {
     
     resolve: func (trail: Trail, res: Resolver) -> Response {
         
-        if(isMeta && getNonMeta() class == ClassDecl) {
-        
-            if(!functions contains(This DEFAULTS_FUNC_NAME)) {
-                addFunction(FunctionDecl new(This DEFAULTS_FUNC_NAME, token))
+        if(isMeta) {
+            if(getNonMeta() class == ClassDecl) {
+                if(!functions contains(This DEFAULTS_FUNC_NAME)) {
+                    addFunction(FunctionDecl new(This DEFAULTS_FUNC_NAME, token))
+                }
             }
-            if(!functions contains(This LOAD_FUNC_NAME)) {
-                fDecl := FunctionDecl new(This LOAD_FUNC_NAME, token)
-                fDecl setStatic(true)
-                addFunction(fDecl)
+            if(getNonMeta() class == ClassDecl || getNonMeta() class == CoverDecl) {
+                if(!functions contains(This LOAD_FUNC_NAME)) {
+                    fDecl := FunctionDecl new(This LOAD_FUNC_NAME, token)
+                    fDecl setStatic(true)
+                    addFunction(fDecl)
+                }
             }
-            
         }
     
         {

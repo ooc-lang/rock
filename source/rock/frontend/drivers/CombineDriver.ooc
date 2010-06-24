@@ -5,6 +5,21 @@ import ../../middle/Module
 import ../../backend/cnaughty/CGenerator
 import Driver
 
+/**
+    Combine driver, which compiles all .c files in one pass.
+    
+    Use it with -driver=combine
+     
+    This may be faster for very small projects if for some reason
+    lib-caching doesn't work for you, but in general you're
+    better off with SequenceDriver + libcaching (on by default).
+    
+    The combine driver is definitely a bad choice for large projects
+    before gcc sometimes gets mixed up with large files, it yields errors
+    that aren't there with a sequence compilation (ie. SequenceDriver)
+    
+    :author: Amos Wenger (nddrylliog)
+ */
 CombineDriver: class extends Driver {
 
     init: func (.params) { super(params) }

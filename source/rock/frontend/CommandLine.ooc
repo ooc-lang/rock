@@ -4,7 +4,7 @@ import text/StringTokenizer
 
 import Help, Token, BuildParams, AstBuilder
 import compilers/[Gcc, Clang, Icc, Tcc]
-import drivers/[Driver, CombineDriver, SequenceDriver, MakeDriver]
+import drivers/[Driver, CombineDriver, SequenceDriver, MakeDriver, DummyDriver]
 //import ../backend/json/JSONGenerator
 import ../middle/[Module, Import]
 import ../middle/tinker/Tinkerer
@@ -133,6 +133,10 @@ CommandLine: class {
                     
                     params clean = false
                     
+                } else if (option == "nohints") {
+                    
+                    params helpful = false
+                    
                 } else if (option == "nolibcache") {
                     
                     params libcache = false
@@ -186,15 +190,18 @@ CommandLine: class {
                 } else if (option startsWith("driver=")) {
 
                     driverName := option substring("driver=" length())
-                    if(driverName == "combine") {
-                        driver = CombineDriver new(params) 
-                    } else if (driverName == "sequence") {
-                        driver = SequenceDriver new(params) 
-                    } else if (driverName == "make") {
-                        driver = MakeDriver new(params) 
-                        params clean = false // obviously.
-                    } else {
-                        ("Unknown driver: " + driverName) println()
+                    driver = match (driverName) {
+                        case "combine" =>
+                            CombineDriver new(params) 
+                        case "sequence" =>
+                            SequenceDriver new(params)
+                        case "make" =>
+                            MakeDriver new(params)
+                        case "dummy" =>
+                            DummyDriver new(params)
+                        case =>
+                            "Unknown driver: %s" printfln(driverName)
+                            null
                     }
                     
                 } else if (option startsWith("blowup=")) {
@@ -236,30 +243,23 @@ CommandLine: class {
                     } else {
                         params compiler = Clang new()
                     }
+                } else if (option == "onlyparse") {
+                    
+                    driver = null
+                    params onlyparse = true
+                    
+                } else if (option == "onlycheck") {
+                    
+                    driver = null
+                    
                 } else if (option == "onlygen") {
                     
-                    params compiler = null
-                    params clean = false
+                    driver = DummyDriver new(params)
                     
                 } else if (option startsWith("o=")) {
                     
                     params binaryPath = arg substring(arg indexOf('=') + 1)
                 
-                } else if (option == "help-backends" || option == "-help-backends") {
-                    
-                    Help printHelpBackends()
-                    exit(0)
-                    
-                } else if (option == "help-gcc" || option == "-help-gcc") {
-                    
-                    Help printHelpGcc()
-                    exit(0)
-                    
-                } else if (option == "help-make" || option == "-help-make") {
-                    
-                    Help printHelpMake()
-                    exit(0)
-                    
                 } else if (option == "slave") {
                     
                     params slave = true
@@ -353,6 +353,13 @@ CommandLine: class {
         
         // phase 1: parse
         AstBuilder new(modulePath, module, params)
+        
+        if(params onlyparse) {
+            // Oookay, we're done here.
+            success()
+            return 0
+        }
+        
         if(params slave && !first) {
             // slave and non-first = cache is filled, we must re-parse every import.
             for(dep in module collectDeps()) {
@@ -382,7 +389,7 @@ CommandLine: class {
         
         if(params backend == "c") {
             // c phase 3: launch the driver
-            if(params compiler) {
+            if(params compiler != null && driver != null) {
                 result := driver compile(module)
                 if(result == 0) {
                     if(params shout) success()
