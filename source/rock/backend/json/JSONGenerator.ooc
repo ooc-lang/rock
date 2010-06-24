@@ -11,7 +11,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     VariableDecl, If, Else, While, Foreach, Conditional, ControlStatement,
     VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,
     Node, Parenthesis, Return, Cast, Comparison, Ternary, BoolLiteral,
-    Argument, Statement, AddressOf, Dereference, FuncType, BaseType]
+    Argument, Statement, AddressOf, Dereference, FuncType, BaseType, PropertyDecl]
     
 JSONGenerator: class extends Visitor {
     
@@ -84,7 +84,11 @@ JSONGenerator: class extends Visitor {
         obj put("name", node name as String)
         /* `type` */
         obj put("type", "class")
-        /* `fullName` */
+        /* `abstract` */
+        obj put("abstract", node isAbstract)
+        /* `final` */
+        obj put("final", node isFinal)
+         /* `fullName` */
         obj put("fullName", node underName())
         /* `tag` */
         obj put("tag", node name as String)
@@ -292,6 +296,26 @@ JSONGenerator: class extends Visitor {
             obj put("value", node expr toString())
         } else {
             obj put("value", null)
+        }
+        /* property data? */
+        if(node instanceOf(PropertyDecl)) {
+            data := HashBag new()
+            pnode := node as PropertyDecl
+            data put("hasGetter", pnode getter != null)
+            data put("hasSetter", pnode setter != null)
+            if(pnode getter != null) {
+                data put("fullGetterName", pnode getter getFullName())
+            } else {
+                data put("fullGetterName", null)
+            }
+            if(pnode setter != null) {
+                data put("fullSetterName", pnode setter getFullName())
+            } else {
+                data put("fullSetterName", null)
+            }
+            obj put("propertyData", data)
+        } else {
+            obj put("propertyData", null)
         }
         /* `varType` */
         obj put("varType", resolveType(node type))
