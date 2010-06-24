@@ -12,7 +12,10 @@ Help: class {
 
         println("Usage: rock [options] files\n")
         println(
-"-v, -verbose
+"The default rock options are:
+rock yourmodule.ooc -backend=c -driver=sequence -gc=static -libcache -outpath=rock_tmp/ -o=yourmodule
+
+-v, -verbose
     Print more information during the build process, useful for
     debugging.
 -vv, -veryVerbose
@@ -25,7 +28,7 @@ Help: class {
 -backend=[c]
     Choose the rock backend. Currently, only the default backend c is
     supported.
--gcc,-tcc,-icc,-clang,-onlygen
+-gcc,-tcc,-icc,-clang
     Choose the compiler backend. (default=gcc) Available compilers
     are the GNU Compiler Collection, TinyCC, Intel C++ Compiler and
     the LLVM’s clang frontend. Also, you can pass onlygen to only
@@ -33,15 +36,23 @@ Help: class {
 -gc=[dynamic,static,off]
     Link dynamically, link statically, or don’t link with the boehm
     GC at all.
--driver=[combine,sequence,make]
+-driver=[combine,sequence,make,dummy]
     Choose the compile driver to use. combine compiles all C files
     combined, sequence compiles them sequentially, make creates a
-    Makefile.
+    Makefile. dummy only generates the .c sources to rock_tmp/ (or whatever
+    you set your -outpath to)
+-onlyparse
+    Only parse the given source file, fail on syntax errors only.
+-onlycheck
+    Parse the given source files and its dependencies, check everything,
+    but don't generate C files.
+-onlygen
+    Equivalent to -driver=dummy. See above.
 -sourcepath=PATH
     Pass the location of your source files. (default=current
     directory)
--nolibcache
-    Don’t use a library cache. By default, rock compiles related
+-libcache, -nolibcache
+    Use (or not) a library cache. By default, rock compiles related
     bunches of .ooc files to a static library for further compilation
     processes speedups in the .libs/ directory. When the source files
     change, the static library will be recompiled automatically.
@@ -88,47 +99,6 @@ Help: class {
     Pass extra arguments to the compiler. Example: +-Wall will pass
     -Wall to gcc.
 \nFor help about the backend options, run 'ooc -help-backends'"
-        )
-    }
-
-    /**
-     * Print a helpful help message that helps about backends 
-     */
-    printHelpBackends: static func {
-        println(
-"The available backends are: [none,gcc,make] and the default is gcc 
-none             just outputs the  c/ h files (be sure to have a main func)
-gcc              call the GNU C compiler with appropriate options
-make             generate a Makefile in the default output directory (ooc_tmp)
-\nFor help about a specific backend, run 'ooc -help-gcc' for example"
-        )
-    }
-    
-    /**
-     * Print a helpful help message that helps about gcc 
-     */
-    printHelpGcc: static func {
-        println(
-"gcc backend options:
--clean=[yes,no]        delete (or not) temporary files  default: yes 
-                       overriden by the global option -noclean
--verbose=[yes,no]      print the gcc command lines called from the backend 
-                       overriden by the global options -v, -verbose
--shout=[yes,no], -s    prints a big fat [ OK ] at the end of the compilation
-                       if it was successful (in green, on Linux platforms)
-any other option       passed to gcc\n"
-        )
-    }
-    
-    /**
-     * Print a helpful help message that helps about make 
-     */
-    printHelpMake: static func {
-        println(
-"make backend options:
--cc=[gcc,icl]        write a Makefile to be compatible with the said compiler
--link=libname a      link with the static library libname a
-any other option     passed to the compiler\n"
         )
     }
     

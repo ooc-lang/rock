@@ -47,6 +47,9 @@ BuildParams: class {
     // threads used by the sequence driver
     sequenceThreads := 1
     
+    // if true, only parse the given module
+    onlyparse := false
+    
     // list of symbols defined e.g. by -Dblah
 	defines := ArrayList<String> new()
     

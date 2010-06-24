@@ -128,6 +128,14 @@ Module: class extends Node {
     addNamespace: func (nDecl: NamespaceDecl) {
         namespaces put(nDecl getName(), nDecl)
     }
+
+    hasNamespace: func (name: String) -> Bool {
+        namespaces contains(name)
+    }
+
+    getNamespace: func (name: String) -> NamespaceDecl {
+        namespaces get(name)
+    }
     
     addUse: func (use1: Use) {
         uses add(use1)

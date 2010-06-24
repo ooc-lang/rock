@@ -243,6 +243,15 @@ CommandLine: class {
                     } else {
                         params compiler = Clang new()
                     }
+                } else if (option == "onlyparse") {
+                    
+                    driver = null
+                    params onlyparse = true
+                    
+                } else if (option == "onlycheck") {
+                    
+                    driver = null
+                    
                 } else if (option == "onlygen") {
                     
                     driver = DummyDriver new(params)
@@ -251,21 +260,6 @@ CommandLine: class {
                     
                     params binaryPath = arg substring(arg indexOf('=') + 1)
                 
-                } else if (option == "help-backends" || option == "-help-backends") {
-                    
-                    Help printHelpBackends()
-                    exit(0)
-                    
-                } else if (option == "help-gcc" || option == "-help-gcc") {
-                    
-                    Help printHelpGcc()
-                    exit(0)
-                    
-                } else if (option == "help-make" || option == "-help-make") {
-                    
-                    Help printHelpMake()
-                    exit(0)
-                    
                 } else if (option == "slave") {
                     
                     params slave = true
@@ -359,6 +353,13 @@ CommandLine: class {
         
         // phase 1: parse
         AstBuilder new(modulePath, module, params)
+        
+        if(params onlyparse) {
+            // Oookay, we're done here.
+            success()
+            return 0
+        }
+        
         if(params slave && !first) {
             // slave and non-first = cache is filled, we must re-parse every import.
             for(dep in module collectDeps()) {
@@ -388,7 +389,7 @@ CommandLine: class {
         
         if(params backend == "c") {
             // c phase 3: launch the driver
-            if(params compiler) {
+            if(params compiler != null && driver != null) {
                 result := driver compile(module)
                 if(result == 0) {
                     if(params shout) success()
