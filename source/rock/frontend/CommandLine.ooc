@@ -401,6 +401,7 @@ CommandLine: class {
             }
         } else if(params backend == "json") {
             // json phase 3: generate.
+            params clean = false // -backend=json implies -noclean
             for(candidate in module collectDeps()) {
                 JSONGenerator new(params, candidate) write() .close()
             }

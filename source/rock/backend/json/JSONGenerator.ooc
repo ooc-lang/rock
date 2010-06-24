@@ -11,7 +11,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     VariableDecl, If, Else, While, Foreach, Conditional, ControlStatement,
     VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,
     Node, Parenthesis, Return, Cast, Comparison, Ternary, BoolLiteral,
-    Argument, Statement, AddressOf, Dereference, FuncType, BaseType, BaseType]
+    Argument, Statement, AddressOf, Dereference, FuncType, BaseType]
     
 JSONGenerator: class extends Visitor {
     
@@ -21,7 +21,7 @@ JSONGenerator: class extends Visitor {
     root: HashBag
 
     init: func (=params, =module) {
-        outFile = File new(params outPath getPath() + File separator + module getSourceFolderName(), module getPath("json"))
+        outFile = File new(params outPath getPath() + File separator + module getSourceFolderName(), module getPath(".json"))
         outFile parent() mkdirs()
         root = HashBag new()
     }
@@ -183,7 +183,10 @@ JSONGenerator: class extends Visitor {
         for(arg in node args) {
             l := Bag new()
             l add(arg name as String) /* TODO: why is that needed? */
-            l add(resolveType(arg type)) /* this handles generic types well. */
+            if(arg instanceOf(VarArg))
+                l add("")
+            else
+                l add(resolveType(arg type)) /* this handles generic types well. */
             if(arg isConst) {
                 m := Bag new()
                 m add("const")
