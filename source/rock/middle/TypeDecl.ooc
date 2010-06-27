@@ -548,10 +548,10 @@ TypeDecl: abstract class extends Declaration {
         
         if(access debugCondition()) {
             for(v in variables) {
-                printf("Got var %s.%s\n", toString(), v toString())
+                printf("Got var %s %s\n", toString(), v toString())
             }
             for(f in functions) {
-                printf("Got function %s.%s\n", toString(), f toString())
+                printf("Got function %s %s\n", toString(), f toString())
             }
         }
         
