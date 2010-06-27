@@ -42,6 +42,8 @@ prepare_bootstrap:
 # For c-source based rock releases, 'make bootstrap' will compile a version
 # of rock from the C sources in build/, then use that version to re-compile itself
 bootstrap:
+  @echo "Creating bin/ in case it does not exist."
+  mkdir -p bin/
 	@echo "Compiling from C source"
 	cd build/ && ROCK_DIST=.. make
 	@echo "Now re-compiling ourself"
