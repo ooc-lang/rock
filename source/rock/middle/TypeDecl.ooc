@@ -7,6 +7,18 @@ import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
     InterfaceImpl, Version, EnumDecl, BaseType, FuncType
 import tinker/[Resolver, Response, Trail]
 
+/**
+   A type declaration - a class, a cover, an interface, an enum..
+   
+   A type declaration has a name, optionally an extern-name, 
+   optional generic type arguments, but also variables and functions.
+   
+   This is a base class containing many useful variables and methods, but
+   the most interesting parts are in its subclasses ClassDecl, CoverDecl,
+   InterfaceDecl, and EnumDecl.
+   
+   :author: Amos Wenger (nddrylliog)
+ */
 TypeDecl: abstract class extends Declaration {
 
     name: String
@@ -520,7 +532,22 @@ TypeDecl: abstract class extends Declaration {
             hash := "%s_%s" format(fDecl getName(), fDecl getSuffix() ? fDecl getSuffix() : "")
             candidate := implemented get(hash)
             if(candidate == null) {
-                token throwError("`%s` must implement function `%s %s` because it extends `%s`" format(getNonMeta() getName(), fDecl getName(), fDecl getArgsRepr(), fDecl getOwner() getName()))
+                if(fDecl getOwner() == getNonMeta() || fDecl getOwner() == this) {
+                    token throwError("`%s` should be declared abstract, because it defines abstract function `%s%s%s`" format(
+                        getNonMeta() getName(),
+                        fDecl getSuffix() ? fDecl getName() + "~" + fDecl getSuffix() : fDecl getName(),
+                        fDecl args isEmpty() ? "" : " " + fDecl getArgsRepr(),
+                        fDecl hasReturn() ? " -> " + fDecl returnType toString() : ""
+                    ))
+                } else {
+                    token throwError("`%s` must implement function `%s%s%s` because it extends `%s`" format(
+                        getNonMeta() getName(),
+                        fDecl getSuffix() ? fDecl getName() + "~" + fDecl getSuffix() : fDecl getName(),
+                        fDecl args isEmpty() ? "" : " " + fDecl getArgsRepr(),
+                        fDecl hasReturn() ? " -> " + fDecl returnType toString() : "",
+                        fDecl getOwner() getName()
+                    ))
+                }
             }
         }
         

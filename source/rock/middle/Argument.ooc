@@ -3,6 +3,13 @@ import VariableDecl, Type, Visitor, Node, TypeDecl, VariableAccess, BinaryOp,
        FunctionDecl
 import tinker/[Trail, Resolver, Response]
 
+/**
+   A function argument.
+   
+   Read FunctionDecl for more infos on the different types of arguments.
+   
+   :author: Amos Wenger (nddrylliog)
+ */
 Argument: abstract class extends VariableDecl {
     
     init: func ~argument (.type, .name, .token) { super(type, name, token) }

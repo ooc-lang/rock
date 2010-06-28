@@ -45,6 +45,8 @@ VersionSpec: abstract class {
     
     isResolved: abstract func -> Bool
     
+    equals: abstract func (other: VersionSpec) -> Bool
+    
 }
 
 builtinNames := HashMap<String, String> new()
@@ -97,6 +99,11 @@ VersionName: class extends VersionSpec {
         return Responses OK
     }
     
+    equals: func (other: VersionSpec) -> Bool {
+        if(!other instanceOf(This)) return false
+        other as This name == name
+    }
+    
 }
 
 VersionNegation: class extends VersionSpec {
@@ -117,6 +124,11 @@ VersionNegation: class extends VersionSpec {
     
     resolve: func -> Response {
         spec resolve()
+    }
+    
+    equals: func (other: VersionSpec) -> Bool {
+        if(!other instanceOf(This)) return false
+        spec equals(other as VersionNegation spec)
     }
     
 }
@@ -145,6 +157,11 @@ VersionAnd: class extends VersionSpec {
         return Responses OK
     }
     
+    equals: func (other: VersionSpec) -> Bool {
+        if(!other instanceOf(This)) return false
+        specLeft equals(other as VersionAnd specLeft) && specRight equals(other as VersionAnd specRight)
+    }
+    
 }
 
 VersionOr: class extends VersionSpec {
@@ -169,6 +186,11 @@ VersionOr: class extends VersionSpec {
         if(!specLeft  resolve() ok()) return Responses LOOP
         if(!specRight resolve() ok()) return Responses LOOP
         return Responses OK
+    }
+    
+    equals: func (other: VersionSpec) -> Bool {
+        if(!other instanceOf(This)) return false
+        specLeft equals(other as VersionOr specLeft) && specRight equals(other as VersionOr specRight)
     }
     
 }
