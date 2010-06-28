@@ -13,6 +13,9 @@ TypeDecl: abstract class extends Declaration {
     externName: String = null
 
     typeArgs := ArrayList<VariableDecl> new()
+    
+    hasCheckedInheritance := false
+    hasCheckedAbstract := false
 
     variables := HashMap<String, VariableDecl> new()
     functions := HashMap<String, FunctionDecl> new()
@@ -67,6 +70,8 @@ TypeDecl: abstract class extends Declaration {
     debugCondition: inline func -> Bool {
         false
     }
+    
+    isAbstract: func -> Bool { false }
     
     init: func ~typeDecl (.name, .superType, .token) {
         init(name, token)
@@ -353,17 +358,24 @@ TypeDecl: abstract class extends Declaration {
             }
         }
         
-        if (superType && !superType isResolved()) {
-            response := superType resolve(trail, res)
-            if(!response ok()) {
-                //if(debugCondition() || res params veryVerbose) printf("====== Response of superType of %s == %s\n", toString(), response toString())
-                trail pop(this)
-                return response
+        if (superType) {
+            if(!superType isResolved()) {
+                response := superType resolve(trail, res)
+                if(!response ok()) {
+                    //if(debugCondition() || res params veryVerbose) printf("====== Response of superType of %s == %s\n", toString(), response toString())
+                    trail pop(this)
+                    return response
+                }
             }
             
-            hasCheckedInheritance := static false
-            if(superType getRef() != null) {
+            //hasCheckedInheritance := static false
+            if(!hasCheckedInheritance && superType getRef() != null) {
                 if(checkInheritanceLoop(res)) hasCheckedInheritance = true
+            }
+            
+            //hasCheckedAbstract := static false
+            if(!hasCheckedAbstract && superType getRef() != null && isMeta) {
+                if(checkAbstractFuncs(res)) hasCheckedAbstract = true
             }
         }
         
@@ -473,6 +485,46 @@ TypeDecl: abstract class extends Declaration {
         }
         
         return Responses OK
+        
+    }
+    
+    checkAbstractFuncs: func (res: Resolver) -> Bool {
+        
+        if(getNonMeta() isAbstract()) {
+            return true // nothing to check!
+        }
+        
+        current := this
+        
+        implemented := HashMap<String, FunctionDecl> new()
+        contract    := ArrayList<FunctionDecl> new()
+        
+        while(current != null) {
+            for(fDecl in current getFunctions()) {
+                if(fDecl isAbstract) {
+                    contract add(fDecl)
+                } else {
+                    hash := "%s_%s" format(fDecl getName(), fDecl getSuffix() ? fDecl getSuffix() : "")
+                    implemented put(hash, fDecl)
+                }
+            }
+            
+            if(current getSuperType() != null && current getSuperRef() == null) {
+                res wholeAgain(this, "Needs superRef to check abstract funcs")
+                return false
+            }
+            current = current getSuperRef()
+        }
+        
+        for(fDecl in contract) {
+            hash := "%s_%s" format(fDecl getName(), fDecl getSuffix() ? fDecl getSuffix() : "")
+            candidate := implemented get(hash)
+            if(candidate == null) {
+                token throwError("`%s` must implement function `%s %s` because it extends `%s`" format(getNonMeta() getName(), fDecl getName(), fDecl getArgsRepr(), fDecl getOwner() getName()))
+            }
+        }
+        
+        return true
         
     }
     
