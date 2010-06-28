@@ -143,7 +143,13 @@ BuildParams: class {
 	}
 	
 	undefineSymbol: func (symbol: String) {
-		defines remove(symbol)
+        for(i in 0..defines size()) {
+            if(defines[i] == symbol) {
+                "Undefined %s" printfln(symbol)
+                defines removeAt(i)
+                break
+            }
+        }
 	}
     
 }
