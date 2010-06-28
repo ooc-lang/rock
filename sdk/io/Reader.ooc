@@ -27,6 +27,9 @@ Reader: abstract class {
     /**
        Read the stream until character `end` is reached, and return
        the result
+       
+       Note that the `end` character is consumed, e.g. the stream isn't
+       rewinded once `end` has been read.
      */
     readUntil: func (end: Char) -> String {
         sb := Buffer new(40) // let's be optimistic
@@ -37,6 +40,22 @@ Reader: abstract class {
         }
         return sb toString()
     }
+    
+    /**
+       Read the stream until character `end` is reached.
+       
+       Acts as readUntil(), but doesn't return the result. This saves a
+       buffer allocation.
+       
+       Note that the `end` character is consumed, e.g. the stream isn't
+       rewinded once `end` has been read.
+     */
+    skipUntil: func (end: Char) {
+        while(hasNext()) {
+            c := read()
+            if(c == end) break
+        }
+    }
 
     /**
        Read a single line and return it.
@@ -46,6 +65,16 @@ Reader: abstract class {
      */
     readLine: func -> String {
         readUntil('\n') trimRight('\r')
+    }
+    
+    /**
+       Skip a single line.
+       
+       More specifically, skip until a '\n' character is reached.
+       The final '\n' is consumed, ie. the stream isn't rewinded.
+     */
+    skipLine: func {
+        skipUntil('\n')
     }
 
 
