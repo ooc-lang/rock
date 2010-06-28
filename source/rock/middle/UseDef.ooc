@@ -1,9 +1,18 @@
-import io/File
+import io/[File, FileReader]
 import structs/[List, ArrayList, HashMap]
 import text/StringTokenizer
 
-import rock/frontend/[BuildParams, SourceReader]
+import ../frontend/BuildParams
 
+/**
+   Represents the requirement for a .use file, ie. a dependency
+   The 'ver' string, if non-null/non-empty, should specify a minimal
+   accepted version. But version checking of .use files isn't implemented
+   in rock yet. (It may be supported by external tools such as reincarnate,
+   though)
+   
+   :author: Amos Wenger (nddrylliog)
+ */
 Requirement: class {
     name, ver: String
     useDef: UseDef
@@ -13,6 +22,12 @@ Requirement: class {
     getUseDef: func -> UseDef { useDef }
 }
 
+/**
+   Represents the data in a .use file, such as includes, include paths,
+   libraries, packages (from pkg-config), requirements, etc.
+   
+   :author: Amos Wenger (nddrylliog)
+ */
 UseDef: class {
     cache := static HashMap<String, UseDef> new()
     
@@ -76,23 +91,35 @@ UseDef: class {
     }
 
     read: func (file: File, params: BuildParams) {
-        reader := SourceReader getReaderFromFile(file)
+        reader := FileReader new(file)
         while(reader hasNext()) {
-            reader hasWhitespace(true)
+            reader mark()
+            c := reader read()
             
-            if(reader matches("#", false)) {
-                reader skipLine()
+            if(c == '\t' || c == ' ' || c == '\r' || c == '\n' || c == '\v') {
+                continue
+            }
+            
+            if(c == '#') {
+                reader readUntil('\n')
                 continue 
             }
 
-            if(reader matches("=", false)) {
+            if(c == '=') {
+                // TODO: wasn't that used for platform-specific usefiles?
                 reader skipLine()
                 continue
             }
 
-            id := reader readUntil(':', false) trim()
-            reader read() // skip the ':'
-            value := reader readLine() trim() trim('\n')
+            reader rewind(1)
+            id := reader readUntil(':') trim()
+            value := reader readLine() trim()
+            
+            if(id startsWith("_")) {
+                // reserved ids for external tools (packaging, etc.)
+                continue
+            }
+            
             if(id == "Name") {
                 name = value
             } else if(id == "Description") {
@@ -136,8 +163,9 @@ UseDef: class {
                 }
                 if(params veryVerbose) "Adding %s to sourcepath ..." format(sourcePathFile path) println()
                 params sourcePath add(sourcePathFile path)
+            } else {
+                "%s: Unknown id %s in usefile" printfln(file getPath(), id)
             }
-            reader hasWhitespace(true)
         }
     }
 }
