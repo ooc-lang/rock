@@ -1,3 +1,5 @@
+import rock/rock
+
 import structs/[List, ArrayList, HashMap]
 
 import io/[File, FileReader, FileWriter], os/Process
@@ -14,7 +16,7 @@ import ../../middle/[Module, TypeDecl, VariableDecl, FunctionDecl]
  */
 Archive: class {
     
-    version := static "0.2"
+    version := static "0.3"
 
     map := static HashMap<Module, Archive> new()
 
@@ -62,6 +64,14 @@ Archive: class {
         if(readCompilerArgs != compilerArgs) {
             if(params veryVerbose) {
                 "Wrong compiler args '%s' for %s.cacheinfo. We have args '%s'. Ignoring" printfln(readCompilerArgs, outlib, compilerArgs)
+            }
+            return false
+        }
+        
+        readCompilerVersion := fR readLine()
+        if(readCompilerVersion != Rock getVersionName()) {
+            if(params veryVerbose) {
+                "Wrong compiler version '%s' for %s.cacheinfo. We have version '%s'. Ignoring" printfln(readCompilerVersion, outlib, Rock getVersionName())
             }
             return false
         }
@@ -118,6 +128,7 @@ Archive: class {
 
         fW writef("cacheversion\n%s\n", version)
         fW writef("%s\n", compilerArgs)
+        fW writef("%s\n", Rock getVersionName())
         fW writef("%d\n", elements size())
         for(element in elements) {
             element write(fW)
