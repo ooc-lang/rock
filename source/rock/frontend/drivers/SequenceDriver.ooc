@@ -154,14 +154,12 @@ SequenceDriver: class extends Driver {
 			}
             
             if(params verbose) "Building archive %s with all object files." format(params outlib) println()
-            
-            archive := Archive new(params outlib)
+            archive := Archive new(params outlib, params)
             for(module in modules) {
                 archive add(module)
             }
             archive save(params)
 		}
-		
 		
 		return 0    
 		
@@ -397,7 +395,7 @@ SourceFolder: class {
     
     init: func (=name, =params) {
         outlib = "%s%c%s-%s.a" format(params libcachePath, File separator, name, Target toString())
-        archive = Archive new(outlib)
+        archive = Archive new(outlib, params)
     }
 }
 

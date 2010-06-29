@@ -1,4 +1,4 @@
-import io/File, os/Env
+import io/File, os/Env, text/Buffer
 import structs/ArrayList
 
 import compilers/AbstractCompiler
@@ -161,5 +161,26 @@ BuildParams: class {
             defines removeAt(idx)
         }
 	}
+    
+    getArgsRepr: func -> String {
+        b := Buffer new()
+        b append(arch)
+        if(!defaultMain)    b append(" -nolines")
+        if(!lineDirectives) b append(" -nomain")
+        if(debug)           b append(" -g")
+        b append(" -gc=")
+        if(enableGC) {
+            if(dynGC) {
+                b append("dynamic")
+            } else {
+                b append("static")
+            }
+        } else {
+            b append("off")
+        }
+        b append(" -backend="). append(backend)
+        b append(compilerArgs join(" "))
+        b toString()
+    }
     
 }

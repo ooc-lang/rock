@@ -14,12 +14,18 @@ import ../../middle/[Module, TypeDecl, VariableDecl, FunctionDecl]
  */
 Archive: class {
     
-    version := static "0.1"
+    version := static "0.2"
 
     map := static HashMap<Module, Archive> new()
 
     /** Path of the file where the archive is stored */
     outlib: String
+    
+    /** The build parameters */
+    params: BuildParams
+    
+    /** A string representation of compiler options */
+    compilerArgs: String
     
     /** List of elements contained in the archive */
     elements := HashMap<String, ArchiveModule> new()
@@ -28,18 +34,39 @@ Archive: class {
     toAdd := ArrayList<Module> new()
     
     /** Create a new Archive */
-    init: func ~archive (=outlib) {
+    init: func ~archive (=outlib, =params) {
+        compilerArgs = params getArgsRepr()
         if(File new(outlib) exists() && File new(outlib + ".cacheinfo") exists()) {
             _read()
         }
     }
     
     _readHeader: func (fR: FileReader) -> Bool {
-        if(fR readLine() == "cacheversion" && fR readLine() == version) {
-            return true
+        cacheversion     := fR readLine()
+        if(cacheversion != "cacheversion") {
+            if(params veryVerbose) {
+                "Malformed cacheinfo file %s.cacheinfo, ignoring." printfln(outlib)
+            }
+            return false
+        }
+
+        readVersion      := fR readLine()
+        if(readVersion != version) {
+            if(params veryVerbose) {
+                "Wrong version %s for %s.cacheinfo. We only read version %s. Ignoring" printfln(readVersion, outlib, version)
+            }
+            return false
+        }
+        
+        readCompilerArgs := fR readLine()
+        if(readCompilerArgs != compilerArgs) {
+            if(params veryVerbose) {
+                "Wrong compiler args '%s' for %s.cacheinfo. We have args '%s'. Ignoring" printfln(readCompilerArgs, outlib, compilerArgs)
+            }
+            return false
         }
     
-        false
+        true
     }
     
     _read: func {
@@ -90,6 +117,7 @@ Archive: class {
         fW := FileWriter new(outlib + ".cacheinfo")
 
         fW writef("cacheversion\n%s\n", version)
+        fW writef("%s\n", compilerArgs)
         fW writef("%d\n", elements size())
         for(element in elements) {
             element write(fW)
