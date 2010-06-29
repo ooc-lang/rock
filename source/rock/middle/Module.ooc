@@ -99,7 +99,14 @@ Module: class extends Node {
                 (old verzion != null && fDecl verzion != null && old verzion equals(fDecl verzion))) {
                 fDecl token printMessage("Redefinition of '%s'%s" format(old getName(), old verzion ? " in version " + old verzion toString() : ""), "[ERROR]")
                 old   token throwError("...first definition was here: ")
+                return
             }
+            if (fDecl verzion != null && !fDecl verzion isSatisfied(params)) {
+                //"%s is better-scored than %s, retaining." printfln(old verzion toString(), fDecl verzion toString())
+                return
+            } //else {
+            //    "%s is better-scored than %s, swapping!" printfln(fDecl verzion toString(), old verzion toString())
+            //}
         }
         functions put(hash, fDecl)
     }
@@ -112,6 +119,12 @@ Module: class extends Node {
                 tDecl token printMessage("Redefinition of '%s'%s" format(tDecl name, old verzion ? " in version " + old verzion toString() : ""), "[ERROR]")
                 old   token throwError("...first definition was here: ")
             }
+            if (tDecl verzion != null && !tDecl verzion isSatisfied(params)) {
+                //"%s is better-scored than %s, retaining." printfln(old verzion toString(), tDecl verzion toString())
+                return
+            } //else {
+            //    "%s is better-scored than %s, swapping!" printfln(tDecl verzion toString(), old verzion toString())
+            //}
         }
         
         types put(tDecl name, tDecl)
@@ -271,10 +284,8 @@ Module: class extends Node {
         }
 
         for(imp in getGlobalImports()) {
-            //printf("Looking in import %s\n", imp path)
             ref = imp getModule() types get(type name)
             if(ref != null && type suggest(ref)) {
-                //("Found type " + name + " in " + imp getModule() fullName)
                 break
             }
         }
@@ -367,10 +378,6 @@ Module: class extends Node {
                 if(res params veryVerbose) printf("response of oDecl %s = %s\n", oDecl toString(), response toString())
                 finalResponse = response
             }
-        }
-
-        for(inc in includes) {
-            if(inc getVersion() != null && !inc getVersion() resolve() ok()) return Responses LOOP
         }
 
         trail pop(this)

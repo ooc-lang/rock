@@ -135,20 +135,30 @@ BuildParams: class {
 
     // backend; can be "c" or "json".
     backend: String = "c"
-    
+
+    _indexOfSymbol: func (symbol: String) -> Int {
+        for(i in 0..defines size()) {
+            if(defines[i] == symbol) {
+                return i
+            }
+        }
+        -1
+    }
+
+    isDefined: func (symbol: String) -> Bool {
+        _indexOfSymbol(symbol) != -1
+    }
+
     defineSymbol: func (symbol: String) {
-		if(!defines contains(symbol)) {
-			defines add(symbol)
-		}
+		if (!isDefined(symbol)) {
+            defines add(symbol)
+        }
 	}
 	
 	undefineSymbol: func (symbol: String) {
-        for(i in 0..defines size()) {
-            if(defines[i] == symbol) {
-                "Undefined %s" printfln(symbol)
-                defines removeAt(i)
-                break
-            }
+        idx := _indexOfSymbol(symbol)
+        if (idx != -1) {
+            defines removeAt(idx)
         }
 	}
     

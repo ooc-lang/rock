@@ -491,11 +491,6 @@ TypeDecl: abstract class extends Declaration {
         
         trail pop(this)
         
-        if(verzion) {
-            response := verzion resolve()
-            if(!response ok()) return response
-        }
-        
         return Responses OK
         
     }

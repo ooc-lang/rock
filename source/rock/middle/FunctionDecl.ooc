@@ -420,11 +420,6 @@ FunctionDecl: class extends Declaration {
         
         if (isClosure) unwrapClosure(trail, res)
         
-        if(verzion) {
-            response := verzion resolve()
-            if(!response ok()) return response
-        }
-        
         return Responses OK
     }
     
