@@ -2,6 +2,7 @@ import io/File, os/[Terminal, Process]
 import structs/[ArrayList, List, Stack]
 import text/StringTokenizer
 
+import rock/rock
 import Help, Token, BuildParams, AstBuilder
 import compilers/[Gcc, Clang, Icc, Tcc]
 import drivers/[Driver, CombineDriver, SequenceDriver, MakeDriver, DummyDriver]
@@ -210,7 +211,7 @@ CommandLine: class {
                     
                 } else if (option == "V" || option == "-version" || option == "version") {
                     
-                    printf("rock head, built on %s at %s\n", ROCK_BUILD_DATE, ROCK_BUILD_TIME)
+                    printf("rock %s, built on %s at %s\n", Rock getVersionName(), ROCK_BUILD_DATE, ROCK_BUILD_TIME)
                     exit(0)
                     
                 } else if (option == "h" || option == "-help" || option == "help") {
