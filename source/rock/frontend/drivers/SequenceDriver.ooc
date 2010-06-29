@@ -63,7 +63,6 @@ SequenceDriver: class extends Driver {
 		sourceFolders = collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<String> new())
         
         oPaths := ArrayList<String> new()
-		
         
         for(sourceFolder in sourceFolders) {
             prepareSourceFolder(sourceFolder, oPaths)
@@ -265,8 +264,8 @@ SequenceDriver: class extends Driver {
         params compiler setCompileOnly()
         
         path := File new(params outPath, module getPath("")) getPath()
-        oPath := path + ".o"    
-        cPath := path + ".c"    
+        oPath := File new(params outPath, module getPath("") replace(File separator, '_')) getPath() + ".o"
+        cPath := path + ".c"
         if(oPaths) {
             oPaths add(oPath)
         }

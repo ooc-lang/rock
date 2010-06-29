@@ -109,12 +109,12 @@ Archive: class {
                 // wanna produce .o files with better names, so that there are
                 // no conflicts when storing them in archive files.
                 
-                name := File new(element oocPath) name()
+                name := element oocPath replace(File separator, '_')
                 
-                args := ["ar", "d", outlib, name substring(0, name length() - 2)] as ArrayList<String>
+                args := ["ar", "dv", outlib, name substring(0, name length() - 2)] as ArrayList<String>
                 args T = String
                 args join(" ") println()
-                Process new(args) execute()
+                Process new(args) getOutput() println()
             } else {
                 map put(element module, this)
                 elements put(element oocPath, element)
@@ -213,9 +213,9 @@ Archive: class {
         
         if(!this exists?) {
             // if the archive doesn't exist, c = create it
-            args add("crs") // r = add with replacement, s = create/update index
+            args add("crsv") // r = add with replacement, s = create/update index
         } else {
-            args add("rs") // r = add with replacement, s = create/update index
+            args add("rsv") // r = add with replacement, s = create/update index
         }
         
         // output path
@@ -223,7 +223,7 @@ Archive: class {
         
         for(module in toAdd) {
             // we add .o (object files) to the archive
-            oPath := "%s%c%s.o" format(params outPath path, File separator, module getPath(""))
+            oPath := "%s%c%s.o" format(params outPath path, File separator, module getPath("") replace(File separator, '_'))
             args add(oPath)
             
             element := ArchiveModule new(module)
