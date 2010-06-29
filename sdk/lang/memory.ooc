@@ -1,5 +1,19 @@
 include memory
 
+version(!gc) {
+    // GC_MALLOC zeroes the memory, so in the non-gc version, we prefer to use calloc
+    // to the expense of some performance. If you want to use malloc instead - do so
+    // at your own risks. Some sdk classes may not zero their every field.
+    
+    //gc_malloc: extern(malloc) func (size: SizeT) -> Pointer
+    gc_malloc: func (size: SizeT) -> Pointer {
+        gc_calloc(1, size)
+    }
+    gc_malloc_atomic: extern(malloc) func (size: SizeT) -> Pointer
+    gc_realloc: extern(realloc) func (ptr: Pointer, size: SizeT) -> Pointer
+    gc_calloc: extern(calloc) func (nmemb: SizeT, size: SizeT) -> Pointer
+}
+
 version(gc) {
     include gc/gc
     
@@ -10,18 +24,6 @@ version(gc) {
         gc_malloc(nmemb * size)
     }
 }
-
-/*
-version(!gc) {
-    gc_malloc: extern(malloc) func (size: SizeT) -> Pointer
-    gc_malloc: func (size: SizeT) -> Pointer {
-        gc_calloc(1, size)
-    }
-    gc_malloc_atomic: extern(malloc) func (size: SizeT) -> Pointer
-    gc_realloc: extern(realloc) func (ptr: Pointer, size: SizeT) -> Pointer
-    gc_calloc: extern(calloc) func (nmemb: SizeT, size: SizeT) -> Pointer
-}
-*/
 
 // memory management
 memset: extern func (Pointer, Int, SizeT) -> Pointer

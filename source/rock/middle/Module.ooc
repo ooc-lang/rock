@@ -95,9 +95,11 @@ Module: class extends Node {
         hash := TypeDecl hashName(fDecl)
         old := functions get(hash)
         if (old != null) {
-            "Old token = (%d, %d)" printfln(old token start, old token length)
-            fDecl token printMessage("Redefinition of '%s'" format(old getName(), fullName), "[ERROR]")
-            old   token throwError("...first definition was here: ")
+            if ((old verzion == fDecl verzion) ||
+                (old verzion != null && fDecl verzion != null && old verzion equals(fDecl verzion))) {
+                fDecl token printMessage("Redefinition of '%s'%s" format(old getName(), old verzion ? " in version " + old verzion toString() : ""), "[ERROR]")
+                old   token throwError("...first definition was here: ")
+            }
         }
         functions put(hash, fDecl)
     }
@@ -105,8 +107,11 @@ Module: class extends Node {
     addType: func (tDecl: TypeDecl) {
         old := types get(tDecl name) as TypeDecl
         if (old != null) {
-            tDecl token printMessage("Redefinition of '%s'" format(tDecl name), "[ERROR]")
-            old   token throwError("...first definition was here: ")
+            if ((old verzion == tDecl verzion) ||
+                (old verzion != null && tDecl verzion != null && old verzion equals(tDecl verzion))) {
+                tDecl token printMessage("Redefinition of '%s'%s" format(tDecl name, old verzion ? " in version " + old verzion toString() : ""), "[ERROR]")
+                old   token throwError("...first definition was here: ")
+            }
         }
         
         types put(tDecl name, tDecl)
