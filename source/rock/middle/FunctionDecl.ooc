@@ -7,6 +7,36 @@ import Cast, Expression, Type, Visitor, Argument, TypeDecl, Scope,
        IntLiteral, NullLiteral, BaseType, FuncType, AddressOf, BinaryOp
 import tinker/[Resolver, Response, Trail]
 
+/**
+   A function declaration.
+   
+   A function has a name and optionally a suffix. If the function has
+   no suffix, then `suffix` is null.
+   
+   The return type is voidType if unspecified, or the type after the '->'
+   in the function declaration otherwise.
+   
+   A function may have 0 or more arguments. Arguments can be TypeArg(s), as in:
+   
+     exit: extern func (Int)
+   
+   AssArg (assign arguments):
+   
+     init: func (=x, =y) {}
+   
+   DotArg (member arguments):
+   
+     init: func (.x, .y) { position = Point new(x, y) }
+
+   VarArg (variable argument):
+   
+     printf: extern func (fmt: String, ...)
+
+   Or just regular Argument(s) :
+   
+     add: func (element: T) {}
+   
+*/
 FunctionDecl: class extends Declaration {
 
     name = "", suffix = null, fullName = null : String
@@ -195,7 +225,11 @@ FunctionDecl: class extends Declaration {
     }
     
     toString: func -> String {
-        (owner ? owner getName() + "." : "") + (suffix ? (name + "~" + suffix) : name) + (isStatic ? ": static func " : ": func ") + getArgsRepr() + (hasReturn() ? " -> " + returnType toString() : "")
+        (owner ? owner getName() + "." : "") +
+        (suffix ? (name + "~" + suffix) : name) +
+        (isStatic ? ": static func " : ": func ") +
+        getArgsRepr() +
+        (hasReturn() ? " -> " + returnType toString() : "")
     }
     
     isResolved: func -> Bool { false }
@@ -385,11 +419,6 @@ FunctionDecl: class extends Declaration {
 		}
         
         if (isClosure) unwrapClosure(trail, res)
-        
-        if(verzion) {
-            response := verzion resolve()
-            if(!response ok()) return response
-        }
         
         return Responses OK
     }

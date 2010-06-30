@@ -175,7 +175,10 @@ CGenerator: class extends Skeleton {
         if(vDecl isExtern() && !vDecl isProto()) {
             return
         }
-       
+
+        if(vDecl isStatic()) {
+            current app("static ")
+        }
         vDecl getType() write(current, vDecl getFullName())
         if(vDecl expr)
             current app(" = "). app(vDecl expr)

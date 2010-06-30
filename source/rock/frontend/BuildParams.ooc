@@ -1,4 +1,4 @@
-import io/File, os/Env
+import io/File, os/Env, text/Buffer
 import structs/ArrayList
 
 import compilers/AbstractCompiler
@@ -82,6 +82,7 @@ BuildParams: class {
     
     // Debugging purposes
     debugLoop := false
+    debugLibcache := false
     
     // Tries to find types/functions in not-imported nodules, etc. Disable with -noshit
     helpful := true
@@ -135,15 +136,52 @@ BuildParams: class {
 
     // backend; can be "c" or "json".
     backend: String = "c"
-    
+
+    _indexOfSymbol: func (symbol: String) -> Int {
+        for(i in 0..defines size()) {
+            if(defines[i] == symbol) {
+                return i
+            }
+        }
+        -1
+    }
+
+    isDefined: func (symbol: String) -> Bool {
+        _indexOfSymbol(symbol) != -1
+    }
+
     defineSymbol: func (symbol: String) {
-		if(!defines contains(symbol)) {
-			defines add(symbol)
-		}
+		if (!isDefined(symbol)) {
+            defines add(symbol)
+        }
 	}
 	
 	undefineSymbol: func (symbol: String) {
-		defines remove(symbol)
+        idx := _indexOfSymbol(symbol)
+        if (idx != -1) {
+            defines removeAt(idx)
+        }
 	}
+    
+    getArgsRepr: func -> String {
+        b := Buffer new()
+        b append(arch)
+        if(!defaultMain)    b append(" -nolines")
+        if(!lineDirectives) b append(" -nomain")
+        if(debug)           b append(" -g")
+        b append(" -gc=")
+        if(enableGC) {
+            if(dynGC) {
+                b append("dynamic")
+            } else {
+                b append("static")
+            }
+        } else {
+            b append("off")
+        }
+        b append(" -backend="). append(backend)
+        b append(compilerArgs join(" "))
+        b toString()
+    }
     
 }

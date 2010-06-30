@@ -109,6 +109,15 @@ BufferWriter: class extends Writer {
         buffer append(chars, length)
         return length
     }
+    
+    vwritef: func(fmt: String, list: VaList) {
+        // TODO: could be optimized (notably the buffer allocation)
+        length := vsnprintf(null, 0, fmt, list)
+        output := String new(length)
+        
+        vsnprintf(output, length + 1, fmt, list)
+        buffer append(output, length)
+    }
 }
 
 BufferReader: class extends Reader {
@@ -122,6 +131,10 @@ BufferReader: class extends Reader {
 
     buffer: func -> Buffer {
         return buffer
+    }
+    
+    close: func {
+        /* nothing to close. */
     }
 
     read: func(chars: String, offset: Int, count: Int) -> SizeT {
