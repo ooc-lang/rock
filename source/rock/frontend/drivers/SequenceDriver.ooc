@@ -153,7 +153,7 @@ SequenceDriver: class extends Driver {
 			}
             
             if(params verbose) "Building archive %s with all object files." format(params outlib) println()
-            archive := Archive new(params outlib, params)
+            archive := Archive new("<all>", params outlib, params)
             for(module in modules) {
                 archive add(module)
             }
@@ -264,7 +264,7 @@ SequenceDriver: class extends Driver {
         params compiler setCompileOnly()
         
         path := File new(params outPath, module getPath("")) getPath()
-        oPath := File new(params outPath, module getPath("") replace(File separator, '_')) getPath() + ".o"
+        oPath := File new(params outPath, module getPath() replace(File separator, '_')) getPath() + ".o"
         cPath := path + ".c"
         if(oPaths) {
             oPaths add(oPath)
@@ -277,7 +277,7 @@ SequenceDriver: class extends Driver {
         
         if(force || cFile lastModified() > comparison) {
             
-            if(params veryVerbose) printf("%s not in cache or out of date, recompiling\n", module getFullName())
+            if(params veryVerbose) printf("%s not in cache or out of date, (re)compiling\n", module getFullName())
             
             params compiler addObjectFile(cPath)    
             params compiler setOutputPath(oPath)    
@@ -394,7 +394,7 @@ SourceFolder: class {
     
     init: func (=name, =params) {
         outlib = "%s%c%s-%s.a" format(params libcachePath, File separator, name, Target toString())
-        archive = Archive new(outlib, params)
+        archive = Archive new(name, outlib, params)
     }
 }
 

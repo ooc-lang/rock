@@ -174,7 +174,7 @@ Module: class extends Node {
     }
     
     getOocPath: func -> String {
-        pathElement + File separator + path + ".ooc"
+        path + ".ooc"
     }
 
     getParentPath: func -> String {

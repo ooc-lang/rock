@@ -76,7 +76,6 @@ Time: class {
     */
     runTime: static UInt {
         get {
-            t: ULLong
             version(windows) {
                 // NOTE: timeGetTime only returns a 32-bit integer.  the upside is
                 // that it's accurate to 1ms, but unfortunately rollover is very

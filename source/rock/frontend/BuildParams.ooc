@@ -82,6 +82,7 @@ BuildParams: class {
     
     // Debugging purposes
     debugLoop := false
+    debugLibcache := false
     
     // Tries to find types/functions in not-imported nodules, etc. Disable with -noshit
     helpful := true

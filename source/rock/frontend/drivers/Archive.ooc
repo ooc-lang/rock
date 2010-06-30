@@ -20,6 +20,12 @@ Archive: class {
 
     map := static HashMap<Module, Archive> new()
 
+    /** Source folder that this archive is for */
+    sourceFolder: String
+    
+    /** Location of the source-folder in the file system. */
+    pathElement: File
+
     /** Path of the file where the archive is stored */
     outlib: String
     
@@ -36,8 +42,9 @@ Archive: class {
     toAdd := ArrayList<Module> new()
     
     /** Create a new Archive */
-    init: func ~archive (=outlib, =params) {
+    init: func ~archive (=sourceFolder, =outlib, =params) {
         compilerArgs = params getArgsRepr()
+        pathElement = params sourcePath get(sourceFolder)
         if(File new(outlib) exists() && File new(outlib + ".cacheinfo") exists()) {
             _read()
         }
@@ -46,7 +53,7 @@ Archive: class {
     _readHeader: func (fR: FileReader) -> Bool {
         cacheversion     := fR readLine()
         if(cacheversion != "cacheversion") {
-            if(params veryVerbose) {
+            if(params veryVerbose || params debugLibcache) {
                 "Malformed cacheinfo file %s.cacheinfo, ignoring." printfln(outlib)
             }
             return false
@@ -54,7 +61,7 @@ Archive: class {
 
         readVersion      := fR readLine()
         if(readVersion != version) {
-            if(params veryVerbose) {
+            if(params veryVerbose || params debugLibcache) {
                 "Wrong version %s for %s.cacheinfo. We only read version %s. Ignoring" printfln(readVersion, outlib, version)
             }
             return false
@@ -62,7 +69,7 @@ Archive: class {
         
         readCompilerArgs := fR readLine()
         if(readCompilerArgs != compilerArgs) {
-            if(params veryVerbose) {
+            if(params veryVerbose || params debugLibcache) {
                 "Wrong compiler args '%s' for %s.cacheinfo. We have args '%s'. Ignoring" printfln(readCompilerArgs, outlib, compilerArgs)
             }
             return false
@@ -70,7 +77,7 @@ Archive: class {
         
         readCompilerVersion := fR readLine()
         if(readCompilerVersion != Rock getVersionName()) {
-            if(params veryVerbose) {
+            if(params veryVerbose || params debugLibcache) {
                 "Wrong compiler version '%s' for %s.cacheinfo. We have version '%s'. Ignoring" printfln(readCompilerVersion, outlib, Rock getVersionName())
             }
             return false
@@ -90,7 +97,7 @@ Archive: class {
         cacheSize := fR readLine() toInt()
         
         for(i in 0..cacheSize) {
-            element := ArchiveModule new(fR)
+            element := ArchiveModule new(fR, this)
             if(element module == null) {
                 // If the element' module is null, it means that there are files
                 // in the cache that we don't need to compile for this run.
@@ -103,18 +110,22 @@ Archive: class {
                 
                 // For now, we remove it anyway - later, we might want to check
                 // if it does really contain a main
-                printf("Removing %s from archive %s\n", element oocPath, outlib)
+                if(params veryVerbose || params debugLibcache) {
+                    printf("Removing %s from archive %s\n", element oocPath, outlib)
+                }
                 
-                // turn "blah/file.ooc" into "file.o". GOTCHA: later we might
-                // wanna produce .o files with better names, so that there are
-                // no conflicts when storing them in archive files.
-                
+                // turn "blah/file.ooc" into "blah_file.o"
                 name := element oocPath replace(File separator, '_')
                 
-                args := ["ar", "dv", outlib, name substring(0, name length() - 2)] as ArrayList<String>
+                args := ["ar", (params veryVerbose || params debugLibcache) ? "dv" : "d",
+                    outlib, name substring(0, name length() - 2)] as ArrayList<String>
                 args T = String
-                args join(" ") println()
-                Process new(args) getOutput() println()
+                output := Process new(args) getOutput()
+                
+                if(params veryVerbose || params debugLibcache) {
+                    args join(" ") println()
+                    output println()
+                }
             } else {
                 map put(element module, this)
                 elements put(element oocPath, element)
@@ -172,15 +183,21 @@ Archive: class {
         done add(module)
         
         oocPath := module getOocPath()
+        oocFile := File new(pathElement, oocPath)
+        
         element := elements get(oocPath)
         if(element == null) {
-            //printf("%s not in the cache, recompiling...\n", module getFullName())
+            if(params debugLibcache || params veryVerbose) {
+                printf("%s not in cache, (re)compiling...\n", module getFullName())
+            }
             return false
         }
 
-        lastModified := File new(oocPath) lastModified()
+        lastModified := oocFile lastModified()
         if(lastModified != element lastModified) {
-            //printf("%s out-of-date, recompiling... (%d vs %d, oocPath = %s)\n", module getFullName(), lastModified, element lastModified, oocPath)
+            if(params debugLibcache || params veryVerbose) {
+                printf("%s out-of-date, recompiling... (%d vs %d, oocPath = %s)\n", module getFullName(), lastModified, element lastModified, oocPath)
+            }
             if(ourself || !element upToDate?) {
                 return false
             }
@@ -192,8 +209,10 @@ Archive: class {
             subArchive := map get(imp getModule())
             
             if(subArchive == null || !subArchive _upToDate?(imp getModule(), done, false)) {
-                //printf("%s recompiling because of dependency %s (subArchive = %s)\n",
-                //   module getFullName(), imp getModule() getFullName(), subArchive ? subArchive outlib : "(nil)")
+                if(params debugLibcache || params veryVerbose) {
+                    printf("%s recompiling because of dependency %s (subArchive = %s)\n",
+                        module getFullName(), imp getModule() getFullName(), subArchive ? subArchive outlib : "(nil)")
+                }
                 return false
             }
         }
@@ -213,9 +232,9 @@ Archive: class {
         
         if(!this exists?) {
             // if the archive doesn't exist, c = create it
-            args add("crsv") // r = add with replacement, s = create/update index
+            args add((params veryVerbose || params debugLibcache) ? "crs" : "crsv") // c = create, r = add with replacement, s = create/update index
         } else {
-            args add("rsv") // r = add with replacement, s = create/update index
+            args add((params veryVerbose || params debugLibcache) ? "rs" : "rsv") // r = add with replacement, s = create/update index
         }
         
         // output path
@@ -223,23 +242,27 @@ Archive: class {
         
         for(module in toAdd) {
             // we add .o (object files) to the archive
-            oPath := "%s%c%s.o" format(params outPath path, File separator, module getPath("") replace(File separator, '_'))
+            oPath := "%s%c%s.o" format(params outPath path, File separator, module getPath() replace(File separator, '_'))
             args add(oPath)
             
-            element := ArchiveModule new(module)
+            element := ArchiveModule new(module, this)
             
             elements remove(element oocPath) // replace
             elements put(element oocPath, element)
         }
         toAdd clear()
         
-        if(params verbose) {
+        if(params veryVerbose || params debugLibcache) {
             printf("%s archive %s\n", this exists? ? "Updating" : "Creating", outlib)
             args join(" ") println()
         }
         
         File new(outlib) parent() mkdirs()
-        Process new(args) getOutput() print()
+        output := Process new(args) getOutput()
+        
+        if(params veryVerbose || params debugLibcache) {
+            output print()
+        }
         
         _write()
     }
@@ -254,15 +277,16 @@ ArchiveModule: class {
     oocPath: String
     lastModified: Long
     module: Module
+    archive: Archive
     
     types := HashMap<String, ArchiveType> new()
     
     /**
        Create info about a module
      */
-    init: func ~fromModule (=module) {
+    init: func ~fromModule (=module, =archive) {
         oocPath = module getOocPath()
-        lastModified = File new(oocPath) lastModified()
+        lastModified = File new(archive pathElement, oocPath) lastModified()
         
         for(tDecl in module getTypes()) {
             archType := ArchiveType new(tDecl)
@@ -273,7 +297,7 @@ ArchiveModule: class {
     /**
        Read info about an archive element from a .cacheinfo file
      */
-    init: func ~fromFileReader(fR: FileReader) {
+    init: func ~fromFileReader(fR: FileReader, =archive) {
         oocPath = fR readLine()
         lastModified = fR readLine() toLong()
         
@@ -361,11 +385,15 @@ ArchiveModule: class {
        an exception if it's not found
      */
     _getModule: func {
-        module = AstBuilder cache get(oocPath)
-        if(module == null) {
-            realPath := File new(oocPath) getAbsolutePath()
-            module = AstBuilder cache get(realPath)
+        pathElement := archive params sourcePath get(archive sourceFolder)
+        
+        if(!pathElement) {
+            "pathElement not found for sourceFolder %s!" printfln(archive sourceFolder)
+            return
         }
+        
+        oocFile := File new(pathElement, oocPath)
+        module = AstBuilder cache get(oocFile getAbsolutePath())
     }
 
     /**
