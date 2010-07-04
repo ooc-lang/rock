@@ -1,4 +1,4 @@
-/**
+/*
  * Win32 type covers
  *
  * @author Amos Wenger, aka nddrylliog
