@@ -172,6 +172,10 @@ StreamSocketReader: class extends Reader {
 
     init: func ~StreamSocketReader (=source) { marker = 0 }
 
+    close: func {
+        source close()
+    }
+
     read: func(chars: String, offset: Int, count: Int) -> SizeT {
         skip(offset - marker)
         source receive(chars, count)
@@ -209,5 +213,15 @@ StreamSocketWriter: class extends Writer {
 
     write: func(chars: String, length: SizeT) -> SizeT {
         return dest send(chars, length, 0)
+    }
+
+    vwritef: func(fmt: String, list: VaList) {
+        // stolen from text/Buffer.
+        // TODO: could be optimized (notably the buffer allocation)
+        length := vsnprintf(null, 0, fmt, list)
+        output := String new(length)
+
+        vsnprintf(output, length + 1, fmt, list)
+        write(output, length)
     }
 }
