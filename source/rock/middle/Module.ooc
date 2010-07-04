@@ -92,6 +92,9 @@ Module: class extends Node {
     }
 
     addFunction: func (fDecl: FunctionDecl) {
+        // don't add empty-named functions
+        if(fDecl name isEmpty()) return
+        
         hash := TypeDecl hashName(fDecl)
         old := functions get(hash)
         if (old != null) {

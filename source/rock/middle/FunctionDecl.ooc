@@ -65,6 +65,7 @@ FunctionDecl: class extends Declaration {
     partialByReference := ArrayList<VariableDecl> new()
     partialByValue := ArrayList<VariableDecl> new()
     clsAccesses := ArrayList<VariableAccess> new()
+    _unwrappedClosure := false
     
     owner : TypeDecl = null
     staticVariant : This = null
@@ -315,6 +316,7 @@ FunctionDecl: class extends Declaration {
                 return response
             }
         }
+        
         isClosure := name isEmpty()
         
         if (isClosure && !argumentsReady()) {
@@ -508,6 +510,8 @@ FunctionDecl: class extends Declaration {
     }
    
     unwrapClosure: func (trail: Trail, res: Resolver) {
+        if(_unwrappedClosure) return
+        
         for(e in partialByReference) {
             if(e getType() == null || !e getType() isResolved()) {
                 res wholeAgain(this, "Need partial-by-reference's return types")
@@ -527,14 +531,14 @@ FunctionDecl: class extends Declaration {
         varAcc := VariableAccess new(name, token)
         varAcc setRef(this)
         module addFunction(this)
-     
-        imp := Import new("internals/yajit/Partial", token) 
-        module addImport(imp)
-        module parseImports(res)
         
         if(partialByReference isEmpty() && partialByValue isEmpty()) {
             trail peek() replace(this, varAcc)
         } else {
+            imp := Import new("internals/yajit/Partial", token) 
+            module addImport(imp)
+            module parseImports(res)
+            
             partialClass := VariableAccess new("Partial", token)
             newCall := FunctionCall new(partialClass, "new", token)
             partialName := generateTempName("partial")
@@ -611,6 +615,7 @@ FunctionDecl: class extends Declaration {
             fCall getArguments() add(StringLiteral new(argsSizes, token))
             trail peek() replace(this, fCall)
             
+            _unwrappedClosure = true
             res wholeAgain(this, "Unwrapped closure")
         }
         
