@@ -5,7 +5,7 @@ import structs/[ArrayList, List, HashMap]
  * Somehow like the 'classpath' in Java. E.g. holds where to find ooc
  * modules, and well, find them when asked kindly to.
  *
- * @author Amos Wenger
+ * :author: Amos Wenger (nddrylliog)
  */
 PathList: class {
     paths := HashMap<String, File> new()
@@ -14,9 +14,9 @@ PathList: class {
 
     /**
      * Add an element to the classpath
-     * @param path
+     * :param: path
      */
-    add: func(path: String) {
+    add: func (path: String) {
         file := File new(path)
 
         if (!file exists()) {
@@ -31,10 +31,20 @@ PathList: class {
             paths put(absolutePath, file)
         }
     }
+    
+    /**
+     * Get an element from the classpath, from its folder name
+     */
+    get: func (folderName: String) -> File {
+        for (path in paths) {
+            if (path getAbsoluteFile() name() == folderName) return path
+        }
+        null
+    }
 
     /**
      * Remove an element from the sourcepath
-     * @param path
+     * :param: path
      */
     remove: func(path: String) {
         file := File new(path)
@@ -61,7 +71,7 @@ PathList: class {
 
     /**
      * Return a list of all files found in a directory in the whole sourcepath
-     * @param path
+     * :param: path
      * @return
      */
     getRelativePaths: func(path: String) -> List<String> {

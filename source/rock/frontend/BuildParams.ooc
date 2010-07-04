@@ -1,9 +1,8 @@
-import io/File, os/Env
+import io/File, os/Env, text/Buffer
 import structs/ArrayList
 
 import compilers/AbstractCompiler
-import PathList
-import DistLocator, SdkLocator
+import PathList, rock/rock, rock/utils/ShellUtils
 import ../middle/Module
 
 BuildParams: class {
@@ -17,28 +16,96 @@ BuildParams: class {
 	GC_DEFINE := static const "__OOC_USE_GC__"
     
     init: func {
+        findDist()
+        findSdk()
+        findLibsPath()
+        
+        // use the GC by default =)
+		defines add(This GC_DEFINE)
+    }
+    
+    findDist: func {
+        // specified by command-line?
+        if(distLocation) return
+        
+        env := Env get("ROCK_DIST")
+        if(!env) {
+            env = Env get("OOC_DIST")
+        }
+        
+        if (env) {
+            distLocation = File new(env trimRight(File separator))
+            return
+        }
+    
+        // fall back to ../../ from the executable
+        // e.g. if rock is in /opt/ooc/rock/bin/rock
+        // then it will set dist to /opt/ooc/rock/
+        exec := ShellUtils findExecutable(Rock execName, false)
+        if(exec) {
+            realpath := exec getAbsolutePath()
+            distLocation = File new(realpath) parent() parent()
+            return
+        }
+        
+        // fall back on the current working directory
+        file := File new(File getCwd())
+        distLocation = file parent()
+    }
+    
+    findSdk: func {
+        // specified by command-line?
+        if(sdkLocation) return
+        
+        env := Env get("ROCK_SDK")
+        if(!env) {
+            env = Env get("OOC_SDK")
+        }
+        
+        if (env) {
+            sdkLocation = File new(env trimRight(File separator))
+            return
+        }
+        
+        // fall back to dist + sdk/
+        sdkLocation = File new(distLocation, "sdk")
+    }
+    
+    findLibsPath: func {
+        // specified by command-line?
+        if(libsPath) return
+        
+        // find libsPath
         path := Env get("OOC_LIBS")
         if(path == null) {
             // TODO: find other standard paths for other OSes
             path = "/usr/lib/ooc/"
         }
         libsPath = File new(path)
-        
-        // use the GC by default =)
-		defines add(This GC_DEFINE)
     }
     
-    compiler: AbstractCompiler = null
+    // location of the compiler's distribution, with a libs/ folder for the gc, etc.
+    distLocation: File
     
-    distLocation := DistLocator locate()
-    sdkLocation := SdkLocator locate()
+    // location of the ooc SDK, with the basic classes, lang/, structs/, io/
+    sdkLocation: File
     
-    sourcePath := PathList new()
-    libPath := PathList new()
-    incPath := PathList new()
-    
+    // where ooc libraries live (.use)
     libsPath: File
     
+    // compiler used for producing an executable from the C sources
+    compiler: AbstractCompiler = null
+    
+    // ooc sourcepath (.ooc)
+    sourcePath := PathList new()
+    
+    // C libraries path (.so)
+    libPath := PathList new()
+    
+    // C includes path (.h)
+    incPath := PathList new()
+    
+    // path to which the .c files are written
     outPath: File = File new("rock_tmp")
     
     // if non-null, use 'linker' as the last step of the compile process, with driver=sequence
@@ -82,6 +149,7 @@ BuildParams: class {
     
     // Debugging purposes
     debugLoop := false
+    debugLibcache := false
     
     // Tries to find types/functions in not-imported nodules, etc. Disable with -noshit
     helpful := true
@@ -135,15 +203,52 @@ BuildParams: class {
 
     // backend; can be "c" or "json".
     backend: String = "c"
-    
+
+    _indexOfSymbol: func (symbol: String) -> Int {
+        for(i in 0..defines size()) {
+            if(defines[i] == symbol) {
+                return i
+            }
+        }
+        -1
+    }
+
+    isDefined: func (symbol: String) -> Bool {
+        _indexOfSymbol(symbol) != -1
+    }
+
     defineSymbol: func (symbol: String) {
-		if(!defines contains(symbol)) {
-			defines add(symbol)
-		}
+		if (!isDefined(symbol)) {
+            defines add(symbol)
+        }
 	}
 	
 	undefineSymbol: func (symbol: String) {
-		defines remove(symbol)
+        idx := _indexOfSymbol(symbol)
+        if (idx != -1) {
+            defines removeAt(idx)
+        }
 	}
+    
+    getArgsRepr: func -> String {
+        b := Buffer new()
+        b append(arch)
+        if(!defaultMain)    b append(" -nolines")
+        if(!lineDirectives) b append(" -nomain")
+        if(debug)           b append(" -g")
+        b append(" -gc=")
+        if(enableGC) {
+            if(dynGC) {
+                b append("dynamic")
+            } else {
+                b append("static")
+            }
+        } else {
+            b append("off")
+        }
+        b append(" -backend="). append(backend)
+        b append(compilerArgs join(" "))
+        b toString()
+    }
     
 }

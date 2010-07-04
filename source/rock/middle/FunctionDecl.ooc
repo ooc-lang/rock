@@ -7,11 +7,41 @@ import Cast, Expression, Type, Visitor, Argument, TypeDecl, Scope,
        IntLiteral, NullLiteral, BaseType, FuncType, AddressOf, BinaryOp
 import tinker/[Resolver, Response, Trail]
 
+/**
+   A function declaration.
+   
+   A function has a name and optionally a suffix. If the function has
+   no suffix, then `suffix` is null.
+   
+   The return type is voidType if unspecified, or the type after the '->'
+   in the function declaration otherwise.
+   
+   A function may have 0 or more arguments. Arguments can be TypeArg(s), as in:
+   
+     exit: extern func (Int)
+   
+   AssArg (assign arguments):
+   
+     init: func (=x, =y) {}
+   
+   DotArg (member arguments):
+   
+     init: func (.x, .y) { position = Point new(x, y) }
+
+   VarArg (variable argument):
+   
+     printf: extern func (fmt: String, ...)
+
+   Or just regular Argument(s) :
+   
+     add: func (element: T) {}
+   
+*/
 FunctionDecl: class extends Declaration {
 
-    name = "", suffix = null, fullName = null : String
+    name = "", suffix = null, fullName = null, doc = null : String
+    
     returnType := voidType
-    type : static Type = FuncType new(nullToken)
     
     /** Attributes */
     isAbstract := false
@@ -36,6 +66,7 @@ FunctionDecl: class extends Declaration {
     partialByReference := ArrayList<VariableDecl> new()
     partialByValue := ArrayList<VariableDecl> new()
     clsAccesses := ArrayList<VariableAccess> new()
+    _unwrappedClosure := false
     
     owner : TypeDecl = null
     staticVariant : This = null
@@ -168,7 +199,17 @@ FunctionDecl: class extends Declaration {
         !isMember() && token module params entryPoint == name
     }
     
-    getType: func -> Type { This type }
+    getType: func -> Type {
+        type := FuncType new(token)
+        for(arg in args) {
+            type argTypes add(arg getType())
+        }
+        type returnType = returnType
+        for(typeArg in typeArgs) {
+            type typeArgs add(typeArg)
+        }
+        return type
+    }
 
     getArgsRepr: func -> String {
         if(args size() == 0) return ""
@@ -195,7 +236,11 @@ FunctionDecl: class extends Declaration {
     }
     
     toString: func -> String {
-        (owner ? owner getName() + "." : "") + (suffix ? (name + "~" + suffix) : name) + (isStatic ? ": static func " : ": func ") + getArgsRepr() + (hasReturn() ? " -> " + returnType toString() : "")
+        (owner ? owner getName() + "." : "") +
+        (suffix ? (name + "~" + suffix) : name) +
+        (isStatic ? ": static func " : ": func ") +
+        getArgsRepr() +
+        (hasReturn() ? " -> " + returnType toString() : "")
     }
     
     isResolved: func -> Bool { false }
@@ -272,6 +317,7 @@ FunctionDecl: class extends Declaration {
                 return response
             }
         }
+        
         isClosure := name isEmpty()
         
         if (isClosure && !argumentsReady()) {
@@ -386,11 +432,6 @@ FunctionDecl: class extends Declaration {
         
         if (isClosure) unwrapClosure(trail, res)
         
-        if(verzion) {
-            response := verzion resolve()
-            if(!response ok()) return response
-        }
-        
         return Responses OK
     }
     
@@ -470,6 +511,8 @@ FunctionDecl: class extends Declaration {
     }
    
     unwrapClosure: func (trail: Trail, res: Resolver) {
+        if(_unwrappedClosure) return
+        
         for(e in partialByReference) {
             if(e getType() == null || !e getType() isResolved()) {
                 res wholeAgain(this, "Need partial-by-reference's return types")
@@ -489,14 +532,14 @@ FunctionDecl: class extends Declaration {
         varAcc := VariableAccess new(name, token)
         varAcc setRef(this)
         module addFunction(this)
-     
-        imp := Import new("internals/yajit/Partial", token) 
-        module addImport(imp)
-        module parseImports(res)
         
         if(partialByReference isEmpty() && partialByValue isEmpty()) {
             trail peek() replace(this, varAcc)
         } else {
+            imp := Import new("internals/yajit/Partial", token) 
+            module addImport(imp)
+            module parseImports(res)
+            
             partialClass := VariableAccess new("Partial", token)
             newCall := FunctionCall new(partialClass, "new", token)
             partialName := generateTempName("partial")
@@ -573,6 +616,7 @@ FunctionDecl: class extends Declaration {
             fCall getArguments() add(StringLiteral new(argsSizes, token))
             trail peek() replace(this, fCall)
             
+            _unwrappedClosure = true
             res wholeAgain(this, "Unwrapped closure")
         }
         

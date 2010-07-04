@@ -1,12 +1,14 @@
 import List
 
 /**
- * Resizable-array implementation of the List interface. Implements all
- * optional list operations, and permits all elements, including null.
- * In addition to implementing the List interface, this class provides
- * methods to manipulate the size of the array that is used internally
- * to store the list. (This class is roughly equivalent to Vector,
- * except that it is unsynchronized.)
+   Resizable-array implementation of the List interface. Implements all
+   optional list operations, and permits all elements, including null.
+
+   In addition to implementing the List interface, this class provides
+   methods to manipulate the size of the array that is used internally
+   to store the list.
+   
+   :author: Amos Wenger (nddrylliog)
  */
 ArrayList: class <T> extends List<T> {
 	
@@ -223,14 +225,10 @@ ArrayListIterator: class <T> extends BackIterator<T> {
 	
 }
 
-/** Operators */
+/* Operators */
 operator [] <T> (list: ArrayList<T>, i: Int) -> T { list get(i) }
 operator []= <T> (list: ArrayList<T>, i: Int, element: T) { list set(i, element) }
 operator += <T> (list: ArrayList<T>, element: T) { list add(element) }
 operator -= <T> (list: ArrayList<T>, element: T) -> Bool { list remove(element) }
 
 operator as <T> (array: T[]) -> ArrayList<T> { ArrayList<T> new(array data, array length) }
-
-
-
-

@@ -1,6 +1,6 @@
 import io/File, text/EscapeSequence
 import structs/[HashMap, ArrayList, List, OrderedMultiMap]
-import ../frontend/[Token, SourceReader, BuildParams, PathList, AstBuilder]
+import ../frontend/[Token, BuildParams, PathList, AstBuilder]
 import ../utils/FileUtils
 import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl,
        FunctionCall, Type, Declaration, VariableAccess, OperatorDecl,
@@ -92,12 +92,24 @@ Module: class extends Node {
     }
 
     addFunction: func (fDecl: FunctionDecl) {
+        // don't add empty-named functions
+        if(fDecl name isEmpty()) return
+        
         hash := TypeDecl hashName(fDecl)
         old := functions get(hash)
         if (old != null) {
-            "Old token = (%d, %d)" printfln(old token start, old token length)
-            fDecl token printMessage("Redefinition of '%s'" format(old getName(), fullName), "[ERROR]")
-            old   token throwError("...first definition was here: ")
+            if ((old verzion == fDecl verzion) ||
+                (old verzion != null && fDecl verzion != null && old verzion equals(fDecl verzion))) {
+                fDecl token printMessage("Redefinition of '%s'%s" format(old getName(), old verzion ? " in version " + old verzion toString() : ""), "[ERROR]")
+                old   token throwError("...first definition was here: ")
+                return
+            }
+            if (fDecl verzion != null && !fDecl verzion isSatisfied(params)) {
+                //"%s is better-scored than %s, retaining." printfln(old verzion toString(), fDecl verzion toString())
+                return
+            } //else {
+            //    "%s is better-scored than %s, swapping!" printfln(fDecl verzion toString(), old verzion toString())
+            //}
         }
         functions put(hash, fDecl)
     }
@@ -105,8 +117,17 @@ Module: class extends Node {
     addType: func (tDecl: TypeDecl) {
         old := types get(tDecl name) as TypeDecl
         if (old != null) {
-            tDecl token printMessage("Redefinition of '%s'" format(tDecl name), "[ERROR]")
-            old   token throwError("...first definition was here: ")
+            if ((old verzion == tDecl verzion) ||
+                (old verzion != null && tDecl verzion != null && old verzion equals(tDecl verzion))) {
+                tDecl token printMessage("Redefinition of '%s'%s" format(tDecl name, old verzion ? " in version " + old verzion toString() : ""), "[ERROR]")
+                old   token throwError("...first definition was here: ")
+            }
+            if (tDecl verzion != null && !tDecl verzion isSatisfied(params)) {
+                //"%s is better-scored than %s, retaining." printfln(old verzion toString(), tDecl verzion toString())
+                return
+            } //else {
+            //    "%s is better-scored than %s, swapping!" printfln(tDecl verzion toString(), old verzion toString())
+            //}
         }
         
         types put(tDecl name, tDecl)
@@ -156,7 +177,7 @@ Module: class extends Node {
     }
     
     getOocPath: func -> String {
-        pathElement + File separator + path + ".ooc"
+        path + ".ooc"
     }
 
     getParentPath: func -> String {
@@ -266,10 +287,8 @@ Module: class extends Node {
         }
 
         for(imp in getGlobalImports()) {
-            //printf("Looking in import %s\n", imp path)
             ref = imp getModule() types get(type name)
             if(ref != null && type suggest(ref)) {
-                //("Found type " + name + " in " + imp getModule() fullName)
                 break
             }
         }
@@ -362,10 +381,6 @@ Module: class extends Node {
                 if(res params veryVerbose) printf("response of oDecl %s = %s\n", oDecl toString(), response toString())
                 finalResponse = response
             }
-        }
-
-        for(inc in includes) {
-            if(inc getVersion() != null && !inc getVersion() resolve() ok()) return Responses LOOP
         }
 
         trail pop(this)

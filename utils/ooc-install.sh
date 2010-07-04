@@ -32,13 +32,13 @@ function intro {
             exit 1
         fi
         echo ""
-        read -p "Will install rock head from v0.9.1 source, ok? [y/N] " f
+        read -p "Will install rock head from v0.9.2 source, ok? [y/N] " f
         [[ "$f" == y* ]]
     fi
 }
 
 function do_install {
-    read -p "Enter installation directory [$HOME/ooc]: " f
+    read -p "Enter installation directory [$HOME/rock]: " f
     if [[ ! -a $f ]]; then
         read -p "$f doesn't exist, create? [y/N] " c
         if [[ $c == y* ]]; then
@@ -54,24 +54,18 @@ function do_install {
         rm -rf "$f"
     fi
            
-    if [ -x "`which curl`" ]; then
-        curl -L -\# "http://github.com/downloads/nddrylliog/rock/rock-0.9.1-source.tar.bz2" | tar -zxf -
-    elif [ -x "`which wget`" ]; then
-        wget --progress=bar "http://github.com/downloads/nddrylliog/rock/rock-0.9.1-source.tar.bz2" -O - | tar -zxf -
-    fi
     git clone "http://github.com/nddrylliog/rock.git" "$f"
-    
-    PS=$(pwd)
-    
-    cd "$PS/rock-0.9.1-source"
-    make bootstrap
-    
+    export ROCK_DIST="$f"
     cd "$f"
-    export OOC="$PS/rock-0.9.1-source/bin/rock"
-    export ROCK_DIST="$PS/rock-0.9.1-source" 
-    make self
     
-    rm -rf "$PS/rock-0.9.1-source"
+    if [ -x "`which curl`" ]; then
+        curl -L -\# "http://github.com/downloads/nddrylliog/rock/rock-0.9.2-prealpha3-bootstrap-only.tar.gz2" | tar -xjf -
+    elif [ -x "`which wget`" ]; then
+        wget --progress=bar "http://github.com/downloads/nddrylliog/rock/rock-0.9.2-prealpha3-bootstrap-only.tar.gz2" -O - | tar -xjf -
+    fi
+    
+    mkdir bin
+    make
     
     echo "========================================"
     echo ""

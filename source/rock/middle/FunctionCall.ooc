@@ -159,7 +159,7 @@ FunctionCall: class extends Expression {
                     expr as VariableAccess getRef() resolveCall(this, res, trail)
                 } else if(expr getType() != null && expr getType() getRef() != null) {
                     if(!expr getType() getRef() instanceOf(TypeDecl)) {
-                        message := "No such function %s.%s%s (you can't call methods on generic types! you have to cast them to something sane first)" format(expr getType() getName(), name, getArgsTypesRepr())
+                        message := "No such function %s%s for %s (you can't call methods on generic types! you have to cast them to something sane first)" format(name, getArgsTypesRepr(), expr getType() getName())
                         token throwError(message)
                     }
                     tDecl := expr getType() getRef() as TypeDecl
@@ -217,10 +217,10 @@ FunctionCall: class extends Expression {
                 message = "No such function %s%s" format(name, getArgsTypesRepr())
             } else if(expr getType() != null) {
                 if(res params veryVerbose) {
-                    message = "No such function %s (%s).%s%s" format(expr getType() getName(),
-                        expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)", name, getArgsTypesRepr())
+                    message = "No such function %s%s for %s (%s)" format(name, getArgsTypesRepr(), 
+						expr getType() getName(), expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)")
                 } else {
-                    message = "No such function %s.%s%s" format(expr getType() getName(), name, getArgsTypesRepr())
+                    message = "No such function %s%s for %s" format(name, getArgsTypesRepr(), expr getType() getName())
                 }
             }
             //printf("name = %s, refScore = %d, ref = %s\n", name, refScore, ref ? ref toString() : "(nil)")

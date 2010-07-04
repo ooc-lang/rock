@@ -8,8 +8,7 @@ import ../frontend/BuildParams
 
 VariableDecl: class extends Declaration {
 
-    name: String
-    fullName: String = null
+    name = "", fullName = null, doc = null : String
 
     type: Type
     expr: Expression

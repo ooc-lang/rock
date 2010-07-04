@@ -218,7 +218,7 @@ List: abstract class <T> extends BackIterable<T> {
     }
 }
 
-/** Operators */
+/* Operators */
 operator [] <T> (list: List<T>, i: Int) -> T { list get(i) }
 operator []= <T> (list: List<T>, i: Int, element: T) { list set(i, element) }
 operator += <T> (list: List<T>, element: T) { list add(element) }
