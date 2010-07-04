@@ -601,7 +601,6 @@ AstBuilder: class {
         fDecl := FunctionDecl new(name clone(), token())
         fDecl setVersion(getVersion())
         fDecl doc = doc
-        if(!doc isEmpty()) "Function %s got doc %s" printfln(fDecl toString(), doc)
         stack push(fDecl)
     }
 
