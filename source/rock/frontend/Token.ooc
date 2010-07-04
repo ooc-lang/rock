@@ -95,7 +95,7 @@ Token: cover {
         
         if(type != "") {
             prefix print()
-            "%s:%d:%d %s %s" format(module path + ".ooc", lines, start - lastNewLine, type, message) println()
+            "%s:%d:%d %s %s" format(module getPath(".ooc"), lines, start - lastNewLine, type, message) println()
         } else if(message != "") {
             prefix print()
             message println()

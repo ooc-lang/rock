@@ -96,6 +96,18 @@ CommandLine: class {
                     
                     BuildParams fatalError = false
                     
+                } else if(option startsWith("dist=")) {
+                
+                    params distLocation = File new(option substring(5))
+                    
+                } else if(option startsWith("sdk=")) {
+                
+                    params sdkLocation = File new(option substring(4))
+                    
+                } else if(option startsWith("libs=")) {
+                
+                    params libPath = File new(option substring(5))
+                    
                 } else if(option startsWith("linker=")) {
                     
                     params linker = option substring(7)
