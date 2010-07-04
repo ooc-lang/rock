@@ -52,6 +52,7 @@ EnumDecl: class extends TypeDecl {
 }
 
 EnumElement: class extends VariableDecl {
+    doc := null
     type: Type
     value: Int
     valueSet: Bool = false

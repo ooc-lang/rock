@@ -168,9 +168,10 @@ AstBuilder: class {
      * Covers
      */
 
-    onCoverStart: unmangled(nq_onCoverStart) func (name: String) {
+    onCoverStart: unmangled(nq_onCoverStart) func (name, doc: String) {
         cDecl := CoverDecl new(name clone(), token())
         cDecl setVersion(getVersion())
+        cDecl doc = doc
         cDecl module = module
         module addType(cDecl)
         stack push(cDecl)
@@ -232,10 +233,11 @@ AstBuilder: class {
      * Enums
      */
 
-    onEnumStart: unmangled(nq_onEnumStart) func (name: String) {
+    onEnumStart: unmangled(nq_onEnumStart) func (name, doc: String) {
         eDecl := EnumDecl new(name clone(), token())
-        eDecl module = module
         eDecl setVersion(getVersion())
+        eDecl module = module
+        eDecl doc = doc
         module addType(eDecl)
         stack push(eDecl)
     }
@@ -248,8 +250,9 @@ AstBuilder: class {
         peek(EnumDecl) setIncrement(oper, step value)
     }
 
-    onEnumElementStart: unmangled(nq_onEnumElementStart) func (name: String) {
+    onEnumElementStart: unmangled(nq_onEnumElementStart) func (name, doc: String) {
         element := EnumElement new(peek(EnumDecl) getInstanceType(), name clone(), token())
+        element doc = doc  
         stack push(element)
     }
 
@@ -274,10 +277,11 @@ AstBuilder: class {
      * Classes
      */
 
-    onClassStart: unmangled(nq_onClassStart) func (name: String) {
+    onClassStart: unmangled(nq_onClassStart) func (name, doc: String) {
         cDecl := ClassDecl new(name clone(), token())
-        cDecl module = module
         cDecl setVersion(getVersion())
+        cDecl doc = doc
+        cDecl module = module
         module addType(cDecl)
         stack push(cDecl)
     }
@@ -350,10 +354,11 @@ AstBuilder: class {
      * Interfaces
      */
     
-    onInterfaceStart: unmangled(nq_onInterfaceStart) func (name: String) {
+    onInterfaceStart: unmangled(nq_onInterfaceStart) func (name, doc: String) {
         iDecl := InterfaceDecl new(name clone(), token())
-        iDecl module = module
         iDecl setVersion(getVersion())
+        iDecl doc = doc
+        iDecl module = module
         module addType(iDecl)
         stack push(iDecl)
     }
@@ -592,9 +597,11 @@ AstBuilder: class {
      * Functions
      */
 
-    onFunctionStart: unmangled(nq_onFunctionStart) func (name: String) {
+    onFunctionStart: unmangled(nq_onFunctionStart) func (name, doc: String) {
         fDecl := FunctionDecl new(name clone(), token())
         fDecl setVersion(getVersion())
+        fDecl doc = doc
+        if(!doc isEmpty()) "Function %s got doc %s" printfln(fDecl toString(), doc)
         stack push(fDecl)
     }
 

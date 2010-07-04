@@ -21,8 +21,7 @@ import tinker/[Resolver, Response, Trail]
  */
 TypeDecl: abstract class extends Declaration {
 
-    name: String
-    externName: String = null
+    name = "", externName = null, doc = "" : String
 
     typeArgs := ArrayList<VariableDecl> new()
     
