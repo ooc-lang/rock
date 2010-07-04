@@ -41,7 +41,6 @@ FunctionDecl: class extends Declaration {
 
     name = "", suffix = null, fullName = null : String
     returnType := voidType
-    type : static Type = FuncType new(nullToken)
     
     /** Attributes */
     isAbstract := false
@@ -198,7 +197,17 @@ FunctionDecl: class extends Declaration {
         !isMember() && token module params entryPoint == name
     }
     
-    getType: func -> Type { This type }
+    getType: func -> Type {
+        type := FuncType new(token)
+        for(arg in args) {
+            type argTypes add(arg getType())
+        }
+        type returnType = returnType
+        for(typeArg in typeArgs) {
+            type typeArgs add(typeArg)
+        }
+        return type
+    }
 
     getArgsRepr: func -> String {
         if(args size() == 0) return ""
