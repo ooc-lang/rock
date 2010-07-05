@@ -1,6 +1,7 @@
 import io/[File, FileWriter]
 import structs/[Bag, HashBag]
 import text/json/Generator
+import text/Buffer
 
 import ../../frontend/BuildParams
 
@@ -12,7 +13,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,
     Node, Parenthesis, Return, Cast, Comparison, Ternary, BoolLiteral,
     Argument, Statement, AddressOf, Dereference, FuncType, BaseType, PropertyDecl,
-    EnumDecl]
+    EnumDecl, OperatorDecl]
 
 JSONGenerator: class extends Visitor {
 
@@ -230,7 +231,7 @@ JSONGenerator: class extends Visitor {
         }
         obj put("genericTypes", genericTypes)
         /* return type */
-        if(node hasReturn()) {
+        if(node returnType != voidType) {
             obj put("returnType", resolveType(node getReturnType()))
         } else {
             obj put("returnType", null)
@@ -386,6 +387,62 @@ JSONGenerator: class extends Visitor {
         objects put(node name, obj)
     }
 
+    generateFuncTag: func (node: FunctionDecl, start: String) -> String {
+        buf := Buffer new()
+        buf append(start)
+        first := true
+        if(!node typeArgs isEmpty()) {
+            first = false
+            first_ := true
+            buf append("generics(")
+            for(typeArg in node typeArgs) {
+                if(!first_)
+                    buf append(',')
+                else
+                    first_ = false
+                buf append(typeArg name)                
+            }
+            buf append(')')
+        }
+        if(!node args isEmpty()) {
+            if(!first)
+                buf append(',')
+            else
+                first = false
+            buf append("arguments(")
+            first_ := true
+            for(arg in node args) {
+                if(!first_)
+                    buf append(',')
+                else
+                    first_ = false
+                buf append(resolveType(arg type))
+            }
+            buf append(')')
+        }
+        if(node returnType != voidType) {
+            if(!first)
+                buf append(',')
+            else
+                first = false
+            buf append("return(%s)" format(resolveType(node getReturnType())))
+        }
+        buf append(')')
+        buf toString()
+    }
+
+    visitOperatorDecl: func (node: OperatorDecl) {
+        obj := HashBag new()
+        name := node getName()
+        tag := generateFuncTag(node getFunctionDecl(), "operator(%s," format(name))
+        obj put("symbol", node symbol) \
+           .put("name", name) \
+           .put("tag", tag) \
+           .put("type", "operator") \
+           .put("function", buildFunctionDecl(node getFunctionDecl(), "function"))
+        objects put(tag, obj)
+    }
+
     visitType:               func (node: Type) {}
 
     visitModule:             func (node: Module) {
@@ -393,6 +450,9 @@ JSONGenerator: class extends Visitor {
             function accept(this)
         for(type in node types)
             type accept(this)
+        for(op in node operators) {
+            visitOperatorDecl(op)
+        }
         for(child in node body)
             if(child instanceOf(VariableDecl))
                 child accept(this)
