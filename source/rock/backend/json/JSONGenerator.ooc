@@ -342,7 +342,9 @@ JSONGenerator: class extends Visitor {
             function accept(this)
         for(type in node types)
             type accept(this)
-        /* TODO: catch global variables */
+        for(child in node body)
+            if(child instanceOf(VariableDecl))
+                child accept(this)
     }
 
 
