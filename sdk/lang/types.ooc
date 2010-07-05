@@ -11,13 +11,13 @@ include ./array
 Object: abstract class {
 
     class: Class
-        
+
     /// Instance initializer: set default values for a new instance of this class
     __defaults__: func {}
-    
+
     /// Finalizer: cleans up any objects belonging to this instance
     __destroy__: func {}
-    
+
     /** return true if *class* is a subclass of *T*. */
     instanceOf: final func (T: Class) -> Bool {
         if(!this) return false
@@ -29,14 +29,14 @@ Object: abstract class {
         "%s@%p" format(class name, this)
     }
     */
-    
+
 }
 
 Class: abstract class {
-    
+
     /// Number of octets to allocate for a new instance of this class 
     instanceSize: SizeT
-    
+
     /** Number of octets to allocate to hold an instance of this class
         it's different because for classes, instanceSize may greatly
         vary, but size will always be equal to the size of a Pointer.
@@ -45,10 +45,10 @@ Class: abstract class {
 
     /// Human readable representation of the name of this class
     name: String
-    
+
     /// Pointer to instance of super-class
     super: const Class
-    
+
     /// Create a new instance of the object of type defined by this class
     alloc: final func ~_class -> Object {
         object := gc_malloc(instanceSize) as Object
@@ -57,12 +57,12 @@ Class: abstract class {
         }
         return object
     }
-    
+
     inheritsFrom: final func ~_class (T: Class) -> Bool {
         if(this == T) return true
         return (super ? super inheritsFrom(T) : false)
     }
-    
+
 }
 
 Array: cover from _lang_array__Array {
@@ -85,7 +85,7 @@ Pointer: cover from Void* {
  * character and pointer types
  */
 Char: cover from char {
-    
+
     /** check for an alphanumeric character */
     isAlphaNumeric: func -> Bool {
         isAlpha() || isDigit()
@@ -182,7 +182,7 @@ Char: cover from char {
     println: func {
         "%c\n" printf(this)
     }
-    
+
 }
 
 SChar: cover from signed char extends Char
@@ -250,12 +250,12 @@ String: cover from Char* {
         if ((this == null) || (other == null)) {
             return false
         }
-        
+
         otherlen := other length()
         if (this length() != otherlen) {
             return false
         }
-        
+
         s1 := this as Char*
         s2 := other as Char*
         for (i in 0..otherlen) {
@@ -511,7 +511,7 @@ String: cover from Char* {
             Exception new(This, "String.substring: out of bounds: length = %zd, start = %zd\n" format(len, start)) throw()
             return null
         }
-        
+
         diff = (len - start) : SizeT
         sub := This new(diff)
         memcpy(sub, (this as Char*) + start, diff)
@@ -523,7 +523,7 @@ String: cover from Char* {
         range ``start..end``. */
     substring: func (start, end: Int) -> This {
         len = this length() : Int
-        
+
         if(start == end) return ""
 
         if(end < 0) {
@@ -549,7 +549,7 @@ String: cover from Char* {
         if (!len) {
             return null
         }
-        
+
         result := This new(len + 1)
         for (i: SizeT in 0..len) {
             result[i] = this[(len-1)-i]
@@ -710,13 +710,13 @@ String: cover from Char* {
         }
         (this as Char*)[index]
     }
-    
+
     /** return a string formatted using *this* as template. */
     format: func (...) -> This {
         list:VaList
 
         va_start(list, this)
-        
+
         length := vsnprintf(null, 0, this, list)
         output := This new(length)
         va_end(list)
@@ -727,7 +727,7 @@ String: cover from Char* {
 
         return output
     }
-    
+
     printf: func (...) {
         list: VaList
 
@@ -735,20 +735,20 @@ String: cover from Char* {
         vprintf(this, list)
         va_end(list)
     }
-    
+
     vprintf: func (list: VaList) {
         vprintf(this, list)
     }
-    
+
     printfln: func (...) {
         list: VaList
-        
+
         va_start(list, this)
         vprintf(this, list)
         va_end(list)
         '\n' print()
     }
-    
+
     scanf: func (format: This, ...) -> Int {
         list: VaList
         va_start(list, format)
@@ -757,19 +757,19 @@ String: cover from Char* {
 
         return retval
     }
-    
+
     iterator: func -> StringIterator<Char> {
         StringIterator<Char> new(this)
     }
-    
+
     forward: func -> StringIterator<Char> {
         iterator()
     }
-    
+
     backward: func -> BackIterator<Char> {
         backIterator() reversed()
     }
-    
+
     backIterator: func -> StringIterator<Char> {
         iter := StringIterator<Char> new(this)
         iter i = length()
@@ -802,7 +802,7 @@ operator []= (string: String, index: SizeT, value: Char) {
 operator [] (string: String, range: Range) -> String {
     string substring(range min, range max)
 }
-         
+
 operator * (str: String, count: Int) -> String {
     return str times(count)
 }
@@ -859,18 +859,18 @@ Comparable: interface {
 }
 
 LLong: cover from signed long long {
-    
+
     toString:    func -> String { "%lld" format(this) }
     toHexString: func -> String { "%llx" format(this) }
-    
+
     isOdd:  func -> Bool { this % 2 == 1 }
     isEven: func -> Bool { this % 2 == 0 }
-    
+
     in: func(range: Range) -> Bool {
         return this >= range min && this < range max
     }
 }
-    
+
 Long:  cover from signed long  extends LLong
 Int:   cover from signed int   extends LLong
 Short: cover from signed short extends LLong
@@ -878,11 +878,11 @@ Short: cover from signed short extends LLong
 ULLong: cover from unsigned long long extends LLong {
 
     toString:    func -> String { "%llu" format(this) }
-    
+
     in: func(range: Range) -> Bool {
         return this >= range min && this < range max
     }
-    
+
 }
 
 ULong:  cover from unsigned long  extends ULLong
@@ -973,20 +973,20 @@ Iterable: abstract class <T> {
         }
         result
     }
-    
+
 }
 
 BackIterable: abstract class <T> extends Iterable<T> {
-    
+
     iterator: abstract func -> BackIterator<T>
-    
+
     /** Returns an iterator at the back or end of the Iterable. */
     backIterator: func -> BackIterator<T> {
         iter := iterator()
         while (iter hasNext()) iter next()
         return iter
     }
-    
+
     forward: func -> BackIterator<T> {iterator()}
     backward: func -> BackIterator<T> {backIterator() reversed()}
 }
@@ -997,17 +997,17 @@ Iterator: abstract class <T> extends Iterable<T> {
     next: abstract func -> T
 
     remove: abstract func -> Bool
-    
+
     iterator: func -> Iterator<T> {this}
-    
+
 }
 
 BackIterator: abstract class <T> extends Iterator<T> {
     hasPrev: abstract func -> Bool
     prev: abstract func -> T
-    
+
     iterator: func -> BackIterator<T> {this}
-    
+
     reversed: func -> ReverseIterator<T> {
         iter := ReverseIterator<T> new()
         iter iterator = this
@@ -1016,21 +1016,21 @@ BackIterator: abstract class <T> extends Iterator<T> {
 }
 
 ReverseIterator: class <T> extends BackIterator<T> {
-    
+
     iterator: BackIterator<T> = null
-    
+
     hasNext: func -> Bool { iterator hasPrev() }
     next: func -> T { iterator prev() }
-    
+
     hasPrev: func -> Bool { iterator hasNext() }
     prev: func -> T { iterator next() }
-    
+
     remove: func -> Bool { iterator remove() }
-    
+
     reversed: func -> BackIterator<T> { iterator }
-    
+
     iterator: func -> ReverseIterator<T> { this }
-    
+
 }
 
 /**
@@ -1041,9 +1041,9 @@ StringIterator: class <T> extends BackIterator<T> {
 
     i := 0
     str: String
-    
+
     init: func ~withStr (=str) {}
-    
+
     hasNext: func -> Bool {
         i < str length()
     }
@@ -1062,9 +1062,9 @@ StringIterator: class <T> extends BackIterator<T> {
         i -= 1
         return str[i]
     }
-    
+
     remove: func -> Bool { false } // this could be implemented!
-    
+
 }
 
 /** An object storing a value and its class. */
@@ -1083,14 +1083,14 @@ Exception: class {
 
     init: func ~originMsg (=origin, =msg) {}
     init: func ~noOrigin (=msg) {}
-    
+
     crash: func {
         fflush(stdout)
         x := 0
         x = 1 / x
         printf("%d", x)
     }
-    
+
     getMessage: func -> String {
         //max := const 1024
         max : const Int = 1024
@@ -1099,11 +1099,11 @@ Exception: class {
         else snprintf(buffer, max, "[%s]: %s\n", this as Object class name, msg)
         return buffer
     }
-    
+
     print: func {
         fprintf(stderr, "%s", getMessage())
     }
-    
+
     throw: func {
         print()
         crash()

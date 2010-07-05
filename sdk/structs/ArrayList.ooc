@@ -7,7 +7,7 @@ import List
    In addition to implementing the List interface, this class provides
    methods to manipulate the size of the array that is used internally
    to store the list.
-   
+
    :author: Amos Wenger (nddrylliog)
  */
 ArrayList: class <T> extends List<T> {
@@ -23,7 +23,7 @@ ArrayList: class <T> extends List<T> {
 	init: func ~withCapacity (=capacity) { 
 		data = gc_malloc(capacity * T size)
 	}
-    
+
     init: func ~withData (.data, =size) {
         this data = gc_malloc(size * T size)
         memcpy(this data, data, size * T size)
@@ -48,12 +48,12 @@ ArrayList: class <T> extends List<T> {
             size += 1
             return
         }
-        
+
         if(index == size) {
             add(element)
             return
         }
-        
+
         checkIndex(index)
 		ensureCapacity(size + 1)
 		dst, src: Octet*
@@ -98,7 +98,7 @@ ArrayList: class <T> extends List<T> {
 		size -= 1
 		return element
 	}
-    
+
     /**
      * Does an in-place sort, with the given comparison function
      */
@@ -164,7 +164,7 @@ ArrayList: class <T> extends List<T> {
             }
 		}
 	}
-    
+
 	/** private */
 	checkIndex: inline func (index: Int) {
 		if (index < 0) {
@@ -188,7 +188,7 @@ ArrayList: class <T> extends List<T> {
 		copy addAll(this)
 		return copy
 	}
-    
+
     /** */
     toArray: func -> Pointer { data }
 	
@@ -208,15 +208,15 @@ ArrayListIterator: class <T> extends BackIterator<T> {
 		index += 1
 		return element
 	}
-    
+
     hasPrev: func -> Bool { index > 0 }
-    
+
     prev: func -> T {
         index -= 1
 		element := list get(index)
 		return element
 	}
-    
+
     remove: func -> Bool {
         if(list removeAt(index - 1) == null) return false
         if(index <= list size()) index -= 1

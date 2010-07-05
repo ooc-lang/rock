@@ -9,25 +9,25 @@ import native/[FileWin32, FileUnix]
    Represents a file/directory path, allows to retrieve informations like
    last date of creation/access/modification, permissions, size,
    existence, content, type, children...
-    
+
    You can also create directories, remove files, read their content,
    copy them, write to them.
-    
+
    For input/output (I/O) beyond 'reading to a String' and
    'writing a String', see the FileReader and FileWriter classes
-     
+
    :author: Pierre-Alexandre Croiset
    :author: Friedrich Weber (fredreichbier)
    :author: Amos Wenger (nddrylliog)
  */
 File: abstract class {
-    
+
     /** The path we're representing */
     path: String
-    
+
     /** Separator for path elements. Usually '/' on *nix and '\\' on Windows. */
     separator : static Char
-    
+
     /** Delimiter for lists of paths. Usually ':' on *nix and ';' on Windows. */
     pathDelimiter : static Char
 
@@ -247,10 +247,10 @@ File: abstract class {
      */
     copyTo: func(dstFile: This) {
         dstFile parent() mkdirs()
-        
+
         src := FileReader new(this)
         dst := FileWriter new(dstFile)
-        
+
         max := 8192
         buffer := Char[max] new()
         while(src hasNext()) {
@@ -260,7 +260,7 @@ File: abstract class {
         dst close()
         src close()
     }
-    
+
     /**
        :return: The content of this file, as a String
      */
@@ -270,32 +270,32 @@ File: abstract class {
         fR close()
         bW buffer toString()
     }
-    
+
     /**
        Write a string to this file.
-       
+
        :param str: The string to write
      */
     write: func ~string (str: String) {
         FileWriter new(this) write(BufferReader new(Buffer new(str))) .close()
     }
-    
+
     /**
        Write from a reader to this file
-       
+
        :param reader: What to write in the file
      */
     write: func ~reader (reader: Reader) {
         FileWriter new(this) write(reader) .close()
     }
-    
+
     /**
        Walk this directory and call `f` on all files it contains, recursively.
-       
+
        If `f` returns false, stop walking.
-        
+
        If we're not a directory, calls f(this) once and returns true.
-       
+
        :return: true if we finished walking normally, false if we
        got cancelled by `f` returning false.
      */
@@ -307,13 +307,13 @@ File: abstract class {
                 if (!child walk(f)) return false
             }
         }
-        
+
         true
     }
 
     /**
        Get a child of this path
-      
+
        :param name: The name of the child, relatively to this path
      */
     getChild: func (name: String) -> This {

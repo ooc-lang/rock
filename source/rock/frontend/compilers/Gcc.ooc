@@ -6,15 +6,15 @@ import BaseCompiler
  * @author Amos Wenger
  */
 Gcc: class extends BaseCompiler {
-    
+
     init: func~withGcc {
         super("gcc")
     }
-    
+
     init: func~withExecutableName (executableName: String) {
         super(executableName)
     }
-    
+
     addDynamicLibrary: func (library: String) {
         command add("-l" + library)
     }
@@ -47,11 +47,11 @@ Gcc: class extends BaseCompiler {
     setDebugEnabled: func {
         command add("-g")
     }
-    
+
     defineSymbol: func (symbol: String) {
         command add("-D" + symbol)
     }
-    
+
     reset: func() {
         super()
         command add("-std=gnu99")
@@ -65,9 +65,9 @@ Gcc: class extends BaseCompiler {
     supportsVLAs: func() -> Bool {
         return true
     }
-    
+
     clone: func() -> This {
         return Gcc new()
     }
-    
+
 }

@@ -19,10 +19,10 @@ srand(Time microtime())
    Collections of functions used to generate pseudo-random numbers.
  */
 Random: class {
-    
+
     /** State variable used for our internal fast pseudo-random number generator */
     state := static Time microtime()
-    
+
     /**
        :return: a pseudo-random number between INT_MIN and INT_MAX, generated using
        the C functions srand/rand
@@ -40,7 +40,7 @@ Random: class {
     randInt: static func(start, end: Int) -> Int {
         return randRange(start, end + 1)
     }
-    
+
     /**
        :param start: Lower bound, inclusive
        :param end: Upper bound, inclusive
@@ -73,7 +73,7 @@ Random: class {
     randRange: static func ~exclude(start, end: Int, ex: List<Int>) -> Int {
         return exclude(start, end, ex, randRange)
     }
-    
+
     /**
        :param l: A list to choose an element from randomly.
        :return: An element pseudo-randomly picked from the given list
@@ -98,12 +98,12 @@ Random: class {
         }
         return toRet
     }
-    
+
     /**
        :return: A pseudo-random number between INT_MIN and INT_MAX.
        This method is generally faster than random() but the distribution
        of the random numbers may be less even / repeat more easily.
-       
+
        See http://software.intel.com/en-us/articles/fast-random-number-generator-on-the-intel-pentiumr-4-processor/
        for more infos
      */
@@ -121,7 +121,7 @@ Random: class {
     fastRandInt: static func(start, end: Int) -> Int {
         return fastRandRange(start, end+1)
     }
-    
+
     /**
        :param start: Lower bound, inclusive
        :param end: Upper bound, inclusive
@@ -154,7 +154,7 @@ Random: class {
     fastRandRange: static func ~exclude(start, end: Int, ex: List<Int>) -> Int {
         return exclude(start, end, ex, fastRandRange)
     }
-    
+
 } 
 
 

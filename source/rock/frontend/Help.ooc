@@ -101,5 +101,5 @@ rock yourmodule.ooc -backend=c -driver=sequence -gc=static -libcache -outpath=ro
 \nFor help about the backend options, run 'ooc -help-backends'"
         )
     }
-    
+
 }

@@ -55,14 +55,14 @@ charHash: func <K> (key: K) -> UInt {
 /**
    Port of Austin Appleby's Murmur Hash implementation
    http://murmurhash.googlepages.com/
-   
+
    :param: key The key to hash
    :param: seed The seed value
  */
 murmurHash: func <K> (keyTagazok: K) -> UInt {
-    
+
     seed: UInt = 1 // TODO: figure out what makes a good seed value?
-    
+
     len := K size
     m = 0x5bd1e995 : const UInt
     r = 24 : const Int
@@ -70,7 +70,7 @@ murmurHash: func <K> (keyTagazok: K) -> UInt {
 
     h : UInt = seed ^ len
     data := (keyTagazok&) as Octet*
-    
+
     while (len >= 4) {
         k := (data as UInt*)@
 
@@ -86,14 +86,14 @@ murmurHash: func <K> (keyTagazok: K) -> UInt {
     }
 
     t := 0
-    
+
     if(len == 3) h ^= data[2] << 16
     if(len == 2) h ^= data[1] << 8
     if(len == 1) h ^= data[0]
-    
+
     t *= m; t ^= t >> r; t *= m; h *= m; h ^= t;
     l *= m; l ^= l >> r; l *= m; h *= m; h ^= l;
-    
+
     h ^= h >> 13
     h *= m
     h ^= h >> 15
@@ -133,12 +133,12 @@ HashMap: class <K, V> extends BackIterable<V> {
 
     buckets: HashEntry[]
     keys: ArrayList<K>
-    
+
     /**
      * Returns a hash table with 100 buckets
      * @return HashTable
      */
-    
+
     init: func {
         init(100)
     }
@@ -151,11 +151,11 @@ HashMap: class <K, V> extends BackIterable<V> {
     init: func ~withCapacity (capaArg: Int) {
         size = 0
         capacity = capaArg * 1.5
-        
+
         buckets = HashEntry[capacity] new()
-        
+
         keys = ArrayList<K> new(capacity)
-        
+
         // choose comparing function for key type
         if(K == String) {
             //"Choosing string hashing function" println()
@@ -183,11 +183,11 @@ HashMap: class <K, V> extends BackIterable<V> {
      */
     getEntry: func (key: K, result: HashEntry*) -> Bool {
         hash : UInt = hashKey(key) % capacity
-        
+
         entry := buckets[hash]
-        
+
         if(entry key == null) { return false }
-        
+
         while (true) {
             if (keyEquals(entry key as K, key)) {
                 if(result) {
@@ -195,7 +195,7 @@ HashMap: class <K, V> extends BackIterable<V> {
                 }
                 return true
             }
-            
+
             if (entry next) {
                 entry = entry next@
             } else {
@@ -204,7 +204,7 @@ HashMap: class <K, V> extends BackIterable<V> {
         }
         return false
     }
-    
+
     /**
      * Returns the HashEntry associated with a key.
      * @access private
@@ -213,11 +213,11 @@ HashMap: class <K, V> extends BackIterable<V> {
      */
     getEntryForHash: func (key: K, hash: UInt, result: HashEntry*) -> Bool {
         entry := buckets[hash]
-        
+
         if(entry key == null) {
             return false
         }
-        
+
         while (true) {
             if (keyEquals(entry key as K, key)) {
                 if(result) {
@@ -225,7 +225,7 @@ HashMap: class <K, V> extends BackIterable<V> {
                 }
                 return true
             }
-            
+
             if (entry next) {
                 entry = entry next@
             } else {
@@ -243,54 +243,54 @@ HashMap: class <K, V> extends BackIterable<V> {
      * @return Bool
      */
     put: func (key: K, value: V) -> Bool {
-        
+
         hash : UInt = hashKey(key) % capacity
         entry : HashEntry
         //printf("\nput(%s, value %p\n", key as String, value)
-        
+
         if (getEntryForHash(key, hash, entry&)) {
             // replace value if the key is already existing
             //" - Replacing! Address = %p, size = %d" printfln(entry value, V size)
             memcpy(entry value, value, V size)
         } else {
             keys add(key)
-            
+
             current := buckets[hash]
             if (current key != null) {
                 //" - Appending!" println()
                 currentPointer := (buckets data as HashEntry*)[hash]&
-                
+
                 while (currentPointer@ next) {
                     //" - Skipping!" println()
                     currentPointer = currentPointer@ next
                 }
                 newEntry := gc_malloc(HashEntry size) as HashEntry*
-                
+
                 newEntry@ key   = gc_malloc(K size)
                 memcpy(newEntry@ key,   key, K size)
-                
+
                 newEntry@ value = gc_malloc(V size)
                 memcpy(newEntry@ value, value, V size)
-                
+
                 currentPointer@ next = newEntry
             } else {
                 //" - Adding normally!! HashEntry size = %d, Address of buckets data = %p" printfln(HashEntry size, buckets data)
 
                 entry key   = gc_malloc(K size)
                 memcpy(entry key,   key, K size)
-                
+
                 entry value = gc_malloc(V size)
                 memcpy(entry value, value, V size)
-                
+
                 entry next = null
-                
+
                 //"     - entry key   = %p, size = %d, hash = %u" printfln(entry key, K size, hash)
                 //"     - entry value = %p, size = %d, next = %p" printfln(entry value, V size, entry next)
-                
+
                 buckets[hash] = entry
             }
             size += 1
-            
+
             if ((size as Float / capacity as Float) > 0.75) {
                 resize(size * (size > 50000 ? 2 : 4))
             }
@@ -342,12 +342,12 @@ HashMap: class <K, V> extends BackIterable<V> {
      */
     remove: func (key: K) -> Bool {
         hash : UInt = hashKey(key) % capacity
-        
+
         prev = null : HashEntry*
-        
+
         entry := buckets[hash]
         if(entry key == null) return false
-        
+
         while (true) {
             if (keyEquals(entry key as K, key)) {
                 if(prev) {
@@ -371,7 +371,7 @@ HashMap: class <K, V> extends BackIterable<V> {
                 size -= 1
                 return true
             }
-            
+
             // do we have a next element?
             if(entry next) {
                 // save the previous just to know where to reconnect
@@ -381,7 +381,7 @@ HashMap: class <K, V> extends BackIterable<V> {
                 return false
             }
         }
-        
+
         return false        
     }
 
@@ -391,38 +391,38 @@ HashMap: class <K, V> extends BackIterable<V> {
      * :return:
      */
     resize: func (_capacity: Int) -> Bool {
-        
+
         /* Keep track of old settings */
         oldCapacity := capacity
         oldBuckets := buckets
-        
+
         /* Clear key list and size */
         keys clear()
         size = 0
-        
+
         /* Transfer old buckets to new buckets! */
         capacity = _capacity
         buckets = HashEntry[capacity] new()
-        
+
         for (i in 0..oldCapacity) {
             entry := oldBuckets[i]
             if (entry key == null) continue
-            
+
             put(entry key as K, entry value as V)
-                
+
             while (entry next) {
                 entry = entry next@
                 put(entry key as K, entry value as V)
             }
         }
-        
+
         return true
     }
-    
+
     iterator: func -> BackIterator<V> {
         HashMapValueIterator<K, V> new(this)
     }
-    
+
     backIterator: func -> BackIterator<V> {
         iter := HashMapValueIterator<K, V> new(this)
         iter index = keys size()
@@ -432,11 +432,11 @@ HashMap: class <K, V> extends BackIterable<V> {
     clear: func {
         init(capacity)
     }
-    
+
     size: func -> Int { size }
-    
+
     getKeys: func -> ArrayList<K> { keys }
-    
+
     each: func (f: Func (K, V)) {
         for(key in getKeys()) {
             f(key, get(key))
@@ -449,31 +449,31 @@ HashMapValueIterator: class <K, T> extends BackIterator<T> {
 
     map: HashMap<K, T>
     index := 0
-    
+
     init: func ~withMap (=map) {}
-    
+
     hasNext: func -> Bool { index < map keys size() }
-    
+
     next: func -> T {
         key := map keys get(index)
         index += 1
         return map get(key)
     }
-    
+
     hasPrev: func -> Bool { index > 0 }
-    
+
     prev: func -> T {
         index -= 1
         key := map keys get(index)
         return map get(key)
     }
-    
+
     remove: func -> Bool {
         result := map remove(map keys get(index))
         if(index <= map keys size()) index -= 1
         return result
     }
-    
+
 }
 
 operator [] <K, V> (map: HashMap<K, V>, key: K) -> V {

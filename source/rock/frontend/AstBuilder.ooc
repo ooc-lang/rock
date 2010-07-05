@@ -22,7 +22,7 @@ reservedWords := ["auto", "int", "long", "char", "register", "short", "do",
                   "sizeof", "double", "struct", "switch", "typedef", "union",
                   "unsigned", "signed", "goto", "enum", "const"]
 reservedHashs := computeReservedHashs(reservedWords)
-                  
+
 computeReservedHashs: func (words: String[]) -> ArrayList<Int> {
     list := ArrayList<Int> new()
     for(i in 0..words length) {
@@ -54,16 +54,16 @@ AstBuilder: class {
         stack = Stack<Node> new()
         stack push(module)
         versionStack = Stack<VersionSpec> new()
-        
+
         if(params includeLang && !module fullName startsWith("/")) {
             addLangImports()
         }
-        
+
         result := nq_parse(this, modulePath)
         if(result == -1) {
             Exception new(This, "File " +modulePath + " not found") throw()
         }
-        
+
     }
 
     addLangImports: func {
@@ -89,12 +89,12 @@ AstBuilder: class {
 		}
 
     }
-    
+
     /**
      * Turn import paths like "../frontend/AstBuilder" into "/opt/ooc/rock/source/rock/frontend/AstBuilder"
      */
     getRealImportPath: static func (imp: Import, module: Module, params: BuildParams, path: String@, impPath, impElement: File@) -> File {
-        
+
         path = FileUtils resolveRedundancies(imp path + ".ooc")
         impElement = params sourcePath getElement(path)
         impPath    = params sourcePath getFile(path)
@@ -107,9 +107,9 @@ AstBuilder: class {
             }
         }
         return impPath
-        
+
     }
-    
+
     printCache: static func {
         printf("==== Cache ====\n")
         for(key in cache getKeys()) {
@@ -140,7 +140,7 @@ AstBuilder: class {
         module addInclude(inc)
         inc setVersion(getVersion())
     }
-    
+
     onIncludeDefine: unmangled(nq_onIncludeDefine) func (name, value: String) {
         module includes last() addDefine(Define new(name clone(), value clone()))
     }
@@ -148,7 +148,7 @@ AstBuilder: class {
     onImport: unmangled(nq_onImport) func (path, name: String) {
         module addImport(Import new(path isEmpty() ? name : path + name, token()))
     }
-    
+
     onImportNamespace: unmangled(nq_onImportNamespace) func (namespace: String, quantity: Int) {
         nDecl: NamespaceDecl
         if(!module hasNamespace(namespace)) {
@@ -175,7 +175,7 @@ AstBuilder: class {
         cDecl module = module
         module addType(cDecl)
         stack push(cDecl)
-        
+
         // cover-absorbing =)
         absorbed := false
         for(imp in module getGlobalImports()) { // TODO: what about namespaced imports?
@@ -208,7 +208,7 @@ AstBuilder: class {
             }
         }
     }
-    
+
     onCoverExtern: unmangled(nq_onCoverExtern) func (externName: String) {
         peek(CoverDecl) setExternName(externName clone())
     }
@@ -220,7 +220,7 @@ AstBuilder: class {
     onCoverExtends: unmangled(nq_onCoverExtends) func (superType: Type) {
         peek(CoverDecl) setSuperType(superType)
     }
-    
+
     onCoverImplements: unmangled(nq_onCoverImplements) func (interfaceType: Type) {
         peek(CoverDecl) addInterface(interfaceType)
     }
@@ -289,7 +289,7 @@ AstBuilder: class {
     onClassExtends: unmangled(nq_onClassExtends) func (superType: Type) {
         peek(ClassDecl) setSuperType(superType)
     }
-    
+
     onClassImplements: unmangled(nq_onClassImplements) func (interfaceType: Type) {
         peek(ClassDecl) addInterface(interfaceType)
     }
@@ -301,34 +301,34 @@ AstBuilder: class {
     onClassFinal: unmangled(nq_onClassFinal) func {
         peek(ClassDecl) isFinal = true
     }
-    
+
     onClassBody: unmangled(nq_onClassBody) func {
         peek(ClassDecl) addDefaultInit()    }
 
     onClassEnd: unmangled(nq_onClassEnd) func {
         pop(ClassDecl)
     }
-    
+
     /*
      * Version blocks
      */
-    
+
     onVersionName: unmangled(nq_onVersionName) func (name: String) -> VersionSpec {
         VersionName new(name clone(), token())
     }
-    
+
     onVersionNegation: unmangled(nq_onVersionNegation) func (spec: VersionSpec) -> VersionSpec {
         VersionNegation new(spec, token())
     }
-    
+
     onVersionAnd: unmangled(nq_onVersionAnd) func (specLeft, specRight: VersionSpec) -> VersionSpec {
         VersionAnd new(specLeft, specRight, token())
     }
-    
+
     onVersionOr: unmangled(nq_onVersionOr) func (specLeft, specRight: VersionSpec) -> VersionSpec {
         VersionOr new(specLeft, specRight, token())
     }
-    
+
     onVersionStart: unmangled(nq_onVersionStart) func (spec: VersionSpec) {
         object := peek(Object)
         if(object instanceOf(Module)) {
@@ -338,7 +338,7 @@ AstBuilder: class {
             stack push(vb)
         }
     }
-    
+
     onVersionEnd: unmangled(nq_onVersionEnd) func -> VersionBlock {
         object := peek(Object)
         if(object instanceOf(Module)) {
@@ -349,11 +349,11 @@ AstBuilder: class {
         }
         return null
     }
-    
+
     /*
      * Interfaces
      */
-    
+
     onInterfaceStart: unmangled(nq_onInterfaceStart) func (name, doc: String) {
         iDecl := InterfaceDecl new(name clone(), token())
         iDecl setVersion(getVersion())
@@ -422,13 +422,13 @@ AstBuilder: class {
             vd setStatic(true)
         }
     }
-    
+
     onVarDeclProto: unmangled(nq_onVarDeclProto) func {
         for(vd: VariableDecl in peek(Stack<VariableDecl>)) {
             vd setProto(true)
         }
     }
-    
+
     onVarDeclConst: unmangled(nq_onVarDeclConst) func {
         for(vd: VariableDecl in peek(Stack<VariableDecl>)) {
             vd setConst(true)
@@ -458,7 +458,7 @@ AstBuilder: class {
                 vd token throwError("%s is a reserved C99 keyword, you can't use it in a variable declaration" format(vd getName()))
             }
         }
-        
+
         node : Node = stack peek()
         //printf("[gotVarDecl] Got variable decl %s, and parent is a %s\n", vd toString(), node class name)
         if(node instanceOf(TypeDecl)) {
@@ -545,11 +545,11 @@ AstBuilder: class {
     onTypePointer: unmangled(nq_onTypePointer) func (type: Type) -> Type {
         PointerType new(type, token())
     }
-    
+
     onTypeReference: unmangled(nq_onTypeReference) func (type: Type) -> Type {
         ReferenceType new(type, token())
     }
-    
+
     onTypeBrackets: unmangled(nq_onTypeBrackets) func (type: Type, inner: Expression) -> Type {
         ArrayType new(type, inner, token())
     }
@@ -565,15 +565,15 @@ AstBuilder: class {
     onFuncTypeNew: unmangled(nq_onFuncTypeNew) func -> FuncType {
         FuncType new(token())
     }
-    
+
     onFuncTypeArgument: unmangled(nq_onFuncTypeArgument) func (f: FuncType, argType: Type) {
         f argTypes add(argType)
     }
-    
+
     onFuncTypeVarArg: unmangled(nq_onFuncTypeVarArg) func (f: FuncType) {
         f varArg = true
     }
-    
+
     onFuncTypeReturnType: unmangled(nq_onFuncTypeReturnType) func (f: FuncType, returnType: Type) {
         f returnType = returnType
     }
@@ -630,11 +630,11 @@ AstBuilder: class {
     onFunctionFinal: unmangled(nq_onFunctionFinal) func {
         peek(FunctionDecl) isFinal = true
     }
-    
+
     onFunctionProto: unmangled(nq_onFunctionProto) func {
         peek(FunctionDecl) isProto = true
     }
-    
+
     onFunctionSuper: unmangled(nq_onFunctionSuper) func {
         peek(FunctionDecl) isSuper = true
     }
@@ -676,7 +676,7 @@ AstBuilder: class {
     onFunctionCallStart: unmangled(nq_onFunctionCallStart) func (name: String) {
         stack push(FunctionCall new(name clone(), token()))
     }
-    
+
     onFunctionCallSuffix: unmangled(nq_onFunctionCallSuffix) func (suffix: String) {
         peek(FunctionCall) setSuffix(suffix clone())
     }
@@ -692,14 +692,14 @@ AstBuilder: class {
     onFunctionCallExpr: unmangled(nq_onFunctionCallExpr) func (call: FunctionCall, expr: Expression) {
         call expr = expr
     }
-    
+
     onFunctionCallCombo: unmangled(nq_onFunctionCallCombo) func (call: FunctionCall, expr: Expression) {
         name := call generateTempName("comboRoot")
         call setName(name)
         vDecl := VariableDecl new(null, name, expr, expr token)
         onStatement(vDecl)
     }
-    
+
     onFunctionCallChain: unmangled(nq_onFunctionCallChain) func (expr: Expression, call: FunctionCall) -> CallChain {
         if(expr instanceOf(CallChain)) {
             chain := expr as CallChain
@@ -719,7 +719,7 @@ AstBuilder: class {
     onArrayLiteralStart: unmangled(nq_onArrayLiteralStart) func {
         stack push(ArrayLiteral new(token()))
     }
-    
+
     onArrayLiteralEnd: unmangled(nq_onArrayLiteralEnd) func -> ArrayLiteral {
         pop(ArrayLiteral)
     }
@@ -755,7 +755,7 @@ AstBuilder: class {
 
     gotStatement: func (stmt: Statement) {
         node := peek(Node)
-     
+
         match {
             case node instanceOf(FunctionDecl) =>
                 fDecl := node as FunctionDecl
@@ -769,7 +769,7 @@ AstBuilder: class {
                     vd setGlobal(true)
                 }
                 module := node as Module
-                
+
                 spec := getVersion()
                 if(spec != null) {
                     vb := VersionBlock new(spec, token())
@@ -817,7 +817,7 @@ AstBuilder: class {
     onBlockStart: unmangled(nq_onBlockStart) func {
         stack push(Block new(token()))
     }
-    
+
     onBlockEnd: unmangled(nq_onBlockEnd) func -> Block {
         pop(Block)
     }
@@ -949,7 +949,7 @@ AstBuilder: class {
     onDecLiteral: unmangled(nq_onDecLiteral) func (value: String) -> IntLiteral {
         IntLiteral new(value replace("_", "") toLLong(), token())
     }
-    
+
     onOctLiteral: unmangled(nq_onOctLiteral) func (value: String) -> IntLiteral {
         IntLiteral new(value replace("_", "") substring(2) toLLong(8), token())
     }
@@ -957,7 +957,7 @@ AstBuilder: class {
     onBinLiteral: unmangled(nq_onBinLiteral) func (value: String) -> IntLiteral {
         IntLiteral new(value replace("_", "") substring(2) toLLong(2), token())
     }
-    
+
     onHexLiteral: unmangled(nq_onHexLiteral) func (value: String) -> IntLiteral {
         IntLiteral new(value replace("_", "") toLLong(16), token())
     }
@@ -1088,7 +1088,7 @@ AstBuilder: class {
 
     onGenericArgument: unmangled(nq_onGenericArgument) func (name: String) {
         node := peek(Node)
-        
+
         //printf("======= Got generic argument %s, and node is a %s\n", name, node class name)
         vDecl := VariableDecl new(BaseType new("Class", token()), name clone(), token())
 
@@ -1096,7 +1096,7 @@ AstBuilder: class {
         if(node instanceOf(Declaration)) {
             done = node as Declaration addTypeArg(vDecl)
         }
-        
+
         if(!done) token() throwError("Unexpected type argument in a %s declaration!" format(node class name))
 
     }
@@ -1136,10 +1136,10 @@ AstBuilder: class {
         }
         sb toString()
     }
-    
+
     getVersion: func -> VersionSpec {
         spec := null as VersionSpec
-        
+
         for(v in versionStack) {
             if(spec) {
                 spec = VersionAnd new(spec, v, spec token) 
@@ -1147,7 +1147,7 @@ AstBuilder: class {
                 spec = v
             }
         }
-        
+
         return spec
     }
 

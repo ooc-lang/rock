@@ -4,7 +4,7 @@ import os/Terminal
 /** 
     A generic List implementation that provides a circular list
     of doubly-linked nodes.
-    
+
     :author: eagle2com
     :author: Noel Cower (Nilium)
  */
@@ -13,13 +13,13 @@ getchar: extern func
 LinkedList: class <T> extends List<T> {
     size = 0 : Int
     head: Node<T>
-    
+
     init: func {
         head = Node<T> new()
         head prev = head
         head next = head
     }
-    
+
     /** Adds a node containing `data` to the end of the list */
     add: func (data: T) {
         node := Node<T> new(head prev, head, data)
@@ -27,11 +27,11 @@ LinkedList: class <T> extends List<T> {
         head prev = node
         size += 1
     }
-    
+
     /**
         Adds a node containing `data` at the specified `index`, pushing
         nodes that follow it forward.
-        
+
         Throws an exception when the index is less than zero or greater
         than the size of the list.
     */
@@ -54,16 +54,16 @@ LinkedList: class <T> extends List<T> {
 			Exception new(This, "Check index: 0 <= " + index + " < " + size()) throw()
 		}
     }
-    
+
     /**
         Gets the value of the node stored at the specified index.
-        
+
         Throws an exception when the index is out of range.
     */
     get: func(index: Int) -> T {
 		return getNode(index) data
 	}
-    
+
 	/**
 	    Gets the node at the specified index.
 	    
@@ -328,18 +328,18 @@ LinkedListIterator: class <T> extends BackIterator<T>  {
     hasPrev: func -> Bool {
         return (current != list head)
     }
-    
+
     prev: func -> T {
         last := current
         current = current prev
         return last data
     }
-    
+
     remove: func -> Bool {
         if (current == list head) {
             return false
         }
-        
+
         old := current
         if(hasNext()) {
             current = current next

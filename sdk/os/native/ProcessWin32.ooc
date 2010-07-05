@@ -8,14 +8,14 @@ include windows
 
 /**
    Process implementation for Win32
-    
+
    :author: Amos Wenger (nddrylliog)
  */
 ProcessWin32: class extends Process {
 
     si: StartupInfo
     pi: ProcessInformation
-    
+
     cmdLine: String = ""
 
     init: func ~win32 (=args) {

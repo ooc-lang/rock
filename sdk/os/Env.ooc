@@ -40,7 +40,7 @@ Env: class {
         }
         return -1
     }
-    
+
     /* clearenv is not used since it's not part of the POSIX-2001 standard
      * and not available, for example, on OSX */
 }

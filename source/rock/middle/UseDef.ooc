@@ -10,7 +10,7 @@ import ../frontend/BuildParams
    accepted version. But version checking of .use files isn't implemented
    in rock yet. (It may be supported by external tools such as reincarnate,
    though)
-   
+
    :author: Amos Wenger (nddrylliog)
  */
 Requirement: class {
@@ -18,21 +18,21 @@ Requirement: class {
     useDef: UseDef
 
     init: func (=name, =ver) {}
-    
+
     getUseDef: func -> UseDef { useDef }
 }
 
 /**
    Represents the data in a .use file, such as includes, include paths,
    libraries, packages (from pkg-config), requirements, etc.
-   
+
    :author: Amos Wenger (nddrylliog)
  */
 UseDef: class {
     cache := static HashMap<String, UseDef> new()
-    
+
     identifier, name = "", description = "": String
-    
+
     requirements := ArrayList<Requirement> new()
     pkgs         := ArrayList<String> new()
     libs         := ArrayList<String> new()
@@ -41,7 +41,7 @@ UseDef: class {
     includePaths := ArrayList<String> new()
 
     init: func (=identifier) {}
-    
+
     getRequirements: func -> List<Requirement> { requirements }
     getPkgs:         func -> List<String>      { pkgs }
     getLibs:         func -> List<String>      { libs }
@@ -58,20 +58,20 @@ UseDef: class {
             cached read(file, params)
             This cache put(identifier, cached)
         }
-        
+
         cached
     }
-    
+
     findUse: static func (fileName: String, params: BuildParams) -> File {
         set := ArrayList<File> new()
         if(params libsPath exists()) {
             set add(params libsPath)
         }
         set add(params sdkLocation)
-        
+
         for(path in set) {
             if(path getPath() == null) continue
-            
+
             for(subPath in path getChildren()) {
                 if(subPath isDir() || subPath isLink()) {
                     candidate := File new(subPath, fileName)
@@ -86,7 +86,7 @@ UseDef: class {
                 }
             }
         }
-        
+
 		return null
     }
 
@@ -95,11 +95,11 @@ UseDef: class {
         while(reader hasNext()) {
             reader mark()
             c := reader read()
-            
+
             if(c == '\t' || c == ' ' || c == '\r' || c == '\n' || c == '\v') {
                 continue
             }
-            
+
             if(c == '#') {
                 reader readUntil('\n')
                 continue 
@@ -114,12 +114,12 @@ UseDef: class {
             reader rewind(1)
             id := reader readUntil(':') trim()
             value := reader readLine() trim()
-            
+
             if(id startsWith("_")) {
                 // reserved ids for external tools (packaging, etc.)
                 continue
             }
-            
+
             if(id == "Name") {
                 name = value
             } else if(id == "Description") {

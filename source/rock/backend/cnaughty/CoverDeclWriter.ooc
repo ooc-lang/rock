@@ -5,7 +5,7 @@ import Skeleton, FunctionDeclWriter, TypeWriter, ClassDeclWriter, VersionWriter,
 CoverDeclWriter: abstract class extends Skeleton {
 
     write: static func ~_cover (this: Skeleton, cDecl: CoverDecl) {
-        
+
         current = hw
 
         // addons only add functions to an already imported cover, so
@@ -18,17 +18,17 @@ CoverDeclWriter: abstract class extends Skeleton {
             fDecl accept(this)
             current nl()
         }
-        
+
         for(interfaceDecl in cDecl getInterfaceDecls()) {
             ClassDeclWriter write(this, interfaceDecl)
         }
-        
+
     }
-    
+
     writeGuts: static func (this: Skeleton, cDecl: CoverDecl) {
-        
+
         if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
-        
+
         current nl(). app("struct _"). app(cDecl underName()). app(' '). openBlock()
         for(vDecl in cDecl variables) {
             current nl()
@@ -38,15 +38,15 @@ CoverDeclWriter: abstract class extends Skeleton {
             }
         }
         current closeBlock(). app(';'). nl()
-        
+
         if(cDecl getVersion()) VersionWriter writeEnd(this)
-        
+
     }
-    
+
     writeTypedef: static func (this: Skeleton, cDecl: CoverDecl) {
-        
+
         if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
-       
+
         if(cDecl fromType && cDecl fromType getGroundType() instanceOf(FuncType)) {
             // write func types covers as func types.
             ModuleWriter writeFuncType(this, cDecl fromType getGroundType() as FuncType, cDecl underName())
@@ -60,10 +60,10 @@ CoverDeclWriter: abstract class extends Skeleton {
                 current app(fromType getGroundType()). app(' '). app(cDecl underName()). app(';')
             }
         }
-        
+
         if(cDecl getVersion()) VersionWriter writeEnd(this)
-        
+
     }
-    
+
 }
 

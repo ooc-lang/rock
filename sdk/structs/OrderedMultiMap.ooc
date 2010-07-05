@@ -1,20 +1,20 @@
 import MultiMap, HashMap, ArrayList
 
 OrderedMultiMap: class <K, V> extends MultiMap<K, V> {
-    
+
     orderedKeys := ArrayList<K> new()
-    
+
     init: func ~ommWithCapa (capacity: Int) {
         super(capacity)
     }
-    
+
     init: func ~omm {
         super()
     }
-    
+
     // MultiMapValueIterator uses getKeys(), so it will iterate in order =)
     getKeys: func -> ArrayList<K> { orderedKeys }
-    
+
     _containsKey: func (key: K) -> Bool {
         result := false
         for(candidate in orderedKeys) {
@@ -24,7 +24,7 @@ OrderedMultiMap: class <K, V> extends MultiMap<K, V> {
         }
         return result
     }
-    
+
     put: func (key: K, value: V) -> Bool {
         // in a MultiMap, the same key can have several values
         // we only add the key to the list if there's no value for this key yet
@@ -33,7 +33,7 @@ OrderedMultiMap: class <K, V> extends MultiMap<K, V> {
         }
         return super(key, value)
     }
-    
+
     remove: func (key: K) -> Bool {
         super(key)
         // in a MultiMap, the same key can have several values
@@ -43,5 +43,5 @@ OrderedMultiMap: class <K, V> extends MultiMap<K, V> {
         }
         return true
     }
-    
+
 }

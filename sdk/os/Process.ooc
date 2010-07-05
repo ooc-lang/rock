@@ -7,7 +7,7 @@ import native/[ProcessUnix, ProcessWin32]
    Allows to launch processes with arbitrary arguments, redirect
    standard input, output, and error, get the error code, and wait
    for the end of the execution
-   
+
    :author: Yannic Ahrens (showstopper)
    :author: Amos Wenger (nddrylliog)
  */
@@ -18,17 +18,17 @@ Process: abstract class {
        should be the path to the executable.
      */
     args: List<String>
-    
+
     /** Pipe to which standard output will be redirected if it's non-null */
     stdOut = null: Pipe
     /** Pipe to which standard input will be redirected if it's non-null */
     stdIn  = null: Pipe
     /** Pipe to which standard error will be redirected if it's non-null */
     stdErr = null: Pipe
-    
+
     /** Environment variables that should be defined for the launched process */
     env = null : HashMap<String, String>
-    
+
     /** Current working directory of the launched process */
     cwd = null : String
 
@@ -76,7 +76,7 @@ Process: abstract class {
     setStdout: func(=stdOut){}
     setStdin:  func(=stdIn) {}
     setStderr: func(=stdErr) {}
-    
+
     setEnv: func(=env) {}
     setCwd: func(=cwd) {}
 

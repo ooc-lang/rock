@@ -7,9 +7,9 @@ VersionWriter: abstract class extends Skeleton {
         current nl(). app("#if ")
         _version write(current)
     }
-    
+
     writeEnd: static func ~_version (this: Skeleton) {
         current nl(). app("#endif")
     }
-    
+
 }

@@ -7,26 +7,26 @@ Node: abstract class {
     nameSeed: static Int = 0
 
     token: Token
-    
+
     init: func(=token) {}
-    
+
     accept: abstract func (visitor: Visitor)
-    
+
     toString: func -> String { class name }
 
     isResolved: func -> Bool { true }
 
     resolve: func (trail: Trail, res: Resolver) -> Response { return Responses OK }
-    
+
     replace: abstract func (oldie, kiddo: Node) -> Bool
-    
+
     addBefore: func (mark, newcomer: Node) -> Bool { false }
     addAfter:  func (mark, newcomer: Node) -> Bool { false }
-    
+
     isScope: func -> Bool { false }
-    
+
     getRequiredType: func -> Type { null }
-    
+
     /**
      * resolveCall should look for a function declaration satisfying call,
      * and suggest it with call suggest(fDecl)
@@ -39,21 +39,21 @@ Node: abstract class {
         // overridden in sub-classes
         0
     }
-    
+
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
         // overridden in sub-classes
         0
     }
-    
+
     resolveType: func (type: BaseType) {
         // overridden in sub-classes
     }
-    
+
     generateTempName: func (origin: String) -> String {
         This nameSeed += 1
         return "__" + origin + This nameSeed
     }
-    
+
     // Just to be on the safe side - everything has side effects by default
     hasSideEffects : func -> Bool { true }
 

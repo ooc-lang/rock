@@ -3,7 +3,7 @@ import Expression, Visitor, Type, Node
 import tinker/[Response, Resolver, Trail]
 
 Ternary: class extends Expression {
-    
+
     /*
      * TODO: We must check if 'ifTrue' and 'ifFalse' have compatible types,
      * and cast one of them if needed
@@ -18,15 +18,15 @@ Ternary: class extends Expression {
         // hmm it would probably be good to check that ifTrue and ifFalse have compatible types
         ifTrue getType()
     }
-    
+
     accept: func (visitor: Visitor) {
         visitor visitTernary(this)
     }
-    
+
     hasSideEffects : func -> Bool { condition hasSideEffects() || ifTrue hasSideEffects() || ifFalse hasSideEffects() }
-    
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        
+
         trail push(this)
         {
             response := condition resolve(trail, res)
@@ -35,7 +35,7 @@ Ternary: class extends Expression {
                 return response
             }
         }
-        
+
         {
             response := ifTrue resolve(trail, res)
             if(!response ok()) {
@@ -43,7 +43,7 @@ Ternary: class extends Expression {
                 return response
             }
         }
-        
+
         {
             response := ifFalse resolve(trail, res)
             if(!response ok()) {
@@ -52,13 +52,13 @@ Ternary: class extends Expression {
             }
         }
         trail pop(this)
-        
+
         return Responses OK
-        
+
     }
-    
+
     toString: func -> String { condition toString() + " ? " + ifTrue toString() + " : " + ifFalse toString() }
-    
+
     replace: func (oldie, kiddo: Node) -> Bool {
         match oldie {
             case condition => condition = kiddo; true
@@ -67,5 +67,5 @@ Ternary: class extends Expression {
             case => false
         }
     }
-    
+
 }

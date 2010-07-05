@@ -7,14 +7,14 @@ CharLiteral: class extends Literal {
     // j/ooc does that. I'm not sure it's too useful
     value: String
     type : BaseType
-    
+
     init: func ~charLiteral (=value, .token) {
         super(token)
         type = BaseType new("Char", token)
     }
-    
+
     accept: func (visitor: Visitor) { visitor visitCharLiteral(this) }
-    
+
     getType: func -> Type { type }
 
 }
