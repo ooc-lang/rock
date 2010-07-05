@@ -438,6 +438,7 @@ JSONGenerator: class extends Visitor {
         obj put("symbol", node symbol) \
            .put("name", name) \
            .put("tag", tag) \
+           .put("doc", "") \
            .put("type", "operator") \
            .put("function", buildFunctionDecl(node getFunctionDecl(), "function"))
         objects put(tag, obj)
