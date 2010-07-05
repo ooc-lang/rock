@@ -4,7 +4,6 @@ import TypeDecl, Declaration, Visitor, Node, VariableAccess, Type, VariableDecl
 
 EnumDecl: class extends TypeDecl {
     lastElementValue: Int = 0
-    elements := HashMap<String, EnumElement> new()
     incrementOper: Char = '+'
     incrementStep: Int = 1
 

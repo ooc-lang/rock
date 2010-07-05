@@ -11,7 +11,8 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     VariableDecl, If, Else, While, Foreach, Conditional, ControlStatement,
     VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,
     Node, Parenthesis, Return, Cast, Comparison, Ternary, BoolLiteral,
-    Argument, Statement, AddressOf, Dereference, FuncType, BaseType, PropertyDecl]
+    Argument, Statement, AddressOf, Dereference, FuncType, BaseType, PropertyDecl,
+    EnumDecl]
 
 JSONGenerator: class extends Visitor {
 
@@ -333,6 +334,56 @@ JSONGenerator: class extends Visitor {
         /* `varType` */
         obj put("varType", resolveType(node type))
         obj
+    }
+
+    visitEnumDecl: func (node: EnumDecl) {
+        obj := HashBag new()
+        /* `name` */
+        obj put("name", node name)
+        /* `type` */
+        obj put("type", "enum")
+        /* `tag` */
+        obj put("tag", node name)
+        /* `extern` */
+        if(node isExtern()) {
+            if(node externName isEmpty())
+                obj put("extern", true)
+            else
+                obj put("extern", node externName)
+        } else {
+            obj put("extern", false)
+        }
+        /* `doc` */
+        obj put("doc", node doc)
+        /* `incrementOper` */
+        obj put("incrementOper", String new(node incrementOper))
+        /* `incrementStep` */
+        obj put("incrementStep", node incrementStep)
+        /* `elements` */
+        elements := Bag new()
+        obj put("elements", elements)
+        for(var in node getMeta() getVariables()) {
+            if(!var instanceOf(EnumElement))
+                continue
+            elem := var as EnumElement
+            elemInfo := HashBag new()
+            elemInfo put("name", elem name) \
+                    .put("tag", "enumElement(%s, %s)" format(node name, elem name)) \
+                    .put("type", "enumElement") \
+                    .put("value", elem value)
+            if(elem isExtern()) {
+                // see `EnumDecl addElement`, elements always have an extern name if they are extern
+                elemInfo put("extern", elem getExternName())
+            } else {
+                elemInfo put("extern", null)
+            }
+            /* add it, finally */
+            elemBag := Bag new()
+            elemBag add(elem name)
+            elemBag add(elemInfo)
+            elements add(elemBag)
+        }
+        objects put(node name, obj)
     }
 
     visitType:               func (node: Type) {}
