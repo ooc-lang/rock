@@ -6,7 +6,7 @@ version(unix || apple) {
 
 /**
    Process implementation for *nix
-    
+
    :author: Yannic Ahrens (showstopper)
    :author: Amos Wenger (nddrylliog)
  */
@@ -58,19 +58,19 @@ ProcessUnix: class extends Process {
                 stdErr close('r')
                 dup2(stdErr as PipeUnix writeFD, 2)
             }
-            
+
             /* amend the environment if needed */
             if(env) {
                 for(key in env getKeys()) {
                     Env set(key, env[key], true)
                 }
             }
-            
+
             /* set a new cwd? */
             if(cwd != null) {
                 chdir(cwd)
             }
-            
+
             /* run the stuff. */
             execvp(args get(0), args toArray()) // List<String> => String*
         }

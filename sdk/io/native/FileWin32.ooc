@@ -69,7 +69,7 @@ version(windows) {
                 result = false
             }
             FindClose(hFind)
-            
+
             //printf("%s exists? %s\n", path, result toString())
             result
         }
@@ -94,7 +94,7 @@ version(windows) {
             hFind := FindFirstFile(path, ffd&)
             if(hFind == INVALID_HANDLE_VALUE) return false // it's not a directory if it doesn't exist
             FindClose(hFind)
-            
+
             return ((ffd attr) & FILE_ATTRIBUTE_DIRECTORY) != 0
         }
 
@@ -106,7 +106,7 @@ version(windows) {
             hFind := FindFirstFile(path, ffd&)
             if(hFind == INVALID_HANDLE_VALUE) return false // it's not a file if it doesn't exist
             FindClose(hFind)
-            
+
             findSingle(ffd&)
             // our definition of a file: neither a directory or a link
             // (and no, FILE_ATTRIBUTE_NORMAL isn't true when we need it..)
@@ -122,7 +122,7 @@ version(windows) {
             hFind := FindFirstFile(path, ffd&)
             if(hFind == INVALID_HANDLE_VALUE) return false // it's not a link if it doesn't exist
             FindClose(hFind)
-            
+
             return ((ffd attr) & FILE_ATTRIBUTE_REPARSE_POINT) != 0
         }
 
@@ -174,7 +174,7 @@ version(windows) {
          */
         lastAccessed: func -> Long {
             if(!exists()) return -1
-            
+
             ffd: FindData
             findSingle(ffd&)
             return toTimestamp(ffd lastAccessTime)
@@ -185,7 +185,7 @@ version(windows) {
          */
         lastModified: func -> Long {
             if(!exists()) return -1
-            
+
             ffd: FindData
             findSingle(ffd&)
             return toTimestamp(ffd lastWriteTime)
@@ -196,7 +196,7 @@ version(windows) {
          */
         created: func -> Long {
             if(!exists()) return -1
-            
+
             ffd: FindData
             findSingle(ffd&)
             return toTimestamp(ffd creationTime)

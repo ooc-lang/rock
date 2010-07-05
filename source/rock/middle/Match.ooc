@@ -6,7 +6,7 @@ import ControlStatement, Statement, Expression, Visitor, VariableDecl,
 import tinker/[Trail, Resolver, Response]
 
 Match: class extends Expression {
-    
+
     type: Type = null
     expr: Expression = null
     cases := ArrayList<Case> new()
@@ -14,15 +14,15 @@ Match: class extends Expression {
     init: func ~match_ (.token) {
         super(token)
     }
-    
+
     getExpr: func -> Expression { expr }
     setExpr: func (=expr) {}
-    
+
     getCases: func -> List<Case> { cases }
-    
+
     addCase: func (caze: Case) {
         cases add(caze)
-        
+
         if(expr && caze getExpr()) {
             // hideous, but obvious
             if(!(expr instanceOf(BoolLiteral) && expr as BoolLiteral getValue() == true)) {
@@ -30,25 +30,25 @@ Match: class extends Expression {
             }
         }
     }
-    
+
     accept: func (visitor: Visitor) {
         visitor visitMatch(this)
     }
-    
+
     replace: func (oldie, kiddo: Node) -> Bool {
         match oldie {
             case expr => expr = kiddo; true
             case      => false
         }
     }
-    
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        
+
         if (expr != null) {
             response := expr resolve(trail, res)
             if(!response ok()) return response
         }
-        
+
         trail push(this)
         for (caze in cases) {
             response := caze resolve(trail, res)
@@ -58,7 +58,7 @@ Match: class extends Expression {
             }
         }
         trail pop(this)
-        
+
         if(type == null) {
             response := inferType(trail, res)
             if(!response ok()) {
@@ -70,7 +70,7 @@ Match: class extends Expression {
                 return Responses OK
             }
         }
-        
+
         if(!trail peek() instanceOf(Scope)) {
             if(type != null) {
                 vDecl := VariableDecl new(type, generateTempName("match"), token)
@@ -93,11 +93,11 @@ Match: class extends Expression {
         }
 
         return Responses OK
-        
+
     }
-    
+
     inferType: func (trail: Trail, res: Resolver) -> Response {
-        
+
 		funcIndex   := trail find(FunctionDecl)
 		returnIndex := trail find(Return)
 		
@@ -114,28 +114,28 @@ Match: class extends Expression {
 			if(cases isEmpty()) {
                 return Responses OK
             }
-            
+
             first := cases first()
 			if(first getBody() isEmpty()) {
                 return Responses OK
             }
-            
+
 			statement := first getBody() last()
 			if(!statement instanceOf(Expression)) {
                 return Responses OK
             }
-            
+
 			type = statement as Expression getType()
 		}
-        
+
         return Responses OK
 		
     }
-    
+
     getType: func -> Type { type }
-    
+
     toString: func -> String { class name }
-    
+
 }
 
 Case: class extends ControlStatement {
@@ -147,19 +147,19 @@ Case: class extends ControlStatement {
     }
 
     accept: func (visitor: Visitor) {}
-    
+
     getExpr: func -> Expression { expr }
     setExpr: func (=expr) {}
-    
+
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) {
-        
+
         // FIXME: probably not necessary (harmful, even)
         body resolveAccess(access, res, trail)
-        
+
     }
-    
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        
+
         if (expr != null) {
             trail push(this)
             response := expr resolve(trail, res)
@@ -169,11 +169,11 @@ Case: class extends ControlStatement {
             }
             trail pop(this)
         }
-        
+
         return body resolve(trail, res)
-        
+
     }
-    
+
     replace: func (oldie, kiddo: Node) -> Bool {
         if(oldie == expr) {
             expr = kiddo as Expression
@@ -181,6 +181,6 @@ Case: class extends ControlStatement {
         }
         false
     }
-    
+
 }
 

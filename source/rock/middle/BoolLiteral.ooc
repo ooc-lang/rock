@@ -5,17 +5,17 @@ BoolLiteral: class extends Literal {
 
     value: Bool
     type : BaseType
-    
+
     init: func ~boolLiteral (=value, .token) {
         super(token)
         type = BaseType new("Bool", token)
     }
-    
+
     accept: func (visitor: Visitor) { visitor visitBoolLiteral(this) }
 
     getType: func -> Type { type }
     getValue: func -> Bool { value }
-    
+
     toString: func -> String {
         value ? "true" : "false"
     }

@@ -12,7 +12,7 @@ OpType: cover from Int8 {
     toString: func -> String {
         OpTypes repr get(this)
     }
-    
+
 }
 
 OpTypes: class {
@@ -26,9 +26,9 @@ OpTypes: class {
     bOr = 8,        /*  |  */
     bXor = 9,       /*  ^  */
     bAnd = 10,      /*  &  */
-    
+
     ass = 11,       /*  =  */
-    
+
     addAss = 12,    /*  += */
     subAss = 13,    /*  -= */
     mulAss = 14,    /*  *= */
@@ -38,10 +38,10 @@ OpTypes: class {
     bOrAss = 18,    /*  |= */
     bXorAss = 19,   /*  ^= */
     bAndAss = 20,   /*  &= */
-    
+
     or = 21,        /*  || */
     and = 22        /*  && */ : static const OpType
-    
+
     repr := static ["no-op",
         "+",
         "-",
@@ -53,7 +53,7 @@ OpTypes: class {
         "|",
         "^",
         "&",
-        
+
         "=",
         "+=",
         "-=",
@@ -64,7 +64,7 @@ OpTypes: class {
         "|=",
         "^=",
         "&=",
-        
+
         "||",
         "&&"] as ArrayList<String>
 }
@@ -73,44 +73,44 @@ BinaryOp: class extends Expression {
 
     left, right: Expression
     type: OpType
-    
+
     init: func ~binaryOp (=left, =right, =type, .token) {
         super(token)
     }
-    
+
     isAssign: func -> Bool { (type >= OpTypes ass) && (type <= OpTypes bAndAss) }
-    
+
     isBooleanOp: func -> Bool { type == OpTypes or || type == OpTypes and }
-    
+
     accept: func (visitor: Visitor) {
         visitor visitBinaryOp(this)
     }
-    
+
     // It's just an access, it has no side-effects whatsoever
     hasSideEffects : func -> Bool { !isAssign() }
-    
+
     // that's probably not right (haha)
     getType: func -> Type { left getType() }
     getLeft:  func -> Expression { left  }
     getRight: func -> Expression { right }
-    
+
     toString: func -> String {
         return left toString() + " " + OpTypes repr get(type) + " " + right toString()
     }
-    
+
     unwrapAssign: func (trail: Trail, res: Resolver) -> Bool {
-        
+
         if(!isAssign()) return false
-        
+
         innerType := type - (OpTypes addAss - OpTypes add)
         inner := BinaryOp new(left, right, innerType, token)
         right = inner
         type = OpTypes ass
-        
+
         return true
-        
+
     }
-    
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         trail push(this)
@@ -122,7 +122,7 @@ BinaryOp: class extends Expression {
                 return response
             }
         }
-        
+
         {
             response := right resolve(trail, res)
             if(!response ok()) {
@@ -160,14 +160,14 @@ BinaryOp: class extends Expression {
                     leftProperty setVirtual(false)
                 }
             }
-            
+
             cast : Cast = null
             realRight := right
             if(right instanceOf(Cast)) {
                 cast = right as Cast
                 realRight = cast inner
             }                
-            
+
             // if we're an assignment from a generic return value
             // we need to set the returnArg to left and disappear! =)
             if(realRight instanceOf(FunctionCall)) {
@@ -177,7 +177,7 @@ BinaryOp: class extends Expression {
                     res wholeAgain(this, "Need more info on fDecl")
                     return Responses OK
                 }
-                
+
                 if(fDecl getReturnType() isGeneric()) {
                     fCall setReturnArg(left getGenericOperand())
                     trail peek() replace(this, fCall)
@@ -185,26 +185,26 @@ BinaryOp: class extends Expression {
                     return Responses OK
                 }
             }
-            
+
             if(isGeneric()) {
                 sizeAcc := VariableAccess new(VariableAccess new(left getType() getName(), token), "size", token)
 
                 fCall := FunctionCall new("memcpy", token)
-                
+
                 fCall args add(left  getGenericOperand())
                 fCall args add(right getGenericOperand())
                 fCall args add(sizeAcc)
                 result := trail peek() replace(this, fCall)
-                
+
                 if(!result) {
                     if(res fatal) token throwError("Couldn't replace ourselves (%s) with a memcpy/assignment in a %s! trail = %s" format(toString(), trail peek() as Node class name, trail toString()))
                 }
-                
+
                 res wholeAgain(this, "Replaced ourselves, need to tidy up")
                 return Responses OK
             }
         }
-        
+
         if(!isLegal(res)) {
             if(res fatal) {
                 token throwError("Invalid use of operator %s between operands of type %s and %s\n" format(
@@ -212,16 +212,16 @@ BinaryOp: class extends Expression {
             }
             res wholeAgain(this, "Illegal use, looping in hope.")
         }
-                
+
         return Responses OK
-        
+
     }
-    
+
     isGeneric: func -> Bool {
         (left  getType() isGeneric() && left  getType() pointerLevel() == 0) ||
         (right getType() isGeneric() && right getType() pointerLevel() == 0)
     }
-    
+
     isLegal: func (res: Resolver) -> Bool {
         if(left getType() == null || left getType() getRef() == null || right getType() == null || right getType() getRef() == null) {
             // must resolve first
@@ -255,17 +255,17 @@ BinaryOp: class extends Expression {
         }
         return true
     }
-    
+
     resolveOverload: func (trail: Trail, res: Resolver) -> Response {
-        
+
         // so here's the plan: we give each operator overload a score
         // depending on how well it fits our requirements (types)
-        
+
         bestScore := 0
         candidate : OperatorDecl = null
-        
+
         reqType := trail peek() getRequiredType()
-        
+
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType)
             //printf("Considering %s for %s, score = %d\n", opDecl toString(), toString(), score)
@@ -275,7 +275,7 @@ BinaryOp: class extends Expression {
                 candidate = opDecl
             }
         }
-        
+
         for(imp in trail module() getAllImports()) {
             module := imp getModule()
             for(opDecl in module getOperators()) {
@@ -288,7 +288,7 @@ BinaryOp: class extends Expression {
                 }
             }
         }
-        
+
         if(candidate != null) {
             if(isAssign() && !candidate getSymbol() endsWith("=")) {
                 // we need to unwrap first!
@@ -298,7 +298,7 @@ BinaryOp: class extends Expression {
                 trail pop(this)
                 return Responses OK
             }
-            
+
             fDecl := candidate getFunctionDecl()
             fCall := FunctionCall new(fDecl getName(), token)
             fCall getArguments() add(left)
@@ -312,17 +312,17 @@ BinaryOp: class extends Expression {
             }
             res wholeAgain(this, "Just replaced with an operator overload")
         }
-        
+
         return Responses OK
-        
+
     }
-    
+
     getScore: func (op: OperatorDecl, reqType: Type) -> Int {
-        
+
         symbol : String = OpTypes repr[type]
-        
+
         half := false
-        
+
         if(!(op getSymbol() equals(symbol))) {
             if(isAssign() && symbol startsWith(op getSymbol())) {
                 // alright!
@@ -331,41 +331,41 @@ BinaryOp: class extends Expression {
                 return 0 // not the right overload type - skip
             }
         }
-        
+
         fDecl := op getFunctionDecl()
-        
+
         args := fDecl getArguments()
         if(args size() != 2) {
             op token throwError(
                 "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol, args size()))
         }
-        
+
         opLeft  := args get(0)
         opRight := args get(1)
-        
+
         if(opLeft getType() == null || opRight getType() == null || left getType() == null || right getType() == null) {
             return -1
         }
-        
+
         leftScore  := left  getType() getStrictScore(opLeft  getType())
         if(leftScore  == -1) return -1
-        
+
         rightScore := right getType() getStrictScore(opRight getType())
         if(rightScore == -1) return -1
-        
+
         reqScore   := reqType ? fDecl getReturnType() getScore(reqType) : 0
         if(reqScore   == -1) return -1
-        
+
         //printf("leftScore = %d, rightScore = %d\n", leftScore, rightScore)
-        
+
         score := leftScore + rightScore + reqScore
-        
+
         if(half) score /= 2  // used to prioritize '+=', '-=', and blah, over '+ and =', etc.
-        
+
         return score
-        
+
     }
-    
+
     replace: func (oldie, kiddo: Node) -> Bool {
         match oldie {
             case left  => left  = kiddo; true

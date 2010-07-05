@@ -39,7 +39,7 @@ version(unix || apple) {
     _getcwd: extern (getcwd) func(buf: String, size: SizeT) -> String
 
     ModeT: cover from mode_t
-    
+
     FileStat: cover from struct stat {
         st_mode: extern ModeT
         st_size: extern SizeT

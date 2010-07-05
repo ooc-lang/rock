@@ -17,18 +17,18 @@ StringTokenizer: class extends Iterable<String> {
     init: func~withChar(input: String, delim: Char, maxSplits: Int) {
         init~withString(input, String new(delim), maxSplits)
     }
-    
+
     init: func~withString(=input, =delim, =maxSplits) {
         T = String // small fix for runtime introspection
         length = input length()
         splits = 0
         empties = false
     }
-    
+
     iterator: func -> Iterator<String> { StringTokenizerIterator<String> new(this) }
-    
+
     hasNext: func -> Bool { index < length }
-    
+
     /**
      * @return the next token, or null if we're at the end.
      */
@@ -43,7 +43,7 @@ StringTokenizer: class extends Iterable<String> {
             // skip only one delimiter
             index += 1
         }
-        
+
         // save the index
         oldIndex := index
 
@@ -52,10 +52,10 @@ StringTokenizer: class extends Iterable<String> {
             index = length
             return input substring(oldIndex)
         }
-         
+
         // skip all non-delimiters
         while(hasNext() && !delim contains(input[index])) index += 1
-        
+
         splits += 1
         return input substring(oldIndex, index)
     }
@@ -65,14 +65,14 @@ StringTokenizerIterator: class <T> extends Iterator<T> {
 
     st: StringTokenizer
     index := 0
-    
+
     init: func ~sti (=st) {}
     hasNext: func -> Bool { st hasNext() }
     next: func -> T       { st nextToken() }
     hasPrev: func -> Bool { false }
     prev: func -> T       { null }
     remove: func -> Bool  { false }
-    
+
 }
 
 String: cover {
@@ -80,7 +80,7 @@ String: cover {
     split: func~withString(s: String, maxSplits: Int) -> StringTokenizer {
         StringTokenizer new(this, s, maxSplits)
     }
-    
+
     split: func~withChar(c: Char, maxSplits: Int) -> StringTokenizer {
         StringTokenizer new(this, c, maxSplits)
     }

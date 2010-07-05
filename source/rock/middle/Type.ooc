@@ -15,25 +15,25 @@ Type: abstract class extends Expression {
 
     SCORE_SEED := const static 1024
     NOLUCK_SCORE := const static -100000
-    
+
     init: func ~type (.token) {
         super(token)
     }
-    
+
     accept: func (visitor: Visitor) { visitor visitType(this) }
-    
+
     pointerLevel: abstract func -> Int
-    
+
     write: abstract func (w: AwesomeWriter, name: String)
-    
+
     equals: abstract func (other: This) -> Bool
-    
+
     getName: abstract func -> String
-    
+
     toString: func -> String { getName() }
-    
+
     toMangledString: func -> String { getName() }
-    
+
     getGroundType: func -> Type {
         under := this
         while (under != null) {
@@ -46,10 +46,10 @@ Type: abstract class extends Expression {
         }
         return under
     }
-    
+
     getRef: abstract func -> Declaration
     setRef: abstract func (d: Declaration)
-    
+
     isGeneric: func -> Bool {
         if(getRef()) {
             //printf("ref of %s is %s %s\n", toString(), getRef() class name, getRef() toString())
@@ -57,26 +57,26 @@ Type: abstract class extends Expression {
         }
         return false
     }
-    
+
     replace: func (oldie, kiddo: Node) -> Bool { false }
-    
+
     clone: abstract func -> This
-    
+
     reference:   func          -> This {
         p := PointerType new(this, token)
         //p setRef(getRef())
         p
     }
     dereference: abstract func -> This
-    
+
     /**
      * :return: true if the node supports type arguments and it's been
      * successfully added, false if not
      */
     addTypeArg: func (typeArg: VariableAccess) -> Bool { false }
-    
+
     getTypeArgs: abstract func -> List<VariableAccess>
-    
+
     getType: func -> This {
         getRef() ? getRef() getType() : null
     }
@@ -90,17 +90,17 @@ Type: abstract class extends Expression {
         if(score != This SCORE_SEED) {
             //printf("Failing %s (%s) vs %s (%s) with strict score %d\n", toString(), getRef() ? getRef() token toString() : "(unknown)",
             //                                                            other toString(), other getRef() ? other getRef() token toString() : "(unknown)", score)
-            
+
             // imperfect match, failing
             return This NOLUCK_SCORE
         }
         score
     }
-    
+
     getScore: func (other: This) -> Int {
         bestScore := This NOLUCK_SCORE
         scoreSeed := This SCORE_SEED
-        
+
         left := this
         while(left != null) {
             score := left getScoreImpl(other, scoreSeed)
@@ -113,10 +113,10 @@ Type: abstract class extends Expression {
         }
         return bestScore
     }
-    
+
     isNumericType: func -> Bool {
         if(pointerLevel() != 0) return false
-        
+
         // FIXME: that's quite ugly - and what about custom types?
         name := getName()
         if ((
@@ -128,30 +128,30 @@ Type: abstract class extends Expression {
 		   name == "UInt16"|| name == "UInt32"|| name == "UInt64"||
 		   name == "SizeT" || name == "Float" || name == "Double"
 		)) return true
-        
+
         down := dig()
         if(down) return down isNumericType()
-        
+
         return false
     }
-    
+
     isPointer: func -> Bool { (pointerLevel() >= 1) || (getName() == "Pointer") }
-    
+
     getScoreImpl: abstract func (other: This, scoreSeed: Int) -> Int
-    
+
     inheritsFrom: func (t: This) -> Bool { false }
-    
+
     dig: abstract func -> This
-    
+
     /**
         Check for any loop in cover declaration
      */
     checkedDig: func (res: Resolver) {
         checkedDigImpl(ArrayList<Type> new(), res)
     }
-    
+
     checkedDigImpl: abstract func (list: List<Type>, res: Resolver)
-    
+
     /** 
         Used in FunctionCall scoring - When we have a reftype, say, Int@,
         from the inside it should have type 'Int', but from the outside, 'Int*'.
@@ -161,101 +161,101 @@ Type: abstract class extends Expression {
     refToPointer: func -> This {
         this
     }
-    
+
     /**
         Search for a type argument, e.g. <T> in a type.
         This is less trivial than it sounds. In the simplest case, we have
         ArrayList<Int> for example, so T -> Int
         But in some other cases, we have Trail extends Stack<Node>
         and thus T -> Node.
-        
+
         :return: The real type corresponding to a TypeArg, or null if none is found.
     */
     searchTypeArg: func (typeArgName: String, finalScore: Int@) -> Type {
         null
     }
-    
+
 }
 
 TypeAccess: class extends Type {
-    
+
     inner: Type
-    
+
     init: func ~typeAccess (=inner, .token) {
         super(token)
     }
-    
+
     accept: func (visitor: Visitor) {
         visitor visitTypeAccess(this)
     }
-    
+
     resolve: func (trail: Trail, res: Resolver) -> Response { inner resolve(trail, res) }
-    
+
     write: func (w: AwesomeWriter, name: String) {}
-    
+
     getName: func -> String { inner getName() }
-    
+
     getTypeArgs: func -> List<VariableAccess> { inner getTypeArgs() }
-    
+
     pointerLevel: func -> Int { inner pointerLevel() }
-    
+
     equals: func (other: Type) -> Bool { inner equals(other) }
-    
+
     getRef: func -> Declaration { inner getRef() }
     setRef: func (d: Declaration) { inner setRef(d) }
-    
+
     clone: func -> Type { inner clone() }
-    
+
     dereference: func -> Type { inner dereference() }
-    
+
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
         inner getScoreImpl(other, scoreSeed)
     }
-    
+
     dig: func -> Type { inner dig() }
-    
+
     checkedDigImpl: func (list: List<Type>, res: Resolver) {
         inner checkedDigImpl(list, res)
     }
-    
+
     searchTypeArg: func (typeArgName: String, finalScore: Int@) -> Type {
         inner searchTypeArg(typeArgName, finalScore&)
     }
-    
+
 }
 
 SugarType: abstract class extends Type {
-    
+
     inner: Type
-    
+
     init: func ~sugarType (=inner, .token) { super(token) }
-    
+
     resolve: func (trail: Trail, res: Resolver) -> Response { inner resolve(trail, res) }
     getRef: func -> Declaration   { inner getRef()  }
     setRef: func (d: Declaration) { inner setRef(d) }
-    
+
     getTypeArgs: func -> List<VariableAccess> { inner getTypeArgs() }
-    
+
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
         if(other instanceOf(class)) {
             score := inner getScore(other as SugarType inner)
             if(score >= -1) return score
         }
-        
+
         if(other isGeneric() && other pointerLevel() == 0) {
             // every type is always a match against a flat generic type
             return scoreSeed / 2
         }
-        
+
         if(pointerLevel() == 1 && other isPointer()) {
             // void pointer, a half match!
             return scoreSeed / 2
         }
         return This NOLUCK_SCORE
     }
-    
+
     getName: func -> String { inner getName() }
-    
+
     dig: func -> Type {
         innerUnder := inner dig()
         if(innerUnder) {
@@ -265,70 +265,70 @@ SugarType: abstract class extends Type {
         }
         return null
     }
-    
+
     checkedDigImpl: func (list: List<Type>, res: Resolver) {
         inner checkedDigImpl(list, res)
     }
-    
+
 }
 
 PointerType: class extends SugarType {
-    
+
     init: func ~pointerType (.inner, .token) { super(inner, token) }
-    
+
     pointerLevel: func -> Int { inner pointerLevel() + 1 }
-    
+
     write: func (w: AwesomeWriter, name: String) {
         inner write(w, null)
         if(!inner isGeneric()) w app('*')
         if(name != null) w app(' '). app(name)
     }
-    
+
     equals: func (other: This) -> Bool {
         if(other class != this class) return false
         return (other as PointerType inner equals(inner))
     }
-    
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
         return super(trail, res)
     }
-    
+
     toString: func -> String { inner toString() + "*" }
     toMangledString: func -> String { inner toString() + "__star" }
-    
+
     dereference: func -> Type { inner }
-    
+
     clone: func -> Type { new(inner, token) }
-    
+
 }
 
 ArrayType: class extends PointerType {
-    
+
     expr : Expression = null
     realType := static BaseType new("Array", nullToken)
-    
+
     init: func ~arrayType (.inner, =expr, .token) { super(inner, token) }
-    
+
     setRef: func (ref: Declaration) {
         Exception new(This, "Trying to set ref of an ArrayType! wtf? ref (%s) = %s" format(ref class name, ref toString())) throw()
     }
     getRef: func -> Declaration {
         This realType getRef()
     }
-    
+
     isResolved: func -> Bool {
         inner isResolved() && This realType isResolved()
     }
-    
+
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
         if(other instanceOf(class)) {
             score := inner getScore(other as SugarType inner)
             if(score >= -1) return score
         }
-        
+
         return This NOLUCK_SCORE
     }
-    
+
     write: func (w: AwesomeWriter, name: String) {
         if(expr == null) {
             w app("_lang_array__Array")
@@ -343,73 +343,73 @@ ArrayType: class extends PointerType {
             else     w app('*')
         }
     }
-    
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
         if(!This realType resolve(trail, res) ok()) {
             return Responses LOOP
         }
-        
+
         if(expr != null) {
             response := expr resolve(trail, res)
             if(!response ok()) return response
         }
-        
+
         return super(trail, res)
-        
+
     }
-    
+
     clone: func -> This { new(inner clone(), expr, token) }
-    
+
     exprLessClone: func -> This {
         copy := clone()
-        
+
         current := copy as Type
         while(current instanceOf(ArrayType)) {
             innerType := current as ArrayType
             innerType expr = null
             current = innerType inner
         }
-        
+
         copy
     }
-    
+
     toString: func -> String { inner toString() append(expr != null ? "[%s]" format(expr toString()) : "[]") }
     toMangledString: func -> String { inner toString() + "__array" }
-    
+
     isPointer: func -> Bool { false }
-    
+
 }
 
 ReferenceType: class extends SugarType {
-    
+
     init: func ~referenceType (.inner, .token) { super(inner, token) }
-    
+
     pointerLevel: func -> Int { inner pointerLevel() }
-    
+
     write: func (w: AwesomeWriter, name: String) {
         inner write(w, null)
         w app("*")
         if(name != null) w app(' '). app(name)
     }
-    
+
     equals: func (other: This) -> Bool {
         if(other class != this class) return false
         return (other as PointerType inner equals(inner))
     }
-    
+
     toString: func -> String { inner toString() + "@" }
     toMangledString: func -> String { inner toString() + "__star" }
-    
+
     dereference : func -> Type { inner }
-    
+
     clone: func -> Type { new(inner, token) }
-    
+
     refToPointer: func -> Type {
         PointerType new(inner refToPointer(), token)
     }
-    
+
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
         inner getScoreImpl(other, scoreSeed)
     }
-    
+
 }

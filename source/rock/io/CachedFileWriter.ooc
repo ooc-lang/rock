@@ -2,7 +2,7 @@ import io/File, text/Buffer, structs/HashMap
 
 /**
    Cached file writer.
-   
+
    Similar to a FileWriter, but only writes the file on closing, if
    it's different from an already-existing file, of if the target
    file doesn't eixst at all.
@@ -14,11 +14,11 @@ CachedFileWriter: class extends BufferWriter {
 	init: func ~withFile(=file) {
         super()
 	}
-    
+
     init: func ~withPath(path: String) {
         init(File new(path))
     }
-    
+
     write: func(chars: String, length: SizeT) -> SizeT {
         super(chars, length)
     }
@@ -36,16 +36,16 @@ CachedFileWriter: class extends BufferWriter {
         if(file exists()) {
             thisContent := buffer toString()
             fileContent := file read()
-            
+
             hash1 := ac_X31_hash(thisContent)
             hash2 := ac_X31_hash(fileContent)
-            
+
 			if(hash1 == hash2) {
                 // same hash? don't rewrite.
                 return false
 			}
 		}
-        
+
         file write(BufferReader new(buffer))
         true
 	}

@@ -7,7 +7,7 @@ feof: extern func(stream: FILE*) -> Int
 fseek: extern func(stream: FILE*, offset: Long, origin: Int) -> Int
 SEEK_CUR, SEEK_SET, SEEK_END: extern Int
 ftell: extern func(stream: FILE*) -> Long
- 
+
 FileReader: class extends Reader {
 
     file: FILE*
@@ -19,7 +19,7 @@ FileReader: class extends Reader {
     init: func ~withName (fileName: String) {
         init (fileName, "r")
     }
-        
+
     init: func ~withMode (fileName, mode: String) {
         file = fopen(fileName, mode)
         if (!file) 
@@ -37,7 +37,7 @@ FileReader: class extends Reader {
         }
         return value
     }
-    
+
     readLine: func -> String {
         sb := Buffer new(40) // let's be optimistic
         while(hasNext()) {
@@ -47,7 +47,7 @@ FileReader: class extends Reader {
         }
         return sb toString()
     }
-    
+
     hasNext: func -> Bool {
         return feof(file) == 0
     }

@@ -1,12 +1,12 @@
 import io/Writer, io/File
- 
+
 /**
    Implement the Writer interface for file input/output.
-    
+
    :author: Amos Wenger (nddrylliog)
  */
 FileWriter: class extends Writer {
-    
+
     /** The underlying file descriptor */
     file: FStream
 
@@ -24,7 +24,7 @@ FileWriter: class extends Writer {
     init: func ~withFileOverwrite (fileObject: File) {
         init(fileObject, false) 
     }
-    
+
     /**
        Create a new file writer on the given file path.
        :param append: If true, appends to the file. If false, overwrites it.
@@ -50,15 +50,15 @@ FileWriter: class extends Writer {
     write: func(bytes: Char*, length: SizeT) -> SizeT {
         file write(bytes, 0, length)
     }
-    
+
     /**
        Write a single byte to this file.
      */
     write: func ~chr (chr: Char) {
         file write(chr)
     }
-    
-    
+
+
     /**
        Close this writer and free the associated system resources, if any.
      */
@@ -72,5 +72,5 @@ FileWriter: class extends Writer {
     vwritef: func (fmt: String, args: VaList) {
         vfprintf(file, fmt, args)
     }
-    
+
 }

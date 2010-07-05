@@ -56,7 +56,7 @@ FStream: cover from FILE* {
     flush: func {
         fflush(this)
     }
-    
+
 	// TODO encodings
 	readChar: func -> Char {
         c : Char
@@ -68,25 +68,25 @@ FStream: cover from FILE* {
     readLine: func ~defaults -> String {
         readLine(128)
     }
-    
+
 	readLine: func (chunk: Int) -> String {
         // 128 is a reasonable default. Most terminals are 80x25
         length := 128
         pos := 0
         str := gc_malloc(length) as Char*
-        
+
         // while it's not '\n' it means not all the line has been read
         while (true) {
             c := fgetc(this)
-            
+
             if(c == '\n') {
                 str[pos] = '\0'
                 break
             }
-            
+
             str[pos] = c
             pos += 1
-            
+
             if (pos >= length) {
                 // try to grow the string
                 length += chunk
@@ -94,16 +94,16 @@ FStream: cover from FILE* {
                 if(!tmp) Exception new(This, "Ran out of memory while reading a (apparently never-ending) line!") throw()
                 str = tmp
             }
-            
+
             if(!hasNext()) {
                 str[pos] = '\0'
                 break
             }
         }
-        
+
         return str as String
 	}
-    
+
     hasNext: func -> Bool {
         feof(this) == 0
     }

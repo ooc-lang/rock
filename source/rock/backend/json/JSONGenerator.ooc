@@ -13,9 +13,9 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,
     Node, Parenthesis, Return, Cast, Comparison, Ternary, BoolLiteral,
     Argument, Statement, AddressOf, Dereference]
-    
+
 JSONGenerator: class extends Visitor {
-    
+
     params: BuildParams
     outFile: File
     module: Module
@@ -244,9 +244,9 @@ JSONGenerator: class extends Visitor {
         obj putValue("varType", resolveType(node type))
         obj
     }
-    
+
     visitType:               func (node: Type) {}
-    
+
     visitModule:             func (node: Module) {
         for(function in node functions)
             function accept(this)

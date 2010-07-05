@@ -81,7 +81,7 @@ HostInfo: class {
 
     /**
        Create a new HostInfo from an AddrInfo chain.
-        
+
        You shouldn't have to call this function yourself, but rather
        get a HostInfo instance from calls to the DNS class.
      */

@@ -26,14 +26,14 @@ ModuleWriter: abstract class extends Skeleton {
             visitInclude(this, inc)
         }
         if(!module includes isEmpty()) current nl()
-        
+
         for(uze in module uses) {
             useDef := uze getUseDef()
 			for(ynclude in useDef getIncludes()) {
 				current nl(). app("#include <"). app(ynclude). app(">")
 			}
 		}
-        
+
         // write all type forward declarations
         writeTypesForward(this, module, false) // non-metas first
         writeTypesForward(this, module, true)  // then metas
@@ -45,7 +45,7 @@ ModuleWriter: abstract class extends Skeleton {
             inc := imp getModule() getPath("-fwd.h")
             current nl(). app("#include <"). app(inc). app(">")
         }
-        
+
         // write all func types typedefs
         for(funcType in module funcTypesMap) {
             writeFuncType(this, funcType, null)
@@ -57,7 +57,7 @@ ModuleWriter: abstract class extends Skeleton {
         current nl(). app("#define "). app(hName). nl()
 
         current nl(). app("#include <"). app(module getPath("-fwd.h")). app(">")
-        
+
 		// include .h-level imports (which contains types we extend)
         for(imp in imports) {
             if(!imp isTight()) continue
@@ -68,10 +68,10 @@ ModuleWriter: abstract class extends Skeleton {
 
         /* write the .c file */
         current = cw
-        
+
         // write include to the module's. h file
         current nl(). app("#include <"). app(module getPath(".h")). app(">")
-        
+
         // now loose imports, in the .c it's safe =)
         for(imp in imports) {
             if(imp isTight()) continue
@@ -89,7 +89,7 @@ ModuleWriter: abstract class extends Skeleton {
             if(!tDecl isMeta) continue
             tDecl accept(this)
         }
-        
+
         // write all global variables
         for(stmt in module body) {
             if(stmt instanceOf(VariableDecl)) {
@@ -106,7 +106,7 @@ ModuleWriter: abstract class extends Skeleton {
                 current app(';')
             }
         }
-        
+
         // write load function
         current = fw
         current nl(). app("void "). app(module getLoadFuncName()). app("();")
@@ -117,7 +117,7 @@ ModuleWriter: abstract class extends Skeleton {
         for (imp in module getAllImports()) {
 			current nl(). app(imp getModule() getLoadFuncName()). app("();")
 		}
-        
+
         for (type in module types) {
             if(type instanceOf(ClassDecl)) {
                 cDecl := type as ClassDecl
@@ -130,7 +130,7 @@ ModuleWriter: abstract class extends Skeleton {
                 }
             }
         }
-        
+
         for(stmt in module body) {
             if(stmt instanceOf(VariableDecl)) {
                 vd := stmt as VariableDecl
@@ -160,14 +160,14 @@ ModuleWriter: abstract class extends Skeleton {
         // forward-header end
         current = fw
         current nl(). nl(). app("#endif // "). app(hFwdName)
-        
+
         // Write a default main if none provided in source
         if(module main && !module functions contains("main")) {
             writeDefaultMain(this)
         }
 
     }
-    
+
     /** Write default main function */
     writeDefaultMain: static func (this: Skeleton) {
         // If just outputing .o files, do not add a default main
@@ -192,7 +192,7 @@ ModuleWriter: abstract class extends Skeleton {
             current app(funcType returnType)
         }
         current app(" (*"). app(name). app(")(")
-        
+
         isFirst := true
         for(typeArg in funcType typeArgs) {
             if(isFirst) isFirst = false
@@ -250,9 +250,9 @@ ModuleWriter: abstract class extends Skeleton {
                     }
                 }
             }
-            
+
             if(tDecl isMeta != meta) continue
-            
+
             match {
                 case tDecl instanceOf(ClassDecl) =>
                     ClassDeclWriter writeStructTypedef(this, tDecl as ClassDecl)
@@ -268,9 +268,9 @@ ModuleWriter: abstract class extends Skeleton {
 
     /** Write an include */
     visitInclude: static func (this: Skeleton, inc: Include) {
-        
+
         if(inc getVersion()) VersionWriter writeStart(this, inc getVersion())
-        
+
         for(define in inc getDefines()) {
 			current nl(). app("#ifndef "). app(define name)
 			current nl(). app("#define "). app(define name)
@@ -280,21 +280,21 @@ ModuleWriter: abstract class extends Skeleton {
             current nl(). app("#define "). app(define name). app("___defined")
 			current nl(). app("#endif");
 		}
-        
+
         chevron := (inc mode == IncludeModes PATHY)
         current nl(). app("#include "). app(chevron ? '<' : '"').
             app(inc path). app(".h").
         app(chevron ? '>' : '"')
-        
+
         for(define in inc getDefines()) {
             current nl(). app("#ifdef "). app(define name). app("___defined")
             current nl(). app("#undef "). app(define name)
             current nl(). app("#undef "). app(define name). app("___defined")
             current nl(). app("#endif")
         }
-        
+
         if(inc getVersion()) VersionWriter writeEnd(this)
-        
+
     }
 
 }

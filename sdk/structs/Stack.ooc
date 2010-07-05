@@ -24,18 +24,18 @@ Stack: class <T> extends BackIterable<T> {
 			
 		return data last()
 	}
-    
+
     peek: func ~index (index: Int) -> T {
         size := data size()
         if (index < 1)
             Exception new(This, "Trying to peek(%d)! index must be >= 1 < size" format(index)) throw()
-            
+
         if (index >= size)
 			Exception new(This, "Trying to peek(%d) a stack of size %d" format(index, size)) throw()
-        
+
         return data get(size - index)
     }
-    
+
     indexOf: func(element: T) -> Int {
         return data indexOf(element)
     }
@@ -51,12 +51,12 @@ Stack: class <T> extends BackIterable<T> {
 	lastIndex: func -> Int {
 		return size() - 1
 	}
-    
+
     clear: func {
         data clear()
     }
-    
+
     iterator: func -> BackIterator<T> { data iterator() }
-    
+
     backIterator: func -> BackIterator<T> { data backIterator() }
 }

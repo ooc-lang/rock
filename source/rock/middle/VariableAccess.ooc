@@ -8,38 +8,38 @@ VariableAccess: class extends Expression {
 
     expr: Expression
     name: String
-    
+
     ref: Declaration
-    
+
     init: func ~variableAccess (.name, .token) {
         init(null, name, token)
     }
-    
+
     init: func ~variableAccessWithExpr (=expr, =name, .token) {
         super(token)
     }
-    
+
     init: func ~varDecl (varDecl: VariableDecl, .token) {
         super(token)
         name = varDecl getName()
         ref = varDecl
     }
-    
+
     init: func ~typeAccess (type: Type, .token) {
         super(token)
         name = type getName()
         ref = type getRef()
     }
-    
+
     accept: func (visitor: Visitor) {
         visitor visitVariableAccess(this)
     }
-    
+
     // It's just an access, it has no side-effects whatsoever
     hasSideEffects : func -> Bool { false }
-    
+
     debugCondition: func -> Bool { false }
-    
+
     suggest: func (node: Node) -> Bool {
         if(node instanceOf(VariableDecl)) {
 			candidate := node as VariableDecl
@@ -54,7 +54,7 @@ VariableAccess: class extends Expression {
             if(isMember() && candidate owner isMeta) {
                 expr = VariableAccess new(candidate owner getNonMeta() getInstanceType(), candidate token)
             }
-            
+
 		    return true
 	    } else if(node instanceOf(FunctionDecl)) {
 			candidate := node as FunctionDecl
@@ -73,15 +73,15 @@ VariableAccess: class extends Expression {
 	    }
 	    return false
     }
-    
+
     isResolved: func -> Bool { ref != null && getType() != null }
-    
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        
+
         if(debugCondition()) {
             "%s is of type %s\n" format(name, getType() ? getType() toString() : "(nil)") println()
         }
-        
+
         if(expr) {
             trail push(this)
             response := expr resolve(trail, res)
@@ -89,7 +89,7 @@ VariableAccess: class extends Expression {
             if(!response ok()) return response
             //printf("Resolved expr, type = %s\n", expr getType() ? expr getType() toString() : "(nil)")
         }
-        
+
         if(expr && name == "class") {
             if(expr getType() == null || expr getType() getRef() == null) {
                 res wholeAgain(this, "expr type or expr type ref is null")
@@ -101,7 +101,7 @@ VariableAccess: class extends Expression {
                 expr = null
             }
         }
-        
+
         /*
          * Try to resolve the access from the expr
          */
@@ -126,7 +126,7 @@ VariableAccess: class extends Expression {
                 typeDecl resolveAccess(this, res, trail)
             }
         }
-        
+
         /*
          * Try to resolve the access from the trail
          * 
@@ -142,7 +142,7 @@ VariableAccess: class extends Expression {
                     if(tDecl isMeta) node = tDecl getNonMeta()
                 }
                 node resolveAccess(this, res, trail)
-                
+
                 if(ref) {
                     // only accesses to variable decls need to be partialed (not type decls)
                     if(ref instanceOf(VariableDecl) && expr == null) {
@@ -186,7 +186,7 @@ VariableAccess: class extends Expression {
                 ref as PropertyDecl setVirtual(false) 
             }
         }
-        
+
         if(!ref) {
             if(res fatal) {
                 if(res params veryVerbose) {
@@ -207,39 +207,39 @@ VariableAccess: class extends Expression {
             }
             res wholeAgain(this, "Couldn't resolve %s" format(toString()))
         }
-        
+
         return Responses OK
-        
+
     }
-    
+
     findSimilar: func (res: Resolver) -> String {
-        
+
         buff := Buffer new()
-        
+
         for(imp in res collectAllImports()) {
             module := imp getModule()
-            
+
             type := module getTypes() get(name)
             if(type) {
                 buff append(" (Hint: there's such a type in "). append(imp getPath()). append(")")
             }
         }
-        
+
         buff toString()
-        
+
     }
-    
+
     getRef: func -> Declaration { ref }
-    
+
     getType: func -> Type {
-           
+
         if(!ref) return null
         if(ref instanceOf(Expression)) {
             return ref as Expression getType()
         }
         return null
     }
-    
+
     isMember: func -> Bool {
         (expr != null) &&
         !(expr instanceOf(VariableAccess) &&
@@ -247,15 +247,15 @@ VariableAccess: class extends Expression {
           expr as VariableAccess getRef() instanceOf(NamespaceDecl)
         )
     }
-    
+
     getName: func -> String { name }
-    
+
     toString: func -> String {
         (expr && expr getType()) ? (expr getType() toString() + "." + name) : name
     }
-    
+
     isReferencable: func -> Bool { true }
-    
+
     replace: func (oldie, kiddo: Node) -> Bool {
         match oldie {
             case expr => expr = kiddo; true

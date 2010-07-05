@@ -10,14 +10,14 @@ UnaryOpType: cover from Int8 {
     toString: func -> String {
         UnaryOpTypes repr get(this)
     }
-    
+
 }
 
 UnaryOpTypes: class {
     binaryNot  = 1,        /*  ~  */
     logicalNot = 2,        /*  !  */
     unaryMinus = 3         /*  -  */ : static const UnaryOpType
-    
+
     repr := static ["no-op",
         "~",
         "!",
@@ -28,25 +28,25 @@ UnaryOp: class extends Expression {
 
     inner: Expression
     type: UnaryOpType
-    
+
     init: func ~unaryOp (=inner, =type, .token) {
         super(token)
     }
-    
+
     accept: func (visitor: Visitor) {
         visitor visitUnaryOp(this)
     }
-    
+
     getType: func -> Type { inner getType() }
-    
+
     toString: func -> String {
         return UnaryOpTypes repr get(type) + inner toString()
     }
-    
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        
+
         trail push(this)
-        
+
         {
             response := inner resolve(trail, res)
             if(!response ok()) {
@@ -56,26 +56,26 @@ UnaryOp: class extends Expression {
         }
 
         trail pop(this)
-        
+
         {
             response := resolveOverload(trail, res)
             if(!response ok()) return response
         }
-        
+
         return Responses OK
-        
+
     }
-    
+
     resolveOverload: func (trail: Trail, res: Resolver) -> Response {
-        
+
         // so here's the plan: we give each operator overload a score
         // depending on how well it fits our requirements (types)
-        
+
         bestScore := 0
         candidate : OperatorDecl = null
-        
+
         reqType := trail peek() getRequiredType()
-        
+
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType)
             if(score == -1) { res wholeAgain(this, "score of %s == -1 !!" format(opDecl toString())); return Responses OK }
@@ -84,7 +84,7 @@ UnaryOp: class extends Expression {
                 candidate = opDecl
             }
         }
-        
+
         for(imp in trail module() getAllImports()) {
             module := imp getModule()
             for(opDecl in module getOperators()) {
@@ -96,7 +96,7 @@ UnaryOp: class extends Expression {
                 }
             }
         }
-        
+
         if(candidate != null) {
             fDecl := candidate getFunctionDecl()
             fCall := FunctionCall new(fDecl getName(), token)
@@ -110,23 +110,23 @@ UnaryOp: class extends Expression {
             }
             res wholeAgain(this, "Just replaced with an operator overloading")
         }
-        
+
         return Responses OK
-        
+
     }
-    
+
     getScore: func (op: OperatorDecl, reqType: Type) -> Int {
-        
+
         symbol := UnaryOpTypes repr[type]
-        
+
         if(!(op getSymbol() equals(symbol))) {
             return 0 // not the right overload type - skip
         }
-        
+
         fDecl := op getFunctionDecl()
-        
+
         args := fDecl getArguments()
-        
+
         //if we have 2 arguments, then it's a binary plus binary
         if(args size() == 2) return 0
 			
@@ -134,23 +134,23 @@ UnaryOp: class extends Expression {
             op token throwError(
                 "Argl, you need 1 argument to override the '%s' operator, not %d" format(symbol, args size()))
         }
-        
+
         if(args get(0) getType() == null || inner getType() == null) { return -1 }
 
         argScore := args get(0) getType() getStrictScore(inner getType())
         if(argScore == -1) return -1
         reqScore := reqType ? fDecl getReturnType() getScore(reqType) : 0
         if(reqScore == -1) return -1
-        
+
         return argScore + reqScore
-        
+
     }
-    
+
     replace: func (oldie, kiddo: Node) -> Bool {
         match oldie {
             case inner => inner = kiddo; true
             case => false
         }
     }
-    
+
 }

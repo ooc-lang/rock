@@ -10,15 +10,15 @@ BaseType: class extends Type {
 
     ref: Declaration = null
     name: String
-    
+
     typeArgs: List<VariableAccess> = null
-    
+
     init: func ~baseType (=name, .token) { super(token) }
-    
+
     pointerLevel: func -> Int { 0 }
-    
+
     isPointer: func -> Bool { name == "Pointer" }
-    
+
     write: func (w: AwesomeWriter, name: String) {
         if(getRef() == null) {
             Exception new(This, "Trying to write unresolved type " + toString()) throw()
@@ -30,13 +30,13 @@ BaseType: class extends Type {
         }
         if(name != null) w app(' '). app(name)
     }
-    
+
     writeInterfaceType: func (w: AwesomeWriter, id: InterfaceDecl) {
         w app(id getFatType() getInstanceType())
     }
-    
+
     writeRegularType: func (w: AwesomeWriter, td: TypeDecl) {
-        
+
         if(td isExtern()) {
             if(td instanceOf(CoverDecl)) {
                 cDecl := getRef() as CoverDecl
@@ -48,12 +48,12 @@ BaseType: class extends Type {
                     return
                 }
             }
-            
+
             // still have a chance to have an extern name
             w app(td getExternName())
             return
         }
-        
+
         while(td instanceOf(CoverDecl) && td as CoverDecl isAddon()) {
             td = td as CoverDecl getBase() getNonMeta()
         }
@@ -63,28 +63,28 @@ BaseType: class extends Type {
             w app('*')
         }
     }
-    
+
     writeGenericType: func (w: AwesomeWriter, vd: VariableDecl) {
         w app("uint8_t*")
     }
-    
+
     equals: func (other: This) -> Bool {
         if(other class != this class) return false
         return (other as BaseType name equals(name))
     }
-    
+
     addTypeArg: func (typeArg: VariableAccess) -> Bool {
         if(!typeArgs) typeArgs = ArrayList<VariableAccess> new()
         typeArgs add(typeArg); true
     }
-    
+
     getName: func -> String { name }
-    
+
     suggest: func (decl: Declaration) -> Bool {
         //if(name == "String") {
         //    printf("Got suggestion %s (%s) for type at %s\n", decl toString(), decl token toString(), token toString())
         //}
-        
+
         // TODO: only accept if decl is a better match than ref (ie. in an addon, for example)
         if(ref == null || (decl instanceOf(CoverDecl) && decl as CoverDecl isAddon())) {
             //if(decl instanceOf(CoverDecl) && decl as CoverDecl isAddon() && ref != null) {
@@ -92,18 +92,18 @@ BaseType: class extends Type {
             //}
             ref = decl
         }
-        
+
         if(name == "This" && getRef() instanceOf(TypeDecl)) {
             tDecl := getRef() as TypeDecl
             name = tDecl getName()
         }
         return true
     }
-    
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
-    
+
         if(isResolved()) return Responses OK
-        
+
         if(!getRef()) {
             depth := trail size() - 1
             while(depth >= 0) {
@@ -113,7 +113,7 @@ BaseType: class extends Type {
                 depth -= 1
             }
         }
-        
+
         if(getRef() == null) {
             if(res fatal) {
                 if(res params veryVerbose) {
@@ -142,12 +142,12 @@ BaseType: class extends Type {
                         case =>
                             "Too many"
                     }
-                    
+
                     token throwError("%s type parameters for %s. It should match %s" format(message, toString(), tDecl getInstanceType() toString()))
                 }
             }
         }
-        
+
         if(typeArgs) {
             trail push(this)
             for(typeArg in typeArgs) {
@@ -159,28 +159,28 @@ BaseType: class extends Type {
             }
             trail pop(this)
         }
-        
+
         return Responses OK
-        
+
     }
-    
+
     findSimilar: func (res: Resolver) -> String {
-        
+
         buff := Buffer new()
-        
+
         for(imp in res collectAllImports()) {
             module := imp getModule()
-            
+
             type := module getTypes() get(name)
             if(type) {
                 buff append(" (Hint: there's such a type in "). append(imp getPath()). append(")")
             }
         }
-        
+
         buff toString()
-        
+
     }
-    
+
     isResolved: func -> Bool {
         if(getRef() == null) return false
         if(typeArgs == null) return true
@@ -189,16 +189,16 @@ BaseType: class extends Type {
         }
         return true
     }
-    
+
     getRef: func -> Declaration { ref }
     setRef: func (=ref) {}
-    
+
     getTypeArgs: func -> List<VariableAccess> { typeArgs }
-    
+
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
         //printf("%s vs %s, other isGeneric ? %s pointerLevel ? %d\n", toString(), other toString(), other isGeneric() toString(), other pointerLevel())
         if(name == "void" || name == "Void") return This NOLUCK_SCORE
-        
+
         if(other isGeneric() && other pointerLevel() == 0) {
             // every type is always a match against a flat generic type
             return scoreSeed / 2
@@ -219,18 +219,18 @@ BaseType: class extends Type {
             // two pointers = okay
             return scoreSeed / 2
         }
-        
+
         if(other instanceOf(BaseType)) {
             if(getRef() == null || other getRef() == null) {
                 //printf("%s ref = %s, other %s ref = %s\n", toString(), getRef() ? getRef() toString() : "(nil)", other toString(), other getRef() ? other getRef() toString() : "(nil)")
                 return -1
             }
-            
+
             if(getRef() == other getRef()) {
                 // perfect match
                 return scoreSeed
             }
-            
+
             // if we are one of his addons, we're good
             if(other getRef() instanceOf(TypeDecl)) {
                 for(addon in other getRef() as TypeDecl getAddons()) {
@@ -243,38 +243,38 @@ BaseType: class extends Type {
                     }
                 }
             }
-            
+
             if(getName() == other getName()) {
                 // *sigh* I wish we didn't have to do that
                 return scoreSeed / 2
             }
-            
+
             if(getRef() instanceOf(TypeDecl) && other getRef() instanceOf(TypeDecl)) {
                 inheritsScore := getRef() as TypeDecl inheritsScore(other getRef() as TypeDecl, scoreSeed)
-                
+
                 // something needs resolving
                 if(inheritsScore == -1) {
                     return inheritsScore
                 }
-                
+
                 if(inheritsScore <= 0 && getRef() instanceOf(CoverDecl) && other getRef() instanceOf(CoverDecl)) {
                     // well, try the other way around - covers are lax - but it'll be weaker this time
                     inheritsScore = other getRef() as TypeDecl inheritsScore(getRef() as TypeDecl, scoreSeed / 2)
                 }
-                
+
                 // cool, a match =)
                 if(inheritsScore > 0) return inheritsScore
             }
-            
+
             if(isNumericType() && other isNumericType()) {
                 // Only half a match - it's not too good to mix integer types. Maybe we need more safety here?
                 return scoreSeed / 2
             }
         }
-        
+
         return This NOLUCK_SCORE // no luck.
     }
-    
+
     dereference: func -> Type {
         digged := dig()
         if(digged) {
@@ -282,7 +282,7 @@ BaseType: class extends Type {
         }
         null
     }
-    
+
     clone: func -> This {
         copy := new(name, token)
         if(getTypeArgs()) for(typeArg in getTypeArgs()) {
@@ -291,22 +291,22 @@ BaseType: class extends Type {
         copy setRef(getRef())
         copy
     }
-    
+
     dig: func -> Type {
         if(getRef() != null && getRef() instanceOf(CoverDecl)) {
             return ref as CoverDecl getFromType()
         }
         return null
     }
-    
+
     checkedDigImpl: func (list: List<Type>, res: Resolver) {
         if(getRef() == null) {
             res wholeAgain(this, "Null ref while check-digging")
             return
         }
-        
+
         list add(this)
-        
+
         if(getRef() != null && getRef() instanceOf(CoverDecl)) {
             next := ref as CoverDecl getFromType()
             if(next != null) {
@@ -324,24 +324,24 @@ BaseType: class extends Type {
             }
         }
     }
-    
+
     inheritsFrom: func (t: Type) -> Bool {
         if(!t instanceOf(BaseType)) return false
         bt := t as BaseType
         if(   ref == null || !   ref instanceOf(TypeDecl)) return false
         if(bt ref == null || !bt ref instanceOf(TypeDecl)) return false
-        
+
         return ref as TypeDecl inheritsFrom(bt ref as TypeDecl)
     }
-    
+
     replace: func (oldie, kiddo: Node) -> Bool {
         if(typeArgs) return typeArgs replace(oldie, kiddo)
         false
     }
-    
+
     toString: func -> String {
         if(typeArgs == null) return getName()
-        
+
         sb := Buffer new()
         sb append(getName())
         sb append("<")
@@ -354,21 +354,21 @@ BaseType: class extends Type {
         sb append(">")
         return sb toString()
     }
-    
+
     searchTypeArg: func (typeArgName: String, finalScore: Int@) -> Type {
         if(getRef() == null) {
             finalScore = -1
             return null
         }
-        
+
         if(!getRef() instanceOf(TypeDecl)) {
             // only TypeDecl have typeArgs anyway.
             return null
         }
-        
+
         typeRef := getRef() as TypeDecl
         if(typeRef typeArgs == null) return null
-        
+
         j := 0
         for(arg in typeRef typeArgs) {
             if(arg getName() == typeArgName) {
@@ -380,7 +380,7 @@ BaseType: class extends Type {
                 ref := candidate getRef()
                 if(ref == null) return null
                 result : Type = null
-                
+
                 //printf("Found candidate %s (which is a %s) for typeArg %s, ref is a %s, = %s\n", candidate toString(), candidate class name, typeArgName, ref class name, ref toString())
                 if(ref instanceOf(TypeDecl)) {
                     // resolves to a known type
@@ -397,7 +397,7 @@ BaseType: class extends Type {
             }
             j += 1
         }
-        
+
         // translate things like:
         // HashMap<K, V> extends Iterator<V>
         current := typeRef
@@ -408,7 +408,7 @@ BaseType: class extends Type {
                 //printf("%s superRef() is null, while looking for %s in %s, looping.\n", current toString(), typeArgName, toString())
                 return null // something needs to be resolved further
             }
-            
+
             j := 0
             superArgs := current getSuperRef() getTypeArgs()
             for(superArg in superArgs) {
@@ -420,16 +420,16 @@ BaseType: class extends Type {
                     }
                     // FIXME: That's awful, and will give us plenty o'trouble. We'll be warned!
                     candidate := superRealArgs get(j)
-                    
+
                     ref := candidate getRef()
-                    
+
                     if(ref == null) {
                         //printf("ref of %s is null, while looking for %s in %s, looping.\n", candidate toString(), typeArgName, toString())
                         finalScore = -1
                         return null
                     }
                     result : Type = null
-                    
+
                     //printf("Found candidate %s for typeArg %s, ref is a %s\n", candidate toString(), typeArgName, ref class name)
                     if(ref instanceOf(TypeDecl)) {
                         // resolves to a known type
@@ -444,16 +444,16 @@ BaseType: class extends Type {
                 }
                 j += 1
             }
-            
+
             current = current getSuperRef()
         }
-        
+
         superType := typeRef getSuperType()
         if(superType != null) {
             //printf("Searching for <%s> in super-type %s\n", typeArgName, superType toString())
             return superType searchTypeArg(typeArgName, finalScore&)
         }
-        
+
         return null
     }
 

@@ -11,23 +11,23 @@ ArrayCreation: class extends Expression {
         super(token)
         realType = arrayType exprLessClone()
     }
-    
+
     accept: func (visitor: Visitor) {
         visitor visitArrayCreation(this)
     }
-        
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
         if(!arrayType resolve(trail, res) ok()) {
             return Responses LOOP
         }
-        
+
         if(!realType  resolve(trail, res) ok()) {
             return Responses LOOP
         }
-        
+
         return Responses OK
     }
-    
+
     replace: func (oldie, kiddo: Node) -> Bool {
         if(oldie == arrayType) {
             oldie = kiddo as ArrayType
@@ -35,13 +35,13 @@ ArrayCreation: class extends Expression {
         }
         false
     }
-    
+
     toString: func -> String {
         "%s new()" format(arrayType toString())
     }
-    
+
     getType: func -> Type {
         realType
     }
-    
+
 }

@@ -24,7 +24,7 @@ PkgInfo: class {
 	
 	/** A list of all include paths */
     includePaths := ArrayList<String> new()
-    
+
     /** A list of all library paths */
     libPaths := ArrayList<String> new()
 	
@@ -33,7 +33,7 @@ PkgInfo: class {
 	 */
     init: func (=name, =libsString, =cflagsString) {
         //printf("Created PkgInfo %s, %s, %s\n", name, libsString, cflagsString)
-        
+
         extractTokens("-L", libsString, libPaths)
 		extractTokens("-l", libsString, libraries);
 		extractTokens("-I", cflagsString, includePaths);

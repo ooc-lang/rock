@@ -8,22 +8,22 @@ MultiMap: class <K, V> extends HashMap<K, V> {
     init: func ~multiMap {
         init(10)
     }
-    
+
     init: func ~multiMapWithCapa(.capacity) {
         if(!V inheritsFrom(Object)) {
             Exception new(This, "Can't create multimaps of %s, V must inherit from object." format(V name)) throw()
         }
         super(capacity)
     }
-    
+
     get: func ~_super (key: K) -> K {
         super(key)
     }
-    
+
     put: func ~_super (key: K, value: V) -> Bool {
         super(key, value)
     }
-    
+
     put: func (key: K, value: V) -> Bool {
         already := get~_super(key) as Object
         if(already == null) {
@@ -42,7 +42,7 @@ MultiMap: class <K, V> extends HashMap<K, V> {
         }
         return true
     }
-    
+
     remove: func (key: K) -> Bool {
         already := get~_super(key) as Object
         if(already == null) {
@@ -61,11 +61,11 @@ MultiMap: class <K, V> extends HashMap<K, V> {
             return super(key)
         }
     }
-    
+
     getAll: func (key: K) -> V {
         get~_super(key)
     }
-    
+
     get: func (key: K) -> V {
         val := super(key) as Object
         if(val == null) {
@@ -76,16 +76,16 @@ MultiMap: class <K, V> extends HashMap<K, V> {
         }
         return val
     }
-    
+
     iterator: func -> MultiMapValueIterator<K, V> {
         MultiMapValueIterator<K, V> new(this)
     }
-    
+
     backIterator: func -> MultiMapValueIterator<K, V> {
         /* TODO: stub */
         return null
     }
-    
+
 }
 
 MultiMapValueIterator: class <K, V> extends BackIterator<V> {
@@ -93,11 +93,11 @@ MultiMapValueIterator: class <K, V> extends BackIterator<V> {
     map: MultiMap<K, V>
     index := 0
     sub : Iterator<V>
-    
+
     init: func ~multiMap (=map) {}
-    
+
     hasNext: func -> Bool { index < map getKeys() size() && (sub == null || sub hasNext()) }
-    
+
     next: func -> V {
 
         // not in list mode
@@ -114,7 +114,7 @@ MultiMapValueIterator: class <K, V> extends BackIterator<V> {
                 return val
             }
         }
-        
+
         // in list mode
         if(sub) {
             val := sub next()
@@ -125,22 +125,22 @@ MultiMapValueIterator: class <K, V> extends BackIterator<V> {
             }
             return val
         }
-        
+
         return null
     }
-    
+
     /* TODO: stub */
-    
+
     hasPrev: func -> Bool { false }
-    
+
     prev: func -> V {
         null
     }
-    
+
     remove: func -> Bool {
         return false
     }
-    
+
 }
 
 operator [] <K, V> (map: MultiMap<K, V>, key: K) -> V {

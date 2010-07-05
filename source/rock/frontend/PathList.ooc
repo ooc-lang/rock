@@ -31,7 +31,7 @@ PathList: class {
             paths put(absolutePath, file)
         }
     }
-    
+
     /**
      * Get an element from the classpath, from its folder name
      */
@@ -131,7 +131,7 @@ PathList: class {
     isEmpty: func -> Bool {
         return paths isEmpty()
     }
-    
+
 }
 
 
