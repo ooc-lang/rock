@@ -92,6 +92,8 @@ JSONGenerator: class extends Visitor {
         obj put("fullName", node underName())
         /* `tag` */
         obj put("tag", node name as String)
+        /* `doc` */
+        obj put("doc", node doc)
         /* `extends` */
         if(node getSuperRef() != null) {
             obj put("extends", node getSuperRef() name as String)
@@ -134,6 +136,8 @@ JSONGenerator: class extends Visitor {
         obj put("name", node name as String)
         /* `type` */
         obj put("type", "cover")
+        /* `doc` */
+        obj put("doc", node doc)
         /* `tag` */
         obj put("tag", node name as String)
         /* `fullName` */
@@ -176,6 +180,8 @@ JSONGenerator: class extends Visitor {
         obj := HashBag new()
         /* `name` */
         obj put("name", node name)
+        /* `doc` */
+        obj put("doc", node doc)
         /* `tag` */
         if(type == "method") {
             obj put("tag", "method(%s, %s)" format(node owner name, node name))
@@ -260,6 +266,8 @@ JSONGenerator: class extends Visitor {
         obj := HashBag new()
         /* `name` */
         obj put("name", node name)
+        /* `doc` */
+        obj put("doc", node doc)
         /* `extern` */
         if(node isExtern()) {
             if(node externName isEmpty())

@@ -39,7 +39,7 @@ import tinker/[Resolver, Response, Trail]
 */
 FunctionDecl: class extends Declaration {
 
-    name = "", suffix = null, fullName = null, doc = null : String
+    name = "", suffix = null, fullName = null, doc = "" : String
     
     returnType := voidType
     
