@@ -57,7 +57,7 @@ CommandLine: class {
 
                     if(params backend != "c" && params backend != "json") {
                         "Unknown backend: %s." format(params backend) println()
-                        params backend = "c"     
+                        params backend = "c"
                     }
 
                 } else if (option startsWith("incpath")) {
@@ -91,6 +91,10 @@ CommandLine: class {
                 } else if(option == "debuglibcache") {
 
                     params debugLibcache = true
+
+                } else if(option startsWith("ignoredefine=")) {
+
+                    params ignoredDefines add(option substring(13))
 
                 } else if (option == "allerrors") {
 
@@ -209,7 +213,7 @@ CommandLine: class {
                     driverName := option substring("driver=" length())
                     driver = match (driverName) {
                         case "combine" =>
-                            CombineDriver new(params) 
+                            CombineDriver new(params)
                         case "sequence" =>
                             SequenceDriver new(params)
                         case "make" =>
@@ -322,7 +326,7 @@ CommandLine: class {
 
         errorCode := 0
 
-        while(true) {         
+        while(true) {
             for(modulePath in modulePaths) {
                 code := parse(modulePath replace('/', File separator))
                 if(code != 0) {
