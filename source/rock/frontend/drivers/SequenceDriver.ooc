@@ -44,7 +44,7 @@ SequenceDriver: class extends Driver {
     init: func (.params) { super(params) }
 
 	compile: func (module: Module) -> Int {
-		
+
 		if(params verbose) {
 			("Sequence driver, using " + params sequenceThreads + " thread" + (params sequenceThreads > 1 ? "s" : "")) println()
 		}
@@ -59,7 +59,7 @@ SequenceDriver: class extends Driver {
 
         if(params verbose) printf("Copying local headers\n")
         copyLocalHeaders(module, params, ArrayList<Module> new())
-		
+
 		sourceFolders = collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<String> new())
 
         oPaths := ArrayList<String> new()
@@ -82,17 +82,17 @@ SequenceDriver: class extends Driver {
             if(code != 0) return code
         }
         if(params verbose) println()
-		
+
 		if(params link) {
-			
+
 			initCompiler(params compiler)
 
-			if(params linker != null) params compiler setExecutable(params linker)    
-			
+			if(params linker != null) params compiler setExecutable(params linker)
+
 			for(oPath in oPaths) {
-				params compiler addObjectFile(oPath)    
+				params compiler addObjectFile(oPath)
 			}
-			
+
             for(define in params defines) {
                 params compiler defineSymbol(define)
             }
@@ -109,7 +109,7 @@ SequenceDriver: class extends Driver {
                 params compiler addObjectFile(additional)
             }
 			for(libPath in params libPath getPaths()) {
-				params compiler addLibraryPath(libPath getAbsolutePath())    
+				params compiler addLibraryPath(libPath getAbsolutePath())
 			}
 
 			if(params binaryPath != "") {
@@ -122,7 +122,7 @@ SequenceDriver: class extends Driver {
             for(lib in libs) {
                 params compiler addObjectFile(lib)
             }
-			
+
 			if(params enableGC) {
                 params compiler addDynamicLibrary("pthread")
                 if(params dynGC) {
@@ -134,16 +134,16 @@ SequenceDriver: class extends Driver {
                 }
             }
 			if(params verbose) params compiler getCommandLine() println()
-	
-			code := params compiler launch()    
-			
+
+			code := params compiler launch()
+
 			if(code != 0) {
                 fprintf(stderr, "C compiler failed, aborting compilation process\n")
 				return code
 			}
-		
+
 		}
-		
+
 		if(params outlib != null) {
 			toCompile := collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<String> new())
             modules := ArrayList<Module> new()
@@ -153,15 +153,15 @@ SequenceDriver: class extends Driver {
 			}
 
             if(params verbose) "Building archive %s with all object files." format(params outlib) println()
-            archive := Archive new("<all>", params outlib, params)
+            archive := Archive new("<all>", params outlib, params, false)
             for(module in modules) {
                 archive add(module)
             }
             archive save(params)
 		}
-		
-		return 0    
-		
+
+		return 0
+
 	}
 
     /**
@@ -279,8 +279,8 @@ SequenceDriver: class extends Driver {
 
             if(params veryVerbose) printf("%s not in cache or out of date, (re)compiling\n", module getFullName())
 
-            params compiler addObjectFile(cPath)    
-            params compiler setOutputPath(oPath)    
+            params compiler addObjectFile(cPath)
+            params compiler setOutputPath(oPath)
 
             params compiler addIncludePath(File new(params distLocation, "libs/headers/") getPath())
             params compiler addIncludePath(params outPath getPath())
@@ -308,11 +308,11 @@ SequenceDriver: class extends Driver {
 
             if(params verbose) params compiler getCommandLine() println()
 
-            code := params compiler launch()    
+            code := params compiler launch()
 
             if(code != 0) {
                 fprintf(stderr, "C compiler failed, aborting compilation process\n")
-                return code 
+                return code
             }
 
             if(archive) archive add(module)
@@ -331,12 +331,12 @@ SequenceDriver: class extends Driver {
     getFlagsFromUse: func ~sourceFolder (sourceFolder: SourceFolder) -> List<String> {
 
         flagsDone := ArrayList<String> new()
-        usesDone := ArrayList<UseDef> new() 
+        usesDone := ArrayList<UseDef> new()
 
         for(module in sourceFolder modules) {
             for(use1 in module uses) {
-                useDef := use1 getUseDef() 
-                getFlagsFromUse(useDef, flagsDone, usesDone) 
+                useDef := use1 getUseDef()
+                getFlagsFromUse(useDef, flagsDone, usesDone)
             }
         }
 
@@ -346,11 +346,11 @@ SequenceDriver: class extends Driver {
 
 	initCompiler: func (compiler: AbstractCompiler) {
 		compiler reset()
-		
-		if(params debug) params compiler setDebugEnabled()      
+
+		if(params debug) params compiler setDebugEnabled()
         params compiler addIncludePath(File new(params distLocation, "libs/headers/") getPath())
         params compiler addIncludePath(params outPath getPath())
-		
+
 		for(compilerArg in params compilerArgs) {
             params compiler addObjectFile(compilerArg)
         }
@@ -361,7 +361,7 @@ SequenceDriver: class extends Driver {
        put them in `toCompile`, and return it.
      */
 	collectDeps: func (module: Module, toCompile: HashMap<String, SourceFolder>, done: ArrayList<Module>) -> HashMap<String, SourceFolder> {
-		
+
         name := File new(File new(module getPathElement()) getAbsolutePath()) name()
 
         sourceFolder := toCompile get(name)
@@ -370,18 +370,18 @@ SequenceDriver: class extends Driver {
             toCompile put(name, sourceFolder)
         }
 
-		sourceFolder modules add(module)    
+		sourceFolder modules add(module)
 		done add(module)
-		
+
 		for(import1 in module getAllImports()) {
 			if(done contains(import1 getModule())) continue
-			collectDeps(import1 getModule(), toCompile, done)    
+			collectDeps(import1 getModule(), toCompile, done)
 		}
-		
-		return toCompile    
-		
+
+		return toCompile
+
 	}
-	
+
 }
 
 SourceFolder: class {
