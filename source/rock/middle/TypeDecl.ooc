@@ -10,7 +10,7 @@ import tinker/[Resolver, Response, Trail]
 /**
    A type declaration - a class, a cover, an interface, an enum..
 
-   A type declaration has a name, optionally an extern-name, 
+   A type declaration has a name, optionally an extern-name,
    optional generic type arguments, but also variables and functions.
 
    This is a base class containing many useful variables and methods, but
@@ -48,7 +48,7 @@ TypeDecl: abstract class extends Declaration {
 
     verzion: VersionSpec = null
 
-    base: TypeDecl = null    
+    base: TypeDecl = null
     addons := ArrayList<TypeDecl> new()
 
     _finishedGhosting := false
@@ -280,11 +280,11 @@ TypeDecl: abstract class extends Declaration {
         if(call && call expr && call expr getType() && call expr getType() getRef() &&
            call expr getType() getRef() instanceOf(ClassDecl) &&
            call expr getType() getRef() as ClassDecl isMeta) {
-            for(_fDecl: FunctionDecl in functions) {
+            for(fDecl: FunctionDecl in functions) {
                 // Not ignoring static methods is intended; we want static member access without explicit `This`.
-                fDecl := _fDecl getStaticVariant()
-                if(!fDecl) continue
                 if(fDecl name equals(name) && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix equals(suffix))) {
+                    if(!fDecl isStatic) fDecl = fDecl getStaticVariant()
+
                     if(!call) return fDecl
                     score := call getScore(fDecl)
                     if(score == -1) {
@@ -454,7 +454,7 @@ TypeDecl: abstract class extends Declaration {
 
                 // It's easier to handle interfaces this way: if we implement ReaderWriter,
                 // an interface that implements both the Reader and Writer interfaces,
-                // instead of generating intermediate methods, we say that 
+                // instead of generating intermediate methods, we say that
                 transitiveInterfaces := interfaceType getRef() as TypeDecl getInterfaceTypes()
                 if(!transitiveInterfaces isEmpty()) {
                     for(candidate in transitiveInterfaces) {
@@ -651,7 +651,7 @@ TypeDecl: abstract class extends Declaration {
             	return 0
             }
 		}
-		
+
         if(getSuperRef() != null) {
         	//FIXME: should return here if success
             getSuperRef() resolveAccess(access, res, trail)
@@ -781,7 +781,7 @@ TypeDecl: abstract class extends Declaration {
             superRef := getSuperRef()
             if(debugCondition()) printf("superRef = %s\n", superRef toString())
 
-            if(superRef == null) return -1            
+            if(superRef == null) return -1
             if(superRef == tDecl) return scoreSeed
             return superRef inheritsScore(tDecl, scoreSeed / 2)
         }

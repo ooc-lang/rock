@@ -19,7 +19,7 @@ ArrayLiteral: class extends Literal {
 
     getElements: func -> List<Expression> { elements }
 
-    accept: func (visitor: Visitor) { 
+    accept: func (visitor: Visitor) {
         visitor visitArrayLiteral(this)
     }
 
@@ -95,7 +95,7 @@ ArrayLiteral: class extends Literal {
                                 toString(), index, fCall toString(), fCall getRef() toString(), fCall getRef() args size())
                         }
                     }
-                }   
+                }
             }
         }
 
@@ -283,7 +283,7 @@ ArrayLiteral: class extends Literal {
     }
 
     replace: func (oldie, kiddo: Node) -> Bool {
-        elements replace(oldie, kiddo)
+        elements replace(oldie as Expression, kiddo as Expression)
     }
 
 }

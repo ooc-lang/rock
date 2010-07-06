@@ -38,7 +38,7 @@ CommaSequence: class extends Expression {
     }
 
     replace: func (oldie, kiddo: Node) -> Bool {
-        body replace(oldie, kiddo)
+        body replace(oldie as Statement, kiddo as Statement)
     }
 
     getBody: func -> List<Statement> { body }

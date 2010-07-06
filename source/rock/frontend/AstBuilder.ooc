@@ -41,7 +41,7 @@ AstBuilder: class {
     params: BuildParams
     modulePath: String
     module: Module
-    stack: Stack<Node>
+    stack: Stack<Object>
     versionStack: Stack<VersionSpec>
 
     tokenPos : Int*
@@ -51,7 +51,7 @@ AstBuilder: class {
         if(params verbose) printf("- Parsing %s\n", modulePath)
         cache put(File new(modulePath) getAbsolutePath(), module)
 
-        stack = Stack<Node> new()
+        stack = Stack<Object> new()
         stack push(module)
         versionStack = Stack<VersionSpec> new()
 
@@ -252,7 +252,7 @@ AstBuilder: class {
 
     onEnumElementStart: unmangled(nq_onEnumElementStart) func (name, doc: String) {
         element := EnumElement new(peek(EnumDecl) getInstanceType(), name clone(), token())
-        element doc = doc  
+        element doc = doc
         stack push(element)
     }
 
@@ -786,7 +786,10 @@ AstBuilder: class {
                 fDecl getBody() add(stmt)
             case node instanceOf(ArrayLiteral) =>
                 arrayLit := node as ArrayLiteral
-                arrayLit getElements() add(stmt)
+                if(!stmt instanceOf(Expression)) {
+                    stmt token throwError("Expected an expression here, not a statement!")
+                }
+                arrayLit getElements() add(stmt as Expression)
             case =>
                 printf("[gotStatement] Got a %s, don't know what to do with it, parent = %s\n", stmt toString(), node class name)
         }
@@ -1140,7 +1143,7 @@ AstBuilder: class {
 
         for(v in versionStack) {
             if(spec) {
-                spec = VersionAnd new(spec, v, spec token) 
+                spec = VersionAnd new(spec, v, spec token)
             } else {
                 spec = v
             }

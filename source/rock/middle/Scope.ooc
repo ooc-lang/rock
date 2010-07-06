@@ -17,7 +17,7 @@ Scope: class extends Node {
         ourIndex := trail indexOf(this)
 
         if(ourIndex != -1) {
-            node : Node = null
+            node : Statement = null
 
             if(ourIndex + 1 >= trail size()) node = access
             else                             node = trail get(ourIndex + 1)
