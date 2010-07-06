@@ -216,6 +216,10 @@ FunctionDecl: class extends Declaration {
     }
 
     getArgsRepr: func -> String {
+        getArgsRepr(null)
+    }
+
+    getArgsRepr: func ~withCallContext (call: FunctionCall) -> String {
         if(args size() == 0) return ""
         sb := Buffer new()
         if(typeArgs != null && !typeArgs isEmpty()) {
@@ -233,17 +237,27 @@ FunctionDecl: class extends Declaration {
         for(arg in args) {
             if(isFirst) isFirst = false
             else        sb append(", ")
-            sb append(arg toString())
+            argType := arg getType()
+            if(call) {
+                finalScore := 0
+                solved := call resolveTypeArg(argType getName(), null, finalScore&)
+                if(solved) argType = solved
+            }
+            sb append(argType toString())
         }
         sb append(")")
         return sb toString()
     }
 
     toString: func -> String {
-        (owner ? owner getName() + "." : "") +
+        toString(null)
+    }
+
+    toString: func ~withCallContext (call: FunctionCall) -> String {
+        (owner ? owner getName() + " " : "") +
         (suffix ? (name + "~" + suffix) : name) +
-        (isStatic ? ": static func " : ": func ") +
-        getArgsRepr() +
+        (isStatic ? " static" : "") +
+        getArgsRepr(call) +
         (hasReturn() ? " -> " + returnType toString() : "")
     }
 

@@ -217,10 +217,10 @@ FunctionCall: class extends Expression {
                 message = "No such function %s%s" format(name, getArgsTypesRepr())
             } else if(expr getType() != null) {
                 if(res params veryVerbose) {
-                    message = "No such function %s%s for %s (%s)" format(name, getArgsTypesRepr(),
+                    message = "No such function %s%s for `%s` (%s)" format(name, getArgsTypesRepr(),
 						expr getType() toString(), expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)")
                 } else {
-                    message = "No such function %s%s for %s" format(name, getArgsTypesRepr(), expr getType() toString())
+                    message = "No such function %s%s for `%s`" format(name, getArgsTypesRepr(), expr getType() toString())
                 }
             }
             //printf("name = %s, refScore = %d, ref = %s\n", name, refScore, ref ? ref toString() : "(nil)")
@@ -272,7 +272,7 @@ FunctionCall: class extends Expression {
     }
 
     showNearestMatch: func (params: BuildParams) {
-        "\tNearest match is:\n\n\t\t%s\n" format(ref toString()) println()
+        "\tNearest match is:\n\n\t\t%s\n" format(ref toString(this)) println()
 
         callIter := args iterator()
         declIter := ref args iterator()
@@ -283,22 +283,29 @@ FunctionCall: class extends Expression {
             callArg := callIter next()
 
             if(declArg getType() == null) {
-                declArg token printMessage("\t..but couldn't resolve type of this argument in the declaration\n", "")
+                declArg token printMessage("\tbut couldn't resolve type of this argument in the declaration\n", "")
                 continue
             }
 
             if(callArg getType() == null) {
-                callArg token printMessage("\t..but coultn't resolve type of this argument in the call\n", "")
+                callArg token printMessage("\tbut coultn't resolve type of this argument in the call\n", "")
                 continue
             }
 
-            score := callArg getType() getScore(declArg getType())
+            declArgType := declArg getType()
+            if(declArgType isGeneric()) {
+                finalScore := 0
+                solved := resolveTypeArg(declArgType getName(), null, finalScore&)
+                if(solved) declArgType = solved
+            }
+
+            score := callArg getType() getScore(declArgType)
             if(score < 0) {
                 if(params veryVerbose) {
-                    "\t..but the type of this arg should be %s (%s), not %s (%s)\n" format(declArg getType() toString(), declArg getType() getRef() ? declArg getType() getRef() token toString() : "(nil)",
+                    "\t..but the type of this arg should be `%s` (%s), not %s (%s)\n" format(declArgType toString(), declArgType getRef() ? declArgType getRef() token toString() : "(nil)",
                                                                                            callArg getType() toString(), callArg getType() getRef() ? callArg getType() getRef() token toString() : "(nil)") println()
                 } else {
-                    "\t..but the type of this arg should be %s, not %s\n" format(declArg getType() toString(), callArg getType() toString()) println()
+                    "\t..but the type of this arg should be `%s`, not `%s`\n" format(declArgType toString(), callArg getType() toString()) println()
                 }
                 callArg token printMessage("\t\t", "", "")
             }
