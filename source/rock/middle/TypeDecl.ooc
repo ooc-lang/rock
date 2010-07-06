@@ -534,6 +534,12 @@ TypeDecl: abstract class extends Declaration {
                         fDecl hasReturn() ? " -> " + fDecl returnType toString() : ""
                     ))
                 } else {
+                    // FIXME: DEBUG
+                    "we got functions: " printfln()
+                    for(f in implemented) {
+                        f toString() println()
+                    }
+                    // FIXME: END DEBUG
                     token throwError("`%s` must implement function `%s%s%s` because it extends `%s`" format(
                         getNonMeta() getName(),
                         fDecl getSuffix() ? fDecl getName() + "~" + fDecl getSuffix() : fDecl getName(),

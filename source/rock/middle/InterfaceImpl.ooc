@@ -25,6 +25,11 @@ InterfaceImpl: class extends ClassDecl {
 
     getAliases: func -> HashMap<String, FunctionDecl> { aliases }
 
+    isAbstract: func -> Bool { true }
+
+    /** Trick to get TypeDecl checkAbstractFuncs() out of the way. We check it already */
+    checkAbstractFuncs: func (res: Resolver) -> Bool { true }
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         if(!super(trail, res) ok()) return Responses LOOP
