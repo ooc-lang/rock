@@ -13,7 +13,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,
     Node, Parenthesis, Return, Cast, Comparison, Ternary, BoolLiteral,
     Argument, Statement, AddressOf, Dereference, FuncType, BaseType, PropertyDecl,
-    EnumDecl, OperatorDecl]
+    EnumDecl, OperatorDecl, InterfaceDecl, InterfaceImpl]
 
 JSONGenerator: class extends Visitor {
 
@@ -130,6 +130,8 @@ JSONGenerator: class extends Visitor {
         }
         obj put("members", members)
         objects put(node name, obj)
+        for(idecl in node getInterfaceDecls())
+            visitInterfaceImpl(idecl)
     }
 
     visitCoverDecl: func (node: CoverDecl) {
@@ -170,6 +172,8 @@ JSONGenerator: class extends Visitor {
         }
         obj put("members", members)
         objects put(node name, obj)
+        for(idecl in node getInterfaceDecls())
+            visitInterfaceImpl(idecl)
     }
 
     visitFunctionDecl: func (node: FunctionDecl) {
@@ -444,6 +448,33 @@ JSONGenerator: class extends Visitor {
         objects put(tag, obj)
     }
 
+    visitInterfaceDecl: func (node: InterfaceDecl) {
+        obj := HashBag new()
+        obj put("tag", node name) .put("name", node name) .put("doc", node doc) .put("type", "interface")
+        /* methods */
+        members := Bag new()
+        for(function in node meta functions) {
+            member := Bag new()
+            member add(function name) .add(buildFunctionDecl(function, "method"))
+            members add(member)
+        }
+        obj put("members", members)
+        objects put(node name, obj)
+    }
+
+    visitInterfaceImpl: func (node: InterfaceImpl) {
+        obj := HashBag new()
+        name := node getSuperType() getName()
+        target := node impl getName()
+        tag := "interfaceImpl(%s, %s)" format(name, target)
+        obj put("tag", tag) \
+           .put("type", "interfaceImpl") \
+           .put("doc", "") \
+           .put("interface", name) \
+           .put("for", target)
+        objects put(tag, obj)
+    }
+
     visitType:               func (node: Type) {}
 
     visitModule:             func (node: Module) {
@@ -458,6 +489,4 @@ JSONGenerator: class extends Visitor {
             if(child instanceOf(VariableDecl))
                 child accept(this)
     }
-
-
 }
