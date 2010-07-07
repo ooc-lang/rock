@@ -32,7 +32,7 @@ Return: class extends Statement {
         }
 
         if(!expr) {
-            if (!retType isGeneric() && retType != voidType) { 
+            if (!retType isGeneric() && retType != voidType) {
                 token throwError("Function is not declared to return `null`! trail = %s" format(trail toString()))
             } else {
                 return Responses OK
@@ -57,6 +57,7 @@ Return: class extends Statement {
                     res wholeAgain(this, "expr type is unresolved"); return Responses OK
                 }
 
+                // TODO: check more returnArgs
                 returnAcc := VariableAccess new(fDecl getReturnArg(), token)
 
                 if(expr instanceOf(FunctionCall)) {
@@ -120,12 +121,12 @@ Return: class extends Statement {
                             msg = "The declared return type (%s) and the returned value (%s) do not match!" format(retType toString(), expr getType() toString())
                         }
                         token throwError(msg)
-                    }                       
+                    }
                     expr = Cast new(expr, retType, expr token)
                 }
             }
 
-            if (retType == voidType && !expr) 
+            if (retType == voidType && !expr)
                 token throwError("Function is declared to return `null`, not %s! trail = %s" format(expr getType() toString(), trail toString()))
 
             module := trail module()

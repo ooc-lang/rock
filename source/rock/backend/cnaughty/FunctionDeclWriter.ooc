@@ -70,11 +70,11 @@ FunctionDeclWriter: abstract class extends Skeleton {
 
     /**
      * Write the arguments of a function
-     * 
+     *
      * @param baseType For covers, the 'this' must be casted otherwise
      * the C compiler complains about incompatible pointer types. Or at
      * least that's my guess as to its utility =)
-     * 
+     *
      * @see FunctionCallWriter
      */
     writeFuncArgs: static func (this: Skeleton, fDecl: FunctionDecl, mode: ArgsWriteMode, baseType: TypeDecl) {
@@ -113,17 +113,17 @@ FunctionDeclWriter: abstract class extends Skeleton {
         }
 
         /* Step 2: write the return argument, if any */
-        if(fDecl getReturnType() isGeneric()) {
+        for(retArg in fDecl getReturnArgs()) {
             if(!isFirst) current app(", ")
             else isFirst = false
 
             match mode {
                 case ArgsWriteModes NAMES_ONLY =>
-                    current app(fDecl getReturnArg() getName())
+                    current app(retArg getName())
                 case ArgsWriteModes TYPES_ONLY =>
-                    current app(fDecl getReturnArg() getType())
+                    current app(retArg getType())
                 case =>
-                    current app(fDecl getReturnArg())
+                    current app(retArg)
             }
         }
 
@@ -212,7 +212,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
             TypeWriter writeFuncPointerEnd((FunctionDecl) returnType.getRef(), cgen)
         }*/
 
-    }    
+    }
 
 }
 

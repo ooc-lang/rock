@@ -309,7 +309,7 @@ VariableDeclTuple: class extends VariableDecl {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        token throwError("Got a VariableDeclTuple!")
+        //token throwError("Got a VariableDeclTuple!")
 
         Responses OK
     }

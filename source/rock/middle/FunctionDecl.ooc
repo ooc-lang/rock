@@ -1,4 +1,4 @@
-import structs/[Stack, ArrayList], text/Buffer
+import structs/[Stack, ArrayList, List], text/Buffer
 import ../frontend/[Token, BuildParams]
 import Cast, Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, If, Else,
@@ -60,7 +60,7 @@ FunctionDecl: class extends Declaration {
 
     typeArgs := ArrayList<VariableDecl> new()
     args := ArrayList<VariableDecl> new()
-    returnArg : Argument = null
+    returnArgs := ArrayList<VariableDecl> new()
     body := Scope new()
 
     partialByReference := ArrayList<VariableDecl> new()
@@ -144,11 +144,15 @@ FunctionDecl: class extends Declaration {
         staticVariant
     }
 
-    getReturnArg: func -> Argument {
-        if(returnArg == null) {
-            returnArg = Argument new(getReturnType(), generateTempName("returnArg"), token)
-        }
-        return returnArg
+    getReturnArg: func -> VariableDecl {
+        if(!returnArgs isEmpty()) return returnArgs[0]
+        retArg := VariableDecl new(returnType, generateTempName("returnArg"), token)
+        returnArgs add(retArg)
+        retArg
+    }
+
+    getReturnArgs: func -> List<VariableDecl> {
+        return returnArgs
     }
 
     hasReturn: func -> Bool {
@@ -364,6 +368,8 @@ FunctionDecl: class extends Declaration {
             }
             if(returnType getRef() == null) {
                 res wholeAgain(this, "need returnType of decl " + name)
+            } else if(returnType isGeneric()) {
+                getReturnArg() // this create the returnArg for generic return types
             }
         }
 

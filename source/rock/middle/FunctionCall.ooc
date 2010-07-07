@@ -1,4 +1,4 @@
-import structs/ArrayList, text/Buffer
+import structs/[ArrayList, List], text/Buffer
 import ../frontend/[Token, BuildParams, CommandLine]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
@@ -12,7 +12,7 @@ FunctionCall: class extends Expression {
 
     typeArgs := ArrayList<Expression> new()
 
-    returnArg : Expression = null
+    returnArgs := ArrayList<Expression> new()
     returnType : Type = null
 
     args := ArrayList<Expression> new()
@@ -104,12 +104,13 @@ FunctionCall: class extends Expression {
             if(!response ok()) return response
         }
 
-        if(returnArg) {
+        for(i in 0..returnArgs size()) {
+            returnArg := returnArgs[i]
             response := returnArg resolve(trail, res)
             if(!response ok()) return response
 
             if(returnArg isResolved() && !returnArg instanceOf(AddressOf)) {
-                returnArg = returnArg getGenericOperand()
+                returnArgs[i] = returnArg getGenericOperand()
             }
         }
 
@@ -364,7 +365,7 @@ FunctionCall: class extends Expression {
 
             // only modify ourselves if we could do the other modifications
             varAcc := VariableAccess new(vDecl, token)
-            setReturnArg(varAcc)
+            returnArgs add(varAcc)
 
             seq getBody() add(this)
             seq getBody() add(varAcc)
@@ -880,8 +881,11 @@ FunctionCall: class extends Expression {
         args replace(oldie as Expression, kiddo as Expression)
     }
 
-    setReturnArg: func (=returnArg) {}
-    getReturnArg: func -> Expression { returnArg }
+    setReturnArg: func (retArg: Expression) {
+        if(returnArgs isEmpty()) returnArgs add(retArg)
+        else                     returnArgs[0] = retArg
+    }
+    getReturnArgs: func -> List<Expression> { returnArgs }
 
     getRef: func -> FunctionDecl { ref }
     setRef: func (=ref) { refScore = 1; /* or it'll keep trying to resolve it =) */ }
