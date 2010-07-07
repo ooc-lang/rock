@@ -131,6 +131,7 @@ File: abstract class {
     parent: func -> File {
         pName := parentName()
         if(pName) return File new(pName)
+        if(path != "." && !path startsWith(This separator)) return File new(".") // return the current directory
         return null
     }
 

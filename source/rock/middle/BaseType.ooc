@@ -335,7 +335,7 @@ BaseType: class extends Type {
     }
 
     replace: func (oldie, kiddo: Node) -> Bool {
-        if(typeArgs) return typeArgs replace(oldie, kiddo)
+        if(typeArgs) return typeArgs replace(oldie as VariableAccess, kiddo as VariableAccess)
         false
     }
 
@@ -416,7 +416,8 @@ BaseType: class extends Type {
                     //printf("Found match for <%s> in %s extends %s (aka %s)\n", typeArgName, current toString(), current getSuperType() toString(), current getSuperRef() toString())
                     superRealArgs := current getSuperType() getTypeArgs()
                     if(superRealArgs == null || superRealArgs size() < j) {
-                        current getSuperType() token throwError("Missing type arguments to fully infer <%s>. It must match %s" format(typeArgName, current getSuperRef() toString()))
+                        //current getSuperType() token throwError("Missing type arguments to fully infer <%s>. It must match %s" format(typeArgName, current getSuperRef() toString()))
+                        continue
                     }
                     // FIXME: That's awful, and will give us plenty o'trouble. We'll be warned!
                     candidate := superRealArgs get(j)

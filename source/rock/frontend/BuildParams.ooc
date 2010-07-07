@@ -9,8 +9,8 @@ BuildParams: class {
 
     fatalError := static true
 
-    additionals  := ArrayList<String> new() 
-    compilerArgs := ArrayList<String> new() 
+    additionals  := ArrayList<String> new()
+    compilerArgs := ArrayList<String> new()
 
     /* Builtin defines */
 	GC_DEFINE := static const "__OOC_USE_GC__"
@@ -123,7 +123,7 @@ BuildParams: class {
     // Path to place the binary
     binaryPath: String = ""
 
-    // Path of the text editor to run when an error is encountered in an ooc file 
+    // Path of the text editor to run when an error is encountered in an ooc file
     editor: String = ""
 
     // Remove the rock_tmp/ directory after the C compiler has finished
@@ -150,6 +150,10 @@ BuildParams: class {
     // Debugging purposes
     debugLoop := false
     debugLibcache := false
+
+    // Ignore these defines when trying to determie if a cached lib is up-to-date or not
+    // used for BUILD_DATE or BUILD_TIME stuff
+    ignoredDefines := ArrayList<String> new()
 
     // Tries to find types/functions in not-imported nodules, etc. Disable with -noshit
     helpful := true
@@ -222,7 +226,7 @@ BuildParams: class {
             defines add(symbol)
         }
 	}
-	
+
 	undefineSymbol: func (symbol: String) {
         idx := _indexOfSymbol(symbol)
         if (idx != -1) {
@@ -247,7 +251,16 @@ BuildParams: class {
             b append("off")
         }
         b append(" -backend="). append(backend)
-        b append(compilerArgs join(" "))
+        for(arg in compilerArgs) {
+            ignored := false
+            for(ignoredDefine in ignoredDefines) {
+                if(arg startsWith("-D" + ignoredDefine)) {
+                    ignored = true
+                    break
+                }
+            }
+            if(!ignored) b append(' '). append(arg)
+        }
         b toString()
     }
 

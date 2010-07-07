@@ -41,12 +41,21 @@ Archive: class {
     /** List of elements to add to the archive when save() is called */
     toAdd := ArrayList<Module> new()
 
+    /** Write .cacheinfo files or not */
+    doCacheinfo := true
+
     /** Create a new Archive */
-    init: func ~archive (=sourceFolder, =outlib, =params) {
+    init: func ~archive (.sourceFolder, .outlib, .params) {
+        init(sourceFolder, outlib, params, true)
+    }
+
+    init: func ~archiveCacheinfo (=sourceFolder, =outlib, =params, =doCacheinfo) {
         compilerArgs = params getArgsRepr()
-        pathElement = params sourcePath get(sourceFolder)
-        if(File new(outlib) exists() && File new(outlib + ".cacheinfo") exists()) {
-            _read()
+        if(doCacheinfo) {
+            pathElement = params sourcePath get(sourceFolder)
+            if(File new(outlib) exists() && File new(outlib + ".cacheinfo") exists()) {
+                _read()
+            }
         }
     }
 
@@ -164,6 +173,7 @@ Archive: class {
     exists?: Bool {
         get {
             if(!File new(outlib) exists()) return false
+            if(!doCacheinfo) return false
             fR := FileReader new(outlib + ".cacheinfo")
             result := _readHeader(fR)
             fR close()
@@ -180,6 +190,8 @@ Archive: class {
     }
 
     _upToDate?: func (module: Module, done: List<Module>, ourself: Bool) -> Bool {
+        if(!doCacheinfo) return false
+
         done add(module)
 
         oocPath := module getOocPath()
@@ -246,9 +258,7 @@ Archive: class {
             args add(oPath)
 
             element := ArchiveModule new(module, this)
-
-            elements remove(element oocPath) // replace
-            elements put(element oocPath, element)
+            elements put(element oocPath, element) // replace
         }
         toAdd clear()
 
@@ -264,7 +274,9 @@ Archive: class {
             output print()
         }
 
-        _write()
+        if(doCacheinfo) {
+            _write()
+        }
     }
 
 }
@@ -286,7 +298,11 @@ ArchiveModule: class {
      */
     init: func ~fromModule (=module, =archive) {
         oocPath = module getOocPath()
-        lastModified = File new(archive pathElement, oocPath) lastModified()
+        if(archive pathElement) {
+            lastModified = File new(archive pathElement, oocPath) lastModified()
+        } else {
+            lastModified = -1
+        }
 
         for(tDecl in module getTypes()) {
             archType := ArchiveType new(tDecl)

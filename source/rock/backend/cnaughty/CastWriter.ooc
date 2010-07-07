@@ -33,11 +33,11 @@ CastWriter: abstract class extends Skeleton {
 
     getImplementor: static func (typeDecl: TypeDecl, haystack: Type) -> TypeDecl {
 
-        printf("Searching for implementor of %s in %s\n", haystack toString(), typeDecl toString())
+        //printf("Searching for implementor of %s in %s\n", haystack toString(), typeDecl toString())
         for(impl in typeDecl getInterfaceDecls()) {
-            printf("%s vs %s\n", impl getSuperRef() getType() toString(), haystack toString())
+            //printf("%s vs %s\n", impl getSuperRef() getType() toString(), haystack toString())
             if(impl getSuperRef() getType() equals(haystack)) {
-                printf("Found %s\n", impl toString())
+                //printf("Found %s\n", impl toString())
                 return typeDecl
             }
         }

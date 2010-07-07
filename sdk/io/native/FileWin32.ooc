@@ -245,8 +245,8 @@ version(windows) {
          * List the children of this path
          * Works only on directories, obviously
          */
-        getChildren: func -> ArrayList<This> {
-            result := ArrayList<This> new()
+        getChildren: func -> ArrayList<File> {
+            result := ArrayList<File> new()
             ffd: FindData
             hFile := FindFirstFile(path + "\\*", ffd&)
             running := (hFile != INVALID_HANDLE_VALUE)
