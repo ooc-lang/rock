@@ -147,12 +147,12 @@ ClassDeclWriter: abstract class extends Skeleton {
 		for (decl: FunctionDecl in cDecl functions) {
 
 			if (!decl isStatic() || decl isProto()) continue
-            
+
             if(decl isExternWithName()) {
                 FunctionDeclWriter write(this, decl)
 				continue
 			}
-            
+
             current = cw
             current nl()
 			FunctionDeclWriter writeFuncPrototype(this, decl);

@@ -6,7 +6,7 @@ Use: class {
 
     identifier: String
     useDef: UseDef = null
-    
+
     init: func (=identifier, params: BuildParams, token: Token) {
         useDef = UseDef parse(identifier, params)
         if(useDef == null) {
@@ -20,7 +20,7 @@ For more informations, see http://docs.ooc-lang.org/libs.html
             )
         }
     }
-    
+
     getUseDef: func -> UseDef {
         useDef
     }

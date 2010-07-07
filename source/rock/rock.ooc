@@ -3,7 +3,7 @@ import frontend/CommandLine
 
 Rock: class {
     execName := static ""
-    
+
     getVersionMajor:    static func -> Int    { 0 }
     getVersionMinor:    static func -> Int    { 9 }
     getVersionPatch:    static func -> Int    { 2 }
@@ -13,8 +13,8 @@ Rock: class {
 }
 
 main: func(args: ArrayList<String>) {
-    
+
     Rock execName = args[0]
     CommandLine new(args)
-    
+
 }

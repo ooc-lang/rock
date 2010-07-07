@@ -6,15 +6,15 @@ import tinker/[Trail, Resolver, Response]
 ControlStatement: abstract class extends Statement {
 
     body := Scope new()
-    
+
     init: func ~controlStatement (.token) { super(token) }
-    
+
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
         // FIXME: this probably isn't needed. Harmful, even.
         body resolveAccess(access, res, trail)
         0
     }
-    
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
         //printf("Resolving a %s\n", class name)
         trail push(this)
@@ -22,19 +22,19 @@ ControlStatement: abstract class extends Statement {
         trail pop(this)
         return response
     }
-    
+
     replace: func (oldie, kiddo: Node) -> Bool {
         body replace(oldie, kiddo)
     }
-    
+
     addBefore: func (mark, newcomer: Node) -> Bool {
         body addBefore(mark, newcomer)
     }
-    
+
     addAfter: func (mark, newcomer: Node) -> Bool {
         body addAfter(mark, newcomer)
     }
-    
+
     /**
      * If, Else, Match are dead-end control statements.
      * While, For, Foreach aren't.
@@ -43,7 +43,7 @@ ControlStatement: abstract class extends Statement {
      * to add return when the last statement is a non-void expression.
      */
     isDeadEnd: func -> Bool { false }
-    
+
     getBody: func -> Scope { body }
-    
+
 }

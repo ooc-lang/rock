@@ -9,40 +9,40 @@ import tinker/[Resolver, Response, Trail]
 
 /**
    A function declaration.
-   
+
    A function has a name and optionally a suffix. If the function has
    no suffix, then `suffix` is null.
-   
+
    The return type is voidType if unspecified, or the type after the '->'
    in the function declaration otherwise.
-   
+
    A function may have 0 or more arguments. Arguments can be TypeArg(s), as in:
-   
+
      exit: extern func (Int)
-   
+
    AssArg (assign arguments):
-   
+
      init: func (=x, =y) {}
-   
+
    DotArg (member arguments):
-   
+
      init: func (.x, .y) { position = Point new(x, y) }
 
    VarArg (variable argument):
-   
+
      printf: extern func (fmt: String, ...)
 
    Or just regular Argument(s) :
-   
+
      add: func (element: T) {}
-   
+
 */
 FunctionDecl: class extends Declaration {
 
-    name = "", suffix = null, fullName = null : String
+    name = "", suffix = null, fullName = null, doc = null : String
+
     returnType := voidType
-    type : static Type = FuncType new(nullToken)
-    
+
     /** Attributes */
     isAbstract := false
     isStatic := false
@@ -54,22 +54,23 @@ FunctionDecl: class extends Declaration {
     unmangledName: String = null
     // if true, 'this' has byref semantics
     isThisRef := false
-    
+
     /** If this FunctionDecl is a shim to make a VariableDecl callable, then vDecl is set to that variable decl. */
     vDecl : VariableDecl = null
-    
+
     typeArgs := ArrayList<VariableDecl> new()
-    args := ArrayList<Argument> new()
+    args := ArrayList<VariableDecl> new()
     returnArg : Argument = null
     body := Scope new()
-    
+
     partialByReference := ArrayList<VariableDecl> new()
     partialByValue := ArrayList<VariableDecl> new()
     clsAccesses := ArrayList<VariableAccess> new()
-    
+    _unwrappedClosure := false
+
     owner : TypeDecl = null
     staticVariant : This = null
-    
+
     verzion: VersionSpec = null
     isAnon: Bool
 
@@ -78,45 +79,45 @@ FunctionDecl: class extends Declaration {
         this isAnon = name isEmpty()
         this isFinal = (name == "init")
     }
-    
+
     accept: func (visitor: Visitor) { visitor visitFunctionDecl(this) }
 
     addTypeArg: func (typeArg: VariableDecl) -> Bool { typeArgs add(typeArg); true }
 
     getReturnType: func -> Type { returnType }
 	setReturnType: func(type: Type) { this returnType = type }
-    
+
     setName: func (=name) {}
     getName: func -> String { name }
-    
+
 	getSuffix: func -> String { suffix }
 	setSuffix: func(suffix: String) { this suffix = suffix }
-    
+
     isStatic:    func -> Bool { isStatic }
     setStatic:   func (=isStatic) {}
-    
+
     isAbstract:  func -> Bool { isAbstract }
     setAbstract: func (=isAbstract) {}
-    
+
     isFinal:     func -> Bool { isFinal }
     setFinal:    func (=isFinal) {}
-    
+
     isInline:    func -> Bool { isInline }
     setInline:   func (=isInline) {}
-    
+
     isProto:    func -> Bool { isProto }
     setProto:   func (=isProto) {}
-    
+
     isSuper:    func -> Bool { isSuper }
     setSuper:   func (=isSuper) {}
-    
+
     isAnon: func -> Bool { isAnon }
-    
+
     debugCondition: inline func -> Bool {
         false
     }
-    
-    markForPartialing: func(var: VariableDecl, mode: String) -> Bool {
+
+    markForPartialing: func(var: VariableDecl, mode: String) {
         if (!partialByReference contains(var) && !partialByValue contains(var)) {
             match (mode) {
                 case "r" => partialByReference add(var)
@@ -124,34 +125,38 @@ FunctionDecl: class extends Declaration {
             }
         }
     }
-    
-    setOwner: func (=owner) {
-        if(isStatic) return
-        staticVariant = new(name, token)
-        staticVariant suffix = suffix
-        staticVariant args = args clone()
-        staticVariant returnType = returnType
-        staticVariant args add(0, owner getThisDecl())
-        staticVariant isStatic = true
-        staticVariant owner = owner
-    }
+
+    setOwner: func (=owner) {}
     getOwner: func -> TypeDecl { owner }
-    
-    getStaticVariant: func -> This { staticVariant }
-    
+
+    getStaticVariant: func -> This {
+        if(isStatic) token throwError("Should get the static variant of a static function.. wtf?")
+
+        if(!staticVariant) {
+            staticVariant = new(name, token)
+            staticVariant suffix = suffix
+            staticVariant args = args clone()
+            staticVariant returnType = returnType
+            staticVariant args add(0, owner getThisDecl())
+            staticVariant isStatic = true
+            staticVariant owner = owner
+        }
+        staticVariant
+    }
+
     getReturnArg: func -> Argument {
         if(returnArg == null) {
             returnArg = Argument new(getReturnType(), generateTempName("returnArg"), token)
         }
         return returnArg
     }
-    
+
     hasReturn: func -> Bool {
         returnType != voidType && !returnType isGeneric()
     }
-    
+
     hasThis:  func -> Bool { isMember() && !isStatic() }
-    
+
     isMember: func -> Bool { owner != null }
 
     getExternName: func -> String { externName }
@@ -184,7 +189,7 @@ FunctionDecl: class extends Declaration {
                 if(isMember()) {
                     fullName = "%s_%s" format(owner getFullName(), name)
                 } else {
-                    fullName = "%s__%s" format(token module getUnderName(), name) 
+                    fullName = "%s__%s" format(token module getUnderName(), name)
                 }
                 if(suffix != null) {
                     fullName = "%s_%s" format(fullName, suffix)
@@ -193,14 +198,28 @@ FunctionDecl: class extends Declaration {
         }
         fullName
     }
-    
+
     isEntryPoint: func -> Bool {
         !isMember() && token module params entryPoint == name
     }
-    
-    getType: func -> Type { This type }
+
+    getType: func -> Type {
+        type := FuncType new(token)
+        for(arg in args) {
+            type argTypes add(arg getType())
+        }
+        type returnType = returnType
+        for(typeArg in typeArgs) {
+            type typeArgs add(VariableAccess new(typeArg, typeArg token))
+        }
+        return type
+    }
 
     getArgsRepr: func -> String {
+        getArgsRepr(null)
+    }
+
+    getArgsRepr: func ~withCallContext (call: FunctionCall) -> String {
         if(args size() == 0) return ""
         sb := Buffer new()
         if(typeArgs != null && !typeArgs isEmpty()) {
@@ -218,24 +237,34 @@ FunctionDecl: class extends Declaration {
         for(arg in args) {
             if(isFirst) isFirst = false
             else        sb append(", ")
-            sb append(arg toString())
+            argType := arg getType()
+            if(call) {
+                finalScore := 0
+                solved := call resolveTypeArg(argType getName(), null, finalScore&)
+                if(solved) argType = solved
+            }
+            sb append(argType toString())
         }
         sb append(")")
         return sb toString()
     }
-    
+
     toString: func -> String {
-        (owner ? owner getName() + "." : "") +
+        toString(null)
+    }
+
+    toString: func ~withCallContext (call: FunctionCall) -> String {
+        (owner ? owner getName() + " " : "") +
         (suffix ? (name + "~" + suffix) : name) +
-        (isStatic ? ": static func " : ": func ") +
-        getArgsRepr() +
+        (isStatic ? " static" : "") +
+        getArgsRepr(call) +
         (hasReturn() ? " -> " + returnType toString() : "")
     }
-    
+
     isResolved: func -> Bool { false }
-    
+
     resolveType: func (type: BaseType) {
-        
+
         //printf("** Looking for type %s in func %s with %d type args\n", type name, toString(), typeArgs size())
         for(typeArg: VariableDecl in typeArgs) {
             //printf("*** For typeArg %s\n", typeArg name)
@@ -245,7 +274,7 @@ FunctionDecl: class extends Declaration {
                 break
             }
         }
-        
+
     }
 
     resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
@@ -257,45 +286,45 @@ FunctionDecl: class extends Declaration {
         }
         0
     }
-    
+
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
-        
+
         //printf("Looking for %s in %s\n", access toString(), toString())
-        
+
         if(owner != null && access name == "this") {
             if(access suggest(isThisRef ? owner thisRefDecl : owner thisDecl)) return 0
         }
-        
+
         for(typeArg in typeArgs) {
             if(access name == typeArg name) {
                 if(access suggest(typeArg)) return 0
             }
         }
-        
+
         for(arg in args) {
             if(access name == arg name) {
                 if(access suggest(arg)) return 0
             }
         }
-        
+
         // FIXME: I'm pretty sure this isn't necessary (harmful, even)
         body resolveAccess(access, res, trail)
-        
+
         0
-        
+
     }
-    
+
     argumentsReady: func -> Bool {
         for (arg in args) {
             if (arg getType() == null) return false
         }
         return true
     }
-    
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        
+
         trail push(this)
-        
+
         if(debugCondition() || res params veryVerbose) printf("** Resolving function decl %s\n", name)
 
         for(arg in args) {
@@ -306,12 +335,13 @@ FunctionDecl: class extends Declaration {
                 return response
             }
         }
+
         isClosure := name isEmpty()
-        
+
         if (isClosure && !argumentsReady()) {
             if (!unwrapACS(trail, res)) return Responses OK
         }
-        
+
         for(typeArg in typeArgs) {
             response := typeArg resolve(trail, res)
             if(!response ok()) {
@@ -320,11 +350,11 @@ FunctionDecl: class extends Declaration {
                 return response
             }
         }
-        
+
         {
             response := returnType resolve(trail, res)
             if(!response ok()) {
-                if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of return type %s = %s\n", toString(), returnType toString(), response toString()) 
+                if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of return type %s = %s\n", toString(), returnType toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -332,12 +362,12 @@ FunctionDecl: class extends Declaration {
                 res wholeAgain(this, "need returnType of decl " + name)
             }
         }
-        
+
         if(isSuper) {
             if(!owner) {
                 token throwError("super funcs are only legal in type declarations!")
             }
-            
+
             superTypeDecl := owner getSuperRef()
             finalScore: Int
             ref := superTypeDecl getMeta() getFunction(name, suffix, null, finalScore&)
@@ -352,17 +382,17 @@ FunctionDecl: class extends Declaration {
                         return Responses OK
                     }
                 }
-                
+
                 args addAll(ref args)
-                
+
                 superCall := FunctionCall new("super", token)
                 for(arg in ref args) {
                     superCall args add(VariableAccess new(arg, arg token))
                 }
                 body add(superCall)
-                
+
                 isSuper = false
-                
+
                 if(name == "init") {
                     // add ourselves again, for new-generation from init
                     owner removeFunction(this). addFunction(this)
@@ -379,14 +409,14 @@ FunctionDecl: class extends Declaration {
                 trail pop(this)
                 res wholeAgain(this, "body wanna LOOP")
                 return Responses OK
-                
-                // Why aren't we relaying the response of the body? Because 
+
+                // Why aren't we relaying the response of the body? Because
                 // the trail is usually clean below the body and it would
                 // blow-up way too soon if we LOOP-ed on every foreach/evil thing
                 //return response
             }
         }
-        
+
         if(!isAbstract && vDecl == null) {
             response := autoReturn(trail, res)
             if(!response ok()) {
@@ -397,7 +427,7 @@ FunctionDecl: class extends Declaration {
         }
         trail pop(this)
 
-        
+
         if(name == "main" && owner == null) {
 			if(args size() == 1 && args first() getType() getName() == "ArrayList") {
                 arg := args first()
@@ -417,26 +447,26 @@ FunctionDecl: class extends Declaration {
 				body add(0, vdfe)
 			}
 		}
-        
+
         if (isClosure) unwrapClosure(trail, res)
-        
+
         return Responses OK
     }
-    
+
     unwrapACS: func (trail: Trail, res: Resolver) -> Bool{
-       
+
         ind := trail find(FunctionCall)
         if (ind == -1) token throwError("Got an ACS without any function-call. THIS IS NOT SUPPOSED TO HAPPEN\ntrail= %s" format(trail toString()))
         parentCall := trail get(ind) as FunctionCall
         parentFunc: FunctionDecl
         parentFunc = parentCall getRef()
-        
+
         if (!parentFunc) {
             res wholeAgain(this, "Need ACS reference.")
             trail pop(this)
             return false
         }
-        
+
         funcPointer: FuncType = null
         for (arg in parentFunc args) {
             if (arg getType() instanceOf(FuncType)) {
@@ -465,8 +495,8 @@ FunctionDecl: class extends Declaration {
         }
         if (funcPointer returnType) returnType = funcPointer returnType
 
-        if (needTrampoline) {              
-        
+        if (needTrampoline) {
+
         /*
         1. The generic function arguments get the postfix "_generic".
         2. The type of each generic argument is figured out.
@@ -477,28 +507,30 @@ FunctionDecl: class extends Declaration {
         becomes
             test: func<T> (b_generic: T) { b := b_generic as String; b println() }
         */
-            
+
             for (arg in args) {
                 if (arg getType() isGeneric()) {
                     n := arg name
                     arg name = arg name + "_generic"
-                    t := parentCall resolveTypeArg(arg getType() getName(), trail, res, fScore&)
+                    t := parentCall resolveTypeArg(arg getType() getName(), trail, fScore&)
                     if (fScore == -1) {
                         res wholeAgain(this, "Can't figure out the actual type of the generic.")
                         trail pop(this)
                         return false
-                    } 
+                    }
                     t = t clone()
                     t token = arg token
                     castedArg := VariableDecl new(t, n, Cast new(VariableAccess new(arg name, arg token), t, arg token), arg token)
-                    body list add(0, castedArg)  
+                    body list add(0, castedArg)
                 }
             }
         }
-        return true 
+        return true
     }
-   
+
     unwrapClosure: func (trail: Trail, res: Resolver) {
+        if(_unwrappedClosure) return
+
         for(e in partialByReference) {
             if(e getType() == null || !e getType() isResolved()) {
                 res wholeAgain(this, "Need partial-by-reference's return types")
@@ -512,12 +544,13 @@ FunctionDecl: class extends Declaration {
                 return
             }
         }
-        
+
         module := trail module()
         name = generateTempName(module getUnderName() + "_closure")
         varAcc := VariableAccess new(name, token)
         varAcc setRef(this)
         module addFunction(this)
+<<<<<<< HEAD
      
         imp := Import new("internals/yajit/Partial", token) 
         module addImport(imp)
@@ -525,21 +558,30 @@ FunctionDecl: class extends Declaration {
         
         if(partialByReference isEmpty() && partialByValue isEmpty()) { // function without any foreign accesses
             trail peek() replace(this, varAcc) 
+=======
+
+        if(partialByReference isEmpty() && partialByValue isEmpty()) {
+            trail peek() replace(this, varAcc)
+>>>>>>> 2f16c26415bc914c5e2b7bf5a22b90e4c1954373
         } else {
+            imp := Import new("internals/yajit/Partial", token)
+            module addImport(imp)
+            module parseImports(res)
+
             partialClass := VariableAccess new("Partial", token)
             newCall := FunctionCall new(partialClass, "new", token)
             partialName := generateTempName("partial")
             partialDecl := VariableDecl new(null, partialName, newCall, token)
-            trail addBeforeInScope(this, partialDecl) 
+            trail addBeforeInScope(this, partialDecl)
             parentCall: FunctionCall = null // ACS related, function call passing an ACS
             argsSizes := String new(args size())
             ix := 0
             for(arg in args) {
                 t: Type
                 if (arg getType() isGeneric()) {
-                    if (!parentCall) parentCall = trail get(trail find(FunctionCall)) as FunctionCall 
+                    if (!parentCall) parentCall = trail get(trail find(FunctionCall)) as FunctionCall
                     fScore: Int
-                    t = parentCall resolveTypeArg(arg getType() getName(), trail, res, fScore&) 
+                    t = parentCall resolveTypeArg(arg getType() getName(), trail, fScore&)
                     if (fScore == -1) {
                             res wholeAgain(this, "Can't figure out the actual type of generic")
                             trail pop(this)
@@ -550,7 +592,7 @@ FunctionDecl: class extends Declaration {
                 }
                 t = t clone()
                 t token = arg token
-                
+
                 typeName := t getName() toLower()
                 val : Char = match (typeName) {
                     case "char"   => 'c'
@@ -560,7 +602,7 @@ FunctionDecl: class extends Declaration {
                     case "int"    => 'i'
                     case "long"   => 'l'
                     case          =>
-                        
+
                         if(!arg getType() isPointer() && !arg getType() getGroundType() isPointer() && !arg getType() getRef() instanceOf(ClassDecl)) {
                             arg token throwError("Unknown closure arg type %s\n" format(arg getType() toString()))
                         }
@@ -569,15 +611,15 @@ FunctionDecl: class extends Declaration {
                 argsSizes[ix] = val
                 ix += 1
             }
-            
+
             partialAcc := VariableAccess new(partialName, token)
-            
+
             argOffset := 0
-            
+
             for (e in partialByReference) {
                 newRefType := ReferenceType new(e getType(), e token)
                 eAccess := VariableAccess new(e, e token)
-                                
+
                 addArg := FunctionCall new(partialAcc, "addArgument", token)
                 addArg getArguments() add (AddressOf new (eAccess, e token))
                 trail addBeforeInScope(this, addArg)
@@ -588,7 +630,7 @@ FunctionDecl: class extends Declaration {
                     if (acs ref == e) acs ref = argument
                 }
             }
-            
+
             for (e in partialByValue) {
                 addArg := FunctionCall new(partialAcc, "addArgument", token)
                 addArg getArguments() add(VariableAccess new(e, e token))
@@ -596,35 +638,36 @@ FunctionDecl: class extends Declaration {
                 argument := Argument new(e getType(), e getName(), e token)
                 args add(argOffset, argument); argOffset += 1
             }
-            
+
             fCall := FunctionCall new(partialAcc, "genCode", token)
-            fCall getArguments() add(VariableAccess new(name, token)) 
+            fCall getArguments() add(VariableAccess new(name, token))
             fCall getArguments() add(StringLiteral new(argsSizes, token))
             trail peek() replace(this, fCall)
-            
+
+            _unwrappedClosure = true
             res wholeAgain(this, "Unwrapped closure")
         }
-        
+
     }
 
     autoReturn: func (trail: Trail, res: Resolver) -> Response {
-        
+
         finalResponse := Responses OK
-        
+
         if(isMain() && isVoid()) {
             returnType = BaseType new("Int", token)
             res wholeAgain(this, "because changed returnType to %s\n")
         }
-        
+
         if(returnType == voidType || isExtern()) return Responses OK
 
         autoReturnExplore(trail, res, body)
         return Responses OK
-        
+
     }
-    
+
     autoReturnExplore: func (trail: Trail, res: Resolver, scope: Scope) {
-        
+
         if(scope isEmpty()) {
             //printf("[autoReturn] scope is empty, we need a return\n")
             returnNeeded(trail)
@@ -632,18 +675,18 @@ FunctionDecl: class extends Declaration {
         }
 
         handleLastStatement(trail, res, scope, scope lastIndex())
-        
+
     }
-    
+
     handleLastStatement: func (trail: Trail, res: Resolver, scope: Scope, index: Int) {
-        
+
         stmt := scope get(index)
-        
+
         if(stmt instanceOf(Return)) {
             //printf("[autoReturn] Oh, it's a %s already. Nice =D!\n",  last toString())
             return
         }
-        
+
         if(stmt instanceOf(Expression)) {
             expr := stmt as Expression
             if(expr getType() == null) {
@@ -651,13 +694,13 @@ FunctionDecl: class extends Declaration {
                 res wholeAgain(this, "need the type of %s in autoReturn" format(stmt toString()))
                 return
             }
-            
+
             if(isMain() && !(expr getType() getName() == "Int" && expr getType() pointerLevel() == 0)) {
                 returnNeeded(trail)
                 res wholeAgain(this, "was needing return")
                 return
             }
-            
+
             if(!expr getType() equals(voidType)) {
                 //printf("[autoReturn] Hmm it's a %s\n", stmt toString())
                 scope set(index, Return new(expr, expr token))
@@ -680,13 +723,13 @@ FunctionDecl: class extends Declaration {
             res wholeAgain(this, "was needing return")
             return
         }
-        
+
     }
 
     isVoid: func -> Bool { returnType == voidType }
-    
+
     isMain: func -> Bool { name == "main" && suffix == null && !isMember() }
-    
+
     returnNeeded: func (trail: Trail) {
         if(isMain()) {
             ret := Return new(IntLiteral new(0, nullToken), nullToken)
@@ -695,32 +738,32 @@ FunctionDecl: class extends Declaration {
             token throwError("Control reaches the end of non-void function! trail = " + trail toString())
         }
     }
-    
+
     replace: func (oldie, kiddo: Node) -> Bool {
         if(oldie == returnType) {
             returnType = kiddo
             return true
         }
-        
+
         body replace(oldie, kiddo)
     }
-    
+
     addBefore: func (mark, newcomer: Node) -> Bool {
         body addBefore(mark, newcomer)
     }
-    
+
     addAfter: func (mark, newcomer: Node) -> Bool {
         body addAfter(mark, newcomer)
     }
-    
+
     isScope: func -> Bool { true }
 
 	getTypeArgs: func -> ArrayList<VariableDecl> { typeArgs }
-	getArguments: func -> ArrayList<Argument> { args } 
+	getArguments: func -> ArrayList<Argument> { args }
 	getBody: func -> Scope { body }
-    
+
     setVersion: func (=verzion) {}
     getVersion: func -> VersionSpec { verzion }
-    
+
 }
 

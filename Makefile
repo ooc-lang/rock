@@ -3,7 +3,7 @@ PARSER_GEN=greg
 NQ_PATH=source/rock/frontend/NagaQueen.c
 DATE=$(shell date +%Y-%m-%d)
 TIME=$(shell date +%H:%M)
-OOC_OWN_FLAGS=-sourcepath=source -v +-w +-O0 -g
+OOC_OWN_FLAGS=-sourcepath=source -v +-w +-O0 -g -ignoredefine=ROCK_BUILD_
 
 PREFIX?=/usr
 MAN_INSTALL_PATH?=/usr/local/man/man1
@@ -49,14 +49,14 @@ bootstrap:
 	@echo "Now re-compiling ourself"
 	OOC=bin/c_rock ROCK_DIST=. make self
 	@echo "Congrats! you have a boostrapped version of rock in bin/rock now. Have fun!"
-	
+
 # Copy the manpage and create a symlink to the binary
 install:
 	if [ -e ${BIN_INSTALL_PATH}/rock ]; then echo "${BIN_INSTALL_PATH}/rock already exists, overwriting."; rm ${BIN_INSTALL_PATH}/rock ${BIN_INSTALL_PATH}/rock.exe; fi
 	ln -s $(shell pwd)/bin/rock* ${BIN_INSTALL_PATH}/
 	install -d ${MAN_INSTALL_PATH}
 	install docs/rock.1 ${MAN_INSTALL_PATH}/
-	
+
 # Regenerate the man page from docs/rock.1.txt You need ascidoc for that
 man:
 	cd docs/ && a2x -f manpage rock.1.txt

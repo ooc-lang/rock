@@ -12,12 +12,12 @@ ArgsWriteModes: class {
 }
 
 FunctionDeclWriter: abstract class extends Skeleton {
-    
+
     write: static func ~function (this: Skeleton, fDecl: FunctionDecl) {
         //"|| Writing function %s" format(fDecl name) println()
-        
+
         if(!fDecl isExtern() || fDecl isProto()) {
-        
+
             // header
             current = fw
             if(fDecl getVersion()) VersionWriter writeStart(this, fDecl getVersion())
@@ -26,28 +26,28 @@ FunctionDeclWriter: abstract class extends Skeleton {
             writeFuncPrototype(this, fDecl)
             current app(';')
             if(fDecl getVersion()) VersionWriter writeEnd(this)
-        
+
         }
-        
+
         if(fDecl isExtern()) return // don't write it in source if it's extern :)
-        
+
         // source
         current = cw
         if(fDecl getVersion()) VersionWriter writeStart(this, fDecl getVersion())
         current nl(). nl()
         writeFuncPrototype(this, fDecl)
         current app(" {"). tab()
-        
+
         if(params enableGC && fDecl isEntryPoint()) current nl(). app("GC_INIT();")
         if(fDecl isEntryPoint()) current nl(). app(module getLoadFuncName()). app("();")
-        
+
         for(stat in fDecl body) {
             writeLine(stat)
         }
         current untab(). nl(). app("}")
         if(fDecl getVersion()) VersionWriter writeEnd(this)
     }
-    
+
     /** Write the name of a function, with its suffix, and prefixed by its owner if any */
     writeFullName: static func (this: Skeleton, fDecl: FunctionDecl) {
 
@@ -62,12 +62,12 @@ FunctionDeclWriter: abstract class extends Skeleton {
             current app("_"). app(fDecl suffix)
         }
     }
-    
+
     /** Write the arguments of a function (default params) */
     writeFuncArgs: static func ~defaults (this: Skeleton, fDecl: FunctionDecl) {
         writeFuncArgs(this, fDecl, ArgsWriteModes FULL, null)
     }
-    
+
     /**
      * Write the arguments of a function
      * 
@@ -78,7 +78,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
      * @see FunctionCallWriter
      */
     writeFuncArgs: static func (this: Skeleton, fDecl: FunctionDecl, mode: ArgsWriteMode, baseType: TypeDecl) {
-        
+
         current app('(')
         isFirst := true
 
@@ -91,9 +91,9 @@ FunctionDeclWriter: abstract class extends Skeleton {
         iter := fDecl args iterator() as Iterator<Argument>
         if(fDecl isMember() && !fDecl isStatic()) {
             isFirst = false
-            
+
             type := (fDecl isThisRef ? fDecl owner thisRefDecl : fDecl owner thisDecl) getType()
-                        
+
             match mode {
                 case ArgsWriteModes NAMES_ONLY =>
                     if(baseType != null && !isInterface) {
@@ -111,12 +111,12 @@ FunctionDeclWriter: abstract class extends Skeleton {
                     type write(current, "this")
             }
         }
-        
+
         /* Step 2: write the return argument, if any */
         if(fDecl getReturnType() isGeneric()) {
             if(!isFirst) current app(", ")
             else isFirst = false
-            
+
             match mode {
                 case ArgsWriteModes NAMES_ONLY =>
                     current app(fDecl getReturnArg() getName())
@@ -126,7 +126,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
                     current app(fDecl getReturnArg())
             }
         }
-        
+
         /* Step 3 : write generic type args */
         for(typeArg in fDecl typeArgs) {
             ghost := false
@@ -136,11 +136,11 @@ FunctionDeclWriter: abstract class extends Skeleton {
                     break
                 }
             }
-            
+
             if(!ghost) {
                 if(!isFirst) current app(", ")
                 else isFirst = false
-                
+
                 match mode {
                     case ArgsWriteModes NAMES_ONLY =>
                         current app(typeArg getName())
@@ -151,14 +151,14 @@ FunctionDeclWriter: abstract class extends Skeleton {
                 }
             }
         }
-        
+
         /* Step 4 : write real args */
         while(iter hasNext()) {
             arg := iter next()
             //"Writing arg %s" format(arg toString()) println()
             if(!isFirst) current app(", ")
             else isFirst = false
-            
+
             match mode {
                 case ArgsWriteModes NAMES_ONLY =>
                     current app(arg name)
@@ -174,26 +174,26 @@ FunctionDeclWriter: abstract class extends Skeleton {
                     current app(arg)
             }
         }
-        
+
         /* Step 5 : Write exception handling arguments */
         // TODO
-        
+
         current app(')')
-        
+
     }
-    
+
     writeFuncPrototype: static func ~defaults (this: Skeleton, fDecl: FunctionDecl) {
         writeFuncPrototype(this, fDecl, null)
     }
-    
-    
+
+
     writeFuncPrototype: static func (this: Skeleton, fDecl: FunctionDecl, additionalSuffix: String) {
-        
+
         //"|| Writing prototype of fDecl %s" format(fDecl name) println()
-        
+
         // TODO inline member functions don't work yet anyway.
         //if(functionDecl isInline()) cgen.current.append("inline ")
-            
+
         // functions that return a generic value are actually void
         // the return takes place with a memcpy/assignment to the returnArg
         if(fDecl getReturnType() isGeneric()) {
@@ -201,18 +201,18 @@ FunctionDeclWriter: abstract class extends Skeleton {
         } else {
             current app(fDecl returnType). app(' ')
         }
-        
+
         writeFullName(this, fDecl)
         if(additionalSuffix) current app(additionalSuffix)
-        
+
         writeFuncArgs(this, fDecl)
-        
+
         // TODO add function pointers
         /*if(returnType instanceof FuncType) {
             TypeWriter writeFuncPointerEnd((FunctionDecl) returnType.getRef(), cgen)
         }*/
-        
+
     }    
-    
+
 }
 

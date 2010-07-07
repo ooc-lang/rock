@@ -31,7 +31,7 @@ Module: class extends Node {
     lastModified : Long
 
     params: BuildParams
-    
+
     init: func ~module (.fullName, =pathElement, =params, .token) {
         super(token)
         this path = fullName clone() replace('/', File separator)
@@ -58,11 +58,11 @@ Module: class extends Node {
     getSourceFolderName: func -> String {
         File new(File new(getPathElement()) getAbsolutePath()) name()
     }
-    
+
     collectDeps: func -> List<Module> {
         _collectDeps(ArrayList<Module> new())
     }
-    
+
     _collectDeps: func (list: List<Module>) -> List<Module> {
         list add(this)
 		for(imp in getAllImports()) {
@@ -92,6 +92,9 @@ Module: class extends Node {
     }
 
     addFunction: func (fDecl: FunctionDecl) {
+        // don't add empty-named functions
+        if(fDecl name isEmpty()) return
+
         hash := TypeDecl hashName(fDecl)
         old := functions get(hash)
         if (old != null) {
@@ -126,7 +129,7 @@ Module: class extends Node {
             //    "%s is better-scored than %s, swapping!" printfln(tDecl verzion toString(), old verzion toString())
             //}
         }
-        
+
         types put(tDecl name, tDecl)
         if(tDecl getMeta()) types put(tDecl getMeta() name, tDecl getMeta())
     }
@@ -154,7 +157,7 @@ Module: class extends Node {
     getNamespace: func (name: String) -> NamespaceDecl {
         namespaces get(name)
     }
-    
+
     addUse: func (use1: Use) {
         uses add(use1)
     }
@@ -172,7 +175,7 @@ Module: class extends Node {
         last := (File new(pathElement) name())
         return (last + File separator) + fullName replace('/', File separator) + suffix
     }
-    
+
     getOocPath: func -> String {
         path + ".ooc"
     }
@@ -214,7 +217,7 @@ Module: class extends Node {
             //printf("resolved access %s to namespace %s!\n", access getName(), namespace toString())
             access suggest(namespace)
         }
-        
+
         0
 
     }
@@ -241,37 +244,37 @@ Module: class extends Node {
         0
 
     }
-    
+
     resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
         if(call isMember()) {
             return 0 // hmm no member calls for us
         }
-        
+
         resolveCallNonRecursive(call, res)
-        
+
         for(imp in getGlobalImports()) {
             imp getModule() resolveCallNonRecursive(call, res)
         }
-        
+
         0
     }
-    
+
     resolveCallNonRecursive: func (call: FunctionCall, res: Resolver) {
-        
+
         //printf(" >> Looking for function %s in module %s!\n", call name, fullName)
         fDecl : FunctionDecl = null
         fDecl = functions get(TypeDecl hashName(call name, call suffix))
         if(fDecl) {
             call suggest(fDecl)
         }
-        
+
         for(fDecl in functions) {
             if(fDecl getName() == call getName() && (call getSuffix() == null || call getSuffix() == fDecl getSuffix())) {
                 if(call debugCondition()) printf("Suggesting fDecl %s for call %s\n", fDecl toString(), call toString())
                 call suggest(fDecl)
             }
         }
-        
+
     }
 
     resolveType: func (type: BaseType) {
@@ -299,17 +302,17 @@ Module: class extends Node {
      * we expect to add to the resolvers list.
      */
     parseImports: func (resolver: Resolver) {
-        
+
         for(imp: Import in getAllImports()) {
             if(imp module != null) continue
-            
+
             impPath = null, impElement = null : File
             path = null: String
             AstBuilder getRealImportPath(imp, this, params, path&, impPath&, impElement&)
             if(impPath == null) {
                 imp token throwError("Module not found in sourcepath " + imp path)
             }
-            
+
             absolutePath := File new(impPath path) getAbsolutePath()
 
             cached : Module = null
@@ -321,12 +324,12 @@ Module: class extends Node {
                 if(cached && resolver params veryVerbose) {
                     printf("%s has been changed, recompiling... (%d vs %d), impPath = %s\n", path, File new(impPath path) lastModified(), cached lastModified, impPath path);
                 }
-                
+
                 cached = Module new(path[0..(path length()-4)], impElement path, params, nullToken)
                 AstBuilder cache remove(impPath path)
                 AstBuilder cache put(File new(impPath path) getAbsolutePath(), cached)
                 imp setModule(cached)
-                
+
                 cached token = Token new(0, 0, cached)
                 if(resolver != null) {
                     resolver addModule(cached)
@@ -344,7 +347,7 @@ Module: class extends Node {
         finalResponse := Responses OK
 
         trail push(this)
-        
+
         {
             response := body resolve(trail, res)
             if(!response ok()) {
@@ -352,7 +355,7 @@ Module: class extends Node {
                 finalResponse = response
             }
         }
-        
+
         for(tDecl in types) {
             if(tDecl isResolved()) continue
             response := tDecl resolve(trail, res)

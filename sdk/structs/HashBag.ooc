@@ -3,7 +3,7 @@ import structs/[ArrayList, HashMap]
 HashBag: class {
 
     myMap: HashMap<String, Cell>
-    
+
     init: func {
         init ~withCapacity(10)
     }
@@ -41,13 +41,13 @@ HashBag: class {
     }
 
     isEmpty: func -> Bool {return myMap isEmpty()}
-    
+
     remove: func (key: String) -> Bool {
         return myMap remove(key)
     }
-    
+
     size: func -> Int {myMap size}
-    
+
     contains: func(key: String) -> Bool {
         myMap get(key) ? true : false
     }

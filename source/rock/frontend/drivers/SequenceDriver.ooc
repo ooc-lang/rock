@@ -8,33 +8,33 @@ import Driver, Archive
 
 /**
    Sequence driver, which compiles .c files one by one as needed.
-   
+
    With -noclean, the rock_tmp/ folder (or whatever your -outpath is set to)
    will not be deleted and the sequence driver will take advantage of that.
-   
+
    But sequence driver allows partial recompilation even without the rock_tmp
    folder, thanks to lib-caching. By default, the result of the compilation is
    put into a .libs/ folder, cached by source-folder name, for example after
    a simple compilation you may end up with:
-   
+
      - .libs/sdk-linux32.a
      - .libs/sdk-linux32.a.cacheinfo
      - .libs/helloworld-linux32.a
      - .libs/helloworld-linux32.a.cacheinfo
-     
+
    The .a files are archives that contain the object files (.o) that result
    of the compilation of your program.
-   
+
    When you recompile a program with an existing .libs/ directory,
    the SequenceDriver will use the .cacheinfo files to determine
    what needs to be re-compile, update the .a files with the new object
    files, and link again.
-   
+
    However, there are times (for example, when you upgrade rock) where
    .libs/ can be harmful and prevent a program from compiling/running
    normally. If you experience any weird behavior, be sure to *remove it
    completely* and re-try with a clean compile before reporting issues.
-      
+
    :author: Amos Wenger (nddrylliog)
  */
 SequenceDriver: class extends Driver {
@@ -44,11 +44,11 @@ SequenceDriver: class extends Driver {
     init: func (.params) { super(params) }
 
 	compile: func (module: Module) -> Int {
-		
+
 		if(params verbose) {
 			("Sequence driver, using " + params sequenceThreads + " thread" + (params sequenceThreads > 1 ? "s" : "")) println()
 		}
-        
+
         if((params clean && !params libcache && !params outPath exists()) || !File new(params libcachePath) exists()) {
             if(params verbose)  printf("Must clean and %s doesn't exist, re-generating\n", params outPath path)
             params outPath mkdirs()
@@ -56,18 +56,18 @@ SequenceDriver: class extends Driver {
                 CGenerator new(params, candidate) write()
             }
         }
-        
+
         if(params verbose) printf("Copying local headers\n")
         copyLocalHeaders(module, params, ArrayList<Module> new())
-		
+
 		sourceFolders = collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<String> new())
-        
+
         oPaths := ArrayList<String> new()
-        
+
         for(sourceFolder in sourceFolders) {
             prepareSourceFolder(sourceFolder, oPaths)
         }
-        
+
         for(sourceFolder in sourceFolders) {
             if(params verbose) {
                 // generate random colors for every source folder
@@ -82,17 +82,17 @@ SequenceDriver: class extends Driver {
             if(code != 0) return code
         }
         if(params verbose) println()
-		
+
 		if(params link) {
-			
+
 			initCompiler(params compiler)
-            
-			if(params linker != null) params compiler setExecutable(params linker)    
-			
+
+			if(params linker != null) params compiler setExecutable(params linker)
+
 			for(oPath in oPaths) {
-				params compiler addObjectFile(oPath)    
+				params compiler addObjectFile(oPath)
 			}
-			
+
             for(define in params defines) {
                 params compiler defineSymbol(define)
             }
@@ -109,7 +109,7 @@ SequenceDriver: class extends Driver {
                 params compiler addObjectFile(additional)
             }
 			for(libPath in params libPath getPaths()) {
-				params compiler addLibraryPath(libPath getAbsolutePath())    
+				params compiler addLibraryPath(libPath getAbsolutePath())
 			}
 
 			if(params binaryPath != "") {
@@ -117,12 +117,12 @@ SequenceDriver: class extends Driver {
             } else {
                 params compiler setOutputPath(module simpleName)
             }
-            
+
             libs := getFlagsFromUse(module)
             for(lib in libs) {
                 params compiler addObjectFile(lib)
             }
-			
+
 			if(params enableGC) {
                 params compiler addDynamicLibrary("pthread")
                 if(params dynGC) {
@@ -134,47 +134,47 @@ SequenceDriver: class extends Driver {
                 }
             }
 			if(params verbose) params compiler getCommandLine() println()
-	
-			code := params compiler launch()    
-			
+
+			code := params compiler launch()
+
 			if(code != 0) {
                 fprintf(stderr, "C compiler failed, aborting compilation process\n")
 				return code
 			}
-		
+
 		}
-		
+
 		if(params outlib != null) {
 			toCompile := collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<String> new())
             modules := ArrayList<Module> new()
-            
+
 			for(sourceFolder in toCompile) {
                 modules addAll(sourceFolder modules)
 			}
-            
+
             if(params verbose) "Building archive %s with all object files." format(params outlib) println()
-            archive := Archive new("<all>", params outlib, params)
+            archive := Archive new("<all>", params outlib, params, false)
             for(module in modules) {
                 archive add(module)
             }
             archive save(params)
 		}
-		
-		return 0    
-		
+
+		return 0
+
 	}
-    
+
     /**
        Build a source folder into object files or a static library
      */
     prepareSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>) {
-        
+
         archive := sourceFolder archive
-        
+
         // if lib-caching, we compile every object file to a .a static lib
         if(params libcache) {
             objectFiles add(sourceFolder outlib)
-            
+
             if(archive exists?) {
                 reGenerated := ArrayList<Module> new()
                 for(module in sourceFolder modules) {
@@ -185,33 +185,33 @@ SequenceDriver: class extends Driver {
                         }
                     }
                 }
-                
+
                 return
             }
             if(params verbose) printf("\nFirst compilation with lib-caching, we have to generate + compile everything\n")
         }
-        
+
         oPaths := ArrayList<String> new()
         if(params verbose) printf("Re-generating all modules...\n")
         for(module in sourceFolder modules) {
             CGenerator new(params, module) write()
         }
-        
+
         return
-        
+
     }
-    
+
     /**
        Build a source folder into object files or a static library
      */
     buildSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>) -> Int {
-        
+
         archive := sourceFolder archive
-        
+
         // if lib-caching, we compile every object file to a .a static lib
         if(params libcache) {
             objectFiles add(sourceFolder outlib)
-            
+
             if(archive exists?) {
                 reGenerated := ArrayList<Module> new()
                 for(module in sourceFolder modules) {
@@ -219,29 +219,29 @@ SequenceDriver: class extends Driver {
                         reGenerated add(module)
                     }
                 }
-                
+
                 if(reGenerated size() > 0) {
                     if(params verbose) printf("\n%d new/updated modules to compile\n", reGenerated size())
                     for(module in reGenerated) {
                         code := buildIndividual(module, sourceFolder, null, archive, true)
                         if(code != 0) return code
                     }
-                
+
                     archive save(params)
                 }
                 return 0
             }
         }
-        
+
         oPaths := ArrayList<String> new()
-        
+
         if(params verbose) printf("Compiling all modules...\n")
         for(module in sourceFolder modules) {
             code := buildIndividual(module, sourceFolder, oPaths, null, false)
             archive add(module)
             if(code != 0) return code
         }
-        
+
         if(params libcache) {
             // now build a static library
             if(params veryVerbose) printf("Saving to library %s\n", sourceFolder outlib)
@@ -250,41 +250,41 @@ SequenceDriver: class extends Driver {
             if(params veryVerbose) printf("Lib caching disabled, building from .o files\n")
             objectFiles addAll(oPaths)
         }
-        
+
         return 0
-        
+
     }
-    
+
     /**
        Build an individual ooc files to its .o file, add it to oPaths
      */
     buildIndividual: func (module: Module, sourceFolder: SourceFolder, oPaths: List<String>, archive: Archive, force: Bool) -> Int {
-        
+
         initCompiler(params compiler)
         params compiler setCompileOnly()
-        
+
         path := File new(params outPath, module getPath("")) getPath()
         oPath := File new(params outPath, module getPath() replace(File separator, '_')) getPath() + ".o"
         cPath := path + ".c"
         if(oPaths) {
             oPaths add(oPath)
         }
-        
+
         cFile := File new(cPath)
         oFile := File new(oPath)
-        
+
         comparison := (archive ? File new(archive outlib) lastModified() : oFile lastModified())
-        
+
         if(force || cFile lastModified() > comparison) {
-            
+
             if(params veryVerbose) printf("%s not in cache or out of date, (re)compiling\n", module getFullName())
-            
-            params compiler addObjectFile(cPath)    
-            params compiler setOutputPath(oPath)    
-            
+
+            params compiler addObjectFile(cPath)
+            params compiler setOutputPath(oPath)
+
             params compiler addIncludePath(File new(params distLocation, "libs/headers/") getPath())
             params compiler addIncludePath(params outPath getPath())
-                    
+
             for(define in params defines) {
                 params compiler defineSymbol(define)
             }
@@ -305,52 +305,52 @@ SequenceDriver: class extends Driver {
             for(lib in libs) {
                 params compiler addObjectFile(lib)
             }
-            
+
             if(params verbose) params compiler getCommandLine() println()
-            
-            code := params compiler launch()    
-                
+
+            code := params compiler launch()
+
             if(code != 0) {
                 fprintf(stderr, "C compiler failed, aborting compilation process\n")
-                return code 
+                return code
             }
-            
+
             if(archive) archive add(module)
-            
+
         } else {
             if(params veryVerbose) printf("Skipping %s, unchanged source.\n", cPath)
         }
-        
+
         return 0
-        
+
     }
-    
+
     /**
        Get all the flags from uses in a source folder
      */
     getFlagsFromUse: func ~sourceFolder (sourceFolder: SourceFolder) -> List<String> {
-        
+
         flagsDone := ArrayList<String> new()
-        usesDone := ArrayList<UseDef> new() 
-        
+        usesDone := ArrayList<UseDef> new()
+
         for(module in sourceFolder modules) {
             for(use1 in module uses) {
-                useDef := use1 getUseDef() 
-                getFlagsFromUse(useDef, flagsDone, usesDone) 
+                useDef := use1 getUseDef()
+                getFlagsFromUse(useDef, flagsDone, usesDone)
             }
         }
-        
-        
+
+
         flagsDone
     }
 
 	initCompiler: func (compiler: AbstractCompiler) {
 		compiler reset()
-		
-		if(params debug) params compiler setDebugEnabled()      
+
+		if(params debug) params compiler setDebugEnabled()
         params compiler addIncludePath(File new(params distLocation, "libs/headers/") getPath())
         params compiler addIncludePath(params outPath getPath())
-		
+
 		for(compilerArg in params compilerArgs) {
             params compiler addObjectFile(compilerArg)
         }
@@ -361,37 +361,37 @@ SequenceDriver: class extends Driver {
        put them in `toCompile`, and return it.
      */
 	collectDeps: func (module: Module, toCompile: HashMap<String, SourceFolder>, done: ArrayList<Module>) -> HashMap<String, SourceFolder> {
-		
+
         name := File new(File new(module getPathElement()) getAbsolutePath()) name()
-        
+
         sourceFolder := toCompile get(name)
         if(sourceFolder == null) {
             sourceFolder = SourceFolder new(name, params)
             toCompile put(name, sourceFolder)
         }
-        
-		sourceFolder modules add(module)    
+
+		sourceFolder modules add(module)
 		done add(module)
-		
+
 		for(import1 in module getAllImports()) {
 			if(done contains(import1 getModule())) continue
-			collectDeps(import1 getModule(), toCompile, done)    
+			collectDeps(import1 getModule(), toCompile, done)
 		}
-		
-		return toCompile    
-		
+
+		return toCompile
+
 	}
-	
+
 }
 
 SourceFolder: class {
     name: String
     params: BuildParams
     outlib: String
-    
+
     modules := ArrayList<Module> new()
     archive : Archive
-    
+
     init: func (=name, =params) {
         outlib = "%s%c%s-%s.a" format(params libcachePath, File separator, name, Target toString())
         archive = Archive new(name, outlib, params)

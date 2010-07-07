@@ -8,8 +8,7 @@ import ../frontend/BuildParams
 
 VariableDecl: class extends Declaration {
 
-    name: String
-    fullName: String = null
+    name = "", fullName = null, doc = null : String
 
     type: Type
     expr: Expression
@@ -22,7 +21,7 @@ VariableDecl: class extends Declaration {
     isProto := false
     externName: String = null
     unmangledName: String = null
-    
+
     /** if this VariableDecl is a Func, it can be called! */
     fDecl : FunctionDecl = null
 
@@ -62,19 +61,19 @@ VariableDecl: class extends Declaration {
 
     setExpr: func (=expr) {}
     getExpr: func -> Expression { expr }
-    
+
     isStatic: func -> Bool { isStatic }
     setStatic: func (=isStatic) {}
-    
+
     isConst: func -> Bool { isConst }
     setConst: func (=isConst) {}
-    
+
     isProto: func -> Bool { isProto }
     setProto: func (=isProto) { "%s is now proto!" format(name) println() }
-    
+
     isGlobal: func -> Bool { isGlobal }
     setGlobal: func (=isGlobal) {}
-    
+
     isArg: func -> Bool { isArg }
 
     getExternName: func -> String { externName }
@@ -118,7 +117,7 @@ VariableDecl: class extends Declaration {
         if(name == access name) {
             access suggest(this)
         }
-        
+
         0
     }
 
@@ -154,7 +153,7 @@ VariableDecl: class extends Declaration {
                 return response
             }
         }
-        
+
         if(fDecl != null) {
             response := fDecl resolve(trail, res)
             if(!response ok()) {
@@ -170,31 +169,31 @@ VariableDecl: class extends Declaration {
             if(!parent isScope() && !parent instanceOf(TypeDecl)) {
                 //println("oh the parent of " + toString() + " isn't a scope but a " + parent class name)
                 //println("trail = " + trail toString())
-                
+
                 result := trail peek() replace(this, VariableAccess new(this, token))
                 if(!result) {
                     token throwError("Couldn't replace %s with a varAcc in %s, trail = %s" format(toString(), trail peek() toString(), trail toString()))
                 }
-                
+
                 idx := trail findScope()
                 scope := trail get(idx) as Scope
-                
+
                 parent := trail get(idx + 1, Node)
-                
+
                 if(parent instanceOf(FunctionCall)) {
                     result = trail addBeforeInScope(parent as Statement, this)              
                 } else {
                     block := Block new(token)
                     block getBody() add(this)
                     block getBody() add(parent as Statement)
-                    
+
                     result = scope replace(trail get(idx + 1), block)
                 }
-                
+
                 if(!result) {
                     token throwError("Couldn't unwrap " + toString() + " , trail = " + trail toString())
                 }
-                
+
                 res wholeAgain(this, "parent isn't scope nor typedecl, unwrapped")
                 //return Responses OK
                 return Responses LOOP
@@ -239,11 +238,11 @@ VariableDecl: class extends Declaration {
                 }
             }
         }
-        
+
         if(!isArg && type != null && type isGeneric() && type pointerLevel() == 0) {
             if(expr != null) {
                 if(expr instanceOf(FunctionCall) && expr as FunctionCall getName() == "gc_malloc") return Responses OK
-                
+
                 ass := BinaryOp new(VariableAccess new(this, token), expr, OpTypes ass, token)
                 if(!trail addAfterInScope(this, ass)) {
                     token throwError("Couldn't add a " + ass toString() + " after a " + toString() + ", original expr = " + expr toString() + " trail = " + trail toString())
@@ -269,7 +268,7 @@ VariableDecl: class extends Declaration {
             case => false
         }
     }
-    
+
     getFunctionDecl: func -> FunctionDecl {
         if(getType() instanceOf(FuncType) && fDecl == null) {
             fType := getType() as FuncType

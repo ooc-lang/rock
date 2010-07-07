@@ -13,4 +13,4 @@ execve: extern func(String, String*, String*) -> Int
 fileno: extern func(FILE*) -> Int
 fork: extern func -> Int
 pipe: extern func(arg: Int*) -> Int
-  
+

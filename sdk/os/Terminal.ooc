@@ -36,38 +36,38 @@ Color: class {
 }
 
 Terminal: class {
-    
+
     /* Background color codes are the same as Foreground + 10
      * example: background blue = 34 + 10 = 44
      */
-    
+
     /** Set foreground and background color */
     setColor: static func(f,b: Int) {
         setFgColor(f)
         setBgColor(b)
     }
-    
+
     /** Set foreground color */
     setFgColor: static func(c: Int) {
         if(c >= 30 && c <= 37) {
             printf("\033[%dm",c); fflush(stdout)
         }
     }
-    
+
     /** Set background color */
     setBgColor: static func(c: Int) {
         if(c >= 30 && c <= 37) {
             printf("\033[%dm",c + 10); fflush(stdout)
         }
     }
-    
+
     /** Set text attribute */
     setAttr: static func(att: Int) {
         if(att >= 0 && att <= 8) {
             printf("\033[%dm",att); fflush(stdout)
         }
     }
-    
+
     /* Set reset attribute =) */
     /** Reset the terminal colors and attributes */
     reset: static func() {

@@ -6,43 +6,43 @@ import structs/HashMap
 import tinker/[Trail, Resolver, Response]
 
 VersionBlock: class extends ControlStatement {
-    
+
     spec: VersionSpec
-    
+
     init: func ~verBlock (=spec, .token) {
         super(token)
     }
-    
+
     accept: func (v: Visitor) {
         v visitVersionBlock(this)
     }
-    
+
     getSpec: func -> VersionSpec { spec }
-    
+
     toString: func -> String { spec toString() }
-    
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
         if(!super(trail, res) ok()) return Responses LOOP
     }
-    
+
     isResolved: func -> Bool { true }
-    
+
 }
 
 VersionSpec: abstract class {
-    
+
     token: Token
-    
+
     init: func(=token) {}
-    
+
     toString: abstract func -> String
-    
+
     write: abstract func (w: AwesomeWriter)
-    
+
     equals: abstract func (other: VersionSpec) -> Bool
-    
+
     isSatisfied: abstract func (params: BuildParams) -> Bool
-    
+
 }
 
 builtinNames := HashMap<String, String> new()
@@ -67,13 +67,13 @@ builtinNames := HashMap<String, String> new()
 }
 
 VersionName: class extends VersionSpec {
-    
+
     origin, name: String
     resolved := false
-    
+
     init: func ~name (=name, .token) {
         super(token)
-        
+
         origin = name
         real := builtinNames get(name)
         if(real == null) {
@@ -82,62 +82,62 @@ VersionName: class extends VersionSpec {
             this name = real
         }
     }
-    
+
     toString: func -> String { name }
-    
+
     write: func (w: AwesomeWriter) {
         w app("defined("). app(name). app(")")
     }
-    
+
     isResolved : func -> Bool { resolved }
-    
+
     equals: func (other: VersionSpec) -> Bool {
         if(!other instanceOf(This)) return false
         other as This name == name
     }
-    
+
     isSatisfied: func (params: BuildParams) -> Bool {
         if(params isDefined(name)) return true
         if(origin == "64" && params arch == "64") return true
-        
+
         false
     }
-    
+
 }
 
 VersionNegation: class extends VersionSpec {
 
     spec: VersionSpec
-    
+
     init: func ~negation (=spec, .token) { super(token) }
-    
+
     toString: func -> String { "!(" + spec toString() + ')' }
-    
+
     write: func (w: AwesomeWriter) {
         w app("!(")
         spec write(w)
         w app(")")
     }
-    
+
     equals: func (other: VersionSpec) -> Bool {
         if(!other instanceOf(This)) return false
         spec equals(other as VersionNegation spec)
     }
-    
+
     isSatisfied: func (params: BuildParams) -> Bool {
         !spec isSatisfied(params)
     }
-    
+
 }
 
 VersionAnd: class extends VersionSpec {
-    
+
     specLeft, specRight: VersionSpec
-    
+
     init: func ~and (=specLeft, =specRight, .token) { super(token) }
-    
+
     toString: func -> String { '(' + specLeft toString() + " && " + specRight toString() + ')' }
-    
+
     write: func (w: AwesomeWriter) {
         w app("(")
         specLeft  write(w)
@@ -145,26 +145,26 @@ VersionAnd: class extends VersionSpec {
         specRight write(w)
         w app(")")
     }
-        
+
     equals: func (other: VersionSpec) -> Bool {
         if(!other instanceOf(This)) return false
         specLeft equals(other as VersionAnd specLeft) && specRight equals(other as VersionAnd specRight)
     }
-    
+
     isSatisfied: func (params: BuildParams) -> Bool {
         specLeft isSatisfied(params) && specRight isSatisfied(params)
     }
-    
+
 }
 
 VersionOr: class extends VersionSpec {
 
     specLeft, specRight: VersionSpec
-    
+
     init: func ~or (=specLeft, =specRight, .token) { super(token) }
-    
+
     toString: func -> String { '(' + specLeft toString() + " || " + specRight toString() + ')' }
-    
+
     write: func (w: AwesomeWriter) {
         w app("(")
         specLeft  write(w)
@@ -172,14 +172,14 @@ VersionOr: class extends VersionSpec {
         specRight write(w)
         w app(")")
     }
-    
+
     equals: func (other: VersionSpec) -> Bool {
         if(!other instanceOf(This)) return false
         specLeft equals(other as VersionOr specLeft) && specRight equals(other as VersionOr specRight)
     }
-    
+
     isSatisfied: func (params: BuildParams) -> Bool {
         specLeft isSatisfied(params) || specRight isSatisfied(params)
     }
-    
+
 }

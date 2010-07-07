@@ -19,7 +19,7 @@ readdir: extern func (DIR*) -> DirEnt*
 readdir_r: extern func (DIR*, DirEnt*, DirEnt**) -> Int
 rewinddir: extern func (DIR*)
 seekdir: extern func (DIR*, Long)
-telldir: extern func (DIR*) -> Long 
+telldir: extern func (DIR*) -> Long
 
 realpath: extern func(path: String, resolved: String) -> String
 
@@ -39,7 +39,7 @@ version(unix || apple) {
     _getcwd: extern (getcwd) func(buf: String, size: SizeT) -> String
 
     ModeT: cover from mode_t
-    
+
     FileStat: cover from struct stat {
         st_mode: extern ModeT
         st_size: extern SizeT
@@ -206,7 +206,7 @@ version(unix || apple) {
             return result
         }
 
-        getChildren: func -> ArrayList<This> {
+        getChildren: func -> ArrayList<File> {
             if(!isDir()) {
                 Exception new(This, "Trying to get the children of the non-directory '" + path + "'!")
             }
@@ -214,7 +214,7 @@ version(unix || apple) {
             if(!dir) {
                 Exception new(This, "Couldn't open directory '" + path + "' for reading!")
             }
-            result := ArrayList<This> new()
+            result := ArrayList<File> new()
             entry := readdir(dir)
             while(entry != null) {
                 if(!entry@ name equals(".") && !entry@ name equals("..")) {

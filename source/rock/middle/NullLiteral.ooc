@@ -10,11 +10,11 @@ NullLiteral: class extends Literal {
         super(token)
         type = BaseType new("Pointer", token)
     }
-    
+
     getType: func -> Type { type }
-    
+
     accept: func (visitor: Visitor) { visitor visitNullLiteral(this) }
-    
+
     toString: func -> String { "null" }
 
 }

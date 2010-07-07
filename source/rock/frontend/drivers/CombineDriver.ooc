@@ -7,17 +7,17 @@ import Driver
 
 /**
     Combine driver, which compiles all .c files in one pass.
-    
+
     Use it with -driver=combine
-     
+
     This may be faster for very small projects if for some reason
     lib-caching doesn't work for you, but in general you're
     better off with SequenceDriver + libcaching (on by default).
-    
+
     The combine driver is definitely a bad choice for large projects
     before gcc sometimes gets mixed up with large files, it yields errors
     that aren't there with a sequence compilation (ie. SequenceDriver)
-    
+
     :author: Amos Wenger (nddrylliog)
  */
 CombineDriver: class extends Driver {
@@ -25,21 +25,21 @@ CombineDriver: class extends Driver {
     init: func (.params) { super(params) }
 
     compile: func (module: Module) -> Int {
-        
+
         params outPath mkdirs()
         for(candidate in module collectDeps()) {
             CGenerator new(params, candidate) write()
         }
-        
+
         params compiler reset()
-        
+
         copyLocalHeaders(module, params, ArrayList<Module> new())
-        
+
         if(params debug) params compiler setDebugEnabled()      
         params compiler addIncludePath(File new(params distLocation, "libs/headers/") getPath())
         params compiler addIncludePath(params outPath getPath())
         addDeps(module, ArrayList<Module> new(), ArrayList<String> new())
-        
+
         for(define in params defines) {
 			params compiler defineSymbol(define)
 		}
@@ -55,7 +55,7 @@ CombineDriver: class extends Driver {
         for(compilerArg in params compilerArgs) {
             params compiler addObjectFile(compilerArg)
         }
-        
+
         if(params link) {
             if (params binaryPath != "") {
                 params compiler setOutputPath(params binaryPath)
@@ -70,7 +70,7 @@ CombineDriver: class extends Driver {
             for(libPath in params libPath getPaths()) {
                 params compiler addLibraryPath(libPath getPath())
             }
-            
+
             if(params enableGC) {
                 params compiler addDynamicLibrary("pthread")
                 if(params dynGC) {
@@ -84,15 +84,15 @@ CombineDriver: class extends Driver {
         } else {
             params compiler setCompileOnly()
         }
-        
+
         if(params verbose) println(params compiler getCommandLine())
-        
+
         code := params compiler launch()
         if(code != 0) {
             fprintf(stderr, "C compiler failed, aborting compilation process\n")
         }
         return code
-        
+
     }
-    
+
 }

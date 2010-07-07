@@ -5,16 +5,16 @@ FloatLiteral: class extends Literal {
 
     value: Float
     type : BaseType
-    
+
     init: func ~floatLiteral (=value, .token) {
         super(token)
         type = BaseType new("Float", token)
     }
-    
+
     accept: func (visitor: Visitor) { visitor visitFloatLiteral(this) }
 
     getType: func -> Type { type }
-    
+
     toString: func -> String { "%f" format(value) }
 
 }

@@ -1,7 +1,7 @@
 import ../Thread
 
 version(unix || apple) {
-    
+
     include pthread | (_XOPEN_SOURCE=500)
     include unistd
 

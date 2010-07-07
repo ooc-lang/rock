@@ -39,7 +39,7 @@ EnumDecl: class extends TypeDecl {
     }
 
     setIncrement: func (=incrementOper, =incrementStep) {}
-    
+
     writeSize: func (w: TabbedWriter, instance: Bool) {
         w app("sizeof("). app(isExtern() ? name : "int"). app(")")
     }
@@ -52,6 +52,7 @@ EnumDecl: class extends TypeDecl {
 }
 
 EnumElement: class extends VariableDecl {
+    doc := null
     type: Type
     value: Int
     valueSet: Bool = false

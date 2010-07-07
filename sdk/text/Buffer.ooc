@@ -30,7 +30,7 @@ Buffer: class {
         memcpy(data as Char* + size, str as Char*, length)
         size += length
     }
- 
+
     append: func ~chr (chr: Char) {
         checkLength(size + 1)
         data[size] = chr
@@ -60,7 +60,7 @@ Buffer: class {
         }
         return data[offset]
     }
-    
+
     checkLength: func (min: SizeT) {
         if(min >= capacity) {
             newCapa := min * 1.2 + 10
@@ -72,7 +72,7 @@ Buffer: class {
             capacity = newCapa
         }
     }
-    
+
     toString: func -> String {
         checkLength(size + 1)
         data[size] = '\0'
@@ -84,7 +84,7 @@ Buffer: class {
  * This deprecates and replaces StringBuffer
  */
 BufferWriter: class extends Writer {
-    
+
     buffer: Buffer
 
     init: func {
@@ -109,12 +109,12 @@ BufferWriter: class extends Writer {
         buffer append(chars, length)
         return length
     }
-    
+
     vwritef: func(fmt: String, list: VaList) {
         // TODO: could be optimized (notably the buffer allocation)
         length := vsnprintf(null, 0, fmt, list)
         output := String new(length)
-        
+
         vsnprintf(output, length + 1, fmt, list)
         buffer append(output, length)
     }
@@ -132,7 +132,7 @@ BufferReader: class extends Reader {
     buffer: func -> Buffer {
         return buffer
     }
-    
+
     close: func {
         /* nothing to close. */
     }

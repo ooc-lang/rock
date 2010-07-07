@@ -9,29 +9,28 @@ import tinker/[Resolver, Response, Trail]
 
 /**
    A type declaration - a class, a cover, an interface, an enum..
-   
-   A type declaration has a name, optionally an extern-name, 
+
+   A type declaration has a name, optionally an extern-name,
    optional generic type arguments, but also variables and functions.
-   
+
    This is a base class containing many useful variables and methods, but
    the most interesting parts are in its subclasses ClassDecl, CoverDecl,
    InterfaceDecl, and EnumDecl.
-   
+
    :author: Amos Wenger (nddrylliog)
  */
 TypeDecl: abstract class extends Declaration {
 
-    name: String
-    externName: String = null
+    name = "", externName = null, doc = "" : String
 
     typeArgs := ArrayList<VariableDecl> new()
-    
+
     hasCheckedInheritance := false
     hasCheckedAbstract := false
 
     variables := HashMap<String, VariableDecl> new()
     functions := HashMap<String, FunctionDecl> new()
-    
+
     interfaceTypes := ArrayList<Type> new()
     interfaceDecls := ArrayList<InterfaceImpl> new()
 
@@ -40,20 +39,20 @@ TypeDecl: abstract class extends Declaration {
     instanceType: Type
     type: Type
     superType: Type = null
-    
+
     module: Module = null
-    
+
     isMeta := false
     meta : ClassDecl = null
     nonMeta : TypeDecl = null
-    
+
     verzion: VersionSpec = null
 
-    base: TypeDecl = null    
+    base: TypeDecl = null
     addons := ArrayList<TypeDecl> new()
-    
+
     _finishedGhosting := false
-    
+
     init: func ~typeDeclNoSuper (=name, .token) {
         super(token)
         type = BaseType new("Class", token)
@@ -61,35 +60,35 @@ TypeDecl: abstract class extends Declaration {
         instanceType as BaseType ref = this
         thisDecl    = VariableDecl new(instanceType, "this", token)
         thisRefDecl = VariableDecl new(ReferenceType new(instanceType, token), "this", token)
-        
+
         if(!isMeta) {
             meta = ClassDecl new(name + "Class", null, true, token)
             meta nonMeta = this
             meta thisDecl = this thisDecl
             meta setSuperType(BaseType new("Class", nullToken))
-            
+
             // if we access to "Dog", we access to an object of type "DogClass"
             type = meta getInstanceType()
             type as BaseType ref = meta
         }
-        
+
         if(!isObjectClass()) {
             // by default, everyone inherits from object
             setSuperType(BaseType new("Object", token))
         }
     }
-    
+
     debugCondition: inline func -> Bool {
         false
     }
-    
+
     isAbstract: func -> Bool { false }
-    
+
     init: func ~typeDecl (.name, .superType, .token) {
         init(name, token)
         setSuperType(superType)
     }
-    
+
     writeSize: abstract func (w: TabbedWriter, instance: Bool)
 
     getBase: func -> TypeDecl {
@@ -103,7 +102,7 @@ TypeDecl: abstract class extends Declaration {
     getFullName: func -> String {
         underName()
     }
-    
+
     setSuperType: func(=superType) {
         if(!this isMeta && superType != null) {
             // TODO: there's probably a better way, but this works fine =)
@@ -114,29 +113,29 @@ TypeDecl: abstract class extends Declaration {
             }
         }
     }
-    
+
     getSuperType: func -> Type { superType }
-    
+
     addTypeArg: func (typeArg: VariableDecl) -> Bool {
         typeArg setOwner(this)
         getTypeArgs() add(typeArg)
-        
+
         variables put(typeArg getName(), typeArg)
         true
     }
-    
+
     isObjectClass: func -> Bool {
         name equals("Object") || name equals("ObjectClass")
     }
-    
+
     isClassClass: func -> Bool {
         name equals("Class") || name equals("ClassClass")
     }
-    
+
     isRootClass: func -> Bool {
         isObjectClass() || isClassClass()
     }
-    
+
     addVariable: func (vDecl: VariableDecl) {
         if(vDecl isStatic() && !isMeta) {
             meta addVariable(vDecl)
@@ -145,11 +144,11 @@ TypeDecl: abstract class extends Declaration {
             vDecl setOwner(this)
         }
     }
-    
+
     addInterface: func (interfaceType: Type) {
         interfaceTypes add(interfaceType)
     }
-    
+
     getInterfaceTypes: func -> List<Type>          { interfaceTypes }
     getInterfaceDecls: func -> List<InterfaceImpl> { interfaceDecls }
 
@@ -160,7 +159,7 @@ TypeDecl: abstract class extends Declaration {
 	hashName: static func ~fromFuncDecl (fDecl: FunctionDecl) -> String {
 		This hashName(fDecl getName(), fDecl getSuffix())
 	}
-    
+
     addFunction: func (fDecl: FunctionDecl) {
         if(isMeta) {
             functions put(This hashName(fDecl), fDecl)
@@ -173,9 +172,9 @@ TypeDecl: abstract class extends Declaration {
 	removeFunction: func(fDecl: FunctionDecl) {
 		functions remove(This hashName(fDecl))
 	}
-    
+
     lookupFunction: func (fName, fSuffix: String) -> FunctionDecl {
-    
+
     	// quick lookup, if we're lucky (exact suffix or no suffix)
         fDecl : FunctionDecl = null
         fDecl = functions get(This hashName(fName, fSuffix))
@@ -192,13 +191,13 @@ TypeDecl: abstract class extends Declaration {
 		}
         return null
     }
-    
+
     getVariable: func (vName: String) -> VariableDecl {
     	{
             result := variables get(vName)
             if(result) return result
         }
-        
+
         if(isMeta) {
             result := getNonMeta() getVariable(vName)
             if(result) return result
@@ -209,12 +208,12 @@ TypeDecl: abstract class extends Declaration {
         }
         return null
     }
-    
+
     getVariables: func -> HashMap<String, VariableDecl> { variables }
     getFunctions: func -> HashMap<String, FunctionDecl> { functions }
-    
+
     underName: func -> String {
-        
+
         // TODO underize it.
         /*
         if(module != null) {
@@ -230,34 +229,34 @@ TypeDecl: abstract class extends Declaration {
         }
         return name
     }
-    
+
 	getTypeArgs: func -> List<VariableDecl> { isMeta ? getNonMeta() typeArgs : typeArgs }
 
     getName: func -> String { name }
-    
+
     setExternName: func (=externName) {}
     getExternName: func -> String {
         return (externName && !externName isEmpty()) ? externName : name
     }
-    
+
     isExtern: func -> Bool { externName != null }
-    
+
     getSuperRef: inline func -> TypeDecl {
         superType ? superType getRef() as TypeDecl : null
     }
-    
+
     getFunction: func ~call (call: FunctionCall, finalScore: Int@) -> FunctionDecl {
         return getFunction(call name, call suffix, call, finalScore&)
     }
-    
+
     getFunction: func ~nameSuffCall (name, suffix: String, call: FunctionCall, finalScore: Int@) -> FunctionDecl {
         return getFunction(name, suffix, call, true, finalScore&)
     }
-    
+
     getFunction: func ~nameSuffCallRec (name, suffix: String, call: FunctionCall, recursive: Bool, finalScore: Int@) -> FunctionDecl {
         return getFunction(name, suffix, call, recursive, INT_MIN, null, finalScore&)
     }
-    
+
     getFunction: func ~real (name, suffix: String, call: FunctionCall,
         recursive: Bool, bestScore: Int, bestMatch: FunctionDecl, finalScore: Int@) -> FunctionDecl {
 
@@ -277,15 +276,15 @@ TypeDecl: abstract class extends Declaration {
                 }
             }
         }
-        
+
         if(call && call expr && call expr getType() && call expr getType() getRef() &&
            call expr getType() getRef() instanceOf(ClassDecl) &&
            call expr getType() getRef() as ClassDecl isMeta) {
-            for(_fDecl: FunctionDecl in functions) {
+            for(fDecl: FunctionDecl in functions) {
                 // Not ignoring static methods is intended; we want static member access without explicit `This`.
-                fDecl := _fDecl getStaticVariant()
-                if(!fDecl) continue
                 if(fDecl name equals(name) && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix equals(suffix))) {
+                    if(!fDecl isStatic) fDecl = fDecl getStaticVariant()
+
                     if(!call) return fDecl
                     score := call getScore(fDecl)
                     if(score == -1) {
@@ -300,15 +299,15 @@ TypeDecl: abstract class extends Declaration {
                 }
             }
         }
-        
+
         if(recursive && getSuperRef() != null) {
             return getSuperRef() getFunction(name, suffix, call, true, bestScore, bestMatch, finalScore&)
         }
         if(finalScore == -1) return null
-        
+
         finalScore = bestScore
         return bestMatch
-        
+
     }
 
     getModule: func -> Module { module }
@@ -317,11 +316,11 @@ TypeDecl: abstract class extends Declaration {
     getThisDecl: func -> VariableDecl { thisDecl }
 
     isResolved: func -> Bool { false }
-    
+
     ghostTypeParams: func (trail: Trail, res: Resolver) -> Response {
 
         if(_finishedGhosting) return Responses OK
-        
+
         // remove ghost type arguments
         if(this superType && !isMeta && !getTypeArgs() isEmpty()) {
             sType := this superType
@@ -330,13 +329,13 @@ TypeDecl: abstract class extends Declaration {
                 if(!response ok()) {
                     return response
                 }
-                
+
                 sTypeRef := sType getRef() as TypeDecl
                 if(sTypeRef == null) {
                     res wholeAgain(this, "Need super type ref of " + sType toString())
                     return Responses OK
                 }
-                
+
                 if(!sTypeRef getTypeArgs() isEmpty()) {
                     for(typeArg in getTypeArgs()) {
                         for(candidate in sTypeRef getTypeArgs()) {
@@ -349,18 +348,18 @@ TypeDecl: abstract class extends Declaration {
                 sType = sTypeRef superType
             }
         }
-        
+
         _finishedGhosting = true
         return Responses OK
-        
+
     }
-    
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        
+
         trail push(this)
-        
+
         if(debugCondition() || res params veryVerbose) printf("====== Resolving type decl %s\n", toString())
-        
+
         if (!type isResolved()) {
             response := type resolve(trail, res)
             if(!response ok()) {
@@ -369,7 +368,7 @@ TypeDecl: abstract class extends Declaration {
                 return response
             }
         }
-        
+
         if (superType) {
             if(!superType isResolved()) {
                 response := superType resolve(trail, res)
@@ -379,18 +378,18 @@ TypeDecl: abstract class extends Declaration {
                     return response
                 }
             }
-            
+
             //hasCheckedInheritance := static false
             if(!hasCheckedInheritance && superType getRef() != null) {
                 if(checkInheritanceLoop(res)) hasCheckedInheritance = true
             }
-            
+
             //hasCheckedAbstract := static false
             if(!hasCheckedAbstract && superType getRef() != null && isMeta) {
                 if(checkAbstractFuncs(res)) hasCheckedAbstract = true
             }
         }
-        
+
         if(!_finishedGhosting) {
             response := ghostTypeParams(trail, res)
             if(!response ok()) {
@@ -399,7 +398,7 @@ TypeDecl: abstract class extends Declaration {
                 return response
             }
         }
-        
+
         for(typeArg in getTypeArgs()) {
             response := typeArg resolve(trail, res)
             if(!response ok()) {
@@ -417,7 +416,7 @@ TypeDecl: abstract class extends Declaration {
                 return response
             }
         }
-        
+
         for(fDecl in functions) {
             response := fDecl resolve(trail, res)
             if(!response ok()) {
@@ -426,7 +425,7 @@ TypeDecl: abstract class extends Declaration {
                 return response
             }
         }
-        
+
         if(meta) {
             meta module = module
             response := meta resolve(trail, res)
@@ -436,7 +435,7 @@ TypeDecl: abstract class extends Declaration {
                 return response
             }
         }
-        
+
         i := 0
         for(interfaceType in interfaceTypes) {
             response := interfaceType resolve(trail, res)
@@ -452,10 +451,10 @@ TypeDecl: abstract class extends Declaration {
                 iName := getName() + "__impl__" + interfaceType getName()
                 interfaceDecl := InterfaceImpl new(iName, interfaceType, this, token)
                 interfaceDecls add(interfaceDecl)
-                
+
                 // It's easier to handle interfaces this way: if we implement ReaderWriter,
                 // an interface that implements both the Reader and Writer interfaces,
-                // instead of generating intermediate methods, we say that 
+                // instead of generating intermediate methods, we say that
                 transitiveInterfaces := interfaceType getRef() as TypeDecl getInterfaceTypes()
                 if(!transitiveInterfaces isEmpty()) {
                     for(candidate in transitiveInterfaces) {
@@ -476,7 +475,7 @@ TypeDecl: abstract class extends Declaration {
             }
             i += 1
         }
-        
+
         for(interfaceDecl in interfaceDecls) {
             response := interfaceDecl resolve(trail, res)
             if(response ok()) {
@@ -488,24 +487,24 @@ TypeDecl: abstract class extends Declaration {
                 return response
             }
         }
-        
+
         trail pop(this)
-        
+
         return Responses OK
-        
+
     }
-    
+
     checkAbstractFuncs: func (res: Resolver) -> Bool {
-        
+
         if(getNonMeta() isAbstract()) {
             return true // nothing to check!
         }
-        
+
         current := this
-        
+
         implemented := HashMap<String, FunctionDecl> new()
         contract    := ArrayList<FunctionDecl> new()
-        
+
         while(current != null) {
             for(fDecl in current getFunctions()) {
                 if(fDecl isAbstract) {
@@ -515,14 +514,14 @@ TypeDecl: abstract class extends Declaration {
                     implemented put(hash, fDecl)
                 }
             }
-            
+
             if(current getSuperType() != null && current getSuperRef() == null) {
                 res wholeAgain(this, "Needs superRef to check abstract funcs")
                 return false
             }
             current = current getSuperRef()
         }
-        
+
         for(fDecl in contract) {
             hash := "%s_%s" format(fDecl getName(), fDecl getSuffix() ? fDecl getSuffix() : "")
             candidate := implemented get(hash)
@@ -535,6 +534,12 @@ TypeDecl: abstract class extends Declaration {
                         fDecl hasReturn() ? " -> " + fDecl returnType toString() : ""
                     ))
                 } else {
+                    // FIXME: DEBUG
+                    "we got functions: " printfln()
+                    for(f in implemented) {
+                        f toString() println()
+                    }
+                    // FIXME: END DEBUG
                     token throwError("`%s` must implement function `%s%s%s` because it extends `%s`" format(
                         getNonMeta() getName(),
                         fDecl getSuffix() ? fDecl getName() + "~" + fDecl getSuffix() : fDecl getName(),
@@ -545,25 +550,25 @@ TypeDecl: abstract class extends Declaration {
                 }
             }
         }
-        
+
         return true
-        
+
     }
-    
+
     checkInheritanceLoop: func (res: Resolver) -> Bool {
-        
+
         list := ArrayList<TypeDecl> new()
         current := this
-        
+
         while(current != null) {
             if(current getSuperType() == null) break // it's alright
-            
+
             next := current getSuperRef()
             if(next == null) {
                 res wholeAgain(this, "need superRef to check inheritance loop")
                 return false
             }
-            
+
             list add(current)
             if(list contains(next)) {
                 buff := Buffer new()
@@ -575,19 +580,19 @@ TypeDecl: abstract class extends Declaration {
                 }
                 list first() token throwError("Loop in type declaration: %s -> %s -> ..." format(buff toString(), next getName(), list size()))
             }
-            
+
             current = next
         }
         true
-        
+
     }
-    
+
     resolveType: func (type: BaseType) {
-        
+
         if(type getName() == "This") {
             if(type suggest(getNonMeta() ? getNonMeta() : this)) return
         }
-        
+
         //printf("** Looking for type %s in func %s with %d type args\n", type name, toString(), getTypeArgs() size())
         for(typeArg: VariableDecl in getTypeArgs()) {
             //printf("*** For typeArg %s\n", typeArg name)
@@ -597,29 +602,29 @@ TypeDecl: abstract class extends Declaration {
                 break
             }
         }
-        
+
     }
 
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
-        
+
         if(access debugCondition()) {
             "Resolving access %s. isMeta = %s\n" format(access toString(), isMeta toString()) println()
         }
-        
+
         // don't allow to resolve any access before finishing ghosting
         if(!_finishedGhosting) {
             return -1
         }
-        
+
         if(access getName() == "this") {
             if(access suggest(getNonMeta() ? getNonMeta() thisDecl : thisDecl)) return 0
         }
-        
+
         if(access getName() == "This") {
             //printf("Asking for 'This' in %s (non-meta %s)\n", toString(), getNonMeta() ? getNonMeta() toString() : "(nil)")
             if(access suggest(getNonMeta() ? getNonMeta() : this)) return 0
         }
-        
+
         if(access debugCondition()) {
             for(v in variables) {
                 printf("Got var %s %s\n", toString(), v toString())
@@ -628,7 +633,7 @@ TypeDecl: abstract class extends Declaration {
                 printf("Got function %s %s\n", toString(), f toString())
             }
         }
-        
+
         vDecl := variables get(access getName())
         if(vDecl) {
             //"&&&&&&&& Found vDecl %s for %s in %s" format(vDecl toString(), access name, name) println()
@@ -652,21 +657,21 @@ TypeDecl: abstract class extends Declaration {
             	return 0
             }
 		}
-		
+
         if(getSuperRef() != null) {
         	//FIXME: should return here if success
             getSuperRef() resolveAccess(access, res, trail)
         }
-        
+
         // ask the metaclass for the variable (makes static member access without explicit `This` possible)
         if(!isMeta) {
             mvDecl : Declaration
-            
+
             mvDecl = getMeta() variables get(access getName())
             if(mvDecl == null) {
                 mvDecl = getMeta() functions get(access getName())
             }
-            
+
             if(mvDecl != null && access suggest(mvDecl)) {
             	if(access expr == null) {
                     varAcc := VariableAccess new(getInstanceType(), nullToken)
@@ -675,11 +680,11 @@ TypeDecl: abstract class extends Declaration {
                 return 0
             }
         }
-        
+
         0
-        
+
     }
-    
+
     resolveCall: func (call : FunctionCall, res: Resolver, trail: Trail) -> Int {
 
         if(call debugCondition()) {
@@ -688,7 +693,7 @@ TypeDecl: abstract class extends Declaration {
                 printf("  - Got %s!\n", f toString())
             }
         }
-        
+
         finalScore: Int
         fDecl := getFunction(call name, call suffix, call, true, finalScore&)
         if(finalScore == -1) {
@@ -708,12 +713,12 @@ TypeDecl: abstract class extends Declaration {
             if(call debugCondition()) printf("  <== going in superRef %s\n", getSuperRef() toString())
             if(getSuperRef() resolveCall(call, res, trail) == -1) return -1
         }*/ // FIXME: uncomment when we're sure this doesn't cause any problems
-        
+
         if(getBase() != null) {
             if(call debugCondition()) printf("Looking in base %s\n", getBase() toString())
             if(getBase() resolveCall(call, res, trail) == -1) return -1
         }
-       
+
         for(addon in getAddons()) {
             has := false
             // TODO: What about namespaced imports?
@@ -724,21 +729,21 @@ TypeDecl: abstract class extends Declaration {
                     break
                 }
             }
-            
+
             // It's also possible that the addon was defined in the
             // function call's module.
             if(call token module == addon token module && call token module == token module) {
                 //printf("has because call token module %s is the same as addon token module %s\n", call token toString(), addon token toString())
                 has = true
             }
-            
+
             if(!has) continue
-            
+
             //if(call debugCondition()) printf("From %s (%s), looking into addon %s (%s)\n",
             //    toString(), token toString(), addon toString(), addon token toString())
             if(addon resolveCall(call, res, trail) == -1) return -1
         }
-        
+
         if(call getRef() == null) {
             vDecl := getVariable(call getName())
             if(vDecl != null) {
@@ -752,44 +757,44 @@ TypeDecl: abstract class extends Declaration {
                 }
             }
         }
-        
+
         0
-        
+
     }
-    
+
     inheritsFrom: func (tDecl: TypeDecl) -> Bool {
         superRef := getSuperRef()
         if(superRef != null) {
         	if(superRef == tDecl) return true
 	        return superRef inheritsFrom(tDecl)
         }
-        
+
         return false
     }
-    
+
     inheritsScore: func (tDecl: TypeDecl, scoreSeed: Int) -> Int {
-        
+
         if(debugCondition()) printf("inheritsScore between %s and %s. scoreSeed = %d\n", toString(), tDecl toString(), scoreSeed)
-        
+
         for(interfaceDecl in interfaceDecls) {
             if(interfaceTypes size() != interfaceDecls size()) return -1
             if(interfaceDecl == tDecl) return scoreSeed
             score := interfaceDecl inheritsScore(tDecl, scoreSeed / 2)
             if(score != Type NOLUCK_SCORE) return score
         }
-        
+
         if(getSuperType() != null) {
             superRef := getSuperRef()
             if(debugCondition()) printf("superRef = %s\n", superRef toString())
-            
-            if(superRef == null) return -1            
+
+            if(superRef == null) return -1
             if(superRef == tDecl) return scoreSeed
             return superRef inheritsScore(tDecl, scoreSeed / 2)
         }
-        
+
         return Type NOLUCK_SCORE
     }
-    
+
     toString: func -> String {
         repr := class name + ' ' + name
         if(getTypeArgs() isEmpty()) return repr
@@ -804,28 +809,28 @@ TypeDecl: abstract class extends Declaration {
         b append('>')
         return b toString()
     }
-    
+
     getMeta: func -> ClassDecl { meta }
     getNonMeta: func -> This { nonMeta }
-    
+
     setVersion: func (=verzion) {}
     getVersion: func -> VersionSpec { verzion ? verzion : (getNonMeta() ? getNonMeta() getVersion() : null) }
 
 }
 
 BuiltinType: class extends TypeDecl {
-    
+
     init: func ~builtinType (.name, .token) {
         super(name, null, token)
     }
-    
+
     underName: func -> String { name }
-    
+
     accept: func (v: Visitor) { /* yeah, right. */ }
-    
+
     writeSize: func (w: TabbedWriter, instance: Bool) { Exception new(This, "writeSize() called on a BuiltinType. wtf?") /* if this happens, we're screwed */ }
-    
+
     replace: func (oldie, kiddo: Node) -> Bool { false }
-    
+
 }
 

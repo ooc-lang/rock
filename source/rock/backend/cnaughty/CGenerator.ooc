@@ -21,17 +21,17 @@ import Skeleton, FunctionDeclWriter, ControlStatementWriter,
 
 /**
    Generate .c/.h/-fwd.h files from the AST of an ooc module
-    
+
    The two .h files are useful to work around some limitations in
    C's inclusion mechanism, especially concerning forward declarations,
    since ooc allows declarations in almost any order, but C doesn't.
-    
+
    :author: Amos Wenger
  */
 CGenerator: class extends Skeleton {
 
     init: func ~cgenerator (=params, =module) {
-        
+
         if (params libcache) {
             hOutPath := File new(params libcachePath + File separator + module getSourceFolderName(), module getPath(""))
             hOutPath parent() mkdirs()
@@ -41,25 +41,25 @@ CGenerator: class extends Skeleton {
             hw = AwesomeWriter new(this, CachedFileWriter new(File new(params outPath path, module getPath(".h")) path))
             fw = AwesomeWriter new(this, CachedFileWriter new(File new(params outPath path, module getPath("-fwd.h")) path))
         }
-        
+
         cOutPath := File new(params outPath path, module getPath(".c"))
         cOutPath parent() mkdirs()
         cw = AwesomeWriter new(this, CachedFileWriter new(cOutPath path))
-        
+
     }
 
     /** Write the whole module, return true if files were modified on-disk */
     write: func -> Bool {
-        
+
         visitModule(module)
-        
+
         hw nl(); fw nl(); cw nl()
-        
+
         written := hw stream as CachedFileWriter flushAndClose()
         written |= fw stream as CachedFileWriter flushAndClose()
         written |= cw stream as CachedFileWriter flushAndClose()
         written
-        
+
     }
 
     /** Write a module */
@@ -77,7 +77,7 @@ CGenerator: class extends Skeleton {
     visitType: func (type: Type) {
         type write(current, null)
     }
-    
+
     visitTypeAccess: func (typeAccess: TypeAccess) {
         ref := typeAccess getRef()
         if(!ref instanceOf(TypeDecl)) {
@@ -88,13 +88,13 @@ CGenerator: class extends Skeleton {
 
     /** Write a binary operation */
     visitBinaryOp: func (op: BinaryOp) {
-        
+
         // when assigning to an array, use Array_set rather than assigning to _get
         isArray := op type == OpTypes ass &&
                    op left instanceOf(ArrayAccess) &&
                    op left as ArrayAccess getArray() getType() instanceOf(ArrayType) &&
                    op left as ArrayAccess getArray() getType() as ArrayType expr == null
-                   
+
         if(isArray) {
             arrAcc := op left as ArrayAccess
             type := arrAcc getArray() getType() as ArrayType
@@ -104,30 +104,30 @@ CGenerator: class extends Skeleton {
                     app(", "). app(op right). app(")")
             return
         }
-        
+
         // when assigning to a member function (e.g. for hotswapping),
         // you want to change the class field, not just the function name
         isFunc := op type == OpTypes ass &&
                   op left instanceOf(VariableAccess) &&
                   op left as VariableAccess ref instanceOf(FunctionDecl) &&
                   op left as VariableAccess ref as FunctionDecl getOwner() != null
-                  
+
         if(isFunc) {
             fDecl := op left as VariableAccess ref as FunctionDecl
             current app(fDecl owner as TypeDecl name). app("_class()->"). app(fDecl name)
         } else {
             current app(op left)
         }
-        
+
         current app(" "). app(op type toString()). app(" ")
-        
-        
+
+
         if(isFunc) {
             current app("(void*) ")
         } else if(op type == OpTypes ass) {
             leftType  := op left  getType()
             rightType := op right getType()
-            
+
             if(leftType  isPointer() ||
                rightType isPointer()) {
                 current app("(void*) ")
@@ -135,9 +135,9 @@ CGenerator: class extends Skeleton {
                 current app('('). app(leftType). app(") ")
             }
         }
-        
+
         current app(op right)
-        
+
     }
 
     /** Write a unary operation */
@@ -183,19 +183,19 @@ CGenerator: class extends Skeleton {
         if(vDecl expr)
             current app(" = "). app(vDecl expr)
     }
-    
+
     visitEnumDecl: func (eDecl: EnumDecl) {
         current = fw
-        
+
         // extern EnumDecls shouldn't print a typedef.
         if(!eDecl isExtern()) {
             current nl(). app("typedef int "). app(eDecl underName()). app(';')
         }
     }
-    
+
     /** Write a variable access */
     visitVariableAccess: func(varAcc: VariableAccess) { visitVariableAccess ~refAddr(varAcc, true)}
-    
+
     visitVariableAccess: func ~refAddr(varAcc: VariableAccess, writeReferenceAddrOf: Bool) {
         if(varAcc ref == null) {
             Exception new(This, "Trying to write unresolved variable access %s" format(varAcc getName())) throw()
@@ -223,12 +223,12 @@ CGenerator: class extends Skeleton {
                 if(casted) current app(")")
 
                 refLevel := 0
-                
-                
+
+
                 if(varAcc expr getType() getRef() instanceOf(ClassDecl)) {
                     refLevel += 1
                 }
-                
+
                 current app(match (refLevel) {
                     case 0 => "."
                     case 1 => "->"
@@ -242,13 +242,13 @@ CGenerator: class extends Skeleton {
                     paren = true
                 }             
             }
-            
+
             if(vDecl isExternWithName()) {
                 current app(vDecl getExternName())
             } else {
                 current app(vDecl getFullName())
             }
-            
+
             if(paren) current app(')')
         } else if(varAcc ref instanceOf(TypeDecl)) {
             tDecl := varAcc ref as TypeDecl
@@ -272,11 +272,11 @@ CGenerator: class extends Skeleton {
             current app(arrAcc getArray()). app('['). app(arrAcc getIndex()). app(']')
         }
     }
-    
+
     visitArrayLiteral: func (arrLit: ArrayLiteral) {
         type := arrLit getType()
         if(!type instanceOf(PointerType)) Exception new(This, "Array literal type %s isn't a PointerType but a %s, wtf?" format(arrLit toString(), type toString())) throw()
-        
+
         current app("("). app(arrLit getType() as PointerType inner). app("[]) { ")
         isFirst := true
         for(element in arrLit elements) {
@@ -286,11 +286,11 @@ CGenerator: class extends Skeleton {
         }
         current app(" }")
     }
-    
+
     visitArrayCreation: func (node: ArrayCreation) {
         writeArrayCreation(node arrayType, node expr, node generateTempName("arrayCrea"))
     }
-    
+
     writeArrayCreation: func (arrayType: ArrayType, expr: Expression, name: String) {
         current app("_lang_array__Array_new(")
         if(arrayType inner instanceOf(ArrayType)) {
@@ -303,23 +303,23 @@ CGenerator: class extends Skeleton {
             arrayType inner write(current, null)
         }
         current app(", "). app(arrayType expr). app(")")
-        
+
         if(arrayType inner instanceOf(ArrayType)) {
             current app(';'). nl(). app("{"). tab(). nl(). app("int "). app(name). app("__i;"). nl().
                     app("for("). app(name). app("__i = 0; ").
                     app(name). app("__i < "). app(arrayType expr). app("; ").
                     app(name). app("__i++) { "). tab(). nl()
-              
+
             current app("_lang_array__Array "). app(name). app("_sub = ")
             writeArrayCreation(arrayType inner as ArrayType, null, name + "_sub")
-            
+
             current app(";"). nl(). app("_lang_array__Array_set(")
             if(expr) {
                 current app(expr)
             } else {
                 current app(name)
             }
-            
+
             current app(", "). app(name). app("__i, ").
                     app(arrayType inner as ArrayType exprLessClone()). app(", "). app(name). app("_sub);").
                     untab(). nl(). app("}"). untab(). nl(). app("}")
@@ -417,12 +417,12 @@ CGenerator: class extends Skeleton {
                 current app(node expr); return
             }
         }
-        
+
         if(node expr instanceOf(Dereference)) {
             current app(node expr as Dereference expr)
 			return;
 		}
-        
+
         current app("&("). app(node expr). app(")")
     }
 
@@ -440,7 +440,7 @@ CGenerator: class extends Skeleton {
         }
         current app(")")
     }
-    
+
     visitVersionBlock: func (node: VersionBlock) {
         VersionWriter writeStart(this, node getSpec())
         for(statement in node getBody()) {

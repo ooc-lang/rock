@@ -17,11 +17,11 @@ ClassDecl: class extends TypeDecl {
     isFinal := false
 
     defaultInit := null as FunctionDecl
-    
+
     init: func ~classDeclNoSuper(.name, .token) {
         super(name, token)
     }
-    
+
     init: func ~classDeclNotMeta(.name, .superType, .token) {
         init(name, superType, false, token)
     }
@@ -29,13 +29,13 @@ ClassDecl: class extends TypeDecl {
     init: func ~classDecl(.name, .superType, =isMeta, .token) {
         super(name, superType, token)
     }
-    
+
     isAbstract: func -> Bool { isAbstract }
-    
+
     accept: func (visitor: Visitor) { visitor visitClassDecl(this) }
-    
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        
+
         if(isMeta) {
             if(getNonMeta() class == ClassDecl) {
                 if(!functions contains(This DEFAULTS_FUNC_NAME)) {
@@ -50,15 +50,15 @@ ClassDecl: class extends TypeDecl {
                 }
             }
         }
-    
+
         {
             response := super(trail, res)
             if(!response ok()) return response
         }
-        
+
         return Responses OK
     }
-    
+
     writeSize: func (w: TabbedWriter, instance: Bool) {
         if(instance) {
             w app("sizeof("). app(underName()). app(')')
@@ -66,7 +66,7 @@ ClassDecl: class extends TypeDecl {
             w app("sizeof(void*)") // objects are references in ooc
         }
     }
-    
+
     getLoadFunc: func -> FunctionDecl {
         // TODO: a more elegant solution maybe?
         meat : ClassDecl = isMeta ? this : getMeta()
@@ -77,7 +77,7 @@ ClassDecl: class extends TypeDecl {
         }
         return fDecl
     }
-    
+
     getDefaultsFunc: func -> FunctionDecl {
         // TODO: a more elegant solution maybe?
         meat : ClassDecl = isMeta ? this : getMeta()
@@ -88,7 +88,7 @@ ClassDecl: class extends TypeDecl {
         }
         return fDecl
     }
-    
+
     getBaseClass: func (fDecl: FunctionDecl) -> ClassDecl {
         sRef : ClassDecl  = getSuperRef()
 		if(sRef != null) {
@@ -101,16 +101,16 @@ ClassDecl: class extends TypeDecl {
 		if(getFunction(fDecl name, fDecl suffix ? fDecl suffix : "", null, false, finalScore&) != null) return this
 		return null
 	}
-    
+
     replace: func (oldie, kiddo: Node) -> Bool { false }
 
 	addDefaultInit: func {
-        
+
         if(!isMeta) {
             getMeta() addDefaultInit()
             return
         }
-        
+
 		if(!isAbstract && !isObjectClass() && !isClassClass() && defaultInit == null) {
             /*
              * Concrete classes that aren't `Object` nor `Class` get a
@@ -120,18 +120,18 @@ ClassDecl: class extends TypeDecl {
              */
             init := FunctionDecl new("init", token)
 			addFunction(init)
-            
+
             // TODO: check if the super-type actually has a no-arg constructor, throw an error if not
             if(superType != null && superType getName() != "ClassClass") {
                 init getBody() add(FunctionCall new("super", token))
             }
-            
+
             defaultInit = init // if defaultInit is set earlier, it'll try to remove it..
         }
 	}
 
     addFunction: func (fDecl: FunctionDecl) {
-        
+
         if(isMeta) {
             if (fDecl getName() == "init" && !fDecl isExternWithName()) {
                 /*
@@ -155,13 +155,13 @@ ClassDecl: class extends TypeDecl {
         }
 	
 		super(fDecl)
-        
+
     }
 
 	addInit: func(fDecl: FunctionDecl) {
-        
+
         isCover := (getNonMeta() instanceOf(CoverDecl))
-        
+
 		if(defaultInit != null) {
             /*
              * As soon as we've got another init defined, remove the
@@ -171,14 +171,14 @@ ClassDecl: class extends TypeDecl {
             functions remove(hashName("new", null))
             defaultInit = null
         }
-        
+
         if(isAbstract || (getNonMeta() instanceOf(ClassDecl) && getNonMeta() as ClassDecl isAbstract)) {
             // don't generate new for abstract classes
             return
         }
 		
         newType := getNonMeta() getInstanceType() as BaseType
-        
+
 		constructor := FunctionDecl new("new", fDecl token)
         constructor setStatic(true)
 		constructor setSuffix(fDecl getSuffix())
@@ -192,7 +192,7 @@ ClassDecl: class extends TypeDecl {
         // meta-class, remember?
         newTypeAccess := VariableAccess new(newType, fDecl token)
         newTypeAccess setRef(getNonMeta())
-        
+
         vdfe : VariableDecl = null
         if(!isCover) {
             allocCall := FunctionCall new(newTypeAccess, "alloc", fDecl token)
@@ -212,7 +212,7 @@ ClassDecl: class extends TypeDecl {
             ass := BinaryOp new(typeArgAccess, e, OpTypes ass, constructor token)
 			constructor getBody() add(ass)
 		}
-        
+
 		constructor setReturnType(retType)
 		
 		thisAccess := VariableAccess new(vdfe, fDecl token)
@@ -222,7 +222,7 @@ ClassDecl: class extends TypeDecl {
             defaultsCall := FunctionCall new("__defaults__", fDecl token)
             constructor getBody() add(defaultsCall)
         }
-        
+
         initCall := FunctionCall new(fDecl getName(), fDecl token)
         initCall setSuffix(fDecl getSuffix())
         initCall setExpr(VariableAccess new(vdfe, fDecl token))

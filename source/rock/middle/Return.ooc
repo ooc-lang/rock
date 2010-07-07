@@ -5,21 +5,21 @@ import Visitor, Statement, Expression, Node, FunctionDecl, FunctionCall,
 import tinker/[Response, Resolver, Trail]
 
 Return: class extends Statement {
-    
+
     expr: Expression = null
-        
+
     init: func ~ret (.token) {
         init(null, token)
     }
-    
+
     init: func ~retWithExpr (=expr, .token) {
         super(token)
     }
-    
+
     accept: func (visitor: Visitor) { visitor visitReturn(this) }
-    
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
-                
+
         idx := trail find(FunctionDecl)
         fDecl: FunctionDecl = null
         retType: Type = null
@@ -30,7 +30,7 @@ Return: class extends Statement {
                 return Responses LOOP
             }
         }
-        
+
         if(!expr) {
             if (!retType isGeneric() && retType != voidType) { 
                 token throwError("Function is not declared to return `null`! trail = %s" format(trail toString()))
@@ -38,7 +38,7 @@ Return: class extends Statement {
                 return Responses OK
             }
         }
-        
+
         {
             trail push(this)
             response := expr resolve(trail, res)
@@ -47,18 +47,18 @@ Return: class extends Statement {
                 return response
             }
         }
-        
+
         if (retType) {
-            
+
             retType = retType refToPointer()
-                        
+
             if(retType isGeneric()) {
                 if(expr getType() == null || !expr getType() isResolved()) {
                     res wholeAgain(this, "expr type is unresolved"); return Responses OK
                 }
-                
+
                 returnAcc := VariableAccess new(fDecl getReturnArg(), token)
-                
+
                 if(expr instanceOf(FunctionCall)) {
                     fCall := expr as FunctionCall
                     if(fCall getRef() == null ||
@@ -76,9 +76,9 @@ Return: class extends Statement {
                         return Responses OK
                     }
                 }
-                
+
                 if1 := If new(returnAcc, token)
-                
+
                 if(expr hasSideEffects()) {
                     vdfe := VariableDecl new(null, generateTempName("returnVal"), expr, expr token)
                     if(!trail peek() addBefore(this, vdfe)) {
@@ -86,20 +86,20 @@ Return: class extends Statement {
                     }
                     expr = VariableAccess new(vdfe, vdfe token)
                 }
-                
+
                 ass := BinaryOp new(returnAcc, expr, OpTypes ass, token)
                 if1 getBody() add(ass)
-                
+
                 if(!trail peek() addBefore(this, if1)) {
                     token throwError("Couldn't add the assignment before the generic return in a %s! trail = %s" format(trail peek() as Node class name, trail toString()))
                 }
                 expr = null
-                
+
                 res wholeAgain(this, "Turned into an assignment")
                 //return Responses OK
                 return Responses LOOP
             }
-            
+
             if(expr) {
                 if(expr getType() == null || !expr getType() isResolved()) {
                     res wholeAgain(this, "Need info about the expr type")
@@ -111,7 +111,7 @@ Return: class extends Statement {
                         res wholeAgain(this, "something's unresolved in declared ret type vs returned type.")
                         return Responses OK
                     }
-                    
+
                     if (score < 0) {
                         msg: String
                         if (res params veryVerbose) {
@@ -124,23 +124,23 @@ Return: class extends Statement {
                     expr = Cast new(expr, retType, expr token)
                 }
             }
-            
+
             if (retType == voidType && !expr) 
                 token throwError("Function is declared to return `null`, not %s! trail = %s" format(expr getType() toString(), trail toString()))
         }
-        
+
         return Responses OK
-        
+
     }
 
     toString: func -> String { expr == null ? "return" : "return " + expr toString() }
-    
+
     replace: func (oldie, kiddo: Node) -> Bool {
         if(expr == oldie) {
             expr = kiddo
             return true
         }
-        
+
         return false
     }
 
