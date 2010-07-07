@@ -20,13 +20,14 @@ JSONGenerator: class extends Visitor {
     params: BuildParams
     outFile: File
     module: Module
-    objects, root: HashBag
+    root: HashBag
+    objects: Bag
 
     init: func (=params, =module) {
         outFile = File new(params outPath getPath() + File separator + module getSourceFolderName(), module getPath(".json"))
         outFile parent() mkdirs()
         root = HashBag new()
-        objects = HashBag new()
+        objects = Bag new()
         /* build the structure! */
         root put("entities", objects)
         root put("path", module getPath())
@@ -55,6 +56,12 @@ JSONGenerator: class extends Visitor {
 
     write: func {
         visitModule(module)
+    }
+
+    addObject: func (tag: String, obj: HashBag) {
+        list := Bag new()
+        list add(tag) .add(obj)
+        objects add(list)
     }
 
     resolveType: func (type: Type) -> String {
@@ -129,7 +136,7 @@ JSONGenerator: class extends Visitor {
             members add(member)
         }
         obj put("members", members)
-        objects put(node name, obj)
+        addObject(node name, obj)
         for(idecl in node getInterfaceDecls())
             visitInterfaceImpl(idecl)
     }
@@ -171,7 +178,7 @@ JSONGenerator: class extends Visitor {
             members add(member)
         }
         obj put("members", members)
-        objects put(node name, obj)
+        addObject(node name, obj)
         for(idecl in node getInterfaceDecls())
             visitInterfaceImpl(idecl)
     }
@@ -179,7 +186,7 @@ JSONGenerator: class extends Visitor {
     visitFunctionDecl: func (node: FunctionDecl) {
         /* add to the objects. */
         obj := buildFunctionDecl(node, "function")
-        objects put(node name, obj)
+        addObject(node name, obj)
     }
 
     buildFunctionDecl: func ~typed (node: FunctionDecl, type: String) -> HashBag {
@@ -265,7 +272,7 @@ JSONGenerator: class extends Visitor {
     visitVariableDecl: func (node: VariableDecl) {
         /* add to the objects */
         obj := buildVariableDecl(node, "globalVariable")
-        objects put(node name, obj)
+        addObject(node name, obj)
     }
 
     buildVariableDecl: func (node: VariableDecl, type: String) -> HashBag {
@@ -388,7 +395,7 @@ JSONGenerator: class extends Visitor {
             elemBag add(elemInfo)
             elements add(elemBag)
         }
-        objects put(node name, obj)
+        addObject(node name, obj)
     }
 
     generateFuncTag: func (node: FunctionDecl, start: String) -> String {
@@ -445,7 +452,7 @@ JSONGenerator: class extends Visitor {
            .put("doc", "") \
            .put("type", "operator") \
            .put("function", buildFunctionDecl(node getFunctionDecl(), "function"))
-        objects put(tag, obj)
+        addObject(tag, obj)
     }
 
     visitInterfaceDecl: func (node: InterfaceDecl) {
@@ -459,7 +466,7 @@ JSONGenerator: class extends Visitor {
             members add(member)
         }
         obj put("members", members)
-        objects put(node name, obj)
+        addObject(node name, obj)
     }
 
     visitInterfaceImpl: func (node: InterfaceImpl) {
@@ -472,7 +479,7 @@ JSONGenerator: class extends Visitor {
            .put("doc", "") \
            .put("interface", name) \
            .put("for", target)
-        objects put(tag, obj)
+        addObject(tag, obj)
     }
 
     visitType:               func (node: Type) {}
