@@ -18,6 +18,7 @@ BuildParams: class {
     init: func {
         findDist()
         findSdk()
+        sdkLocation = sdkLocation getAbsoluteFile()
         findLibsPath()
 
         // use the GC by default =)
