@@ -56,7 +56,7 @@ ArrayLiteral: class extends Literal {
 
                 if( (type == null || !type equals(cast getType())) &&
                     (cast getType() instanceOf(ArrayType) || cast getType() isPointer()) &&
-                    (!cast getType() as SugarType inner isGeneric())) {
+                    (!cast getType() instanceOf(SugarType) || !cast getType() as SugarType inner isGeneric())) {
                     type = cast getType()
                     if(type != null) {
                         //if(res params veryVerbose) printf(">> Inferred type %s of %s by outer cast %s\n", type toString(), toString(), parent toString())

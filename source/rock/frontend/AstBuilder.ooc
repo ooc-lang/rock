@@ -13,7 +13,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Dereference, Foreach, OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess,
     Match, FlowControl, While, CharLiteral, InterfaceDecl, NamespaceDecl,
     Version, Use, Block, ArrayLiteral, EnumDecl, BaseType, FuncType,
-    Declaration, PropertyDecl, CallChain]
+    Declaration, PropertyDecl, CallChain, Tuple]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -383,8 +383,12 @@ AstBuilder: class {
         stack push(Stack<VariableDecl> new())
     }
 
-    onVarDeclName: unmangled(nq_onVarDeclName) func (name: String) {
+    onVarDeclName:  unmangled(nq_onVarDeclName)  func (name: String) {
         peek(Stack<VariableDecl>) push(VariableDecl new(null, name clone(), token()))
+    }
+
+    onVarDeclTuple: unmangled(nq_onVarDeclTuple) func (tuple: Tuple) {
+        peek(Stack<VariableDecl>) push(VariableDeclTuple new(null as Type, tuple, token()))
     }
 
     onVarDeclExtern: unmangled(nq_onVarDeclExtern) func (externName: String) {
@@ -730,6 +734,14 @@ AstBuilder: class {
         pop(ArrayLiteral)
     }
 
+    onTupleStart: unmangled(nq_onTupleStart) func {
+        stack push(Tuple new(token()))
+    }
+
+    onTupleEnd: unmangled(nq_onTupleEnd) func -> Tuple {
+        pop(Tuple)
+    }
+
     onStringLiteral: unmangled(nq_onStringLiteral) func (text: String) -> StringLiteral {
         StringLiteral new(text clone() replace("\n", "\\n") replace("\t", "\\t"), token())
     }
@@ -798,6 +810,12 @@ AstBuilder: class {
                     stmt token throwError("Expected an expression here, not a statement!")
                 }
                 arrayLit getElements() add(stmt as Expression)
+            case node instanceOf(Tuple) =>
+                tuple := node as Tuple
+                if(!stmt instanceOf(Expression)) {
+                    stmt token throwError("Expected an expression here, not a statement!")
+                }
+                tuple getElements() add(stmt as Expression)
             case =>
                 printf("[gotStatement] Got a %s, don't know what to do with it, parent = %s\n", stmt toString(), node class name)
         }

@@ -11,7 +11,9 @@ TypeList: class extends Type {
         super(token)
     }
 
-    accept: func (visitor: Visitor) { visitor visitType(voidType) }
+    accept: func (visitor: Visitor) {
+        token throwError("Visiting a TypeList! That shouldn't happen.")
+    }
 
     pointerLevel: func -> Int { 0 }
 

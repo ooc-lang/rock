@@ -2,7 +2,7 @@ import structs/[ArrayList]
 import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
        Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast, Module,
        Block, Scope, FunctionDecl, Argument, BaseType, FuncType, Statement,
-       NullLiteral
+       NullLiteral, Tuple
 import tinker/[Response, Resolver, Trail]
 import ../frontend/BuildParams
 
@@ -181,7 +181,7 @@ VariableDecl: class extends Declaration {
                 parent := trail get(idx + 1, Node)
 
                 if(parent instanceOf(FunctionCall)) {
-                    result = trail addBeforeInScope(parent as Statement, this)              
+                    result = trail addBeforeInScope(parent as Statement, this)
                 } else {
                     block := Block new(token)
                     block getBody() add(this)
@@ -299,3 +299,20 @@ VariableDecl: class extends Declaration {
     isMember: func -> Bool { owner != null }
 
 }
+
+VariableDeclTuple: class extends VariableDecl {
+
+    tuple: Tuple
+
+    init: func ~vdTuple (.type, =tuple, .token) {
+        init~vDecl (type, "<tuple>", token)
+    }
+
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        token throwError("Got a VariableDeclTuple!")
+
+        Responses OK
+    }
+
+}
+
