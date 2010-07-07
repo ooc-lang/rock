@@ -29,7 +29,7 @@ JSONGenerator: class extends Visitor {
         objects = HashBag new()
         /* build the structure! */
         root put("entities", objects)
-        root put("name", module getPath())
+        root put("path", module getPath())
 
         globalImports := Bag new()
         for(imp in module getGlobalImports())
