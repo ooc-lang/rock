@@ -7,13 +7,13 @@ import ../utils/FileUtils
 import ../frontend/[Token, BuildParams]
 import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     FunctionCall, StringLiteral, Node, Module, Statement, Include, Import,
-    Type, Expression, Return, VariableAccess, Cast, If, Else, ControlStatement,
-    Comparison, IntLiteral, FloatLiteral, Ternary, BinaryOp, BoolLiteral,
-    NullLiteral, Argument, Parenthesis, AddressOf, Dereference, Foreach,
-    OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess, Match, FlowControl,
-    While, CharLiteral, InterfaceDecl, NamespaceDecl, Version, Use, Block,
-    ArrayLiteral, EnumDecl, BaseType, FuncType, Declaration, PropertyDecl,
-    CallChain]
+    Type, TypeList, Expression, Return, VariableAccess, Cast, If, Else,
+    ControlStatement, Comparison, IntLiteral, FloatLiteral, Ternary,
+    BinaryOp, BoolLiteral, NullLiteral, Argument, Parenthesis, AddressOf,
+    Dereference, Foreach, OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess,
+    Match, FlowControl, While, CharLiteral, InterfaceDecl, NamespaceDecl,
+    Version, Use, Block, ArrayLiteral, EnumDecl, BaseType, FuncType,
+    Declaration, PropertyDecl, CallChain]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 

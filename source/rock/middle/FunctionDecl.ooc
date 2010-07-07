@@ -243,7 +243,11 @@ FunctionDecl: class extends Declaration {
                 solved := call resolveTypeArg(argType getName(), null, finalScore&)
                 if(solved) argType = solved
             }
-            sb append(argType toString())
+            if(argType) {
+                sb append(argType toString())
+            } else {
+                sb append("...")
+            }
         }
         sb append(")")
         return sb toString()
