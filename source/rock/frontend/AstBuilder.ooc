@@ -536,7 +536,7 @@ AstBuilder: class {
      * Types
      */
 
-    onTypeNew: unmangled(nq_onTypeNew) func (name: String) -> Type   {
+    onTypeNew: unmangled(nq_onTypeNew) func (name: String) -> Type {
         BaseType new(name clone() trim(), token())
     }
 
@@ -554,6 +554,14 @@ AstBuilder: class {
 
     onTypeGenericArgument: unmangled(nq_onTypeGenericArgument) func (type: Type, typeInner: Type) {
         type addTypeArg(VariableAccess new(typeInner, token()))
+    }
+
+    onTypeList: unmangled(nq_onTypeList) func -> TypeList {
+        TypeList new(token())
+    }
+
+    onTypeListElement: unmangled(nq_onTypeListElement) func (list: TypeList, element: Type) {
+        list types add(element)
     }
 
     /*

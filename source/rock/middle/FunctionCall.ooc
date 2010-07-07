@@ -159,7 +159,10 @@ FunctionCall: class extends Expression {
                     expr as VariableAccess getRef() resolveCall(this, res, trail)
                 } else if(expr getType() != null && expr getType() getRef() != null) {
                     if(!expr getType() getRef() instanceOf(TypeDecl)) {
-                        message := "No such function %s%s for %s (you can't call methods on generic types! you have to cast them to something sane first)" format(name, getArgsTypesRepr(), expr getType() getName())
+                        message := "No such function %s%s for `%s`" format(name, getArgsTypesRepr(), expr getType() getName())
+                        if(expr getType() isGeneric()) {
+                            message += " (you can't call methods on generic types! you have to cast them first)"
+                        }
                         token throwError(message)
                     }
                     tDecl := expr getType() getRef() as TypeDecl

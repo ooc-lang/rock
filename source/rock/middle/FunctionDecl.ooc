@@ -439,7 +439,7 @@ FunctionDecl: class extends Declaration {
 
 				constructCall := FunctionCall new(VariableAccess new(arg getType(), arg token), "new", arg token)
                 constructCall setSuffix("withData")
-				constructCall typeArgs add(VariableAccess new(BaseType new("Pointer", arg token), arg token))
+				//constructCall typeArgs add(VariableAccess new(BaseType new("Pointer", arg token), arg token))
 				constructCall args add(VariableAccess new(argv, arg token)) \
                                   .add(VariableAccess new(argc, arg token))
 

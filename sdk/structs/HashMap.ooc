@@ -17,32 +17,34 @@ HashEntry: cover {
 nullHashEntry: HashEntry <None, None>
 memset(nullHashEntry&, 0, HashEntry size)
 
-stringKeyEquals: func <K> (k1, k2: K) -> Bool {
-    // FIXME those casts shouldn't be needed,
-    // and this method doesn't belong here
+stringEquals: func <K> (k1, k2: K) -> Bool {
     k1 as String equals(k2 as String)
 }
 
-intKeyEquals: func <K> (k1, k2: K) -> Bool {
-    // FIXME those casts shouldn't be needed,
-    // and this method doesn't belong here
+pointerEquals: func <K> (k1, k2: K) -> Bool {
+    k1 as Pointer == k2 as Pointer
+}
+
+intEquals: func <K> (k1, k2: K) -> Bool {
     k1 as Int == k2 as Int
 }
 
-charKeyEquals: func <K> (k1, k2: K) -> Bool {
-    // FIXME those casts shouldn't be needed,
-    // and this method doesn't belong here
+charEquals: func <K> (k1, k2: K) -> Bool {
     k1 as Char == k2 as Char
 }
 
 /** used when we don't have a custom comparing function for the key type */
-genericKeyEquals: func <K> (k1, k2: K) -> Bool {
+genericEquals: func <K> (k1, k2: K) -> Bool {
     // FIXME rock should turn == between generic vars into a memcmp itself
     memcmp(k1, k2, K size) == 0
 }
 
 intHash: func <K> (key: K) -> UInt {
     return key as UInt
+}
+
+pointerHash: func <K> (key: K) -> UInt {
+    return (key as Pointer) as UInt
 }
 
 charHash: func <K> (key: K) -> UInt {
@@ -121,6 +123,27 @@ ac_X31_hash: func <K> (key: K) -> UInt {
     return h
 }
 
+getStandardEquals: func <T> (T: Class) -> Func <T> (T, T) -> Bool {
+    // choose comparing function for key type
+    //"For %s, " printf(T name)
+    if(T == String) {
+        //"Choosing string comparing function" println()
+        stringEquals
+    } else if(T size == Pointer size) {
+        //"Choosing int comparing function" println()
+        pointerEquals
+    } else if(T size == UInt size) {
+        //"Choosing int comparing function" println()
+        intEquals
+    } else if(T size == Char size) {
+        //"Choosing char comparing function" println()
+        charEquals
+    } else {
+        //"Choosing generic comparing function" println()
+        genericEquals
+    }
+}
+
 /**
  * Simple hash table implementation
  */
@@ -159,19 +182,23 @@ HashMap: class <K, V> extends BackIterable<V> {
         // choose comparing function for key type
         if(K == String) {
             //"Choosing string hashing function" println()
-            keyEquals = stringKeyEquals
+            keyEquals = stringEquals
             hashKey = ac_X31_hash
+        } else if(K size == Pointer size) {
+            //"Choosing pointer hashing function" println()
+            keyEquals = pointerEquals
+            hashKey = pointerHash
         } else if(K size == UInt size) {
             //"Choosing int hashing function" println()
-            keyEquals = intKeyEquals
+            keyEquals = intEquals
             hashKey = intHash
         } else if(K size == Char size) {
             //"Choosing char hashing function" println()
-            keyEquals = charKeyEquals
+            keyEquals = charEquals
             hashKey = charHash
         } else {
             //"Choosing generic hashing function" println()
-            keyEquals = genericKeyEquals
+            keyEquals = genericEquals
             hashKey = murmurHash
         }
     }
@@ -382,7 +409,7 @@ HashMap: class <K, V> extends BackIterable<V> {
             }
         }
 
-        return false        
+        return false
     }
 
     /**

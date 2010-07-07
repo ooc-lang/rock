@@ -22,7 +22,7 @@ FileReader: class extends Reader {
 
     init: func ~withMode (fileName, mode: String) {
         file = fopen(fileName, mode)
-        if (!file) 
+        if (!file)
             Exception new(This, "File not found: " + fileName) throw()
     }
 
@@ -36,16 +36,6 @@ FileReader: class extends Reader {
             Exception new(This, "Error reading char from file") throw()
         }
         return value
-    }
-
-    readLine: func -> String {
-        sb := Buffer new(40) // let's be optimistic
-        while(hasNext()) {
-            c := read()
-            if(c == '\n') break
-            sb append(c)
-        }
-        return sb toString()
     }
 
     hasNext: func -> Bool {

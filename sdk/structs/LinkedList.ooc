@@ -1,7 +1,7 @@
 import structs/List
 import os/Terminal
 
-/** 
+/**
     A generic List implementation that provides a circular list
     of doubly-linked nodes.
 
@@ -66,14 +66,14 @@ LinkedList: class <T> extends List<T> {
 
 	/**
 	    Gets the node at the specified index.
-	    
+
 	    Throws an exception when the index is out of range.
 	*/
     getNode: func(index: Int) -> Node<T> {
 		if(index < 0 || index >= size()) {
 			Exception new(This, "Check index: 0 <= " + index + " < " + size()) throw()
 		}
-		
+
 		i = 0 : Int
 		current := head next
 		while(current next != head && i < index) {
@@ -82,7 +82,7 @@ LinkedList: class <T> extends List<T> {
 		}
 		return current
 	}
-	
+
 	/**
 	    Clears the contents of the list.
 	*/
@@ -90,7 +90,7 @@ LinkedList: class <T> extends List<T> {
 	    head next = head
 	    head prev = head
 	}
-	
+
 	/**
 	    Returns the first index containing the `data`.
 	*/
@@ -106,7 +106,7 @@ LinkedList: class <T> extends List<T> {
 		}
 		return -1
 	}
-	
+
 	/**
 	    Returns the last index containing the `data`.
 	*/
@@ -122,7 +122,7 @@ LinkedList: class <T> extends List<T> {
 		}
 		return -1
 	}
-	
+
 	/**
 	    Returns the first item in the list, or `null` if the list is empty.
 	*/
@@ -132,7 +132,7 @@ LinkedList: class <T> extends List<T> {
 	    else
 	        return null
 	}
-	
+
 	/**
 	    Returns the last item in the list, or `null` if the list is empty.
 	*/
@@ -142,10 +142,10 @@ LinkedList: class <T> extends List<T> {
 		else
 			return null
 	}
-	
+
 	/**
 	    Removes the node at the specified index.
-	    
+
 	    Throws an exception when the index is out of range.
 	*/
 	removeAt: func (index: Int) -> T {
@@ -156,10 +156,10 @@ LinkedList: class <T> extends List<T> {
 		}
 		Exception new(This, "Check index: 0 <= " + index + " < " + size()) throw()
 	}
-	
+
 	/**
 	    Removes the first instance of `data` from the list.
-	    
+
 	    Returns true if successful and false if not.
 	*/
 	remove: func (data: T) -> Bool {
@@ -167,10 +167,10 @@ LinkedList: class <T> extends List<T> {
 		if(i != -1) {
 			removeAt(i)
 			return true
-		}			
+		}
 		return false
 	}
-	
+
 	/**
 	    Removes the specified node from the list.
 	*/
@@ -181,10 +181,10 @@ LinkedList: class <T> extends List<T> {
 		toRemove next = null
         size -= 1
 	}
-	
+
 	/**
 	    Removes the last node in the list.
-	    
+
 	    Returns true if the last node was removed, false if the
 	    list is empty.
 	*/
@@ -195,12 +195,12 @@ LinkedList: class <T> extends List<T> {
 		}
 		return false
 	}
-	
+
 	/**
 	    Sets the value at the index specified.
-	    
+
 	    The previous value is returned.
-	    
+
 	    Throws an exception if the index is out of range.
 	*/
 	set: func (index: Int, data: T) -> T {
@@ -209,19 +209,19 @@ LinkedList: class <T> extends List<T> {
 		node data = data
         return ret
     }
-	
+
 	/**
 	    Returns the size of the list.
 	*/
 	size: func -> Int {return size}
-	
+
 	/**
 	    Returns an Iterator pointing to the front of the list.
 	*/
 	iterator: func -> LinkedListIterator<T> {
 		LinkedListIterator new(this)
 	}
-	
+
 	/**
 	    Returns an Iterator pointing to the back of the list.
 	*/
@@ -230,7 +230,7 @@ LinkedList: class <T> extends List<T> {
 	    iter current = head prev
 	    return iter
 	}
-	
+
 	/**
 	    Clones the list.
 	*/
@@ -243,7 +243,11 @@ LinkedList: class <T> extends List<T> {
         }
 	    return list
 	}
-	
+
+    emptyClone: func -> This<T> {
+        This<T> new()
+    }
+
 	print: func {
 		println()
 		printf("prev: ")
@@ -259,17 +263,17 @@ LinkedList: class <T> extends List<T> {
 			current = current next
 		}
 		println()
-		
+
 		printf("this: ")
 		current = head next
-		while(current != head) {	
+		while(current != head) {
 			Terminal setFgColor(Color red + current as SizeT % 7)
 			printf("|%p|", current)
 			Terminal reset()
 			current = current next
 		}
 		println()
-		
+
 		printf("next: ")
 		current = head next
 		while(current != head) {
@@ -291,40 +295,40 @@ LinkedList: class <T> extends List<T> {
     Container type for the `LinkedList` class.
 */
 Node: class <T>{
-	
+
 	/** The previous node in the list. */
 	prev: Node<T>
 	/** The next node in the list. */
 	next: Node<T>
 	/** The data contained by the node. */
 	data: T
-	
+
 	init: func {
 	}
-	
+
 	/** Initializes the node with previous and next nodes and data. */
 	init: func ~withParams(=prev, =next, =data) {}
-	
+
 }
 
 LinkedListIterator: class <T> extends BackIterator<T>  {
-	
+
 	current: Node<T>
 	list: LinkedList<T>
-	
+
 	init: func ~ll (=list) {
 		current = list head
 	}
-	
+
 	hasNext: func -> Bool {
 		return (current next != list head)
 	}
-	 
+
 	next: func -> T {
 		current = current next
 		return current data
 	}
-	
+
     hasPrev: func -> Bool {
         return (current != list head)
     }
@@ -349,7 +353,7 @@ LinkedListIterator: class <T> extends BackIterator<T>  {
         list removeNode(old)
         return true
     }
-	
+
 }
 
 
