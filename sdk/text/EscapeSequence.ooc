@@ -118,11 +118,13 @@ EscapeSequence: class {
         return buffer toString()
     }
 
-    /** Escape a string. This will replace non-printable characters with equivalents like \something or \x??. **/
-    escape: static func (s: String) -> String {
+    /** Escape a string. This will replace non-printable characters with equivalents like \something or \x??.
+        You can chars that should not be escaped in `exclude`.
+    **/
+    escape: static func ~exclude (s: String, exclude: String) -> String {
         buf := Buffer new()
         for(chr in s) {
-            if(!chr isPrintable() || chr == '\'' || chr == '"' || chr == '\\') {
+            if(!exclude contains(chr) && (!chr isPrintable() || chr == '\'' || chr == '"' || chr == '\\')) {
                 buf append(match chr {
                     case '\'' => "\\'"
                     case '"' => "\\\""
@@ -142,5 +144,9 @@ EscapeSequence: class {
             }
         }
         buf toString()
+    }
+
+    escape: static func ~excludeNothing (s: String) -> String {
+        escape(s, "")
     }
 }

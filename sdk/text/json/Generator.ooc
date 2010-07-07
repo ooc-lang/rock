@@ -10,10 +10,12 @@ GeneratorError: class extends Exception {
     }
 }
 
+EXCLUDE := const "'" // don't escape the '
+
 generate: func <T> (writer: Writer, obj: T) {
     match T {
         case String => {
-            writer write("\"%s\"" format(EscapeSequence escape(obj as String)))
+            writer write("\"%s\"" format(EscapeSequence escape(obj as String, EXCLUDE)))
         }
         case Int => {
             writer write(obj as Int toString())
