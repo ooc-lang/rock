@@ -560,8 +560,8 @@ FunctionCall: class extends Expression {
             typeResult := resolveTypeArg(typeArg name, trail, finalScore&)
             if(finalScore == -1) break
             if(typeResult) {
-                result := typeResult instanceOf(FuncType) ? \
-                    VariableAccess new("Pointer", token) : \
+                result := typeResult instanceOf(FuncType) ?
+                    VariableAccess new("Pointer", token) :
                     VariableAccess new(typeResult, token)
                 if (typeResult isGeneric()) {
                     result setRef(null) // force re-resolution - we may not be in the correct context
