@@ -191,15 +191,20 @@ JSONGenerator: class extends Visitor {
 
     buildFunctionDecl: func ~typed (node: FunctionDecl, type: String) -> HashBag {
         obj := HashBag new()
+        name := null as String
+        if(node suffix)
+            name = "%s~%s" format(node name, node suffix)
+        else
+            name = node name
         /* `name` */
-        obj put("name", node name)
+        obj put("name", name)
         /* `doc` */
         obj put("doc", node doc)
         /* `tag` */
         if(type == "method") {
-            obj put("tag", "method(%s, %s)" format(node owner name, node name))
+            obj put("tag", "method(%s, %s)" format(node owner name, name))
         } else {
-            obj put("tag", node name)
+            obj put("tag", name)
         }
         /* `type` */
         obj put("type", type)
