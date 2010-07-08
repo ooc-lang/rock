@@ -4,7 +4,8 @@ import Cast, Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, If, Else,
        VariableDecl, Node, Statement, Module, FunctionCall, Declaration,
        Version, StringLiteral, Conditional, Import, ClassDecl, StringLiteral,
-       IntLiteral, NullLiteral, BaseType, FuncType, AddressOf, BinaryOp
+       IntLiteral, NullLiteral, BaseType, FuncType, AddressOf, BinaryOp,
+       TypeList
 import tinker/[Resolver, Response, Trail]
 
 /**
@@ -62,6 +63,7 @@ FunctionDecl: class extends Declaration {
     args := ArrayList<VariableDecl> new()
     returnArgs := ArrayList<VariableDecl> new()
     body := Scope new()
+    _returnTypeResolvedOnce := false
 
     partialByReference := ArrayList<VariableDecl> new()
     partialByValue := ArrayList<VariableDecl> new()
@@ -145,10 +147,12 @@ FunctionDecl: class extends Declaration {
     }
 
     getReturnArg: func -> VariableDecl {
-        if(!returnArgs isEmpty()) return returnArgs[0]
-        retArg := VariableDecl new(returnType, generateTempName("returnArg"), token)
-        returnArgs add(retArg)
-        retArg
+        if(returnArgs isEmpty()) createReturnArg(returnType, "genericReturn")
+        return returnArgs[0]
+    }
+
+    createReturnArg: func (type: Type, name: String) {
+        returnArgs add(VariableDecl new(type, generateTempName(name), token))
     }
 
     getReturnArgs: func -> List<VariableDecl> {
@@ -366,10 +370,19 @@ FunctionDecl: class extends Declaration {
                 trail pop(this)
                 return response
             }
-            if(returnType getRef() == null) {
-                res wholeAgain(this, "need returnType of decl " + name)
+            if(!returnType isResolved()) {
+                res wholeAgain(this, "need returnType of decl %s to be resolved" format(name))
             } else if(returnType isGeneric()) {
-                getReturnArg() // this create the returnArg for generic return types
+                // this create the returnArg for generic return types
+                if(returnArgs isEmpty()) createReturnArg(returnType, "genericReturn")
+            } else if(returnType instanceOf(TypeList)) {
+                list := returnType as TypeList
+                if(list types size() > returnArgs size()) {
+                    "Function %s has return type %s" printfln(toString(), returnType toString())
+                    for(type in list types) {
+                        createReturnArg(type, "tupleArg")
+                    }
+                }
             }
         }
 
@@ -704,6 +717,7 @@ FunctionDecl: class extends Declaration {
             if(!expr getType() equals(voidType)) {
                 //printf("[autoReturn] Hmm it's a %s\n", stmt toString())
                 scope set(index, Return new(expr, expr token))
+                res wholeAgain(this, "Replaced with a return o/")
                 //printf("[autoReturn] Replaced with a %s!\n", scope get(index) toString())
             }
         } else if(stmt instanceOf(ControlStatement)) {

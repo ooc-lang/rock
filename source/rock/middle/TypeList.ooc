@@ -2,6 +2,7 @@ import structs/[List, ArrayList]
 import Type, Visitor, Declaration, VariableAccess
 import tinker/[Response, Resolver, Trail]
 import ../backend/cnaughty/AwesomeWriter
+import text/Buffer
 
 TypeList: class extends Type {
 
@@ -12,7 +13,21 @@ TypeList: class extends Type {
     }
 
     accept: func (visitor: Visitor) {
-        token throwError("Visiting a TypeList! That shouldn't happen.")
+        token printMessage("Visiting a TypeList! We're on the good track.", "INFO")
+        voidType accept(visitor)
+    }
+
+    isResolved: func -> Bool {
+        for(type in types) if(!type isResolved()) return false
+        true
+    }
+
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        for(type in types) {
+            type resolve(trail, res)
+        }
+
+        Responses OK
     }
 
     pointerLevel: func -> Int { 0 }
@@ -38,7 +53,22 @@ TypeList: class extends Type {
     }
 
     getName: func -> String {
-        "<ListType>"
+        "<TypeList>"
+    }
+
+    toString: func -> String {
+        if(types isEmpty()) return "()"
+
+        buffer := Buffer new()
+        buffer append('(')
+        isFirst := true
+        for(type in types) {
+            if(isFirst) isFirst = false
+            else        buffer append(", ")
+            buffer append(type toString())
+        }
+        buffer append(')')
+        buffer toString()
     }
 
     setRef: func (d: Declaration) {

@@ -74,9 +74,10 @@ Module: class extends Node {
     }
 
     addFuncType: func (hashName: String, funcType: FuncType) {
+        "caching FuncType %s in module %s" printfln(funcType toString(), getPath())
         if(!funcTypesMap contains(hashName)) {
             funcTypesMap put(hashName, funcType)
-        }
+        } else { "Ignoring it!" println() }
     }
 
     sanitize: func(str: String) -> String {
@@ -297,7 +298,7 @@ Module: class extends Node {
 
     /**
      * Parse the imports of this module.
-     * 
+     *
      * If resolver is non-null, it means there's a new import that
      * we expect to add to the resolvers list.
      */

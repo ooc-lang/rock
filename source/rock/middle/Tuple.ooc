@@ -1,13 +1,13 @@
 import ../frontend/[Token, BuildParams]
-import Literal, Visitor, Type, Expression, Node
+import Literal, Visitor, Type, Expression, Node, TypeList, NullLiteral
 import tinker/[Response, Resolver, Trail]
 import structs/[List, ArrayList]
 import text/Buffer
 
 Tuple: class extends Expression {
 
-    unwrapped := false
     elements := ArrayList<Expression> new()
+    type : Type = null
 
     init: func ~arrayLiteral (.token) {
         super(token)
@@ -16,9 +16,22 @@ Tuple: class extends Expression {
     getElements: func -> List<Expression> { elements }
 
     accept: func (visitor: Visitor) {
-        token throwError("Visiting a Tuple! That shouldn't happen.")
+        token printMessage("Visiting a Tuple! We're on the good track.", "INFO")
+        NullLiteral new(token) accept(visitor)
     }
-    getType: func -> Type { null }
+
+    getType: func -> Type {
+        // TODO: what if we modify the tuple in the AST later?
+        if(!type) {
+            list := TypeList new(token)
+            for(element in elements) {
+                // TODO: what if the types are null?
+                list types add(element getType())
+            }
+            type = list
+        }
+        type
+    }
 
     toString: func -> String {
         if(elements isEmpty()) return "()"
@@ -36,7 +49,8 @@ Tuple: class extends Expression {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        token throwError("Hey! got a tuple right there o/")
+        getType() resolve(trail, res)
+        token printMessage("Hey! got a tuple right there o/ Parent is a %s. Doing nothing." format(trail peek() toString()), "INFO")
 
         Responses OK
     }
