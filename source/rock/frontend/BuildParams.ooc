@@ -192,7 +192,10 @@ BuildParams: class {
     entryPoint := "main"
 
     // if non-null, will create a static library with 'ar rcs <outlib> <all .o files>'
-	outlib := null as String
+	staticlib : String = null
+
+    // if non-null, will create a dynamic library
+    dynamiclib : String = null
 
     // add a main method if there's none in the specified ooc file
 	defaultMain := true

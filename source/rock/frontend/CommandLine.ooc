@@ -35,7 +35,7 @@ CommandLine: class {
             if (arg startsWith("-")) {
                 option := arg substring(1)
 
-                if (option startsWith("sourcepath")) {
+                if (option startsWith("sourcepath=")) {
 
                     sourcePathOption := arg substring(arg indexOf('=') + 1)
                     tokenizer := StringTokenizer new(sourcePathOption, File pathDelimiter)
@@ -43,14 +43,25 @@ CommandLine: class {
                         params sourcePath add(token)
                     }
 
-                } else if (option startsWith("outpath")) {
+                } else if (option startsWith("outpath=")) {
 
                     params outPath = File new(arg substring(arg indexOf('=') + 1))
                     params clean = false
 
-                } else if (option startsWith("outlib")) {
+                } else if (option startsWith("outlib=")) {
 
-                    params outlib = arg substring(arg indexOf('=') + 1)
+                    "Deprecated option %s! Use -staticlib instead." printfln(option)
+                    params staticlib = arg substring(arg indexOf('=') + 1)
+                    params libcache = false
+
+                } else if (option startsWith("staticlib=")) {
+
+                    params staticlib = arg substring(arg indexOf('=') + 1)
+                    params libcache = false
+
+                } else if (option startsWith("dynamiclib=")) {
+
+                    params dynamiclib = arg substring(arg indexOf('=') + 1)
 
                 } else if(option startsWith("backend")) {
                     params backend = arg substring(arg indexOf('=') + 1)

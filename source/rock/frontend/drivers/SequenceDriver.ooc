@@ -83,7 +83,7 @@ SequenceDriver: class extends Driver {
         }
         if(params verbose) println()
 
-		if(params link) {
+		if(params link && params staticlib == null) {
 
 			initCompiler(params compiler)
 
@@ -144,18 +144,11 @@ SequenceDriver: class extends Driver {
 
 		}
 
-		if(params outlib != null) {
-			toCompile := collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<String> new())
-            modules := ArrayList<Module> new()
-
-			for(sourceFolder in toCompile) {
-                modules addAll(sourceFolder modules)
-			}
-
-            if(params verbose) "Building archive %s with all object files." format(params outlib) println()
-            archive := Archive new("<all>", params outlib, params, false)
-            for(module in modules) {
-                archive add(module)
+		if(params staticlib != null) {
+			if(params verbose) "Building archive %s with all object files (%d modules total)" format(params staticlib, module collectDeps() size()) println()
+            archive := Archive new("<staticlib>", params staticlib, params, false)
+            for(dep in module collectDeps()) {
+                archive add(dep)
             }
             archive save(params)
 		}
