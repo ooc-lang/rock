@@ -13,7 +13,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,
     Node, Parenthesis, Return, Cast, Comparison, Ternary, BoolLiteral,
     Argument, Statement, AddressOf, Dereference, FuncType, BaseType, PropertyDecl,
-    EnumDecl, OperatorDecl, InterfaceDecl, InterfaceImpl]
+    EnumDecl, OperatorDecl, InterfaceDecl, InterfaceImpl, Version]
 
 JSONGenerator: class extends Visitor {
 
@@ -85,12 +85,49 @@ JSONGenerator: class extends Visitor {
         writer close()
     }
 
+    translateVersionSpec: func (spec: VersionSpec) -> String {
+        match (spec class) {
+            case VersionName => {
+                return spec as VersionName name
+            }
+            case VersionNegation => {
+                return "not(%s)" format(translateVersionSpec(spec as VersionNegation spec))
+            }
+            case VersionAnd => {
+                mySpec := spec as VersionAnd
+                return "and(%s,%s)" format(
+                        translateVersionSpec(mySpec specLeft),
+                        translateVersionSpec(mySpec specRight))
+            }
+            case VersionOr => {
+                mySpec := spec as VersionOr
+                return "or(%s,%s)" format(
+                        translateVersionSpec(mySpec specLeft),
+                        translateVersionSpec(mySpec specRight))
+            }
+            case => {
+                Exception new("Unknown version spec class: %s" format(spec class name)) throw()
+            }
+        }
+        null
+    }
+
+    putVersion: func (verzion: VersionSpec, obj: HashBag) {
+        if(verzion) {
+            obj put("version", translateVersionSpec(verzion))
+        } else {
+            obj put("version", null)
+        }
+    }
+
     visitClassDecl: func (node: ClassDecl) {
         if(node isMeta)
             return
         obj := HashBag new()
         /* `name` */
         obj put("name", node name as String)
+        /* `version` */
+        putVersion(node verzion, obj)
         /* `type` */
         obj put("type", "class")
         /* `abstract` */
@@ -149,6 +186,8 @@ JSONGenerator: class extends Visitor {
         obj put("type", "cover")
         /* `doc` */
         obj put("doc", node doc)
+        /* `version` */
+        putVersion(node verzion, obj)
         /* `tag` */
         obj put("tag", node name as String)
         /* `fullName` */
@@ -198,6 +237,8 @@ JSONGenerator: class extends Visitor {
             name = node name
         /* `name` */
         obj put("name", name)
+        /* `version` */
+        putVersion(node verzion, obj)
         /* `doc` */
         obj put("doc", node doc)
         /* `tag` */
@@ -286,6 +327,8 @@ JSONGenerator: class extends Visitor {
         obj put("name", node name)
         /* `doc` */
         obj put("doc", node doc)
+        /* `version` */
+        obj put("version", null) // TODO: change when we have version support
         /* `extern` */
         if(node isExtern()) {
             if(node externName isEmpty())
@@ -359,6 +402,8 @@ JSONGenerator: class extends Visitor {
         obj put("name", node name)
         /* `type` */
         obj put("type", "enum")
+        /* `version` */
+        putVersion(node verzion, obj)
         /* `tag` */
         obj put("tag", node name)
         /* `extern` */
@@ -457,12 +502,16 @@ JSONGenerator: class extends Visitor {
            .put("doc", "") \
            .put("type", "operator") \
            .put("function", buildFunctionDecl(node getFunctionDecl(), "function"))
+        /* `version` */
+        obj put("version", null) // TODO?
         addObject(tag, obj)
     }
 
     visitInterfaceDecl: func (node: InterfaceDecl) {
         obj := HashBag new()
         obj put("tag", node name) .put("name", node name) .put("doc", node doc) .put("type", "interface")
+        /* `version` */
+        putVersion(node verzion, obj)
         /* methods */
         members := Bag new()
         for(function in node meta functions) {
@@ -479,6 +528,8 @@ JSONGenerator: class extends Visitor {
         name := node getSuperType() getName()
         target := node impl getName()
         tag := "interfaceImpl(%s, %s)" format(name, target)
+        /* `version` */
+        putVersion(node verzion, obj)
         obj put("tag", tag) \
            .put("type", "interfaceImpl") \
            .put("doc", "") \
