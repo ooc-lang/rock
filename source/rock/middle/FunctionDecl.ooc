@@ -380,7 +380,7 @@ FunctionDecl: class extends Declaration {
                 if(list types size() > returnArgs size()) {
                     "Function %s has return type %s" printfln(toString(), returnType toString())
                     for(type in list types) {
-                        createReturnArg(type, "tupleArg")
+                        createReturnArg(ReferenceType new(type, type token), "tupleArg")
                     }
                 }
             }

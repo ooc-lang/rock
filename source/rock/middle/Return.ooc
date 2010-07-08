@@ -96,7 +96,11 @@ Return: class extends Statement {
                     returnAcc := VariableAccess new(returnArg, token)
                     "Returning %s via returnAcc %s" printfln(returnExpr toString(), returnAcc toString())
 
-                    if1 := If new(returnAcc, token)
+                    // why take the address? well if the returnArgs aren't generic, then they are ReferenceTypes
+                    // to check if we care about a returnArg, we need to know if the *address* of the passed pointer is non-null,
+                    // not the value itself. So we take AddressOf.
+                    if1 := If new(retType isGeneric() ? returnAcc : AddressOf new(returnAcc, token), token)
+
                     if(returnExpr hasSideEffects()) {
                         vdfe := VariableDecl new(null, generateTempName("returnVal"), returnExpr, returnExpr token)
                         if(!trail peek() addBefore(this, vdfe)) {
