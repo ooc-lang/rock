@@ -68,6 +68,8 @@ Class: abstract class {
 Array: cover from _lang_array__Array {
     length: extern Int
     data: extern Pointer
+
+    free: extern(_lang_array__Array_free) func
 }
 
 None: class {init: func {}}
