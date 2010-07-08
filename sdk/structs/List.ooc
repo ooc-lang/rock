@@ -1,4 +1,5 @@
 import text/Buffer /* for List join */
+import math/Random, structs/ArrayList /* for List shuffle */
 import structs/HashMap /* for getStandardEquals() - should probably move that in a separate Module */
 
 /**
@@ -170,6 +171,22 @@ List: abstract class <T> extends BackIterable<T> {
     }
 
     /**
+       Return a list with all the elements in a random order
+     */
+    shuffle: func -> This<T> {
+        shuffled := emptyClone()
+
+        indexes := ArrayList<Int> new()
+        for(i in 0..size()) indexes add(i)
+
+        while(!indexes isEmpty()) {
+            i := Random randRange(0, indexes size())
+            shuffled add(this[indexes removeAt(i) as Int])
+        }
+        shuffled
+    }
+
+    /**
        @return the first element of this list
      */
     first: func -> T {
@@ -220,10 +237,9 @@ List: abstract class <T> extends BackIterable<T> {
         }
     }
 
+    join: func ~stringDefault -> String { join("") }
+
     join: func ~string (str: String) -> String {
-        if(!this T inheritsFrom(String)) {
-            Exception new("You cannot use `String join` with %s instances." format(this T name)) throw()
-        }
         /* TODO: A more performant implementation is possible. */
         result := Buffer new()
         first := true
@@ -232,7 +248,12 @@ List: abstract class <T> extends BackIterable<T> {
                 first = false
             else
                 result append(str)
-            result append(item as String)
+
+            match T {
+                case String => result append(item as String)
+                case Char   => result append(item as Char)
+                case        => Exception new("You cannot use `List join` with %s instances." format(this T name)) throw()
+            }
         }
         result toString()
     }

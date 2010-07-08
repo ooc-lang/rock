@@ -24,12 +24,6 @@ Object: abstract class {
         class inheritsFrom(T)
     }
 
-    /*
-    toString: func -> String {
-        "%s@%p" format(class name, this)
-    }
-    */
-
 }
 
 Class: abstract class {
@@ -967,8 +961,8 @@ Iterable: abstract class <T> {
 
     iterator: abstract func -> Iterator<T>
 
-    /** Return the contents of the iterable as ArrayList. */
-    toArrayList: func -> ArrayList<T> {
+    /** Return the contents of the iterable as an ArrayList. */
+    toList: func -> ArrayList<T> {
         result := ArrayList<T> new()
         for(elem: T in this) {
             result add(elem)
