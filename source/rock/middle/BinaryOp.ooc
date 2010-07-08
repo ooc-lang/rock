@@ -166,7 +166,7 @@ BinaryOp: class extends Expression {
             if(right instanceOf(Cast)) {
                 cast = right as Cast
                 realRight = cast inner
-            }                
+            }
 
             // if we're an assignment from a generic return value
             // we need to set the returnArg to left and disappear! =)
@@ -178,8 +178,9 @@ BinaryOp: class extends Expression {
                     return Responses OK
                 }
 
-                if(fDecl getReturnType() isGeneric()) {
-                    fCall setReturnArg(left getGenericOperand())
+                //if(fDecl getReturnType() isGeneric()) {
+                if(!fDecl getReturnArgs() isEmpty()) {
+                    fCall setReturnArg(fDecl getReturnType() isGeneric() ? left getGenericOperand() : left)
                     trail peek() replace(this, fCall)
                     res wholeAgain(this, "just replaced with fCall and set ourselves as returnArg")
                     return Responses OK

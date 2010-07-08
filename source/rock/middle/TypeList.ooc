@@ -76,7 +76,7 @@ TypeList: class extends Type {
     }
 
     getRef: func -> Type {
-        null
+        this
     }
 
     clone: func -> Type {

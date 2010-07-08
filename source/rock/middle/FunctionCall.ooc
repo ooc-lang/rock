@@ -2,7 +2,8 @@ import structs/[ArrayList, List], text/Buffer
 import ../frontend/[Token, BuildParams, CommandLine]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
-       InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType, Return
+       InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType, Return,
+       TypeList
 import tinker/[Response, Resolver, Trail]
 
 FunctionCall: class extends Expression {
@@ -331,7 +332,8 @@ FunctionCall: class extends Expression {
             idx += 1
         }
 
-        if(ref returnType isGeneric() && !isFriendlyHost(parent)) {
+        //if(ref returnType isGeneric() && !isFriendlyHost(parent)) {
+        if(!ref getReturnArgs() isEmpty() && !isFriendlyHost(parent)) {
             if(parent instanceOf(Return)) {
                 fDeclIdx := trail find(FunctionDecl)
                 if(fDeclIdx != -1) {
@@ -348,7 +350,8 @@ FunctionCall: class extends Expression {
                 }
             }
 
-            vDecl := VariableDecl new(getType(), generateTempName("genCall"), token)
+            vType := getType() instanceOf(TypeList) ? getType() as TypeList types get(0) : getType()
+            vDecl := VariableDecl new(vType, generateTempName("genCall"), token)
             if(!trail addBeforeInScope(this, vDecl)) {
                 if(res fatal) token throwError("Couldn't add a " + vDecl toString() + " before a " + toString() + ", trail = " + trail toString())
                 res wholeAgain(this, "couldn't add before scope")
