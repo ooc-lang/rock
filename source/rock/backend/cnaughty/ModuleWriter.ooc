@@ -144,14 +144,24 @@ ModuleWriter: abstract class extends Skeleton {
         current untab(). nl(). app("}"). nl()
 
         // write all functions
-        for(fDecl: FunctionDecl in module functions) {
+        for(fDecl in module functions) {
             fDecl accept(this)
         }
 
         // write all operator overloads
-        for(oDecl: OperatorDecl in module operators) {
+        for(oDecl in module operators) {
             oDecl accept(this)
         }
+
+        // write for-C aliases
+        hw nl(). app("#ifdef OOC_FROM_C")
+        for(fDecl in module functions) {
+            fullName := fDecl getFullName()
+            if(fDecl getName() != fullName) {
+                hw nl(). app("#define "). app(fDecl getName()). app("(...) "). app(fullName). app("(__VA_ARGS__)")
+            }
+        }
+        hw nl(). app("#endif")
 
         // header end
         current = hw
