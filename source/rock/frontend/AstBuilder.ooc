@@ -383,8 +383,10 @@ AstBuilder: class {
         stack push(Stack<VariableDecl> new())
     }
 
-    onVarDeclName:  unmangled(nq_onVarDeclName)  func (name: String) {
-        peek(Stack<VariableDecl>) push(VariableDecl new(null, name clone(), token()))
+    onVarDeclName: unmangled(nq_onVarDeclName) func (name, doc: String) {
+        vDecl := VariableDecl new(null, name clone(), token())
+        vDecl doc = doc
+        peek(Stack<VariableDecl>) push(vDecl)
     }
 
     onVarDeclTuple: unmangled(nq_onVarDeclTuple) func (tuple: Tuple) {

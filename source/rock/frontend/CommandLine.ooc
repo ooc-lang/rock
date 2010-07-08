@@ -6,7 +6,7 @@ import rock/rock
 import Help, Token, BuildParams, AstBuilder
 import compilers/[Gcc, Clang, Icc, Tcc]
 import drivers/[Driver, CombineDriver, SequenceDriver, MakeDriver, DummyDriver]
-//import ../backend/json/JSONGenerator
+import ../backend/json/JSONGenerator
 import ../middle/[Module, Import]
 import ../middle/tinker/Tinkerer
 
@@ -434,11 +434,10 @@ CommandLine: class {
             }
         } else if(params backend == "json") {
             // json phase 3: generate.
-            "FIXME! JSON generator disabled for now" println()
-
-            //for(candidate in module collectDeps()) {
-                //JSONGenerator new(params, candidate) write() .close()
-            //}
+            params clean = false // -backend=json implies -noclean
+            for(candidate in module collectDeps()) {
+                JSONGenerator new(params, candidate) write() .close()
+            }
         }
 
         first = false
