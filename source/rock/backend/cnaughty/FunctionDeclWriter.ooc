@@ -112,7 +112,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
             }
         }
 
-        /* Step 2: write the return argument, if any */
+        /* Step 2: write the return arguments, if any */
         for(retArg in fDecl getReturnArgs()) {
             if(!isFirst) current app(", ")
             else isFirst = false

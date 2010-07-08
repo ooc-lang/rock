@@ -48,20 +48,29 @@ CommandLine: class {
                     params outPath = File new(arg substring(arg indexOf('=') + 1))
                     params clean = false
 
-                } else if (option startsWith("outlib=")) {
+                } else if (option startsWith("outlib")) {
 
-                    "Deprecated option %s! Use -staticlib instead." printfln(option)
-                    params staticlib = arg substring(arg indexOf('=') + 1)
+                    "Deprecated option %s! Use -staticlib instead. Abandoning." printfln(option)
+                    exit(1)
+
+                } else if (option startsWith("staticlib")) {
+
+                    idx := arg indexOf('=')
+                    if(idx == -1) {
+                        params staticlib = ""
+                    } else {
+                        params staticlib = arg substring(idx + 1)
+                    }
                     params libcache = false
 
-                } else if (option startsWith("staticlib=")) {
+                } else if (option startsWith("dynamiclib")) {
 
-                    params staticlib = arg substring(arg indexOf('=') + 1)
-                    params libcache = false
-
-                } else if (option startsWith("dynamiclib=")) {
-
-                    params dynamiclib = arg substring(arg indexOf('=') + 1)
+                    idx := arg indexOf('=')
+                    if(idx == -1) {
+                        params dynamiclib = ""
+                    } else {
+                        params dynamiclib = arg substring(idx + 1)
+                    }
 
                 } else if(option startsWith("backend")) {
                     params backend = arg substring(arg indexOf('=') + 1)
@@ -328,8 +337,40 @@ CommandLine: class {
         }
 
         if(modulePaths isEmpty()) {
-            printf("rock: no ooc files\n")
+            "rock: no ooc files" println()
             exit(1)
+        }
+
+        if(params staticlib != null || params dynamiclib != null) {
+            if(modulePaths size() != 1) {
+                "Error: you can use -staticlib of -dynamiclib only when specifying a unique .ooc file, not %d of them." printfln(modulePaths size())
+                exit(1)
+            }
+            moduleName := File new(modulePaths[0]) name()
+            moduleName = moduleName[0..moduleName length() - 4]
+            basePath := File new("build", moduleName) getPath()
+            if(params staticlib == "") {
+                params clean = false
+                params defaultMain = false
+                params outPath = File new(basePath, "include")
+                staticExt := ".a"
+                params staticlib = File new(File new(basePath, "lib"), moduleName + staticExt) getPath()
+            }
+            if(params dynamiclib == "") {
+                params clean = false
+                params defaultMain = false
+                params outPath = File new(basePath, "include")
+                dynamicExt := ".so"
+                // TODO: version blocks for this is evil. What if we want to cross-compile?
+                // besides, it's missing some platforms.
+                version(windows) {
+                    dynamicExt = ".dll"
+                }
+                version(osx) {
+                    dynamicExt = ".dynlib"
+                }
+                params dynamiclib = File new(File new(basePath, "lib"), moduleName + dynamicExt) getPath()
+            }
         }
 
         if(params sourcePath isEmpty()) params sourcePath add(".")
