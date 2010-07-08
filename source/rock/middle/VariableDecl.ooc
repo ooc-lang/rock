@@ -2,7 +2,7 @@ import structs/[ArrayList]
 import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
        Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast, Module,
        Block, Scope, FunctionDecl, Argument, BaseType, FuncType, Statement,
-       NullLiteral, Tuple
+       NullLiteral, Tuple, TypeList, VariableDecl
 import tinker/[Response, Resolver, Trail]
 import ../frontend/BuildParams
 
@@ -309,7 +309,49 @@ VariableDeclTuple: class extends VariableDecl {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        //token throwError("Got a VariableDeclTuple!")
+        token printMessage("Got a VariableDeclTuple, and expr is %s!" format(expr ? expr toString() : "(nil)"), "INFO")
+
+        expr resolve(trail, res)
+
+        match {
+            case expr == null =>
+                token throwError("VariableDeclTuples need an expression. This should never happen")
+            case expr instanceOf(FunctionCall) =>
+                fCall := expr as FunctionCall
+                if(fCall getRef() == null) {
+                    res wholeAgain(this, "Need fCall ref")
+                    return Responses OK
+                }
+                if(fCall getRef() getReturnArgs() isEmpty()) {
+                    if(res fatal) {
+                        token throwError("Need a multi-return function call as the expression of a tuple-variable declaration!")
+                    }
+                    res wholeAgain(this, "need multi-return func call")
+                    return Responses OK
+                }
+                parent := trail peek()
+                j := 0
+                // TODO: check that the number of elements and the number of returnArgs match
+                // TODO: pattern matching, of course.
+                for(element in tuple getElements()) {
+                    if(!element instanceOf(VariableAccess)) {
+                        element token throwError("Expected a variable access in a tuple-variable declaration!")
+                    }
+                    argName := element as VariableAccess getName()
+                    // woohoo.
+                    argType := fCall getRef() getReturnType() as TypeList types get(j)
+                    argDecl := VariableDecl new(argType, argName, element token)
+                    fCall getReturnArgs() add(VariableAccess new(argDecl, argDecl token))
+                    if(!trail addBeforeInScope(this, argDecl)) {
+                        token throwError("Couldn't add %s before %s in scope!" format(argDecl toString(), toString()))
+                    }
+                    j += 1
+                }
+                trail addBeforeInScope(this, fCall)
+                parent as Scope remove(this)
+            case =>
+                token throwError("Unsupported expression type %s for VariableDeclTuple." format(expr class name))
+        }
 
         Responses OK
     }

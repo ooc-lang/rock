@@ -400,7 +400,7 @@ FunctionCall: class extends Expression {
         //    ref returnType toString(), ref returnType isGeneric() toString(), ref returnType getRef() ? ref returnType getRef() toString() : "(nil)")
 
         if(returnType == null && ref != null) {
-            if(ref returnType getRef() == null) {
+            if(!ref returnType isResolved()) {
                 res wholeAgain(this, "need resolve the return type of our ref (%s) to see if it's generic" format(ref returnType toString()))
                 return Responses OK
             }

@@ -62,6 +62,7 @@ FunctionCallWriter: abstract class extends Skeleton {
         }
 
         /* Step 2 : write generic return arg, if any */
+        k := 0
         for(retArg in fCall getReturnArgs()) {
             if(isFirst) {
                 isFirst = false
@@ -69,14 +70,15 @@ FunctionCallWriter: abstract class extends Skeleton {
                 current app(", ")
             }
 
-            if(retArg getType() isGeneric()) {
+            if(retArg getType() isGeneric() || !fDecl getReturnArgs() get(k) getType() isGeneric()) {
                 current app(retArg)
             } else {
                 // FIXME hardcoding uint8_t is probably a bad idea. Ain't it?
                 current app("(uint8_t*) "). app(retArg)
             }
+            k += 1
         }
-        for(i in fCall getReturnArgs() size()..fDecl getReturnArgs() size()) {
+        for(i in k..fDecl getReturnArgs() size()) {
             if(isFirst) {
                 isFirst = false
             } else {

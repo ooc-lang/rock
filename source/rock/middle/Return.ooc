@@ -82,8 +82,6 @@ Return: class extends Statement {
                     }
                 }
 
-                "Hey, we're %s dealing with %d returnArgs, for returnType %s" printfln(toString(), fDecl getReturnArgs() size(), retType toString())
-
                 // if the expr is something else, we're gonna have to handle it ourselves. muahaha.
                 j := 0
                 for(returnArg in fDecl getReturnArgs()) {
@@ -94,7 +92,6 @@ Return: class extends Statement {
                     }
 
                     returnAcc := VariableAccess new(returnArg, token)
-                    "Returning %s via returnAcc %s" printfln(returnExpr toString(), returnAcc toString())
 
                     // why take the address? well if the returnArgs aren't generic, then they are ReferenceTypes
                     // to check if we care about a returnArg, we need to know if the *address* of the passed pointer is non-null,

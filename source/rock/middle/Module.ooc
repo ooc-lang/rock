@@ -74,10 +74,9 @@ Module: class extends Node {
     }
 
     addFuncType: func (hashName: String, funcType: FuncType) {
-        "caching FuncType %s in module %s" printfln(funcType toString(), getPath())
         if(!funcTypesMap contains(hashName)) {
             funcTypesMap put(hashName, funcType)
-        } else { "Ignoring it!" println() }
+        }
     }
 
     sanitize: func(str: String) -> String {
