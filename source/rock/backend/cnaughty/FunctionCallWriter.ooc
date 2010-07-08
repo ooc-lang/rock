@@ -58,28 +58,33 @@ FunctionCallWriter: abstract class extends Skeleton {
             }
 
             if(fDecl isThisRef) current app("&("). app(fCall expr). app(")")
-            else                current app(fCall expr) 
+            else                current app(fCall expr)
         }
 
         /* Step 2 : write generic return arg, if any */
-        if(fDecl getReturnType() isGeneric()) {
+        k := 0
+        for(retArg in fCall getReturnArgs()) {
             if(isFirst) {
                 isFirst = false
             } else {
                 current app(", ")
             }
 
-            retArg := fCall getReturnArg()
-            if(retArg) {
-                if(retArg getType() isGeneric()) {
-                    current app(retArg)
-                } else {
-                    // FIXME hardcoding uint8_t is probably a bad idea. Ain't it?
-                    current app("(uint8_t*) "). app(retArg)
-                }
+            if(retArg getType() isGeneric() || !fDecl getReturnArgs() get(k) getType() isGeneric()) {
+                current app(retArg)
             } else {
-                current app("NULL")
+                // FIXME hardcoding uint8_t is probably a bad idea. Ain't it?
+                current app("(uint8_t*) "). app(retArg)
             }
+            k += 1
+        }
+        for(i in k..fDecl getReturnArgs() size()) {
+            if(isFirst) {
+                isFirst = false
+            } else {
+                current app(", ")
+            }
+            current app("NULL")
         }
 
         /* Step 3 : write generic type args */

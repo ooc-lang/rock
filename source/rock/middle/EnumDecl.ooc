@@ -40,7 +40,17 @@ EnumDecl: class extends TypeDecl {
     setIncrement: func (=incrementOper, =incrementStep) {}
 
     writeSize: func (w: TabbedWriter, instance: Bool) {
-        w app("sizeof("). app(isExtern() ? name : "int"). app(")")
+        w app("sizeof(")
+        if(isExtern()) {
+            if(externName && externName != "") {
+                w app(externName)
+            } else {
+                w app(name)
+            }
+        } else {
+            w app("int")
+        }
+        w app(")")
     }
 
     accept: func (visitor: Visitor) {

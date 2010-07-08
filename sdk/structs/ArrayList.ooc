@@ -11,16 +11,16 @@ import List
    :author: Amos Wenger (nddrylliog)
  */
 ArrayList: class <T> extends List<T> {
-	
+
 	data : T*
 	capacity : Int
 	size = 0 : Int
-	
+
 	init: func {
-		init ~withCapacity (10)
+		init(10)
 	}
-	
-	init: func ~withCapacity (=capacity) { 
+
+	init: func ~withCapacity (=capacity) {
 		data = gc_malloc(capacity * T size)
 	}
 
@@ -29,7 +29,7 @@ ArrayList: class <T> extends List<T> {
         memcpy(this data, data, size * T size)
         capacity = size
     }
-	
+
 	add: func (element: T) {
 		ensureCapacity(size + 1)
 		data[size] = element
@@ -77,7 +77,8 @@ ArrayList: class <T> extends List<T> {
 	indexOf: func(element: T) -> Int {
 		index := 0
 		while(index < size) {
-			if(memcmp(data + index * T size, element, T size) == 0) return index
+			//if(memcmp(data + index * T size, element, T size) == 0) return index
+            if(this as List equals(this[index], element)) return index
             index += 1
 		}
 		return -1
@@ -135,7 +136,7 @@ ArrayList: class <T> extends List<T> {
 	/**
 	 * Replaces the element at the specified position in this list with
 	 * the specified element.
-	 */ 
+	 */
 	set: func(index: Int, element: T) -> T {
         checkIndex(index)
         old := data[index]
@@ -147,8 +148,8 @@ ArrayList: class <T> extends List<T> {
 	 * @return the number of elements in this list.
 	 */
 	size: inline func -> Int { size }
-	
-	/** 
+
+	/**
 	 * Increases the capacity of this ArrayList instance, if necessary,
 	 * to ensure that it can hold at least the number of elements
 	 * specified by the minimum capacity argument.
@@ -174,35 +175,39 @@ ArrayList: class <T> extends List<T> {
             Exception new(This, "Index too big! " + index + " >= " + size()) throw()
         }
 	}
-	
+
 	iterator: func -> BackIterator<T> { return ArrayListIterator<T> new(this) }
-	
+
 	backIterator: func -> BackIterator<T> {
 	    iter := ArrayListIterator<T> new(this)
 	    iter index = size()
 	    return iter
 	}
-	
-	clone: func -> ArrayList<T> {
-		copy := This<T> new(size())        
+
+	clone: func -> This<T> {
+		copy := This<T> new(size())
 		copy addAll(this)
 		return copy
 	}
 
+    emptyClone: func -> This<T> {
+        This<T> new()
+    }
+
     /** */
     toArray: func -> Pointer { data }
-	
+
 }
 
 ArrayListIterator: class <T> extends BackIterator<T> {
 
 	list: ArrayList<T>
 	index := 0
-	
+
 	init: func ~iter (=list) {}
-	
+
 	hasNext: func -> Bool { index < list size() }
-	
+
 	next: func -> T {
 		element := list get(index)
 		index += 1
@@ -222,7 +227,7 @@ ArrayListIterator: class <T> extends BackIterator<T> {
         if(index <= list size()) index -= 1
         return true
     }
-	
+
 }
 
 /* Operators */

@@ -31,7 +31,7 @@ Requirement: class {
 UseDef: class {
     cache := static HashMap<String, UseDef> new()
 
-    identifier, name = "", description = "": String
+    identifier, name = "", description = "", version = "": String
 
     requirements := ArrayList<Requirement> new()
     pkgs         := ArrayList<String> new()
@@ -102,7 +102,7 @@ UseDef: class {
 
             if(c == '#') {
                 reader readUntil('\n')
-                continue 
+                continue
             }
 
             if(c == '=') {
@@ -112,7 +112,7 @@ UseDef: class {
             }
 
             reader rewind(1)
-            id := reader readUntil(':') trim()
+            id := reader readUntil(':') trim() trim(8 as Char /* backspace */)
             value := reader readLine() trim()
 
             if(id startsWith("_")) {
@@ -157,14 +157,17 @@ UseDef: class {
                 }
             } else if(id == "SourcePath") {
                 sourcePathFile := File new(value)
+                printf("sourcePathFile = %s, absolute = %s, file = %s\n", sourcePathFile getPath(), sourcePathFile getAbsolutePath(), file getPath())
                 if(sourcePathFile isRelative()) {
                     /* is relative. TODO: better check? */
                     sourcePathFile = file parent() getChild(value) getAbsoluteFile()
                 }
                 if(params veryVerbose) "Adding %s to sourcepath ..." format(sourcePathFile path) println()
                 params sourcePath add(sourcePathFile path)
-            } else {
-                "%s: Unknown id %s in usefile" printfln(file getPath(), id)
+            } else if(id == "Version") {
+                version = value
+            } else if(!id isEmpty()) {
+                "%s: Unknown id %s (length %d, first = %d) in usefile" printfln(file getPath(), id, id length(), id[0])
             }
         }
     }

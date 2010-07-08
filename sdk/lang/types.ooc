@@ -34,7 +34,7 @@ Object: abstract class {
 
 Class: abstract class {
 
-    /// Number of octets to allocate for a new instance of this class 
+    /// Number of octets to allocate for a new instance of this class
     instanceSize: SizeT
 
     /** Number of octets to allocate to hold an instance of this class
@@ -68,6 +68,8 @@ Class: abstract class {
 Array: cover from _lang_array__Array {
     length: extern Int
     data: extern Pointer
+
+    free: extern(_lang_array__Array_free) func
 }
 
 None: class {init: func {}}
@@ -368,8 +370,8 @@ String: cover from Char* {
     /** return *true* if *this* contains the string *s* */
     contains: func ~string (s: This) -> Bool { indexOf(s) != -1 }
 
-    /** return a copy of *this* with space characters (ASCII 32) stripped at both ends. */
-    trim: func ~space -> This { return trim(' ') }
+    /** return a copy of *this* with whitespace characters (space, CR, LF, tab) stripped at both ends. */
+    trim: func ~whitespace -> This { return trim(" \r\n\t") }
 
     /** return a copy of *this* with *c* characters stripped at both ends. */
     trim: func(c: Char) -> This {

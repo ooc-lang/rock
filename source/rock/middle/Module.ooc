@@ -297,7 +297,7 @@ Module: class extends Node {
 
     /**
      * Parse the imports of this module.
-     * 
+     *
      * If resolver is non-null, it means there's a new import that
      * we expect to add to the resolvers list.
      */

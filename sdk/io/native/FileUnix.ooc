@@ -107,7 +107,7 @@ version(unix || apple) {
         ownerPerm: func -> Int {
             stat: FileStat
             lstat(path, stat&)
-            return ((stat st_mode) & S_IRWXU) as Int
+            return ((stat st_mode) & S_IRWXU) as Int >> 6
         }
 
         /**
@@ -116,7 +116,7 @@ version(unix || apple) {
         groupPerm: func -> Int {
             stat: FileStat
             lstat(path, stat&)
-            return ((stat st_mode) & S_IRWXG) as Int
+            return ((stat st_mode) & S_IRWXG) as Int >> 3
         }
 
         /**

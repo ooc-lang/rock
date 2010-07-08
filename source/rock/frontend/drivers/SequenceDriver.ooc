@@ -39,7 +39,7 @@ import Driver, Archive
  */
 SequenceDriver: class extends Driver {
 
-    sourceFolders: List<SourceFolder>
+    sourceFolders: HashMap<String, SourceFolder>
 
     init: func (.params) { super(params) }
 
@@ -60,7 +60,7 @@ SequenceDriver: class extends Driver {
         if(params verbose) printf("Copying local headers\n")
         copyLocalHeaders(module, params, ArrayList<Module> new())
 
-		sourceFolders = collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<String> new())
+		sourceFolders = collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<Module> new())
 
         oPaths := ArrayList<String> new()
 
