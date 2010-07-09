@@ -70,11 +70,16 @@ FunctionCallWriter: abstract class extends Skeleton {
                 current app(", ")
             }
 
-            if(retArg getType() isGeneric() || !fDecl getReturnArgs() get(k) getType() isGeneric()) {
-                current app(retArg)
+            if(retArg) {
+                if(retArg getType() isGeneric() || !fDecl getReturnArgs() get(k) getType() isGeneric()) {
+                    current app(retArg)
+                } else {
+                    // FIXME hardcoding uint8_t is probably a bad idea. Ain't it?
+                    current app("(uint8_t*) "). app(retArg)
+                }
             } else {
-                // FIXME hardcoding uint8_t is probably a bad idea. Ain't it?
-                current app("(uint8_t*) "). app(retArg)
+                // ignored returnArg
+                current app("NULL")
             }
             k += 1
         }

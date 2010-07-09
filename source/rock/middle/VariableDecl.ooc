@@ -336,6 +336,9 @@ VariableDeclTuple: class extends VariableDecl {
                 }
                 parent := trail peek()
                 j := 0
+
+                returnArgs := fCall getReturnArgs()
+
                 // TODO: check that the number of elements and the number of returnArgs match
                 // TODO: pattern matching, of course.
                 for(element in tuple getElements()) {
@@ -343,12 +346,17 @@ VariableDeclTuple: class extends VariableDecl {
                         element token throwError("Expected a variable access in a tuple-variable declaration!")
                     }
                     argName := element as VariableAccess getName()
-                    // woohoo.
-                    argType := fCall getRef() getReturnType() as TypeList types get(j)
-                    argDecl := VariableDecl new(argType, argName, element token)
-                    fCall getReturnArgs() add(VariableAccess new(argDecl, argDecl token))
-                    if(!trail addBeforeInScope(this, argDecl)) {
-                        token throwError("Couldn't add %s before %s in scope!" format(argDecl toString(), toString()))
+
+                    if(argName == "_") {
+                        returnArgs add(null)
+                    } else {
+                        // woohoo.
+                        argType := fCall getRef() getReturnType() as TypeList types get(j)
+                        argDecl := VariableDecl new(argType, argName, element token)
+                        returnArgs add(VariableAccess new(argDecl, argDecl token))
+                        if(!trail addBeforeInScope(this, argDecl)) {
+                            token throwError("Couldn't add %s before %s in scope!" format(argDecl toString(), toString()))
+                        }
                     }
                     j += 1
                 }

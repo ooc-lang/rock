@@ -107,6 +107,8 @@ FunctionCall: class extends Expression {
 
         for(i in 0..returnArgs size()) {
             returnArg := returnArgs[i]
+            if(!returnArg) continue // they can be null, after all.
+
             response := returnArg resolve(trail, res)
             if(!response ok()) return response
 
