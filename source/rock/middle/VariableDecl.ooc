@@ -335,12 +335,26 @@ VariableDeclTuple: class extends VariableDecl {
                     return Responses OK
                 }
                 parent := trail peek()
-                j := 0
 
                 returnArgs := fCall getReturnArgs()
+                returnType := fCall getRef() getReturnType() as TypeList
+                returnTypes := returnType types
 
-                // TODO: check that the number of elements and the number of returnArgs match
-                // TODO: pattern matching, of course.
+                if(tuple getElements() size() < returnTypes size()) {
+                    bad := false
+                    if(tuple getElements() isEmpty()) {
+                        bad = true
+                    } else {
+                        element := tuple getElements() last()
+                        if(!element instanceOf(VariableAccess)) {
+                            element token throwError("Expected a variable access in a tuple-variable declaration!")
+                        }
+                        if(element as VariableAccess getName() != "_") bad = true
+                    }
+                    if(bad) tuple token throwError("Tuple variable declaration doesn't match return type %s of function %s" format(returnType toString(), fCall getName()))
+                }
+
+                j := 0
                 for(element in tuple getElements()) {
                     if(!element instanceOf(VariableAccess)) {
                         element token throwError("Expected a variable access in a tuple-variable declaration!")
@@ -351,7 +365,7 @@ VariableDeclTuple: class extends VariableDecl {
                         returnArgs add(null)
                     } else {
                         // woohoo.
-                        argType := fCall getRef() getReturnType() as TypeList types get(j)
+                        argType := returnTypes get(j)
                         argDecl := VariableDecl new(argType, argName, element token)
                         returnArgs add(VariableAccess new(argDecl, argDecl token))
                         if(!trail addBeforeInScope(this, argDecl)) {
