@@ -35,7 +35,9 @@ Reader: abstract class {
         sb := Buffer new(40) // let's be optimistic
         while(hasNext()) {
             c := read()
-            if(c == end) break
+            // for some reason, some files end with the ASCII character 8, ie. BackSpace.
+            // we definitely don't want that to end up in the String.
+            if(c == end || (!hasNext() && c == 8)) break
             sb append(c)
         }
         return sb toString()
@@ -106,7 +108,7 @@ Reader: abstract class {
     }
 
     /**
-       Read as many `unwanted` chars as 
+       Read as many `unwanted` chars as
      */
     skipWhile: func (unwanted: Char) {
         while(hasNext()) {

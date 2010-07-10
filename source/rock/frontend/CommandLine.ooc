@@ -2,11 +2,11 @@ import io/File, os/[Terminal, Process]
 import structs/[ArrayList, List, Stack]
 import text/StringTokenizer
 
-import rock/rock
+import rock/RockVersion
 import Help, Token, BuildParams, AstBuilder
 import compilers/[Gcc, Clang, Icc, Tcc]
 import drivers/[Driver, CombineDriver, SequenceDriver, MakeDriver, DummyDriver]
-//import ../backend/json/JSONGenerator
+import ../backend/json/JSONGenerator
 import ../middle/[Module, Import]
 import ../middle/tinker/Tinkerer
 
@@ -18,7 +18,7 @@ CommandLine: class {
 
     init: func(args : ArrayList<String>) {
 
-        params = BuildParams new()
+        params = BuildParams new(args[0])
         driver = SequenceDriver new(params)
 
         modulePaths := ArrayList<String> new()
@@ -35,7 +35,7 @@ CommandLine: class {
             if (arg startsWith("-")) {
                 option := arg substring(1)
 
-                if (option startsWith("sourcepath")) {
+                if (option startsWith("sourcepath=")) {
 
                     sourcePathOption := arg substring(arg indexOf('=') + 1)
                     tokenizer := StringTokenizer new(sourcePathOption, File pathDelimiter)
@@ -43,14 +43,34 @@ CommandLine: class {
                         params sourcePath add(token)
                     }
 
-                } else if (option startsWith("outpath")) {
+                } else if (option startsWith("outpath=")) {
 
                     params outPath = File new(arg substring(arg indexOf('=') + 1))
                     params clean = false
 
                 } else if (option startsWith("outlib")) {
 
-                    params outlib = arg substring(arg indexOf('=') + 1)
+                    "Deprecated option %s! Use -staticlib instead. Abandoning." printfln(option)
+                    exit(1)
+
+                } else if (option startsWith("staticlib")) {
+
+                    idx := arg indexOf('=')
+                    if(idx == -1) {
+                        params staticlib = ""
+                    } else {
+                        params staticlib = arg substring(idx + 1)
+                    }
+                    params libcache = false
+
+                } else if (option startsWith("dynamiclib")) {
+
+                    idx := arg indexOf('=')
+                    if(idx == -1) {
+                        params dynamiclib = ""
+                    } else {
+                        params dynamiclib = arg substring(idx + 1)
+                    }
 
                 } else if(option startsWith("backend")) {
                     params backend = arg substring(arg indexOf('=') + 1)
@@ -231,7 +251,7 @@ CommandLine: class {
 
                 } else if (option == "V" || option == "-version" || option == "version") {
 
-                    printf("rock %s, built on %s at %s\n", Rock getVersionName(), ROCK_BUILD_DATE, ROCK_BUILD_TIME)
+                    printf("rock %s, built on %s at %s\n", RockVersion getName(), ROCK_BUILD_DATE, ROCK_BUILD_TIME)
                     exit(0)
 
                 } else if (option == "h" || option == "-help" || option == "help") {
@@ -317,8 +337,40 @@ CommandLine: class {
         }
 
         if(modulePaths isEmpty()) {
-            printf("rock: no ooc files\n")
+            "rock: no ooc files" println()
             exit(1)
+        }
+
+        if(params staticlib != null || params dynamiclib != null) {
+            if(modulePaths size() != 1) {
+                "Error: you can use -staticlib of -dynamiclib only when specifying a unique .ooc file, not %d of them." printfln(modulePaths size())
+                exit(1)
+            }
+            moduleName := File new(modulePaths[0]) name()
+            moduleName = moduleName[0..moduleName length() - 4]
+            basePath := File new("build", moduleName) getPath()
+            if(params staticlib == "") {
+                params clean = false
+                params defaultMain = false
+                params outPath = File new(basePath, "include")
+                staticExt := ".a"
+                params staticlib = File new(File new(basePath, "lib"), moduleName + staticExt) getPath()
+            }
+            if(params dynamiclib == "") {
+                params clean = false
+                params defaultMain = false
+                params outPath = File new(basePath, "include")
+                dynamicExt := ".so"
+                // TODO: version blocks for this is evil. What if we want to cross-compile?
+                // besides, it's missing some platforms.
+                version(windows) {
+                    dynamicExt = ".dll"
+                }
+                version(osx) {
+                    dynamicExt = ".dynlib"
+                }
+                params dynamiclib = File new(File new(basePath, "lib"), moduleName + dynamicExt) getPath()
+            }
         }
 
         if(params sourcePath isEmpty()) params sourcePath add(".")
@@ -423,11 +475,10 @@ CommandLine: class {
             }
         } else if(params backend == "json") {
             // json phase 3: generate.
-            "FIXME! JSON generator disabled for now" println()
-
-            //for(candidate in module collectDeps()) {
-                //JSONGenerator new(params, candidate) write() .close()
-            //}
+            params clean = false // -backend=json implies -noclean
+            for(candidate in module collectDeps()) {
+                JSONGenerator new(params, candidate) write() .close()
+            }
         }
 
         first = false

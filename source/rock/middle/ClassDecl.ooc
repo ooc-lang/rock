@@ -53,7 +53,7 @@ ClassDecl: class extends TypeDecl {
 
         {
             response := super(trail, res)
-            if(!response ok()) return response
+            if (!response ok()) return response
         }
 
         return Responses OK
@@ -150,10 +150,10 @@ ClassDecl: class extends TypeDecl {
                  * e.g. if you allocate in a special way
                  */
                 already := lookupFunction(fDecl getName(), fDecl getSuffix())
-                if (already != null) removeFunction(fDecl) 
+                if (already != null) removeFunction(fDecl)
             }
         }
-	
+
 		super(fDecl)
 
     }
@@ -176,7 +176,7 @@ ClassDecl: class extends TypeDecl {
             // don't generate new for abstract classes
             return
         }
-		
+
         newType := getNonMeta() getInstanceType() as BaseType
 
 		constructor := FunctionDecl new("new", fDecl token)
@@ -184,10 +184,10 @@ ClassDecl: class extends TypeDecl {
 		constructor setSuffix(fDecl getSuffix())
 		retType := newType clone() as BaseType
 		if(retType getTypeArgs()) retType getTypeArgs() clear()
-		
+
 		constructor getArguments() addAll(fDecl getArguments())
 		constructor getTypeArgs() addAll(getTypeArgs())
-		
+
         // why use getNonMeta() here? addInit() is called only in the
         // meta-class, remember?
         newTypeAccess := VariableAccess new(newType, fDecl token)
@@ -202,11 +202,11 @@ ClassDecl: class extends TypeDecl {
             vdfe = VariableDecl new(newType clone(), "this", fDecl token)
         }
         constructor getBody() add(vdfe)
-		
+
         for (typeArg in getTypeArgs()) {
         	e := VariableAccess new(typeArg, constructor token)
 			retType addTypeArg(e)
-			
+
             thisAccess    := VariableAccess new("this",                   constructor token)
             typeArgAccess := VariableAccess new(thisAccess, typeArg name, constructor token)
             ass := BinaryOp new(typeArgAccess, e, OpTypes ass, constructor token)
@@ -214,10 +214,10 @@ ClassDecl: class extends TypeDecl {
 		}
 
 		constructor setReturnType(retType)
-		
+
 		thisAccess := VariableAccess new(vdfe, fDecl token)
 		thisAccess setRef(vdfe)
-		
+
         if(!isCover) {
             defaultsCall := FunctionCall new("__defaults__", fDecl token)
             constructor getBody() add(defaultsCall)
@@ -231,8 +231,8 @@ ClassDecl: class extends TypeDecl {
 		}
 		constructor getBody() add(initCall)
 		constructor getBody() add(Return new(thisAccess, fDecl token))
-		
-		addFunction(constructor)	
+
+		addFunction(constructor)
 	}
 }
 

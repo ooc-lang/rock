@@ -1,8 +1,9 @@
-import structs/ArrayList, text/Buffer
+import structs/[ArrayList, List], text/Buffer
 import ../frontend/[Token, BuildParams, CommandLine]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
-       InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType, Return
+       InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType, Return,
+       TypeList
 import tinker/[Response, Resolver, Trail]
 
 FunctionCall: class extends Expression {
@@ -12,7 +13,7 @@ FunctionCall: class extends Expression {
 
     typeArgs := ArrayList<Expression> new()
 
-    returnArg : Expression = null
+    returnArgs := ArrayList<Expression> new()
     returnType : Type = null
 
     args := ArrayList<Expression> new()
@@ -104,12 +105,15 @@ FunctionCall: class extends Expression {
             if(!response ok()) return response
         }
 
-        if(returnArg) {
+        for(i in 0..returnArgs size()) {
+            returnArg := returnArgs[i]
+            if(!returnArg) continue // they can be null, after all.
+
             response := returnArg resolve(trail, res)
             if(!response ok()) return response
 
             if(returnArg isResolved() && !returnArg instanceOf(AddressOf)) {
-                returnArg = returnArg getGenericOperand()
+                returnArgs[i] = returnArg getGenericOperand()
             }
         }
 
@@ -159,7 +163,10 @@ FunctionCall: class extends Expression {
                     expr as VariableAccess getRef() resolveCall(this, res, trail)
                 } else if(expr getType() != null && expr getType() getRef() != null) {
                     if(!expr getType() getRef() instanceOf(TypeDecl)) {
-                        message := "No such function %s%s for %s (you can't call methods on generic types! you have to cast them to something sane first)" format(name, getArgsTypesRepr(), expr getType() getName())
+                        message := "No such function %s%s for `%s`" format(name, getArgsTypesRepr(), expr getType() getName())
+                        if(expr getType() isGeneric()) {
+                            message += " (you can't call methods on generic types! you have to cast them first)"
+                        }
                         token throwError(message)
                     }
                     tDecl := expr getType() getRef() as TypeDecl
@@ -327,7 +334,8 @@ FunctionCall: class extends Expression {
             idx += 1
         }
 
-        if(ref returnType isGeneric() && !isFriendlyHost(parent)) {
+        //if(ref returnType isGeneric() && !isFriendlyHost(parent)) {
+        if(!ref getReturnArgs() isEmpty() && !isFriendlyHost(parent)) {
             if(parent instanceOf(Return)) {
                 fDeclIdx := trail find(FunctionDecl)
                 if(fDeclIdx != -1) {
@@ -344,7 +352,8 @@ FunctionCall: class extends Expression {
                 }
             }
 
-            vDecl := VariableDecl new(getType(), generateTempName("genCall"), token)
+            vType := getType() instanceOf(TypeList) ? getType() as TypeList types get(0) : getType()
+            vDecl := VariableDecl new(vType, generateTempName("genCall"), token)
             if(!trail addBeforeInScope(this, vDecl)) {
                 if(res fatal) token throwError("Couldn't add a " + vDecl toString() + " before a " + toString() + ", trail = " + trail toString())
                 res wholeAgain(this, "couldn't add before scope")
@@ -361,7 +370,7 @@ FunctionCall: class extends Expression {
 
             // only modify ourselves if we could do the other modifications
             varAcc := VariableAccess new(vDecl, token)
-            setReturnArg(varAcc)
+            returnArgs add(varAcc)
 
             seq getBody() add(this)
             seq getBody() add(varAcc)
@@ -396,7 +405,7 @@ FunctionCall: class extends Expression {
         //    ref returnType toString(), ref returnType isGeneric() toString(), ref returnType getRef() ? ref returnType getRef() toString() : "(nil)")
 
         if(returnType == null && ref != null) {
-            if(ref returnType getRef() == null) {
+            if(!ref returnType isResolved()) {
                 res wholeAgain(this, "need resolve the return type of our ref (%s) to see if it's generic" format(ref returnType toString()))
                 return Responses OK
             }
@@ -877,8 +886,11 @@ FunctionCall: class extends Expression {
         args replace(oldie as Expression, kiddo as Expression)
     }
 
-    setReturnArg: func (=returnArg) {}
-    getReturnArg: func -> Expression { returnArg }
+    setReturnArg: func (retArg: Expression) {
+        if(returnArgs isEmpty()) returnArgs add(retArg)
+        else                     returnArgs[0] = retArg
+    }
+    getReturnArgs: func -> List<Expression> { returnArgs }
 
     getRef: func -> FunctionDecl { ref }
     setRef: func (=ref) { refScore = 1; /* or it'll keep trying to resolve it =) */ }

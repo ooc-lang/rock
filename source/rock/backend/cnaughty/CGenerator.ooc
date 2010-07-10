@@ -240,7 +240,7 @@ CGenerator: class extends Skeleton {
                 if (writeReferenceAddrOf) {
                     current app("(*")
                     paren = true
-                }             
+                }
             }
 
             if(vDecl isExternWithName()) {
@@ -393,7 +393,7 @@ CGenerator: class extends Skeleton {
     visitComparison: func (comp: Comparison) {
         current app(comp left). app(" "). app(comp compType toString()). app(" ")
         if(!comp right getType() equals(comp left getType())) {
-            current app('('). app (comp left getType()). app(") ") 
+            current app('('). app (comp left getType()). app(") ")
         }
         current app(comp right)
     }
@@ -414,7 +414,10 @@ CGenerator: class extends Skeleton {
             varAcc := node expr as VariableAccess
             if(varAcc getType() isGeneric()) {
                 // generic variables are already pointers =)
-                current app(node expr); return
+                current app(varAcc); return
+            }
+            if(varAcc getType() instanceOf(ReferenceType)) {
+                visitVariableAccess(varAcc, false); return
             }
         }
 

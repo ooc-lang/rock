@@ -1,7 +1,7 @@
 import structs/List
 import ../../middle/[Module, Include, Import, TypeDecl, FunctionDecl,
        CoverDecl, ClassDecl, OperatorDecl, InterfaceDecl, VariableDecl,
-       Type, FuncType]
+       Type, FuncType, Argument]
 import ../../frontend/BuildParams
 import CoverDeclWriter, ClassDeclWriter, VersionWriter, Skeleton
 
@@ -144,14 +144,32 @@ ModuleWriter: abstract class extends Skeleton {
         current untab(). nl(). app("}"). nl()
 
         // write all functions
-        for(fDecl: FunctionDecl in module functions) {
+        for(fDecl in module functions) {
             fDecl accept(this)
         }
 
         // write all operator overloads
-        for(oDecl: OperatorDecl in module operators) {
+        for(oDecl in module operators) {
             oDecl accept(this)
         }
+
+        // write for-C aliases
+        hw nl(). app("#ifdef OOC_FROM_C")
+        for(fDecl in module functions) {
+            writeFunctionAlias(this, fDecl, null)
+        }
+
+        for(tDecl in module types) {
+            fullName := tDecl getFullName()
+            if(tDecl getName() != fullName) {
+                hw nl(). app("#define "). app(tDecl getName()). app(' '). app(fullName)
+                hw nl(). app("#define "). app(tDecl getName()). app("_class() "). app(fullName). app("_class()")
+                for(fDecl in tDecl getFunctions()) {
+                    writeFunctionAlias(this, fDecl, tDecl)
+                }
+            }
+        }
+        hw nl(). app("#endif")
 
         // header end
         current = hw
@@ -166,6 +184,97 @@ ModuleWriter: abstract class extends Skeleton {
             writeDefaultMain(this)
         }
 
+    }
+
+    writeFunctionAlias: static func (this: Skeleton, fDecl: FunctionDecl, tDecl: TypeDecl) {
+        fullName := fDecl getFullName()
+        if(fDecl getName() != fullName) {
+            hw nl(). app("#define ")
+            if(tDecl) {
+                hw app(tDecl getNonMeta() getName()) .app('_')
+            }
+            hw app(fDecl getName())
+            if(fDecl getSuffix()) hw app('_'). app(fDecl getSuffix())
+
+            // write macro definition args
+            hw app("(")
+            isFirst := true
+
+            /* Step 1 : write this, if any */
+            if(fDecl isMember() && !fDecl isStatic()) {
+                if(isFirst) isFirst = false
+                else        hw app(", ")
+                hw app("_this_")
+            }
+
+            /* Step 2: write the return arguments, if any */
+            for(retArg in fDecl getReturnArgs()) {
+                if(isFirst) isFirst = false
+                else        hw app(", ")
+                hw app(retArg getName())
+            }
+
+            /* Step 3 : write generic type args */
+            for(typeArg in fDecl typeArgs) {
+                if(isFirst) isFirst = false
+                else        hw app(", ")
+                hw app(typeArg getName())
+            }
+
+
+            /* Step 4 : write real args */
+            for(arg in fDecl args) {
+                if(isFirst) isFirst = false
+                else        hw app(", ")
+                if(arg instanceOf(VarArg)) hw app("...")
+                else                       hw app(arg getName())
+            }
+
+            hw app(") ")
+
+            // cast the return type if necessary (to avoid C warnings)
+            if(fDecl getReturnType() isPointer() || fDecl getReturnType() getRef() instanceOf(ClassDecl)) {
+                hw app("(void*) ")
+            }
+            hw app(fullName). app("(")
+
+            /* Step 1 : write this, if any */
+            isFirst = true
+            if(fDecl isMember() && !fDecl isStatic()) {
+                if(isFirst) isFirst = false
+                else        hw app(", ")
+                hw app("(void*) (_this_)")
+            }
+
+            /* Step 2: write the return arguments, if any */
+            for(retArg in fDecl getReturnArgs()) {
+                if(isFirst) isFirst = false
+                else        hw app(", ")
+                hw app('('). app(retArg getName()). app(')')
+            }
+
+            /* Step 3 : write generic type args */
+            for(typeArg in fDecl typeArgs) {
+                if(isFirst) isFirst = false
+                else        hw app(", ")
+                hw app('('). app(typeArg getName()). app(')')
+            }
+
+            // write function call args, casted if necessary (to avoid C warnings)
+            for(arg in fDecl args) {
+                if(isFirst) isFirst = false
+                else        hw app(", ")
+                if(arg instanceOf(VarArg)) {
+                    hw app("__VA_ARGS__")
+                } else {
+                    if(arg getType() isPointer() || arg getType() getRef() instanceOf(ClassDecl)) {
+                        hw app("(void*) ")
+                    }
+                    hw app("("). app(arg getName()). app(")")
+                }
+            }
+            hw app(")")
+        }
     }
 
     /** Write default main function */

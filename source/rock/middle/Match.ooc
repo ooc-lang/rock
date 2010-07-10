@@ -76,9 +76,15 @@ Match: class extends Expression {
                 vDecl := VariableDecl new(type, generateTempName("match"), token)
                 varAcc := VariableAccess new(vDecl, token)
                 parent := trail peek() as Statement
-                trail addBeforeInScope(parent, vDecl)
-                trail addBeforeInScope(parent, this)
-                parent replace(this, varAcc)
+                if(!trail addBeforeInScope(parent, vDecl)) {
+                    token throwError("Couldn't add %s before parent %s in scope! trail = %s" format(vDecl toString(), parent toString(), trail toString()))
+                }
+                if(!trail addBeforeInScope(parent, this)) {
+                    token throwError("Couldn't add %s before parent %s in scope! trail = %s" format(this  toString(), parent toString(), trail toString()))
+                }
+                if(!parent replace(this, varAcc)) {
+                    token throwError("Couldn't replace %s with %s in parent!" format(this  toString(), varAcc toString()))
+                }
                 for(caze in cases) {
                     last := caze getBody() last()
                     if(!last instanceOf(Expression)) {
@@ -100,14 +106,14 @@ Match: class extends Expression {
 
 		funcIndex   := trail find(FunctionDecl)
 		returnIndex := trail find(Return)
-		
+
 		if(funcIndex != -1 && returnIndex != -1) {
 			funcDecl := trail get(funcIndex, FunctionDecl)
 			if(funcDecl getReturnType() isGeneric()) {
 				type = funcDecl getReturnType()
 			}
 		}
-		
+
 		if(type == null) {
 			// TODO make it more intelligent e.g. cycle through all cases and
 			// check that all types are compatible and find a common denominator
@@ -129,7 +135,7 @@ Match: class extends Expression {
 		}
 
         return Responses OK
-		
+
     }
 
     getType: func -> Type { type }

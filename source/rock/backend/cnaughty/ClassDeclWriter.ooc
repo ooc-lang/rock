@@ -222,14 +222,43 @@ ClassDeclWriter: abstract class extends Skeleton {
             current app(' '). openBlock()
 
             if(decl getName() == ClassDecl DEFAULTS_FUNC_NAME) {
-            	superRef := cDecl getSuperRef()
-                finalScore: Int
-            	superDefaults := superRef getFunction(ClassDecl DEFAULTS_FUNC_NAME, null, null, finalScore&)
-            	if(superDefaults) {
-					FunctionDeclWriter writeFullName(this, superDefaults)
-					current app("_impl(("). app(superDefaults owner getInstanceType()). app(") this);")
-            	}
-            	nonMeta := cDecl getNonMeta()
+                nonMeta := cDecl getNonMeta()
+                superType := nonMeta getSuperType()
+            	superRef  := nonMeta getSuperRef()
+
+                if(superType != null && superType getTypeArgs() != null) {
+                    j := 0
+                    for(typeArg in superType getTypeArgs()) {
+                        refTypeArg := superRef getTypeArgs() get(j)
+
+                        shouldAssign := true
+                        for(candidate in nonMeta getTypeArgs()) {
+                            if(candidate getName() == typeArg getName()) {
+                                // no need to assign it, it just makes the type arguments transitive
+                                shouldAssign = false
+                                break
+                            }
+                        }
+
+                        if(!shouldAssign) continue
+
+                        realOwner := cDecl getVariable(refTypeArg getName()) getOwner()
+                        current nl(). app("(("). app(realOwner getInstanceType()). app(") this)->"). app(refTypeArg getName()). app(" = (void*) "). app(typeArg). app(';')
+
+                        j += 1
+                    }
+                }
+
+                if(cDecl getSuperRef()) {
+                    finalScore: Int
+                    superDefaults := cDecl getSuperRef() getFunction(ClassDecl DEFAULTS_FUNC_NAME, null, null, finalScore&)
+                    if(superDefaults) {
+                        current nl()
+                        FunctionDeclWriter writeFullName(this, superDefaults)
+                        current app("_impl(("). app(superDefaults owner getInstanceType()). app(") this);")
+                    }
+                }
+
 				for(vDecl in nonMeta variables) {
 					if(vDecl getExpr() == null) continue
 					current nl(). app("this->"). app(vDecl getName()). app(" = "). app(vDecl getExpr()). app(';')

@@ -3,7 +3,8 @@ import structs/[List, ArrayList], text/Buffer
 import ../backend/cnaughty/AwesomeWriter, ../frontend/BuildParams
 import tinker/[Response, Resolver, Trail]
 
-import Type, BaseType, VariableAccess, Declaration, CoverDecl, TypeDecl
+import Type, BaseType, VariableAccess, Declaration, CoverDecl, TypeDecl,
+       Module
 
 FuncType: class extends Type {
 
@@ -11,7 +12,7 @@ FuncType: class extends Type {
     typeArgs := ArrayList<VariableAccess> new()
     varArg := false
     returnType : Type = null
-    cached := false
+    cached := ArrayList<Module> new()
 
     init: func ~funcType (.token) {
         super(token)
@@ -105,13 +106,17 @@ FuncType: class extends Type {
         }
         trail pop(this)
 
-        if(!cached) {
-            cached = true
+        if(!cached contains(trail module())) {
+            cached add(trail module())
             trail module() addFuncType(toMangledString(), this)
             res wholeAgain(this, "Added funcType!")
         }
 
         return Responses OK
+    }
+
+    toString: func -> String {
+        toMangledString()
     }
 
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {

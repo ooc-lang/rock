@@ -1,7 +1,7 @@
 import ../frontend/[Token,BuildParams]
 import Visitor, Statement, Expression, Node, FunctionDecl, FunctionCall,
        VariableAccess, VariableDecl, AddressOf, ArrayAccess, If,
-       BinaryOp, Cast, Type, Module
+       BinaryOp, Cast, Type, Module, Tuple
 import tinker/[Response, Resolver, Trail]
 
 Return: class extends Statement {
@@ -32,7 +32,7 @@ Return: class extends Statement {
         }
 
         if(!expr) {
-            if (!retType isGeneric() && retType != voidType) { 
+            if (fDecl getReturnArgs() isEmpty() && retType != voidType) {
                 token throwError("Function is not declared to return `null`! trail = %s" format(trail toString()))
             } else {
                 return Responses OK
@@ -46,28 +46,33 @@ Return: class extends Statement {
             if(!response ok()) {
                 return response
             }
+
+            if(expr getType() == null || !expr getType() isResolved()) {
+                res wholeAgain(this, "expr type is unresolved"); return Responses OK
+            }
         }
 
         if (retType) {
 
             retType = retType refToPointer()
 
-            if(retType isGeneric()) {
-                if(expr getType() == null || !expr getType() isResolved()) {
-                    res wholeAgain(this, "expr type is unresolved"); return Responses OK
-                }
+            if(retType isGeneric() && fDecl getReturnArgs() isEmpty()) {
+                fDecl getReturnArg() // create the generic returnArg - just in case.
+            }
 
-                returnAcc := VariableAccess new(fDecl getReturnArg(), token)
+            if(!fDecl getReturnArgs() isEmpty()) {
 
+                // if it's a generic FunctionCall, just hook its returnArg to the outer FunctionDecl and be done with it.
                 if(expr instanceOf(FunctionCall)) {
                     fCall := expr as FunctionCall
-                    if(fCall getRef() == null ||
-                       fCall getRef() getReturnType() == null ||
+                    if( fCall getRef() == null ||
+                        fCall getRef() getReturnType() == null ||
                        !fCall getRef() getReturnType() isResolved()) {
                         res wholeAgain(this, "We need the fcall to be fully resolved before resolving ourselves")
                     }
                     if(fCall getRef() getReturnType() isGeneric()) {
-                        fCall setReturnArg(returnAcc)
+                        // TODO: what if the return type of the outer fDecl isn't generic?
+                        fCall setReturnArg(VariableAccess new(fDecl getReturnArg(), token))
                         if(!trail peek() addBefore(this, fCall)) {
                             token throwError("Couldn't replace %s with %s in %s. Trail = \n%s\n" format(toString(), fCall toString(), trail peek() toString(), trail toString()))
                         }
@@ -77,27 +82,45 @@ Return: class extends Statement {
                     }
                 }
 
-                if1 := If new(returnAcc, token)
+                // if the expr is something else, we're gonna have to handle it ourselves. muahaha.
+                j := 0
+                for(returnArg in fDecl getReturnArgs()) {
 
-                if(expr hasSideEffects()) {
-                    vdfe := VariableDecl new(null, generateTempName("returnVal"), expr, expr token)
-                    if(!trail peek() addBefore(this, vdfe)) {
-                        token throwError("Couldn't add the vdfe before the generic return in a %s! trail = %s" format(trail peek() as Node class name, trail toString()))
+                    returnExpr := expr
+                    if(expr instanceOf(Tuple)) {
+                        returnExpr = expr as Tuple elements get(j)
                     }
-                    expr = VariableAccess new(vdfe, vdfe token)
+
+                    returnAcc := VariableAccess new(returnArg, token)
+
+                    // why take the address? well if the returnArgs aren't generic, then they are ReferenceTypes
+                    // to check if we care about a returnArg, we need to know if the *address* of the passed pointer is non-null,
+                    // not the value itself. So we take AddressOf.
+                    if1 := If new(retType isGeneric() ? returnAcc : AddressOf new(returnAcc, token), token)
+
+                    if(returnExpr hasSideEffects()) {
+                        vdfe := VariableDecl new(null, generateTempName("returnVal"), returnExpr, returnExpr token)
+                        if(!trail peek() addBefore(this, vdfe)) {
+                            token throwError("Couldn't add the vdfe before the generic return in a %s! trail = %s" format(trail peek() as Node class name, trail toString()))
+                        }
+                        returnExpr = VariableAccess new(vdfe, vdfe token)
+                    }
+
+                    ass := BinaryOp new(returnAcc, returnExpr, OpTypes ass, token)
+                    if1 getBody() add(ass)
+
+                    if(!trail peek() addBefore(this, if1)) {
+                        token throwError("Couldn't add the assignment before the generic return in a %s! trail = %s" format(trail peek() as Node class name, trail toString()))
+                    }
+                    j += 1
+
                 }
 
-                ass := BinaryOp new(returnAcc, expr, OpTypes ass, token)
-                if1 getBody() add(ass)
-
-                if(!trail peek() addBefore(this, if1)) {
-                    token throwError("Couldn't add the assignment before the generic return in a %s! trail = %s" format(trail peek() as Node class name, trail toString()))
-                }
                 expr = null
-
                 res wholeAgain(this, "Turned into an assignment")
                 //return Responses OK
                 return Responses LOOP
+
             }
 
             if(expr) {
@@ -120,12 +143,12 @@ Return: class extends Statement {
                             msg = "The declared return type (%s) and the returned value (%s) do not match!" format(retType toString(), expr getType() toString())
                         }
                         token throwError(msg)
-                    }                       
+                    }
                     expr = Cast new(expr, retType, expr token)
                 }
             }
 
-            if (retType == voidType && !expr) 
+            if (retType == voidType && !expr)
                 token throwError("Function is declared to return `null`, not %s! trail = %s" format(expr getType() toString(), trail toString()))
         }
 

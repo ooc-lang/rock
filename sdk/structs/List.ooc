@@ -1,9 +1,13 @@
 import text/Buffer /* for List join */
+import math/Random, structs/ArrayList /* for List shuffle */
+import structs/HashMap /* for getStandardEquals() - should probably move that in a separate Module */
 
 /**
  * List interface for a data container
  */
 List: abstract class <T> extends BackIterable<T> {
+
+    equals := getStandardEquals(T)
 
     /**
      * Appends the specified element to the end of this list.
@@ -12,7 +16,7 @@ List: abstract class <T> extends BackIterable<T> {
 
     /**
      * Inserts the specified element at the specified position in
-     * this list. 
+     * this list.
      */
     add: abstract func~withIndex(index: Int, element: T)
 
@@ -122,12 +126,12 @@ List: abstract class <T> extends BackIterable<T> {
      * @return true if at least one occurence of the element has been
      * removed
      */
-    remove: abstract func(element: T) -> Bool 
+    remove: abstract func(element: T) -> Bool
 
     /**
      * Replaces the element at the specified position in this list with
      * the specified element.
-     */ 
+     */
     set: abstract func(index: Int, element: T) -> T
 
     /**
@@ -136,17 +140,54 @@ List: abstract class <T> extends BackIterable<T> {
     size: abstract func -> Int
 
     /**
-     * @return an interator on this list
+       @return an interator on this list
      */
     iterator: abstract func -> BackIterator<T>
 
     /**
-     * @return a copy of this list
+       @return a copy of this list
      */
     clone: abstract func -> List<T>
 
     /**
-     * @return the first element of this list
+       @return a list of the same type, empty.
+       useful when writing algorithms that need to create
+       new lists, but not of a specific type.
+     */
+    emptyClone: abstract func -> List <T>
+
+    /**
+       Return two sublists. The first one contains all the elements
+       for which f evaluated to true, the second one contains all the
+       other elements.
+     */
+    split: func (f: Func(T) -> Bool, list1, list2: This<T>@) {
+        list1 = emptyClone(); list2 = clone()
+        for(x in this) {
+            if(f(x)) {
+                list2 remove(x); list1 add(x)
+            }
+        }
+    }
+
+    /**
+       Return a list with all the elements in a random order
+     */
+    shuffle: func -> This<T> {
+        shuffled := emptyClone()
+
+        indexes := ArrayList<Int> new()
+        for(i in 0..size()) indexes add(i)
+
+        while(!indexes isEmpty()) {
+            i := Random randRange(0, indexes size())
+            shuffled add(this[indexes removeAt(i) as Int])
+        }
+        shuffled
+    }
+
+    /**
+       @return the first element of this list
      */
     first: func -> T {
         return get(0)
@@ -196,10 +237,9 @@ List: abstract class <T> extends BackIterable<T> {
         }
     }
 
+    join: func ~stringDefault -> String { join("") }
+
     join: func ~string (str: String) -> String {
-        if(!this T inheritsFrom(String)) {
-            Exception new("You cannot use `String join` with %s instances." format(this T name)) throw()
-        }
         /* TODO: A more performant implementation is possible. */
         result := Buffer new()
         first := true
@@ -208,7 +248,12 @@ List: abstract class <T> extends BackIterable<T> {
                 first = false
             else
                 result append(str)
-            result append(item as String)
+
+            match T {
+                case String => result append(item as String)
+                case Char   => result append(item as Char)
+                case        => Exception new("You cannot use `List join` with %s instances." format(this T name)) throw()
+            }
         }
         result toString()
     }

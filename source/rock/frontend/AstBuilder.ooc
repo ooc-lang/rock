@@ -7,13 +7,13 @@ import ../utils/FileUtils
 import ../frontend/[Token, BuildParams]
 import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     FunctionCall, StringLiteral, Node, Module, Statement, Include, Import,
-    Type, Expression, Return, VariableAccess, Cast, If, Else, ControlStatement,
-    Comparison, IntLiteral, FloatLiteral, Ternary, BinaryOp, BoolLiteral,
-    NullLiteral, Argument, Parenthesis, AddressOf, Dereference, Foreach,
-    OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess, Match, FlowControl,
-    While, CharLiteral, InterfaceDecl, NamespaceDecl, Version, Use, Block,
-    ArrayLiteral, EnumDecl, BaseType, FuncType, Declaration, PropertyDecl,
-    CallChain]
+    Type, TypeList, Expression, Return, VariableAccess, Cast, If, Else,
+    ControlStatement, Comparison, IntLiteral, FloatLiteral, Ternary,
+    BinaryOp, BoolLiteral, NullLiteral, Argument, Parenthesis, AddressOf,
+    Dereference, Foreach, OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess,
+    Match, FlowControl, While, CharLiteral, InterfaceDecl, NamespaceDecl,
+    Version, Use, Block, ArrayLiteral, EnumDecl, BaseType, FuncType,
+    Declaration, PropertyDecl, CallChain, Tuple]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -383,8 +383,14 @@ AstBuilder: class {
         stack push(Stack<VariableDecl> new())
     }
 
-    onVarDeclName: unmangled(nq_onVarDeclName) func (name: String) {
-        peek(Stack<VariableDecl>) push(VariableDecl new(null, name clone(), token()))
+    onVarDeclName: unmangled(nq_onVarDeclName) func (name, doc: String) {
+        vDecl := VariableDecl new(null, name clone(), token())
+        vDecl doc = doc
+        peek(Stack<VariableDecl>) push(vDecl)
+    }
+
+    onVarDeclTuple: unmangled(nq_onVarDeclTuple) func (tuple: Tuple) {
+        peek(Stack<VariableDecl>) push(VariableDeclTuple new(null as Type, tuple, token()))
     }
 
     onVarDeclExtern: unmangled(nq_onVarDeclExtern) func (externName: String) {
@@ -536,7 +542,7 @@ AstBuilder: class {
      * Types
      */
 
-    onTypeNew: unmangled(nq_onTypeNew) func (name: String) -> Type   {
+    onTypeNew: unmangled(nq_onTypeNew) func (name: String) -> Type {
         BaseType new(name clone() trim(), token())
     }
 
@@ -554,6 +560,14 @@ AstBuilder: class {
 
     onTypeGenericArgument: unmangled(nq_onTypeGenericArgument) func (type: Type, typeInner: Type) {
         type addTypeArg(VariableAccess new(typeInner, token()))
+    }
+
+    onTypeList: unmangled(nq_onTypeList) func -> TypeList {
+        TypeList new(token())
+    }
+
+    onTypeListElement: unmangled(nq_onTypeListElement) func (list: TypeList, element: Type) {
+        list types add(element)
     }
 
     /*
@@ -722,6 +736,14 @@ AstBuilder: class {
         pop(ArrayLiteral)
     }
 
+    onTupleStart: unmangled(nq_onTupleStart) func {
+        stack push(Tuple new(token()))
+    }
+
+    onTupleEnd: unmangled(nq_onTupleEnd) func -> Tuple {
+        pop(Tuple)
+    }
+
     onStringLiteral: unmangled(nq_onStringLiteral) func (text: String) -> StringLiteral {
         StringLiteral new(text clone() replace("\n", "\\n") replace("\t", "\\t"), token())
     }
@@ -790,6 +812,12 @@ AstBuilder: class {
                     stmt token throwError("Expected an expression here, not a statement!")
                 }
                 arrayLit getElements() add(stmt as Expression)
+            case node instanceOf(Tuple) =>
+                tuple := node as Tuple
+                if(!stmt instanceOf(Expression)) {
+                    stmt token throwError("Expected an expression here, not a statement!")
+                }
+                tuple getElements() add(stmt as Expression)
             case =>
                 printf("[gotStatement] Got a %s, don't know what to do with it, parent = %s\n", stmt toString(), node class name)
         }

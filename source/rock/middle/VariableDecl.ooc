@@ -2,13 +2,13 @@ import structs/[ArrayList]
 import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
        Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast, Module,
        Block, Scope, FunctionDecl, Argument, BaseType, FuncType, Statement,
-       NullLiteral
+       NullLiteral, Tuple, TypeList, VariableDecl
 import tinker/[Response, Resolver, Trail]
 import ../frontend/BuildParams
 
 VariableDecl: class extends Declaration {
 
-    name = "", fullName = null, doc = null : String
+    name = "", fullName = null, doc = "" : String
 
     type: Type
     expr: Expression
@@ -181,7 +181,7 @@ VariableDecl: class extends Declaration {
                 parent := trail get(idx + 1, Node)
 
                 if(parent instanceOf(FunctionCall)) {
-                    result = trail addBeforeInScope(parent as Statement, this)              
+                    result = trail addBeforeInScope(parent as Statement, this)
                 } else {
                     block := Block new(token)
                     block getBody() add(this)
@@ -213,7 +213,12 @@ VariableDecl: class extends Declaration {
                     return Responses OK
                 }
 
-                if(fDecl getReturnType() isGeneric()) {
+                //if(fDecl getReturnType() isGeneric()) {
+                if(!fDecl getReturnArgs() isEmpty()) {
+                    if(fDecl getReturnType() instanceOf(TypeList)) {
+                        type = fDecl getReturnType() as TypeList types get(0)
+                        "Inferred type of %s to %s from TypeList." printfln(toString(), type toString())
+                    }
                     ass := BinaryOp new(VariableAccess new(this, token), realExpr, OpTypes ass, token)
                     if(!trail addAfterInScope(this, ass)) {
                         token throwError("Couldn't add a " + ass toString() + " after a " + toString() + ", trail = " + trail toString())
@@ -299,3 +304,84 @@ VariableDecl: class extends Declaration {
     isMember: func -> Bool { owner != null }
 
 }
+
+VariableDeclTuple: class extends VariableDecl {
+
+    tuple: Tuple
+
+    init: func ~vdTuple (.type, =tuple, .token) {
+        init~vDecl (type, "<tuple>", token)
+    }
+
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        token printMessage("Got a VariableDeclTuple, and expr is %s!" format(expr ? expr toString() : "(nil)"), "INFO")
+
+        expr resolve(trail, res)
+
+        match {
+            case expr == null =>
+                token throwError("VariableDeclTuples need an expression. This should never happen")
+            case expr instanceOf(FunctionCall) =>
+                fCall := expr as FunctionCall
+                if(fCall getRef() == null) {
+                    res wholeAgain(this, "Need fCall ref")
+                    return Responses OK
+                }
+                if(fCall getRef() getReturnArgs() isEmpty()) {
+                    if(res fatal) {
+                        token throwError("Need a multi-return function call as the expression of a tuple-variable declaration!")
+                    }
+                    res wholeAgain(this, "need multi-return func call")
+                    return Responses OK
+                }
+                parent := trail peek()
+
+                returnArgs := fCall getReturnArgs()
+                returnType := fCall getRef() getReturnType() as TypeList
+                returnTypes := returnType types
+
+                if(tuple getElements() size() < returnTypes size()) {
+                    bad := false
+                    if(tuple getElements() isEmpty()) {
+                        bad = true
+                    } else {
+                        element := tuple getElements() last()
+                        if(!element instanceOf(VariableAccess)) {
+                            element token throwError("Expected a variable access in a tuple-variable declaration!")
+                        }
+                        if(element as VariableAccess getName() != "_") bad = true
+                    }
+                    if(bad) tuple token throwError("Tuple variable declaration doesn't match return type %s of function %s" format(returnType toString(), fCall getName()))
+                }
+
+                j := 0
+                for(element in tuple getElements()) {
+                    if(!element instanceOf(VariableAccess)) {
+                        element token throwError("Expected a variable access in a tuple-variable declaration!")
+                    }
+                    argName := element as VariableAccess getName()
+
+                    if(argName == "_") {
+                        returnArgs add(null)
+                    } else {
+                        // woohoo.
+                        argType := returnTypes get(j)
+                        argDecl := VariableDecl new(argType, argName, element token)
+                        returnArgs add(VariableAccess new(argDecl, argDecl token))
+                        if(!trail addBeforeInScope(this, argDecl)) {
+                            token throwError("Couldn't add %s before %s in scope!" format(argDecl toString(), toString()))
+                        }
+                    }
+                    j += 1
+                }
+                trail addBeforeInScope(this, fCall)
+                parent as Scope remove(this)
+            case =>
+                token throwError("Unsupported expression type %s for VariableDeclTuple." format(expr class name))
+        }
+
+        Responses OK
+    }
+
+}
+

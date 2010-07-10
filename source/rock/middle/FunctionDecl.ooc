@@ -1,10 +1,11 @@
-import structs/[Stack, ArrayList], text/Buffer
+import structs/[Stack, ArrayList, List], text/Buffer
 import ../frontend/[Token, BuildParams]
 import Cast, Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, If, Else,
        VariableDecl, Node, Statement, Module, FunctionCall, Declaration,
        Version, StringLiteral, Conditional, Import, ClassDecl, StringLiteral,
-       IntLiteral, NullLiteral, BaseType, FuncType, AddressOf, BinaryOp
+       IntLiteral, NullLiteral, BaseType, FuncType, AddressOf, BinaryOp,
+       TypeList
 import tinker/[Resolver, Response, Trail]
 
 /**
@@ -39,7 +40,7 @@ import tinker/[Resolver, Response, Trail]
 */
 FunctionDecl: class extends Declaration {
 
-    name = "", suffix = null, fullName = null, doc = null : String
+    name = "", suffix = null, fullName = null, doc = "" : String
 
     returnType := voidType
 
@@ -60,8 +61,9 @@ FunctionDecl: class extends Declaration {
 
     typeArgs := ArrayList<VariableDecl> new()
     args := ArrayList<VariableDecl> new()
-    returnArg : Argument = null
+    returnArgs := ArrayList<VariableDecl> new()
     body := Scope new()
+    _returnTypeResolvedOnce := false
 
     partialByReference := ArrayList<VariableDecl> new()
     partialByValue := ArrayList<VariableDecl> new()
@@ -144,11 +146,17 @@ FunctionDecl: class extends Declaration {
         staticVariant
     }
 
-    getReturnArg: func -> Argument {
-        if(returnArg == null) {
-            returnArg = Argument new(getReturnType(), generateTempName("returnArg"), token)
-        }
-        return returnArg
+    getReturnArg: func -> VariableDecl {
+        if(returnArgs isEmpty()) createReturnArg(returnType, "genericReturn")
+        return returnArgs[0]
+    }
+
+    createReturnArg: func (type: Type, name: String) {
+        returnArgs add(VariableDecl new(type, generateTempName(name), token))
+    }
+
+    getReturnArgs: func -> List<VariableDecl> {
+        return returnArgs
     }
 
     hasReturn: func -> Bool {
@@ -243,7 +251,11 @@ FunctionDecl: class extends Declaration {
                 solved := call resolveTypeArg(argType getName(), null, finalScore&)
                 if(solved) argType = solved
             }
-            sb append(argType toString())
+            if(argType) {
+                sb append(argType toString())
+            } else {
+                sb append("...")
+            }
         }
         sb append(")")
         return sb toString()
@@ -358,8 +370,19 @@ FunctionDecl: class extends Declaration {
                 trail pop(this)
                 return response
             }
-            if(returnType getRef() == null) {
-                res wholeAgain(this, "need returnType of decl " + name)
+            if(!returnType isResolved()) {
+                res wholeAgain(this, "need returnType of decl %s to be resolved" format(name))
+            } else if(returnType isGeneric()) {
+                // this create the returnArg for generic return types
+                if(returnArgs isEmpty()) createReturnArg(returnType, "genericReturn")
+            } else if(returnType instanceOf(TypeList)) {
+                list := returnType as TypeList
+                if(list types size() > returnArgs size()) {
+                    "Function %s has return type %s" printfln(toString(), returnType toString())
+                    for(type in list types) {
+                        createReturnArg(ReferenceType new(type, type token), "tupleArg")
+                    }
+                }
             }
         }
 
@@ -439,7 +462,7 @@ FunctionDecl: class extends Declaration {
 
 				constructCall := FunctionCall new(VariableAccess new(arg getType(), arg token), "new", arg token)
                 constructCall setSuffix("withData")
-				constructCall typeArgs add(VariableAccess new(BaseType new("Pointer", arg token), arg token))
+				//constructCall typeArgs add(VariableAccess new(BaseType new("Pointer", arg token), arg token))
 				constructCall args add(VariableAccess new(argv, arg token)) \
                                   .add(VariableAccess new(argc, arg token))
 
@@ -704,6 +727,7 @@ FunctionDecl: class extends Declaration {
             if(!expr getType() equals(voidType)) {
                 //printf("[autoReturn] Hmm it's a %s\n", stmt toString())
                 scope set(index, Return new(expr, expr token))
+                res wholeAgain(this, "Replaced with a return o/")
                 //printf("[autoReturn] Replaced with a %s!\n", scope get(index) toString())
             }
         } else if(stmt instanceOf(ControlStatement)) {
