@@ -2,7 +2,7 @@ import io/File, os/Env, text/Buffer
 import structs/ArrayList
 
 import compilers/AbstractCompiler
-import PathList, rock/rock, rock/utils/ShellUtils
+import PathList, rock/utils/ShellUtils
 import ../middle/Module
 
 BuildParams: class {
@@ -15,8 +15,8 @@ BuildParams: class {
     /* Builtin defines */
 	GC_DEFINE := static const "__OOC_USE_GC__"
 
-    init: func {
-        findDist()
+    init: func (execName: String) {
+        findDist(execName)
         findSdk()
         sdkLocation = sdkLocation getAbsoluteFile()
         findLibsPath()
@@ -25,7 +25,7 @@ BuildParams: class {
 		defines add(This GC_DEFINE)
     }
 
-    findDist: func {
+    findDist: func (execName: String) {
         // specified by command-line?
         if(distLocation) return
 
@@ -42,7 +42,7 @@ BuildParams: class {
         // fall back to ../../ from the executable
         // e.g. if rock is in /opt/ooc/rock/bin/rock
         // then it will set dist to /opt/ooc/rock/
-        exec := ShellUtils findExecutable(Rock execName, false)
+        exec := ShellUtils findExecutable(execName, false)
         if(exec) {
             realpath := exec getAbsolutePath()
             distLocation = File new(realpath) parent() parent()

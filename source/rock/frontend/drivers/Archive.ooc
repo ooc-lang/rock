@@ -1,4 +1,4 @@
-import rock/rock
+import rock/RockVersion
 
 import structs/[List, ArrayList, HashMap]
 
@@ -85,9 +85,9 @@ Archive: class {
         }
 
         readCompilerVersion := fR readLine()
-        if(readCompilerVersion != Rock getVersionName()) {
+        if(readCompilerVersion != RockVersion getName()) {
             if(params veryVerbose || params debugLibcache) {
-                "Wrong compiler version '%s' for %s.cacheinfo. We have version '%s'. Ignoring" printfln(readCompilerVersion, outlib, Rock getVersionName())
+                "Wrong compiler version '%s' for %s.cacheinfo. We have version '%s'. Ignoring" printfln(readCompilerVersion, outlib, RockVersion getName())
             }
             return false
         }
@@ -148,7 +148,7 @@ Archive: class {
 
         fW writef("cacheversion\n%s\n", version)
         fW writef("%s\n", compilerArgs)
-        fW writef("%s\n", Rock getVersionName())
+        fW writef("%s\n", RockVersion getName())
         fW writef("%d\n", elements size())
         for(element in elements) {
             element write(fW)
