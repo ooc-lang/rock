@@ -20,7 +20,15 @@ FunctionCallWriter: abstract class extends Skeleton {
         // write the function name
         if(fDecl vDecl != null) {
             if(fCall expr != null) {
-                current app(fCall expr). app("->")
+                arrow := true
+                if(fCall expr instanceOf(VariableAccess)) {
+                    acc := fCall expr as VariableAccess
+                    if(acc getRef() instanceOf(VariableDecl)) {
+                        vDecl := acc getRef() as VariableDecl
+                        arrow = vDecl getType() getRef() instanceOf(ClassDecl)
+                    }
+                }
+                current app(fCall expr). app(arrow ? "->" : ".")
             }
             if(fDecl vDecl == null) {
                 current app(fCall getName())
