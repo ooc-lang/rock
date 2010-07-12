@@ -102,6 +102,14 @@ Resolver: class {
             if (!f getPath() endsWith(".ooc")) return
 
             fullName := f getAbsolutePath()
+
+            // try to open the file to sort out links to non-existent destinations.
+            tempFile := FStream open(fullName, "r")
+            if(!tempFile)
+                return
+            else
+                tempFile close()
+            
             module := AstBuilder cache get(fullName)
 
             fullName = fullName substring(pathElem getAbsolutePath() length() + 1, fullName length() - 4)
