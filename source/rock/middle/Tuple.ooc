@@ -25,8 +25,13 @@ Tuple: class extends Expression {
         if(!type) {
             list := TypeList new(token)
             for(element in elements) {
-                // TODO: what if the types are null?
-                list types add(element getType())
+                type := element getType()
+
+                if(type) {
+                    list types add(element getType())
+                } else {
+                    return null
+                }
             }
             type = list
         }
@@ -49,7 +54,16 @@ Tuple: class extends Expression {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        getType() resolve(trail, res)
+        for (element in elements) {
+            if(!element resolve(trail, res) ok()) return Responses LOOP
+        }
+
+        if(getType()) {
+            getType() resolve(trail, res)
+        } else {
+            res wholeAgain(this, "Need type =)")
+        }
+
         token printMessage("Hey! got a tuple right there o/ Parent is a %s. Doing nothing." format(trail peek() toString()), "INFO")
 
         Responses OK
