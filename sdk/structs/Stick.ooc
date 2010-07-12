@@ -12,7 +12,7 @@ Stick: class {
     capacity: Int // in octets
 
     init: func {
-        base = gc_malloc(=capacity)
+        base = gc_malloc(capacity)
         current = base
     }
 
