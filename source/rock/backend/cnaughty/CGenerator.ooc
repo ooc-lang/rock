@@ -13,7 +13,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Cast, Comparison, Ternary, BoolLiteral, Argument, Statement,
     AddressOf, Dereference, CommaSequence, UnaryOp, ArrayAccess, Match,
     FlowControl, InterfaceDecl, Version, Block, EnumDecl, ArrayLiteral,
-    ArrayCreation]
+    ArrayCreation, StructLiteral]
 
 import Skeleton, FunctionDeclWriter, ControlStatementWriter,
     ClassDeclWriter, ModuleWriter, CoverDeclWriter, FunctionCallWriter,
@@ -271,6 +271,17 @@ CGenerator: class extends Skeleton {
         } else {
             current app(arrAcc getArray()). app('['). app(arrAcc getIndex()). app(']')
         }
+    }
+
+    visitStructLiteral: func (sl: StructLiteral) {
+        current app('('). app(sl getType()). app(") { ")
+        isFirst := true
+        for(element in sl elements) {
+            if(!isFirst) current app(", ")
+            current app(element)
+            isFirst = false
+        }
+        current app(" }")
     }
 
     visitArrayLiteral: func (arrLit: ArrayLiteral) {
