@@ -49,7 +49,7 @@ VariableAccess: class extends Expression {
                 printf("%s is no fit!, we need something to fit %s\n", candidate toString(), toString())
 		        return false
 		    }
-		    
+
 		    ref = candidate
             if(isMember() && candidate owner isMeta) {
                 expr = VariableAccess new(candidate owner getNonMeta() getInstanceType(), candidate token)
@@ -64,7 +64,7 @@ VariableAccess: class extends Expression {
 		        printf("%s is no fit!, we need something to fit %s\n", candidate toString(), toString())
 		        return false
 		    }
-		    
+
 		    ref = candidate
 		    return true
 	    } else if(node instanceOf(TypeDecl) || node instanceOf(NamespaceDecl)) {
@@ -129,7 +129,7 @@ VariableAccess: class extends Expression {
 
         /*
          * Try to resolve the access from the trail
-         * 
+         *
          * It's far simpler than resolving a function call, we just
          * explore the trail from top to bottom and retain the first match.
          */
@@ -145,7 +145,7 @@ VariableAccess: class extends Expression {
 
                 if(ref) {
                     // only accesses to variable decls need to be partialed (not type decls)
-                    if(ref instanceOf(VariableDecl) && expr == null) {
+                    if(ref instanceOf(VariableDecl) && !ref as VariableDecl isGlobal() && expr == null) {
                         closureIndex := trail find(FunctionDecl)
                         if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
                             closure := trail get(closureIndex, FunctionDecl)
@@ -183,7 +183,7 @@ VariableAccess: class extends Expression {
             } else {
                 // We are in a setter/getter and we're having a variable access. That means
                 // the property is not virtual.
-                ref as PropertyDecl setVirtual(false) 
+                ref as PropertyDecl setVirtual(false)
             }
         }
 
