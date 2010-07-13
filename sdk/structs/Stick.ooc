@@ -11,14 +11,14 @@ Stick: class {
     base, current: Octet*
     capacity: Int // in octets
 
-    init: func {
+    init: func (=capacity) {
         base = gc_malloc(capacity)
         current = base
     }
 
     push: func <T> (element: T) {
-        if(current - base + T size > size) {
-            Exception new(Stick, "Pushing beyond stick limits!") throw()
+        if((current - base + T size) as Int > capacity) {
+            Exception new(This, "Pushing beyond stick limits!") throw()
         }
 
         memcpy(current, element, T size)
