@@ -74,8 +74,6 @@ Tuple: class extends Expression {
             }
         }
 
-        token printMessage("Hey! got a tuple right there o/ Parent is a %s. Doing nothing." format(parent toString()), "INFO")
-
         Responses OK
     }
 
