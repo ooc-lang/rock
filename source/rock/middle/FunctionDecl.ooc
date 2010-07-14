@@ -646,6 +646,12 @@ FunctionDecl: class extends Declaration {
             closure := StructLiteral new(BaseType new("Closure", token), closureElements, token)
             closureDecl := VariableDecl new(null, generateTempName("closure"), closure, token)
             trail addBeforeInScope(this, closureDecl)
+
+            thunk := FunctionDecl new(getName() + "_thunk", token)
+            thunk args addAll(args)
+            thunk args add(VariableDecl new(ReferenceType new(ctxStruct getInstanceType(), token), "__context__", token))
+
+            module addFunction(thunk)
             /** EXPERIMENTAL */
 
             partialAcc := VariableAccess new(partialName, token)
