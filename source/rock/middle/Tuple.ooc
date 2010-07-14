@@ -1,5 +1,6 @@
 import ../frontend/[Token, BuildParams]
-import Literal, Visitor, Type, Expression, Node, TypeList, NullLiteral
+import Literal, Visitor, Type, Expression, Node, TypeList, NullLiteral,
+       Cast, StructLiteral
 import tinker/[Response, Resolver, Trail]
 import structs/[List, ArrayList]
 import text/Buffer
@@ -9,7 +10,7 @@ Tuple: class extends Expression {
     elements := ArrayList<Expression> new()
     type : Type = null
 
-    init: func ~arrayLiteral (.token) {
+    init: func ~tuple (.token) {
         super(token)
     }
 
@@ -25,8 +26,12 @@ Tuple: class extends Expression {
         if(!type) {
             list := TypeList new(token)
             for(element in elements) {
-                // TODO: what if the types are null?
-                list types add(element getType())
+                elementType := element getType()
+                if(elementType) {
+                    list types add(elementType)
+                } else {
+                    return null
+                }
             }
             type = list
         }
@@ -49,8 +54,25 @@ Tuple: class extends Expression {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        getType() resolve(trail, res)
-        token printMessage("Hey! got a tuple right there o/ Parent is a %s. Doing nothing." format(trail peek() toString()), "INFO")
+        for (element in elements) {
+            if(!element resolve(trail, res) ok()) return Responses LOOP
+        }
+
+        if(getType()) {
+            getType() resolve(trail, res)
+        } else {
+            res wholeAgain(this, "Need type")
+        }
+
+        parent := trail peek()
+        if(parent instanceOf(Cast)) {
+            cast := parent as Cast
+            structLit := StructLiteral new(cast getType(), elements, token)
+            grandpa := trail peek(2)
+            if(!grandpa replace(cast, structLit)) {
+                token throwError("Couldn't replace %s with %s :x trail = %s" format(cast toString(), structLit toString(), trail toString()))
+            }
+        }
 
         Responses OK
     }

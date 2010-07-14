@@ -102,6 +102,11 @@ Resolver: class {
             if (!f getPath() endsWith(".ooc")) return
 
             fullName := f getAbsolutePath()
+
+            // sort out links to non-existent destinations.
+            if(!f exists())
+                return
+            
             module := AstBuilder cache get(fullName)
 
             fullName = fullName substring(pathElem getAbsolutePath() length() + 1, fullName length() - 4)

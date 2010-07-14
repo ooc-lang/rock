@@ -98,7 +98,11 @@ TypeList: class extends Type {
 
     dig: func -> Type {
         copy := new(token)
-        for(type in types) copy types add(type dig())
+        for(type in types) {
+            digged := type dig()
+            if(digged) copy types add(digged)
+            else       return null
+        }
         copy
     }
 

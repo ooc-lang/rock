@@ -4,7 +4,7 @@ import structs/[List, ArrayList, HashMap]
 
 import io/[File, FileReader, FileWriter], os/Process
 
-import ../[AstBuilder, BuildParams]
+import ../[AstBuilder, BuildParams, PathList]
 
 import ../../middle/[Module, TypeDecl, VariableDecl, FunctionDecl]
 
@@ -401,15 +401,14 @@ ArchiveModule: class {
        an exception if it's not found
      */
     _getModule: func {
-        pathElement := archive params sourcePath get(archive sourceFolder)
-
-        if(!pathElement) {
-            "pathElement not found for sourceFolder %s!" printfln(archive sourceFolder)
-            return
+        for (path in archive params sourcePath paths) {
+            if (path getAbsoluteFile() name() == archive sourceFolder) {
+                oocFile := File new(path getAbsolutePath(), oocPath)
+                if(oocFile exists()) {
+                    module = AstBuilder cache get(oocFile getAbsolutePath())
+                }
+            }
         }
-
-        oocFile := File new(pathElement, oocPath)
-        module = AstBuilder cache get(oocFile getAbsolutePath())
     }
 
     /**
