@@ -211,7 +211,7 @@ FunctionDecl: class extends Declaration {
         !isMember() && token module params entryPoint == name
     }
 
-    getType: func -> Type {
+    getType: func -> FuncType {
         type := FuncType new(token)
         for(arg in args) {
             if(arg instanceOf(VarArg)) break

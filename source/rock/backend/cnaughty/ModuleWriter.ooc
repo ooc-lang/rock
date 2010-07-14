@@ -294,7 +294,13 @@ ModuleWriter: abstract class extends Skeleton {
         name: String = customName ? customName : funcType toMangledString()
         current nl(). nl().  app("#ifndef "). app(name). app("__DEFINE")
         current nl(). app("#define "). app(name). app("__DEFINE"). nl()
-        current nl(). app("typedef ");
+        current nl(). app("typedef ")
+        writeFuncPointer(this, funcType, name)
+        current app(';')
+        current nl(). nl().  app("#endif"). nl()
+    }
+
+    writeFuncPointer: static func (this: Skeleton, funcType: FuncType, name: String) {
         if(funcType returnType == null) {
             current app("void")
         } else {
@@ -313,8 +319,7 @@ ModuleWriter: abstract class extends Skeleton {
             else        current app(", ")
             current app(argType)
         }
-        current app(");")
-        current nl(). nl().  app("#endif"). nl()
+        current app(')')
     }
 
     /** Classify imports between 'tight' and 'loose' */

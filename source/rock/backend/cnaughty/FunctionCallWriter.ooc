@@ -2,7 +2,7 @@
 import ../../middle/[FunctionDecl, FunctionCall, TypeDecl, Argument,
         Type, Expression, InterfaceDecl, VariableAccess, VariableDecl,
         ClassDecl]
-import Skeleton, FunctionDeclWriter
+import Skeleton, FunctionDeclWriter, ModuleWriter
 
 FunctionCallWriter: abstract class extends Skeleton {
 
@@ -19,7 +19,9 @@ FunctionCallWriter: abstract class extends Skeleton {
 
         // write the function name
         if(fDecl vDecl != null) {
-            current app("(("). app(fDecl getType() toMangledString()). app(") ")
+            current app("((")
+            ModuleWriter writeFuncPointer(this, fDecl getType(), "")
+            current app(") ")
             if(fCall expr != null) {
                 arrow := true
                 if(fCall expr instanceOf(VariableAccess)) {
