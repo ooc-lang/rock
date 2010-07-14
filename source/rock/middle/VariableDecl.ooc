@@ -275,28 +275,34 @@ VariableDecl: class extends Declaration {
     }
 
     getFunctionDecl: func -> FunctionDecl {
-        if(getType() instanceOf(FuncType) && fDecl == null) {
-            fType := getType() as FuncType
-            fDecl = FunctionDecl new(name, token)
-            if(owner) fDecl setOwner(owner)
-            if(fType typeArgs != null && !fType typeArgs isEmpty()) {
-                classType := BaseType new("Class", fType token)
-                for(typeArg in fType typeArgs) {
-                    vDecl := VariableDecl new(classType, typeArg name, typeArg token)
-                    fDecl typeArgs add(vDecl)
-                    typeArg setRef(vDecl)
+        if(fDecl == null) {
+            if(getType() instanceOf(FuncType)) {
+                fType := getType() as FuncType
+                fDecl = FunctionDecl new(name, token)
+                if(owner) fDecl setOwner(owner)
+                if(fType typeArgs != null && !fType typeArgs isEmpty()) {
+                    classType := BaseType new("Class", fType token)
+                    for(typeArg in fType typeArgs) {
+                        vDecl := VariableDecl new(classType, typeArg name, typeArg token)
+                        fDecl typeArgs add(vDecl)
+                        typeArg setRef(vDecl)
+                    }
                 }
-            }
-            for(argType in fType argTypes) {
-                fDecl args add(Argument new(argType, "", token))
-            }
-            if(fType varArg) {
+                for(argType in fType argTypes) {
+                    fDecl args add(Argument new(argType, "", token))
+                }
+                if(fType varArg) {
+                    fDecl args add(VarArg new(token))
+                }
+                if(fType returnType != null) {
+                    fDecl setReturnType(fType returnType)
+                }
+                fDecl vDecl = this
+            } else if(getType() getName() == "Closure") {
+                fDecl = FunctionDecl new(name, token)
                 fDecl args add(VarArg new(token))
+                fDecl vDecl = this
             }
-            if(fType returnType != null) {
-                fDecl setReturnType(fType returnType)
-            }
-            fDecl vDecl = this
         }
         return fDecl
     }

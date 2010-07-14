@@ -20,7 +20,8 @@ FuncType: class extends Type {
     }
 
     write: func (w: AwesomeWriter, name: String) {
-        w app (toMangledString())
+        //w app (toMangledString())
+        w app("lang_types__Closure")
         if(name) w app(' '). app(name)
     }
 
@@ -149,7 +150,7 @@ FuncType: class extends Type {
         b toString()
     }
 
-    isPointer: func -> Bool { true }
+    isPointer: func -> Bool { false }
 
     dig: func -> Type { null }
 

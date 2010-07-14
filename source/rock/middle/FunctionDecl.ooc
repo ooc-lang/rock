@@ -214,6 +214,7 @@ FunctionDecl: class extends Declaration {
     getType: func -> Type {
         type := FuncType new(token)
         for(arg in args) {
+            if(arg instanceOf(VarArg)) break
             type argTypes add(arg getType())
         }
         type returnType = returnType
@@ -291,7 +292,8 @@ FunctionDecl: class extends Declaration {
 
     resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
         for(arg: Argument in args) {
-            if(arg getName() == call getName() && arg getType() instanceOf(FuncType)) {
+            if((arg getType() instanceOf(FuncType) || (arg getType() != null && arg getType() getName() == "Closure")) &&
+                    arg getName() == call getName()) {
                 call suggest(arg getFunctionDecl())
                 break
             }
@@ -570,6 +572,7 @@ FunctionDecl: class extends Declaration {
 
         module := trail module()
         name = generateTempName(module getUnderName() + "_closure")
+        "Unwrapping %s" printfln(toString())
         varAcc := VariableAccess new(name, token)
         varAcc setRef(this)
         module addFunction(this)
@@ -577,6 +580,59 @@ FunctionDecl: class extends Declaration {
         if(partialByReference isEmpty() && partialByValue isEmpty()) {
             trail peek() replace(this, varAcc)
         } else {
+
+            /* EXPERIMENTAL */
+            ctxStruct := CoverDecl new(name + "_ctx", token)
+            elements := ArrayList<VariableAccess> new()
+            for(e in partialByValue) {
+                ctxStruct addVariable(e)
+                elements add(VariableAccess new(e, e token))
+            }
+            module addType(ctxStruct)
+
+            ctx := StructLiteral new(ctxStruct getInstanceType(), elements, token)
+            ctxDecl := VariableDecl new(getType(), generateTempName("ctx"), ctx, token)
+            trail addBeforeInScope(this, ctxDecl)
+
+            closureElements := [
+                VariableAccess new(getName() + "_thunk" /* hackish - would prefer a direct reference */, token)
+                AddressOf new(VariableAccess new(ctxDecl, token), token)
+            ] as ArrayList<VariableAccess>
+
+            closureType := BaseType new("Closure", token)
+            closure := StructLiteral new(closureType, closureElements, token)
+            closureDecl := VariableDecl new(closureType, generateTempName("closure"), closure, token)
+            trail addBeforeInScope(this, closureDecl)
+
+            thunk := FunctionDecl new(getName() + "_thunk", token)
+            thunk args addAll(args)
+            ctxArg := VariableDecl new(ReferenceType new(ctxStruct getInstanceType(), token), "__context__", token)
+            thunk args add(ctxArg)
+
+            call := FunctionCall new(getName(), token)
+
+            argOffset := 0
+
+            for(arg in partialByValue) {
+                call args add(VariableAccess new(VariableAccess new(ctxArg, token), arg getName(), token))
+            }
+            for(arg in args) {
+                call args add(VariableAccess new(arg, token))
+            }
+            thunk getBody() add(call)
+
+            module addFunction(thunk)
+
+            for(e in partialByValue) {
+                argument := VariableDecl new(e getType(), e getName(), e token)
+                args add(argOffset, argument); argOffset += 1
+            }
+
+            // TODO: add check
+            trail peek() replace(this, VariableAccess new(closureDecl, token))
+            /* EXPERIMENTAL - end */
+
+            /*
             imp := Import new("internals/yajit/Partial", token)
             module addImport(imp)
             module parseImports(res)
@@ -625,45 +681,6 @@ FunctionDecl: class extends Declaration {
                 i += 1
             }
 
-            /** EXPERIMENTAL */
-            ctxStruct := CoverDecl new(name + "_ctx", token)
-            elements := ArrayList<VariableAccess> new()
-            for(e in partialByValue) {
-                ctxStruct addVariable(e)
-                elements add(VariableAccess new(e, e token))
-            }
-            module addType(ctxStruct)
-
-            ctx := StructLiteral new(ctxStruct getInstanceType(), elements, token)
-            ctxDecl := VariableDecl new(null, generateTempName("ctx"), ctx, token)
-            trail addBeforeInScope(this, ctxDecl)
-
-            closureElements := [
-                VariableAccess new(getName() /* hackish - would prefer a direct reference */, token)
-                VariableAccess new(ctxDecl, token)
-            ] as ArrayList<VariableAccess>
-
-            closure := StructLiteral new(BaseType new("Closure", token), closureElements, token)
-            closureDecl := VariableDecl new(null, generateTempName("closure"), closure, token)
-            trail addBeforeInScope(this, closureDecl)
-
-            thunk := FunctionDecl new(getName() + "_thunk", token)
-            thunk args addAll(args)
-            ctxArg := VariableDecl new(ReferenceType new(ctxStruct getInstanceType(), token), "__context__", token)
-            thunk args add(ctxArg)
-
-            call := FunctionCall new(getName(), token)
-            for(arg in partialByValue) {
-                call args add(VariableAccess new(VariableAccess new(ctxArg, token), arg getName(), token))
-            }
-            for(arg in args) {
-                call args add(VariableAccess new(arg, token))
-            }
-            thunk getBody() add(call)
-
-            module addFunction(thunk)
-            /** EXPERIMENTAL */
-
             partialAcc := VariableAccess new(partialName, token)
 
             argOffset := 0
@@ -677,7 +694,6 @@ FunctionDecl: class extends Declaration {
                 trail addBeforeInScope(this, addArg)
                 argument := Argument new(newRefType, e getName(), token)
                 args add(argOffset, argument); argOffset += 1
-                args add(argument)
                 for (acs in clsAccesses) {
                     if (acs ref == e) acs ref = argument
                 }
@@ -695,6 +711,7 @@ FunctionDecl: class extends Declaration {
             fCall getArguments() add(VariableAccess new(name, token))
             fCall getArguments() add(StringLiteral new(argsSizes, token))
             trail peek() replace(this, fCall)
+            */
 
             _unwrappedClosure = true
             res wholeAgain(this, "Unwrapped closure")

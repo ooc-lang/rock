@@ -19,6 +19,7 @@ FunctionCallWriter: abstract class extends Skeleton {
 
         // write the function name
         if(fDecl vDecl != null) {
+            current app("(("). app(fDecl getType() toMangledString()). app(") ")
             if(fCall expr != null) {
                 arrow := true
                 if(fCall expr instanceOf(VariableAccess)) {
@@ -30,11 +31,8 @@ FunctionCallWriter: abstract class extends Skeleton {
                 }
                 current app(fCall expr). app(arrow ? "->" : ".")
             }
-            if(fDecl vDecl == null) {
-                current app(fCall getName())
-            } else {
-                current app(fDecl vDecl getFullName())
-            }
+            current app(fDecl vDecl getFullName())
+            current app(".thunk)")
         } else {
             FunctionDeclWriter writeFullName(this, fDecl)
             if(fDecl isFinal) {
@@ -158,6 +156,26 @@ FunctionCallWriter: abstract class extends Skeleton {
             if(writeCast) current app(')')
             i += 1
         }
+
+        /* Step 5: write closure context, if any */
+        if(fDecl vDecl != null && fDecl vDecl getType() getName() == "Closure") {
+            if(isFirst) isFirst = false
+            else        current app(", ")
+
+            if(fCall expr != null) {
+                arrow := true
+                if(fCall expr instanceOf(VariableAccess)) {
+                    acc := fCall expr as VariableAccess
+                    if(acc getRef() instanceOf(VariableDecl)) {
+                        vDecl := acc getRef() as VariableDecl
+                        arrow = vDecl getType() getRef() instanceOf(ClassDecl)
+                    }
+                }
+                current app(fCall expr). app(arrow ? "->" : ".")
+            }
+            current app(fDecl vDecl getFullName()). app(".context")
+        }
+
         current app(')')
 
         /* Step 4 : write exception handling arguments */
