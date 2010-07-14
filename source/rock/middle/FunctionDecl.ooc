@@ -573,19 +573,9 @@ FunctionDecl: class extends Declaration {
         varAcc := VariableAccess new(name, token)
         varAcc setRef(this)
         module addFunction(this)
-<<<<<<< HEAD
-     
-        imp := Import new("internals/yajit/Partial", token) 
-        module addImport(imp)
-        module parseImports(res)
-        
+
         if(partialByReference isEmpty() && partialByValue isEmpty()) { // function without any foreign accesses
             trail peek() replace(this, varAcc) 
-=======
-
-        if(partialByReference isEmpty() && partialByValue isEmpty()) {
-            trail peek() replace(this, varAcc)
->>>>>>> 2f16c26415bc914c5e2b7bf5a22b90e4c1954373
         } else {
             imp := Import new("internals/yajit/Partial", token)
             module addImport(imp)
