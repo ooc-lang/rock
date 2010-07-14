@@ -5,7 +5,7 @@ import Cast, Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableDecl, Node, Statement, Module, FunctionCall, Declaration,
        Version, StringLiteral, Conditional, Import, ClassDecl, StringLiteral,
        IntLiteral, NullLiteral, BaseType, FuncType, AddressOf, BinaryOp,
-       TypeList
+       TypeList, CoverDecl, StructLiteral
 import tinker/[Resolver, Response, Trail]
 
 /**
@@ -624,6 +624,29 @@ FunctionDecl: class extends Declaration {
                 argsSizes[i] = val
                 i += 1
             }
+
+            /** EXPERIMENTAL */
+            ctxStruct := CoverDecl new(name + "_ctx", token)
+            elements := ArrayList<VariableAccess> new()
+            for(e in partialByValue) {
+                ctxStruct addVariable(e)
+                elements add(VariableAccess new(e, e token))
+            }
+            module addType(ctxStruct)
+
+            ctx := StructLiteral new(ctxStruct getInstanceType(), elements, token)
+            ctxDecl := VariableDecl new(null, generateTempName("ctx"), ctx, token)
+            trail addBeforeInScope(this, ctxDecl)
+
+            closureElements := [
+                VariableAccess new(getName() /* hackish - would prefer a direct reference */, token)
+                VariableAccess new(ctxDecl, token)
+            ] as ArrayList<VariableAccess>
+
+            closure := StructLiteral new(BaseType new("Closure", token), closureElements, token)
+            closureDecl := VariableDecl new(null, generateTempName("closure"), closure, token)
+            trail addBeforeInScope(this, closureDecl)
+            /** EXPERIMENTAL */
 
             partialAcc := VariableAccess new(partialName, token)
 
