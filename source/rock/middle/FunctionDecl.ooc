@@ -649,7 +649,17 @@ FunctionDecl: class extends Declaration {
 
             thunk := FunctionDecl new(getName() + "_thunk", token)
             thunk args addAll(args)
-            thunk args add(VariableDecl new(ReferenceType new(ctxStruct getInstanceType(), token), "__context__", token))
+            ctxArg := VariableDecl new(ReferenceType new(ctxStruct getInstanceType(), token), "__context__", token)
+            thunk args add(ctxArg)
+
+            call := FunctionCall new(getName(), token)
+            for(arg in partialByValue) {
+                call args add(VariableAccess new(VariableAccess new(ctxArg, token), arg getName(), token))
+            }
+            for(arg in args) {
+                call args add(VariableAccess new(arg, token))
+            }
+            thunk getBody() add(call)
 
             module addFunction(thunk)
             /** EXPERIMENTAL */
