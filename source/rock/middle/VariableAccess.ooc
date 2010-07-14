@@ -1,8 +1,11 @@
 import ../frontend/[Token, BuildParams, AstBuilder], text/Buffer, io/File
 import BinaryOp, Visitor, Expression, VariableDecl, FunctionDecl,
        TypeDecl, Declaration, Type, Node, ClassDecl, NamespaceDecl,
-       EnumDecl, PropertyDecl, FunctionCall, Module, Import
+       EnumDecl, PropertyDecl, FunctionCall, Module, Import, FuncType,
+       NullLiteral, AddressOf, BaseType, StructLiteral, Return
+
 import tinker/[Resolver, Response, Trail]
+import structs/ArrayList
 
 VariableAccess: class extends Expression {
 
@@ -161,11 +164,48 @@ VariableAccess: class extends Expression {
                             }
                         }
                     }
+
                     break // break on first match
                 }
                 depth -= 1
             }
         }
+        
+        if (getType() instanceOf(FuncType) ) {
+            fType := getType() as FuncType
+            token printMessage("Trying to convert this VariableAccess", "INFO")
+            parent := trail peek()
+            if (fType isClosure) {
+                
+                closureElements := [
+                    this
+                    NullLiteral new(token)
+                ] as ArrayList<VariableAccess>
+                
+                closureType: FuncType
+
+                if (parent instanceOf(FunctionCall)) {
+                    closureType = (getType() as FuncType) clone()
+                } elseif (parent instanceOf(BinaryOp)) {
+                    closureType = parent as BinaryOp left getType() as FuncType  clone()
+                } elseif (parent instanceOf(Return)) {
+                    fIndex := trail find(FunctionDecl)
+                    if (fIndex != -1) {
+                        closureType = trail get(fIndex, FunctionDecl) returnType clone()
+                    }
+                }
+                if (closureType) {
+                    closureType isClosure = true
+                    closure := StructLiteral new(closureType, closureElements, token)
+                    trail peek() replace(this, closure)
+                    "Converting varAcc %s, closureType = %s" printfln(toString(), closureType toString())
+                }
+            }
+        }
+                            
+
+
+
 
         // Simple property access? Replace myself with a getter call.
         if(ref && ref instanceOf(PropertyDecl)) {

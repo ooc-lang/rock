@@ -221,6 +221,9 @@ FunctionDecl: class extends Declaration {
         for(typeArg in typeArgs) {
             type typeArgs add(VariableAccess new(typeArg, typeArg token))
         }
+        if (!isMember() && !isExtern()) 
+            type isClosure = true
+        
         return type
     }
 

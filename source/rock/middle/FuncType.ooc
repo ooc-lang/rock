@@ -13,7 +13,8 @@ FuncType: class extends Type {
     varArg := false
     returnType : Type = null
     cached := ArrayList<Module> new()
-
+    
+    isClosure := false
     init: func ~funcType (.token) {
         super(token)
         CoverDecl new("", token)
