@@ -175,9 +175,6 @@ FunctionDeclWriter: abstract class extends Skeleton {
             }
         }
 
-        /* Step 5 : Write exception handling arguments */
-        // TODO
-
         current app(')')
 
     }

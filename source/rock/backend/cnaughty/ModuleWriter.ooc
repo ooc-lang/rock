@@ -295,7 +295,7 @@ ModuleWriter: abstract class extends Skeleton {
         current nl(). nl().  app("#ifndef "). app(name). app("__DEFINE")
         current nl(). app("#define "). app(name). app("__DEFINE"). nl()
         current nl(). app("typedef ");
-        if(funcType returnType == null) {
+        if(funcType returnType == null || funcType returnType isGeneric()) {
             current app("void")
         } else {
             current app(funcType returnType)
@@ -303,11 +303,23 @@ ModuleWriter: abstract class extends Skeleton {
         current app(" (*"). app(name). app(")(")
 
         isFirst := true
+        /* Step 1: no this here */
+
+        /* Step 2 : write generic return arg, if any */
+        if(funcType returnType != null && funcType returnType isGeneric()) {
+            if(isFirst) isFirst = false
+            else        current app(", ")
+            current app(funcType returnType)
+        }
+
+        /* Step 3 : write generic type args */
         for(typeArg in funcType typeArgs) {
             if(isFirst) isFirst = false
             else        current app(", ")
             current app(typeArg getType())
         }
+
+        /* Step 4 : write real args */
         for(argType in funcType argTypes) {
             if(isFirst) isFirst = false
             else        current app(", ")

@@ -160,8 +160,6 @@ FunctionCallWriter: abstract class extends Skeleton {
         }
         current app(')')
 
-        /* Step 4 : write exception handling arguments */
-        // TODO
     }
 
 }

@@ -518,6 +518,15 @@ FunctionDecl: class extends Declaration {
         }
         if (funcPointer returnType) returnType = funcPointer returnType
 
+        if (parentFunc getOwner()) {
+            j := 0
+            callExprTypeArgs := parentCall expr getType() getTypeArgs()
+            for(typeArg in parentFunc getOwner() typeArgs) {
+                body add(0, VariableDecl new(null, typeArg getName(), callExprTypeArgs get(j), token))
+                j += 1
+            }
+        }
+
         if (needTrampoline) {
 
         /*
