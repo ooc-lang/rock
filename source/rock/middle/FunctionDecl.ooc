@@ -5,7 +5,7 @@ import Cast, Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableDecl, Node, Statement, Module, FunctionCall, Declaration,
        Version, StringLiteral, Conditional, Import, ClassDecl, StringLiteral,
        IntLiteral, NullLiteral, BaseType, FuncType, AddressOf, BinaryOp,
-       TypeList
+       TypeList, CoverDecl, StructLiteral
 import tinker/[Resolver, Response, Trail]
 
 /**
@@ -95,8 +95,8 @@ FunctionDecl: class extends Declaration {
     setName: func (=name) {}
     getName: func -> String { name }
 
-	getSuffix: func -> String { suffix }
-	setSuffix: func(suffix: String) { this suffix = suffix }
+    getSuffix: func -> String { suffix }
+    setSuffix: func(suffix: String) { this suffix = suffix }
 
     isStatic:    func -> Bool { isStatic }
     setStatic:   func (=isStatic) {}
@@ -214,15 +214,21 @@ FunctionDecl: class extends Declaration {
         !isMember() && token module params entryPoint == name
     }
 
-    getType: func -> Type {
+    getType: func -> FuncType {
         type := FuncType new(token)
         for(arg in args) {
+            if(arg instanceOf(VarArg)) break
             type argTypes add(arg getType())
         }
         type returnType = returnType
         for(typeArg in typeArgs) {
             type typeArgs add(VariableAccess new(typeArg, typeArg token))
         }
+        if (vDecl != null) {
+            "%s is closure o/" printfln(toString())
+            type isClosure = true
+        }
+
         return type
     }
 
@@ -294,7 +300,8 @@ FunctionDecl: class extends Declaration {
 
     resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
         for(arg: Argument in args) {
-            if(arg getName() == call getName() && arg getType() instanceOf(FuncType)) {
+            if((arg getType() instanceOf(FuncType) || (arg getType() != null && arg getType() getName() == "Closure")) &&
+                    arg getName() == call getName()) {
                 call suggest(arg getFunctionDecl())
                 break
             }
@@ -607,6 +614,7 @@ FunctionDecl: class extends Declaration {
 
         module := trail module()
         name = generateTempName(module getUnderName() + "_closure")
+        "Unwrapping %s" printfln(toString())
         varAcc := VariableAccess new(name, token)
         varAcc setRef(this)
         module addFunction(this)
@@ -614,6 +622,95 @@ FunctionDecl: class extends Declaration {
         if(partialByReference isEmpty() && partialByValue isEmpty()) {
             trail peek() replace(this, varAcc)
         } else {
+
+            /* EXPERIMENTAL */
+
+            // create the context struct's cover
+            ctxStruct := CoverDecl new(name + "_ctx", token)
+
+            // add corresponding variables to the context struct
+            // and to the struct initializer for the context
+            elements := ArrayList<Expression> new()
+
+            // by-value (read-only) variables
+            for(e in partialByValue) {
+                ctxStruct addVariable(e)
+                elements add(VariableAccess new(e, e token))
+            }
+            // by-reference (read/write) variables
+            for(e in partialByReference) {
+                eDeclType := PointerType new(e getType(), e getType() token)
+                eDecl := VariableDecl new(eDeclType, e getName(), token)
+                ctxStruct addVariable(eDecl)
+                elements add(AddressOf new(VariableAccess new(e, e token), token))
+            }
+            // add the context struct's cover to the Module so we can actually use it
+            module addType(ctxStruct)
+
+            // initialize the context struct
+            ctx := StructLiteral new(ctxStruct getInstanceType(), elements, token)
+            ctxDecl := VariableDecl new(ctxStruct getInstanceType(), generateTempName("ctx"), ctx, token)
+            trail addBeforeInScope(this, ctxDecl)
+
+            closureElements := [
+                VariableAccess new(getName() + "_thunk" /* hackish - would prefer a direct reference */, token)
+                AddressOf new(VariableAccess new(ctxDecl, token), token)
+            ] as ArrayList<VariableAccess>
+
+            closureType := BaseType new("Closure", token)
+            closure := StructLiteral new(closureType, closureElements, token)
+            closureDecl := VariableDecl new(closureType, generateTempName("closure"), closure, token)
+            trail addBeforeInScope(this, closureDecl)
+
+            thunk := FunctionDecl new(getName() + "_thunk", token)
+            thunk args addAll(args)
+            ctxArg := VariableDecl new(ReferenceType new(ctxStruct getInstanceType(), token), "__context__", token)
+            thunk args add(ctxArg)
+
+            call := FunctionCall new(getName(), token)
+
+            argOffset := 0
+
+            // add to the thunk call the by-value variables from the context
+            for(arg in partialByValue) {
+                call args add(VariableAccess new(VariableAccess new(ctxArg, token), arg getName(), token))
+            }
+
+            // add to the thunk call the by-reference variables from the context
+            for(arg in partialByReference) {
+                call args add(VariableAccess new(VariableAccess new(ctxArg, token), arg getName(), token))
+            }
+
+            // add to the thunk call the variable arguments that are not part of the context
+            for(arg in args) {
+                call args add(VariableAccess new(arg, token))
+            }
+            thunk getBody() add(call)
+            module addFunction(thunk)
+
+            // now add the by-value variables from the context as arguments to the closure
+            for(e in partialByValue) {
+                argument := VariableDecl new(e getType(), e getName(), e token)
+                args add(argOffset, argument); argOffset += 1
+            }
+
+            // now add the by-reference variables from the context as arguments to the closure
+            for(e in partialByReference) {
+                argumentType := ReferenceType new(e getType(), e getType() token)
+                argument := VariableDecl new(argumentType, e getName(), e token)
+                args add(argOffset, argument); argOffset += 1
+                for (acs in clsAccesses) {
+                    if (acs ref == e) acs ref = argument
+                }
+            }
+
+            "Turned %s into closure" printfln(toString())
+
+            // TODO: add check
+            trail peek() replace(this, VariableAccess new(closureDecl, token))
+            /* EXPERIMENTAL - end */
+
+            /*
             imp := Import new("internals/yajit/Partial", token)
             module addImport(imp)
             module parseImports(res)
@@ -675,7 +772,6 @@ FunctionDecl: class extends Declaration {
                 trail addBeforeInScope(this, addArg)
                 argument := Argument new(newRefType, e getName(), token)
                 args add(argOffset, argument); argOffset += 1
-                args add(argument)
                 for (acs in clsAccesses) {
                     if (acs ref == e) acs ref = argument
                 }
@@ -693,6 +789,7 @@ FunctionDecl: class extends Declaration {
             fCall getArguments() add(VariableAccess new(name, token))
             fCall getArguments() add(StringLiteral new(argsSizes, token))
             trail peek() replace(this, fCall)
+            */
 
             _unwrappedClosure = true
             context = trail clone()

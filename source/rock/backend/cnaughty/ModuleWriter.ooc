@@ -28,11 +28,11 @@ ModuleWriter: abstract class extends Skeleton {
         if(!module includes isEmpty()) current nl()
 
         for(uze in module uses) {
-            useDef := uze getUseDef()
-			for(ynclude in useDef getIncludes()) {
-				current nl(). app("#include <"). app(ynclude). app(">")
-			}
-		}
+	    useDef := uze getUseDef()
+	    for(ynclude in useDef getIncludes()) {
+		current nl(). app("#include <"). app(ynclude). app(">")
+	    }
+	}
 
         // write all type forward declarations
         writeTypesForward(this, module, false) // non-metas first
@@ -294,9 +294,15 @@ ModuleWriter: abstract class extends Skeleton {
         name: String = customName ? customName : funcType toMangledString()
         current nl(). nl().  app("#ifndef "). app(name). app("__DEFINE")
         current nl(). app("#define "). app(name). app("__DEFINE"). nl()
-        current nl(). app("typedef ");
+	current nl(). app("typedef ")
+        writeFuncPointer(this, funcType, name)
+        current app(';')
+        current nl(). nl().  app("#endif"). nl()
+    }
+
+    writeFuncPointer: static func (this: Skeleton, funcType: FuncType, name: String) {
         if(funcType returnType == null || funcType returnType isGeneric()) {
-            current app("void")
+	    current app("void")
         } else {
             current app(funcType returnType)
         }
@@ -321,12 +327,20 @@ ModuleWriter: abstract class extends Skeleton {
 
         /* Step 4 : write real args */
         for(argType in funcType argTypes) {
-            if(isFirst) isFirst = false
+	    if(isFirst) isFirst = false
             else        current app(", ")
-            current app(argType)
+	    current app(argType)
         }
-        current app(");")
-        current nl(). nl().  app("#endif"). nl()
+
+	/* Step 5: write context, if any */
+	if(funcType isClosure) {
+	    if(isFirst) isFirst = false
+            else        current app(", ")
+	    // we don't know the type of the closure-context, so void* will do just fine. Thanks, C!
+	    current app("void*")
+	}
+
+        current app(')')
     }
 
     /** Classify imports between 'tight' and 'loose' */

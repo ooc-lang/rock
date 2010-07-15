@@ -13,14 +13,16 @@ FuncType: class extends Type {
     varArg := false
     returnType : Type = null
     cached := ArrayList<Module> new()
-
+    
+    isClosure := false
     init: func ~funcType (.token) {
         super(token)
         CoverDecl new("", token)
     }
 
     write: func (w: AwesomeWriter, name: String) {
-        w app (toMangledString())
+        //w app (toMangledString())
+        w app("lang_types__Closure")
         if(name) w app(' '). app(name)
     }
 
@@ -150,7 +152,7 @@ FuncType: class extends Type {
         b toString()
     }
 
-    isPointer: func -> Bool { true }
+    isPointer: func -> Bool { false }
 
     dig: func -> Type { null }
 
