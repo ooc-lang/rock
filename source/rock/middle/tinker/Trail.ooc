@@ -5,7 +5,6 @@ import ../[Node, Module, Statement, Scope, If, Else]
 Trail: class extends Stack<Node> {
 
     init: func ~trail {
-        T = Node // j/ooc generics hack
         super()
     }
 
@@ -18,7 +17,7 @@ Trail: class extends Stack<Node> {
 
         popped : Node = pop()
         if(popped != reference) {
-            Exception new(This, "Should have popped " + 
+            Exception new(This, "Should have popped " +
                 reference toString() + " but popped " + popped toString()) throw()
         }
         return popped
@@ -175,5 +174,14 @@ Trail: class extends Stack<Node> {
      * be a Module
      */
     module: func -> Module { data get(0) as Module }
+
+    /**
+     * @return a clone of this trail
+     */
+    clone: func -> This {
+        copy := new()
+        copy data = data clone()
+        copy
+    }
 
 }

@@ -56,6 +56,8 @@ FunctionDecl: class extends Declaration {
     // if true, 'this' has byref semantics
     isThisRef := false
 
+    context: Trail = null
+
     /** If this FunctionDecl is a shim to make a VariableDecl callable, then vDecl is set to that variable decl. */
     vDecl : VariableDecl = null
 
@@ -301,7 +303,12 @@ FunctionDecl: class extends Declaration {
 
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
 
-        //printf("Looking for %s in %s\n", access toString(), toString())
+        if (context) {
+            printf("Looking for %s in %s, context = %s\n", access toString(), toString(), context toString())
+            for(node in context backward()) {
+                node resolveAccess(access, res, trail)
+            }
+        }
 
         if(owner != null && access name == "this") {
             if(access suggest(isThisRef ? owner thisRefDecl : owner thisDecl)) return 0
@@ -476,7 +483,7 @@ FunctionDecl: class extends Declaration {
         return Responses OK
     }
 
-    unwrapACS: func (trail: Trail, res: Resolver) -> Bool{
+    unwrapACS: func (trail: Trail, res: Resolver) -> Bool {
 
         ind := trail find(FunctionCall)
         if (ind == -1) token throwError("Got an ACS without any function-call. THIS IS NOT SUPPOSED TO HAPPEN\ntrail= %s" format(trail toString()))
@@ -490,6 +497,7 @@ FunctionDecl: class extends Declaration {
             return false
         }
 
+        // FIXME: this will blow up with several closure arguments of different types!
         funcPointer: FuncType = null
         for (arg in parentFunc args) {
             if (arg getType() instanceOf(FuncType)) {
@@ -497,6 +505,27 @@ FunctionDecl: class extends Declaration {
                 break
             }
         }
+
+        if (parentFunc getOwner()) {
+            "parentCall = %s, parentCall expr = %s, parentCall expr getType() = %s" printfln(
+            parentCall toString(), parentCall expr toString(), parentCall expr getType() ? parentCall expr getType() toString() : "(nil)")
+            if(parentCall expr getType() == null) {
+                "looping!" printfln()
+                res wholeAgain(this, "Need type of the expr of the parent call")
+                trail pop(this)
+                return false
+            }
+
+            j := 0
+            callExprTypeArgs := parentCall expr getType() getTypeArgs()
+            if(callExprTypeArgs) {
+                for(typeArg in parentFunc getOwner() typeArgs) {
+                    body add(0, VariableDecl new(null, typeArg getName(), callExprTypeArgs get(j), token))
+                    j += 1
+                }
+            }
+        }
+
         if (!funcPointer) {
             res wholeAgain(this, "Missing type informantion in the function pointer.")
             trail pop(this)
@@ -518,15 +547,6 @@ FunctionDecl: class extends Declaration {
         }
         if (funcPointer returnType) returnType = funcPointer returnType
 
-        if (parentFunc getOwner()) {
-            j := 0
-            callExprTypeArgs := parentCall expr getType() getTypeArgs()
-            for(typeArg in parentFunc getOwner() typeArgs) {
-                body add(0, VariableDecl new(null, typeArg getName(), callExprTypeArgs get(j), token))
-                j += 1
-            }
-        }
-
         if (needTrampoline) {
 
         /*
@@ -543,13 +563,17 @@ FunctionDecl: class extends Declaration {
             for (arg in args) {
                 if (arg getType() isGeneric()) {
                     n := arg name
-                    arg name = arg name + "_generic"
                     t := parentCall resolveTypeArg(arg getType() getName(), trail, fScore&)
                     if (fScore == -1) {
                         res wholeAgain(this, "Can't figure out the actual type of the generic.")
                         trail pop(this)
                         return false
                     }
+                    if(t isGeneric()) {
+                        "For arg %s in %s, found generic type %s, skipping!" printfln(arg toString(), toString(), t toString())
+                        continue
+                    }
+                    arg name = arg name + "_generic"
                     t = t clone()
                     t token = arg token
                     castedArg := VariableDecl new(t, n, Cast new(VariableAccess new(arg name, arg token), t, arg token), arg token)
@@ -582,6 +606,8 @@ FunctionDecl: class extends Declaration {
         varAcc := VariableAccess new(name, token)
         varAcc setRef(this)
         module addFunction(this)
+
+        context = trail clone()
 
         if(partialByReference isEmpty() && partialByValue isEmpty()) {
             trail peek() replace(this, varAcc)
@@ -625,7 +651,7 @@ FunctionDecl: class extends Declaration {
                     case "long"   => 'l'
                     case          =>
 
-                        if(!arg getType() isPointer() && !arg getType() getGroundType() isPointer() && !arg getType() getRef() instanceOf(ClassDecl)) {
+                        if(!arg getType() isPointer() && !arg getType() getGroundType() isPointer() && !arg getType() isGeneric() && !arg getType() getRef() instanceOf(ClassDecl)) {
                             arg token throwError("Unknown closure arg type %s\n" format(arg getType() toString()))
                         }
                         'P'
