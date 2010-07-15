@@ -92,8 +92,8 @@ FunctionDecl: class extends Declaration {
     setName: func (=name) {}
     getName: func -> String { name }
 
-	getSuffix: func -> String { suffix }
-	setSuffix: func(suffix: String) { this suffix = suffix }
+    getSuffix: func -> String { suffix }
+    setSuffix: func(suffix: String) { this suffix = suffix }
 
     isStatic:    func -> Bool { isStatic }
     setStatic:   func (=isStatic) {}
@@ -587,14 +587,30 @@ FunctionDecl: class extends Declaration {
         } else {
 
             /* EXPERIMENTAL */
+
+            // create the context struct's cover
             ctxStruct := CoverDecl new(name + "_ctx", token)
-            elements := ArrayList<VariableAccess> new()
+
+            // add corresponding variables to the context struct
+            // and to the struct initializer for the context
+            elements := ArrayList<Expression> new()
+
+            // by-value (read-only) variables
             for(e in partialByValue) {
                 ctxStruct addVariable(e)
                 elements add(VariableAccess new(e, e token))
             }
+            // by-reference (read/write) variables
+            for(e in partialByReference) {
+                eDeclType := PointerType new(e getType(), e getType() token)
+                eDecl := VariableDecl new(eDeclType, e getName(), token)
+                ctxStruct addVariable(eDecl)
+                elements add(AddressOf new(VariableAccess new(e, e token), token))
+            }
+            // add the context struct's cover to the Module so we can actually use it
             module addType(ctxStruct)
 
+            // initialize the context struct
             ctx := StructLiteral new(ctxStruct getInstanceType(), elements, token)
             ctxDecl := VariableDecl new(ctxStruct getInstanceType(), generateTempName("ctx"), ctx, token)
             trail addBeforeInScope(this, ctxDecl)
@@ -618,20 +634,40 @@ FunctionDecl: class extends Declaration {
 
             argOffset := 0
 
+            // add to the thunk call the by-value variables from the context
             for(arg in partialByValue) {
                 call args add(VariableAccess new(VariableAccess new(ctxArg, token), arg getName(), token))
             }
+
+            // add to the thunk call the by-reference variables from the context
+            for(arg in partialByReference) {
+                call args add(VariableAccess new(VariableAccess new(ctxArg, token), arg getName(), token))
+            }
+
+            // add to the thunk call the variable arguments that are not part of the context
             for(arg in args) {
                 call args add(VariableAccess new(arg, token))
             }
             thunk getBody() add(call)
-
             module addFunction(thunk)
 
+            // now add the by-value variables from the context as arguments to the closure
             for(e in partialByValue) {
                 argument := VariableDecl new(e getType(), e getName(), e token)
                 args add(argOffset, argument); argOffset += 1
             }
+
+            // now add the by-reference variables from the context as arguments to the closure
+            for(e in partialByReference) {
+                argumentType := ReferenceType new(e getType(), e getType() token)
+                argument := VariableDecl new(argumentType, e getName(), e token)
+                args add(argOffset, argument); argOffset += 1
+                for (acs in clsAccesses) {
+                    if (acs ref == e) acs ref = argument
+                }
+            }
+
+            "Turned %s into closure" printfln(toString())
 
             // TODO: add check
             trail peek() replace(this, VariableAccess new(closureDecl, token))
