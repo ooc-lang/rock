@@ -100,11 +100,6 @@ FunctionCall: class extends Expression {
             }
         }
 
-        if(returnType) {
-            response := returnType resolve(trail, res)
-            if(!response ok()) return response
-        }
-
         for(i in 0..returnArgs size()) {
             returnArg := returnArgs[i]
             if(!returnArg) continue // they can be null, after all.
@@ -156,6 +151,19 @@ FunctionCall: class extends Expression {
 				        if(node resolveCall(this, res, trail) == -1) {
                             res wholeAgain(this, "Waiting on other nodes to resolve before resolving call.")
                             return Responses OK
+                        }
+
+                        if(ref) {
+                            if(ref vDecl) {
+                                closureIndex := trail find(FunctionDecl)
+
+                                if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
+                                    closure := trail get(closureIndex) as FunctionDecl
+                                    if(closure isAnon && expr == null) {
+                                        closure markForPartialing(ref vDecl, "v")
+                                    }
+                                }
+                            }
                         }
 				        depth -= 1
 				    }
@@ -216,6 +224,11 @@ FunctionCall: class extends Expression {
 
             unwrapIfNeeded(trail, res)
 
+        }
+
+        if(returnType) {
+            response := returnType resolve(trail, res)
+            if(!response ok()) return response
         }
 
         if(refScore <= 0 && res fatal) {

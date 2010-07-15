@@ -56,6 +56,9 @@ FunctionDecl: class extends Declaration {
     // if true, 'this' has byref semantics
     isThisRef := false
 
+    context: Trail = null
+    countdown := 5
+
     /** If this FunctionDecl is a shim to make a VariableDecl callable, then vDecl is set to that variable decl. */
     vDecl : VariableDecl = null
 
@@ -301,7 +304,12 @@ FunctionDecl: class extends Declaration {
 
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
 
-        //printf("Looking for %s in %s\n", access toString(), toString())
+        if (context) {
+            printf("Looking for %s in %s, context = %s, access ref = %s\n", access toString(), toString(), context toString(), access ref ? access ref toString() : access ref)
+            for(node in context backward()) {
+                node resolveAccess(access, res, trail)
+            }
+        }
 
         if(owner != null && access name == "this") {
             if(access suggest(isThisRef ? owner thisRefDecl : owner thisDecl)) return 0
@@ -351,7 +359,9 @@ FunctionDecl: class extends Declaration {
         isClosure := name isEmpty()
 
         if (isClosure && !argumentsReady()) {
-            if (!unwrapACS(trail, res)) return Responses OK
+            if (!unwrapACS(trail, res)) {
+                return Responses OK
+            }
         }
 
         for(typeArg in typeArgs) {
@@ -471,12 +481,19 @@ FunctionDecl: class extends Declaration {
 			}
 		}
 
-        if (isClosure) unwrapClosure(trail, res)
+        if (isClosure) {
+            if(countdown > 0) {
+                countdown -= 1
+                res wholeAgain(this, "countdown!")
+            } else {
+                unwrapClosure(trail, res)
+            }
+        }
 
         return Responses OK
     }
 
-    unwrapACS: func (trail: Trail, res: Resolver) -> Bool{
+    unwrapACS: func (trail: Trail, res: Resolver) -> Bool {
 
         ind := trail find(FunctionCall)
         if (ind == -1) token throwError("Got an ACS without any function-call. THIS IS NOT SUPPOSED TO HAPPEN\ntrail= %s" format(trail toString()))
@@ -490,6 +507,7 @@ FunctionDecl: class extends Declaration {
             return false
         }
 
+        // FIXME: this will blow up with several closure arguments of different types!
         funcPointer: FuncType = null
         for (arg in parentFunc args) {
             if (arg getType() instanceOf(FuncType)) {
@@ -497,6 +515,24 @@ FunctionDecl: class extends Declaration {
                 break
             }
         }
+
+        if (parentFunc getOwner()) {
+            if(parentCall expr getType() == null) {
+                res wholeAgain(this, "Need type of the expr of the parent call")
+                trail pop(this)
+                return false
+            }
+
+            j := 0
+            callExprTypeArgs := parentCall expr getType() getTypeArgs()
+            if(callExprTypeArgs) {
+                for(typeArg in parentFunc getOwner() typeArgs) {
+                    body add(0, VariableDecl new(null, typeArg getName(), callExprTypeArgs get(j), token))
+                    j += 1
+                }
+            }
+        }
+
         if (!funcPointer) {
             res wholeAgain(this, "Missing type informantion in the function pointer.")
             trail pop(this)
@@ -534,13 +570,14 @@ FunctionDecl: class extends Declaration {
             for (arg in args) {
                 if (arg getType() isGeneric()) {
                     n := arg name
-                    arg name = arg name + "_generic"
                     t := parentCall resolveTypeArg(arg getType() getName(), trail, fScore&)
                     if (fScore == -1) {
                         res wholeAgain(this, "Can't figure out the actual type of the generic.")
                         trail pop(this)
                         return false
                     }
+                    if(t isGeneric()) continue
+                    arg name = arg name + "_generic"
                     t = t clone()
                     t token = arg token
                     castedArg := VariableDecl new(t, n, Cast new(VariableAccess new(arg name, arg token), t, arg token), arg token)
@@ -616,7 +653,7 @@ FunctionDecl: class extends Declaration {
                     case "long"   => 'l'
                     case          =>
 
-                        if(!arg getType() isPointer() && !arg getType() getGroundType() isPointer() && !arg getType() getRef() instanceOf(ClassDecl)) {
+                        if(!arg getType() isPointer() && !arg getType() getGroundType() isPointer() && !arg getType() isGeneric() && !arg getType() getRef() instanceOf(ClassDecl)) {
                             arg token throwError("Unknown closure arg type %s\n" format(arg getType() toString()))
                         }
                         'P'
@@ -658,6 +695,7 @@ FunctionDecl: class extends Declaration {
             trail peek() replace(this, fCall)
 
             _unwrappedClosure = true
+            context = trail clone()
             res wholeAgain(this, "Unwrapped closure")
         }
 

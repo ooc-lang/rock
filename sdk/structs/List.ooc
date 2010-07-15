@@ -231,6 +231,24 @@ List: abstract class <T> extends BackIterable<T> {
         return arr& as Pointer
     }
 
+    map: func (f: Func (T) -> T) -> This<T> {
+        copy := emptyClone()
+        each(|x| copy add(f(x)))
+        copy
+    }
+
+    filter: func (f: Func (T) -> Bool) -> This<T> {
+        copy := emptyClone()
+        each(|x| if(f(x)) copy add(x))
+        copy
+    }
+
+    reduce: func (f: Func (T, T) -> T) -> T {
+        acc := f(this[0], this[1])
+        for(i in 2..size()) acc = f(acc, this[i])
+        acc
+    }
+
     each: func (f: Func (T)) {
         for(i in 0..size()) {
             f(get(i))

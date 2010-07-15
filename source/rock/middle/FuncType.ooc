@@ -141,6 +141,7 @@ FuncType: class extends Type {
             b append('_'). append(typeArg getName())
         }
         for(argType in argTypes) {
+            if(argType == null) { b append("_nullArgType"); continue }
             b append('_'). append(argType toMangledString())
         }
         if(returnType != null) {

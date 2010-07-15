@@ -144,9 +144,20 @@ VariableAccess: class extends Expression {
                 node resolveAccess(this, res, trail)
 
                 if(ref) {
+                    if(expr) {
+                        if(expr instanceOf(VariableAccess)) {
+                            trail push(this)
+                            response := expr resolve(trail, res)
+                            trail pop(this)
+                            if(!response ok()) return Responses LOOP
+                            varAcc := expr as VariableAccess
+                        }
+                    }
+
                     // only accesses to variable decls need to be partialed (not type decls)
                     if(ref instanceOf(VariableDecl) && !ref as VariableDecl isGlobal() && expr == null) {
                         closureIndex := trail find(FunctionDecl)
+
                         if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
                             closure := trail get(closureIndex, FunctionDecl)
                             mode := "v"
