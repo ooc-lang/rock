@@ -171,54 +171,65 @@ VariableAccess: class extends Expression {
                 depth -= 1
             }
         }
-        
+
         if (getType() instanceOf(FuncType) ) {
             fType := getType() as FuncType
-            //token printMessage("Trying to convert this VariableAccess", "INFO")
             parent := trail peek()
-            if (getName() == "fastRandRange") { 
-                trail toString() println()
-                "parent is a %s" printfln(trail peek() class name)
-                getType() class name  println()
-            }
-            if (fType isClosure) {
-                
+
+            if (!fType isClosure) {
+                token printMessage("Trying to convert this VariableAccess", "INFO")
+                    if (getName() == "fastRandRange") {
+                    trail toString() println()
+                    "parent is a %s, fType isClosure is %s" printfln(trail peek() class name, fType isClosure toString())
+                    getType() class name  println()
+                }
+
                 closureElements := [
                     this
                     NullLiteral new(token)
                 ] as ArrayList<VariableAccess>
-                
+
                 closureType: FuncType
 
-                fCallIndex := trail find(FunctionCall)
-                if (name == "f") {
-                    //closureType = trail get(fCallIndex, FunctionCall) getType() as FuncType clone()
-                    "FCall match\n\n" println()
+                if (parent instanceOf(FunctionCall)) {
+                    fCall := parent as FunctionCall
+                    ourIndex := fCall args indexOf(this)
+                    fDecl := fCall getRef()
+                    if(!fDecl) {
+                        res wholeAgain(this, "need ref!")
+                        return Responses OK
+                    }
+                    "ourIndex in %s is %d. ref is %s" printfln(fCall toString(), ourIndex, fDecl ? fDecl toString() : "(nil)")
+                    closureType = fDecl args get(ourIndex) getType()
+                    "FCall match! closureType = %s" printfln(closureType toString())
                     trail toString() println()
                 } elseif (parent instanceOf(BinaryOp)) {
-                    closureType = parent as BinaryOp left getType() as FuncType clone()
-                    "BinOp match" println()
+                    binOp := parent as BinaryOp
+                    if(binOp isAssign() && binOp getRight() == this) {
+                        closureType = binOp getLeft() getType() clone()
+                        "BinOp match! closureType = %s" printfln(closureType toString())
+                    }
                 } elseif (parent instanceOf(Return)) {
                     fIndex := trail find(FunctionDecl)
                     blub := trail find(FunctionCall)
-                    if (blub != -1) 
+                    if (blub != -1)
                         "HEY THERE" println()
                     if (fIndex != -1) {
                         closureType = trail get(fIndex, FunctionDecl) returnType clone()
                     }
 
-                    "FDecl match" println()
+                    "FDecl match! closureType = %s" printfln(closureType toString())
                 }
-                                    
+
                 if (closureType) {
-                    closureType isClosure = true
+                    getType() as FuncType isClosure = true
                     closure := StructLiteral new(closureType, closureElements, token)
                     trail peek() replace(this, closure)
                     //"Converting varAcc %s, closureType = %s" printfln(toString(), closureType toString())
                 }
             }
         }
-                            
+
 
 
 
