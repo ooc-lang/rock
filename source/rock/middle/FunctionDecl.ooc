@@ -618,9 +618,18 @@ FunctionDecl: class extends Declaration {
         varAcc := VariableAccess new(name, token)
         varAcc setRef(this)
         module addFunction(this)
+	closureType := getType() clone()
+	closureType as FuncType isClosure = true
 
         if(partialByReference isEmpty() && partialByValue isEmpty()) {
-            trail peek() replace(this, varAcc)
+	    "Replacing %s and with %s because partials are empty!" printfln(toString(), varAcc toString())
+	    closureElements := [
+                varAcc
+                NullLiteral new(token)
+            ] as ArrayList<Expression>
+
+	    closure := StructLiteral new(closureType, closureElements, token)
+            trail peek() replace(this, closure)
         } else {
 
             /* EXPERIMENTAL */
@@ -634,14 +643,16 @@ FunctionDecl: class extends Declaration {
 
             // by-value (read-only) variables
             for(e in partialByValue) {
-                ctxStruct addVariable(e)
+                eDeclType := e getType() clone()
+		eDecl := VariableDecl new(eDeclType, e getName(), token)
+                ctxStruct addVariable(eDecl)
                 elements add(VariableAccess new(e, e token))
             }
             // by-reference (read/write) variables
             for(e in partialByReference) {
                 eDeclType := PointerType new(e getType(), e getType() token)
                 eDecl := VariableDecl new(eDeclType, e getName(), token)
-                ctxStruct addVariable(eDecl)
+		ctxStruct addVariable(eDecl)
                 elements add(AddressOf new(VariableAccess new(e, e token), token))
             }
             // add the context struct's cover to the Module so we can actually use it
@@ -657,9 +668,8 @@ FunctionDecl: class extends Declaration {
                 AddressOf new(VariableAccess new(ctxDecl, token), token)
             ] as ArrayList<VariableAccess>
 
-            closureType := BaseType new("Closure", token)
             closure := StructLiteral new(closureType, closureElements, token)
-            closureDecl := VariableDecl new(closureType, generateTempName("closure"), closure, token)
+            closureDecl := VariableDecl new(null, generateTempName("closure"), closure, token)
             trail addBeforeInScope(this, closureDecl)
 
             thunk := FunctionDecl new(getName() + "_thunk", token)
@@ -704,10 +714,23 @@ FunctionDecl: class extends Declaration {
                 }
             }
 
+	    // now say that the FuncType arguments of our context are closures
+	    for(e in ctxStruct getVariables()) {
+		if(e getType() instanceOf(FuncType)) {
+		    eType := e getType() clone()
+		    eType as FuncType isClosure = true
+		    e setType(eType)
+		}
+	    }	  
+
             "Turned %s into closure" printfln(toString())
 
             // TODO: add check
-            trail peek() replace(this, VariableAccess new(closureDecl, token))
+	    closureAcc := VariableAccess new(closureDecl, token)
+            if(!trail peek() replace(this, closureAcc)) {
+		token throwError("Couldn't replace %s with %s in %s" format(toString(), closureAcc toString(), trail peek() toString()))
+	    }
+	    
             /* EXPERIMENTAL - end */
 
             /*

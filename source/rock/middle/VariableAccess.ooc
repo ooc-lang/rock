@@ -188,7 +188,7 @@ VariableAccess: class extends Expression {
             parent := trail peek()
 
             if (!fType isClosure) {
-                token printMessage("Trying to convert this VariableAccess", "INFO")
+                //token printMessage("Trying to convert this VariableAccess", "INFO")
                     if (getName() == "fastRandRange") {
                     trail toString() println()
                     "parent is a %s, fType isClosure is %s" printfln(trail peek() class name, fType isClosure toString())
