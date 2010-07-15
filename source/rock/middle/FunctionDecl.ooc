@@ -594,7 +594,7 @@ FunctionDecl: class extends Declaration {
             module addType(ctxStruct)
 
             ctx := StructLiteral new(ctxStruct getInstanceType(), elements, token)
-            ctxDecl := VariableDecl new(getType(), generateTempName("ctx"), ctx, token)
+            ctxDecl := VariableDecl new(ctxStruct getInstanceType(), generateTempName("ctx"), ctx, token)
             trail addBeforeInScope(this, ctxDecl)
 
             closureElements := [
