@@ -152,6 +152,19 @@ FunctionCall: class extends Expression {
                             res wholeAgain(this, "Waiting on other nodes to resolve before resolving call.")
                             return Responses OK
                         }
+
+                        if(ref) {
+                            if(ref vDecl) {
+                                closureIndex := trail find(FunctionDecl)
+
+                                if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
+                                    closure := trail get(closureIndex) as FunctionDecl
+                                    if(closure isAnon && expr == null) {
+                                        closure markForPartialing(ref vDecl, "v")
+                                    }
+                                }
+                            }
+                        }
 				        depth -= 1
 				    }
 			    } else if(expr instanceOf(VariableAccess) && expr as VariableAccess getRef() != null && expr as VariableAccess getRef() instanceOf(NamespaceDecl)) {

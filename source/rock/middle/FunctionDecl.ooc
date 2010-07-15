@@ -123,7 +123,6 @@ FunctionDecl: class extends Declaration {
     }
 
     markForPartialing: func(var: VariableDecl, mode: String) {
-        "Should mark %s for partialing!" printfln(var toString())
         if (!partialByReference contains(var) && !partialByValue contains(var)) {
             match (mode) {
                 case "r" => partialByReference add(var)
@@ -487,7 +486,6 @@ FunctionDecl: class extends Declaration {
                 countdown -= 1
                 res wholeAgain(this, "countdown!")
             } else {
-                "Response ok at least! Unwrapping closure %s =D parent = %s" printfln(toString(), trail peek(2) toString())
                 unwrapClosure(trail, res)
             }
         }
@@ -519,10 +517,7 @@ FunctionDecl: class extends Declaration {
         }
 
         if (parentFunc getOwner()) {
-            "parentCall = %s, parentCall expr = %s, parentCall expr getType() = %s" printfln(
-            parentCall toString(), parentCall expr toString(), parentCall expr getType() ? parentCall expr getType() toString() : "(nil)")
             if(parentCall expr getType() == null) {
-                "looping!" printfln()
                 res wholeAgain(this, "Need type of the expr of the parent call")
                 trail pop(this)
                 return false
@@ -581,10 +576,7 @@ FunctionDecl: class extends Declaration {
                         trail pop(this)
                         return false
                     }
-                    if(t isGeneric()) {
-                        "For arg %s in %s, found generic type %s, skipping!" printfln(arg toString(), toString(), t toString())
-                        continue
-                    }
+                    if(t isGeneric()) continue
                     arg name = arg name + "_generic"
                     t = t clone()
                     t token = arg token

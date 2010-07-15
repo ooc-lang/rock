@@ -233,13 +233,13 @@ List: abstract class <T> extends BackIterable<T> {
 
     map: func (f: Func (T) -> T) -> This<T> {
         copy := emptyClone()
-        each(|x| f; copy add(f(x)))
+        each(|x| copy add(f(x)))
         copy
     }
 
     filter: func (f: Func (T) -> Bool) -> This<T> {
         copy := emptyClone()
-        each(|x| f; if(f(x)) copy add(x))
+        each(|x| if(f(x)) copy add(x))
         copy
     }
 
