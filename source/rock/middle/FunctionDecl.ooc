@@ -57,6 +57,7 @@ FunctionDecl: class extends Declaration {
     isThisRef := false
 
     context: Trail = null
+    countdown := 5
 
     /** If this FunctionDecl is a shim to make a VariableDecl callable, then vDecl is set to that variable decl. */
     vDecl : VariableDecl = null
@@ -122,6 +123,7 @@ FunctionDecl: class extends Declaration {
     }
 
     markForPartialing: func(var: VariableDecl, mode: String) {
+        "Should mark %s for partialing!" printfln(var toString())
         if (!partialByReference contains(var) && !partialByValue contains(var)) {
             match (mode) {
                 case "r" => partialByReference add(var)
@@ -304,7 +306,7 @@ FunctionDecl: class extends Declaration {
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
 
         if (context) {
-            printf("Looking for %s in %s, context = %s\n", access toString(), toString(), context toString())
+            printf("Looking for %s in %s, context = %s, access ref = %s\n", access toString(), toString(), context toString(), access ref ? access ref toString() : access ref)
             for(node in context backward()) {
                 node resolveAccess(access, res, trail)
             }
@@ -358,7 +360,9 @@ FunctionDecl: class extends Declaration {
         isClosure := name isEmpty()
 
         if (isClosure && !argumentsReady()) {
-            if (!unwrapACS(trail, res)) return Responses OK
+            if (!unwrapACS(trail, res)) {
+                return Responses OK
+            }
         }
 
         for(typeArg in typeArgs) {
@@ -478,7 +482,15 @@ FunctionDecl: class extends Declaration {
 			}
 		}
 
-        if (isClosure) unwrapClosure(trail, res)
+        if (isClosure) {
+            if(countdown > 0) {
+                countdown -= 1
+                res wholeAgain(this, "countdown!")
+            } else {
+                "Response ok at least! Unwrapping closure %s =D parent = %s" printfln(toString(), trail peek(2) toString())
+                unwrapClosure(trail, res)
+            }
+        }
 
         return Responses OK
     }
@@ -607,8 +619,6 @@ FunctionDecl: class extends Declaration {
         varAcc setRef(this)
         module addFunction(this)
 
-        context = trail clone()
-
         if(partialByReference isEmpty() && partialByValue isEmpty()) {
             trail peek() replace(this, varAcc)
         } else {
@@ -693,6 +703,7 @@ FunctionDecl: class extends Declaration {
             trail peek() replace(this, fCall)
 
             _unwrappedClosure = true
+            context = trail clone()
             res wholeAgain(this, "Unwrapped closure")
         }
 

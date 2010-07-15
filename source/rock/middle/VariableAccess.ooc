@@ -144,12 +144,26 @@ VariableAccess: class extends Expression {
                 node resolveAccess(this, res, trail)
 
                 if(ref) {
+                    if(expr) {
+                        if(expr instanceOf(VariableAccess)) {
+                            "%s magically gained expr %s!" printfln(toString(), expr toString())
+                            trail push(this)
+                            response := expr resolve(trail, res)
+                            trail pop(this)
+                            if(!response ok()) return Responses LOOP
+                            varAcc := expr as VariableAccess
+                            "%s magically gained expr %s! which has ref %s" printfln(toString(), expr toString(), varAcc ref ? varAcc ref toString() : "(nil)")
+                        }
+                    }
+
                     // only accesses to variable decls need to be partialed (not type decls)
                     if(ref instanceOf(VariableDecl) && !ref as VariableDecl isGlobal() && expr == null) {
                         closureIndex := trail find(FunctionDecl)
-                        if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
+
+                        if(closureIndex > depth || (closureIndex != -1 && name == "this")) { // if it's not found (-1), this will be false anyway
                             closure := trail get(closureIndex, FunctionDecl)
                             mode := "v"
+                            closure token printMessage("considering %s as a closure-accessed. closureIndex = %d, depth = %d" format(toString(), closureIndex, depth), "INFO")
                             if(closure isAnon()) {
                                 bOpIDX := trail find(BinaryOp)
                                 if (trail find(BinaryOp) != -1) {
