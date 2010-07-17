@@ -862,6 +862,10 @@ LLong: cover from signed long long {
     isOdd:  func -> Bool { this % 2 == 1 }
     isEven: func -> Bool { this % 2 == 0 }
 
+    divisor?: func (divisor: Int) -> Bool {
+        this % divisor == 0
+    }
+    
     in: func(range: Range) -> Bool {
         return this >= range min && this < range max
     }
