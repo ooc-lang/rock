@@ -72,7 +72,9 @@ Double: cover {
 
     mod: extern(fmod) func (This) -> This
 
-    round: extern(lround) func -> Long
+    round: extern(round) func -> This
+    roundLong: extern(lround) func -> Long
+    roundLLong: extern(llround) func -> LLong
     ceil: extern(ceil) func -> This
     floor: extern(floor) func -> This
     truncate: extern(trunc) func -> This
@@ -104,7 +106,9 @@ Float: cover {
 
     mod: extern(fmodf) func (This) -> This
 
-    round: extern(lroundf) func -> Long
+    round: extern(roundf) func -> This
+    roundLong: extern(lroundf) func -> Long
+    roundLLong: extern(llroundf) func -> LLong
     ceil: extern(ceilf) func -> This
     floor: extern(floorf) func -> This
     truncate: extern(truncf) func -> This
@@ -136,7 +140,9 @@ LDouble: cover {
 
     mod: extern(fmodl) func (This) -> This
 
-    round: extern(lroundl) func -> Long
+    round: extern(roundl) func -> This
+    roundLong: extern(lroundl) func -> Long
+    roundLLong: extern(llroundl) func -> LLong
     ceil: extern(ceill) func -> This
     floor: extern(floorl) func -> This
     truncate: extern(truncl) func -> This
