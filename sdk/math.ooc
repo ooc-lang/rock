@@ -53,17 +53,29 @@ Double: cover {
     acos: extern(acos) func -> This
     asin: extern(asin) func -> This
     atan: extern(atan) func -> This
+    cosh: extern(cosh) func -> This
+    sinh: extern(sinh) func -> This
+    tanh: extern(tanh) func -> This
+    acosh: extern(acosh) func -> This
+    asinh: extern(asinh) func -> This
+    atanh: extern(atanh) func -> This
     atan2: extern(atan2) func (This) -> This
 
     sqrt: extern(sqrt) func -> This
+    cbrt: extern(cbrt) func -> This
+    abs: extern(fabs) func -> This
     pow: extern(pow) func (This) -> This
+    exp: extern(exp) func -> This
     
     log: extern(log) func -> This
     log10: extern(log10) func -> This
 
+    mod: extern(fmod) func (This) -> This
+
     round: extern(lround) func -> Long
     ceil: extern(ceil) func -> This
     floor: extern(floor) func -> This
+    truncate: extern(trunc) func -> This
 }
 
 Float: cover {
@@ -73,17 +85,29 @@ Float: cover {
     acos: extern(acosf) func -> This
     asin: extern(asinf) func -> This
     atan: extern(atanf) func -> This
+    cosh: extern(coshf) func -> This
+    sinh: extern(sinhf) func -> This
+    tanh: extern(tanhf) func -> This
+    acosh: extern(acoshf) func -> This
+    asinh: extern(asinhf) func -> This
+    atanh: extern(atanhf) func -> This
     atan2: extern(atan2f) func (This) -> This
 
     sqrt: extern(sqrtf) func -> This
+    cbrt: extern(cbrtf) func -> This
+    abs: extern(fabsf) func -> This
     pow: extern(powf) func (This) -> This
+    exp: extern(expf) func -> This
     
     log: extern(logf) func -> This
     log10: extern(log10f) func -> This
 
+    mod: extern(fmodf) func (This) -> This
+
     round: extern(lroundf) func -> Long
     ceil: extern(ceilf) func -> This
     floor: extern(floorf) func -> This
+    truncate: extern(truncf) func -> This
 }
 
 LDouble: cover {
@@ -93,15 +117,27 @@ LDouble: cover {
     acos: extern(acosl) func -> This
     asin: extern(asinl) func -> This
     atan: extern(atanl) func -> This
+    cosh: extern(coshl) func -> This
+    sinh: extern(sinhl) func -> This
+    tanh: extern(tanhl) func -> This
+    acosh: extern(acoshl) func -> This
+    asinh: extern(asinhl) func -> This
+    atanh: extern(atanhl) func -> This
     atan2: extern(atan2l) func (This) -> This
 
     sqrt: extern(sqrtl) func -> This
+    cbrt: extern(cbrtl) func -> This
+    abs: extern(fabsl) func -> This
     pow: extern(powl) func (This) -> This
+    exp: extern(expl) func -> This
     
     log: extern(logl) func -> This
     log10: extern(log10l) func -> This
 
+    mod: extern(fmodl) func (This) -> This
+
     round: extern(lroundl) func -> Long
     ceil: extern(ceill) func -> This
     floor: extern(floorl) func -> This
+    truncate: extern(truncl) func -> This
 }
