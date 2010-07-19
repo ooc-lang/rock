@@ -224,7 +224,7 @@ VariableAccess: class extends Expression {
                     }
                 }
 
-                if (closureType) {
+                if (closureType && closureType instanceOf(FuncType)) {
                     fType isClosure = true
                     closure := StructLiteral new(closureType, closureElements, token)
                     if(!trail peek() replace(this, closure)) {
