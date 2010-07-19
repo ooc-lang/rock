@@ -188,21 +188,22 @@ VariableAccess: class extends Expression {
             parent := trail peek()
 
             if (!fType isClosure) {
-                //token printMessage("Trying to convert this VariableAccess", "INFO")
-                    if (getName() == "fastRandRange") {
-                    trail toString() println()
-                    "parent is a %s, fType isClosure is %s" printfln(trail peek() class name, fType isClosure toString())
-                    getType() class name  println()
-                }
-
                 closureElements := [
                     this
                     NullLiteral new(token)
                 ] as ArrayList<VariableAccess>
 
-                closureType: FuncType
+                closureType: FuncType = null
 
                 if (parent instanceOf(FunctionCall)) {
+                    /*
+                     * The case we're looking for is this one:
+                     *
+                     *     registerCallback(exit)
+                     *
+                     * If registerCallback is an ooc function and the arg is
+                     * a FuncType we need to make a StructLiteral out of ourselves.
+                     */
                     fCall := parent as FunctionCall
                     ourIndex := fCall args indexOf(this)
                     fDecl := fCall getRef()
@@ -210,33 +211,25 @@ VariableAccess: class extends Expression {
                         res wholeAgain(this, "need ref!")
                         return Responses OK
                     }
-                    "ourIndex in %s is %d. ref is %s" printfln(fCall toString(), ourIndex, fDecl ? fDecl toString() : "(nil)")
                     closureType = fDecl args get(ourIndex) getType()
-                    "FCall match! closureType = %s" printfln(closureType toString())
-                    trail toString() println()
                 } elseif (parent instanceOf(BinaryOp)) {
                     binOp := parent as BinaryOp
                     if(binOp isAssign() && binOp getRight() == this) {
                         closureType = binOp getLeft() getType() clone()
-                        "BinOp match! closureType = %s" printfln(closureType toString())
                     }
                 } elseif (parent instanceOf(Return)) {
                     fIndex := trail find(FunctionDecl)
-                    blub := trail find(FunctionCall)
-                    if (blub != -1)
-                        "HEY THERE" println()
                     if (fIndex != -1) {
                         closureType = trail get(fIndex, FunctionDecl) returnType clone()
                     }
-
-                    "FDecl match! closureType = %s" printfln(closureType toString())
                 }
 
                 if (closureType) {
-                    getType() as FuncType isClosure = true
+                    fType isClosure = true
                     closure := StructLiteral new(closureType, closureElements, token)
-                    trail peek() replace(this, closure)
-                    //"Converting varAcc %s, closureType = %s" printfln(toString(), closureType toString())
+                    if(!trail peek() replace(this, closure)) {
+                        token throwError("Couldn't replace %s with %s in %s" format(toString(), closure toString(), trail peek() toString()))
+                    }
                 }
             }
         }
