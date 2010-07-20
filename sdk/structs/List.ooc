@@ -234,19 +234,11 @@ List: abstract class <T> extends BackIterable<T> {
     }
 
     map: func <K> (f: Func (T) -> K) -> This<K> {
-        "Mapping from %s<%s> to %s<%s>" printfln(class name, T name, class name, K name)
         copy := emptyClone(K)
         each(|x| copy add(f(x)))
         copy
     }
 
-    /*
-    map: func (f: Func (T) -> T) -> This<T> {
-        copy := emptyClone()
-        each(|x| copy add(f(x)))
-        copy
-    }
-    */
 
     filter: func (f: Func (T) -> Bool) -> This<T> {
         copy := emptyClone()
