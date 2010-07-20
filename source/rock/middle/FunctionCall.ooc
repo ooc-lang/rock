@@ -43,7 +43,8 @@ FunctionCall: class extends Expression {
     }
 
     debugCondition: inline func -> Bool {
-        false
+        //false
+        name == "map"
     }
 
     suggest: func (candidate: FunctionDecl) -> Bool {
@@ -614,7 +615,7 @@ FunctionCall: class extends Expression {
 
     resolveTypeArg: func (typeArgName: String, trail: Trail, finalScore: Int@) -> Type {
 
-        if(debugCondition()) printf("Should resolve typeArg %s in call%s\n", typeArgName, toString())
+        if(debugCondition()) printf("Should resolve typeArg %s in call %s\n", typeArgName, toString())
 
         if(ref && refScore > 0) {
 
@@ -629,19 +630,29 @@ FunctionCall: class extends Expression {
             if(inFunctionTypeArgs) {
                 j := 0
                 for(arg in ref args) {
-                    /* myFunction: func <T> (myArg: T) */
+                    /* myFunction: func <T> (myArg: T)
+                     * or:
+                     * myFunction: func <T> (myArg: T[])
+                     * or any level of nesting =)
+                     */
                     argType := arg type
+                    refCount := 0
                     while(argType instanceOf(SugarType)) {
                         argType = argType as SugarType inner
+                        refCount += 1
                     }
                     if(argType getName() == typeArgName) {
                         implArg := args get(j)
                         result := implArg getType()
-                        while(result instanceOf(SugarType)) {
+                        realCount := 0
+                        while(result instanceOf(SugarType) && realCount < refCount) {
                             result = result as SugarType inner
+                            realCount += 1
                         }
-                        if(debugCondition()) printf(" >> Found arg-arg %s for typeArgName %s, returning %s\n", implArg toString(), typeArgName, result toString())
-                        return result
+                        if(realCount == refCount) {
+                            if(debugCondition()) printf(" >> Found arg-arg %s for typeArgName %s, returning %s\n", implArg toString(), typeArgName, result toString())
+                            return result
+                        }
                     }
 
                     /* myFunction: func <T> (T: Class) */

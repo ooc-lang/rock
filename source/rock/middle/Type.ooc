@@ -64,7 +64,6 @@ Type: abstract class extends Expression {
 
     reference:   func          -> This {
         p := PointerType new(this, token)
-        //p setRef(getRef())
         p
     }
     dereference: abstract func -> This
@@ -152,7 +151,7 @@ Type: abstract class extends Expression {
 
     checkedDigImpl: abstract func (list: List<Type>, res: Resolver)
 
-    /** 
+    /**
         Used in FunctionCall scoring - When we have a reftype, say, Int@,
         from the inside it should have type 'Int', but from the outside, 'Int*'.
         This converts Int@ to Int*.
@@ -337,7 +336,7 @@ ArrayType: class extends PointerType {
             }
         } else {
             inner write(w, null)
-            w app(' ')            
+            w app(' ')
             if(name) w app(name)
             if(expr) w app('['). app(expr). app(']')
             else     w app('*')
