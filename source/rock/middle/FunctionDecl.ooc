@@ -312,7 +312,7 @@ FunctionDecl: class extends Declaration {
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
 
         if (context) {
-            printf("Looking for %s in %s, context = %s, access ref = %s\n", access toString(), toString(), context toString(), access ref ? access ref toString() : access ref)
+            //printf("Looking for %s in %s, context = %s, access ref = %s\n", access toString(), toString(), context toString(), access ref ? access ref toString() : access ref)
             for(node in context backward()) {
                 node resolveAccess(access, res, trail)
             }
