@@ -225,7 +225,6 @@ FunctionDecl: class extends Declaration {
             type typeArgs add(VariableAccess new(typeArg, typeArg token))
         }
         if (vDecl != null) {
-            "%s is closure o/" printfln(toString())
             type isClosure = true
         }
 
@@ -395,7 +394,6 @@ FunctionDecl: class extends Declaration {
             } else if(returnType instanceOf(TypeList)) {
                 list := returnType as TypeList
                 if(list types size() > returnArgs size()) {
-                    "Function %s has return type %s" printfln(toString(), returnType toString())
                     for(type in list types) {
                         createReturnArg(ReferenceType new(type, type token), "tupleArg")
                     }
@@ -616,7 +614,6 @@ FunctionDecl: class extends Declaration {
         module := trail module()
         name = generateTempName(module getUnderName() + "_closure")
 
-        "Unwrapping %s" printfln(toString())
         varAcc := VariableAccess new(name, token)
         varAcc setRef(this)
         module addFunction(this)
@@ -628,17 +625,18 @@ FunctionDecl: class extends Declaration {
         parentCall := trail get(trail find(FunctionCall)) as FunctionCall
         isFlat := parentCall getRef() isExtern()
 
-        "Is closure %s in call to %s flat? %s" printfln(toString(), parentCall toString(), isFlat toString())
-
         if(partialByReference isEmpty() && partialByValue isEmpty()) {
-            "Replacing %s and with %s because partials are empty!" printfln(toString(), varAcc toString())
-            closureElements := [
-                varAcc
-                NullLiteral new(token)
-            ] as ArrayList<Expression>
 
-            closure := StructLiteral new(closureType, closureElements, token)
-            trail peek() replace(this, closure)
+            if(!isFlat) {
+                closureElements := [
+                    varAcc
+                    NullLiteral new(token)
+                ] as ArrayList<Expression>
+
+                closure := StructLiteral new(closureType, closureElements, token)
+                trail peek() replace(this, closure)
+            }
+
         } else {
 
             if(isFlat) {
@@ -832,7 +830,6 @@ FunctionDecl: class extends Declaration {
 
             }
 
-            "Turned %s into %s closure" printfln(toString(), isFlat ? "flat" : "non-flat")
             _unwrappedClosure = true
             context = trail clone()
             res wholeAgain(this, "Unwrapped closure")

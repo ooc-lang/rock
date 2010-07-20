@@ -50,7 +50,6 @@ VariableAccess: class extends Expression {
 		    // if we're accessing a member, we're expecting the
             // candidate to belong to a TypeDecl..
 		    if(isMember() && candidate owner == null) {
-                printf("%s is no fit!, we need something to fit %s\n", candidate toString(), toString())
 		        return false
 		    }
 
@@ -65,7 +64,6 @@ VariableAccess: class extends Expression {
 		    // if we're accessing a member, we're expecting the candidate
 		    // to belong to a TypeDecl..
 		    if((expr != null) && (candidate owner == null)) {
-		        printf("%s is no fit!, we need something to fit %s\n", candidate toString(), toString())
 		        return false
 		    }
 
