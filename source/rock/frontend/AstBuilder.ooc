@@ -575,7 +575,9 @@ AstBuilder: class {
      */
 
     onFuncTypeNew: unmangled(nq_onFuncTypeNew) func -> FuncType {
-        FuncType new(token())
+        f := FuncType new(token())
+        f isClosure = true
+        f
     }
 
     onFuncTypeArgument: unmangled(nq_onFuncTypeArgument) func (f: FuncType, argType: Type) {

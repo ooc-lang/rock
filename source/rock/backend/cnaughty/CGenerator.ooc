@@ -122,9 +122,7 @@ CGenerator: class extends Skeleton {
         current app(" "). app(op type toString()). app(" ")
 
 
-        if(isFunc) {
-            current app("(void*) ")
-        } else if(op type == OpTypes ass) {
+        if(!isFunc && op type == OpTypes ass) {
             leftType  := op left  getType()
             rightType := op right getType()
 

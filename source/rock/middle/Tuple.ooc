@@ -54,8 +54,13 @@ Tuple: class extends Expression {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
+        trail push(this)
         for (element in elements) {
-            if(!element resolve(trail, res) ok()) return Responses LOOP
+            response := element resolve(trail, res)
+            if(!response ok()) {
+                trail pop(this)
+                return Responses LOOP
+            }
         }
 
         if(getType()) {
@@ -63,6 +68,7 @@ Tuple: class extends Expression {
         } else {
             res wholeAgain(this, "Need type")
         }
+        trail pop(this)
 
         parent := trail peek()
         if(parent instanceOf(Cast)) {

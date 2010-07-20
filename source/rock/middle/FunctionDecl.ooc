@@ -5,7 +5,7 @@ import Cast, Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableDecl, Node, Statement, Module, FunctionCall, Declaration,
        Version, StringLiteral, Conditional, Import, ClassDecl, StringLiteral,
        IntLiteral, NullLiteral, BaseType, FuncType, AddressOf, BinaryOp,
-       TypeList
+       TypeList, CoverDecl, StructLiteral, Dereference
 import tinker/[Resolver, Response, Trail]
 
 /**
@@ -90,13 +90,13 @@ FunctionDecl: class extends Declaration {
     addTypeArg: func (typeArg: VariableDecl) -> Bool { typeArgs add(typeArg); true }
 
     getReturnType: func -> Type { returnType }
-	setReturnType: func(type: Type) { this returnType = type }
+    setReturnType: func(type: Type) { this returnType = type }
 
     setName: func (=name) {}
     getName: func -> String { name }
 
-	getSuffix: func -> String { suffix }
-	setSuffix: func(suffix: String) { this suffix = suffix }
+    getSuffix: func -> String { suffix }
+    setSuffix: func(suffix: String) { this suffix = suffix }
 
     isStatic:    func -> Bool { isStatic }
     setStatic:   func (=isStatic) {}
@@ -214,15 +214,21 @@ FunctionDecl: class extends Declaration {
         !isMember() && token module params entryPoint == name
     }
 
-    getType: func -> Type {
+    getType: func -> FuncType {
         type := FuncType new(token)
         for(arg in args) {
+            if(arg instanceOf(VarArg)) break
             type argTypes add(arg getType())
         }
         type returnType = returnType
         for(typeArg in typeArgs) {
             type typeArgs add(VariableAccess new(typeArg, typeArg token))
         }
+        if (vDecl != null) {
+            "%s is closure o/" printfln(toString())
+            type isClosure = true
+        }
+
         return type
     }
 
@@ -294,7 +300,8 @@ FunctionDecl: class extends Declaration {
 
     resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
         for(arg: Argument in args) {
-            if(arg getName() == call getName() && arg getType() instanceOf(FuncType)) {
+            if((arg getType() instanceOf(FuncType) || (arg getType() != null && arg getType() getName() == "Closure")) &&
+                    arg getName() == call getName()) {
                 call suggest(arg getFunctionDecl())
                 break
             }
@@ -462,24 +469,24 @@ FunctionDecl: class extends Declaration {
 
 
         if(name == "main" && owner == null) {
-			if(args size() == 1 && args first() getType() getName() == "ArrayList") {
+            if(args size() == 1 && args first() getType() getName() == "ArrayList") {
                 arg := args first()
-				args clear()
+                args clear()
                 argc := Argument new(BaseType new("Int", arg token), "argc", arg token)
                 argv := Argument new(PointerType new(BaseType new("String", arg token), arg token), "argv", arg token)
                 args add(argc)
                 args add(argv)
 
-				constructCall := FunctionCall new(VariableAccess new(arg getType(), arg token), "new", arg token)
+                constructCall := FunctionCall new(VariableAccess new(arg getType(), arg token), "new", arg token)
                 constructCall setSuffix("withData")
-				//constructCall typeArgs add(VariableAccess new(BaseType new("Pointer", arg token), arg token))
-				constructCall args add(VariableAccess new(argv, arg token)) \
+                //constructCall typeArgs add(VariableAccess new(BaseType new("Pointer", arg token), arg token))
+                constructCall args add(VariableAccess new(argv, arg token)) \
                                   .add(VariableAccess new(argc, arg token))
 
                 vdfe := VariableDecl new(null, arg getName(), constructCall, token)
-				body add(0, vdfe)
-			}
-		}
+                body add(0, vdfe)
+            }
+        }
 
         if (isClosure) {
             if(countdown > 0) {
@@ -495,11 +502,12 @@ FunctionDecl: class extends Declaration {
 
     unwrapACS: func (trail: Trail, res: Resolver) -> Bool {
 
-        ind := trail find(FunctionCall)
-        if (ind == -1) token throwError("Got an ACS without any function-call. THIS IS NOT SUPPOSED TO HAPPEN\ntrail= %s" format(trail toString()))
-        parentCall := trail get(ind) as FunctionCall
-        parentFunc: FunctionDecl
-        parentFunc = parentCall getRef()
+        fCallIndex := trail find(FunctionCall)
+        if (fCallIndex == -1) {
+            token throwError("Got an ACS without any function-call. THIS IS NOT SUPPOSED TO HAPPEN\ntrail= %s" format(trail toString()))
+        }
+        parentCall := trail get(fCallIndex) as FunctionCall
+        parentFunc := parentCall getRef()
 
         if (!parentFunc) {
             res wholeAgain(this, "Need ACS reference.")
@@ -607,93 +615,224 @@ FunctionDecl: class extends Declaration {
 
         module := trail module()
         name = generateTempName(module getUnderName() + "_closure")
+
+        "Unwrapping %s" printfln(toString())
         varAcc := VariableAccess new(name, token)
         varAcc setRef(this)
         module addFunction(this)
 
-        if(partialByReference isEmpty() && partialByValue isEmpty()) { // function without any foreign accesses
-            trail peek() replace(this, varAcc) 
+        closureType := getType() clone()
+        closureType as FuncType isClosure = true
+
+        // find the outer function call
+        parentCall := trail get(trail find(FunctionCall)) as FunctionCall
+        isFlat := parentCall getRef() isExtern()
+
+        "Is closure %s in call to %s flat? %s" printfln(toString(), parentCall toString(), isFlat toString())
+
+        if(partialByReference isEmpty() && partialByValue isEmpty()) {
+            "Replacing %s and with %s because partials are empty!" printfln(toString(), varAcc toString())
+            closureElements := [
+                varAcc
+                NullLiteral new(token)
+            ] as ArrayList<Expression>
+
+            closure := StructLiteral new(closureType, closureElements, token)
+            trail peek() replace(this, closure)
         } else {
-            imp := Import new("internals/yajit/Partial", token)
-            module addImport(imp)
-            module parseImports(res)
 
-            partialClass := VariableAccess new("Partial", token)
-            newCall := FunctionCall new(partialClass, "new", token)
-            partialName := generateTempName("partial")
-            partialDecl := VariableDecl new(null, partialName, newCall, token)
-            trail addBeforeInScope(this, partialDecl)
-            parentCall: FunctionCall = null // ACS related, function call passing an ACS
-            argsSizes := String new(args size())
-            ix := 0
-            for(arg in args) {
-                t: Type
-                if (arg getType() isGeneric()) {
-                    if (!parentCall) parentCall = trail get(trail find(FunctionCall)) as FunctionCall
-                    fScore: Int
-                    t = parentCall resolveTypeArg(arg getType() getName(), trail, fScore&)
-                    if (fScore == -1) {
-                            res wholeAgain(this, "Can't figure out the actual type of generic")
-                            trail pop(this)
-                            return Responses OK
-                    }
-                } else {
-                    t = arg getType()
-                }
-                t = t clone()
-                t token = arg token
+            if(isFlat) {
 
-                typeName := t getName() toLower()
-                val : Char = match (typeName) {
-                    case "char"   => 'c'
-                    case "double" => 's'
-                    case "float"  => 'f'
-                    case "short"  => 'h'
-                    case "int"    => 'i'
-                    case "long"   => 'l'
-                    case          =>
+                imp := Import new("internals/yajit/Partial", token)
+                module addImport(imp)
+                module parseImports(res)
 
-                        if(!arg getType() isPointer() && !arg getType() getGroundType() isPointer() && !arg getType() isGeneric() && !arg getType() getRef() instanceOf(ClassDecl)) {
-                            arg token throwError("Unknown closure arg type %s\n" format(arg getType() toString()))
+                partialClass := VariableAccess new("Partial", token)
+                newCall := FunctionCall new(partialClass, "new", token)
+                partialName := generateTempName("partial")
+                partialDecl := VariableDecl new(null, partialName, newCall, token)
+                trail addBeforeInScope(this, partialDecl)
+                parentCall: FunctionCall = null // ACS related, function call passing an ACS
+                argsSizes := String new(args size())
+                i := 0
+                for(arg in args) {
+                    t: Type
+                    if (arg getType() isGeneric()) {
+                        if (!parentCall) parentCall = trail get(trail find(FunctionCall)) as FunctionCall
+                        fScore: Int
+                        t = parentCall resolveTypeArg(arg getType() getName(), trail, fScore&)
+                        if (fScore == -1) {
+                                res wholeAgain(this, "Can't figure out the actual type of generic")
+                                trail pop(this)
+                                return Responses OK
                         }
-                        'P'
+                    } else {
+                        t = arg getType()
+                    }
+                    t = t clone()
+                    t token = arg token
+
+                    typeName := t getName() toLower()
+                    val : Char = match (typeName) {
+                        case "char"   => 'c'
+                        case "double" => 's'
+                        case "float"  => 'f'
+                        case "short"  => 'h'
+                        case "int"    => 'i'
+                        case "long"   => 'l'
+                        case          =>
+
+                            if(!arg getType() isPointer() && !arg getType() getGroundType() isPointer() && !arg getType() isGeneric() && !arg getType() getRef() instanceOf(ClassDecl)) {
+                                arg token throwError("Unknown closure arg type %s\n" format(arg getType() toString()))
+                            }
+                            'P'
+                    }
+                    argsSizes[i] = val
+                    i += 1
                 }
-                argsSizes[ix] = val
-                ix += 1
-            }
 
-            partialAcc := VariableAccess new(partialName, token)
+                partialAcc := VariableAccess new(partialName, token)
 
-            argOffset := 0
+                argOffset := 0
 
-            for (e in partialByReference) {
-                newRefType := ReferenceType new(e getType(), e token)
-                eAccess := VariableAccess new(e, e token)
+                for (e in partialByReference) {
+                    newRefType := ReferenceType new(e getType(), e token)
+                    eAccess := VariableAccess new(e, e token)
 
-                addArg := FunctionCall new(partialAcc, "addArgument", token)
-                addArg getArguments() add (AddressOf new (eAccess, e token))
-                trail addBeforeInScope(this, addArg)
-                argument := Argument new(newRefType, e getName(), token)
-                args add(argOffset, argument); argOffset += 1
-                args add(argument)
-                for (acs in clsAccesses) {
-                    if (acs ref == e) acs ref = argument
+                    addArg := FunctionCall new(partialAcc, "addArgument", token)
+                    addArg getArguments() add (AddressOf new (eAccess, e token))
+                    trail addBeforeInScope(this, addArg)
+                    argument := Argument new(newRefType, e getName(), token)
+                    args add(argOffset, argument); argOffset += 1
+                    for (acs in clsAccesses) {
+                        if (acs ref == e) acs ref = argument
+                    }
                 }
+
+                for (e in partialByValue) {
+                    addArg := FunctionCall new(partialAcc, "addArgument", token)
+                    addArg getArguments() add(VariableAccess new(e, e token))
+                    trail addBeforeInScope(this, addArg)
+                    argument := Argument new(e getType(), e getName(), e token)
+                    args add(argOffset, argument); argOffset += 1
+                }
+
+                fCall := FunctionCall new(partialAcc, "genCode", token)
+                fCall getArguments() add(VariableAccess new(name, token))
+                fCall getArguments() add(StringLiteral new(argsSizes, token))
+                trail peek() replace(this, fCall)
+
+            } else {
+
+                /* EXPERIMENTAL */
+
+                // create the context struct's cover
+                ctxStruct := CoverDecl new(name + "_ctx", token)
+
+                // add corresponding variables to the context struct
+                // and to the struct initializer for the context
+                elements := ArrayList<Expression> new()
+
+                // by-value (read-only) variables
+                for(e in partialByValue) {
+                    eDeclType := e getType() clone()
+                    eDecl := VariableDecl new(eDeclType, e getName(), token)
+                    ctxStruct addVariable(eDecl)
+                    elements add(VariableAccess new(e, e token))
+                }
+
+                // by-reference (read/write) variables
+                for(e in partialByReference) {
+                    eDeclType := PointerType new(e getType(), e getType() token)
+                    eDecl := VariableDecl new(eDeclType, e getName(), token)
+                    ctxStruct addVariable(eDecl)
+                    elements add(AddressOf new(VariableAccess new(e, e token), token))
+                }
+
+                // add the context struct's cover to the Module so we can actually use it
+                module addType(ctxStruct)
+
+                // initialize the context struct
+                ctxAllocCall := FunctionCall new("gc_malloc", token)
+                ctxAllocCall args add(VariableAccess new(VariableAccess new(ctxStruct getInstanceType(), token), "size", token))
+                ctxInit := StructLiteral new(ctxStruct getInstanceType(), elements, token)
+
+                ctxDecl := VariableDecl new(PointerType new(ctxStruct getInstanceType(), token), generateTempName("ctx"), ctxAllocCall, token)
+                trail addBeforeInScope(this, ctxDecl)
+
+                ctxAssign := BinaryOp new(Dereference new(VariableAccess new(ctxDecl, token), token), ctxInit, OpTypes ass, token)
+                trail addBeforeInScope(this, ctxAssign)
+
+                closureElements := [
+                    VariableAccess new(getName() + "_thunk" /* hackish - would prefer a direct reference */, token)
+                    VariableAccess new(ctxDecl, token)
+                ] as ArrayList<VariableAccess>
+
+                closure := StructLiteral new(closureType, closureElements, token)
+                closureDecl := VariableDecl new(null, generateTempName("closure"), closure, token)
+                trail addBeforeInScope(this, closureDecl)
+
+                thunk := FunctionDecl new(getName() + "_thunk", token)
+                thunk args addAll(args)
+                ctxArg := VariableDecl new(ReferenceType new(ctxStruct getInstanceType(), token), "__context__", token)
+                thunk args add(ctxArg)
+
+                call := FunctionCall new(getName(), token)
+
+                argOffset := 0
+
+                // add to the thunk call the by-value variables from the context
+                for(arg in partialByValue) {
+                    call args add(VariableAccess new(VariableAccess new(ctxArg, token), arg getName(), token))
+                }
+
+                // add to the thunk call the by-reference variables from the context
+                for(arg in partialByReference) {
+                    call args add(VariableAccess new(VariableAccess new(ctxArg, token), arg getName(), token))
+                }
+
+                // add to the thunk call the variable arguments that are not part of the context
+                for(arg in args) {
+                    call args add(VariableAccess new(arg, token))
+                }
+                thunk getBody() add(call)
+                module addFunction(thunk)
+
+                // now add the by-value variables from the context as arguments to the closure
+                for(e in partialByValue) {
+                    argument := VariableDecl new(e getType(), e getName(), e token)
+                    args add(argOffset, argument); argOffset += 1
+                }
+
+                // now add the by-reference variables from the context as arguments to the closure
+                for(e in partialByReference) {
+                    argumentType := ReferenceType new(e getType(), e getType() token)
+                    argument := VariableDecl new(argumentType, e getName(), e token)
+                    args add(argOffset, argument); argOffset += 1
+                    for (acs in clsAccesses) {
+                        if (acs ref == e) acs ref = argument
+                    }
+                }
+
+                // now say that the FuncType arguments of our context are closures
+                for(e in ctxStruct getVariables()) {
+                    if(e getType() instanceOf(FuncType)) {
+                        eType := e getType() clone()
+                        eType as FuncType isClosure = true
+                        e setType(eType)
+                    }
+                }
+
+                closureAcc := VariableAccess new(closureDecl, token)
+                if(!trail peek() replace(this, closureAcc)) {
+                    token throwError("Couldn't replace %s with %s in %s" format(toString(), closureAcc toString(), trail peek() toString()))
+                }
+
+                /* EXPERIMENTAL - end */
+
             }
 
-            for (e in partialByValue) {
-                addArg := FunctionCall new(partialAcc, "addArgument", token)
-                addArg getArguments() add(VariableAccess new(e, e token))
-                trail addBeforeInScope(this, addArg)
-                argument := Argument new(e getType(), e getName(), e token)
-                args add(argOffset, argument); argOffset += 1
-            }
-
-            fCall := FunctionCall new(partialAcc, "genCode", token)
-            fCall getArguments() add(VariableAccess new(name, token))
-            fCall getArguments() add(StringLiteral new(argsSizes, token))
-            trail peek() replace(this, fCall)
-
+            "Turned %s into %s closure" printfln(toString(), isFlat ? "flat" : "non-flat")
             _unwrappedClosure = true
             context = trail clone()
             res wholeAgain(this, "Unwrapped closure")
@@ -810,12 +949,11 @@ FunctionDecl: class extends Declaration {
 
     isScope: func -> Bool { true }
 
-	getTypeArgs: func -> ArrayList<VariableDecl> { typeArgs }
-	getArguments: func -> ArrayList<Argument> { args }
-	getBody: func -> Scope { body }
+    getTypeArgs: func -> ArrayList<VariableDecl> { typeArgs }
+    getArguments: func -> ArrayList<Argument> { args }
+    getBody: func -> Scope { body }
 
     setVersion: func (=verzion) {}
     getVersion: func -> VersionSpec { verzion }
 
 }
-

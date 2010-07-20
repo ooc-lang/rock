@@ -230,7 +230,7 @@ List: abstract class <T> extends BackIterable<T> {
         }
         return arr& as Pointer
     }
-/*
+
     map: func (f: Func (T) -> T) -> This<T> {
         copy := emptyClone()
         each(|x| copy add(f(x)))
@@ -254,7 +254,7 @@ List: abstract class <T> extends BackIterable<T> {
             f(get(i))
         }
     }
-*/
+
     join: func ~stringDefault -> String { join("") }
 
     join: func ~string (str: String) -> String {

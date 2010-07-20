@@ -1,8 +1,12 @@
 import ../frontend/[Token, BuildParams, AstBuilder], text/Buffer, io/File
 import BinaryOp, Visitor, Expression, VariableDecl, FunctionDecl,
        TypeDecl, Declaration, Type, Node, ClassDecl, NamespaceDecl,
-       EnumDecl, PropertyDecl, FunctionCall, Module, Import
+       EnumDecl, PropertyDecl, FunctionCall, Module, Import, FuncType,
+       NullLiteral, AddressOf, BaseType, StructLiteral, Return,
+       Argument
+
 import tinker/[Resolver, Response, Trail]
+import structs/ArrayList
 
 VariableAccess: class extends Expression {
 
@@ -172,11 +176,67 @@ VariableAccess: class extends Expression {
                             }
                         }
                     }
+
                     break // break on first match
                 }
                 depth -= 1
             }
         }
+
+        if (getType() instanceOf(FuncType) ) {
+            fType := getType() as FuncType
+            parent := trail peek()
+
+            if (!fType isClosure) {
+                closureElements := [
+                    this
+                    NullLiteral new(token)
+                ] as ArrayList<VariableAccess>
+
+                closureType: FuncType = null
+
+                if (parent instanceOf(FunctionCall)) {
+                    /*
+                     * The case we're looking for is this one:
+                     *
+                     *     registerCallback(exit)
+                     *
+                     * If registerCallback is an ooc function and the arg is
+                     * a FuncType we need to make a StructLiteral out of ourselves.
+                     */
+                    fCall := parent as FunctionCall
+                    ourIndex := fCall args indexOf(this)
+                    fDecl := fCall getRef()
+                    if(!fDecl) {
+                        res wholeAgain(this, "need ref!")
+                        return Responses OK
+                    }
+                    closureType = fDecl args get(ourIndex) getType()
+                } elseif (parent instanceOf(BinaryOp)) {
+                    binOp := parent as BinaryOp
+                    if(binOp isAssign() && binOp getRight() == this) {
+                        closureType = binOp getLeft() getType() clone()
+                    }
+                } elseif (parent instanceOf(Return)) {
+                    fIndex := trail find(FunctionDecl)
+                    if (fIndex != -1) {
+                        closureType = trail get(fIndex, FunctionDecl) returnType clone()
+                    }
+                }
+
+                if (closureType && closureType instanceOf(FuncType)) {
+                    fType isClosure = true
+                    closure := StructLiteral new(closureType, closureElements, token)
+                    if(!trail peek() replace(this, closure)) {
+                        token throwError("Couldn't replace %s with %s in %s" format(toString(), closure toString(), trail peek() toString()))
+                    }
+                }
+            }
+        }
+
+
+
+
 
         // Simple property access? Replace myself with a getter call.
         if(ref && ref instanceOf(PropertyDecl)) {

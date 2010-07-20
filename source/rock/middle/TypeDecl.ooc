@@ -79,7 +79,7 @@ TypeDecl: abstract class extends Declaration {
     }
 
     debugCondition: inline func -> Bool {
-        false
+	false
     }
 
     isAbstract: func -> Bool { false }
@@ -733,8 +733,8 @@ TypeDecl: abstract class extends Declaration {
 
             if(!has) continue
 
-            //if(call debugCondition()) printf("From %s (%s), looking into addon %s (%s)\n",
-            //    toString(), token toString(), addon toString(), addon token toString())
+            if(call debugCondition()) printf("From %s (%s), looking into addon %s (%s)\n",
+                toString(), token toString(), addon toString(), addon token toString())
             if(addon resolveCall(call, res, trail) == -1) return -1
         }
 

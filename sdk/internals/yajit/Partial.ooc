@@ -2,7 +2,7 @@ import structs/ArrayList
 import BinarySeq
 import OpCodes into OpCodes
 
-Partial: class {     
+Partial: class {
 
     bseq: BinarySeq
 
@@ -27,7 +27,7 @@ Partial: class {
         if     (T size == 1) { bseq append(OpCodes PUSH_BYTE) }
         elseif (T size == 2) { bseq append(OpCodes PUSH_WORD) }
         elseif (T size == 4) { bseq append(OpCodes PUSH_DWORD) }
-        else { 
+        else {
             fprintf(stderr, "Trying to push unknown size: %zd\n", T size)
             x := 0
             x = 10 / x // dirty way of throwing an exception
@@ -59,7 +59,7 @@ Partial: class {
                  x = 10 / x // dirty way of throwing an exception
                 }
         }
-        */ 
+        */
     }
 
     addArgument: func<T> (param: T) {
@@ -67,31 +67,31 @@ Partial: class {
         arguments add(arg)
     }
 
-    genCode: func <T> (function: Func, closureArg: T, argSizes: String) -> Func {
+    genCode: func <T> (function: Pointer, closureArg: T, argSizes: String) -> Pointer {
         pushNonClosureArgs(getBase(argSizes, bseq), argSizes)
         pushClosureArg(closureArg)
         finishSequence(function)
         bseq print()
-        return bseq data as Func
+        return bseq data
     }
 
-    genCode: func ~multipleArgs(function: Func, argSizes: String) -> Func { 
+    genCode: func ~multipleArgs(function: Pointer, argSizes: String) -> Pointer {
         // IMPORTANT!! bug concerning choice of right polymorphic func
         // even if a non-closure arg is smaller than 4 byte
         // treating it as it'd have 4 bytes works
         // should be fixed later on, but it's currently
-        // more important to have somehing working :) 
+        // more important to have somehing working :)
         arguments reverse()
         pushNonClosureArgs(getBase(argSizes, bseq), argSizes)
         for (item: Cell<Pointer> in arguments) {
             pushClosureArg(item val as Pointer)
-        } 
+        }
         finishSequence(function)
         /*
         printf("Code = ")
         bseq print()
         */
-        return bseq data as Func
+        return bseq data
     }
 
     pushNonClosureArgs: func(base: UChar, argSizes: String)  {
@@ -111,7 +111,7 @@ Partial: class {
         */
     }
 
-    finishSequence: func(funcPtr: Func) {
+    finishSequence: func(funcPtr: Pointer) {
         // Directly calling the address (method 1)
         // causes a segfault *before* calling the function.
         // No idea why - with an extern nasm module it works fine

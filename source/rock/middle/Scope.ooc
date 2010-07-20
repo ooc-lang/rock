@@ -55,7 +55,8 @@ Scope: class extends Node {
         for(stat in this) {
             if(stat instanceOf(VariableDecl)) {
                 vDecl := stat as VariableDecl
-                if(vDecl getType() instanceOf(FuncType) &&
+                // experimental
+                if((vDecl getType() instanceOf(FuncType) || (vDecl getType() != null && vDecl getType() getName() == "Closure")) &&
                    vDecl getName() == call getName() &&
                    call suggest(vDecl getFunctionDecl())) {
                     break

@@ -1110,3 +1110,12 @@ Exception: class {
     }
 
 }
+
+/**
+ * Closures
+ */
+Closure: cover {
+    thunk  : Pointer
+    context: Pointer
+}
+
