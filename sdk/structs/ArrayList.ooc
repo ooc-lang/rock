@@ -191,7 +191,6 @@ ArrayList: class <T> extends List<T> {
 	}
 
     emptyClone: func <K> -> This<K> {
-        "Empty-cloning to %s<%s>" printfln(class name, K name)
         This<K> new()
     }
 
