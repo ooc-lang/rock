@@ -7,6 +7,7 @@ import Help, Token, BuildParams, AstBuilder
 import compilers/[Gcc, Clang, Icc, Tcc]
 import drivers/[Driver, CombineDriver, SequenceDriver, MakeDriver, DummyDriver]
 import ../backend/json/JSONGenerator
+import ../backend/explain/ExplanationGenerator
 import ../middle/[Module, Import]
 import ../middle/tinker/Tinkerer
 
@@ -75,7 +76,7 @@ CommandLine: class {
                 } else if(option startsWith("backend")) {
                     params backend = arg substring(arg indexOf('=') + 1)
 
-                    if(params backend != "c" && params backend != "json") {
+                    if(params backend != "c" && params backend != "json" && params backend != "explain") {
                         "Unknown backend: %s." format(params backend) println()
                         params backend = "c"
                     }
@@ -473,13 +474,22 @@ CommandLine: class {
                     if(params shout) failure()
                 }
             }
-        } else if(params backend == "json") {
-            // json phase 3: generate.
-            params clean = false // -backend=json implies -noclean
-            for(candidate in module collectDeps()) {
+            } else if(params backend == "json") {
+              // json phase 3: generate.
+              params clean = false // -backend=json implies -noclean
+              for(candidate in module collectDeps()) {
                 JSONGenerator new(params, candidate) write() .close()
+              }
+            } else if(params backend == "explain") {
+              params clean = false
+              for(candidate in module collectDeps()) {
+                ExplanationGenerator new(params, candidate) write() .close() 
+              }
+              Terminal setAttr(Attr bright)
+              Terminal setFgColor(Color blue)  
+              "[ Produced documentation in rock_tmp/ ]" println()
+              Terminal reset()      
             }
-        }
 
         first = false
 

@@ -538,7 +538,7 @@ JSONGenerator: class extends Visitor {
         addObject(tag, obj)
     }
 
-    visitType:               func (node: Type) {}
+    visitType: func (node: Type) {}
 
     visitModule:             func (node: Module) {
         for(function in node functions)
