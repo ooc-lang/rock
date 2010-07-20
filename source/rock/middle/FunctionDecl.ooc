@@ -5,7 +5,7 @@ import Cast, Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableDecl, Node, Statement, Module, FunctionCall, Declaration,
        Version, StringLiteral, Conditional, Import, ClassDecl, StringLiteral,
        IntLiteral, NullLiteral, BaseType, FuncType, AddressOf, BinaryOp,
-       TypeList, CoverDecl, StructLiteral
+       TypeList, CoverDecl, StructLiteral, Dereference
 import tinker/[Resolver, Response, Trail]
 
 /**
@@ -753,13 +753,19 @@ FunctionDecl: class extends Declaration {
                 module addType(ctxStruct)
 
                 // initialize the context struct
-                ctx := StructLiteral new(ctxStruct getInstanceType(), elements, token)
-                ctxDecl := VariableDecl new(ctxStruct getInstanceType(), generateTempName("ctx"), ctx, token)
+                ctxAllocCall := FunctionCall new("gc_malloc", token)
+                ctxAllocCall args add(VariableAccess new(VariableAccess new(ctxStruct getInstanceType(), token), "size", token))
+                ctxInit := StructLiteral new(ctxStruct getInstanceType(), elements, token)
+
+                ctxDecl := VariableDecl new(PointerType new(ctxStruct getInstanceType(), token), generateTempName("ctx"), ctxAllocCall, token)
                 trail addBeforeInScope(this, ctxDecl)
+
+                ctxAssign := BinaryOp new(Dereference new(VariableAccess new(ctxDecl, token), token), ctxInit, OpTypes ass, token)
+                trail addBeforeInScope(this, ctxAssign)
 
                 closureElements := [
                     VariableAccess new(getName() + "_thunk" /* hackish - would prefer a direct reference */, token)
-                    AddressOf new(VariableAccess new(ctxDecl, token), token)
+                    VariableAccess new(ctxDecl, token)
                 ] as ArrayList<VariableAccess>
 
                 closure := StructLiteral new(closureType, closureElements, token)

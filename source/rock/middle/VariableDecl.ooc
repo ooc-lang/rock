@@ -16,6 +16,7 @@ VariableDecl: class extends Declaration {
 
     isArg := false
     isGlobal := false
+
     isConst := false
     isStatic := false
     isProto := false
