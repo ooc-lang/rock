@@ -43,8 +43,7 @@ FunctionCall: class extends Expression {
     }
 
     debugCondition: inline func -> Bool {
-        //false
-        name == "f"
+        false
     }
 
     suggest: func (candidate: FunctionDecl) -> Bool {
@@ -665,7 +664,6 @@ FunctionCall: class extends Expression {
                             if(implArg instanceOf(FunctionDecl)) {
                                 fDecl := implArg as FunctionDecl
                                 if(fDecl inferredReturnType) {
-                                    "Got inferredReturnType = %s!" printfln(fDecl inferredReturnType toString())
                                     return fDecl inferredReturnType
                                 }
                             }
@@ -759,7 +757,6 @@ FunctionCall: class extends Expression {
                 fDecl := trail get(idx, FunctionDecl)
                 if(debugCondition()) "\n===\nFound fDecl %s, with %d typeArgs" format(fDecl toString(), fDecl getTypeArgs() size()) println()
                 for(typeArg in fDecl getTypeArgs()) {
-                    "%s vs %s" printfln(typeArg getName(), typeArgName)
                     if(typeArg getName() == typeArgName) {
                         result := BaseType new(typeArgName, token)
                         result setRef(typeArg)
