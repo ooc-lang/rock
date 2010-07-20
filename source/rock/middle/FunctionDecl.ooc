@@ -43,6 +43,7 @@ FunctionDecl: class extends Declaration {
     name = "", suffix = null, fullName = null, doc = "" : String
 
     returnType := voidType
+    inferredReturnType : Type = null
 
     /** Attributes */
     isAbstract := false

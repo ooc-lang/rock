@@ -44,7 +44,7 @@ FunctionCall: class extends Expression {
 
     debugCondition: inline func -> Bool {
         //false
-        name == "map"
+        name == "f"
     }
 
     suggest: func (candidate: FunctionDecl) -> Bool {
@@ -655,6 +655,23 @@ FunctionCall: class extends Expression {
                         }
                     }
 
+                    /* myFunction: func <T> (myArg: Func -> T) */
+                    if(argType instanceOf(FuncType)) {
+                        fType := argType as FuncType
+
+                        if(fType returnType getName() == typeArgName) {
+                            if(debugCondition()) " >> Hey, we have an interesting FuncType %s" printfln(fType toString())
+                            implArg := args get(j)
+                            if(implArg instanceOf(FunctionDecl)) {
+                                fDecl := implArg as FunctionDecl
+                                if(fDecl inferredReturnType) {
+                                    "Got inferredReturnType = %s!" printfln(fDecl inferredReturnType toString())
+                                    return fDecl inferredReturnType
+                                }
+                            }
+                        }
+                    }
+
                     /* myFunction: func <T> (T: Class) */
                     if(arg getName() == typeArgName) {
                         implArg := args get(j)
@@ -713,6 +730,21 @@ FunctionCall: class extends Expression {
                         return result
                     }
                 }
+            }
+
+            idx = trail find(FunctionDecl)
+            while(idx != -1) {
+                fDecl := trail get(idx, FunctionDecl)
+                if(debugCondition()) "\n===\nFound fDecl %s, with %d typeArgs" format(fDecl toString(), fDecl getTypeArgs() size()) println()
+                for(typeArg in fDecl getTypeArgs()) {
+                    "%s vs %s" printfln(typeArg getName(), typeArgName)
+                    if(typeArg getName() == typeArgName) {
+                        result := BaseType new(typeArgName, token)
+                        result setRef(typeArg)
+                        return result
+                    }
+                }
+                idx = trail find(FunctionDecl, idx - 1)
             }
         }
 

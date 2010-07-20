@@ -25,6 +25,9 @@ Return: class extends Statement {
         retType: Type = null
         if(idx != -1) {
             fDecl = trail get(idx) as FunctionDecl
+
+            if(expr) fDecl inferredReturnType = expr getType()
+
             retType = fDecl getReturnType()
             if (!retType isResolved()) {
                 return Responses LOOP

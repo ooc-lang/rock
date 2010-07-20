@@ -178,7 +178,6 @@ BinaryOp: class extends Expression {
                     return Responses OK
                 }
 
-                //if(fDecl getReturnType() isGeneric()) {
                 if(!fDecl getReturnArgs() isEmpty()) {
                     fCall setReturnArg(fDecl getReturnType() isGeneric() ? left getGenericOperand() : left)
                     trail peek() replace(this, fCall)
@@ -188,7 +187,12 @@ BinaryOp: class extends Expression {
             }
 
             if(isGeneric()) {
-                sizeAcc := VariableAccess new(VariableAccess new(left getType() getName(), token), "size", token)
+                sizeAcc: VariableAccess
+                if(left getType() isGeneric() && !right getType() isGeneric()) {
+                    sizeAcc = VariableAccess new(VariableAccess new(right getType(), token), "size", token)
+                } else {
+                    sizeAcc = VariableAccess new(VariableAccess new(left getType(), token), "size", token)
+                }
 
                 fCall := FunctionCall new("memcpy", token)
 
