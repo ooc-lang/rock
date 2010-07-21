@@ -865,7 +865,7 @@ LLong: cover from signed long long {
     divisor?: func (divisor: Int) -> Bool {
         this % divisor == 0
     }
-    
+
     in: func(range: Range) -> Bool {
         return this >= range min && this < range max
     }
@@ -956,6 +956,12 @@ Range: cover {
         return this
     }
 
+    reduce: func (f: Func (Int, Int) -> Int) -> Int {
+        acc := f(min, min + 1)
+        for(i in min + 2..max) acc = f(acc, i)
+        acc
+    }
+
 }
 
 /**
@@ -972,6 +978,19 @@ Iterable: abstract class <T> {
             result add(elem)
         }
         result
+    }
+
+    reduce: func (f: Func (T, T) -> T) -> T {
+        iter := iterator()
+        acc := f(iter next(), iter next())
+        while(iter hasNext()) acc = f(acc, iter next())
+        acc
+    }
+
+    each: func (f: Func (T)) {
+        for(elem in this) {
+            f(elem)
+        }
     }
 
 }

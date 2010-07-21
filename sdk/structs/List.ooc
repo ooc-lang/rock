@@ -246,18 +246,6 @@ List: abstract class <T> extends BackIterable<T> {
         copy
     }
 
-    reduce: func (f: Func (T, T) -> T) -> T {
-        acc := f(this[0], this[1])
-        for(i in 2..size()) acc = f(acc, this[i])
-        acc
-    }
-
-    each: func (f: Func (T)) {
-        for(i in 0..size()) {
-            f(get(i))
-        }
-    }
-
     join: func ~stringDefault -> String { join("") }
 
     join: func ~string (str: String) -> String {
