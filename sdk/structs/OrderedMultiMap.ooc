@@ -6,10 +6,12 @@ OrderedMultiMap: class <K, V> extends MultiMap<K, V> {
 
     init: func ~ommWithCapa (capacity: Int) {
         super(capacity)
+        T = K
     }
 
     init: func ~omm {
         super()
+        T = K
     }
 
     // MultiMapValueIterator uses getKeys(), so it will iterate in order =)

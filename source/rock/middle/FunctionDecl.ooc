@@ -43,6 +43,7 @@ FunctionDecl: class extends Declaration {
     name = "", suffix = null, fullName = null, doc = "" : String
 
     returnType := voidType
+    inferredReturnType : Type = null
 
     /** Attributes */
     isAbstract := false
@@ -311,7 +312,7 @@ FunctionDecl: class extends Declaration {
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
 
         if (context) {
-            printf("Looking for %s in %s, context = %s, access ref = %s\n", access toString(), toString(), context toString(), access ref ? access ref toString() : access ref)
+            //printf("Looking for %s in %s, context = %s, access ref = %s\n", access toString(), toString(), context toString(), access ref ? access ref toString() : access ref)
             for(node in context backward()) {
                 node resolveAccess(access, res, trail)
             }
@@ -758,7 +759,7 @@ FunctionDecl: class extends Declaration {
                 ctxDecl := VariableDecl new(PointerType new(ctxStruct getInstanceType(), token), generateTempName("ctx"), ctxAllocCall, token)
                 trail addBeforeInScope(this, ctxDecl)
 
-                ctxAssign := BinaryOp new(Dereference new(VariableAccess new(ctxDecl, token), token), ctxInit, OpTypes ass, token)
+                ctxAssign := BinaryOp new(Dereference new(VariableAccess new(ctxDecl, token), token), ctxInit, OpType ass, token)
                 trail addBeforeInScope(this, ctxAssign)
 
                 closureElements := [

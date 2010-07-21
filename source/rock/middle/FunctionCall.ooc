@@ -614,7 +614,7 @@ FunctionCall: class extends Expression {
 
     resolveTypeArg: func (typeArgName: String, trail: Trail, finalScore: Int@) -> Type {
 
-        if(debugCondition()) printf("Should resolve typeArg %s in call%s\n", typeArgName, toString())
+        if(debugCondition()) printf("Should resolve typeArg %s in call %s\n", typeArgName, toString())
 
         if(ref && refScore > 0) {
 
@@ -629,19 +629,50 @@ FunctionCall: class extends Expression {
             if(inFunctionTypeArgs) {
                 j := 0
                 for(arg in ref args) {
-                    /* myFunction: func <T> (myArg: T) */
+                    /* myFunction: func <T> (myArg: T)
+                     * or:
+                     * myFunction: func <T> (myArg: T[])
+                     * or any level of nesting =)
+                     */
                     argType := arg type
+                    refCount := 0
                     while(argType instanceOf(SugarType)) {
                         argType = argType as SugarType inner
+                        refCount += 1
                     }
                     if(argType getName() == typeArgName) {
                         implArg := args get(j)
                         result := implArg getType()
-                        while(result instanceOf(SugarType)) {
+                        realCount := 0
+                        while(result instanceOf(SugarType) && realCount < refCount) {
                             result = result as SugarType inner
+                            realCount += 1
                         }
-                        if(debugCondition()) printf(" >> Found arg-arg %s for typeArgName %s, returning %s\n", implArg toString(), typeArgName, result toString())
-                        return result
+                        if(realCount == refCount) {
+                            if(debugCondition()) printf(" >> Found arg-arg %s for typeArgName %s, returning %s\n", implArg toString(), typeArgName, result toString())
+                            return result
+                        }
+                    }
+
+                    /* myFunction: func <T> (myArg: Func -> T) */
+                    if(argType instanceOf(FuncType)) {
+                        fType := argType as FuncType
+
+                        if(fType returnType getName() == typeArgName) {
+                            if(debugCondition()) " >> Hey, we have an interesting FuncType %s" printfln(fType toString())
+                            implArg := args get(j)
+                            if(implArg instanceOf(FunctionDecl)) {
+                                fDecl := implArg as FunctionDecl
+                                if(fDecl inferredReturnType) {
+                                    if(debugCondition()) " >> Got it from inferred return type %s!" printfln(fDecl inferredReturnType toString())
+                                    return fDecl inferredReturnType
+                                } else {
+                                    if(debugCondition()) " >> We need the inferred return type. Looping" println()
+                                    finalScore = -1
+                                    return null
+                                }
+                            }
+                        }
                     }
 
                     /* myFunction: func <T> (T: Class) */
@@ -681,6 +712,28 @@ FunctionCall: class extends Expression {
             }
         }
 
+        if(expr != null) {
+            if(expr instanceOf(Type)) {
+                /* Type<T> myFunction() */
+                if(debugCondition()) printf("Looking for typeArg %s in expr-type %s\n", typeArgName, expr toString())
+                result := expr as Type searchTypeArg(typeArgName, finalScore&)
+                if(finalScore == -1) return null // something has to be resolved further!
+                if(result) {
+                    if(debugCondition()) printf("Found match for arg %s! Hence, result = %s (cause expr = %s)\n", typeArgName, result toString(), expr toString())
+                    return result
+                }
+            } else if(expr getType() != null) {
+                /* expr: Type<T>; expr myFunction() */
+                if(debugCondition()) printf("Looking for typeArg %s in expr %s\n", typeArgName, expr toString())
+                result := expr getType() searchTypeArg(typeArgName, finalScore&)
+                if(finalScore == -1) return null // something has to be resolved further!
+                if(result) {
+                    if(debugCondition()) printf("Found match for arg %s! Hence, result = %s (cause expr type = %s)\n", typeArgName, result toString(), expr getType() toString())
+                    return result
+                }
+            }
+        }
+
         if(trail) {
             idx := trail find(TypeDecl)
             if(idx != -1) {
@@ -703,27 +756,19 @@ FunctionCall: class extends Expression {
                     }
                 }
             }
-        }
 
-        if(expr != null) {
-            if(expr instanceOf(Type)) {
-                /* Type<T> myFunction() */
-                if(debugCondition()) printf("Looking for typeArg %s in expr-type %s\n", typeArgName, expr toString())
-                result := expr as Type searchTypeArg(typeArgName, finalScore&)
-                if(finalScore == -1) return null // something has to be resolved further!
-                if(result) {
-                    if(debugCondition()) printf("Found match for arg %s! Hence, result = %s (cause expr = %s)\n", typeArgName, result toString(), expr toString())
-                    return result
+            idx = trail find(FunctionDecl)
+            while(idx != -1) {
+                fDecl := trail get(idx, FunctionDecl)
+                if(debugCondition()) "\n===\nFound fDecl %s, with %d typeArgs" format(fDecl toString(), fDecl getTypeArgs() size()) println()
+                for(typeArg in fDecl getTypeArgs()) {
+                    if(typeArg getName() == typeArgName) {
+                        result := BaseType new(typeArgName, token)
+                        result setRef(typeArg)
+                        return result
+                    }
                 }
-            } else if(expr getType() != null) {
-                /* expr: Type<T>; expr myFunction() */
-                if(debugCondition()) printf("Looking for typeArg %s in expr %s\n", typeArgName, expr toString())
-                result := expr getType() searchTypeArg(typeArgName, finalScore&)
-                if(finalScore == -1) return null // something has to be resolved further!
-                if(result) {
-                    if(debugCondition()) printf("Found match for arg %s! Hence, result = %s (cause expr type = %s)\n", typeArgName, result toString(), expr getType() toString())
-                    return result
-                }
+                idx = trail find(FunctionDecl, idx - 1)
             }
         }
 

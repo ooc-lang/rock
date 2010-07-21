@@ -118,7 +118,7 @@ AssArg: class extends DotArg {
                 fDecl getBody() add(0, BinaryOp new(
                     VariableAccess new(VariableAccess new("this", token), name, token),
                     VariableAccess new(this as VariableDecl, token),
-                    OpTypes ass,
+                    OpType ass,
                     token
                 ))
                 unwrapped = true

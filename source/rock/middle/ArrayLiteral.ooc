@@ -254,7 +254,7 @@ ArrayLiteral: class extends Literal {
                     memberAcc := VariableAccess new(memberDecl, token)
                     memberAcc expr = memberDecl isStatic() ? VariableAccess new(memberDecl owner getNonMeta() getInstanceType(), token) : VariableAccess new("this", token)
 
-                    init := BinaryOp new(memberAcc, memberDecl expr, OpTypes ass, token)
+                    init := BinaryOp new(memberAcc, memberDecl expr, OpType ass, token)
                     fDecl getBody() add(init)
                     memberDecl setExpr(null)
                 }
@@ -268,7 +268,7 @@ ArrayLiteral: class extends Literal {
         innerTypeAcc := VariableAccess new(arrType inner, token)
 
         sizeExpr : Expression = (arrType expr ? arrType expr : VariableAccess new(vAcc, "length", token))
-        copySize := BinaryOp new(sizeExpr, VariableAccess new(innerTypeAcc, "size", token), OpTypes mul, token)
+        copySize := BinaryOp new(sizeExpr, VariableAccess new(innerTypeAcc, "size", token), OpType mul, token)
 
         memcpyCall := FunctionCall new("memcpy", token)
         memcpyCall args add(VariableAccess new(vAcc, "data", token))

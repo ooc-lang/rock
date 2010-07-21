@@ -220,7 +220,7 @@ VariableDecl: class extends Declaration {
                         type = fDecl getReturnType() as TypeList types get(0)
                         "Inferred type of %s to %s from TypeList." printfln(toString(), type toString())
                     }
-                    ass := BinaryOp new(VariableAccess new(this, token), realExpr, OpTypes ass, token)
+                    ass := BinaryOp new(VariableAccess new(this, token), realExpr, OpType ass, token)
                     if(!trail addAfterInScope(this, ass)) {
                         token throwError("Couldn't add a " + ass toString() + " after a " + toString() + ", trail = " + trail toString())
                     }
@@ -249,7 +249,7 @@ VariableDecl: class extends Declaration {
             if(expr != null) {
                 if(expr instanceOf(FunctionCall) && expr as FunctionCall getName() == "gc_malloc") return Responses OK
 
-                ass := BinaryOp new(VariableAccess new(this, token), expr, OpTypes ass, token)
+                ass := BinaryOp new(VariableAccess new(this, token), expr, OpType ass, token)
                 if(!trail addAfterInScope(this, ass)) {
                     token throwError("Couldn't add a " + ass toString() + " after a " + toString() + ", original expr = " + expr toString() + " trail = " + trail toString())
                 }

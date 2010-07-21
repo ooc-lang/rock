@@ -28,9 +28,16 @@ Trail: class extends Stack<Node> {
      * Finds the nearest (from top to bottom) object of class T (or subclasses)
      * and return its index, or -1 if not found
      */
-    find: func (T: Class) -> Int {
+    find: func ~default (T: Class) -> Int {
+        find(T, size() - 1)
+    }
 
-        i := size() - 1
+    /**
+     * Finds the nearest (from top to bottom) object of class T (or subclasses)
+     * and return its index, or -1 if not found
+     * Starting from index i
+     */
+    find: func (T: Class, i: Int) -> Int {
         while(i >= 0) {
             node := data get(i) as Node
             if(node class inheritsFrom(T)) {

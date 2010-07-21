@@ -32,7 +32,19 @@ VariableAccess: class extends Expression {
     init: func ~typeAccess (type: Type, .token) {
         super(token)
         name = type getName()
-        ref = type getRef()
+        if(type getRef() instanceOf(VariableDecl)) {
+            varDecl := type getRef() as VariableDecl
+            if(varDecl getOwner() != null) {
+                if(varDecl isStatic) {
+                    expr = VariableAccess new(varDecl getOwner() getInstanceType(), token)
+                } else {
+                    expr = VariableAccess new("this", token)
+                }
+            }
+        } else {
+            // else, it's safe to carry the ref
+            ref = type getRef()
+        }
     }
 
     accept: func (visitor: Visitor) {
@@ -243,7 +255,7 @@ VariableAccess: class extends Expression {
             if(ref as PropertyDecl inOuterSpace(trail)) {
                 // Test that we're not part of an assignment (which will be replaced by a setter call)
                 // TODO: This should be nicer.
-                if(!(trail peek() instanceOf(BinaryOp) && trail peek() as BinaryOp type == OpTypes ass)) {
+                if(!(trail peek() instanceOf(BinaryOp) && trail peek() as BinaryOp type == OpType ass)) {
                     property := ref as PropertyDecl
                     fCall := FunctionCall new(expr, property getGetterName(), token)
                     trail peek() replace(this, fCall)

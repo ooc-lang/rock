@@ -90,7 +90,7 @@ Match: class extends Expression {
                     if(!last instanceOf(Expression)) {
                         last token throwError("Last statement of a match used an expression should be an expression itself!")
                     }
-                    ass := BinaryOp new(varAcc, last as Expression, OpTypes ass, caze token)
+                    ass := BinaryOp new(varAcc, last as Expression, OpType ass, caze token)
                     caze getBody() set(caze getBody() lastIndex(), ass)
                 }
                 res wholeAgain(this, "just unwrapped")

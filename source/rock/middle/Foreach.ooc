@@ -105,7 +105,7 @@ Foreach: class extends ControlStatement {
                 return Responses OK
             }
 
-            while1 getBody() add(BinaryOp new(variable, nextCall, OpTypes ass, token)).
+            while1 getBody() add(BinaryOp new(variable, nextCall, OpType ass, token)).
                              addAll(getBody())
 
             if(!list replace(this, block)) {

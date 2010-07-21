@@ -25,6 +25,9 @@ Return: class extends Statement {
         retType: Type = null
         if(idx != -1) {
             fDecl = trail get(idx) as FunctionDecl
+
+            if(expr) fDecl inferredReturnType = expr getType()
+
             retType = fDecl getReturnType()
             if (!retType isResolved()) {
                 return Responses LOOP
@@ -106,7 +109,7 @@ Return: class extends Statement {
                         returnExpr = VariableAccess new(vdfe, vdfe token)
                     }
 
-                    ass := BinaryOp new(returnAcc, returnExpr, OpTypes ass, token)
+                    ass := BinaryOp new(returnAcc, returnExpr, OpType ass, token)
                     if1 getBody() add(ass)
 
                     if(!trail peek() addBefore(this, if1)) {

@@ -31,7 +31,7 @@ ArrayAccess: class extends Expression {
             sizeAcc := VariableAccess new(VariableAccess new(getType() getName(), token), "size", token)
             arrAcc := this as ArrayAccess
             // FIXME: wtf? we're modifying 'this' instead of making a copy of it?
-            arrAcc setIndex(BinaryOp new(arrAcc getIndex(), sizeAcc, OpTypes mul, arrAcc token))
+            arrAcc setIndex(BinaryOp new(arrAcc getIndex(), sizeAcc, OpType mul, arrAcc token))
             return AddressOf new(arrAcc, arrAcc token)
         }
         return super()
@@ -65,7 +65,7 @@ ArrayAccess: class extends Expression {
 
         if(array getType() == null) {
             res wholeAgain(this, "because of array type!")
-        } else {            
+        } else {
             type = array getType() dereference()
             if(type == null) {
                 res wholeAgain(this, "because of array dereference type!")
@@ -237,7 +237,7 @@ ArrayAccess: class extends Expression {
 
         arrayScore := array getType() getScore(opArray getType())
         if(arrayScore == -1) return -1
-        indexScore := index getType() getScore(opIndex getType())        
+        indexScore := index getType() getScore(opIndex getType())
         if(indexScore == -1) return -1
         reqScore   := reqType ? fDecl getReturnType() getScore(reqType) : 0
         if(reqScore   == -1) return -1

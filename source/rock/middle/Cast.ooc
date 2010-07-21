@@ -64,7 +64,7 @@ Cast: class extends Expression {
                 arrTypeAcc := VariableAccess new(arrType inner, token)
 
                 sizeExpr : Expression = (arrType expr ? arrType expr : VariableAccess new(declAcc, "length", token))
-                copySize := BinaryOp new(sizeExpr, VariableAccess new(arrTypeAcc, "size", token), OpTypes mul, token)
+                copySize := BinaryOp new(sizeExpr, VariableAccess new(arrTypeAcc, "size", token), OpType mul, token)
 
                 memcpyCall := FunctionCall new("memcpy", token)
                 memcpyCall args add(VariableAccess new(VariableAccess new(varDecl, token), "data", token))

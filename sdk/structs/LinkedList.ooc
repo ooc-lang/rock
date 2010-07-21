@@ -244,8 +244,8 @@ LinkedList: class <T> extends List<T> {
 	    return list
 	}
 
-    emptyClone: func -> This<T> {
-        This<T> new()
+    emptyClone: func <K> -> This<K> {
+        This<K> new()
     }
 
 	print: func {

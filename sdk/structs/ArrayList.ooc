@@ -190,8 +190,8 @@ ArrayList: class <T> extends List<T> {
 		return copy
 	}
 
-    emptyClone: func -> This<T> {
-        This<T> new()
+    emptyClone: func <K> -> This<K> {
+        This<K> new()
     }
 
     /** */

@@ -150,11 +150,13 @@ List: abstract class <T> extends BackIterable<T> {
     clone: abstract func -> List<T>
 
     /**
-       @return a list of the same type, empty.
+       @return a list of the same concrete type, empty.
        useful when writing algorithms that need to create
        new lists, but not of a specific type.
      */
-    emptyClone: abstract func -> List <T>
+    emptyClone: abstract func <K> (K: Class) -> List <K>
+
+    emptyClone: func ~defaults -> List <T> { emptyClone(T) }
 
     /**
        Return two sublists. The first one contains all the elements
@@ -231,28 +233,17 @@ List: abstract class <T> extends BackIterable<T> {
         return arr& as Pointer
     }
 
-    map: func (f: Func (T) -> T) -> This<T> {
-        copy := emptyClone()
+    map: func <K> (f: Func (T) -> K) -> This<K> {
+        copy := emptyClone(K)
         each(|x| copy add(f(x)))
         copy
     }
+
 
     filter: func (f: Func (T) -> Bool) -> This<T> {
         copy := emptyClone()
         each(|x| if(f(x)) copy add(x))
         copy
-    }
-
-    reduce: func (f: Func (T, T) -> T) -> T {
-        acc := f(this[0], this[1])
-        for(i in 2..size()) acc = f(acc, this[i])
-        acc
-    }
-
-    each: func (f: Func (T)) {
-        for(i in 0..size()) {
-            f(get(i))
-        }
     }
 
     join: func ~stringDefault -> String { join("") }

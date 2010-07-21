@@ -209,7 +209,7 @@ ClassDecl: class extends TypeDecl {
 
             thisAccess    := VariableAccess new("this",                   constructor token)
             typeArgAccess := VariableAccess new(thisAccess, typeArg name, constructor token)
-            ass := BinaryOp new(typeArgAccess, e, OpTypes ass, constructor token)
+            ass := BinaryOp new(typeArgAccess, e, OpType ass, constructor token)
 			constructor getBody() add(ass)
 		}
 

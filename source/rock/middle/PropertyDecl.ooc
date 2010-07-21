@@ -117,7 +117,7 @@ PropertyDecl: class extends VariableDecl {
                     }
                     left := VariableAccess new(this_, this name, token)
                     right := VariableAccess new(this name, token)
-                    assignment := BinaryOp new(left, right, OpTypes ass, token)
+                    assignment := BinaryOp new(left, right, OpType ass, token)
                     setter body add(assignment)
                     // replace argument
                     newArg := Argument new(this type, this name, token)

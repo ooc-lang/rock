@@ -1,3 +1,7 @@
+include stdlib
+
+exit: extern func (Int)
+atexit: extern func (Func)
 include stdarg
 
 // variable arguments

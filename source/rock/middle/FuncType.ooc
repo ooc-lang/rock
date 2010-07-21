@@ -13,7 +13,7 @@ FuncType: class extends Type {
     varArg := false
     returnType : Type = null
     cached := ArrayList<Module> new()
-    
+
     isClosure := false
     init: func ~funcType (.token) {
         super(token)
@@ -21,7 +21,6 @@ FuncType: class extends Type {
     }
 
     write: func (w: AwesomeWriter, name: String) {
-        //w app (toMangledString())
         w app("lang_types__Closure")
         if(name) w app(' '). app(name)
     }
