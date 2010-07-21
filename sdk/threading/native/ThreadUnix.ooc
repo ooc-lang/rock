@@ -1,13 +1,19 @@
 import ../Thread
-include pthread, unistd
+include pthread, unistd, gc
 
 version(unix || apple) {
 
     /* covers & extern functions */
     PThread: cover from pthread_t
 
-    pthread_create: extern func (PThread*, Pointer, startRoutine: Pointer, userArgument: Pointer) -> Int
-    pthread_join:   extern func (thread: PThread, retval: Pointer*) -> Int
+    version(gc) {
+        pthread_create: extern(GC_pthread_create) func (PThread*, Pointer, startRoutine: Pointer, userArgument: Pointer) -> Int
+        pthread_join:   extern(GC_pthread_join)   func (thread: PThread, retval: Pointer*) -> Int
+    }
+    version (!gc) {
+        pthread_create: extern func (PThread*, Pointer, startRoutine: Pointer, userArgument: Pointer) -> Int
+        pthread_join:   extern func (thread: PThread, retval: Pointer*) -> Int
+    }
 
     /**
      * pthreads implementation of threads.
