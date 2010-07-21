@@ -43,8 +43,7 @@ FunctionCall: class extends Expression {
     }
 
     debugCondition: inline func -> Bool {
-        name == "map"
-        //false
+        false
     }
 
     suggest: func (candidate: FunctionDecl) -> Bool {
@@ -665,11 +664,10 @@ FunctionCall: class extends Expression {
                             if(implArg instanceOf(FunctionDecl)) {
                                 fDecl := implArg as FunctionDecl
                                 if(fDecl inferredReturnType) {
-                                    " >> Got it from inferred return type %s!" printfln(fDecl inferredReturnType toString())
+                                    if(debugCondition()) " >> Got it from inferred return type %s!" printfln(fDecl inferredReturnType toString())
                                     return fDecl inferredReturnType
                                 } else {
-                                    " >> We need the inferred return type. Looping" println()
-                                    // We need the inferredReturnType!
+                                    if(debugCondition()) " >> We need the inferred return type. Looping" println()
                                     finalScore = -1
                                     return null
                                 }
