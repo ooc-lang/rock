@@ -90,7 +90,7 @@ CGenerator: class extends Skeleton {
     visitBinaryOp: func (op: BinaryOp) {
 
         // when assigning to an array, use Array_set rather than assigning to _get
-        isArray := op type == OpTypes ass &&
+        isArray := op type == OpType ass &&
                    op left instanceOf(ArrayAccess) &&
                    op left as ArrayAccess getArray() getType() instanceOf(ArrayType) &&
                    op left as ArrayAccess getArray() getType() as ArrayType expr == null
@@ -107,7 +107,7 @@ CGenerator: class extends Skeleton {
 
         // when assigning to a member function (e.g. for hotswapping),
         // you want to change the class field, not just the function name
-        isFunc := op type == OpTypes ass &&
+        isFunc := op type == OpType ass &&
                   op left instanceOf(VariableAccess) &&
                   op left as VariableAccess ref instanceOf(FunctionDecl) &&
                   op left as VariableAccess ref as FunctionDecl getOwner() != null
@@ -119,10 +119,10 @@ CGenerator: class extends Skeleton {
             current app(op left)
         }
 
-        current app(" "). app(op type toString()). app(" ")
+        current app(" "). app(opTypeRepr[op type]). app(" ")
 
 
-        if(!isFunc && op type == OpTypes ass) {
+        if(!isFunc && op type == OpType ass) {
             leftType  := op left  getType()
             rightType := op right getType()
 
@@ -140,7 +140,7 @@ CGenerator: class extends Skeleton {
 
     /** Write a unary operation */
     visitUnaryOp: func (op: UnaryOp) {
-        current app(op type toString()). app(op inner)
+        current app(unaryOpRepr[op type]). app(op inner)
     }
 
     /** Write an int literal */

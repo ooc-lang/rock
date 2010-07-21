@@ -255,7 +255,7 @@ VariableAccess: class extends Expression {
             if(ref as PropertyDecl inOuterSpace(trail)) {
                 // Test that we're not part of an assignment (which will be replaced by a setter call)
                 // TODO: This should be nicer.
-                if(!(trail peek() instanceOf(BinaryOp) && trail peek() as BinaryOp type == OpTypes ass)) {
+                if(!(trail peek() instanceOf(BinaryOp) && trail peek() as BinaryOp type == OpType ass)) {
                     property := ref as PropertyDecl
                     fCall := FunctionCall new(expr, property getGetterName(), token)
                     trail peek() replace(this, fCall)

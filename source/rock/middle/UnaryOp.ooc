@@ -3,26 +3,16 @@ import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl
 import tinker/[Trail, Resolver, Response]
 
-include stdint
-
-UnaryOpType: cover from Int8 {
-
-    toString: func -> String {
-        UnaryOpTypes repr get(this)
-    }
-
+UnaryOpType: enum {
+    binaryNot        /*  ~  */
+    logicalNot       /*  !  */
+    unaryMinus       /*  -  */
 }
 
-UnaryOpTypes: class {
-    binaryNot  = 1,        /*  ~  */
-    logicalNot = 2,        /*  !  */
-    unaryMinus = 3         /*  -  */ : static const UnaryOpType
-
-    repr := static ["no-op",
+unaryOpRepr := static ["no-op",
         "~",
         "!",
-        "-"] as ArrayList<String>
-}
+        "-"]
 
 UnaryOp: class extends Expression {
 
@@ -40,7 +30,7 @@ UnaryOp: class extends Expression {
     getType: func -> Type { inner getType() }
 
     toString: func -> String {
-        return UnaryOpTypes repr get(type) + inner toString()
+        return unaryOpRepr[type] + inner toString()
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
@@ -117,7 +107,7 @@ UnaryOp: class extends Expression {
 
     getScore: func (op: OperatorDecl, reqType: Type) -> Int {
 
-        symbol := UnaryOpTypes repr[type]
+        symbol := unaryOpRepr[type]
 
         if(!(op getSymbol() equals(symbol))) {
             return 0 // not the right overload type - skip
@@ -129,7 +119,7 @@ UnaryOp: class extends Expression {
 
         //if we have 2 arguments, then it's a binary plus binary
         if(args size() == 2) return 0
-			
+
         if(args size() != 1) {
             op token throwError(
                 "Argl, you need 1 argument to override the '%s' operator, not %d" format(symbol, args size()))

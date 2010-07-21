@@ -109,7 +109,7 @@ Return: class extends Statement {
                         returnExpr = VariableAccess new(vdfe, vdfe token)
                     }
 
-                    ass := BinaryOp new(returnAcc, returnExpr, OpTypes ass, token)
+                    ass := BinaryOp new(returnAcc, returnExpr, OpType ass, token)
                     if1 getBody() add(ass)
 
                     if(!trail peek() addBefore(this, if1)) {

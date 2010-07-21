@@ -759,7 +759,7 @@ FunctionDecl: class extends Declaration {
                 ctxDecl := VariableDecl new(PointerType new(ctxStruct getInstanceType(), token), generateTempName("ctx"), ctxAllocCall, token)
                 trail addBeforeInScope(this, ctxDecl)
 
-                ctxAssign := BinaryOp new(Dereference new(VariableAccess new(ctxDecl, token), token), ctxInit, OpTypes ass, token)
+                ctxAssign := BinaryOp new(Dereference new(VariableAccess new(ctxDecl, token), token), ctxInit, OpType ass, token)
                 trail addBeforeInScope(this, ctxAssign)
 
                 closureElements := [

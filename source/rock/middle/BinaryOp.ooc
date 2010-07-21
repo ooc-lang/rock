@@ -5,44 +5,34 @@ import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
        ArrayAccess, VariableAccess, Cast, NullLiteral, PropertyDecl
 import tinker/[Trail, Resolver, Response]
 
-include stdint
+OpType: enum {
+    add        /*  +  */
+    sub        /*  -  */
+    mul        /*  *  */
+    div        /*  /  */
+    mod        /*  %  */
+    rshift     /*  >> */
+    lshift     /*  << */
+    bOr        /*  |  */
+    bXor       /*  ^  */
+    bAnd       /*  &  */
 
-OpType: cover from Int8 {
+    ass        /*  =  */
+    addAss     /*  += */
+    subAss     /*  -= */
+    mulAss     /*  *= */
+    divAss     /*  /= */
+    rshiftAss  /* >>= */
+    lshiftAss  /* <<= */
+    bOrAss     /*  |= */
+    bXorAss    /*  ^= */
+    bAndAss    /*  &= */
 
-    toString: func -> String {
-        OpTypes repr get(this)
-    }
-
+    or         /*  || */
+    and        /*  && */
 }
 
-OpTypes: class {
-    add = 1,        /*  +  */
-    sub = 2,        /*  -  */
-    mul = 3,        /*  *  */
-    div = 4,        /*  /  */
-    mod = 5,        /*  %  */
-    rshift = 6,     /*  >> */
-    lshift = 7,     /*  << */
-    bOr = 8,        /*  |  */
-    bXor = 9,       /*  ^  */
-    bAnd = 10,      /*  &  */
-
-    ass = 11,       /*  =  */
-
-    addAss = 12,    /*  += */
-    subAss = 13,    /*  -= */
-    mulAss = 14,    /*  *= */
-    divAss = 15,    /*  /= */
-    rshiftAss = 16, /* >>= */
-    lshiftAss = 17, /* <<= */
-    bOrAss = 18,    /*  |= */
-    bXorAss = 19,   /*  ^= */
-    bAndAss = 20,   /*  &= */
-
-    or = 21,        /*  || */
-    and = 22        /*  && */ : static const OpType
-
-    repr := static ["no-op",
+opTypeRepr := static ["no-op",
         "+",
         "-",
         "*",
@@ -66,8 +56,7 @@ OpTypes: class {
         "&=",
 
         "||",
-        "&&"] as ArrayList<String>
-}
+        "&&"]
 
 BinaryOp: class extends Expression {
 
@@ -78,9 +67,9 @@ BinaryOp: class extends Expression {
         super(token)
     }
 
-    isAssign: func -> Bool { (type >= OpTypes ass) && (type <= OpTypes bAndAss) }
+    isAssign: func -> Bool { (type >= OpType ass) && (type <= OpType bAndAss) }
 
-    isBooleanOp: func -> Bool { type == OpTypes or || type == OpTypes and }
+    isBooleanOp: func -> Bool { type == OpType or || type == OpType and }
 
     accept: func (visitor: Visitor) {
         visitor visitBinaryOp(this)
@@ -95,17 +84,17 @@ BinaryOp: class extends Expression {
     getRight: func -> Expression { right }
 
     toString: func -> String {
-        return left toString() + " " + OpTypes repr get(type) + " " + right toString()
+        return left toString() + " " + opTypeRepr[type] + " " + right toString()
     }
 
     unwrapAssign: func (trail: Trail, res: Resolver) -> Bool {
 
         if(!isAssign()) return false
 
-        innerType := type - (OpTypes addAss - OpTypes add)
+        innerType := type - (OpType addAss - OpType add)
         inner := BinaryOp new(left, right, innerType, token)
         right = inner
-        type = OpTypes ass
+        type = OpType ass
 
         return true
 
@@ -138,7 +127,7 @@ BinaryOp: class extends Expression {
             if(!response ok()) return response
         }
 
-        if(type == OpTypes ass) {
+        if(type == OpType ass) {
             if(left getType() == null || !left isResolved()) {
                 res wholeAgain(this, "left type is unresolved"); return Responses OK
             }
@@ -214,7 +203,7 @@ BinaryOp: class extends Expression {
         if(!isLegal(res)) {
             if(res fatal) {
                 token throwError("Invalid use of operator %s between operands of type %s and %s\n" format(
-                    OpTypes repr get(type), left getType() toString(), right getType() toString()))
+                    opTypeRepr[type], left getType() toString(), right getType() toString()))
             }
             res wholeAgain(this, "Illegal use, looping in hope.")
         }
@@ -241,23 +230,23 @@ BinaryOp: class extends Expression {
         }
         if(left getType() getName() == "Pointer" || right getType() getName() == "Pointer") {
             // pointer arithmetic: you can add, subtract, and assign pointers
-            return (type == OpTypes add ||
-                    type == OpTypes sub ||
-                    type == OpTypes addAss ||
-                    type == OpTypes subAss ||
-                    type == OpTypes ass)
+            return (type == OpType add ||
+                    type == OpType sub ||
+                    type == OpType addAss ||
+                    type == OpType subAss ||
+                    type == OpType ass)
         }
         if(left getType() getRef() instanceOf(ClassDecl) ||
            right getType() getRef() instanceOf(ClassDecl)) {
             // you can only assign - all others must be overloaded
-            return (type == OpTypes ass || isBooleanOp())
+            return (type == OpType ass || isBooleanOp())
         }
         if((left  getType() getRef() instanceOf(CoverDecl) &&
             left  getType() getRef() as CoverDecl getFromType() == null) ||
            (right getType() getRef() instanceOf(CoverDecl) &&
             right getType() getRef() as CoverDecl getFromType() == null)) {
             // you can only assign structs, others must be overloaded
-            return (type == OpTypes ass)
+            return (type == OpType ass)
         }
         return true
     }
@@ -325,7 +314,7 @@ BinaryOp: class extends Expression {
 
     getScore: func (op: OperatorDecl, reqType: Type) -> Int {
 
-        symbol : String = OpTypes repr[type]
+        symbol := opTypeRepr[type]
 
         half := false
 

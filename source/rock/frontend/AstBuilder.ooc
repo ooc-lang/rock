@@ -1010,63 +1010,63 @@ AstBuilder: class {
     }
 
     onAssignAdd: unmangled(nq_onAssignAdd) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes addAss, token())
+        BinaryOp new(left, right, OpType addAss, token())
     }
 
     onAssignSub: unmangled(nq_onAssignSub) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes subAss, token())
+        BinaryOp new(left, right, OpType subAss, token())
     }
 
     onAssignMul: unmangled(nq_onAssignMul) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes mulAss, token())
+        BinaryOp new(left, right, OpType mulAss, token())
     }
 
     onAssignDiv: unmangled(nq_onAssignDiv) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes divAss, token())
+        BinaryOp new(left, right, OpType divAss, token())
     }
 
     onAssignAnd: unmangled(nq_onAssignAnd) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes bAndAss, token())
+        BinaryOp new(left, right, OpType bAndAss, token())
     }
 
     onAssignOr: unmangled(nq_onAssignOr) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes bOrAss, token())
+        BinaryOp new(left, right, OpType bOrAss, token())
     }
 
     onAssignXor: unmangled(nq_onAssignXor) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes bXorAss, token())
+        BinaryOp new(left, right, OpType bXorAss, token())
     }
 
     onAssign: unmangled(nq_onAssign) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes ass, token())
+        BinaryOp new(left, right, OpType ass, token())
     }
 
     onAssignLeftShift: unmangled(nq_onAssignLeftShift) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes lshiftAss, token())
+        BinaryOp new(left, right, OpType lshiftAss, token())
     }
 
     onAssignRightShift: unmangled(nq_onAssignRightShift) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes rshiftAss, token())
+        BinaryOp new(left, right, OpType rshiftAss, token())
     }
 
     onAdd: unmangled(nq_onAdd) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes add, token())
+        BinaryOp new(left, right, OpType add, token())
     }
 
     onSub: unmangled(nq_onSub) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes sub, token())
+        BinaryOp new(left, right, OpType sub, token())
     }
 
     onMod: unmangled(nq_onMod) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes mod, token())
+        BinaryOp new(left, right, OpType mod, token())
     }
 
     onMul: unmangled(nq_onMul) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes mul, token())
+        BinaryOp new(left, right, OpType mul, token())
     }
 
     onDiv: unmangled(nq_onDiv) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes div, token())
+        BinaryOp new(left, right, OpType div, token())
     }
 
     onRangeLiteral: unmangled(nq_onRangeLiteral) func (left, right: Expression) -> RangeLiteral {
@@ -1074,43 +1074,43 @@ AstBuilder: class {
     }
 
     onBinaryLeftShift: unmangled(nq_onBinaryLeftShift) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes lshift, token())
+        BinaryOp new(left, right, OpType lshift, token())
     }
 
     onBinaryRightShift: unmangled(nq_onBinaryRightShift) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes rshift, token())
+        BinaryOp new(left, right, OpType rshift, token())
     }
 
     onLogicalOr: unmangled(nq_onLogicalOr) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes or, token())
+        BinaryOp new(left, right, OpType or, token())
     }
 
     onLogicalAnd: unmangled(nq_onLogicalAnd) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes and, token())
+        BinaryOp new(left, right, OpType and, token())
     }
 
     onBinaryOr: unmangled(nq_onBinaryOr) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes bOr, token())
+        BinaryOp new(left, right, OpType bOr, token())
     }
 
     onBinaryXor: unmangled(nq_onBinaryXor) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes bXor, token())
+        BinaryOp new(left, right, OpType bXor, token())
     }
 
     onBinaryAnd: unmangled(nq_onBinaryAnd) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpTypes bAnd, token())
+        BinaryOp new(left, right, OpType bAnd, token())
     }
 
     onLogicalNot: unmangled(nq_onLogicalNot) func (inner: Expression) -> UnaryOp {
-        UnaryOp new(inner, UnaryOpTypes logicalNot, token())
+        UnaryOp new(inner, UnaryOpType logicalNot, token())
     }
 
     onBinaryNot: unmangled(nq_onBinaryNot) func (inner: Expression) -> UnaryOp {
-        UnaryOp new(inner, UnaryOpTypes binaryNot, token())
+        UnaryOp new(inner, UnaryOpType binaryNot, token())
     }
 
     onUnaryMinus: unmangled(nq_onUnaryMinus) func (inner: Expression) -> UnaryOp {
-        UnaryOp new(inner, UnaryOpTypes unaryMinus, token())
+        UnaryOp new(inner, UnaryOpType unaryMinus, token())
     }
 
     onParenthesis: unmangled(nq_onParenthesis) func (inner: Expression) -> Parenthesis {
