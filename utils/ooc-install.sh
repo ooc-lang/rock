@@ -62,32 +62,35 @@ function do_install {
     cd "$f"
     
     if [ -x "`which curl`" ]; then
-        curl -L -\# "http://github.com/downloads/nddrylliog/rock/rock-0.9.2-prealpha8-bootstrap-only.tar.bz2" | tar -xjf -
+        curl -L -\# "http://ooc-lang.org/boots" | tar -xjf -
     elif [ -x "`which wget`" ]; then
-        wget --progress=bar "http://github.com/downloads/nddrylliog/rock/rock-0.9.2-prealpha8-bootstrap-only.tar.bz2" -O - | tar -xjf -
+        wget --progress=bar "http://ooc-lang.org/boots" -O - | tar -xjf -
     fi
     
     mkdir bin
     make
     
-    echo "========================================"
-    echo ""
-    echo "Finished bootrapping and compiling latest rock."
-    echo ""
-    echo "Please add the following to your .profile:"
-    echo ""
-    echo "          export ROCK_DIST=$f"
-    echo "          export PATH=$f/bin:\$PATH"
-    echo ""
-    echo "rock -V should show head and build date (about now)"
-    echo "Ex: rock test.ooc (-noclean to leave .c files)"
-    echo ""
-    echo "Homepage: http://ooc-lang.org"
-    echo "IRC: irc.freenode.net #ooc-lang"
-    echo ""
-    echo "- Mark Fayngersh (@gmaster1440)"
-    echo "========================================"
-    
+    if [[ $? != 0 ]]; then
+      echo "Oops, something went wrong during installation :( Scroll up for error message."
+    else
+      echo "========================================"
+      echo ""
+      echo "Finished bootrapping and compiling latest rock."
+      echo ""
+      echo "Please add the following to your .profile:"
+      echo ""
+      echo "          export ROCK_DIST=$f"
+      echo "          export PATH=$f/bin:\$PATH"
+      echo ""
+      echo "rock -V should show head and build date (about now)"
+      echo "Ex: rock test.ooc (-noclean to leave .c files)"
+      echo ""
+      echo "Homepage: http://ooc-lang.org"
+      echo "IRC: irc.freenode.net #ooc-lang"
+      echo ""
+      echo "- Mark Fayngersh (@gmaster1440)"
+      echo "========================================"
+  fi
 }
 
 if intro; then
