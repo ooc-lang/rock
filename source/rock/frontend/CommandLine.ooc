@@ -1,4 +1,4 @@
-import io/File, os/[Terminal, Process]
+import io/File, os/[Terminal, Process, Pipe]
 import structs/[ArrayList, List, Stack]
 import text/StringTokenizer
 
@@ -492,6 +492,13 @@ CommandLine: class {
               Terminal setFgColor(Color red)
               
               old := File new(params outPath getPath() + File separator + module getSourceFolderName(), module getPath(".markdown"))
+              
+              out: String
+
+              markdown := Process new(["markdown", old getPath()])
+              markdown setStdout(Pipe new()) .executeNoWait()
+              markdown communicate(null, out&, null)
+              
               new := File new(module simpleName+".html")
               new write("<html>
               <head>
@@ -518,10 +525,8 @@ CommandLine: class {
                 $('.text').attr('style','padding: 0 1em 1em 1em;')
                 $('#text').attr('style','width: 70%;margin: auto;padding: 0.1em;');
               }
-              </script>")         
-              Process new(["sh","-c","markdown "+old getPath()+" >> "+new getPath()] as ArrayList<String>) execute()
-              Process new(["sh","-c","echo \"</body></html>\" >> "+new getPath()] as ArrayList<String>) execute()             
-    
+              </script>\n" + out + "\n</body></html>")
+
               Terminal setFgColor(Color yellow)
               ("Attempted to generate "+new getPath()+" [ markdown script needs to be in $PATH ]") println()                               
               Terminal reset()  
