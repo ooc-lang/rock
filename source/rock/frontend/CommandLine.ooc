@@ -487,7 +487,9 @@ CommandLine: class {
               }
               Terminal setAttr(Attr bright)
               Terminal setFgColor(Color blue)  
-              "[ Produced documentation in rock_tmp/ ]" println()
+              "[ Produced documentation in rock_tmp/ ]" println()  
+              
+              Terminal setFgColor(Color red)
               
               old := File new(params outPath getPath() + File separator + module getSourceFolderName(), module getPath(".markdown"))
               new := File new(module simpleName+".html")
@@ -520,7 +522,7 @@ CommandLine: class {
               Process new(["sh","-c","markdown "+old getPath()+" >> "+new getPath()] as ArrayList<String>) execute()
               Process new(["sh","-c","echo \"</body></html>\" >> "+new getPath()] as ArrayList<String>) execute()             
     
-              Terminal setFgColor(Color yellow) 
+              Terminal setFgColor(Color yellow)
               ("Attempted to generate "+new getPath()+" [ markdown script needs to be in $PATH ]") println()                               
               Terminal reset()  
             }
