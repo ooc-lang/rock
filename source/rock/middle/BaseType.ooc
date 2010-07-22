@@ -201,7 +201,7 @@ BaseType: class extends Type {
 
         if(other isGeneric() && other pointerLevel() == 0) {
             // every type is always a match against a flat generic type
-            return scoreSeed / 2
+            return scoreSeed
         }
         if(isGeneric() && other isPointer()) {
             // a generic value is a match for a pointer

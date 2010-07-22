@@ -89,6 +89,7 @@ LinkedList: class <T> extends List<T> {
 	clear: func {
 	    head next = head
 	    head prev = head
+        size = 0
 	}
 
 	/**
