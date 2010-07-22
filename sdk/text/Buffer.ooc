@@ -20,6 +20,12 @@ Buffer: class {
         capacity = data length()
     }
 
+    init: func ~withContentAndLength (str: String, length: SizeT) {
+        checkLength(length)
+        memcpy(data as Char*, str as Char*, length)
+        size = length
+    }
+
     append: func ~str (str: String) {
         length := str length()
         append(str, length)
