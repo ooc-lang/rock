@@ -488,7 +488,41 @@ CommandLine: class {
               Terminal setAttr(Attr bright)
               Terminal setFgColor(Color blue)  
               "[ Produced documentation in rock_tmp/ ]" println()
-              Terminal reset()      
+              
+              old := File new(params outPath getPath() + File separator + module getSourceFolderName(), module getPath(".markdown"))
+              new := File new(module simpleName+".html")
+              new write("<html>
+              <head>
+              	<script type=\"text/javascript\" charset=\"utf-8\" src=\"http://code.jquery.com/jquery-1.4.2.min.js\"></script>
+              	<link href='http://fonts.googleapis.com/css?family=Josefin+Sans+Std+Light' rel='stylesheet' type='text/css'>
+              	<link href='http://fonts.googleapis.com/css?family=Molengo' rel='stylesheet' type='text/css'>
+              	<link href='http://fonts.googleapis.com/css?family=IM+Fell+DW+Pica' rel='stylesheet' type='text/css'>
+                <title>ooc Explanations: doc_test</title>
+              </head>
+              <body onload=\"bootstrap()\">
+              <script type=\"text/javascript\" charset=\"utf-8\">
+              function bootstrap() {
+                $('body').attr('style',\"padding: 0;margin:  0;border:  0;background: #EEEEFF;\");
+                $('h1').attr('style',\"font-family: 'IM Fell DW Pica', arial, serif;padding-left: 1em;background: black;color: yellow;font-size: 2em;\");
+                $('h2').attr('style',\"font-family:'Josefin Sans Std Light',arial,serif;background:black;color:white;padding-top:5px;padding-left: 1em;border-top-left-radius: 50px;\");
+                $('p').attr('style',\"font-family: 'Molengo', arial, serif;\");
+                $('li').attr('style',\"font-family: 'Molengo', arial, serif;\");
+                $('h1').before('<div id=\"file_head\">');
+                $('body').children().each(function (i) { if (this.tagName == \"H2\") { return false } else if (this.tagName != \"DIV\") { $('#file_head').append(this)}});
+                $('#file_head').append('<div id=\"text\">');
+                $('#file_head').children().each(function (i) { if (this.tagName != \"DIV\" && this.tagName != \"H1\") { $('#text').append(this) }});
+                $(\"h2\").each(function() { var $h2 = $(this);$(\"<div class='text'/>\").append($h2.nextUntil(\"h2\")).insertAfter($h2).add($h2).wrapAll(\"<div class='box'/>\");});
+                $('.box').attr('style','width: 80%;margin: auto;border-top-left-radius: 25px;border-bottom-right-radius: 50px;background: rgba(56%, 91%, 100%, 0.5);')
+                $('.text').attr('style','padding: 0 1em 1em 1em;')
+                $('#text').attr('style','width: 70%;margin: auto;padding: 0.1em;');
+              }
+              </script>")         
+              Process new(["sh","-c","markdown "+old getPath()+" >> "+new getPath()] as ArrayList<String>) execute()
+              Process new(["sh","-c","echo \"</body></html>\" >> "+new getPath()] as ArrayList<String>) execute()             
+    
+              Terminal setFgColor(Color yellow) 
+              ("Attempted to generate "+new getPath()+" [ markdown script needs to be in $PATH ]") println()                               
+              Terminal reset()  
             }
 
         first = false
