@@ -822,7 +822,7 @@ BuiltinType: class extends TypeDecl {
 
     accept: func (v: Visitor) { /* yeah, right. */ }
 
-    writeSize: func (w: TabbedWriter, instance: Bool) { Exception new(This, "writeSize() called on a BuiltinType. wtf?") /* if this happens, we're screwed */ }
+    writeSize: func (w: TabbedWriter, instance: Bool) { Exception new(This, "writeSize() called on a BuiltinType. wtf?") throw() /* if this happens, we're screwed */ }
 
     replace: func (oldie, kiddo: Node) -> Bool { false }
 
