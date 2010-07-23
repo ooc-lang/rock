@@ -188,11 +188,11 @@ version(unix || apple) {
 
         getChildrenNames: func -> ArrayList<String> {
             if(!isDir()) {
-                Exception new(This, "Trying to get the children of the non-directory '" + path + "'!")
+                Exception new(This, "Trying to get the children of the non-directory '" + path + "'!") throw()
             }
             dir := opendir(path)
             if(!dir) {
-                Exception new(This, "Couldn't open directory '" + path + "' for reading!")
+                Exception new(This, "Couldn't open directory '" + path + "' for reading!") throw()
             }
             result := ArrayList<String> new()
             entry := readdir(dir)
@@ -208,11 +208,11 @@ version(unix || apple) {
 
         getChildren: func -> ArrayList<File> {
             if(!isDir()) {
-                Exception new(This, "Trying to get the children of the non-directory '" + path + "'!")
+                Exception new(This, "Trying to get the children of the non-directory '" + path + "'!") throw()
             }
             dir := opendir(path)
             if(!dir) {
-                Exception new(This, "Couldn't open directory '" + path + "' for reading!")
+                Exception new(This, "Couldn't open directory '" + path + "' for reading!") throw()
             }
             result := ArrayList<File> new()
             entry := readdir(dir)

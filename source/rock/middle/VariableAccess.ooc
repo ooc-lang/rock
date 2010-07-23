@@ -221,7 +221,9 @@ VariableAccess: class extends Expression {
                         res wholeAgain(this, "need ref!")
                         return Responses OK
                     }
-                    closureType = fDecl args get(ourIndex) getType()
+                    if (!fDecl isExtern()) // extern C functions don't accept a Closure_struct
+                        closureType = fDecl args get(ourIndex) getType()
+                
                 } elseif (parent instanceOf(BinaryOp)) {
                     binOp := parent as BinaryOp
                     if(binOp isAssign() && binOp getRight() == this) {
