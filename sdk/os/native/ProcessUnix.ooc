@@ -4,6 +4,10 @@ import PipeUnix
 
 version(unix || apple) {
 
+include errno
+
+errno : extern Int
+
 /**
    Process implementation for *nix
 
@@ -73,6 +77,7 @@ ProcessUnix: class extends Process {
 
             /* run the stuff. */
             execvp(args get(0), args toArray()) // List<String> => String*
+            exit(errno); // don't allow the forked process to continue if execvp fails
         }
     }
 
