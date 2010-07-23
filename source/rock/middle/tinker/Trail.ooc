@@ -171,7 +171,7 @@ Trail: class extends Stack<Node> {
     get: func ~checked <T> (index: Int, T: Class) -> T {
         node := data get(index) as Node
         if(!node instanceOf(T)) {
-            Exception new(This, "In Trail get(), expecting getting %s, got %s\n" format(T name, node class name))
+            Exception new(This, "In Trail get(), expecting getting %s, got %s\n" format(T name, node class name)) throw()
         }
         return node
     }

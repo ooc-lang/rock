@@ -81,7 +81,7 @@ CGenerator: class extends Skeleton {
     visitTypeAccess: func (typeAccess: TypeAccess) {
         ref := typeAccess getRef()
         if(!ref instanceOf(TypeDecl)) {
-            Exception new(This, "Ref of TypeAccess %s isn't a TypeDecl but a %s! wtf?" format(typeAccess toString(), ref class name))
+            Exception new(This, "Ref of TypeAccess %s isn't a TypeDecl but a %s! wtf?" format(typeAccess toString(), ref class name)) throw()
         }
         current app(ref as TypeDecl underName()). app("_class()")
     }
