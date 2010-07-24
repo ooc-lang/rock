@@ -35,7 +35,7 @@ ExtBuffer: class extends Buffer {
 	pos : SizeT
 	searchCaseSensitive : Bool = true
 	searchBuffer : Buffer
-	
+	newSearch : Bool = true
 	init: super func ~withCapa
 	init: super func ~str
 	init: super func ~strWithLength
@@ -87,6 +87,7 @@ ExtBuffer: class extends Buffer {
 
 	resetSearch: func {
 		pos = 0
+		newSearch = true
 	}
 	
 	setCaseSensitive: func (=searchCaseSensitive) {}
@@ -109,10 +110,11 @@ ExtBuffer: class extends Buffer {
 		if (searchBuffer == null) Exception new(This, "find called without initSearch") throw()
 		//("x" + (data as String) + "x") println ()
 		//("x" + (searchBuffer data as String) + "x") println()
-		if (pos) pos += searchBuffer size // add searchterm size to pos on continued searches, otherwise we would find the last result again
+		if (!newSearch) pos += searchBuffer size // add searchterm size to pos on continued searches, otherwise we would find the last result again
+		else newSearch = false
 		
 		found : Bool		
-		maxpos : Int = size - searchBuffer size // TODO use unsigned type with the size of SizeT instead of Int (32 bit type)
+		maxpos : Int = size - searchBuffer size // TODO use signed type with the size of SizeT instead of Int (32 bit type)
 		
 		if ((maxpos) < 0) {
 			pos = 0
