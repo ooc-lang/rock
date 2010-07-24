@@ -14,25 +14,18 @@ Buffer: class {
         size = 0
     }
 
-    init: func ~str (data: String) {
+    init: func ~withContent (data: String) {
         this data = data clone()
         size = data length()
         capacity = data length()
     }
 
-    init: func ~strWithLength (str: String, length: SizeT) {
+    init: func ~withContentAndLength (str: String, length: SizeT) {
         checkLength(length)
         memcpy(data as Char*, str as Char*, length)
         size = length
     }
-    
-	clone: func -> This {
-		result := This new (size) 
-		memcpy(result data as Char*, data as Char*, size)
-		result size = size
-		return result
-    } 
-    
+
     append: func ~str (str: String) {
         length := str length()
         append(str, length)

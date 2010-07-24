@@ -13,7 +13,7 @@ TypeList: class extends Type {
     }
 
     accept: func (visitor: Visitor) {
-        token printMessage("Visiting a TypeList! We're on the good track.", "INFO")
+        //token printMessage("Visiting a TypeList! We're on the good track.", "INFO")
         voidType accept(visitor)
     }
 

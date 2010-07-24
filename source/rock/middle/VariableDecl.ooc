@@ -321,7 +321,7 @@ VariableDeclTuple: class extends VariableDecl {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        token printMessage("Got a VariableDeclTuple, and expr is %s!" format(expr ? expr toString() : "(nil)"), "INFO")
+        //token printMessage("Got a VariableDeclTuple, and expr is %s!" format(expr ? expr toString() : "(nil)"), "INFO")
 
         expr resolve(trail, res)
 

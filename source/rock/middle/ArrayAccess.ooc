@@ -1,21 +1,21 @@
-import structs/[ArrayList]
+import structs/ArrayList, text/Buffer
 import ../frontend/[Token, BuildParams]
 import Visitor, Expression, VariableDecl, Declaration, Type, Node,
        OperatorDecl, FunctionCall, Import, Module, BinaryOp,
-       VariableAccess, AddressOf, ArrayCreation, TypeDecl
+       VariableAccess, AddressOf, ArrayCreation, TypeDecl, Argument
 import tinker/[Resolver, Response, Trail]
 
 ArrayAccess: class extends Expression {
 
-    array, index: Expression
+    array: Expression
+    indices := ArrayList<Expression> new()
+
     type: Type = null
 
     getArray: func -> Expression { array }
     setArray: func (=array) {}
-    getIndex: func -> Expression { index }
-    setIndex: func (=index) {}
 
-    init: func ~arrayAccess (=array, =index, .token) {
+    init: func ~arrayAccess (=array, .token) {
         super(token)
     }
 
@@ -29,9 +29,12 @@ ArrayAccess: class extends Expression {
     getGenericOperand: func -> Expression {
         if(getType() isGeneric() && getType() pointerLevel() == 0) {
             sizeAcc := VariableAccess new(VariableAccess new(getType() getName(), token), "size", token)
-            arrAcc := this as ArrayAccess
+            arrAcc := ArrayAccess new(array, token)
             // FIXME: wtf? we're modifying 'this' instead of making a copy of it?
-            arrAcc setIndex(BinaryOp new(arrAcc getIndex(), sizeAcc, OpType mul, arrAcc token))
+            for(index in indices) {
+                // FIXME: that's fucked up if we have more than one index anyway
+                arrAcc indices add(BinaryOp new(index, sizeAcc, OpType mul, arrAcc token))
+            }
             return AddressOf new(arrAcc, arrAcc token)
         }
         return super()
@@ -41,8 +44,10 @@ ArrayAccess: class extends Expression {
 
         trail push(this)
 
-        if(!index resolve(trail, res) ok()) {
-            res wholeAgain(this, "because of index!")
+        for(index in indices) {
+            if(!index resolve(trail, res) ok()) {
+                res wholeAgain(this, "because of index!")
+            }
         }
         if(!array resolve(trail, res) ok()) {
             res wholeAgain(this, "because of array!")
@@ -84,6 +89,11 @@ ArrayAccess: class extends Expression {
         }
 
         if(deepDown instanceOf(VariableAccess) && deepDown as VariableAccess getRef() instanceOf(TypeDecl)) {
+            if(indices size() > 1) {
+                token throwError("You can't call new on an ArrayAccess with several indices! Only one index is supported.")
+            }
+            index := indices[0]
+
             varAcc := deepDown as VariableAccess
             tDecl := varAcc getRef() as TypeDecl
             innerType := tDecl getInstanceType()
@@ -110,7 +120,10 @@ ArrayAccess: class extends Expression {
             deepDown = array
             while(deepDown instanceOf(ArrayAccess)) {
                 arrAcc := deepDown as ArrayAccess
-                arrayType = ArrayType new(arrayType, arrAcc index, token)
+                if(arrAcc indices size() > 1) {
+                    token throwError("You can't call new on an ArrayAccess with several indices! Only one index is supported.")
+                }
+                arrayType = ArrayType new(arrayType, arrAcc indices[0], token)
                 deepDown = deepDown as ArrayAccess array
             }
             arrayCreation := ArrayCreation new(arrayType, token)
@@ -165,7 +178,9 @@ ArrayAccess: class extends Expression {
 
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType, inAssign)
-            if(score == -1) return Responses LOOP
+            if(score == -1) {
+                return Responses LOOP
+            }
             if(score > bestScore) {
                 bestScore = score
                 candidate = opDecl
@@ -189,7 +204,7 @@ ArrayAccess: class extends Expression {
             fCall := FunctionCall new(fDecl getName(), token)
             fCall setRef(fDecl)
             fCall getArguments() add(array)
-            fCall getArguments() add(index)
+            fCall getArguments() addAll(indices)
 
             if(inAssign) {
                 assign := parent as BinaryOp
@@ -217,28 +232,41 @@ ArrayAccess: class extends Expression {
         if(!(op getSymbol() equals(inAssign ? "[]=" : "[]"))) {
             return 0 // not the right overload type - skip
         }
+        diff := op getSymbol() endsWith("=") ? 2 : 1
 
         fDecl := op getFunctionDecl()
 
         args := fDecl getArguments()
-        /*
-        if(args size() != 2) {
-            op token throwError(
-                "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol, args size()))
-        }
-        */
-
-        opArray  := args get(0)
-        opIndex := args get(1)
-
-        if(opArray getType() == null || opIndex getType() == null || array getType() == null || index getType() == null) {
-            return -1
+        if(!args last() instanceOf(VarArg) && (args size() != indices size() + diff)) {
+            // not a match!
+            if(params veryVerbose) {
+                "For %s vs %s, got %d args, %d indices, diff is %d - no luck!" printfln(op toString(), toString(), args size(), indices size(), diff)
+            }
+            return 0
         }
 
+        // Handle the array expression first, e.g. array[indices...]
+        opArray := args get(0)
+        if(opArray getType() == null || array getType() == null) return -1
         arrayScore := array getType() getScore(opArray getType())
         if(arrayScore == -1) return -1
-        indexScore := index getType() getScore(opIndex getType())
-        if(indexScore == -1) return -1
+
+        indexScore := 0
+        for(i in diff..args size()) {
+            opIndex := args[i]
+            index := indices[i - diff]
+            match {
+                case opIndex instanceOf(VarArg) =>
+                    indexScore += Type SCORE_SEED
+                case opIndex getType() == null =>
+                    return -1
+                case index   getType() == null =>
+                    return -1
+                case =>
+                    indexScore += index getType() getScore(opIndex getType())
+            }
+        }
+
         reqScore   := reqType ? fDecl getReturnType() getScore(reqType) : 0
         if(reqScore   == -1) return -1
 
@@ -251,7 +279,16 @@ ArrayAccess: class extends Expression {
     }
 
     toString: func -> String {
-        array toString() + "[" + index toString() + "]"
+        b := Buffer new()
+        b append(array toString()). append('[')
+        isFirst := true
+        for(index in indices) {
+            if(isFirst) isFirst = false
+            else        b append(", ")
+            b append(index toString())
+        }
+        b append(']')
+        b toString()
     }
 
     isReferencable: func -> Bool { true }
@@ -259,8 +296,7 @@ ArrayAccess: class extends Expression {
     replace: func (oldie, kiddo: Node) -> Bool {
         match oldie {
             case array => array = kiddo; true
-            case index => index = kiddo; true
-            case => false
+            case => indices replace(oldie as Expression, kiddo as Expression)
         }
     }
 

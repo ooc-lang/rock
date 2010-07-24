@@ -785,6 +785,12 @@ AstBuilder: class {
             case node instanceOf(ControlStatement) =>
                 cStmt := node as ControlStatement
                 cStmt body add(stmt)
+            case node instanceOf(ArrayAccess) =>
+                aa := node as ArrayAccess
+                if(!stmt instanceOf(Expression)) {
+                    stmt token throwError("Expected an expression here, not a statement!")
+                }
+                aa indices add(stmt as Expression)
             case node instanceOf(Module) =>
                 if(stmt instanceOf(VariableDecl)) {
                     vd := stmt as VariableDecl
@@ -825,8 +831,12 @@ AstBuilder: class {
         }
     }
 
-    onArrayAccess: unmangled(nq_onArrayAccess) func (array, index: Expression) -> ArrayAccess {
-        ArrayAccess new(array, index, token())
+    onArrayAccessStart: unmangled(nq_onArrayAccessStart) func (array: Expression) {
+        stack push(ArrayAccess new(array, token()))
+    }
+
+    onArrayAccessEnd: unmangled(nq_onArrayAccessEnd) func () -> ArrayAccess {
+        pop(ArrayAccess)
     }
 
     // return

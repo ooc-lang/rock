@@ -36,7 +36,7 @@ OperatorDecl: class extends Expression {
             sb append("__OP_"). append(getName())
 
             for(arg in fDecl args) {
-                sb append("_"). append(arg getType() toMangledString())
+                sb append("_"). append(arg instanceOf(VarArg) ? "__VA_ARG__" : arg getType() toMangledString())
             }
 
             if(!fDecl isVoid()) {
