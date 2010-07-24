@@ -12,5 +12,5 @@ execvp: extern func(String, String*) -> Int
 execve: extern func(String, String*, String*) -> Int
 fileno: extern func(FILE*) -> Int
 fork: extern func -> Int
+getpid: extern func -> UInt
 pipe: extern func(arg: Int*) -> Int
-

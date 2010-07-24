@@ -59,7 +59,8 @@ UInt32: cover from uint32_t extends ULLong
 UInt64: cover from uint64_t extends ULLong
 
 Octet:  cover from uint8_t
-SizeT:  cover from size_t extends LLong
+SizeT:  cover from size_t extends ULLong
+SSizeT:  cover from ssize_t extends LLong
 
 /**
  * real types

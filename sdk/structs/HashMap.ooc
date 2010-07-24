@@ -39,19 +39,19 @@ genericEquals: func <K> (k1, k2: K) -> Bool {
     memcmp(k1, k2, K size) == 0
 }
 
-intHash: func <K> (key: K) -> UInt {
-    return key as UInt
+intHash: func <K> (key: K) -> SizeT {
+    return key as SizeT
 }
 
-pointerHash: func <K> (key: K) -> UInt {
-    return (key as Pointer) as UInt
+pointerHash: func <K> (key: K) -> SizeT {
+    return (key as Pointer) as SizeT
 }
 
-charHash: func <K> (key: K) -> UInt {
+charHash: func <K> (key: K) -> SizeT {
     // both casts are necessary
     // Casting 'key' directly to UInt would deref a pointer to UInt
     // which would read random memory just after the char, which is not a good idea..
-    return (key as Char) as UInt
+    return (key as Char) as SizeT
 }
 
 /**
@@ -61,20 +61,20 @@ charHash: func <K> (key: K) -> UInt {
    :param: key The key to hash
    :param: seed The seed value
  */
-murmurHash: func <K> (keyTagazok: K) -> UInt {
+murmurHash: func <K> (keyTagazok: K) -> SizeT {
 
-    seed: UInt = 1 // TODO: figure out what makes a good seed value?
+    seed: SizeT = 1 // TODO: figure out what makes a good seed value?
 
     len := K size
-    m = 0x5bd1e995 : const UInt
-    r = 24 : const Int
+    m = 0x5bd1e995 : const SizeT
+    r = 24 : const SSizeT
     l := len
 
-    h : UInt = seed ^ len
+    h : SizeT = seed ^ len
     data := (keyTagazok&) as Octet*
 
     while (len >= 4) {
-        k := (data as UInt*)@
+        k := (data as SizeT*)@
 
         k *= m
         k ^= k >> r
@@ -110,9 +110,9 @@ murmurHash: func <K> (keyTagazok: K) -> UInt {
  * @param s The string to hash
  * @return UInt
  */
-ac_X31_hash: func <K> (key: K) -> UInt {
+ac_X31_hash: func <K> (key: K) -> SizeT {
     s := key as Char*
-    h = s@ : UInt
+    h = s@ : SizeT
     if (h) {
         s += 1
         while (s@) {
@@ -150,9 +150,9 @@ getStandardEquals: func <T> (T: Class) -> Func <T> (T, T) -> Bool {
 
 HashMap: class <K, V> extends BackIterable<V> {
 
-    size, capacity: Int
+    size, capacity: SizeT
     keyEquals: Func <K> (K, K) -> Bool
-    hashKey: Func <K> (K) -> UInt
+    hashKey: Func <K> (K) -> SizeT
 
     buckets: HashEntry[]
     keys: ArrayList<K>
@@ -171,7 +171,7 @@ HashMap: class <K, V> extends BackIterable<V> {
      * @param UInt capacity The number of buckets to use
      * @return HashTable
      */
-    init: func ~withCapacity (capaArg: Int) {
+    init: func ~withCapacity (capaArg: SizeT) {
         size = 0
         capacity = capaArg * 1.5
 
@@ -209,7 +209,7 @@ HashMap: class <K, V> extends BackIterable<V> {
      * @return HashEntry
      */
     getEntry: func (key: K, result: HashEntry*) -> Bool {
-        hash : UInt = hashKey(key) % capacity
+        hash : SizeT = hashKey(key) % capacity
 
         entry := buckets[hash]
 
@@ -238,7 +238,7 @@ HashMap: class <K, V> extends BackIterable<V> {
      * @param key The key associated with the HashEntry
      * @return HashEntry
      */
-    getEntryForHash: func (key: K, hash: UInt, result: HashEntry*) -> Bool {
+    getEntryForHash: func (key: K, hash: SizeT, result: HashEntry*) -> Bool {
         entry := buckets[hash]
 
         if(entry key == null) {
@@ -271,7 +271,7 @@ HashMap: class <K, V> extends BackIterable<V> {
      */
     put: func (key: K, value: V) -> Bool {
 
-        hash : UInt = hashKey(key) % capacity
+        hash : SizeT = hashKey(key) % capacity
         entry : HashEntry
         //printf("\nput(%s, value %p\n", key as String, value)
 
@@ -368,7 +368,7 @@ HashMap: class <K, V> extends BackIterable<V> {
      * @return Bool
      */
     remove: func (key: K) -> Bool {
-        hash : UInt = hashKey(key) % capacity
+        hash : SizeT = hashKey(key) % capacity
 
         prev = null : HashEntry*
 
@@ -417,7 +417,7 @@ HashMap: class <K, V> extends BackIterable<V> {
      * :param: _capacity The new table capacity
      * :return:
      */
-    resize: func (_capacity: Int) -> Bool {
+    resize: func (_capacity: SizeT) -> Bool {
 
         /* Keep track of old settings */
         oldCapacity := capacity
@@ -460,7 +460,7 @@ HashMap: class <K, V> extends BackIterable<V> {
         init(capacity)
     }
 
-    size: func -> Int { size }
+    size: func -> SizeT { size }
 
     getKeys: func -> ArrayList<K> { keys }
 

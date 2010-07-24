@@ -955,4 +955,3 @@ FunctionDecl: class extends Declaration {
     getVersion: func -> VersionSpec { verzion }
 
 }
-
