@@ -177,7 +177,7 @@ ArrayAccess: class extends Expression {
                     (parent as BinaryOp getLeft() == this)
 
         for(opDecl in trail module() getOperators()) {
-            score := getScore(opDecl, reqType, inAssign)
+            score := getScore(opDecl, reqType, inAssign, res)
             if(score == -1) {
                 return Responses LOOP
             }
@@ -190,7 +190,7 @@ ArrayAccess: class extends Expression {
         for(imp in trail module() getAllImports()) {
             module := imp getModule()
             for(opDecl in module getOperators()) {
-                score := getScore(opDecl, reqType, inAssign)
+                score := getScore(opDecl, reqType, inAssign, res)
                 if(score == -1) return Responses LOOP
                 if(score > bestScore) {
                     bestScore = score
@@ -227,7 +227,7 @@ ArrayAccess: class extends Expression {
 
     }
 
-    getScore: func (op: OperatorDecl, reqType: Type, inAssign: Bool) -> Int {
+    getScore: func (op: OperatorDecl, reqType: Type, inAssign: Bool, res: Resolver) -> Int {
 
         if(!(op getSymbol() equals(inAssign ? "[]=" : "[]"))) {
             return 0 // not the right overload type - skip
@@ -239,7 +239,7 @@ ArrayAccess: class extends Expression {
         args := fDecl getArguments()
         if(!args last() instanceOf(VarArg) && (args size() != indices size() + diff)) {
             // not a match!
-            if(params veryVerbose) {
+            if(res params veryVerbose) {
                 "For %s vs %s, got %d args, %d indices, diff is %d - no luck!" printfln(op toString(), toString(), args size(), indices size(), diff)
             }
             return 0
