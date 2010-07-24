@@ -1,4 +1,4 @@
-import structs/ArrayList
+import structs/[ArrayList,List]
 
 Bag: class {
 
@@ -75,4 +75,17 @@ Bag: class {
     }
 }
 
+operator as <T> (array : T[]) -> Bag {
+    array as ArrayList<T> as Bag
+}
 
+operator as <T> (list : List<T>) -> Bag {
+    bag := Bag new(list size())
+
+    for (item : T in list)
+    {
+        bag add(item)
+    }
+
+    bag
+}
