@@ -44,6 +44,7 @@ intHash: func <K> (key: K) -> UInt {
 }
 
 pointerHash: func <K> (key: K) -> UInt {
+    // FIXME this gives warning: cast from pointer to integer of different size on 64bit systems since UInt is a 32bit type
     return (key as Pointer) as UInt
 }
 
