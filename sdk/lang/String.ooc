@@ -375,7 +375,7 @@ String: cover from Char* {
 
         end := length()
         if(0 >= end) return ""
-        while(this[end - 1] == c) end -= 1;
+        while(end - 1 >= 0 && this[end - 1] == c) end -= 1;
 
         if(end != length()) return substring(0, end)
 
