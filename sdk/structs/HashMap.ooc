@@ -73,7 +73,7 @@ murmurHash: func <K> (keyTagazok: K) -> SizeT {
     h : SizeT = seed ^ len
     data := (keyTagazok&) as Octet*
 
-    while (len >= 4) {
+    while (len as SSizeT >= 4) {
         k := (data as SizeT*)@
 
         k *= m
