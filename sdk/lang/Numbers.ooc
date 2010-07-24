@@ -1,4 +1,4 @@
-include stdlib, stdint, stdbool, float, ctype
+include stdlib, stdint, stdbool, float, ctype, sys/types
 
 LLong: cover from signed long long {
 
