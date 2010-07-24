@@ -99,7 +99,7 @@ CGenerator: class extends Skeleton {
             arrAcc := op left as ArrayAccess
             type := arrAcc getArray() getType() as ArrayType
             current app("_lang_array__Array_set("). app(arrAcc getArray()).
-                    app(", "). app(arrAcc getIndex()).
+                    app(", "). app(arrAcc indices[0]).
                     app(", "). app(type inner).
                     app(", "). app(op right). app(")")
             return
@@ -265,9 +265,9 @@ CGenerator: class extends Skeleton {
         arrType := arrAcc getArray() getType()
         if(arrType instanceOf(ArrayType) && arrType as ArrayType expr == null) {
             inner := arrType as ArrayType inner
-            current app("_lang_array__Array_get("). app(arrAcc getArray()). app(", "). app(arrAcc getIndex()). app(", "). app(inner). app(")")
+            current app("_lang_array__Array_get("). app(arrAcc getArray()). app(", "). app(arrAcc indices[0]). app(", "). app(inner). app(")")
         } else {
-            current app(arrAcc getArray()). app('['). app(arrAcc getIndex()). app(']')
+            current app(arrAcc getArray()). app('['). app(arrAcc indices[0]). app(']')
         }
     }
 

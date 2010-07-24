@@ -367,7 +367,7 @@ CommandLine: class {
                 version(windows) {
                     dynamicExt = ".dll"
                 }
-                version(osx) {
+                version(apple) {
                     dynamicExt = ".dynlib"
                 }
                 params dynamiclib = File new(File new(basePath, "lib"), moduleName + dynamicExt) getPath()
@@ -483,22 +483,22 @@ CommandLine: class {
             } else if(params backend == "explain") {
               params clean = false
               for(candidate in module collectDeps()) {
-                ExplanationGenerator new(params, candidate) write() .close() 
+                ExplanationGenerator new(params, candidate) write() .close()
               }
               Terminal setAttr(Attr bright)
-              Terminal setFgColor(Color blue)  
-              "[ Produced documentation in rock_tmp/ ]" println()  
-              
+              Terminal setFgColor(Color blue)
+              "[ Produced documentation in rock_tmp/ ]" println()
+
               Terminal setFgColor(Color red)
-              
+
               old := File new(params outPath getPath() + File separator + module getSourceFolderName(), module getPath(".markdown"))
-              
+
               out: String
 
               markdown := Process new(["markdown", old getPath()])
               markdown setStdout(Pipe new()) .executeNoWait()
               markdown communicate(null, out&, null)
-              
+
               new := File new(module simpleName+".html")
               new write("<html>
               <head>
@@ -528,8 +528,8 @@ CommandLine: class {
               </script>\n" + out + "\n</body></html>")
 
               Terminal setFgColor(Color yellow)
-              ("Attempted to generate "+new getPath()+" [ markdown script needs to be in $PATH ]") println()                               
-              Terminal reset()  
+              ("Attempted to generate "+new getPath()+" [ markdown script needs to be in $PATH ]") println()
+              Terminal reset()
             }
 
         first = false
