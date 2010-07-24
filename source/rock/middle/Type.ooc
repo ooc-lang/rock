@@ -125,8 +125,9 @@ Type: abstract class extends Expression {
 		   name == "UChar" || name == "Int8"  || name == "Int16" ||
 		   name == "Int32" || name == "Int64" || name == "UInt8" ||
 		   name == "UInt16"|| name == "UInt32"|| name == "UInt64"||
-		   name == "SizeT" || name == "Float" || name == "Double"
-		)) return true
+		   name == "SizeT" || name == "Float" || name == "Double"||
+           name == "SSizeT"))
+		    return true
 
         down := dig()
         if(down) return down isNumericType()
