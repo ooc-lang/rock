@@ -23,7 +23,12 @@ import structs/ArrayList
 	nbuf := buf replaceAll( Buffer new ("windows"), Buffer new ("linux") )
 	if (nbuf) println("finally: " + nbuf data as String)	
 	
-	future plans: explode, fromFile, toFile
+	allows to split/explode to an arraylist of extbuffers
+	x := buf explode( Buffer new(" ") )
+	if (x) for (item in x) item toString() println()
+	add that to the replace example above
+	
+	future plans: fromFile, toFile, ...
 	
 	TODO maybe add \0 automatically at the end of every Buffer, so the pointer can
 	directly be passed to C functions in every case
@@ -36,16 +41,19 @@ ExtBuffer: class extends Buffer {
 	searchCaseSensitive : Bool = true
 	searchBuffer : Buffer
 	newSearch : Bool = true
+	
 	init: super func ~withCapa
 	init: super func ~str
 	init: super func ~strWithLength
 
 	
 	clone: func -> This { 
-		result := This new(size)
-		memcpy(result data as Char*, data as Char *, size)
+		result := This new(size) 
+		memcpy(result data as Char*, data as Char *, size) 
 		result pos = pos
 		result searchBuffer = (searchBuffer) ? searchBuffer clone() : null
+		result searchCaseSensitive = this searchCaseSensitive
+		result newSearch = newSearch		
 		return result		
 	}
 		
@@ -114,7 +122,7 @@ ExtBuffer: class extends Buffer {
 		else newSearch = false
 		
 		found : Bool		
-		maxpos : Int = size - searchBuffer size // TODO use signed type with the size of SizeT instead of Int (32 bit type)
+		maxpos : SSizeT = size - searchBuffer size // need a signed type here
 		
 		if ((maxpos) < 0) {
 			pos = 0
@@ -144,25 +152,33 @@ ExtBuffer: class extends Buffer {
 			}
 			i += 1	
 		} 			
-		pos = 0
+		pos = 0	
 		return false	
 	}
+	
+	/* returns a list of positions where buffer has been found, or an empty list if not */
+	searchResults: func ( what : Buffer) -> ArrayList <SizeT> {
+		// we make a list of positions returned, maxed out to maximum possible capacity 
+		// (means maximum amount of possible search results)
+		// so we dont lose cpu cycles for realloc
+		// mem usage will only get slightly higher with really huge strings
+		// but still far below what we're used to from java/.net 
+		if (what == null || what size == 0) return ArrayList <SizeT> new(0)
+		result := ArrayList <SizeT> new (size / what size)
+		initSearch(what)
+		while (find()) result add (pos)
+		return result	
+	}
+	
 	
 	// quickest possible replace algorithm, uses only 2 malloc's and 1 linear read as well as 1 linear write
 	// "this" is the haystack, "what" the needle, "whit" the replacement
 	replaceAll: func (what, whit : Buffer) -> This {
 		if (what == null || what size == 0 || whit == null) return clone()
-	
-		initSearch(what);
-		
-		// we make a list of positions returned, maxed out to maximum possible capacity
-		// so we dont loose cpu cycles for realloc
-		// mem usage will only get slightly higher with really huge strings
-		// but still far below what we're used to from java/.net
-		l := ArrayList <SizeT> new (size / what size)
-		while (find()) 	l add (pos)
+			
+		l := searchResults( what )
 		 
-		if (l size() == 0) return clone()
+		if (l == null || l size() == 0) return clone()
 		result := This new( size + (whit size * l size) - (what size * l size) )
 		
 		sstart: SizeT = 0 //source (this) start pos
@@ -185,7 +201,24 @@ ExtBuffer: class extends Buffer {
 		
 		return result
 		
-	}
+	}		
+	
+	explode: func (delimiter:Buffer) -> ArrayList <This> {
+		
+		l := searchResults(delimiter) 
+		result := ArrayList <This> new(l size()) 
+		sstart: SizeT = 0 //source (this) start pos
+		for (item in l) {
+			sdist := item - sstart // bytes to copy
+			b := This new ((data as Char* + sstart) as String, sdist)
+			result add ( b ) 
+			sstart += sdist + delimiter size
+		}
+		sdist := size - sstart // bytes to copy
+		b := This new ((data as Char* + sstart) as String, sdist)
+		result add ( b ) 		
+		return result
+	}	
 	
 }
 
