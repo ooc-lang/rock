@@ -14,3 +14,4 @@ fileno: extern func(FILE*) -> Int
 fork: extern func -> Int
 getpid: extern func -> UInt
 pipe: extern func(arg: Int*) -> Int
+isatty: extern func(fd: Int) -> Int

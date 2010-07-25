@@ -35,11 +35,26 @@ Color: class {
     white  =     38    : static const Int
 }
 
+version (unix || apple) {
+import unistd
 Terminal: class {
 
     /* Background color codes are the same as Foreground + 10
      * example: background blue = 34 + 10 = 44
      */
+
+    /** Output a terminal code to stdout **/
+    output: static func(fmt : String, ...) {
+        if (isatty(STDOUT_FILENO)) {
+            va : VaList
+
+            va_start(va, fmt)
+            vprintf(fmt, va)
+            va_end(va)
+        }
+
+        fflush(stdout)
+    }
 
     /** Set foreground and background color */
     setColor: static func(f,b: Int) {
@@ -50,21 +65,21 @@ Terminal: class {
     /** Set foreground color */
     setFgColor: static func(c: Int) {
         if(c >= 30 && c <= 37) {
-            printf("\033[%dm",c); fflush(stdout)
+            output("\033[%dm",c)
         }
     }
 
     /** Set background color */
     setBgColor: static func(c: Int) {
         if(c >= 30 && c <= 37) {
-            printf("\033[%dm",c + 10); fflush(stdout)
+            output("\033[%dm",c + 10)
         }
     }
 
     /** Set text attribute */
     setAttr: static func(att: Int) {
         if(att >= 0 && att <= 8) {
-            printf("\033[%dm",att); fflush(stdout)
+            output("\033[%dm",att)
         }
     }
 
@@ -73,4 +88,30 @@ Terminal: class {
     reset: static func() {
         setAttr(Attr reset)
     }
+}
+}
+
+version (!(unix || apple)) {
+Terminal: class {
+
+    /* Background color codes are the same as Foreground + 10
+     * example: background blue = 34 + 10 = 44
+     */
+
+    /** Set foreground and background color */
+    setColor: static func(f,b: Int) {}
+
+    /** Set foreground color */
+    setFgColor: static func(c: Int) {}
+
+    /** Set background color */
+    setBgColor: static func(c: Int) {}
+
+    /** Set text attribute */
+    setAttr: static func(att: Int) {}
+
+    /* Set reset attribute =) */
+    /** Reset the terminal colors and attributes */
+    reset: static func() {}
+}
 }
