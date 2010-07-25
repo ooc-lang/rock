@@ -32,7 +32,7 @@ VariableAccess: class extends Expression {
     init: func ~typeAccess (type: Type, .token) {
         super(token)
         name = type getName()
-        if(type getRef() instanceOf(VariableDecl)) {
+        if(type getRef() instanceOf?(VariableDecl)) {
             varDecl := type getRef() as VariableDecl
             if(varDecl getOwner() != null) {
                 if(varDecl isStatic) {
@@ -57,7 +57,7 @@ VariableAccess: class extends Expression {
     debugCondition: func -> Bool { false }
 
     suggest: func (node: Node) -> Bool {
-        if(node instanceOf(VariableDecl)) {
+        if(node instanceOf?(VariableDecl)) {
 			candidate := node as VariableDecl
 		    // if we're accessing a member, we're expecting the
             // candidate to belong to a TypeDecl..
@@ -71,7 +71,7 @@ VariableAccess: class extends Expression {
             }
 
 		    return true
-	    } else if(node instanceOf(FunctionDecl)) {
+	    } else if(node instanceOf?(FunctionDecl)) {
 			candidate := node as FunctionDecl
 		    // if we're accessing a member, we're expecting the candidate
 		    // to belong to a TypeDecl..
@@ -81,7 +81,7 @@ VariableAccess: class extends Expression {
 
 		    ref = candidate
 		    return true
-	    } else if(node instanceOf(TypeDecl) || node instanceOf(NamespaceDecl)) {
+	    } else if(node instanceOf?(TypeDecl) || node instanceOf?(NamespaceDecl)) {
 			ref = node
             return true
 	    }
@@ -109,7 +109,7 @@ VariableAccess: class extends Expression {
                 res wholeAgain(this, "expr type or expr type ref is null")
                 return Responses OK
             }
-            if(!expr getType() getRef() instanceOf(ClassDecl)) {
+            if(!expr getType() getRef() instanceOf?(ClassDecl)) {
                 name = expr getType() getName()
                 ref = expr getType() getRef()
                 expr = null
@@ -120,8 +120,8 @@ VariableAccess: class extends Expression {
          * Try to resolve the access from the expr
          */
         if(!ref && expr) {
-            if(expr instanceOf(VariableAccess) && expr as VariableAccess getRef() != null \
-              && expr as VariableAccess getRef() instanceOf(NamespaceDecl)) {
+            if(expr instanceOf?(VariableAccess) && expr as VariableAccess getRef() != null \
+              && expr as VariableAccess getRef() instanceOf?(NamespaceDecl)) {
                 expr as VariableAccess getRef() resolveAccess(this, res, trail)
             } else {
                 exprType := expr getType()
@@ -151,7 +151,7 @@ VariableAccess: class extends Expression {
             depth := trail size() - 1
             while(depth >= 0) {
                 node := trail get(depth)
-                if(node instanceOf(TypeDecl)) {
+                if(node instanceOf?(TypeDecl)) {
                     tDecl := node as TypeDecl
                     if(tDecl isMeta) node = tDecl getNonMeta()
                 }
@@ -159,7 +159,7 @@ VariableAccess: class extends Expression {
 
                 if(ref) {
                     if(expr) {
-                        if(expr instanceOf(VariableAccess)) {
+                        if(expr instanceOf?(VariableAccess)) {
                             trail push(this)
                             response := expr resolve(trail, res)
                             trail pop(this)
@@ -169,7 +169,7 @@ VariableAccess: class extends Expression {
                     }
 
                     // only accesses to variable decls need to be partialed (not type decls)
-                    if(ref instanceOf(VariableDecl) && !ref as VariableDecl isGlobal() && expr == null) {
+                    if(ref instanceOf?(VariableDecl) && !ref as VariableDecl isGlobal() && expr == null) {
                         closureIndex := trail find(FunctionDecl)
 
                         if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
@@ -193,7 +193,7 @@ VariableAccess: class extends Expression {
             }
         }
 
-        if (getType() instanceOf(FuncType) ) {
+        if (getType() instanceOf?(FuncType) ) {
             fType := getType() as FuncType
             parent := trail peek()
 
@@ -205,7 +205,7 @@ VariableAccess: class extends Expression {
 
                 closureType: FuncType = null
 
-                if (parent instanceOf(FunctionCall)) {
+                if (parent instanceOf?(FunctionCall)) {
                     /*
                      * The case we're looking for is this one:
                      *
@@ -224,19 +224,19 @@ VariableAccess: class extends Expression {
                     if (!fDecl isExtern()) // extern C functions don't accept a Closure_struct
                         closureType = fDecl args get(ourIndex) getType()
                 
-                } elseif (parent instanceOf(BinaryOp)) {
+                } elseif (parent instanceOf?(BinaryOp)) {
                     binOp := parent as BinaryOp
                     if(binOp isAssign() && binOp getRight() == this) {
                         closureType = binOp getLeft() getType() clone()
                     }
-                } elseif (parent instanceOf(Return)) {
+                } elseif (parent instanceOf?(Return)) {
                     fIndex := trail find(FunctionDecl)
                     if (fIndex != -1) {
                         closureType = trail get(fIndex, FunctionDecl) returnType clone()
                     }
                 }
 
-                if (closureType && closureType instanceOf(FuncType)) {
+                if (closureType && closureType instanceOf?(FuncType)) {
                     fType isClosure = true
                     closure := StructLiteral new(closureType, closureElements, token)
                     if(!trail peek() replace(this, closure)) {
@@ -251,13 +251,13 @@ VariableAccess: class extends Expression {
 
 
         // Simple property access? Replace myself with a getter call.
-        if(ref && ref instanceOf(PropertyDecl)) {
+        if(ref && ref instanceOf?(PropertyDecl)) {
             // Make sure we're not in a getter/setter yet (the trail would
             // contain `ref` then)
             if(ref as PropertyDecl inOuterSpace(trail)) {
                 // Test that we're not part of an assignment (which will be replaced by a setter call)
                 // TODO: This should be nicer.
-                if(!(trail peek() instanceOf(BinaryOp) && trail peek() as BinaryOp type == OpType ass)) {
+                if(!(trail peek() instanceOf?(BinaryOp) && trail peek() as BinaryOp type == OpType ass)) {
                     property := ref as PropertyDecl
                     fCall := FunctionCall new(expr, property getGetterName(), token)
                     trail peek() replace(this, fCall)
@@ -317,7 +317,7 @@ VariableAccess: class extends Expression {
     getType: func -> Type {
 
         if(!ref) return null
-        if(ref instanceOf(Expression)) {
+        if(ref instanceOf?(Expression)) {
             return ref as Expression getType()
         }
         return null
@@ -325,9 +325,9 @@ VariableAccess: class extends Expression {
 
     isMember: func -> Bool {
         (expr != null) &&
-        !(expr instanceOf(VariableAccess) &&
+        !(expr instanceOf?(VariableAccess) &&
           expr as VariableAccess getRef() != null &&
-          expr as VariableAccess getRef() instanceOf(NamespaceDecl)
+          expr as VariableAccess getRef() instanceOf?(NamespaceDecl)
         )
     }
 

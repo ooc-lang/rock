@@ -142,14 +142,14 @@ MatchGroupIterator: class <T> extends Iterator<T> {
         index = 0
     }
 
-    hasNext: func -> Bool { index < matchObject groupCount }
+    hasNext?: func -> Bool { index < matchObject groupCount }
     next: func -> T {
         s := matchObject group(index)
         index += 1
         return s
     }
 
-    hasPrev: func -> Bool { index > 0 }
+    hasPrev?: func -> Bool { index > 0 }
     prev: func -> T {
         index -= 1
         return matchObject group(index)

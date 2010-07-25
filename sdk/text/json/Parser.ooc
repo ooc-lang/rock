@@ -51,14 +51,14 @@ ParserError: class extends Exception {
 getToken: func (reader: Reader, token: Token*) {
     token@ type = TokenType None
     // end of string?
-    if(!reader hasNext()) {
+    if(!reader hasNext?()) {
         return
     }
     marker := reader mark()
     chr := reader read()
     // skip whitespace.
-    while(chr isWhitespace() || chr == 8) { // chr == 8 is a workaround. sometimes, a char 8 will appear.
-        if(!reader hasNext())
+    while(chr whitespace?() || chr == 8) { // chr == 8 is a workaround. sometimes, a char 8 will appear.
+        if(!reader hasNext?())
             return
         chr = reader read()
     }
@@ -153,19 +153,19 @@ getToken: func (reader: Reader, token: Token*) {
             return
         }
         case => {
-            if(chr isDigit() || chr == '-') {
+            if(chr digit?() || chr == '-') {
                 // yay number (negative or positive)
                 beginning := reader mark() - 1
-                while(reader hasNext()) {
+                while(reader hasNext?()) {
                     chr = reader read()
-                    if(!chr isDigit())
+                    if(!chr digit?())
                         break
                 }
                 // frac?
                 if(chr == '.') {
-                    while(reader hasNext()) {
+                    while(reader hasNext?()) {
                         chr = reader read()
-                        if(!chr isDigit())
+                        if(!chr digit?())
                             break
                     }
                 }
@@ -175,9 +175,9 @@ getToken: func (reader: Reader, token: Token*) {
                     if(chr == '+' || chr == '-') {
                         chr = reader read()
                     }
-                    while(reader hasNext()) {
+                    while(reader hasNext?()) {
                         chr = reader read()
-                        if(!chr isDigit())
+                        if(!chr digit?())
                             break
                     }
                 }
@@ -262,7 +262,7 @@ Parser: class {
                 return value
             }
             case TokenType Number => {
-                if(token value contains('.') || token value contains('E') || token value contains('e')) {
+                if(token value contains?('.') || token value contains?('E') || token value contains?('e')) {
                     // store as Number (TODO!)
                     value := gc_malloc(Number size) as Number*
                     value@ = Number new(token value)

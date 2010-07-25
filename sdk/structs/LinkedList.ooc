@@ -239,7 +239,7 @@ LinkedList: class <T> extends List<T> {
 	    list := This<T> new()
         if (head next != head) {
     	    iter := iterator()
-    	    while (iter hasNext())
+    	    while (iter hasNext?())
     	        list add(iter next())
         }
 	    return list
@@ -321,7 +321,7 @@ LinkedListIterator: class <T> extends BackIterator<T>  {
 		current = list head
 	}
 
-	hasNext: func -> Bool {
+	hasNext?: func -> Bool {
 		return (current next != list head)
 	}
 
@@ -330,7 +330,7 @@ LinkedListIterator: class <T> extends BackIterator<T>  {
 		return current data
 	}
 
-    hasPrev: func -> Bool {
+    hasPrev?: func -> Bool {
         return (current != list head)
     }
 
@@ -346,7 +346,7 @@ LinkedListIterator: class <T> extends BackIterator<T>  {
         }
 
         old := current
-        if(hasNext()) {
+        if(hasNext?()) {
             current = current next
         } else {
             current = current prev

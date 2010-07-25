@@ -19,7 +19,7 @@ FileUtils: class {
 		
 		for (elem in path split(File separator)) {
 			if (elem == "..") {
-				if (!elems isEmpty()) {
+				if (!elems empty?()) {
 					elems removeAt(elems lastIndex())
 				} else {
 					elems add(elem)
@@ -32,7 +32,7 @@ FileUtils: class {
 		}
 		
 		buffer := Buffer new(path length())
-		if (path startsWith(File separator)) {
+		if (path startsWith?(File separator)) {
 			buffer append(File separator)
 		}
 		

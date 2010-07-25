@@ -39,7 +39,7 @@ Tuple: class extends Expression {
     }
 
     toString: func -> String {
-        if(elements isEmpty()) return "()"
+        if(elements empty?()) return "()"
 
         buffer := Buffer new()
         buffer append('(')
@@ -71,7 +71,7 @@ Tuple: class extends Expression {
         trail pop(this)
 
         parent := trail peek()
-        if(parent instanceOf(Cast)) {
+        if(parent instanceOf?(Cast)) {
             cast := parent as Cast
             structLit := StructLiteral new(cast getType(), elements, token)
             grandpa := trail peek(2)

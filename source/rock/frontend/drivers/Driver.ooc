@@ -22,7 +22,7 @@ Driver: abstract class {
 
     copyLocalHeaders: func (module: Module, params: BuildParams, done: List<Module>) {
 
-        if(done contains(module)) return
+        if(done contains?(module)) return
         done add(module)
 
         for(inc: Include in module includes) {
@@ -54,7 +54,7 @@ Driver: abstract class {
         params compiler addObjectFile(objFile)
 
         for(imp: Import in module getAllImports()) {
-            if(!done contains(imp getModule() fullName)) {
+            if(!done contains?(imp getModule() fullName)) {
                 addDeps(imp getModule(), toCompile, done)
             }
         }
@@ -72,7 +72,7 @@ Driver: abstract class {
 
     getFlagsFromUse: func ~allModules (module: Module, flagsDone: List<String>, modulesDone: List<Module>, usesDone: List<UseDef>) {
 
-        if(modulesDone contains(module)) return
+        if(modulesDone contains?(module)) return
         modulesDone add(module)
 
         for(use1: Use in module getUses()) {
@@ -91,7 +91,7 @@ Driver: abstract class {
         // hacky workaround, but seriously, wtf?
         if(useDef == null) return
 
-        if(usesDone contains(useDef)) return
+        if(usesDone contains?(useDef)) return
         usesDone add(useDef)
 
         //compileNasms(useDef getLibs(), flagsDone)
@@ -100,21 +100,21 @@ Driver: abstract class {
         for(pkg in useDef getPkgs()) {
             info := PkgConfigFrontend getInfo(pkg)
             for(cflag in info cflags) {
-                if(!flagsDone contains(cflag)) {
+                if(!flagsDone contains?(cflag)) {
                     flagsDone add(cflag)
                 }
             }
             for(library in info libraries) {
                 // FIXME lazy
                 lpath := "-l"+library
-                if(!flagsDone contains(lpath)) {
+                if(!flagsDone contains?(lpath)) {
                     flagsDone add(lpath)
                 }
             }
             for(libPath in info libPaths) {
                 // FIXME just goin' with the flow
                 lpath := "-L"+libPath
-                if(!flagsDone contains(lpath)) {
+                if(!flagsDone contains?(lpath)) {
                     flagsDone add(lpath)
                 }
             }
@@ -123,7 +123,7 @@ Driver: abstract class {
         for(includePath in useDef getIncludePaths()) {
             // FIXME lazy too
             ipath := "-I" + includePath
-            if(!flagsDone contains(ipath)) {
+            if(!flagsDone contains?(ipath)) {
                 flagsDone add(ipath)
             }
         }
@@ -131,7 +131,7 @@ Driver: abstract class {
         for(libPath in useDef getLibPaths()) {
             // FIXME lazy too
             lpath := "-L" + libPath
-            if(!flagsDone contains(lpath)) {
+            if(!flagsDone contains?(lpath)) {
                 flagsDone add(lpath)
             }
         }

@@ -14,7 +14,7 @@ Argument: abstract class extends VariableDecl {
 
     init: func ~argument (.type, .name, .token) { super(type, name, token) }
 
-    toString: func -> String { name isEmpty() ? type toString() : super() }
+    toString: func -> String { name empty?() ? type toString() : super() }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 

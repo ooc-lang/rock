@@ -33,7 +33,7 @@ CachedFileWriter: class extends BufferWriter {
      * if nothing was touched.
      */
 	flushAndClose: func -> Bool {
-        if(file exists()) {
+        if(file exists?()) {
             thisContent := buffer toString()
             fileContent := file read()
 

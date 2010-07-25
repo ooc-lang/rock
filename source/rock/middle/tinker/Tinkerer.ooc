@@ -39,7 +39,7 @@ Tinkerer: class {
         }
 
         round := 0
-        while(!resolvers isEmpty()) {
+        while(!resolvers empty?()) {
 
             round += 1
             if(params veryVerbose) {
@@ -48,7 +48,7 @@ Tinkerer: class {
 
             iter := resolvers iterator()
 
-            while(iter hasNext()) {
+            while(iter hasNext?()) {
 
                 resolver := iter next()
 

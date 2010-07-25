@@ -17,7 +17,7 @@ ShellUtils: class {
     findExecutable: static func (executableName: String, crucial: Bool) -> File {
 
         simple := File new(executableName)
-        if(simple exists() && simple isFile()) {
+        if(simple exists?() && simple file?()) {
             return simple
         }
 
@@ -35,10 +35,10 @@ ShellUtils: class {
         }
 
         st := StringTokenizer new(pathVar, File pathDelimiter)
-        while (st hasNext()) {
+        while (st hasNext?()) {
             path := st nextToken() + File separator + executableName
             file := File new(path)
-            if (file exists()) {
+            if (file exists?()) {
                 return file
             }
         }

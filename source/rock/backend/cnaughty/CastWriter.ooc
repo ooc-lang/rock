@@ -10,7 +10,7 @@ CastWriter: abstract class extends Skeleton {
 
             current app("(* ("). app(cast type). app("*)"). app(cast inner). app(')')
 
-        } else if(cast getType() getRef() instanceOf(InterfaceDecl)) {
+        } else if(cast getType() getRef() instanceOf?(InterfaceDecl)) {
 
             iDecl := cast getType() getRef() as InterfaceDecl
 
@@ -36,7 +36,7 @@ CastWriter: abstract class extends Skeleton {
         //printf("Searching for implementor of %s in %s\n", haystack toString(), typeDecl toString())
         for(impl in typeDecl getInterfaceDecls()) {
             //printf("%s vs %s\n", impl getSuperRef() getType() toString(), haystack toString())
-            if(impl getSuperRef() getType() equals(haystack)) {
+            if(impl getSuperRef() getType() equals?(haystack)) {
                 //printf("Found %s\n", impl toString())
                 return typeDecl
             }

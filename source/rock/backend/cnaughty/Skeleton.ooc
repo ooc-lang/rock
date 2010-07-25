@@ -17,7 +17,7 @@ Skeleton: abstract class extends Visitor {
 		}
 
         current nl(). app(stat)
-        if(!stat instanceOf(ControlStatement))
+        if(!stat instanceOf?(ControlStatement))
             current app(';')
     }
 

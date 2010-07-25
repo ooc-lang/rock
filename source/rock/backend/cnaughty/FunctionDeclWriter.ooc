@@ -85,7 +85,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
         isInterface := false
         owner := fDecl getOwner()
         if(owner != null && owner isMeta) owner = owner getNonMeta()
-        if(owner != null && owner instanceOf(InterfaceDecl)) isInterface = true
+        if(owner != null && owner instanceOf?(InterfaceDecl)) isInterface = true
 
         /* Step 1 : write this, if any */
         iter := fDecl args iterator() as Iterator<Argument>
@@ -153,7 +153,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
         }
 
         /* Step 4 : write real args */
-        while(iter hasNext()) {
+        while(iter hasNext?()) {
             arg := iter next()
             //"Writing arg %s" format(arg toString()) println()
             if(!isFirst) current app(", ")
@@ -164,7 +164,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
                     current app(arg name)
                 case ArgsWriteModes TYPES_ONLY =>
                     {
-                        if(arg instanceOf(VarArg)) {
+                        if(arg instanceOf?(VarArg)) {
                             current app("...")
                         } else {
                             current app(arg type)

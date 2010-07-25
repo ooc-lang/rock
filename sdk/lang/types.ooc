@@ -14,9 +14,9 @@ Object: abstract class {
     __destroy__: func {}
 
     /** return true if *class* is a subclass of *T*. */
-    instanceOf: final func (T: Class) -> Bool {
+    instanceOf?: final func (T: Class) -> Bool {
         if(!this) return false
-        class inheritsFrom(T)
+        class inheritsFrom?(T)
     }
 
 }
@@ -47,9 +47,9 @@ Class: abstract class {
         return object
     }
 
-    inheritsFrom: final func ~_class (T: Class) -> Bool {
+    inheritsFrom?: final func ~_class (T: Class) -> Bool {
         if(this == T) return true
-        return (super ? super inheritsFrom(T) : false)
+        return (super ? super inheritsFrom?(T) : false)
     }
 
 }

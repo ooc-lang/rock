@@ -25,7 +25,7 @@ ModuleWriter: abstract class extends Skeleton {
         for(inc: Include in module includes) {
             visitInclude(this, inc)
         }
-        if(!module includes isEmpty()) current nl()
+        if(!module includes empty?()) current nl()
 
         for(uze in module uses) {
 	    useDef := uze getUseDef()
@@ -37,7 +37,7 @@ ModuleWriter: abstract class extends Skeleton {
         // write all type forward declarations
         writeTypesForward(this, module, false) // non-metas first
         writeTypesForward(this, module, true)  // then metas
-        if(!module types isEmpty()) current nl()
+        if(!module types empty?()) current nl()
 
         // write imports' includes
         imports := classifyImports(this, module)
@@ -92,7 +92,7 @@ ModuleWriter: abstract class extends Skeleton {
 
         // write all global variables
         for(stmt in module body) {
-            if(stmt instanceOf(VariableDecl)) {
+            if(stmt instanceOf?(VariableDecl)) {
                 vd := stmt as VariableDecl
                 // TODO: add 'local'
                 if(vd isExtern() && !vd isProto()) continue
@@ -119,7 +119,7 @@ ModuleWriter: abstract class extends Skeleton {
 		}
 
         for (type in module types) {
-            if(type instanceOf(ClassDecl)) {
+            if(type instanceOf?(ClassDecl)) {
                 cDecl := type as ClassDecl
                 finalScore: Int
                 loadFunc := cDecl getFunction(ClassDecl LOAD_FUNC_NAME, null, null, finalScore&)
@@ -132,7 +132,7 @@ ModuleWriter: abstract class extends Skeleton {
         }
 
         for(stmt in module body) {
-            if(stmt instanceOf(VariableDecl)) {
+            if(stmt instanceOf?(VariableDecl)) {
                 vd := stmt as VariableDecl
                 if(vd isExtern() || vd getExpr() == null) continue
                 current nl(). app(vd getFullName()). app(" = "). app(vd getExpr()). app(';')
@@ -180,7 +180,7 @@ ModuleWriter: abstract class extends Skeleton {
         current nl(). nl(). app("#endif // "). app(hFwdName)
 
         // Write a default main if none provided in source
-        if(module main && !module functions contains("main")) {
+        if(module main && !module functions contains?("main")) {
             writeDefaultMain(this)
         }
 
@@ -226,14 +226,14 @@ ModuleWriter: abstract class extends Skeleton {
             for(arg in fDecl args) {
                 if(isFirst) isFirst = false
                 else        hw app(", ")
-                if(arg instanceOf(VarArg)) hw app("...")
+                if(arg instanceOf?(VarArg)) hw app("...")
                 else                       hw app(arg getName())
             }
 
             hw app(") ")
 
             // cast the return type if necessary (to avoid C warnings)
-            if(fDecl getReturnType() isPointer() || fDecl getReturnType() getRef() instanceOf(ClassDecl)) {
+            if(fDecl getReturnType() isPointer() || fDecl getReturnType() getRef() instanceOf?(ClassDecl)) {
                 hw app("(void*) ")
             }
             hw app(fullName). app("(")
@@ -264,10 +264,10 @@ ModuleWriter: abstract class extends Skeleton {
             for(arg in fDecl args) {
                 if(isFirst) isFirst = false
                 else        hw app(", ")
-                if(arg instanceOf(VarArg)) {
+                if(arg instanceOf?(VarArg)) {
                     hw app("__VA_ARGS__")
                 } else {
-                    if(arg getType() isPointer() || arg getType() getRef() instanceOf(ClassDecl)) {
+                    if(arg getType() isPointer() || arg getType() getRef() instanceOf?(ClassDecl)) {
                         hw app("(void*) ")
                     }
                     hw app("("). app(arg getName()). app(")")
@@ -353,13 +353,13 @@ ModuleWriter: abstract class extends Skeleton {
                 if(selfDecl getSuperRef() != null && selfDecl getSuperRef() getModule() == imp getModule()) {
                     // tighten imports of modules which contain classes we extend
                     imp setTight(true)
-                } else if(imp getModule() types getKeys() contains("Class")) {
+                } else if(imp getModule() types getKeys() contains?("Class")) {
                     // tighten imports of core module
                     imp setTight(true)
                 } else {
                     for(member in selfDecl getVariables()) {
                         ref := member getType() getRef()
-                        if(!ref instanceOf(CoverDecl)) continue
+                        if(!ref instanceOf?(CoverDecl)) continue
                         coverDecl := ref as CoverDecl
                         if(coverDecl getFromType() != null) continue
                         if(coverDecl getModule() != imp getModule()) continue
@@ -388,12 +388,12 @@ ModuleWriter: abstract class extends Skeleton {
             if(tDecl isMeta != meta) continue
 
             match {
-                case tDecl instanceOf(ClassDecl) =>
+                case tDecl instanceOf?(ClassDecl) =>
                     ClassDeclWriter writeStructTypedef(this, tDecl as ClassDecl)
-                    if(tDecl instanceOf(InterfaceDecl)) {
+                    if(tDecl instanceOf?(InterfaceDecl)) {
                         CoverDeclWriter writeTypedef(this, tDecl as InterfaceDecl getFatType())
                     }
-                case tDecl instanceOf(CoverDecl) =>
+                case tDecl instanceOf?(CoverDecl) =>
                     CoverDeclWriter writeTypedef(this, tDecl as CoverDecl)
             }
         }

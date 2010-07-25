@@ -124,7 +124,7 @@ EscapeSequence: class {
     escape: static func ~exclude (s: String, exclude: String) -> String {
         buf := Buffer new()
         for(chr in s) {
-            if(!exclude contains(chr) && (!chr isPrintable() || chr == '\'' || chr == '"' || chr == '\\')) {
+            if(!exclude contains?(chr) && (!chr printable?() || chr == '\'' || chr == '"' || chr == '\\')) {
                 buf append(match chr {
                     case '\'' => "\\'"
                     case '"' => "\\\""

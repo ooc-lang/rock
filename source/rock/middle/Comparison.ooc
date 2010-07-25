@@ -146,7 +146,7 @@ Comparison: class extends Expression {
             fCall getArguments() add(right)
             node := fCall as Node
 
-            if(candidate getSymbol() equals("<=>")) {
+            if(candidate getSymbol() equals?("<=>")) {
                 node = Comparison new(node as Expression, IntLiteral new(0, token), compType, token)
             }
 
@@ -169,8 +169,8 @@ Comparison: class extends Expression {
 
         half := false
 
-        if(!(op getSymbol() equals(symbol))) {
-            if(op getSymbol() equals("<=>")) half = true
+        if(!(op getSymbol() equals?(symbol))) {
+            if(op getSymbol() equals?("<=>")) half = true
             else return 0 // not the right overload type - skip
         }
 

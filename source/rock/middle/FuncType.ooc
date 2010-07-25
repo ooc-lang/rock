@@ -27,7 +27,7 @@ FuncType: class extends Type {
 
     pointerLevel: func -> Int { 0 }
 
-    equals: func (other: This) -> Bool {
+    equals?: func (other: This) -> Bool {
         if(other class != this class) return false
         // FIXME compare argument's types, return type, etc.
         return true
@@ -71,7 +71,7 @@ FuncType: class extends Type {
         }
 
         // TODO: compare args, return types, i otras cosas.
-        if(other instanceOf(FuncType)) {
+        if(other instanceOf?(FuncType)) {
             return scoreSeed
         }
         return This NOLUCK_SCORE
@@ -80,7 +80,7 @@ FuncType: class extends Type {
     resolve: func (trail: Trail, res: Resolver) -> Response {
         trail push(this)
 
-        if(typeArgs && !typeArgs isEmpty()) {
+        if(typeArgs && !typeArgs empty?()) {
             for(typeArg in typeArgs) {
                 response := typeArg resolve(trail, res)
                 if(!response ok()) {
@@ -107,7 +107,7 @@ FuncType: class extends Type {
         }
         trail pop(this)
 
-        if(!cached contains(trail module())) {
+        if(!cached contains?(trail module())) {
             cached add(trail module())
             trail module() addFuncType(toMangledString(), this)
             res wholeAgain(this, "Added funcType!")

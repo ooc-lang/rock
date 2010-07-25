@@ -15,7 +15,7 @@ CommaSequence: class extends Expression {
         visitor visitCommaSequence(this)
     }
 
-    getType: func -> Type { body isEmpty() ? null : body last() as Expression getType() }
+    getType: func -> Type { body empty?() ? null : body last() as Expression getType() }
 
     toString: func -> String {
         return "(comma expr)"

@@ -39,7 +39,7 @@ VersionSpec: abstract class {
 
     write: abstract func (w: AwesomeWriter)
 
-    equals: abstract func (other: VersionSpec) -> Bool
+    equals?: abstract func (other: VersionSpec) -> Bool
 
     isSatisfied: abstract func (params: BuildParams) -> Bool
 
@@ -91,8 +91,8 @@ VersionName: class extends VersionSpec {
 
     isResolved : func -> Bool { resolved }
 
-    equals: func (other: VersionSpec) -> Bool {
-        if(!other instanceOf(This)) return false
+    equals?: func (other: VersionSpec) -> Bool {
+        if(!other instanceOf?(This)) return false
         other as This name == name
     }
 
@@ -119,9 +119,9 @@ VersionNegation: class extends VersionSpec {
         w app(")")
     }
 
-    equals: func (other: VersionSpec) -> Bool {
-        if(!other instanceOf(This)) return false
-        spec equals(other as VersionNegation spec)
+    equals?: func (other: VersionSpec) -> Bool {
+        if(!other instanceOf?(This)) return false
+        spec equals?(other as VersionNegation spec)
     }
 
     isSatisfied: func (params: BuildParams) -> Bool {
@@ -146,9 +146,9 @@ VersionAnd: class extends VersionSpec {
         w app(")")
     }
 
-    equals: func (other: VersionSpec) -> Bool {
-        if(!other instanceOf(This)) return false
-        specLeft equals(other as VersionAnd specLeft) && specRight equals(other as VersionAnd specRight)
+    equals?: func (other: VersionSpec) -> Bool {
+        if(!other instanceOf?(This)) return false
+        specLeft equals?(other as VersionAnd specLeft) && specRight equals?(other as VersionAnd specRight)
     }
 
     isSatisfied: func (params: BuildParams) -> Bool {
@@ -173,9 +173,9 @@ VersionOr: class extends VersionSpec {
         w app(")")
     }
 
-    equals: func (other: VersionSpec) -> Bool {
-        if(!other instanceOf(This)) return false
-        specLeft equals(other as VersionOr specLeft) && specRight equals(other as VersionOr specRight)
+    equals?: func (other: VersionSpec) -> Bool {
+        if(!other instanceOf?(This)) return false
+        specLeft equals?(other as VersionOr specLeft) && specRight equals?(other as VersionOr specRight)
     }
 
     isSatisfied: func (params: BuildParams) -> Bool {

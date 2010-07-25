@@ -33,11 +33,11 @@ Reader: abstract class {
      */
     readUntil: func (end: Char) -> String {
         sb := Buffer new(40) // let's be optimistic
-        while(hasNext()) {
+        while(hasNext?()) {
             c := read()
             // for some reason, some files end with the ASCII character 8, ie. BackSpace.
             // we definitely don't want that to end up in the String.
-            if(c == end || (!hasNext() && c == 8)) break
+            if(c == end || (!hasNext?() && c == 8)) break
             sb append(c)
         }
         return sb toString()
@@ -53,7 +53,7 @@ Reader: abstract class {
        rewinded once `end` has been read.
      */
     skipUntil: func (end: Char) {
-        while(hasNext()) {
+        while(hasNext?()) {
             c := read()
             if(c == end) break
         }
@@ -88,7 +88,7 @@ Reader: abstract class {
        if we were cancelled by `f` returning false.
      */
     eachLine: func (f: Func(String) -> Bool) -> Bool {
-        while(hasNext()) {
+        while(hasNext?()) {
             if(!f(readLine())) return false
         }
         true
@@ -111,7 +111,7 @@ Reader: abstract class {
        Read as many `unwanted` chars as
      */
     skipWhile: func (unwanted: Char) {
-        while(hasNext()) {
+        while(hasNext?()) {
             c := read()
             if(c != unwanted) {
                 rewind(1)
@@ -125,10 +125,10 @@ Reader: abstract class {
        we're at end-of-file.
 
        Note that it doesn't guarantee that any data is *ready* to be read.
-       calling read() just after hasNext() has returned true may well
+       calling read() just after hasNext?() has returned true may well
        return 0, depending on which kind of reader you're dealing with.
      */
-    hasNext: abstract func -> Bool
+    hasNext?: abstract func -> Bool
 
     /**
        Attempt to rewind this stream by the given offset.

@@ -78,7 +78,7 @@ ArrayList: class <T> extends List<T> {
 		index := 0
 		while(index < size) {
 			//if(memcmp(data + index * T size, element, T size) == 0) return index
-            if(this as List equals(this[index], element)) return index
+            if(this as List equals?(this[index], element)) return index
             index += 1
 		}
 		return -1
@@ -206,7 +206,7 @@ ArrayListIterator: class <T> extends BackIterator<T> {
 
 	init: func ~iter (=list) {}
 
-	hasNext: func -> Bool { index < list size() }
+	hasNext?: func -> Bool { index < list size() }
 
 	next: func -> T {
 		element := list get(index)
@@ -214,7 +214,7 @@ ArrayListIterator: class <T> extends BackIterator<T> {
 		return element
 	}
 
-    hasPrev: func -> Bool { index > 0 }
+    hasPrev?: func -> Bool { index > 0 }
 
     prev: func -> T {
         index -= 1

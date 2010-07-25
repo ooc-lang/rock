@@ -109,7 +109,7 @@ UnaryOp: class extends Expression {
 
         symbol := unaryOpRepr[type]
 
-        if(!(op getSymbol() equals(symbol))) {
+        if(!(op getSymbol() equals?(symbol))) {
             return 0 // not the right overload type - skip
         }
 

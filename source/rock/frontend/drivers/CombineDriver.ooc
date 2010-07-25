@@ -76,7 +76,7 @@ CombineDriver: class extends Driver {
                 if(params dynGC) {
                     params compiler addDynamicLibrary("gc")
                 } else {
-                    arch := params arch equals("") ? Target getArch() : params arch
+                    arch := params arch equals?("") ? Target getArch() : params arch
                     libPath := "libs/" + Target toString(arch) + "/libgc.a"
                     params compiler addObjectFile(File new(params distLocation, libPath) path)
                 }

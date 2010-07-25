@@ -84,11 +84,11 @@ ArrayAccess: class extends Expression {
     handleArrayCreation: func (trail: Trail, res: Resolver) -> Response {
 
         deepDown := this as Expression
-        while(deepDown instanceOf(ArrayAccess)) {
+        while(deepDown instanceOf?(ArrayAccess)) {
             deepDown = deepDown as ArrayAccess array
         }
 
-        if(deepDown instanceOf(VariableAccess) && deepDown as VariableAccess getRef() instanceOf(TypeDecl)) {
+        if(deepDown instanceOf?(VariableAccess) && deepDown as VariableAccess getRef() instanceOf?(TypeDecl)) {
             if(indices size() > 1) {
                 token throwError("You can't call new on an ArrayAccess with several indices! Only one index is supported.")
             }
@@ -100,8 +100,8 @@ ArrayAccess: class extends Expression {
 
             parent := trail peek()
 
-            if(!parent instanceOf(FunctionCall)) {
-                if(parent instanceOf(ArrayAccess)) {
+            if(!parent instanceOf?(FunctionCall)) {
+                if(parent instanceOf?(ArrayAccess)) {
                     // will be taken care of later
                     return Responses OK
                 }
@@ -118,7 +118,7 @@ ArrayAccess: class extends Expression {
             arrayType := ArrayType new(innerType, index, token)
 
             deepDown = array
-            while(deepDown instanceOf(ArrayAccess)) {
+            while(deepDown instanceOf?(ArrayAccess)) {
                 arrAcc := deepDown as ArrayAccess
                 if(arrAcc indices size() > 1) {
                     token throwError("You can't call new on an ArrayAccess with several indices! Only one index is supported.")
@@ -129,7 +129,7 @@ ArrayAccess: class extends Expression {
             arrayCreation := ArrayCreation new(arrayType, token)
 
             // TODO: this is all very hackish. More checking is needed
-            if(grandpa instanceOf(VariableDecl)) {
+            if(grandpa instanceOf?(VariableDecl)) {
                 vDecl := grandpa as VariableDecl
                 vAcc := VariableAccess new(vDecl, token)
                 if(vDecl isMember()) {
@@ -140,7 +140,7 @@ ArrayAccess: class extends Expression {
                     }
                 }
                 arrayCreation expr = vAcc
-            } else if(grandpa instanceOf(BinaryOp)) {
+            } else if(grandpa instanceOf?(BinaryOp)) {
                 arrayCreation expr = grandpa as BinaryOp getLeft()
             }
             grandpa replace(fCall, arrayCreation)
@@ -172,7 +172,7 @@ ArrayAccess: class extends Expression {
         parent := trail peek()
         reqType := parent getRequiredType()
 
-        inAssign := (parent instanceOf(BinaryOp)) &&
+        inAssign := (parent instanceOf?(BinaryOp)) &&
                     (parent as BinaryOp isAssign()) &&
                     (parent as BinaryOp getLeft() == this)
 
@@ -229,15 +229,15 @@ ArrayAccess: class extends Expression {
 
     getScore: func (op: OperatorDecl, reqType: Type, inAssign: Bool, res: Resolver) -> Int {
 
-        if(!(op getSymbol() equals(inAssign ? "[]=" : "[]"))) {
+        if(!(op getSymbol() equals?(inAssign ? "[]=" : "[]"))) {
             return 0 // not the right overload type - skip
         }
-        diff := op getSymbol() endsWith("=") ? 2 : 1
+        diff := op getSymbol() endsWith?("=") ? 2 : 1
 
         fDecl := op getFunctionDecl()
 
         args := fDecl getArguments()
-        if(!args last() instanceOf(VarArg) && (args size() != indices size() + diff)) {
+        if(!args last() instanceOf?(VarArg) && (args size() != indices size() + diff)) {
             // not a match!
             if(res params veryVerbose) {
                 "For %s vs %s, got %d args, %d indices, diff is %d - no luck!" printfln(op toString(), toString(), args size(), indices size(), diff)
@@ -256,7 +256,7 @@ ArrayAccess: class extends Expression {
             opIndex := args[i]
             index := indices[i - diff]
             match {
-                case opIndex instanceOf(VarArg) =>
+                case opIndex instanceOf?(VarArg) =>
                     indexScore += Type SCORE_SEED
                 case opIndex getType() == null =>
                     return -1

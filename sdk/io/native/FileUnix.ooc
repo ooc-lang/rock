@@ -68,7 +68,7 @@ version(unix || apple) {
         /**
          * @return true if it's a directory
          */
-        isDir: func -> Bool {
+        dir?: func -> Bool {
             stat: FileStat
             lstat(path, stat&)
             return S_ISDIR(stat st_mode)
@@ -77,7 +77,7 @@ version(unix || apple) {
         /**
          * @return true if it's a file (ie. not a directory nor a symbolic link)
          */
-        isFile: func -> Bool {
+        file?: func -> Bool {
             stat: FileStat
             lstat(path, stat&)
             return S_ISREG(stat st_mode)
@@ -86,7 +86,7 @@ version(unix || apple) {
         /**
          * @return true if the file is a symbolic link
          */
-        isLink: func -> Bool {
+        link?: func -> Bool {
             stat: FileStat
             lstat(path, stat&)
             return S_ISLNK(stat st_mode)
@@ -132,7 +132,7 @@ version(unix || apple) {
          * @return the time of last access, or -1 if it doesn't exist
          */
         lastAccessed: func -> Long {
-            if(!exists()) return -1
+            if(!exists?()) return -1
             stat: FileStat
             lstat(path, stat&)
             return stat st_atime as Long
@@ -142,7 +142,7 @@ version(unix || apple) {
          * @return the time of last modification, or -1 if it doesn't exist
          */
         lastModified: func -> Long {
-            if(!exists()) return -1
+            if(!exists?()) return -1
             stat: FileStat
             lstat(path, stat&)
             return stat st_mtime as Long
@@ -152,7 +152,7 @@ version(unix || apple) {
          * @return the time of creation, or -1 if it doesn't exist
          */
         created: func -> Long {
-            if(!exists()) return -1
+            if(!exists?()) return -1
             stat: FileStat
             lstat(path, stat&)
             return stat st_ctime as Long
@@ -161,9 +161,9 @@ version(unix || apple) {
         /**
          * @return true if the function is relative to the current directory
          */
-        isRelative: func -> Bool {
+        relative?: func -> Bool {
             // that's a bit rough, but should work most of the time
-            path startsWith(".") || !path startsWith("/")
+            path startsWith?(".") || !path startsWith?("/")
         }
 
         /**
@@ -180,14 +180,14 @@ version(unix || apple) {
          */
         getAbsoluteFile: func -> File {
             actualPath := getAbsolutePath()
-            if(!path equals(actualPath)) {
+            if(!path equals?(actualPath)) {
                 return File new(actualPath)
             }
             return this
         }
 
         getChildrenNames: func -> ArrayList<String> {
-            if(!isDir()) {
+            if(!dir?()) {
                 Exception new(This, "Trying to get the children of the non-directory '" + path + "'!") throw()
             }
             dir := opendir(path)
@@ -197,7 +197,7 @@ version(unix || apple) {
             result := ArrayList<String> new()
             entry := readdir(dir)
             while(entry != null) {
-                if(!entry@ name equals(".") && !entry@ name equals("..")) {
+                if(!entry@ name equals?(".") && !entry@ name equals?("..")) {
                     result add(entry@ name clone())
                 }
                 entry = readdir(dir)
@@ -207,7 +207,7 @@ version(unix || apple) {
         }
 
         getChildren: func -> ArrayList<File> {
-            if(!isDir()) {
+            if(!dir?()) {
                 Exception new(This, "Trying to get the children of the non-directory '" + path + "'!") throw()
             }
             dir := opendir(path)
@@ -217,7 +217,7 @@ version(unix || apple) {
             result := ArrayList<File> new()
             entry := readdir(dir)
             while(entry != null) {
-                if(!entry@ name equals(".") && !entry@ name equals("..")) {
+                if(!entry@ name equals?(".") && !entry@ name equals?("..")) {
                     result add(File new(this, entry@ name clone()))
                 }
                 entry = readdir(dir)

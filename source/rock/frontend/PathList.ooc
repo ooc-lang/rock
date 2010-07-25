@@ -19,15 +19,15 @@ PathList: class {
     add: func (path: String) {
         file := File new(path)
 
-        if (!file exists()) {
+        if (!file exists?()) {
             Exception new(This, "Classpath element cannot be found: %s" format(path)) throw()
         }
-        else if (!file isDir()) {
+        else if (!file dir?()) {
             Exception new(This, "Classpath element is not a directory: %s" format(path)) throw()
         }
 
         absolutePath := file getAbsolutePath()
-        if (!paths contains(absolutePath)) {
+        if (!paths contains?(absolutePath)) {
             paths put(absolutePath, file)
         }
     }
@@ -49,13 +49,13 @@ PathList: class {
     remove: func(path: String) {
         file := File new(path)
 
-        if (!file exists()) {
+        if (!file exists?()) {
             Exception new(This, "Classpath element cannot be found: " + file getPath()) throw()
         }
-        else if (!file isDir()) {
+        else if (!file dir?()) {
             Exception new(This, "Classpath element is not a directory: " + file getPath()) throw()
         }
-        else if (!paths contains(file getAbsolutePath())) {
+        else if (!paths contains?(file getAbsolutePath())) {
             Exception new(This, "Attempting to remove a nonexistant path: " + file getPath()) throw()
         }
 
@@ -81,7 +81,7 @@ PathList: class {
             //printf("Looking for path %s in element %s\n", path, element path)
             candidate := File new((element path + File separator) + path)
             //printf("Candidate = %s\n", candidate path)
-            if (candidate exists() && candidate isDir()) {
+            if (candidate exists?() && candidate dir?()) {
                 addChildren(path, files, candidate);
             }
         }
@@ -92,10 +92,10 @@ PathList: class {
     addChildren: func(basePath: String, list: List<String>, parent: File) {
 
         for (child: File in parent getChildren()) {
-            if (child isFile()) {
+            if (child file?()) {
                 list add(basePath + File separator + child name())
             }
-            else if (child isDir()) {
+            else if (child dir?()) {
                 addChildren(basePath + File separator + child name(), list, child)
             }
         }
@@ -117,7 +117,7 @@ PathList: class {
     getElement: func(path: String) -> File {
         for (element: File in paths) {
             candidate := File new(element getPath() + File separator + path)
-            if (candidate exists()) {
+            if (candidate exists?()) {
                 return element
             }
         }
@@ -128,8 +128,8 @@ PathList: class {
     /**
      * @return true if the source path is empty
      */
-    isEmpty: func -> Bool {
-        return paths isEmpty()
+    empty?: func -> Bool {
+        return paths empty?()
     }
 
 }

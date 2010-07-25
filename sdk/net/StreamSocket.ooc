@@ -185,7 +185,7 @@ StreamSocketReader: class extends Reader {
         source receiveByte()
     }
 
-    hasNext: func -> Bool {
+    hasNext?: func -> Bool {
         source available() > 0
     }
 

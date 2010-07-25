@@ -18,7 +18,7 @@ nullHashEntry: HashEntry <None, None>
 memset(nullHashEntry&, 0, HashEntry size)
 
 stringEquals: func <K> (k1, k2: K) -> Bool {
-    k1 as String equals(k2 as String)
+    k1 as String equals?(k2 as String)
 }
 
 pointerEquals: func <K> (k1, k2: K) -> Bool {
@@ -352,14 +352,14 @@ HashMap: class <K, V> extends BackIterable<V> {
     /**
      * @return true if this map is empty, false if not
      */
-    isEmpty: func -> Bool { keys isEmpty() }
+    empty?: func -> Bool { keys empty?() }
 
     /**
      * Returns whether or not the key exists in the hash table.
      * @param key The key to check
      * @return Bool
      */
-    contains: func (key: K) -> Bool {
+    contains?: func (key: K) -> Bool {
         getEntry(key, null)
     }
 
@@ -480,7 +480,7 @@ HashMapValueIterator: class <K, T> extends BackIterator<T> {
 
     init: func ~withMap (=map) {}
 
-    hasNext: func -> Bool { index < map keys size() }
+    hasNext?: func -> Bool { index < map keys size() }
 
     next: func -> T {
         key := map keys get(index)
@@ -488,7 +488,7 @@ HashMapValueIterator: class <K, T> extends BackIterator<T> {
         return map get(key)
     }
 
-    hasPrev: func -> Bool { index > 0 }
+    hasPrev?: func -> Bool { index > 0 }
 
     prev: func -> T {
         index -= 1

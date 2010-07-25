@@ -95,7 +95,7 @@ FStream: cover from FILE* {
                 str = tmp
             }
 
-            if(!hasNext()) {
+            if(!hasNext?()) {
                 str[pos] = '\0'
                 break
             }
@@ -104,7 +104,7 @@ FStream: cover from FILE* {
         return str as String
 	}
 
-    hasNext: func -> Bool {
+    hasNext?: func -> Bool {
         feof(this) == 0
     }
 	

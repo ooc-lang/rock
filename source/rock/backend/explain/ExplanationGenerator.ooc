@@ -84,11 +84,11 @@ ExplanationGenerator: class extends Visitor {
   }
   
   resolveType: func (type: Type) -> String {
-    if(type instanceOf(FuncType)) {
+    if(type instanceOf?(FuncType)) {
       return "Func"
-    } else if(type instanceOf(PointerType)) {
+    } else if(type instanceOf?(PointerType)) {
       return "pointer(%s)" format(resolveType(type as PointerType inner))
-    } else if(type instanceOf(ReferenceType)) {
+    } else if(type instanceOf?(ReferenceType)) {
       return "reference(%s)" format(resolveType(type as ReferenceType inner))
     } else {
       return type as BaseType name
@@ -126,7 +126,7 @@ ExplanationGenerator: class extends Visitor {
     for(function in node functions) function accept(this)
     for(type in node types) type accept(this)
     /*for(op in node operators) visitOperatorDecl(op)*/
-    for(child in node body) if(child instanceOf(VariableDecl)) child accept(this)   
+    for(child in node body) if(child instanceOf?(VariableDecl)) child accept(this)   
   }
   
   visitType: func (node: Type) {}
@@ -197,7 +197,7 @@ ExplanationGenerator: class extends Visitor {
       if (node isInline()) addObject("    * "+name+" is **inline**; calls to this function will be substituted with the actual function code. Functions that are called often would be optimal **inline** functions", type)
       if (node args size() > 0) {
         addObject("    * "+name+" takes *"+node args size() toString()+"* argument(s):",type)
-        for(arg in node args) if(!arg instanceOf(VarArg)) addObject("        * "+(arg name as String)+" of type *"+(resolveType(arg type))+"*", type)
+        for(arg in node args) if(!arg instanceOf?(VarArg)) addObject("        * "+(arg name as String)+" of type *"+(resolveType(arg type))+"*", type)
       }
       if (node returnType != voidType) addObject("    * "+name+" has a non-void return type: *"+node getReturnType() getName()+"*", type)
       if (node typeArgs size() > 0) {

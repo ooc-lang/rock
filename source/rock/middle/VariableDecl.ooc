@@ -81,14 +81,14 @@ VariableDecl: class extends Declaration {
     setExternName: func (=externName) {}
     isExtern: func -> Bool { externName != null }
     isExternWithName: func -> Bool {
-        (externName != null) && !(externName isEmpty())
+        (externName != null) && !(externName empty?())
     }
 
-    getUnmangledName: func -> String { unmangledName isEmpty() ? name : unmangledName }
+    getUnmangledName: func -> String { unmangledName empty?() ? name : unmangledName }
     setUnmangledName: func (=unmangledName) {}
     isUnmangled: func -> Bool { unmangledName != null }
     isUnmangledWithName: func -> Bool {
-        (unmangledName != null) && !(unmangledName isEmpty())
+        (unmangledName != null) && !(unmangledName empty?())
     }
 
     getFullName: func -> String {
@@ -167,7 +167,7 @@ VariableDecl: class extends Declaration {
 
         parent := trail peek()
         {
-            if(!parent isScope() && !parent instanceOf(TypeDecl)) {
+            if(!parent isScope() && !parent instanceOf?(TypeDecl)) {
                 //println("oh the parent of " + toString() + " isn't a scope but a " + parent class name)
                 //println("trail = " + trail toString())
 
@@ -181,7 +181,7 @@ VariableDecl: class extends Declaration {
 
                 parent := trail get(idx + 1, Node)
 
-                if(parent instanceOf(FunctionCall)) {
+                if(parent instanceOf?(FunctionCall)) {
                     result = trail addBeforeInScope(parent as Statement, this)
                 } else {
                     block := Block new(token)
@@ -203,10 +203,10 @@ VariableDecl: class extends Declaration {
 
         if(expr != null) {
             realExpr := expr
-            while(realExpr instanceOf(Cast)) {
+            while(realExpr instanceOf?(Cast)) {
                 realExpr = realExpr as Cast inner
             }
-            if(realExpr instanceOf(FunctionCall)) {
+            if(realExpr instanceOf?(FunctionCall)) {
                 fCall := realExpr as FunctionCall
                 fDecl := fCall getRef()
                 if(!fDecl || !fDecl getReturnType() isResolved()) {
@@ -215,8 +215,8 @@ VariableDecl: class extends Declaration {
                 }
 
                 //if(fDecl getReturnType() isGeneric()) {
-                if(!fDecl getReturnArgs() isEmpty()) {
-                    if(fDecl getReturnType() instanceOf(TypeList)) {
+                if(!fDecl getReturnArgs() empty?()) {
+                    if(fDecl getReturnType() instanceOf?(TypeList)) {
                         type = fDecl getReturnType() as TypeList types get(0)
                         "Inferred type of %s to %s from TypeList." printfln(toString(), type toString())
                     }
@@ -228,7 +228,7 @@ VariableDecl: class extends Declaration {
                 }
             }
         } else { // Set pointer references to NULL
-            if (!owner && trail peek() instanceOf(Scope)) { // don't touch a member-variable or an argument
+            if (!owner && trail peek() instanceOf?(Scope)) { // don't touch a member-variable or an argument
                 t := getType()
                 if (!t) {
                     res wholeAgain(this, "Need Type.")
@@ -239,7 +239,7 @@ VariableDecl: class extends Declaration {
                     res wholeAgain(this, "Need reference.")
                     return Responses OK
                 }
-                if (t isPointer() || reference instanceOf(ClassDecl)) { // Pointer OR object
+                if (t isPointer() || reference instanceOf?(ClassDecl)) { // Pointer OR object
                     expr = NullLiteral new(token)
                 }
             }
@@ -247,7 +247,7 @@ VariableDecl: class extends Declaration {
 
         if(!isArg && type != null && type isGeneric() && type pointerLevel() == 0) {
             if(expr != null) {
-                if(expr instanceOf(FunctionCall) && expr as FunctionCall getName() == "gc_malloc") return Responses OK
+                if(expr instanceOf?(FunctionCall) && expr as FunctionCall getName() == "gc_malloc") return Responses OK
 
                 ass := BinaryOp new(VariableAccess new(this, token), expr, OpType ass, token)
                 if(!trail addAfterInScope(this, ass)) {
@@ -277,11 +277,11 @@ VariableDecl: class extends Declaration {
 
     getFunctionDecl: func -> FunctionDecl {
         if(fDecl == null) {
-            if(getType() instanceOf(FuncType)) {
+            if(getType() instanceOf?(FuncType)) {
                 fType := getType() as FuncType
                 fDecl = FunctionDecl new(name, token)
                 if(owner) fDecl setOwner(owner)
-                if(fType typeArgs != null && !fType typeArgs isEmpty()) {
+                if(fType typeArgs != null && !fType typeArgs empty?()) {
                     classType := BaseType new("Class", fType token)
                     for(typeArg in fType typeArgs) {
                         vDecl := VariableDecl new(classType, typeArg name, typeArg token)
@@ -328,13 +328,13 @@ VariableDeclTuple: class extends VariableDecl {
         match {
             case expr == null =>
                 token throwError("VariableDeclTuples need an expression. This should never happen")
-            case expr instanceOf(FunctionCall) =>
+            case expr instanceOf?(FunctionCall) =>
                 fCall := expr as FunctionCall
                 if(fCall getRef() == null) {
                     res wholeAgain(this, "Need fCall ref")
                     return Responses OK
                 }
-                if(fCall getRef() getReturnArgs() isEmpty()) {
+                if(fCall getRef() getReturnArgs() empty?()) {
                     if(res fatal) {
                         token throwError("Need a multi-return function call as the expression of a tuple-variable declaration!")
                     }
@@ -349,11 +349,11 @@ VariableDeclTuple: class extends VariableDecl {
 
                 if(tuple getElements() size() < returnTypes size()) {
                     bad := false
-                    if(tuple getElements() isEmpty()) {
+                    if(tuple getElements() empty?()) {
                         bad = true
                     } else {
                         element := tuple getElements() last()
-                        if(!element instanceOf(VariableAccess)) {
+                        if(!element instanceOf?(VariableAccess)) {
                             element token throwError("Expected a variable access in a tuple-variable declaration!")
                         }
                         if(element as VariableAccess getName() != "_") bad = true
@@ -363,7 +363,7 @@ VariableDeclTuple: class extends VariableDecl {
 
                 j := 0
                 for(element in tuple getElements()) {
-                    if(!element instanceOf(VariableAccess)) {
+                    if(!element instanceOf?(VariableAccess)) {
                         element token throwError("Expected a variable access in a tuple-variable declaration!")
                     }
                     argName := element as VariableAccess getName()

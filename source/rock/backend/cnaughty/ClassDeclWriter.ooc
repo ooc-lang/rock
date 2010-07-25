@@ -20,7 +20,7 @@ ClassDeclWriter: abstract class extends Skeleton {
             if(cDecl getVersion()) VersionWriter writeEnd(this)
 
             //TODO: split into InterfaceImplWriter ?
-            if(!cDecl getNonMeta() instanceOf(InterfaceImpl)) {
+            if(!cDecl getNonMeta() instanceOf?(InterfaceImpl)) {
                 current = fw
                 if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
                 writeMemberFuncPrototypes(this, cDecl)
@@ -37,7 +37,7 @@ ClassDeclWriter: abstract class extends Skeleton {
             }
 
             // don't write class-getting functions of extern covers - it hurts
-            if(cDecl getNonMeta() == null || !cDecl getNonMeta() instanceOf(CoverDecl) || !(cDecl getNonMeta() as CoverDecl isExtern() || cDecl getNonMeta() as CoverDecl isAddon())) {
+            if(cDecl getNonMeta() == null || !cDecl getNonMeta() instanceOf?(CoverDecl) || !(cDecl getNonMeta() as CoverDecl isExtern() || cDecl getNonMeta() as CoverDecl isAddon())) {
                 writeClassGettingFunction(this, cDecl)
             }
 
@@ -197,7 +197,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 			if (fDecl hasReturn()) {
 				current app("return ("). app(fDecl returnType). app(") ")
 			}
-            if(cDecl getNonMeta() instanceOf(InterfaceDecl)) {
+            if(cDecl getNonMeta() instanceOf?(InterfaceDecl)) {
                 current app("this.impl->")
             } else {
                 current app("(("). app(baseClass underName()). app(" *)"). app("((lang_types__Object *)this)->class)->")
@@ -275,7 +275,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
     writeClassGettingFunction: static func (this: Skeleton, cDecl: ClassDecl) {
 
-        isInterface := (cDecl getNonMeta() != null && cDecl getNonMeta() instanceOf(InterfaceImpl)) as Bool
+        isInterface := (cDecl getNonMeta() != null && cDecl getNonMeta() instanceOf?(InterfaceImpl)) as Bool
         underName := isInterface ? cDecl getSuperRef() underName() : cDecl underName()
 
         current nl(). nl(). app(underName). app(" *"). app(cDecl getNonMeta() getFullName()). app("_class()"). openBlock(). nl()
@@ -308,7 +308,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
         current openBlock(). nl()
 
-        if (parentClass name equals("Class")) {
+        if (parentClass name equals?("Class")) {
             current app(".instanceSize = ")
             realClass getNonMeta() writeSize(current, true) // instance = true
 
@@ -322,9 +322,9 @@ ClassDeclWriter: abstract class extends Skeleton {
 
         if(parentClass != realClass ||
            realClass getNonMeta() == null ||
-           !realClass getNonMeta() instanceOf(InterfaceDecl)) {
+           !realClass getNonMeta() instanceOf?(InterfaceDecl)) {
             for (parentDecl: FunctionDecl in parentClass functions) {
-                if(done contains(parentDecl)) {
+                if(done contains?(parentDecl)) {
                     continue
                 }
 
@@ -334,7 +334,7 @@ ClassDeclWriter: abstract class extends Skeleton {
                     realDecl = realClass getFunction(parentDecl name, parentDecl suffix ? parentDecl suffix : "", null, true, finalScore&)
 
                     if(realDecl != parentDecl) {
-                        if(done contains(realDecl)) {
+                        if(done contains?(realDecl)) {
                             continue
                         }
                         done add(realDecl)
@@ -355,8 +355,8 @@ ClassDeclWriter: abstract class extends Skeleton {
 
         if (parentClass != realClass &&
             parentClass getNonMeta() != null &&
-            parentClass getNonMeta() instanceOf(InterfaceDecl) &&
-            realClass getNonMeta() instanceOf(InterfaceImpl)) {
+            parentClass getNonMeta() instanceOf?(InterfaceDecl) &&
+            realClass getNonMeta() instanceOf?(InterfaceImpl)) {
 
             interfaceImpl := realClass getNonMeta() as InterfaceImpl
             for(alias: FunctionAlias in interfaceImpl getAliases()) {

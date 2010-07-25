@@ -61,7 +61,7 @@ version(windows) {
          * @return true if the file exists and can be
          * opened for reading
          */
-        exists: func -> Bool {
+        exists?: func -> Bool {
             result := true
             ffd: FindData
             hFind := FindFirstFile(path, ffd&)
@@ -89,7 +89,7 @@ version(windows) {
         /**
          * @return true if it's a directory (return false if it doesn't exist)
          */
-        isDir: func -> Bool {
+        dir?: func -> Bool {
             ffd: FindData
             hFind := FindFirstFile(path, ffd&)
             if(hFind == INVALID_HANDLE_VALUE) return false // it's not a directory if it doesn't exist
@@ -101,7 +101,7 @@ version(windows) {
         /**
          * @return true if it's a file (ie. exists and is not a directory nor a symbolic link)
          */
-        isFile: func -> Bool {
+        file?: func -> Bool {
             ffd: FindData
             hFind := FindFirstFile(path, ffd&)
             if(hFind == INVALID_HANDLE_VALUE) return false // it's not a file if it doesn't exist
@@ -117,7 +117,7 @@ version(windows) {
         /**
          * @return true if the file is a symbolic link
          */
-        isLink: func -> Bool {
+        link?: func -> Bool {
             ffd: FindData
             hFind := FindFirstFile(path, ffd&)
             if(hFind == INVALID_HANDLE_VALUE) return false // it's not a link if it doesn't exist
@@ -160,12 +160,12 @@ version(windows) {
         }
 
         mkdir: func ~withMode (mode: Int32) -> Int {
-            if(isRelative()) {
+            if(relative?()) {
                 return getAbsoluteFile() mkdir()
             }
 
             parent := parent()
-            if(!parent exists()) parent mkdir()
+            if(!parent exists?()) parent mkdir()
             CreateDirectory(path, null) ? 0 : -1
         }
 
@@ -173,7 +173,7 @@ version(windows) {
          * @return the time of last access
          */
         lastAccessed: func -> Long {
-            if(!exists()) return -1
+            if(!exists?()) return -1
 
             ffd: FindData
             findSingle(ffd&)
@@ -184,7 +184,7 @@ version(windows) {
          * @return the time of last modification
          */
         lastModified: func -> Long {
-            if(!exists()) return -1
+            if(!exists?()) return -1
 
             ffd: FindData
             findSingle(ffd&)
@@ -195,7 +195,7 @@ version(windows) {
          * @return the time of creation
          */
         created: func -> Long {
-            if(!exists()) return -1
+            if(!exists?()) return -1
 
             ffd: FindData
             findSingle(ffd&)
@@ -205,16 +205,16 @@ version(windows) {
         /**
          * @return true if the function is relative to the current directory
          */
-        isRelative: func -> Bool {
+        relative?: func -> Bool {
             // that's a bit rough, but should work most of the time
-            path startsWith(".") || (!path startsWith("\\\\") && path[1] != ':')
+            path startsWith?(".") || (!path startsWith?("\\\\") && path[1] != ':')
         }
 
         /**
          * The absolute path, e.g. "my/dir" => "/current/directory/my/dir"
          */
         getAbsolutePath: func -> String {
-            if(isRelative()) {
+            if(relative?()) {
                 return getCwd() + This separator + path
             } else {
                 return path

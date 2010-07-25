@@ -68,17 +68,17 @@ File: abstract class {
     /**
      * :return: true if it's a directory
      */
-    isDir: abstract func -> Bool
+    dir?: abstract func -> Bool
 
     /**
      * :return: true if it's a file (ie. not a directory nor a symbolic link)
      */
-    isFile: abstract func -> Bool
+    file?: abstract func -> Bool
 
     /**
      * :return: true if the file is a symbolic link
      */
-    isLink: abstract func -> Bool
+    link?: abstract func -> Bool
 
     /**
      * :return: the size of the file, in bytes
@@ -89,7 +89,7 @@ File: abstract class {
      * :return: true if the file exists and can be
      * opened for reading
      */
-    exists: func -> Bool {
+    exists?: func -> Bool {
         fd := fopen(path, "r")
         if(fd) {
             fclose(fd); return true
@@ -131,7 +131,7 @@ File: abstract class {
     parent: func -> File {
         pName := parentName()
         if(pName) return File new(pName)
-        if(path != "." && !path startsWith(This separator)) return File new(".") // return the current directory
+        if(path != "." && !path startsWith?(This separator)) return File new(".") // return the current directory
         return null
     }
 
@@ -201,7 +201,7 @@ File: abstract class {
     /**
      * :return: true if the function is relative to the current directory
      */
-    isRelative: abstract func -> Bool
+    relative?: abstract func -> Bool
 
     /**
      * the path this file has been created with
@@ -254,7 +254,7 @@ File: abstract class {
 
         max := 8192
         buffer := Char[max] new()
-        while(src hasNext()) {
+        while(src hasNext?()) {
             num := src read(buffer data, 0, max)
             dst write(buffer data, num)
         }
@@ -301,9 +301,9 @@ File: abstract class {
        got cancelled by `f` returning false.
      */
     walk: func (f: Func(File) -> Bool) -> Bool {
-        if (isFile()) {
+        if (file?()) {
             if (!f(this)) return false
-        } else if (isDir()) {
+        } else if (dir?()) {
             for (child in getChildren()) {
                 if (!child walk(f)) return false
             }

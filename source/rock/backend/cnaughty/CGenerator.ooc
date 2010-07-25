@@ -80,7 +80,7 @@ CGenerator: class extends Skeleton {
 
     visitTypeAccess: func (typeAccess: TypeAccess) {
         ref := typeAccess getRef()
-        if(!ref instanceOf(TypeDecl)) {
+        if(!ref instanceOf?(TypeDecl)) {
             Exception new(This, "Ref of TypeAccess %s isn't a TypeDecl but a %s! wtf?" format(typeAccess toString(), ref class name)) throw()
         }
         current app(ref as TypeDecl underName()). app("_class()")
@@ -91,8 +91,8 @@ CGenerator: class extends Skeleton {
 
         // when assigning to an array, use Array_set rather than assigning to _get
         isArray := op type == OpType ass &&
-                   op left instanceOf(ArrayAccess) &&
-                   op left as ArrayAccess getArray() getType() instanceOf(ArrayType) &&
+                   op left instanceOf?(ArrayAccess) &&
+                   op left as ArrayAccess getArray() getType() instanceOf?(ArrayType) &&
                    op left as ArrayAccess getArray() getType() as ArrayType expr == null
 
         if(isArray) {
@@ -108,8 +108,8 @@ CGenerator: class extends Skeleton {
         // when assigning to a member function (e.g. for hotswapping),
         // you want to change the class field, not just the function name
         isFunc := op type == OpType ass &&
-                  op left instanceOf(VariableAccess) &&
-                  op left as VariableAccess ref instanceOf(FunctionDecl) &&
+                  op left instanceOf?(VariableAccess) &&
+                  op left as VariableAccess ref instanceOf?(FunctionDecl) &&
                   op left as VariableAccess ref as FunctionDecl getOwner() != null
 
         if(isFunc) {
@@ -129,7 +129,7 @@ CGenerator: class extends Skeleton {
             if(leftType  isPointer() ||
                rightType isPointer()) {
                 current app("(void*) ")
-            } else if(rightType inheritsFrom(leftType)) {
+            } else if(rightType inheritsFrom?(leftType)) {
                 current app('('). app(leftType). app(") ")
             }
         }
@@ -199,7 +199,7 @@ CGenerator: class extends Skeleton {
             Exception new(This, "Trying to write unresolved variable access %s" format(varAcc getName())) throw()
         }
 
-        if(varAcc ref instanceOf(EnumElement)) {
+        if(varAcc ref instanceOf?(EnumElement)) {
             element := varAcc ref as EnumElement
 
             if(element isExtern()) {
@@ -207,7 +207,7 @@ CGenerator: class extends Skeleton {
             } else {
                 current app(element getValue() toString())
             }
-        } else if(varAcc ref instanceOf(VariableDecl)) {
+        } else if(varAcc ref instanceOf?(VariableDecl)) {
             vDecl := varAcc ref as VariableDecl
             if(varAcc isMember() && !(vDecl isExtern() && vDecl isStatic())) {
                 casted := false
@@ -223,7 +223,7 @@ CGenerator: class extends Skeleton {
                 refLevel := 0
 
 
-                if(varAcc expr getType() getRef() instanceOf(ClassDecl)) {
+                if(varAcc expr getType() getRef() instanceOf?(ClassDecl)) {
                     refLevel += 1
                 }
 
@@ -234,7 +234,7 @@ CGenerator: class extends Skeleton {
                 })
             }
             paren := false
-            if(varAcc getRef() getType() instanceOf(ReferenceType)) {
+            if(varAcc getRef() getType() instanceOf?(ReferenceType)) {
                 if (writeReferenceAddrOf) {
                     current app("(*")
                     paren = true
@@ -248,13 +248,13 @@ CGenerator: class extends Skeleton {
             }
 
             if(paren) current app(')')
-        } else if(varAcc ref instanceOf(TypeDecl)) {
+        } else if(varAcc ref instanceOf?(TypeDecl)) {
             tDecl := varAcc ref as TypeDecl
-            while(tDecl instanceOf(CoverDecl) && tDecl as CoverDecl isAddon()) {
+            while(tDecl instanceOf?(CoverDecl) && tDecl as CoverDecl isAddon()) {
                 tDecl = tDecl as CoverDecl getBase() getNonMeta()
             }
             current app(tDecl getFullName()). app("_class()")
-        } else if(varAcc ref instanceOf(FunctionDecl)) {
+        } else if(varAcc ref instanceOf?(FunctionDecl)) {
             fDecl := varAcc ref as FunctionDecl
             FunctionDeclWriter writeFullName(this, fDecl)
         }
@@ -263,7 +263,7 @@ CGenerator: class extends Skeleton {
     /** Write an array access */
     visitArrayAccess: func (arrAcc: ArrayAccess) {
         arrType := arrAcc getArray() getType()
-        if(arrType instanceOf(ArrayType) && arrType as ArrayType expr == null) {
+        if(arrType instanceOf?(ArrayType) && arrType as ArrayType expr == null) {
             inner := arrType as ArrayType inner
             current app("_lang_array__Array_get("). app(arrAcc getArray()). app(", "). app(arrAcc indices[0]). app(", "). app(inner). app(")")
         } else {
@@ -284,7 +284,7 @@ CGenerator: class extends Skeleton {
 
     visitArrayLiteral: func (arrLit: ArrayLiteral) {
         type := arrLit getType()
-        if(!type instanceOf(PointerType)) Exception new(This, "Array literal type %s isn't a PointerType but a %s, wtf?" format(arrLit toString(), type toString())) throw()
+        if(!type instanceOf?(PointerType)) Exception new(This, "Array literal type %s isn't a PointerType but a %s, wtf?" format(arrLit toString(), type toString())) throw()
 
         current app("("). app(arrLit getType() as PointerType inner). app("[]) { ")
         isFirst := true
@@ -302,7 +302,7 @@ CGenerator: class extends Skeleton {
 
     writeArrayCreation: func (arrayType: ArrayType, expr: Expression, name: String) {
         current app("_lang_array__Array_new(")
-        if(arrayType inner instanceOf(ArrayType)) {
+        if(arrayType inner instanceOf?(ArrayType)) {
             // otherwise, something like _lang_types__Bool[rows] is written
             // and that's the size of a pointer for C - which is wrong.
             // Array is larger than a pointer, it's a struct with several
@@ -313,7 +313,7 @@ CGenerator: class extends Skeleton {
         }
         current app(", "). app(arrayType expr). app(")")
 
-        if(arrayType inner instanceOf(ArrayType)) {
+        if(arrayType inner instanceOf?(ArrayType)) {
             current app(';'). nl(). app("{"). tab(). nl(). app("int "). app(name). app("__i;"). nl().
                     app("for("). app(name). app("__i = 0; ").
                     app(name). app("__i < "). app(arrayType expr). app("; ").
@@ -401,7 +401,7 @@ CGenerator: class extends Skeleton {
 
     visitComparison: func (comp: Comparison) {
         current app(comp left). app(" "). app(comp compType toString()). app(" ")
-        if(!comp right getType() equals(comp left getType())) {
+        if(!comp right getType() equals?(comp left getType())) {
             current app('('). app (comp left getType()). app(") ")
         }
         current app(comp right)
@@ -419,18 +419,18 @@ CGenerator: class extends Skeleton {
     }
 
     visitAddressOf: func (node: AddressOf) {
-        if(node expr instanceOf(VariableAccess)) {
+        if(node expr instanceOf?(VariableAccess)) {
             varAcc := node expr as VariableAccess
             if(varAcc getType() isGeneric()) {
                 // generic variables are already pointers =)
                 current app(varAcc); return
             }
-            if(varAcc getType() instanceOf(ReferenceType)) {
+            if(varAcc getType() instanceOf?(ReferenceType)) {
                 visitVariableAccess(varAcc, false); return
             }
         }
 
-        if(node expr instanceOf(Dereference)) {
+        if(node expr instanceOf?(Dereference)) {
             current app(node expr as Dereference expr)
 			return;
 		}

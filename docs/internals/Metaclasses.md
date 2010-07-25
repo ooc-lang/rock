@@ -5,15 +5,15 @@ Classes without an explicit super-class inherit from Object.
 
     Dog: class {}
     d := Dog new()
-    d instanceOf(Object) // is true
-    Dog inheritsFrom(Object) // is true
+    d instanceOf?(Object) // is true
+    Dog inheritsFrom?(Object) // is true
 
 Every class has a meta-class. A class's meta-class inherit from
 its super-class's meta-class.
 
 E.g. if Dog extends Object, DogClass extends ObjectClass, etc.
 
-    DogClass inheritsFrom(ObjectClass) // is true
+    DogClass inheritsFrom?(ObjectClass) // is true
 
 navigating
 ----------

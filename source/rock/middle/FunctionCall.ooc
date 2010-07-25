@@ -107,7 +107,7 @@ FunctionCall: class extends Expression {
             response := returnArg resolve(trail, res)
             if(!response ok()) return response
 
-            if(returnArg isResolved() && !returnArg instanceOf(AddressOf)) {
+            if(returnArg isResolved() && !returnArg instanceOf?(AddressOf)) {
                 returnArgs[i] = returnArg getGenericOperand()
             }
         }
@@ -137,7 +137,7 @@ FunctionCall: class extends Expression {
                 if(ref != null) {
                     refScore = 1
                     expr = VariableAccess new(superTypeDecl getThisDecl(), token)
-                    if(args isEmpty() && !ref getArguments() isEmpty()) {
+                    if(args empty?() && !ref getArguments() empty?()) {
                         for(declArg in fDecl getArguments()) {
                             args add(VariableAccess new(declArg, token))
                         }
@@ -167,10 +167,10 @@ FunctionCall: class extends Expression {
                         }
 				        depth -= 1
 				    }
-			    } else if(expr instanceOf(VariableAccess) && expr as VariableAccess getRef() != null && expr as VariableAccess getRef() instanceOf(NamespaceDecl)) {
+			    } else if(expr instanceOf?(VariableAccess) && expr as VariableAccess getRef() != null && expr as VariableAccess getRef() instanceOf?(NamespaceDecl)) {
                     expr as VariableAccess getRef() resolveCall(this, res, trail)
                 } else if(expr getType() != null && expr getType() getRef() != null) {
-                    if(!expr getType() getRef() instanceOf(TypeDecl)) {
+                    if(!expr getType() getRef() instanceOf?(TypeDecl)) {
                         message := "No such function %s%s for `%s`" format(name, getArgsTypesRepr(), expr getType() getName())
                         if(expr getType() isGeneric()) {
                             message += " (you can't call methods on generic types! you have to cast them first)"
@@ -297,9 +297,9 @@ FunctionCall: class extends Expression {
         callIter := args iterator()
         declIter := ref args iterator()
 
-        while(callIter hasNext() && declIter hasNext()) {
+        while(callIter hasNext?() && declIter hasNext?()) {
             declArg := declIter next()
-            if(declArg instanceOf(VarArg)) break
+            if(declArg instanceOf?(VarArg)) break
             callArg := callIter next()
 
             if(declArg getType() == null) {
@@ -342,14 +342,14 @@ FunctionCall: class extends Expression {
         }
 
         idx := 2
-        while(parent instanceOf(Cast)) {
+        while(parent instanceOf?(Cast)) {
             parent = trail peek(idx)
             idx += 1
         }
 
         //if(ref returnType isGeneric() && !isFriendlyHost(parent)) {
-        if(!ref getReturnArgs() isEmpty() && !isFriendlyHost(parent)) {
-            if(parent instanceOf(Return)) {
+        if(!ref getReturnArgs() empty?() && !isFriendlyHost(parent)) {
+            if(parent instanceOf?(Return)) {
                 fDeclIdx := trail find(FunctionDecl)
                 if(fDeclIdx != -1) {
                     fDecl := trail get(fDeclIdx) as FunctionDecl
@@ -365,7 +365,7 @@ FunctionCall: class extends Expression {
                 }
             }
 
-            vType := getType() instanceOf(TypeList) ? getType() as TypeList types get(0) : getType()
+            vType := getType() instanceOf?(TypeList) ? getType() as TypeList types get(0) : getType()
             vDecl := VariableDecl new(vType, generateTempName("genCall"), token)
             if(!trail addBeforeInScope(this, vDecl)) {
                 if(res fatal) token throwError("Couldn't add a " + vDecl toString() + " before a " + toString() + ", trail = " + trail toString())
@@ -405,9 +405,9 @@ FunctionCall: class extends Expression {
 	 */
     isFriendlyHost: func (node: Node) -> Bool {
         node isScope() ||
-		node instanceOf(CommaSequence) ||
-		node instanceOf(VariableDecl) ||
-		(node instanceOf(BinaryOp) && node as BinaryOp isAssign())
+		node instanceOf?(CommaSequence) ||
+		node instanceOf?(VariableDecl) ||
+		(node instanceOf?(BinaryOp) && node as BinaryOp isAssign())
     }
 
     resolveReturnType: func (trail: Trail, res: Resolver) -> Response {
@@ -467,7 +467,7 @@ FunctionCall: class extends Expression {
 
         if(debugCondition()) printf("[realTypize] realTypizing type %s in %s\n", type toString(), toString())
 
-        if(type instanceOf(BaseType) && type as BaseType typeArgs != null) {
+        if(type instanceOf?(BaseType) && type as BaseType typeArgs != null) {
             baseType := type as BaseType
             j := 0
             for(typeArg in baseType typeArgs) {
@@ -478,7 +478,7 @@ FunctionCall: class extends Expression {
                 if(debugCondition())  printf("[realTypize] Ref of typeArg %s is a %s (and expr is a %s)\n", typeArg toString(), typeArg getRef() class name, expr ? expr toString() : "(nil)")
 
                 // if it's generic-unspecific, it needs to be resolved
-                if(typeArg getRef() instanceOf(VariableDecl)) {
+                if(typeArg getRef() instanceOf?(VariableDecl)) {
                     typeArgName := typeArg getRef() as VariableDecl getName()
                     finalScore := 0
                     result := resolveTypeArg(typeArgName, trail, finalScore&)
@@ -501,7 +501,7 @@ FunctionCall: class extends Expression {
 
         i := 0
         for(declArg in ref args) {
-            if(declArg instanceOf(VarArg)) break
+            if(declArg instanceOf?(VarArg)) break
             if(i >= args size()) break
             callArg := args get(i)
             if(declArg getType() == null || declArg getType() getRef() == null ||
@@ -509,8 +509,8 @@ FunctionCall: class extends Expression {
                 res wholeAgain(this, "To resolve interface-args, need to resolve declArg and callArg" format(declArg toString(), callArg toString()))
                 return Responses OK
             }
-            if(declArg getType() getRef() instanceOf(InterfaceDecl)) {
-                if(!declArg getType() equals(callArg getType())) {
+            if(declArg getType() getRef() instanceOf?(InterfaceDecl)) {
+                if(!declArg getType() equals?(callArg getType())) {
                     args set(i, Cast new(callArg, declArg getType(), callArg token))
                 }
 
@@ -529,7 +529,7 @@ FunctionCall: class extends Expression {
 
         j := 0
         for(implArg in ref args) {
-            if(implArg instanceOf(VarArg)) { j += 1; continue }
+            if(implArg instanceOf?(VarArg)) { j += 1; continue }
             implType := implArg getType()
 
             if(implType == null || !implType isResolved()) {
@@ -546,7 +546,7 @@ FunctionCall: class extends Expression {
                 return Responses OK
             }
 
-            isGood := ((callArg instanceOf(AddressOf) && callArg as AddressOf isForGenerics) || typeResult isGeneric())
+            isGood := ((callArg instanceOf?(AddressOf) && callArg as AddressOf isForGenerics) || typeResult isGeneric())
             if(!isGood) { // FIXME this is probably wrong - what if we want an address's address? etc.
                 target : Expression = callArg
                 if(!callArg isReferencable()) {
@@ -579,7 +579,7 @@ FunctionCall: class extends Expression {
             typeResult := resolveTypeArg(typeArg name, trail, finalScore&)
             if(finalScore == -1) break
             if(typeResult) {
-                result := typeResult instanceOf(FuncType) ?
+                result := typeResult instanceOf?(FuncType) ?
                     VariableAccess new("Pointer", token) :
                     VariableAccess new(typeResult, token)
                 if (typeResult isGeneric()) {
@@ -636,7 +636,7 @@ FunctionCall: class extends Expression {
                      */
                     argType := arg type
                     refCount := 0
-                    while(argType instanceOf(SugarType)) {
+                    while(argType instanceOf?(SugarType)) {
                         argType = argType as SugarType inner
                         refCount += 1
                     }
@@ -644,7 +644,7 @@ FunctionCall: class extends Expression {
                         implArg := args get(j)
                         result := implArg getType()
                         realCount := 0
-                        while(result instanceOf(SugarType) && realCount < refCount) {
+                        while(result instanceOf?(SugarType) && realCount < refCount) {
                             result = result as SugarType inner
                             realCount += 1
                         }
@@ -655,13 +655,13 @@ FunctionCall: class extends Expression {
                     }
 
                     /* myFunction: func <T> (myArg: Func -> T) */
-                    if(argType instanceOf(FuncType)) {
+                    if(argType instanceOf?(FuncType)) {
                         fType := argType as FuncType
 
                         if(fType returnType getName() == typeArgName) {
                             if(debugCondition()) " >> Hey, we have an interesting FuncType %s" printfln(fType toString())
                             implArg := args get(j)
-                            if(implArg instanceOf(FunctionDecl)) {
+                            if(implArg instanceOf?(FunctionDecl)) {
                                 fDecl := implArg as FunctionDecl
                                 if(fDecl inferredReturnType) {
                                     if(debugCondition()) " >> Got it from inferred return type %s!" printfln(fDecl inferredReturnType toString())
@@ -678,7 +678,7 @@ FunctionCall: class extends Expression {
                     /* myFunction: func <T> (T: Class) */
                     if(arg getName() == typeArgName) {
                         implArg := args get(j)
-                        if(implArg instanceOf(VariableAccess)) {
+                        if(implArg instanceOf?(VariableAccess)) {
                             if(implArg as VariableAccess getRef() == null) {
                                 finalScore == -1
                                 return null
@@ -688,9 +688,9 @@ FunctionCall: class extends Expression {
 
                             if(debugCondition()) " >> Found ref-arg %s for typeArgName %s, returning %s" format(implArg toString(), typeArgName, result toString()) println()
                             return result
-                        } else if(implArg instanceOf(TypeAccess)) {
+                        } else if(implArg instanceOf?(TypeAccess)) {
                             return implArg as TypeAccess inner
-                        } else if(implArg instanceOf(Type)) {
+                        } else if(implArg instanceOf?(Type)) {
                             return implArg as Type
                         }
                     }
@@ -713,7 +713,7 @@ FunctionCall: class extends Expression {
         }
 
         if(expr != null) {
-            if(expr instanceOf(Type)) {
+            if(expr instanceOf?(Type)) {
                 /* Type<T> myFunction() */
                 if(debugCondition()) printf("Looking for typeArg %s in expr-type %s\n", typeArgName, expr toString())
                 result := expr as Type searchTypeArg(typeArgName, finalScore&)
@@ -815,11 +815,11 @@ FunctionCall: class extends Expression {
         declIter : Iterator<Argument> = declArgs iterator()
         callIter : Iterator<Expression> = args iterator()
 
-        while(callIter hasNext() && declIter hasNext()) {
+        while(callIter hasNext?() && declIter hasNext?()) {
             declArg := declIter next()
             callArg := callIter next()
             // avoid null types
-            if(declArg instanceOf(VarArg)) break
+            if(declArg instanceOf?(VarArg)) break
             if(declArg getType() == null) {
                 if(debugCondition()) "Score is -1 because of declArg %s\n" format(declArg toString()) println()
                 return -1
@@ -883,7 +883,7 @@ FunctionCall: class extends Expression {
             last := decl args last()
 
             // and less fixed decl args than call args ;)
-            if(last instanceOf(VarArg) && declArgs - 1 <= callArgs) {
+            if(last instanceOf?(VarArg) && declArgs - 1 <= callArgs) {
                 return true
             }
         }
@@ -899,9 +899,9 @@ FunctionCall: class extends Expression {
 
     isMember: func -> Bool {
         (expr != null) &&
-        !(expr instanceOf(VariableAccess) &&
+        !(expr instanceOf?(VariableAccess) &&
           expr as VariableAccess getRef() != null &&
-          expr as VariableAccess getRef() instanceOf(NamespaceDecl)
+          expr as VariableAccess getRef() instanceOf?(NamespaceDecl)
         )
     }
 
@@ -945,7 +945,7 @@ FunctionCall: class extends Expression {
     }
 
     setReturnArg: func (retArg: Expression) {
-        if(returnArgs isEmpty()) returnArgs add(retArg)
+        if(returnArgs empty?()) returnArgs add(retArg)
         else                     returnArgs[0] = retArg
     }
     getReturnArgs: func -> List<Expression> { returnArgs }

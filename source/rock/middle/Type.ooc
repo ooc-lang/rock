@@ -26,7 +26,7 @@ Type: abstract class extends Expression {
 
     write: abstract func (w: AwesomeWriter, name: String)
 
-    equals: abstract func (other: This) -> Bool
+    equals?: abstract func (other: This) -> Bool
 
     getName: abstract func -> String
 
@@ -53,7 +53,7 @@ Type: abstract class extends Expression {
     isGeneric: func -> Bool {
         if(getRef()) {
             //printf("ref of %s is %s %s\n", toString(), getRef() class name, getRef() toString())
-            return getRef() instanceOf(VariableDecl)
+            return getRef() instanceOf?(VariableDecl)
         }
         return false
     }
@@ -139,7 +139,7 @@ Type: abstract class extends Expression {
 
     getScoreImpl: abstract func (other: This, scoreSeed: Int) -> Int
 
-    inheritsFrom: func (t: This) -> Bool { false }
+    inheritsFrom?: func (t: This) -> Bool { false }
 
     dig: abstract func -> This
 
@@ -199,7 +199,7 @@ TypeAccess: class extends Type {
 
     pointerLevel: func -> Int { inner pointerLevel() }
 
-    equals: func (other: Type) -> Bool { inner equals(other) }
+    equals?: func (other: Type) -> Bool { inner equals?(other) }
 
     getRef: func -> Declaration { inner getRef() }
     setRef: func (d: Declaration) { inner setRef(d) }
@@ -237,7 +237,7 @@ SugarType: abstract class extends Type {
     getTypeArgs: func -> List<VariableAccess> { inner getTypeArgs() }
 
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
-        if(other instanceOf(class)) {
+        if(other instanceOf?(class)) {
             score := inner getScore(other as SugarType inner)
             if(score >= -1) return score
         }
@@ -284,9 +284,9 @@ PointerType: class extends SugarType {
         if(name != null) w app(' '). app(name)
     }
 
-    equals: func (other: This) -> Bool {
+    equals?: func (other: This) -> Bool {
         if(other class != this class) return false
-        return (other as PointerType inner equals(inner))
+        return (other as PointerType inner equals?(inner))
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
@@ -321,7 +321,7 @@ ArrayType: class extends PointerType {
     }
 
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
-        if(other instanceOf(class)) {
+        if(other instanceOf?(class)) {
             score := inner getScore(other as SugarType inner)
             if(score >= -1) return score
         }
@@ -364,7 +364,7 @@ ArrayType: class extends PointerType {
         copy := clone()
 
         current := copy as Type
-        while(current instanceOf(ArrayType)) {
+        while(current instanceOf?(ArrayType)) {
             innerType := current as ArrayType
             innerType expr = null
             current = innerType inner
@@ -392,9 +392,9 @@ ReferenceType: class extends SugarType {
         if(name != null) w app(' '). app(name)
     }
 
-    equals: func (other: This) -> Bool {
+    equals?: func (other: This) -> Bool {
         if(other class != this class) return false
-        return (other as PointerType inner equals(inner))
+        return (other as PointerType inner equals?(inner))
     }
 
     toString: func -> String { inner toString() + "@" }
