@@ -48,7 +48,7 @@ fseek: extern func (stream: FStream, offset: Long, origin: Int ) -> Int
 rewind: extern func (stream: FStream)
 ftell: extern func (stream: FStream) -> Long
 
-ferror: extern func(stream: FILE*) -> Int
+ferror: extern func(stream: FStream) -> Int
 
 
 FILE: extern cover
@@ -59,6 +59,10 @@ FStream: cover from FILE* {
 
     close: func -> Int {
         fclose(this)
+    }
+    
+    error: func -> Int {
+    	ferror(this)
     }
     
     eof: func -> Bool {
@@ -145,6 +149,10 @@ FStream: cover from FILE* {
 	
 	write: func (str: String) {
 		fputs(str, this)
+	}
+	
+	write: func (str: String, length: SizeT) -> SizeT {
+		write(str, 0, length)
 	}
 	
 	write: func ~precise (str: Char*, offset: SizeT, length: SizeT) -> SizeT {

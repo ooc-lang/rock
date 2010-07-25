@@ -7,11 +7,16 @@ import structs/ArrayList
 	highly optimized for best possible performance,	gcc will do the rest
 	will be extended more in the future
 	
-	this is what i want String to be...
+	the main advantage of Buffer vs String is that the Buffer can store the length, 
+	so it doesnt call strlen on every use, which can mean thousands of cpu cycles
+	additionally, it can be used to handle data which contains \0
+	
+	a slight disadvantage is that it is allocated on the heap, so if you just want
+	to print "hello world" it may be overkill.
 	
 	allows to search for a given string/Buffer:
 		
-	buf : ExtBuffer = ExtBuffer new("110111") .setCaseSenisitive(true) .initSearch("1")
+	buf : ExtBuffer = ExtBuffer new("110111") .setCaseSensitive(true) .initSearch("1")
 	while (buf find()) {
 		println ("found at pos " + ((buf pos) toString()) )
 	}	
@@ -20,7 +25,7 @@ import structs/ArrayList
 	allows to replace a string:
 	buf := ExtBuffer new("windows windows windows") 
 	buf setCaseSensitive(true) 
-	nbuf := buf replaceAll( Buffer new ("windows"), Buffer new ("linux") )
+	nbuf := buf replaceAll( "windows", "linux" )
 	if (nbuf) println("finally: " + nbuf data as String)	
 	
 	allows to split/explode to an arraylist of extbuffers
@@ -28,10 +33,9 @@ import structs/ArrayList
 	if (x) for (item in x) item toString() println()
 	add that to the replace example above
 	
-	future plans: fromFile, toFile, ...
+	allows to read contents from file / write to file (non \0 sensitive)
 	
-	TODO maybe add \0 automatically at the end of every Buffer, so the pointer can
-	directly be passed to C functions in every case
+	future plans: what ever is missing ...	
 		
 */
 
@@ -170,6 +174,13 @@ ExtBuffer: class extends Buffer {
 		return result	
 	}
 	
+	replaceAll: func ~str (what, whit : String) -> This {
+		return replaceAll ( what, what length(), whit, whit length() )
+	}
+	
+	replaceAll: func ~strWithLength (what:String, whatLength: SizeT, whit : String, whitLength: SizeT) -> This {
+		return replaceAll (Buffer new ( what, whatLength), Buffer new ( whit, whitLength ) )
+	}	
 	
 	// quickest possible replace algorithm, uses only 2 malloc's and 1 linear read as well as 1 linear write
 	// "this" is the haystack, "what" the needle, "whit" the replacement
@@ -201,7 +212,15 @@ ExtBuffer: class extends Buffer {
 		
 		return result
 		
-	}		
+	}
+	
+	explode: func ~str (delimiter: String) -> ArrayList <This> {
+		return explode( delimiter, delimiter length() )
+	}
+
+	explode: func ~strWithLength (delimiter: String, length: SizeT) -> ArrayList <This> {
+		return explode( Buffer new ( delimiter, length ) )
+	}
 	
 	explode: func (delimiter:Buffer) -> ArrayList <This> {
 		
@@ -218,7 +237,47 @@ ExtBuffer: class extends Buffer {
 		b := This new ((data as Char* + sstart) as String, sdist)
 		result add ( b ) 		
 		return result
-	}	
+	}
+	
+	fromFile: func (fileName: String) -> Bool {
+		STEP_SIZE : SizeT = 4096				
+		file := FStream open(fileName, "rb")
+		if (!file || file error()) return false
+		len := file size()
+		checkLength(len + 1)	
+		pos = 0
+		while (len / STEP_SIZE > 0) {
+			retv := file read((data as Char* + pos) as Pointer, STEP_SIZE)
+			if (retv != STEP_SIZE || file error()) {
+				file close()
+				return false
+			}	
+			len -= retv
+			pos += retv
+		}
+		if (len) file read((data as Char* + pos) as Pointer, len)	
+		size += len	
+		return (file error()==0) && (file close() == 0)
+	}
+	
+	toFile: func (fileName: String, doAppend: Bool) -> Bool {
+		STEP_SIZE : SizeT = 4096				
+		file := FStream open(fileName, doAppend ? "ab" : "wb") 
+		if (!file || file error()) return false
+		pos = 0
+		togo := size
+		while (togo / STEP_SIZE > 0) {
+			retv := file write ((data as Char* + pos) as String, STEP_SIZE)
+			if (retv != STEP_SIZE || file error()) {
+				file close()
+				return false
+			}	
+			togo -= retv
+			pos  += retv			
+		}
+		if (togo) file write((data as Char* + pos) as String, togo)	
+		return (file error() == 0) && (file close()==0 )					
+	}
 	
 }
 
