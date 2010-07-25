@@ -75,6 +75,7 @@ Buffer: class {
         return data[offset]
     }
 
+    // attention: be sure when you call checkLength manually, to apply a trailing '\0' afterwards, as demonstrated in init
     checkLength: func (min: SizeT) {
         if(min >= capacity) {
             newCapa := min * 1.2 + 10

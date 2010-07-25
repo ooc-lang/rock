@@ -245,6 +245,7 @@ ExtBuffer: class extends Buffer {
 		if (!file || file error()) return false
 		len := file size()
 		checkLength(len + 1)	
+		data[len] = '\0'
 		pos = 0
 		while (len / STEP_SIZE > 0) {
 			retv := file read((data as Char* + pos) as Pointer, STEP_SIZE)
