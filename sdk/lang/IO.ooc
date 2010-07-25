@@ -43,6 +43,14 @@ vsscanf: extern func (str: Char*, format: Char*, ap: VaList) -> Int
 fgets: extern func (str: Char*, length: SizeT, stream: FStream) -> Char*
 fgetc: extern func (stream: FStream) -> Int
 
+SEEK_CUR, SEEK_SET, SEEK_END: extern Int
+fseek: extern func (stream: FStream, offset: Long, origin: Int ) -> Int
+rewind: extern func (stream: FStream)
+ftell: extern func (stream: FStream) -> Long
+
+ferror: extern func(stream: FILE*) -> Int
+
+
 FILE: extern cover
 FStream: cover from FILE* {
 	open: static func (filename, mode: const String) -> This {
@@ -52,9 +60,25 @@ FStream: cover from FILE* {
     close: func -> Int {
         fclose(this)
     }
+    
+    eof: func -> Bool {
+    	feof(this) != 0
+    }
+    
+    seek: func(offset: Long, origin: Int) -> Int {
+    	fseek(this, offset, origin)
+    }
+    
+    tell: func -> Long {
+    	ftell(this)
+    }
 
     flush: func {
         fflush(this)
+    }
+    
+    read: func(dest: Pointer, bytesToRead: SizeT) -> SizeT {
+    	fread(dest, 1, bytesToRead, this)
     }
 
 	// TODO encodings
@@ -103,6 +127,13 @@ FStream: cover from FILE* {
 
         return str as String
 	}
+	
+	size: func -> SizeT {
+		seek(0, SEEK_END)
+		result := tell() as SizeT
+		rewind(this)
+		return result
+	}
 
     hasNext: func -> Bool {
         feof(this) == 0
@@ -118,6 +149,7 @@ FStream: cover from FILE* {
 	
 	write: func ~precise (str: Char*, offset: SizeT, length: SizeT) -> SizeT {
 		// TODO encodings
+		// TODO does offset make sense here ? it could be added to the str pointer
 		fwrite(str + offset, 1, length, this)
 	}
 	
