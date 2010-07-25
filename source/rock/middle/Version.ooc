@@ -22,7 +22,7 @@ VersionBlock: class extends ControlStatement {
     toString: func -> String { spec toString() }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        if(!super(trail, res) ok()) return Responses LOOP
+        super(trail, res)
     }
 
     isResolved: func -> Bool { true }
@@ -48,7 +48,7 @@ VersionSpec: abstract class {
 builtinNames := HashMap<String, String> new()
 
 {
-    // ooc's excuse for a map literal (so far ^^)    
+    // ooc's excuse for a map literal (so far ^^)
     builtinNames put("windows", 	"__WIN32__) || defined(__WIN64__") // FIXME: is that right?
     builtinNames put("linux", 	"__linux__")
     builtinNames put("solaris", 	"__sun")

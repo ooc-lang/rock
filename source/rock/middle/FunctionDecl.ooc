@@ -350,9 +350,9 @@ FunctionDecl: class extends Declaration {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        trail push(this)
-
         if(debugCondition() || res params veryVerbose) printf("** Resolving function decl %s\n", name)
+
+        trail push(this)
 
         for(arg in args) {
             response := arg resolve(trail, res)
@@ -465,7 +465,6 @@ FunctionDecl: class extends Declaration {
             }
         }
         trail pop(this)
-
 
         if(name == "main" && owner == null) {
             if(args size() == 1 && args first() getType() getName() == "ArrayList") {
@@ -623,8 +622,9 @@ FunctionDecl: class extends Declaration {
         closureType as FuncType isClosure = true
 
         // find the outer function call
-        parentCall := trail get(trail find(FunctionCall)) as FunctionCall
-        isFlat := parentCall getRef() isExtern()
+        parentIdx := trail find(FunctionCall)
+        parentCall := (parentIdx != -1 ? trail get(parentIdx, FunctionCall) : null)
+        isFlat := (parentCall != null && parentCall getRef() isExtern())
 
         if(partialByReference empty?() && partialByValue empty?()) {
 

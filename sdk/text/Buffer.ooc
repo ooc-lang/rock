@@ -9,19 +9,19 @@ Buffer: class {
         init(128)
     }
 
-    init: func ~withCapa (=capacity) {
+    init: func ~withCapa (=capacity) {    	
+        capacity += 1
         data = gc_malloc(capacity)
+        data[capacity-1] = '\0'        
         size = 0
     }
 
-    init: func ~str (data: String) {
-        this data = data clone()
-        size = data length()
-        capacity = data length()
+    init: func ~str (str: String) {
+    	init ( str, str length() )
     }
 
     init: func ~strWithLength (str: String, length: SizeT) {
-        checkLength(length)
+        init ( length ) // sets trailing \0 as well
         memcpy(data as Char*, str as Char*, length)
         size = length
     }
@@ -34,20 +34,21 @@ Buffer: class {
     } 
     
     append: func ~str (str: String) {
-        length := str length()
-        append(str, length)
+        append(str, str length())
     }
 
     append: func ~strWithLength (str: String, length: SizeT) {
-        checkLength(size + length)
+        checkLength(size + length + 1)
         memcpy(data as Char* + size, str as Char*, length)
         size += length
+        data[size] = '\0'
     }
 
     append: func ~chr (chr: Char) {
-        checkLength(size + 1)
+        checkLength(size + 2)
         data[size] = chr
         size += 1
+        data[size] = '\0'
     }
 
     get: func ~strWithLengthOffset (str: Char*, offset: SizeT, length: SizeT) -> Int {
@@ -83,13 +84,11 @@ Buffer: class {
             }
             data = tmp
             capacity = newCapa
-        }
+        }        
     }
 
     toString: func -> String {
-        checkLength(size + 1)
-        data[size] = '\0'
-        return data as String // ugly hack. or is it?
+        return data as String
     }
 }
 
@@ -124,12 +123,15 @@ BufferWriter: class extends Writer {
     }
 
     vwritef: func(fmt: String, list: VaList) {
-        // TODO: could be optimized (notably the buffer allocation)
-        length := vsnprintf(null, 0, fmt, list)
-        output := String new(length)
-
-        vsnprintf(output, length + 1, fmt, list)
-        buffer append(output, length)
+        list2: VaList
+        va_copy(list2, list)
+        length := vsnprintf(null, 0, fmt, list2)        
+        va_end (list2)
+        
+        buffer checkLength( buffer size + length )                
+        vsnprintf(buffer data as Char* + buffer size, length + 1, fmt, list)
+        
+        buffer size += length
     }
 }
 
