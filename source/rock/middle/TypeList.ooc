@@ -42,12 +42,12 @@ TypeList: class extends Type {
         voidType write(w, name)
     }
 
-    equals: func (t: Type) -> Bool {
-        if(!t instanceOf(This)) return false
+    equals?: func (t: Type) -> Bool {
+        if(!t instanceOf?(This)) return false
         other := t as This
         if(other types size() != types size()) return false
         for(i in 0..types size()) {
-            if(!types[i] equals(other types[i])) return false
+            if(!types[i] equals?(other types[i])) return false
         }
         true
     }
@@ -57,7 +57,7 @@ TypeList: class extends Type {
     }
 
     toString: func -> String {
-        if(types isEmpty()) return "()"
+        if(types empty?()) return "()"
 
         buffer := Buffer new()
         buffer append('(')

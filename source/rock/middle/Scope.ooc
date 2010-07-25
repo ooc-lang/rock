@@ -29,14 +29,14 @@ Scope: class extends Node {
 
         for(i in 0..index) {
             candidate := list get(i)
-            if(candidate instanceOf(VariableDecl) && candidate as VariableDecl getName() == access getName()) {
+            if(candidate instanceOf?(VariableDecl) && candidate as VariableDecl getName() == access getName()) {
                 if(access suggest(candidate as VariableDecl)) {
                     return 0
                 }
-            } else if(candidate instanceOf(VersionBlock)) {
+            } else if(candidate instanceOf?(VersionBlock)) {
                 vb := candidate as VersionBlock
                 for(stmt in vb getBody()) {
-                    if(stmt instanceOf(VariableDecl) && stmt as VariableDecl getName() == access getName()) {
+                    if(stmt instanceOf?(VariableDecl) && stmt as VariableDecl getName() == access getName()) {
                         //printf("Suggesting %s from version block %s\n", stmt toString(), vb toString())
                         if(access suggest(stmt as VariableDecl)) {
                             return 0
@@ -53,10 +53,10 @@ Scope: class extends Node {
         // FIXME: this is as wrong as resolveAccess, see the comments up there.
 
         for(stat in this) {
-            if(stat instanceOf(VariableDecl)) {
+            if(stat instanceOf?(VariableDecl)) {
                 vDecl := stat as VariableDecl
                 // experimental
-                if((vDecl getType() instanceOf(FuncType) || (vDecl getType() != null && vDecl getType() getName() == "Closure")) &&
+                if((vDecl getType() instanceOf?(FuncType) || (vDecl getType() != null && vDecl getType() getName() == "Closure")) &&
                    vDecl getName() == call getName() &&
                    call suggest(vDecl getFunctionDecl())) {
                     break
@@ -125,7 +125,7 @@ Scope: class extends Node {
         list iterator()
     }
 
-    isEmpty:  func -> Bool { list isEmpty() }
+    empty?:  func -> Bool { list empty?() }
 
     last:  func -> Statement { list last() }
     first: func -> Statement { list first() }

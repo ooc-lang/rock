@@ -65,11 +65,11 @@ JSONGenerator: class extends Visitor {
     }
 
     resolveType: func (type: Type) -> String {
-        if(type instanceOf(FuncType)) {
+        if(type instanceOf?(FuncType)) {
             return "Func" /* TODO? */
-        } else if(type instanceOf(PointerType)) {
+        } else if(type instanceOf?(PointerType)) {
             return "pointer(%s)" format(resolveType(type as PointerType inner))
-        } else if(type instanceOf(ReferenceType)) {
+        } else if(type instanceOf?(ReferenceType)) {
             return "reference(%s)" format(resolveType(type as ReferenceType inner))
         } else {
             /* base type */
@@ -298,7 +298,7 @@ JSONGenerator: class extends Visitor {
         for(arg in node args) {
             l := Bag new()
             l add(arg name as String) /* TODO: why is that needed? */
-            if(arg instanceOf(VarArg))
+            if(arg instanceOf?(VarArg))
                 l add("")
             else
                 l add(resolveType(arg type)) /* this handles generic types well. */
@@ -331,7 +331,7 @@ JSONGenerator: class extends Visitor {
         obj put("version", null) // TODO: change when we have version support
         /* `extern` */
         if(node isExtern()) {
-            if(node externName isEmpty())
+            if(node externName empty?())
                 obj put("extern", true)
             else
                 obj put("extern", node externName)
@@ -372,7 +372,7 @@ JSONGenerator: class extends Visitor {
             obj put("value", null)
         }
         /* property data? */
-        if(node instanceOf(PropertyDecl)) {
+        if(node instanceOf?(PropertyDecl)) {
             data := HashBag new()
             pnode := node as PropertyDecl
             data put("hasGetter", pnode getter != null)
@@ -408,7 +408,7 @@ JSONGenerator: class extends Visitor {
         obj put("tag", node name)
         /* `extern` */
         if(node isExtern()) {
-            if(node externName isEmpty())
+            if(node externName empty?())
                 obj put("extern", true)
             else
                 obj put("extern", node externName)
@@ -425,7 +425,7 @@ JSONGenerator: class extends Visitor {
         elements := Bag new()
         obj put("elements", elements)
         for(var in node getMeta() getVariables()) {
-            if(!var instanceOf(EnumElement))
+            if(!var instanceOf?(EnumElement))
                 continue
             elem := var as EnumElement
             elemInfo := HashBag new()
@@ -452,7 +452,7 @@ JSONGenerator: class extends Visitor {
         buf := Buffer new()
         buf append(start)
         first := true
-        if(!node typeArgs isEmpty()) {
+        if(!node typeArgs empty?()) {
             first = false
             first_ := true
             buf append("generics(")
@@ -465,7 +465,7 @@ JSONGenerator: class extends Visitor {
             }
             buf append(')')
         }
-        if(!node args isEmpty()) {
+        if(!node args empty?()) {
             if(!first)
                 buf append(',')
             else
@@ -549,7 +549,7 @@ JSONGenerator: class extends Visitor {
             visitOperatorDecl(op)
         }
         for(child in node body)
-            if(child instanceOf(VariableDecl))
+            if(child instanceOf?(VariableDecl))
                 child accept(this)
     }
 }

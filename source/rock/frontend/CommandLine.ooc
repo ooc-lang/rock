@@ -33,10 +33,10 @@ CommandLine: class {
                 continue
             }
 
-            if (arg startsWith("-")) {
+            if (arg startsWith?("-")) {
                 option := arg substring(1)
 
-                if (option startsWith("sourcepath=")) {
+                if (option startsWith?("sourcepath=")) {
 
                     sourcePathOption := arg substring(arg indexOf('=') + 1)
                     tokenizer := StringTokenizer new(sourcePathOption, File pathDelimiter)
@@ -44,17 +44,17 @@ CommandLine: class {
                         params sourcePath add(token)
                     }
 
-                } else if (option startsWith("outpath=")) {
+                } else if (option startsWith?("outpath=")) {
 
                     params outPath = File new(arg substring(arg indexOf('=') + 1))
                     params clean = false
 
-                } else if (option startsWith("outlib")) {
+                } else if (option startsWith?("outlib")) {
 
                     "Deprecated option %s! Use -staticlib instead. Abandoning." printfln(option)
                     exit(1)
 
-                } else if (option startsWith("staticlib")) {
+                } else if (option startsWith?("staticlib")) {
 
                     idx := arg indexOf('=')
                     if(idx == -1) {
@@ -64,7 +64,7 @@ CommandLine: class {
                     }
                     params libcache = false
 
-                } else if (option startsWith("dynamiclib")) {
+                } else if (option startsWith?("dynamiclib")) {
 
                     idx := arg indexOf('=')
                     if(idx == -1) {
@@ -73,7 +73,7 @@ CommandLine: class {
                         params dynamiclib = arg substring(idx + 1)
                     }
 
-                } else if(option startsWith("backend")) {
+                } else if(option startsWith?("backend")) {
                     params backend = arg substring(arg indexOf('=') + 1)
 
                     if(params backend != "c" && params backend != "json" && params backend != "explain") {
@@ -81,23 +81,23 @@ CommandLine: class {
                         params backend = "c"
                     }
 
-                } else if (option startsWith("incpath")) {
+                } else if (option startsWith?("incpath")) {
 
                     params incPath add(arg substring(arg indexOf('=') + 1))
 
-                } else if (option startsWith("I")) {
+                } else if (option startsWith?("I")) {
 
                     params incPath add(arg substring(2))
 
-                } else if (option startsWith("libpath")) {
+                } else if (option startsWith?("libpath")) {
 
                     params libPath add(arg substring(arg indexOf('=') + 1))
 
-                } else if (option startsWith("editor")) {
+                } else if (option startsWith?("editor")) {
 
                     params editor = arg substring(arg indexOf('=') + 1)
 
-                } else if (option startsWith("entrypoint")) {
+                } else if (option startsWith?("entrypoint")) {
 
                     params entryPoint = arg substring(arg indexOf('=') + 1)
 
@@ -113,7 +113,7 @@ CommandLine: class {
 
                     params debugLibcache = true
 
-                } else if(option startsWith("ignoredefine=")) {
+                } else if(option startsWith?("ignoredefine=")) {
 
                     params ignoredDefines add(option substring(13))
 
@@ -121,27 +121,27 @@ CommandLine: class {
 
                     BuildParams fatalError = false
 
-                } else if(option startsWith("dist=")) {
+                } else if(option startsWith?("dist=")) {
 
                     params distLocation = File new(option substring(5))
 
-                } else if(option startsWith("sdk=")) {
+                } else if(option startsWith?("sdk=")) {
 
                     params sdkLocation = File new(option substring(4))
 
-                } else if(option startsWith("libs=")) {
+                } else if(option startsWith?("libs=")) {
 
                     params libPath = File new(option substring(5))
 
-                } else if(option startsWith("linker=")) {
+                } else if(option startsWith?("linker=")) {
 
                     params linker = option substring(7)
 
-                } else if (option startsWith("L")) {
+                } else if (option startsWith?("L")) {
 
                     params libPath add(arg substring(2))
 
-                } else if (option startsWith("l")) {
+                } else if (option startsWith?("l")) {
 
                     params dynamicLibs add(arg substring(2))
 
@@ -153,7 +153,7 @@ CommandLine: class {
 
                     params defaultMain = false
 
-                } else if (option startsWith("gc=")) {
+                } else if (option startsWith?("gc=")) {
 
                     suboption := option substring(3)
                     if (suboption == "off") {
@@ -229,7 +229,7 @@ CommandLine: class {
                     params run = true
                     params shout = false
 
-                } else if (option startsWith("driver=")) {
+                } else if (option startsWith?("driver=")) {
 
                     driverName := option substring("driver=" length())
                     driver = match (driverName) {
@@ -246,7 +246,7 @@ CommandLine: class {
                             null
                     }
 
-                } else if (option startsWith("blowup=")) {
+                } else if (option startsWith?("blowup=")) {
 
                     params blowup = option substring(7) toInt()
 
@@ -260,27 +260,27 @@ CommandLine: class {
                     Help printHelp()
                     exit(0)
 
-                } else if (option startsWith("gcc")) {
-                    if(option startsWith("gcc=")) {
+                } else if (option startsWith?("gcc")) {
+                    if(option startsWith?("gcc=")) {
                         params compiler = Gcc new(option substring(4))
                     } else {
                         params compiler = Gcc new()
                     }
-                } else if (option startsWith("icc")) {
-                    if(option startsWith("icc=")) {
+                } else if (option startsWith?("icc")) {
+                    if(option startsWith?("icc=")) {
                         params compiler = Icc new(option substring(4))
                     } else {
                         params compiler = Icc new()
                     }
-                } else if (option startsWith("tcc")) {
-                    if(option startsWith("tcc=")) {
+                } else if (option startsWith?("tcc")) {
+                    if(option startsWith?("tcc=")) {
                         params compiler = Tcc new(option substring(4))
                     } else {
                         params compiler = Tcc new()
                     }
                     params dynGC = true
-                } else if (option startsWith("clang")) {
-                    if(option startsWith("clang=")) {
+                } else if (option startsWith?("clang")) {
+                    if(option startsWith?("clang=")) {
                         params compiler = Clang new(option substring(6))
                     } else {
                         params compiler = Clang new()
@@ -298,7 +298,7 @@ CommandLine: class {
 
                     driver = DummyDriver new(params)
 
-                } else if (option startsWith("o=")) {
+                } else if (option startsWith?("o=")) {
 
                     params binaryPath = arg substring(arg indexOf('=') + 1)
 
@@ -306,7 +306,7 @@ CommandLine: class {
 
                     params slave = true
 
-                } else if (option startsWith("m")) {
+                } else if (option startsWith?("m")) {
 
                     arch := arg substring(2)
                     if (arch == "32" || arch == "64")
@@ -319,16 +319,16 @@ CommandLine: class {
                     printf("Unrecognized option: %s\n", arg)
 
                 }
-            } else if(arg startsWith("+")) {
+            } else if(arg startsWith?("+")) {
 
                 params compilerArgs add(arg substring(1))
 
             } else {
                 lowerArg := arg toLower()
-                if(lowerArg endsWith(".ooc")) {
+                if(lowerArg endsWith?(".ooc")) {
                     modulePaths add(arg)
                 } else {
-                    if(lowerArg contains('.')) {
+                    if(lowerArg contains?('.')) {
                         params additionals add(arg)
                     } else {
                         modulePaths add(arg+".ooc")
@@ -337,7 +337,7 @@ CommandLine: class {
             }
         }
 
-        if(modulePaths isEmpty()) {
+        if(modulePaths empty?()) {
             "rock: no ooc files" println()
             exit(1)
         }
@@ -374,7 +374,7 @@ CommandLine: class {
             }
         }
 
-        if(params sourcePath isEmpty()) params sourcePath add(".")
+        if(params sourcePath empty?()) params sourcePath add(".")
         params sourcePath add(params sdkLocation path)
 
         errorCode := 0

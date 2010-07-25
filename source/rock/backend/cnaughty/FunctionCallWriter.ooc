@@ -24,11 +24,11 @@ FunctionCallWriter: abstract class extends Skeleton {
             current app(") ")
             if(fCall expr != null) {
                 arrow := true
-                if(fCall expr instanceOf(VariableAccess)) {
+                if(fCall expr instanceOf?(VariableAccess)) {
                     acc := fCall expr as VariableAccess
-                    if(acc getRef() instanceOf(VariableDecl)) {
+                    if(acc getRef() instanceOf?(VariableDecl)) {
                         vDecl := acc getRef() as VariableDecl
-                        arrow = vDecl getType() getRef() instanceOf(ClassDecl)
+                        arrow = vDecl getType() getRef() instanceOf?(ClassDecl)
                     }
                 }
                 current app(fCall expr). app(arrow ? "->" : ".")
@@ -38,7 +38,7 @@ FunctionCallWriter: abstract class extends Skeleton {
         } else {
             FunctionDeclWriter writeFullName(this, fDecl)
             if(fDecl isFinal) {
-                if(fDecl owner instanceOf(ClassDecl)) {
+                if(fDecl owner instanceOf?(ClassDecl)) {
                     shouldCastThis = true
                 }
             } else if(fCall getName() == "super") {
@@ -61,7 +61,7 @@ FunctionCallWriter: abstract class extends Skeleton {
 
             // TODO maybe check there's some kind of inheritance/compatibility here?
             // or in the tinker phase?
-            if(shouldCastThis || !(callType equals(declType))) {
+            if(shouldCastThis || !(callType equals?(declType))) {
                 current app("("). app(declType). app(") ")
             }
 
@@ -135,16 +135,16 @@ FunctionCallWriter: abstract class extends Skeleton {
 
             declArg : Argument = null
             if(i < fDecl args size())                         declArg = fDecl args get(i)
-            if(declArg != null && declArg instanceOf(VarArg)) declArg = null
+            if(declArg != null && declArg instanceOf?(VarArg)) declArg = null
 
             writeRefAddrOf := true
             if(declArg != null) {
                 if(declArg getType() isGeneric()) {
                     current app("(uint8_t*) ")
-                    if (arg instanceOf(VariableAccess)) {
+                    if (arg instanceOf?(VariableAccess)) {
                         writeRefAddrOf = false
                     }
-                } else if(arg getType() != null && declArg getType() != null && arg getType() inheritsFrom(declArg getType())) {
+                } else if(arg getType() != null && declArg getType() != null && arg getType() inheritsFrom?(declArg getType())) {
                     //printf("%s inherits from %s, casting!\n", arg getType() toString(), declArg getType() toString())
                     current app("("). app(declArg getType()). app(") (")
                     writeCast = true
@@ -166,11 +166,11 @@ FunctionCallWriter: abstract class extends Skeleton {
 
             if(fCall expr != null) {
                 arrow := true
-                if(fCall expr instanceOf(VariableAccess)) {
+                if(fCall expr instanceOf?(VariableAccess)) {
                     acc := fCall expr as VariableAccess
-                    if(acc getRef() instanceOf(VariableDecl)) {
+                    if(acc getRef() instanceOf?(VariableDecl)) {
                         vDecl := acc getRef() as VariableDecl
-                        arrow = vDecl getType() getRef() instanceOf(ClassDecl)
+                        arrow = vDecl getType() getRef() instanceOf?(ClassDecl)
                     }
                 }
                 current app(fCall expr). app(arrow ? "->" : ".")

@@ -52,7 +52,7 @@ Writer: abstract class {
         cursor, bytesRead, bytesTransfered: Int
         cursor = 0; bytesTransfered = 0
 
-        while(source hasNext()) {
+        while(source hasNext?()) {
             bytesRead = source read(buffer, cursor, bufferSize)
             bytesTransfered += this write(buffer, bytesRead)
         }

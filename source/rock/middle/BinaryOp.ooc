@@ -137,7 +137,7 @@ BinaryOp: class extends Expression {
 
             // Left side is a property access? Replace myself with a setter call.
             // Make sure we're not in the getter/setter.
-            if(left instanceOf(VariableAccess) && left as VariableAccess ref instanceOf(PropertyDecl)) {
+            if(left instanceOf?(VariableAccess) && left as VariableAccess ref instanceOf?(PropertyDecl)) {
                 leftProperty := left as VariableAccess ref as PropertyDecl
                 if(leftProperty inOuterSpace(trail)) {
                     fCall := FunctionCall new(left as VariableAccess expr, leftProperty getSetterName(), token)
@@ -152,14 +152,14 @@ BinaryOp: class extends Expression {
 
             cast : Cast = null
             realRight := right
-            if(right instanceOf(Cast)) {
+            if(right instanceOf?(Cast)) {
                 cast = right as Cast
                 realRight = cast inner
             }
 
             // if we're an assignment from a generic return value
             // we need to set the returnArg to left and disappear! =)
-            if(realRight instanceOf(FunctionCall)) {
+            if(realRight instanceOf?(FunctionCall)) {
                 fCall := realRight as FunctionCall
                 fDecl := fCall getRef()
                 if(!fDecl || !fDecl getReturnType() isResolved()) {
@@ -167,7 +167,7 @@ BinaryOp: class extends Expression {
                     return Responses OK
                 }
 
-                if(!fDecl getReturnArgs() isEmpty()) {
+                if(!fDecl getReturnArgs() empty?()) {
                     fCall setReturnArg(fDecl getReturnType() isGeneric() ? left getGenericOperand() : left)
                     trail peek() replace(this, fCall)
                     res wholeAgain(this, "just replaced with fCall and set ourselves as returnArg")
@@ -236,14 +236,14 @@ BinaryOp: class extends Expression {
                     type == OpType subAss ||
                     type == OpType ass)
         }
-        if(left getType() getRef() instanceOf(ClassDecl) ||
-           right getType() getRef() instanceOf(ClassDecl)) {
+        if(left getType() getRef() instanceOf?(ClassDecl) ||
+           right getType() getRef() instanceOf?(ClassDecl)) {
             // you can only assign - all others must be overloaded
             return (type == OpType ass || isBooleanOp())
         }
-        if((left  getType() getRef() instanceOf(CoverDecl) &&
+        if((left  getType() getRef() instanceOf?(CoverDecl) &&
             left  getType() getRef() as CoverDecl getFromType() == null) ||
-           (right getType() getRef() instanceOf(CoverDecl) &&
+           (right getType() getRef() instanceOf?(CoverDecl) &&
             right getType() getRef() as CoverDecl getFromType() == null)) {
             // you can only assign structs, others must be overloaded
             return (type == OpType ass)
@@ -285,7 +285,7 @@ BinaryOp: class extends Expression {
         }
 
         if(candidate != null) {
-            if(isAssign() && !candidate getSymbol() endsWith("=")) {
+            if(isAssign() && !candidate getSymbol() endsWith?("=")) {
                 // we need to unwrap first!
                 unwrapAssign(trail, res)
                 trail push(this)
@@ -318,8 +318,8 @@ BinaryOp: class extends Expression {
 
         half := false
 
-        if(!(op getSymbol() equals(symbol))) {
-            if(isAssign() && symbol startsWith(op getSymbol())) {
+        if(!(op getSymbol() equals?(symbol))) {
+            if(isAssign() && symbol startsWith?(op getSymbol())) {
                 // alright!
                 half = true
             } else {

@@ -64,7 +64,7 @@ UseDef: class {
 
     findUse: static func (fileName: String, params: BuildParams) -> File {
         set := ArrayList<File> new()
-        if(params libsPath exists()) {
+        if(params libsPath exists?()) {
             set add(params libsPath)
         }
         set add(params sdkLocation)
@@ -73,14 +73,14 @@ UseDef: class {
             if(path getPath() == null) continue
 
             for(subPath in path getChildren()) {
-                if(subPath isDir() || subPath isLink()) {
+                if(subPath dir?() || subPath link?()) {
                     candidate := File new(subPath, fileName)
-                    if(candidate exists()) {
+                    if(candidate exists?()) {
                         return candidate
                     }
                 }
-                if(subPath isFile() || subPath isLink()) {
-                    if(subPath getPath() endsWith(fileName)) {
+                if(subPath file?() || subPath link?()) {
+                    if(subPath getPath() endsWith?(fileName)) {
                         return subPath
                     }
                 }
@@ -92,7 +92,7 @@ UseDef: class {
 
     read: func (file: File, params: BuildParams) {
         reader := FileReader new(file)
-        while(reader hasNext()) {
+        while(reader hasNext?()) {
             reader mark()
             c := reader read()
 
@@ -115,7 +115,7 @@ UseDef: class {
             id := reader readUntil(':') trim() trim(8 as Char /* backspace */)
             value := reader readLine() trim()
 
-            if(id startsWith("_")) {
+            if(id startsWith?("_")) {
                 // reserved ids for external tools (packaging, etc.)
                 continue
             }
@@ -158,7 +158,7 @@ UseDef: class {
             } else if(id == "SourcePath") {
                 sourcePathFile := File new(value)
                 printf("sourcePathFile = %s, absolute = %s, file = %s\n", sourcePathFile getPath(), sourcePathFile getAbsolutePath(), file getPath())
-                if(sourcePathFile isRelative()) {
+                if(sourcePathFile relative?()) {
                     /* is relative. TODO: better check? */
                     sourcePathFile = file parent() getChild(value) getAbsoluteFile()
                 }
@@ -166,7 +166,7 @@ UseDef: class {
                 params sourcePath add(sourcePathFile path)
             } else if(id == "Version") {
                 version = value
-            } else if(!id isEmpty()) {
+            } else if(!id empty?()) {
                 "%s: Unknown id %s (length %d, first = %d) in usefile" printfln(file getPath(), id, id length(), id[0])
             }
         }

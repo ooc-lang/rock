@@ -258,7 +258,7 @@ BuildParams: class {
         for(arg in compilerArgs) {
             ignored := false
             for(ignoredDefine in ignoredDefines) {
-                if(arg startsWith("-D" + ignoredDefine)) {
+                if(arg startsWith?("-D" + ignoredDefine)) {
                     ignored = true
                     break
                 }

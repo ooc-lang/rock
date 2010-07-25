@@ -107,7 +107,7 @@ MakeDriver: class extends SequenceDriver {
         params compiler reset()
         iter := params compiler command iterator()
         iter next()
-        while(iter hasNext()) {
+        while(iter hasNext?()) {
             fW write(" "). write(iter next())
         }
 
@@ -195,7 +195,7 @@ MakeDriver: class extends SequenceDriver {
             if(params dynGC) {
                 fW write("-lgc")
             } else {
-                arch := params arch equals("") ? Target getArch() : params arch
+                arch := params arch equals?("") ? Target getArch() : params arch
                 Target toString(arch)
                 fW write(" ${GC_PATH}")
             }

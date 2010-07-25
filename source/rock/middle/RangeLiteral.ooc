@@ -44,7 +44,7 @@ RangeLiteral: class extends Literal {
         trail pop(this)
 
         parent := trail peek() as Node
-        if(!parent instanceOf(Foreach)) {
+        if(!parent instanceOf?(Foreach)) {
             newCall := FunctionCall new(VariableAccess new("Range", token), "new", token)
             newCall args add(lower) .add(upper)
 

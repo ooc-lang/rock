@@ -49,7 +49,7 @@ SequenceDriver: class extends Driver {
 			("Sequence driver, using " + params sequenceThreads + " thread" + (params sequenceThreads > 1 ? "s" : "")) println()
 		}
 
-        if((params clean && !params libcache && !params outPath exists()) || !File new(params libcachePath) exists()) {
+        if((params clean && !params libcache && !params outPath exists?()) || !File new(params libcachePath) exists?()) {
             if(params verbose)  printf("Must clean and %s doesn't exist, re-generating\n", params outPath path)
             params outPath mkdirs()
             for(candidate in module collectDeps()) {
@@ -128,7 +128,7 @@ SequenceDriver: class extends Driver {
                 if(params dynGC) {
                     params compiler addDynamicLibrary("gc")
                 } else {
-                    arch := params arch equals("") ? Target getArch() : params arch
+                    arch := params arch equals?("") ? Target getArch() : params arch
                     libPath := "libs/" + Target toString(arch) + "/libgc.a"
                     params compiler addObjectFile(File new(params distLocation, libPath) path)
                 }
@@ -367,7 +367,7 @@ SequenceDriver: class extends Driver {
 		done add(module)
 
 		for(import1 in module getAllImports()) {
-			if(done contains(import1 getModule())) continue
+			if(done contains?(import1 getModule())) continue
 			collectDeps(import1 getModule(), toCompile, done)
 		}
 

@@ -20,13 +20,13 @@ PipeReader: class {
         return buf as String
     }
 
-    hasNext: func() -> Bool {
+    hasNext?: func() -> Bool {
         !eof
     }
 
     toString: func -> String {
         sb := Buffer new()
-        while(hasNext()) {
+        while(hasNext?()) {
             sb append(read())
         }
         return sb toString()

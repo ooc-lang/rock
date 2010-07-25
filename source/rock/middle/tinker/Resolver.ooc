@@ -70,7 +70,7 @@ Resolver: class {
 
             pathElem walk(|f|
                 path := f getPath()
-                if (!path endsWith(".ooc")) return true
+                if (!path endsWith?(".ooc")) return true
 
                 module := AstBuilder cache get(f getAbsolutePath())
 
@@ -94,17 +94,17 @@ Resolver: class {
 
     walkForImports: func (f: File, pathElem: File, dummyModule: Module) {
 
-        if(f isDir()) {
+        if(f dir?()) {
             for(child in f getChildren()) {
                 walkForImports(child, pathElem, dummyModule)
             }
         } else {
-            if (!f getPath() endsWith(".ooc")) return
+            if (!f getPath() endsWith?(".ooc")) return
 
             fullName := f getAbsolutePath()
 
             // sort out links to non-existent destinations.
-            if(!f exists())
+            if(!f exists?())
                 return
             
             module := AstBuilder cache get(fullName)

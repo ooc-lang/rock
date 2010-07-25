@@ -30,7 +30,7 @@ RangeListIterator: class extends BackIterator<T> {
         return subIter next()
     }
 
-    hasNext: func -> Bool {
+    hasNext?: func -> Bool {
         remaining > 0
     }
 
@@ -38,7 +38,7 @@ RangeListIterator: class extends BackIterator<T> {
 
     prev: func -> T { null }
 
-    hasPrev: func -> Bool { false }
+    hasPrev?: func -> Bool { false }
 
     remove: func -> Bool { false }
 

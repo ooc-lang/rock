@@ -14,7 +14,7 @@ BaseCompiler: abstract class extends AbstractCompiler {
     setExecutable: func (=executableName) {
         execFile := File new(executableName)
 
-        if (!execFile exists()) {
+        if (!execFile exists?()) {
             execFile = ShellUtils findExecutable(executableName, false)
             if (execFile == null) {
                 execFile = ShellUtils findExecutable(executableName + ".exe", false)
@@ -25,7 +25,7 @@ BaseCompiler: abstract class extends AbstractCompiler {
         }
 
         executablePath = execFile name()
-        if(command isEmpty()) {
+        if(command empty?()) {
             command add(executablePath)
         } else {
             command set(0, executablePath)

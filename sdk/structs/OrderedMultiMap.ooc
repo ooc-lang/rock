@@ -40,7 +40,7 @@ OrderedMultiMap: class <K, V> extends MultiMap<K, V> {
         super(key)
         // in a MultiMap, the same key can have several values
         // we only remove the key from the list if there are no values left
-        if(!contains(key)) {
+        if(!contains?(key)) {
             orderedKeys remove(key)
         }
         return true

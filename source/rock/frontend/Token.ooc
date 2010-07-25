@@ -75,7 +75,7 @@ Token: cover {
         lines := 1
         idx := 0
         // zap the lines before we start
-        while(fr hasNext() && idx < start) {
+        while(fr hasNext?() && idx < start) {
             c := fr read()
             if(c == '\n') {
                 lines += 1
@@ -86,7 +86,7 @@ Token: cover {
 
         // zap the end of the line that contains us
         while(true) {
-            if(!fr hasNext() || fr read() == '\n') break
+            if(!fr hasNext?() || fr read() == '\n') break
             idx += 1
         }
 
@@ -138,7 +138,7 @@ Token: cover {
         fr := FileReader new(getPath())
 
         // zap the lines before we start
-        while(fr hasNext() && idx < start) {
+        while(fr hasNext?() && idx < start) {
             c := fr read()
             if(c == '\n') {
                 lines += 1
@@ -162,7 +162,7 @@ Token: cover {
         return start + length
     }
 
-    equals: func (other: This) -> Bool {
+    equals?: func (other: This) -> Bool {
         return memcmp(this&, other&, This size) == 0
     }
 

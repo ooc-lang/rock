@@ -63,7 +63,7 @@ CoverDecl: class extends TypeDecl {
     }
 
     absorb: func (node: CoverDecl) {
-        if(!variables isEmpty()) {
+        if(!variables empty?()) {
             node token printMessage("...while extending cover " + node toString(), "DETAIL")
             token throwError("Attempting to add variables to another cover!")
         }

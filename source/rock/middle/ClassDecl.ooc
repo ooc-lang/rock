@@ -38,12 +38,12 @@ ClassDecl: class extends TypeDecl {
 
         if(isMeta) {
             if(getNonMeta() class == ClassDecl) {
-                if(!functions contains(This DEFAULTS_FUNC_NAME)) {
+                if(!functions contains?(This DEFAULTS_FUNC_NAME)) {
                     addFunction(FunctionDecl new(This DEFAULTS_FUNC_NAME, token))
                 }
             }
             if(getNonMeta() class == ClassDecl || getNonMeta() class == CoverDecl) {
-                if(!functions contains(This LOAD_FUNC_NAME)) {
+                if(!functions contains?(This LOAD_FUNC_NAME)) {
                     fDecl := FunctionDecl new(This LOAD_FUNC_NAME, token)
                     fDecl setStatic(true)
                     addFunction(fDecl)
@@ -160,7 +160,7 @@ ClassDecl: class extends TypeDecl {
 
 	addInit: func(fDecl: FunctionDecl) {
 
-        isCover := (getNonMeta() instanceOf(CoverDecl))
+        isCover := (getNonMeta() instanceOf?(CoverDecl))
 
 		if(defaultInit != null) {
             /*
@@ -172,7 +172,7 @@ ClassDecl: class extends TypeDecl {
             defaultInit = null
         }
 
-        if(isAbstract || (getNonMeta() instanceOf(ClassDecl) && getNonMeta() as ClassDecl isAbstract)) {
+        if(isAbstract || (getNonMeta() instanceOf?(ClassDecl) && getNonMeta() as ClassDecl isAbstract)) {
             // don't generate new for abstract classes
             return
         }

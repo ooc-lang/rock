@@ -164,7 +164,7 @@ BufferReader: class extends Reader {
         return c
     }
 
-    hasNext: func -> Bool {
+    hasNext?: func -> Bool {
         return marker < buffer size
     }
 

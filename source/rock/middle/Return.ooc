@@ -35,7 +35,7 @@ Return: class extends Statement {
         }
 
         if(!expr) {
-            if (fDecl getReturnArgs() isEmpty() && retType != voidType) {
+            if (fDecl getReturnArgs() empty?() && retType != voidType) {
                 token throwError("Function is not declared to return `null`! trail = %s" format(trail toString()))
             } else {
                 return Responses OK
@@ -59,14 +59,14 @@ Return: class extends Statement {
 
             retType = retType refToPointer()
 
-            if(retType isGeneric() && fDecl getReturnArgs() isEmpty()) {
+            if(retType isGeneric() && fDecl getReturnArgs() empty?()) {
                 fDecl getReturnArg() // create the generic returnArg - just in case.
             }
 
-            if(!fDecl getReturnArgs() isEmpty()) {
+            if(!fDecl getReturnArgs() empty?()) {
 
                 // if it's a generic FunctionCall, just hook its returnArg to the outer FunctionDecl and be done with it.
-                if(expr instanceOf(FunctionCall)) {
+                if(expr instanceOf?(FunctionCall)) {
                     fCall := expr as FunctionCall
                     if( fCall getRef() == null ||
                         fCall getRef() getReturnType() == null ||
@@ -90,7 +90,7 @@ Return: class extends Statement {
                 for(returnArg in fDecl getReturnArgs()) {
 
                     returnExpr := expr
-                    if(expr instanceOf(Tuple)) {
+                    if(expr instanceOf?(Tuple)) {
                         returnExpr = expr as Tuple elements get(j)
                     }
 
@@ -131,7 +131,7 @@ Return: class extends Statement {
                     res wholeAgain(this, "Need info about the expr type")
                     return Responses OK
                 }
-                if(!retType getName() toLower() equals("void") && !retType equals(expr getType())) {
+                if(!retType getName() toLower() equals?("void") && !retType equals?(expr getType())) {
                     score := expr getType() getScore(retType)
                     if (score == -1) {
                         res wholeAgain(this, "something's unresolved in declared ret type vs returned type.")

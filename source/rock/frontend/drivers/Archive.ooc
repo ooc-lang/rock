@@ -53,7 +53,7 @@ Archive: class {
         compilerArgs = params getArgsRepr()
         if(doCacheinfo) {
             pathElement = params sourcePath get(sourceFolder)
-            if(File new(outlib) exists() && File new(outlib + ".cacheinfo") exists()) {
+            if(File new(outlib) exists?() && File new(outlib + ".cacheinfo") exists?()) {
                 _read()
             }
         }
@@ -172,7 +172,7 @@ Archive: class {
      */
     exists?: Bool {
         get {
-            if(!File new(outlib) exists()) return false
+            if(!File new(outlib) exists?()) return false
             if(!doCacheinfo) return false
             fR := FileReader new(outlib + ".cacheinfo")
             result := _readHeader(fR)
@@ -216,7 +216,7 @@ Archive: class {
         }
 
         for(imp in module getAllImports()) {
-            if(done contains(imp getModule())) continue
+            if(done contains?(imp getModule())) continue
 
             subArchive := map get(imp getModule())
 
@@ -237,7 +237,7 @@ Archive: class {
        to the archives.
      */
     save: func (params: BuildParams) {
-        if(toAdd isEmpty()) return
+        if(toAdd empty?()) return
 
         args := ArrayList<String> new()
         args add("ar") // GNU ar tool, manages archives
@@ -342,7 +342,7 @@ ArchiveModule: class {
 
                 for (variable in tDecl getVariables()) {
                     if(variable isStatic) {
-                        if(!statVarIter hasNext()) {
+                        if(!statVarIter hasNext?()) {
                             //printf("Static var %s has changed, %s not up-to-date\n", variable getName(), oocPath)
                             return false
                         }
@@ -352,7 +352,7 @@ ArchiveModule: class {
                             return false
                         }
                     } else {
-                        if(!instanceVarIter hasNext()) {
+                        if(!instanceVarIter hasNext?()) {
                             //printf("Instance var %s has changed, %s not up-to-date\n", variable getName(), oocPath)
                             return false
                         }
@@ -363,11 +363,11 @@ ArchiveModule: class {
                         }
                     }
                 }
-                if(statVarIter hasNext()) {
+                if(statVarIter hasNext?()) {
                     //printf("Less static vars, %s not up-to-date\n", oocPath)
                     return false
                 }
-                if(instanceVarIter hasNext()) {
+                if(instanceVarIter hasNext?()) {
                     //printf("Less instance vars, %s not up-to-date\n", oocPath)
                     return false
                 }
@@ -375,7 +375,7 @@ ArchiveModule: class {
                 functionIter := archType functions iterator()
 
                 for (function in tDecl getFunctions()) {
-                    if(!functionIter hasNext()) {
+                    if(!functionIter hasNext?()) {
                         //printf("Function %s has changed, %s not up-to-date\n", function getFullName(), oocPath)
                         return false
                     }
@@ -386,7 +386,7 @@ ArchiveModule: class {
                     }
                 }
 
-                if(functionIter hasNext()) {
+                if(functionIter hasNext?()) {
                     //printf("Less methods, %s not up-to-date\n", oocPath)
                     return false
                 }
@@ -404,7 +404,7 @@ ArchiveModule: class {
         for (path in archive params sourcePath paths) {
             if (path getAbsoluteFile() name() == archive sourceFolder) {
                 oocFile := File new(path getAbsolutePath(), oocPath)
-                if(oocFile exists()) {
+                if(oocFile exists?()) {
                     module = AstBuilder cache get(oocFile getAbsolutePath())
                 }
             }

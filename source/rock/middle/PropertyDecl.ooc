@@ -60,7 +60,7 @@ PropertyDecl: class extends VariableDecl {
         }
         // get and store the class.
         node := trail peek()
-        if(!node instanceOf(TypeDecl)) {
+        if(!node instanceOf?(TypeDecl)) {
             token throwError("Expected TypeDecl, got %s" format(node toString()))
         }
         cls = node as ClassDecl
@@ -70,7 +70,7 @@ PropertyDecl: class extends VariableDecl {
             getter setName(getGetterName()) .setReturnType(type)
             cls addFunction(getter)
             // are we a cover? if yes, use func@
-            if(cls instanceOf(CoverDecl)) {
+            if(cls instanceOf?(CoverDecl)) {
                 if(cls as CoverDecl fromType == null || !cls as CoverDecl fromType isPointer()) {
                     getter isThisRef = true
                 }
@@ -89,7 +89,7 @@ PropertyDecl: class extends VariableDecl {
             // set name, argument type ...
             setter setName(getSetterName())
             // are we a cover? if yes, use func@
-            if(cls instanceOf(CoverDecl)) {
+            if(cls instanceOf?(CoverDecl)) {
                 if(cls as CoverDecl fromType == null || !cls as CoverDecl fromType isPointer()) {
                     setter isThisRef = true
                 }
@@ -105,7 +105,7 @@ PropertyDecl: class extends VariableDecl {
             } else {
                 arg := setter args[0]
                 // replace `assign` with `conventional`.
-                if(arg instanceOf(AssArg)) {
+                if(arg instanceOf?(AssArg)) {
                     // create AST nodes, add setter contents
                     this_: VariableAccess
                     if(isStatic()) {
@@ -158,8 +158,8 @@ PropertyDecl: class extends VariableDecl {
 
     /** return true if getters and setters should be used in this context */
     inOuterSpace: func (trail: Trail) -> Bool {
-           !(setter ? trail data contains(setter) : false) \
-        && !(getter ? trail data contains(getter) : false) \
-        && !trail data contains(this)
+           !(setter ? trail data contains?(setter) : false) \
+        && !(getter ? trail data contains?(getter) : false) \
+        && !trail data contains?(this)
     }
 }

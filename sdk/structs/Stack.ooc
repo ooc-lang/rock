@@ -12,14 +12,14 @@ Stack: class <T> extends BackIterable<T> {
 	}
 	
 	pop: func -> T {
-		if (isEmpty())
+		if (empty?())
 			Exception new(This, "Trying to pop an empty stack.") throw()
 			
 		return data removeAt(lastIndex())
 	}
 	
 	peek: func -> T {
-		if (isEmpty())
+		if (empty?())
 			Exception new(This, "Trying to peek an empty stack.") throw()
 			
 		return data last()
@@ -44,8 +44,8 @@ Stack: class <T> extends BackIterable<T> {
 		return data size()
 	}
 	
-	isEmpty: func -> Bool {
-		return data isEmpty()
+	empty?: func -> Bool {
+		return data empty?()
 	}
 	
 	lastIndex: func -> Int {

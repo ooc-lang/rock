@@ -40,7 +40,7 @@ HashBag: class {
         return put(key, value)
     }
 
-    isEmpty: func -> Bool {return myMap isEmpty()}
+    empty?: func -> Bool {return myMap empty?()}
 
     remove: func (key: String) -> Bool {
         return myMap remove(key)
@@ -48,7 +48,7 @@ HashBag: class {
 
     size: func -> Int {myMap size}
 
-    contains: func(key: String) -> Bool {
+    contains?: func(key: String) -> Bool {
         myMap get(key) ? true : false
     }
 

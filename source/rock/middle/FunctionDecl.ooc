@@ -82,7 +82,7 @@ FunctionDecl: class extends Declaration {
 
     init: func ~funcDecl (=name, .token) {
         super(token)
-        this isAnon = name isEmpty()
+        this isAnon = name empty?()
         this isFinal = (name == "init")
     }
 
@@ -124,7 +124,7 @@ FunctionDecl: class extends Declaration {
     }
 
     markForPartialing: func(var: VariableDecl, mode: String) {
-        if (!partialByReference contains(var) && !partialByValue contains(var)) {
+        if (!partialByReference contains?(var) && !partialByValue contains?(var)) {
             match (mode) {
                 case "r" => partialByReference add(var)
                 case "v" => partialByValue add(var)
@@ -151,7 +151,7 @@ FunctionDecl: class extends Declaration {
     }
 
     getReturnArg: func -> VariableDecl {
-        if(returnArgs isEmpty()) createReturnArg(returnType, "genericReturn")
+        if(returnArgs empty?()) createReturnArg(returnType, "genericReturn")
         return returnArgs[0]
     }
 
@@ -175,14 +175,14 @@ FunctionDecl: class extends Declaration {
     setExternName: func (=externName) {}
     isExtern: func -> Bool { externName != null }
     isExternWithName: func -> Bool {
-        (externName != null) && !(externName isEmpty())
+        (externName != null) && !(externName empty?())
     }
 
-    getUnmangledName: func -> String { unmangledName isEmpty() ? name : unmangledName }
+    getUnmangledName: func -> String { unmangledName empty?() ? name : unmangledName }
     setUnmangledName: func (=unmangledName) {}
     isUnmangled: func -> Bool { unmangledName != null }
     isUnmangledWithName: func -> Bool {
-        (unmangledName != null) && !(unmangledName isEmpty())
+        (unmangledName != null) && !(unmangledName empty?())
     }
 
     getFullName: func -> String {
@@ -218,7 +218,7 @@ FunctionDecl: class extends Declaration {
     getType: func -> FuncType {
         type := FuncType new(token)
         for(arg in args) {
-            if(arg instanceOf(VarArg)) break
+            if(arg instanceOf?(VarArg)) break
             type argTypes add(arg getType())
         }
         type returnType = returnType
@@ -239,7 +239,7 @@ FunctionDecl: class extends Declaration {
     getArgsRepr: func ~withCallContext (call: FunctionCall) -> String {
         if(args size() == 0) return ""
         sb := Buffer new()
-        if(typeArgs != null && !typeArgs isEmpty()) {
+        if(typeArgs != null && !typeArgs empty?()) {
             sb append("<")
             isFirst := true
             for(typeArg in typeArgs) {
@@ -300,7 +300,7 @@ FunctionDecl: class extends Declaration {
 
     resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
         for(arg: Argument in args) {
-            if((arg getType() instanceOf(FuncType) || (arg getType() != null && arg getType() getName() == "Closure")) &&
+            if((arg getType() instanceOf?(FuncType) || (arg getType() != null && arg getType() getName() == "Closure")) &&
                     arg getName() == call getName()) {
                 call suggest(arg getFunctionDecl())
                 break
@@ -363,7 +363,7 @@ FunctionDecl: class extends Declaration {
             }
         }
 
-        isClosure := name isEmpty()
+        isClosure := name empty?()
 
         if (isClosure && !argumentsReady()) {
             if (!unwrapACS(trail, res)) {
@@ -391,8 +391,8 @@ FunctionDecl: class extends Declaration {
                 res wholeAgain(this, "need returnType of decl %s to be resolved" format(name))
             } else if(returnType isGeneric()) {
                 // this create the returnArg for generic return types
-                if(returnArgs isEmpty()) createReturnArg(returnType, "genericReturn")
-            } else if(returnType instanceOf(TypeList)) {
+                if(returnArgs empty?()) createReturnArg(returnType, "genericReturn")
+            } else if(returnType instanceOf?(TypeList)) {
                 list := returnType as TypeList
                 if(list types size() > returnArgs size()) {
                     for(type in list types) {
@@ -516,7 +516,7 @@ FunctionDecl: class extends Declaration {
         // FIXME: this will blow up with several closure arguments of different types!
         funcPointer: FuncType = null
         for (arg in parentFunc args) {
-            if (arg getType() instanceOf(FuncType)) {
+            if (arg getType() instanceOf?(FuncType)) {
                 funcPointer = arg getType()
                 break
             }
@@ -626,7 +626,7 @@ FunctionDecl: class extends Declaration {
         parentCall := (parentIdx != -1 ? trail get(parentIdx, FunctionCall) : null)
         isFlat := (parentCall != null && parentCall getRef() isExtern())
 
-        if(partialByReference isEmpty() && partialByValue isEmpty()) {
+        if(partialByReference empty?() && partialByValue empty?()) {
 
             if(!isFlat) {
                 closureElements := [
@@ -681,7 +681,7 @@ FunctionDecl: class extends Declaration {
                         case "long"   => 'l'
                         case          =>
 
-                            if(!arg getType() isPointer() && !arg getType() getGroundType() isPointer() && !arg getType() isGeneric() && !arg getType() getRef() instanceOf(ClassDecl)) {
+                            if(!arg getType() isPointer() && !arg getType() getGroundType() isPointer() && !arg getType() isGeneric() && !arg getType() getRef() instanceOf?(ClassDecl)) {
                                 arg token throwError("Unknown closure arg type %s\n" format(arg getType() toString()))
                             }
                             'P'
@@ -815,7 +815,7 @@ FunctionDecl: class extends Declaration {
 
                 // now say that the FuncType arguments of our context are closures
                 for(e in ctxStruct getVariables()) {
-                    if(e getType() instanceOf(FuncType)) {
+                    if(e getType() instanceOf?(FuncType)) {
                         eType := e getType() clone()
                         eType as FuncType isClosure = true
                         e setType(eType)
@@ -856,7 +856,7 @@ FunctionDecl: class extends Declaration {
 
     autoReturnExplore: func (trail: Trail, res: Resolver, scope: Scope) {
 
-        if(scope isEmpty()) {
+        if(scope empty?()) {
             //printf("[autoReturn] scope is empty, we need a return\n")
             returnNeeded(trail)
             return
@@ -870,12 +870,12 @@ FunctionDecl: class extends Declaration {
 
         stmt := scope get(index)
 
-        if(stmt instanceOf(Return)) {
+        if(stmt instanceOf?(Return)) {
             //printf("[autoReturn] Oh, it's a %s already. Nice =D!\n",  last toString())
             return
         }
 
-        if(stmt instanceOf(Expression)) {
+        if(stmt instanceOf?(Expression)) {
             expr := stmt as Expression
             if(expr getType() == null) {
                 //printf("[autoReturn] LOOPing because stmt's type (%s) is null.", expr toString())
@@ -889,17 +889,17 @@ FunctionDecl: class extends Declaration {
                 return
             }
 
-            if(!expr getType() equals(voidType)) {
+            if(!expr getType() equals?(voidType)) {
                 //printf("[autoReturn] Hmm it's a %s\n", stmt toString())
                 scope set(index, Return new(expr, expr token))
                 res wholeAgain(this, "Replaced with a return o/")
                 //printf("[autoReturn] Replaced with a %s!\n", scope get(index) toString())
             }
-        } else if(stmt instanceOf(ControlStatement)) {
+        } else if(stmt instanceOf?(ControlStatement)) {
             cStat := stmt as ControlStatement
             if(cStat isDeadEnd()) {
                 autoReturnExplore(trail, res, cStat getBody())
-                if(cStat instanceOf(Else) && index > 0 && scope get(index - 1) instanceOf(Conditional)) {
+                if(cStat instanceOf?(Else) && index > 0 && scope get(index - 1) instanceOf?(Conditional)) {
                     //printf("[autoReturn] Should handle the if too!\n")
                     handleLastStatement(trail, res, scope, index - 1)
                 }

@@ -26,7 +26,7 @@ ArrayLiteral: class extends Literal {
     getType: func -> Type { type }
 
     toString: func -> String {
-        if(elements isEmpty()) return "[]"
+        if(elements empty?()) return "[]"
 
         buffer := Buffer new()
         buffer append('[')
@@ -48,15 +48,15 @@ ArrayLiteral: class extends Literal {
         {
             parentIdx := 1
             parent := trail peek(parentIdx)
-            if(parent instanceOf(Cast)) {
+            if(parent instanceOf?(Cast)) {
                 readyToUnwrap = false
                 cast := parent as Cast
                 parentIdx += 1
                 grandpa := trail peek(parentIdx)
 
-                if( (type == null || !type equals(cast getType())) &&
-                    (cast getType() instanceOf(ArrayType) || cast getType() isPointer()) &&
-                    (!cast getType() instanceOf(SugarType) || !cast getType() as SugarType inner isGeneric())) {
+                if( (type == null || !type equals?(cast getType())) &&
+                    (cast getType() instanceOf?(ArrayType) || cast getType() isPointer()) &&
+                    (!cast getType() instanceOf?(SugarType) || !cast getType() as SugarType inner isGeneric())) {
                     type = cast getType()
                     if(type != null) {
                         //if(res params veryVerbose) printf(">> Inferred type %s of %s by outer cast %s\n", type toString(), toString(), parent toString())
@@ -71,7 +71,7 @@ ArrayLiteral: class extends Literal {
         // infer type from parent function call, if any, and add an implicit cast
         {
             parent := trail peek()
-            if(parent instanceOf(FunctionCall)) {
+            if(parent instanceOf?(FunctionCall)) {
                 fCall := parent as FunctionCall
                 if(fCall refScore > 0) {
                     index := fCall args indexOf(this)
@@ -81,8 +81,8 @@ ArrayLiteral: class extends Literal {
                             readyToUnwrap = false
                         } else if(fCall getRef() args size() > index) {
                             targetType := fCall getRef() args get(index) getType()
-                            if((type == null || !type equals(targetType)) &&
-                               (!targetType instanceOf(SugarType) || !targetType as SugarType inner isGeneric())) {
+                            if((type == null || !type equals?(targetType)) &&
+                               (!targetType instanceOf?(SugarType) || !targetType as SugarType inner isGeneric())) {
                                 cast := Cast new(this, targetType, token)
                                 if(!parent replace(this, cast)) {
                                     token throwError("Couldn't replace %s with %s in %s" format(toString(), cast toString(), parent toString()))
@@ -111,7 +111,7 @@ ArrayLiteral: class extends Literal {
         trail pop(this)
 
         // if we still don't know our type, resolve from elements' innerTypes
-        if(type == null && !elements isEmpty()) {
+        if(type == null && !elements empty?()) {
             innerType := elements first() getType()
             if(innerType == null || !innerType isResolved()) {
                 res wholeAgain(this, "need innerType")
@@ -127,7 +127,7 @@ ArrayLiteral: class extends Literal {
             if(!response ok()) return response
         }
 
-        if(readyToUnwrap && type instanceOf(ArrayType)) {
+        if(readyToUnwrap && type instanceOf?(ArrayType)) {
             return unwrapToArrayInit(trail, res)
         }
 
@@ -170,7 +170,7 @@ ArrayLiteral: class extends Literal {
         // bitch-jump casts
         parentIdx := 1
         parent := trail peek(parentIdx)
-        while(parent instanceOf(Cast)) {
+        while(parent instanceOf?(Cast)) {
             parentIdx += 1
             parent = trail peek(parentIdx)
         }
@@ -178,7 +178,7 @@ ArrayLiteral: class extends Literal {
         vDecl : VariableDecl = null
         vAcc : VariableAccess = null
 
-        if(parent instanceOf(VariableDecl)) {
+        if(parent instanceOf?(VariableDecl)) {
             vDecl = parent as VariableDecl
             vAcc = VariableAccess new(vDecl, token)
             if(vDecl isMember()) {
@@ -194,7 +194,7 @@ ArrayLiteral: class extends Literal {
                 grandpa := trail peek(parentIdx + 2)
                 memberDecl := trail get(varDeclIdx) as VariableDecl
 
-                if(grandpa instanceOf(ClassDecl)) {
+                if(grandpa instanceOf?(ClassDecl)) {
                     cDecl := grandpa as ClassDecl
                     fDecl: FunctionDecl
                     if(memberDecl isStatic()) {
@@ -237,7 +237,7 @@ ArrayLiteral: class extends Literal {
             grandpa := trail get(varDeclIdx - 1)
             memberDecl := trail get(varDeclIdx) as VariableDecl
 
-            if(grandpa instanceOf(ClassDecl)) {
+            if(grandpa instanceOf?(ClassDecl)) {
                 cDecl := grandpa as ClassDecl
                 fDecl: FunctionDecl
                 if(memberDecl isStatic()) {

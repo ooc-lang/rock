@@ -5,14 +5,14 @@ LLong: cover from signed long long {
     toString:    func -> String { "%lld" format(this) }
     toHexString: func -> String { "%llx" format(this) }
 
-    isOdd:  func -> Bool { this % 2 == 1 }
-    isEven: func -> Bool { this % 2 == 0 }
+    odd?:  func -> Bool { this % 2 == 1 }
+    even?: func -> Bool { this % 2 == 0 }
 
     divisor?: func (divisor: Int) -> Bool {
         this % divisor == 0
     }
 
-    in: func(range: Range) -> Bool {
+    in?: func(range: Range) -> Bool {
         return this >= range min && this < range max
     }
 }
@@ -25,7 +25,7 @@ ULLong: cover from unsigned long long extends LLong {
 
     toString:    func -> String { "%llu" format(this) }
 
-    in: func(range: Range) -> Bool {
+    in?: func(range: Range) -> Bool {
         return this >= range min && this < range max
     }
 

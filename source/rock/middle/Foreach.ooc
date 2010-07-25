@@ -29,9 +29,9 @@ Foreach: class extends ControlStatement {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        if(variable instanceOf(VariableAccess) && !replaced) {
+        if(variable instanceOf?(VariableAccess) && !replaced) {
             varType : Type = null
-            if(collection instanceOf(RangeLiteral)) {
+            if(collection instanceOf?(RangeLiteral)) {
                 varType = BaseType new("Int", variable token)
             }
             variable = VariableDecl new(varType, variable as VariableAccess getName(), variable token)
@@ -57,7 +57,7 @@ Foreach: class extends ControlStatement {
 
         trail pop(this)
 
-        if(!collection instanceOf(RangeLiteral)) {
+        if(!collection instanceOf?(RangeLiteral)) {
             if(collection getType() == null) {
                 res wholeAgain(this, "need collection type")
                 return Responses OK
@@ -92,7 +92,7 @@ Foreach: class extends ControlStatement {
             vdfe := VariableDecl new(iterType, generateTempName("iter"), iterCall, token)
             iterAcc := VariableAccess new(vdfe, token)
 
-            hasNextCall := FunctionCall new(iterAcc, "hasNext", token)
+            hasNextCall := FunctionCall new(iterAcc, "hasNext__quest", token)
             hasNextCall resolve(trail, res)
 
             while1 := While new(hasNextCall, token)
@@ -119,7 +119,7 @@ Foreach: class extends ControlStatement {
 
             if(variable getType() == null) {
                 decl : VariableDecl = variable
-                if(!variable instanceOf(VariableDecl)) {
+                if(!variable instanceOf?(VariableDecl)) {
                     acc := variable as VariableAccess
                     decl = acc ref
                 }
@@ -137,7 +137,7 @@ Foreach: class extends ControlStatement {
 
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
 
-        if(variable instanceOf(VariableDecl)) {
+        if(variable instanceOf?(VariableDecl)) {
             vDecl := variable as VariableDecl
             if(vDecl name == access name && access suggest(vDecl)) return 0
         }

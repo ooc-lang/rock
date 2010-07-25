@@ -44,7 +44,7 @@ PkgInfo: class {
 		prefixLength := prefix length()
 		
         for(token in StringTokenizer new(string, ' ')) {
-			if(token startsWith(prefix)) {
+			if(token startsWith?(prefix)) {
 				list add(token substring(prefixLength) trim(' ') trim('\n'))
 			}
 		}

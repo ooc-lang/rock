@@ -40,7 +40,7 @@ Trail: class extends Stack<Node> {
     find: func (T: Class, i: Int) -> Int {
         while(i >= 0) {
             node := data get(i) as Node
-            if(node class inheritsFrom(T)) {
+            if(node class inheritsFrom?(T)) {
                 break
             }
             i -= 1
@@ -60,7 +60,7 @@ Trail: class extends Stack<Node> {
         i := size() - 1
         while(i >= 0) {
             node := data get(i) as Node
-            if(node instanceOf(Scope)) break
+            if(node instanceOf?(Scope)) break
             i -= 1
         }
 
@@ -80,15 +80,15 @@ Trail: class extends Stack<Node> {
         i := size() - 1
         while(i >= 0) {
             node := get(i)
-            if(node instanceOf(Scope)) {
+            if(node instanceOf?(Scope)) {
                 // if we're in an else - maybe we're in an if-else chain!
-                if(i - 2 >= 0 && get(i - 1) instanceOf(Else) && i + 1 < size() && get(i + 1) instanceOf(If)) {
+                if(i - 2 >= 0 && get(i - 1) instanceOf?(Else) && i + 1 < size() && get(i + 1) instanceOf?(If)) {
 
                     // the mark is now the Else. We wanna be before it!
                     mark = get(i - 1)
                     node = get(i - 2)
 
-                    if(node instanceOf(Scope)) {
+                    if(node instanceOf?(Scope)) {
                         // yup, definitely. Now, in that scope are several
                         // elses and ifs. We want to go to the previous statement
                         // until we encounter something that's not an if nor an else.
@@ -97,7 +97,7 @@ Trail: class extends Stack<Node> {
 
                         if(idx != -1) {
                             previous := scope list[idx - 1]
-                            while(previous instanceOf(If) || previous instanceOf(Else)) {
+                            while(previous instanceOf?(If) || previous instanceOf?(Else)) {
                                 idx -= 1
                                 if(idx == 0) break
                                 previous = scope list[idx - 1]
@@ -133,7 +133,7 @@ Trail: class extends Stack<Node> {
         i := size() - 1
         while(i >= 0) {
             node := data get(i) as Node
-            if(node instanceOf(Scope) &&
+            if(node instanceOf?(Scope) &&
                get(i) addAfter(i + 1 >= size() ? mark : get(i + 1), newcomer)) {
                 return true
             }
@@ -170,7 +170,7 @@ Trail: class extends Stack<Node> {
 
     get: func ~checked <T> (index: Int, T: Class) -> T {
         node := data get(index) as Node
-        if(!node instanceOf(T)) {
+        if(!node instanceOf?(T)) {
             Exception new(This, "In Trail get(), expecting getting %s, got %s\n" format(T name, node class name)) throw()
         }
         return node

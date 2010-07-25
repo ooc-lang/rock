@@ -52,7 +52,7 @@ InterfaceImpl: class extends ClassDecl {
                     return Responses OK
                 }
                 if(value == null) {
-                    if(impl instanceOf(ClassDecl) && impl as ClassDecl isAbstract) {
+                    if(impl instanceOf?(ClassDecl) && impl as ClassDecl isAbstract) {
                         // relay unimplemented interface methods into an abstract class
                         value = FunctionDecl new(key getName(), key token)
                         value suffix = key suffix

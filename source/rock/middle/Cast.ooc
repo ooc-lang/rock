@@ -51,11 +51,11 @@ Cast: class extends Expression {
         }
 
         // Casting to an arrayType isn't innocent
-        if(type instanceOf(ArrayType)) {
+        if(type instanceOf?(ArrayType)) {
             arrType := type as ArrayType
             parent := trail peek()
 
-            if(parent instanceOf(VariableDecl)) {
+            if(parent instanceOf?(VariableDecl)) {
                 varDecl := parent as VariableDecl
                 varDecl setType(null)
                 varDecl setExpr(ArrayCreation new(type as ArrayType, token))

@@ -93,7 +93,7 @@ Random: class {
      */
     exclude: static func(start, end: Int, ex: List<Int>, f: Func (Int, Int) -> Int) -> Int {
         toRet := f(start, end)
-        while (ex contains(toRet)) {
+        while (ex contains?(toRet)) {
             toRet = f(start, end)
         }
         return toRet

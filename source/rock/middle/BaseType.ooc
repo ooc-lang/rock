@@ -24,9 +24,9 @@ BaseType: class extends Type {
             Exception new(This, "Trying to write unresolved type " + toString()) throw()
         }
         match {
-            case getRef() instanceOf(InterfaceDecl)=> writeInterfaceType(w, getRef() as InterfaceDecl)
-            case getRef() instanceOf(TypeDecl)     => writeRegularType  (w, getRef() as TypeDecl)
-            case getRef() instanceOf(VariableDecl) => writeGenericType  (w, getRef() as VariableDecl)
+            case getRef() instanceOf?(InterfaceDecl)=> writeInterfaceType(w, getRef() as InterfaceDecl)
+            case getRef() instanceOf?(TypeDecl)     => writeRegularType  (w, getRef() as TypeDecl)
+            case getRef() instanceOf?(VariableDecl) => writeGenericType  (w, getRef() as VariableDecl)
         }
         if(name != null) w app(' '). app(name)
     }
@@ -38,7 +38,7 @@ BaseType: class extends Type {
     writeRegularType: func (w: AwesomeWriter, td: TypeDecl) {
 
         if(td isExtern()) {
-            if(td instanceOf(CoverDecl)) {
+            if(td instanceOf?(CoverDecl)) {
                 cDecl := getRef() as CoverDecl
                 fromType := cDecl getFromType()
                 if(fromType != null && cDecl isExtern()) {
@@ -54,12 +54,12 @@ BaseType: class extends Type {
             return
         }
 
-        while(td instanceOf(CoverDecl) && td as CoverDecl isAddon()) {
+        while(td instanceOf?(CoverDecl) && td as CoverDecl isAddon()) {
             td = td as CoverDecl getBase() getNonMeta()
         }
 
         w app(td underName())
-        if(td instanceOf(ClassDecl)) {
+        if(td instanceOf?(ClassDecl)) {
             w app('*')
         }
     }
@@ -68,9 +68,9 @@ BaseType: class extends Type {
         w app("uint8_t*")
     }
 
-    equals: func (other: This) -> Bool {
+    equals?: func (other: This) -> Bool {
         if(other class != this class) return false
-        return (other as BaseType name equals(name))
+        return (other as BaseType name equals?(name))
     }
 
     addTypeArg: func (typeArg: VariableAccess) -> Bool {
@@ -86,14 +86,14 @@ BaseType: class extends Type {
         //}
 
         // TODO: only accept if decl is a better match than ref (ie. in an addon, for example)
-        if(ref == null || (decl instanceOf(CoverDecl) && decl as CoverDecl isAddon())) {
-            //if(decl instanceOf(CoverDecl) && decl as CoverDecl isAddon() && ref != null) {
+        if(ref == null || (decl instanceOf?(CoverDecl) && decl as CoverDecl isAddon())) {
+            //if(decl instanceOf?(CoverDecl) && decl as CoverDecl isAddon() && ref != null) {
             //    printf("In %s superseded %s (%s) with %s (%s)\n", token toString(), ref toString(), ref token toString(), decl toString(), decl token toString())
             //}
             ref = decl
         }
 
-        if(name == "This" && getRef() instanceOf(TypeDecl)) {
+        if(name == "This" && getRef() instanceOf?(TypeDecl)) {
             tDecl := getRef() as TypeDecl
             name = tDecl getName()
         }
@@ -130,10 +130,10 @@ BaseType: class extends Type {
                 printf("     - type %s still not resolved, looping (ref = %p)\n", name, getRef())
             }
             return Responses LOOP
-        } else if(getRef() instanceOf(TypeDecl)) {
+        } else if(getRef() instanceOf?(TypeDecl)) {
             tDecl := getRef() as TypeDecl
-            if(!tDecl isMeta && !tDecl getTypeArgs() isEmpty()) {
-                if((typeArgs == null || typeArgs size() != tDecl getTypeArgs() size()) && !trail peek() instanceOf(Cast)) {
+            if(!tDecl isMeta && !tDecl getTypeArgs() empty?()) {
+                if((typeArgs == null || typeArgs size() != tDecl getTypeArgs() size()) && !trail peek() instanceOf?(Cast)) {
                     message : String = match {
                         case typeArgs == null =>
                             "No"
@@ -207,11 +207,11 @@ BaseType: class extends Type {
             // a generic value is a match for a pointer
             return scoreSeed / 2
         }
-        if(isPointer() && other getRef() instanceOf(ClassDecl)) {
+        if(isPointer() && other getRef() instanceOf?(ClassDecl)) {
             // objects are references in ooc
             return scoreSeed / 2
         }
-        if(getRef() instanceOf(ClassDecl) && other isPointer()) {
+        if(getRef() instanceOf?(ClassDecl) && other isPointer()) {
             // objects are still references in ooc
             return scoreSeed / 2
         }
@@ -220,7 +220,7 @@ BaseType: class extends Type {
             return scoreSeed / 2
         }
 
-        if(other instanceOf(BaseType)) {
+        if(other instanceOf?(BaseType)) {
             if(getRef() == null || other getRef() == null) {
                 //printf("%s ref = %s, other %s ref = %s\n", toString(), getRef() ? getRef() toString() : "(nil)", other toString(), other getRef() ? other getRef() toString() : "(nil)")
                 return -1
@@ -232,7 +232,7 @@ BaseType: class extends Type {
             }
 
             // if we are one of his addons, we're good
-            if(other getRef() instanceOf(TypeDecl)) {
+            if(other getRef() instanceOf?(TypeDecl)) {
                 for(addon in other getRef() as TypeDecl getAddons()) {
                     hisRef := addon getNonMeta()
                     ourRef := getRef()
@@ -249,7 +249,7 @@ BaseType: class extends Type {
                 return scoreSeed / 2
             }
 
-            if(getRef() instanceOf(TypeDecl) && other getRef() instanceOf(TypeDecl)) {
+            if(getRef() instanceOf?(TypeDecl) && other getRef() instanceOf?(TypeDecl)) {
                 inheritsScore := getRef() as TypeDecl inheritsScore(other getRef() as TypeDecl, scoreSeed)
 
                 // something needs resolving
@@ -257,7 +257,7 @@ BaseType: class extends Type {
                     return inheritsScore
                 }
 
-                if(inheritsScore <= 0 && getRef() instanceOf(CoverDecl) && other getRef() instanceOf(CoverDecl)) {
+                if(inheritsScore <= 0 && getRef() instanceOf?(CoverDecl) && other getRef() instanceOf?(CoverDecl)) {
                     // well, try the other way around - covers are lax - but it'll be weaker this time
                     inheritsScore = other getRef() as TypeDecl inheritsScore(getRef() as TypeDecl, scoreSeed / 2)
                 }
@@ -293,7 +293,7 @@ BaseType: class extends Type {
     }
 
     dig: func -> Type {
-        if(getRef() != null && getRef() instanceOf(CoverDecl)) {
+        if(getRef() != null && getRef() instanceOf?(CoverDecl)) {
             return ref as CoverDecl getFromType()
         }
         return null
@@ -307,10 +307,10 @@ BaseType: class extends Type {
 
         list add(this)
 
-        if(getRef() != null && getRef() instanceOf(CoverDecl)) {
+        if(getRef() != null && getRef() instanceOf?(CoverDecl)) {
             next := ref as CoverDecl getFromType()
             if(next != null) {
-                if(list contains(next)) {
+                if(list contains?(next)) {
                     buff := Buffer new()
                     isFirst := true
                     for(t in list) {
@@ -325,13 +325,13 @@ BaseType: class extends Type {
         }
     }
 
-    inheritsFrom: func (t: Type) -> Bool {
-        if(!t instanceOf(BaseType)) return false
+    inheritsFrom?: func (t: Type) -> Bool {
+        if(!t instanceOf?(BaseType)) return false
         bt := t as BaseType
-        if(   ref == null || !   ref instanceOf(TypeDecl)) return false
-        if(bt ref == null || !bt ref instanceOf(TypeDecl)) return false
+        if(   ref == null || !   ref instanceOf?(TypeDecl)) return false
+        if(bt ref == null || !bt ref instanceOf?(TypeDecl)) return false
 
-        return ref as TypeDecl inheritsFrom(bt ref as TypeDecl)
+        return ref as TypeDecl inheritsFrom?(bt ref as TypeDecl)
     }
 
     replace: func (oldie, kiddo: Node) -> Bool {
@@ -361,7 +361,7 @@ BaseType: class extends Type {
             return null
         }
 
-        if(!getRef() instanceOf(TypeDecl)) {
+        if(!getRef() instanceOf?(TypeDecl)) {
             // only TypeDecl have typeArgs anyway.
             return null
         }
@@ -382,14 +382,14 @@ BaseType: class extends Type {
                 result : Type = null
 
                 //printf("Found candidate %s (which is a %s) for typeArg %s, ref is a %s, = %s\n", candidate toString(), candidate class name, typeArgName, ref class name, ref toString())
-                if(ref instanceOf(TypeDecl)) {
+                if(ref instanceOf?(TypeDecl)) {
                     // resolves to a known type
                     result = ref as TypeDecl getInstanceType()
-                } else if(ref instanceOf(VariableDecl)) {
+                } else if(ref instanceOf?(VariableDecl)) {
                     // resolves to an access to another generic type
                     result = BaseType new(ref as VariableDecl getName(), token)
                     result setRef(ref) // FIXME: that is experimental. is that a good idea?
-                } else if(ref instanceOf(FuncType)) {
+                } else if(ref instanceOf?(FuncType)) {
                     printf("ref of %s is a %s!\n", candidate toString(), ref class name)
                     result = ref as FuncType
                 }
@@ -432,10 +432,10 @@ BaseType: class extends Type {
                     result : Type = null
 
                     //printf("Found candidate %s for typeArg %s, ref is a %s\n", candidate toString(), typeArgName, ref class name)
-                    if(ref instanceOf(TypeDecl)) {
+                    if(ref instanceOf?(TypeDecl)) {
                         // resolves to a known type
                         result = ref as TypeDecl getInstanceType()
-                    } else if(ref instanceOf(VariableDecl)) {
+                    } else if(ref instanceOf?(VariableDecl)) {
                         // resolves to an access to another generic type
                         result = BaseType new(ref as VariableDecl getName(), token)
                         result setRef(ref) // FIXME: that is experimental. is that a good idea?

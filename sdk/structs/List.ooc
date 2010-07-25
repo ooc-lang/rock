@@ -7,7 +7,7 @@ import structs/HashMap /* for getStandardEquals() - should probably move that in
  */
 List: abstract class <T> extends BackIterable<T> {
 
-    equals := getStandardEquals(T)
+    equals? := getStandardEquals(T)
 
     /**
      * Appends the specified element to the end of this list.
@@ -50,7 +50,7 @@ List: abstract class <T> extends BackIterable<T> {
             iter next()
             index += 1
         }
-        while(iter hasNext()) add(iter next())
+        while(iter hasNext?()) add(iter next())
 
     }
 
@@ -76,7 +76,7 @@ List: abstract class <T> extends BackIterable<T> {
     /**
      * @return true if this list contains the specified element.
      */
-    contains: func(element: T) -> Bool {
+    contains?: func(element: T) -> Bool {
         return indexOf(element) != -1
     }
 
@@ -97,15 +97,15 @@ List: abstract class <T> extends BackIterable<T> {
 
     /**
      * @return the index of the first occurence of the given argument,
-     * (testing for equality using the equals method), or -1 if not found
+     * (testing for equality using the equals? method), or -1 if not found
      */
     indexOf: abstract func(element: T) -> Int
 
     /**
      * @return true if this list has no elements.
      */
-    isEmpty: func() -> Bool {
-        return (size() == 0);
+    empty?: func() -> Bool {
+        size() == 0
     }
 
     /**
@@ -181,7 +181,7 @@ List: abstract class <T> extends BackIterable<T> {
         indexes := ArrayList<Int> new()
         for(i in 0..size()) indexes add(i)
 
-        while(!indexes isEmpty()) {
+        while(!indexes empty?()) {
             i := Random randRange(0, indexes size())
             shuffled add(this[indexes removeAt(i) as Int])
         }

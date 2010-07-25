@@ -20,60 +20,60 @@ strtold: extern func (Char*, Pointer)      -> LDouble
 Char: cover from char {
 
     /** check for an alphanumeric character */
-    isAlphaNumeric: func -> Bool {
-        isAlpha() || isDigit()
+    alphaNumeric?: func -> Bool {
+        alpha?() || digit?()
     }
 
     /** check for an alphabetic character */
-    isAlpha: func -> Bool {
-        isLower() || isUpper()
+    alpha?: func -> Bool {
+        lower?() || upper?()
     }
 
     /** check for a lowercase alphabetic character */
-    isLower: func -> Bool {
+    lower?: func -> Bool {
         this >= 'a' && this <= 'z'
     }
 
     /** check for an uppercase alphabetic character */
-    isUpper: func -> Bool {
+    upper?: func -> Bool {
         this >= 'A' && this <= 'Z'
     }
 
     /** check for a decimal digit (0 through 9) */
-    isDigit: func -> Bool {
+    digit?: func -> Bool {
         this >= '0' && this <= '9'
     }
 
     /** check for a hexadecimal digit (0 1 2 3 4 5 6 7 8 9 a b c d e f A B C D E F) */
-    isHexDigit: func -> Bool {
-        isDigit() ||
+    hexDigit?: func -> Bool {
+        digit?() ||
         (this >= 'A' && this <= 'F') ||
         (this >= 'a' && this <= 'f')
     }
 
     /** check for a control character */
-    isControl: func -> Bool {
+    control?: func -> Bool {
         (this >= 0 && this <= 31) || this == 127
     }
 
     /** check for any printable character except space */
-    isGraph: func -> Bool {
-        isPrintable() && this != ' '
+    graph?: func -> Bool {
+        printable?() && this != ' '
     }
 
     /** check for any printable character including space */
-    isPrintable: func -> Bool {
+    printable?: func -> Bool {
         this >= 32 && this <= 126
     }
 
     /** check for any printable character which is not a space or an alphanumeric character */
-    isPunctuation: func -> Bool {
-        isPrintable() && !isAlphaNumeric() && this != ' '
+    punctuation?: func -> Bool {
+        printable?() && !alphaNumeric?() && this != ' '
     }
 
     /** check for white-space characters: space, form-feed ('\\f'), newline ('\\n'),
         carriage return ('\\r'), horizontal tab ('\\t'), and vertical tab ('\\v') */
-    isWhitespace: func -> Bool {
+    whitespace?: func -> Bool {
         this == ' '  ||
         this == '\f' ||
         this == '\n' ||
@@ -83,13 +83,13 @@ Char: cover from char {
     }
 
     /** check for a blank character; that is, a space or a tab */
-    isBlank: func -> Bool {
+    blank?: func -> Bool {
         this == ' ' || this == '\t'
     }
 
     /** convert to an integer. This only works for digits, otherwise -1 is returned */
     toInt: func -> Int {
-        if (isDigit()) {
+        if (digit?()) {
             return (this - '0')
         }
         return -1
@@ -170,7 +170,7 @@ String: cover from Char* {
 
     /** return true if *other* and *this* are equal. This also returns false if either
         of these two is ``null``. */
-    equals: func(other: String) -> Bool {
+    equals?: func(other: String) -> Bool {
         if ((this == null) || (other == null)) {
             return false
         }
@@ -218,10 +218,10 @@ String: cover from Char* {
     toLDouble: func -> LDouble                     { strtold(this, null)   }
 
     /** return true if the string is empty or ``null``. */
-    isEmpty: func -> Bool { (this == null) || (this[0] == 0) }
+    empty?: func -> Bool { (this == null) || (this[0] == 0) }
 
     /** return true if the first characters of *this* are equal to *s*. */
-    startsWith: func(s: This) -> Bool {
+    startsWith?: func(s: This) -> Bool {
         if (this length() < s length()) return false
         for (i: Int in 0..s length()) {
             if(this[i] != s[i]) return false
@@ -230,12 +230,12 @@ String: cover from Char* {
     }
 
     /** return true if the first character of *this* is equal to *c*. */
-    startsWith: func~withChar(c: Char) -> Bool {
+    startsWith?: func~withChar(c: Char) -> Bool {
         return this[0] == c
     }
 
     /** return true if the last characters of *this* are equal to *s*. */
-    endsWith: func(s: String) -> Bool {
+    endsWith?: func(s: String) -> Bool {
         l1 = this length() : Int
         l2 = s length() : Int
         if(l1 < l2) return false
@@ -287,10 +287,10 @@ String: cover from Char* {
     }
 
     /** return *true* if *this* contains the character *c* */
-    contains: func ~char (c: Char) -> Bool { indexOf(c) != -1 }
+    contains?: func ~char (c: Char) -> Bool { indexOf(c) != -1 }
 
     /** return *true* if *this* contains the string *s* */
-    contains: func ~string (s: This) -> Bool { indexOf(s) != -1 }
+    contains?: func ~string (s: This) -> Bool { indexOf(s) != -1 }
 
     /** return a copy of *this* with whitespace characters (space, CR, LF, tab) stripped at both ends. */
     trim: func ~whitespace -> This { return trim(" \r\n\t") }
@@ -321,11 +321,11 @@ String: cover from Char* {
         if(length() == 0) return this
 
         start := 0
-        while(s contains(this[start])) start += 1;
+        while(s contains?(this[start])) start += 1;
 
         end := length()
         if(start >= end) return ""
-        while(s contains(this[end - 1])) end -= 1;
+        while(s contains?(this[end - 1])) end -= 1;
 
         if(start != 0 || end != length()) return substring(start, end)
 
@@ -356,7 +356,7 @@ String: cover from Char* {
         if(length() == 0) return this
 
         start := 0
-        while(s contains(this[start])) start += 1;
+        while(s contains?(this[start])) start += 1;
 
         end := length()
         if(start >= end) return ""
@@ -388,7 +388,7 @@ String: cover from Char* {
         if(length() == 0) return this
 
         end := length()
-        while(s contains(this[end - 1])) end -= 1;
+        while(s contains?(this[end - 1])) end -= 1;
         if(0 >= end) return ""
 
         if(end != length()) return substring(0, end)
@@ -561,7 +561,7 @@ String: cover from Char* {
 
     /** clone myself, return all occurences of *oldie* with *kiddo* and return it. */
     replace: func (oldie, kiddo: Char) -> This {
-        if(!contains(oldie)) return this
+        if(!contains?(oldie)) return this
 
         length := length()
         copy := this clone()
@@ -573,7 +573,7 @@ String: cover from Char* {
 
     /** clone myself, return all occurences of *oldie* with *kiddo* and return it. */
     replace: func ~string (oldie, kiddo: This) -> This {
-        if(!contains(oldie)) return this
+        if(!contains?(oldie)) return this
 
         length := length()
         oldieLength := oldie length()
@@ -713,7 +713,7 @@ StringIterator: class <T> extends BackIterator<T> {
 
     init: func ~withStr (=str) {}
 
-    hasNext: func -> Bool {
+    hasNext?: func -> Bool {
         i < str length()
     }
 
@@ -723,7 +723,7 @@ StringIterator: class <T> extends BackIterator<T> {
         return c
     }
 
-    hasPrev: func -> Bool {
+    hasPrev?: func -> Bool {
         i > 0
     }
 
@@ -743,11 +743,11 @@ Cell: class <T> {
 }
 
 operator == (str1: String, str2: String) -> Bool {
-    return str1 equals(str2)
+    return str1 equals?(str2)
 }
 
 operator != (str1: String, str2: String) -> Bool {
-    return !str1 equals(str2)
+    return !str1 equals?(str2)
 }
 
 operator [] (string: String, index: SizeT) -> Char {

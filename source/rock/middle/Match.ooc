@@ -25,7 +25,7 @@ Match: class extends Expression {
 
         if(expr && caze getExpr()) {
             // hideous, but obvious
-            if(!(expr instanceOf(BoolLiteral) && expr as BoolLiteral getValue() == true)) {
+            if(!(expr instanceOf?(BoolLiteral) && expr as BoolLiteral getValue() == true)) {
                 caze setExpr(Comparison new(expr, caze getExpr(), CompTypes equal, caze getExpr() token))
             }
         }
@@ -64,14 +64,14 @@ Match: class extends Expression {
             if(!response ok()) {
                 return response
             }
-            if(type == null && !(trail peek() instanceOf(Scope))) {
+            if(type == null && !(trail peek() instanceOf?(Scope))) {
                 if(res fatal) token throwError("Couldn't figure out type of match")
                 res wholeAgain(this, "need to resolve type")
                 return Responses OK
             }
         }
 
-        if(!trail peek() instanceOf(Scope)) {
+        if(!trail peek() instanceOf?(Scope)) {
             if(type != null) {
                 vDecl := VariableDecl new(type, generateTempName("match"), token)
                 varAcc := VariableAccess new(vDecl, token)
@@ -87,7 +87,7 @@ Match: class extends Expression {
                 }
                 for(caze in cases) {
                     last := caze getBody() last()
-                    if(!last instanceOf(Expression)) {
+                    if(!last instanceOf?(Expression)) {
                         last token throwError("Last statement of a match used an expression should be an expression itself!")
                     }
                     ass := BinaryOp new(varAcc, last as Expression, OpType ass, caze token)
@@ -117,17 +117,17 @@ Match: class extends Expression {
 		if(type == null) {
 			// TODO make it more intelligent e.g. cycle through all cases and
 			// check that all types are compatible and find a common denominator
-			if(cases isEmpty()) {
+			if(cases empty?()) {
                 return Responses OK
             }
 
             first := cases first()
-			if(first getBody() isEmpty()) {
+			if(first getBody() empty?()) {
                 return Responses OK
             }
 
 			statement := first getBody() last()
-			if(!statement instanceOf(Expression)) {
+			if(!statement instanceOf?(Expression)) {
                 return Responses OK
             }
 

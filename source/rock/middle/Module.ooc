@@ -66,7 +66,7 @@ Module: class extends Node {
     _collectDeps: func (list: List<Module>) -> List<Module> {
         list add(this)
 		for(imp in getAllImports()) {
-			if(!list contains(imp getModule())) {
+			if(!list contains?(imp getModule())) {
 				imp getModule() _collectDeps(list)
 			}
 		}
@@ -74,7 +74,7 @@ Module: class extends Node {
     }
 
     addFuncType: func (hashName: String, funcType: FuncType) {
-        if(!funcTypesMap contains(hashName)) {
+        if(!funcTypesMap contains?(hashName)) {
             funcTypesMap put(hashName, funcType)
         }
     }
@@ -83,23 +83,23 @@ Module: class extends Node {
         result := str clone()
         for(i in 0..result length()) {
             current := result[i]
-            if(!current isAlphaNumeric()) {
+            if(!current alphaNumeric?()) {
                 result[i] = '_'
             }
         }
-        if(!result[0] isAlpha()) result = '_' + result
+        if(!result[0] alpha?()) result = '_' + result
         result
     }
 
     addFunction: func (fDecl: FunctionDecl) {
         // don't add empty-named functions
-        if(fDecl name isEmpty()) return
+        if(fDecl name empty?()) return
 
         hash := TypeDecl hashName(fDecl)
         old := functions get(hash)
         if (old != null) {
             if ((old verzion == fDecl verzion) ||
-                (old verzion != null && fDecl verzion != null && old verzion equals(fDecl verzion))) {
+                (old verzion != null && fDecl verzion != null && old verzion equals?(fDecl verzion))) {
                 fDecl token printMessage("Redefinition of '%s'%s" format(old getName(), old verzion ? " in version " + old verzion toString() : ""), "[ERROR]")
                 old   token throwError("...first definition was here: ")
                 return
@@ -118,7 +118,7 @@ Module: class extends Node {
         old := types get(tDecl name) as TypeDecl
         if (old != null) {
             if ((old verzion == tDecl verzion) ||
-                (old verzion != null && tDecl verzion != null && old verzion equals(tDecl verzion))) {
+                (old verzion != null && tDecl verzion != null && old verzion equals?(tDecl verzion))) {
                 tDecl token printMessage("Redefinition of '%s'%s" format(tDecl name, old verzion ? " in version " + old verzion toString() : ""), "[ERROR]")
                 old   token throwError("...first definition was here: ")
             }
@@ -151,7 +151,7 @@ Module: class extends Node {
     }
 
     hasNamespace: func (name: String) -> Bool {
-        namespaces contains(name)
+        namespaces contains?(name)
     }
 
     getNamespace: func (name: String) -> NamespaceDecl {
@@ -192,7 +192,7 @@ Module: class extends Node {
 
     /** return all imports, including those in namespaces */
     getAllImports: func -> List<Import> {
-        if(namespaces isEmpty()) return imports
+        if(namespaces empty?()) return imports
 
         list := ArrayList<Import> new()
         list addAll(getGlobalImports())

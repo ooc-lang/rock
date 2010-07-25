@@ -38,7 +38,7 @@ FileReader: class extends Reader {
         return value
     }
 
-    hasNext: func -> Bool {
+    hasNext?: func -> Bool {
         return feof(file) == 0
     }
 

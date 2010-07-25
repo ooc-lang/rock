@@ -22,7 +22,7 @@ ControlStatementWriter: abstract class extends Skeleton {
     }
 
     write: static func ~_else (this: Skeleton, else1: Else) {
-        isIf := else1 getBody() size() == 1 && else1 getBody() first() instanceOf(If)
+        isIf := else1 getBody() size() == 1 && else1 getBody() first() instanceOf?(If)
 
         if(isIf) {
             current app("else ")
@@ -37,11 +37,11 @@ ControlStatementWriter: abstract class extends Skeleton {
     }
 
     write: static func ~_foreach (this: Skeleton, foreach: Foreach) {
-        if(!foreach collection instanceOf(RangeLiteral)) {
+        if(!foreach collection instanceOf?(RangeLiteral)) {
             Exception new(This, "Iterating over not a range but a " + foreach collection class name) throw()
         }
         access := foreach variable
-        if(access instanceOf(VariableDecl)) {
+        if(access instanceOf?(VariableDecl)) {
             access = VariableAccess new(access as VariableDecl, access token)
         }
 

@@ -38,7 +38,7 @@ Shlex: class {
                 /* WAIT state: if `chr` is non-printable, just skip it. 
                    If `chr` is ', change to SQUOTED. If `chr` is ", change to DQUOTED.
                    If `chr` is printable, but neither " nor ', change to WORD state and add it to the buffer. */
-                if(chr isWhitespace()) {
+                if(chr whitespace?()) {
                     /* skip */
                 } else if (chr == '"') {
                     state = DQUOTED
@@ -52,7 +52,7 @@ Shlex: class {
             case WORD => {
                 /* WORD state: if `chr` is non-printable, add to result, change to WAIT state.
                    Otherwise, add it to the buffer. */
-                if(chr isWhitespace()) {
+                if(chr whitespace?()) {
                     _add(false)
                     state = WAIT
                 } else {

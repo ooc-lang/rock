@@ -36,7 +36,7 @@ CallChain: class extends Expression {
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         parent := trail peek()
-        if(parent instanceOf(VariableDecl)) {
+        if(parent instanceOf?(VariableDecl)) {
             //printf("    ==== Callchain is in variableDecl %s\n", parent toString())
 
             vDecl := parent as VariableDecl
@@ -44,7 +44,7 @@ CallChain: class extends Expression {
 
             grandpa := trail peek(2)
             reverse := false
-            if(!grandpa instanceOf(Scope)) {
+            if(!grandpa instanceOf?(Scope)) {
                 trail addBeforeInScope(grandpa as Statement, vDecl)
                 grandpa replace(vDecl, vAcc)
                 reverse = true
@@ -68,7 +68,7 @@ CallChain: class extends Expression {
             return Responses OK
         }
 
-        if(expr instanceOf(FunctionCall) && parent instanceOf(Scope)) {
+        if(expr instanceOf?(FunctionCall) && parent instanceOf?(Scope)) {
             fCall := expr as FunctionCall
             //printf("  >>> Composite call-chain %s\n", toString())
             expr = fCall expr
@@ -92,7 +92,7 @@ CallChain: class extends Expression {
 
         // we need a VariableDecl to store the result of expr and
         // make all our calls on it
-        if (!expr instanceOf(VariableDecl)) {
+        if (!expr instanceOf?(VariableDecl)) {
             expr = VariableDecl new(null, generateTempName("callRoot"), expr, expr token)
         }
         varAcc := VariableAccess new(expr as VariableDecl, expr token)

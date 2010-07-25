@@ -125,11 +125,11 @@ TypeDecl: abstract class extends Declaration {
     }
 
     isObjectClass: func -> Bool {
-        name equals("Object") || name equals("ObjectClass")
+        name equals?("Object") || name equals?("ObjectClass")
     }
 
     isClassClass: func -> Bool {
-        name equals("Class") || name equals("ClassClass")
+        name equals?("Class") || name equals?("ClassClass")
     }
 
     isRootClass: func -> Bool {
@@ -220,11 +220,11 @@ TypeDecl: abstract class extends Declaration {
             printf("module fullName = %s\n", module fullName)
             printf("module packageName = %s\n", module packageName)
             printf("externName = %s\n", externName)
-            printf("module packageName isEmpty() = %d\n", module packageName isEmpty())
+            printf("module packageName empty?() = %d\n", module packageName empty?())
             printf("isExtern = %d\n", isExtern())
         }
         */
-        if(module != null && !module underName isEmpty() && !isExtern()) {
+        if(module != null && !module underName empty?() && !isExtern()) {
             return module underName + "__" + name
         }
         return name
@@ -236,7 +236,7 @@ TypeDecl: abstract class extends Declaration {
 
     setExternName: func (=externName) {}
     getExternName: func -> String {
-        return (externName && !externName isEmpty()) ? externName : name
+        return (externName && !externName empty?()) ? externName : name
     }
 
     isExtern: func -> Bool { externName != null }
@@ -261,7 +261,7 @@ TypeDecl: abstract class extends Declaration {
         recursive: Bool, bestScore: Int, bestMatch: FunctionDecl, finalScore: Int@) -> FunctionDecl {
 
         for(fDecl: FunctionDecl in functions) {
-            if(fDecl name equals(name) && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix equals(suffix))) {
+            if(fDecl name equals?(name) && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix equals?(suffix))) {
                 if(!call) return fDecl
                 score := call getScore(fDecl)
                 if(call debugCondition()) "Considering fDecl %s for fCall %s, score = %d\n" format(fDecl toString(), call toString(), score) println()
@@ -278,11 +278,11 @@ TypeDecl: abstract class extends Declaration {
         }
 
         if(call && call expr && call expr getType() && call expr getType() getRef() &&
-           call expr getType() getRef() instanceOf(ClassDecl) &&
+           call expr getType() getRef() instanceOf?(ClassDecl) &&
            call expr getType() getRef() as ClassDecl isMeta) {
             for(fDecl: FunctionDecl in functions) {
                 // Not ignoring static methods is intended; we want static member access without explicit `This`.
-                if(fDecl name equals(name) && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix equals(suffix))) {
+                if(fDecl name equals?(name) && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix equals?(suffix))) {
                     if(!fDecl isStatic) fDecl = fDecl getStaticVariant()
 
                     if(!call) return fDecl
@@ -322,7 +322,7 @@ TypeDecl: abstract class extends Declaration {
         if(_finishedGhosting) return Responses OK
 
         // remove ghost type arguments
-        if(this superType && !isMeta && !getTypeArgs() isEmpty()) {
+        if(this superType && !isMeta && !getTypeArgs() empty?()) {
             sType := this superType
             while(sType != null) {
                 response := sType resolve(trail, res)
@@ -336,7 +336,7 @@ TypeDecl: abstract class extends Declaration {
                     return Responses OK
                 }
 
-                if(!sTypeRef getTypeArgs() isEmpty()) {
+                if(!sTypeRef getTypeArgs() empty?()) {
                     for(typeArg in getTypeArgs()) {
                         for(candidate in sTypeRef getTypeArgs()) {
                             if(typeArg getName() == candidate getName()) {
@@ -456,12 +456,12 @@ TypeDecl: abstract class extends Declaration {
                 // an interface that implements both the Reader and Writer interfaces,
                 // instead of generating intermediate methods, we say that
                 transitiveInterfaces := interfaceType getRef() as TypeDecl getInterfaceTypes()
-                if(!transitiveInterfaces isEmpty()) {
+                if(!transitiveInterfaces empty?()) {
                     for(candidate in transitiveInterfaces) {
                         has := false
                         for(champion in getInterfaceTypes()) {
                             printf("%s vs %s\n", champion toString(), candidate toString())
-                            if(candidate equals(champion)) {
+                            if(candidate equals?(champion)) {
                                 has = true; break
                             }
                         }
@@ -530,14 +530,14 @@ TypeDecl: abstract class extends Declaration {
                     token throwError("`%s` should be declared abstract, because it defines abstract function `%s%s%s`" format(
                         getNonMeta() getName(),
                         fDecl getSuffix() ? fDecl getName() + "~" + fDecl getSuffix() : fDecl getName(),
-                        fDecl args isEmpty() ? "" : " " + fDecl getArgsRepr(),
+                        fDecl args empty?() ? "" : " " + fDecl getArgsRepr(),
                         fDecl hasReturn() ? " -> " + fDecl returnType toString() : ""
                     ))
                 } else {
                     token throwError("`%s` must implement function `%s%s%s` because it extends `%s`" format(
                         getNonMeta() getName(),
                         fDecl getSuffix() ? fDecl getName() + "~" + fDecl getSuffix() : fDecl getName(),
-                        fDecl args isEmpty() ? "" : " " + fDecl getArgsRepr(),
+                        fDecl args empty?() ? "" : " " + fDecl getArgsRepr(),
                         fDecl hasReturn() ? " -> " + fDecl returnType toString() : "",
                         fDecl getOwner() getName()
                     ))
@@ -564,7 +564,7 @@ TypeDecl: abstract class extends Declaration {
             }
 
             list add(current)
-            if(list contains(next)) {
+            if(list contains?(next)) {
                 buff := Buffer new()
                 isFirst := true
                 for(t in list) {
@@ -742,7 +742,7 @@ TypeDecl: abstract class extends Declaration {
             vDecl := getVariable(call getName())
             if(vDecl != null) {
                 // FIXME this is far from good.
-                if(vDecl getType() instanceOf(FuncType)) {
+                if(vDecl getType() instanceOf?(FuncType)) {
                     if(call suggest(vDecl getFunctionDecl())) {
                         if(call getExpr() == null) {
                             call setExpr(VariableAccess new("this", call token))
@@ -756,11 +756,11 @@ TypeDecl: abstract class extends Declaration {
 
     }
 
-    inheritsFrom: func (tDecl: TypeDecl) -> Bool {
+    inheritsFrom?: func (tDecl: TypeDecl) -> Bool {
         superRef := getSuperRef()
         if(superRef != null) {
         	if(superRef == tDecl) return true
-	        return superRef inheritsFrom(tDecl)
+	        return superRef inheritsFrom?(tDecl)
         }
 
         return false
@@ -791,7 +791,7 @@ TypeDecl: abstract class extends Declaration {
 
     toString: func -> String {
         repr := class name + ' ' + name
-        if(getTypeArgs() isEmpty()) return repr
+        if(getTypeArgs() empty?()) return repr
         b := Buffer new()
         b append(repr). append('<')
         isFirst := true

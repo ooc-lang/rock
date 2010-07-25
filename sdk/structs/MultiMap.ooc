@@ -10,8 +10,8 @@ MultiMap: class <K, V> extends HashMap<K, V> {
     }
 
     init: func ~multiMapWithCapa(.capacity) {
-        if(!V inheritsFrom(Object)) {
-            Exception new(This, "Can't create multimaps of %s, V must inherit from object." format(V name)) throw()
+        if(!V inheritsFrom?(Object)) {
+            Exception new(This, "Can't create multimaps of %s, V must inherit from Object." format(V name)) throw()
         }
         super(capacity)
     }
@@ -29,7 +29,7 @@ MultiMap: class <K, V> extends HashMap<K, V> {
         if(already == null) {
             // First of the kind - just put it
             put~_super(key, value)
-        } else if(already instanceOf(List)) {
+        } else if(already instanceOf?(List)) {
             // Already at least two - append to the list
             list := already as List<V>
             list add(value)
@@ -48,7 +48,7 @@ MultiMap: class <K, V> extends HashMap<K, V> {
         if(already == null) {
             // Doesn't contain it
             return false
-        } else if (already instanceOf(List)) {
+        } else if (already instanceOf?(List)) {
             // Already at least two - remove from the list, from last to first
             list := already as List<V>
             list removeAt(list lastIndex())
@@ -70,7 +70,7 @@ MultiMap: class <K, V> extends HashMap<K, V> {
         val := super(key) as Object
         if(val == null) {
             return val
-        } else if(val instanceOf(List)) {
+        } else if(val instanceOf?(List)) {
             list := val as List<V>
             return list last()
         }
@@ -96,7 +96,7 @@ MultiMapValueIterator: class <K, V> extends BackIterator<V> {
 
     init: func ~multiMap (=map) {}
 
-    hasNext: func -> Bool { index < map getKeys() size() && (sub == null || sub hasNext()) }
+    hasNext?: func -> Bool { index < map getKeys() size() && (sub == null || sub hasNext?()) }
 
     next: func -> V {
 
@@ -105,7 +105,7 @@ MultiMapValueIterator: class <K, V> extends BackIterator<V> {
             // retrieve value
             key := map getKeys() get(index)
             val := map getAll(key) as Object
-            if(val instanceOf(List)) {
+            if(val instanceOf?(List)) {
                 // switch in list mode
                 sub = val as List<V> iterator()
             } else {
@@ -118,7 +118,7 @@ MultiMapValueIterator: class <K, V> extends BackIterator<V> {
         // in list mode
         if(sub) {
             val := sub next()
-            if(!sub hasNext()) {
+            if(!sub hasNext?()) {
                 // end of the list? switch back in single mode
                 index += 1
                 sub = null
@@ -131,7 +131,7 @@ MultiMapValueIterator: class <K, V> extends BackIterator<V> {
 
     /* TODO: stub */
 
-    hasPrev: func -> Bool { false }
+    hasPrev?: func -> Bool { false }
 
     prev: func -> V {
         null

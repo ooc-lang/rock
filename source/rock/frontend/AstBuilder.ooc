@@ -55,7 +55,7 @@ AstBuilder: class {
         stack push(module)
         versionStack = Stack<VersionSpec> new()
 
-        if(params includeLang && !module fullName startsWith("/")) {
+        if(params includeLang && !module fullName startsWith?("/")) {
             addLangImports()
         }
 
@@ -74,7 +74,7 @@ AstBuilder: class {
 			langImports = ArrayList<String> new()
 			paths := params sourcePath getRelativePaths("lang")
 			for(path in paths) {
-				if(path endsWith(".ooc")) {
+				if(path endsWith?(".ooc")) {
 					impName := path substring(0, path length() - 4) replace(File separator, '/')
 					langImports add(impName)
 				}
@@ -128,7 +128,7 @@ AstBuilder: class {
 
     onInclude: unmangled(nq_onInclude) func (path: String) {
         mode: IncludeMode
-        if(path startsWith("./")) {
+        if(path startsWith?("./")) {
             mode = IncludeModes LOCAL
             path = path substring(2) // remove ./ from path
         }
@@ -146,7 +146,7 @@ AstBuilder: class {
     }
 
     onImport: unmangled(nq_onImport) func (path, name: String) {
-        module addImport(Import new(path isEmpty() ? name : path + name, token()))
+        module addImport(Import new(path empty?() ? name : path + name, token()))
     }
 
     onImportNamespace: unmangled(nq_onImportNamespace) func (namespace: String, quantity: Int) {
@@ -331,7 +331,7 @@ AstBuilder: class {
 
     onVersionStart: unmangled(nq_onVersionStart) func (spec: VersionSpec) {
         object := peek(Object)
-        if(object instanceOf(Module)) {
+        if(object instanceOf?(Module)) {
             versionStack push(spec)
         } else {
             vb := VersionBlock new(spec, token())
@@ -341,7 +341,7 @@ AstBuilder: class {
 
     onVersionEnd: unmangled(nq_onVersionEnd) func -> VersionBlock {
         object := peek(Object)
-        if(object instanceOf(Module)) {
+        if(object instanceOf?(Module)) {
             versionStack pop()
         } else {
             vb := pop(VersionBlock)
@@ -395,7 +395,7 @@ AstBuilder: class {
 
     onVarDeclExtern: unmangled(nq_onVarDeclExtern) func (externName: String) {
         vars := peek(Stack<VariableDecl>)
-        if(externName isEmpty()) {
+        if(externName empty?()) {
             for(var in vars) var setExternName("")
         } else {
             if(vars size() != 1) {
@@ -407,7 +407,7 @@ AstBuilder: class {
 
     onVarDeclUnmangled: unmangled(nq_onVarDeclUnmangled) func (unmangledName: String) {
         vars := peek(Stack<VariableDecl>)
-        if(unmangledName isEmpty()) {
+        if(unmangledName empty?()) {
             for(var in vars) var setUnmangledName("")
         } else {
             if(vars size() != 1) {
@@ -465,10 +465,10 @@ AstBuilder: class {
 
         node : Node = stack peek()
         //printf("[gotVarDecl] Got variable decl %s, and parent is a %s\n", vd toString(), node class name)
-        if(node instanceOf(TypeDecl)) {
+        if(node instanceOf?(TypeDecl)) {
             tDecl := node as TypeDecl
             tDecl addVariable(vd)
-        } else if(node instanceOf(List)) {
+        } else if(node instanceOf?(List)) {
             vd isArg = true
             node as List<Node> add(vd)
         } else {
@@ -674,7 +674,7 @@ AstBuilder: class {
         node : Node = stack peek()
         if(node == module) {
             module addFunction(fDecl)
-        } else if(node instanceOf(TypeDecl)) {
+        } else if(node instanceOf?(TypeDecl)) {
             tDecl: TypeDecl = node
             tDecl addFunction(fDecl)
         } else {
@@ -715,7 +715,7 @@ AstBuilder: class {
     }
 
     onFunctionCallChain: unmangled(nq_onFunctionCallChain) func (expr: Expression, call: FunctionCall) -> CallChain {
-        if(expr instanceOf(CallChain)) {
+        if(expr instanceOf?(CallChain)) {
             chain := expr as CallChain
             //printf("Adding %s to existing callchain %s\n", call toString(), chain toString())
             chain calls add(call)
@@ -756,13 +756,13 @@ AstBuilder: class {
 
     // statement
     onStatement: unmangled(nq_onStatement) func (stmt: Statement) {
-        if(stmt instanceOf(VariableDecl)) {
+        if(stmt instanceOf?(VariableDecl)) {
             //printf("[onStatement] stmt %s is a VariableDecl, calling gotVarDecl\n", stmt toString())
             gotVarDecl(stmt as VariableDecl)
             return
-        } else if(stmt instanceOf(Stack<VariableDecl>)) {
+        } else if(stmt instanceOf?(Stack<VariableDecl>)) {
             stack : Stack<VariableDecl> = stmt
-            if(stack T inheritsFrom(VariableDecl)) {
+            if(stack T inheritsFrom?(VariableDecl)) {
                 //printf("[onStatement] stmt is a Stack<VariableDecl>, calling gotVarDecl on each of'em\n")
                 for(vd in stack) {
                     //printf("[onStatement] among em, %s\n", vd toString())
@@ -779,20 +779,20 @@ AstBuilder: class {
         node := peek(Node)
 
         match {
-            case node instanceOf(FunctionDecl) =>
+            case node instanceOf?(FunctionDecl) =>
                 fDecl := node as FunctionDecl
                 fDecl body add(stmt)
-            case node instanceOf(ControlStatement) =>
+            case node instanceOf?(ControlStatement) =>
                 cStmt := node as ControlStatement
                 cStmt body add(stmt)
-            case node instanceOf(ArrayAccess) =>
+            case node instanceOf?(ArrayAccess) =>
                 aa := node as ArrayAccess
-                if(!stmt instanceOf(Expression)) {
+                if(!stmt instanceOf?(Expression)) {
                     stmt token throwError("Expected an expression here, not a statement!")
                 }
                 aa indices add(stmt as Expression)
-            case node instanceOf(Module) =>
-                if(stmt instanceOf(VariableDecl)) {
+            case node instanceOf?(Module) =>
+                if(stmt instanceOf?(VariableDecl)) {
                     vd := stmt as VariableDecl
                     vd setGlobal(true)
                 }
@@ -806,7 +806,7 @@ AstBuilder: class {
                 } else {
                     module body add(stmt)
                 }
-            case node instanceOf(ClassDecl) =>
+            case node instanceOf?(ClassDecl) =>
                 cDecl := node as ClassDecl
                 fDecl := cDecl lookupFunction(ClassDecl DEFAULTS_FUNC_NAME, "")
                 if(fDecl == null) {
@@ -814,15 +814,15 @@ AstBuilder: class {
                     cDecl addFunction(fDecl)
                 }
                 fDecl getBody() add(stmt)
-            case node instanceOf(ArrayLiteral) =>
+            case node instanceOf?(ArrayLiteral) =>
                 arrayLit := node as ArrayLiteral
-                if(!stmt instanceOf(Expression)) {
+                if(!stmt instanceOf?(Expression)) {
                     stmt token throwError("Expected an expression here, not a statement!")
                 }
                 arrayLit getElements() add(stmt as Expression)
-            case node instanceOf(Tuple) =>
+            case node instanceOf?(Tuple) =>
                 tuple := node as Tuple
-                if(!stmt instanceOf(Expression)) {
+                if(!stmt instanceOf?(Expression)) {
                     stmt token throwError("Expected an expression here, not a statement!")
                 }
                 tuple getElements() add(stmt as Expression)
@@ -883,7 +883,7 @@ AstBuilder: class {
 
     // foreach
     onForeachStart: unmangled(nq_onForeachStart) func (decl, collec: Expression) {
-        if(decl instanceOf(Stack)) {
+        if(decl instanceOf?(Stack)) {
             decl = decl as Stack<VariableDecl> pop()
         }
         stack push(Foreach new(decl, collec, token()))
@@ -1134,7 +1134,7 @@ AstBuilder: class {
         vDecl := VariableDecl new(BaseType new("Class", token()), name clone(), token())
 
         done := false
-        if(node instanceOf(Declaration)) {
+        if(node instanceOf?(Declaration)) {
             done = node as Declaration addTypeArg(vDecl)
         }
 
@@ -1156,7 +1156,7 @@ AstBuilder: class {
 
     peek: func <T> (T: Class) -> T {
         node := stack peek() as Node
-        if(!node instanceOf(T)) {
+        if(!node instanceOf?(T)) {
             token() throwError("Should've peek'd a %s, but peek'd a %s. Stack = %s" format(T name, node class name, stackRepr()))
         }
         return node
@@ -1164,7 +1164,7 @@ AstBuilder: class {
 
     pop: func <T> (T: Class) -> T {
         node := stack pop() as Node
-        if(!node instanceOf(T)) {
+        if(!node instanceOf?(T)) {
             token() throwError("Should've pop'd a %s, but pop'd a %s. Stack = %s" format(T name, node class name, stackRepr()))
         }
         return node
