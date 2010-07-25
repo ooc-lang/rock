@@ -38,44 +38,44 @@ creating a variable
 e.g. the code
 
     myvar: Int
-    
+
 is constructed with
 
     intType := BaseType new("Int", nullToken)
     vDecl := VariableDecl new(intType, "myvar", nullToken)
-    
+
 In this case it's probably better to use IntLiteral type though (you can
 also use NullLiteral, etc.)
 
     vDecl := VariableDecl new(IntLiteral type, "myvar", nullToken)
-    
+
 creating literals
 -----------------
 
     kalamazoo := 42
-    
+
 is constructed with
 
     vDecl := VariableDecl new(null, "kalamazoo", IntLiteral new(42, nullToken))
-    
-A null type for a VariableDecl will infer 
+
+A null type for a VariableDecl will infer
 
 
 classes
 -------
 
     Dog: class {}
-    
+
 is constructed with
 
     dogClass := ClassDecl new("Dog", nullToken)
-    
+
 You can add member variables, e.g.
 
     Dog: class {
         name: String
     }
-    
+
 With
 
     vDecl := VariableDecl new(StringLiteral type, "name", nullToken)
@@ -86,15 +86,15 @@ function calls
 --------------
 
     exit()
-    
+
 Is created with
 
     FunctionCall new("exit", nullToken)
-    
+
 Also,
 
     exit(128)
-    
+
 Is created with
 
     call := FunctionCall new("exit", nullToken)
@@ -105,11 +105,11 @@ member calls
 
     msg := "Hi world"
     msg println()
-    
+
 Is created with
 
     vDecl := VariableDecl new(null, "msg", StringLiteral new("Hi world", nullToken), nullToken)
-    vAcc := variableAccess new(vDecl, nullToken)
+    vAcc := VariableAccess new(vDecl, nullToken)
     fCall := FunctionCall new(vAcc, "println", nullToken)
 
 variable accesses
@@ -122,15 +122,15 @@ VariableAccesses can be created from different things.
 Either you directly know the VariableDecl you wanna access and you can do
 
     VariableAccess new(vDecl, nullToken)
-    
+
 Or you just know its name and you want it resolved
 
     VariableAccess new("myVariable", nullToken)
-    
+
 You can even have a VariableAccess to a type
 
     VariableAccess new(IntLiteral type, nullToken)
-    
+
 Which is useful, for example, if you want to have a variable access
 to "Int size". See below for member accesses
 
@@ -143,7 +143,7 @@ They're like variable accesses, but with a non-null expr.
 So to do for example
 
     Int size
-    
+
 We'd do
 
     intAccess := VariableAccess new(IntLiteral type, nullToken)
@@ -153,17 +153,17 @@ instanciating objects
 ---------------------
 
     dog := Dog new()
-    
+
 Is constructed like
 
     dogClass := VariableAccess new("Dog", nullToken)
     newCall := FunctionCall new(dogClass, "new", nullToken)
     dogDecl := VariableDecl new(null, "dog", newCall, nullToken)
-    
-    
+
+
 function call arguments
 -----------------------
-    
+
     printf("Hai, world!\n")
 
 Is constructed with
@@ -218,7 +218,7 @@ It'll give something like:
               \_, Resolver.fatal && BuildParams.fatalError
 
 Apart from that, Trail is a subclass of Stack<Node> so you have
-your pretty standard stack manipulation method, e.g. push, 
+your pretty standard stack manipulation method, e.g. push,
 peek (get the node on top of the stack), pop(like peek but
 also removes that node from the stack), but also get(), removeAt()
 There's also peek(n) which allows you to retrieve the top-but-n
@@ -261,7 +261,7 @@ You should never abort the compilation process by calling
 exit() or something like that. Just throw errors.
 
 This allows command line options like "-allerrors" to work
-(when -allerrors is set, compilation isn't aborted when 
+(when -allerrors is set, compilation isn't aborted when
 an error is thrown)
 
 Also, when you're trying to resolve things, it's probably better
