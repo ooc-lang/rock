@@ -360,7 +360,7 @@ VariableDeclTuple: class extends VariableDecl {
                 j := 0
                 for(element in tuple getElements()) {
                     if(!element instanceOf?(VariableAccess)) {
-                        element token throwError("Expected a variable access in a tuple-variable declaration!")
+                        res throwError(IncompatibleElementInTupleVarDecl new(element token, "Expected a variable access in a tuple-variable declaration!"))
                     }
                     argName := element as VariableAccess getName()
 
@@ -372,7 +372,7 @@ VariableDeclTuple: class extends VariableDecl {
                         argDecl := VariableDecl new(argType, argName, element token)
                         returnArgs add(VariableAccess new(argDecl, argDecl token))
                         if(!trail addBeforeInScope(this, argDecl)) {
-                            token throwError("Couldn't add %s before %s in scope!" format(argDecl toString(), toString()))
+                            res throwError(CouldntAddBeforeInScope new(token, argDecl, this, trail))
                         }
                     }
                     j += 1
@@ -380,7 +380,7 @@ VariableDeclTuple: class extends VariableDecl {
                 trail addBeforeInScope(this, fCall)
                 parent as Scope remove(this)
             case =>
-                token throwError("Unsupported expression type %s for VariableDeclTuple." format(expr class name))
+                res throwError(InternalError new(this, "Unsupported expression type %s for VariableDeclTuple." format(expr class name)))
         }
 
         Responses OK
