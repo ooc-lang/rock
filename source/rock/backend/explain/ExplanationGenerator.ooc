@@ -167,7 +167,7 @@ ExplanationGenerator: class extends Visitor {
     /* static variables 
     for(variable in node meta variables) {
       member := Bag new()
-      member add(variable name) .add(buildVariableDecl(variable, "field"))
+      member add(variable name) .add(buildVariableDecl(variable, "field")) // FIXME buildVariableDecl doesn't return anything
       members add(member)
     }
     obj put("members", members)
@@ -251,7 +251,7 @@ ExplanationGenerator: class extends Visitor {
     addObject()
   }
 
-  buildVariableDecl: func (node: VariableDecl, type: String) -> HashBag {
+  buildVariableDecl: func (node: VariableDecl, type: String) {
       addObject("* *"+node name+"*:",type)
       
       addObject("    * "+node name+" is of type: *"+resolveType(node type)+"*",type)
