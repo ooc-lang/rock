@@ -86,7 +86,7 @@ Token: cover {
         over := Buffer new()
 
         if(type != "") {
-            b append(prefix). append("%s:%d:%d %s %s" format(module getPath(".ooc"), lines, start - lastNewLine, type, message))
+            b append(prefix). append("%s:%d:%d %s %s\n" format(module getPath(".ooc"), lines, start - lastNewLine, type, message))
         } else if(message != "") {
             b append(prefix). append(message). append('\n')
         }
@@ -102,7 +102,7 @@ Token: cover {
                 case '\n' =>
                     break // the outer loop, not the match.
                 case =>
-                    printf("%c", c)
+                    b append(c)
                     if(i < start || i >= end) {
                         over append(' ')
                     } else {
