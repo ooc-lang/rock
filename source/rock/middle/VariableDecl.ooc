@@ -3,7 +3,7 @@ import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
        Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast, Module,
        Block, Scope, FunctionDecl, Argument, BaseType, FuncType, Statement,
        NullLiteral, Tuple, TypeList, VariableDecl
-import tinker/[Response, Resolver, Trail]
+import tinker/[Response, Resolver, Trail, Errors]
 import ../frontend/BuildParams
 
 VariableDecl: class extends Declaration {
@@ -168,12 +168,11 @@ VariableDecl: class extends Declaration {
         parent := trail peek()
         {
             if(!parent isScope() && !parent instanceOf?(TypeDecl)) {
-                //println("oh the parent of " + toString() + " isn't a scope but a " + parent class name)
-                //println("trail = " + trail toString())
-
-                result := trail peek() replace(this, VariableAccess new(this, token))
+                varAcc := VariableAccess new(this, token)
+                result := trail peek() replace(this, varAcc, res)
                 if(!result) {
-                    token throwError("Couldn't replace %s with a varAcc in %s, trail = %s" format(toString(), trail peek() toString(), trail toString()))
+                    res throwError(CouldntReplace new(token, this, varAcc, trail))
+                    return Responses LOOP
                 }
 
                 idx := trail findScope()
@@ -192,11 +191,10 @@ VariableDecl: class extends Declaration {
                 }
 
                 if(!result) {
-                    token throwError("Couldn't unwrap " + toString() + " , trail = " + trail toString())
+                    res throwError(InternalError new(token, "Couldn't unwrap " + toString() + " , trail = " + trail toString()))
                 }
 
                 res wholeAgain(this, "parent isn't scope nor typedecl, unwrapped")
-                //return Responses OK
                 return Responses LOOP
             }
         }
@@ -222,12 +220,12 @@ VariableDecl: class extends Declaration {
                     }
                     ass := BinaryOp new(VariableAccess new(this, token), realExpr, OpType ass, token)
                     if(!trail addAfterInScope(this, ass)) {
-                        token throwError("Couldn't add a " + ass toString() + " after a " + toString() + ", trail = " + trail toString())
+                        res throwError(CouldntAddAfterInScope new(token, this, ass, trail))
                     }
                     expr = null
                 }
             }
-        } else { // Set pointer references to NULL
+        } else { // Set pointer references to null
             if (!owner && trail peek() instanceOf?(Scope)) { // don't touch a member-variable or an argument
                 t := getType()
                 if (!t) {
@@ -251,7 +249,7 @@ VariableDecl: class extends Declaration {
 
                 ass := BinaryOp new(VariableAccess new(this, token), expr, OpType ass, token)
                 if(!trail addAfterInScope(this, ass)) {
-                    token throwError("Couldn't add a " + ass toString() + " after a " + toString() + ", original expr = " + expr toString() + " trail = " + trail toString())
+                    res throwError(CouldntAddAfterInScope new(token, this, ass, trail))
                 }
                 expr = null
             }
@@ -321,13 +319,11 @@ VariableDeclTuple: class extends VariableDecl {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        //token printMessage("Got a VariableDeclTuple, and expr is %s!" format(expr ? expr toString() : "(nil)"), "INFO")
-
         expr resolve(trail, res)
 
         match {
             case expr == null =>
-                token throwError("VariableDeclTuples need an expression. This should never happen")
+                res throwError(InternalError new(token, "VariableDeclTuples need an expression. This should never happen"))
             case expr instanceOf?(FunctionCall) =>
                 fCall := expr as FunctionCall
                 if(fCall getRef() == null) {
@@ -336,7 +332,7 @@ VariableDeclTuple: class extends VariableDecl {
                 }
                 if(fCall getRef() getReturnArgs() empty?()) {
                     if(res fatal) {
-                        token throwError("Need a multi-return function call as the expression of a tuple-variable declaration!")
+                        res throwError(CallDoesntMatchTupleVarDecl new(token, "Need a multi-return function call as the expression of a tuple-variable declaration!"))
                     }
                     res wholeAgain(this, "need multi-return func call")
                     return Responses OK
@@ -354,11 +350,11 @@ VariableDeclTuple: class extends VariableDecl {
                     } else {
                         element := tuple getElements() last()
                         if(!element instanceOf?(VariableAccess)) {
-                            element token throwError("Expected a variable access in a tuple-variable declaration!")
+                            element token throwError(IncompatibleElementInTupleVarDecl new(token, "Expected a variable access in a tuple-variable declaration!"))
                         }
                         if(element as VariableAccess getName() != "_") bad = true
                     }
-                    if(bad) tuple token throwError("Tuple variable declaration doesn't match return type %s of function %s" format(returnType toString(), fCall getName()))
+                    if(bad) tuple token throwError(TupleVarDeclMismatchCall new(token, "Tuple variable declaration doesn't match return type %s of function %s" format(returnType toString(), fCall getName())))
                 }
 
                 j := 0
@@ -391,4 +387,17 @@ VariableDeclTuple: class extends VariableDecl {
     }
 
 }
+
+CallDoesntMatchTupleVarDecl: class extends Error {
+    init: super func ~tokenMessage
+}
+
+IncompatibleElementInTupleVarDecl: class extends Error {
+    init: super func ~tokenMessage
+}
+
+TupleVarDeclMismatchCall: class extends Error {
+    init: super func ~tokenMessage
+}
+
 

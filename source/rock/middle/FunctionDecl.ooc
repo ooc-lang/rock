@@ -6,7 +6,7 @@ import Cast, Expression, Type, Visitor, Argument, TypeDecl, Scope,
        Version, StringLiteral, Conditional, Import, ClassDecl, StringLiteral,
        IntLiteral, NullLiteral, BaseType, FuncType, AddressOf, BinaryOp,
        TypeList, CoverDecl, StructLiteral, Dereference
-import tinker/[Resolver, Response, Trail]
+import tinker/[Resolver, Response, Trail, Errors]
 
 /**
    A function declaration.
@@ -955,3 +955,19 @@ FunctionDecl: class extends Declaration {
     getVersion: func -> VersionSpec { verzion }
 
 }
+
+FunctionRedefinition: class extends Error {
+
+    first, second: FunctionDecl
+
+    init: func (=first, =second) {
+        message = second token formatMessage("Redefinition of '%s'%s" format(first getName(), first verzion ? " in version " + first verzion toString() : ""), "") +
+                  first  token formatMessage("...first definition was here: ", "[ERROR]")
+    }
+
+    format: func -> String {
+        message
+    }
+
+}
+

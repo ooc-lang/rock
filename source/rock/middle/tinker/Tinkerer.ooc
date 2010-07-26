@@ -4,17 +4,41 @@ import ../../frontend/[BuildParams]
 import ../[Module]
 import Resolver
 
+/**
+ * Resolve all modules with the help of Resolver, by looping as many
+ * times as needed.
+ *
+ * On the 'params blowup'-nth loop, 'resolver fatal' becomes true
+ * and modules know they can begin to throw errors. Don't throw
+ * errors on previous rounds unless you're *really really sure*
+ * that there's no way it'll be resolved in subsequent runs.
+ *
+ * If we loop more than params blowup and no one has thrown any
+ * error, then we fail with the infamous "Tinkerer is going round
+ * in circles". That should really never happen for users. They might
+ * just go ahead and start reading code - which would be bad publicity.
+ *
+ * @author Amos Wenger (nddrylliog)
+ */
 Tinkerer: class {
 
     params: BuildParams
+
+    /** Exactly one per module. Removed as soon as the module is resolved */
     resolvers := ArrayList<Resolver> new()
+
+    /**
+     * All the modules we have to resolve. Usually, all modules recursively
+     * imported from the 'main' module.
+     */
     modules: List<Module>
 
     init: func (=params) {}
 
     /**
-     * Manipulate the AST.
-     * 
+     * Resolve all modules until they're all set, or we failed because
+     * we reached blowup.
+     *
      * @return true on success, false on failure
      */
     process: func (=modules) -> Bool {
@@ -23,6 +47,10 @@ Tinkerer: class {
             resolvers add(Resolver new(module, params, this))
         }
 
+        // this was experimental stuff to figure out if the order modules
+        // were resolved in was actually meaningful and impacted on speed
+        // and total number of rounds. It turns out - not so much. But I'm
+        // leaving that here, because it's interesting. -- nddrylliog
         if (Env get("ROCK_SORT") == "1") {
             printf("Sorting!\n")
             resolvers sort(|r1, r2|

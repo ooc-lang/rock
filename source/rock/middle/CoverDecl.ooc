@@ -3,7 +3,7 @@ import ../io/TabbedWriter
 import ../frontend/Token
 import Expression, Type, Visitor, TypeDecl, Node, FunctionDecl,
        FunctionCall
-import tinker/[Response, Resolver, Trail]
+import tinker/[Response, Resolver, Trail, Errors]
 
 CoverDecl: class extends TypeDecl {
 
@@ -23,7 +23,7 @@ CoverDecl: class extends TypeDecl {
         for(addon in getAddons()) {
             addon getNonMeta() as CoverDecl setFromType(fromType)
         }
-    }    
+    }
     getFromType: func -> Type { fromType }
 
     // all functions of a cover are final, because we don't have a 'class' field
@@ -62,10 +62,9 @@ CoverDecl: class extends TypeDecl {
         w app("sizeof("). app(underName()). app(")")
     }
 
-    absorb: func (node: CoverDecl) {
+    absorb: func (node: CoverDecl, params: BuildParams) {
         if(!variables empty?()) {
-            node token printMessage("...while extending cover " + node toString(), "DETAIL")
-            token throwError("Attempting to add variables to another cover!")
+            params errorHandler onError(AddingVariablesInAddon(base, variables[0] token))
         }
         getMeta() base = node getMeta()
         //printf("%s from %s is absorbing %s from %s\n", toString(), token module toString(), node toString(), node token module toString())
@@ -81,3 +80,18 @@ CoverDecl: class extends TypeDecl {
     replace: func (oldie, kiddo: Node) -> Bool { false }
 
 }
+
+AddingVariablesInAddon: class extends Error {
+
+    init: func (node: CoverDecl, =token) {
+        message = node token formatMessage("...while extending cover " + base toString(), "") +
+                       token formatMessage("Attempting to add variables to another cover!", "ERROR")
+    }
+
+    format: func -> String {
+        message
+    }
+
+}
+
+

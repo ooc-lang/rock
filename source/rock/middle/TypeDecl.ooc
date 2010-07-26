@@ -5,7 +5,7 @@ import text/Buffer
 import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
     FunctionDecl, FunctionCall, Module, VariableAccess, Node,
     InterfaceImpl, Version, EnumDecl, BaseType, FuncType
-import tinker/[Resolver, Response, Trail]
+import tinker/[Resolver, Response, Trail, Errors]
 
 /**
    A type declaration - a class, a cover, an interface, an enum..
@@ -828,3 +828,17 @@ BuiltinType: class extends TypeDecl {
 
 }
 
+FunctionRedefinition: class extends Error {
+
+    first, second: TypeDecl
+
+    init: func (=first, =second) {
+        message = second token formatMessage("Redefinition of '%s'%s" format(first getName(), first verzion ? " in version " + first verzion toString() : ""), "") +
+                  first  token formatMessage("...first definition was here: ", "[ERROR]")
+    }
+
+    format: func -> String {
+        message
+    }
+
+}

@@ -100,8 +100,8 @@ Module: class extends Node {
         if (old != null) {
             if ((old verzion == fDecl verzion) ||
                 (old verzion != null && fDecl verzion != null && old verzion equals?(fDecl verzion))) {
-                fDecl token printMessage("Redefinition of '%s'%s" format(old getName(), old verzion ? " in version " + old verzion toString() : ""), "[ERROR]")
-                old   token throwError("...first definition was here: ")
+
+                params errorHandler onError(FunctionRedefinition new(old, fDecl))
                 return
             }
             if (fDecl verzion != null && !fDecl verzion isSatisfied(params)) {
@@ -119,8 +119,9 @@ Module: class extends Node {
         if (old != null) {
             if ((old verzion == tDecl verzion) ||
                 (old verzion != null && tDecl verzion != null && old verzion equals?(tDecl verzion))) {
-                tDecl token printMessage("Redefinition of '%s'%s" format(tDecl name, old verzion ? " in version " + old verzion toString() : ""), "[ERROR]")
-                old   token throwError("...first definition was here: ")
+
+                params errorHandler onError(TypeRedefinition new(old, tDecl))
+                return
             }
             if (tDecl verzion != null && !tDecl verzion isSatisfied(params)) {
                 //"%s is better-scored than %s, retaining." printfln(old verzion toString(), tDecl verzion toString())

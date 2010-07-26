@@ -85,7 +85,7 @@ ArrayLiteral: class extends Literal {
                                (!targetType instanceOf?(SugarType) || !targetType as SugarType inner isGeneric())) {
                                 cast := Cast new(this, targetType, token)
                                 if(!parent replace(this, cast)) {
-                                    token throwError("Couldn't replace %s with %s in %s" format(toString(), cast toString(), parent toString()))
+                                    res throwError(CouldntReplace new(token, this, cast, trail))
                                 }
                                 res wholeAgain(this, "Replaced with a cast")
                                 return Responses OK
@@ -205,14 +205,11 @@ ArrayLiteral: class extends Literal {
                     fDecl getBody() add(vDecl)
                     memberInitShouldMove = true
                 } else {
-                    token printMessage("Couldn't add %s before in scope." format(vDecl toString()), "ERROR")
-                    Exception new(This, "Couldn't add, debugging") throw()
+                    res throwError(CouldntAddBeforeInScope new(token, this, trail))
                 }
             }
             if(!parent replace(this, vAcc)) {
-                if(res fatal) {
-                    token throwError("Couldn't replace %s with varAcc in %s" format(toString(), parent toString()))
-                }
+                if(res fatal) res throwError(CouldntReplace new(token, this, vAcc, trail))
                 res wholeAgain(this, "Trail is messed up, gotta loop.")
                 return Responses OK
             }
@@ -259,7 +256,7 @@ ArrayLiteral: class extends Literal {
                     memberDecl setExpr(null)
                 }
             } else {
-                token throwError("Couldn't add block after %s in scope! trail = %s" format(vDecl toString(), trail toString()))
+                res throwError(couldntAddAfterInScope(token, vDecl, trail))
             }
         }
 

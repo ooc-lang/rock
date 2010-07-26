@@ -4,27 +4,94 @@ import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
        InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType, Return,
        TypeList
-import tinker/[Response, Resolver, Trail]
+import tinker/[Response, Resolver, Trail, Errors]
 
+/**
+ * Every function call, member or not, is represented by this AST node.
+ *
+ * Member calls (ie. "blah" println()) have a non-null 'expr'
+ *
+ * Calls to functions with generic type arguments store the 'resolution'
+ * of these type arguments in the typeArgs list. Until all type arguments
+ * are resolved, the function call is not fully resolved.
+ *
+ * Calls to functions that have multi-returns or a generic return type
+ * use returnArgs expression (secret variables that are references,
+ * and are assigned to when the return happens.)
+ *
+ * @author Amos Wenger (nddrylliog)
+ */
 FunctionCall: class extends Expression {
 
+    /**
+     * Expression on which we call something, if any. Function calls
+     * have a null expr, method calls have a non-null ones.
+     */
     expr: Expression
-    name, suffix = null : String
 
+    /** Name of the function being called. */
+    name: String
+
+    /**
+     * If the suffix is non-null (ie it has been specified in the code,
+     * via name~suffix()), it won't accept functions that have a different
+     * suffix.
+     *
+     * If suffix is null, it'll just try to find the best match, no matter
+     * the suffix.
+     */
+    suffix = null : String
+
+    /**
+     * Resolved declaration's type arguments. For example,
+     * ArrayList<Int> new() will have 'Int' in its typeArgs.
+     */
     typeArgs := ArrayList<Expression> new()
 
+    /**
+     * Calls to functions that have multi-returns or a generic return type
+     * use returnArgs expression (secret variables that are references,
+     * and are assigned to when the return happens.)
+     */
     returnArgs := ArrayList<Expression> new()
+
+    /**
+     * Inferred return type of the call - might be different from ref's returnType
+     * if it is generic, for example.
+     */
     returnType : Type = null
 
     args := ArrayList<Expression> new()
 
+    /**
+     * The actual function declaration this call is calling.
+     * Note that this makes rock almost a linker too - it effectively
+     * knows the ins and outs of all your calls before it dares
+     * generate C code.
+     */
     ref = null : FunctionDecl
+
+    /**
+     * < 0 = not resolved (incompatible functions)
+     * > 0 = resolved
+     *
+     * Score is determined in getScore(), depending on the arguments, etc.
+     *
+     * Function declarations that don't even match the name don't even
+     * have a score.
+     */
     refScore := INT_MIN
 
+    /**
+     * Create a new function call to the function '<name>()'
+     */
     init: func ~funcCall (=name, .token) {
         super(token)
     }
 
+    /**
+     * Create a new method (member function) call to the function 'expr <name>()'
+     */
     init: func ~functionCallWithExpr (=expr, =name, .token) {
         super(token)
     }
@@ -42,10 +109,24 @@ FunctionCall: class extends Expression {
         visitor visitFunctionCall(this)
     }
 
+    /**
+     * Internal method used to print a shitload of debugging messages
+     * on a particular function - used in one-shots of hardcore debugging.
+     *
+     * Usually has 'name == "something"' instead of 'false' as
+     * a return expression, when it's being used.
+     */
     debugCondition: inline func -> Bool {
         false
     }
 
+    /**
+     * This method is being called by other AST nodes that want to suggest
+     * a function declaration to this function call.
+     *
+     * The call then evaluates the score of the decl, and if it has a higher score,
+     * stores it as its new best ref.
+     */
     suggest: func (candidate: FunctionDecl) -> Bool {
 
         if(debugCondition()) "** [refScore = %d] Got suggestion %s for %s" format(refScore, candidate toString(), toString()) println()
@@ -76,6 +157,7 @@ FunctionCall: class extends Expression {
         //printf("===============================================================\n")
         //printf("     - Resolving call to %s (ref = %s)\n", name, ref ? ref toString() : "(nil)")
 
+        // resolve all arguments
         if(args size() > 0) {
             trail push(this)
             i := 0
@@ -90,6 +172,9 @@ FunctionCall: class extends Expression {
             trail pop(this)
         }
 
+        // resolve our expr. e.g. in
+        //     object doThing()
+        // object is our expr.
         if(expr) {
             trail push(this)
             response := expr resolve(trail, res)
@@ -100,6 +185,8 @@ FunctionCall: class extends Expression {
             }
         }
 
+        // resolve all returnArgs (secret arguments used when we have
+        // multi-return and/or generic return type
         for(i in 0..returnArgs size()) {
             returnArg := returnArgs[i]
             if(!returnArg) continue // they can be null, after all.
@@ -175,7 +262,7 @@ FunctionCall: class extends Expression {
                         if(expr getType() isGeneric()) {
                             message += " (you can't call methods on generic types! you have to cast them first)"
                         }
-                        token throwError(message)
+                        res throwError(UnresolvedCall new(this, message))
                     }
                     tDecl := expr getType() getRef() as TypeDecl
 		            meta := tDecl getMeta()
@@ -231,43 +318,39 @@ FunctionCall: class extends Expression {
             if(!response ok()) return response
         }
 
-        if(refScore <= 0 && res fatal) {
-            message : String = null
-            if(expr == null) {
-                message = "No such function %s%s" format(name, getArgsTypesRepr())
-            } else if(expr getType() != null) {
-                if(res params veryVerbose) {
-                    message = "No such function %s%s for `%s` (%s)" format(name, getArgsTypesRepr(),
-						expr getType() toString(), expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)")
-                } else {
-                    message = "No such function %s%s for `%s`" format(name, getArgsTypesRepr(), expr getType() toString())
+        if(refScore <= 0) {
+
+            // Still no match, and in the fatal round? Throw an error.
+            if(res fatal) {
+                message := "No such function"
+                if(expr == null) {
+                    message = "No such function %s%s" format(name, getArgsTypesRepr())
+                } else if(expr getType() != null) {
+                    if(res params veryVerbose) {
+                        message = "No such function %s%s for `%s` (%s)" format(name, getArgsTypesRepr(),
+                            expr getType() toString(), expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)")
+                    } else {
+                        message = "No such function %s%s for `%s`" format(name, getArgsTypesRepr(), expr getType() toString())
+                    }
                 }
-            }
-            //printf("name = %s, refScore = %d, ref = %s\n", name, refScore, ref ? ref toString() : "(nil)")
-            if(message != null) {
+
                 if(ref) {
-                    token printMessage(message, "ERROR")
-                    showNearestMatch(res params)
-                    if(BuildParams fatalError) CommandLine failure()
+                    // If we have a near-match, show it here.
+                    message += showNearestMatch(res params)
+                    // TODO: add levenshtein distance
                 } else {
                     if(res params helpful) {
+                        // Try to find such a function in other modules in the sourcepath
                         similar := findSimilar(res)
-                        if(similar) {
-                            message += similar
-                        }
-                    }
-                    if(expr) {
-                        expr token enclosing(token) throwError(message)
-                    } else {
-                        token throwError(message)
+                        if(similar) message += similar
                     }
                 }
+                res throwError(UnresolvedCall new(this, message))
+            } else {
+                res wholeAgain(this, "not resolved")
+                return Responses OK
             }
-        }
 
-        if(refScore <= 0) {
-            res wholeAgain(this, "not resolved")
-            return Responses OK
         }
 
         return Responses OK
@@ -291,8 +374,14 @@ FunctionCall: class extends Expression {
 
     }
 
-    showNearestMatch: func (params: BuildParams) {
-        "\tNearest match is:\n\n\t\t%s\n" format(ref toString(this)) println()
+    /**
+     * If we have a ref but with a negative score, it means there's a function
+     * with the right name, but that doesn't match in respect with the arguments
+     */
+    showNearestMatch: func (params: BuildParams) -> String {
+        b := Buffer new()
+
+        b app("\tNearest match is:\n\n\t\t%s\n" format(ref toString(this)))
 
         callIter := args iterator()
         declIter := ref args iterator()
@@ -303,12 +392,12 @@ FunctionCall: class extends Expression {
             callArg := callIter next()
 
             if(declArg getType() == null) {
-                declArg token printMessage("\tbut couldn't resolve type of this argument in the declaration\n", "")
+                b app(declArg token formatMessage("\tbut couldn't resolve type of this argument in the declaration\n", ""))
                 continue
             }
 
             if(callArg getType() == null) {
-                callArg token printMessage("\tbut coultn't resolve type of this argument in the call\n", "")
+                b app(callArg token formatMessage("\tbut couldn't resolve type of this argument in the call\n", ""))
                 continue
             }
 
@@ -322,14 +411,16 @@ FunctionCall: class extends Expression {
             score := callArg getType() getScore(declArgType)
             if(score < 0) {
                 if(params veryVerbose) {
-                    "\t..but the type of this arg should be `%s` (%s), not %s (%s)\n" format(declArgType toString(), declArgType getRef() ? declArgType getRef() token toString() : "(nil)",
-                                                                                           callArg getType() toString(), callArg getType() getRef() ? callArg getType() getRef() token toString() : "(nil)") println()
+                    b app("\t..but the type of this arg should be `%s` (%s), not %s (%s)\n" format(declArgType toString(), declArgType getRef() ? declArgType getRef() token toString() : "(nil)",
+                                                                                           callArg getType() toString(), callArg getType() getRef() ? callArg getType() getRef() token toString() : "(nil)"))
                 } else {
-                    "\t..but the type of this arg should be `%s`, not `%s`\n" format(declArgType toString(), callArg getType() toString()) println()
+                    b app("\t..but the type of this arg should be `%s`, not `%s`\n" format(declArgType toString(), callArg getType() toString()))
                 }
-                callArg token printMessage("\t\t", "", "")
+                b app(token formatMessage("\t\t", "", ""))
             }
         }
+
+        b toString()
     }
 
     unwrapIfNeeded: func (trail: Trail, res: Resolver) -> Response {
@@ -368,16 +459,16 @@ FunctionCall: class extends Expression {
             vType := getType() instanceOf?(TypeList) ? getType() as TypeList types get(0) : getType()
             vDecl := VariableDecl new(vType, generateTempName("genCall"), token)
             if(!trail addBeforeInScope(this, vDecl)) {
-                if(res fatal) token throwError("Couldn't add a " + vDecl toString() + " before a " + toString() + ", trail = " + trail toString())
+                if(res fatal) res throwError(CouldntAdd new(token, vDecl, this, trail))
                 res wholeAgain(this, "couldn't add before scope")
                 return Responses OK
             }
 
             seq := CommaSequence new(token)
             if(!trail peek() replace(this, seq)) {
-                if(res fatal) token throwError("Couldn't replace " + toString() + " with " + seq toString() + ", trail = " + trail toString())
+                if(res fatal) res throwError(CouldntReplace new(token, this, seq, trail))
                 // FIXME: what if we already added the vDecl?
-                res wholeAgain(this, "couldn't unwrap, trail = " + trail toString())
+                res wholeAgain(this, "couldn't unwrap")
                 return Responses OK
             }
 
@@ -410,6 +501,12 @@ FunctionCall: class extends Expression {
 		(node instanceOf?(BinaryOp) && node as BinaryOp isAssign())
     }
 
+    /**
+     * Attempt to resolve the *actual* return type of the call, as oppposed
+     * to the declared return type of our reference (a function decl).
+     *
+     * Mostly usefeful when the
+     */
     resolveReturnType: func (trail: Trail, res: Resolver) -> Response {
 
         if(returnType != null) return Responses OK
@@ -428,7 +525,7 @@ FunctionCall: class extends Expression {
                 if(res params veryVerbose) printf("\t$$$$ resolving returnType %s for %s\n", ref returnType toString(), toString())
                 returnType = resolveTypeArg(ref returnType getName(), trail, finalScore&)
                 if((finalScore == -1 || returnType == null) && res fatal) {
-                    token throwError("Not enough info to resolve return type %s of function call\n" format(ref returnType toString()))
+                    res throwError(InternalError new(token, "Not enough info to resolve return type %s of function call\n" format(ref returnType toString())))
                 }
             } else {
                 returnType = ref returnType clone()
@@ -454,7 +551,7 @@ FunctionCall: class extends Expression {
         }
 
         if(returnType == null) {
-            if(res fatal) token throwError("Couldn't resolve return type of function %s\n" format(toString()))
+            if(res fatal) res throwError(InternalError new(token, "Couldn't resolve return type of function %s\n" format(toString())))
             return Responses LOOP
         }
 
@@ -594,16 +691,14 @@ FunctionCall: class extends Expression {
         for(typeArg in typeArgs) {
             response := typeArg resolve(trail, res)
             if(!response ok()) {
-                if(res fatal) {
-                    token throwError("Couldn't resolve typeArg %s in call %s" format(typeArg toString(), toString()))
-                }
+                if(res fatal) res throwError(InternalError new(token, "Couldn't resolve typeArg %s in call %s" format(typeArg toString(), toString())))
                 return response
             }
         }
 
         if(typeArgs size() != ref typeArgs size()) {
             if(res fatal) {
-                token throwError("Missing info for type argument %s. Have you forgotten to qualify %s, e.g. List<Int>?" format(ref typeArgs get(typeArgs size()) getName(), ref toString()))
+                res throwError(InternalError new(token, "Missing info for type argument %s. Have you forgotten to qualify %s, e.g. List<Int>?" format(ref typeArgs get(typeArgs size()) getName(), ref toString())))
             }
             res wholeAgain(this, "Looping %s because of typeArgs\n" format(toString()))
         }
@@ -954,5 +1049,16 @@ FunctionCall: class extends Expression {
     setRef: func (=ref) { refScore = 1; /* or it'll keep trying to resolve it =) */ }
 
 	getArguments: func ->  ArrayList<Expression> { args }
+
+}
+
+
+/**
+ * Error thrown when a type isn't defined
+ */
+UnresolvedCall: class extends Error {
+
+    call: FunctionCall
+    init: func (.message, =call) { super(message, call expr ? call expr token enclosing(call token) : call token) }
 
 }

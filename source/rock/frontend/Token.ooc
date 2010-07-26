@@ -51,21 +51,13 @@ Token: cover {
         )
     }
 
-    throwWarning: func (message: String) {
-        printMessage(message, "[WARNING]")
+    formatMessage: func ~noPrefix (message, type: String) -> String {
+        formatMessage("", message, type)
     }
 
-    throwError: func (message: String) {
-
-    }
-
-    printMessage: func ~noPrefix (message, type: String) {
-        printMessage("", message, type)
-    }
-
-    printMessage: func (prefix, message, type: String) {
+    formatMessage: func (prefix, message, type: String) -> String {
         if(module == null) {
-            Exception new(This, "From unknown source [%s] %s" format(type, message)) throw()
+            return "From unknown source [%s] %s" format(type, message)
         }
 
         fr := FileReader new(getPath())

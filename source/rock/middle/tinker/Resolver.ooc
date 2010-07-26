@@ -2,21 +2,59 @@ import ../[Module, Node, Import], structs/List, io/File
 import ../../frontend/[BuildParams, Token, AstBuilder]
 import Response, Trail, Tinkerer, Errors
 
+/**
+ * Drives the whole 'resolving' part of the compilation process, for
+ * an individual module. See Tinkerer for a more general overview.
+ *
+ * It is passed as the 'res' argument to all AST nodes implementing
+ * resolve(). Handles looping (wholeAgain), errors (throwError)
+ *
+ * Calling wholeAgain(this, "<Explain why you're looping>") from a node's
+ * resolve() method
+ *
+ * @author Amos Wenger (nddrylliog)
+ */
 Resolver: class {
 
+    /** set to true on wholeAgain() call, reset to false at the beginning of every process() call. */
     wholeAgain := false
 
+    /**
+     * Used in Tinkerer to attempt throwing meaningful errors from the
+     * last node to have looped, instead of just uninformingly dying
+     * on the "Tinkerer going rounds in circle" thing.
+     */
     lastNode  : Node
     lastReason: String
 
+    /** True on the last round, where nodes should throw errors if something's wrong. */
     fatal := false
+
+    /** Every module has one resolver. */
     module: Module
+
+    /**
+     * Building parameters for this run. We need them for getting
+     * the error handler, and knowing if we're in veryVerbose mode
+     */
     params: BuildParams
+
+    /**
+     *
+     */
     tinkerer: Tinkerer
-    errorHandler: ErrorHandler
 
     init: func (=module, =params, =tinkerer) {}
 
+    /**
+     * Attempts to resolve the module associated with this resolver.
+     *
+     * Mostly calls module resolve() with a fresh trail, which is
+     * then in charge of resolving its children, which are in turn
+     * charged of resolving their own children, and so on.
+     *
+     * @returns true if the module needs more rounds, false if it's all done.
+     */
     process: func -> Bool {
         wholeAgain = false
 
@@ -26,14 +64,33 @@ Resolver: class {
         return !response ok() || wholeAgain
     }
 
+    /**
+     * Throw an error. Depending on the error handler and settings,
+     * this could either
+     *   - Print the error and exit right now, possibly with a [FAIL] print.
+     *   - Print the error and continue (default error handler + -allerrors option)
+     *   - Do something else, if a custom handler is in place
+     */
+    throwError: func (e: Error) {
+        params errorHandler onError(e)
+    }
+
+    /**
+     * Marks this module as 'not resolved yet - should continue resolving
+     * on next round', but allows to continue resolution of other things
+     * in the module for now.
+     *
+     * A 'reason' for justifying the looping is needed, to allow
+     * -debugloop being helpful.
+     */
     wholeAgain: func (node: Node, reason: String) {
-        if(fatal && BuildParams fatalError) {
+        if(fatal && params fatalError) {
             lastNode   = node
             lastReason = reason
         }
 
         if((params veryVerbose || fatal) && params debugLoop) {
-            node token printMessage("%s : %s because '%s'\n" format(node toString(), node class name, reason), "LOOP")
+            node token formatMessage("%s : %s because '%s'\n" format(node toString(), node class name, reason), "LOOP") println()
         }
         wholeAgain = true
     }
@@ -59,13 +116,13 @@ Resolver: class {
 
         for (pathElem in params sourcePath getPaths()) {
 
-            // This is beautiful, wonderful code that can't be used in rock
-            // right now because it still breaks on 64-bit.
-
-            /*
             tokPointer := nullToken& // yay workarounds (yajit can't push structs)\
 
             pathElem walk(|f|
+                // sort out links to non-existent destinations.
+                if(!f exists?())
+                    return true // = continue
+
                 path := f getPath()
                 if (!path endsWith?(".ooc")) return true
 
@@ -77,9 +134,7 @@ Resolver: class {
                 dummyModule addImport(Import new(fullName, tokPointer@))
                 true
             )
-            */
 
-            walkForImports(pathElem, pathElem, dummyModule)
         }
 
         params verbose = false
@@ -87,28 +142,6 @@ Resolver: class {
         dummyModule parseImports(this)
         dummyModule getGlobalImports()
 
-    }
-
-    walkForImports: func (f: File, pathElem: File, dummyModule: Module) {
-
-        if(f dir?()) {
-            for(child in f getChildren()) {
-                walkForImports(child, pathElem, dummyModule)
-            }
-        } else {
-            if (!f getPath() endsWith?(".ooc")) return
-
-            fullName := f getAbsolutePath()
-
-            // sort out links to non-existent destinations.
-            if(!f exists?())
-                return
-
-            module := AstBuilder cache get(fullName)
-
-            fullName = fullName substring(pathElem getAbsolutePath() length() + 1, fullName length() - 4)
-            dummyModule addImport(Import new(fullName, nullToken))
-        }
     }
 
 }

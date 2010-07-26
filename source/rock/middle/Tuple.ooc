@@ -17,7 +17,7 @@ Tuple: class extends Expression {
     getElements: func -> List<Expression> { elements }
 
     accept: func (visitor: Visitor) {
-        token printMessage("Visiting a Tuple! We're on the good track.", "INFO")
+        token formatMessage("Visiting a Tuple! We're on the good track.", "INFO") println()
         NullLiteral new(token) accept(visitor)
     }
 

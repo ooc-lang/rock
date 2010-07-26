@@ -119,7 +119,7 @@ CommandLine: class {
 
                 } else if (option == "allerrors") {
 
-                    BuildParams fatalError = false
+                    params fatalError = false
 
                 } else if(option startsWith?("dist=")) {
 
