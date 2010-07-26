@@ -1,5 +1,14 @@
 import io/[Writer, Reader]
-
+/**
+	Multi-Purpose Buffer class. 
+	
+	since toString simply returns the pointer to the data, it has to be always 
+	zero-terminated. this is done automatically by the constructor or append methods.
+	however, when direct resizing of the allocated data buffer via checkLength or
+	manipulation of data's memory is done, this should be considered.
+	
+	*/
+ 
 Buffer: class {
     size: SizeT
     capacity: SizeT
@@ -123,16 +132,20 @@ BufferWriter: class extends Writer {
         return length
     }
 
+    /* 	check out the Writer writef method for a simple varargs usage, 
+    	this version here is mostly for internal usage (it is called by writef) 
+    	*/
     vwritef: func(fmt: String, list: VaList) {
         list2: VaList
         va_copy(list2, list)
         length := vsnprintf(null, 0, fmt, list2)        
         va_end (list2)
         
-        buffer checkLength( buffer size + length )                
+        buffer checkLength( buffer size + length + 1)                
         vsnprintf(buffer data as Char* + buffer size, length + 1, fmt, list)
-        
+                
         buffer size += length
+        buffer data[buffer size] = '\0'
     }
 }
 
