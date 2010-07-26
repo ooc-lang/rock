@@ -4855,7 +4855,7 @@ YY_RULE(int) yy_FunctionCallCore(GREG *G)
   }  goto l134;
   l133:;	  G->pos= yypos133; G->thunkpos= yythunkpos133;
   }
-  l134:;	  if (!yy_WS(G)) { goto l130; }  if (!yy_CLOS_PAREN(G)) { { YY_XTYPE YY_XVAR = (YY_XTYPE) G->data; int yyindex = G->offset + G->pos;  rewindWhiteSpace; nq_error(core->this, NQE_EXP_CLOSING_PAREN, "Expected closing parenthesis to finish the function call!\n", G->pos + G->offset); exit(1) ; } goto l130; }
+  l134:;	  if (!yy_WS(G)) { goto l130; }  if (!yy_CLOS_PAREN(G)) { { YY_XTYPE YY_XVAR = (YY_XTYPE) G->data; int yyindex = G->offset + G->pos;  rewindWhiteSpace; nq_error(core->this, NQE_EXP_CLOSING_PAREN, "Expected closing parenthesis to finish the function call!\n", G->pos + G->offset) ; } goto l130; }
   yyprintf((stderr, "  ok   %s @ %s\n", "FunctionCallCore", G->buf+G->pos));  yyDo(G, yyPop, 3, 0);
   return 1;
   l130:;	  G->pos= yypos0; G->thunkpos= yythunkpos0;
@@ -5649,7 +5649,7 @@ YY_RULE(int) yy_Body(GREG *G)
   l305:;	
   {  int yypos306= G->pos, yythunkpos306= G->thunkpos;  if (!yy_WS(G)) { goto l306; }  if (!yy_Stmt(G)) { goto l306; }  yyDo(G, yySet, -1, 0);  yyDo(G, yy_1_Body, G->begin, G->end);  if (!yy_WS(G)) { goto l306; }  goto l305;
   l306:;	  G->pos= yypos306; G->thunkpos= yythunkpos306;
-  }  if (!yy_WS(G)) { goto l304; }  if (!yy_CLOS_BRACK(G)) { { YY_XTYPE YY_XVAR = (YY_XTYPE) G->data; int yyindex = G->offset + G->pos;  nq_error(core->this, NQE_EXP_STATEMENT_OR_CLOSING_BRACKET, "Expected statement or a closing bracket", G->pos + G->offset); exit(1) ; } goto l304; }  goto l303;
+  }  if (!yy_WS(G)) { goto l304; }  if (!yy_CLOS_BRACK(G)) { { YY_XTYPE YY_XVAR = (YY_XTYPE) G->data; int yyindex = G->offset + G->pos;  nq_error(core->this, NQE_EXP_STATEMENT_OR_CLOSING_BRACKET, "Expected statement or a closing bracket", G->pos + G->offset) ; } goto l304; }  goto l303;
   l304:;	  G->pos= yypos303; G->thunkpos= yythunkpos303;  if (!yy_Stmt(G)) { goto l302; }  yyDo(G, yySet, -1, 0);  yyDo(G, yy_2_Body, G->begin, G->end);
   }
   l303:;	
@@ -5713,7 +5713,7 @@ YY_RULE(int) yy_Match(GREG *G)
   l318:;	
   {  int yypos319= G->pos, yythunkpos319= G->thunkpos;  if (!yy_WS(G)) { goto l319; }  if (!yy_Case(G)) { goto l319; }  if (!yy_WS(G)) { goto l319; }  goto l318;
   l319:;	  G->pos= yypos319; G->thunkpos= yythunkpos319;
-  }  if (!yy_WS(G)) { goto l315; }  if (!yy_CLOS_BRACK(G)) { { YY_XTYPE YY_XVAR = (YY_XTYPE) G->data; int yyindex = G->offset + G->pos;  nq_error(core->this, NQE_EXP_CASE_IN_MATCH, "Expected case in match", G->pos + G->offset); exit(1) ; } goto l315; }  yyDo(G, yy_3_Match, G->begin, G->end);
+  }  if (!yy_WS(G)) { goto l315; }  if (!yy_CLOS_BRACK(G)) { { YY_XTYPE YY_XVAR = (YY_XTYPE) G->data; int yyindex = G->offset + G->pos;  nq_error(core->this, NQE_EXP_CASE_IN_MATCH, "Expected case in match", G->pos + G->offset) ; } goto l315; }  yyDo(G, yy_3_Match, G->begin, G->end);
   yyprintf((stderr, "  ok   %s @ %s\n", "Match", G->buf+G->pos));  yyDo(G, yyPop, 1, 0);
   return 1;
   l315:;	  G->pos= yypos0; G->thunkpos= yythunkpos0;
@@ -6614,7 +6614,7 @@ YY_RULE(int) yy_FunctionDeclBody(GREG *G)
   l570:;	  G->pos= yypos570; G->thunkpos= yythunkpos570;
   }
   l571:;	
-  {  int yypos576= G->pos, yythunkpos576= G->thunkpos;  if (!yy__(G)) { goto l576; }  if (!yy_R_ARROW(G)) { goto l576; }  if (!yy__(G)) { goto l576; }  if (!yy_Type(G)) { { YY_XTYPE YY_XVAR = (YY_XTYPE) G->data; int yyindex = G->offset + G->pos;  nq_error(core->this, NQE_EXP_RET_TYPE, "Expected return type!\n", G->pos + G->offset); exit(1) ; } goto l576; }  yyDo(G, yySet, -2, 0);  yyDo(G, yy_3_FunctionDeclBody, G->begin, G->end);  goto l577;
+  {  int yypos576= G->pos, yythunkpos576= G->thunkpos;  if (!yy__(G)) { goto l576; }  if (!yy_R_ARROW(G)) { goto l576; }  if (!yy__(G)) { goto l576; }  if (!yy_Type(G)) { { YY_XTYPE YY_XVAR = (YY_XTYPE) G->data; int yyindex = G->offset + G->pos;  nq_error(core->this, NQE_EXP_RET_TYPE, "Expected return type!\n", G->pos + G->offset) ; } goto l576; }  yyDo(G, yySet, -2, 0);  yyDo(G, yy_3_FunctionDeclBody, G->begin, G->end);  goto l577;
   l576:;	  G->pos= yypos576; G->thunkpos= yythunkpos576;
   }
   l577:;	
@@ -6622,7 +6622,7 @@ YY_RULE(int) yy_FunctionDeclBody(GREG *G)
   l580:;	
   {  int yypos581= G->pos, yythunkpos581= G->thunkpos;  if (!yy_WS(G)) { goto l581; }  if (!yy_Stmt(G)) { goto l581; }  yyDo(G, yySet, -1, 0);  yyDo(G, yy_4_FunctionDeclBody, G->begin, G->end);  if (!yy_WS(G)) { goto l581; }  goto l580;
   l581:;	  G->pos= yypos581; G->thunkpos= yythunkpos581;
-  }  if (!yy_WS(G)) { goto l578; }  if (!yy_CLOS_BRACK(G)) { { YY_XTYPE YY_XVAR = (YY_XTYPE) G->data; int yyindex = G->offset + G->pos;  rewindWhiteSpace; nq_error(core->this, NQE_EXP_STATEMENT_OR_CLOSING_BRACKET, "Expected statement or a closing bracket to finish the function\n", G->pos + G->offset); exit(1) ; } goto l578; }  goto l579;
+  }  if (!yy_WS(G)) { goto l578; }  if (!yy_CLOS_BRACK(G)) { { YY_XTYPE YY_XVAR = (YY_XTYPE) G->data; int yyindex = G->offset + G->pos;  rewindWhiteSpace; nq_error(core->this, NQE_EXP_STATEMENT_OR_CLOSING_BRACKET, "Expected statement or a closing bracket to finish the function\n", G->pos + G->offset) ; } goto l578; }  goto l579;
   l578:;	  G->pos= yypos578; G->thunkpos= yythunkpos578;
   }
   l579:;	  yyDo(G, yy_5_FunctionDeclBody, G->begin, G->end);

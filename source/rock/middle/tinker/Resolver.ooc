@@ -139,7 +139,16 @@ Resolver: class {
 
         params verbose = false
         params veryVerbose = false
+
+        // don't care about errors when looking for hints.
+        oldHandler := params errorHandler
+        params errorHandler = DevNullErrorHandler new()
+
         dummyModule parseImports(this)
+
+        // restore the old handler to properly display the 'real' errors.
+        params errorHandler = oldHandler
+
         dummyModule getGlobalImports()
 
     }

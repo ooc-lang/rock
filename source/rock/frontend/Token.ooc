@@ -59,6 +59,8 @@ Token: cover {
             return "From unknown source [%s] %s" format(type, message)
         }
 
+        b := Buffer new()
+
         fr := FileReader new(getPath())
 
         lastNewLine := 0
@@ -84,20 +86,18 @@ Token: cover {
         over := Buffer new()
 
         if(type != "") {
-            prefix print()
-            "%s:%d:%d %s %s" format(module getPath(".ooc"), lines, start - lastNewLine, type, message) println()
+            b append(prefix). append("%s:%d:%d %s %s" format(module getPath(".ooc"), lines, start - lastNewLine, type, message))
         } else if(message != "") {
-            prefix print()
-            message println()
+            b append(prefix). append(message). append('\n')
         }
 
-        prefix print()
+        b append(prefix)
         end := getEnd()
         for(i in (lastNewLine + 1)..(idx + 1)) {
             c := fr read()
             match (c) {
                 case '\t' =>
-                    printf("    ")
+                    b append("    ")
                     over append("    ")
                 case '\n' =>
                     break // the outer loop, not the match.
@@ -110,11 +110,12 @@ Token: cover {
                     }
             }
         }
-        println()
-        prefix print()
-        over toString() println()
+        b append('\n'). append(prefix)
+        b append(over toString())
 
         fr close()
+
+        b toString()
     }
 
     getPath: func -> String {
