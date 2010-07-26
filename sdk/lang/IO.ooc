@@ -65,7 +65,7 @@ FStream: cover from FILE* {
     	ferror(this)
     }
     
-    eof: func -> Bool {
+    eof?: func -> Bool {
     	feof(this) != 0
     }
     
