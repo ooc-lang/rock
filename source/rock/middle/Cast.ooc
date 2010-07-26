@@ -1,7 +1,8 @@
 import structs/ArrayList
-import ../frontend/Token
+import ../frontend/[Token, BuildParams]
 import Expression, Visitor, Type, Node, FunctionCall, VariableDecl,
-       VariableAccess, BinaryOp, ArrayCreation, OperatorDecl, ArrayLiteral
+       VariableAccess, BinaryOp, ArrayCreation, OperatorDecl,
+       ArrayLiteral, Module
 import tinker/[Response, Resolver, Trail, Errors]
 
 Cast: class extends Expression {
@@ -143,7 +144,7 @@ Cast: class extends Expression {
 
         args := fDecl getArguments()
         if(args size() < 1) {
-            res throwError(InvalidCastOverload new(op token,
+            token module params errorHandler onError(InvalidCastOverload new(op token,
                 "Ohum, you need 1 argument to override the '%s' operator, not %d" format(symbol, args size())))
         }
 
@@ -181,5 +182,7 @@ Cast: class extends Expression {
 }
 
 InvalidCastOverload: class extends Error {
+
     init: super func ~tokenMessage
+
 }

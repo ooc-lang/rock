@@ -70,7 +70,7 @@ DotArg: class extends Argument {
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         idx := trail find(TypeDecl)
-        if(idx == -1) res throwError(InternalError new(tokeon, "Use of a %s outside a type declaration! That's nonsensical." format(class name)))
+        if(idx == -1) res throwError(InternalError new(token, "Use of a %s outside a type declaration! That's nonsensical." format(class name)))
 
         tDecl := trail get(idx, TypeDecl)
         ref = tDecl getVariable(name)

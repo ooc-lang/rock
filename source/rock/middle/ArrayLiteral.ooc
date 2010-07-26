@@ -3,7 +3,7 @@ import Literal, Visitor, Type, Expression, FunctionCall, Block,
        VariableDecl, VariableAccess, Cast, Node, ClassDecl, TypeDecl, BaseType,
        Statement, IntLiteral, BinaryOp, Block, ArrayCreation, FunctionCall,
        FunctionDecl
-import tinker/[Response, Resolver, Trail]
+import tinker/[Response, Resolver, Trail, Errors]
 import structs/[List, ArrayList]
 import text/Buffer
 
@@ -205,7 +205,7 @@ ArrayLiteral: class extends Literal {
                     fDecl getBody() add(vDecl)
                     memberInitShouldMove = true
                 } else {
-                    res throwError(CouldntAddBeforeInScope new(token, this, trail))
+                    res throwError(CouldntAddBeforeInScope new(token, this, vDecl, trail))
                 }
             }
             if(!parent replace(this, vAcc)) {
@@ -256,7 +256,7 @@ ArrayLiteral: class extends Literal {
                     memberDecl setExpr(null)
                 }
             } else {
-                res throwError(couldntAddAfterInScope(token, vDecl, trail))
+                res throwError(CouldntAddAfterInScope new(token, (trail size() - varDeclIdx == 1) ? vDecl : this, block, trail))
             }
         }
 

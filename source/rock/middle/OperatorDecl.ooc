@@ -1,7 +1,7 @@
 import text/Buffer
 import ../frontend/Token
 import FunctionDecl, Expression, Type, Visitor, Node, Argument
-import tinker/[Resolver, Response, Trail]
+import tinker/[Resolver, Response, Trail, Errors]
 
 OperatorDecl: class extends Expression {
 
@@ -89,7 +89,7 @@ OperatorDecl: class extends Expression {
             case "~"   =>  "B_NEG"
             case "as"  =>  "AS"
 
-            case       =>  res throwError(InvalidOverload new(token, "Unknown overloaded symbol: %s" format(symbol))); "UNKNOWN"
+            case       =>  token module params errorHandler onError(InvalidOperatorOverload new(token, "Unknown overloaded symbol: %s" format(symbol))); "UNKNOWN"
         }
     }
 
@@ -97,4 +97,8 @@ OperatorDecl: class extends Expression {
 
     isScope: func -> Bool { true }
 
+}
+
+InvalidOperatorOverload: class extends Error {
+    init: super func ~tokenMessage
 }

@@ -93,7 +93,7 @@ UnaryOp: class extends Expression {
             fCall getArguments() add(inner)
             fCall setRef(fDecl)
             if(!trail peek() replace(this, fCall)) {
-                if(res fatal) res throwError(CouldntReplace(token, this, fCall, trail))
+                if(res fatal) res throwError(CouldntReplace new(token, this, fCall, trail))
                 res wholeAgain(this, "failed to replace oneself, gotta try again =)")
                 return Responses OK
                 //return Responses LOOP
@@ -121,7 +121,7 @@ UnaryOp: class extends Expression {
         if(args size() == 2) return 0
 
         if(args size() != 1) {
-            res throwError(InvalidUnaryOverload new(op token,
+            token module params errorHandler onError(InvalidUnaryOverload new(op token,
                 "Ohum, you need 1 argument to override the '%s' operator, not %d" format(symbol, args size())))
         }
 

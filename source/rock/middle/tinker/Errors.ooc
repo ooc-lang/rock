@@ -1,5 +1,6 @@
-import Trail, Token
-import ../../frontend/CommandLine // for fail()
+import Trail
+import ../../frontend/[CommandLine, Token, BuildParams]
+import ../Node
 
 /**
  * Handle errors and warnings from the compiler
@@ -13,11 +14,11 @@ ErrorHandler: interface {
 
 }
 
-DefaultErrorhandler: class implements ErrorHandler {
+DefaultErrorHandler: class implements ErrorHandler {
 
     params: BuildParams
 
-    init: func (=params) {}
+    init: func ~withParams (=params) {}
 
     onError: func (e: Error) {
         e format() println()

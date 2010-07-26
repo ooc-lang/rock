@@ -6,7 +6,9 @@ InterfaceDeclWriter: abstract class extends Skeleton {
     write: static func ~_interface (this: Skeleton, iDecl: InterfaceDecl) {
 
         ClassDeclWriter write(this, iDecl)
-        CoverDeclWriter write(this, iDecl getFatType())
+
+        current = fw
+        CoverDeclWriter writeGuts(this, iDecl getFatType())
 
     }
 

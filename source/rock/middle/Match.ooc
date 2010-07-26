@@ -26,7 +26,7 @@ Match: class extends Expression {
         if(expr && caze getExpr()) {
             // hideous, but obvious
             if(!(expr instanceOf?(BoolLiteral) && expr as BoolLiteral getValue() == true)) {
-                caze setExpr(Comparison new(expr, caze getExpr(), CompTypes equal, caze getExpr() token))
+                caze setExpr(Comparison new(expr, caze getExpr(), CompType equal, caze getExpr() token))
             }
         }
     }

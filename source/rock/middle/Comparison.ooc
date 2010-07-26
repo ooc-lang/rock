@@ -2,7 +2,7 @@ import structs/ArrayList
 import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
        IntLiteral, Ternary, BaseType
-import tinker/[Resolver, Trail, Response, ]
+import tinker/[Resolver, Trail, Response, Errors]
 
 CompType: enum {
     equal
@@ -12,7 +12,6 @@ CompType: enum {
     greaterOrEqual
     smallerOrEqual
     compare
-
 }
 
 
@@ -43,7 +42,7 @@ Comparison: class extends Expression {
     getType: func -> Type { This type }
 
     toString: func -> String {
-        return left toString() + " " + CompTypes repr get(compType) + " " + right toString()
+        return left toString() + " " + compTypeRepr[compType] + " " + right toString()
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
@@ -115,15 +114,15 @@ Comparison: class extends Expression {
 
         if(candidate == null) {
 
-            if(compType == CompTypes compare) {
+            if(compType == CompType compare) {
                 // a <=> b
                 // a > b ? 1 : (a < b ? -1 : 0)
 
                 minus := IntLiteral new(-1, token)
                 zero  := IntLiteral new(0,  token)
                 plus  := IntLiteral new(1,  token)
-                inner := Ternary new(Comparison new(left, right, CompTypes smallerThan,  token), minus, zero,  token)
-                outer := Ternary new(Comparison new(left, right, CompTypes greaterThan, token),  plus,  inner, token)
+                inner := Ternary new(Comparison new(left, right, CompType smallerThan,  token), minus, zero,  token)
+                outer := Ternary new(Comparison new(left, right, CompType greaterThan, token),  plus,  inner, token)
 
                 if(!trail peek() replace(this, outer)) {
                     res throwError(CouldntReplace new(token, this, outer, trail))
@@ -156,7 +155,7 @@ Comparison: class extends Expression {
 
     getScore: func (op: OperatorDecl, reqType: Type) -> Int {
 
-        symbol := CompTypes repr[compType]
+        symbol := compTypeRepr[compType]
 
         half := false
 
@@ -169,7 +168,7 @@ Comparison: class extends Expression {
 
         args := fDecl getArguments()
         if(args size() != 2) {
-            res throwError(InvalidComparisonOverload new(op token,
+            token module params errorHandler onError(InvalidComparisonOverload new(op token,
                 "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol, args size())))
         }
 

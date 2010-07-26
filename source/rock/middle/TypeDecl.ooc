@@ -830,7 +830,7 @@ BuiltinType: class extends TypeDecl {
 
 }
 
-FunctionRedefinition: class extends Error {
+TypeRedefinition: class extends Error {
 
     first, second: TypeDecl
 

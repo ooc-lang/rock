@@ -3,7 +3,7 @@ import ../frontend/[BuildParams, Token]
 import ../backend/cnaughty/AwesomeWriter // TODO: move AwesomeWriter somewhere else!
 import structs/HashMap
 
-import tinker/[Trail, Resolver, Response]
+import tinker/[Trail, Resolver, Response, Errors]
 
 VersionBlock: class extends ControlStatement {
 
@@ -77,7 +77,7 @@ VersionName: class extends VersionSpec {
         origin = name
         real := builtinNames get(name)
         if(real == null) {
-            token throwWarning("Unknown version id: '" + name + "', compiling anyway (who knows?)")
+            token module params errorHandler onError(Warning new(token, "Unknown version id: '" + name + "', compiling anyway (who knows?)"))
         } else {
             this name = real
         }

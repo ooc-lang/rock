@@ -169,7 +169,7 @@ VariableDecl: class extends Declaration {
         {
             if(!parent isScope() && !parent instanceOf?(TypeDecl)) {
                 varAcc := VariableAccess new(this, token)
-                result := trail peek() replace(this, varAcc, res)
+                result := trail peek() replace(this, varAcc)
                 if(!result) {
                     res throwError(CouldntReplace new(token, this, varAcc, trail))
                     return Responses LOOP
@@ -380,7 +380,7 @@ VariableDeclTuple: class extends VariableDecl {
                 trail addBeforeInScope(this, fCall)
                 parent as Scope remove(this)
             case =>
-                res throwError(InternalError new(this, "Unsupported expression type %s for VariableDeclTuple." format(expr class name)))
+                res throwError(InternalError new(token, "Unsupported expression type %s for VariableDeclTuple." format(expr class name)))
         }
 
         Responses OK

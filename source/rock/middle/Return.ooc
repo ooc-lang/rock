@@ -152,7 +152,7 @@ Return: class extends Statement {
             }
 
             if (retType == voidType && !expr)
-                res throwError("Function is declared to return `null`, not %s! trail = %s" format(expr getType() toString(), trail toString()))
+                res throwError(InconsistentReturn new(expr token, "Function is declared to return `null`, not %s! trail = %s" format(expr getType() toString(), trail toString())))
         }
 
         return Responses OK

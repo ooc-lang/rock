@@ -76,7 +76,7 @@ Tuple: class extends Expression {
             structLit := StructLiteral new(cast getType(), elements, token)
             grandpa := trail peek(2)
             if(!grandpa replace(cast, structLit)) {
-                res throwError(CouldntReplace new(this, cast, structLit, trail))
+                res throwError(CouldntReplace new(token, cast, structLit, trail))
             }
         }
 

@@ -402,6 +402,31 @@ FunctionDecl: class extends Declaration {
             }
         }
 
+        {
+            response := body resolve(trail, res)
+            if(!response ok()) {
+                if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of body = %s\n", toString(), response toString())
+                trail pop(this)
+                res wholeAgain(this, "body wanna LOOP")
+                return Responses OK
+
+                // Why aren't we relaying the response of the body? Because
+                // the trail is usually clean below the body and it would
+                // blow-up way too soon if we LOOP-ed on every foreach/evil thing
+                //return response
+            }
+        }
+
+        if(!isAbstract && vDecl == null) {
+            response := autoReturn(trail, res)
+            if(!response ok()) {
+                if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of autoReturn = %s\n", toString(), response toString())
+                trail pop(this)
+                return response
+            }
+        }
+        trail pop(this)
+
         if(isSuper) {
             if(!owner) {
                 res throwError(SyntaxError new(token, "Super funcs are only legal in type declarations!"))
@@ -440,31 +465,6 @@ FunctionDecl: class extends Declaration {
                 res throwError(UnresolvedCall new(token, superCall, "There is no such super-func in %s!" format(superTypeDecl toString())))
             }
         }
-
-        {
-            response := body resolve(trail, res)
-            if(!response ok()) {
-                if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of body = %s\n", toString(), response toString())
-                trail pop(this)
-                res wholeAgain(this, "body wanna LOOP")
-                return Responses OK
-
-                // Why aren't we relaying the response of the body? Because
-                // the trail is usually clean below the body and it would
-                // blow-up way too soon if we LOOP-ed on every foreach/evil thing
-                //return response
-            }
-        }
-
-        if(!isAbstract && vDecl == null) {
-            response := autoReturn(trail, res)
-            if(!response ok()) {
-                if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of autoReturn = %s\n", toString(), response toString())
-                trail pop(this)
-                return response
-            }
-        }
-        trail pop(this)
 
         if(name == "main" && owner == null) {
             if(args size() == 1 && args first() getType() getName() == "ArrayList") {
@@ -924,7 +924,7 @@ FunctionDecl: class extends Declaration {
             ret := Return new(IntLiteral new(0, nullToken), nullToken)
             body add(ret)
         } else {
-            res throwError(InconsistenReturn new(token, "Control reaches the end of non-void function!"))
+            trail module() params errorHandler onError(InconsistentReturn new(token, "Control reaches the end of non-void function!"))
         }
     }
 

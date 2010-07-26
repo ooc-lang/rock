@@ -1,6 +1,6 @@
-import structs/ArrayList
+import structs/[HashMap, ArrayList]
 import ../io/TabbedWriter
-import ../frontend/Token
+import ../frontend/[Token, BuildParams]
 import Expression, Type, Visitor, TypeDecl, Node, FunctionDecl,
        FunctionCall
 import tinker/[Response, Resolver, Trail, Errors]
@@ -64,7 +64,7 @@ CoverDecl: class extends TypeDecl {
 
     absorb: func (node: CoverDecl, params: BuildParams) {
         if(!variables empty?()) {
-            params errorHandler onError(AddingVariablesInAddon(base, variables[0] token))
+            params errorHandler onError(AddingVariablesInAddon new(node, variables[0] token))
         }
         getMeta() base = node getMeta()
         //printf("%s from %s is absorbing %s from %s\n", toString(), token module toString(), node toString(), node token module toString())
@@ -83,8 +83,8 @@ CoverDecl: class extends TypeDecl {
 
 AddingVariablesInAddon: class extends Error {
 
-    init: func (node: CoverDecl, =token) {
-        message = node token formatMessage("...while extending cover " + base toString(), "") +
+    init: func (base: CoverDecl, =token) {
+        message = base token formatMessage("...while extending cover " + base toString(), "") +
                        token formatMessage("Attempting to add variables to another cover!", "ERROR")
     }
 

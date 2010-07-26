@@ -401,7 +401,7 @@ CGenerator: class extends Skeleton {
     }
 
     visitComparison: func (comp: Comparison) {
-        current app(comp left). app(" "). app(comp compType toString()). app(" ")
+        current app(comp left). app(" "). app(compTypeRepr[comp compType]). app(" ")
         if(!comp right getType() equals?(comp left getType())) {
             current app('('). app (comp left getType()). app(") ")
         }
@@ -415,7 +415,7 @@ CGenerator: class extends Skeleton {
     visitVarArg: func (varArg: VarArg) {
         // note: this is a hack to support C-style varargs function definitions
         // in the future, this will be half-deprecated to support varargs
-        // with ArrayLists of Value<T>
+        // with ArrayLists of Cell<T>
         current app("...")
     }
 

@@ -89,7 +89,7 @@ Resolver: class {
             lastReason = reason
         }
 
-        if((params veryVerbose || fatal) && params debugLoop) {
+        if((params veryVerbose && fatal) || params debugLoop) {
             node token formatMessage("%s : %s because '%s'\n" format(node toString(), node class name, reason), "LOOP") println()
         }
         wholeAgain = true

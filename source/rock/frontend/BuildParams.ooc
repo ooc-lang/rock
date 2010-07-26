@@ -17,7 +17,7 @@ import ../middle/Module, ../middle/tinker/Errors
 BuildParams: class {
 
     // use a dumb error handler by default
-    errorHandler := DefaultErrorHandler new(this)
+    errorHandler: ErrorHandler { get set }
     fatalError := true
 
     additionals  := ArrayList<String> new()
@@ -35,6 +35,8 @@ BuildParams: class {
         // use the GC by default =)
 		defines add(This GC_DEFINE)
 
+        // use a simple error handler by default
+        errorHandler = DefaultErrorHandler new(this) as ErrorHandler // FIXME: why the workaround :(
     }
 
     findDist: func (execName: String) {

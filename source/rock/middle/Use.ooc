@@ -6,9 +6,10 @@ import tinker/Errors
 Use: class {
 
     identifier: String
-    useDef: UseDef = null
+    useDef: UseDef
+    token: Token
 
-    init: func (=identifier, params: BuildParams, token: Token) {
+    init: func (=identifier, params: BuildParams, =token) {
         useDef = UseDef parse(identifier, params)
         if(useDef == null) {
             params errorHandler onError(UseNotFound new(this,
@@ -31,7 +32,7 @@ For more informations, see http://docs.ooc-lang.org/libs.html
 UseNotFound: class extends Error {
     uze: Use
 
-    init: func (=uze, message) {
+    init: func (=uze, .message) {
         super(uze token, message)
     }
 }

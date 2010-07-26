@@ -5,6 +5,7 @@ import structs/[ArrayList, List, Stack, HashMap]
 
 import ../utils/FileUtils
 import ../frontend/[Token, BuildParams]
+import ../middle/tinker/Errors
 import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     FunctionCall, StringLiteral, Node, Module, Statement, Include, Import,
     Type, TypeList, Expression, Return, VariableAccess, Cast, If, Else,
@@ -123,7 +124,7 @@ AstBuilder: class {
     }
 
     error: func (errorID: Int, message: String, index: Int) {
-        Token new(index, 1, module) throwError(message)
+        params errorHandler onError(SyntaxError new(Token new(index, 1, module), message))
     }
 
     onUse: unmangled(nq_onUse) func (identifier: String) {
@@ -403,7 +404,7 @@ AstBuilder: class {
             for(var in vars) var setExternName("")
         } else {
             if(vars size() != 1) {
-                token() throwError("Trying to set an extern name on several variables at once!")
+                params errorHandler onError(SyntaxError new(token(), "Trying to set an extern name on several variables at once!"))
             }
             vars peek() setExternName(externName clone())
         }
@@ -415,7 +416,7 @@ AstBuilder: class {
             for(var in vars) var setUnmangledName("")
         } else {
             if(vars size() != 1) {
-                token() throwError("Trying to set an unmangled name on several variables at once!")
+                params errorHandler onError(SyntaxError new(token(), "Trying to set an unmangled name on several variables at once!"))
             }
             vars peek() setUnmangledName(unmangledName clone())
         }
@@ -965,30 +966,30 @@ AstBuilder: class {
     }
 
     onEquals: unmangled(nq_onEquals) func (left, right: Expression) -> Comparison {
-        Comparison new(left, right, CompTypes equal, token())
+        Comparison new(left, right, CompType equal, token())
     }
 
     onNotEquals: unmangled(nq_onNotEquals) func (left, right: Expression) -> Comparison {
-        Comparison new(left, right, CompTypes notEqual, token())
+        Comparison new(left, right, CompType notEqual, token())
     }
 
     onLessThan: unmangled(nq_onLessThan) func (left, right: Expression) -> Comparison {
-        Comparison new(left, right, CompTypes smallerThan, token())
+        Comparison new(left, right, CompType smallerThan, token())
     }
 
     onMoreThan: unmangled(nq_onMoreThan) func (left, right: Expression) -> Comparison {
-        Comparison new(left, right, CompTypes greaterThan, token())
+        Comparison new(left, right, CompType greaterThan, token())
     }
 
     onCmp: unmangled(nq_onCmp) func (left, right: Expression) -> Comparison {
-        Comparison new(left, right, CompTypes compare, token())
+        Comparison new(left, right, CompType compare, token())
     }
 
     onLessThanOrEqual: unmangled(nq_onLessThanOrEqual) func (left, right: Expression) -> Comparison {
-        Comparison new(left, right, CompTypes smallerOrEqual, token())
+        Comparison new(left, right, CompType smallerOrEqual, token())
     }
     onMoreThanOrEqual: unmangled(nq_onMoreThanOrEqual) func (left, right: Expression) -> Comparison {
-        Comparison new(left, right, CompTypes greaterOrEqual, token())
+        Comparison new(left, right, CompType greaterOrEqual, token())
     }
 
     onDecLiteral: unmangled(nq_onDecLiteral) func (value: String) -> IntLiteral {
@@ -1142,7 +1143,7 @@ AstBuilder: class {
             done = node as Declaration addTypeArg(vDecl)
         }
 
-        if(!done) token() throwError("Unexpected type argument in a %s declaration!" format(node class name))
+        if(!done) params errorHandler onError(InternalError new(token(), "Unexpected type argument in a %s declaration!" format(node class name)))
 
     }
 
@@ -1161,7 +1162,7 @@ AstBuilder: class {
     peek: func <T> (T: Class) -> T {
         node := stack peek() as Node
         if(!node instanceOf?(T)) {
-            token() throwError("Should've peek'd a %s, but peek'd a %s. Stack = %s" format(T name, node class name, stackRepr()))
+            params errorHandler onError(InternalError new(token(), "Should've peek'd a %s, but peek'd a %s. Stack = %s" format(T name, node class name, stackRepr())))
         }
         return node
     }
@@ -1169,7 +1170,7 @@ AstBuilder: class {
     pop: func <T> (T: Class) -> T {
         node := stack pop() as Node
         if(!node instanceOf?(T)) {
-            token() throwError("Should've pop'd a %s, but pop'd a %s. Stack = %s" format(T name, node class name, stackRepr()))
+            params errorHandler onError(InternalError new(token(), "Should've pop'd a %s, but pop'd a %s. Stack = %s" format(T name, node class name, stackRepr())))
         }
         return node
     }
@@ -1206,4 +1207,8 @@ nq_StringClone: unmangled func (string: String) -> String             { string c
 nq_trailingQuest: unmangled func (string: String) -> String           { string + "__quest" }
 nq_trailingBang:  unmangled func (string: String) -> String           { string + "__bang" }
 nq_error: unmangled func (this: AstBuilder, errorID: Int, message: String, index: Int) { this error(errorID, message, index) }
+
+SyntaxError: class extends Error {
+    init: super func ~tokenMessage
+}
 

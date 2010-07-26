@@ -3,7 +3,6 @@ import ../frontend/[BuildParams, CommandLine]
 import text/Buffer
 import io/[FileReader, File]
 import ../middle/Module
-import ErrorHandler
 
 /* Will go into the load method of Token */
 nullToken : Token
@@ -17,7 +16,7 @@ Token: cover {
     /** Module this token comes from */
     module: Module
 
-    init: func@ (=start, =length, =module) -> This {}
+    init: func@ (=start, =length, =module) {}
 
     /**
      * Creates a new token enclosing this one and the one passed as an argument.

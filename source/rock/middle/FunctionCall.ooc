@@ -282,17 +282,17 @@ FunctionCall: class extends Expression {
         if(refScore > 0) {
 
             if(!resolveReturnType(trail, res) ok()) {
-                res wholeAgain(this, "%s looping because of return type!" format(toString()))
+                res wholeAgain(this, "looping because of return type!")
                 return Responses OK
             }
 
             if(!handleGenerics(trail, res) ok()) {
-                res wholeAgain(this, "%s looping because of generics!" format(toString()))
+                res wholeAgain(this, "looping because of generics!")
                 return Responses OK
             }
 
             if(!handleInterfaces(trail, res) ok()) {
-                res wholeAgain(this, "%s looping because of interfaces!" format(toString()))
+                res wholeAgain(this, "looping because of interfaces!")
                 return Responses OK
             }
 
@@ -302,7 +302,7 @@ FunctionCall: class extends Expression {
                     response := typeArg resolve(trail, res)
                     if(!response ok()) {
                         trail pop(this)
-                        res wholeAgain(this, "typeArg %s failed to resolve\n" format(typeArg toString()))
+                        res wholeAgain(this, "typeArg failed to resolve\n")
                         return Responses OK
                     }
                 }
@@ -381,7 +381,7 @@ FunctionCall: class extends Expression {
     showNearestMatch: func (params: BuildParams) -> String {
         b := Buffer new()
 
-        b app("\tNearest match is:\n\n\t\t%s\n" format(ref toString(this)))
+        b append("\tNearest match is:\n\n\t\t%s\n" format(ref toString(this)))
 
         callIter := args iterator()
         declIter := ref args iterator()
@@ -392,12 +392,12 @@ FunctionCall: class extends Expression {
             callArg := callIter next()
 
             if(declArg getType() == null) {
-                b app(declArg token formatMessage("\tbut couldn't resolve type of this argument in the declaration\n", ""))
+                b append(declArg token formatMessage("\tbut couldn't resolve type of this argument in the declaration\n", ""))
                 continue
             }
 
             if(callArg getType() == null) {
-                b app(callArg token formatMessage("\tbut couldn't resolve type of this argument in the call\n", ""))
+                b append(callArg token formatMessage("\tbut couldn't resolve type of this argument in the call\n", ""))
                 continue
             }
 
@@ -411,12 +411,12 @@ FunctionCall: class extends Expression {
             score := callArg getType() getScore(declArgType)
             if(score < 0) {
                 if(params veryVerbose) {
-                    b app("\t..but the type of this arg should be `%s` (%s), not %s (%s)\n" format(declArgType toString(), declArgType getRef() ? declArgType getRef() token toString() : "(nil)",
+                    b append("\t..but the type of this arg should be `%s` (%s), not %s (%s)\n" format(declArgType toString(), declArgType getRef() ? declArgType getRef() token toString() : "(nil)",
                                                                                            callArg getType() toString(), callArg getType() getRef() ? callArg getType() getRef() token toString() : "(nil)"))
                 } else {
-                    b app("\t..but the type of this arg should be `%s`, not `%s`\n" format(declArgType toString(), callArg getType() toString()))
+                    b append("\t..but the type of this arg should be `%s`, not `%s`\n" format(declArgType toString(), callArg getType() toString()))
                 }
-                b app(token formatMessage("\t\t", "", ""))
+                b append(token formatMessage("\t\t", "", ""))
             }
         }
 
@@ -459,7 +459,7 @@ FunctionCall: class extends Expression {
             vType := getType() instanceOf?(TypeList) ? getType() as TypeList types get(0) : getType()
             vDecl := VariableDecl new(vType, generateTempName("genCall"), token)
             if(!trail addBeforeInScope(this, vDecl)) {
-                if(res fatal) res throwError(CouldntAdd new(token, vDecl, this, trail))
+                if(res fatal) res throwError(CouldntAddBeforeInScope new(token, vDecl, this, trail))
                 res wholeAgain(this, "couldn't add before scope")
                 return Responses OK
             }
@@ -516,7 +516,7 @@ FunctionCall: class extends Expression {
 
         if(returnType == null && ref != null) {
             if(!ref returnType isResolved()) {
-                res wholeAgain(this, "need resolve the return type of our ref (%s) to see if it's generic" format(ref returnType toString()))
+                res wholeAgain(this, "need resolve the return type of our ref to see if it's generic")
                 return Responses OK
             }
 
@@ -545,7 +545,7 @@ FunctionCall: class extends Expression {
                     printf("Determined return type of %s (whose ref rt is %s) to be %s\n", toString(), ref getReturnType() toString(), returnType toString())
                     if(expr) printf("expr = %s, type = %s\n", expr toString(), expr getType() ? expr getType() toString() : "(nil)")
                 }
-                res wholeAgain(this, "because of return type %s (%s)" format(returnType toString(), returnType token toString()))
+                res wholeAgain(this, "because of return type")
                 return Responses OK
             }
         }
@@ -603,7 +603,7 @@ FunctionCall: class extends Expression {
             callArg := args get(i)
             if(declArg getType() == null || declArg getType() getRef() == null ||
                callArg getType() == null || callArg getType() getRef() == null) {
-                res wholeAgain(this, "To resolve interface-args, need to resolve declArg and callArg" format(declArg toString(), callArg toString()))
+                res wholeAgain(this, "To resolve interface-args, need to resolve declArg and callArg")
                 return Responses OK
             }
             if(declArg getType() getRef() instanceOf?(InterfaceDecl)) {
@@ -700,7 +700,7 @@ FunctionCall: class extends Expression {
             if(res fatal) {
                 res throwError(InternalError new(token, "Missing info for type argument %s. Have you forgotten to qualify %s, e.g. List<Int>?" format(ref typeArgs get(typeArgs size()) getName(), ref toString())))
             }
-            res wholeAgain(this, "Looping %s because of typeArgs\n" format(toString()))
+            res wholeAgain(this, "Looping because of typeArgs\n")
         }
 
         return Responses OK
@@ -1064,7 +1064,7 @@ UnresolvedCall: class extends Error {
     }
 
     init: func ~withToken(.token, =call, .message) {
-        super(message, call expr ? call expr token enclosing(call token) : call token)
+        super(call expr ? call expr token enclosing(call token) : call token, message)
     }
 
 }

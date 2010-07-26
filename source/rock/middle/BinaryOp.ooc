@@ -330,7 +330,7 @@ BinaryOp: class extends Expression {
 
         args := fDecl getArguments()
         if(args size() != 2) {
-            res throwError(InvalidBinaryOverload new(op token,
+            token module params errorHandler onError(InvalidBinaryOverload new(op token,
                 "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol, args size())))
         }
 

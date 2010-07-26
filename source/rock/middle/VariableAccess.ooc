@@ -5,7 +5,7 @@ import BinaryOp, Visitor, Expression, VariableDecl, FunctionDecl,
        NullLiteral, AddressOf, BaseType, StructLiteral, Return,
        Argument
 
-import tinker/[Resolver, Response, Trail]
+import tinker/[Resolver, Response, Trail, Errors]
 import structs/ArrayList
 
 VariableAccess: class extends Expression {
@@ -132,7 +132,7 @@ VariableAccess: class extends Expression {
                 //printf("Null ref and non-null expr (%s), looking in type %s\n", expr toString(), exprType toString())
                 typeDecl := exprType getRef()
                 if(!typeDecl) {
-                    if(res fatal) res throwError(UnresolvedType new(expr token, expr type, "Can't resolve type %s" format(expr getType() toString())))
+                    if(res fatal) res throwError(UnresolvedType new(expr token, expr getType(), "Can't resolve type %s" format(expr getType() toString())))
                     res wholeAgain(this, "unresolved access, looping")
                     return Responses OK
                 }
@@ -353,7 +353,7 @@ UnresolvedAccess: class extends Error {
     access: VariableAccess
 
     init: func (=access, .message) {
-        super(access, message)
+        super(access token, message)
     }
 }
 

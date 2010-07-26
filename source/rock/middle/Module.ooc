@@ -5,7 +5,7 @@ import ../utils/FileUtils
 import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl,
        FunctionCall, Type, Declaration, VariableAccess, OperatorDecl,
        Scope, NamespaceDecl, BaseType, FuncType
-import tinker/[Response, Resolver, Trail]
+import tinker/[Response, Resolver, Trail, Errors]
 
 Module: class extends Node {
 
@@ -30,7 +30,7 @@ Module: class extends Node {
 
     lastModified : Long
 
-    params: BuildParams
+    params: BuildParams { get set }
 
     init: func ~module (.fullName, =pathElement, =params, .token) {
         super(token)
@@ -311,7 +311,7 @@ Module: class extends Node {
             path = null: String
             AstBuilder getRealImportPath(imp, this, params, path&, impPath&, impElement&)
             if(impPath == null) {
-                res throwError(ModuleNotFound new(imp))
+                resolver throwError(ModuleNotFound new(imp))
             }
 
             absolutePath := File new(impPath path) getAbsolutePath()
