@@ -311,7 +311,7 @@ Module: class extends Node {
             path = null: String
             AstBuilder getRealImportPath(imp, this, params, path&, impPath&, impElement&)
             if(impPath == null) {
-                resolver throwError(ModuleNotFound new(imp))
+                params errorHandler onError(ModuleNotFound new(imp))
             }
 
             absolutePath := File new(impPath path) getAbsolutePath()
