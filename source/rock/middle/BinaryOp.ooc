@@ -3,7 +3,7 @@ import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
        Import, Module, FunctionCall, ClassDecl, CoverDecl, AddressOf,
        ArrayAccess, VariableAccess, Cast, NullLiteral, PropertyDecl
-import tinker/[Trail, Resolver, Response]
+import tinker/[Trail, Resolver, Response, Errors]
 
 OpType: enum {
     add        /*  +  */
@@ -192,7 +192,7 @@ BinaryOp: class extends Expression {
                 result := trail peek() replace(this, fCall)
 
                 if(!result) {
-                    if(res fatal) token throwError("Couldn't replace ourselves (%s) with a memcpy/assignment in a %s! trail = %s" format(toString(), trail peek() as Node class name, trail toString()))
+                    if(res fatal) res throwError(CouldntReplace new(token, this, fCall, trail))
                 }
 
                 res wholeAgain(this, "Replaced ourselves, need to tidy up")
@@ -202,8 +202,8 @@ BinaryOp: class extends Expression {
 
         if(!isLegal(res)) {
             if(res fatal) {
-                token throwError("Invalid use of operator %s between operands of type %s and %s\n" format(
-                    opTypeRepr[type], left getType() toString(), right getType() toString()))
+                res throwError(InvalidOperatorUse new(token, "Invalid use of operator %s between operands of type %s and %s\n" format(
+                    opTypeRepr[type], left getType() toString(), right getType() toString())))
             }
             res wholeAgain(this, "Illegal use, looping in hope.")
         }
@@ -300,10 +300,9 @@ BinaryOp: class extends Expression {
             fCall getArguments() add(right)
             fCall setRef(fDecl)
             if(!trail peek() replace(this, fCall)) {
-                if(res fatal) token throwError("Couldn't replace %s with %s! trail = %s" format(toString(), fCall toString(), trail toString()))
+                if(res fatal) res throwError(CouldntReplace new(token, this, fCall, trail))
                 res wholeAgain(this, "failed to replace oneself, gotta try again =)")
                 return Responses OK
-                //return Responses LOOP
             }
             res wholeAgain(this, "Just replaced with an operator overload")
         }
@@ -331,8 +330,8 @@ BinaryOp: class extends Expression {
 
         args := fDecl getArguments()
         if(args size() != 2) {
-            op token throwError(
-                "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol, args size()))
+            res throwError(InvalidBinaryOverload new(op token,
+                "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol, args size())))
         }
 
         opLeft  := args get(0)
@@ -369,4 +368,12 @@ BinaryOp: class extends Expression {
         }
     }
 
+}
+
+InvalidBinaryOverload: class extends Error {
+    init: super func ~tokenMessage
+}
+
+InvalidOperatorUse: class extends Error {
+    init: super func ~tokenMessage
 }

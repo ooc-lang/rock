@@ -1,7 +1,7 @@
 import ../frontend/[Token, BuildParams]
 import Literal, Visitor, Type, Expression, Node, TypeList, NullLiteral,
        Cast, StructLiteral
-import tinker/[Response, Resolver, Trail]
+import tinker/[Response, Resolver, Trail, Errors]
 import structs/[List, ArrayList]
 import text/Buffer
 
@@ -76,7 +76,7 @@ Tuple: class extends Expression {
             structLit := StructLiteral new(cast getType(), elements, token)
             grandpa := trail peek(2)
             if(!grandpa replace(cast, structLit)) {
-                token throwError("Couldn't replace %s with %s :x trail = %s" format(cast toString(), structLit toString(), trail toString()))
+                res throwError(CouldntReplace new(this, cast, structLit, trail))
             }
         }
 

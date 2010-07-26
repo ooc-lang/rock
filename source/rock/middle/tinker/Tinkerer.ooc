@@ -2,7 +2,7 @@ import structs/[ArrayList, List], os/Env
 
 import ../../frontend/[BuildParams]
 import ../[Module]
-import Resolver
+import Resolver, Errors
 
 /**
  * Resolve all modules with the help of Resolver, by looping as many
@@ -105,7 +105,7 @@ Tinkerer: class {
             if(round > params blowup) {
                 for(res in resolvers) {
                     if(res lastNode != null) {
-                        res lastNode token throwError(res lastReason)
+                        res throwError(InternalError new(res lastNode token, res lastReason))
                     }
                 }
 

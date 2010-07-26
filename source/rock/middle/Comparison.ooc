@@ -2,36 +2,28 @@ import structs/ArrayList
 import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
        IntLiteral, Ternary, BaseType
-import tinker/[Resolver, Trail, Response]
+import tinker/[Resolver, Trail, Response, ]
 
-include stdint
-
-CompType: cover from Int8 {
-
-    toString: func -> String {
-        CompTypes repr get(this)
-    }
+CompType: enum {
+    equal
+    notEqual
+    greaterThan
+    smallerThan
+    greaterOrEqual
+    smallerOrEqual
+    compare
 
 }
 
-CompTypes: class {
-    equal = 1,
-    notEqual = 2,
-    greaterThan = 3,
-    smallerThan = 4,
-    greaterOrEqual = 5,
-    smallerOrEqual = 6,
-    compare = 7 : static const CompType
 
-    repr := static ["no-op",
+compTypeRepr := static ["no-op",
         "==",
         "!=",
         ">",
         "<",
         ">=",
         "<=",
-        "<=>"] as ArrayList<String>
-}
+        "<=>"]
 
 
 Comparison: class extends Expression {
@@ -134,7 +126,7 @@ Comparison: class extends Expression {
                 outer := Ternary new(Comparison new(left, right, CompTypes greaterThan, token),  plus,  inner, token)
 
                 if(!trail peek() replace(this, outer)) {
-                    token throwError("Couldn't replace %s with %s!" format(toString(), outer toString()))
+                    res throwError(CouldntReplace new(token, this, outer, trail))
                 }
             }
 
@@ -151,10 +143,9 @@ Comparison: class extends Expression {
             }
 
             if(!trail peek() replace(this, node)) {
-                if(res fatal) token throwError("Couldn't replace %s with %s!" format(toString(), node toString()))
+                if(res fatal) res throwError(CouldntReplace new(token, this, node, trail))
                 res wholeAgain(this, "failed to replace oneself, gotta try again =)")
                 return Responses OK
-                //return Responses LOOP
             }
             res wholeAgain(this, "Just replaced with an operator overloading")
         }
@@ -178,8 +169,8 @@ Comparison: class extends Expression {
 
         args := fDecl getArguments()
         if(args size() != 2) {
-            op token throwError(
-                "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol, args size()))
+            res throwError(InvalidComparisonOverload new(op token,
+                "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol, args size())))
         }
 
         opLeft  := args get(0)
@@ -212,4 +203,8 @@ Comparison: class extends Expression {
         }
     }
 
+}
+
+InvalidComparisonOverload: class extends Error {
+    init: super func ~tokenMessage
 }

@@ -311,7 +311,7 @@ Module: class extends Node {
             path = null: String
             AstBuilder getRealImportPath(imp, this, params, path&, impPath&, impElement&)
             if(impPath == null) {
-                imp token throwError("Module not found in sourcepath " + imp path)
+                res throwError(ModuleNotFound new(imp))
             }
 
             absolutePath := File new(impPath path) getAbsolutePath()
@@ -397,4 +397,12 @@ Module: class extends Node {
 
     isScope: func -> Bool { true }
 
+}
+
+ModuleNotFound: class extends Error {
+    imp: Import
+
+    init: func (=imp) {
+        super(imp token, "Module not found in sourcepath " + imp path)
+    }
 }

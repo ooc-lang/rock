@@ -350,11 +350,11 @@ VariableDeclTuple: class extends VariableDecl {
                     } else {
                         element := tuple getElements() last()
                         if(!element instanceOf?(VariableAccess)) {
-                            element token throwError(IncompatibleElementInTupleVarDecl new(token, "Expected a variable access in a tuple-variable declaration!"))
+                             res throwError(IncompatibleElementInTupleVarDecl new(element token, "Expected a variable access in a tuple-variable declaration!"))
                         }
                         if(element as VariableAccess getName() != "_") bad = true
                     }
-                    if(bad) tuple token throwError(TupleVarDeclMismatchCall new(token, "Tuple variable declaration doesn't match return type %s of function %s" format(returnType toString(), fCall getName())))
+                    if(bad) res throwError(TupleVarDeclMismatchCall new(tuple token, "Tuple variable declaration doesn't match return type %s of function %s" format(returnType toString(), fCall getName())))
                 }
 
                 j := 0

@@ -71,7 +71,7 @@ TypeList: class extends Type {
     }
 
     setRef: func (d: Declaration) {
-        token throwError("Trying to set the ref of a TypeList!")
+        Exception new(This, "Trying to set the ref of a TypeList!") throw()
     }
 
     getRef: func -> Type {
@@ -85,7 +85,7 @@ TypeList: class extends Type {
     }
 
     dereference: func -> Type {
-        token throwError("Trying to dereference a TypeList!")
+        Exception new(This, "Trying to dereference a TypeList!") throw()
     }
 
     getTypeArgs: func -> List<VariableAccess> { null }

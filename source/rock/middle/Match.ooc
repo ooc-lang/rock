@@ -3,7 +3,7 @@ import ../frontend/Token
 import ControlStatement, Statement, Expression, Visitor, VariableDecl,
        Node, VariableAccess, Scope, BoolLiteral, Comparison, Type,
        FunctionDecl, Return, BinaryOp
-import tinker/[Trail, Resolver, Response]
+import tinker/[Trail, Resolver, Response, Errors]
 
 Match: class extends Expression {
 
@@ -65,7 +65,7 @@ Match: class extends Expression {
                 return response
             }
             if(type == null && !(trail peek() instanceOf?(Scope))) {
-                if(res fatal) token throwError("Couldn't figure out type of match")
+                if(res fatal) res throwError(InternalError new(token, "Couldn't figure out type of match"))
                 res wholeAgain(this, "need to resolve type")
                 return Responses OK
             }
@@ -77,18 +77,18 @@ Match: class extends Expression {
                 varAcc := VariableAccess new(vDecl, token)
                 parent := trail peek() as Statement
                 if(!trail addBeforeInScope(parent, vDecl)) {
-                    token throwError("Couldn't add %s before parent %s in scope! trail = %s" format(vDecl toString(), parent toString(), trail toString()))
+                    res throwError(CouldntAddBeforeInScope new(token, parent, vDecl, trail))
                 }
                 if(!trail addBeforeInScope(parent, this)) {
-                    token throwError("Couldn't add %s before parent %s in scope! trail = %s" format(this  toString(), parent toString(), trail toString()))
+                    res throwError(CouldntAddBeforeInScope new(token, parent, this, trail))
                 }
                 if(!parent replace(this, varAcc)) {
-                    token throwError("Couldn't replace %s with %s in parent!" format(this  toString(), varAcc toString()))
+                    res throwError(CouldntReplace new(token, this, varAcc, trail))
                 }
                 for(caze in cases) {
                     last := caze getBody() last()
                     if(!last instanceOf?(Expression)) {
-                        last token throwError("Last statement of a match used an expression should be an expression itself!")
+                        res throwError(ExpectedExpression new(last token, "Last statement of a match used an expression should be an expression itself!"))
                     }
                     ass := BinaryOp new(varAcc, last as Expression, OpType ass, caze token)
                     caze getBody() set(caze getBody() lastIndex(), ass)
@@ -190,3 +190,6 @@ Case: class extends ControlStatement {
 
 }
 
+ExpectedExpression: class extends Error {
+    init: super func ~tokenMessage
+}

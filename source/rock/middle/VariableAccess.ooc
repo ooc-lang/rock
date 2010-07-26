@@ -132,9 +132,8 @@ VariableAccess: class extends Expression {
                 //printf("Null ref and non-null expr (%s), looking in type %s\n", expr toString(), exprType toString())
                 typeDecl := exprType getRef()
                 if(!typeDecl) {
-                    if(res fatal) expr token throwError("Can't resolve type %s" format(expr getType() toString()))
-                    res wholeAgain(this, "     - access to %s%s still not resolved, looping (ref = %s)\n" \
-                      format(expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)"))
+                    if(res fatal) res throwError(UnresolvedType new(expr token, expr type, "Can't resolve type %s" format(expr getType() toString())))
+                    res wholeAgain(this, "unresolved access, looping")
                     return Responses OK
                 }
                 typeDecl resolveAccess(this, res, trail)
@@ -223,7 +222,7 @@ VariableAccess: class extends Expression {
                     }
                     if (!fDecl isExtern()) // extern C functions don't accept a Closure_struct
                         closureType = fDecl args get(ourIndex) getType()
-                
+
                 } elseif (parent instanceOf?(BinaryOp)) {
                     binOp := parent as BinaryOp
                     if(binOp isAssign() && binOp getRight() == this) {
@@ -240,7 +239,7 @@ VariableAccess: class extends Expression {
                     fType isClosure = true
                     closure := StructLiteral new(closureType, closureElements, token)
                     if(!trail peek() replace(this, closure)) {
-                        token throwError("Couldn't replace %s with %s in %s" format(toString(), closure toString(), trail peek() toString()))
+                        res throwError(CouldntReplace new(token, this, closure, trail))
                     }
                 }
             }
@@ -282,7 +281,7 @@ VariableAccess: class extends Expression {
                         msg += similar
                     }
                 }
-                token throwError(msg)
+                res throwError(UnresolvedAccess new(this, msg))
             }
             if(res params veryVerbose) {
                 printf("     - access to %s%s still not resolved, looping (ref = %s)\n", \
@@ -346,11 +345,16 @@ VariableAccess: class extends Expression {
         }
     }
 
-	setRef: func(ref: Declaration) {
-        if(name == "String") {
-            printf("String been set ref to %s, a %s\n", ref toString(), ref class name)
-        }
-		this ref = ref
-	}
+	setRef: func(=ref) {}
 
 }
+
+UnresolvedAccess: class extends Error {
+    access: VariableAccess
+
+    init: func (=access, .message) {
+        super(access, message)
+    }
+}
+
+

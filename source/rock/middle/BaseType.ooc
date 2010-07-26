@@ -1,7 +1,7 @@
 import structs/[List, ArrayList], text/Buffer
 
 import ../backend/cnaughty/AwesomeWriter, ../frontend/BuildParams
-import tinker/[Response, Resolver, Trail]
+import tinker/[Response, Resolver, Trail, Errors]
 
 import Type, Declaration, VariableAccess, VariableDecl, TypeDecl,
        InterfaceDecl, Node, ClassDecl, CoverDecl, Cast, FuncType
@@ -119,12 +119,11 @@ BaseType: class extends Type {
                 if(res params veryVerbose) {
                     trail toString() println()
                 }
+
                 msg := "Undefined type '%s'" format(getName())
                 similar := findSimilar(res)
-                if(similar) {
-                    msg += similar
-                }
-                token throwError(msg)
+                if(similar) msg += similar
+                res throwError(UnresolvedType new(token, this, msg))
             }
             if(res params veryVerbose) {
                 printf("     - type %s still not resolved, looping (ref = %p)\n", name, getRef())
@@ -138,12 +137,12 @@ BaseType: class extends Type {
                         case typeArgs == null =>
                             "No"
                         case typeArgs size() < tDecl getTypeArgs() size() =>
-                            "Missing"
+                            "Too few"
                         case =>
                             "Too many"
                     }
 
-                    token throwError("%s type parameters for %s. It should match %s" format(message, toString(), tDecl getInstanceType() toString()))
+                    res throwError(MismatchedTypeParams new(token, "%s type parameters for %s. It should match %s" format(message, toString(), tDecl getInstanceType() toString())))
                 }
             }
         }
@@ -318,7 +317,7 @@ BaseType: class extends Type {
                         buff append(t toString())
                         isFirst = false
                     }
-                    list first() token throwError("Loop in cover declaration: %s -> %s -> ..." format(buff toString(), next toString(), list size()))
+                    res throwError(CoverDeclLoop new(list first() token, "Loop in cover declaration: %s -> %s -> ..." format(buff toString(), next toString(), list size())))
                 }
                 next checkedDigImpl(list, res)
             }
@@ -416,7 +415,6 @@ BaseType: class extends Type {
                     //printf("Found match for <%s> in %s extends %s (aka %s)\n", typeArgName, current toString(), current getSuperType() toString(), current getSuperRef() toString())
                     superRealArgs := current getSuperType() getTypeArgs()
                     if(superRealArgs == null || superRealArgs size() < j) {
-                        //current getSuperType() token throwError("Missing type arguments to fully infer <%s>. It must match %s" format(typeArgName, current getSuperRef() toString()))
                         continue
                     }
                     // FIXME: That's awful, and will give us plenty o'trouble. We'll be warned!
@@ -459,3 +457,17 @@ BaseType: class extends Type {
     }
 
 }
+
+UnresolvedType: class extends Error {
+    type: Type
+
+    init: func (.token, =type, .message) {
+        super(token, message)
+    }
+}
+
+MismatchedTypeParams: class extends Error {
+    init: super func ~tokenMessage
+}
+
+

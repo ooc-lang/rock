@@ -23,6 +23,10 @@ reservedWords := ["auto", "int", "long", "char", "register", "short", "do",
                   "unsigned", "signed", "goto", "enum", "const"]
 reservedHashs := computeReservedHashs(reservedWords)
 
+ReservedKeywordError: class extends Error {
+    init: super func ~tokenMessage
+}
+
 computeReservedHashs: func (words: String[]) -> ArrayList<Int> {
     list := ArrayList<Int> new()
     for(i in 0..words length) {
@@ -459,7 +463,7 @@ AstBuilder: class {
             // same hash? compare length and then full-string comparison
             word := reservedWords[idx]
             if(word length() == vd getName() length() && word == vd getName()) {
-                vd token throwError("%s is a reserved C99 keyword, you can't use it in a variable declaration" format(vd getName()))
+                params errorHandler onError(ReservedKeywordError new(vd token, "%s is a reserved C99 keyword, you can't use it in a variable declaration" format(vd getName())))
             }
         }
 
@@ -788,7 +792,7 @@ AstBuilder: class {
             case node instanceOf?(ArrayAccess) =>
                 aa := node as ArrayAccess
                 if(!stmt instanceOf?(Expression)) {
-                    stmt token throwError("Expected an expression here, not a statement!")
+                    params errorHandler onError(SyntaxError new(stmt token, "Expected an expression here, not a statement!"))
                 }
                 aa indices add(stmt as Expression)
             case node instanceOf?(Module) =>
@@ -817,13 +821,13 @@ AstBuilder: class {
             case node instanceOf?(ArrayLiteral) =>
                 arrayLit := node as ArrayLiteral
                 if(!stmt instanceOf?(Expression)) {
-                    stmt token throwError("Expected an expression here, not a statement!")
+                    params errorHandler onError(SyntaxError new(stmt token, "Expected an expression here, not a statement!"))
                 }
                 arrayLit getElements() add(stmt as Expression)
             case node instanceOf?(Tuple) =>
                 tuple := node as Tuple
                 if(!stmt instanceOf?(Expression)) {
-                    stmt token throwError("Expected an expression here, not a statement!")
+                    params errorHandler onError(SyntaxError new(stmt token, "Expected an expression here, not a statement!"))
                 }
                 tuple getElements() add(stmt as Expression)
             case =>

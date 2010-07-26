@@ -79,6 +79,26 @@ CouldntAdd: class extends InternalError {
 
 }
 
+CouldntAddBefore: class extends InternalError {
+
+    mark, newcomer: Node
+
+    init: func (.token, =mark, =newcomer, trail: Trail) {
+        super(token, "Couldn't add %s before %s. trail = %s" format(newcomer toString(), mark toString(), trail toString()))
+    }
+
+}
+
+CouldntAddAfter: class extends InternalError {
+
+    mark, newcomer: Node
+
+    init: func (.token, =mark, =newcomer, trail: Trail) {
+        super(token, "Couldn't add %s after %s. trail = %s" format(newcomer toString(), mark toString(), trail toString()))
+    }
+
+}
+
 CouldntAddBeforeInScope: class extends InternalError {
 
     mark, newcomer: Node

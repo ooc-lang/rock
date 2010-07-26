@@ -1,7 +1,7 @@
 import ../frontend/Token
 import ClassDecl, Type, FunctionDecl, TypeDecl
 import structs/HashMap
-import tinker/[Response, Resolver, Trail]
+import tinker/[Response, Resolver, Trail, Errors]
 
 FunctionAlias: class {
 
@@ -62,8 +62,9 @@ InterfaceImpl: class extends ClassDecl {
                         impl addFunction(value)
                     } else {
                         // but err on concrete class, cause they should implement everything
-                        token throwError("%s must implement function %s, from interface %s\n" format(
-                            impl getName(), key toString(), superType toString()))
+                        res throwError(InterfaceContractNotSatisfied new(token,
+                            "%s must implement function %s, from interface %s\n" format(
+                            impl getName(), key toString(), superType toString())))
                     }
                 }
                 aliases put(hash, FunctionAlias new(key, value))
@@ -75,3 +76,9 @@ InterfaceImpl: class extends ClassDecl {
     }
 
 }
+
+InterfaceContractNotSatisfied: class extends Error {
+    init: super func ~tokenMessage
+}
+
+

@@ -1,7 +1,7 @@
 import ../frontend/Token
 import VariableDecl, Type, Visitor, Node, TypeDecl, VariableAccess, BinaryOp,
        FunctionDecl
-import tinker/[Trail, Resolver, Response]
+import tinker/[Trail, Resolver, Response, Errors]
 
 /**
    A function argument.
@@ -70,12 +70,13 @@ DotArg: class extends Argument {
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         idx := trail find(TypeDecl)
-        if(idx == -1) token throwError("Use of a %s outside a type declaration! That's nonsensical." format(class name))
+        if(idx == -1) res throwError(InternalError new(tokeon, "Use of a %s outside a type declaration! That's nonsensical." format(class name)))
 
         tDecl := trail get(idx, TypeDecl)
         ref = tDecl getVariable(name)
         if(ref == null) {
-            if(res fatal) token throwError("%s refers to non-existing member variable '%s' in type '%s'" format(class name, name, tDecl getName()))
+            if(res fatal) res throwError(UnresolvedArgumentAccess new(token,
+                "%s refers to non-existing member variable '%s' in type '%s'" format(class name, name, tDecl getName())))
             res wholeAgain(this, "DotArg wants its variable!")
             return Responses OK
         }
@@ -83,7 +84,7 @@ DotArg: class extends Argument {
         type = ref getType()
         if(type == null) {
             if(res fatal) {
-                token throwError("Couldn't resolve %s referring to '%s' in type '%s'" format(class name, name, tDecl getName()))
+                res throwError(UnresolvedArgumentAccess new(token, "Couldn't resolve %s referring to '%s' in type '%s'" format(class name, name, tDecl getName())))
             }
             res wholeAgain(this, "Hasn't resolved type yet :x")
             return Responses OK
@@ -133,3 +134,8 @@ AssArg: class extends DotArg {
     toString: func -> String { "=" + name }
 
 }
+
+UnresolvedArgumentAccess: class extends Error {
+    init: super func ~tokenMessage
+}
+

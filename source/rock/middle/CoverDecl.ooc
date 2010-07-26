@@ -94,4 +94,6 @@ AddingVariablesInAddon: class extends Error {
 
 }
 
-
+CoverDeclLoop: class extends Error {
+    init: super func ~tokenMessage
+}

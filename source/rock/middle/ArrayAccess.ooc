@@ -3,7 +3,7 @@ import ../frontend/[Token, BuildParams]
 import Visitor, Expression, VariableDecl, Declaration, Type, Node,
        OperatorDecl, FunctionCall, Import, Module, BinaryOp,
        VariableAccess, AddressOf, ArrayCreation, TypeDecl, Argument
-import tinker/[Resolver, Response, Trail]
+import tinker/[Resolver, Response, Trail, Errors]
 
 ArrayAccess: class extends Expression {
 
@@ -90,7 +90,7 @@ ArrayAccess: class extends Expression {
 
         if(deepDown instanceOf?(VariableAccess) && deepDown as VariableAccess getRef() instanceOf?(TypeDecl)) {
             if(indices size() > 1) {
-                token throwError("You can't call new on an ArrayAccess with several indices! Only one index is supported.")
+                res throwError(InvalidArrayCreation new(token, "You can't call new on an ArrayAccess with several indices! Only one index is supported."))
             }
             index := indices[0]
 
@@ -105,12 +105,12 @@ ArrayAccess: class extends Expression {
                     // will be taken care of later
                     return Responses OK
                 }
-                token throwError("Unexpected ArrayAccess to a type, parent is a %s, ie. %s" format(parent class name, parent toString()))
+                res throwError(InvalidArrayCreation new(token, "Unexpected ArrayAccess to a type, parent is a %s, ie. %s" format(parent class name, parent toString())))
             }
 
             fCall := parent as FunctionCall
             if(fCall getName() != "new") {
-                token throwError("Good lord, what are you trying to call on that array type?")
+                res throwError(InvalidArrayCreation new(token, "Good lord, what are you trying to call on that array type?"))
             }
 
             grandpa := trail peek(2)
@@ -121,7 +121,7 @@ ArrayAccess: class extends Expression {
             while(deepDown instanceOf?(ArrayAccess)) {
                 arrAcc := deepDown as ArrayAccess
                 if(arrAcc indices size() > 1) {
-                    token throwError("You can't call new on an ArrayAccess with several indices! Only one index is supported.")
+                    res throwError(InvalidArrayCreation new(token, "You can't call new on an ArrayAccess with several indices! Only one index is supported."))
                 }
                 arrayType = ArrayType new(arrayType, arrAcc indices[0], token)
                 deepDown = deepDown as ArrayAccess array
@@ -211,11 +211,11 @@ ArrayAccess: class extends Expression {
                 fCall getArguments() add(assign getRight())
 
                 if(!trail peek(2) replace(assign, fCall)) {
-                    token throwError("Couldn't replace %s with %s in %s!" format(assign toString(), fCall toString(), trail peek(2) as Node class name))
+                    res throwError(CouldntReplace new(token, assign, fCall, trail))
                 }
             } else {
                 if(!trail peek() replace(this, fCall)) {
-                    token throwError("Couldn't replace %s with %s!" format(toString(), fCall toString()))
+                    res throwError(CouldntReplace new(token, this, fCall, trail))
                 }
             }
 
@@ -301,3 +301,8 @@ ArrayAccess: class extends Expression {
     }
 
 }
+
+InvalidArrayCreation: class extends Error {
+    init: super func ~tokenMessage
+}
+

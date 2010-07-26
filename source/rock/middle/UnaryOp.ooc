@@ -1,7 +1,7 @@
 import structs/ArrayList
 import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl
-import tinker/[Trail, Resolver, Response]
+import tinker/[Trail, Resolver, Response, Errors]
 
 UnaryOpType: enum {
     binaryNot        /*  ~  */
@@ -93,7 +93,7 @@ UnaryOp: class extends Expression {
             fCall getArguments() add(inner)
             fCall setRef(fDecl)
             if(!trail peek() replace(this, fCall)) {
-                if(res fatal) token throwError("Couldn't replace %s with %s!" format(toString(), fCall toString()))
+                if(res fatal) res throwError(CouldntReplace(token, this, fCall, trail))
                 res wholeAgain(this, "failed to replace oneself, gotta try again =)")
                 return Responses OK
                 //return Responses LOOP
@@ -121,8 +121,8 @@ UnaryOp: class extends Expression {
         if(args size() == 2) return 0
 
         if(args size() != 1) {
-            op token throwError(
-                "Argl, you need 1 argument to override the '%s' operator, not %d" format(symbol, args size()))
+            res throwError(InvalidUnaryOverload new(op token,
+                "Ohum, you need 1 argument to override the '%s' operator, not %d" format(symbol, args size())))
         }
 
         if(args get(0) getType() == null || inner getType() == null) { return -1 }
@@ -144,3 +144,8 @@ UnaryOp: class extends Expression {
     }
 
 }
+
+InvalidUnaryOverload: class extends Error {
+    init: super func ~tokenMessage
+}
+

@@ -1059,6 +1059,12 @@ FunctionCall: class extends Expression {
 UnresolvedCall: class extends Error {
 
     call: FunctionCall
-    init: func (.message, =call) { super(message, call expr ? call expr token enclosing(call token) : call token) }
+    init: func (.call, .message) {
+        init(call token, call, message)
+    }
+
+    init: func ~withToken(.token, =call, .message) {
+        super(message, call expr ? call expr token enclosing(call token) : call token)
+    }
 
 }

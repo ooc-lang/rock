@@ -527,20 +527,22 @@ TypeDecl: abstract class extends Declaration {
             candidate := implemented get(hash)
             if(candidate == null) {
                 if(fDecl getOwner() == getNonMeta() || fDecl getOwner() == this) {
-                    token throwError("`%s` should be declared abstract, because it defines abstract function `%s%s%s`" format(
+                    res throwError(AbstractContractNotSatisfied new(token,
+                        "`%s` should be declared abstract, because it defines abstract function `%s%s%s`" format(
                         getNonMeta() getName(),
                         fDecl getSuffix() ? fDecl getName() + "~" + fDecl getSuffix() : fDecl getName(),
                         fDecl args empty?() ? "" : " " + fDecl getArgsRepr(),
                         fDecl hasReturn() ? " -> " + fDecl returnType toString() : ""
-                    ))
+                    )))
                 } else {
-                    token throwError("`%s` must implement function `%s%s%s` because it extends `%s`" format(
+                    res throwError(AbstractContractNotSatisfied new(
+                        token,"`%s` must implement function `%s%s%s` because it extends `%s`" format(
                         getNonMeta() getName(),
                         fDecl getSuffix() ? fDecl getName() + "~" + fDecl getSuffix() : fDecl getName(),
                         fDecl args empty?() ? "" : " " + fDecl getArgsRepr(),
                         fDecl hasReturn() ? " -> " + fDecl returnType toString() : "",
                         fDecl getOwner() getName()
-                    ))
+                    )))
                 }
             }
         }
@@ -572,7 +574,7 @@ TypeDecl: abstract class extends Declaration {
                     buff append(t getName())
                     isFirst = false
                 }
-                list first() token throwError("Loop in type declaration: %s -> %s -> ..." format(buff toString(), next getName(), list size()))
+                res throwError(InheritanceLoop new(list first() token, "Loop in type declaration: %s -> %s -> ..." format(buff toString(), next getName(), list size())))
             }
 
             current = next
@@ -841,4 +843,12 @@ FunctionRedefinition: class extends Error {
         message
     }
 
+}
+
+AbstractContractNotSatisfied: class extends Error {
+    init: super func ~tokenMessage
+}
+
+InheritanceLoop: class extends Error {
+    init: super func ~tokenMessage
 }

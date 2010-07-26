@@ -2,7 +2,7 @@ import ../frontend/[Token,BuildParams]
 import Visitor, Statement, Expression, Node, FunctionDecl, FunctionCall,
        VariableAccess, VariableDecl, AddressOf, ArrayAccess, If,
        BinaryOp, Cast, Type, Module, Tuple
-import tinker/[Response, Resolver, Trail]
+import tinker/[Response, Resolver, Trail, Errors]
 
 Return: class extends Statement {
 
@@ -36,7 +36,7 @@ Return: class extends Statement {
 
         if(!expr) {
             if (fDecl getReturnArgs() empty?() && retType != voidType) {
-                token throwError("Function is not declared to return `null`! trail = %s" format(trail toString()))
+                res throwError(InconsistentReturn new(token, "Function is not declared to return `null`! trail = %s" format(trail toString())))
             } else {
                 return Responses OK
             }
@@ -77,7 +77,7 @@ Return: class extends Statement {
                         // TODO: what if the return type of the outer fDecl isn't generic?
                         fCall setReturnArg(VariableAccess new(fDecl getReturnArg(), token))
                         if(!trail peek() addBefore(this, fCall)) {
-                            token throwError("Couldn't replace %s with %s in %s. Trail = \n%s\n" format(toString(), fCall toString(), trail peek() toString(), trail toString()))
+                            res throwError(CouldntAddBefore new(token, this, fCall, trail))
                         }
                         expr = null
                         res wholeAgain(this, "Unwrapped into outer fCall")
@@ -104,7 +104,7 @@ Return: class extends Statement {
                     if(returnExpr hasSideEffects()) {
                         vdfe := VariableDecl new(null, generateTempName("returnVal"), returnExpr, returnExpr token)
                         if(!trail peek() addBefore(this, vdfe)) {
-                            token throwError("Couldn't add the vdfe before the generic return in a %s! trail = %s" format(trail peek() as Node class name, trail toString()))
+                            res throwError(CouldntAddBefore new(token, this, vdfe, trail))
                         }
                         returnExpr = VariableAccess new(vdfe, vdfe token)
                     }
@@ -113,7 +113,7 @@ Return: class extends Statement {
                     if1 getBody() add(ass)
 
                     if(!trail peek() addBefore(this, if1)) {
-                        token throwError("Couldn't add the assignment before the generic return in a %s! trail = %s" format(trail peek() as Node class name, trail toString()))
+                        res throwError(CouldntAddBefore new(token, this, if1, trail))
                     }
                     j += 1
 
@@ -145,14 +145,14 @@ Return: class extends Statement {
                         } else {
                             msg = "The declared return type (%s) and the returned value (%s) do not match!" format(retType toString(), expr getType() toString())
                         }
-                        token throwError(msg)
+                        res throwError(InconsistentReturn new(token, msg))
                     }
                     expr = Cast new(expr, retType, expr token)
                 }
             }
 
             if (retType == voidType && !expr)
-                token throwError("Function is declared to return `null`, not %s! trail = %s" format(expr getType() toString(), trail toString()))
+                res throwError("Function is declared to return `null`, not %s! trail = %s" format(expr getType() toString(), trail toString()))
         }
 
         return Responses OK
@@ -172,4 +172,7 @@ Return: class extends Statement {
 
 }
 
+InconsistentReturn: class extends Error {
+    init: super func ~tokenMessage
+}
 

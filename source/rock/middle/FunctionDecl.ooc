@@ -1,5 +1,5 @@
 import structs/[Stack, ArrayList, List], text/Buffer
-import ../frontend/[Token, BuildParams]
+import ../frontend/[Token, BuildParams, AstBuilder]
 import Cast, Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, If, Else,
        VariableDecl, Node, Statement, Module, FunctionCall, Declaration,
@@ -136,7 +136,7 @@ FunctionDecl: class extends Declaration {
     getOwner: func -> TypeDecl { owner }
 
     getStaticVariant: func -> This {
-        if(isStatic) token throwError("Should get the static variant of a static function.. wtf?")
+        if(isStatic) token module params errorHandler onError(InternalError new(token, "Should get the static variant of a static function.. wtf?"))
 
         if(!staticVariant) {
             staticVariant = new(name, token)
@@ -404,7 +404,7 @@ FunctionDecl: class extends Declaration {
 
         if(isSuper) {
             if(!owner) {
-                token throwError("super funcs are only legal in type declarations!")
+                res throwError(SyntaxError new(token, "Super funcs are only legal in type declarations!"))
             }
 
             superTypeDecl := owner getSuperRef()
@@ -414,6 +414,7 @@ FunctionDecl: class extends Declaration {
                 res wholeAgain(this, "something in our typedecl's functions needs resolving!")
                 return Responses OK
             }
+            superCall := FunctionCall new("super", token)
             if(ref != null) {
                 for(arg in ref args) {
                     if(!arg isResolved()) {
@@ -424,7 +425,6 @@ FunctionDecl: class extends Declaration {
 
                 args addAll(ref args)
 
-                superCall := FunctionCall new("super", token)
                 for(arg in ref args) {
                     superCall args add(VariableAccess new(arg, arg token))
                 }
@@ -437,7 +437,7 @@ FunctionDecl: class extends Declaration {
                     owner removeFunction(this). addFunction(this)
                 }
             } else {
-                token throwError("There is no such super-func in %s!" format(superTypeDecl toString()))
+                res throwError(UnresolvedCall new(token, superCall, "There is no such super-func in %s!" format(superTypeDecl toString())))
             }
         }
 
@@ -502,7 +502,7 @@ FunctionDecl: class extends Declaration {
 
         fCallIndex := trail find(FunctionCall)
         if (fCallIndex == -1) {
-            token throwError("Got an ACS without any function-call. THIS IS NOT SUPPOSED TO HAPPEN\ntrail= %s" format(trail toString()))
+            res throwError(InternalError new(token, "Got an ACS without any function-call. THIS IS NOT SUPPOSED TO HAPPEN\ntrail= %s" format(trail toString())))
         }
         parentCall := trail get(fCallIndex) as FunctionCall
         parentFunc := parentCall getRef()
@@ -513,7 +513,7 @@ FunctionDecl: class extends Declaration {
             return false
         }
 
-        // FIXME: this will blow up with several closure arguments of different types!
+        // FIXME FIXME FIXME: this will blow up with several closure arguments of different types!
         funcPointer: FuncType = null
         for (arg in parentFunc args) {
             if (arg getType() instanceOf?(FuncType)) {
@@ -682,7 +682,7 @@ FunctionDecl: class extends Declaration {
                         case          =>
 
                             if(!arg getType() isPointer() && !arg getType() getGroundType() isPointer() && !arg getType() isGeneric() && !arg getType() getRef() instanceOf?(ClassDecl)) {
-                                arg token throwError("Unknown closure arg type %s\n" format(arg getType() toString()))
+                                res throwError(InternalError new(arg token, "Unknown closure arg type %s\n" format(arg getType() toString())))
                             }
                             'P'
                     }
@@ -824,7 +824,7 @@ FunctionDecl: class extends Declaration {
 
                 closureAcc := VariableAccess new(closureDecl, token)
                 if(!trail peek() replace(this, closureAcc)) {
-                    token throwError("Couldn't replace %s with %s in %s" format(toString(), closureAcc toString(), trail peek() toString()))
+                    res throwError(CouldntReplace new(token, this, closureAcc, trail))
                 }
 
                 /* EXPERIMENTAL - end */
@@ -924,7 +924,7 @@ FunctionDecl: class extends Declaration {
             ret := Return new(IntLiteral new(0, nullToken), nullToken)
             body add(ret)
         } else {
-            token throwError("Control reaches the end of non-void function! trail = " + trail toString())
+            res throwError(InconsistenReturn new(token, "Control reaches the end of non-void function!"))
         }
     }
 

@@ -2,7 +2,7 @@ import ../frontend/Token
 import ControlStatement, Expression, Visitor, VariableDecl, Node,
        VariableAccess, VariableDecl, IntLiteral, Type, RangeLiteral,
        FunctionCall, Block, Scope, While, BinaryOp, BaseType
-import tinker/[Trail, Resolver, Response]
+import tinker/[Trail, Resolver, Response, Errors]
 
 Foreach: class extends ControlStatement {
 
@@ -73,13 +73,13 @@ Foreach: class extends ControlStatement {
 
             iterType := iterCall getType()
             if(iterType == null) {
-                if(res fatal) token throwError("Couldn't resolve iterType of %s" format(toString()))
+                if(res fatal) res throwError(InternalError new(token, "Couldn't resolve iterType of %s" format(toString())))
                 res wholeAgain(this, "need iterType")
                 return Responses OK
             }
             iterType resolve(trail, res)
             if(!iterType isResolved()) {
-                if(res fatal) token throwError("Couldn't resolve iterType %s" format(iterType toString()))
+                if(res fatal) res throwError(InternalError new(token, "Couldn't resolve iterType %s" format(iterType toString())))
                 res wholeAgain(this, "need iterType")
                 return Responses OK
             }

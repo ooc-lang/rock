@@ -2,7 +2,7 @@ import structs/ArrayList
 import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, VariableDecl,
        VariableAccess, BinaryOp, ArrayCreation, OperatorDecl, ArrayLiteral
-import tinker/[Response, Resolver, Trail]
+import tinker/[Response, Resolver, Trail, Errors]
 
 Cast: class extends Expression {
 
@@ -124,11 +124,11 @@ Cast: class extends Expression {
             fCall getArguments() add(inner)
             fCall setRef(fDecl)
             if(!trail peek() replace(this, fCall)) {
-                if(res fatal) token throwError("Couldn't replace %s with %s! trail = %s" format(toString(), fCall toString(), trail toString()))
+                if(res fatal) res throwError(CouldntReplace new(token, this, fCall, trail))
                 res wholeAgain(this, "failed to replace oneself, gotta try again =)")
                 return Responses OK
             }
-            // Just replaced with an operator overload
+            // just replaced with an operator overload
             return Responses LOOP
         }
 
@@ -143,8 +143,8 @@ Cast: class extends Expression {
 
         args := fDecl getArguments()
         if(args size() < 1) {
-            op token throwError(
-                "Argl, you need at least 1 argument to override the '%s' operator" format(symbol, args size()))
+            res throwError(InvalidCastOverload new(op token,
+                "Ohum, you need 1 argument to override the '%s' operator, not %d" format(symbol, args size())))
         }
 
         srcType := args get(0) getType()
@@ -178,4 +178,8 @@ Cast: class extends Expression {
         }
     }
 
+}
+
+InvalidCastOverload: class extends Error {
+    init: super func ~tokenMessage
 }

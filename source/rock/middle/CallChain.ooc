@@ -1,7 +1,7 @@
 import structs/[List, ArrayList], text/Buffer
 import Expression, Visitor, FunctionCall, Type, VariableDecl,
        VariableAccess, Statement, Node, Scope
-import tinker/[Trail, Resolver, Response]
+import tinker/[Trail, Resolver, Response, Errors]
 
 CallChain: class extends Expression {
 
@@ -78,7 +78,7 @@ CallChain: class extends Expression {
 
         scopeIdx := trail findScope()
         if (scopeIdx == -1) {
-            token throwError("Call-chain outside a scope! That doesn't make sense :/")
+            res throwError(InternalError new(token, "Call-chain outside a scope! That doesn't make sense :/"))
             return Responses LOOP // in case we're in all-errors mode
         }
 
@@ -98,19 +98,17 @@ CallChain: class extends Expression {
         varAcc := VariableAccess new(expr as VariableDecl, expr token)
 
         if(!trail addBeforeInScope(mark, expr)) {
-            trail toString() println()
-            token throwError("Failed to add %s before %s" format(expr toString(), mark toString()))
+            res throwError(CouldntAddBeforeInScope new(token, mark, expr, trail))
         }
 
         for(call in calls) {
             call expr = varAcc
             if(!trail addBeforeInScope(mark, call)) {
-                trail toString() println()
-                token throwError("Failed to add %s before %s" format(call toString(), mark toString()))
+                res throwError(CouldntAddBeforeInScope new(token, mark, call, trail))
             }
         }
         if(!trail peek() replace(this, varAcc)) {
-            token throwError("Failed to replace %s with %s in %s" format(toString(), varAcc toString(), trail peek() toString()))
+            res throwError(CouldntReplace new(token, this, varAcc, trail))
         }
 
         return Responses OK

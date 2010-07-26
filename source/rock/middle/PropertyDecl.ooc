@@ -61,7 +61,7 @@ PropertyDecl: class extends VariableDecl {
         // get and store the class.
         node := trail peek()
         if(!node instanceOf?(TypeDecl)) {
-            token throwError("Expected TypeDecl, got %s" format(node toString()))
+            res throwError(InternalError new(token, "Properties don't make sense outside types!" format(node toString())))
         }
         cls = node as ClassDecl
         // setup getter

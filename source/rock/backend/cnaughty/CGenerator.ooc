@@ -1,6 +1,7 @@
 import structs/List
 
 import ../../middle/Visitor
+import ../../middle/tinker/Errors
 import ../../io/[CachedFileWriter, TabbedWriter], io/[File, FileWriter, Writer], AwesomeWriter
 
 import ../../frontend/BuildParams
@@ -230,7 +231,7 @@ CGenerator: class extends Skeleton {
                 current app(match (refLevel) {
                     case 0 => "."
                     case 1 => "->"
-                    case   => varAcc token throwError("This is too much reference %d! Can't write it." format(refLevel)); ""
+                    case   => params errorHandler onError(InternalError new(varAcc token, "This is too much reference %d! Can't write it." format(refLevel))); ""
                 })
             }
             paren := false
