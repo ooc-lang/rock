@@ -3,6 +3,7 @@ import ../frontend/[BuildParams, CommandLine]
 import text/Buffer
 import io/[FileReader, File]
 import ../middle/Module
+import ErrorHandler
 
 /* Will go into the load method of Token */
 nullToken : Token
@@ -10,31 +11,27 @@ nullToken = Token new(0, 0, null)
 
 Token: cover {
 
+    /** Start and length of a token, in bytes */
     start, length : SizeT
+
+    /** Module this token comes from */
     module: Module
 
-    new: static func~fromData (data: Int*, module: Module) -> This {
-        this : This
-        this start =  data[0]
-        this length = data[1]
-        this module = module
-        this
-    }
+    init: func@ (=start, =length, =module) -> This {}
 
-    new: static func (.start, .length, .module) -> This {
-        this : This
-        this start =  start
-        this length = length
-        this module = module
-        this
-    }
-
-    new: static func~copy (origin: This) -> This {
-        // well that's quite stupid. but covers have value semantics
-        // already, so no action is needed to make a "copy" of it.
-        return origin
-    }
-
+    /**
+     * Creates a new token enclosing this one and the one passed as an argument.
+     *
+     * Let's say you have:
+     *    something doThing()
+     *
+     * Then something's token enclosing(doThing's token) will give you
+     *    something doThing()
+     *    ~~~~~~~~~~~~~~~~~~~
+     *
+     * And that's actually how it's used.
+     *
+     */
     enclosing: func (next: This) -> This {
         ex : This
         ex start = start
@@ -43,6 +40,9 @@ Token: cover {
         ex
     }
 
+    /**
+     * Gives a string representation of the boundaries of this module
+     */
     toString: func -> String {
         module != null ? (
             "%s [%d, %d]" format(module getFullName(), getStart(), getEnd())
@@ -56,8 +56,7 @@ Token: cover {
     }
 
     throwError: func (message: String) {
-        printMessage(message, "[ERROR]")
-        if(BuildParams fatalError) CommandLine failure()
+
     }
 
     printMessage: func ~noPrefix (message, type: String) {

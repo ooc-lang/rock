@@ -1151,7 +1151,7 @@ AstBuilder: class {
     }
 
     token: func -> Token {
-        Token new(tokenPos, module)
+        Token new(tokenPos[0], tokenPos[1], module)
     }
 
     peek: func <T> (T: Class) -> T {

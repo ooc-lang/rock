@@ -3,11 +3,22 @@ import structs/ArrayList
 
 import compilers/AbstractCompiler
 import PathList, rock/utils/ShellUtils
-import ../middle/Module
+import ../middle/Module, ../middle/tinker/Errors
 
+/**
+ * All the parameters for a build are stored there.
+ *
+ * All sorts of paths and options that influence compilation.
+ *
+ * This class is also responsible for finding the sdk and the dist.
+ *
+ * @author Amos Wenger (nddrylliog)
+ */
 BuildParams: class {
 
-    fatalError := static true
+    // use a dumb error handler by default
+    errorHandler := DefaultErrorHandler new(this)
+    fatalError := true
 
     additionals  := ArrayList<String> new()
     compilerArgs := ArrayList<String> new()
@@ -23,6 +34,7 @@ BuildParams: class {
 
         // use the GC by default =)
 		defines add(This GC_DEFINE)
+
     }
 
     findDist: func (execName: String) {

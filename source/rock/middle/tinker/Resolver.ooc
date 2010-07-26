@@ -1,6 +1,6 @@
 import ../[Module, Node, Import], structs/List, io/File
 import ../../frontend/[BuildParams, Token, AstBuilder]
-import Response, Trail, Tinkerer
+import Response, Trail, Tinkerer, Errors
 
 Resolver: class {
 
@@ -13,20 +13,17 @@ Resolver: class {
     module: Module
     params: BuildParams
     tinkerer: Tinkerer
+    errorHandler: ErrorHandler
 
     init: func (=module, =params, =tinkerer) {}
 
     process: func -> Bool {
-
-        response : Response = null
         wholeAgain = false
 
-        response = module resolve(Trail new(), this)
-
+        response := module resolve(Trail new(), this)
         if(params veryVerbose) printf("[Module] response = %s (wholeAgain = %s)\n", response toString(), wholeAgain toString())
 
         return !response ok() || wholeAgain
-
     }
 
     wholeAgain: func (node: Node, reason: String) {
@@ -77,7 +74,7 @@ Resolver: class {
                 fullName := f getAbsolutePath()
                 fullName = fullName substring(pathElem getAbsolutePath() length() + 1, fullName length() - 4)
 
-                dummyModule addImport(Import new(fullName, tokPointer@))                
+                dummyModule addImport(Import new(fullName, tokPointer@))
                 true
             )
             */
@@ -106,11 +103,11 @@ Resolver: class {
             // sort out links to non-existent destinations.
             if(!f exists?())
                 return
-            
+
             module := AstBuilder cache get(fullName)
 
             fullName = fullName substring(pathElem getAbsolutePath() length() + 1, fullName length() - 4)
-            dummyModule addImport(Import new(fullName, nullToken))       
+            dummyModule addImport(Import new(fullName, nullToken))
         }
     }
 
