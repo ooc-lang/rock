@@ -24,9 +24,20 @@ Match: class extends Expression {
         cases add(caze)
 
         if(expr && caze getExpr()) {
-            // hideous, but obvious
+            // When the expr of match is `true` we generate
+            // if(caseExpr) instead of if(true == caseExpr)
             if(!(expr instanceOf?(BoolLiteral) && expr as BoolLiteral getValue() == true)) {
-                caze setExpr(Comparison new(expr, caze getExpr(), CompType equal, caze getExpr() token))
+                fCall := FunctionCall new(expr, "matches__quest", caze getExpr() token)
+                fCall args add(caze getExpr())
+                fCall resolve(trail, res)
+                if(fCall getRef() != null) {
+                    returnType := fCall getType() getName()
+                    if(returnType != "Bool")
+                        res throwError(WrongMatchesSignature new(expr token, "matches? returns a %s, but it should return a Bool" format(returnType)))
+                    caze setExpr(call)
+                } else {
+                    caze setExpr(Comparison new(expr, caze getExpr(), CompType equal, caze getExpr() token))
+                }
             }
         }
     }
@@ -191,5 +202,9 @@ Case: class extends ControlStatement {
 }
 
 ExpectedExpression: class extends Error {
+    init: super func ~tokenMessage
+}
+
+WrongMatchesSignature: class extends Error {
     init: super func ~tokenMessage
 }
