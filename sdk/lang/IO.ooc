@@ -3,10 +3,10 @@ include stdio
 stdout, stderr, stdin: extern FStream
 
 println: func ~withStr (str: Char*) {
-	printf("%s\n", str)
+    printf("%s\n", str)
 }
 println: func {
-	printf("\n")
+    printf("\n")
 }
 
 // input/output
@@ -53,51 +53,51 @@ ferror: extern func(stream: FStream) -> Int
 
 FILE: extern cover
 FStream: cover from FILE* {
-	open: static func (filename, mode: const String) -> This {
+    open: static func (filename, mode: const String) -> This {
         fopen(filename, mode)
     }
 
     close: func -> Int {
         fclose(this)
     }
-    
+
     error: func -> Int {
-    	ferror(this)
+        ferror(this)
     }
-    
+
     eof?: func -> Bool {
-    	feof(this) != 0
+        feof(this) != 0
     }
-    
+
     seek: func(offset: Long, origin: Int) -> Int {
-    	fseek(this, offset, origin)
+        fseek(this, offset, origin)
     }
-    
+
     tell: func -> Long {
-    	ftell(this)
+        ftell(this)
     }
 
     flush: func {
         fflush(this)
     }
-    
+
     read: func(dest: Pointer, bytesToRead: SizeT) -> SizeT {
-    	fread(dest, 1, bytesToRead, this)
+        fread(dest, 1, bytesToRead, this)
     }
 
-	// TODO encodings
-	readChar: func -> Char {
+    // TODO encodings
+    readChar: func -> Char {
         c : Char
         count := fread(c&, 1, 1, this)
         if(count < 1) Exception new(This, "Trying to read a char at the end of a file!") throw()
         return c
-	}
-	
+    }
+
     readLine: func ~defaults -> String {
         readLine(128)
     }
 
-	readLine: func (chunk: Int) -> String {
+    readLine: func (chunk: Int) -> String {
         // 128 is a reasonable default. Most terminals are 80x25
         length := 128
         pos := 0
@@ -130,35 +130,39 @@ FStream: cover from FILE* {
         }
 
         return str as String
-	}
-	
-	size: func -> SizeT {
-		seek(0, SEEK_END)
-		result := tell() as SizeT
-		rewind(this)
-		return result
-	}
+    }
+
+    size: func -> SizeT {
+        prev := tell()
+
+        seek(0, SEEK_END)
+        result := tell() as SizeT
+
+        seek(prev, SEEK_SET)
+
+        result
+    }
 
     hasNext?: func -> Bool {
         feof(this) == 0
     }
-	
-	write: func ~chr (chr: Char) {
-		fputc(chr, this)
-	}
-	
-	write: func (str: String) {
-		fputs(str, this)
-	}
-	
-	write: func (str: String, length: SizeT) -> SizeT {
-		write(str, 0, length)
-	}
-	
-	write: func ~precise (str: Char*, offset: SizeT, length: SizeT) -> SizeT {
-		// TODO encodings
-		// TODO does offset make sense here ? it could be added to the str pointer
-		fwrite(str + offset, 1, length, this)
-	}
-	
+
+    write: func ~chr (chr: Char) {
+        fputc(chr, this)
+    }
+
+    write: func (str: String) {
+        fputs(str, this)
+    }
+
+    write: func (str: String, length: SizeT) -> SizeT {
+        write(str, 0, length)
+    }
+
+    write: func ~precise (str: Char*, offset: SizeT, length: SizeT) -> SizeT {
+        // TODO encodings
+        // TODO does offset make sense here ? it could be added to the str pointer
+        fwrite(str + offset, 1, length, this)
+    }
+
 }
