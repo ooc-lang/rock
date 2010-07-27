@@ -79,7 +79,7 @@ TypeDecl: abstract class extends Declaration {
     }
 
     debugCondition: inline func -> Bool {
-	false
+        false
     }
 
     isAbstract: func -> Bool { false }
@@ -710,17 +710,19 @@ TypeDecl: abstract class extends Declaration {
             if(getSuperRef() resolveCall(call, res, trail) == -1) return -1
         }*/ // FIXME: uncomment when we're sure this doesn't cause any problems
 
+        /*
         if(getBase() != null) {
-            if(call debugCondition()) printf("Looking in base %s\n", getBase() toString())
+            if(call debugCondition()) printf("From %s (%s), ooking in base %s (%s)\n",
+                toString(), token toString(), getBase() toString(), getBase() token toString())
             if(getBase() resolveCall(call, res, trail) == -1) return -1
         }
+        */
 
         for(addon in getAddons()) {
             has := false
-            // TODO: What about namespaced imports?
+
             for(imp in call token module getGlobalImports()) {
                 if(imp getModule() == addon token module) {
-                    //printf("has because of import %s which equals %s\n", imp getModule() getFullName(), addon token toString())
                     has = true
                     break
                 }
@@ -729,14 +731,11 @@ TypeDecl: abstract class extends Declaration {
             // It's also possible that the addon was defined in the
             // function call's module.
             if(call token module == addon token module && call token module == token module) {
-                //printf("has because call token module %s is the same as addon token module %s\n", call token toString(), addon token toString())
                 has = true
             }
 
             if(!has) continue
 
-            if(call debugCondition()) printf("From %s (%s), looking into addon %s (%s)\n",
-                toString(), token toString(), addon toString(), addon token toString())
             if(addon resolveCall(call, res, trail) == -1) return -1
         }
 

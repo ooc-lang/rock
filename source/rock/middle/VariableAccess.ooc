@@ -3,7 +3,7 @@ import BinaryOp, Visitor, Expression, VariableDecl, FunctionDecl,
        TypeDecl, Declaration, Type, Node, ClassDecl, NamespaceDecl,
        EnumDecl, PropertyDecl, FunctionCall, Module, Import, FuncType,
        NullLiteral, AddressOf, BaseType, StructLiteral, Return,
-       Argument
+       Argument, CoverDecl
 
 import tinker/[Resolver, Response, Trail, Errors]
 import structs/ArrayList
@@ -82,6 +82,11 @@ VariableAccess: class extends Expression {
 		    ref = candidate
 		    return true
 	    } else if(node instanceOf?(TypeDecl) || node instanceOf?(NamespaceDecl)) {
+            if(node instanceOf?(CoverDecl) && node as CoverDecl isAddon()) {
+                // First rule of resolve club is: you do not resolve to an addon.
+                // Always resolve to the base instead.
+                return suggest(node as CoverDecl getBase() getNonMeta())
+            }
 			ref = node
             return true
 	    }
@@ -226,6 +231,10 @@ VariableAccess: class extends Expression {
                 } elseif (parent instanceOf?(BinaryOp)) {
                     binOp := parent as BinaryOp
                     if(binOp isAssign() && binOp getRight() == this) {
+                        if(binOp getLeft() getType() == null) {
+                            res wholeAgain(this, "need type of BinOp's lhs")
+                            return Responses OK
+                        }
                         closureType = binOp getLeft() getType() clone()
                     }
                 } elseif (parent instanceOf?(Return)) {

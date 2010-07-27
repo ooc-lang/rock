@@ -81,17 +81,13 @@ BaseType: class extends Type {
     getName: func -> String { name }
 
     suggest: func (decl: Declaration) -> Bool {
-        //if(name == "String") {
-        //    printf("Got suggestion %s (%s) for type at %s\n", decl toString(), decl token toString(), token toString())
-        //}
 
-        // TODO: only accept if decl is a better match than ref (ie. in an addon, for example)
-        if(ref == null || (decl instanceOf?(CoverDecl) && decl as CoverDecl isAddon())) {
-            //if(decl instanceOf?(CoverDecl) && decl as CoverDecl isAddon() && ref != null) {
-            //    printf("In %s superseded %s (%s) with %s (%s)\n", token toString(), ref toString(), ref token toString(), decl toString(), decl token toString())
-            //}
-            ref = decl
+        if(decl instanceOf?(CoverDecl) && decl as CoverDecl isAddon()) {
+            // The second rule of resolve club is: you do *NOT* resolve to an addon.
+            // Always resolve to the base instead.
+            return suggest(decl as CoverDecl getBase() getNonMeta())
         }
+        ref = decl
 
         if(name == "This" && getRef() instanceOf?(TypeDecl)) {
             tDecl := getRef() as TypeDecl

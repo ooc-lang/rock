@@ -300,6 +300,7 @@ Module: class extends Node {
             AstBuilder getRealImportPath(imp, this, params, path&, impPath&, impElement&)
             if(impPath == null) {
                 params errorHandler onError(ModuleNotFound new(imp))
+                continue
             }
 
             absolutePath := File new(impPath path) getAbsolutePath()
