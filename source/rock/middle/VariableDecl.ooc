@@ -212,11 +212,9 @@ VariableDecl: class extends Declaration {
                     return Responses OK
                 }
 
-                //if(fDecl getReturnType() isGeneric()) {
                 if(!fDecl getReturnArgs() empty?()) {
                     if(fDecl getReturnType() instanceOf?(TypeList)) {
                         type = fDecl getReturnType() as TypeList types get(0)
-                        "Inferred type of %s to %s from TypeList." printfln(toString(), type toString())
                     }
                     ass := BinaryOp new(VariableAccess new(this, token), realExpr, OpType ass, token)
                     if(!trail addAfterInScope(this, ass)) {
