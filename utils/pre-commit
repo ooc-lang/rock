@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Pre-commit hook run by git before a commit is made.
+# Copy to .git/hooks
+
+tmp="$(mktemp)"
+
+git diff --cached --name-only | while read file; do
+    if [[ "${file:(-4):4}" == ".ooc" ]]; then
+        oldsize=$(stat "$file" -c "%s")
+        sed -ri 's/\t/    /g' "$file"
+        newsize1=$(stat "$file" -c "%s")
+        sed -ri 's/\s+$//g' "$file"
+        newsize2=$(stat "$file" -c "%s")
+
+        # Need two size checks because the first sed call actually adds spaces
+        # whereas the second one drops them.
+
+        if [[ "$oldsize" != "$newsize1" || "$newsize1" != "$newsize2" ]]; then
+            echo 1 > $tmp
+            echo "Fixed whitespaces for : '$file'"
+        fi
+    fi
+done
+
+modified=$(cat $tmp)
+rm $tmp
+
+if [[ "$modified" == "1" ]]; then
+    echo "Run git diff to verify that the changes are correct, then commit."
+    echo "Don't forget to run git add on the fixed files or use git commit -a."
+    echo "(Note: to temporary disable this script, pass the -n flag to git commit)"
+    exit 1
+fi
