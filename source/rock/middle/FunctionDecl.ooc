@@ -384,7 +384,7 @@ FunctionDecl: class extends Declaration {
                 return response
             }
             if(!returnType isResolved()) {
-                res wholeAgain(this, "need returnType of decl %s to be resolved" format(name))
+                res wholeAgain(this, "need returnType of a FunctionDecl to be resolved")
             } else if(returnType isGeneric()) {
                 // this create the returnArg for generic return types
                 if(returnArgs empty?()) createReturnArg(returnType, "genericReturn")
@@ -877,7 +877,7 @@ FunctionDecl: class extends Declaration {
             expr := stmt as Expression
             if(expr getType() == null) {
                 //printf("[autoReturn] LOOPing because stmt's type (%s) is null.", expr toString())
-                res wholeAgain(this, "need the type of %s in autoReturn" format(stmt toString()))
+                res wholeAgain(this, "need the type of some statement in autoReturn")
                 return
             }
 

@@ -98,7 +98,7 @@ Cast: class extends Expression {
             if(opDecl symbol != "as") continue
             score := getScore(opDecl)
             //printf("Considering %s for %s, score = %d\n", opDecl toString(), toString(), score)
-            if(score == -1) { res wholeAgain(this, "score of %s == -1 !!" format(opDecl toString())); return Responses OK }
+            if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Responses OK }
             if(score > bestScore) {
                 bestScore = score
                 candidate = opDecl
@@ -111,7 +111,7 @@ Cast: class extends Expression {
                 if(opDecl symbol != "as") continue
                 score := getScore(opDecl)
                 //printf("Considering %s for %s, score = %d\n", opDecl toString(), toString(), score)
-                if(score == -1) { res wholeAgain(this, "score of %s == -1 !!" format(opDecl toString())); return Responses OK }
+                if(score == -1) { res wholeAgain(this, "score of %s == -1 !!"); return Responses OK }
                 if(score > bestScore) {
                     bestScore = score
                     candidate = opDecl

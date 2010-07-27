@@ -220,12 +220,7 @@ BinaryOp: class extends Expression {
     isLegal: func (res: Resolver) -> Bool {
         if(left getType() == null || left getType() getRef() == null || right getType() == null || right getType() getRef() == null) {
             // must resolve first
-            res wholeAgain(this, "Unresolved types, looping to determine legitness left = %s (who is null? %s, %s, %s, %s)" format(
-              left toString(),
-             (left getType() == null) as Bool toString(),
-             (left getType() != null && left getType() getRef() == null) as Bool toString(),
-             (right getType() == null) as Bool toString(),
-             (right getType() != null && right getType() getRef() == null) as Bool toString()))
+            res wholeAgain(this, "Unresolved types, looping to determine legitness")
             return true
         }
         if(left getType() getName() == "Pointer" || right getType() getName() == "Pointer") {
@@ -264,7 +259,7 @@ BinaryOp: class extends Expression {
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType)
             //printf("Considering %s for %s, score = %d\n", opDecl toString(), toString(), score)
-            if(score == -1) { res wholeAgain(this, "score of %s == -1 !!" format(opDecl toString())); return Responses OK }
+            if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Responses OK }
             if(score > bestScore) {
                 bestScore = score
                 candidate = opDecl
@@ -276,7 +271,7 @@ BinaryOp: class extends Expression {
             for(opDecl in module getOperators()) {
                 score := getScore(opDecl, reqType)
                 //printf("Considering %s for %s, score = %d\n", opDecl toString(), toString(), score)
-                if(score == -1) { res wholeAgain(this, "score of %s == -1 !!" format(opDecl toString())); return Responses OK }
+                if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Responses OK }
                 if(score > bestScore) {
                     bestScore = score
                     candidate = opDecl

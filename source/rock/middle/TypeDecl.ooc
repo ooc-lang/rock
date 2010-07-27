@@ -459,7 +459,7 @@ TypeDecl: abstract class extends Declaration {
                 return response
             }
             if(interfaceType getRef() == null) {
-                res wholeAgain(this, "Should resolve interface type %s first." format(interfaceType toString()))
+                res wholeAgain(this, "Should resolve interface type first.")
                 break
             } else if(i >= interfaceDecls size()) {
                 iName := getName() + "__impl__" + interfaceType getName()

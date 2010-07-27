@@ -296,7 +296,7 @@ VariableAccess: class extends Expression {
                 printf("     - access to %s%s still not resolved, looping (ref = %s)\n", \
                 expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)")
             }
-            res wholeAgain(this, "Couldn't resolve %s" format(toString()))
+            res wholeAgain(this, "Couldn't resolve varacc")
         }
 
         return Responses OK

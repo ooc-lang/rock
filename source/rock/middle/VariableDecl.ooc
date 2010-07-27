@@ -141,7 +141,7 @@ VariableDecl: class extends Declaration {
             type = expr getType()
             if(type == null) {
                 trail pop(this)
-                res wholeAgain(this, "must determine type of %s\n" format(toString()))
+                res wholeAgain(this, "must determine type of a VarDecl.")
                 return Responses OK
             }
         }

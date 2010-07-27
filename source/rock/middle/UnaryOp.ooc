@@ -68,7 +68,7 @@ UnaryOp: class extends Expression {
 
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType)
-            if(score == -1) { res wholeAgain(this, "score of %s == -1 !!" format(opDecl toString())); return Responses OK }
+            if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Responses OK }
             if(score > bestScore) {
                 bestScore = score
                 candidate = opDecl
@@ -79,7 +79,7 @@ UnaryOp: class extends Expression {
             module := imp getModule()
             for(opDecl in module getOperators()) {
                 score := getScore(opDecl, reqType)
-                if(score == -1) { res wholeAgain(this, "score of %s == -1 !!" format(opDecl toString())); return Responses OK }
+                if(score == -1) { res wholeAgain(this, "score of %s == -1 !!"); return Responses OK }
                 if(score > bestScore) {
                     bestScore = score
                     candidate = opDecl
