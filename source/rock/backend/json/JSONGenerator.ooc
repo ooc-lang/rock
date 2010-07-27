@@ -1,5 +1,5 @@
 import io/[File, FileWriter]
-import structs/[Bag, HashBag]
+import structs/[Bag, HashBag, MultiMap, List]
 import text/json/Generator
 import text/Buffer
 
@@ -21,15 +21,15 @@ JSONGenerator: class extends Visitor {
     outFile: File
     module: Module
     root: HashBag
-    objects: Bag
+    objects: MultiMap<String, HashBag>
 
     init: func (=params, =module) {
         outFile = File new(params outPath getPath() + File separator + module getSourceFolderName(), module getPath(".json"))
         outFile parent() mkdirs()
         root = HashBag new()
-        objects = Bag new()
+        objects = MultiMap<String, HashBag> new()
+
         /* build the structure! */
-        root put("entities", objects)
         root put("path", module getPath())
 
         globalImports := Bag new()
@@ -59,9 +59,7 @@ JSONGenerator: class extends Visitor {
     }
 
     addObject: func (tag: String, obj: HashBag) {
-        list := Bag new()
-        list add(tag) .add(obj)
-        objects add(list)
+        objects put(tag, obj)
     }
 
     resolveType: func (type: Type) -> String {
@@ -79,7 +77,23 @@ JSONGenerator: class extends Visitor {
 
     /** generate now, actually. */
     close: func {
-        /* don't beautify, don't indent. */
+        // add the entities to root (first construct it, yeah!)
+        bag := Bag new()
+        for(key: String in objects getKeys()) {
+            subbag := Bag new()
+            subbag add(key)
+            val := objects getAll(key) as Object
+            if(val instanceOf?(List)) {
+                for(obj: HashBag in (val as List<HashBag>)) {
+                    subbag add(obj)
+                }
+            } else {
+                subbag add(val as HashBag)
+            }
+            bag add(subbag)
+        }
+        root put("entities", bag)
+        // don't beautify, don't indent.
         writer := FileWriter new(outFile)
         generate(writer, root)
         writer close()
