@@ -102,7 +102,7 @@ JSONGenerator: class extends Visitor {
     translateVersionSpec: func (spec: VersionSpec) -> String {
         match (spec class) {
             case VersionName => {
-                return spec as VersionName name
+                return spec as VersionName origin 
             }
             case VersionNegation => {
                 return "not(%s)" format(translateVersionSpec(spec as VersionNegation spec))
