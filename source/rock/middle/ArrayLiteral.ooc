@@ -192,7 +192,7 @@ ArrayLiteral: class extends Literal {
             }
             if(!trail addBeforeInScope(this, vDecl)) {
                 grandpa := trail peek(parentIdx + 2)
-                memberDecl := trail get(varDeclIdx) as VariableDecl
+                memberDecl := (varDeclIdx != -1 ? trail get(varDeclIdx) as VariableDecl : null)
 
                 if(grandpa instanceOf?(ClassDecl)) {
                     cDecl := grandpa as ClassDecl
@@ -205,7 +205,9 @@ ArrayLiteral: class extends Literal {
                     fDecl getBody() add(vDecl)
                     memberInitShouldMove = true
                 } else {
-                    res throwError(CouldntAddBeforeInScope new(token, this, vDecl, trail))
+                    if(res fatal) res throwError(CouldntAddBeforeInScope new(token, this, vDecl, trail))
+                    res wholeAgain(this, "Trail is messed up, gotta loop")
+                    return Responses OK
                 }
             }
             if(!parent replace(this, vAcc)) {

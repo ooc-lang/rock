@@ -57,10 +57,10 @@ Process: abstract class {
        Create a new process with given arguments and environment
        variables
      */
-    new: static func ~withEnvFromArray (args: String[], .env) {
+    new: static func ~withEnvFromArray (args: String[], .env) -> This {
         p := new(args)
-	p env = env
-	p
+        p env = env
+        p
     }
 
     /**
@@ -101,36 +101,40 @@ Process: abstract class {
     /**
      * Execute the process, and return all the output to stdout
      * as a string
+     *
+     * @return the standard output, and the exit code
      */
-    getOutput: func -> String {
+    getOutput: func -> (String, Int) {
 
         stdOut = Pipe new()
-        execute()
+        exitCode := execute()
 
         result := PipeReader new(stdOut) toString()
 
         stdOut close('r'). close('w')
         stdOut = null
 
-        result
+        (result, exitCode)
 
     }
 
     /**
      * Execute the process, and return all the output to stderr
      * as a string
+     *
+     * @return the error output, and the exit code
      */
-    getErrOutput: func -> String {
+    getErrOutput: func -> (String, Int) {
 
         stdErr = Pipe new()
-        execute()
+        exitCode := execute()
 
         result := PipeReader new(stdErr) toString()
 
         stdErr close('r'). close('w')
         stdErr = null
 
-        result
+        (result, exitCode)
 
     }
 
