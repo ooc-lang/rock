@@ -2,7 +2,7 @@ import structs/[ArrayList, List]
 import ../frontend/Token
 import ControlStatement, Statement, Expression, Visitor, VariableDecl,
        Node, VariableAccess, Scope, BoolLiteral, Comparison, Type,
-       FunctionDecl, Return, BinaryOp
+       FunctionDecl, Return, BinaryOp, FunctionCall
 import tinker/[Trail, Resolver, Response, Errors]
 
 Match: class extends Expression {
@@ -10,6 +10,8 @@ Match: class extends Expression {
     type: Type = null
     expr: Expression = null
     cases := ArrayList<Case> new()
+
+    casesResolved? := false
 
     init: func ~match_ (.token) {
         super(token)
@@ -22,24 +24,6 @@ Match: class extends Expression {
 
     addCase: func (caze: Case) {
         cases add(caze)
-
-        if(expr && caze getExpr()) {
-            // When the expr of match is `true` we generate
-            // if(caseExpr) instead of if(true == caseExpr)
-            if(!(expr instanceOf?(BoolLiteral) && expr as BoolLiteral getValue() == true)) {
-                fCall := FunctionCall new(expr, "matches__quest", caze getExpr() token)
-                fCall args add(caze getExpr())
-                fCall resolve(trail, res)
-                if(fCall getRef() != null) {
-                    returnType := fCall getType() getName()
-                    if(returnType != "Bool")
-                        res throwError(WrongMatchesSignature new(expr token, "matches? returns a %s, but it should return a Bool" format(returnType)))
-                    caze setExpr(call)
-                } else {
-                    caze setExpr(Comparison new(expr, caze getExpr(), CompType equal, caze getExpr() token))
-                }
-            }
-        }
     }
 
     accept: func (visitor: Visitor) {
@@ -54,13 +38,37 @@ Match: class extends Expression {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-
         if (expr != null) {
             response := expr resolve(trail, res)
             if(!response ok()) return response
         }
 
         trail push(this)
+        if(!casesResolved?) {
+            for (caze in cases) {
+                if(expr && caze getExpr()) {
+                    // When the expr of match is `true` we generate
+                    // if(caseExpr) instead of if(true == caseExpr)
+                    if(!(expr instanceOf?(BoolLiteral) && expr as BoolLiteral getValue() == true)) {
+                        fCall := FunctionCall new(expr, "matches__quest", caze getExpr() token)
+                        fCall args add(caze getExpr())
+                        hmm := fCall resolve(trail, res)
+                        "OK? %s" printfln((hmm == Responses OK) toString())
+                        "refScore: %i" printfln(fCall refScore)
+                        if(fCall getRef() != null) {
+                            returnType := fCall getType() getName()
+                            if(returnType != "Bool")
+                                res throwError(WrongMatchesSignature new(expr token, "matches? returns a %s, but it should return a Bool" format(returnType)))
+                            caze setExpr(fCall)
+                        } else {
+                            caze setExpr(Comparison new(expr, caze getExpr(), CompType equal, caze getExpr() token))
+                        }
+                    }
+                }
+            }
+            casesResolved? = true
+        }
+        
         for (caze in cases) {
             response := caze resolve(trail, res)
             if(!response ok()) {

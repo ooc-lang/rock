@@ -249,7 +249,7 @@ TypeDecl: abstract class extends Declaration {
         return getFunction(call name, call suffix, call, finalScore&)
     }
 
-    getFunction: func ~name (name, String, finalScore: Int@) -> FunctionDecl {
+    getFunction: func ~name (name: String, finalScore: Int@) -> FunctionDecl {
         return getFunction(name, null, null, true, finalScore&)
     }
 
