@@ -28,11 +28,11 @@ ModuleWriter: abstract class extends Skeleton {
         if(!module includes empty?()) current nl()
 
         for(uze in module uses) {
-	    useDef := uze getUseDef()
-	    for(ynclude in useDef getIncludes()) {
-		current nl(). app("#include <"). app(ynclude). app(">")
-	    }
-	}
+            useDef := uze getUseDef()
+            for(ynclude in useDef getIncludes()) {
+                current nl(). app("#include <"). app(ynclude). app(">")
+            }
+        }
 
         // write all type forward declarations
         writeTypesForward(this, module, false) // non-metas first
@@ -365,6 +365,16 @@ ModuleWriter: abstract class extends Skeleton {
                         if(coverDecl getModule() != imp getModule()) continue
                         // uses compound cover, tightening!
                         imp setTight(true)
+                        continue
+                    }
+                    for(interfaceType in selfDecl interfaceTypes) {
+                        "[%s] Reviewing interfaceType, ref's module is %s, imp is %s" printfln(interfaceType toString(),
+                            interfaceType getRef() as TypeDecl getModule() getFullName(), imp getModule() getFullName())
+                        if(interfaceType getRef() as TypeDecl getModule() == imp getModule()) {
+                            imp setTight(true)
+                            "Tightened!" println()
+                            break
+                        }
                     }
                 }
             }
@@ -381,6 +391,7 @@ ModuleWriter: abstract class extends Skeleton {
                 for(interfaceDecl in tDecl getInterfaceDecls()) {
                     if(!meta) {
                         ClassDeclWriter writeStructTypedef(this, interfaceDecl)
+                        ClassDeclWriter writeStructTypedef(this, interfaceDecl getMeta())
                     }
                 }
             }
@@ -412,7 +423,7 @@ ModuleWriter: abstract class extends Skeleton {
                 current app(' '). app(define value)
             }
             current nl(). app("#define "). app(define name). app("___defined")
-			current nl(). app("#endif");
+			current nl(). app("#endif")
 		}
 
         chevron := (inc mode == IncludeModes PATHY)

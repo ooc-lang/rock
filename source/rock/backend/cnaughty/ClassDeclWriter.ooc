@@ -32,18 +32,27 @@ ClassDeclWriter: abstract class extends Skeleton {
                 writeInstanceVirtualFuncs(this, cDecl)
                 writeStaticFuncs(this, cDecl)
             } else {
+                current = fw
+                if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
+                writeClassGettingPrototype(this, cDecl)
+                if(cDecl getVersion()) VersionWriter writeEnd(this)
+
                 current = cw
                 if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
             }
 
             // don't write class-getting functions of extern covers - it hurts
+            "Writing classGettingFunction of %s ?" printfln(cDecl getName())
             if(cDecl getNonMeta() == null || !cDecl getNonMeta() instanceOf?(CoverDecl) || !(cDecl getNonMeta() as CoverDecl isExtern() || cDecl getNonMeta() as CoverDecl isAddon())) {
+                "Yes!" println()
                 writeClassGettingFunction(this, cDecl)
             }
 
             if(cDecl getVersion()) VersionWriter writeEnd(this)
 
+            "ClassDecl %s has %d interfaceDecls!" printfln(cDecl getName(), cDecl getNonMeta() getInterfaceDecls() size())
             for(interfaceDecl in cDecl getNonMeta() getInterfaceDecls()) {
+                "Writing %s" printfln(interfaceDecl getMeta() toString())
                 write(this, interfaceDecl getMeta())
             }
 
@@ -119,8 +128,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
     /** Write the prototypes of member functions */
     writeMemberFuncPrototypes: static func (this: Skeleton, cDecl: ClassDecl) {
-
-        current nl(). app(cDecl underName()). app(" *"). app(cDecl getNonMeta() getFullName()). app("_class();")
+        writeClassGettingPrototype(this, cDecl)
 
         for(fDecl: FunctionDecl in cDecl functions) {
 
@@ -278,10 +286,23 @@ ClassDeclWriter: abstract class extends Skeleton {
 
     }
 
+    getClassType: static func (cDecl: ClassDecl) -> ClassDecl {
+        if(cDecl getNonMeta() != null && cDecl getNonMeta() instanceOf?(InterfaceImpl)){
+            cDecl getSuperRef() as ClassDecl
+        } else {
+            cDecl
+        }
+    }
+
+    writeClassGettingPrototype: static func (this: Skeleton, cDecl: ClassDecl) {
+        realDecl := getClassType(cDecl)
+        current nl(). app(realDecl underName()). app(" *"). app(cDecl getNonMeta() getFullName()). app("_class();")
+    }
+
     writeClassGettingFunction: static func (this: Skeleton, cDecl: ClassDecl) {
 
-        isInterface := (cDecl getNonMeta() != null && cDecl getNonMeta() instanceOf?(InterfaceImpl)) as Bool
-        underName := isInterface ? cDecl getSuperRef() underName() : cDecl underName()
+        realDecl := getClassType(cDecl)
+        underName := realDecl underName()
 
         current nl(). nl(). app(underName). app(" *"). app(cDecl getNonMeta() getFullName()). app("_class()"). openBlock(). nl()
 
@@ -290,7 +311,7 @@ ClassDeclWriter: abstract class extends Skeleton {
         }
         current app("static "). app(underName). app(" class = "). nl()
 
-        writeClassStructInitializers(this, isInterface ? cDecl getSuperRef() as ClassDecl : cDecl, cDecl, ArrayList<FunctionDecl> new(), true)
+        writeClassStructInitializers(this, realDecl, cDecl, ArrayList<FunctionDecl> new(), true)
 
         current app(';')
         if (cDecl getNonMeta() getSuperRef()) {
