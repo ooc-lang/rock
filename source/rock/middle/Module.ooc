@@ -104,12 +104,6 @@ Module: class extends Node {
                 params errorHandler onError(FunctionRedefinition new(old, fDecl))
                 return
             }
-            if (fDecl verzion != null && !fDecl verzion isSatisfied(params)) {
-                //"%s is better-scored than %s, retaining." printfln(old verzion toString(), fDecl verzion toString())
-                return
-            } //else {
-            //    "%s is better-scored than %s, swapping!" printfln(fDecl verzion toString(), old verzion toString())
-            //}
         }
         functions put(hash, fDecl)
     }
@@ -123,12 +117,6 @@ Module: class extends Node {
                 params errorHandler onError(TypeRedefinition new(old, tDecl))
                 return
             }
-            if (tDecl verzion != null && !tDecl verzion isSatisfied(params)) {
-                //"%s is better-scored than %s, retaining." printfln(old verzion toString(), tDecl verzion toString())
-                return
-            } //else {
-            //    "%s is better-scored than %s, swapping!" printfln(tDecl verzion toString(), old verzion toString())
-            //}
         }
 
         types put(tDecl name, tDecl)
