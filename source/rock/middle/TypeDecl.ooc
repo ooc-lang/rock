@@ -95,6 +95,8 @@ TypeDecl: abstract class extends Declaration {
         return isMeta ? base : getMeta() base
     }
 
+    isAddon: func -> Bool { getBase() != null }
+
     getAddons: func -> ArrayList<TypeDecl> {
         return isMeta ? addons : getMeta() addons
     }
@@ -613,7 +615,9 @@ TypeDecl: abstract class extends Declaration {
         }
 
         if(access getName() == "this") {
-            if(access suggest(getNonMeta() ? getNonMeta() thisDecl : thisDecl)) return 0
+            meat := (getNonMeta() ? getNonMeta() : this)
+            if(meat isAddon()) meat = meat getBase() getNonMeta()
+            if(access suggest(meat thisDecl)) return 0
         }
 
         if(access getName() == "This") {

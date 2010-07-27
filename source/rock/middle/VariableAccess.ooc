@@ -3,7 +3,7 @@ import BinaryOp, Visitor, Expression, VariableDecl, FunctionDecl,
        TypeDecl, Declaration, Type, Node, ClassDecl, NamespaceDecl,
        EnumDecl, PropertyDecl, FunctionCall, Module, Import, FuncType,
        NullLiteral, AddressOf, BaseType, StructLiteral, Return,
-       Argument, CoverDecl
+       Argument
 
 import tinker/[Resolver, Response, Trail, Errors]
 import structs/ArrayList
@@ -82,10 +82,10 @@ VariableAccess: class extends Expression {
 		    ref = candidate
 		    return true
 	    } else if(node instanceOf?(TypeDecl) || node instanceOf?(NamespaceDecl)) {
-            if(node instanceOf?(CoverDecl) && node as CoverDecl isAddon()) {
+            if(node as TypeDecl isAddon()) {
                 // First rule of resolve club is: you do not resolve to an addon.
                 // Always resolve to the base instead.
-                return suggest(node as CoverDecl getBase() getNonMeta())
+                return suggest(node as TypeDecl getBase() getNonMeta())
             }
 			ref = node
             return true

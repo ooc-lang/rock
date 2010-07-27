@@ -58,6 +58,8 @@ Type: abstract class extends Expression {
         return false
     }
 
+    realTypize: abstract func (call: FunctionCall) -> Type
+
     replace: func (oldie, kiddo: Node) -> Bool { false }
 
     clone: abstract func -> This
@@ -204,7 +206,9 @@ TypeAccess: class extends Type {
     getRef: func -> Declaration { inner getRef() }
     setRef: func (d: Declaration) { inner setRef(d) }
 
-    clone: func -> Type { inner clone() }
+    clone: func -> Type {
+        new(inner clone(), token)
+    }
 
     dereference: func -> Type { inner dereference() }
 
@@ -220,6 +224,14 @@ TypeAccess: class extends Type {
 
     searchTypeArg: func (typeArgName: String, finalScore: Int@) -> Type {
         inner searchTypeArg(typeArgName, finalScore&)
+    }
+
+    realTypize: func (call: FunctionCall) -> Type {
+        diff := inner realTypize(call)
+        if(diff != inner) {
+            return new(diff, token)
+        }
+        this
     }
 
 }
@@ -268,6 +280,16 @@ SugarType: abstract class extends Type {
 
     checkedDigImpl: func (list: List<Type>, res: Resolver) {
         inner checkedDigImpl(list, res)
+    }
+
+    realTypize: func (call: FunctionCall) -> Type {
+        diff := inner realTypize(call)
+        if(diff != inner) {
+            copy := clone() as This
+            copy inner = diff
+            return copy
+        }
+        this
     }
 
 }

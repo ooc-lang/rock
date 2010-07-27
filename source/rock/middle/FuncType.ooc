@@ -4,7 +4,7 @@ import ../backend/cnaughty/AwesomeWriter, ../frontend/BuildParams
 import tinker/[Response, Resolver, Trail]
 
 import Type, BaseType, VariableAccess, Declaration, CoverDecl, TypeDecl,
-       Module
+       Module, FunctionCall
 
 FuncType: class extends Type {
 
@@ -41,6 +41,17 @@ FuncType: class extends Type {
 
     // should we throw an error or something?
     dereference : func -> This { null }
+
+    realTypize: func (call: FunctionCall) -> Type {
+        copy := This new(token)
+        copy typeArgs addAll(typeArgs)
+        for(argType in argTypes) {
+            copy argTypes add(argType realTypize(call))
+        }
+        copy returnType = returnType realTypize
+        copy varArg = varArg
+        copy
+    }
 
     clone: func -> This {
         copy := This new(token)

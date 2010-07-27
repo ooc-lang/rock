@@ -151,11 +151,11 @@ FStream: cover from FILE* {
         fputc(chr, this)
     }
 
-    write: func (str: String) {
+    write: func ~str (str: String) {
         fputs(str, this)
     }
 
-    write: func (str: String, length: SizeT) -> SizeT {
+    write: func ~strWithLength (str: String, length: SizeT) -> SizeT {
         write(str, 0, length)
     }
 

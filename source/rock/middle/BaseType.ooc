@@ -4,7 +4,8 @@ import ../backend/cnaughty/AwesomeWriter, ../frontend/BuildParams
 import tinker/[Response, Resolver, Trail, Errors]
 
 import Type, Declaration, VariableAccess, VariableDecl, TypeDecl,
-       InterfaceDecl, Node, ClassDecl, CoverDecl, Cast, FuncType
+       InterfaceDecl, Node, ClassDecl, CoverDecl, Cast, FuncType,
+       FunctionCall
 
 BaseType: class extends Type {
 
@@ -82,10 +83,10 @@ BaseType: class extends Type {
 
     suggest: func (decl: Declaration) -> Bool {
 
-        if(decl instanceOf?(CoverDecl) && decl as CoverDecl isAddon()) {
+        if(decl instanceOf?(TypeDecl) && decl as TypeDecl isAddon()) {
             // The second rule of resolve club is: you do *NOT* resolve to an addon.
             // Always resolve to the base instead.
-            return suggest(decl as CoverDecl getBase() getNonMeta())
+            return suggest(decl as TypeDecl getBase() getNonMeta())
         }
         ref = decl
 
@@ -450,6 +451,13 @@ BaseType: class extends Type {
         }
 
         return null
+    }
+
+    realTypize: func (call: FunctionCall) -> Type {
+        finalScore := 0
+        solved := call resolveTypeArg(name, null, finalScore&)
+        if(solved) return solved
+        this
     }
 
 }

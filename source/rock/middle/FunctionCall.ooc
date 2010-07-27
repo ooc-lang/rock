@@ -117,7 +117,8 @@ FunctionCall: class extends Expression {
      * a return expression, when it's being used.
      */
     debugCondition: inline func -> Bool {
-        false
+        // false
+        name == "init" && suffix == "withData"
     }
 
     /**
@@ -403,9 +404,9 @@ FunctionCall: class extends Expression {
 
             declArgType := declArg getType()
             if(declArgType isGeneric()) {
-                finalScore := 0
-                solved := resolveTypeArg(declArgType getName(), null, finalScore&)
-                if(solved) declArgType = solved
+                "declArgType is originally %s" printfln(declArg toString())
+                declArgType = declArgType realTypize(this)
+                "and now it's %s" printfln(declArg toString())
             }
 
             score := callArg getType() getScore(declArgType)
@@ -927,13 +928,7 @@ FunctionCall: class extends Expression {
             declArgType := declArg getType()
             if (declArgType isGeneric()) {
                 finalScore := 0
-                solved := resolveTypeArg(declArgType getName(), null, finalScore&)
-                if(solved) {
-                    if(debugCondition()) {
-                        "%s solved to %s" printfln(declArgType toString(), solved toString())
-                    }
-                    declArgType = solved
-                }
+                declArgType = declArgType realTypize(this)
             }
 
             typeScore := callArg getType() getScore(declArgType refToPointer())

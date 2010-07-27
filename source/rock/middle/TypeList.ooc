@@ -1,5 +1,5 @@
 import structs/[List, ArrayList]
-import Type, Visitor, Declaration, VariableAccess
+import Type, Visitor, Declaration, VariableAccess, FunctionCall
 import tinker/[Response, Resolver, Trail]
 import ../backend/cnaughty/AwesomeWriter
 import text/Buffer
@@ -81,6 +81,12 @@ TypeList: class extends Type {
     clone: func -> Type {
         copy := new(token)
         for(type in types) copy types add(type)
+        copy
+    }
+
+    realTypize: func (call: FunctionCall) -> Type {
+        copy := new(token)
+        for(type in types) copy types add(type realTypize(call))
         copy
     }
 

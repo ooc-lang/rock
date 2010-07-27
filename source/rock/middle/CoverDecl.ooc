@@ -32,8 +32,6 @@ CoverDecl: class extends TypeDecl {
         super(fDecl)
     }
 
-    isAddon: func -> Bool { getBase() != null }
-
     resolve: func (trail: Trail, res: Resolver) -> Response {
         {
             response := super(trail, res)

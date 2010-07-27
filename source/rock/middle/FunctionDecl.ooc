@@ -313,7 +313,9 @@ FunctionDecl: class extends Declaration {
         }
 
         if(owner != null && access name == "this") {
-            if(access suggest(isThisRef ? owner thisRefDecl : owner thisDecl)) return 0
+            meat := owner
+            if(meat isAddon()) meat = meat getBase() getNonMeta()
+            if(access suggest(isThisRef ? meat thisRefDecl : meat thisDecl)) return 0
         }
 
         for(typeArg in typeArgs) {
