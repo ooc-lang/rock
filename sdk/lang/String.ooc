@@ -2,6 +2,10 @@ import text/Buffer /* for String replace ~string */
 
 include stdlib
 
+__LINE__: extern Int
+__FILE__: extern String
+__FUNCTION__: extern String
+
 strcmp: extern func (Char*, Char*) -> Int
 strncmp: extern func (Char*, Char*, Int) -> Int
 strstr: extern func (Char*, Char*)
