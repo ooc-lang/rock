@@ -29,7 +29,24 @@ FunctionDeclWriter: abstract class extends Skeleton {
 
         }
 
-        if(fDecl isExtern()) return // don't write it in source if it's extern :)
+        if(fDecl isExtern()) {
+            // write a #define for extern functions.
+            current = fw
+            if(fDecl getVersion()) VersionWriter writeStart(this, fDecl getVersion())
+            current nl()
+            
+            externName := fDecl getExternName()
+            if(externName empty?())
+                externName = fDecl getName()
+
+            current app("#define ") .app(fDecl getFullName()) \
+                   .app("(...) ") .app(externName) .app("(__VA_ARGS__)") .nl()
+
+            if(fDecl getVersion()) VersionWriter writeEnd(this)
+
+            // don't write to source.
+            return
+        }
 
         // source
         current = cw

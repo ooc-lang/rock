@@ -191,12 +191,6 @@ FunctionDecl: class extends Declaration {
                 fullName = getUnmangledName()
             } else if(isEntryPoint()) {
                 fullName = name
-            } else if(isExtern()) {
-                if(isExternWithName()) {
-                    fullName = externName
-                } else {
-                    fullName = name
-                }
             } else {
                 if(isMember()) {
                     fullName = "%s_%s" format(owner getFullName(), name)
