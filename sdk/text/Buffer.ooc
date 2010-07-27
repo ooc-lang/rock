@@ -1,8 +1,10 @@
 import io/[Writer, Reader]
 import structs/ArrayList
-/*
+/**
     Multi-Purpose Buffer class.
+    This is the big brother of String, optimized for performance. */
 
+    /*
     since toString simply returns the pointer to the data, it has to be always
     zero-terminated. this is done automatically by the constructor or append methods.
     however, when direct resizing of the allocated data buffer via checkLength or
@@ -12,7 +14,10 @@ import structs/ArrayList
     */
 
 Buffer: class {
-    size: SizeT //{ get } FIXME
+    size: SizeT /* {
+        get
+        set
+     } */
 
     capacity: SizeT
     data: Char*
@@ -398,7 +403,7 @@ operator != (a, b: Buffer) -> Bool {
     else return true
 }
 
-/* Test routines
+/*  Test routines
     TODO use kinda builtin assert which doesnt crash when one test fails
     once unittest facility is builtin
 */
@@ -416,7 +421,6 @@ Buffer_unittest: class {
             if (!(b toFile("C:\\temp\\buftest")))     println("write failed")
         }
         if (! ((c := Buffer new(0) fromFile(__FILE__) )     == b ) ) println( "comparison failed")
-        if (!(b toFile("xxxbuftest")))     println("write failed")
     }
 
     testFind: static func {
@@ -481,7 +485,7 @@ Buffer_unittest: class {
 
     unittest: static func {
         testOperators()
-        //testFile()
+        testFile()
         testFind()
         testReplace()
         testSplit()
