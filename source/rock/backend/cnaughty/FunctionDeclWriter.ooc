@@ -34,7 +34,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
             current = fw
             if(fDecl getVersion()) VersionWriter writeStart(this, fDecl getVersion())
             current nl()
-            
+
             externName := fDecl getExternName()
             if(externName empty?())
                 externName = fDecl getName()
@@ -202,12 +202,6 @@ FunctionDeclWriter: abstract class extends Skeleton {
 
 
     writeFuncPrototype: static func (this: Skeleton, fDecl: FunctionDecl, additionalSuffix: String) {
-
-        //"|| Writing prototype of fDecl %s" format(fDecl name) println()
-
-        // TODO inline member functions don't work yet anyway.
-        //if(functionDecl isInline()) cgen.current.append("inline ")
-
         // functions that return a generic value are actually void
         // the return takes place with a memcpy/assignment to the returnArg
         if(fDecl getReturnType() isGeneric()) {
@@ -220,12 +214,6 @@ FunctionDeclWriter: abstract class extends Skeleton {
         if(additionalSuffix) current app(additionalSuffix)
 
         writeFuncArgs(this, fDecl)
-
-        // TODO add function pointers
-        /*if(returnType instanceof FuncType) {
-            TypeWriter writeFuncPointerEnd((FunctionDecl) returnType.getRef(), cgen)
-        }*/
-
     }
 
 }

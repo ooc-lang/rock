@@ -368,11 +368,8 @@ ModuleWriter: abstract class extends Skeleton {
                         continue
                     }
                     for(interfaceType in selfDecl interfaceTypes) {
-                        "[%s] Reviewing interfaceType, ref's module is %s, imp is %s" printfln(interfaceType toString(),
-                            interfaceType getRef() as TypeDecl getModule() getFullName(), imp getModule() getFullName())
                         if(interfaceType getRef() as TypeDecl getModule() == imp getModule()) {
                             imp setTight(true)
-                            "Tightened!" println()
                             break
                         }
                     }
