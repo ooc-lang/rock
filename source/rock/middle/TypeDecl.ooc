@@ -164,7 +164,15 @@ TypeDecl: abstract class extends Declaration {
 
     addFunction: func (fDecl: FunctionDecl) {
         if(isMeta) {
-            functions put(This hashName(fDecl), fDecl)
+            hash := hashName(fDecl)
+            old := functions get(hash)
+            if (old != null) {
+                if(old == fDecl) Exception new(This, "Replacing with the same!") throw()
+                token module params errorHandler onError(FunctionRedefinition new(old, fDecl))
+                return
+            }
+
+            functions put(hash, fDecl)
             fDecl setOwner(getNonMeta())
         } else {
             meta addFunction(fDecl)
@@ -172,7 +180,11 @@ TypeDecl: abstract class extends Declaration {
     }
 
 	removeFunction: func(fDecl: FunctionDecl) {
-		functions remove(This hashName(fDecl))
+        if(isMeta) {
+            functions remove(This hashName(fDecl))
+        } else {
+            meta removeFunction(fDecl)
+        }
 	}
 
     lookupFunction: func (fName, fSuffix: String) -> FunctionDecl {
@@ -838,8 +850,8 @@ TypeRedefinition: class extends Error {
     first, second: TypeDecl
 
     init: func (=first, =second) {
-        message = second token formatMessage("Redefinition of '%s'%s" format(first getName(), first verzion ? " in version " + first verzion toString() : ""), "") +
-                  first  token formatMessage("...first definition was here: ", "[ERROR]")
+        message = second token formatMessage("Redefinition of '%s'%s" format(first getName(), first verzion ? " in version " + first verzion toString() : ""), "[INFO]") + '\n' +
+                  first  token formatMessage("\n...first definition was here: ", "[ERROR]")
     }
 
     format: func -> String {

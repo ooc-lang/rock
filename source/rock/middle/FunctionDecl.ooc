@@ -624,7 +624,9 @@ FunctionDecl: class extends Declaration {
 
         if(partialByReference empty?() && partialByValue empty?()) {
 
-            if(!isFlat) {
+            if(isFlat) {
+                trail peek() replace(this, varAcc)
+            } else {
                 closureElements := [
                     varAcc
                     NullLiteral new(token)
@@ -654,12 +656,12 @@ FunctionDecl: class extends Declaration {
                     t: Type
                     if (arg getType() isGeneric()) {
                         if (!parentCall) parentCall = trail get(trail find(FunctionCall)) as FunctionCall
-                        fScore: Int
+                        fScore := 0
                         t = parentCall resolveTypeArg(arg getType() getName(), trail, fScore&)
                         if (fScore == -1) {
-                                res wholeAgain(this, "Can't figure out the actual type of generic")
-                                trail pop(this)
-                                return Responses OK
+                            res wholeAgain(this, "Can't figure out the actual type of generic")
+                            trail pop(this)
+                            return Responses OK
                         }
                     } else {
                         t = arg getType()
@@ -957,8 +959,8 @@ FunctionRedefinition: class extends Error {
     first, second: FunctionDecl
 
     init: func (=first, =second) {
-        message = second token formatMessage("Redefinition of '%s'%s" format(first getName(), first verzion ? " in version " + first verzion toString() : ""), "") +
-                  first  token formatMessage("...first definition was here: ", "[ERROR]")
+        message = second token formatMessage("Redefinition of '%s'%s" format(first getName(), first verzion ? " in version " + first verzion toString() : ""), "[INFO]") + '\n' +
+                  first  token formatMessage("\n...first definition was here: ", "[ERROR]")
     }
 
     format: func -> String {
