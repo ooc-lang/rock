@@ -1,7 +1,7 @@
 
 import ../../middle/[FunctionDecl, FunctionCall, TypeDecl, Argument,
         Type, Expression, InterfaceDecl, VariableAccess, VariableDecl,
-        ClassDecl]
+        ClassDecl, Dereference]
 import Skeleton, FunctionDeclWriter, ModuleWriter
 
 FunctionCallWriter: abstract class extends Skeleton {
@@ -24,8 +24,13 @@ FunctionCallWriter: abstract class extends Skeleton {
             current app(") ")
             if(fCall expr != null) {
                 arrow := true
-                if(fCall expr instanceOf?(VariableAccess)) {
-                    acc := fCall expr as VariableAccess
+                // Kick all dereference exprs for the analysis.
+                expr := fCall expr
+                while(expr instanceOf?(Dereference)) {
+                    expr = expr as Dereference expr
+                }
+                if(expr instanceOf?(VariableAccess)) {
+                    acc := expr as VariableAccess
                     if(acc getRef() instanceOf?(VariableDecl)) {
                         vDecl := acc getRef() as VariableDecl
                         arrow = vDecl getType() getRef() instanceOf?(ClassDecl)
@@ -166,8 +171,13 @@ FunctionCallWriter: abstract class extends Skeleton {
 
             if(fCall expr != null) {
                 arrow := true
-                if(fCall expr instanceOf?(VariableAccess)) {
-                    acc := fCall expr as VariableAccess
+                // Kick all dereference exprs for the analysis.
+                expr := fCall expr
+                while(expr instanceOf?(Dereference)) {
+                    expr = expr as Dereference expr
+                }
+                if(expr instanceOf?(VariableAccess)) {
+                    acc := expr as VariableAccess
                     if(acc getRef() instanceOf?(VariableDecl)) {
                         vDecl := acc getRef() as VariableDecl
                         arrow = vDecl getType() getRef() instanceOf?(ClassDecl)
