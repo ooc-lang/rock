@@ -1,4 +1,4 @@
-/** 
+/**
  * Set text colors and attributes for VT100 compatible terminals
  * @author eagle2com
  */
@@ -7,22 +7,22 @@ Attr: class {
     /* text attribute codes */
     /* Reset All Attributes (return to normal mode) */
     reset =   0,
-    /* Bright (Usually turns on BOLD) */        
-    bright =  1,    
-    /* Dim    */            
-    dim =     2,    
-    /* Underline */                
-    under =   4,        
-    /* Blink (Does this really work?????) */        
-    blink =   5,    
-    /* Reverse (swap background and foreground colors) */                
-    reverse = 7,     
+    /* Bright (Usually turns on BOLD) */
+    bright =  1,
+    /* Dim    */
+    dim =     2,
+    /* Underline */
+    under =   4,
+    /* Blink (Does this really work?????) */
+    blink =   5,
+    /* Reverse (swap background and foreground colors) */
+    reverse = 7,
     /* Hidden */
-    hidden =  8 : static const Int     
+    hidden =  8 : static const Int
 }
 
 
-Color: class {    
+Color: class {
     /* Foreground color codes */
     black =      30,
     red =        31,
@@ -97,6 +97,9 @@ Terminal: class {
     /* Background color codes are the same as Foreground + 10
      * example: background blue = 34 + 10 = 44
      */
+
+    /** Output a terminal code to stdout **/
+    output: static func(fmt : String, ...) {}
 
     /** Set foreground and background color */
     setColor: static func(f,b: Int) {}
