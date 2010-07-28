@@ -91,3 +91,18 @@ Closure: cover {
     context: Pointer
 }
 
+/** An object storing a value and its class. */
+Cell: class <T> {
+    val: T
+
+    init: func(=val) {}
+}
+
+operator [] <T> (c: Cell<T>, T: Class) -> T {
+    if(!c T inheritsFrom?(T)) {
+        Exception new(Cell, "Wants a %s, but got a %s" format(T name, c T name))
+    }
+    c val
+}
+
+
