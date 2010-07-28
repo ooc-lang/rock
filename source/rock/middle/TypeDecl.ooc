@@ -166,7 +166,7 @@ TypeDecl: abstract class extends Declaration {
         if(isMeta) {
             hash := hashName(fDecl)
             old := functions get(hash)
-            if (old != null) {
+            if (old != null && fDecl getName() != "init") { /* init is an exception */
                 if(old == fDecl) Exception new(This, "Replacing with the same!") throw()
                 token module params errorHandler onError(FunctionRedefinition new(old, fDecl))
                 return
