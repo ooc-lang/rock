@@ -45,18 +45,22 @@ Match: class extends Expression {
 
         trail push(this)
         if(!casesResolved?) {
+            casesResolved? = true
             for (caze in cases) {
                 if(expr && caze getExpr()) {
                     // When the expr of match is `true` we generate
                     // if(caseExpr) instead of if(true == caseExpr)
                     if(!(expr instanceOf?(BoolLiteral) && expr as BoolLiteral getValue() == true)) {
+                        if(expr getType() ==  null) {
+                            res wholeAgain(this, "need expr type")
+                            casesResolved? = false
+                            break
+                        }
                         fCall := FunctionCall new(expr, "matches__quest", caze getExpr() token)
                         fCall args add(caze getExpr())
                         hmm := fCall resolve(trail, res)
-                        "OK? %s" printfln((hmm == Responses OK) toString())
-                        "refScore: %i" printfln(fCall refScore)
                         if(fCall getRef() != null) {
-                            returnType := fCall getType() getName()
+                            returnType := fCall getRef() getReturnType() getName()
                             if(returnType != "Bool")
                                 res throwError(WrongMatchesSignature new(expr token, "matches? returns a %s, but it should return a Bool" format(returnType)))
                             caze setExpr(fCall)
@@ -66,9 +70,8 @@ Match: class extends Expression {
                     }
                 }
             }
-            casesResolved? = true
         }
-        
+
         for (caze in cases) {
             response := caze resolve(trail, res)
             if(!response ok()) {
