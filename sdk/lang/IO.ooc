@@ -155,7 +155,7 @@ FStream: cover from FILE* {
         fputs(str, this)
     }
 
-    write: func ~strWithLength (str: String, length: SizeT) -> SizeT {
+    write: func ~withLength (str: String, length: SizeT) -> SizeT {
         write(str, 0, length)
     }
 

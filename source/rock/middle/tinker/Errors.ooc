@@ -26,7 +26,7 @@ DefaultErrorHandler: class implements ErrorHandler {
 
     onError: func (e: Error) {
         e format() println()
-        if(e isFatal?() && params fatalError) {
+        if(e fatal?() && params fatalError) {
             CommandLine failure()
         }
     }
@@ -49,7 +49,7 @@ Error: abstract class {
 
     init: func ~tokenMessage (=token, =message) {}
 
-    isFatal?: func -> Bool { true }
+    fatal?: func -> Bool { true }
 
     format: func -> String { token formatMessage(message, "ERROR") }
 
@@ -64,9 +64,9 @@ InternalError: class extends Error {
 Warning: class extends Error {
 
     init: super func ~tokenMessage
-    isFatal?: func -> Bool { false }
+    fatal?: func -> Bool { false }
 
-    format: func -> String { token formatMessage(message, "ERROR") }
+    format: func -> String { token formatMessage(message, "WARNING") }
 
 }
 
