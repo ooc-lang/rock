@@ -40,7 +40,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
                 externName = fDecl getName()
 
             current app("#define ") .app(fDecl getFullName()) \
-                   .app("(...) ") .app(externName) .app("(__VA_ARGS__)") .nl()
+                   .app(' ') .app(externName) .nl()
 
             if(fDecl getVersion()) VersionWriter writeEnd(this)
 
