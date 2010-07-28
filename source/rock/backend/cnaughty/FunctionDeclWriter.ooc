@@ -211,7 +211,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
         }
 
         if(fDecl isProto()) {
-            current app(fDecl getName())
+            current app(fDecl isExternWithName() ? fDecl getExternName() : fDecl getName())
         } else {
             writeFullName(this, fDecl)
         }
