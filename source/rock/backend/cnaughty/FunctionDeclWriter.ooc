@@ -210,7 +210,12 @@ FunctionDeclWriter: abstract class extends Skeleton {
             current app(fDecl returnType). app(' ')
         }
 
-        writeFullName(this, fDecl)
+        if(fDecl isProto()) {
+            current app(fDecl getName())
+        } else {
+            writeFullName(this, fDecl)
+        }
+
         if(additionalSuffix) current app(additionalSuffix)
 
         writeFuncArgs(this, fDecl)
