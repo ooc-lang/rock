@@ -181,55 +181,85 @@ Archive: class {
         }
     }
 
-    /**
-       Check if a module is present and up-to-date
-       in the given archive.
-     */
-    upToDate?: func (module: Module) -> Bool {
-        _upToDate?(module, ArrayList<Module> new(), true)
-    }
+    dirtyModules: func (modules: List<Module>) -> List<Module> {
 
-    _upToDate?: func (module: Module, done: List<Module>, ourself: Bool) -> Bool {
-        if(!doCacheinfo) return false
+        dirtyModules := ArrayList<Module> new()
+        structuralDirties := ArrayList<Module> new()
+        transModules := ArrayList<Module> new()
+        cleanModules := ArrayList<Module> new()
+        cleanModules addAll(modules)
 
-        done add(module)
-
-        oocPath := module getOocPath()
-        oocFile := File new(pathElement, oocPath)
-
-        element := elements get(oocPath)
-        if(element == null) {
-            if(params debugLibcache || params veryVerbose) {
-                printf("%s not in cache, (re)compiling...\n", module getFullName())
+        running := true
+        while(running) {
+            if(params veryVerbose || params debugLibcache) {
+                "Analyzing %s, %d cleanModules, %d dirtyModules" printfln(pathElement path, cleanModules size(), dirtyModules size())
             }
-            return false
-        }
 
-        lastModified := oocFile lastModified()
-        if(lastModified != element lastModified) {
-            if(params debugLibcache || params veryVerbose) {
-                printf("%s out-of-date, recompiling... (%d vs %d, oocPath = %s)\n", module getFullName(), lastModified, element lastModified, oocPath)
-            }
-            if(ourself || !element upToDate?) {
-                return false
-            }
-        }
-
-        for(imp in module getAllImports()) {
-            if(done contains?(imp getModule())) continue
-
-            subArchive := map get(imp getModule())
-
-            if(subArchive == null || !subArchive _upToDate?(imp getModule(), done, false)) {
-                if(params debugLibcache || params veryVerbose) {
-                    printf("%s recompiling because of dependency %s (subArchive = %s)\n",
-                        module getFullName(), imp getModule() getFullName(), subArchive ? subArchive outlib : "(nil)")
+            for(module in cleanModules) {
+                subArchive := map get(module)
+                if(!subArchive) {
+                    if(params veryVerbose || params debugLibcache) {
+                        "%s is dirty because we can't find the archive" printfln(module getFullName())
+                    }
+                    transModules add(module); continue
                 }
-                return false
+                oocPath := module getOocPath()
+                element := subArchive elements get(oocPath)
+                if(!element) {
+                    if(params veryVerbose || params debugLibcache) {
+                        "%s is dirty because we can't find the element in archive %s" printfln(module getFullName(), subArchive pathElement path)
+                    }
+                    transModules add(module); continue
+                }
+                if(!element upToDate?) {
+                    if(params veryVerbose || params debugLibcache) {
+                        "%s is dirty because of element" printfln(module getFullName())
+                    }
+                    subArchive elements put(oocPath, ArchiveModule new(module, subArchive))
+                    structuralDirties add(module)
+                    transModules add(module)
+                    continue
+                }
+
+                oocFile := File new(subArchive pathElement, oocPath)
+                lastModified := oocFile lastModified()
+                if(lastModified != element lastModified) {
+                    if(params veryVerbose || params debugLibcache) {
+                        printf("%s out-of-date, recompiling... (%d vs %d, oocPath = %s)\n", module getFullName(), lastModified, element lastModified, oocPath)
+                    }
+                    transModules add(module); continue
+                }
+
+                for(imp in module getAllImports()) {
+                    candidate := imp getModule()
+                    if(structuralDirties contains?(candidate)) {
+                        if(params veryVerbose || params debugLibcache) {
+                            "%s is dirty because of import %s" printfln(module getFullName(), candidate getFullName())
+                        }
+                        transModules add(module); break
+                    }
+                }
+            }
+
+            if(transModules empty?()) {
+                running = false
+            } else {
+                if(params veryVerbose || params debugLibcache) {
+                    "[%s] We have %d transmodules to handle" printfln(pathElement path, transModules size())
+                }
+                for (module in transModules) {
+                    if(params veryVerbose || params debugLibcache) {
+                        " - %s" printfln(module getFullName())
+                    }
+                    dirtyModules add(module)
+                    cleanModules remove(module)
+                }
+                transModules clear()
             }
         }
 
-        return true
+        dirtyModules
+
     }
 
     /**
@@ -237,7 +267,7 @@ Archive: class {
        to the archives.
      */
     save: func (params: BuildParams) {
-        if(toAdd empty?()) return
+        "Saving %s" printfln(pathElement path)
 
         args := ArrayList<String> new()
         args add("ar") // GNU ar tool, manages archives
@@ -334,6 +364,7 @@ ArchiveModule: class {
 
                 // if the type wasn't there last time - we're not up-to date!
                 if(archType == null) {
+                    "Type %s wasn't there last time" printfln(tDecl getName())
                     return false
                 }
 
@@ -343,32 +374,32 @@ ArchiveModule: class {
                 for (variable in tDecl getVariables()) {
                     if(variable isStatic) {
                         if(!statVarIter hasNext?()) {
-                            //printf("Static var %s has changed, %s not up-to-date\n", variable getName(), oocPath)
+                            printf("Static var %s has changed, %s not up-to-date\n", variable getName(), oocPath)
                             return false
                         }
                         next := statVarIter next()
                         if(next != variable getName()) {
-                            //printf("Static var %s has changed, %s not up-to-date\n", variable getName(), oocPath)
+                            printf("Static var %s has changed, %s not up-to-date\n", variable getName(), oocPath)
                             return false
                         }
                     } else {
                         if(!instanceVarIter hasNext?()) {
-                            //printf("Instance var %s has changed, %s not up-to-date\n", variable getName(), oocPath)
+                            printf("Instance var %s has changed, %s not up-to-date\n", variable getName(), oocPath)
                             return false
                         }
                         next := instanceVarIter next()
                         if(next != variable getName()) {
-                            //printf("Instance var %s has changed, %s not up-to-date\n", variable getName(), oocPath)
+                            printf("Instance var %s has changed, %s not up-to-date\n", variable getName(), oocPath)
                             return false
                         }
                     }
                 }
                 if(statVarIter hasNext?()) {
-                    //printf("Less static vars, %s not up-to-date\n", oocPath)
+                    printf("Less static vars, %s not up-to-date\n", oocPath)
                     return false
                 }
                 if(instanceVarIter hasNext?()) {
-                    //printf("Less instance vars, %s not up-to-date\n", oocPath)
+                    printf("Less instance vars, %s not up-to-date\n", oocPath)
                     return false
                 }
 
@@ -376,18 +407,18 @@ ArchiveModule: class {
 
                 for (function in tDecl getFunctions()) {
                     if(!functionIter hasNext?()) {
-                        //printf("Function %s has changed, %s not up-to-date\n", function getFullName(), oocPath)
+                        printf("Function %s has changed (%d vs %d), %s not up-to-date\n", function getFullName(), archType functions size(), tDecl getFunctions() size(), oocPath)
                         return false
                     }
                     next := functionIter next()
                     if(next != function getFullName()) {
-                        //printf("Function %s has changed, %s not up-to-date\n", function getFullName(), oocPath)
+                        printf("Function %s has changed (vs %s), %s not up-to-date\n", function getFullName(), next, oocPath)
                         return false
                     }
                 }
 
                 if(functionIter hasNext?()) {
-                    //printf("Less methods, %s not up-to-date\n", oocPath)
+                    printf("Less methods, %s not up-to-date\n", oocPath)
                     return false
                 }
             }
