@@ -7,9 +7,9 @@ __FILE__: extern String
 __FUNCTION__: extern String
 
 strcmp: extern func (Char*, Char*) -> Int
-strncmp: extern func (Char*, Char*, Int) -> Int
+strncmp: extern func (Char*, Char*, SizeT) -> Int
 strstr: extern func (Char*, Char*)
-strlen:  extern func (Char*) -> Int
+strlen:  extern func (Char*) -> SizeT
 
 strtol:  extern func (Char*, Pointer, Int) -> Long
 strtoll: extern func (Char*, Pointer, Int) -> LLong
@@ -118,6 +118,13 @@ Char: cover from char {
     /** write this character to stdout, followed by a newline */
     println: func {
         "%c\n" printf(this)
+    }
+
+    containedIn?: func(s : String) -> Bool {
+        for (i in 0..s length()) {
+            if (s[i] == this) return true
+        }
+        return false
     }
 
 }

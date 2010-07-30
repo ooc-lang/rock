@@ -15,6 +15,10 @@ LLong: cover from signed long long {
     in?: func(range: Range) -> Bool {
         return this >= range min && this < range max
     }
+
+    abs: func -> This {
+        return this > 0 ? this : this * -1
+    }
 }
 
 Long:  cover from signed long  extends LLong
@@ -28,7 +32,6 @@ ULLong: cover from unsigned long long extends LLong {
     in?: func(range: Range) -> Bool {
         return this >= range min && this < range max
     }
-
 }
 
 ULong:  cover from unsigned long  extends ULLong
@@ -36,11 +39,11 @@ UInt:   cover from unsigned int   extends ULLong
 UShort: cover from unsigned short extends ULLong
 
 //INT_MIN,    INT_MAX  : extern const static Int
-//UINT_MAX 			 : extern const static UInt
+//UINT_MAX              : extern const static UInt
 //LONG_MIN,  LONG_MAX  : extern const static Long
-//ULONG_MAX			 : extern const static ULong
+//ULONG_MAX             : extern const static ULong
 //LLONG_MIN, LLONG_MAX : extern const static LLong
-//ULLONG_MAX			 : extern const static ULLong
+//ULLONG_MAX             : extern const static ULLong
 
 INT_MAX := 2147483647
 INT_MIN := -INT_MAX - 1
