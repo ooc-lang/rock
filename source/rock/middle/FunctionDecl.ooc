@@ -61,6 +61,8 @@ FunctionDecl: class extends Declaration {
     countdown := 5
 
     doInline := false
+    inlined := false
+    inlineCopy: FunctionDecl = null
 
     /** If this FunctionDecl is a shim to make a VariableDecl callable, then vDecl is set to that variable decl. */
     vDecl : VariableDecl = null
@@ -86,10 +88,14 @@ FunctionDecl: class extends Declaration {
         super(token)
         this isAnon = name empty?()
         this isFinal = (name == "init")
-        this doInline = (name == "_identity" || name == "_getFirst")
+        this doInline = (name startsWith?("__inline__"))
     }
 
     clone: func -> This {
+        clone(name)
+    }
+
+    clone: func ~withName (name: String) -> This {
         copy := new(name, token)
 
         copy isAbstract = isAbstract
@@ -406,6 +412,21 @@ FunctionDecl: class extends Declaration {
             }
         }
 
+        if(doInline) {
+            if(inlineCopy == null) {
+                // FIXME: bah, ugly testing workarounds, don't pay attention.
+                inlineCopy = clone(name + "__inline")
+                inlineCopy inlined = true
+                inlineCopy doInline = false
+            }
+        }
+
+        if(inlined) {
+            trail pop(this)
+            "%s is inlining, not resolving further" printfln(toString())
+            return Responses OK
+        }
+
         {
             response := returnType resolve(trail, res)
             if(!response ok()) {
@@ -426,12 +447,6 @@ FunctionDecl: class extends Declaration {
                     }
                 }
             }
-        }
-
-        if(doInline) {
-            "Inlining %s, hence, stopping resolving now" printfln(toString())
-            trail pop(this)
-            return Responses OK // do nothing just yet
         }
 
         {

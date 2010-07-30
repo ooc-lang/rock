@@ -3,7 +3,7 @@ import ../frontend/[Token, BuildParams, CommandLine]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
        InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType, Return,
-       TypeList, Scope
+       TypeList, Scope, Block
 import tinker/[Response, Resolver, Trail, Errors]
 
 /**
@@ -288,22 +288,50 @@ FunctionCall: class extends Expression {
          */
         if(refScore > 0) {
 
-            // resolved. if we're inlining, do it now!
-            // FIXME: this is oh-so-primitive.
-            if(ref doInline) {
-                "Inlining %s!" printfln(toString())
-
-                for(i in 0..args size()) {
-                    callArg := args get(i)
-                    trail addBeforeInScope(this, VariableDecl new(null, ref args get(i) getName(), callArg, callArg token))
-                }
-                trail peek() replace(this, ref getBody() list[0])
-                return Responses LOOP
-            }
-
             if(!resolveReturnType(trail, res) ok()) {
                 res wholeAgain(this, "looping because of return type!")
                 return Responses OK
+            }
+
+            // resolved. if we're inlining, do it now!
+            // FIXME: this is oh-so-primitive.
+            if(ref doInline) {
+                "Inlining %s! type = %s" printfln(toString(), getType() ? getType() toString() : "<unknown>")
+
+                retDecl := VariableDecl new(getType(), generateTempName("retval"), token)
+                retAcc := VariableAccess new(retDecl, token)
+                trail addBeforeInScope(this, retDecl)
+
+                block := Block new(token)
+
+                for(i in 0..args size()) {
+                    callArg := args get(i)
+                    block body add(VariableDecl new(null, ref args get(i) getName(), callArg, callArg token))
+                }
+
+                ref inlineCopy getBody() list each(|x|
+                    "Adding copy of %s" printfln(x toString())
+                    block body add(x clone())
+                )
+
+                // FIXME: this should behave exactly as autoReturn
+                if(block body last() instanceOf?(Expression)) {
+                    last := block body removeAt(block body size() - 1) as Expression
+                    "Returning last expr %s which is a %s" printfln(last toString(), last class name)
+                    ass := BinaryOp new(retAcc, last, OpType ass, token)
+                    block body add(ass)
+                }
+
+                trail addBeforeInScope(this, block)
+                block resolve(trail, res)
+
+                trail peek() replace(this, retAcc)
+
+                "Finished inlining %s, looping now!" printfln(toString())
+
+                res wholeAgain(this, "finished inlining")
+                return Responses OK
+                //return Responses LOOP
             }
 
             if(!handleGenerics(trail, res) ok()) {

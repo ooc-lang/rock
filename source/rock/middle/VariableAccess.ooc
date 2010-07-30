@@ -30,9 +30,7 @@ VariableAccess: class extends Expression {
     }
 
     clone: func -> This {
-        copy := new(expr, name, token)
-        copy ref = ref
-        copy
+        new(expr, name, token)
     }
 
     init: func ~typeAccess (type: Type, .token) {
