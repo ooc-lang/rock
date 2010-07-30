@@ -96,6 +96,13 @@ FunctionCall: class extends Expression {
         super(token)
     }
 
+    clone: func -> This {
+        copy := new(expr, name, token)
+        copy suffix = suffix
+        args each(|e| copy args add(e clone()))
+        copy
+    }
+
     setExpr: func (=expr) {}
     getExpr: func -> Expression { expr }
 

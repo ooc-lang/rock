@@ -13,6 +13,10 @@ VersionBlock: class extends ControlStatement {
         super(token)
     }
 
+    clone: func -> This {
+        new(spec, token)
+    }
+
     accept: func (v: Visitor) {
         v visitVersionBlock(this)
     }

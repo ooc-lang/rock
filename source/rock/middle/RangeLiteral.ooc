@@ -13,6 +13,10 @@ RangeLiteral: class extends Literal {
         type = BaseType new("Range", token)
     }
 
+    clone: func -> This {
+        new(lower clone(), upper clone(), token)
+    }
+
     accept: func (visitor: Visitor) {
         visitor visitRangeLiteral(this)
     }

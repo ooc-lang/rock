@@ -89,6 +89,33 @@ FunctionDecl: class extends Declaration {
         this doInline = (name == "_identity" || name == "_getFirst")
     }
 
+    clone: func -> This {
+        copy := new(name, token)
+
+        copy isAbstract = isAbstract
+        copy isStatic = isStatic
+        copy isInline = isInline
+        copy isFinal = isFinal
+        copy isProto = isProto
+        copy isSuper = isSuper
+        copy externName = externName
+        copy unmangledName = unmangledName
+
+        copy isThisRef = isThisRef
+        copy context = context
+        copy owner = owner
+        copy verzion = verzion
+
+        args each(|e| copy args add(e clone()))
+        copy returnType = returnType clone()
+
+        body list each(|e| copy body add(e clone()))
+
+        copy vDecl = vDecl
+
+        copy
+    }
+
     accept: func (visitor: Visitor) { visitor visitFunctionDecl(this) }
 
     addTypeArg: func (typeArg: VariableDecl) -> Bool { typeArgs add(typeArg); true }

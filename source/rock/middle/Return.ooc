@@ -16,6 +16,10 @@ Return: class extends Statement {
         super(token)
     }
 
+    clone: func -> This {
+        new(expr ? expr clone() : null, token)
+    }
+
     accept: func (visitor: Visitor) { visitor visitReturn(this) }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {

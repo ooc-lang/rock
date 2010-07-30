@@ -16,6 +16,11 @@ NamespaceDecl: class extends Declaration {
         super(nullToken)
     }
 
+    clone: func -> This {
+        Exception new(This, "Cloning a NamespaceDecl isn't supported") throw()
+        null
+    }
+
     accept: func (v: Visitor) {}
     replace: func (oldie, kiddo: Node) -> Bool { false }
 

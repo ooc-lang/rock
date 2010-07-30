@@ -6,9 +6,17 @@ import ../frontend/[BuildParams]
 
 Scope: class extends Node {
 
-    list := ArrayList<Statement> new()
+    list : ArrayList<Statement> { get set }
 
-    init: func ~scope {}
+    init: func ~scope {
+        list = ArrayList<Statement> new()
+    }
+
+    clone: func -> This {
+        copy := new()
+        list each(|e| copy list add(e clone()))
+        copy
+    }
 
     accept: func (v: Visitor) { v visitScope(this) }
 

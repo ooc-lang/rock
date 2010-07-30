@@ -11,6 +11,10 @@ Dereference: class extends Expression {
         super(token)
     }
 
+    clone: func -> This {
+        new(expr clone(), token)
+    }
+
     accept: func (visitor: Visitor) {
         visitor visitDereference(this)
     }

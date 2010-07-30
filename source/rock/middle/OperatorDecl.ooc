@@ -12,6 +12,12 @@ OperatorDecl: class extends Expression {
         super(token)
     }
 
+    clone: func -> This {
+        copy := new(symbol, token)
+        copy fDecl = fDecl clone()
+        copy
+    }
+
     setFunctionDecl: func (=fDecl) {
         fDecl setInline(true)
     }

@@ -39,6 +39,10 @@ Comparison: class extends Expression {
         visitor visitComparison(this)
     }
 
+    clone: func -> This {
+        new(left clone(), right clone(), compType, token)
+    }
+
     getType: func -> Type { This type }
 
     toString: func -> String {

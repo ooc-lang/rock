@@ -8,6 +8,10 @@ Parenthesis: class extends Expression {
 
     init: func ~parenthesis (=inner, .token) { super(token) }
 
+    clone: func -> This {
+        new(inner clone(), token)
+    }
+
     accept: func (visitor: Visitor) {
         visitor visitParenthesis(this)
     }

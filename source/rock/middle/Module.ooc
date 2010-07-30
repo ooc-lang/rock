@@ -51,6 +51,11 @@ Module: class extends Node {
         packageName = sanitize(packageName)
     }
 
+    clone: func -> This {
+        Exception new(This, "Can't clone Module")
+        null
+    }
+
     getLoadFuncName: func -> String { getUnderName() + "_load" }
     getFullName:     func -> String { fullName }
     getUnderName:    func -> String { underName }

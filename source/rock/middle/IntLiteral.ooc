@@ -11,6 +11,8 @@ IntLiteral: class extends Literal {
         type = BaseType new("Int", token)
     }
 
+    clone: func -> This { new(value, token) }
+
     accept: func (visitor: Visitor) { visitor visitIntLiteral(this) }
 
     getType: func -> Type { type }

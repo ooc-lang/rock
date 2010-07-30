@@ -29,6 +29,12 @@ VariableAccess: class extends Expression {
         ref = varDecl
     }
 
+    clone: func -> This {
+        copy := new(expr, name, token)
+        copy ref = ref
+        copy
+    }
+
     init: func ~typeAccess (type: Type, .token) {
         super(token)
         name = type getName()

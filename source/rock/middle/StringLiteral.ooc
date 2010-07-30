@@ -12,6 +12,8 @@ StringLiteral: class extends Literal {
         type = BaseType new("String", token)
     }
 
+    clone: func -> This { new(value clone(), token) }
+
     accept: func (visitor: Visitor) { visitor visitStringLiteral(this) }
 
     getType: func -> Type { type }

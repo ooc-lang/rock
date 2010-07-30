@@ -34,6 +34,18 @@ VariableDecl: class extends Declaration {
         super(token)
     }
 
+    clone: func -> This {
+        copy := new(type, name, expr, token)
+        copy isArg         = isArg
+        copy isGlobal      = isGlobal
+        copy isConst       = isConst
+        copy isProto       = isProto
+        copy externName    = externName clone()
+        copy unmangledName = unmangledName clone()
+        copy fDecl         = fDecl
+        copy
+    }
+
     accept: func (visitor: Visitor) {
         visitor visitVariableDecl(this)
     }
@@ -314,6 +326,15 @@ VariableDeclTuple: class extends VariableDecl {
 
     init: func ~vdTuple (.type, =tuple, .token) {
         init~vDecl (type, "<tuple>", token)
+    }
+
+    clone: func -> This {
+        copy := new(type, tuple clone(), token)
+        copy isArg         = isArg
+        copy isGlobal      = isGlobal
+        copy isConst       = isConst
+        copy isProto       = isProto
+        copy
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {

@@ -17,6 +17,12 @@ ArrayLiteral: class extends Literal {
         super(token)
     }
 
+    clone: func -> This {
+        copy := new(token)
+        elements each(|e| copy elements add(e clone()))
+        copy
+    }
+
     getElements: func -> List<Expression> { elements }
 
     accept: func (visitor: Visitor) {

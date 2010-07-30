@@ -15,6 +15,12 @@ Foreach: class extends ControlStatement {
         super(token)
     }
 
+    clone: func -> This {
+        copy := new(variable clone(), collection clone(), token)
+        body list each(|e| copy body add(e clone()))
+        copy
+    }
+
     accept: func (visitor: Visitor) {
         visitor visitForeach(this)
     }

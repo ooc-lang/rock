@@ -17,6 +17,13 @@ Match: class extends Expression {
         super(token)
     }
 
+    clone: func -> This {
+        copy := new(token)
+        copy expr = expr clone()
+        cases each(|c| copy cases add(c clone()))
+        copy
+    }
+
     getExpr: func -> Expression { expr }
     setExpr: func (=expr) {}
 
@@ -172,6 +179,13 @@ Case: class extends ControlStatement {
 
     init: func ~_case (.token) {
         super(token)
+    }
+
+    clone: func -> This {
+        copy := new(token)
+        copy expr = expr clone()
+        body list each(|c| copy body add(c clone()))
+        copy
     }
 
     accept: func (visitor: Visitor) {}

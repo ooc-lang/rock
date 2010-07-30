@@ -13,4 +13,6 @@ Expression: abstract class extends Statement {
         getType() isGeneric() ? this : AddressOf new(this, token)
     }
 
+    clone: abstract func -> This
+
 }

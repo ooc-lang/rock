@@ -78,6 +78,12 @@ TypeDecl: abstract class extends Declaration {
         }
     }
 
+    clone: func -> This {
+        // saving us a whole lot of trouble.
+        Exception new(This, "Cloning a TypeDecl is unsupported") throw()
+        null
+    }
+
     debugCondition: inline func -> Bool {
         false
     }
@@ -845,6 +851,11 @@ BuiltinType: class extends TypeDecl {
 
     init: func ~builtinType (.name, .token) {
         super(name, null, token)
+    }
+
+    clone: func -> This {
+        // what's the use in copying a BuiltinType? it's not like anything can change anyway
+        this
     }
 
     underName: func -> String { name }
