@@ -3,7 +3,7 @@ import ../frontend/[Token, BuildParams, CommandLine]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
        InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType, Return,
-       TypeList
+       TypeList, Scope
 import tinker/[Response, Resolver, Trail, Errors]
 
 /**
@@ -280,6 +280,19 @@ FunctionCall: class extends Expression {
          * Now resolve return type, generic type arguments, and interfaces
          */
         if(refScore > 0) {
+
+            // resolved. if we're inlining, do it now!
+            // FIXME: this is oh-so-primitive.
+            if(ref doInline) {
+                "Inlining %s!" printfln(toString())
+
+                for(i in 0..args size()) {
+                    callArg := args get(i)
+                    trail addBeforeInScope(this, VariableDecl new(null, ref args get(i) getName(), callArg, callArg token))
+                }
+                trail peek() replace(this, ref getBody() list[0])
+                return Responses LOOP
+            }
 
             if(!resolveReturnType(trail, res) ok()) {
                 res wholeAgain(this, "looping because of return type!")

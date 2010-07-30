@@ -60,6 +60,8 @@ FunctionDecl: class extends Declaration {
     context: Trail = null
     countdown := 5
 
+    doInline := false
+
     /** If this FunctionDecl is a shim to make a VariableDecl callable, then vDecl is set to that variable decl. */
     vDecl : VariableDecl = null
 
@@ -84,6 +86,7 @@ FunctionDecl: class extends Declaration {
         super(token)
         this isAnon = name empty?()
         this isFinal = (name == "init")
+        this doInline = (name == "_identity" || name == "_getFirst")
     }
 
     accept: func (visitor: Visitor) { visitor visitFunctionDecl(this) }
@@ -396,6 +399,12 @@ FunctionDecl: class extends Declaration {
                     }
                 }
             }
+        }
+
+        if(doInline) {
+            "Inlining %s, hence, stopping resolving now" printfln(toString())
+            trail pop(this)
+            return Responses OK // do nothing just yet
         }
 
         {
