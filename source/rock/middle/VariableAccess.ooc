@@ -82,7 +82,7 @@ VariableAccess: class extends Expression {
 		    ref = candidate
 		    return true
 	    } else if(node instanceOf?(TypeDecl) || node instanceOf?(NamespaceDecl)) {
-            if(node as TypeDecl isAddon()) {
+            if(node instanceOf?(TypeDecl) && node as TypeDecl isAddon()) {
                 // First rule of resolve club is: you do not resolve to an addon.
                 // Always resolve to the base instead.
                 return suggest(node as TypeDecl getBase() getNonMeta())
