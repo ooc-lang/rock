@@ -136,12 +136,6 @@ InlinedType: class extends TypeDecl {
             if(varAcc getName() == "this") {
                 access expr = null // mwahahaha.
                 context resolveAccess(access, res, trail)
-                varAcc = VariableAccess new("this", access token)
-                varAcc ref = context realThisDecl
-                access expr = varAcc // hahahahahahaaaaaaaaaaaaaa!!
-                "We now have access %s" printfln(access toString())
-                "expr getType() getRef() is a %s" printfln(access expr getType() getRef() class name)
-                "...and it's %s" printfln(access expr getType() getRef() toString())
             }
         }
 
