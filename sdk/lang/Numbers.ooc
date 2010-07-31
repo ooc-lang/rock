@@ -3,6 +3,7 @@ include stdlib, stdint, stdbool, float, ctype, sys/types
 LLong: cover from signed long long {
 
     toString:    func -> String { "%lld" format(this) }
+    toXString:    func -> xString { xString new("%lld") format(this) }
     toHexString: func -> String { "%llx" format(this) }
 
     odd?:  func -> Bool { this % 2 == 1 }
@@ -17,7 +18,7 @@ LLong: cover from signed long long {
     }
 
     abs: func -> This {
-        return this > 0 ? this : this * -1
+        return this >= 0 ? this : this * -1
     }
 }
 
@@ -75,6 +76,13 @@ LDouble: cover from long double {
         sprintf(str, "%.2Lf", this)
         str
     }
+
+    toXString: func -> xString {
+        str := xString new (64)
+        sprintf(str data, "%.2Lf", this)
+        str
+    }
+
 
     abs: func -> This {
         return this < 0 ? -this : this

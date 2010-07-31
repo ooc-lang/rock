@@ -121,11 +121,20 @@ Char: cover from char {
     }
 
     containedIn?: func(s : String) -> Bool {
-        for (i in 0..s length()) {
-            if (s[i] == this) return true
+        containedIn?(s as Char*, s length())
+    }
+
+    containedIn?: func(s : xString) -> Bool {
+        containedIn?(s data, s length())
+    }
+
+    containedIn?: func(s : Char*, sLength: SizeT) -> Bool {
+        for (i in 0..sLength) {
+            if ((s + i)@ == this) return true
         }
         return false
     }
+
 
 }
 

@@ -74,6 +74,7 @@ Pointer: cover from Void* {
 
 Bool: cover from bool {
     toString: func -> String { this ? "true" : "false" }
+    toXString: func -> xString { this ? xString new ("true") : xString new ("false") }
 }
 
 /**
