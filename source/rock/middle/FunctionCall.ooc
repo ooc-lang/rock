@@ -3,7 +3,7 @@ import ../frontend/[Token, BuildParams, CommandLine]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
        InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType, Return,
-       TypeList, Scope, Block
+       TypeList, Scope, Block, InlineContext
 import tinker/[Response, Resolver, Trail, Errors]
 
 /**
@@ -302,10 +302,11 @@ FunctionCall: class extends Expression {
                 retAcc := VariableAccess new(retDecl, token)
                 trail addBeforeInScope(this, retDecl)
 
-                block := Block new(token)
+                block := InlineContext new(this, token)
 
                 for(i in 0..args size()) {
                     callArg := args get(i)
+                    "Adding arg %s" printfln(ref args get(i) getName())
                     block body add(VariableDecl new(null, ref args get(i) getName(), callArg, callArg token))
                 }
 
@@ -323,8 +324,6 @@ FunctionCall: class extends Expression {
                 }
 
                 trail addBeforeInScope(this, block)
-                block resolve(trail, res)
-
                 trail peek() replace(this, retAcc)
 
                 "Finished inlining %s, looping now!" printfln(toString())

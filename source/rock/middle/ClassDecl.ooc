@@ -32,6 +32,8 @@ ClassDecl: class extends TypeDecl {
 
     isAbstract: func -> Bool { isAbstract }
 
+    byRef?: func -> Bool { false }
+
     accept: func (visitor: Visitor) { visitor visitClassDecl(this) }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {

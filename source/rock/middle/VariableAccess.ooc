@@ -3,7 +3,7 @@ import BinaryOp, Visitor, Expression, VariableDecl, FunctionDecl,
        TypeDecl, Declaration, Type, Node, ClassDecl, NamespaceDecl,
        EnumDecl, PropertyDecl, FunctionCall, Module, Import, FuncType,
        NullLiteral, AddressOf, BaseType, StructLiteral, Return,
-       Argument
+       Argument, InlineContext
 
 import tinker/[Resolver, Response, Trail, Errors]
 import structs/ArrayList
@@ -30,7 +30,7 @@ VariableAccess: class extends Expression {
     }
 
     clone: func -> This {
-        new(expr, name, token)
+        new(expr ? expr clone() : null, name, token)
     }
 
     init: func ~typeAccess (type: Type, .token) {
@@ -163,6 +163,7 @@ VariableAccess: class extends Expression {
                     tDecl := node as TypeDecl
                     if(tDecl isMeta) node = tDecl getNonMeta()
                 }
+
                 node resolveAccess(this, res, trail)
 
                 if(ref) {
@@ -346,7 +347,7 @@ VariableAccess: class extends Expression {
     getName: func -> String { name }
 
     toString: func -> String {
-        (expr && expr getType()) ? (expr getType() toString() + "." + name) : name
+        expr ? (expr toString() + " " + name) : name
     }
 
     isReferencable: func -> Bool { true }

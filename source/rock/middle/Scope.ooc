@@ -161,9 +161,9 @@ Scope: class extends Node {
         for(stmt in list) {
             if(isFirst) isFirst = false
             else        sb append(", ")
-            sb append('\n'). append(stmt toString())
+            sb append(stmt toString())
         }
-        sb append('\n'). append('}')
+        sb append(" }")
         sb toString()
     }
 
