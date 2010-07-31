@@ -353,6 +353,12 @@ FunctionCall: class extends Expression {
 
         }
 
+        // finally, avoid & on lvalues: unwrap unreferencable expressions.
+        if(ref isThisRef && expr && !expr isReferencable()) {
+            expr = VariableDecl new(null, generateTempName("hi_mum"), expr, expr token)
+            return Responses OK
+        }
+
         return Responses OK
 
     }
