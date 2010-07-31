@@ -355,7 +355,9 @@ FunctionCall: class extends Expression {
 
         // finally, avoid & on lvalues: unwrap unreferencable expressions.
         if(ref isThisRef && expr && !expr isReferencable()) {
-            expr = VariableDecl new(null, generateTempName("hi_mum"), expr, expr token)
+            vDecl := VariableDecl new(null, generateTempName("hi_mum"), expr, expr token)
+            trail addBeforeInScope(this, vDecl)
+            expr = VariableAccess new(vDecl, expr token)
             return Responses OK
         }
 
