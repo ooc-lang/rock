@@ -27,15 +27,21 @@ InlineContext: class extends Block {
             thisDecl = VariableDecl new(thisType, "this", fCall expr, fCall expr token)
             realThisDecl = VariableDecl new(null, "this", fCall expr, fCall expr token)
         }
+
+        "== Inline context of %s has %d returnArgs! and fCall has %d! ==" printfln(toString(), fCall ref getReturnArgs() size(), fCall getReturnArgs() size())
     }
 
     accept: func (v: Visitor) {
-        // whoopsie-daisy
-        body add(0, realThisDecl)
+        if(realThisDecl) {
+            // whoopsie-daisy
+            body add(0, realThisDecl)
+        }
         // as usual
         super(v)
-        // there we go. nobody noticed.
-        body removeAt(0)
+        if(realThisDecl) {
+            // there we go. nobody noticed.
+            body removeAt(0)
+        }
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {

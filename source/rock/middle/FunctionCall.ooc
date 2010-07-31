@@ -485,7 +485,6 @@ FunctionCall: class extends Expression {
             idx += 1
         }
 
-        //if(ref returnType isGeneric() && !isFriendlyHost(parent)) {
         if(!ref getReturnArgs() empty?() && !isFriendlyHost(parent)) {
             if(parent instanceOf?(Return)) {
                 fDeclIdx := trail find(FunctionDecl)

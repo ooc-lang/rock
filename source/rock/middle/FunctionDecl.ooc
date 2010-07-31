@@ -412,21 +412,6 @@ FunctionDecl: class extends Declaration {
             }
         }
 
-        if(doInline) {
-            if(inlineCopy == null) {
-                // FIXME: bah, ugly testing workarounds, don't pay attention.
-                inlineCopy = clone(name + "__inline")
-                inlineCopy inlined = true
-                inlineCopy doInline = false
-            }
-        }
-
-        if(inlined) {
-            trail pop(this)
-            "%s is inlining, not resolving further" printfln(toString())
-            return Responses OK
-        }
-
         {
             response := returnType resolve(trail, res)
             if(!response ok()) {
@@ -447,6 +432,21 @@ FunctionDecl: class extends Declaration {
                     }
                 }
             }
+        }
+
+        if(doInline) {
+            if(inlineCopy == null) {
+                // FIXME: bah, ugly testing workarounds, don't pay attention.
+                inlineCopy = clone(name + "__inline")
+                inlineCopy inlined = true
+                inlineCopy doInline = false
+            }
+        }
+
+        if(inlined) {
+            trail pop(this)
+            "%s is inlining, not resolving further" printfln(toString())
+            return Responses OK
         }
 
         {
@@ -658,9 +658,18 @@ FunctionDecl: class extends Declaration {
             }
         }
 
-        module := trail module()
-        name = generateTempName(module getUnderName() + "_closure")
+        // find the outer function call
+        parentIdx := trail find(FunctionCall)
+        parentCall := (parentIdx != -1 ? trail get(parentIdx, FunctionCall) : null)
 
+        if(parentCall getRef() == null) {
+            res wholeAgain(this, "Need outer call ref")
+            return
+        }
+
+        module := trail module()
+
+        name = generateTempName(module getUnderName() + "_closure")
         varAcc := VariableAccess new(name, token)
         varAcc setRef(this)
         module addFunction(this)
@@ -668,9 +677,6 @@ FunctionDecl: class extends Declaration {
         closureType := getType() clone()
         closureType as FuncType isClosure = true
 
-        // find the outer function call
-        parentIdx := trail find(FunctionCall)
-        parentCall := (parentIdx != -1 ? trail get(parentIdx, FunctionCall) : null)
         isFlat := (parentCall != null && parentCall getRef() isExtern())
 
         if(partialByReference empty?() && partialByValue empty?()) {
