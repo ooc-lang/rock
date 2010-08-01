@@ -979,16 +979,14 @@ operator != (str1: String, str2: String) -> Bool {
 }
 
 operator [] (string: String, index: SizeT) -> Char {
-   // println("op [] a")
     string charAt(index)
 }
 
 operator []= (string: String, index: SizeT, value: Char) {
-//    println("op [] b")
     if(index < 0 || index > string length()) {
         Exception new(String, "Writing to a String out of bounds index = %d, length = %d!" format(index, string length())) throw()
     }
-    (string as Char*)[index] = value
+    (string data + index)@ = value
 }
 
 operator [] (string: String, range: Range) -> String {
