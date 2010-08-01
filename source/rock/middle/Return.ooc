@@ -1,3 +1,4 @@
+import structs/List
 import ../frontend/[Token,BuildParams]
 import Visitor, Statement, Expression, Node, FunctionDecl, FunctionCall,
        VariableAccess, VariableDecl, AddressOf, ArrayAccess, If,
@@ -24,29 +25,36 @@ Return: class extends Statement {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        idx := trail find(FunctionDecl)
-        fDecl: FunctionDecl = null
+        /*
+         * This part used to be simpler, before inlining came to life.
+         * When inlining, we might have to deal with an InlineContext
+         * instead of a FunctionDecl.
+         *
+         * Hence, we only attempt to get 1) a return type 2) return args
+         */
+
         retType: Type = null
-        if(idx != -1) {
-            fDecl = trail get(idx) as FunctionDecl
-
-            if(expr) fDecl inferredReturnType = expr getType()
-
-            retType = fDecl getReturnType()
-            if (!retType isResolved()) {
-                return Responses LOOP
-            }
-        }
-
-        if(!expr) {
-            if (fDecl getReturnArgs() empty?() && retType != voidType) {
-                res throwError(InconsistentReturn new(token, "Function is not declared to return `null`! trail = %s" format(trail toString())))
-            } else {
-                return Responses OK
-            }
-        }
+        returnArgs: List<VariableDecl> = null
 
         {
+            idx := trail find(FunctionDecl)
+            fDecl: FunctionDecl = null
+            if(idx != -1) {
+                fDecl = trail get(idx) as FunctionDecl
+
+                if(expr) fDecl inferredReturnType = expr getType()
+
+                retType = fDecl getReturnType()
+                returnArgs = fDecl getReturnArgs()
+            }
+        }
+
+        if (!retType isResolved()) {
+            res wholeAgain(this, "need returnType!")
+            return Responses OK
+        }
+
+        if(expr) {
             trail push(this)
             response := expr resolve(trail, res)
             trail pop(this)
@@ -57,17 +65,24 @@ Return: class extends Statement {
             if(expr getType() == null || !expr getType() isResolved()) {
                 res wholeAgain(this, "expr type is unresolved"); return Responses OK
             }
+        } else {
+            if (returnArgs empty?() && retType != voidType) {
+                res throwError(InconsistentReturn new(token, "Return statement needs an expression in non-void function (ie. can't return 'nothing' in a non-void function)"))
+            } else {
+                return Responses OK
+            }
         }
 
         if (retType) {
 
             retType = retType refToPointer()
 
-            if(retType isGeneric() && fDecl getReturnArgs() empty?()) {
-                fDecl getReturnArg() // create the generic returnArg - just in case.
+            if(retType isGeneric() && returnArgs empty?()) {
+                // create the generic returnArg - just in case.
+                returnArgs add(VariableDecl new(retType, generateTempName("genericReturn"), token))
             }
 
-            if(!fDecl getReturnArgs() empty?()) {
+            if(!returnArgs empty?()) {
 
                 // if it's a generic FunctionCall, just hook its returnArg to the outer FunctionDecl and be done with it.
                 if(expr instanceOf?(FunctionCall)) {
@@ -77,9 +92,10 @@ Return: class extends Statement {
                        !fCall getRef() getReturnType() isResolved()) {
                         res wholeAgain(this, "We need the fcall to be fully resolved before resolving ourselves")
                     }
+
                     if(fCall getRef() getReturnType() isGeneric()) {
-                        // TODO: what if the return type of the outer fDecl isn't generic?
-                        fCall setReturnArg(VariableAccess new(fDecl getReturnArg(), token))
+                        // TODO: what if the return type of the outer function decl isn't generic?
+                        fCall setReturnArg(VariableAccess new(returnArgs[0], token))
                         if(!trail peek() addBefore(this, fCall)) {
                             res throwError(CouldntAddBefore new(token, this, fCall, trail))
                         }
@@ -91,7 +107,7 @@ Return: class extends Statement {
 
                 // if the expr is something else, we're gonna have to handle it ourselves. muahaha.
                 j := 0
-                for(returnArg in fDecl getReturnArgs()) {
+                for(returnArg in returnArgs) {
 
                     returnExpr := expr
                     if(expr instanceOf?(Tuple)) {
@@ -125,7 +141,6 @@ Return: class extends Statement {
 
                 expr = null
                 res wholeAgain(this, "Turned into an assignment")
-                //return Responses OK
                 return Responses LOOP
 
             }
