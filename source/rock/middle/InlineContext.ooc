@@ -1,9 +1,9 @@
 
-import structs/HashMap
+import structs/[ArrayList, HashMap]
 import ../frontend/Token
 import ../io/TabbedWriter
 import Block, VariableAccess, FunctionCall, Cast, VariableDecl, TypeDecl,
-       BaseType, Visitor, Node, FunctionDecl
+       BaseType, Visitor, Node, FunctionDecl, Type
 
 import tinker/[Trail, Resolver, Response]
 
@@ -11,7 +11,11 @@ import tinker/[Trail, Resolver, Response]
 
 InlineContext: class extends Block {
 
+    returnType : Type
+    returnArgs := ArrayList<VariableDecl> new()
+
     fCall: FunctionCall
+    ref: FunctionDecl
     casted := HashMap<VariableDecl, VariableDecl> new()
 
     thisDecl = null, realThisDecl = null : VariableDecl
@@ -19,7 +23,12 @@ InlineContext: class extends Block {
     init: func (=fCall, .token) {
         super(token)
 
+        // Store the ref on our own, just in case
+        ref = fCall ref
+
         if(fCall expr) {
+            // We use a fake 'this' to intercept variable access resolution
+            // and substitute generic types with real types
             thisTypeName := fCall expr getType() getName()
             thisType := BaseType new(thisTypeName, fCall expr token)
             thisTypeDecl := InlinedType new(this, thisTypeName)
@@ -28,10 +37,22 @@ InlineContext: class extends Block {
             realThisDecl = VariableDecl new(null, "this", fCall expr, fCall expr token)
         }
 
-        "== Inline context of %s has %d returnArgs! and fCall has %d! ==" printfln(toString(), fCall ref getReturnArgs() size(), fCall getReturnArgs() size())
+        "== Inline context of %s's ref has %d, and fCall has %d! ==" printfln(toString(), fCall ref getReturnArgs() size(), fCall getReturnArgs() size())
+        returnType = ref returnType realTypize(fCall)
+        "Return type of ref is %s, ours is %s" printfln(ref returnType toString(), returnType toString())
+
     }
 
     accept: func (v: Visitor) {
+        // here we play a little trick on our backend generator:
+        // the real this decl has to be written if we're a member call,
+        // because, you know, otherwise this can't be accessed.
+        // but since we have been using a fake 'this' to intercept
+        // variable access resolution, we weren't able to simply add
+        // it to the body during the resolution phase (the real 'this'
+        // would've been used for resolution, ruining our evil plan)
+        // Hence, we add it here, just for the C backend to see.
+
         if(realThisDecl) {
             // whoopsie-daisy
             body add(0, realThisDecl)

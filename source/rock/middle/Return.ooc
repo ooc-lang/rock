@@ -2,7 +2,7 @@ import structs/List
 import ../frontend/[Token,BuildParams]
 import Visitor, Statement, Expression, Node, FunctionDecl, FunctionCall,
        VariableAccess, VariableDecl, AddressOf, ArrayAccess, If,
-       BinaryOp, Cast, Type, Module, Tuple
+       BinaryOp, Cast, Type, Module, Tuple, InlineContext
 import tinker/[Response, Resolver, Trail, Errors]
 
 Return: class extends Statement {
@@ -37,20 +37,30 @@ Return: class extends Statement {
         returnArgs: List<VariableDecl> = null
 
         {
-            idx := trail find(FunctionDecl)
-            fDecl: FunctionDecl = null
+            // Do we have an inline context? we have to be careful if yes.
+            idx := trail find(InlineContext)
             if(idx != -1) {
-                fDecl = trail get(idx) as FunctionDecl
+                // Yes we do. Take the return type and return args from here, then.
+                ctx := trail get(idx, InlineContext)
 
-                if(expr) fDecl inferredReturnType = expr getType()
+                retType = ctx returnType
+                returnArgs = ctx returnArgs
+            } else {
+                idx = trail find(FunctionDecl)
+                if(idx != -1) {
+                    // Found a function decl! It's the regular case: we're all set.
+                    fDecl := trail get(idx, FunctionDecl)
 
-                retType = fDecl getReturnType()
-                returnArgs = fDecl getReturnArgs()
+                    if(expr) fDecl inferredReturnType = expr getType()
+
+                    retType = fDecl getReturnType()
+                    returnArgs = fDecl getReturnArgs()
+                }
             }
         }
 
-        if (!retType isResolved()) {
-            res wholeAgain(this, "need returnType!")
+        if (retType && !retType isResolved()) {
+            res wholeAgain(this, "need returnType to be resolved!")
             return Responses OK
         }
 
@@ -67,8 +77,9 @@ Return: class extends Statement {
             }
         } else {
             if (returnArgs empty?() && retType != voidType) {
-                res throwError(InconsistentReturn new(token, "Return statement needs an expression in non-void function (ie. can't return 'nothing' in a non-void function)"))
+                res throwError(InconsistentReturn new(token, "Can't return nothing in function declared as returning a %s" format(retType toString())))
             } else {
+                // no expression, and the function's alright with that - nothing more to do.
                 return Responses OK
             }
         }
@@ -116,24 +127,31 @@ Return: class extends Statement {
 
                     returnAcc := VariableAccess new(returnArg, token)
 
-                    // why take the address? well if the returnArgs aren't generic, then they are ReferenceTypes
-                    // to check if we care about a returnArg, we need to know if the *address* of the passed pointer is non-null,
-                    // not the value itself. So we take AddressOf.
-                    if1 := If new(retType isGeneric() ? returnAcc : AddressOf new(returnAcc, token), token)
-
-                    if(returnExpr hasSideEffects()) {
-                        vdfe := VariableDecl new(null, generateTempName("returnVal"), returnExpr, returnExpr token)
-                        if(!trail peek() addBefore(this, vdfe)) {
-                            res throwError(CouldntAddBefore new(token, this, vdfe, trail))
-                        }
-                        returnExpr = VariableAccess new(vdfe, vdfe token)
-                    }
+                    byRef? := returnArg getType() instanceOf?(ReferenceType)
+                    needIf? := (retType isGeneric() || byRef?)
 
                     ass := BinaryOp new(returnAcc, returnExpr, OpType ass, token)
-                    if1 getBody() add(ass)
+                    if(needIf?) {
+                        // generic variables have weird semantics
+                        if1 := If new(byRef? ? AddressOf new(returnAcc, token) : returnAcc, token)
 
-                    if(!trail peek() addBefore(this, if1)) {
-                        res throwError(CouldntAddBefore new(token, this, if1, trail))
+                        if(returnExpr hasSideEffects()) {
+                            vdfe := VariableDecl new(null, generateTempName("returnVal"), returnExpr, returnExpr token)
+                            if(!trail peek() addBefore(this, vdfe)) {
+                                res throwError(CouldntAddBefore new(token, this, vdfe, trail))
+                            }
+                            returnExpr = VariableAccess new(vdfe, vdfe token)
+                        }
+
+                        if1 getBody() add(ass)
+
+                        if(!trail peek() addBefore(this, if1)) {
+                            res throwError(CouldntAddBefore new(token, this, if1, trail))
+                        }
+                    } else {
+                        if(!trail peek() addBefore(this, ass)) {
+                            res throwError(CouldntAddBefore new(token, this, ass, trail))
+                        }
                     }
                     j += 1
 

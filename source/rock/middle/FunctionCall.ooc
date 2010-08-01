@@ -303,6 +303,7 @@ FunctionCall: class extends Expression {
                 trail addBeforeInScope(this, retDecl)
 
                 block := InlineContext new(this, token)
+                block returnArgs add(retDecl) // Note: this isn't sufficient. What with TypeList return types?
 
                 for(i in 0..args size()) {
                     callArg := args get(i)
