@@ -214,7 +214,7 @@ CGenerator: class extends Skeleton {
                 casted := false
                 if(vDecl owner != varAcc expr getType() getRef()) {
                     casted = true
-                    current app("(("). app(vDecl owner underName()). app("*) ")
+                    current app("(("). app(vDecl owner getInstanceType()) .app(')')
                 }
 
                 current app(varAcc expr)
