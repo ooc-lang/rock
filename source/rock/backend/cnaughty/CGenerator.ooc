@@ -158,7 +158,12 @@ CGenerator: class extends Skeleton {
 
     /** Write a string literal */
     visitStringLiteral: func (str: StringLiteral) {
-        current app('"'). app(str value). app('"')
+        //current app('"'). app(str value). app('"')
+
+        current app("lang_XString__xString_init_withCStrAndLength(")
+        current app('"'). app(str value). app('"'). app(", "). app (str size() toString() )
+        current app( ')' )
+
     }
 
     /** Write a char literal */
@@ -442,8 +447,8 @@ CGenerator: class extends Skeleton {
 
         if(node expr instanceOf?(Dereference)) {
             current app(node expr as Dereference expr)
-			return;
-		}
+            return;
+        }
 
         current app("&("). app(node expr). app(")")
     }

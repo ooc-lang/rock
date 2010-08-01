@@ -243,6 +243,7 @@ FunctionDecl: class extends Declaration {
             for(typeArg in typeArgs) {
                 if(isFirst) isFirst = false
                 else        sb append(", ")
+                if (typeArg == null) Exception new (This, "typeArg is NULL") throw()
                 sb append(typeArg getName())
             }
             sb append("> ")
