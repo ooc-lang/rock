@@ -125,7 +125,9 @@ CGenerator: class extends Skeleton {
 
         if(!isFunc && op type == OpType ass) {
             leftType  := op left  getType()
+            while(leftType  instanceOf?(ReferenceType)) { leftType  = leftType  as ReferenceType inner }
             rightType := op right getType()
+            while(rightType instanceOf?(ReferenceType)) { rightType = rightType as ReferenceType inner }
 
             if(leftType  isPointer() ||
                rightType isPointer()) {
@@ -214,7 +216,7 @@ CGenerator: class extends Skeleton {
                 casted := false
                 if(vDecl owner != varAcc expr getType() getRef()) {
                     casted = true
-                    current app("(("). app(vDecl owner underName()). app("*) ")
+                    current app("(("). app(vDecl owner getInstanceType()) .app(')')
                 }
 
                 current app(varAcc expr)
@@ -402,8 +404,15 @@ CGenerator: class extends Skeleton {
 
     visitComparison: func (comp: Comparison) {
         current app(comp left). app(" "). app(compTypeRepr[comp compType]). app(" ")
-        if(!comp right getType() equals?(comp left getType())) {
-            current app('('). app (comp left getType()). app(") ")
+
+        leftType  := comp left  getType()
+        while(leftType  instanceOf?(ReferenceType)) { leftType  = leftType  as ReferenceType inner }
+
+        rightType := comp right getType()
+        while(rightType instanceOf?(ReferenceType)) { rightType = rightType as ReferenceType inner }
+
+        if(!rightType equals?(leftType)) {
+            current app('('). app (leftType). app(") ")
         }
         current app(comp right)
     }

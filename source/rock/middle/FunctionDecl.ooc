@@ -124,10 +124,14 @@ FunctionDecl: class extends Declaration {
     }
 
     markForPartialing: func(var: VariableDecl, mode: String) {
-        if (!partialByReference contains?(var) && !partialByValue contains?(var)) {
+        if (!partialByReference contains?(var)) {
             match (mode) {
-                case "r" => partialByReference add(var)
-                case "v" => partialByValue add(var)
+                case "r" =>
+                    if(partialByValue contains?(var)) partialByValue remove(var)
+                    partialByReference add(var)
+                case "v" =>
+                    if(partialByValue contains?(var)) return
+                    partialByValue add(var)
             }
         }
     }

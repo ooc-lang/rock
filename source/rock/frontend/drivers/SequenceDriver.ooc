@@ -63,9 +63,10 @@ SequenceDriver: class extends Driver {
 		sourceFolders = collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<Module> new())
 
         oPaths := ArrayList<String> new()
+        reGenerated := HashMap<SourceFolder, List<Module>> new()
 
         for(sourceFolder in sourceFolders) {
-            prepareSourceFolder(sourceFolder, oPaths)
+            reGenerated put(sourceFolder, prepareSourceFolder(sourceFolder, oPaths))
         }
 
         for(sourceFolder in sourceFolders) {
@@ -78,7 +79,7 @@ SequenceDriver: class extends Driver {
                 Terminal reset()
                 fflush(stdout)
             }
-            code := buildSourceFolder(sourceFolder, oPaths)
+            code := buildSourceFolder(sourceFolder, oPaths, reGenerated get(sourceFolder))
             if(code != 0) return code
         }
         if(params verbose) println()
@@ -160,7 +161,7 @@ SequenceDriver: class extends Driver {
     /**
        Build a source folder into object files or a static library
      */
-    prepareSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>) {
+    prepareSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>) -> List<Module> {
 
         archive := sourceFolder archive
 
@@ -169,17 +170,11 @@ SequenceDriver: class extends Driver {
             objectFiles add(sourceFolder outlib)
 
             if(archive exists?) {
-                reGenerated := ArrayList<Module> new()
-                for(module in sourceFolder modules) {
-                    if(!archive upToDate?(module)) {
-                        if(CGenerator new(params, module) write()) {
-                            // was the file really written? then compile.
-                            reGenerated add(module)
-                        }
-                    }
+                dirtyModules := archive dirtyModules(sourceFolder modules)
+                for(module in dirtyModules) {
+                    CGenerator new(params, module) write()
                 }
-
-                return
+                return dirtyModules
             }
             if(params verbose) printf("\nFirst compilation with lib-caching, we have to generate + compile everything\n")
         }
@@ -190,14 +185,14 @@ SequenceDriver: class extends Driver {
             CGenerator new(params, module) write()
         }
 
-        return
+        return ArrayList<Module> new() // yay empty list
 
     }
 
     /**
        Build a source folder into object files or a static library
      */
-    buildSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>) -> Int {
+    buildSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>, reGenerated: List<Module>) -> Int {
 
         archive := sourceFolder archive
 
@@ -206,13 +201,6 @@ SequenceDriver: class extends Driver {
             objectFiles add(sourceFolder outlib)
 
             if(archive exists?) {
-                reGenerated := ArrayList<Module> new()
-                for(module in sourceFolder modules) {
-                    if(!archive upToDate?(module)) {
-                        reGenerated add(module)
-                    }
-                }
-
                 if(reGenerated size() > 0) {
                     if(params verbose) printf("\n%d new/updated modules to compile\n", reGenerated size())
                     for(module in reGenerated) {

@@ -756,12 +756,6 @@ StringIterator: class <T> extends BackIterator<T> {
 
 }
 
-/** An object storing a value and its class. */
-Cell: class <T> {
-    val: T
-    init: func(=val) {}
-}
-
 operator == (str1: String, str2: String) -> Bool {
     return str1 equals?(str2)
 }
