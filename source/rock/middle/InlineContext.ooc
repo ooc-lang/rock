@@ -20,11 +20,16 @@ InlineContext: class extends Block {
 
     thisDecl = null, realThisDecl = null : VariableDecl
 
+    label: String
+
     init: func (=fCall, .token) {
         super(token)
 
         // Store the ref on our own, just in case
         ref = fCall ref
+
+        // figure out a label
+        label = generateTempName("blackhole")
 
         if(fCall expr) {
             // We use a fake 'this' to intercept variable access resolution
@@ -44,14 +49,14 @@ InlineContext: class extends Block {
     }
 
     accept: func (v: Visitor) {
-        // here we play a little trick on our backend generator:
+        // here we play a little trick on our backend:
         // the real this decl has to be written if we're a member call,
         // because, you know, otherwise this can't be accessed.
         // but since we have been using a fake 'this' to intercept
         // variable access resolution, we weren't able to simply add
         // it to the body during the resolution phase (the real 'this'
         // would've been used for resolution, ruining our evil plan)
-        // Hence, we add it here, just for the C backend to see.
+        // Hence, we add it here, just for the backend to see.
 
         if(realThisDecl) {
             // whoopsie-daisy
@@ -105,7 +110,6 @@ InlineContext: class extends Block {
                         suggestion = proxy ref
                     } else {
                         "Casting! targetType = %s, realType = %s" printfln(targetType toString(), realType toString())
-                        // 1 = after this :) hackhackhack!
                         realtypized := VariableDecl new(null, proxy getName(), Cast new(proxy, realType, proxy ref token), proxy ref token)
                         realtypized owner = fCall ref owner
 
@@ -114,6 +118,7 @@ InlineContext: class extends Block {
                         proxy expr = varAcc
 
                         casted put(proxy ref as VariableDecl, realtypized) // TODO: use that later, in case of multiple access
+                        // 1 = after this :) hackhackhack!
                         body add(1, realtypized)
                         suggestion = realtypized
                     }

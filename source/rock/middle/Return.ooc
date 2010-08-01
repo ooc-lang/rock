@@ -8,6 +8,7 @@ import tinker/[Response, Resolver, Trail, Errors]
 Return: class extends Statement {
 
     expr: Expression = null
+    label: String = null // if non-null, written as a 'goto label' instead of 'return'. Useful in inlines.
 
     init: func ~ret (.token) {
         init(null, token)
@@ -45,6 +46,7 @@ Return: class extends Statement {
 
                 retType = ctx returnType
                 returnArgs = ctx returnArgs
+                label = ctx label
             } else {
                 idx = trail find(FunctionDecl)
                 if(idx != -1) {
