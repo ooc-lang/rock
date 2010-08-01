@@ -5,10 +5,6 @@ LLong: cover from signed long long {
     toString:    func -> String { "%lld" format(this) }
     toHexString: func -> String { "%llx" format(this) }
 
-    toXString:    func -> xString {
-        format ( "%lld" , this)
-    }
-
     odd?:  func -> Bool { this % 2 == 1 }
     even?: func -> Bool { this % 2 == 0 }
 
@@ -74,18 +70,12 @@ SSizeT:  cover from ssize_t extends LLong
  */
 LDouble: cover from long double {
 
+    // FIXME correct size of string
     toString: func -> String {
         str = gc_malloc(64) : String
         sprintf(str, "%.2Lf", this)
         str
     }
-
-    toXString: func -> xString {
-        str := xString new (64)
-        sprintf(str data, "%.2Lf", this)
-        str
-    }
-
 
     abs: func -> This {
         return this < 0 ? -this : this

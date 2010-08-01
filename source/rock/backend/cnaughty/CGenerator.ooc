@@ -160,9 +160,11 @@ CGenerator: class extends Skeleton {
     visitStringLiteral: func (str: StringLiteral) {
         //current app('"'). app(str value). app('"')
 
+
         current app("lang_XString__xString_init_withCStrAndLength(")
         current app('"'). app(str value). app('"'). app(", "). app (str size() toString() )
         current app( ')' )
+
 
     }
 
