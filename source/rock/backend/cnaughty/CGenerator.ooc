@@ -161,7 +161,7 @@ CGenerator: class extends Skeleton {
         //current app('"'). app(str value). app('"')
 
 
-        current app("lang_XString__xString_init_withCStrAndLength(")
+        current app("lang_String__String_init_withCStrAndLength(")
         current app('"'). app(str value). app('"'). app(", "). app (str size() toString() )
         current app( ')' )
 
