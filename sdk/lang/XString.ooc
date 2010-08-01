@@ -3,7 +3,7 @@ import structs/ArrayList
     /** returns a formated string using *this* as template. */
     // TODO this just doesnt make sense
     // TODO mutable / immutable after a decision
-    format: static func (fmt: xString, ...) -> xString {
+    xformat: static func (fmt: xString, ...) -> xString {
         list:VaList
 
         va_start(list, fmt)
@@ -30,7 +30,7 @@ import structs/ArrayList
         vprintf(this data, list)
     }
 
-    printfln: static func (this: xString, ...) {
+    xprintfln: static func (this: xString, ...) {
         list: VaList
 
         va_start(list, this )
@@ -39,7 +39,7 @@ import structs/ArrayList
         '\n' print()
     }
 
-    scanf: static func (this, format: xString, ...) -> Int {
+    xscanf: static func (this, format: xString, ...) -> Int {
         list: VaList
         va_start(list, (format))
         retval := vsscanf(this data, format data, list)
@@ -61,12 +61,22 @@ xString: class {
     /*  stores amount of bytes the data pointer was increased since alloc
         use only in combination with shiftLeft function
         this is mainly used if a trimleft is done, so that we don't have to do lengthy mallocs */
-    rshift : SizeT
+    mallocAddr : Pointer
 
     /* stores the data, this must be implicitly passed to functions working with Char* */
     data : Char*
 
-    debug: func { printf ("size: %x. capa: %x. rshift: %x. data: %s", size, capacity, rshift, data) }
+    debug: func { printf ("size: %x. capa: %x. rshift: %x. data: %x. data@: %s\n", size, capacity, rshift(), data, data) }
+
+    rshift: func -> SizeT { return mallocAddr != null ? (data as SizeT - mallocAddr as SizeT) as SizeT: 0 }
+
+    /* used to overwrite the data of *this* with that of another one */
+    setString: func( newOne : This ) {
+        data = newOne data
+        mallocAddr = newOne mallocAddr
+        size = newOne size
+        capacity = newOne capacity
+    }
 
     init: func ~zero -> This { init(0) }
 
@@ -107,29 +117,36 @@ xString: class {
     setCapacity: func (length: SizeT) {
         /* we do a trick: if length is 0, we'll let it point to capacity
             this way we have a valid zero length, zero terminated string, without using malloc */
+        printf("---------------- sc %d\n", length)
+        debug()
         if (data == null && length == 0 && capacity == 0 && size == 0) {
             data = capacity& as Pointer
             return
         }
         min := length + 1
+        min += rshift()
         if(min >= capacity) {
             // if length was 0 before, reset the data pointer so our trick above works
-            if (size == 0 && capacity == 0 && data == capacity&) data = null
-            newCapa := min * 1.2 + 10
+            if (size == 0 && capacity == 0 && mallocAddr == 0) data = null
+            capacity = (min * 120) / 100 + 10 // let's stay integer, mkay ?
             // align at 8 byte boundary
-            newCapa += newCapa % 8
-            // subtract rshift from data, so we can point to a mem location known by the GC
-            if(data) data -= rshift
-            else rshift = 0 // this line should never be executed, but it will still prevent a crash
-            tmp := gc_realloc(data, newCapa)
+            al := 8 - (capacity % 8)
+            if (al < 8) capacity += al
+
+            rs := rshift()
+            if (rs) shiftLeft( rs )
+            tmp := gc_realloc(mallocAddr, capacity)
             if(!tmp) {
-                Exception new(This, "Couldn't allocate enough memory for Buffer to grow to capacity "+newCapa) throw()
+                Exception new(This, "Couldn't allocate enough memory for Buffer to grow to capacity "+capacity) throw()
             }
-            capacity = newCapa
-            data = tmp + rshift
+
+            mallocAddr = tmp
+            data = tmp
+            if (rs) shiftRight( rs )
         }
         // just to be sure to be always zero terminated
         (data as Char* + length)@ = '\0'
+        debug()
     }
 
     /** sets capacity and size flag, and a zero termination */
@@ -145,14 +162,16 @@ xString: class {
 
     // remark: can be called with negative value (done by leftShift)
     shiftRight: func ( count: SSizeT ) {
-        if (count == 0) return
+        printf("sR : %d\n", count)
+        debug()
+        if (count == 0 || size == 0) return
         c := count
+        rshift := rshift()
         if (c > size) c = size
         else if (c < 0 && c abs() > rshift) c = rshift *-1
         data += c
         size -= c
-        capacity -= c
-        rshift += c
+        debug()
     }
 
     /* shifts back count bytes, only possible if shifted right before */
@@ -172,7 +191,7 @@ xString: class {
         if(index as SSizeT < 0 || index > length()) {
             Exception new(This, "Accessing a String out of bounds index = %d, length = %d!" format(index, length())) throw()
         }
-        this[index]
+        (data + index)@
     }
 
     /** return a copy of *this*. */
@@ -187,7 +206,7 @@ xString: class {
     }
 
     substring: func ~tillEnd (start: SizeT) -> This {
-        substring(start, length(), false)
+        substring(start, size, false)
     }
 
     substring: func (start, end: SizeT) -> This {
@@ -231,7 +250,7 @@ xString: class {
         origlen := size
         s := getPtr(size + otherLength, immutable)
         memcpy(s data + origlen, other, otherLength )
-        return s
+        s
     }
 
     append: func ~char (other: Char ) -> This {
@@ -250,18 +269,18 @@ xString: class {
 
     /** return a new string containg *other* followed by *this*. */
     prepend: func ~immutableChoice (other: Char*, otherLength: SizeT, immutable: Bool) -> This {
-        if (rshift < otherLength || immutable) {
+        if (rshift() < otherLength || immutable) {
             newthis := This new (size + otherLength)
             memcpy (newthis data, other, otherLength)
             memcpy (newthis data + otherLength, data, size)
             if (immutable) return newthis
-            this = newthis
-            return this
+            setString(newthis)
+            this
         } else {
             // seems we have enough room on the left, and we are allowed to morph
             shiftLeft(otherLength)
             memcpy( data , other, otherLength )
-            return this
+            this
         }
     }
 
@@ -280,7 +299,7 @@ xString: class {
     compare: func (other: This, start, length: SizeT) -> Bool {
         if (size < (start + length)) return false
         for(i: SizeT in 0..length) {
-            if(this[start + i] != other[i]) {
+            if( (data + start + i)@ != (other data + i)@) {
                 return false
             }
         }
@@ -310,7 +329,7 @@ xString: class {
 
     /** return true if the first character of *this* is equal to *c*. */
     startsWith?: func ~withChar(c: Char) -> Bool {
-        return (size > 0) && (this[0] == c)
+        return (size > 0) && (data@ == c)
     }
 
     /** return true if the last characters of *this* are equal to *s*. */
@@ -386,11 +405,9 @@ xString: class {
 
     replaceAll: func ~bufWithCase (what, whit : This, searchCaseSensitive: Bool, immutable: Bool) -> This{
         if (what == null || what size == 0 || whit == null) return immutable ? clone() : this
-
         l := findAll( what, searchCaseSensitive )
-
         if (l == null || l size() == 0) return immutable ? clone() : this
-        newlen: SizeT = size + (whit size * l size) - (what size * l size)
+        newlen: SizeT = size + (whit size * l size()) - (what size * l size())
         result := This new( newlen + 1)
         result size = newlen
 
@@ -398,12 +415,11 @@ xString: class {
         rstart: SizeT = 0 //result start pos
 
         for (item in l) {
-
             sdist := item - sstart // bytes to copy
-            memcpy(result data as Char* + rstart, data as Char* + sstart, sdist)
+            memcpy(result data + rstart, data + sstart, sdist)
             sstart += sdist
             rstart += sdist
-            memcpy(result data as Char* + rstart, whit data as Char*, whit size)
+            memcpy(result data + rstart, whit data, whit size)
             sstart += what size
             rstart += whit size
 
@@ -412,7 +428,7 @@ xString: class {
         sdist := size - sstart
         memcpy(result data as Char* + rstart, data as Char* + sstart, sdist + 1)    // +1 to copy the trailing zero as well
         if (immutable) return result
-        this = result
+        setString( result )
         this
     }
 
@@ -425,7 +441,7 @@ xString: class {
     replaceAll: func ~charImmutableChoice (oldie, kiddo: Char, immutable: Bool) -> This{
         s:= getPtr(immutable)
         for(i in 0..s size) {
-            if(s[i] == oldie) s[i] = kiddo
+            if((s data + i)@ == oldie) (s data + i)@ = kiddo
         }
         s
     }
@@ -471,7 +487,7 @@ xString: class {
     toLower: func ~immutableChoice (immutable : Bool) -> This {
         tmp:= getPtr(immutable)
         for(i in 0..tmp size) {
-            tmp [i] = tmp [i] toLower()
+            (tmp data + i)@ = (tmp data  + i)@ toLower()
         }
         tmp
     }
@@ -484,7 +500,7 @@ xString: class {
     toUpper: func ~immutableChoice(immutable: Bool) -> This {
         tmp := getPtr(immutable)
         for(i in 0..tmp size) {
-            tmp [i] = tmp [i] toUpper()
+            (tmp data + i)@ = (tmp data  + i)@ toUpper()
         }
         tmp
     }
@@ -533,16 +549,12 @@ xString: class {
         tmp := getPtr(immutable)
 
         if(tmp size == 0 || sLength == 0) return tmp
-
         start := 0
         while (start < tmp size && tmp[start] containedIn? (s, sLength) ) start += 1
-
         end := tmp size
         while (end > 0 && tmp[end -1] containedIn? (s, sLength) ) end -= 1
-
         if(start >= end) start = end
-        tmp = tmp substring(start, end, immutable)
-        tmp
+        tmp substring(start, end, immutable)
     }
 
     trim: func ~stringImmutableChoice(s : This, immutable: Bool) -> This {
@@ -600,7 +612,7 @@ xString: class {
 
         start : SizeT = 0
         while (start < p length() && p [start] containedIn?(s, sLength) ) start += 1
-        p shiftLeft( start )
+        p shiftRight( start )
         return p
     }
 
@@ -632,7 +644,7 @@ xString: class {
         from the right side. */
     trimRight: func ~pointerImmutableChoice (s: Char*, sLength: SizeT, immutable: Bool) -> This{
         p := getPtr(immutable)
-        while( p size > 0 &&  p[size - 1] containedIn?(s, sLength)) p setLength(size -1);
+        while( p size > 0 &&  (p data + (size - 1))@ containedIn?(s, sLength)) p setLength(size -1);
         p
     }
 
@@ -645,20 +657,24 @@ xString: class {
         if immutable is set, returns a new String. otherwise the old will be
         manipulated and returned */
     reverse: func ~immutableChoice(immutable : Bool) -> This {
-        result := This new(size)
-        for (i: SizeT in 0..size) {
-            result[i] = this[(size-1)-i]
+        result := getPtr(immutable)
+        bytesLeft := size
+        i: SizeT = 0
+        while (bytesLeft > 1) {
+            c := (result data + i)@
+            (result data + i)@ = (result data + ((size-1)-i))@
+            (result data + ((size-1)-i))@ = c
+            bytesLeft -= 2
+            i += 1
         }
-        if (immutable) return result
-        this = result
-        this
+        return result
     }
 
     /** return the number of *what*'s occurences in *this*. */
     count: func (what: Char) -> SizeT {
         result : SizeT = 0
         for(i in 0..size) {
-            if(this[i] == what)
+            if((data + i)@ == what)
                 result += 1
         }
         result
@@ -805,10 +821,12 @@ operator != (str1: xString, str2: xString) -> Bool {
 }
 
 operator [] (string: xString, index: SizeT) -> Char {
+   // println("op [] a")
     string charAt(index)
 }
 
 operator []= (string: xString, index: SizeT, value: Char) {
+    println("op [] b")
     if(index < 0 || index > string length()) {
         Exception new(xString, "Writing to a String out of bounds index = %d, length = %d!" format(index, string length())) throw()
     }
@@ -816,6 +834,7 @@ operator []= (string: xString, index: SizeT, value: Char) {
 }
 
 operator [] (string: xString, range: Range) -> xString {
+    println("op [] c")
     string substring(range min, range max)
 }
 
