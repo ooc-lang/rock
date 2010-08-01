@@ -3,8 +3,11 @@ include stdlib, stdint, stdbool, float, ctype, sys/types
 LLong: cover from signed long long {
 
     toString:    func -> String { "%lld" format(this) }
-    toXString:    func -> xString { xString new("%lld") format(this) }
     toHexString: func -> String { "%llx" format(this) }
+
+    toXString:    func -> xString {
+        format ( xString new("%lld", 3) , this)
+    }
 
     odd?:  func -> Bool { this % 2 == 1 }
     even?: func -> Bool { this % 2 == 0 }

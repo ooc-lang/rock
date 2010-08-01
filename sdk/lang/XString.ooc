@@ -1,7 +1,56 @@
 import structs/ArrayList
 
+    /** returns a formated string using *this* as template. */
+    // TODO this just doesnt make sense
+    // TODO mutable / immutable after a decision
+    format: static func (fmt: xString, ...) -> xString {
+        list:VaList
 
-xString: cover {
+        va_start(list, fmt)
+        length := vsnprintf(null, 0, (fmt data), list)
+        va_end(list)
+
+        copy := xString new(length)
+
+        va_start(list, fmt )
+        vsnprintf((copy data), length + 1, (fmt data), list)
+        va_end(list)
+        return copy
+    }
+
+    xprintf: static func (this: xString, ...) {
+        list: VaList
+
+        va_start(list, this )
+        vprintf((this data), list)
+        va_end(list)
+    }
+
+    xvprintf: static func (this: xString, list: VaList) {
+        vprintf(this data, list)
+    }
+
+    printfln: static func (this: xString, ...) {
+        list: VaList
+
+        va_start(list, this )
+        vprintf(this data, list)
+        va_end(list)
+        '\n' print()
+    }
+
+    scanf: static func (this, format: xString, ...) -> Int {
+        list: VaList
+        va_start(list, (format))
+        retval := vsscanf(this data, format data, list)
+        va_end(list)
+
+        return retval
+    }
+
+
+
+xString: class {
 
     /*  stores current size of string */
     size: SizeT
@@ -17,35 +66,35 @@ xString: cover {
     /* stores the data, this must be implicitly passed to functions working with Char* */
     data : Char*
 
-        new: static func~zero -> This {
-        return this
-    }
+    debug: func { printf ("size: %x. capa: %x. rshift: %x. data: %s", size, capacity, rshift, data) }
+
+    init: func ~zero -> This { init(0) }
 
     /** Create a new string exactly *length* characters long (without the nullbyte).
         The contents of the string are undefined.
         the new strings length is also set to length. */
-    new: static func~withLength (length: SizeT) -> This {
+    init: func ~withLength (length: SizeT) -> This {
         setLength(length)
-        return this
+        this
     }
 
     /** Create a new string of the length 1 containing only the character *c* */
-    new: static func~withChar (c: Char) -> This {
-        result := This new~withLength(1)
-        result[0] = c
-        result
+    init: func ~withChar (c: Char) -> This {
+        this setLength(1)
+        data@ = c
+        this
     }
 
     /** create a new String from a zero-terminated C String */
-    new: static func~withCStr(s : Char*) -> This {
-        This new(s, strlen(s))
+    init: func ~withCStr(s : Char*) -> This {
+        init (s, strlen(s))
     }
 
     /** create a new String from a zero-terminated C String with known length */
-    new: static func~withCStrAndLength(s : Char*, length: SizeT) -> This {
-        result := This new~withLength(length)
-        memcpy(result data, s, length)
-        result
+    init: func ~withCStrAndLength(s : Char*, length: SizeT) -> This {
+        setLength(length)
+        memcpy(data, s, length + 1)
+        this
     }
 
     /** return the string's length, excluding the null byte. */
@@ -55,7 +104,7 @@ xString: cover {
 
 
     /** sets capacity to a sane amount and (re)allocs the needed memory,size aka length stays untouched */
-    setCapacity: func(length: SizeT) {
+    setCapacity: func (length: SizeT) {
         /* we do a trick: if length is 0, we'll let it point to capacity
             this way we have a valid zero length, zero terminated string, without using malloc */
         if (data == null && length == 0 && capacity == 0 && size == 0) {
@@ -84,7 +133,7 @@ xString: cover {
     }
 
     /** sets capacity and size flag, and a zero termination */
-    setLength: func(length: SizeT) {
+    setLength: func (length: SizeT) {
         setCapacity(length)
         size = length
         (data as Char* + size)@ = '\0'
@@ -112,14 +161,14 @@ xString: cover {
     }
 
     /** return true if *other* and *this* are equal (in terms of being null / having same size and content). */
-    equals?: func(other: This) -> Bool {
-        if ((this as Pointer == null) && (other as Pointer == null)) return true
-        if ( ( (this as Pointer == null) && (other as Pointer != null) ) || ( (other as Pointer == null) && (this as Pointer != null) ) ) return false
+    equals?: func (other: This) -> Bool {
+        if ((this == null) && (other == null)) return true
+        if ( ( (this == null) && (other  != null) ) || ( (other == null) && (this != null) ) ) return false
         return ( (size == other size) &&  ( memcmp ( data , other data , size ) == 0 ) )
     }
 
     /** return the character at position #*index* (starting at 0) */
-    charAt: func(index: SizeT) -> Char {
+    charAt: func (index: SizeT) -> Char {
         if(index as SSizeT < 0 || index > length()) {
             Exception new(This, "Accessing a String out of bounds index = %d, length = %d!" format(index, length())) throw()
         }
@@ -253,19 +302,19 @@ xString: cover {
     empty?: func -> Bool { (size == 0 || this data == null) }
 
     /** return true if the first characters of *this* are equal to *s*. */
-    startsWith?: func(s: This) -> Bool {
+    startsWith?: func (s: This) -> Bool {
         len := s length()
         if (size < len) return false
         compare(s, 0, len)
     }
 
     /** return true if the first character of *this* is equal to *c*. */
-    startsWith?: func~withChar(c: Char) -> Bool {
+    startsWith?: func ~withChar(c: Char) -> Bool {
         return (size > 0) && (this[0] == c)
     }
 
     /** return true if the last characters of *this* are equal to *s*. */
-    endsWith?: func(s: This) -> Bool {
+    endsWith?: func (s: This) -> Bool {
         len := s length()
         if (size < len) return false
         compare(s, size - len, len )
@@ -501,7 +550,7 @@ xString: cover {
     }
 
     /** *c* characters stripped at both ends. */
-    trim: func~ charImmutableChoice (c: Char, immutable: Bool) -> This {
+    trim: func ~charImmutableChoice (c: Char, immutable: Bool) -> This {
         trim(c&, 1, immutable)
     }
 
@@ -595,7 +644,7 @@ xString: cover {
     /** reverses *this*. "ABBA" -> "ABBA" .no. joke. "ABC" -> "CBA"
         if immutable is set, returns a new String. otherwise the old will be
         manipulated and returned */
-    reverse: func~immutableChoice(immutable : Bool) -> This {
+    reverse: func ~immutableChoice(immutable : Bool) -> This {
         result := This new(size)
         for (i: SizeT in 0..size) {
             result[i] = this[(size-1)-i]
@@ -639,7 +688,7 @@ xString: cover {
 
     /** return the index of the last occurence of *c* in *this*.
         If *this* does not contain *c*, return -1. */
-    lastIndexOf: func(c: Char) -> SSizeT {
+    lastIndexOf: func (c: Char) -> SSizeT {
         // could probably use reverse foreach here
         i : SSizeT = size - 1
         while(i >= 0) {
@@ -651,62 +700,14 @@ xString: cover {
 
     /** print *this* to stdout without a following newline. Flush stdout. */
     print: func {
-        This new ("%s") printf(this); stdout flush()
+        xprintf( This new("%s"), this data)
+        //This new ("%s") printf(this); stdout flush()
     }
 
     /** print *this* followed by a newline. */
     println: func {
-        This new ("%s\n") printf(this)
-    }
-
-    /** returns a formated string using *this* as template. */
-    // TODO this just doesnt make sense
-    // TODO mutable / immutable after a decision
-    format: func (...) -> This {
-        fmt := this
-
-        list:VaList
-
-        va_start(list, (fmt data))
-        length := vsnprintf(null, 0, (fmt data), list)
-        va_end(list)
-
-        copy := This new(length)
-
-        va_start(list, fmt)
-        vsnprintf((copy data), length + 1, (fmt data), list)
-        va_end(list)
-        return copy
-    }
-
-    printf: func (...) {
-        list: VaList
-
-        va_start(list, (this data))
-        vprintf((this data), list)
-        va_end(list)
-    }
-
-    vprintf: func (list: VaList) {
-        vprintf(this data, list)
-    }
-
-    printfln: func (...) {
-        list: VaList
-
-        va_start(list, this data)
-        vprintf(this data, list)
-        va_end(list)
-        '\n' print()
-    }
-
-    scanf: func (format: This, ...) -> Int {
-        list: VaList
-        va_start(list, format)
-        retval := vsscanf(this data, format data, list)
-        va_end(list)
-
-        return retval
+        xprintf( This new("%s\n"), this data )
+        //This new ("%s\n") printf(this)
     }
 
     /*
