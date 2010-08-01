@@ -422,7 +422,7 @@ ReferenceType: class extends SugarType {
     toString: func -> String { inner toString() + "@" }
     toMangledString: func -> String { inner toString() + "__star" }
 
-    dereference : func -> Type { inner }
+    dereference : func -> Type { inner dereference() }
 
     clone: func -> Type { new(inner, token) }
 

@@ -13,7 +13,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     VariableAccess, Include, Import, Use, TypeDecl, ClassDecl, CoverDecl,
     Node, Parenthesis, Return, Cast, Comparison, Ternary, BoolLiteral,
     Argument, Statement, AddressOf, Dereference, FuncType, BaseType, PropertyDecl,
-    EnumDecl, OperatorDecl, InterfaceDecl, InterfaceImpl, Version]
+    EnumDecl, OperatorDecl, InterfaceDecl, InterfaceImpl, Version, TypeList]
 
 JSONGenerator: class extends Visitor {
 
@@ -69,6 +69,17 @@ JSONGenerator: class extends Visitor {
             return "pointer(%s)" format(resolveType(type as PointerType inner))
         } else if(type instanceOf?(ReferenceType)) {
             return "reference(%s)" format(resolveType(type as ReferenceType inner))
+        } else if(type instanceOf?(TypeList)) {
+            buffer := Buffer new()
+            buffer append("multi(")
+            isFirst := true
+            for(subtype in type as TypeList types) {
+                if(isFirst) isFirst = false
+                else        buffer append(",")
+                buffer append(resolveType(subtype))
+            }
+            buffer append(')')
+            return buffer toString()
         } else {
             /* base type */
             return type as BaseType name /* TODO? */
