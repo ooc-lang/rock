@@ -3,7 +3,7 @@ import structs/ArrayList
     /** returns a formated string using *this* as template. */
     // TODO this just doesnt make sense
     // TODO mutable / immutable after a decision
-    xformat: static func (fmt: xString, ...) -> xString {
+    format: static func ~ str (fmt: xString, ...) -> xString {
         list:VaList
 
         va_start(list, fmt)
@@ -18,7 +18,7 @@ import structs/ArrayList
         return copy
     }
 
-    xprintf: static func (this: xString, ...) {
+    printf: static func ~str (this: xString, ...) {
         list: VaList
 
         va_start(list, this )
@@ -26,11 +26,11 @@ import structs/ArrayList
         va_end(list)
     }
 
-    xvprintf: static func (this: xString, list: VaList) {
+    vprintf: static func ~str (this: xString, list: VaList) {
         vprintf(this data, list)
     }
 
-    xprintfln: static func (this: xString, ...) {
+    printfln: static func ~str (this: xString, ...) {
         list: VaList
 
         va_start(list, this )
@@ -39,7 +39,7 @@ import structs/ArrayList
         '\n' print()
     }
 
-    xscanf: static func (this, format: xString, ...) -> Int {
+    scanf: static func ~str (this, format: xString, ...) -> Int {
         list: VaList
         va_start(list, (format))
         retval := vsscanf(this data, format data, list)
@@ -397,6 +397,16 @@ xString: class {
         offset : SSizeT = (what size ) * -1
         while (((offset = find(what, offset + what size , searchCaseSensitive)) != -1)) result add (offset)
         return result
+    }
+
+    /* legacy function, do use replaceAll instead */
+    replace: func ~stringObsolete (oldie, kiddo: This) -> This {
+        replaceAll(oldie, kiddo, true, false )
+    }
+
+    /* legacy function, do use replaceAll instead */
+    replace: func ~charObsolete (oldie, kiddo: Char) -> This {
+        replaceAll(oldie, kiddo)
     }
 
     /** replaces all occurences of *what* with *whit */

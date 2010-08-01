@@ -6,7 +6,7 @@ LLong: cover from signed long long {
     toHexString: func -> String { "%llx" format(this) }
 
     toXString:    func -> xString {
-        xformat ( "%lld" , this)
+        format ( "%lld" , this)
     }
 
     odd?:  func -> Bool { this % 2 == 1 }
