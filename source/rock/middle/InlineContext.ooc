@@ -38,6 +38,7 @@ InlineContext: class extends Block {
             thisType := BaseType new(thisTypeName, fCall expr token)
             thisTypeDecl := InlinedType new(this, thisTypeName)
             thisType setRef(thisTypeDecl)
+
             thisDecl = VariableDecl new(thisType, "this", fCall expr, fCall expr token)
             realThisDecl = VariableDecl new(null, "this", fCall expr, fCall expr token)
         }
@@ -58,13 +59,20 @@ InlineContext: class extends Block {
         // would've been used for resolution, ruining our evil plan)
         // Hence, we add it here, just for the backend to see.
 
-        if(realThisDecl) {
+        hasThis? := (fCall expr != null &&
+                     fCall expr instanceOf?(VariableAccess) &&
+                     fCall expr as VariableAccess getName() == "this"
+                    )
+
+        if(!hasThis? && realThisDecl != null) {
             // whoopsie-daisy
             body add(0, realThisDecl)
         }
+
         // as usual
         super(v)
-        if(realThisDecl) {
+
+        if(!hasThis? && realThisDecl != null) {
             // there we go. nobody noticed.
             body removeAt(0)
         }
@@ -105,9 +113,12 @@ InlineContext: class extends Block {
                     realType := targetType realTypize(fCall)
 
                     suggestion : VariableDecl = null
+                    adjustExpr? := false
+
                     if(targetType equals?(realType)) {
                         "Equal types! suggesting %s" printfln(proxy ref toString())
                         suggestion = proxy ref
+                        adjustExpr? = true
                     } else {
                         "Casting! targetType = %s, realType = %s" printfln(targetType toString(), realType toString())
                         realtypized := VariableDecl new(null, proxy getName(), Cast new(proxy, realType, proxy ref token), proxy ref token)
@@ -124,6 +135,12 @@ InlineContext: class extends Block {
                     }
                     if(suggestion != null && access suggest(suggestion)) {
                         " - Suggestion worked o/" println()
+                        if(suggestion owner != null && adjustExpr?) {
+                            "Ooh, owner of %s isn't null. Setting expr :D" printfln(suggestion toString())
+                            thisAcc := VariableAccess new("this", token)
+                            thisAcc ref = realThisDecl
+                            access expr = thisAcc
+                        }
                         return 0
                     }
                 }
