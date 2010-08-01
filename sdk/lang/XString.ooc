@@ -58,12 +58,13 @@ xString: class {
     /*  stores count of currently alloced mem */
     capacity: SizeT
 
-    /*  stores amount of bytes the data pointer was increased since alloc
-        use only in combination with shiftLeft function
+    /*  stores the original pointer to the malloc'd mem
+        we need eat so the GC doesn't accidentally free the mem, when we shift the data pointer */
+    /*   shifting of data ptr is used only in combination with shiftRight function
         this is mainly used if a trimleft is done, so that we don't have to do lengthy mallocs */
     mallocAddr : Pointer
 
-    /* stores the data, this must be implicitly passed to functions working with Char* */
+    /* pointer to the string data's start byte, this must be implicitly passed to functions working with Char* */
     data : Char*
 
     debug: func { printf ("size: %x. capa: %x. rshift: %x. data: %x. data@: %s\n", size, capacity, rshift(), data, data) }
