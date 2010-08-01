@@ -213,8 +213,8 @@ String: class {
     setCapacity: func (length: SizeT) {
         /* we do a trick: if length is 0, we'll let it point to capacity
             this way we have a valid zero length, zero terminated string, without using malloc */
-        printf("---------------- sc %d\n", length)
-        debug()
+        //printf("---------------- sc %d\n", length)
+        //debug()
         if (data == null && length == 0 && capacity == 0 && size == 0) {
             data = capacity& as Pointer
             return
@@ -242,7 +242,7 @@ String: class {
         }
         // just to be sure to be always zero terminated
         (data as Char* + length)@ = '\0'
-        debug()
+        //debug()
     }
 
     /** sets capacity and size flag, and a zero termination */
@@ -258,8 +258,8 @@ String: class {
 
     // remark: can be called with negative value (done by leftShift)
     shiftRight: func ( count: SSizeT ) {
-        printf("sR : %d\n", count)
-        debug()
+        //printf("sR : %d\n", count)
+        //debug()
         if (count == 0 || size == 0) return
         c := count
         rshift := rshift()
@@ -267,7 +267,7 @@ String: class {
         else if (c < 0 && c abs() > rshift) c = rshift *-1
         data += c
         size -= c
-        debug()
+        //debug()
     }
 
     /* shifts back count bytes, only possible if shifted right before */
@@ -984,7 +984,7 @@ operator [] (string: String, index: SizeT) -> Char {
 }
 
 operator []= (string: String, index: SizeT, value: Char) {
-    println("op [] b")
+//    println("op [] b")
     if(index < 0 || index > string length()) {
         Exception new(String, "Writing to a String out of bounds index = %d, length = %d!" format(index, string length())) throw()
     }
@@ -992,7 +992,6 @@ operator []= (string: String, index: SizeT, value: Char) {
 }
 
 operator [] (string: String, range: Range) -> String {
-    println("op [] c")
     string substring(range min, range max)
 }
 
