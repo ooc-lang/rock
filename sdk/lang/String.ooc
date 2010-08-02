@@ -233,7 +233,7 @@ String: class {
             if (rs) shiftLeft( rs )
             tmp := gc_realloc(mallocAddr, capacity)
             if(!tmp) {
-                Exception new(This, "Couldn't allocate enough memory for Buffer to grow to capacity "+capacity) throw()
+                Exception new(This, "Couldn't allocate enough memory for Buffer to grow to capacity " + capacity toString()) throw()
             }
 
             mallocAddr = tmp
@@ -620,11 +620,8 @@ String: class {
         However, the return value is the index of the *c* relative to the
         string's beginning. If *this* does not contain *c*, return -1. */
     indexOf: func ~char (c: Char, start: SizeT) -> SSizeT {
-        length := length()
-        for(i: Int in start..length) {
-            if(this[i] == c) {
-                return i
-            }
+        for(i in start..size) {
+            if((data + i)@ == c) return i
         }
         return -1
     }
@@ -923,7 +920,7 @@ String: class {
         '\n' print()
     }
 
-    scanf: final func ~str (format: String, ...) -> Int {
+    scanf: final func ~str (format: This, ...) -> Int {
         list: VaList
         va_start(list, (format))
         retval := vsscanf(this data, format data, list)
@@ -948,7 +945,7 @@ StringIterator: class <T> extends BackIterator<T> {
     init: func ~withStr (=str) {}
 
     hasNext?: func -> Bool {
-        i < str length()
+        i < str size
     }
 
     next: func -> T {
