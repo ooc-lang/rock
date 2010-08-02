@@ -590,7 +590,7 @@ String: class {
         pretty much the same as in java.*/
     split: func ~buf (delimiter: This, maxSplits: SSizeT) -> ArrayList <This> {
         l := findAll(delimiter, true)
-        maxItems := (maxSplits <= 0) || (maxSplits >= l size()) ? l size() : maxSplits
+        maxItems := ((maxSplits <= 0) || (maxSplits >= l size())) ? l size() : maxSplits
         result := ArrayList <This> new( maxItems )
         sstart: SizeT = 0 //source (this) start pos
         for (item in l) {
