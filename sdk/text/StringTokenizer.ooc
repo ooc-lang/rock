@@ -21,7 +21,7 @@ StringTokenizer: class extends Iterable<String> {
         T = String // small fix for runtime introspection
         if (input != null) {
             length = input length()
-            splitted = input split(delim, maxSplits)
+            splitted = input splitMulti(delim, maxSplits)
         }
         splits = 0
     }

@@ -563,6 +563,27 @@ String: class {
         s
     }
 
+
+    /* uses str as a set of delimiters of size 1 and splits accordingly
+        as for maxSplits, the same rules as those from split apply */
+    // FIXME untested !
+    splitMulti: func(str: This, maxSplits: SSizeT) -> ArrayList <This> {
+        start := 0
+        maxItems := (maxSplits > 0) ? maxSplits : INT_MAX;
+        result := ArrayList<This> new (16)
+        for (i in 0..size) {
+            if ( (data + i )@ containedIn? (str) ) {
+                if ((maxItems -1) == result size()) {
+                    result add ( substring (start, size , true) )
+                    break
+                }
+                if ((maxSplits != 0) || (start < i)) result add ( substring (start, i , true) )
+                start = i + 1
+            }
+        }
+        result
+    }
+
     split: func~withChar(c: Char, maxSplits: SSizeT) -> ArrayList <This> {
         split(This new(c), maxSplits)
     }
@@ -588,6 +609,7 @@ String: class {
         if it is > 0, it will be splitted maxSplits -1 times, and in the last element the rest of the string will be held.
         if maxSplits is negative, it will return all elements, if 0 it will return all non-empty elements.
         pretty much the same as in java.*/
+    // FIXME untested!
     split: func ~buf (delimiter: This, maxSplits: SSizeT) -> ArrayList <This> {
         l := findAll(delimiter, true)
         maxItems := ((maxSplits <= 0) || (maxSplits >= l size())) ? l size() : maxSplits
@@ -1138,4 +1160,3 @@ operator + (left: String, right: Char) -> String {
 operator + (left: Char, right: String) -> String {
     right prepend(left)
 }
-
