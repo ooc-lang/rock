@@ -254,10 +254,6 @@ VariableAccess: class extends Expression {
             }
         }
 
-
-
-
-
         // Simple property access? Replace myself with a getter call.
         if(ref && ref instanceOf?(PropertyDecl)) {
             // Make sure we're not in a getter/setter yet (the trail would
