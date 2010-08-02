@@ -166,7 +166,7 @@ String: class {
 
     rshift: func -> SizeT { return mallocAddr != null ? (data as SizeT - mallocAddr as SizeT) as SizeT: 0 }
 
-    /* used to overwrite the data of *this* with that of another one */
+    /* used to overwrite the data/attributes of *this* with that of another String */
     setString: func( newOne : This ) {
         data = newOne data
         mallocAddr = newOne mallocAddr
@@ -315,12 +315,12 @@ String: class {
            substring(start, end, false)
     }
 
-    /** *this* will be reduced to the characters in the range ``start..length``.  */
+    /** *this* or a clone will be reduced to the characters in the range ``start..length``.  */
     substring: func ~immutableChoiceTillEnd (start: SizeT, immutable: Bool) -> This{
         substring(start, size, immutable)
     }
 
-    /** *this* will be reduced to the characters in the range ``start..end``.  */
+    /** *this* or a clone will be reduced to the characters in the range ``start..end``.  */
     substring: func ~immutableChoice (start: SizeT, end: SizeT, immutable: Bool) -> This{
         s:=getPtr(immutable)
         s setLength(end)
@@ -590,10 +590,11 @@ String: class {
         pretty much the same as in java.*/
     split: func ~buf (delimiter: This, maxSplits: SSizeT) -> ArrayList <This> {
         l := findAll(delimiter, true)
-        result := ArrayList <This> new( (maxSplits <= 0) || (maxSplits >= l size()) ? l size() : maxSplits )
+        maxItems := (maxSplits <= 0) || (maxSplits >= l size()) ? l size() : maxSplits
+        result := ArrayList <This> new( maxItems )
         sstart: SizeT = 0 //source (this) start pos
         for (item in l) {
-            if ((maxSplits > 0) && (maxSplits - 1 == result size())) break
+            if ( ( maxSplits > 0 ) && ( result size() == maxItems - 1 ) ) break
             sdist := item - sstart // bytes to copy
             if (maxSplits != 0 || sdist > 0) {
                 b := This new (data+ sstart, sdist)
