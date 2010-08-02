@@ -1,5 +1,5 @@
-import text/Buffer /* for String replace ~string */
-import structs/ArrayList
+import structs/ArrayList // for the whole finding / replacing / splitting functionality
+import structs/HashMap // for formatTemplate
 
 include stdlib
 
@@ -184,6 +184,10 @@ String: class {
         this
     }
 
+    init: func ~str (str: String) {
+        setString(str clone())
+    }
+
     /** Create a new string of the length 1 containing only the character *c* */
     init: func ~withChar (c: Char) -> This {
         this setLength(1)
@@ -197,6 +201,8 @@ String: class {
     }
 
     /** create a new String from a zero-terminated C String with known length */
+    // ATTENTION the mangled name of this function is hardcoded in CGenerator.ooc
+    // so you'd rather not change it
     init: func ~withCStrAndLength(s : Char*, length: SizeT) -> This {
         setLength(length)
         memcpy(data, s, length + 1)
@@ -339,6 +345,11 @@ String: class {
 
     append: func ~str(other: This) -> This {
         append(other data, other size, false)
+    }
+
+    /** appends *other* to *this*, if not immutable, otherwise to a clone */
+    append: func ~withPointerAndLength (other: Char*, otherLength: SizeT) -> This {
+        append(other, otherLength, false)
     }
 
     /** appends *other* to *this*, if not immutable, otherwise to a clone */
@@ -505,7 +516,7 @@ String: class {
     }
 
     /** replaces all occurences of *what* with *whit */
-    replaceAll: func ~buf (what, whit : This) {
+    replaceAll: func ~buf (what, whit : This) -> This {
         replaceAll(what, whit, true, false);
     }
 
@@ -552,14 +563,42 @@ String: class {
         s
     }
 
-    split: func ~buf (delimiter: This) -> ArrayList <This> {
+    split: func~withChar(c: Char, maxSplits: SSizeT) -> ArrayList <This> {
+        split(This new(c), maxSplits)
+    }
+
+    /** split s and return *all* elements, including empties */
+    split: func~withStringWithoutMaxSplits(s: This) -> ArrayList <This> {
+        split ( s, -1)
+    }
+
+    split: func~withCharWithoutMaxSplits(c: Char) -> ArrayList <This> {
+        split( This new(c))
+    }
+
+    split: func~withStringWithEmpties( s: This, empties: Bool) -> ArrayList <This> {
+        split (s, empties ? -1 : 0 )
+    }
+
+    split: func~withCharWithEmpties(c: Char, empties: Bool) -> ArrayList <This> {
+        split( This new (c) , empties )
+    }
+
+    /** splits a string into an ArrayList, maxSplits denotes max elements of returned list
+        if it is > 0, it will be splitted maxSplits -1 times, and in the last element the rest of the string will be held.
+        if maxSplits is negative, it will return all elements, if 0 it will return all non-empty elements.
+        pretty much the same as in java.*/
+    split: func ~buf (delimiter: This, maxSplits: SSizeT) -> ArrayList <This> {
         l := findAll(delimiter, true)
-        result := ArrayList <This> new(l size())
+        result := ArrayList <This> new( maxSplits <= 0 ? l size() : maxSplits )
         sstart: SizeT = 0 //source (this) start pos
         for (item in l) {
+            if ((maxSplits > 0) && (maxSplits - 1 == result size())) break
             sdist := item - sstart // bytes to copy
-            b := This new (data+ sstart, sdist)
-            result add ( b )
+            if (maxSplits != 0 || sdist > 0) {
+                b := This new (data+ sstart, sdist)
+                result add ( b )
+            }
             sstart += sdist + delimiter size
         }
         sdist := size - sstart // bytes to copy
@@ -610,6 +649,8 @@ String: class {
         }
         tmp
     }
+    /* only for descendants, on which toString() is called, i.e. Buffer */
+    toString: func -> This { return this }
 
     /** return the index of *c*, starting at 0. If *this* does not contain *c*, return -1. */
     indexOf: func ~charZero (c: Char) -> SSizeT {
@@ -929,8 +970,67 @@ String: class {
         return retval
     }
 
+    // this function ripped from StringTemplate, can go back when the "extend String" syntax will work
+    /**
+        Replace all template tokens in *this* with the matching value of *values*.
 
+        Example::
 
+            import text/StringTemplate
+            values := HashMap<String, String> new()
+            values put("what", "world") .put("suffix", "... yay")
+            "Hello {{ what }}! {{   suffix}}" formatTermplate(values) println()
+            // -> Hello world! ... yay
+
+    */
+    formatTemplate: func (values: HashMap<String, String>) -> String {
+        length := this length()
+        buffer := This new(length)
+        p: Char* = this
+        identifier: Char* = null
+        while(p@) {
+            if(!identifier && p@ == '{' && (p + 1)@ == '{') {
+                /* start of an identifier */
+                identifier = p + 2
+                p += 2
+            } else if(identifier) {
+                if(p@ == '}' && (p + 1)@ == '}') {
+                    /* end of an identifier! */
+                    /* skip spaces at the end of the identifier */
+                    end := p - 1
+                    while(end@ == ' ') { end -= 1 }
+                    /* calculate the length */
+                    length := (end + 1 - identifier) as SizeT
+                    key := String new(length)
+                    memcpy(key, identifier, length)
+                    /* (the \0 byte is already set.) */
+                    value := values get(key)
+                    if(!value) {
+                        value = "" /* TODO: better error handling. */
+                    }
+                    buffer append(value)
+                    identifier = null
+                    p += 2
+                } else if(p@ == ' ' && identifier == p) {
+                    /* skip spaces at the beginning of the identifier */
+                    identifier += 1
+                    p += 1
+                } else {
+                    /* part of the identifier, skip */
+                    p += 1
+                }
+            } else {
+                buffer append(p@)
+                p += 1
+            }
+        }
+        return buffer
+    }
+}
+
+ImmutableString: class extends String {
+    // TODO exhibit methods that calls the ones from string with immutable flag set to zero
+    // or set immutable a property of string (has to be set to false then in Buffer.ooc )
 }
 
 /**
