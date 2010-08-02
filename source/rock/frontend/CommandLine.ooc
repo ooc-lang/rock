@@ -391,19 +391,40 @@ CommandLine: class {
             if(!params slave) break
 
             Terminal setFgColor(Color yellow). setAttr(Attr bright)
-            "-- press [Enter] to re-compile --" println()
+            "-- press [Enter] to re-compile, [c] to clean, [q] to quit. --" println()
             Terminal reset()
 
-            stdin readChar()
+            line := stdin readLine()
+            if(line == "c") {
+                Terminal setFgColor(Color yellow). setAttr(Attr bright)
+                "-- Pressed 'c', cleaning... and recompiling everything! --" println()
+                Terminal reset()
+                cleanHardcore()
+            }
+            if(line == "q") {
+                Terminal setFgColor(Color yellow). setAttr(Attr bright)
+                "-- Pressed 'q', exiting... seeya! --" println()
+                Terminal reset()
+                exit(0)
+            }
         }
 
         // c phase 5: clean up
-
-        // oh that's a hack.
         if(params clean) {
-            system("rm -rf %s" format(params outPath path))
+            clean()
         }
 
+    }
+
+    clean: func {
+        // oh that's a hack.
+        system("rm -rf %s" format(params outPath path))
+    }
+
+    cleanHardcore: func {
+        clean()
+        // oh that's the same hack. Someone implement File recursiveDelete() already.
+        system("rm -rf %s" format(params libcachePath))
     }
 
     parse: func (moduleName: String) -> Int {
@@ -441,25 +462,12 @@ CommandLine: class {
                     imp setModule(null)
                 }
             }
-            for(dep in module collectDeps()) {
-                dep parseImports(null)
-            }
-        } else {
-            // non-slave or first = cache is empty, everything will be parsed
-            // anyway.
-            module parseImports(null)
         }
+        module parseImports(null)
         if(params verbose) printf("Finished parsing, now tinkering...\n")
 
         // phase 2: tinker
         if(!Tinkerer new(params) process(module collectDeps())) failure()
-
-        // Clear the import's module cache so that they will be updated
-        // with re-parsed modules (from the modified AstBuilder cache)
-        // during the next collectDeps()
-        if(params slave) for(candidate in module collectDeps()) for(imp in candidate getAllImports()) {
-            imp setModule(null)
-        }
 
         if(params backend == "c") {
             // c phase 3: launch the driver

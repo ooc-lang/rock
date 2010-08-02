@@ -71,6 +71,7 @@ Module: class extends Node {
     _collectDeps: func (list: List<Module>) -> List<Module> {
         list add(this)
 		for(imp in getAllImports()) {
+            if(imp getModule() == null) continue // what can we do about it? nothing.
 			if(!list contains?(imp getModule())) {
 				imp getModule() _collectDeps(list)
 			}
@@ -316,7 +317,7 @@ Module: class extends Node {
             impLastModified := impPath lastModified()
 
             if(cached == null || impLastModified > cached lastModified) {
-                if(cached && resolver params veryVerbose) {
+                if(cached && params veryVerbose) {
                     printf("%s has been changed, recompiling... (%d vs %d), impPath = %s\n", path, File new(impPath path) lastModified(), cached lastModified, impPath path);
                 }
 
