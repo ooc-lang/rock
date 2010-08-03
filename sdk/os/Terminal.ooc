@@ -49,7 +49,7 @@ Terminal: class {
             va : VaList
 
             va_start(va, fmt)
-            vprintf(fmt, va)
+            vprintf(fmt data, va)
             va_end(va)
         }
 
@@ -65,21 +65,21 @@ Terminal: class {
     /** Set foreground color */
     setFgColor: static func(c: Int) {
         if(c >= 30 && c <= 37) {
-            output("\033[%dm",c)
+            output(String new ("\033[%dm") ,c)
         }
     }
 
     /** Set background color */
     setBgColor: static func(c: Int) {
         if(c >= 30 && c <= 37) {
-            output("\033[%dm",c + 10)
+            output(String new ("\033[%dm"),c + 10)
         }
     }
 
     /** Set text attribute */
     setAttr: static func(att: Int) {
         if(att >= 0 && att <= 8) {
-            output("\033[%dm",att)
+            output(String new ("\033[%dm"),att)
         }
     }
 

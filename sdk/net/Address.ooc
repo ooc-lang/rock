@@ -158,6 +158,8 @@ IP4Address: class extends IPAddress {
         }
     }
 
+    init: func ~char (ip: Char*) {    init ( String new (ip ) ) }
+
     init: func ~wildcard {
         init("0.0.0.0")
     }
@@ -204,7 +206,7 @@ IP4Address: class extends IPAddress {
 
     toString: func -> String {
         addrStr := String new(128)
-        inet_ntop(family, ai&, addrStr, 128)
+        inet_ntop(family, ai&, addrStr data, 128)
         return addrStr
     }
 }
@@ -304,7 +306,7 @@ IP6Address: class extends IPAddress {
 
     toString: func -> String {
         addrStr := String new(128)
-        inet_ntop(family, ai&, addrStr, 128)
+        inet_ntop(family, ai&, addrStr data, 128)
         return addrStr
     }
 }

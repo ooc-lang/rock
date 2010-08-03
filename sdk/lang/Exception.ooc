@@ -9,6 +9,8 @@ Exception: class {
 
     init: func ~originMsg (=origin, =msg) {}
     init: func ~noOrigin (=msg) {}
+    init: func ~charNoOrigin(aMsg: Char*) { msg = String new(aMsg) }
+
 
     crash: func {
         fflush(stdout)
@@ -20,14 +22,14 @@ Exception: class {
     getMessage: func -> String {
         //max := const 1024
         max : const Int = 1024
-        buffer := gc_malloc(max) as String
-        if(origin) snprintf(buffer, max, "[%s in %s]: %s\n", this as Object class name, origin name, msg)
-        else snprintf(buffer, max, "[%s]: %s\n", this as Object class name, msg)
+        buffer := String new (max)
+        if(origin) snprintf(buffer data, max, "[%s in %s]: %s\n", this as Object class name data, origin name data, msg data)
+        else snprintf(buffer data, max, "[%s]: %s\n", this as Object class name data, msg data)
         return buffer
     }
 
     print: func {
-        fprintf(stderr, "%s", getMessage())
+        fprintf(stderr, "%s", getMessage() data)
     }
 
     throw: func {

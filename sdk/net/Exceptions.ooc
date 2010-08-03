@@ -2,14 +2,14 @@ include errno
 include string
 
 errno: extern Int
-strerror: extern func(Int) -> String
+strerror: extern func(Int) -> Char*
 
 /**
     Base exception which all networking errors extend.
  */
 NetError: class extends Exception {
     init: func {
-        super(strerror(errno) clone())
+        super(String new (strerror(errno)))
     }
 }
 

@@ -218,10 +218,14 @@ StreamSocketWriter: class extends Writer {
     vwritef: func(fmt: String, list: VaList) {
         // stolen from text/Buffer.
         // TODO: could be optimized (notably the buffer allocation)
-        length := vsnprintf(null, 0, fmt, list)
+        //FIXME needs same va_copy trick as bufferwriter
+        /*
+        length := vsnprintf(null, 0, fmt data, list)
         output := String new(length)
 
-        vsnprintf(output, length + 1, fmt, list)
+        vsnprintf(output data, length + 1, fmt, list)
         write(output, length)
+        */
+        Exception new ("not implemented") throw()
     }
 }

@@ -90,7 +90,7 @@ File: abstract class {
      * opened for reading
      */
     exists?: func -> Bool {
-        fd := fopen(path, "r")
+        fd := fopen(path data, "r")
         if(fd) {
             fclose(fd); return true
         }
@@ -117,7 +117,7 @@ File: abstract class {
      * name() will return 'bluetooth'
      */
     name: func -> String {
-        trimmed := path trim(This separator)
+        trimmed := path trim(This separator, true)
         idx := trimmed lastIndexOf(This separator)
         if(idx == -1) return trimmed
         return trimmed substring(idx + 1)
@@ -143,7 +143,7 @@ File: abstract class {
     parentName: func -> String {
         idx := path lastIndexOf(This separator)
         if(idx == -1) return null
-        return path substring(0, idx)
+        return path substring(0, idx, true)
     }
 
     /**
@@ -326,7 +326,7 @@ File: abstract class {
      */
     getCwd: static func -> String {
         ret := String new(File MAX_PATH_LENGTH + 1)
-        if(!_getcwd(ret, File MAX_PATH_LENGTH)) {
+        if(!_getcwd(ret data, File MAX_PATH_LENGTH)) {
             Exception new("Failed to get current directory!") throw()
         }
         return ret
