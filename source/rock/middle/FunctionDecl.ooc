@@ -6,7 +6,10 @@ import Cast, Expression, Type, Visitor, Argument, TypeDecl, Scope,
        Version, StringLiteral, Conditional, Import, ClassDecl, StringLiteral,
        IntLiteral, NullLiteral, BaseType, FuncType, AddressOf, BinaryOp,
        TypeList, CoverDecl, StructLiteral, Dereference
+
 import tinker/[Resolver, Response, Trail, Errors]
+
+import algo/autoReturn
 
 /**
    A function declaration.
@@ -468,8 +471,20 @@ FunctionDecl: class extends Declaration {
             }
         }
 
-        if(!isAbstract && vDecl == null) {
-            response := autoReturn(trail, res)
+        if(!isAbstract && !isExtern && vDecl == null) {
+            if(isMain()) {
+                if(isVoid()) {
+                    returnType = BaseType new("Int", token)
+                    res wholeAgain(this, "because changed returnType to %s\n")
+                }
+
+                if(body empty?()) {
+                    ret := Return new(IntLiteral new(0, nullToken), nullToken)
+                    body add(ret)
+                }
+            }
+
+            response := autoReturn(trail, res, this, body, returnType)
             if(!response ok()) {
                 if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of autoReturn = %s\n", toString(), response toString())
                 trail pop(this)
@@ -897,95 +912,9 @@ FunctionDecl: class extends Declaration {
 
     }
 
-    autoReturn: func (trail: Trail, res: Resolver) -> Response {
-
-        finalResponse := Responses OK
-
-        if(isMain() && isVoid()) {
-            returnType = BaseType new("Int", token)
-            res wholeAgain(this, "because changed returnType to %s\n")
-        }
-
-        if(returnType == voidType || isExtern()) return Responses OK
-
-        autoReturnExplore(trail, res, body)
-        return Responses OK
-
-    }
-
-    autoReturnExplore: func (trail: Trail, res: Resolver, scope: Scope) {
-
-        if(scope empty?()) {
-            //printf("[autoReturn] scope is empty, we need a return\n")
-            returnNeeded(trail)
-            return
-        }
-
-        handleLastStatement(trail, res, scope, scope lastIndex())
-
-    }
-
-    handleLastStatement: func (trail: Trail, res: Resolver, scope: Scope, index: Int) {
-
-        stmt := scope get(index)
-
-        if(stmt instanceOf?(Return)) {
-            //printf("[autoReturn] Oh, it's a %s already. Nice =D!\n",  last toString())
-            return
-        }
-
-        if(stmt instanceOf?(Expression)) {
-            expr := stmt as Expression
-            if(expr getType() == null) {
-                //printf("[autoReturn] LOOPing because stmt's type (%s) is null.", expr toString())
-                res wholeAgain(this, "need the type of some statement in autoReturn")
-                return
-            }
-
-            if(isMain() && !(expr getType() getName() == "Int" && expr getType() pointerLevel() == 0)) {
-                returnNeeded(trail)
-                res wholeAgain(this, "was needing return")
-                return
-            }
-
-            if(!expr getType() equals?(voidType)) {
-                //printf("[autoReturn] Hmm it's a %s\n", stmt toString())
-                scope set(index, Return new(expr, expr token))
-                res wholeAgain(this, "Replaced with a return o/")
-                //printf("[autoReturn] Replaced with a %s!\n", scope get(index) toString())
-            }
-        } else if(stmt instanceOf?(ControlStatement)) {
-            cStat := stmt as ControlStatement
-            if(cStat isDeadEnd()) {
-                autoReturnExplore(trail, res, cStat getBody())
-                if(cStat instanceOf?(Else) && index > 0 && scope get(index - 1) instanceOf?(Conditional)) {
-                    //printf("[autoReturn] Should handle the if too!\n")
-                    handleLastStatement(trail, res, scope, index - 1)
-                }
-            } else {
-                returnNeeded(trail)
-            }
-        } else {
-            //printf("[autoReturn] Huh, last is a %s, needing return\n", last toString())
-            returnNeeded(trail)
-            res wholeAgain(this, "was needing return")
-            return
-        }
-
-    }
-
     isVoid: func -> Bool { returnType == voidType }
 
     isMain: func -> Bool { name == "main" && suffix == null && !isMember() }
-
-    returnNeeded: func (trail: Trail) {
-        if(isMain()) {
-            ret := Return new(IntLiteral new(0, nullToken), nullToken)
-            body add(ret)
-        } else {
-            trail module() params errorHandler onError(InconsistentReturn new(token, "Control reaches the end of non-void function!"))
-        }
-    }
 
     replace: func (oldie, kiddo: Node) -> Bool {
         if(oldie == returnType) {
