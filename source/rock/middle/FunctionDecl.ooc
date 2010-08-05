@@ -428,6 +428,8 @@ FunctionDecl: class extends Declaration {
             }
             if(!returnType isResolved()) {
                 res wholeAgain(this, "need returnType of a FunctionDecl to be resolved")
+                trail pop(this)
+                return Responses OK
             } else if(returnType isGeneric()) {
                 // this create the returnArg for generic return types
                 if(returnArgs empty?()) createReturnArg(returnType, "genericReturn")
@@ -471,7 +473,7 @@ FunctionDecl: class extends Declaration {
             }
         }
 
-        if(!isAbstract && !isExtern && vDecl == null) {
+        if(!isAbstract() && !isExtern() && vDecl == null) {
             if(isMain()) {
                 if(isVoid()) {
                     returnType = BaseType new("Int", token)

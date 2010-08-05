@@ -16,7 +16,7 @@ Type: abstract class extends Expression {
     SCORE_SEED := const static 1024
     NOLUCK_SCORE := const static -100000
 
-    void? : Bool { get { this == voidType || (getName() == "void" && pointerLevel() == 0) } }
+    void? : Bool { get { this == voidType } }
 
     init: func ~type (.token) {
         super(token)
