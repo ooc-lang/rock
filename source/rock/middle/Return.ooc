@@ -132,7 +132,6 @@ Return: class extends Statement {
                     byRef? := returnArg getType() instanceOf?(ReferenceType)
                     needIf? := (retType isGeneric() || byRef?)
 
-                    ass := BinaryOp new(returnAcc, returnExpr, OpType ass, token)
                     if(needIf?) {
                         // generic variables have weird semantics
                         if1 := If new(byRef? ? AddressOf new(returnAcc, token) : returnAcc, token)
@@ -145,12 +144,15 @@ Return: class extends Statement {
                             returnExpr = VariableAccess new(vdfe, vdfe token)
                         }
 
+                        // ass needs to be created now because returnExpr might've changed
+                        ass := BinaryOp new(returnAcc, returnExpr, OpType ass, token)
                         if1 getBody() add(ass)
 
                         if(!trail peek() addBefore(this, if1)) {
                             res throwError(CouldntAddBefore new(token, this, if1, trail))
                         }
                     } else {
+                        ass := BinaryOp new(returnAcc, returnExpr, OpType ass, token)
                         if(!trail peek() addBefore(this, ass)) {
                             res throwError(CouldntAddBefore new(token, this, ass, trail))
                         }
