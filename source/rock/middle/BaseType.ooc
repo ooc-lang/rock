@@ -12,6 +12,10 @@ BaseType: class extends Type {
     ref: Declaration = null
     name: String
 
+    void? : Bool {
+        get { super() || name == "void" || name == "Void" }
+    }
+
     typeArgs: List<VariableAccess> = null
 
     init: func ~baseType (=name, .token) { super(token) }
