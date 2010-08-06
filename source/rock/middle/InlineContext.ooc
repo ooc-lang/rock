@@ -92,6 +92,36 @@ InlineContext: class extends Block {
         autoReturn(trail, res, this, body, returnType)
     }
 
+    resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
+        "====================================" println()
+        "In inline context of %s, looking for call %s" printfln(fCall toString(), call toString())
+
+        "fCall expr = %s" printfln(fCall expr ? fCall expr toString() : "<null>")
+        if(fCall expr != null) {
+            exprType := fCall expr getType()
+            if(exprType != null && exprType getRef() != null) {
+                ref := exprType getRef()
+                "ref is %s (%p) and it's a %s" printfln(ref toString(), ref, ref class name)
+
+                proxy := call clone()
+                proxy expr = fCall expr
+                ref as TypeDecl getMeta() resolveCall(proxy, res, trail)
+                if(proxy ref != null) {
+                    "resolved to %s" printfln(proxy ref toString())
+                    call expr = fCall expr
+                    if(call suggest(proxy ref)) {
+                        "Congratulations soldier" println()
+                        return 0
+                    } else {
+                        call expr = null
+                    }
+                }
+            }
+        }
+
+        super(call, res, trail)
+    }
+
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
         "====================================" println()
         "In inline context of %s, looking for access %s" printfln(fCall toString(), access toString())
@@ -192,7 +222,19 @@ InlinedType: class extends TypeDecl {
             }
         }
 
-        return 0
+        0
+    }
+
+    resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
+        if(context fCall expr) {
+            ref := context fCall expr getType() getRef()
+            if(ref) {
+                "in InlinedType resolveCall, ref is %s and it's a %s" printfln(ref toString(), ref class name)
+                return ref resolveCall(call, res, trail)
+            }
+        }
+
+        0
     }
 
 }

@@ -30,7 +30,9 @@ VariableAccess: class extends Expression {
     }
 
     clone: func -> This {
-        new(expr ? expr clone() : null, name, token)
+        copy := new(expr ? expr clone() : null, name, token)
+        copy ref = ref
+        copy
     }
 
     init: func ~typeAccess (type: Type, .token) {
@@ -58,7 +60,9 @@ VariableAccess: class extends Expression {
     // It's just an access, it has no side-effects whatsoever
     hasSideEffects : func -> Bool { false }
 
-    debugCondition: func -> Bool { false }
+    debugCondition: inline func -> Bool {
+        false
+    }
 
     suggest: func (node: Node) -> Bool {
         if(node instanceOf?(VariableDecl)) {

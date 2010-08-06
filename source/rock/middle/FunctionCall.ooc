@@ -161,14 +161,19 @@ FunctionCall: class extends Expression {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        //printf("===============================================================\n")
-        //printf("     - Resolving call to %s (ref = %s)\n", name, ref ? ref toString() : "(nil)")
+        if(debugCondition() || res params veryVerbose) {
+            printf("===============================================================\n")
+            printf("     - Resolving call to %s (ref = %s)\n", name, ref ? ref toString() : "(nil)")
+        }
 
         // resolve all arguments
         if(args size() > 0) {
             trail push(this)
             i := 0
             for(arg in args) {
+                if(debugCondition() || res params veryVerbose) {
+                    "resolving arg %s" printfln(arg toString())
+                }
                 response := arg resolve(trail, res)
                 if(!response ok()) {
                     trail pop(this)
