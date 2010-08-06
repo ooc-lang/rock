@@ -551,7 +551,7 @@ FunctionCall: class extends Expression {
         node isScope() ||
 		node instanceOf?(CommaSequence) ||
 		node instanceOf?(VariableDecl) ||
-		(node instanceOf?(BinaryOp) && node as BinaryOp isAssign())
+		(node instanceOf?(BinaryOp) && node as BinaryOp type == OpType ass)
     }
 
     /**
