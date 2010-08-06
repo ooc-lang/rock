@@ -20,6 +20,8 @@ Type: abstract class extends Expression {
         super(token)
     }
 
+    void?: Bool { get { this == voidType } }
+
     accept: func (visitor: Visitor) { visitor visitType(this) }
 
     pointerLevel: abstract func -> Int
