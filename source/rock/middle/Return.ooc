@@ -78,7 +78,7 @@ Return: class extends Statement {
                 res wholeAgain(this, "expr type is unresolved"); return Responses OK
             }
         } else {
-            if (returnArgs empty?() && retType != voidType) {
+            if (returnArgs empty?() && !retType void?) {
                 res throwError(InconsistentReturn new(token, "Can't return nothing in function declared as returning a %s" format(retType toString())))
             } else {
                 // no expression, and the function's alright with that - nothing more to do.
