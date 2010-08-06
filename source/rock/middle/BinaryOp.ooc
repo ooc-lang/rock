@@ -68,7 +68,7 @@ BinaryOp: class extends Expression {
     }
 
     clone: func -> This {
-        new(left, right, type, token)
+        new(left clone(), right clone(), type, token)
     }
 
     isAssign: func -> Bool { (type >= OpType ass) && (type <= OpType bAndAss) }
