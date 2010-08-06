@@ -10,7 +10,7 @@ import ../[Scope, Type, Return, Node, Expression, ControlStatement,
  */
 autoReturn: func (trail: Trail, res: Resolver, origin: Node, body: Scope, returnType: Type) -> Response {
 
-    if(returnType == voidType) {
+    if(returnType void?) {
         return Responses OK
     }
 
