@@ -4,6 +4,7 @@ import ../frontend/Token
 import ../io/TabbedWriter
 import Block, VariableAccess, FunctionCall, Cast, VariableDecl, TypeDecl,
        BaseType, Visitor, Node, FunctionDecl, Type
+import algo/autoReturn
 
 import tinker/[Trail, Resolver, Response]
 
@@ -79,13 +80,16 @@ InlineContext: class extends Block {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-
         if(realThisDecl) {
             if(!realThisDecl resolve(trail, res) ok()) return Responses OK
         }
 
-        super(trail, res)
+        response := super(trail, res)
+        if(!response ok()) {
+            return response
+        }
 
+        autoReturn(trail, res, this, body, returnType)
     }
 
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {

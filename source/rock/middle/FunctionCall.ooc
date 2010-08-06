@@ -312,27 +312,15 @@ FunctionCall: class extends Expression {
 
                 for(i in 0..args size()) {
                     callArg := args get(i)
-                    "Adding arg %s" printfln(ref args get(i) getName())
                     block body add(VariableDecl new(null, ref args get(i) getName(), callArg, callArg token))
                 }
 
                 ref inlineCopy getBody() list each(|x|
-                    "Adding copy of %s" printfln(x toString())
                     block body add(x clone())
                 )
 
-                // FIXME: this should behave exactly as autoReturn
-                if(block body last() instanceOf?(Expression)) {
-                    last := block body removeAt(block body size() - 1) as Expression
-                    "Returning last expr %s which is a %s" printfln(last toString(), last class name)
-                    ass := BinaryOp new(retAcc, last, OpType ass, token)
-                    block body add(ass)
-                }
-
                 trail addBeforeInScope(this, block)
                 trail peek() replace(this, retAcc)
-
-                "Finished inlining %s, looping now!" printfln(toString())
 
                 res wholeAgain(this, "finished inlining")
                 return Responses OK
