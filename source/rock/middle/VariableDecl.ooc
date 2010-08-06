@@ -34,8 +34,12 @@ VariableDecl: class extends Declaration {
         super(token)
     }
 
+    debugCondition: inline func -> Bool {
+        false
+    }
+
     clone: func -> This {
-        copy := new(type, name, expr, token)
+        copy := new(type, name, expr ? expr clone() : null, token)
         copy isArg         = isArg
         copy isGlobal      = isGlobal
         copy isConst       = isConst
@@ -138,7 +142,9 @@ VariableDecl: class extends Declaration {
 
         trail push(this)
 
-        //if(res params veryVerbose) printf("Resolving variable decl %s\n", toString())
+        if(debugCondition() || res params veryVerbose) {
+            printf("Resolving variable decl %s\n", toString())
+        }
 
         if(expr) {
             response := expr resolve(trail, res)
@@ -155,6 +161,9 @@ VariableDecl: class extends Declaration {
                 trail pop(this)
                 res wholeAgain(this, "must determine type of a VarDecl.")
                 return Responses OK
+            }
+            if(debugCondition()) {
+                " >>> Just inferred type %s of %s from expr %s" printfln(type toString(), toString(), expr toString())
             }
         }
 

@@ -103,7 +103,8 @@ InlineContext: class extends Block {
                 ref := exprType getRef()
                 "ref is %s (%p) and it's a %s" printfln(ref toString(), ref, ref class name)
 
-                proxy := call clone()
+                proxy := FunctionCall new(call getName(), call token)
+                proxy args addAll(call args)
                 proxy expr = fCall expr
                 ref as TypeDecl getMeta() resolveCall(proxy, res, trail)
                 if(proxy ref != null) {
