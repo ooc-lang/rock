@@ -321,7 +321,7 @@ FunctionDecl: class extends Declaration {
 
     isResolved: func -> Bool { false }
 
-    resolveType: func (type: BaseType) {
+    resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
 
         //printf("** Looking for type %s in func %s with %d type args\n", type name, toString(), typeArgs size())
         for(typeArg: VariableDecl in typeArgs) {
@@ -329,9 +329,11 @@ FunctionDecl: class extends Declaration {
             if(typeArg name == type name) {
                 //printf("***** Found match for %s in function decl %s\n", type name, toString())
                 type suggest(typeArg)
-                break
+                return 0
             }
         }
+
+        0
 
     }
 

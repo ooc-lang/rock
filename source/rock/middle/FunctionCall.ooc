@@ -315,9 +315,23 @@ FunctionCall: class extends Expression {
                 block := InlineContext new(this, token)
                 block returnArgs add(retDecl) // Note: this isn't sufficient. What with TypeList return types?
 
+                reservedNames := ref args map(|arg| arg name)
+
                 for(i in 0..args size()) {
                     callArg := args get(i)
-                    block body add(VariableDecl new(null, ref args get(i) getName(), callArg, callArg token))
+
+                    name := ref args get(i) getName()
+
+                    if(callArg instanceOf?(VariableAccess)) {
+                        vAcc := callArg as VariableAccess
+                        if(reservedNames contains?(vAcc getName())) {
+                            tempDecl := VariableDecl new(null, generateTempName(name), callArg, callArg token)
+                            block body add(0, tempDecl)
+                            callArg = VariableAccess new(tempDecl, tempDecl token)
+                        }
+                    }
+
+                    block body add(VariableDecl new(null, name, callArg, callArg token))
                 }
 
                 ref inlineCopy getBody() list each(|x|

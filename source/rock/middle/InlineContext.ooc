@@ -17,6 +17,7 @@ InlineContext: class extends Block {
 
     fCall: FunctionCall
     ref: FunctionDecl
+
     casted := HashMap<VariableDecl, VariableDecl> new()
 
     thisDecl = null, realThisDecl = null : VariableDecl
@@ -108,13 +109,15 @@ InlineContext: class extends Block {
                 proxy expr = fCall expr
                 ref as TypeDecl getMeta() resolveCall(proxy, res, trail)
                 if(proxy ref != null) {
-                    "resolved to %s" printfln(proxy ref toString())
-                    call expr = fCall expr
+                    "resolved to %s (vDecl = %s, proxy expr = %s)" printfln(proxy ref toString(), proxy ref vDecl ? proxy ref vDecl toString() : "(nil)", proxy expr ? proxy expr toString() : "(nil)")
+                    oldExpr := call expr
+                    call expr = proxy expr
                     if(call suggest(proxy ref)) {
-                        "Congratulations soldier" println()
+                        "Congratulations soldier - we now have call %s, with expr %s" printfln(call toString(), call expr ? call expr toString() : "(nil)")
                         return 0
                     } else {
-                        call expr = null
+                        // restore
+                        call expr = oldExpr
                     }
                 }
             }
@@ -183,6 +186,22 @@ InlineContext: class extends Block {
         }
 
         super(access, res, trail)
+    }
+
+    resolveType: func (type: Type, res: Resolver, trail: Trail) -> Int {
+        "====================================" println()
+        "In inline context of %s, looking for type %s" printfln(fCall toString(), type toString())
+
+        real := type realTypize(fCall)
+        if(real != null) {
+            "found real type %s" printfln(real toString())
+            if(type instanceOf?(BaseType) && real instanceOf?(BaseType)) {
+                type as BaseType name = real getName()
+                type setRef(real getRef())
+            }
+        }
+
+        super(type, res, trail)
     }
 
     toString: func -> String {

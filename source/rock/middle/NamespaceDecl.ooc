@@ -44,11 +44,13 @@ NamespaceDecl: class extends Declaration {
         sb toString()
     }
 
-    resolveType: func (type: BaseType) {
+    resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
 
         for(imp in imports) {
-            imp getModule() resolveType(type)
+            imp getModule() resolveType(type, res, trail)
         }
+
+        0
 
     }
 

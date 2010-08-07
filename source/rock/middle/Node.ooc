@@ -45,8 +45,9 @@ Node: abstract class {
         0
     }
 
-    resolveType: func (type: BaseType) {
+    resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
         // overridden in sub-classes
+        0
     }
 
     generateTempName: func (origin: String) -> String {

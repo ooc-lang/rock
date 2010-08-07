@@ -272,21 +272,23 @@ Module: class extends Node {
 
     }
 
-    resolveType: func (type: BaseType) {
+    resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
 
         ref : Declaration = null
 
         ref = types get(type name)
         if(ref != null && type suggest(ref)) {
-            return
+            return 0
         }
 
         for(imp in getGlobalImports()) {
             ref = imp getModule() types get(type name)
             if(ref != null && type suggest(ref)) {
-                break
+                return 0
             }
         }
+
+        0
 
     }
 

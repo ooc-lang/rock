@@ -15,7 +15,7 @@ Cast: class extends Expression {
     }
 
     clone: func -> This {
-        new(inner clone(), type, token)
+        new(inner clone(), type clone(), token)
     }
 
     accept: func (visitor: Visitor) {
