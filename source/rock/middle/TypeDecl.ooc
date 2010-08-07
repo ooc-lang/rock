@@ -4,7 +4,7 @@ import ../io/TabbedWriter
 import text/Buffer
 import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
     FunctionDecl, FunctionCall, Module, VariableAccess, Node,
-    InterfaceImpl, Version, EnumDecl, BaseType, FuncType
+    InterfaceImpl, Version, EnumDecl, BaseType, FuncType, OperatorDecl
 import tinker/[Resolver, Response, Trail, Errors]
 
 /**
@@ -23,15 +23,22 @@ TypeDecl: abstract class extends Declaration {
 
     name = "", externName = null, doc = "" : String
 
+    // generic type args, e.g. the T in List: class <T>
     typeArgs := ArrayList<VariableDecl> new()
 
+    // internal state variables
     hasCheckedInheritance := false
     hasCheckedAbstract := false
 
     variables := HashMap<String, VariableDecl> new()
+
+    // for classes, functions are contained in the meta-class.
+    // for covers, they are directly in the cover decl.
     functions := HashMap<String, FunctionDecl> new()
 
+    // interface types that this type implements
     interfaceTypes := ArrayList<Type> new()
+    // InterfaceImpl is used for storing
     interfaceDecls := ArrayList<InterfaceImpl> new()
 
     thisDecl, thisRefDecl: VariableDecl
@@ -52,6 +59,9 @@ TypeDecl: abstract class extends Declaration {
     addons := ArrayList<TypeDecl> new()
 
     _finishedGhosting := false
+
+    // implicit conversions between types
+    implicitConversions := ArrayList<OperatorDecl> new()
 
     init: func ~typeDeclNoSuper (=name, .token) {
         super(token)

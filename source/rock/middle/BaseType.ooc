@@ -197,6 +197,7 @@ BaseType: class extends Type {
 
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
         //printf("%s vs %s, other isGeneric ? %s pointerLevel ? %d\n", toString(), other toString(), other isGeneric() toString(), other pointerLevel())
+
         if(name == "void" || name == "Void") return This NOLUCK_SCORE
 
         if(other isGeneric() && other pointerLevel() == 0) {

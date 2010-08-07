@@ -1,4 +1,4 @@
-import structs/[ArrayList, List], text/Buffer
+import structs/[ArrayList, List, HashMap], text/Buffer
 import ../frontend/[Token, BuildParams, CommandLine]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
@@ -83,6 +83,12 @@ FunctionCall: class extends Expression {
     refScore := INT_MIN
 
     /**
+     * When 'implicit as' is used, args are modified, and this map
+     * keeps track of what has been modified, to be able to restore it.
+     */
+    argsBeforeConversion: HashMap<Int, Expression>
+
+    /**
      * Create a new function call to the function '<name>()'
      */
     init: func ~funcCall (=name, .token) {
@@ -153,6 +159,41 @@ FunctionCall: class extends Expression {
             if(debugCondition()) "** New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
             refScore = score
             ref = candidate
+
+            // todo: optimize that. not all of this needs to happen in many cases
+            if(argsBeforeConversion) {
+                for(i in argsBeforeConversion getKeys()) {
+                    args set(i, argsBeforeConversion[i])
+                }
+            }
+
+            for(i in 0..args size()) {
+                if(i >= candidate args size()) break
+                declArg := candidate args get(i)
+                if(declArg instanceOf?(VarArg)) break
+                callArg := args get(i)
+                declArgType := declArg getType() refToPointer()
+                if (declArgType isGeneric()) {
+                    declArgType = declArgType realTypize(this)
+                }
+
+                if(callArg getType() getScore(declArgType) == Type NOLUCK_SCORE) {
+                    ref := callArg getType() getRef()
+                    if(ref instanceOf?(TypeDecl)) {
+                        ref as TypeDecl implicitConversions each(|opdecl|
+                            if(opdecl fDecl getReturnType() equals?(declArgType)) {
+                                args set(i, Cast new(callArg, declArgType, callArg token))
+                                if(!argsBeforeConversion) {
+                                    // lazy instantiation of argsBeforeConversion
+                                    argsBeforeConversion = HashMap<Int, Expression> new()
+                                }
+                                argsBeforeConversion put(i, callArg)
+                            }
+                        )
+                    }
+                }
+            }
+
             return score > 0
         }
         return false
@@ -471,9 +512,7 @@ FunctionCall: class extends Expression {
 
             declArgType := declArg getType()
             if(declArgType isGeneric()) {
-                "declArgType is originally %s" printfln(declArg toString())
                 declArgType = declArgType realTypize(this)
-                "and now it's %s" printfln(declArg toString())
             }
 
             score := callArg getType() getScore(declArgType)
@@ -991,18 +1030,27 @@ FunctionCall: class extends Expression {
                 return -1
             }
 
-            declArgType := declArg getType()
+            declArgType := declArg getType() refToPointer()
             if (declArgType isGeneric()) {
-                finalScore := 0
                 declArgType = declArgType realTypize(this)
             }
 
-            typeScore := callArg getType() getScore(declArgType refToPointer())
+            typeScore := callArg getType() getScore(declArgType)
             if(typeScore == -1) {
                 if(debugCondition()) {
                     printf("-1 because of type score between %s and %s\n", callArg getType() toString(), declArgType refToPointer() toString())
                 }
                 return -1
+            }
+            if(typeScore == Type NOLUCK_SCORE) {
+                ref := callArg getType() getRef()
+                if(ref instanceOf?(TypeDecl)) {
+                    ref as TypeDecl implicitConversions each(|opdecl|
+                        if(opdecl fDecl getReturnType() equals?(declArgType)) {
+                            typeScore = Type SCORE_SEED / 4
+                        }
+                    )
+                }
             }
 
             score += typeScore

@@ -292,12 +292,12 @@ FunctionDecl: class extends Declaration {
             if(isFirst) isFirst = false
             else        sb append(", ")
             argType := arg getType()
-            if(call) {
-                finalScore := 0
-                solved := call resolveTypeArg(argType getName(), null, finalScore&)
-                if(solved) argType = solved
-            }
             if(argType) {
+                if(call) {
+                    finalScore := 0
+                    solved := call resolveTypeArg(argType getName(), null, finalScore&)
+                    if(solved) argType = solved
+                }
                 sb append(argType toString())
             } else {
                 sb append("...")
