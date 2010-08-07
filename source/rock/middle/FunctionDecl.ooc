@@ -445,7 +445,7 @@ FunctionDecl: class extends Declaration {
             }
         }
 
-        if(doInline) {
+        if(res params inlining && doInline) {
             if(inlineCopy == null) {
                 // FIXME: bah, ugly testing workarounds, don't pay attention.
                 inlineCopy = clone(name + "__inline")

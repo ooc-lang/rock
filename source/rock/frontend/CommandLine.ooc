@@ -101,6 +101,14 @@ CommandLine: class {
 
                     params entryPoint = arg substring(arg indexOf('=') + 1)
 
+                } else if (option == "inline") {
+
+                    params inlining = true
+
+                } else if (option == "no-inline") {
+
+                    params inlining = false
+
                 } else if (option == "c") {
 
                     params link = false

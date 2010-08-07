@@ -153,6 +153,9 @@ BuildParams: class {
     // Add debug info to the generated C files (e.g. -g switch for gcc)
     debug := false
 
+    // Do inlining
+    inlining := false
+
     // Displays which files it parses, and a few debug infos
     verbose := false
 

@@ -300,7 +300,7 @@ FunctionCall: class extends Expression {
 
             // resolved. if we're inlining, do it now!
             // FIXME: this is oh-so-primitive.
-            if(ref doInline) {
+            if(res params inlining && ref doInline) {
                 if(expr && (expr getType() == null || !expr getType() isResolved())) {
                     res wholeAgain(this, "need expr type!")
                     return Responses OK
