@@ -30,7 +30,7 @@ grammar:
 	${PARSER_GEN} ../nagaqueen/grammar/nagaqueen.leg > ${NQ_PATH}
 	make .libs/NagaQueen.o
 
-.libs/NagaQueen.o:
+.libs/NagaQueen.o: source/rock/frontend/NagaQueen.c
 	mkdir -p .libs
 	gcc -std=c99 ${NQ_PATH} -D__OOC_USE_GC__ -w -c -o .libs/NagaQueen.o
 
