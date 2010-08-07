@@ -64,7 +64,7 @@ JSONGenerator: class extends Visitor {
 
     resolveType: func (type: Type) -> String {
         if(type instanceOf?(FuncType)) {
-            return "Func" /* TODO? */
+            return generateFuncTag(type as FuncType)
         } else if(type instanceOf?(PointerType)) {
             return "pointer(%s)" format(resolveType(type as PointerType inner))
         } else if(type instanceOf?(ReferenceType)) {
@@ -471,6 +471,50 @@ JSONGenerator: class extends Visitor {
             elements add(elemBag)
         }
         addObject(node name, obj)
+    }
+
+    generateFuncTag: func ~funcType (node: FuncType) -> String {
+        buf := Buffer new()
+        buf append("Func(")
+        first := true
+        if(!node typeArgs empty?()) {
+            first = false
+            first_ := true
+            buf append("generics(")
+            for(typeArg in node typeArgs) {
+                if(!first_)
+                    buf append(',')
+                else
+                    first_ = false
+                buf append(typeArg name)                
+            }
+            buf append(')')
+        }
+        if(!node argTypes empty?()) {
+            if(!first)
+                buf append(',')
+            else
+                first = false
+            buf append("arguments(")
+            first_ := true
+            for(arg in node argTypes) {
+                if(!first_)
+                    buf append(',')
+                else
+                    first_ = false
+                buf append(resolveType(arg))
+            }
+            buf append(')')
+        }
+        if(node returnType != null) {
+            if(!first)
+                buf append(',')
+            else
+                first = false
+            buf append("return(%s)" format(resolveType(node returnType)))
+        }
+        buf append(')')
+        buf toString()
     }
 
     generateFuncTag: func (node: FunctionDecl, start: String) -> String {
