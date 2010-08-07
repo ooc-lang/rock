@@ -205,8 +205,8 @@ String: cover from Char* {
     toLong: func ~withBase (base: Long) -> Long { strtol(this, null, base) }
 
     /** convert the string's contents to Long Long. */
-    toLLong: func -> LLong                         { strtol(this, null, 10)   }
-    toLLong: func ~withBase (base: LLong) -> LLong { strtol(this, null, base) }
+    toLLong: func -> LLong                         { strtoll(this, null, 10)   }
+    toLLong: func ~withBase (base: LLong) -> LLong { strtoll(this, null, base) }
 
     /** convert the string's contents to Unsigned Long. */
     toULong: func -> ULong                         { strtoul(this, null, 10)   }
