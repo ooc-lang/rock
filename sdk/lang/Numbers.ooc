@@ -15,6 +15,12 @@ LLong: cover from signed long long {
     in?: func(range: Range) -> Bool {
         return this >= range min && this < range max
     }
+
+    times: func (fn: Func) {
+        for(i in 0..this) {
+            fn()
+        }
+    }
 }
 
 Long:  cover from signed long  extends LLong
