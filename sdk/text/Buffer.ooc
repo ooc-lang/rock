@@ -13,7 +13,7 @@ Buffer: class  extends String {
         init(128)
     }
 
-    init: func ~withCapa (capa: SizeT) {
+    init: func ~withLength (capa: SizeT) {
         setCapacity (capa)
     }
 

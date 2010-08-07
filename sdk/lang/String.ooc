@@ -179,9 +179,8 @@ String: class {
     /** Create a new string exactly *length* characters long (without the nullbyte).
         The contents of the string are undefined.
         the new strings length is also set to length. */
-    init: func ~withLength (length: SizeT) -> This {
+    init: func ~withLength (length: SizeT) {
         setLength(length)
-        this
     }
 
     init: func ~str (str: String) {
@@ -189,21 +188,20 @@ String: class {
     }
 
     /** Create a new string of the length 1 containing only the character *c* */
-    init: func ~withChar (c: Char) -> This {
-        this setLength(1)
+    init: func ~withChar (c: Char) {
+        setLength(1)
         data@ = c
-        this
     }
 
     /** create a new String from a zero-terminated C String */
-    init: func ~withCStr(s : Char*) -> This {
+    init: func ~withCStr(s : Char*) {
         init (s, strlen(s))
     }
 
     /** create a new String from a zero-terminated C String with known length */
     // ATTENTION the mangled name of this function is hardcoded in CGenerator.ooc
     // so you'd rather not change it
-    init: func ~withCStrAndLength(s : Char*, length: SizeT) -> This {
+    init: func ~withCStrAndLength(s : Char*, length: SizeT) {
         setLength(length)
         memcpy(data, s, length + 1)
         this
