@@ -7,7 +7,7 @@ import io/[Writer, Reader]
     Other difference from String: the constructor will set capacity, not size.
 */
 
-Buffer: class  extends String {
+Buffer: class extends String {
 
     init: func {
         init(128)
@@ -17,8 +17,8 @@ Buffer: class  extends String {
         setCapacity (capa)
     }
 
-    init: super func ~str
-    init: super func ~withChar
+    //init: super func ~str
+    //init: super func ~withChar
 
 
     /* pretty strange function, i guess that could be replaced by substring ? */

@@ -141,7 +141,7 @@ Return: class extends Statement {
                     if (score < 0) {
                         msg: String
                         if (res params veryVerbose) {
-                            msg = "The declared return type (%s) and the returned value (%s) do not match!\nscore = %d\ntrail = %s" format(retType toString(), expr getType() toString(), score, trail toString())
+                            msg = "The declared return type (%s) and the returned value (%s of type %s) do not match!\nscore = %d\ntrail = %s" format(retType toString(), expr getType() toString(), expr toString(), score, trail toString())
                         } else {
                             msg = "The declared return type (%s) and the returned value (%s) do not match!" format(retType toString(), expr getType() toString())
                         }
