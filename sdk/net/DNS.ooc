@@ -19,8 +19,8 @@ DNS: class {
         hints ai_flags = AI_CANONNAME
         hints ai_family = socketFamily
         hints ai_socktype = socketType
-        if((rv := getaddrinfo(hostname data, null, hints&, info&)) != 0) {
-            DNSError new( String new (gai_strerror(rv as Int))) throw()
+        if((rv := getaddrinfo(hostname, null, hints&, info&)) != 0) {
+            DNSError new( gai_strerror(rv as Int)) throw()
         }
         return HostInfo new(info)
     }
@@ -47,8 +47,8 @@ DNS: class {
     }
     reverse: static func ~withSockAddr(sockaddr: SocketAddress) -> String {
         hostname := String new(1024)
-        if((rv := getnameinfo(sockaddr addr(), sockaddr length(), hostname data, 1024, null, 0, 0)) != 0) {
-            DNSError new( String new (gai_strerror(rv as Int))) throw()
+        if((rv := getnameinfo(sockaddr addr(), sockaddr length(), hostname, 1024, null, 0, 0)) != 0) {
+            DNSError new(gai_strerror(rv as Int)) throw()
         }
         return hostname
     }
@@ -88,7 +88,7 @@ HostInfo: class {
     init: func(addrinfo: AddrInfo*) {
         addresses = LinkedList<IPAddress> new()
 
-        name = String new (addrinfo@ ai_canonname)
+        name = addrinfo@ ai_canonname
         info := addrinfo
         while(info) {
             if(info@ ai_addrlen && info@ ai_addr) {

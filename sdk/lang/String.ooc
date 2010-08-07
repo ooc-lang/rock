@@ -1090,6 +1090,14 @@ StringIterator: class <T> extends BackIterator<T> {
 
 }
 
+operator implicit as (s: String) -> Char* {
+    s data
+}
+
+operator implicit as (c: Char*) -> String {
+    String new (c, strlen(c))
+}
+
 operator == (str1: String, str2: String) -> Bool {
     return str1 equals?(str2)
 }

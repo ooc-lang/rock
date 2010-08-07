@@ -29,7 +29,7 @@ Exception: class {
     }
 
     print: func {
-        fprintf(stderr, "%s", getMessage() data)
+        fprintf(stderr, "%s", getMessage() )
     }
 
     throw: func {

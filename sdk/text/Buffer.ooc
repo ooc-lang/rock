@@ -7,7 +7,7 @@ import io/[Writer, Reader]
     Other difference from String: the constructor will set capacity, not size.
 */
 
-Buffer: class  extends String{
+Buffer: class  extends String {
 
     init: func {
         init(128)
