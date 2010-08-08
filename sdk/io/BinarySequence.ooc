@@ -42,6 +42,31 @@ BinarySequenceWriter: class {
     }
 }
 
+BinarySequenceReader: class {
+    reader: Reader
+    endianness := ENDIANNESS
+
+    init: func (=reader) {
+    }
+
+    pullValue: func <T> (T: Class) -> T {
+        size := T size
+        value: T
+        array := value& as Octet*
+        // pull the bytes.
+        for(i in 0..size) {
+            array[i] = reader read()
+        }
+        if(endianness == ENDIANNESS) {
+            // Seq is big, system is endian?
+            // System is endian, seq is big?
+            // Reverse.
+            value = reverseBytes(value)
+        }
+        value
+    }
+}
+
 // calculate endianness
 ENDIANNESS: static Endianness
 _i := 0x10f as UInt16
