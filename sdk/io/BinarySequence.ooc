@@ -65,23 +65,14 @@ BinarySequenceWriter: class {
         s8(0)
     }
 
-    /** push it, 1 byte length + bytes */
-    pascalString8: func (value: String) {
+    pascalString: func (value: String, lengthBytes: SizeT) {
         length := value length()
-        if(length > 255)
-            PackingError new(This, "`pascalString8` can only pack strings < 256 chars, not %d" format(length)) throw()
-        u8(value length())
-        for(chr in value) {
-            u8(chr as UInt8)
+        match (lengthBytes) { 
+            case 1 => u8(length)
+            case 2 => u16(length)
+            case 3 => u32(length)
+            case 4 => u64(length)
         }
-    }
-
-    /** push it, 2 bytes length + bytes */
-    pascalString16: func (value: String) {
-        length := value length()
-        if(length > 65535)
-            PackingError new(This, "`pascalString16` can only pack strings < 65536 chars, not %d" format(length)) throw()
-        u16(value length())
         for(chr in value) {
             u8(chr as UInt8)
         }
@@ -137,19 +128,13 @@ BinarySequenceReader: class {
         buffer toString()
     }
 
-    /** pull it. 1 byte length + bytes */
-    pascalString8: func -> String {
-        length := u8()
-        s := String new(length)
-        for(i in 0..length) {
-            s[i] = u8() as Char
+    pascalString: func (lengthBytes: SizeT) -> String {
+        length := match (lengthBytes) {
+            case 1 => u8()
+            case 2 => u16()
+            case 3 => u32()
+            case 4 => u64()
         }
-        s
-    }
-
-    /** pull it. 2 bytes length + bytes */
-    pascalString16: func -> String {
-        length := u16()
         s := String new(length)
         for(i in 0..length) {
             s[i] = u8() as Char
