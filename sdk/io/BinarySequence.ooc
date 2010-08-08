@@ -1,4 +1,5 @@
 import io/[Reader, Writer]
+import text/Buffer
 
 Endianness: enum {
     little
@@ -40,6 +41,23 @@ BinarySequenceWriter: class {
             _pushByte(array[i])
         }
     }
+
+    s8: func (value: Int8) { pushValue(value) }
+    s16: func (value: Int16) { pushValue(value) }
+    s32: func (value: Int32) { pushValue(value) }
+    s64: func (value: Int64) { pushValue(value) }
+    u8: func (value: UInt8) { pushValue(value) }
+    u16: func (value: UInt16) { pushValue(value) }
+    u32: func (value: UInt32) { pushValue(value) }
+    u64: func (value: UInt64) { pushValue(value) }
+
+    /** push it, null-terminated. */
+    cString: func (value: String) {
+        for(chr in value) {
+            u8(chr as UInt8)
+        }
+        s8(0)
+    }
 }
 
 BinarySequenceReader: class {
@@ -64,6 +82,27 @@ BinarySequenceReader: class {
             value = reverseBytes(value)
         }
         value
+    }
+
+    s8: func -> Int8 { pullValue(Int8) }
+    s16: func -> Int16 { pullValue(Int16) }
+    s32: func -> Int32 { pullValue(Int32) }
+    s64: func -> Int64 { pullValue(Int64) }
+    u8: func -> UInt8 { pullValue(UInt8) }
+    u16: func -> UInt16 { pullValue(UInt16) }
+    u32: func -> UInt32 { pullValue(UInt32) }
+    u64: func -> UInt64 { pullValue(UInt64) }
+
+    /** pull it, null-terminated */
+    cString: func -> String {
+        buffer := Buffer new()
+        while(true) {
+            value := s8()
+            if(value == 0)
+                break
+            buffer append(value as Char)
+        }
+        buffer toString()
     }
 }
 
