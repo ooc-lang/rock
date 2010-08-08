@@ -22,7 +22,7 @@ version(windows) {
         creationTime:   extern(ftCreationTime)   FileTime
         lastAccessTime: extern(ftLastAccessTime) FileTime
         lastWriteTime:  extern(ftLastWriteTime)  FileTime
-        fileName:       extern(cFileName)        String
+        fileName:       extern(cFileName)        Char*
     }
 
     /*
@@ -35,11 +35,11 @@ version(windows) {
     /*
      * file-related functions from Win32
      */
-    FindFirstFile: extern func (String, FindData*) -> Handle
+    FindFirstFile: extern func (Char*, FindData*) -> Handle
     FindNextFile: extern func(Handle, FindData*) -> Bool
     FindClose: extern func (Handle)
-    GetFileAttributes: extern func (String) -> Long
-    CreateDirectory:extern func (String, Pointer) -> Bool
+    GetFileAttributes: extern func (Char*) -> Long
+    CreateDirectory:extern func (Char*, Pointer) -> Bool
 
     /*
      * remove implementation

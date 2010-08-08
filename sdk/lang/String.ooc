@@ -4,8 +4,8 @@ import structs/HashMap // for formatTemplate
 include stdlib
 
 __LINE__: extern Int
-__FILE__: extern String
-__FUNCTION__: extern String
+__FILE__: extern Char*
+__FUNCTION__: extern Char*
 
 puts: extern func(Char*) -> Int
 

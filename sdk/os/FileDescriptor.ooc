@@ -3,7 +3,7 @@ include fcntl
 
 import unistd
 
-open:  extern func(String, Int) -> Int
+open:  extern func(Char*, Int) -> Int
 write: extern func(FileDescriptor, Pointer, Int) -> Int
 read:  extern func(FileDescriptor, Pointer, Int) -> Int
 close: extern func(FileDescriptor) -> Int
