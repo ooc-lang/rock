@@ -267,8 +267,9 @@ VariableAccess: class extends Expression {
             // contain `ref` then)
             if(ref as PropertyDecl inOuterSpace(trail)) {
                 // Test that we're not part of an assignment (which will be replaced by a setter call)
+                // That's also the case for operators like +=, *=, /= ...
                 // TODO: This should be nicer.
-                if(!(trail peek() instanceOf?(BinaryOp) && trail peek() as BinaryOp type == OpType ass)) {
+                if(!(trail peek() instanceOf?(BinaryOp) && trail peek() as BinaryOp isAssign())) {
                     property := ref as PropertyDecl
                     fCall := FunctionCall new(expr, property getGetterName(), token)
                     trail peek() replace(this, fCall)

@@ -48,6 +48,11 @@ Char: cover from char {
         this >= '0' && this <= '9'
     }
 
+    /** check for an octal digit (0 through 7) */
+    octalDigit?: func -> Bool {
+        this >= '0' && this <= '7'
+    }
+
     /** check for a hexadecimal digit (0 1 2 3 4 5 6 7 8 9 a b c d e f A B C D E F) */
     hexDigit?: func -> Bool {
         digit?() ||
@@ -205,8 +210,8 @@ String: cover from Char* {
     toLong: func ~withBase (base: Long) -> Long { strtol(this, null, base) }
 
     /** convert the string's contents to Long Long. */
-    toLLong: func -> LLong                         { strtol(this, null, 10)   }
-    toLLong: func ~withBase (base: LLong) -> LLong { strtol(this, null, base) }
+    toLLong: func -> LLong                         { strtoll(this, null, 10)   }
+    toLLong: func ~withBase (base: LLong) -> LLong { strtoll(this, null, base) }
 
     /** convert the string's contents to Unsigned Long. */
     toULong: func -> ULong                         { strtoul(this, null, 10)   }
