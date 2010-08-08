@@ -2,7 +2,8 @@ import structs/ArrayList
 import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
        Import, Module, FunctionCall, ClassDecl, CoverDecl, AddressOf,
-       ArrayAccess, VariableAccess, Cast, NullLiteral, PropertyDecl
+       ArrayAccess, VariableAccess, Cast, NullLiteral, PropertyDecl,
+       Tuple
 import tinker/[Trail, Resolver, Response, Errors]
 
 OpType: enum {
@@ -226,10 +227,39 @@ BinaryOp: class extends Expression {
             }
         }
 
+        if(type == OpType ass && left instanceOf?(Tuple) && right instanceOf?(Tuple)) {
+            t1 := left as Tuple
+            t2 := right as Tuple
+
+            if(t1 elements size() != t2 elements size()) {
+                res throwError(InvalidOperatorUse new(token, "Invalid assignment between operands of type %s and %s\n" format(
+                    left getType() toString(), right getType() toString())))
+                return Responses OK
+            }
+
+            for(i in 0..t1 elements size()) {
+                ass := BinaryOp
+                child := new(t1 elements[i], t2 elements[i], type, token)
+
+                if(i == t1 elements size() - 1) {
+                    // last? replace
+                    if(!trail peek() replace(this, child)) {
+                        res throwError(CouldntReplace new(token, this, child, trail))
+                    }
+                } else {
+                    // otherwise, add before
+                    if(!trail addBeforeInScope(this, child)) {
+                        res throwError(CouldntAddBeforeInScope new(token, this, child, trail))
+                    }
+                }
+            }
+        }
+
         if(!isLegal(res)) {
             if(res fatal) {
                 res throwError(InvalidOperatorUse new(token, "Invalid use of operator %s between operands of type %s and %s\n" format(
                     opTypeRepr[type], left getType() toString(), right getType() toString())))
+                return Responses OK
             }
             res wholeAgain(this, "Illegal use, looping in hope.")
         }
