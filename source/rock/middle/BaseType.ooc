@@ -210,11 +210,11 @@ BaseType: class extends Type {
         }
         if(isPointer() && other getRef() instanceOf?(ClassDecl)) {
             // objects are references in ooc
-            return scoreSeed / 2
+            return scoreSeed / 4
         }
         if(getRef() instanceOf?(ClassDecl) && other isPointer()) {
             // objects are still references in ooc
-            return scoreSeed / 2
+            return scoreSeed / 4
         }
         if(isPointer() && other getGroundType() isPointer()) {
             // two pointers = okay
