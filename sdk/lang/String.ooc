@@ -58,6 +58,12 @@ Char: cover from char {
         (this >= 'a' && this <= 'f')
     }
 
+    /** check for an octal digit (0 through 7) */
+
+    octalDigit?: func -> Bool {
+        this >= '0' && this <= '7'
+    }
+
     /** check for a control character */
     control?: func -> Bool {
         (this >= 0 && this <= 31) || this == 127
@@ -905,8 +911,8 @@ String: class {
     toLong: func ~withBase (base: Long) -> Long { strtol(this data, null, base) }
 
     /** convert the string's contents to Long Long. */
-    toLLong: func -> LLong                         { strtol(this data, null, 10)   }
-    toLLong: func ~withBase (base: LLong) -> LLong { strtol(this data, null, base) }
+    toLLong: func -> LLong                         { strtoll(this, null, 10)   }
+    toLLong: func ~withBase (base: LLong) -> LLong { strtoll(this, null, base) }
 
     /** convert the string's contents to Unsigned Long. */
     toULong: func -> ULong                         { strtoul(this data, null, 10)   }
