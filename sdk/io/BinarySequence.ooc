@@ -92,7 +92,7 @@ printOctets: func (chars: Octet*, length: SizeT) {
     "" println()
 }
 
-test: func (seq: BinarySequence) {
+/*test: func (seq: BinarySequence) {
     seq pushValue(123456789 as UInt32) .pushValue(-123123 as Int64)
     (octets, length) := seq toOctets()
     printOctets(octets, length)
@@ -106,4 +106,4 @@ main: func {
     seq endianness = Endianness big
     test(seq)
 }
-
+*/
