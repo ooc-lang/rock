@@ -54,6 +54,8 @@ BinarySequenceWriter: class {
     u16: func (value: UInt16) { pushValue(value) }
     u32: func (value: UInt32) { pushValue(value) }
     u64: func (value: UInt64) { pushValue(value) }
+    
+    pad: func (bytes: SizeT) { for(_ in 0..bytes) s8(0) }
 
     /** push it, null-terminated. */
     cString: func (value: String) {
@@ -107,6 +109,10 @@ BinarySequenceReader: class {
     u16: func -> UInt16 { pullValue(UInt16) }
     u32: func -> UInt32 { pullValue(UInt32) }
     u64: func -> UInt64 { pullValue(UInt64) }
+    skip: func (bytes: UInt32) {
+        for(_ in 0..bytes)
+            reader read()
+    }
 
     /** pull it, null-terminated */
     cString: func -> String {
