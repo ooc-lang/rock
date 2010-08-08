@@ -3,7 +3,7 @@ import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
        Import, Module, FunctionCall, ClassDecl, CoverDecl, AddressOf,
        ArrayAccess, VariableAccess, Cast, NullLiteral, PropertyDecl,
-       Tuple
+       Tuple, VariableDecl
 import tinker/[Trail, Resolver, Response, Errors]
 
 OpType: enum {
@@ -237,8 +237,50 @@ BinaryOp: class extends Expression {
                 return Responses OK
             }
 
+            size := t1 elements size()
+
+            for(i in 0..size) {
+                l := t1 elements[i]
+                if(!l instanceOf?(VariableAccess)) continue
+                la := l as VariableAccess
+
+                for(j in i..size) {
+                    r := t2 elements[j]
+                    if(!r instanceOf?(VariableAccess)) continue
+
+                    ra := r as VariableAccess
+                    if(la getRef() == null || ra getRef() == null) {
+                        res wholeAgain(this, "need ref")
+                        return Responses OK
+                    }
+                    if(la getRef() == ra getRef()) {
+                        if(i == j) {
+                            useless := false
+                            if(la expr != null && ra expr != null) {
+                                if(la expr instanceOf?(VariableAccess) &&
+                                   ra expr instanceOf?(VariableAccess)) {
+                                       lae := la expr as VariableAccess
+                                       rae := ra expr as VariableAccess
+                                       if(lae getRef() == rae getRef()) {
+                                           useless = true
+                                       }
+                                }
+                            } else {
+                                useless = true
+                            }
+                            if(useless) { continue }
+                        }
+
+                        tmpDecl := VariableDecl new(null, generateTempName(la getName()), la, la token)
+                        if(!trail addBeforeInScope(this, tmpDecl)) {
+                            res throwError(CouldntAddBeforeInScope new(token, this, tmpDecl, trail))
+                        }
+                        t2 elements[j] = VariableAccess new(tmpDecl, tmpDecl token)
+                    }
+                }
+            }
+
             for(i in 0..t1 elements size()) {
-                ass := BinaryOp
                 child := new(t1 elements[i], t2 elements[i], type, token)
 
                 if(i == t1 elements size() - 1) {
