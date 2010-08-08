@@ -204,6 +204,28 @@ BinaryOp: class extends Expression {
             }
         }
 
+        // In case of a expression like `expr attribute += value` where `attribute`
+        // is a property, we need to unwrap this to `expr attribute = expr attribute + value`.
+        if(isAssign() && left instanceOf?(VariableAccess)) {
+            if(left getType() == null || !left isResolved()) {
+                res wholeAgain(this, "left type is unresolved"); return Responses OK
+            }
+            if(right getType() == null || !right isResolved()) {
+                res wholeAgain(this, "right type is unresolved"); return Responses OK
+            }
+            // are we in a +=, *=, /=, ... operator? unwrap myself.
+            if(left as VariableAccess ref instanceOf?(PropertyDecl)) {
+                leftProperty := left as VariableAccess ref as PropertyDecl
+                if(leftProperty inOuterSpace(trail)) {
+                    // only outside of get/set.
+                    unwrapAssign(trail, res)
+                    trail push(this)
+                    right resolve(trail, res)
+                    trail pop(this)
+                }
+            }
+        }
+
         if(!isLegal(res)) {
             if(res fatal) {
                 res throwError(InvalidOperatorUse new(token, "Invalid use of operator %s between operands of type %s and %s\n" format(
