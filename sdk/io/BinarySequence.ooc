@@ -17,6 +17,10 @@ reverseBytes: func <T> (value: T) -> T {
     reversed
 }
 
+PackingError: class extends Exception {
+    init: super func
+}
+
 BinarySequenceWriter: class {
     writer: Writer
     endianness := ENDIANNESS
@@ -58,6 +62,17 @@ BinarySequenceWriter: class {
         }
         s8(0)
     }
+
+    /** push it, 1 byte length + bytes */
+    pascalString8: func (value: String) {
+        length := value length()
+        if(length > 255)
+            PackingError new(This, "`pascalString8` can only pack strings < 256 chars, not %d" format(length)) throw()
+        u8(value length())
+        for(chr in value) {
+            u8(chr as UInt8)
+        }
+    }
 }
 
 BinarySequenceReader: class {
@@ -75,7 +90,7 @@ BinarySequenceReader: class {
         for(i in 0..size) {
             array[i] = reader read()
         }
-        if(endianness == ENDIANNESS) {
+        if(endianness != ENDIANNESS) {
             // Seq is big, system is endian?
             // System is endian, seq is big?
             // Reverse.
@@ -97,12 +112,22 @@ BinarySequenceReader: class {
     cString: func -> String {
         buffer := Buffer new()
         while(true) {
-            value := s8()
+            value := u8()
             if(value == 0)
                 break
             buffer append(value as Char)
         }
         buffer toString()
+    }
+
+    /** pull it. 1 byte length + bytes */
+    pascalString8: func -> String {
+        length := u8()
+        s := String new(length)
+        for(i in 0..length) {
+            s[i] = u8() as Char
+        }
+        s
     }
 }
 
