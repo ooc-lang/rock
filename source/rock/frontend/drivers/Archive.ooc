@@ -267,7 +267,7 @@ Archive: class {
        to the archives.
      */
     save: func (params: BuildParams) {
-        "Saving %s" printfln(pathElement path)
+        //"Saving %s" printfln(pathElement path)
 
         args := ArrayList<String> new()
         args add("ar") // GNU ar tool, manages archives
