@@ -20,4 +20,6 @@ StringLiteral: class extends Literal {
 
     toString: func -> String { "\"" + value + "\"" }
 
+    size: func -> SizeT { value length() }
+
 }
