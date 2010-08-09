@@ -13,7 +13,7 @@ Exception: class {
         fflush(stdout)
         x := 0
         x = 1 / x
-        printf("%d", x)
+        "%d" format( x) println()
     }
 
     getMessage: func -> String {
