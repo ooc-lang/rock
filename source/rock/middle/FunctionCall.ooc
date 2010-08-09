@@ -179,6 +179,8 @@ FunctionCall: class extends Expression {
                 if (declArgType isGeneric()) {
                     declArgType = declArgType realTypize(this)
                 }
+                if(callArg getType() == null) return false // something's wrong
+
                 if(callArg getType() getScore(declArgType) == Type NOLUCK_SCORE) {
                     ref := callArg getType() getRef()
                     if(ref instanceOf?(TypeDecl)) {
