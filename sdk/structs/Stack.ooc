@@ -28,9 +28,9 @@ Stack: class <T> extends BackIterable<T> {
     peek: func ~index (index: Int) -> T {
         size := data size()
         if (index < 1)
-            Exception new(This, "Trying to peek(%d)! index must be >= 1 < size" format(index)) throw()
+            Exception new(This, "Trying to peek(%d)! index must be >= 1 <= size" format(index)) throw()
 
-        if (index >= size)
+        if (index > size)
 			Exception new(This, "Trying to peek(%d) a stack of size %d" format(index, size)) throw()
 
         return data get(size - index)
