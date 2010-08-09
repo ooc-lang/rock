@@ -20,6 +20,9 @@ generate: func <T> (writer: Writer, obj: T) {
         case Int => {
             writer write(obj as Int toString())
         }
+        case UInt => {
+            writer write(obj as UInt toString())
+        }
         case Bool => {
             writer write((obj as Bool ? "true" : "false"))
         }
