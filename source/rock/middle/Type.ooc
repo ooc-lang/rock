@@ -138,7 +138,7 @@ Type: abstract class extends Expression {
         return false
     }
 
-    isPointer: func -> Bool { (pointerLevel() >= 1) || (getName() == "Pointer") }
+    isPointer: func -> Bool { false }
 
     getScoreImpl: abstract func (other: This, scoreSeed: Int) -> Int
 
@@ -300,6 +300,8 @@ PointerType: class extends SugarType {
     init: func ~pointerType (.inner, .token) { super(inner, token) }
 
     pointerLevel: func -> Int { inner pointerLevel() + 1 }
+
+    isPointer: func -> Bool { inner pointerLevel() == 0 && inner void? }
 
     write: func (w: AwesomeWriter, name: String) {
         inner write(w, null)

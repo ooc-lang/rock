@@ -196,27 +196,32 @@ BaseType: class extends Type {
     getTypeArgs: func -> List<VariableAccess> { typeArgs }
 
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
-        //printf("%s vs %s, other isGeneric ? %s pointerLevel ? %d\n", toString(), other toString(), other isGeneric() toString(), other pointerLevel())
+        //printf("%s vs %s, other isGeneric ? %s pointerLevel ? %d isPointer() ? %d, other isPointer() ? %d\n", toString(), other toString(), other isGeneric() toString(), other pointerLevel(), isPointer(), other getGroundType() isPointer())
 
-        if(name == "void" || name == "Void") return This NOLUCK_SCORE
+        if(void?) return This NOLUCK_SCORE
 
         if(other isGeneric() && other pointerLevel() == 0) {
             // every type is always a match against a flat generic type
             return scoreSeed
         }
+
         if(isGeneric() && other isPointer()) {
             // a generic value is a match for a pointer
             return scoreSeed / 2
         }
+
         if(isPointer() && other getRef() instanceOf?(ClassDecl)) {
             // objects are references in ooc
             return scoreSeed / 4
         }
+
         if(getRef() instanceOf?(ClassDecl) && other isPointer()) {
             // objects are still references in ooc
             return scoreSeed / 4
         }
-        if(isPointer() && other getGroundType() isPointer()) {
+
+        ground := other getGroundType()
+        if(isPointer() && (ground isPointer() || ground pointerLevel() > 0)) {
             // two pointers = okay
             return scoreSeed / 2
         }
