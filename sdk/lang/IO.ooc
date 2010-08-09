@@ -2,8 +2,8 @@ include stdio
 
 stdout, stderr, stdin: extern FStream
 
-println: func ~withStr (str: Char*) {
-    printf("%s\n", str)
+println: func ~withStr (str: String) {
+    printf("%s\n", str as Char*)
 }
 println: func {
     printf("\n")
@@ -151,11 +151,11 @@ FStream: cover from FILE* {
         fputc(chr, this)
     }
 
-    write: func ~str (str: String) {
+    write: func ~str (str: Char*) {
         fputs(str, this)
     }
 
-    write: func ~withLength (str: String, length: SizeT) -> SizeT {
+    write: func ~withLength (str: Char*, length: SizeT) -> SizeT {
         write(str, 0, length)
     }
 

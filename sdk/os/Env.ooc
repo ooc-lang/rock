@@ -12,7 +12,7 @@ version (windows) {
 
 Env: class {
     get: static func (variableName: String) -> String {
-        return getenv(variableName)
+        return getenv(variableName) as String
     }
 
     set: static func (key, value: String, overwrite: Bool) -> Int {

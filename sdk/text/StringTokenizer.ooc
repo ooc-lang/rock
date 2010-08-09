@@ -18,12 +18,7 @@ StringTokenizer: class extends Iterable<String> {
     }
 
     init: func~withString(input, delim: String, maxSplits: SSizeT) {
-        T = String // small fix for runtime introspection
-        if (input != null) {
-            length = input length()
-            splitted = input splitMulti(delim, maxSplits)
-        }
-        splits = 0
+        splitted = input splitMulti(delim, maxSplits)
     }
 
     iterator: func -> Iterator<String> { StringTokenizerIterator<String> new(this) }

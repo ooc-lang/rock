@@ -40,7 +40,7 @@ TabbedWriter: class {
     }
 
     writeTabs: func {
-        stream write(tab, tabLevel * tabWidth)
+        stream write(tab data, tabLevel * tabWidth)
     }
 
     newUntabbedLine: func {

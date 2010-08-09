@@ -232,7 +232,7 @@ version(windows) {
             running := (hFile != INVALID_HANDLE_VALUE)
             while(running) {
                 if(ffd fileName != "." && ffd fileName != "..") {
-                    result add(path +  '\\' + ffd fileName)
+                    result add(path +  '\\' + (ffd fileName as String))
                 }
                 running = FindNextFile(hFile, ffd&)
             }
@@ -252,7 +252,7 @@ version(windows) {
             running := (hFile != INVALID_HANDLE_VALUE)
             while(running) {
                 if(ffd fileName != "." && ffd fileName != "..") {
-                    result add(File new(path + '\\' + ffd fileName))
+                    result add(File new(path + '\\' + (ffd fileName as String)))
                 }
                 running = FindNextFile(hFile, ffd&)
             }

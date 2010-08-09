@@ -171,7 +171,7 @@ version(unix || apple) {
          */
         getAbsolutePath: func -> String {
             actualPath := String new(This MAX_PATH_LENGTH + 1)
-            return realpath(path, actualPath)
+            return realpath(path, actualPath) as String
         }
 
         /**
@@ -197,8 +197,8 @@ version(unix || apple) {
             result := ArrayList<String> new()
             entry := readdir(dir)
             while(entry != null) {
-                if(!entry@ name equals?(".") && !entry@ name equals?("..")) {
-                    result add(entry@ name clone())
+                if(!entry@ name as String equals?(".") && !entry@ name as String equals?("..")) {
+                    result add(entry@ name as String clone())
                 }
                 entry = readdir(dir)
             }
@@ -217,8 +217,8 @@ version(unix || apple) {
             result := ArrayList<File> new()
             entry := readdir(dir)
             while(entry != null) {
-                if(!entry@ name equals?(".") && !entry@ name equals?("..")) {
-                    result add(File new(this, entry@ name clone()))
+                if(!entry@ name as String equals?(".") && !entry@ name as String equals?("..")) {
+                    result add(File new(this, entry@ name as String clone()))
                 }
                 entry = readdir(dir)
             }

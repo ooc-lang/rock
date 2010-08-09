@@ -18,8 +18,8 @@ Buffer: class extends String {
         setCapacity (capa)
     }
 
-    //init: super func ~str
-    //init: super func ~withChar
+    init: super func ~str
+    init: super func ~withChar
 
     /* pretty strange function, i guess that could be replaced by substring ? */
     get: func ~strWithLengthOffset (str: Char*, offset: SizeT, length: SizeT) -> Int {
@@ -200,13 +200,12 @@ BufferReader: class extends Reader {
     TODO use kinda builtin assert which doesnt crash when one test fails
     once unittest facility is builtin
 */
-/*
 Buffer_unittest: class {
 
     testFile: static func {
         // this one is a bit nasty :P
         b := Buffer new(0)
-        if (!b fromFile(__FILE__ ) || b size == 0) println("read failed")
+        if (!b fromFile(__FILE__ as String) || b size == 0) println("read failed")
         version(unix || apple) {
             if (!(b toFile("/tmp/buftest")))     println("write failed")
         }
@@ -214,7 +213,7 @@ Buffer_unittest: class {
             // FIXME use GetTemporaryFolder or however the win API calls it
             if (!(b toFile("C:\\temp\\buftest")))     println("write failed")
         }
-        if (! ((c := Buffer new(0) fromFile(__FILE__) )     == b ) ) println( "comparison failed")
+        if (! ((c := Buffer new(0) fromFile(__FILE__ as String) )     == b ) ) println( "comparison failed")
     }
 
     testFind: static func {
@@ -266,7 +265,7 @@ Buffer_unittest: class {
             if (item) (item toString() + "_") println()
             else "null" println()
         }
-        *//*
+        */
     }
 
     testTrailingZero: static func {
@@ -288,4 +287,3 @@ Buffer_unittest: class {
     }
 
 }
-*/
