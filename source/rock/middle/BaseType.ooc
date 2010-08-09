@@ -245,10 +245,10 @@ BaseType: class extends Type {
                 }
             }
 
-            if(getName() == other getName()) {
+            //if(getName() == other getName()) {
                 // *sigh* I wish we didn't have to do that
-                return scoreSeed / 2
-            }
+                //return scoreSeed / 2
+            //}
 
             if(getRef() instanceOf?(TypeDecl) && other getRef() instanceOf?(TypeDecl)) {
                 inheritsScore := getRef() as TypeDecl inheritsScore(other getRef() as TypeDecl, scoreSeed)
@@ -269,7 +269,7 @@ BaseType: class extends Type {
 
             if(isNumericType() && other isNumericType()) {
                 // Only half a match - it's not too good to mix integer types. Maybe we need more safety here?
-                return scoreSeed / 2
+                return scoreSeed / 4
             }
         }
 
