@@ -1,13 +1,13 @@
 include stdlib | (__USE_BSD)
 
-getenv: extern func (path: String) -> String
+getenv: extern func (path: Char*) -> Char*
 
 version (!windows) {
-    setenv: extern func (key, value: String, overwrite: Bool) -> Int
-    unsetenv: extern func (key: String) -> Int
+    setenv: extern func (key, value: Char*, overwrite: Bool) -> Int
+    unsetenv: extern func (key: Char*) -> Int
 }
 version (windows) {
-    putenv: extern func (str: String) -> Int
+    putenv: extern func (str: Char*) -> Int
 }
 
 Env: class {

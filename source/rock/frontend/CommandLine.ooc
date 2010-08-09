@@ -11,7 +11,7 @@ import ../backend/explain/ExplanationGenerator
 import ../middle/[Module, Import]
 import ../middle/tinker/Tinkerer
 
-ROCK_BUILD_DATE, ROCK_BUILD_TIME: extern String
+ROCK_BUILD_DATE, ROCK_BUILD_TIME: extern Char*
 
 CommandLine: class {
     params: BuildParams
@@ -502,10 +502,10 @@ CommandLine: class {
               new := File new(module simpleName+".html")
               new write("<html>
               <head>
-              	<script type=\"text/javascript\" charset=\"utf-8\" src=\"http://code.jquery.com/jquery-1.4.2.min.js\"></script>
-              	<link href='http://fonts.googleapis.com/css?family=Josefin+Sans+Std+Light' rel='stylesheet' type='text/css'>
-              	<link href='http://fonts.googleapis.com/css?family=Molengo' rel='stylesheet' type='text/css'>
-              	<link href='http://fonts.googleapis.com/css?family=IM+Fell+DW+Pica' rel='stylesheet' type='text/css'>
+                  <script type=\"text/javascript\" charset=\"utf-8\" src=\"http://code.jquery.com/jquery-1.4.2.min.js\"></script>
+                  <link href='http://fonts.googleapis.com/css?family=Josefin+Sans+Std+Light' rel='stylesheet' type='text/css'>
+                  <link href='http://fonts.googleapis.com/css?family=Molengo' rel='stylesheet' type='text/css'>
+                  <link href='http://fonts.googleapis.com/css?family=IM+Fell+DW+Pica' rel='stylesheet' type='text/css'>
                 <title>ooc Explanations: doc_test</title>
               </head>
               <body onload=\"bootstrap()\">
@@ -555,4 +555,4 @@ CommandLine: class {
 
 }
 
-system: extern func (command: String)
+system: extern func (command: Char*)

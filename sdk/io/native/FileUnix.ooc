@@ -9,19 +9,19 @@ include dirent
 DIR: extern cover
 
 DirEnt: cover from struct dirent {
-    name: extern(d_name) String
+    name: extern(d_name) Char*
     /* TODO: the struct has more members, actually */
 }
 
 closedir: extern func (DIR*) -> Int
-opendir: extern func (const String) -> DIR*
+opendir: extern func (const Char*) -> DIR*
 readdir: extern func (DIR*) -> DirEnt*
 readdir_r: extern func (DIR*, DirEnt*, DirEnt**) -> Int
 rewinddir: extern func (DIR*)
 seekdir: extern func (DIR*, Long)
 telldir: extern func (DIR*) -> Long
 
-realpath: extern func(path: String, resolved: String) -> String
+realpath: extern func(path: Char*, resolved: Char*) -> Char*
 
 version(linux) {
     include unistd | (__USE_BSD), sys/stat | (__USE_BSD), sys/types | (__USE_BSD), stdlib | (__USE_BSD), limits
@@ -36,7 +36,7 @@ version(unix || apple) {
     File separator = '/'
     File pathDelimiter = ':'
 
-    _getcwd: extern (getcwd) func(buf: String, size: SizeT) -> String
+    _getcwd: extern (getcwd) func(buf: Char*, size: SizeT) -> Char*
 
     ModeT: cover from mode_t
 
@@ -51,9 +51,9 @@ version(unix || apple) {
     S_ISLNK: extern func(...) -> Bool
     S_IRWXU, S_IRWXG, S_IRWXO: extern Int // constants
 
-    lstat: extern func(String, FileStat*) -> Int
-    _mkdir: extern(mkdir) func(String, ModeT) -> Int
-    remove: extern func(path: String) -> Int
+    lstat: extern func(Char*, FileStat*) -> Int
+    _mkdir: extern(mkdir) func(Char*, ModeT) -> Int
+    remove: extern func(path: Char*) -> Int
     _remove: unmangled func(path: String) -> Int {
         remove(path)
     }

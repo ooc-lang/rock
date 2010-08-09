@@ -9,17 +9,17 @@ import io/[Writer, Reader]
 
 Buffer: class extends String {
 
+
     init: func {
         init(128)
     }
 
-    init: func ~withCapa (capa: SizeT) {
+    init: func ~withLength (capa: SizeT) {
         setCapacity (capa)
     }
 
     //init: super func ~str
     //init: super func ~withChar
-
 
     /* pretty strange function, i guess that could be replaced by substring ? */
     get: func ~strWithLengthOffset (str: Char*, offset: SizeT, length: SizeT) -> Int {
@@ -87,7 +87,7 @@ Buffer: class extends String {
         offset :SizeT = 0
         togo := size
         while (togo / STEP_SIZE > 0) {
-            retv := file write ((data as Char* + offset) as String, STEP_SIZE)
+            retv := file write ((data + offset) , STEP_SIZE)
             if (retv != STEP_SIZE || file error()) {
                 file close()
                 return false
@@ -95,7 +95,7 @@ Buffer: class extends String {
             togo -= retv
             offset  += retv
         }
-        if (togo) file write((data as Char* + offset) as String, togo)
+        if (togo) file write((data + offset) , togo)
         return (file error() == 0) && (file close()==0 )
     }
 
@@ -196,21 +196,11 @@ BufferReader: class extends Reader {
     }
 }
 
-operator == (a, b: Buffer) -> Bool {
-    if (!a && !b) return true
-    if ((!a && b) || (!b && a)) return false
-    return ( (a size == b size) &&     ( memcmp ( a data as Char*, b data as Char*, a size ) == 0 ) )
-}
-
-operator != (a, b: Buffer) -> Bool {
-    if (a == b) return false
-    else return true
-}
-
 /*  Test routines
     TODO use kinda builtin assert which doesnt crash when one test fails
     once unittest facility is builtin
 */
+/*
 Buffer_unittest: class {
 
     testFile: static func {
@@ -276,7 +266,7 @@ Buffer_unittest: class {
             if (item) (item toString() + "_") println()
             else "null" println()
         }
-        */
+        *//*
     }
 
     testTrailingZero: static func {
@@ -298,3 +288,4 @@ Buffer_unittest: class {
     }
 
 }
+*/

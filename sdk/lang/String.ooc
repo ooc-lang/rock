@@ -4,8 +4,8 @@ import structs/HashMap // for formatTemplate
 include stdlib
 
 __LINE__: extern Int
-__FILE__: extern String
-__FUNCTION__: extern String
+__FILE__: extern Char*
+__FUNCTION__: extern Char*
 
 puts: extern func(Char*) -> Int
 
@@ -58,6 +58,12 @@ Char: cover from char {
         (this >= 'a' && this <= 'f')
     }
 
+    /** check for an octal digit (0 through 7) */
+
+    octalDigit?: func -> Bool {
+        this >= '0' && this <= '7'
+    }
+
     /** check for a control character */
     control?: func -> Bool {
         (this >= 0 && this <= 31) || this == 127
@@ -97,7 +103,7 @@ Char: cover from char {
     /** convert to an integer. This only works for digits, otherwise -1 is returned */
     toInt: func -> Int {
         if (digit?()) {
-            return (this - '0')
+            return (this - '0') as Int
         }
         return -1
     }
@@ -179,9 +185,8 @@ String: class {
     /** Create a new string exactly *length* characters long (without the nullbyte).
         The contents of the string are undefined.
         the new strings length is also set to length. */
-    init: func ~withLength (length: SizeT) -> This {
+    init: func ~withLength (length: SizeT) {
         setLength(length)
-        this
     }
 
     init: func ~str (str: String) {
@@ -189,21 +194,20 @@ String: class {
     }
 
     /** Create a new string of the length 1 containing only the character *c* */
-    init: func ~withChar (c: Char) -> This {
-        this setLength(1)
+    init: func ~withChar (c: Char) {
+        setLength(1)
         data@ = c
-        this
     }
 
     /** create a new String from a zero-terminated C String */
-    init: func ~withCStr(s : Char*) -> This {
+    init: func ~withCStr(s : Char*) {
         init (s, strlen(s))
     }
 
     /** create a new String from a zero-terminated C String with known length */
     // ATTENTION the mangled name of this function is hardcoded in CGenerator.ooc
     // so you'd rather not change it
-    init: func ~withCStrAndLength(s : Char*, length: SizeT) -> This {
+    init: func ~withCStrAndLength(s : Char*, length: SizeT) {
         setLength(length)
         memcpy(data, s, length + 1)
         this
@@ -907,8 +911,8 @@ String: class {
     toLong: func ~withBase (base: Long) -> Long { strtol(this data, null, base) }
 
     /** convert the string's contents to Long Long. */
-    toLLong: func -> LLong                         { strtol(this data, null, 10)   }
-    toLLong: func ~withBase (base: LLong) -> LLong { strtol(this data, null, base) }
+    toLLong: func -> LLong                         { strtoll(this, null, 10)   }
+    toLLong: func ~withBase (base: LLong) -> LLong { strtoll(this, null, base) }
 
     /** convert the string's contents to Unsigned Long. */
     toULong: func -> ULong                         { strtoul(this data, null, 10)   }

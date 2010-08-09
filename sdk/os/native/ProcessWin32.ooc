@@ -104,9 +104,9 @@ HANDLE_FLAG_PROTECT_FROM_CLOSE: extern Long
 // covers
 StartupInfo: cover from STARTUPINFO {
     structSize: extern(cb) Long
-    reserved: extern(lpReserved) String*
-    desktop:  extern(lpDesktop) String*
-    title:    extern(lpTitle) String*
+    reserved: extern(lpReserved) Char**
+    desktop:  extern(lpDesktop) Char**
+    title:    extern(lpTitle) Char**
     x: extern(dwX) Long
     y: extern(dwY) Long
     xSize: extern(dwXSize) Long
