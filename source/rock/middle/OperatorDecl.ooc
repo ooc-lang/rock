@@ -75,7 +75,6 @@ OperatorDecl: class extends Expression {
                 return Responses OK
             }
 
-            "Got implicit as from %s to %s" printfln(fromType toString(), toType toString())
             ref := fromType getRef()
             if(ref instanceOf?(TypeDecl)) {
                 _doneImplicit = true
