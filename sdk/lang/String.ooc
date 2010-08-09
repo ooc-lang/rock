@@ -103,7 +103,7 @@ Char: cover from char {
     /** convert to an integer. This only works for digits, otherwise -1 is returned */
     toInt: func -> Int {
         if (digit?()) {
-            return (this - '0')
+            return (this - '0') as Int
         }
         return -1
     }
