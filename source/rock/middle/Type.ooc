@@ -125,12 +125,11 @@ Type: abstract class extends Expression {
         if ((
            name == "Int"   || name == "UInt"  || name == "Short" ||
 		   name == "UShort"|| name == "Long"  || name == "ULong" ||
-		   name == "LLong" || name == "ULLong"|| name == "Char"  ||
-		   name == "UChar" || name == "Int8"  || name == "Int16" ||
-		   name == "Int32" || name == "Int64" || name == "UInt8" ||
-		   name == "UInt16"|| name == "UInt32"|| name == "UInt64"||
-		   name == "SizeT" || name == "Float" || name == "Double"||
-           name == "SSizeT"))
+		   name == "LLong" || name == "ULLong"|| name == "Int8"  ||
+           name == "Int16" || name == "Int32" || name == "Int64" ||
+           name == "UInt8" || name == "UInt16"|| name == "UInt32"||
+           name == "UInt64"|| name == "SizeT" || name == "Float" ||
+           name == "Double"|| name == "SSizeT"))
 		    return true
 
         down := dig()
