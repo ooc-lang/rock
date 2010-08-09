@@ -10,7 +10,7 @@ import structs/ArrayList
 
 VariableAccess: class extends Expression {
 
-    expr: Expression
+    expr: Expression { get set }
     name: String
 
     ref: Declaration
@@ -353,7 +353,7 @@ VariableAccess: class extends Expression {
 
     replace: func (oldie, kiddo: Node) -> Bool {
         match oldie {
-            case expr => expr = kiddo; true
+            case expr => expr = kiddo as Expression; true
             case => false
         }
     }

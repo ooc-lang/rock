@@ -21,6 +21,7 @@ import tinker/[Response, Resolver, Trail, Errors]
  *
  * @author Amos Wenger (nddrylliog)
  */
+
 FunctionCall: class extends Expression {
 
     /**
@@ -87,6 +88,7 @@ FunctionCall: class extends Expression {
      * keeps track of what has been modified, to be able to restore it.
      */
     argsBeforeConversion: HashMap<Int, Expression>
+    candidateUsesAs := false
 
     /**
      * Create a new function call to the function '<name>()'
@@ -166,6 +168,7 @@ FunctionCall: class extends Expression {
                     args set(i, argsBeforeConversion[i])
                 }
             }
+            candidateUsesAs = false
 
             for(i in 0..args size()) {
                 if(i >= candidate args size()) break
@@ -176,24 +179,25 @@ FunctionCall: class extends Expression {
                 if (declArgType isGeneric()) {
                     declArgType = declArgType realTypize(this)
                 }
-
                 if(callArg getType() getScore(declArgType) == Type NOLUCK_SCORE) {
                     ref := callArg getType() getRef()
                     if(ref instanceOf?(TypeDecl)) {
                         ref as TypeDecl implicitConversions each(|opdecl|
                             if(opdecl fDecl getReturnType() equals?(declArgType)) {
-                                args set(i, Cast new(callArg, declArgType, callArg token))
-                                if(!argsBeforeConversion) {
-                                    // lazy instantiation of argsBeforeConversion
-                                    argsBeforeConversion = HashMap<Int, Expression> new()
+                                candidateUsesAs = true
+                                if(candidate isExtern()) {
+                                    args set(i, Cast new(callArg, declArgType, callArg token))
+                                    if(!argsBeforeConversion) {
+                                        // lazy instantiation of argsBeforeConversion
+                                        argsBeforeConversion = HashMap<Int, Expression> new()
+                                    }
+                                    argsBeforeConversion put(i, callArg)
                                 }
-                                argsBeforeConversion put(i, callArg)
                             }
                         )
                     }
                 }
             }
-
             return score > 0
         }
         return false
@@ -315,7 +319,7 @@ FunctionCall: class extends Expression {
                         if(expr getType() isGeneric()) {
                             message += " (you can't call methods on generic types! you have to cast them first)"
                         }
-                        res throwError(UnresolvedCall new(this, message))
+                        res throwError(UnresolvedCall new(this, message, ""))
                     }
                     tDecl := expr getType() getRef() as TypeDecl
 		            meta := tDecl getMeta()
@@ -421,6 +425,8 @@ FunctionCall: class extends Expression {
 
         if(refScore <= 0) {
 
+            precisions := ""
+
             // Still no match, and in the fatal round? Throw an error.
             if(res fatal) {
                 message := "No such function"
@@ -437,8 +443,12 @@ FunctionCall: class extends Expression {
 
                 if(ref) {
                     // If we have a near-match, show it here.
-                    message += showNearestMatch(res params)
+                    precisions += showNearestMatch(res params)
                     // TODO: add levenshtein distance
+
+                    if (ref && candidateUsesAs) {
+                        precisions += "\n\n(Hint: 'implicit as' isn't allowed on non-extern functions)"
+                    }
                 } else {
                     if(res params helpful) {
                         // Try to find such a function in other modules in the sourcepath
@@ -446,7 +456,7 @@ FunctionCall: class extends Expression {
                         if(similar) message += similar
                     }
                 }
-                res throwError(UnresolvedCall new(this, message))
+                res throwError(UnresolvedCall new(this, message, precisions))
             } else {
                 res wholeAgain(this, "not resolved")
                 return Responses OK
@@ -455,7 +465,7 @@ FunctionCall: class extends Expression {
         }
 
         // finally, avoid & on lvalues: unwrap unreferencable expressions.
-        if(ref isThisRef && expr && !expr isReferencable()) {
+        if(ref && ref isThisRef && expr && !expr isReferencable()) {
             vDecl := VariableDecl new(null, generateTempName("hi_mum"), expr, expr token)
             trail addBeforeInScope(this, vDecl)
             expr = VariableAccess new(vDecl, expr token)
@@ -490,7 +500,7 @@ FunctionCall: class extends Expression {
     showNearestMatch: func (params: BuildParams) -> String {
         b := Buffer new()
 
-        b append("\tNearest match is:\n\n\t\t%s\n" format(ref toString(this)))
+        b append("\n\n\tNearest match is:\n\n\t\t%s\n" format(ref toString(this)))
 
         callIter := args iterator()
         declIter := ref args iterator()
@@ -1042,14 +1052,16 @@ FunctionCall: class extends Expression {
                 }
                 return -1
             }
-            if(typeScore == Type NOLUCK_SCORE) {
-                ref := callArg getType() getRef()
-                if(ref instanceOf?(TypeDecl)) {
-                    ref as TypeDecl implicitConversions each(|opdecl|
-                        if(opdecl fDecl getReturnType() equals?(declArgType)) {
-                            typeScore = Type SCORE_SEED / 4
-                        }
-                    )
+            if (decl isExtern()) {
+                if(typeScore == Type NOLUCK_SCORE) {
+                    ref := callArg getType() getRef()
+                    if(ref instanceOf?(TypeDecl)) {
+                        ref as TypeDecl implicitConversions each(|opdecl|
+                            if(opdecl fDecl getReturnType() equals?(declArgType)) {
+                                typeScore = Type SCORE_SEED / 4
+                            }
+                        )
+                    }
                 }
             }
 
@@ -1168,12 +1180,18 @@ FunctionCall: class extends Expression {
 UnresolvedCall: class extends Error {
 
     call: FunctionCall
-    init: func (.call, .message) {
+    precisions: String
+
+    init: func (.call, .message, =precisions) {
         init(call token, call, message)
     }
 
     init: func ~withToken(.token, =call, .message) {
         super(call expr ? call expr token enclosing(call token) : call token, message)
+    }
+
+    format: func -> String {
+        token formatMessage(message, "ERROR") + precisions
     }
 
 }

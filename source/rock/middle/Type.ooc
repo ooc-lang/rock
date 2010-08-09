@@ -125,12 +125,11 @@ Type: abstract class extends Expression {
         if ((
            name == "Int"   || name == "UInt"  || name == "Short" ||
 		   name == "UShort"|| name == "Long"  || name == "ULong" ||
-		   name == "LLong" || name == "ULLong"|| name == "Char"  ||
-		   name == "UChar" || name == "Int8"  || name == "Int16" ||
-		   name == "Int32" || name == "Int64" || name == "UInt8" ||
-		   name == "UInt16"|| name == "UInt32"|| name == "UInt64"||
-		   name == "SizeT" || name == "Float" || name == "Double"||
-           name == "SSizeT"))
+		   name == "LLong" || name == "ULLong"|| name == "Int8"  ||
+           name == "Int16" || name == "Int32" || name == "Int64" ||
+           name == "UInt8" || name == "UInt16"|| name == "UInt32"||
+           name == "UInt64"|| name == "SizeT" || name == "Float" ||
+           name == "Double"|| name == "SSizeT"))
 		    return true
 
         down := dig()
@@ -139,7 +138,7 @@ Type: abstract class extends Expression {
         return false
     }
 
-    isPointer: func -> Bool { (pointerLevel() >= 1) || (getName() == "Pointer") }
+    isPointer: func -> Bool { false }
 
     getScoreImpl: abstract func (other: This, scoreSeed: Int) -> Int
 
@@ -301,6 +300,8 @@ PointerType: class extends SugarType {
     init: func ~pointerType (.inner, .token) { super(inner, token) }
 
     pointerLevel: func -> Int { inner pointerLevel() + 1 }
+
+    isPointer: func -> Bool { inner pointerLevel() == 0 && inner void? }
 
     write: func (w: AwesomeWriter, name: String) {
         inner write(w, null)
