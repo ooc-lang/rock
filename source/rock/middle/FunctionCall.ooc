@@ -1132,7 +1132,7 @@ FunctionCall: class extends Expression {
         isFirst := true
         for(arg in args) {
             if(!isFirst) sb append(", ")
-            sb append(arg toString())
+            sb append(arg ? arg toString() : "(null)")
             if(isFirst) isFirst = false
         }
         sb append(")")
