@@ -245,11 +245,6 @@ BaseType: class extends Type {
                 }
             }
 
-            //if(getName() == other getName()) {
-                // *sigh* I wish we didn't have to do that
-                //return scoreSeed / 2
-            //}
-
             if(getRef() instanceOf?(TypeDecl) && other getRef() instanceOf?(TypeDecl)) {
                 inheritsScore := getRef() as TypeDecl inheritsScore(other getRef() as TypeDecl, scoreSeed)
 
@@ -264,7 +259,9 @@ BaseType: class extends Type {
                 }
 
                 // cool, a match =)
-                if(inheritsScore > 0) return inheritsScore
+                if(inheritsScore > 0) {
+                    return inheritsScore
+                }
             }
 
             if(isNumericType() && other isNumericType()) {
@@ -391,7 +388,7 @@ BaseType: class extends Type {
                     result = BaseType new(ref as VariableDecl getName(), token)
                     result setRef(ref) // FIXME: that is experimental. is that a good idea?
                 } else if(ref instanceOf?(FuncType)) {
-                    printf("ref of %s is a %s!\n", candidate toString(), ref class name)
+                    //printf("ref of %s is a %s!\n", candidate toString(), ref class name)
                     result = ref as FuncType
                 }
                 return result
