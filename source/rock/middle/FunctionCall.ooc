@@ -21,6 +21,24 @@ import tinker/[Response, Resolver, Trail, Errors]
  *
  * @author Amos Wenger (nddrylliog)
  */
+
+InvalidImplicitAsError: class extends Error {
+    first: FunctionCall
+    second: FunctionDecl
+
+    init: func(=first, =second) {
+        info := "('implicit as' is only allowed on non-extern functions.)"
+        hint := second token formatMessage("Best match if 'implicit as' was allowed:", "[INFO]")
+        message = first token formatMessage("No such function %s %s\n%s" format(first name, info,  hint), "[ERROR]")
+    }
+
+    format: func -> String {
+        message
+    }
+}
+
+
+
 FunctionCall: class extends Expression {
 
     /**
@@ -166,7 +184,6 @@ FunctionCall: class extends Expression {
                     args set(i, argsBeforeConversion[i])
                 }
             }
-
             for(i in 0..args size()) {
                 if(i >= candidate args size()) break
                 declArg := candidate args get(i)
@@ -176,12 +193,14 @@ FunctionCall: class extends Expression {
                 if (declArgType isGeneric()) {
                     declArgType = declArgType realTypize(this)
                 }
-
                 if(callArg getType() getScore(declArgType) == Type NOLUCK_SCORE) {
                     ref := callArg getType() getRef()
                     if(ref instanceOf?(TypeDecl)) {
                         ref as TypeDecl implicitConversions each(|opdecl|
                             if(opdecl fDecl getReturnType() equals?(declArgType)) {
+                                if (!candidate isExtern()) {
+                                    token module params errorHandler onError(InvalidImplicitAsError new(this, candidate))
+                                }
                                 args set(i, Cast new(callArg, declArgType, callArg token))
                                 if(!argsBeforeConversion) {
                                     // lazy instantiation of argsBeforeConversion
@@ -193,7 +212,6 @@ FunctionCall: class extends Expression {
                     }
                 }
             }
-
             return score > 0
         }
         return false
@@ -1042,14 +1060,16 @@ FunctionCall: class extends Expression {
                 }
                 return -1
             }
-            if(typeScore == Type NOLUCK_SCORE) {
-                ref := callArg getType() getRef()
-                if(ref instanceOf?(TypeDecl)) {
-                    ref as TypeDecl implicitConversions each(|opdecl|
-                        if(opdecl fDecl getReturnType() equals?(declArgType)) {
-                            typeScore = Type SCORE_SEED / 4
-                        }
-                    )
+            if (decl isExtern()) {
+                if(typeScore == Type NOLUCK_SCORE) {
+                    ref := callArg getType() getRef()
+                    if(ref instanceOf?(TypeDecl)) {
+                        ref as TypeDecl implicitConversions each(|opdecl|
+                            if(opdecl fDecl getReturnType() equals?(declArgType)) {
+                                typeScore = Type SCORE_SEED / 4
+                            }
+                        )
+                    }                 
                 }
             }
 
