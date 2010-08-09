@@ -6,6 +6,13 @@ Endianness: enum {
     big
 }
 
+printOctets: func (data: Octet*, size: SizeT) {
+    for(i in 0..size) {
+        "%.2x " format(data[i]) print()
+    }
+    "" println()
+}
+
 reverseBytes: func <T> (value: T) -> T {
     array := value& as Octet*
     size := T size
@@ -57,6 +64,9 @@ BinarySequenceWriter: class {
     
     pad: func (bytes: SizeT) { for(_ in 0..bytes) s8(0) }
 
+    float32: func (value: Float) { pushValue(value) }
+    float64: func (value: Double) { pushValue(value) }
+
     /** push it, null-terminated. */
     cString: func (value: String) {
         for(chr in value) {
@@ -77,17 +87,26 @@ BinarySequenceWriter: class {
             u8(chr as UInt8)
         }
     }
+
+    bytes: func (value: Octet*, length: SizeT) {
+        for(i in 0..length) {
+            u8(value[i] as UInt8)
+        }
+    }
 }
 
 BinarySequenceReader: class {
     reader: Reader
     endianness := ENDIANNESS
+    bytesRead: SizeT
 
     init: func (=reader) {
+        bytesRead = 0
     }
 
     pullValue: func <T> (T: Class) -> T {
         size := T size
+        bytesRead += size
         value: T
         array := value& as Octet*
         // pull the bytes.
@@ -115,6 +134,8 @@ BinarySequenceReader: class {
         for(_ in 0..bytes)
             reader read()
     }
+    float32: func -> Float { pullValue(Float) }
+    float64: func -> Double { pullValue(Double) }
 
     /** pull it, null-terminated */
     cString: func -> String {
@@ -132,14 +153,22 @@ BinarySequenceReader: class {
         length := match (lengthBytes) {
             case 1 => u8()
             case 2 => u16()
-            case 3 => u32()
-            case 4 => u64()
+            case 4 => u32()
+            //case => Exception new(This, "Unknown length bytes length: %d" format(lengthBytes)) throw()
         }
         s := String new(length)
         for(i in 0..length) {
-            s[i] = u8() as Char
+            (s as Char*)[i] = u8() as Char
         }
         s
+    }
+
+    bytes: func (length: SizeT) -> Octet* {
+        value := gc_malloc(length * Octet size)
+        for(i in 0..length) {
+            value[i] = u8() as Octet
+        }
+        value
     }
 }
 
