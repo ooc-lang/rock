@@ -132,7 +132,8 @@ FunctionCall: class extends Expression {
      * a return expression, when it's being used.
      */
     debugCondition: inline func -> Bool {
-        false
+        //false
+        name == "puts"
     }
 
     /**
@@ -200,9 +201,15 @@ FunctionCall: class extends Expression {
                                         argsBeforeConversion = HashMap<Int, Expression> new()
                                     }
                                     argsBeforeConversion put(i, callArg)
+                                    "Just put %d, %s" printfln(i, callArg toString())
                                 }
                             }
                         )
+                    }
+
+                    if(argsBeforeConversion) for(j in argsBeforeConversion getKeys()) {
+                        callArg := argsBeforeConversion[j]
+                        "Got key %d, callArg %s" printfln(j, callArg ? callArg toString() : "(null)")
                     }
                 }
             }
