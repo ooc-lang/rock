@@ -165,7 +165,9 @@ FunctionCall: class extends Expression {
             // todo: optimize that. not all of this needs to happen in many cases
             if(argsBeforeConversion) {
                 for(i in argsBeforeConversion getKeys()) {
-                    args set(i, argsBeforeConversion[i])
+                    callArg := argsBeforeConversion[i]
+                    "Restoring %s at %d to callArg %s" printfln(toString(), i, callArg ? callArg toString() : "(null)")
+                    args set(i, callArg)
                 }
             }
             candidateUsesAs = false
@@ -191,6 +193,7 @@ FunctionCall: class extends Expression {
                             if(opdecl fDecl getReturnType() equals?(declArgType)) {
                                 candidateUsesAs = true
                                 if(candidate isExtern()) {
+                                    "Setting arg %d of %s to a cast of %s" printfln(i, toString(), callArg ? callArg toString() : "(null)")
                                     args set(i, Cast new(callArg, declArgType, callArg token))
                                     if(!argsBeforeConversion) {
                                         // lazy instantiation of argsBeforeConversion
