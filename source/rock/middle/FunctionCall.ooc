@@ -179,7 +179,10 @@ FunctionCall: class extends Expression {
                 if (declArgType isGeneric()) {
                     declArgType = declArgType realTypize(this)
                 }
-                if(callArg getType() == null) return false // something's wrong
+                if(callArg == null) {
+                    "Something is wrong with call %s, it has a null callArg" printfln(toString())
+                    return false // something's wrong
+                }
 
                 if(callArg getType() getScore(declArgType) == Type NOLUCK_SCORE) {
                     ref := callArg getType() getRef()
