@@ -166,7 +166,6 @@ FunctionCall: class extends Expression {
             if(argsBeforeConversion) {
                 for(i in argsBeforeConversion getKeys()) {
                     callArg := argsBeforeConversion[i]
-                    "Restoring %s at %d to callArg %s" printfln(toString(), i, callArg ? callArg toString() : "(null)")
                     args set(i, callArg)
                 }
             }
@@ -182,7 +181,6 @@ FunctionCall: class extends Expression {
                     declArgType = declArgType realTypize(this)
                 }
                 if(callArg == null) {
-                    "Something is wrong with call %s, it has a null callArg" printfln(toString())
                     return false // something's wrong
                 }
 
@@ -193,7 +191,6 @@ FunctionCall: class extends Expression {
                             if(opdecl fDecl getReturnType() equals?(declArgType)) {
                                 candidateUsesAs = true
                                 if(candidate isExtern()) {
-                                    "Setting arg %d of %s to a cast of %s" printfln(i, toString(), callArg ? callArg toString() : "(null)")
                                     args set(i, Cast new(callArg, declArgType, callArg token))
                                     if(!argsBeforeConversion) {
                                         // lazy instantiation of argsBeforeConversion
