@@ -40,7 +40,8 @@ genericEquals: func <K> (k1, k2: K) -> Bool {
 }
 
 intHash: func <K> (key: K) -> SizeT {
-    return key as SizeT
+    result: SizeT = key as Int
+    return result
 }
 
 pointerHash: func <K> (key: K) -> SizeT {
@@ -211,7 +212,6 @@ HashMap: class <K, V> extends BackIterable<V> {
      */
     getEntry: func (key: K, result: HashEntry*) -> Bool {
         hash : SizeT = hashKey(key) % capacity
-
         entry := buckets[hash]
 
         if(entry key == null) { return false }
@@ -273,6 +273,7 @@ HashMap: class <K, V> extends BackIterable<V> {
     put: func (key: K, value: V) -> Bool {
 
         hash : SizeT = hashKey(key) % capacity
+
         entry : HashEntry
         //printf("\nput(%s, value %p\n", key as String, value)
 
