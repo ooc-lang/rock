@@ -158,14 +158,7 @@ CGenerator: class extends Skeleton {
 
     /** Write a string literal */
     visitStringLiteral: func (str: StringLiteral) {
-        //current app('"'). app(str value). app('"')
-
-
-        current app("lang_String__String_new_withCStrAndLength(")
-        current app('"'). app(str value). app('"'). app(", "). app (str size() toString() )
-        current app( ')' )
-
-
+        writeStringLiteral(str value)
     }
 
 

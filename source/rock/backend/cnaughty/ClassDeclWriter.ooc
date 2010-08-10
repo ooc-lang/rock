@@ -303,7 +303,7 @@ ClassDeclWriter: abstract class extends Skeleton {
         current nl(). nl(). app(underName). app(" *"). app(cDecl getNonMeta() getFullName()). app("_class()"). openBlock(). nl()
 
         if (cDecl getNonMeta() getSuperRef()) {
-            current app("static "). app(This LANG_PREFIX). app("Bool __done__ = false;"). nl()
+            current app("static _Bool __done__ = false;"). nl()
         }
         current app("static "). app(underName). app(" class = "). nl()
 
@@ -313,9 +313,12 @@ ClassDeclWriter: abstract class extends Skeleton {
         if (cDecl getNonMeta() getSuperRef()) {
             current nl(). app(This CLASS_NAME). app(" *classPtr = ("). app(This CLASS_NAME). app(" *) &class;")
             current nl(). app("if(!__done__)"). openBlock().
-                    nl(). app("classPtr->super = ("). app(This CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getFullName()). app("_class();").
-                    nl(). app("__done__ = true;").
-            closeBlock()
+                    nl(). app("classPtr->super = ("). app(This CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getFullName()). app("_class();")
+            current nl(). app("__done__ = true;").
+                    nl(). app("classPtr->name = ")
+            writeStringLiteral(realDecl getNonMeta() name)
+            current app(";").
+                    closeBlock()
         }
 
         current nl(). app("return &class;"). closeBlock()
@@ -336,9 +339,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
             current app(','). nl(). app(".size = ")
             realClass getNonMeta() writeSize(current, false) // instance = false
-            className := realClass getNonMeta() name
-            hack := "lang_String__String_new_withCStrAndLength(\"%s\", %d)" format(className, className length())
-            current app(','). nl(). app(".name = "). app(hack). app(",")
+
         } else {
             writeClassStructInitializers(this, parentClass getSuperRef() as ClassDecl, realClass, done, false)
         }

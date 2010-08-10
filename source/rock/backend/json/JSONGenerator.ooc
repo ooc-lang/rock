@@ -119,7 +119,7 @@ JSONGenerator: class extends Visitor {
     translateVersionSpec: func (spec: VersionSpec) -> String {
         match (spec class) {
             case VersionName => {
-                return spec as VersionName origin 
+                return spec as VersionName origin
             }
             case VersionNegation => {
                 return "not(%s)" format(translateVersionSpec(spec as VersionNegation spec))
@@ -468,7 +468,8 @@ JSONGenerator: class extends Visitor {
             elemInfo put("name", elem name) \
                     .put("tag", "enumElement(%s, %s)" format(node name, elem name)) \
                     .put("type", "enumElement") \
-                    .put("value", elem value)
+                    .put("value", elem value) \
+                    .put("doc", "")
             if(elem isExtern()) {
                 // see `EnumDecl addElement`, elements always have an extern name if they are extern
                 elemInfo put("extern", elem getExternName())
@@ -497,7 +498,7 @@ JSONGenerator: class extends Visitor {
                     buf append(',')
                 else
                     first_ = false
-                buf append(typeArg name)                
+                buf append(typeArg name)
             }
             buf append(')')
         }
@@ -541,7 +542,7 @@ JSONGenerator: class extends Visitor {
                     buf append(',')
                 else
                     first_ = false
-                buf append(typeArg name)                
+                buf append(typeArg name)
             }
             buf append(')')
         }
