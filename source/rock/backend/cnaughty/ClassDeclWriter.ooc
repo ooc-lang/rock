@@ -313,9 +313,12 @@ ClassDeclWriter: abstract class extends Skeleton {
         if (cDecl getNonMeta() getSuperRef()) {
             current nl(). app(This CLASS_NAME). app(" *classPtr = ("). app(This CLASS_NAME). app(" *) &class;")
             current nl(). app("if(!__done__)"). openBlock().
-                    nl(). app("classPtr->super = ("). app(This CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getFullName()). app("_class();").
-                    nl(). app("__done__ = true;").
-            closeBlock()
+                    nl(). app("classPtr->super = ("). app(This CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getFullName()). app("_class();")
+            current nl(). app("__done__ = true;").
+                    nl(). app("classPtr->name = ")
+            writeStringLiteral(realDecl getNonMeta() name)
+            current app(";").
+                    closeBlock()
         }
 
         current nl(). app("return &class;"). closeBlock()
@@ -336,8 +339,6 @@ ClassDeclWriter: abstract class extends Skeleton {
 
             current app(','). nl(). app(".size = ")
             realClass getNonMeta() writeSize(current, false) // instance = false
-
-            current app(','). nl(). app(".name = "). app('"'). app(realClass getNonMeta() name). app("\",")
         } else {
             writeClassStructInitializers(this, parentClass getSuperRef() as ClassDecl, realClass, done, false)
         }

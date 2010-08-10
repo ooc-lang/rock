@@ -21,4 +21,12 @@ Skeleton: abstract class extends Visitor {
             current app(';')
     }
 
+    writeStringLiteral: func (value: String) {
+        if(params newsdk) {
+            current app("(void*) lang_String__ASCIIString_fromNull(\"%s\", %d)" format(value, value length()))
+        } else {
+            current app('"'). app(value). app('"')
+        }
+    }
+
 }

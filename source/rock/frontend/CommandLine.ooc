@@ -101,6 +101,10 @@ CommandLine: class {
 
                     params entryPoint = arg substring(arg indexOf('=') + 1)
 
+                } else if (option == "newsdk") {
+
+                    params newsdk = true
+
                 } else if (option == "inline") {
 
                     params inlining = true
