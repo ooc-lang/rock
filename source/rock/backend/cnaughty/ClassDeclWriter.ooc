@@ -303,7 +303,7 @@ ClassDeclWriter: abstract class extends Skeleton {
         current nl(). nl(). app(underName). app(" *"). app(cDecl getNonMeta() getFullName()). app("_class()"). openBlock(). nl()
 
         if (cDecl getNonMeta() getSuperRef()) {
-            current app("static bool __done__ = false;"). nl()
+            current app("static _Bool __done__ = false;"). nl()
         }
         current app("static "). app(underName). app(" class = "). nl()
 
