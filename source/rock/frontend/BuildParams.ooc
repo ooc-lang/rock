@@ -99,6 +99,10 @@ BuildParams: class {
         libsPath = File new(path)
     }
 
+    // Changes the way string literals are written, among other things
+    // see http://github.com/nddrylliog/newsdk for more bunnies.
+    newsdk := false
+
     // location of the compiler's distribution, with a libs/ folder for the gc, etc.
     distLocation: File
 

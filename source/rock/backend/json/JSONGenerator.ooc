@@ -468,7 +468,8 @@ JSONGenerator: class extends Visitor {
             elemInfo put("name", elem name) \
                     .put("tag", "enumElement(%s, %s)" format(node name, elem name)) \
                     .put("type", "enumElement") \
-                    .put("value", elem value)
+                    .put("value", elem value) \
+                    .put("doc", "")
             if(elem isExtern()) {
                 // see `EnumDecl addElement`, elements always have an extern name if they are extern
                 elemInfo put("extern", elem getExternName())
