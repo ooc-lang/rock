@@ -3,14 +3,14 @@ import BinaryOp, Visitor, Expression, VariableDecl, FunctionDecl,
        TypeDecl, Declaration, Type, Node, ClassDecl, NamespaceDecl,
        EnumDecl, PropertyDecl, FunctionCall, Module, Import, FuncType,
        NullLiteral, AddressOf, BaseType, StructLiteral, Return,
-       Argument
+       Argument, InlineContext
 
 import tinker/[Resolver, Response, Trail, Errors]
 import structs/ArrayList
 
 VariableAccess: class extends Expression {
 
-    expr: Expression
+    expr: Expression { get set }
     name: String
 
     ref: Declaration
@@ -27,6 +27,10 @@ VariableAccess: class extends Expression {
         super(token)
         name = varDecl getName()
         ref = varDecl
+    }
+
+    clone: func -> This {
+        new(expr ? expr clone() : null, name, token)
     }
 
     init: func ~typeAccess (type: Type, .token) {
@@ -54,43 +58,45 @@ VariableAccess: class extends Expression {
     // It's just an access, it has no side-effects whatsoever
     hasSideEffects : func -> Bool { false }
 
-    debugCondition: func -> Bool { false }
+    debugCondition: inline func -> Bool {
+        false
+    }
 
     suggest: func (node: Node) -> Bool {
         if(node instanceOf?(VariableDecl)) {
-			candidate := node as VariableDecl
-		    // if we're accessing a member, we're expecting the
+            candidate := node as VariableDecl
+            // if we're accessing a member, we're expecting the
             // candidate to belong to a TypeDecl..
-		    if(isMember() && candidate owner == null) {
-		        return false
-		    }
+            if(isMember() && candidate owner == null) {
+                return false
+            }
 
-		    ref = candidate
+            ref = candidate
             if(isMember() && candidate owner isMeta) {
                 expr = VariableAccess new(candidate owner getNonMeta() getInstanceType(), candidate token)
             }
 
-		    return true
-	    } else if(node instanceOf?(FunctionDecl)) {
-			candidate := node as FunctionDecl
-		    // if we're accessing a member, we're expecting the candidate
-		    // to belong to a TypeDecl..
-		    if((expr != null) && (candidate owner == null)) {
-		        return false
-		    }
+            return true
+        } else if(node instanceOf?(FunctionDecl)) {
+            candidate := node as FunctionDecl
+            // if we're accessing a member, we're expecting the candidate
+            // to belong to a TypeDecl..
+            if((expr != null) && (candidate owner == null)) {
+                return false
+            }
 
-		    ref = candidate
-		    return true
-	    } else if(node instanceOf?(TypeDecl) || node instanceOf?(NamespaceDecl)) {
+            ref = candidate
+            return true
+        } else if(node instanceOf?(TypeDecl) || node instanceOf?(NamespaceDecl)) {
             if(node instanceOf?(TypeDecl) && node as TypeDecl isAddon()) {
                 // First rule of resolve club is: you do not resolve to an addon.
                 // Always resolve to the base instead.
                 return suggest(node as TypeDecl getBase() getNonMeta())
             }
-			ref = node
+            ref = node
             return true
-	    }
-	    return false
+        }
+        return false
     }
 
     isResolved: func -> Bool { ref != null && getType() != null }
@@ -159,6 +165,7 @@ VariableAccess: class extends Expression {
                     tDecl := node as TypeDecl
                     if(tDecl isMeta) node = tDecl getNonMeta()
                 }
+
                 node resolveAccess(this, res, trail)
 
                 if(ref) {
@@ -254,18 +261,15 @@ VariableAccess: class extends Expression {
             }
         }
 
-
-
-
-
         // Simple property access? Replace myself with a getter call.
         if(ref && ref instanceOf?(PropertyDecl)) {
             // Make sure we're not in a getter/setter yet (the trail would
             // contain `ref` then)
             if(ref as PropertyDecl inOuterSpace(trail)) {
                 // Test that we're not part of an assignment (which will be replaced by a setter call)
+                // That's also the case for operators like +=, *=, /= ...
                 // TODO: This should be nicer.
-                if(!(trail peek() instanceOf?(BinaryOp) && trail peek() as BinaryOp type == OpType ass)) {
+                if(!(trail peek() instanceOf?(BinaryOp) && trail peek() as BinaryOp isAssign())) {
                     property := ref as PropertyDecl
                     fCall := FunctionCall new(expr, property getGetterName(), token)
                     trail peek() replace(this, fCall)
@@ -342,19 +346,19 @@ VariableAccess: class extends Expression {
     getName: func -> String { name }
 
     toString: func -> String {
-        (expr && expr getType()) ? (expr getType() toString() + "." + name) : name
+        expr ? (expr toString() + " " + name) : name
     }
 
     isReferencable: func -> Bool { true }
 
     replace: func (oldie, kiddo: Node) -> Bool {
         match oldie {
-            case expr => expr = kiddo; true
+            case expr => expr = kiddo as Expression; true
             case => false
         }
     }
 
-	setRef: func(=ref) {}
+    setRef: func(=ref) {}
 
 }
 
