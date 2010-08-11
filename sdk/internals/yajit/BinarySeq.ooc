@@ -3,7 +3,7 @@ import structs/[ArrayList,HashMap]
 include errno
 
 errno: extern Int
-strerror: extern func (Int) -> Char*
+strerror: extern func (Int) -> String
 
 BinarySeq transTable = HashMap<String, Int> new()
 BinarySeq transTable["c"] = Char size
