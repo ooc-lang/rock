@@ -14,6 +14,10 @@ Ternary: class extends Expression {
         super(token)
     }
 
+    clone: func -> This {
+        new(condition clone(), ifTrue clone(), ifFalse clone(), token)
+    }
+
     getType: func -> Type {
         // hmm it would probably be good to check that ifTrue and ifFalse have compatible types
         ifTrue getType()
