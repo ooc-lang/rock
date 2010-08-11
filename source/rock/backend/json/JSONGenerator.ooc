@@ -3,7 +3,7 @@ import structs/[Bag, HashBag, MultiMap, List]
 import text/json/Generator
 import text/Buffer
 
-import ../../frontend/BuildParams
+import ../../frontend/[BuildParams, Token]
 
 import ../../middle/[Visitor]
 
@@ -24,7 +24,7 @@ JSONGenerator: class extends Visitor {
     objects: MultiMap<String, HashBag>
 
     init: func (=params, =module) {
-        outFile = File new(params outPath getPath() + File separator + module getSourceFolderName(), module getPath(".json"))
+        outFile = File new(params outPath getPath(), module getPath(".json"))
         outFile parent() mkdirs()
         root = HashBag new()
         objects = MultiMap<String, HashBag> new()
@@ -62,9 +62,15 @@ JSONGenerator: class extends Visitor {
         objects put(tag, obj)
     }
 
+    putToken: func (obj: HashBag, token: Token) {
+        bag := Bag new()
+        bag add(token start as UInt) .add(token length as UInt)
+        obj put("token", bag)
+    }
+
     resolveType: func (type: Type) -> String {
         if(type instanceOf?(FuncType)) {
-            return "Func" /* TODO? */
+            return generateFuncTag(type as FuncType)
         } else if(type instanceOf?(PointerType)) {
             return "pointer(%s)" format(resolveType(type as PointerType inner))
         } else if(type instanceOf?(ReferenceType)) {
@@ -149,6 +155,7 @@ JSONGenerator: class extends Visitor {
         if(node isMeta)
             return
         obj := HashBag new()
+        putToken(obj, node token)
         /* `name` */
         obj put("name", node name as String)
         /* `version` */
@@ -205,6 +212,7 @@ JSONGenerator: class extends Visitor {
 
     visitCoverDecl: func (node: CoverDecl) {
         obj := HashBag new()
+        putToken(obj, node token)
         /* `name` */
         obj put("name", node name as String)
         /* `type` */
@@ -255,6 +263,7 @@ JSONGenerator: class extends Visitor {
 
     buildFunctionDecl: func ~typed (node: FunctionDecl, type: String) -> HashBag {
         obj := HashBag new()
+        putToken(obj, node token)
         name := null as String
         if(node suffix)
             name = "%s~%s" format(node name, node suffix)
@@ -350,6 +359,7 @@ JSONGenerator: class extends Visitor {
 
     buildVariableDecl: func (node: VariableDecl, type: String) -> HashBag {
         obj := HashBag new()
+        putToken(obj, node token)
         /* `name` */
         obj put("name", node name)
         /* `doc` */
@@ -425,6 +435,7 @@ JSONGenerator: class extends Visitor {
 
     visitEnumDecl: func (node: EnumDecl) {
         obj := HashBag new()
+        putToken(obj, node token)
         /* `name` */
         obj put("name", node name)
         /* `type` */
@@ -476,6 +487,50 @@ JSONGenerator: class extends Visitor {
         addObject(node name, obj)
     }
 
+    generateFuncTag: func ~funcType (node: FuncType) -> String {
+        buf := Buffer new()
+        buf append("Func(")
+        first := true
+        if(!node typeArgs empty?()) {
+            first = false
+            first_ := true
+            buf append("generics(")
+            for(typeArg in node typeArgs) {
+                if(!first_)
+                    buf append(',')
+                else
+                    first_ = false
+                buf append(typeArg name)
+            }
+            buf append(')')
+        }
+        if(!node argTypes empty?()) {
+            if(!first)
+                buf append(',')
+            else
+                first = false
+            buf append("arguments(")
+            first_ := true
+            for(arg in node argTypes) {
+                if(!first_)
+                    buf append(',')
+                else
+                    first_ = false
+                buf append(resolveType(arg))
+            }
+            buf append(')')
+        }
+        if(node returnType != null) {
+            if(!first)
+                buf append(',')
+            else
+                first = false
+            buf append("return(%s)" format(resolveType(node returnType)))
+        }
+        buf append(')')
+        buf toString()
+    }
+
     generateFuncTag: func (node: FunctionDecl, start: String) -> String {
         buf := Buffer new()
         buf append(start)
@@ -522,6 +577,7 @@ JSONGenerator: class extends Visitor {
 
     visitOperatorDecl: func (node: OperatorDecl) {
         obj := HashBag new()
+        putToken(obj, node token)
         name := node getName()
         tag := generateFuncTag(node getFunctionDecl(), "operator(%s," format(name))
         obj put("symbol", node symbol) \
@@ -537,6 +593,7 @@ JSONGenerator: class extends Visitor {
 
     visitInterfaceDecl: func (node: InterfaceDecl) {
         obj := HashBag new()
+        putToken(obj, node token)
         obj put("tag", node name) .put("name", node name) .put("doc", node doc) .put("type", "interface")
         /* `version` */
         putVersion(node verzion, obj)
@@ -553,6 +610,7 @@ JSONGenerator: class extends Visitor {
 
     visitInterfaceImpl: func (node: InterfaceImpl) {
         obj := HashBag new()
+        putToken(obj, node token)
         name := node getSuperType() getName()
         target := node impl getName()
         tag := "interfaceImpl(%s, %s)" format(name, target)

@@ -22,6 +22,7 @@ FunctionCallWriter: abstract class extends Skeleton {
             current app("((")
             ModuleWriter writeFuncPointer(this, fDecl getType(), "")
             current app(") ")
+
             if(fCall expr != null) {
                 arrow := true
                 // Kick all dereference exprs for the analysis.
