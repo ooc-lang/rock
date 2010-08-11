@@ -23,6 +23,10 @@ UnaryOp: class extends Expression {
         super(token)
     }
 
+    clone: func -> This {
+        new(inner clone(), type, token)
+    }
+
     accept: func (visitor: Visitor) {
         visitor visitUnaryOp(this)
     }
