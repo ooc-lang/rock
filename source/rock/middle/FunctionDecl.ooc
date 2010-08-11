@@ -34,7 +34,7 @@ import algo/autoReturn
 
    VarArg (variable argument):
 
-     printf: extern func (fmt: String, ...)
+     printf: extern func (fmt: Char*, ...)
 
    Or just regular Argument(s) :
 

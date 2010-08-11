@@ -16,7 +16,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Version, Use, Block, ArrayLiteral, EnumDecl, BaseType, FuncType,
     Declaration, PropertyDecl, CallChain, Tuple]
 
-nq_parse: extern proto func (AstBuilder, String) -> Int
+nq_parse: extern proto func (AstBuilder, Char*) -> Int
 
 // reserved C99 keywords
 reservedWords := ["auto", "int", "long", "char", "register", "short", "do",

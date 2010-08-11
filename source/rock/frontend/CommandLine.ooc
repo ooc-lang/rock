@@ -11,7 +11,7 @@ import ../backend/explain/ExplanationGenerator
 import ../middle/[Module, Import]
 import ../middle/tinker/Tinkerer
 
-ROCK_BUILD_DATE, ROCK_BUILD_TIME: extern String
+ROCK_BUILD_DATE, ROCK_BUILD_TIME: extern Char*
 
 CommandLine: class {
     params: BuildParams
@@ -575,4 +575,4 @@ CommandLine: class {
 
 }
 
-system: extern func (command: String)
+system: extern func (command: Char*)
