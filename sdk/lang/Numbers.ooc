@@ -19,6 +19,13 @@ LLong: cover from signed long long {
     abs: func -> This {
         return this >= 0 ? this : this * -1
     }
+
+    times: func (fn: Func) {
+        for(i in 0..this) {
+            fn()
+        }
+    }
+
 }
 
 Long:  cover from signed long  extends LLong
