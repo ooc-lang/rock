@@ -339,7 +339,6 @@ ClassDeclWriter: abstract class extends Skeleton {
 
             current app(','). nl(). app(".size = ")
             realClass getNonMeta() writeSize(current, false) // instance = false
-
         } else {
             writeClassStructInitializers(this, parentClass getSuperRef() as ClassDecl, realClass, done, false)
         }
