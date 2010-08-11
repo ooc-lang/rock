@@ -401,54 +401,22 @@ BaseType: class extends Type {
             j += 1
         }
 
+        // FIXME: debug
+
         // translate things like:
         // HashMap<K, V> extends Iterator<V>
         current := typeRef
-        while(current != null) {
-            if(current getSuperType() == null) break
-            if(current getSuperRef() == null) {
-                finalScore = -1
-                //printf("%s superRef() is null, while looking for %s in %s, looping.\n", current toString(), typeArgName, toString())
-                return null // something needs to be resolved further
-            }
-
-            j := 0
-            superArgs := current getSuperRef() getTypeArgs()
-            for(superArg in superArgs) {
-                if(superArg getName() == typeArgName) {
-                    //printf("Found match for <%s> in %s extends %s (aka %s)\n", typeArgName, current toString(), current getSuperType() toString(), current getSuperRef() toString())
-                    superRealArgs := current getSuperType() getTypeArgs()
-                    if(superRealArgs == null || superRealArgs size() < j) {
-                        continue
-                    }
-                    // FIXME: That's awful, and will give us plenty o'trouble. We'll be warned!
-                    candidate := superRealArgs get(j)
-
-                    ref := candidate getRef()
-
-                    if(ref == null) {
-                        //printf("ref of %s is null, while looking for %s in %s, looping.\n", candidate toString(), typeArgName, toString())
-                        finalScore = -1
-                        return null
-                    }
-                    result : Type = null
-
-                    //printf("Found candidate %s for typeArg %s, ref is a %s\n", candidate toString(), typeArgName, ref class name)
-                    if(ref instanceOf?(TypeDecl)) {
-                        // resolves to a known type
-                        result = ref as TypeDecl getInstanceType()
-                    } else if(ref instanceOf?(VariableDecl)) {
-                        // resolves to an access to another generic type
-                        result = BaseType new(ref as VariableDecl getName(), token)
-                        result setRef(ref) // FIXME: that is experimental. is that a good idea?
-                    }
-                    //printf("Final result = %s\n", result toString())
-                    return result
-                }
-                j += 1
-            }
-
+        while(current != null && current getSuperType() != null) {
+            result := searchInheritance(typeArgName, current, current getSuperType(), finalScore&)
+            if(finalScore == -1) return null
+            if(result) return result
             current = current getSuperRef()
+        }
+
+        for(interfaceType in typeRef interfaceTypes) {
+            result := searchInheritance(typeArgName, typeRef, interfaceType, finalScore&)
+            if(finalScore == -1) return null
+            if(result) return result
         }
 
         superType := typeRef getSuperType()
@@ -458,6 +426,48 @@ BaseType: class extends Type {
         }
 
         return null
+    }
+
+    searchInheritance: func (typeArgName: String, current: TypeDecl, superType: Type, finalScore: Int@) -> Type {
+
+        j := 0
+        superRef := superType getRef() as TypeDecl
+        if(superRef == null) {
+            finalScore = -1
+            return null // something needs to be resolved further
+        }
+
+        superArgs := superRef getTypeArgs()
+        for(superArg in superArgs) {
+            if(superArg getName() == typeArgName) {
+                superRealArgs := superType getTypeArgs()
+                if(superRealArgs == null || superRealArgs size() < j) {
+                    continue
+                }
+                candidate := superRealArgs get(j)
+
+                ref := candidate getRef()
+
+                if(ref == null) {
+                    finalScore = -1
+                    return null
+                }
+                result : Type = null
+
+                if(ref instanceOf?(TypeDecl)) {
+                    // resolves to a known type
+                    result = ref as TypeDecl getInstanceType()
+                } else if(ref instanceOf?(VariableDecl)) {
+                    // resolves to an access to another generic type
+                    result = BaseType new(ref as VariableDecl getName(), token)
+                    result setRef(ref) // FIXME: that is experimental. is that a good idea?
+                }
+                return result
+            }
+            j += 1
+        }
+
+        null
     }
 
     realTypize: func (call: FunctionCall) -> Type {

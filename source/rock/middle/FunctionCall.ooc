@@ -836,7 +836,6 @@ FunctionCall: class extends Expression {
 
             if(ref genericConstraints) for(key in ref genericConstraints getKeys()) {
                 if(key getName() == typeArgName) {
-                    "Found match %s -> %s in genericConstraints!" printfln(key toString(), ref genericConstraints get(key) toString())
                     return ref genericConstraints get(key)
                 }
             }
