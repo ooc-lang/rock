@@ -65,11 +65,12 @@ Module: class extends Node {
 
     _collectDeps: func (list: List<Module>) -> List<Module> {
         list add(this)
-		for(imp in getAllImports()) {
-			if(!list contains?(imp getModule())) {
-				imp getModule() _collectDeps(list)
-			}
-		}
+        for(imp in getAllImports()) {
+            if(imp getModule() == null) continue // what can we do about it? nothing.
+            if(!list contains?(imp getModule())) {
+                imp getModule() _collectDeps(list)
+            }
+        }
         list
     }
 
@@ -346,6 +347,15 @@ Module: class extends Node {
             }
         }
 
+        for(oDecl in operators) {
+            if(oDecl isResolved()) continue
+            response := oDecl resolve(trail, res)
+            if(!response ok()) {
+                if(res params veryVerbose) printf("response of oDecl %s = %s\n", oDecl toString(), response toString())
+                finalResponse = response
+            }
+        }
+
         for(tDecl in types) {
             if(tDecl isResolved()) continue
             response := tDecl resolve(trail, res)
@@ -360,15 +370,6 @@ Module: class extends Node {
             response := fDecl resolve(trail, res)
             if(!response ok()) {
                 if(res params veryVerbose) printf("response of fDecl %s = %s\n", fDecl toString(), response toString())
-                finalResponse = response
-            }
-        }
-
-        for(oDecl in operators) {
-            if(oDecl isResolved()) continue
-            response := oDecl resolve(trail, res)
-            if(!response ok()) {
-                if(res params veryVerbose) printf("response of oDecl %s = %s\n", oDecl toString(), response toString())
                 finalResponse = response
             }
         }

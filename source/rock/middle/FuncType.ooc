@@ -128,7 +128,27 @@ FuncType: class extends Type {
     }
 
     toString: func -> String {
-        toMangledString()
+        b := Buffer new()
+        isFirst := true
+
+        b append("Func (")
+        for(typeArg in typeArgs) {
+            if(isFirst) isFirst = false
+            else        b append(", ")
+            b append(typeArg getName())
+        }
+        for(argType in argTypes) {
+            if(isFirst) isFirst = false
+            else        b append(", ")
+
+            if(argType == null) { b append("<null arg type>"); continue }
+            b append(argType toMangledString())
+        }
+        b append(')')
+        if(returnType != null) {
+            b append(" -> "). append(returnType toMangledString())
+        }
+        b toString()
     }
 
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {

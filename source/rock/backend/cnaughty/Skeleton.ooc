@@ -14,11 +14,19 @@ Skeleton: abstract class extends Visitor {
             if(!stat token module) stat token module = module
 
             current nl(). app("#line "). app(stat token getLineNumber() toString()). app(" \""). app(EscapeSequence escape(stat token getPath())). app("\"")
-		}
+        }
 
         current nl(). app(stat)
         if(!stat instanceOf?(ControlStatement))
             current app(';')
+    }
+
+    writeStringLiteral: func (value: String) {
+        if(params newsdk) {
+            current app("(void*) lang_String__String_new_withCStrAndLength(\"%s\", %d)" format(value, value length()))
+        } else {
+            current app('"'). app(value). app('"')
+        }
     }
 
 }
