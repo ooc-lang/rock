@@ -273,6 +273,8 @@ JSONGenerator: class extends Visitor {
         obj put("name", name)
         /* `version` */
         putVersion(node verzion, obj)
+        /* `isThisRef` */
+        obj put("isThisRef", node isThisRef)
         /* `doc` */
         obj put("doc", node doc)
         /* `tag` */

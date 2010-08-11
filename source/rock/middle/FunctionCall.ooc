@@ -167,7 +167,6 @@ FunctionCall: class extends Expression {
             if(argsBeforeConversion) {
                 for(i in argsBeforeConversion getKeys()) {
                     callArg := argsBeforeConversion[i]
-                    "Restoring %s at %d to callArg %s" printfln(toString(), i, callArg ? callArg toString() : "(null)")
                     args set(i, callArg)
                 }
             }
@@ -183,7 +182,6 @@ FunctionCall: class extends Expression {
                     declArgType = declArgType realTypize(this)
                 }
                 if(callArg == null) {
-                    "Something is wrong with call %s, it has a null callArg" printfln(toString())
                     return false // something's wrong
                 }
 
@@ -194,7 +192,6 @@ FunctionCall: class extends Expression {
                             if(opdecl fDecl getReturnType() equals?(declArgType)) {
                                 candidateUsesAs = true
                                 if(candidate isExtern()) {
-                                    "Setting arg %d of %s to a cast of %s" printfln(i, toString(), callArg ? callArg toString() : "(null)")
                                     args set(i, Cast new(callArg, declArgType, callArg token))
                                     if(!argsBeforeConversion) {
                                         // lazy instantiation of argsBeforeConversion
@@ -284,8 +281,8 @@ FunctionCall: class extends Expression {
          */
         if(refScore <= 0) {
             if(debugCondition()) printf("\n===============\nResolving call %s\n", toString())
-        	if(name == "super") {
-				fDecl := trail get(trail find(FunctionDecl), FunctionDecl)
+            if(name == "super") {
+                fDecl := trail get(trail find(FunctionDecl), FunctionDecl)
                 superTypeDecl := fDecl owner getSuperRef()
                 finalScore: Int
                 ref = superTypeDecl getMeta() getFunction(fDecl getName(), null, this, finalScore&)
@@ -302,12 +299,12 @@ FunctionCall: class extends Expression {
                         }
                     }
                 }
-        	} else {
-        		if(expr == null) {
-				    depth := trail size() - 1
-				    while(depth >= 0) {
-				        node := trail get(depth, Node)
-				        if(node resolveCall(this, res, trail) == -1) {
+            } else {
+                if(expr == null) {
+                    depth := trail size() - 1
+                    while(depth >= 0) {
+                        node := trail get(depth, Node)
+                        if(node resolveCall(this, res, trail) == -1) {
                             res wholeAgain(this, "Waiting on other nodes to resolve before resolving call.")
                             return Responses OK
                         }
@@ -324,9 +321,9 @@ FunctionCall: class extends Expression {
                                 }
                             }
                         }
-				        depth -= 1
-				    }
-			    } else if(expr instanceOf?(VariableAccess) && expr as VariableAccess getRef() != null && expr as VariableAccess getRef() instanceOf?(NamespaceDecl)) {
+                        depth -= 1
+                    }
+                } else if(expr instanceOf?(VariableAccess) && expr as VariableAccess getRef() != null && expr as VariableAccess getRef() instanceOf?(NamespaceDecl)) {
                     expr as VariableAccess getRef() resolveCall(this, res, trail)
                 } else if(expr getType() != null && expr getType() getRef() != null) {
                     if(!expr getType() getRef() instanceOf?(TypeDecl)) {
@@ -337,14 +334,14 @@ FunctionCall: class extends Expression {
                         res throwError(UnresolvedCall new(this, message, ""))
                     }
                     tDecl := expr getType() getRef() as TypeDecl
-		            meta := tDecl getMeta()
+                    meta := tDecl getMeta()
                     if(debugCondition()) printf("Got tDecl %s, resolving, meta = %s\n", tDecl toString(), meta == null ? "(nil)" : meta toString())
-		            if(meta) {
-		                meta resolveCall(this, res, trail)
-		            } else {
-		                tDecl resolveCall(this, res, trail)
-		            }
-		        }
+                    if(meta) {
+                        meta resolveCall(this, res, trail)
+                    } else {
+                        tDecl resolveCall(this, res, trail)
+                    }
+                }
             }
         }
 
@@ -617,19 +614,19 @@ FunctionCall: class extends Expression {
 
     }
 
-	/**
-	 * In some cases, a generic function call needs to be unwrapped,
-	 * e.g. when it's used as an expression in another call, etc.
-	 * However, some nodes are 'friendly' parents to us, e.g.
-	 * they handle things themselves and we don't need to unwrap.
-	 * @return true if the node is friendly, false if it is not and we
-	 * need to unwrap
-	 */
+    /**
+     * In some cases, a generic function call needs to be unwrapped,
+     * e.g. when it's used as an expression in another call, etc.
+     * However, some nodes are 'friendly' parents to us, e.g.
+     * they handle things themselves and we don't need to unwrap.
+     * @return true if the node is friendly, false if it is not and we
+     * need to unwrap
+     */
     isFriendlyHost: func (node: Node) -> Bool {
         node isScope() ||
-		node instanceOf?(CommaSequence) ||
-		node instanceOf?(VariableDecl) ||
-		(node instanceOf?(BinaryOp) && node as BinaryOp type == OpType ass)
+        node instanceOf?(CommaSequence) ||
+        node instanceOf?(VariableDecl) ||
+        (node instanceOf?(BinaryOp) && node as BinaryOp type == OpType ass)
     }
 
     /**
@@ -843,6 +840,13 @@ FunctionCall: class extends Expression {
         if(debugCondition()) printf("Should resolve typeArg %s in call %s\n", typeArgName, toString())
 
         if(ref && refScore > 0) {
+
+            if(ref genericConstraints) for(key in ref genericConstraints getKeys()) {
+                if(key getName() == typeArgName) {
+                    "Found match %s -> %s in genericConstraints!" printfln(key toString(), ref genericConstraints get(key) toString())
+                    return ref genericConstraints get(key)
+                }
+            }
 
             inFunctionTypeArgs := false
             for(typeArg in ref typeArgs) {
@@ -1184,7 +1188,7 @@ FunctionCall: class extends Expression {
     getRef: func -> FunctionDecl { ref }
     setRef: func (=ref) { refScore = 1; /* or it'll keep trying to resolve it =) */ }
 
-	getArguments: func ->  ArrayList<Expression> { args }
+    getArguments: func ->  ArrayList<Expression> { args }
 
 }
 

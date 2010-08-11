@@ -466,9 +466,15 @@ HashMap: class <K, V> extends BackIterable<V> {
 
     getKeys: func -> ArrayList<K> { keys }
 
-    each: func (f: Func (K, V)) {
+    each: func ~withKeys (f: Func (K, V)) {
         for(key in getKeys()) {
             f(key, get(key))
+        }
+    }
+
+    each: func (f: Func (V)) {
+        for(key in getKeys()) {
+            f(get(key))
         }
     }
 

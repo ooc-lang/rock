@@ -155,7 +155,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
         for (decl: FunctionDecl in cDecl functions) {
 
-            if (!decl isStatic() || decl isProto()) continue
+            if (!decl isStatic() || decl isProto() || decl isAbstract()) continue
 
             if(decl isExternWithName()) {
                 FunctionDeclWriter write(this, decl)
@@ -367,6 +367,10 @@ ClassDeclWriter: abstract class extends Skeleton {
 
                 if (parentDecl isFinal() || parentDecl isExtern() || (realDecl != null && realDecl isExtern())) {
                     continue // skip it.
+                }
+
+                if (parentDecl isStatic() && parentDecl isAbstract()) {
+                    continue // skip it
                 }
 
                 if (parentDecl isStatic() || (realDecl == null && parentDecl isAbstract())) {
