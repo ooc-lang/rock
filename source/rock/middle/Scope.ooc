@@ -6,9 +6,17 @@ import ../frontend/[BuildParams]
 
 Scope: class extends Node {
 
-    list := ArrayList<Statement> new()
+    list : ArrayList<Statement> { get set }
 
-    init: func ~scope {}
+    init: func ~scope {
+        list = ArrayList<Statement> new()
+    }
+
+    clone: func -> This {
+        copy := new()
+        list each(|e| copy list add(e clone()))
+        copy
+    }
 
     accept: func (v: Visitor) { v visitScope(this) }
 
@@ -119,7 +127,7 @@ Scope: class extends Node {
 
     add:      func ~append (n: Statement) { list add(n) }
     remove:   func (n: Statement) { list remove(n) }
-    removeAt: func (i: Int)       { list removeAt(i) }
+    removeAt: func (i: Int) -> Statement  { list removeAt(i) }
 
     iterator: func -> Iterator<Statement> {
         list iterator()
@@ -134,7 +142,7 @@ Scope: class extends Node {
 
     get: func (i: Int) -> Statement  { list get(i) }
     set: func (i: Int, s: Statement) { list set(i, s) }
-    add: func (i: Int, s: Statement) { list add(i, s) }
+    add: func ~withIndex (i: Int, s: Statement) { list add(i, s) }
 
     addAll: func (s: Scope) { list addAll(s list) }
 
@@ -153,9 +161,9 @@ Scope: class extends Node {
         for(stmt in list) {
             if(isFirst) isFirst = false
             else        sb append(", ")
-            sb append('\n'). append(stmt toString())
+            sb append(stmt toString())
         }
-        sb append('\n'). append('}')
+        sb append(" }")
         sb toString()
     }
 
