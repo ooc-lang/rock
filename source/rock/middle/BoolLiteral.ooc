@@ -11,6 +11,8 @@ BoolLiteral: class extends Literal {
         type = BaseType new("Bool", token)
     }
 
+    clone: func -> This { new(value, token) }
+
     accept: func (visitor: Visitor) { visitor visitBoolLiteral(this) }
 
     getType: func -> Type { type }

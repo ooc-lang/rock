@@ -17,6 +17,13 @@ Match: class extends Expression {
         super(token)
     }
 
+    clone: func -> This {
+        copy := new(token)
+        copy expr = expr clone()
+        cases each(|c| copy cases add(c clone()))
+        copy
+    }
+
     getExpr: func -> Expression { expr }
     setExpr: func (=expr) {}
 
@@ -126,35 +133,35 @@ Match: class extends Expression {
 
     inferType: func (trail: Trail, res: Resolver) -> Response {
 
-		funcIndex   := trail find(FunctionDecl)
-		returnIndex := trail find(Return)
+        funcIndex   := trail find(FunctionDecl)
+        returnIndex := trail find(Return)
 
-		if(funcIndex != -1 && returnIndex != -1) {
-			funcDecl := trail get(funcIndex, FunctionDecl)
-			if(funcDecl getReturnType() isGeneric()) {
-				type = funcDecl getReturnType()
-			}
-		}
+        if(funcIndex != -1 && returnIndex != -1) {
+            funcDecl := trail get(funcIndex, FunctionDecl)
+            if(funcDecl getReturnType() isGeneric()) {
+                type = funcDecl getReturnType()
+            }
+        }
 
-		if(type == null) {
-			// TODO make it more intelligent e.g. cycle through all cases and
-			// check that all types are compatible and find a common denominator
-			if(cases empty?()) {
+        if(type == null) {
+            // TODO make it more intelligent e.g. cycle through all cases and
+            // check that all types are compatible and find a common denominator
+            if(cases empty?()) {
                 return Responses OK
             }
 
             first := cases first()
-			if(first getBody() empty?()) {
+            if(first getBody() empty?()) {
                 return Responses OK
             }
 
-			statement := first getBody() last()
-			if(!statement instanceOf?(Expression)) {
+            statement := first getBody() last()
+            if(!statement instanceOf?(Expression)) {
                 return Responses OK
             }
 
-			type = statement as Expression getType()
-		}
+            type = statement as Expression getType()
+        }
 
         return Responses OK
 
@@ -172,6 +179,13 @@ Case: class extends ControlStatement {
 
     init: func ~_case (.token) {
         super(token)
+    }
+
+    clone: func -> This {
+        copy := new(token)
+        copy expr = expr clone()
+        body list each(|c| copy body add(c clone()))
+        copy
     }
 
     accept: func (visitor: Visitor) {}

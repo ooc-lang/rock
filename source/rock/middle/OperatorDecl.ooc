@@ -1,15 +1,28 @@
 import text/Buffer
 import ../frontend/Token
-import FunctionDecl, Expression, Type, Visitor, Node, Argument
+import FunctionDecl, Expression, Type, Visitor, Node, Argument, TypeDecl
 import tinker/[Resolver, Response, Trail, Errors]
 
 OperatorDecl: class extends Expression {
 
-    symbol : String
-    fDecl = null : FunctionDecl
+    symbol: String
+    implicit := false // for implicit as
+    _doneImplicit := false
+
+    fDecl : FunctionDecl { get set }
 
     init: func ~opDecl (=symbol, .token) {
         super(token)
+        if(symbol == "implicit as") {
+            implicit = true
+            this symbol = "as"
+        }
+    }
+
+    clone: func -> This {
+        copy := new(symbol, token)
+        copy fDecl = fDecl clone()
+        copy
     }
 
     setFunctionDecl: func (=fDecl) {
@@ -47,6 +60,27 @@ OperatorDecl: class extends Expression {
         }
 
         fDecl resolve(trail, res)
+
+        if (implicit && !_doneImplicit) {
+            if (fDecl args size() != 1) {
+                res throwError(InvalidOperatorOverload new(token, "Overloading of 'as' needs exactly one argument."))
+                return Responses LOOP
+            }
+
+            fromType := fDecl args get(0) getType()
+            toType := fDecl getReturnType()
+
+            if(fromType == null || !fromType isResolved()) {
+                res wholeAgain(this, "need first arg's type")
+                return Responses OK
+            }
+
+            ref := fromType getRef()
+            if(ref instanceOf?(TypeDecl)) {
+                _doneImplicit = true
+                ref as TypeDecl implicitConversions add(this)
+            }
+        }
 
     }
 

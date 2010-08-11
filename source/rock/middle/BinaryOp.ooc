@@ -2,7 +2,8 @@ import structs/ArrayList
 import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
        Import, Module, FunctionCall, ClassDecl, CoverDecl, AddressOf,
-       ArrayAccess, VariableAccess, Cast, NullLiteral, PropertyDecl
+       ArrayAccess, VariableAccess, Cast, NullLiteral, PropertyDecl,
+       Tuple, VariableDecl
 import tinker/[Trail, Resolver, Response, Errors]
 
 OpType: enum {
@@ -65,6 +66,10 @@ BinaryOp: class extends Expression {
 
     init: func ~binaryOp (=left, =right, =type, .token) {
         super(token)
+    }
+
+    clone: func -> This {
+        new(left clone(), right clone(), type, token)
     }
 
     isAssign: func -> Bool { (type >= OpType ass) && (type <= OpType bAndAss) }
@@ -200,10 +205,103 @@ BinaryOp: class extends Expression {
             }
         }
 
+        // In case of a expression like `expr attribute += value` where `attribute`
+        // is a property, we need to unwrap this to `expr attribute = expr attribute + value`.
+        if(isAssign() && left instanceOf?(VariableAccess)) {
+            if(left getType() == null || !left isResolved()) {
+                res wholeAgain(this, "left type is unresolved"); return Responses OK
+            }
+            if(right getType() == null || !right isResolved()) {
+                res wholeAgain(this, "right type is unresolved"); return Responses OK
+            }
+            // are we in a +=, *=, /=, ... operator? unwrap myself.
+            if(left as VariableAccess ref instanceOf?(PropertyDecl)) {
+                leftProperty := left as VariableAccess ref as PropertyDecl
+                if(leftProperty inOuterSpace(trail)) {
+                    // only outside of get/set.
+                    unwrapAssign(trail, res)
+                    trail push(this)
+                    right resolve(trail, res)
+                    trail pop(this)
+                }
+            }
+        }
+
+        if(type == OpType ass && left instanceOf?(Tuple) && right instanceOf?(Tuple)) {
+            t1 := left as Tuple
+            t2 := right as Tuple
+
+            if(t1 elements size() != t2 elements size()) {
+                res throwError(InvalidOperatorUse new(token, "Invalid assignment between operands of type %s and %s\n" format(
+                    left getType() toString(), right getType() toString())))
+                return Responses OK
+            }
+
+            size := t1 elements size()
+
+            for(i in 0..size) {
+                l := t1 elements[i]
+                if(!l instanceOf?(VariableAccess)) continue
+                la := l as VariableAccess
+
+                for(j in i..size) {
+                    r := t2 elements[j]
+                    if(!r instanceOf?(VariableAccess)) continue
+
+                    ra := r as VariableAccess
+                    if(la getRef() == null || ra getRef() == null) {
+                        res wholeAgain(this, "need ref")
+                        return Responses OK
+                    }
+                    if(la getRef() == ra getRef()) {
+                        if(i == j) {
+                            useless := false
+                            if(la expr != null && ra expr != null) {
+                                if(la expr instanceOf?(VariableAccess) &&
+                                   ra expr instanceOf?(VariableAccess)) {
+                                       lae := la expr as VariableAccess
+                                       rae := ra expr as VariableAccess
+                                       if(lae getRef() == rae getRef()) {
+                                           useless = true
+                                       }
+                                }
+                            } else {
+                                useless = true
+                            }
+                            if(useless) { continue }
+                        }
+
+                        tmpDecl := VariableDecl new(null, generateTempName(la getName()), la, la token)
+                        if(!trail addBeforeInScope(this, tmpDecl)) {
+                            res throwError(CouldntAddBeforeInScope new(token, this, tmpDecl, trail))
+                        }
+                        t2 elements[j] = VariableAccess new(tmpDecl, tmpDecl token)
+                    }
+                }
+            }
+
+            for(i in 0..t1 elements size()) {
+                child := new(t1 elements[i], t2 elements[i], type, token)
+
+                if(i == t1 elements size() - 1) {
+                    // last? replace
+                    if(!trail peek() replace(this, child)) {
+                        res throwError(CouldntReplace new(token, this, child, trail))
+                    }
+                } else {
+                    // otherwise, add before
+                    if(!trail addBeforeInScope(this, child)) {
+                        res throwError(CouldntAddBeforeInScope new(token, this, child, trail))
+                    }
+                }
+            }
+        }
+
         if(!isLegal(res)) {
             if(res fatal) {
                 res throwError(InvalidOperatorUse new(token, "Invalid use of operator %s between operands of type %s and %s\n" format(
                     opTypeRepr[type], left getType() toString(), right getType() toString())))
+                return Responses OK
             }
             res wholeAgain(this, "Illegal use, looping in hope.")
         }

@@ -13,6 +13,10 @@ RangeLiteral: class extends Literal {
         type = BaseType new("Range", token)
     }
 
+    clone: func -> This {
+        new(lower clone(), upper clone(), token)
+    }
+
     accept: func (visitor: Visitor) {
         visitor visitRangeLiteral(this)
     }
@@ -48,10 +52,10 @@ RangeLiteral: class extends Literal {
             newCall := FunctionCall new(VariableAccess new("Range", token), "new", token)
             newCall args add(lower) .add(upper)
 
-			if(!parent replace(this, newCall)) {
+            if(!parent replace(this, newCall)) {
                 printf("Couldn't replace %s with %s in %s\n", toString(), newCall toString(), parent toString())
             }
-			res wholeAgain(this, "replaced with range constructor!")
+            res wholeAgain(this, "replaced with range constructor!")
         }
 
         return Responses OK

@@ -29,6 +29,10 @@ FlowControl: class extends Statement {
         super(token)
     }
 
+    clone: func -> This {
+        new(action, token)
+    }
+
     getAction: func -> FlowAction { action }
 
     accept: func (visitor: Visitor) {

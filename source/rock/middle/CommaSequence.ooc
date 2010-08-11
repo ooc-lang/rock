@@ -11,6 +11,12 @@ CommaSequence: class extends Expression {
         super(token)
     }
 
+    clone: func -> This {
+        copy := new(token)
+        body each(|e| copy body add(e clone()))
+        copy
+    }
+
     accept: func (visitor: Visitor) {
         visitor visitCommaSequence(this)
     }

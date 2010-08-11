@@ -16,7 +16,6 @@ ControlStatement: abstract class extends Statement {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        //printf("Resolving a %s\n", class name)
         trail push(this)
         response := body resolve(trail, res)
         trail pop(this)
@@ -38,7 +37,7 @@ ControlStatement: abstract class extends Statement {
     /**
      * If, Else, Match are dead-end control statements.
      * While, For, Foreach aren't.
-     * 
+     *
      * A dead-end control statement is explored by autoReturn(TM),
      * to add return when the last statement is a non-void expression.
      */

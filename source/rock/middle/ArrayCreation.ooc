@@ -4,12 +4,18 @@ import tinker/[Trail, Resolver, Response]
 
 ArrayCreation: class extends Expression {
 
-    expr: Expression = null
+    expr: Expression = null /* assigned in ArrayAccess, RTFC */
     arrayType, realType : ArrayType
 
     init: func ~arrayCrea(=arrayType, .token) {
         super(token)
         realType = arrayType exprLessClone()
+    }
+
+    clone: func -> This {
+        copy := new(arrayType, token)
+        copy expr = expr ? expr clone() : null
+        copy
     }
 
     accept: func (visitor: Visitor) {

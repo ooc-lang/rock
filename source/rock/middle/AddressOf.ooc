@@ -12,6 +12,12 @@ AddressOf: class extends Expression {
         super(token)
     }
 
+    clone: func -> This {
+        copy := new(expr, token)
+        copy isForGenerics = isForGenerics // not that this should never be needed.
+        copy
+    }
+
     accept: func (visitor: Visitor) {
         visitor visitAddressOf(this)
     }
@@ -37,7 +43,7 @@ AddressOf: class extends Expression {
         trail pop(this)
 
         if(!expr isReferencable()) {
-            expr = VariableDecl new(null, generateTempName("wakaref"), expr, expr token)
+            expr = VariableDecl new(null, generateTempName("unreferencable"), expr, expr token)
             res wholeAgain(this, "replaced expr with varDecl, need to unwrap")
         }
 

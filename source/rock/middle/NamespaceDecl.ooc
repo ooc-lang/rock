@@ -16,6 +16,11 @@ NamespaceDecl: class extends Declaration {
         super(nullToken)
     }
 
+    clone: func -> This {
+        Exception new(This, "Cloning a NamespaceDecl isn't supported") throw()
+        null
+    }
+
     accept: func (v: Visitor) {}
     replace: func (oldie, kiddo: Node) -> Bool { false }
 
@@ -39,11 +44,13 @@ NamespaceDecl: class extends Declaration {
         sb toString()
     }
 
-    resolveType: func (type: BaseType) {
+    resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
 
         for(imp in imports) {
-            imp getModule() resolveType(type)
+            imp getModule() resolveType(type, res, trail)
         }
+
+        0
 
     }
 

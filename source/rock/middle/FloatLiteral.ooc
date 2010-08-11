@@ -11,6 +11,8 @@ FloatLiteral: class extends Literal {
         type = BaseType new("Float", token)
     }
 
+    clone: func -> This { new(value, token) }
+
     accept: func (visitor: Visitor) { visitor visitFloatLiteral(this) }
 
     getType: func -> Type { type }

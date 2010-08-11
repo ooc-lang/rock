@@ -1,9 +1,9 @@
-import structs/[ArrayList, List], text/Buffer
+import structs/[ArrayList, List, HashMap], text/Buffer
 import ../frontend/[Token, BuildParams, CommandLine]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
        InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType, Return,
-       TypeList
+       TypeList, Scope, Block, InlineContext
 import tinker/[Response, Resolver, Trail, Errors]
 
 /**
@@ -21,6 +21,7 @@ import tinker/[Response, Resolver, Trail, Errors]
  *
  * @author Amos Wenger (nddrylliog)
  */
+
 FunctionCall: class extends Expression {
 
     /**
@@ -83,6 +84,13 @@ FunctionCall: class extends Expression {
     refScore := INT_MIN
 
     /**
+     * When 'implicit as' is used, args are modified, and this map
+     * keeps track of what has been modified, to be able to restore it.
+     */
+    argsBeforeConversion: HashMap<Int, Expression>
+    candidateUsesAs := false
+
+    /**
      * Create a new function call to the function '<name>()'
      */
     init: func ~funcCall (=name, .token) {
@@ -94,6 +102,13 @@ FunctionCall: class extends Expression {
      */
     init: func ~functionCallWithExpr (=expr, =name, .token) {
         super(token)
+    }
+
+    clone: func -> This {
+        copy := new(expr, name, token)
+        copy suffix = suffix
+        args each(|e| copy args add(e clone()))
+        copy
     }
 
     setExpr: func (=expr) {}
@@ -196,14 +211,19 @@ FunctionCall: class extends Expression {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        //printf("===============================================================\n")
-        //printf("     - Resolving call to %s (ref = %s)\n", name, ref ? ref toString() : "(nil)")
+        if(debugCondition() || res params veryVerbose) {
+            printf("===============================================================\n")
+            printf("     - Resolving call to %s (ref = %s)\n", name, ref ? ref toString() : "(nil)")
+        }
 
         // resolve all arguments
         if(args size() > 0) {
             trail push(this)
             i := 0
             for(arg in args) {
+                if(debugCondition() || res params veryVerbose) {
+                    "resolving arg %s" printfln(arg toString())
+                }
                 response := arg resolve(trail, res)
                 if(!response ok()) {
                     trail pop(this)
@@ -304,7 +324,7 @@ FunctionCall: class extends Expression {
                         if(expr getType() isGeneric()) {
                             message += " (you can't call methods on generic types! you have to cast them first)"
                         }
-                        res throwError(UnresolvedCall new(this, message))
+                        res throwError(UnresolvedCall new(this, message, ""))
                     }
                     tDecl := expr getType() getRef() as TypeDecl
                     meta := tDecl getMeta()
@@ -326,6 +346,54 @@ FunctionCall: class extends Expression {
             if(!resolveReturnType(trail, res) ok()) {
                 res wholeAgain(this, "looping because of return type!")
                 return Responses OK
+            }
+
+            // resolved. if we're inlining, do it now!
+            // FIXME: this is oh-so-primitive.
+            if(res params inlining && ref doInline) {
+                if(expr && (expr getType() == null || !expr getType() isResolved())) {
+                    res wholeAgain(this, "need expr type!")
+                    return Responses OK
+                }
+
+                "Inlining %s! type = %s" printfln(toString(), getType() ? getType() toString() : "<unknown>")
+
+                retDecl := VariableDecl new(getType(), generateTempName("retval"), token)
+                retAcc := VariableAccess new(retDecl, token)
+                trail addBeforeInScope(this, retDecl)
+
+                block := InlineContext new(this, token)
+                block returnArgs add(retDecl) // Note: this isn't sufficient. What with TypeList return types?
+
+                reservedNames := ref args map(|arg| arg name)
+
+                for(i in 0..args size()) {
+                    callArg := args get(i)
+
+                    name := ref args get(i) getName()
+
+                    if(callArg instanceOf?(VariableAccess)) {
+                        vAcc := callArg as VariableAccess
+                        if(reservedNames contains?(vAcc getName())) {
+                            tempDecl := VariableDecl new(null, generateTempName(name), callArg, callArg token)
+                            block body add(0, tempDecl)
+                            callArg = VariableAccess new(tempDecl, tempDecl token)
+                        }
+                    }
+
+                    block body add(VariableDecl new(null, name, callArg, callArg token))
+                }
+
+                ref inlineCopy getBody() list each(|x|
+                    block body add(x clone())
+                )
+
+                trail addBeforeInScope(this, block)
+                trail peek() replace(this, retAcc)
+
+                res wholeAgain(this, "finished inlining")
+                return Responses OK
+                //return Responses LOOP
             }
 
             if(!handleGenerics(trail, res) ok()) {
@@ -362,6 +430,8 @@ FunctionCall: class extends Expression {
 
         if(refScore <= 0) {
 
+            precisions := ""
+
             // Still no match, and in the fatal round? Throw an error.
             if(res fatal) {
                 message := "No such function"
@@ -378,8 +448,12 @@ FunctionCall: class extends Expression {
 
                 if(ref) {
                     // If we have a near-match, show it here.
-                    message += showNearestMatch(res params)
+                    precisions += showNearestMatch(res params)
                     // TODO: add levenshtein distance
+
+                    if (ref && candidateUsesAs) {
+                        precisions += "\n\n(Hint: 'implicit as' isn't allowed on non-extern functions)"
+                    }
                 } else {
                     if(res params helpful) {
                         // Try to find such a function in other modules in the sourcepath
@@ -387,7 +461,7 @@ FunctionCall: class extends Expression {
                         if(similar) message += similar
                     }
                 }
-                res throwError(UnresolvedCall new(this, message))
+                res throwError(UnresolvedCall new(this, message, precisions))
             } else {
                 res wholeAgain(this, "not resolved")
                 return Responses OK
@@ -396,7 +470,7 @@ FunctionCall: class extends Expression {
         }
 
         // finally, avoid & on lvalues: unwrap unreferencable expressions.
-        if(ref isThisRef && expr && !expr isReferencable()) {
+        if(ref && ref isThisRef && expr && !expr isReferencable()) {
             vDecl := VariableDecl new(null, generateTempName("hi_mum"), expr, expr token)
             trail addBeforeInScope(this, vDecl)
             expr = VariableAccess new(vDecl, expr token)
@@ -431,7 +505,7 @@ FunctionCall: class extends Expression {
     showNearestMatch: func (params: BuildParams) -> String {
         b := Buffer new()
 
-        b append("\tNearest match is:\n\n\t\t%s\n" format(ref toString(this)))
+        b append("\n\n\tNearest match is:\n\n\t\t%s\n" format(ref toString(this)))
 
         callIter := args iterator()
         declIter := ref args iterator()
@@ -453,9 +527,7 @@ FunctionCall: class extends Expression {
 
             declArgType := declArg getType()
             if(declArgType isGeneric()) {
-                "declArgType is originally %s" printfln(declArg toString())
                 declArgType = declArgType realTypize(this)
-                "and now it's %s" printfln(declArg toString())
             }
 
             score := callArg getType() getScore(declArgType)
@@ -488,7 +560,6 @@ FunctionCall: class extends Expression {
             idx += 1
         }
 
-        //if(ref returnType isGeneric() && !isFriendlyHost(parent)) {
         if(!ref getReturnArgs() empty?() && !isFriendlyHost(parent)) {
             if(parent instanceOf?(Return)) {
                 fDeclIdx := trail find(FunctionDecl)
@@ -981,18 +1052,29 @@ FunctionCall: class extends Expression {
                 return -1
             }
 
-            declArgType := declArg getType()
+            declArgType := declArg getType() refToPointer()
             if (declArgType isGeneric()) {
-                finalScore := 0
                 declArgType = declArgType realTypize(this)
             }
 
-            typeScore := callArg getType() getScore(declArgType refToPointer())
+            typeScore := callArg getType() getScore(declArgType)
             if(typeScore == -1) {
                 if(debugCondition()) {
                     printf("-1 because of type score between %s and %s\n", callArg getType() toString(), declArgType refToPointer() toString())
                 }
                 return -1
+            }
+            if (decl isExtern()) {
+                if(typeScore == Type NOLUCK_SCORE) {
+                    ref := callArg getType() getRef()
+                    if(ref instanceOf?(TypeDecl)) {
+                        ref as TypeDecl implicitConversions each(|opdecl|
+                            if(opdecl fDecl getReturnType() equals?(declArgType)) {
+                                typeScore = Type SCORE_SEED / 4
+                            }
+                        )
+                    }
+                }
             }
 
             score += typeScore
@@ -1110,12 +1192,18 @@ FunctionCall: class extends Expression {
 UnresolvedCall: class extends Error {
 
     call: FunctionCall
-    init: func (.call, .message) {
+    precisions: String
+
+    init: func (.call, .message, =precisions) {
         init(call token, call, message)
     }
 
     init: func ~withToken(.token, =call, .message) {
         super(call expr ? call expr token enclosing(call token) : call token, message)
+    }
+
+    format: func -> String {
+        token formatMessage(message, "ERROR") + precisions
     }
 
 }

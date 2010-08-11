@@ -12,6 +12,10 @@ BaseType: class extends Type {
     ref: Declaration = null
     name: String
 
+    void? : Bool {
+        get { super() || name == "void" || name == "Void" }
+    }
+
     typeArgs: List<VariableAccess> = null
 
     init: func ~baseType (=name, .token) { super(token) }
@@ -105,7 +109,7 @@ BaseType: class extends Type {
             depth := trail size() - 1
             while(depth >= 0) {
                 node := trail get(depth, Node)
-                node resolveType(this)
+                node resolveType(this, res, trail)
                 if(getRef()) break // break on first match
                 depth -= 1
             }
@@ -192,26 +196,32 @@ BaseType: class extends Type {
     getTypeArgs: func -> List<VariableAccess> { typeArgs }
 
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
-        //printf("%s vs %s, other isGeneric ? %s pointerLevel ? %d\n", toString(), other toString(), other isGeneric() toString(), other pointerLevel())
-        if(name == "void" || name == "Void") return This NOLUCK_SCORE
+        //printf("%s vs %s, other isGeneric ? %s pointerLevel ? %d isPointer() ? %d, other isPointer() ? %d\n", toString(), other toString(), other isGeneric() toString(), other pointerLevel(), isPointer(), other getGroundType() isPointer())
+
+        if(void?) return This NOLUCK_SCORE
 
         if(other isGeneric() && other pointerLevel() == 0) {
             // every type is always a match against a flat generic type
             return scoreSeed
         }
+
         if(isGeneric() && other isPointer()) {
             // a generic value is a match for a pointer
             return scoreSeed / 2
         }
+
         if(isPointer() && other getRef() instanceOf?(ClassDecl)) {
             // objects are references in ooc
-            return scoreSeed / 2
+            return scoreSeed / 4
         }
+
         if(getRef() instanceOf?(ClassDecl) && other isPointer()) {
             // objects are still references in ooc
-            return scoreSeed / 2
+            return scoreSeed / 4
         }
-        if(isPointer() && other getGroundType() isPointer()) {
+
+        ground := other getGroundType()
+        if(isPointer() && (ground isPointer() || ground pointerLevel() > 0)) {
             // two pointers = okay
             return scoreSeed / 2
         }
@@ -240,11 +250,6 @@ BaseType: class extends Type {
                 }
             }
 
-            if(getName() == other getName()) {
-                // *sigh* I wish we didn't have to do that
-                return scoreSeed / 2
-            }
-
             if(getRef() instanceOf?(TypeDecl) && other getRef() instanceOf?(TypeDecl)) {
                 inheritsScore := getRef() as TypeDecl inheritsScore(other getRef() as TypeDecl, scoreSeed)
 
@@ -259,12 +264,14 @@ BaseType: class extends Type {
                 }
 
                 // cool, a match =)
-                if(inheritsScore > 0) return inheritsScore
+                if(inheritsScore > 0) {
+                    return inheritsScore
+                }
             }
 
             if(isNumericType() && other isNumericType()) {
                 // Only half a match - it's not too good to mix integer types. Maybe we need more safety here?
-                return scoreSeed / 2
+                return scoreSeed / 4
             }
         }
 
@@ -386,7 +393,7 @@ BaseType: class extends Type {
                     result = BaseType new(ref as VariableDecl getName(), token)
                     result setRef(ref) // FIXME: that is experimental. is that a good idea?
                 } else if(ref instanceOf?(FuncType)) {
-                    printf("ref of %s is a %s!\n", candidate toString(), ref class name)
+                    //printf("ref of %s is a %s!\n", candidate toString(), ref class name)
                     result = ref as FuncType
                 }
                 return result

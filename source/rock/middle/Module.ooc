@@ -51,6 +51,11 @@ Module: class extends Node {
         packageName = sanitize(packageName)
     }
 
+    clone: func -> This {
+        Exception new(This, "Can't clone Module")
+        null
+    }
+
     getLoadFuncName: func -> String { getUnderName() + "_load" }
     getFullName:     func -> String { fullName }
     getUnderName:    func -> String { underName }
@@ -267,21 +272,23 @@ Module: class extends Node {
 
     }
 
-    resolveType: func (type: BaseType) {
+    resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
 
         ref : Declaration = null
 
         ref = types get(type name)
         if(ref != null && type suggest(ref)) {
-            return
+            return 0
         }
 
         for(imp in getGlobalImports()) {
             ref = imp getModule() types get(type name)
             if(ref != null && type suggest(ref)) {
-                break
+                return 0
             }
         }
+
+        0
 
     }
 
@@ -312,7 +319,7 @@ Module: class extends Node {
             impLastModified := impPath lastModified()
 
             if(cached == null || impLastModified > cached lastModified) {
-                if(cached && resolver params veryVerbose) {
+                if(cached && params veryVerbose) {
                     printf("%s has been changed, recompiling... (%d vs %d), impPath = %s\n", path, File new(impPath path) lastModified(), cached lastModified, impPath path);
                 }
 

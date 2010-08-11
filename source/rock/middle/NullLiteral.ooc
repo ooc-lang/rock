@@ -11,6 +11,10 @@ NullLiteral: class extends Literal {
         type = BaseType new("Pointer", token)
     }
 
+    clone: func -> This {
+        new(token)
+    }
+
     getType: func -> Type { type }
 
     accept: func (visitor: Visitor) { visitor visitNullLiteral(this) }

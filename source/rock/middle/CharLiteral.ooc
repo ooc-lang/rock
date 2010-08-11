@@ -13,6 +13,8 @@ CharLiteral: class extends Literal {
         type = BaseType new("Char", token)
     }
 
+    clone: func -> This { new(value, token) }
+
     accept: func (visitor: Visitor) { visitor visitCharLiteral(this) }
 
     getType: func -> Type { type }

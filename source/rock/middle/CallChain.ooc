@@ -13,6 +13,12 @@ CallChain: class extends Expression {
         calls add(firstCall)
     }
 
+    clone: func -> This {
+        copy := new(expr clone(), calls[0] clone())
+        calls each(|c| copy calls add(c clone()))
+        copy
+    }
+
     accept: func (visitor: Visitor) {
         Exception new("Visiting call chain! That oughta never happen.") throw()
     }

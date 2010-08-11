@@ -19,6 +19,12 @@ ArrayAccess: class extends Expression {
         super(token)
     }
 
+    clone: func -> This {
+        copy := new(array clone(), token)
+        indices each(|e| copy indices add(e clone()))
+        copy
+    }
+
     accept: func (visitor: Visitor) {
         visitor visitArrayAccess(this)
     }

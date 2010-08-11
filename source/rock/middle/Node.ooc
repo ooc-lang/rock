@@ -30,7 +30,7 @@ Node: abstract class {
     /**
      * resolveCall should look for a function declaration satisfying call,
      * and suggest it with call suggest(fDecl)
-     * 
+     *
      * :return: -1 if unresolved types prevented the call resolving
      * process from finishing, and it should be repeated later, any
      * other value else.
@@ -45,8 +45,9 @@ Node: abstract class {
         0
     }
 
-    resolveType: func (type: BaseType) {
+    resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
         // overridden in sub-classes
+        0
     }
 
     generateTempName: func (origin: String) -> String {
@@ -56,5 +57,7 @@ Node: abstract class {
 
     // Just to be on the safe side - everything has side effects by default
     hasSideEffects : func -> Bool { true }
+
+    clone: abstract func -> This
 
 }
