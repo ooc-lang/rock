@@ -441,43 +441,6 @@ TypeDecl: abstract class extends Declaration {
             }
         }
 
-        for(typeArg in getTypeArgs()) {
-            response := typeArg resolve(trail, res)
-            if(!response ok()) {
-                //if(debugCondition() || res params veryVerbose) printf("====== Response of typeArg %s of %s == %s\n", typeArg toString(), toString(), response toString())
-                trail pop(this)
-                return response
-            }
-        }
-
-        for(vDecl in variables) {
-            response := vDecl resolve(trail, res)
-            if(!response ok()) {
-                //if(debugCondition() || res params veryVerbose) printf("====== Response of vDecl %s of %s == %s\n", vDecl toString(), toString(), response toString())
-                trail pop(this)
-                return response
-            }
-        }
-
-        for(fDecl in functions) {
-            response := fDecl resolve(trail, res)
-            if(!response ok()) {
-                //if(debugCondition() || res params veryVerbose) printf("====== Response of fDecl %s of %s == %s\n", fDecl toString(), toString(), response toString())
-                trail pop(this)
-                return response
-            }
-        }
-
-        if(meta) {
-            meta module = module
-            response := meta resolve(trail, res)
-            if(!response ok()) {
-                //if(res params veryVerbose) printf("-- %s, meta of %s, isn't resolved, looping.\n", meta toString(), toString())
-                trail pop(this)
-                return response
-            }
-        }
-
         i := 0
         for(interfaceType in interfaceTypes) {
             response := interfaceType resolve(trail, res)
@@ -525,6 +488,43 @@ TypeDecl: abstract class extends Declaration {
             }
             if(!response ok()) {
                 if(res params veryVerbose) printf("-- %s, interfaceDecl, isn't resolved, looping.\n", interfaceDecl toString(), toString())
+                trail pop(this)
+                return response
+            }
+        }
+
+        for(typeArg in getTypeArgs()) {
+            response := typeArg resolve(trail, res)
+            if(!response ok()) {
+                //if(debugCondition() || res params veryVerbose) printf("====== Response of typeArg %s of %s == %s\n", typeArg toString(), toString(), response toString())
+                trail pop(this)
+                return response
+            }
+        }
+
+        for(vDecl in variables) {
+            response := vDecl resolve(trail, res)
+            if(!response ok()) {
+                //if(debugCondition() || res params veryVerbose) printf("====== Response of vDecl %s of %s == %s\n", vDecl toString(), toString(), response toString())
+                trail pop(this)
+                return response
+            }
+        }
+
+        for(fDecl in functions) {
+            response := fDecl resolve(trail, res)
+            if(!response ok()) {
+                //if(debugCondition() || res params veryVerbose) printf("====== Response of fDecl %s of %s == %s\n", fDecl toString(), toString(), response toString())
+                trail pop(this)
+                return response
+            }
+        }
+
+        if(meta) {
+            meta module = module
+            response := meta resolve(trail, res)
+            if(!response ok()) {
+                //if(res params veryVerbose) printf("-- %s, meta of %s, isn't resolved, looping.\n", meta toString(), toString())
                 trail pop(this)
                 return response
             }
@@ -703,6 +703,16 @@ TypeDecl: abstract class extends Declaration {
         if(getSuperRef() != null) {
         	//FIXME: should return here if success
             getSuperRef() resolveAccess(access, res, trail)
+        }
+
+        for(interfaceType in interfaceTypes) {
+            iRef := interfaceType getRef()
+            if(iRef) {
+                if(name == "T") {
+                    "Trying to resolve T in interface type %s, ref %s" printfln(interfaceType toString(), iRef toString())
+                }
+                iRef resolveAccess(access, res, trail)
+            }
         }
 
         // ask the metaclass for the variable (makes static member access without explicit `This` possible)

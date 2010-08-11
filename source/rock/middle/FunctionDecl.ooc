@@ -1,4 +1,4 @@
-import structs/[Stack, ArrayList, List], text/Buffer
+import structs/[Stack, ArrayList, List, HashMap], text/Buffer
 import ../frontend/[Token, BuildParams, AstBuilder]
 import Cast, Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableAccess, ControlStatement, Return, IntLiteral, If, Else,
@@ -43,12 +43,21 @@ import algo/autoReturn
 */
 FunctionDecl: class extends Declaration {
 
+    /** name: func ~suffix - suffix is null if there's no suffix in the grammar */
     name = "", suffix = null, fullName = null, doc = "" : String
 
+    /** The return type of this function. If it's generic, or if it's a TypeList, then returnArgs will be used */
     returnType := voidType
+    /** For some extreme inference cases, this is the type we can infer from return expression inside the body. See Return */
     inferredReturnType : Type = null
 
-    /** Attributes */
+    /**
+     * An abstract function is a method of an abtract class that *has*
+     * to be implemented by any concrete subclasses of it.
+     *
+     * Its body is empty, and it doesn't get written, but everything else
+     * is as usual.
+     */
     isAbstract := false
     isStatic := false
     isInline := false
@@ -57,40 +66,87 @@ FunctionDecl: class extends Declaration {
     isSuper := false
     externName : String = null
     unmangledName: String = null
-    // if true, 'this' has byref semantics
+
+    /** if true, 'this' has byref semantics */
     isThisRef := false
 
+    /** used to resolve accesses and calls for closures, after they're unwrapped */
     context: Trail = null
+
+    /** internal hack used to ensure resolving of variables inside closure after they're unwrapped */
     countdown := 5
 
+    /**
+     * if true, calls to this FunctionDecl will be inlined.
+     * For this purpose, a clone will be made, stored as 'inlineCopy' (declared below),
+     * for which 'inlined' will be true
+     */
     doInline := false
+
+    /** if this FunctinoDecl is a 'for-inlining' copy of another one */
     inlined := false
+
+    /**
+     * reference to an inlined copy of this FunctionDecl, before any resolving takes place,
+     * allowing generic inlining, among others
+     */
     inlineCopy: FunctionDecl = null
 
     /** If this FunctionDecl is a shim to make a VariableDecl callable, then vDecl is set to that variable decl. */
     vDecl : VariableDecl = null
 
+    /** generic type args of this function, ie. T in blah: func <T> */
     typeArgs := ArrayList<VariableDecl> new()
+
+    /** arg1, arg2, arg3 in blah: func (arg1: Type, arg2: Type, arg3: Type) */
     args := ArrayList<VariableDecl> new()
+
+    /**
+     * invisible arguments used for returning values in a few cases:
+     *   - generic return type
+     *   - multi-return, ie. blah: func -> (Type, Type, ...)
+     */
     returnArgs := ArrayList<VariableDecl> new()
+
+    /** body of the function (list of statements) */
     body := Scope new()
+
     _returnTypeResolvedOnce := false
 
     partialByReference := ArrayList<VariableDecl> new()
     partialByValue := ArrayList<VariableDecl> new()
     clsAccesses := ArrayList<VariableAccess> new()
     _unwrappedClosure := false
+    _unwrappedACS := false
 
+    /**
+     * If we are a method (member function), 'owner' is non-null, and is a reference
+     * to the TypeDecl to which we belong
+     */
     owner : TypeDecl = null
+
+    /** If we're a method, staticVariant is the variant where 'this' is an actual explicit argument */
     staticVariant : This = null
 
     verzion: VersionSpec = null
+
+    /** true if it's an anonymous function, ie. our name is empty on the beginning */
     isAnon: Bool
+
+    genericConstraints: HashMap<Type, Type>
 
     init: func ~funcDecl (=name, .token) {
         super(token)
         this isAnon = name empty?()
+
+        // init functions are final by default - allowing constructors with different
+        // signatures in a hierarchy without having to bother with suffixes and without
+        // trying to overload constructors
         this isFinal = (name == "init")
+
+        // until we have a proper algorithm to determine which functions should be inlined
+        // for testing, every call to function prefixed with __inline__ will be inlined.
+        // note that this is conditioned currently with -inline
         this doInline = (name startsWith?("__inline__"))
     }
 
@@ -323,11 +379,8 @@ FunctionDecl: class extends Declaration {
 
     resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
 
-        //printf("** Looking for type %s in func %s with %d type args\n", type name, toString(), typeArgs size())
         for(typeArg: VariableDecl in typeArgs) {
-            //printf("*** For typeArg %s\n", typeArg name)
             if(typeArg name == type name) {
-                //printf("***** Found match for %s in function decl %s\n", type name, toString())
                 type suggest(typeArg)
                 return 0
             }
@@ -395,6 +448,42 @@ FunctionDecl: class extends Declaration {
 
         trail push(this)
 
+        // handle the case where we specialize a generic function
+        if(owner) {
+            meat := owner isMeta ? owner as ClassDecl : owner getMeta()
+            base := meat getBaseClass(this, true)
+
+            if(base != null) {
+                finalScore: Int
+                parent := base getFunction(name, suffix ? suffix : "", null, false, finalScore&)
+                // todo: check for finalScore
+                for(i in 0..args size()) {
+                    arg := args[i]
+                    if(arg getType() instanceOf?(FuncType)) {
+                        fType1 := arg getType() as FuncType
+                        // TODO: add check 1) number of argument 2) it's a FuncType
+                        fType2 := parent args[i] getType() as FuncType
+
+                        for(j in 0..fType1 argTypes size()) {
+                            type1 := fType1 argTypes[j]
+                            type2 := fType2 argTypes[j]
+
+                            if(type2 isGeneric() && !type1 isGeneric()) {
+                                // there's a specialization going on!
+                                "In %s, got %s vs %s" printfln(toString(), fType1 toString(), fType2 toString())
+
+                                fType1 argTypes[j] = type2
+                                if(!genericConstraints) {
+                                    genericConstraints = HashMap<Type, Type> new()
+                                }
+                                genericConstraints put(type2 clone(), type1 clone())
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         for(arg in args) {
             response := arg resolve(trail, res)
             if(!response ok()) {
@@ -406,7 +495,7 @@ FunctionDecl: class extends Declaration {
 
         isClosure := name empty?()
 
-        if (isClosure && !argumentsReady()) {
+        if (isClosure && !_unwrappedACS) {
             if (!unwrapACS(trail, res)) {
                 return Responses OK
             }
@@ -433,7 +522,6 @@ FunctionDecl: class extends Declaration {
                 trail pop(this)
                 return Responses OK
             } else if(returnType isGeneric()) {
-                // this create the returnArg for generic return types
                 if(returnArgs empty?()) createReturnArg(returnType, "genericReturn")
             } else if(returnType instanceOf?(TypeList)) {
                 list := returnType as TypeList
@@ -543,7 +631,6 @@ FunctionDecl: class extends Declaration {
 
                 constructCall := FunctionCall new(VariableAccess new(arg getType(), arg token), "new", arg token)
                 constructCall setSuffix("withData")
-                //constructCall typeArgs add(VariableAccess new(BaseType new("Pointer", arg token), arg token))
                 constructCall args add(VariableAccess new(argv, arg token)) \
                                   .add(VariableAccess new(argc, arg token))
 
@@ -565,6 +652,7 @@ FunctionDecl: class extends Declaration {
     }
 
     unwrapACS: func (trail: Trail, res: Resolver) -> Bool {
+        if(_unwrappedACS) return true
 
         fCallIndex := trail find(FunctionCall)
         if (fCallIndex == -1) {
@@ -580,9 +668,12 @@ FunctionDecl: class extends Declaration {
         }
 
         // FIXME FIXME FIXME: this will blow up with several closure arguments of different types!
+        ourIndex := -1
         funcPointer: FuncType = null
-        for (arg in parentFunc args) {
+        for (i in 0..parentFunc args size()) {
+            arg := parentFunc args[i]
             if (arg getType() instanceOf?(FuncType)) {
+                ourIndex = i
                 funcPointer = arg getType()
                 break
             }
@@ -628,35 +719,44 @@ FunctionDecl: class extends Declaration {
 
         if (needTrampoline) {
 
-        /*
-        1. The generic function arguments get the postfix "_generic".
-        2. The type of each generic argument is figured out.
-        3. Right at the beginning of the function casts to the actual types
-           are added.
-        Example:
-            test: func<T> (b: T) { b println() }
-        becomes
-            test: func<T> (b_generic: T) { b := b_generic as String; b println() }
-        */
+            /*
+                1. The generic function arguments get the postfix "_generic".
+                2. The type of each generic argument is figured out.
+                3. Right at the beginning of the function casts to the actual types
+                   are added.
+                Example:
+                    test: func<T> (b: T) { b println() }
+                becomes
+                    test: func<T> (b_generic: T) { b := b_generic as String; b println() }
+            */
 
-            for (arg in args) {
+            for (i in 0..args size()) {
+                arg := args[i]
+
                 if (arg getType() isGeneric()) {
-                    n := arg name
-                    t := parentCall resolveTypeArg(arg getType() getName(), trail, fScore&)
-                    if (fScore == -1) {
+                    "Type of arg %s is generic - trying to resolve it for parentCall %s" printfln(arg toString(), parentCall toString())
+                    oldName := arg name
+                    genType := parentCall resolveTypeArg(arg getType() getName(), trail, fScore&)
+                    if (fScore == -1 || genType == null) {
+                        "Can't figure it out, looping" println()
                         res wholeAgain(this, "Can't figure out the actual type of the generic.")
                         trail pop(this)
                         return false
                     }
-                    if(t isGeneric()) continue
+                    "solved t to %s" printfln(genType toString())
+                    if(genType isGeneric()) {
+                        continue
+                    }
                     arg name = arg name + "_generic"
-                    t = t clone()
-                    t token = arg token
-                    castedArg := VariableDecl new(t, n, Cast new(VariableAccess new(arg name, arg token), t, arg token), arg token)
+                    genType = genType clone()
+                    genType token = arg token
+                    castedArg := VariableDecl new(genType, oldName, Cast new(VariableAccess new(arg name, arg token), genType, arg token), arg token)
                     body list add(0, castedArg)
                 }
+
             }
         }
+        _unwrappedACS = true
         return true
     }
 

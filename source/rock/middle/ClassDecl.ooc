@@ -91,16 +91,39 @@ ClassDecl: class extends TypeDecl {
         return fDecl
     }
 
-    getBaseClass: func (fDecl: FunctionDecl) -> ClassDecl {
-        sRef : ClassDecl  = getSuperRef()
-		if(sRef != null) {
+    getBaseClass: func ~noInterfaces (fDecl: FunctionDecl) -> ClassDecl {
+        getBaseClass(fDecl, false)
+    }
+
+    getBaseClass: func (fDecl: FunctionDecl, withInterfaces: Bool) -> ClassDecl {
+        sRef := getSuperRef() as ClassDecl
+
+        // first look in the supertype, if any
+        if(sRef != null) {
 			base := sRef getBaseClass(fDecl)
 			if(base != null) {
                 return base
             }
 		}
+
+        // look in interface types, if any
+        if(withInterfaces && getNonMeta()) for(interfaceType in getNonMeta() interfaceTypes) {
+            iRef := interfaceType getRef() as ClassDecl
+            if(!iRef isMeta) iRef = iRef getMeta()
+            if(iRef != null) {
+                base := iRef getBaseClass(fDecl)
+                if(base != null) {
+                    return base
+                }
+            }
+        }
+
+        // if all else fails, try in this
         finalScore : Int
-		if(getFunction(fDecl name, fDecl suffix ? fDecl suffix : "", null, false, finalScore&) != null) return this
+		if(getFunction(fDecl name, fDecl suffix ? fDecl suffix : "", null, false, finalScore&) != null) {
+            return this
+        }
+
 		return null
 	}
 
