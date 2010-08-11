@@ -117,8 +117,7 @@ FunctionCall: class extends Expression {
      * a return expression, when it's being used.
      */
     debugCondition: inline func -> Bool {
-        //false
-        name == "puts"
+        false
     }
 
     /**
@@ -147,6 +146,48 @@ FunctionCall: class extends Expression {
             if(debugCondition()) "** New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
             refScore = score
             ref = candidate
+
+            // todo: optimize that. not all of this needs to happen in many cases
+            if(argsBeforeConversion) {
+                for(i in argsBeforeConversion getKeys()) {
+                    callArg := argsBeforeConversion[i]
+                    args set(i, callArg)
+                }
+            }
+            candidateUsesAs = false
+
+            for(i in 0..args size()) {
+                if(i >= candidate args size()) break
+                declArg := candidate args get(i)
+                if(declArg instanceOf?(VarArg)) break
+                callArg := args get(i)
+                declArgType := declArg getType() refToPointer()
+                if (declArgType isGeneric()) {
+                    declArgType = declArgType realTypize(this)
+                }
+                if(callArg == null) {
+                    return false // something's wrong
+                }
+
+                if(callArg getType() getScore(declArgType) == Type NOLUCK_SCORE) {
+                    ref := callArg getType() getRef()
+                    if(ref instanceOf?(TypeDecl)) {
+                        ref as TypeDecl implicitConversions each(|opdecl|
+                            if(opdecl fDecl getReturnType() equals?(declArgType)) {
+                                candidateUsesAs = true
+                                if(candidate isExtern()) {
+                                    args set(i, Cast new(callArg, declArgType, callArg token))
+                                    if(!argsBeforeConversion) {
+                                        // lazy instantiation of argsBeforeConversion
+                                        argsBeforeConversion = HashMap<Int, Expression> new()
+                                    }
+                                    argsBeforeConversion put(i, callArg)
+                                }
+                            }
+                        )
+                    }
+                }
+            }
             return score > 0
         }
         return false
