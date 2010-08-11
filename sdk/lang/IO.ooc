@@ -101,35 +101,33 @@ FStream: cover from FILE* {
         // 128 is a reasonable default. Most terminals are 80x25
         length := 128
         pos := 0
-        str := gc_malloc(length) as Char*
+        str := String new (length)
 
         // while it's not '\n' it means not all the line has been read
         while (true) {
             c := fgetc(this)
 
             if(c == '\n') {
-                str[pos] = '\0'
+                (str data + pos)@ = '\0'
                 break
             }
 
-            str[pos] = c
+            (str data + pos)@ = c
             pos += 1
 
             if (pos >= length) {
                 // try to grow the string
                 length += chunk
-                tmp := gc_realloc(str, length) as String
-                if(!tmp) Exception new(This, "Ran out of memory while reading a (apparently never-ending) line!") throw()
-                str = tmp
+                str setLength( length )
             }
 
             if(!hasNext?()) {
-                str[pos] = '\0'
+                (str data + pos)@ = '\0'
                 break
             }
         }
 
-        return str as String
+        return str
     }
 
     size: func -> SizeT {

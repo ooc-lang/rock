@@ -210,7 +210,6 @@ String: class {
     init: func ~withCStrAndLength(s : Char*, length: SizeT) {
         setLength(length)
         memcpy(data, s, length + 1)
-        this
     }
 
     /** return the string's length, excluding the null byte. */
@@ -955,13 +954,13 @@ String: class {
         list:VaList
         fmt := this
 
-        va_start(list, fmt)
+        va_start(list, this)
         length := vsnprintf(null, 0, (fmt data), list)
         va_end(list)
 
         copy := String new(length)
 
-        va_start(list, fmt )
+        va_start(list, this )
         vsnprintf((copy data), length + 1, (fmt data), list)
         va_end(list)
         return copy
@@ -1013,7 +1012,7 @@ String: class {
     formatTemplate: func (values: HashMap<String, String>) -> String {
         length := this length()
         buffer := This new(length)
-        p: Char* = this
+        p: Char* = this data
         identifier: Char* = null
         while(p@) {
             if(!identifier && p@ == '{' && (p + 1)@ == '{') {

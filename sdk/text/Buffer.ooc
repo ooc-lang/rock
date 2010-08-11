@@ -126,8 +126,12 @@ BufferWriter: class extends Writer {
         buffer append(chr)
     }
 
-    write: func (chars: String, length: SizeT) -> SizeT {
-        buffer append(chars data, length)
+    write: func ~str (s :String) {
+        buffer append (s)
+    }
+
+    write: func (chars: Char*, length: SizeT) -> SizeT {
+        buffer append(chars, length)
         return length
     }
 
@@ -164,7 +168,7 @@ BufferReader: class extends Reader {
         /* nothing to close. */
     }
 
-    read: func(chars: String, offset: Int, count: Int) -> SizeT {
+    read: func(chars: Char*, offset: Int, count: Int) -> SizeT {
         copySize := buffer get(chars as Char* + offset, marker, count)
         marker += copySize
         return copySize
