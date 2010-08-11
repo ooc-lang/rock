@@ -34,6 +34,22 @@ VariableDecl: class extends Declaration {
         super(token)
     }
 
+    debugCondition: inline func -> Bool {
+        false
+    }
+
+    clone: func -> This {
+        copy := new(type, name, expr ? expr clone() : null, token)
+        copy isArg         = isArg
+        copy isGlobal      = isGlobal
+        copy isConst       = isConst
+        copy isProto       = isProto
+        copy externName    = externName
+        copy unmangledName = unmangledName
+        copy fDecl         = fDecl
+        copy
+    }
+
     accept: func (visitor: Visitor) {
         visitor visitVariableDecl(this)
     }
@@ -126,7 +142,9 @@ VariableDecl: class extends Declaration {
 
         trail push(this)
 
-        //if(res params veryVerbose) printf("Resolving variable decl %s\n", toString())
+        if(debugCondition() || res params veryVerbose) {
+            printf("Resolving variable decl %s\n", toString())
+        }
 
         if(expr) {
             response := expr resolve(trail, res)
@@ -143,6 +161,9 @@ VariableDecl: class extends Declaration {
                 trail pop(this)
                 res wholeAgain(this, "must determine type of a VarDecl.")
                 return Responses OK
+            }
+            if(debugCondition()) {
+                " >>> Just inferred type %s of %s from expr %s" printfln(type toString(), toString(), expr toString())
             }
         }
 
@@ -316,12 +337,51 @@ VariableDeclTuple: class extends VariableDecl {
         init~vDecl (type, "<tuple>", token)
     }
 
+    clone: func -> This {
+        copy := new(type, tuple clone(), token)
+        copy isArg         = isArg
+        copy isGlobal      = isGlobal
+        copy isConst       = isConst
+        copy isProto       = isProto
+        copy
+    }
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
         expr resolve(trail, res)
 
         match {
             case expr == null =>
                 res throwError(InternalError new(token, "VariableDeclTuples need an expression. This should never happen"))
+
+            case expr instanceOf?(Tuple) =>
+                tuple2 := expr as Tuple
+                if(tuple elements size() != tuple2 elements size()) {
+                    res throwError(TupleMismatch new(token, "Tuples don't match for multi-variable declaration."))
+                    return Responses OK
+                }
+
+                for(i in 0..tuple elements size()) {
+                    element := tuple elements[i]
+                    if(!element instanceOf?(VariableAccess)) {
+                        res throwError(IncompatibleElementInTupleVarDecl new(element token, "Expected a variable access in a tuple-variable declaration!"))
+                    }
+                    argName := element as VariableAccess getName()
+
+                    child := VariableDecl new(null, argName, tuple2 elements[i], token)
+
+                    if(i == tuple elements size() - 1) {
+                        // last? replace
+                        if(!trail peek() replace(this, child)) {
+                            res throwError(CouldntReplace new(token, this, child, trail))
+                        }
+                    } else {
+                        // otherwise, add before
+                        if(!trail addBeforeInScope(this, child)) {
+                            res throwError(CouldntAddBeforeInScope new(token, this, child, trail))
+                        }
+                    }
+                }
+
             case expr instanceOf?(FunctionCall) =>
                 fCall := expr as FunctionCall
                 if(fCall getRef() == null) {
@@ -330,7 +390,7 @@ VariableDeclTuple: class extends VariableDecl {
                 }
                 if(fCall getRef() getReturnArgs() empty?()) {
                     if(res fatal) {
-                        res throwError(CallDoesntMatchTupleVarDecl new(token, "Need a multi-return function call as the expression of a tuple-variable declaration!"))
+                        res throwError(TupleMismatch new(token, "Need a multi-return function call as the expression of a tuple-variable declaration."))
                     }
                     res wholeAgain(this, "need multi-return func call")
                     return Responses OK
@@ -352,7 +412,7 @@ VariableDeclTuple: class extends VariableDecl {
                         }
                         if(element as VariableAccess getName() != "_") bad = true
                     }
-                    if(bad) res throwError(TupleVarDeclMismatchCall new(tuple token, "Tuple variable declaration doesn't match return type %s of function %s" format(returnType toString(), fCall getName())))
+                    if(bad) res throwError(TupleMismatch new(tuple token, "Tuple variable declaration doesn't match return type %s of function %s" format(returnType toString(), fCall getName())))
                 }
 
                 j := 0
@@ -386,15 +446,11 @@ VariableDeclTuple: class extends VariableDecl {
 
 }
 
-CallDoesntMatchTupleVarDecl: class extends Error {
+TupleMismatch: class extends Error {
     init: super func ~tokenMessage
 }
 
 IncompatibleElementInTupleVarDecl: class extends Error {
-    init: super func ~tokenMessage
-}
-
-TupleVarDeclMismatchCall: class extends Error {
     init: super func ~tokenMessage
 }
 
