@@ -4,7 +4,7 @@ import ../io/TabbedWriter
 import text/Buffer
 import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
     FunctionDecl, FunctionCall, Module, VariableAccess, Node,
-    InterfaceImpl, Version, EnumDecl, BaseType, FuncType
+    InterfaceImpl, Version, EnumDecl, BaseType, FuncType, OperatorDecl
 import tinker/[Resolver, Response, Trail, Errors]
 
 /**
@@ -23,15 +23,22 @@ TypeDecl: abstract class extends Declaration {
 
     name = "", externName = null, doc = "" : String
 
+    // generic type args, e.g. the T in List: class <T>
     typeArgs := ArrayList<VariableDecl> new()
 
+    // internal state variables
     hasCheckedInheritance := false
     hasCheckedAbstract := false
 
     variables := HashMap<String, VariableDecl> new()
+
+    // for classes, functions are contained in the meta-class.
+    // for covers, they are directly in the cover decl.
     functions := HashMap<String, FunctionDecl> new()
 
+    // interface types that this type implements
     interfaceTypes := ArrayList<Type> new()
+    // InterfaceImpl is used for storing
     interfaceDecls := ArrayList<InterfaceImpl> new()
 
     thisDecl, thisRefDecl: VariableDecl
@@ -52,6 +59,9 @@ TypeDecl: abstract class extends Declaration {
     addons := ArrayList<TypeDecl> new()
 
     _finishedGhosting := false
+
+    // implicit conversions between types
+    implicitConversions := ArrayList<OperatorDecl> new()
 
     init: func ~typeDeclNoSuper (=name, .token) {
         super(token)
@@ -76,6 +86,12 @@ TypeDecl: abstract class extends Declaration {
             // by default, everyone inherits from object
             setSuperType(BaseType new("Object", token))
         }
+    }
+
+    clone: func -> This {
+        // saving us a whole lot of trouble.
+        Exception new(This, "Cloning a TypeDecl is unsupported") throw()
+        null
     }
 
     debugCondition: inline func -> Bool {
@@ -384,7 +400,7 @@ TypeDecl: abstract class extends Declaration {
 
         trail push(this)
 
-        if(debugCondition() || res params veryVerbose) printf("====== Resolving type decl %s\n", toString())
+        if(debugCondition() || res params veryVerbose) printf("====== Resolving type decl %s (%p)\n", toString(), this)
 
         if (!type isResolved()) {
             response := type resolve(trail, res)
@@ -609,10 +625,10 @@ TypeDecl: abstract class extends Declaration {
 
     }
 
-    resolveType: func (type: BaseType) {
+    resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
 
         if(type getName() == "This") {
-            if(type suggest(getNonMeta() ? getNonMeta() : this)) return
+            if(type suggest(getNonMeta() ? getNonMeta() : this)) return 0
         }
 
         //printf("** Looking for type %s in func %s with %d type args\n", type name, toString(), getTypeArgs() size())
@@ -621,9 +637,11 @@ TypeDecl: abstract class extends Declaration {
             if(typeArg name == type name) {
                 //printf("***** Found match for %s in function decl %s\n", type name, toString())
                 type suggest(typeArg)
-                break
+                return 0
             }
         }
+
+        0
 
     }
 
@@ -855,6 +873,11 @@ BuiltinType: class extends TypeDecl {
 
     init: func ~builtinType (.name, .token) {
         super(name, null, token)
+    }
+
+    clone: func -> This {
+        // what's the use in copying a BuiltinType? it's not like anything can change anyway
+        this
     }
 
     underName: func -> String { name }
