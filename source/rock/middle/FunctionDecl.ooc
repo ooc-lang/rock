@@ -456,6 +456,10 @@ FunctionDecl: class extends Declaration {
             if(base != null) {
                 finalScore: Int
                 parent := base getFunction(name, suffix ? suffix : "", null, false, finalScore&)
+                if(finalScore == -1) {
+                    res wholeAgain(this, "Something's not resolved, need base getFunction()")
+                    return Responses OK
+                }
                 // todo: check for finalScore
                 for(i in 0..args size()) {
                     arg := args[i]
@@ -470,8 +474,6 @@ FunctionDecl: class extends Declaration {
 
                             if(type2 isGeneric() && !type1 isGeneric()) {
                                 // there's a specialization going on!
-                                "In %s, got %s vs %s" printfln(toString(), fType1 toString(), fType2 toString())
-
                                 fType1 argTypes[j] = type2
                                 if(!genericConstraints) {
                                     genericConstraints = HashMap<Type, Type> new()
@@ -656,7 +658,12 @@ FunctionDecl: class extends Declaration {
 
         fCallIndex := trail find(FunctionCall)
         if (fCallIndex == -1) {
-            res throwError(InternalError new(token, "Got an ACS without any function-call. THIS IS NOT SUPPOSED TO HAPPEN\ntrail= %s" format(trail toString())))
+            if(argumentsReady()) {
+                _unwrappedACS = true
+                return true
+            } else {
+                res throwError(InternalError new(token, "Got an ACS without any function-call. THIS IS NOT SUPPOSED TO HAPPEN\ntrail= %s" format(trail toString())))
+            }
         }
         parentCall := trail get(fCallIndex) as FunctionCall
         parentFunc := parentCall getRef()
@@ -734,16 +741,13 @@ FunctionDecl: class extends Declaration {
                 arg := args[i]
 
                 if (arg getType() isGeneric()) {
-                    "Type of arg %s is generic - trying to resolve it for parentCall %s" printfln(arg toString(), parentCall toString())
                     oldName := arg name
                     genType := parentCall resolveTypeArg(arg getType() getName(), trail, fScore&)
                     if (fScore == -1 || genType == null) {
-                        "Can't figure it out, looping" println()
                         res wholeAgain(this, "Can't figure out the actual type of the generic.")
                         trail pop(this)
                         return false
                     }
-                    "solved t to %s" printfln(genType toString())
                     if(genType isGeneric()) {
                         continue
                     }
