@@ -1098,7 +1098,7 @@ operator implicit as (s: String) -> Char* {
 }
 
 operator implicit as (c: Char*) -> String {
-    String new (c, strlen(c))
+    return c ? String new (c, strlen(c)) : null
 }
 
 operator == (str1: String, str2: String) -> Bool {

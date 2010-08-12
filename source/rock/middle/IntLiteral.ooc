@@ -8,7 +8,7 @@ IntLiteral: class extends Literal {
 
     init: func ~intLiteral (=value, .token) {
         super(token)
-        type = BaseType new("Int", token)
+        type = BaseType new("SSizeT", token)
     }
 
     clone: func -> This { new(value, token) }

@@ -18,7 +18,8 @@ CommandLine: class {
     driver: Driver
 
     init: func(args : ArrayList<String>) {
-
+args size() toString() println ()
+printf("%s", args[0] )
         params = BuildParams new(args[0])
         driver = SequenceDriver new(params)
 
