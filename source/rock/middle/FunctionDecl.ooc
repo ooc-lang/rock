@@ -468,6 +468,8 @@ FunctionDecl: class extends Declaration {
                         // TODO: add check 1) number of argument 2) it's a FuncType
                         fType2 := parent args[i] getType() as FuncType
 
+                        //"for %s, got %s vs %s" printfln(toString(), fType1 toString(), fType2 toString())
+
                         for(j in 0..fType1 argTypes size()) {
                             type1 := fType1 argTypes[j]
                             type2 := fType2 argTypes[j]
@@ -499,6 +501,7 @@ FunctionDecl: class extends Declaration {
 
         if (isClosure && !_unwrappedACS) {
             if (!unwrapACS(trail, res)) {
+                trail pop(this)
                 return Responses OK
             }
         }
@@ -670,7 +673,6 @@ FunctionDecl: class extends Declaration {
 
         if (!parentFunc) {
             res wholeAgain(this, "Need ACS reference.")
-            trail pop(this)
             return false
         }
 
@@ -689,7 +691,6 @@ FunctionDecl: class extends Declaration {
         if (parentFunc getOwner()) {
             if(parentCall expr getType() == null) {
                 res wholeAgain(this, "Need type of the expr of the parent call")
-                trail pop(this)
                 return false
             }
 
@@ -705,7 +706,6 @@ FunctionDecl: class extends Declaration {
 
         if (!funcPointer) {
             res wholeAgain(this, "Missing type informantion in the function pointer.")
-            trail pop(this)
             return false
         }
         ix := 0
@@ -715,7 +715,6 @@ FunctionDecl: class extends Declaration {
         for (fType in funcPointer argTypes) {
             if (!fType isResolved()) {
                 res wholeAgain(this, "Can't figure out the type of the argument.")
-                trail pop(this)
                 return false
             }
             if (fType isGeneric()) needTrampoline = true
@@ -740,6 +739,11 @@ FunctionDecl: class extends Declaration {
             for (i in 0..args size()) {
                 arg := args[i]
 
+                if (arg getType() == null || !arg getType() isResolved()) {
+                    "Looping because of arg %s" printfln(arg toString())
+                    res wholeAgain(this, "need arg type for the ref")
+                    return false
+                }
                 if (arg getType() isGeneric()) {
                     oldName := arg name
                     genType := parentCall resolveTypeArg(arg getType() getName(), trail, fScore&)

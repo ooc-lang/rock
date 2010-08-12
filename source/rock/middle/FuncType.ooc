@@ -81,11 +81,19 @@ FuncType: class extends Type {
             return scoreSeed / 2
         }
 
-        // TODO: compare args, return types, i otras cosas.
         if(other instanceOf?(FuncType)) {
+            fType := other as FuncType
+
+            // not the same number of args? forget it
+            if(fType argTypes size() != argTypes size()) {
+                return NOLUCK_SCORE
+            }
+
+            // TODO: compare arg types (scores), return types, i otras cosas.
+
             return scoreSeed
         }
-        return This NOLUCK_SCORE
+        return NOLUCK_SCORE
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
