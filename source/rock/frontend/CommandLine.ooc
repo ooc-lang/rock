@@ -246,6 +246,7 @@ CommandLine: class {
                     driverName := option substring("driver=" length())
                     driver = match (driverName) {
                         case "combine" =>
+                            params libcache = false
                             CombineDriver new(params)
                         case "sequence" =>
                             SequenceDriver new(params)
