@@ -278,7 +278,7 @@ ArrayAccess: class extends Expression {
 
         if(assign != null) {
             rightType := assign getRight() getType()
-            assignScore := rightType ? args last() getType() getScore(rightType) : 0
+            assignScore := rightType ? rightType getScore(args last() getType()) : 0
             if(assignScore == -1) return -1
             indexScore += assignScore
         }
