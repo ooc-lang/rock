@@ -37,7 +37,7 @@ OperatorDecl: class extends Expression {
     getType: func -> Type { fDecl getType() }
 
     toString: func -> String {
-        "operator " + symbol + (fDecl ? fDecl getArgsRepr() : "")
+        "operator " + symbol + " " + (fDecl ? fDecl getArgsRepr() : "")
     }
 
     isResolved: func -> Bool { false }

@@ -19,4 +19,8 @@ CharLiteral: class extends Literal {
 
     getType: func -> Type { type }
 
+    toString: func -> String {
+        "'" + value + "'"
+    }
+
 }

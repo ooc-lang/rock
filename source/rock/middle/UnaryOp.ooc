@@ -1,6 +1,6 @@
 import structs/ArrayList
 import ../frontend/Token
-import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl
+import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl, BaseType
 import tinker/[Trail, Resolver, Response, Errors]
 
 UnaryOpType: enum {
@@ -18,9 +18,11 @@ UnaryOp: class extends Expression {
 
     inner: Expression
     type: UnaryOpType
-
+    boolType: BaseType
+    
     init: func ~unaryOp (=inner, =type, .token) {
         super(token)
+        boolType = BaseType new("Bool", token)
     }
 
     clone: func -> This {
@@ -31,7 +33,10 @@ UnaryOp: class extends Expression {
         visitor visitUnaryOp(this)
     }
 
-    getType: func -> Type { inner getType() }
+    getType: func -> Type { 
+        if (type == UnaryOpType logicalNot) return boolType
+        inner getType() 
+    }
 
     toString: func -> String {
         return unaryOpRepr[type] + inner toString()
@@ -40,7 +45,7 @@ UnaryOp: class extends Expression {
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         trail push(this)
-
+        boolType resolve(trail, res)
         {
             response := inner resolve(trail, res)
             if(!response ok()) {
