@@ -90,7 +90,7 @@ Module: class extends Node {
         for(i in 0..result length()) {
             current := result[i]
             if(!current alphaNumeric?()) {
-                result[i] = '_'
+                (result data + i)@ = '_'
             }
         }
         if(!result[0] alpha?()) result = '_' + result
