@@ -21,6 +21,12 @@ LLong: cover from signed long long {
             fn()
         }
     }
+
+    times: func ~withIndex (fn: Func(Int)) {
+        for (i in 0..this) {
+            fn(i)
+        }
+    } 
 }
 
 Long:  cover from signed long  extends LLong
