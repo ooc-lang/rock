@@ -22,7 +22,7 @@ LLong: cover from signed long long {
         }
     }
 
-    times: func ~withIndex (fn: Func(Int)) {
+    times: func ~withIndex (fn: Func(This)) {
         for (i in 0..this) {
             fn(i)
         }
