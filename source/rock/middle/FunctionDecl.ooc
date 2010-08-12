@@ -712,6 +712,7 @@ FunctionDecl: class extends Declaration {
 
         fScore: Int
         needTrampoline := false
+
         for (fType in funcPointer argTypes) {
             if (!fType isResolved()) {
                 res wholeAgain(this, "Can't figure out the type of the argument.")

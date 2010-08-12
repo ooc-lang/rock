@@ -149,11 +149,11 @@ FuncType: class extends Type {
             if(isFirst) isFirst = false
             else        b append(", ")
 
-            if(argType == null) { b append("<null arg type>"); continue }
+            if(argType == null) { b append("<?>"); continue }
             b append(argType toMangledString())
         }
         b append(')')
-        if(returnType != null) {
+        if(returnType != null && !returnType void?) {
             b append(" -> "). append(returnType toMangledString())
         }
         b toString()
