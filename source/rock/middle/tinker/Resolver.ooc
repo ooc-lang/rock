@@ -116,8 +116,6 @@ Resolver: class {
 
         for (pathElem in params sourcePath getPaths()) {
 
-            tokPointer := nullToken& // yay workarounds (yajit can't push structs)\
-
             pathElem walk(|f|
                 // sort out links to non-existent destinations.
                 if(!f exists?())
@@ -126,12 +124,10 @@ Resolver: class {
                 path := f getPath()
                 if (!path endsWith?(".ooc")) return true
 
-                module := AstBuilder cache get(f getAbsolutePath())
-
                 fullName := f getAbsolutePath()
                 fullName = fullName substring(pathElem getAbsolutePath() length() + 1, fullName length() - 4)
 
-                dummyModule addImport(Import new(fullName, tokPointer@))
+                dummyModule addImport(Import new(fullName, nullToken))
                 true
             )
 

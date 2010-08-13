@@ -73,6 +73,11 @@ CommandLine: class {
                         params dynamiclib = arg substring(idx + 1)
                     }
 
+                } else if (option startsWith?("libfolder=")) {
+
+                    idx := arg indexOf('=')
+                    params libfolder = arg substring(idx + 1)
+
                 } else if(option startsWith?("backend")) {
                     params backend = arg substring(arg indexOf('=') + 1)
 
@@ -350,17 +355,43 @@ CommandLine: class {
             }
         }
 
-        if(modulePaths empty?()) {
+        if(modulePaths empty?() && !params libfolder) {
             "rock: no ooc files" println()
             exit(1)
         }
 
+        dummyModule: Module
+
+        if(params libfolder) {
+            "Building lib for folder %s" printfln(params libfolder)
+            libfolder := File new(params libfolder)
+
+            dummyModule = Module new("__lib__/%s.ooc" format(libfolder getAbsoluteFile() name()), ".", params, nullToken)
+            libfolder walk(|f|
+                // sort out links to non-existent destinations.
+                if(!f exists?())
+                    return true // = continue
+
+                path := f getPath()
+                if (!path endsWith?(".ooc")) return true
+
+                fullName := f getAbsolutePath()
+                fullName = fullName substring(libfolder getAbsolutePath() length() + 1, fullName length() - 4)
+
+                dummyModule addImport(Import new(fullName, nullToken))
+                true
+            )
+
+            "DummyModule now has %d imports" printfln(dummyModule getAllImports() size())
+        }
+
         if(params staticlib != null || params dynamiclib != null) {
-            if(modulePaths size() != 1) {
+            if(modulePaths size() != 1 && !params libfolder) {
                 "Error: you can use -staticlib of -dynamiclib only when specifying a unique .ooc file, not %d of them." printfln(modulePaths size())
                 exit(1)
             }
-            moduleName := File new(modulePaths[0]) name()
+            moduleName := File new(dummyModule ? dummyModule path : modulePaths[0]) name()
+            "moduleName = %s" printfln(moduleName)
             moduleName = moduleName[0..moduleName length() - 4]
             basePath := File new("build", moduleName) getPath()
             if(params staticlib == "") {
@@ -406,11 +437,15 @@ CommandLine: class {
         errorCode := 0
 
         while(true) {
-            for(modulePath in modulePaths) {
-                code := parse(modulePath replace('/', File separator))
-                if(code != 0) {
-                    errorCode = 2 // C compiler failure.
-                    break
+            if(dummyModule) {
+                postParsing(dummyModule)
+            } else {
+                for(modulePath in modulePaths) {
+                    code := parse(modulePath replace('/', File separator))
+                    if(code != 0) {
+                        errorCode = 2 // C compiler failure.
+                        break
+                    }
                 }
             }
 
@@ -454,9 +489,6 @@ CommandLine: class {
     }
 
     parse: func (moduleName: String) -> Int {
-
-        first := static true
-
         moduleFile := params sourcePath getFile(moduleName)
 
         if(!moduleFile) {
@@ -474,6 +506,13 @@ CommandLine: class {
 
         // phase 1: parse
         AstBuilder new(modulePath, module, params)
+        postParsing(module)
+
+        return 0
+    }
+
+    postParsing: func (module: Module) {
+        first := static true
 
         if(params onlyparse) {
             // Oookay, we're done here.
@@ -567,9 +606,6 @@ CommandLine: class {
             }
 
         first = false
-
-        return 0
-
     }
 
     success: static func {
