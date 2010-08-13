@@ -84,7 +84,7 @@ SequenceDriver: class extends Driver {
         }
         if(params verbose) println()
 
-		if(params link && params staticlib == null) {
+        if(params link && (params staticlib == null || params dynamiclib != null)) {
 
 			initCompiler(params compiler)
 

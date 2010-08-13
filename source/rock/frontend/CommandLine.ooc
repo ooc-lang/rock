@@ -374,16 +374,29 @@ CommandLine: class {
                 params clean = false
                 params defaultMain = false
                 params outPath = File new(basePath, "include")
+                prefix := "lib"
                 dynamicExt := ".so"
                 // TODO: version blocks for this is evil. What if we want to cross-compile?
                 // besides, it's missing some platforms.
                 version(windows) {
                     dynamicExt = ".dll"
+                    prefix = ""
                 }
                 version(apple) {
-                    dynamicExt = ".dynlib"
+                    dynamicExt = ".dylib"
                 }
-                params dynamiclib = File new(File new(basePath, "lib"), moduleName + dynamicExt) getPath()
+                params dynamiclib = File new(File new(basePath, "lib"), prefix + moduleName + dynamicExt) getPath()
+
+                // TODO: this is too gcc/Linux-specific: there should be a good way
+                // to abstract that away
+                params compilerArgs add("-fPIC")
+                params compilerArgs add("-shared")
+                params compilerArgs add("-Wl,-soname," + params dynamiclib)
+                params binaryPath = params dynamiclib
+                //driver = CombineDriver new(params)
+                params libcache = false // libcache is incompatible with combine driver
+                params dynGC = true // including the libgc.a would involve creating a DT_TEXTREL
+                File new(basePath, "lib") mkdirs()
             }
         }
 
