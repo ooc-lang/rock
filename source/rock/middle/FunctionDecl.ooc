@@ -630,7 +630,11 @@ FunctionDecl: class extends Declaration {
                 arg := args first()
                 args clear()
                 argc := Argument new(BaseType new("Int", arg token), "argc", arg token)
-                argv := Argument new(PointerType new(BaseType new("Char*", arg token), arg token), "argv", arg token)
+                argv := Argument new(PointerType new(
+
+                PointerType new(BaseType new("Char", arg token), arg token)
+
+                , arg token), "argv", arg token)
                 args add(argc)
                 args add(argv)
 
