@@ -364,6 +364,7 @@ CommandLine: class {
 
         if(params libfolder) {
             "Building lib for folder %s" printfln(params libfolder)
+            params sourcePath add(params libfolder)
             libfolder := File new(params libfolder)
 
             dummyModule = Module new("__lib__/%s.ooc" format(libfolder getAbsoluteFile() name()), ".", params, nullToken)
