@@ -56,6 +56,7 @@ MultiMap: class <K, V> extends HashMap<K, V> {
                 // Only one left - turn the list into a single element
                 put~_super(key, list first())
             }
+            return true
         } else {
             // Only one - remove it
             return super(key)

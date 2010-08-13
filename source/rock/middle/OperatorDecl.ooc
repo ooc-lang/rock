@@ -82,8 +82,7 @@ OperatorDecl: class extends Expression {
             }
         }
 
-        return Responses OK
-
+        Responses OK
     }
 
     getName: func -> String {

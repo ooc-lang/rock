@@ -14,12 +14,12 @@ autoReturn: func (trail: Trail, res: Resolver, origin: Node, body: Scope, return
         return Responses OK
     }
 
-    _autoReturnExplore(trail, res, origin, body)
+    _autoReturnExplore(trail, res, origin, body, true)
     return Responses OK
 
 }
 
-_autoReturnExplore: func (trail: Trail, res: Resolver, origin: Node, scope: Scope) {
+_autoReturnExplore: func (trail: Trail, res: Resolver, origin: Node, scope: Scope, last: Bool) {
 
     if(scope empty?()) {
         // scope is empty, we need a return
@@ -27,7 +27,7 @@ _autoReturnExplore: func (trail: Trail, res: Resolver, origin: Node, scope: Scop
         return
     }
 
-    _handleLastStatement(trail, res, origin, scope, scope lastIndex())
+    _handleLastStatement(trail, res, origin, scope, scope lastIndex(), last)
 
 }
 
@@ -35,7 +35,7 @@ _returnNeeded: func (res: Resolver, origin: Node) {
     res throwError(InconsistentReturn new(origin token, "Control reaches the end of non-void function!"))
 }
 
-_handleLastStatement: func (trail: Trail, res: Resolver, origin: Node, scope: Scope, index: Int) {
+_handleLastStatement: func (trail: Trail, res: Resolver, origin: Node, scope: Scope, index: Int, last: Bool) {
 
     stmt := scope get(index)
 
@@ -58,12 +58,30 @@ _handleLastStatement: func (trail: Trail, res: Resolver, origin: Node, scope: Sc
     } else if(stmt instanceOf?(ControlStatement)) {
         cStat := stmt as ControlStatement
         if(cStat isDeadEnd()) {
-            _autoReturnExplore(trail, res, origin, cStat getBody())
+            _autoReturnExplore(trail, res, origin, cStat getBody(), true)
 
-            // TODO: this doesn't work with long if-else chains
-            if(cStat instanceOf?(Else) && index > 0 && scope get(index - 1) instanceOf?(Conditional)) {
-                // if we're in an else, go back in the Scope to find an if and handle it too
-                _handleLastStatement(trail, res, origin, scope, index - 1)
+            if(cStat instanceOf?(Else)) {
+                currentIndex := index - 1
+                // handle if-else chains. If an if-else chain is the last statement, they all need
+                // to be considered as dead-ends. We explore every if/else from the bottom up
+                while(currentIndex >= 0 && scope get(currentIndex) instanceOf?(Conditional)) {
+                    prevStatement := scope get(currentIndex)
+                    if(prevStatement instanceOf?(Else)) {
+                        prevElse := prevStatement as Else
+                        if(prevElse getBody() size() == 1 && prevElse getBody() get(0) instanceOf?(If)) {
+                            ifBody := prevElse getBody() get(0) as If getBody()
+                            _handleLastStatement(trail, res, origin, ifBody, ifBody lastIndex(), true)
+
+                            currentIndex -= 1
+                            continue
+                        }
+                    } else if(prevStatement instanceOf?(If)) {
+                        // an if is the upper end of an if-else chain
+                        ifBody := prevStatement as If getBody()
+                        _handleLastStatement(trail, res, origin, ifBody, ifBody lastIndex(), true)
+                    }
+                    break
+                }
             }
         } else {
             _returnNeeded(res, origin)

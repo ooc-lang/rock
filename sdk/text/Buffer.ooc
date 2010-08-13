@@ -400,7 +400,7 @@ operator == (a, b: Buffer) -> Bool {
 
 operator != (a, b: Buffer) -> Bool {
     if (a == b) return false
-    else return true
+    else        return true
 }
 
 /*  Test routines
