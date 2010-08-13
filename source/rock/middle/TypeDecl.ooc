@@ -400,7 +400,7 @@ TypeDecl: abstract class extends Declaration {
 
         trail push(this)
 
-        if(debugCondition() || res params veryVerbose) printf("====== Resolving type decl %s (%p)\n", toString(), this)
+        if(debugCondition() || res params veryVerbose) printf("====== Resolving type decl %s\n", toString())
 
         if (!type isResolved()) {
             response := type resolve(trail, res)

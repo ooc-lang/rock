@@ -573,7 +573,7 @@ FunctionDecl: class extends Declaration {
                 if(isVoid()) {
                     returnType = BaseType new("Int", token)
                     body add(Return new(IntLiteral new(0, nullToken), nullToken))
-                    res wholeAgain(this, "because changed returnType to %s\n")
+                    res wholeAgain(this, "because changed returnType to %s" format(returnType toString()))
                 }
             }
 

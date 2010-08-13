@@ -180,8 +180,8 @@ FunctionCall: class extends Expression {
                 if (declArgType isGeneric()) {
                     declArgType = declArgType realTypize(this)
                 }
-                if(callArg == null) {
-                    return false // something's wrong
+                if(callArg getType() == null) {
+                    return false
                 }
 
                 if(callArg getType() getScore(declArgType) == Type NOLUCK_SCORE) {
