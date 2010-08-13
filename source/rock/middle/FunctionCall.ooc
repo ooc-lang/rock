@@ -393,7 +393,6 @@ FunctionCall: class extends Expression {
 
                 res wholeAgain(this, "finished inlining")
                 return Responses OK
-                //return Responses LOOP
             }
 
             if(!handleGenerics(trail, res) ok()) {
@@ -426,6 +425,13 @@ FunctionCall: class extends Expression {
         if(returnType) {
             response := returnType resolve(trail, res)
             if(!response ok()) return response
+
+            if(returnType void?) {
+                parent := trail peek()
+                if(!parent instanceOf?(Scope)) {
+                    res throwError(UseOfVoidExpression new(token, "Use of a void function call as an expression"))
+                }
+            }
         }
 
         if(refScore <= 0) {
@@ -1206,3 +1212,8 @@ UnresolvedCall: class extends Error {
     }
 
 }
+
+UseOfVoidExpression: class extends Error {
+    init: super func ~tokenMessage
+}
+
