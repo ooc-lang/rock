@@ -364,10 +364,18 @@ CommandLine: class {
 
         if(params libfolder) {
             "Building lib for folder %s" printfln(params libfolder)
-            params sourcePath add(params libfolder)
-            libfolder := File new(params libfolder)
 
-            dummyModule = Module new("__lib__/%s.ooc" format(libfolder getAbsoluteFile() name()), ".", params, nullToken)
+            idx := params libfolder indexOf(File pathDelimiter)
+            libfolder := File new(match idx {
+                case -1 => params libfolder
+                case    => params libfolder substring(0, idx)
+            })
+
+            name := (idx == -1 ? libfolder getAbsoluteFile() name() : params libfolder substring(idx + 1))
+            params libfolder = libfolder getPath()
+            params sourcePath add(params libfolder)
+
+            dummyModule = Module new("__lib__/%s.ooc" format(name), ".", params, nullToken)
             libfolder walk(|f|
                 // sort out links to non-existent destinations.
                 if(!f exists?())
@@ -421,7 +429,7 @@ CommandLine: class {
 
                 // TODO: this is too gcc/Linux-specific: there should be a good way
                 // to abstract that away
-                params compilerArgs add("-fPIC")
+                params compilerArgs add("-fpic")
                 params compilerArgs add("-shared")
                 params compilerArgs add("-Wl,-soname," + params dynamiclib)
                 params binaryPath = params dynamiclib
