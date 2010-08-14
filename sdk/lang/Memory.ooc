@@ -12,6 +12,7 @@ version(!gc) {
     gc_malloc_atomic: extern(malloc) func (size: SizeT) -> Pointer
     gc_realloc: extern(realloc) func (ptr: Pointer, size: SizeT) -> Pointer
     gc_calloc: extern(calloc) func (nmemb: SizeT, size: SizeT) -> Pointer
+    gc_free: extern(free) func (ptr: Pointer)
 }
 
 version(gc) {
@@ -23,6 +24,7 @@ version(gc) {
     gc_calloc: func (nmemb: SizeT, size: SizeT) -> Pointer {
         gc_malloc(nmemb * size)
     }
+    gc_free: extern(GC_FREE) func (ptr: Pointer)
 }
 
 // memory management

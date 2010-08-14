@@ -1,4 +1,4 @@
-include stdlib, stdint, stdbool, float, ctype, sys/types
+include stdlib, stdint, stdbool, stddef, float, ctype, sys/types
 
 LLong: cover from signed long long {
 
@@ -26,7 +26,7 @@ LLong: cover from signed long long {
         for (i in 0..this) {
             fn(i)
         }
-    } 
+    }
 }
 
 Long:  cover from signed long  extends LLong
@@ -73,6 +73,7 @@ UInt64: cover from uint64_t extends ULLong
 Octet:  cover from uint8_t
 SizeT:  cover from size_t extends ULLong
 SSizeT:  cover from ssize_t extends LLong
+PtrDiff: cover from ptrdiff_t extends SizeT
 
 /**
  * real types
