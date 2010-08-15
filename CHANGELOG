@@ -39,11 +39,11 @@ pre-history
     github project. nagaqueen (its fancy name) is now needed to make rock compile
   - 2009-10 : Made a leg frontend, builds the AST, ported a lot of Java code with itrekkie,
     rock now compiles things =)
-  - 2009-10 : Creating the AST structure, code generation works well, putting the 
+  - 2009-10 : Creating the AST structure, code generation works well, putting the
     frontend on hold for a moment
-  - 20.9.19 : The tokenizing code is all there, and it's working simply great.
+  - 2009-09 : The tokenizing code is all there, and it's working simply great.
     Now onto constructing AST nodes.
-  - 20.9.16 : Basic structure, it's gonna be some time till it can do anything useful
+  - 2009-06 : Basic structure, it's gonna be some time till it can do anything useful
 
 
 
