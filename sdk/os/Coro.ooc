@@ -1,4 +1,14 @@
 
+/**
+ * Portable ucontext-based coroutines implementation for cooperative multitasking.
+ *
+ * Largely based on Steve Dekorte's libcoroutine, see authors below.
+ *
+ * @author Steve Dekorte (libcoroutine - http://github.com/stevedekorte/coroutine)
+ * @author Russ Cox (libcoroutine OSX10.6 fixes)
+ * @author Edgar Toernig (Minimalistic cooperative multitasking - http://www.goron.de/~froese/)
+ * @author Amos Wenger (nddrylliog)
+ */
 Coro: class {
 
     // this was originally commented '128k needed on PPC due to parser'
@@ -21,12 +31,12 @@ Coro: class {
         if (stack != null && allocatedStackSize > requestedStackSize) {
            gc_free(stack)
            stack = gc_malloc(requestedStackSize)
-           "Coro_%p re-allocating stack size %i" printfln(this, requestedStackSize)
+           allocatedStackSize = requestedStackSize
         }
 
         if (stack == null) {
             stack = gc_malloc(requestedStackSize)
-           "Coro_%p allocating stack size %i" printfln(this, requestedStackSize)
+            allocatedStackSize = requestedStackSize
         }
     }
 
@@ -34,7 +44,6 @@ Coro: class {
         if(stack) {
             gc_free(stack)
         }
-        "Coro_%p free" printfln(this)
     }
 
     currentStackPointer: func -> UInt8* {
@@ -69,19 +78,22 @@ Coro: class {
 
     startCoro: func (other: This, callback: Func) {
         other allocStackIfNeeded()
-        other setup(callback)
+        other setup(||
+            callback()
+            "Scheduler error: returned from coro start function" println()
+            exit(-1)
+        )
         switchTo(other)
     }
 
     setup: func (callback: Func) {
         getcontext(env&)
 
-        env stack stackPointer = stack + requestedStackSize - 8
+        env stack stackPointer = stack
         env stack stackSize    = requestedStackSize
         env stack flags        = 0
         env link               = null
 
-        "Setting up Closure %p, callback thunk/context = %p/%p, env& = %p" printfln(this, callback as Closure thunk, callback as Closure context, env&)
         makecontext(env&, callback as Closure thunk, 1, callback as Closure context)
     }
 
