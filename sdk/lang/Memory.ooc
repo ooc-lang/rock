@@ -1,4 +1,7 @@
-include memory
+
+// as goofy as it sounds, memory-related routines are actually in string.h
+// yay C. (Also, Google Native Client doesn't have memory.h)
+include string
 
 version(!gc) {
     // GC_MALLOC zeroes the memory, so in the non-gc version, we prefer to use calloc
