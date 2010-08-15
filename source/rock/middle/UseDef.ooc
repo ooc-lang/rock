@@ -157,7 +157,6 @@ UseDef: class {
                 }
             } else if(id == "SourcePath") {
                 sourcePathFile := File new(value)
-                printf("sourcePathFile = %s, absolute = %s, file = %s\n", sourcePathFile getPath(), sourcePathFile getAbsolutePath(), file getPath())
                 if(sourcePathFile relative?()) {
                     /* is relative. TODO: better check? */
                     sourcePathFile = file parent() getChild(value) getAbsoluteFile()
@@ -166,6 +165,8 @@ UseDef: class {
                 params sourcePath add(sourcePathFile path)
             } else if(id == "Version") {
                 version = value
+            } else if(id == "Origin" || id == "Variant") {
+                // known, but ignored ids
             } else if(!id empty?()) {
                 "%s: Unknown id %s (length %d, first = %d) in usefile" printfln(file getPath(), id, id length(), id[0])
             }

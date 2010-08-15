@@ -363,7 +363,11 @@ CommandLine: class {
         dummyModule: Module
 
         if(params libfolder) {
-            "Building lib for folder %s" printfln(params libfolder)
+            if(params staticlib == null && params dynamiclib == null) {
+                // by default, build both
+                params staticlib = ""
+                params dynamiclib = ""
+            }
 
             idx := params libfolder indexOf(File pathDelimiter)
             libfolder := File new(match idx {
@@ -372,6 +376,8 @@ CommandLine: class {
             })
 
             name := (idx == -1 ? libfolder getAbsoluteFile() name() : params libfolder substring(idx + 1))
+            "Building lib for folder %s" printfln(name)
+
             params libfolder = libfolder getPath()
             params sourcePath add(params libfolder)
 
