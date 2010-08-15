@@ -14,7 +14,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Dereference, Foreach, OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess,
     Match, FlowControl, While, CharLiteral, InterfaceDecl, NamespaceDecl,
     Version, Use, Block, ArrayLiteral, EnumDecl, BaseType, FuncType,
-    Declaration, PropertyDecl, CallChain, Tuple]
+    Declaration, PropertyDecl, CallChain, Tuple, Try]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -955,6 +955,31 @@ AstBuilder: class {
     onCaseEnd: unmangled(nq_onCaseEnd) func {
         caze := pop(Case)
         peek(Match) addCase(caze)
+    }
+
+    /*
+     * Try & catch
+     */
+
+    onTryStart: unmangled(nq_onTryStart) func {
+        stack push(Try new(token()))
+    }
+
+    onTryEnd: unmangled(nq_onTryEnd) func -> Try {
+        pop(Try)
+    }
+
+    onCatchStart: unmangled(nq_onCatchStart) func {
+        stack push(Case new(token()))
+    }
+
+    onCatchExpr: unmangled(nq_onCatchExpr) func (v: Expression) {
+        peek(Case) setExpr(v)
+    }
+
+    onCatchEnd: unmangled(nq_onCatchEnd) func {
+        caze := pop(Case)
+        peek(Try) addCatch(caze)
     }
 
     onBreak: unmangled(nq_onBreak) func -> FlowControl {

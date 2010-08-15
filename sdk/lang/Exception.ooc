@@ -90,7 +90,7 @@ Exception: class {
      * Print this exception, with its origin, if specified, and its message
      */
     print: func {
-        fprintf(stderr, "%s", format())
+        fprintf(stderr, "%s\n", format())
     }
 
     /**

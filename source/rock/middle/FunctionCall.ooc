@@ -1205,6 +1205,7 @@ UnresolvedCall: class extends Error {
 
     init: func ~withToken(.token, =call, .message) {
         super(call expr ? call expr token enclosing(call token) : call token, message)
+        precisions = ""
     }
 
     format: func -> String {

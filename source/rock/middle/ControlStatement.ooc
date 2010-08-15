@@ -34,6 +34,10 @@ ControlStatement: abstract class extends Statement {
         body addAfter(mark, newcomer)
     }
 
+    add: func (newcomer: Statement) {
+        body add(newcomer)
+    }
+
     /**
      * If, Else, Match are dead-end control statements.
      * While, For, Foreach aren't.
