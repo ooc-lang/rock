@@ -146,10 +146,27 @@ SequenceDriver: class extends Driver {
 		}
 
 		if(params staticlib != null) {
-			if(params verbose) "Building archive %s with all object files (%d modules total)" format(params staticlib, module collectDeps() size()) println()
+
+            count := 0
+
             archive := Archive new("<staticlib>", params staticlib, params, false)
-            for(dep in module collectDeps()) {
-                archive add(dep)
+            if(params libfolder) {
+                for(imp in module getGlobalImports()) {
+                    archive add(imp getModule())
+                    count += 1
+                }
+            } else {
+                for(dep in module collectDeps()) {
+                    archive add(dep)
+                    count += 1
+                }
+            }
+
+            if(params verbose) {
+                "Building archive %s with %s (%d modules total)" printfln(
+                    params staticlib,
+                    params libfolder ? "modules belonging to %s" format(params libfolder) : "all object files",
+                    count)
             }
             archive save(params)
 		}
@@ -193,6 +210,11 @@ SequenceDriver: class extends Driver {
        Build a source folder into object files or a static library
      */
     buildSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>, reGenerated: List<Module>) -> Int {
+
+        if(params libfolder != null && sourceFolder absolutePath != File new(params libfolder) getAbsolutePath()) {
+            if(params verbose) "Skipping (not needed for build of libfolder %s)" printfln(params libfolder)
+            return 0
+        }
 
         archive := sourceFolder archive
 
@@ -343,11 +365,12 @@ SequenceDriver: class extends Driver {
      */
 	collectDeps: func (module: Module, toCompile: HashMap<String, SourceFolder>, done: ArrayList<Module>) -> HashMap<String, SourceFolder> {
 
-        name := File new(File new(module getPathElement()) getAbsolutePath()) name()
+        absolutePath := File new(module getPathElement()) getAbsolutePath()
+        name := File new(absolutePath) name()
 
         sourceFolder := toCompile get(name)
         if(sourceFolder == null) {
-            sourceFolder = SourceFolder new(name, params)
+            sourceFolder = SourceFolder new(name, absolutePath, params)
             toCompile put(name, sourceFolder)
         }
 
@@ -366,14 +389,14 @@ SequenceDriver: class extends Driver {
 }
 
 SourceFolder: class {
-    name: String
+    name, absolutePath: String
     params: BuildParams
     outlib: String
 
     modules := ArrayList<Module> new()
     archive : Archive
 
-    init: func (=name, =params) {
+    init: func (=name, =absolutePath, =params) {
         outlib = "%s%c%s-%s.a" format(params libcachePath, File separator, name, Target toString())
         archive = Archive new(name, outlib, params)
     }
