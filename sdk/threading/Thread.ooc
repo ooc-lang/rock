@@ -1,5 +1,6 @@
 import native/[ThreadUnix, ThreadWin32]
 import native/[MutexUnix, MutexWin32]
+import native/ThreadLocalUnix
 
 /**
    A thread is a thread of execution in a program. Multiple threads
@@ -189,4 +190,31 @@ RecursiveMutex: abstract class {
 
 }
 
+/*
+    A ThreadLocal is a variable whose data is not shared by all threads
+    (as it is for normal global variables), but each thread has got
+    its own storage.
 
+    :author: Friedrich Weber (fredreichbier)
+ */
+ThreadLocal: abstract class <T> {
+    new: static func <T> -> This<T> {
+
+        version (unix || apple) {
+            return ThreadLocalUnix<T> new() as This
+        }
+        // TODO: Windows
+        Exception new(This, "Unsupported platform!\n") throw()
+        null
+    }    
+
+    /**
+        Set the data.
+     */
+    set: abstract func (value: T)
+
+    /**
+        Get the data, obviously.
+     */
+    get: abstract func -> T
+}
