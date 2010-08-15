@@ -63,20 +63,61 @@ Match: class extends Expression {
                             casesResolved? = false
                             break
                         }
-                        fCall := FunctionCall new(expr, "matches__quest", caze getExpr() token)
-                        fCall args add(caze getExpr())
-                        hmm := fCall resolve(trail, res)
-                        if(fCall getRef() != null) {
-                            returnType := fCall getRef() getReturnType() getName()
-                            if(returnType != "Bool")
-                                res throwError(WrongMatchesSignature new(expr token, "matches? returns a %s, but it should return a Bool" format(returnType)))
-                            caze setExpr(fCall)
+                        if(caze getExpr() instanceOf?(VariableDecl)) {
+                            // unwrap `VariableDecl` (e.g. `case n: Node =>`) cases here
+                            fCall: FunctionCall
+                            mType := expr getType()
+                            if(mType isGeneric()) {
+                                acc := VariableAccess new(mType, caze getExpr() token)
+                                fCall = FunctionCall new(acc, "inheritsFrom__quest", caze getExpr() token)
+                            } else {
+                                fCall = FunctionCall new(expr, "instanceOf__quest", caze getExpr() token)
+                            }
+                            fCall args add(TypeAccess new(caze getExpr() getType(), caze getExpr() token))
+                            hmm := fCall resolve(trail, res)
+                            vDecl := caze getExpr() as VariableDecl
+                            if(fCall getRef() == null) {
+                                if(res fatal) {
+                                    res throwError(
+                                        CantUseMatch new(expr token,
+                                            "You can't use the type match syntax here, can't resolve `%s`" format(fCall toString())
+                                    ))
+                                } else {
+                                    res wholeAgain(this, "call can't be resolved, let's forget it")
+                                    casesResolved? = false
+                                    break
+                                }
+                            } else {
+                                caze setExpr(fCall)
+                            }
+                            // inject the variable
+                            // add the vDecl
+                            first := caze getBody() first()
+                            caze addBefore(first, vDecl)
+                            // add the Assignment
+                            acc := VariableAccess new(vDecl, caze getExpr() token)
+                            ass := BinaryOp new(acc, getExpr(), OpType ass, caze getExpr() token)
+                            caze addBefore(first, ass)
                         } else {
-                            caze setExpr(Comparison new(expr, caze getExpr(), CompType equal, caze getExpr() token))
+                            fCall := FunctionCall new(expr, "matches__quest", caze getExpr() token)
+                            fCall args add(caze getExpr())
+                            hmm := fCall resolve(trail, res)
+                            if(fCall getRef() != null) {
+                                returnType := fCall getRef() getReturnType() getName()
+                                if(returnType != "Bool")
+                                    res throwError(WrongMatchesSignature new(expr token, "matches? returns a %s, but it should return a Bool" format(returnType)))
+                                caze setExpr(fCall)
+                            } else {
+                                caze setExpr(Comparison new(expr, caze getExpr(), CompType equal, caze getExpr() token))
+                            }
                         }
                     }
                 }
             }
+        }
+        if(!casesResolved?) {
+            trail pop(this)
+            return Responses OK
         }
 
         for (caze in cases) {
@@ -231,5 +272,9 @@ ExpectedExpression: class extends Error {
 }
 
 WrongMatchesSignature: class extends Error {
+    init: super func ~tokenMessage
+}
+
+CantUseMatch: class extends Error {
     init: super func ~tokenMessage
 }
