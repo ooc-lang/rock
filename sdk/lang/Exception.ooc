@@ -32,7 +32,7 @@ Exception: class {
      * @return the exception's message, nicely formatted
      */
     format: func -> String {
-        if(origin)
+        if(!origin)
             "[%s]: %s" format(class name, message)
         else
             "[%s in %s]: %s" format(class name, origin name, message)
