@@ -1,3 +1,51 @@
+import threading/Thread, structs/Stack
+
+include setjmp
+
+JmpBuf: cover from jmp_buf {
+    setJmp: extern(setjmp) func -> Int
+    longJmp: extern(longjmp) func (value: Int)
+}
+
+_StackFrame: cover {
+    buf: JmpBuf
+}
+
+StackFrame: cover from _StackFrame* {
+    new: static func -> This {
+        gc_malloc(_StackFrame size)
+    }
+}
+
+exceptionStack := ThreadLocal<Stack<StackFrame>> new()
+
+_exception: Exception
+_EXCEPTION: Int = 1
+
+_pushStackFrame: inline func -> StackFrame {
+    stack: Stack<StackFrame>
+    if(!exceptionStack hasValue()) {
+        stack = Stack<StackFrame> new()
+        exceptionStack set(stack)
+    } else {
+        stack = exceptionStack get()
+    }
+    buf := StackFrame new()
+    stack push(buf)
+    buf
+}
+
+_setException: func (e: Exception) {
+    _exception = e
+}
+
+_popStackFrame: func -> StackFrame {
+    exceptionStack get() as Stack<StackFrame> pop() as StackFrame
+}
+
+_hasStackFrame: func -> Bool {
+    exceptionStack hasValue() && exceptionStack get() as Stack<StackFrame> size() > 0
+}
 
 /**
  * Base class for all exceptions that can be thrown
@@ -48,11 +96,16 @@ Exception: class {
     /**
      * Throw this exception
      */
-    throw: inline final func {
-        print()
-        abort()
+    throw: func {
+        _setException(this)
+        if(!_hasStackFrame()) {
+            print()
+            abort()
+        } else {
+            frame := _popStackFrame()
+            frame@ buf longJmp(_EXCEPTION)
+        }
     }
-
 }
 
 /* ------ C interfacing ------ */

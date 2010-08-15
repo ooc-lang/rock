@@ -8,6 +8,7 @@ version(unix || apple) {
     pthread_setspecific: extern func (key: Key, value: Pointer) -> Int
     pthread_getspecific: extern func(key: Key) -> Pointer
 
+    // TODO: Please make this store pointers to generic values, not generic values.
     ThreadLocalUnix: class <T> extends ThreadLocal<T> {
         key: Key
 
@@ -16,11 +17,15 @@ version(unix || apple) {
         }
 
         set: func (value: T) {
-            pthread_setspecific(key, value&)
+            pthread_setspecific(key, value as Pointer)
         }
 
         get: func -> T {
-            (pthread_getspecific(key) as T*)@
+            pthread_getspecific(key)
+        }
+
+        hasValue: func -> Bool {
+            pthread_getspecific(key) != null
         }
     }
 }

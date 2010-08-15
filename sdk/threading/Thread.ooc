@@ -217,4 +217,9 @@ ThreadLocal: abstract class <T> {
         Get the data, obviously.
      */
     get: abstract func -> T
+
+    /**
+        Return true if there is any data set.
+      */ 
+    hasValue: abstract func -> Bool
 }
