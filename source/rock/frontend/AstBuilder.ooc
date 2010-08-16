@@ -52,8 +52,12 @@ AstBuilder: class {
     tokenPos : Int*
 
     init: func (=modulePath, =module, =params) {
+        first := static true
 
-        if(params verbose) printf("- Parsing %s\n", modulePath)
+        if(params verbose) {
+            if(!first) "                                                                             \b\r" print()
+            "Parsing %s" printf(modulePath)
+        }
         cache put(File new(modulePath) getAbsolutePath(), module)
 
         stack = Stack<Object> new()
@@ -64,6 +68,7 @@ AstBuilder: class {
             addLangImports()
         }
 
+        first = false
         result := nq_parse(this, modulePath)
         if(result == -1) {
             Exception new(This, "File " +modulePath + " not found") throw()
