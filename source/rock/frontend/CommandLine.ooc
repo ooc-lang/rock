@@ -542,7 +542,7 @@ CommandLine: class {
             }
         }
         module parseImports(null)
-        if(params verbose) printf("\b\rFinished parsing, now tinkering...                                                   \n")
+        if(params verbose) printf("\rFinished parsing, now tinkering...                                                   \n")
 
         // phase 2: tinker
         if(!Tinkerer new(params) process(module collectDeps())) failure()
