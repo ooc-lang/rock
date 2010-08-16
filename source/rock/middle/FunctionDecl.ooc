@@ -441,7 +441,7 @@ FunctionDecl: class extends Declaration {
         }
         return true
     }
-
+    
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         if(debugCondition() || res params veryVerbose) printf("** Resolving function decl %s\n", name)
@@ -499,13 +499,22 @@ FunctionDecl: class extends Declaration {
 
         isClosure := name empty?()
 
-        if (isClosure && !_unwrappedACS) {
-            if (!unwrapACS(trail, res)) {
-                trail pop(this)
-                return Responses OK
+        if (isClosure) {
+            if (!_unwrappedACS && !argumentsReady()) {
+                if (!unwrapACS(trail, res)) {
+                    trail pop(this)
+                    return Responses OK
+                }
             }
+            args each(| arg | 
+                if (arg getType() == null || !arg getType() isResolved()) {
+                    "Looping because of arg %s" printfln(arg toString())
+                    res wholeAgain(this, "need arg type for the ref")
+                    return Responses OK
+                }
+            )
         }
-
+        
         for(typeArg in typeArgs) {
             response := typeArg resolve(trail, res)
             if(!response ok()) {
@@ -736,15 +745,8 @@ FunctionDecl: class extends Declaration {
                 becomes
                     test: func<T> (b_generic: T) { b := b_generic as String; b println() }
             */
-
-            for (i in 0..args size()) {
-                arg := args[i]
-
-                if (arg getType() == null || !arg getType() isResolved()) {
-                    "Looping because of arg %s" printfln(arg toString())
-                    res wholeAgain(this, "need arg type for the ref")
-                    return false
-                }
+            
+            for (arg in args) {
                 if (arg getType() isGeneric()) {
                     oldName := arg name
                     genType := parentCall resolveTypeArg(arg getType() getName(), trail, fScore&)
@@ -790,7 +792,7 @@ FunctionDecl: class extends Declaration {
         parentIdx := trail find(FunctionCall)
         parentCall := (parentIdx != -1 ? trail get(parentIdx, FunctionCall) : null)
 
-        if(parentCall getRef() == null) {
+        if(parentCall && parentCall getRef() == null) {
             res wholeAgain(this, "Need outer call ref")
             return
         }
