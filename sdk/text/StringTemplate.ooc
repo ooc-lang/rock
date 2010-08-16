@@ -1,7 +1,7 @@
 import text/Buffer
 import structs/HashMap
 
-String: cover {
+extend String {
 
     /**
         Replace all template tokens in *this* with the matching value of *values*.

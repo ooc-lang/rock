@@ -75,7 +75,7 @@ StringTokenizerIterator: class <T> extends Iterator<T> {
 
 }
 
-String: cover {
+extend String {
 
     split: func~withString(s: String, maxSplits: Int) -> StringTokenizer {
         StringTokenizer new(this, s, maxSplits)

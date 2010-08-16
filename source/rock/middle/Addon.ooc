@@ -90,6 +90,12 @@ Addon: class extends Node {
             call suggest(fDecl)
         }
 
+        if(!call getSuffix()) {
+            for(f in functions) {
+                if(f getName() == call getName()) call suggest(f)
+            }
+        }
+
         return 0
     }
 
