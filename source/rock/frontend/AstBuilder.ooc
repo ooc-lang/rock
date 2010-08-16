@@ -14,7 +14,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Dereference, Foreach, OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess,
     Match, FlowControl, While, CharLiteral, InterfaceDecl, NamespaceDecl,
     Version, Use, Block, ArrayLiteral, EnumDecl, BaseType, FuncType,
-    Declaration, PropertyDecl, CallChain, Tuple]
+    Declaration, PropertyDecl, CallChain, Tuple, Addon]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -175,6 +175,19 @@ AstBuilder: class {
     }
 
     /*
+     * Addons
+     */
+    onExtendStart: unmangled(nq_onExtendStart) func (baseType: Type, doc: String) {
+        addon := Addon new(baseType, token())
+        addon doc = doc
+        stack push(addon)
+    }
+
+    onExtendEnd: unmangled(nq_onExtendEnd) func -> Addon {
+        module addAddon(pop(Addon))
+    }
+
+    /*
      * Covers
      */
 
@@ -185,38 +198,6 @@ AstBuilder: class {
         cDecl module = module
         module addType(cDecl)
         stack push(cDecl)
-
-        // cover-absorbing =)
-        absorbed := false
-        for(imp in module getGlobalImports()) { // TODO: what about namespaced imports?
-            depMod := imp getModule()
-            //printf("Treating import %s, depMod = %s\n", imp path, depMod ? depMod getFullName() : "(nil)")
-            if(depMod != null) {
-                base := depMod getTypes() get(name)
-                if(base != null) {
-                    //println(" >> While parsing "+cDecl getName()+" in "+module getFullName()+", found base in "+depMod getFullName())
-                    cDecl absorb(base as CoverDecl, params)
-                    absorbed = true
-                    break
-                }
-            }
-        }
-        if(!absorbed) {
-            for(other in cache) {
-                for(imp in other getGlobalImports()) {
-                    if(imp path == module getFullName()) {
-                        addon := other getTypes() get(name)
-                        if(addon != null) {
-                            //println(" >> [From cache] While parsing "+cDecl getName()+" in "+module getFullName() +", found addon in "+other getFullName())
-                            addon as CoverDecl absorb(cDecl, params)
-                            absorbed = true
-                            break
-                        }
-                    }
-                }
-                if(absorbed) break
-            }
-        }
     }
 
     onCoverExtern: unmangled(nq_onCoverExtern) func (externName: String) {
@@ -685,8 +666,11 @@ AstBuilder: class {
         if(node == module) {
             module addFunction(fDecl)
         } else if(node instanceOf?(TypeDecl)) {
-            tDecl: TypeDecl = node
+            tDecl := node as TypeDecl
             tDecl addFunction(fDecl)
+        } else if(node instanceOf?(Addon)) {
+            addon := node as Addon
+            addon addFunction(fDecl)
         } else {
             //printf("^^^^^^^^ Unexpected function %s (peek is a %s)\n", fDecl name, node class name)
         }

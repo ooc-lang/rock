@@ -143,6 +143,11 @@ ModuleWriter: abstract class extends Skeleton {
         current untab(). nl(). app("}")
         current untab(). nl(). app("}"). nl()
 
+        // write all addons
+        for(addon in module addons) {
+            addon accept(this)
+        }
+
         // write all functions
         for(fDecl in module functions) {
             fDecl accept(this)
