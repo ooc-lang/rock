@@ -30,7 +30,7 @@ _EXCEPTION: Int = 1
 
 _pushStackFrame: inline func -> StackFrame {
     stack: Stack<StackFrame>
-    if(!exceptionStack hasValue()) {
+    if(!exceptionStack hasValue?()) {
         stack = Stack<StackFrame> new()
         exceptionStack set(stack)
     } else {
@@ -50,7 +50,7 @@ _popStackFrame: func -> StackFrame {
 }
 
 _hasStackFrame: func -> Bool {
-    exceptionStack hasValue() && exceptionStack get() as Stack<StackFrame> size() > 0
+    exceptionStack hasValue?() && exceptionStack get() as Stack<StackFrame> size() > 0
 }
 
 /**

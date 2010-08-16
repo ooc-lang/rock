@@ -221,5 +221,5 @@ ThreadLocal: abstract class <T> {
     /**
         Return true if there is any data set.
       */ 
-    hasValue: abstract func -> Bool
+    hasValue?: abstract func -> Bool
 }

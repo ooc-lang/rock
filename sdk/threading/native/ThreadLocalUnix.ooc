@@ -1,54 +1,39 @@
 import structs/HashMap
-import ../Thread
+import ../Thread, ThreadUnix
 include pthread, unistd
 
 version(unix || apple) {
     Key: cover from pthread_key_t
-     
-    pthread_key_create: extern func (key: Key*, destructor: Pointer)-> Int // TODO: actually it's a Func (Pointer).
-    pthread_setspecific: extern func (key: Key, value: Pointer) -> Int
-    pthread_getspecific: extern func(key: Key) -> Pointer
-    
-    gc_malloc_uncollectable: extern(GC_MALLOC_UNCOLLECTABLE) func (SizeT) -> Pointer
 
+    pthread_self: extern func -> PThread
+     
     // TODO: Please make this store pointers to generic values, not generic values.
     ThreadLocalUnix: class <T> extends ThreadLocal<T> {
-        key: Key
-        containers := HashMap<Pointer, T> new()
-        containersMutex := Mutex new()
+        values := HashMap<PThread, T> new()
+        valuesMutex := Mutex new()
 
         init: func ~unix {
-            pthread_key_create(key&, null) // TODO: error checking
+        
         }
-
-        generateIndex: func -> Pointer {
-            gc_malloc(Octet size)
-        }
-
-        setContainer: func (index: Pointer, value: T) {
-            containersMutex lock()
-            containers put(index, value)
-            containersMutex unlock()
-        }
-
+        
         set: func (value: T) {
-            index := pthread_getspecific(key)
-            if(index == null)
-                index = generateIndex()
-            setContainer(index, value)
-            pthread_setspecific(key, index)
+            valuesMutex lock()
+            values put(pthread_self(), value)
+            valuesMutex unlock()    
         }
 
         get: func -> T {
-            index := pthread_getspecific(key)
-            containersMutex lock()
-            value := containers get(index)
-            containersMutex unlock()
+            valuesMutex lock()
+            value := values get(pthread_self())
+            valuesMutex unlock()
             value
         }
 
-        hasValue: func -> Bool {
-            pthread_getspecific(key) != null
+        hasValue?: func -> Bool {
+            valuesMutex lock()
+            has := values contains?(pthread_self())
+            valuesMutex unlock()
+            has
         }
     }
 }
