@@ -1,11 +1,17 @@
 import threading/Thread, structs/Stack
 
-include setjmp
+include setjmp, execinfo
+
+backtrace: extern func (array: Void**, size: Int) -> Int
+backtraceSymbols: extern(backtrace_symbols) func (array: const Void**, size: Int) -> Char**
+backtraceSymbolsFd: extern(backtrace_symbols_fd) func (array: const Void**, size: Int, fd: Int)
 
 JmpBuf: cover from jmp_buf {
     setJmp: extern(setjmp) func -> Int
     longJmp: extern(longjmp) func (value: Int)
 }
+
+BACKTRACE_LENGTH := 20
 
 _StackFrame: cover {
     buf: JmpBuf
@@ -53,6 +59,20 @@ _hasStackFrame: func -> Bool {
  * @author Amos Wenger (nddrylliog)
  */
 Exception: class {
+    backtraceBuffer: Pointer*
+    backtraceLength: Int
+
+    setBacktrace: func {
+        backtraceBuffer = gc_malloc(Pointer size * BACKTRACE_LENGTH)
+        backtraceLength = backtrace(backtraceBuffer, BACKTRACE_LENGTH)
+    }
+
+    printBacktrace: func {
+        if(backtraceBuffer != null) {
+            "[backtrace] " print()
+            backtraceSymbolsFd(backtraceBuffer, backtraceLength, 2) // hell yeah stderr fd.
+        }
+    }
 
     /** Class which threw the exception. May be null */
     origin: Class
@@ -91,6 +111,7 @@ Exception: class {
      */
     print: func {
         fprintf(stderr, "%s\n", format())
+        printBacktrace()
     }
 
     /**
@@ -98,6 +119,7 @@ Exception: class {
      */
     throw: func {
         _setException(this)
+        setBacktrace()
         if(!_hasStackFrame()) {
             print()
             abort()
