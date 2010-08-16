@@ -404,7 +404,6 @@ CommandLine: class {
                 exit(1)
             }
             moduleName := File new(dummyModule ? dummyModule path : modulePaths[0]) name()
-            "moduleName = %s" printfln(moduleName)
             moduleName = moduleName[0..moduleName length() - 4]
             basePath := File new("build", moduleName) getPath()
             if(params staticlib == "") {

@@ -1,5 +1,5 @@
 import ../Thread
-include pthread, unistd, gc
+include pthread, unistd
 
 version(unix || apple) {
 
