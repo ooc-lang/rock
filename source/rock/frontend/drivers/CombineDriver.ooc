@@ -60,6 +60,7 @@ CombineDriver: class extends Driver {
             if (params binaryPath != "") {
                 params compiler setOutputPath(params binaryPath)
             } else {
+                checkBinaryNameCollision(module simpleName)
                 params compiler setOutputPath(module simpleName)
             }
             libs := getFlagsFromUse(module)
