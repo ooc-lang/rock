@@ -32,7 +32,7 @@ grammar:
 
 .libs/NagaQueen.o: source/rock/frontend/NagaQueen.c
 	mkdir -p .libs
-	gcc -std=c99 ${NQ_PATH} -D__OOC_USE_GC__ -w -c -o .libs/NagaQueen.o
+	gcc -std=c99 ${NQ_PATH} -O3 -fomit-frame-pointer -D__OOC_USE_GC__ -w -c -o .libs/NagaQueen.o
 
 
 # Prepares the build/ directory, used for bootstrapping

@@ -404,7 +404,6 @@ CommandLine: class {
                 exit(1)
             }
             moduleName := File new(dummyModule ? dummyModule path : modulePaths[0]) name()
-            "moduleName = %s" printfln(moduleName)
             moduleName = moduleName[0..moduleName length() - 4]
             basePath := File new("build", moduleName) getPath()
             if(params staticlib == "") {
@@ -439,7 +438,6 @@ CommandLine: class {
                 params binaryPath = params dynamiclib
                 //driver = CombineDriver new(params)
                 params libcache = false // libcache is incompatible with combine driver
-                params dynGC = true // including the libgc.a would involve creating a DT_TEXTREL
                 File new(basePath, "lib") mkdirs()
             }
         }
@@ -542,7 +540,7 @@ CommandLine: class {
             }
         }
         module parseImports(null)
-        if(params verbose) printf("Finished parsing, now tinkering...\n")
+        if(params verbose) printf("\rFinished parsing, now tinkering...                                                   \n")
 
         // phase 2: tinker
         if(!Tinkerer new(params) process(module collectDeps())) failure()

@@ -2,7 +2,7 @@ import structs/[ArrayList, List]
 import ../frontend/Token
 import ControlStatement, Statement, Expression, Visitor, VariableDecl,
        Node, VariableAccess, Scope, BoolLiteral, Comparison, Type,
-       FunctionDecl, Return, BinaryOp, FunctionCall, Cast
+       FunctionDecl, Return, BinaryOp, FunctionCall, Cast, Parenthesis
 import tinker/[Trail, Resolver, Response, Errors]
 
 Match: class extends Expression {
@@ -68,7 +68,10 @@ Match: class extends Expression {
                             res wholeAgain(this, "need expr type")
                             break
                         }
-                        if(caze getExpr() instanceOf?(VariableDecl)) {
+                        caseExpr := caze getExpr()
+                        while(caseExpr instanceOf?(Parenthesis))
+                            caseExpr = caseExpr as Parenthesis inner
+                        if(caseExpr instanceOf?(VariableDecl)) {
                             // unwrap `VariableDecl` (e.g. `case n: Node =>`) cases here
                             fCall: FunctionCall
                             mType := expr getType()
@@ -78,9 +81,9 @@ Match: class extends Expression {
                             } else {
                                 fCall = FunctionCall new(expr, "instanceOf__quest", caseToken)
                             }
-                            fCall args add(TypeAccess new(caze getExpr() getType(), caseToken))
+                            fCall args add(TypeAccess new(caseExpr getType(), caseToken))
                             hmm := fCall resolve(trail, res)
-                            vDecl := caze getExpr() as VariableDecl
+                            vDecl := caseExpr as VariableDecl
                             if(fCall getRef() == null) {
                                 if(res fatal) {
                                     res throwError(

@@ -60,6 +60,7 @@ Token: cover {
         }
 
         b := Buffer new()
+        b append("\n")
 
         fr := FileReader new(getPath())
 
@@ -93,8 +94,12 @@ Token: cover {
 
         b append(prefix)
         end := getEnd()
+        beginning := true
         for(i in (lastNewLine + 1)..(idx + 1)) {
             c := fr read()
+            if(beginning && c == '\n') continue
+            beginning = false
+
             match (c) {
                 case '\t' =>
                     b append("    ")

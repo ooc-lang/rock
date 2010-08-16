@@ -4,7 +4,8 @@ import ../io/TabbedWriter
 import text/Buffer
 import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
     FunctionDecl, FunctionCall, Module, VariableAccess, Node,
-    InterfaceImpl, Version, EnumDecl, BaseType, FuncType, OperatorDecl
+    InterfaceImpl, Version, EnumDecl, BaseType, FuncType, OperatorDecl,
+    Addon
 import tinker/[Resolver, Response, Trail, Errors]
 
 /**
@@ -56,7 +57,7 @@ TypeDecl: abstract class extends Declaration {
     verzion: VersionSpec = null
 
     base: TypeDecl = null
-    addons := ArrayList<TypeDecl> new()
+    addons := ArrayList<Addon> new()
 
     _finishedGhosting := false
 
@@ -113,8 +114,8 @@ TypeDecl: abstract class extends Declaration {
 
     isAddon: func -> Bool { getBase() != null }
 
-    getAddons: func -> ArrayList<TypeDecl> {
-        return isMeta ? addons : getMeta() addons
+    getAddons: func -> ArrayList<Addon> {
+        return isMeta ? getNonMeta() addons : addons
     }
 
     getFullName: func -> String {
@@ -761,36 +762,25 @@ TypeDecl: abstract class extends Declaration {
             	if(call debugCondition()) "   returning..." println()
 	            return 0
             }
-        }/* else if(getSuperRef() != null) {
-            if(call debugCondition()) printf("  <== going in superRef %s\n", getSuperRef() toString())
-            if(getSuperRef() resolveCall(call, res, trail) == -1) return -1
-        }*/ // FIXME: uncomment when we're sure this doesn't cause any problems
-
-        /*
-        if(getBase() != null) {
-            if(call debugCondition()) printf("From %s (%s), ooking in base %s (%s)\n",
-                toString(), token toString(), getBase() toString(), getBase() token toString())
-            if(getBase() resolveCall(call, res, trail) == -1) return -1
         }
-        */
 
         for(addon in getAddons()) {
             has := false
 
-            for(imp in call token module getGlobalImports()) {
+            // It's also possible that the addon was defined in the
+            // function call's module.
+            if(call token module == addon token module) {
+                has = true
+            } else for(imp in call token module getGlobalImports()) {
                 if(imp getModule() == addon token module) {
                     has = true
                     break
                 }
             }
 
-            // It's also possible that the addon was defined in the
-            // function call's module.
-            if(call token module == addon token module && call token module == token module) {
-                has = true
+            if(!has) {
+                continue
             }
-
-            if(!has) continue
 
             if(addon resolveCall(call, res, trail) == -1) return -1
         }
