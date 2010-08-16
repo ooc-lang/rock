@@ -212,14 +212,24 @@ List: abstract class <T> extends BackIterable<T> {
     /**
      * Reverse this list (destructive)
      */
-    reverse: func {
+    reverse!: func {
         i := 0
         j := size() - 1
-        while (i <= j / 2) {
+        limit := j / 2
+        while (i <= limit) {
             set(i, set(j, get(i)))
             i += 1
             j -= 1
         }
+    }
+
+    /**
+     * Reverse this list (non-destructive)
+     */
+    reverse: func -> This<T> {
+        copy := clone()
+        copy reverse!()
+        copy
     }
 
     /**
