@@ -439,7 +439,6 @@ CommandLine: class {
                 params binaryPath = params dynamiclib
                 //driver = CombineDriver new(params)
                 params libcache = false // libcache is incompatible with combine driver
-                params dynGC = true // including the libgc.a would involve creating a DT_TEXTREL
                 File new(basePath, "lib") mkdirs()
             }
         }

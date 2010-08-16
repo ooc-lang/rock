@@ -84,6 +84,7 @@ SequenceDriver: class extends Driver {
         }
         if(params verbose) println()
 
+        doesLib := (params staticlib != null || params dynamiclib != null)
         if(params link && (params staticlib == null || params dynamiclib != null)) {
 
 			initCompiler(params compiler)
@@ -97,7 +98,8 @@ SequenceDriver: class extends Driver {
             for(define in params defines) {
                 params compiler defineSymbol(define)
             }
-            for(dynamicLib in params dynamicLibs) {
+
+            if(!doesLib) for(dynamicLib in params dynamicLibs) {
                 params compiler addDynamicLibrary(dynamicLib)
             }
             for(incPath in params incPath getPaths()) {
@@ -109,7 +111,7 @@ SequenceDriver: class extends Driver {
             for(additional in params additionals) {
                 params compiler addObjectFile(additional)
             }
-			for(libPath in params libPath getPaths()) {
+			if(!doesLib) for(libPath in params libPath getPaths()) {
 				params compiler addLibraryPath(libPath getAbsolutePath())
 			}
 
@@ -119,12 +121,14 @@ SequenceDriver: class extends Driver {
                 params compiler setOutputPath(module simpleName)
             }
 
-            libs := getFlagsFromUse(module)
-            for(lib in libs) {
-                params compiler addObjectFile(lib)
+            if(!doesLib) {
+                libs := getFlagsFromUse(module)
+                for(lib in libs) {
+                    params compiler addObjectFile(lib)
+                }
             }
 
-			if(params enableGC) {
+			if(params enableGC && !doesLib) {
                 params compiler addDynamicLibrary("pthread")
                 if(params dynGC) {
                     params compiler addDynamicLibrary("gc")
