@@ -4,11 +4,10 @@ import Literal, Visitor, Type, BaseType
 BoolLiteral: class extends Literal {
 
     value: Bool
-    type : BaseType
+    type := static BaseType new("Bool", nullToken)
 
     init: func ~boolLiteral (=value, .token) {
         super(token)
-        type = BaseType new("Bool", token)
     }
 
     clone: func -> This { new(value, token) }

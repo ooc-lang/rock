@@ -142,7 +142,7 @@ FunctionCall: class extends Expression {
      * The call then evaluates the score of the decl, and if it has a higher score,
      * stores it as its new best ref.
      */
-    suggest: func (candidate: FunctionDecl) -> Bool {
+    suggest: func (candidate: FunctionDecl, res: Resolver, trail: Trail) -> Bool {
 
         if(debugCondition()) "** [refScore = %d] Got suggestion %s for %s" format(refScore, candidate toString(), toString()) println()
 
@@ -154,6 +154,10 @@ FunctionCall: class extends Expression {
         score := getScore(candidate)
         if(score == -1) {
             if(debugCondition()) "** Score = -1! Aboort" println()
+            if(res fatal) {
+                // trigger a resolve on the candidate so that it'll display a more helpful error
+                candidate resolve(trail, res)
+            }
             return false
         }
 

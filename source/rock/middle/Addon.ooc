@@ -84,15 +84,15 @@ Addon: class extends Node {
     }
 
     resolveCall: func (call : FunctionCall, res: Resolver, trail: Trail) -> Int {
-        hash := TypeDecl hashName(call getName(), call getSuffix())
+        hash := TypeDecl hashName(call name, call suffix)
         fDecl := functions get(hash)
         if(fDecl) {
-            call suggest(fDecl)
+            call suggest(fDecl, res, trail)
         }
 
         if(!call getSuffix()) {
             for(f in functions) {
-                if(f getName() == call getName()) call suggest(f)
+                if(f name == call name) call suggest(f, res, trail)
             }
         }
 

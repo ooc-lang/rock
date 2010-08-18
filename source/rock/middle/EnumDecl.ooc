@@ -1,14 +1,35 @@
 import structs/HashMap
 import ../io/TabbedWriter
-import TypeDecl, Declaration, Visitor, Node, VariableAccess, Type, VariableDecl
+import TypeDecl, Declaration, Visitor, Node, VariableAccess, Type,
+       VariableDecl, IntLiteral, FloatLiteral, Expression
+import tinker/[Trail, Resolver, Response, Errors]
+import ../frontend/Token
 
 EnumDecl: class extends TypeDecl {
-    lastElementValue: Int = 0
-    incrementOper: Char = '+'
-    incrementStep: Int = 1
+    lastElementValue := IntLiteral new(0, nullToken)
+    incrementOper := '+'
+    incrementStep := 1
+    fromType: Type
 
     init: func ~enumDecl(.name, .token) {
         super(name, token)
+        fromType = instanceType
+    }
+
+    setFromType: func (=fromType) {}
+
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        {
+            response := super(trail, res)
+            if(!response ok()) return response
+        }
+
+        {
+            response := fromType resolve(trail, res)
+            if(!response ok()) return response
+        }
+
+        Responses OK
     }
 
     addElement: func (element: EnumElement) {
@@ -21,19 +42,34 @@ EnumDecl: class extends TypeDecl {
             // If no value is provided for a non-extern element,
             // calculate it by incrementing the last used value.
             if(!element valueSet) {
-                if(incrementOper == '+') {
-                    lastElementValue += incrementStep
-                } else if(incrementOper == '*') {
-                    lastElementValue *= incrementStep
+                lastElementValue = match lastElementValue {
+                        case intLit: IntLiteral =>
+                            IntLiteral new(match incrementOper {
+                                case '+' =>
+                                    intLit value + incrementStep
+                                case '*' =>
+                                    intLit value * incrementStep
+                            }, intLit token)
+                        case floatLit: FloatLiteral =>
+                            FloatLiteral new(match incrementOper {
+                                case '+' =>
+                                    floatLit value + incrementStep as Float
+                                case '*' =>
+                                    floatLit value * incrementStep as Float
+                            }, floatLit token)
+                        case =>
+                            token module params errorHandler onError(ImpossibleIncrement new(element token,
+                                "It's impossible to increment implicitly elements of type %s!" format(fromType toString())))
+                            return
+                            null
                 }
-
                 element setValue(lastElementValue)
             } else {
                 lastElementValue = element getValue()
             }
         }
 
-        element setType(instanceType)
+        element setType(fromType)
         getMeta() addVariable(element)
     }
 
@@ -61,17 +97,17 @@ EnumDecl: class extends TypeDecl {
 }
 
 EnumElement: class extends VariableDecl {
-    doc := null
+    doc: String
     type: Type
-    value: Int
-    valueSet: Bool = false
+    value: Expression
+    valueSet := false
 
     init: func ~enumElementDecl(.type, .name, .token) {
         super(type, name, token)
     }
 
     setValue: func (=value) { valueSet = true }
-    getValue: func -> Int { value }
+    getValue: func -> Expression { value }
 
     setType: func (=type) {}
     getType: func -> Type { type }
@@ -80,3 +116,8 @@ EnumElement: class extends VariableDecl {
 
     replace: func (oldie, kiddo: Node) -> Bool { false }
 }
+
+ImpossibleIncrement: class extends Error {
+    init: super func ~tokenMessage
+}
+

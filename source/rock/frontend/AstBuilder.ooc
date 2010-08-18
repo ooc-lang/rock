@@ -237,6 +237,10 @@ AstBuilder: class {
         peek(EnumDecl) setExternName(externName clone())
     }
 
+    onEnumFromType: unmangled(nq_onEnumFromType) func (fromType: Type) {
+        peek(EnumDecl) setFromType(fromType)
+    }
+
     onEnumIncrementExpr: unmangled(nq_onEnumIncrementExpr) func (oper: Char, step: IntLiteral) {
         peek(EnumDecl) setIncrement(oper, step value)
     }
@@ -247,8 +251,8 @@ AstBuilder: class {
         stack push(element)
     }
 
-    onEnumElementValue: unmangled(nq_onEnumElementValue) func (value: IntLiteral) {
-        peek(EnumElement) setValue(value value)
+    onEnumElementValue: unmangled(nq_onEnumElementValue) func (value: Expression) {
+        peek(EnumElement) setValue(value)
     }
 
     onEnumElementExtern: unmangled(nq_onEnumElementExtern) func (externName: String) {
