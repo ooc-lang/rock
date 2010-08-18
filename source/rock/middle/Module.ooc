@@ -250,28 +250,28 @@ Module: class extends Node {
             return 0 // hmm no member calls for us
         }
 
-        resolveCallNonRecursive(call, res)
+        resolveCallNonRecursive(call, res, trail)
 
         for(imp in getGlobalImports()) {
-            imp getModule() resolveCallNonRecursive(call, res)
+            imp getModule() resolveCallNonRecursive(call, res, trail)
         }
 
         0
     }
 
-    resolveCallNonRecursive: func (call: FunctionCall, res: Resolver) {
+    resolveCallNonRecursive: func (call: FunctionCall, res: Resolver, trail: Trail) {
 
         //printf(" >> Looking for function %s in module %s!\n", call name, fullName)
         fDecl : FunctionDecl = null
         fDecl = functions get(TypeDecl hashName(call name, call suffix))
         if(fDecl) {
-            call suggest(fDecl)
+            call suggest(fDecl, res, trail)
         }
 
-        for(fDecl in functions) {
-            if(fDecl getName() == call getName() && (call getSuffix() == null || call getSuffix() == fDecl getSuffix())) {
+        if(!call suffix) for(fDecl in functions) {
+            if(fDecl name == call name && (call suffix == null)) {
                 if(call debugCondition()) printf("Suggesting fDecl %s for call %s\n", fDecl toString(), call toString())
-                call suggest(fDecl)
+                call suggest(fDecl, res, trail)
             }
         }
 

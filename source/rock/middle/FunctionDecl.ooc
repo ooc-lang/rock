@@ -394,7 +394,7 @@ FunctionDecl: class extends Declaration {
         for(arg: Argument in args) {
             if((arg getType() instanceOf?(FuncType) || (arg getType() != null && arg getType() getName() == "Closure")) &&
                     arg getName() == call getName()) {
-                call suggest(arg getFunctionDecl())
+                call suggest(arg getFunctionDecl(), res, trail)
                 break
             }
         }

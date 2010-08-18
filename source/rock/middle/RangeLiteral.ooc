@@ -6,11 +6,10 @@ import tinker/[Resolver, Response, Trail]
 RangeLiteral: class extends Literal {
 
     lower, upper: Expression
-    type : Type
+    type := static BaseType new("Range", nullToken)
 
     init: func ~rangeLiteral (=lower, =upper, .token) {
         super(token)
-        type = BaseType new("Range", token)
     }
 
     clone: func -> This {

@@ -526,6 +526,7 @@ CommandLine: class {
         first := static true
 
         if(params onlyparse) {
+            if(params verbose) println()
             // Oookay, we're done here.
             success()
             return 0

@@ -64,10 +64,10 @@ Scope: class extends Node {
             if(stat instanceOf?(VariableDecl)) {
                 vDecl := stat as VariableDecl
                 // experimental
-                if((vDecl getType() instanceOf?(FuncType) || (vDecl getType() != null && vDecl getType() getName() == "Closure")) &&
-                   vDecl getName() == call getName() &&
-                   call suggest(vDecl getFunctionDecl())) {
-                    break
+                if((vDecl getType() instanceOf?(FuncType) || (vDecl getType() != null && vDecl type getName() == "Closure")) &&
+                    vDecl name == call name &&
+                    call suggest(vDecl getFunctionDecl(), res, trail)) {
+                        break
                 }
             }
         }
