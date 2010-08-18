@@ -48,6 +48,10 @@ ArrayAccess: class extends Expression {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
+        if(res fatal && type == null) {
+            res throwError(InvalidArrayAccess new(token, "Trying to index something that isn't an array, nor has an overload for the []/[]= operators"))
+        }
+
         trail push(this)
 
         for(index in indices) {
@@ -318,6 +322,10 @@ ArrayAccess: class extends Expression {
         }
     }
 
+}
+
+InvalidArrayAccess: class extends Error {
+    init: super func ~tokenMessage
 }
 
 InvalidArrayCreation: class extends Error {
