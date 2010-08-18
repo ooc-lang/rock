@@ -110,6 +110,7 @@ FunctionDecl: class extends Declaration {
 
     /** body of the function (list of statements) */
     body := Scope new()
+    hasBody := false
 
     _returnTypeResolvedOnce := false
 

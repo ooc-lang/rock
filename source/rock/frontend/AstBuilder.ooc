@@ -664,6 +664,10 @@ AstBuilder: class {
         peek(FunctionDecl) returnType = type
     }
 
+    onFunctionBody: unmangled(nq_onFunctionBody) func {
+        peek(FunctionDecl) hasBody = true
+    }
+
     onFunctionEnd: unmangled(nq_onFunctionEnd) func -> FunctionDecl {
         fDecl := pop(FunctionDecl)
         node : Node = stack peek()
