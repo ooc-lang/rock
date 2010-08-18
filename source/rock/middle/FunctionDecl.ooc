@@ -394,7 +394,7 @@ FunctionDecl: class extends Declaration {
         for(arg: Argument in args) {
             if((arg getType() instanceOf?(FuncType) || (arg getType() != null && arg getType() getName() == "Closure")) &&
                     arg getName() == call getName()) {
-                call suggest(arg getFunctionDecl())
+                call suggest(arg getFunctionDecl(), res, trail)
                 break
             }
         }
@@ -441,7 +441,7 @@ FunctionDecl: class extends Declaration {
         }
         return true
     }
-    
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         if(debugCondition() || res params veryVerbose) printf("** Resolving function decl %s\n", name)
@@ -473,6 +473,11 @@ FunctionDecl: class extends Declaration {
                         for(j in 0..fType1 argTypes size()) {
                             type1 := fType1 argTypes[j]
                             type2 := fType2 argTypes[j]
+
+                            if(!type1 isResolved() || !type2 isResolved()) {
+                                res wholeAgain(this, "should determine interface specialization")
+                                break
+                            }
 
                             if(type2 isGeneric() && !type1 isGeneric()) {
                                 // there's a specialization going on!
@@ -506,7 +511,7 @@ FunctionDecl: class extends Declaration {
                     return Responses OK
                 }
             }
-            args each(| arg | 
+            args each(| arg |
                 if (arg getType() == null || !arg getType() isResolved()) {
                     "Looping because of arg %s" printfln(arg toString())
                     res wholeAgain(this, "need arg type for the ref")
@@ -514,7 +519,7 @@ FunctionDecl: class extends Declaration {
                 }
             )
         }
-        
+
         for(typeArg in typeArgs) {
             response := typeArg resolve(trail, res)
             if(!response ok()) {
@@ -745,14 +750,13 @@ FunctionDecl: class extends Declaration {
                 becomes
                     test: func<T> (b_generic: T) { b := b_generic as String; b println() }
             */
-            
+
             for (arg in args) {
                 if (arg getType() isGeneric()) {
                     oldName := arg name
                     genType := parentCall resolveTypeArg(arg getType() getName(), trail, fScore&)
                     if (fScore == -1 || genType == null) {
                         res wholeAgain(this, "Can't figure out the actual type of the generic.")
-                        trail pop(this)
                         return false
                     }
                     if(genType isGeneric()) {

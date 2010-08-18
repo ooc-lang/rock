@@ -1,7 +1,7 @@
 import io/[File]
 import structs/[List, ArrayList]
 
-import ../BuildParams, ../pkgconfig/[PkgInfo, PkgConfigFrontend]
+import ../[BuildParams,CommandLine], ../pkgconfig/[PkgInfo, PkgConfigFrontend]
 import ../../middle/[Import, Include, Module, Use, UseDef]
 
 import ../../utils/[ShellUtils]
@@ -155,4 +155,11 @@ Driver: abstract class {
 
     }
 
+    checkBinaryNameCollision: func (name: String) {
+        if (File new(name) dir?()) {
+            fprintf(stderr, "Naming conflict (output binary) : There is already a directory called %s.\nTry a different name, e.g. '-o=%s2'\n", name, name)
+            CommandLine failure()
+            exit(1)
+        }
+    } 
 }
