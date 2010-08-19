@@ -325,11 +325,7 @@ File: abstract class {
        :return: the current working directory
      */
     getCwd: static func -> String {
-        ret := String new(File MAX_PATH_LENGTH + 1)
-        if(!_getcwd(ret, File MAX_PATH_LENGTH)) {
-            Exception new("Failed to get current directory!") throw()
-        }
-        return ret
+        ooc_get_cwd()
     }
 
 }

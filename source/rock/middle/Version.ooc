@@ -80,11 +80,7 @@ VersionName: class extends VersionSpec {
 
         origin = name
         real := builtinNames get(name)
-        if(real == null) {
-            token module params errorHandler onError(Warning new(token, "Unknown version id: '" + name + "', compiling anyway (who knows?)"))
-        } else {
-            this name = real
-        }
+        if(real) this name = real
     }
 
     toString: func -> String { name }
