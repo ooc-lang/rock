@@ -73,6 +73,16 @@ FunctionCall: class extends Expression {
     ref = null : FunctionDecl
 
     /**
+     * By default member method calls are virtual calls, ie. they call
+     * the implementation of the *actual*, concrete class of the object it's called
+     * on, not on the abstract class we might be calling it on.
+     *
+     * This is only used internally when we really want to call the _impl variant
+     * instead.
+     */
+    virtual := true
+
+    /**
      * < 0 = not resolved (incompatible functions)
      * > 0 = resolved
      *

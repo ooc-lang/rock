@@ -59,7 +59,22 @@ ControlStatementWriter: abstract class extends Skeleton {
 
     write: static func ~_match (this: Skeleton, mat: Match) {
         isFirst := true
-		for(caze in mat getCases()) {
+		writeBody := func(caze: Case) {
+            current app("{"). tab()
+            for (stat in caze getBody()) writeLine(stat)
+            current untab(). nl(). app("}")
+        }
+        
+        // ´case =>´ as only match-case
+        if (mat getCases() size() == 1) {
+            caze := mat getCases() get(0)
+            if (!caze getExpr()) {                 
+                writeBody(caze)
+                return
+            }
+        }
+   
+        for(caze in mat getCases()) {
 			if(!isFirst) current app(" else ")
 
 			if(caze getExpr() == null) {
@@ -70,14 +85,8 @@ ControlStatementWriter: abstract class extends Skeleton {
 				current app("if ("). app(caze getExpr()). app(")")
 			}
 			
-			current app("{"). tab()
-			
-			for(stat in caze getBody()) {
-				writeLine(stat)
-			}
-			
-			current untab(). nl(). app("}")
-			if(isFirst) isFirst = false;
+			writeBody(caze)
+            if(isFirst) isFirst = false;
 		}
     }
 

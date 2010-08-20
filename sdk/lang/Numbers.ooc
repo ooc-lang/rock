@@ -1,4 +1,4 @@
-include stdlib, stdint, stdbool, stddef, float, ctype, sys/types
+include stdlib, stdint, stddef, float, ctype, sys/types
 
 LLong: cover from signed long long {
 
@@ -48,11 +48,11 @@ UInt:   cover from unsigned int   extends ULLong
 UShort: cover from unsigned short extends ULLong
 
 //INT_MIN,    INT_MAX  : extern const static Int
-//UINT_MAX 			 : extern const static UInt
+//UINT_MAX           : extern const static UInt
 //LONG_MIN,  LONG_MAX  : extern const static Long
-//ULONG_MAX			 : extern const static ULong
+//ULONG_MAX          : extern const static ULong
 //LLONG_MIN, LLONG_MAX : extern const static LLong
-//ULLONG_MAX			 : extern const static ULLong
+//ULLONG_MAX             : extern const static ULLong
 
 INT_MAX := 2147483647
 INT_MIN := -INT_MAX - 1

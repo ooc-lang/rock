@@ -4,6 +4,8 @@ build
 *~
 *.swp
 bin
+bin-win32
+bin-linux
 *tmp*
 .libs
 callgrind.out.*

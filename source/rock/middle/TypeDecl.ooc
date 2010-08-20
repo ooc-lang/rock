@@ -5,7 +5,7 @@ import text/Buffer
 import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
     FunctionDecl, FunctionCall, Module, VariableAccess, Node,
     InterfaceImpl, Version, EnumDecl, BaseType, FuncType, OperatorDecl,
-    Addon
+    Addon, Cast
 import tinker/[Resolver, Response, Trail, Errors]
 
 /**

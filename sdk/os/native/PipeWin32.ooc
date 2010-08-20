@@ -1,4 +1,4 @@
-import ../Pipe, native/win32/[types, errors], os/Time
+import ../Pipe, native/win32/[types, errors]
 
 version(windows) {
 
