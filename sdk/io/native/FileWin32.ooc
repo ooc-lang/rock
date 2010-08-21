@@ -71,25 +71,24 @@ version(windows) {
          * opened for reading
          */
         exists?: func -> Bool {
-            ffd := _getFindData()
-            (ffd  != null)
+            (ffd, ok) := _getFindData()
+            ok
         }
 
-        _getFindData: func -> FindData* {
-            ffd: FindData* = gc_malloc(FindData size)
-            hFind := FindFirstFile(path as CString, ffd)
+        _getFindData: func -> (FindData, Bool) {
+            ffd: FindData
+            hFind := FindFirstFile(path as CString, ffd&)
             if (hFind != INVALID_HANDLE_VALUE) FindClose(hFind)
-            else ffd = null
-            return ffd
+            else return (ffd, false)
+            return (ffd, true)
         }
-
 
         /**
          * @return true if it's a directory (return false if it doesn't exist)
          */
         dir?: func -> Bool {
-            ffd := _getFindData()
-            return (ffd  != null) && ((ffd@ attr) & FILE_ATTRIBUTE_DIRECTORY) != 0
+            (ffd, ok) := _getFindData()
+            return (ok) && ((ffd attr) & FILE_ATTRIBUTE_DIRECTORY) != 0
         }
 
         /**
@@ -98,26 +97,26 @@ version(windows) {
         file?: func -> Bool {
             // our definition of a file: neither a directory or a link
             // (and no, FILE_ATTRIBUTE_NORMAL isn't true when we need it..)
-            ffd := _getFindData()
-            return (ffd != null) &&
-                    (((ffd@ attr) & FILE_ATTRIBUTE_DIRECTORY    ) == 0) &&
-                    (((ffd@ attr) & FILE_ATTRIBUTE_REPARSE_POINT) == 0)
+            (ffd, ok) := _getFindData()
+            return (ok) &&
+                    (((ffd attr) & FILE_ATTRIBUTE_DIRECTORY    ) == 0) &&
+                    (((ffd attr) & FILE_ATTRIBUTE_REPARSE_POINT) == 0)
         }
 
         /**
          * @return true if the file is a symbolic link
          */
         link?: func -> Bool {
-            ffd := _getFindData()
-            return (ffd != null) && ((ffd@ attr) & FILE_ATTRIBUTE_REPARSE_POINT) != 0
+            (ffd, ok) := _getFindData()
+            return (ok) && ((ffd attr) & FILE_ATTRIBUTE_REPARSE_POINT) != 0
         }
 
         /**
          * @return the size of the file, in bytes
          */
         size: func -> LLong {
-            ffd := _getFindData()
-            return (ffd == null) ? 0 : toLLong(ffd@ fileSizeLow, ffd@ fileSizeHigh)
+            (ffd, ok) := _getFindData()
+            return (ok) ? 0 : toLLong(ffd fileSizeLow, ffd fileSizeHigh)
         }
 
         /**
@@ -158,24 +157,24 @@ version(windows) {
          * @return the time of last access
          */
         lastAccessed: func -> Long {
-            ffd := _getFindData()
-            return (ffd == null) ? -1 : toTimestamp(ffd@ lastAccessTime)
+            (ffd, ok) := _getFindData()
+            return (ok) ? toTimestamp(ffd lastAccessTime) : -1
         }
 
         /**
          * @return the time of last modification
          */
         lastModified: func -> Long {
-            ffd := _getFindData()
-            return (ffd == null) ? -1 : toTimestamp(ffd@ lastWriteTime)
+            (ffd, ok) := _getFindData()
+            return (ok) ? toTimestamp(ffd lastWriteTime) : -1
         }
 
         /**
          * @return the time of creation
          */
         created: func -> Long {
-            ffd := _getFindData()
-            return (ffd == null) ? -1 : toTimestamp(ffd@ creationTime)
+            (ffd, ok) := _getFindData()
+            return (ok) ? toTimestamp(ffd creationTime) : -1
         }
 
         // FIXME the function is relative ? what should that mean ?
