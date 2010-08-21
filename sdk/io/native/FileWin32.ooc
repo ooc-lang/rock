@@ -71,18 +71,11 @@ version(windows) {
          * opened for reading
          */
         exists?: func -> Bool {
-            result := true
-            ffd: FindData
-            hFind := FindFirstFile(path as CString, ffd&)
-            if(hFind == INVALID_HANDLE_VALUE) {
-                result = false
-            }
-            FindClose(hFind)
-
-            //printf("%s exists? %s\n", path, result toString())
-            result
+            ffd := _getFindData()
+            (ffd  != null)
         }
 
+        // FIXME these 2 look deprecated and its not good practice to leave handles open as findFirst does
         findSingle: func (ffdPtr: FindData*) {
             FindClose(findFirst(ffdPtr))
         }
@@ -95,55 +88,49 @@ version(windows) {
             return hFind
         }
 
+        _getFindData: func -> FindData* {
+            ffd: FindData* = gc_malloc(FindData size)
+            hFind := FindFirstFile(path as CString, ffd)
+            if (hFind != INVALID_HANDLE_VALUE) FindClose(hFind)
+            else ffd = null
+            return ffd
+        }
 
-        // FIXME these two functions are nearly identical, remove the bloat!
+
         /**
          * @return true if it's a directory (return false if it doesn't exist)
          */
         dir?: func -> Bool {
-            ffd: FindData
-            hFind := FindFirstFile(path as CString, ffd&)
-            if(hFind == INVALID_HANDLE_VALUE) return false // it's not a directory if it doesn't exist
-            FindClose(hFind)
-
-            return ((ffd attr) & FILE_ATTRIBUTE_DIRECTORY) != 0
+            ffd := _getFindData()
+            return (ffd  != null) && ((ffd@ attr) & FILE_ATTRIBUTE_DIRECTORY) != 0
         }
 
         /**
          * @return true if it's a file (ie. exists and is not a directory nor a symbolic link)
          */
         file?: func -> Bool {
-            ffd: FindData
-            hFind := FindFirstFile(path as CString, ffd&)
-            if(hFind == INVALID_HANDLE_VALUE) return false // it's not a file if it doesn't exist
-            FindClose(hFind)
-
-            findSingle(ffd&)
             // our definition of a file: neither a directory or a link
             // (and no, FILE_ATTRIBUTE_NORMAL isn't true when we need it..)
-            return (((ffd attr) & FILE_ATTRIBUTE_DIRECTORY    ) == 0) &&
-                   (((ffd attr) & FILE_ATTRIBUTE_REPARSE_POINT) == 0)
+            ffd := _getFindData()
+            return (ffd != null) &&
+                    (((ffd@ attr) & FILE_ATTRIBUTE_DIRECTORY    ) == 0) &&
+                    (((ffd@ attr) & FILE_ATTRIBUTE_REPARSE_POINT) == 0)
         }
 
         /**
          * @return true if the file is a symbolic link
          */
         link?: func -> Bool {
-            ffd: FindData
-            hFind := FindFirstFile(path as CString, ffd&)
-            if(hFind == INVALID_HANDLE_VALUE) return false // it's not a link if it doesn't exist
-            FindClose(hFind)
-
-            return ((ffd attr) & FILE_ATTRIBUTE_REPARSE_POINT) != 0
+            ffd := _getFindData()
+            return (ffd != null) && ((ffd@ attr) & FILE_ATTRIBUTE_REPARSE_POINT) != 0
         }
 
         /**
          * @return the size of the file, in bytes
          */
         size: func -> LLong {
-            ffd: FindData
-            findSingle(ffd&)
-            return toLLong(ffd fileSizeLow, ffd fileSizeHigh)
+            ffd := _getFindData()
+            return (ffd == null) ? 0 : toLLong(ffd@ fileSizeLow, ffd@ fileSizeHigh)
         }
 
         /**
@@ -184,41 +171,34 @@ version(windows) {
          * @return the time of last access
          */
         lastAccessed: func -> Long {
-            if(!exists?()) return -1
-
-            ffd: FindData
-            findSingle(ffd&)
-            return toTimestamp(ffd lastAccessTime)
+            ffd := _getFindData()
+            return (ffd == null) ? -1 : toTimestamp(ffd@ lastAccessTime)
         }
 
         /**
          * @return the time of last modification
          */
         lastModified: func -> Long {
-            if(!exists?()) return -1
-
-            ffd: FindData
-            findSingle(ffd&)
-            return toTimestamp(ffd lastWriteTime)
+            ffd := _getFindData()
+            return (ffd == null) ? -1 : toTimestamp(ffd@ lastWriteTime)
         }
 
         /**
          * @return the time of creation
          */
         created: func -> Long {
-            if(!exists?()) return -1
-
-            ffd: FindData
-            findSingle(ffd&)
-            return toTimestamp(ffd creationTime)
+            ffd := _getFindData()
+            return (ffd == null) ? -1 : toTimestamp(ffd@ creationTime)
         }
 
+        // FIXME the function is relative ? what should that mean ?
         /**
          * @return true if the function is relative to the current directory
          */
         relative?: func -> Bool {
             // that's a bit rough, but should work most of the time
-            path startsWith?(".") || (!path startsWith?("\\\\") && path[1] != ':')
+            // FIXME this looks very suspicious
+            path startsWith?(".") || (!path startsWith?("\\\\") && ( path length() > 1 && path[1] != ':') )
         }
 
         /**
@@ -232,26 +212,33 @@ version(windows) {
             }
         }
 
+        _isSelfOrParentDirEntry? : inline func (dir: CString) -> Bool {
+            l := strlen(dir)
+            return ( (l > 0 && l < 3) && (dir as Char*)@ == '.' && (l == 1 || (dir as Char* + 1)@ == '.'))
+        }
 
-        // FIXME these two functions are nearly identical, remove the bloat!
+        _getChildren: func <T> (param: T) -> ArrayList<T> {
+            result := ArrayList<T> new()
+            ffd: FindData
+            hFile := FindFirstFile((path + "\\*") as CString, ffd&)
+            running := (hFile != INVALID_HANDLE_VALUE)
+            while(running) {
+                if(!_isSelfOrParentDirEntry?(ffd fileName)) {
+                    if (T == String) result add(path +  '\\' + ffd fileName)
+                    else if (T == File) result add(File new(path + '\\' + ffd fileName))
+                }
+                running = FindNextFile(hFile, ffd&)
+            }
+            FindClose(hFile)
+            result
+        }
+
         /**
          * List the name of the children of this path
          * Works only on directories, obviously
          */
         getChildrenNames: func -> ArrayList<String> {
-            result := ArrayList<String> new()
-            ffd: FindData
-            hFile := FindFirstFile((path + "\\*") as CString, ffd&)
-            running := (hFile != INVALID_HANDLE_VALUE)
-            while(running) {
-                if(ffd fileName != "." && ffd fileName != "..") {
-                    result add(path +  '\\' + ffd fileName)
-                }
-                running = FindNextFile(hFile, ffd&)
-            }
-            FindClose(hFile)
-
-            result
+            _getChildren( path )
         }
 
         /**
@@ -259,19 +246,7 @@ version(windows) {
          * Works only on directories, obviously
          */
         getChildren: func -> ArrayList<File> {
-            result := ArrayList<File> new()
-            ffd: FindData
-            hFile := FindFirstFile((path + "\\*") as CString, ffd&)
-            running := (hFile != INVALID_HANDLE_VALUE)
-            while(running) {
-                if(ffd fileName != "." && ffd fileName != "..") {
-                    result add(File new(path + '\\' + ffd fileName))
-                }
-                running = FindNextFile(hFile, ffd&)
-            }
-            FindClose(hFile)
-
-            result
+            _getChildren ( File new ("") )
         }
 
     }
