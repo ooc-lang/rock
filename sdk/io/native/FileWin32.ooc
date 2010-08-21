@@ -75,19 +75,6 @@ version(windows) {
             (ffd  != null)
         }
 
-        // FIXME these 2 look deprecated and its not good practice to leave handles open as findFirst does
-        findSingle: func (ffdPtr: FindData*) {
-            FindClose(findFirst(ffdPtr))
-        }
-
-        findFirst: func (ffdPtr: FindData*) -> Handle {
-            hFind := FindFirstFile(path as CString, ffdPtr)
-            if(hFind == INVALID_HANDLE_VALUE) {
-                Exception new(This, "File not found: %s" format(path)) throw()
-            }
-            return hFind
-        }
-
         _getFindData: func -> FindData* {
             ffd: FindData* = gc_malloc(FindData size)
             hFind := FindFirstFile(path as CString, ffd)
