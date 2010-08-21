@@ -81,14 +81,6 @@ version(unix || apple) {
             return result
         }
 
-        exists?: func -> Bool {
-            fd := fopen(path, "r")
-            if(fd) {
-                fclose(fd); return true
-            }
-            false
-        }
-
         /**
          * @return true if it's a directory
          */
