@@ -135,7 +135,7 @@ operator as (value: Char) -> String {
     value toString()
 }
 
-String: cover from Char* {
+String: cover from CString {
 
     /** Create a new string exactly *length* characters long (without the nullbyte).
         The contents of the string are undefined. */
@@ -442,7 +442,7 @@ String: cover from Char* {
 
         if(start > len) {
             Exception new(This, "String.substring: out of bounds: length = %zd, start = %zd\n" format(len, start)) throw()
-            return null
+            return null as This
         }
 
         diff = (len - start) : SizeT
@@ -465,7 +465,7 @@ String: cover from Char* {
 
         if(start > len || start > end || end > len) {
             Exception new(This, "String.substring: out of bounds: length = %zd, start = %zd, end = %zd\n" format(len, start, end)) throw()
-            return null
+            return null as This
         }
 
         diff = (end - start) : Int
@@ -480,7 +480,7 @@ String: cover from Char* {
         len := this length()
 
         if (!len) {
-            return null
+            return null as This
         }
 
         result := This new(len + 1)
@@ -818,9 +818,25 @@ operator + (left: Char, right: String) -> String {
 
 //operator implicit as (s: String) -> CString { s as CString }
 
-// temporary, change to cover from Char* once the String class is introduced
-CString: cover from String {
-    clone: func -> This { return this as String clone () as CString}
+CString: cover from Char* {
+
+    /** Create a new string exactly *length* characters long (without the nullbyte).
+        The contents of the string are undefined. */
+    new: static func~withLength (length: Int) -> This {
+        result := gc_malloc(length + 1) as Char*
+        result[length] = '\0'
+        result as This
+    }
+        /** return a copy of *this*. */
+    clone: func -> This {
+        length := length()
+        copy := This new(length)
+        memcpy(copy, this, length + 1)
+        return copy as This
+    }
+
+    /** return the string's length, excluding the null byte. */
+    length: extern(strlen) func -> Int
 }
 // all this operator duplication is necessary since rock doesnt recognize CStrings inheritance
 operator == (str1: CString, str2: CString) -> Bool {

@@ -1,4 +1,5 @@
 import ../File, structs/ArrayList
+import text/Buffer
 
 include dirent
 
@@ -39,11 +40,11 @@ version(unix || apple) {
     _getcwd: extern(getcwd) func(buf: CString, size: SizeT) -> CString
 
     ooc_get_cwd: unmangled func -> String {
-        ret := String new(File MAX_PATH_LENGTH + 1)
-        if(!_getcwd(ret as CString, File MAX_PATH_LENGTH)) {
+        ret := Buffer new(File MAX_PATH_LENGTH + 1)
+        if(!_getcwd(ret data as CString, File MAX_PATH_LENGTH)) {
             Exception new("Failed to get current directory!") throw()
         }
-        return ret
+        return ret toString()
     }
 
     TimeT: cover from time_t
@@ -177,7 +178,7 @@ version(unix || apple) {
          */
         getAbsolutePath: func -> String {
             actualPath := String new(This MAX_PATH_LENGTH + 1)
-            return realpath(path as CString, actualPath as CString)
+            return realpath(path as CString, actualPath as CString) as String
         }
 
         /**
@@ -207,7 +208,7 @@ version(unix || apple) {
             while(entry != null) {
                 if(!_isSelfOrParentDirEntry? (entry@ name)) {
                     if (T == String) result add(entry@ name clone())
-                    else if (T == File) result add(File new(this, entry@ name clone()))
+                    else if (T == File) result add(File new(this, entry@ name clone() as String))
                 }
                 entry = readdir(dir)
             }
