@@ -73,6 +73,16 @@ FunctionCall: class extends Expression {
     ref = null : FunctionDecl
 
     /**
+     * By default member method calls are virtual calls, ie. they call
+     * the implementation of the *actual*, concrete class of the object it's called
+     * on, not on the abstract class we might be calling it on.
+     *
+     * This is only used internally when we really want to call the _impl variant
+     * instead.
+     */
+    virtual := true
+
+    /**
      * < 0 = not resolved (incompatible functions)
      * > 0 = resolved
      *
@@ -142,7 +152,7 @@ FunctionCall: class extends Expression {
      * The call then evaluates the score of the decl, and if it has a higher score,
      * stores it as its new best ref.
      */
-    suggest: func (candidate: FunctionDecl) -> Bool {
+    suggest: func (candidate: FunctionDecl, res: Resolver, trail: Trail) -> Bool {
 
         if(debugCondition()) "** [refScore = %d] Got suggestion %s for %s" format(refScore, candidate toString(), toString()) println()
 
@@ -154,6 +164,10 @@ FunctionCall: class extends Expression {
         score := getScore(candidate)
         if(score == -1) {
             if(debugCondition()) "** Score = -1! Aboort" println()
+            if(res fatal) {
+                // trigger a resolve on the candidate so that it'll display a more helpful error
+                candidate resolve(trail, res)
+            }
             return false
         }
 
@@ -180,8 +194,8 @@ FunctionCall: class extends Expression {
                 if (declArgType isGeneric()) {
                     declArgType = declArgType realTypize(this)
                 }
-                if(callArg == null) {
-                    return false // something's wrong
+                if(callArg getType() == null) {
+                    return false
                 }
 
                 if(callArg getType() getScore(declArgType) == Type NOLUCK_SCORE) {
@@ -393,7 +407,6 @@ FunctionCall: class extends Expression {
 
                 res wholeAgain(this, "finished inlining")
                 return Responses OK
-                //return Responses LOOP
             }
 
             if(!handleGenerics(trail, res) ok()) {
@@ -426,6 +439,13 @@ FunctionCall: class extends Expression {
         if(returnType) {
             response := returnType resolve(trail, res)
             if(!response ok()) return response
+
+            if(returnType void?) {
+                parent := trail peek()
+                if(!parent instanceOf?(Scope)) {
+                    res throwError(UseOfVoidExpression new(token, "Use of a void function call as an expression"))
+                }
+            }
         }
 
         if(refScore <= 0) {
@@ -1206,3 +1226,8 @@ UnresolvedCall: class extends Error {
     }
 
 }
+
+UseOfVoidExpression: class extends Error {
+    init: super func ~tokenMessage
+}
+

@@ -67,7 +67,6 @@ FunctionDeclWriter: abstract class extends Skeleton {
 
     /** Write the name of a function, with its suffix, and prefixed by its owner if any */
     writeFullName: static func (this: Skeleton, fDecl: FunctionDecl) {
-
         //printf("Writing full name of %s, owner = %s\n", fDecl name, fDecl owner ? fDecl owner toString() : "(nil)")
         current app(fDecl getFullName())
     }
@@ -101,8 +100,12 @@ FunctionDeclWriter: abstract class extends Skeleton {
 
         isInterface := false
         owner := fDecl getOwner()
-        if(owner != null && owner isMeta) owner = owner getNonMeta()
-        if(owner != null && owner instanceOf?(InterfaceDecl)) isInterface = true
+        if(owner != null) {
+            match(owner isMeta ? owner getNonMeta() : owner) {
+                case iDecl: InterfaceDecl =>
+                    isInterface = true
+            }
+        }
 
         /* Step 1 : write this, if any */
         iter := fDecl args iterator() as Iterator<Argument>

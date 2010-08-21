@@ -58,7 +58,7 @@ ModuleWriter: abstract class extends Skeleton {
 
         current nl(). app("#include <"). app(module getPath("-fwd.h")). app(">")
 
-		// include .h-level imports (which contains types we extend)
+        // include .h-level imports (which contains types we extend)
         for(imp in imports) {
             if(!imp isTight()) continue
             inc := imp getModule() getPath(".h")
@@ -113,10 +113,10 @@ ModuleWriter: abstract class extends Skeleton {
         current = cw
         current nl(). app("void "). app(module getLoadFuncName()). app("() {"). tab()
         current nl(). app("static "). app("bool __done__ = false;"). nl(). app("if (!__done__)"). app("{"). tab()
-		current nl(). app("__done__ = true;")
+        current nl(). app("__done__ = true;")
         for (imp in module getAllImports()) {
-			current nl(). app(imp getModule() getLoadFuncName()). app("();")
-		}
+            current nl(). app(imp getModule() getLoadFuncName()). app("();")
+        }
 
         for (type in module types) {
             if(type instanceOf?(ClassDecl)) {
@@ -142,6 +142,11 @@ ModuleWriter: abstract class extends Skeleton {
         }
         current untab(). nl(). app("}")
         current untab(). nl(). app("}"). nl()
+
+        // write all addons
+        for(addon in module addons) {
+            addon accept(this)
+        }
 
         // write all functions
         for(fDecl in module functions) {
@@ -294,7 +299,7 @@ ModuleWriter: abstract class extends Skeleton {
         name: String = customName ? customName : funcType toMangledString()
         current nl(). nl().  app("#ifndef "). app(name). app("__DEFINE")
         current nl(). app("#define "). app(name). app("__DEFINE"). nl()
-	current nl(). app("typedef ")
+    current nl(). app("typedef ")
         writeFuncPointer(this, funcType, name)
         current app(';')
         current nl(). nl().  app("#endif"). nl()
@@ -302,7 +307,7 @@ ModuleWriter: abstract class extends Skeleton {
 
     writeFuncPointer: static func (this: Skeleton, funcType: FuncType, name: String) {
         if(funcType returnType == null || funcType returnType isGeneric()) {
-	    current app("void")
+        current app("void")
         } else {
             current app(funcType returnType)
         }
@@ -327,18 +332,18 @@ ModuleWriter: abstract class extends Skeleton {
 
         /* Step 4 : write real args */
         for(argType in funcType argTypes) {
-	    if(isFirst) isFirst = false
+        if(isFirst) isFirst = false
             else        current app(", ")
-	    current app(argType)
+        current app(argType)
         }
 
-	/* Step 5: write context, if any */
-	if(funcType isClosure) {
-	    if(isFirst) isFirst = false
+    /* Step 5: write context, if any */
+    if(funcType isClosure) {
+        if(isFirst) isFirst = false
             else        current app(", ")
-	    // we don't know the type of the closure-context, so void* will do just fine. Thanks, C!
-	    current app("void*")
-	}
+        // we don't know the type of the closure-context, so void* will do just fine. Thanks, C!
+        current app("void*")
+    }
 
         current app(')')
     }
@@ -414,14 +419,14 @@ ModuleWriter: abstract class extends Skeleton {
         if(inc getVersion()) VersionWriter writeStart(this, inc getVersion())
 
         for(define in inc getDefines()) {
-			current nl(). app("#ifndef "). app(define name)
-			current nl(). app("#define "). app(define name)
+            current nl(). app("#ifndef "). app(define name)
+            current nl(). app("#define "). app(define name)
             if(define value != null) {
                 current app(' '). app(define value)
             }
             current nl(). app("#define "). app(define name). app("___defined")
-			current nl(). app("#endif")
-		}
+            current nl(). app("#endif")
+        }
 
         chevron := (inc mode == IncludeModes PATHY)
         current nl(). app("#include "). app(chevron ? '<' : '"').

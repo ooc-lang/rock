@@ -27,7 +27,9 @@ InterfaceDecl: class extends ClassDecl {
     accept: func (visitor: Visitor) { visitor visitInterfaceDecl(this) }
 
     addFunction: func (fDecl: FunctionDecl) {
-        if(fDecl getBody() empty?()) fDecl setAbstract(true)
+        if(!fDecl hasBody) {
+            fDecl setAbstract(true)
+        }
         super(fDecl)
     }
 

@@ -1,4 +1,6 @@
 
+import native/win32/types
+
 /* includes */
 
 version(linux) {
@@ -20,8 +22,9 @@ version(windows) {
         wHour, wMinute, wSecond, wMilliseconds : extern UShort
     }
 
-    timeGetTime: extern func -> UInt32
     GetLocalTime: extern func (SystemTime*)
+    QueryPerformanceCounter: extern func (LargeInteger*)
+    QueryPerformanceFrequency: extern func (LargeInteger*)
     Sleep: extern func (UInt)
 }
 
@@ -77,12 +80,14 @@ Time: class {
     runTime: static UInt {
         get {
             version(windows) {
-                // NOTE: timeGetTime only returns a 32-bit integer.  the upside is
-                // that it's accurate to 1ms, but unfortunately rollover is very
-                // possible
-
-                // FIXME: getting undefined reference for now :x
-                timeGetTime() as UInt - __time_millisec_base
+                // NOTE: this was previously using timeGetTime, but it's
+                // a winmm.lib function and we can't afford the extra dep
+                // I believe every computer that runs ooc programs on Win32
+                // has a hardware high-performance counter, so it shouldn't be an issue
+                counter, frequency: LargeInteger
+                QueryPerformanceCounter(counter&)
+                QueryPerformanceFrequency(frequency&)
+                return ((counter quadPart * 1000) / frequency quadPart) - __time_millisec_base
             }
             version(!windows) {
                 tv : TimeVal

@@ -222,13 +222,16 @@ BuildParams: class {
     defaultMain := true
 
     // maximum number of rounds the {@link Tinkerer} will do before blowing up.
-    blowup: Int = 32
+    blowup := 32
 
     // include or not lang/ packages (for testing)
     includeLang := true
 
     // dynamic libraries to be linked into the executable
     dynamicLibs := ArrayList<String> new()
+
+    // if non-null, rock will create a virtual module containing all ooc modules in the given path
+    libfolder: String = null
 
     // backend; can be "c" or "json".
     backend: String = "c"

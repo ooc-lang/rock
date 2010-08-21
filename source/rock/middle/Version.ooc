@@ -53,21 +53,21 @@ builtinNames := HashMap<String, String> new()
 
 {
     // ooc's excuse for a map literal (so far ^^)
-    builtinNames put("windows", 	"__WIN32__) || defined(__WIN64__") // FIXME: is that right?
-    builtinNames put("linux", 	"__linux__")
-    builtinNames put("solaris", 	"__sun")
-    builtinNames put("unix", 	"__unix__")
-    builtinNames put("beos", 	"__BEOS__")
-    builtinNames put("haiku", 	"__HAIKU__")
-    builtinNames put("apple", 	"__APPLE__")
-    builtinNames put("gnuc", 	"__GNUC__")
-    builtinNames put("i386", 	"__i386__")
-    builtinNames put("x86", 		"__X86__")
-    builtinNames put("x86_64", 	"__x86_64__")
-    builtinNames put("ppc", 		"__ppc__")
-    builtinNames put("ppc64",	"__ppc64__")
-    builtinNames put("64", 		"__x86_64__) || defined(__ppc64__")
-    builtinNames put("gc",		"__OOC_USE_GC__")
+    builtinNames put("windows",     "__WIN32__) || defined(__WIN64__") // FIXME: is that right?
+    builtinNames put("linux",     "__linux__")
+    builtinNames put("solaris",     "__sun")
+    builtinNames put("unix",     "__unix__")
+    builtinNames put("beos",     "__BEOS__")
+    builtinNames put("haiku",     "__HAIKU__")
+    builtinNames put("apple",     "__APPLE__")
+    builtinNames put("gnuc",     "__GNUC__")
+    builtinNames put("i386",     "__i386__")
+    builtinNames put("x86",         "__X86__")
+    builtinNames put("x86_64",     "__x86_64__")
+    builtinNames put("ppc",         "__ppc__")
+    builtinNames put("ppc64",    "__ppc64__")
+    builtinNames put("64",         "__x86_64__) || defined(__ppc64__")
+    builtinNames put("gc",        "__OOC_USE_GC__")
 }
 
 VersionName: class extends VersionSpec {
@@ -80,11 +80,7 @@ VersionName: class extends VersionSpec {
 
         origin = name
         real := builtinNames get(name)
-        if(real == null) {
-            token module params errorHandler onError(Warning new(token, "Unknown version id: '" + name + "', compiling anyway (who knows?)"))
-        } else {
-            this name = real
-        }
+        if(real) this name = real
     }
 
     toString: func -> String { name }

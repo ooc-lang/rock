@@ -16,7 +16,7 @@ Else: class extends Conditional {
     }
 
     toString: func -> String {
-        "else"
+        "else " + body toString()
     }
 
 }

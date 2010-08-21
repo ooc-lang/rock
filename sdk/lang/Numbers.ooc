@@ -1,4 +1,4 @@
-include stdlib, stdint, stdbool, float, ctype, sys/types
+include stdlib, stdint, stddef, float, ctype, sys/types
 
 LLong: cover from signed long long {
 
@@ -19,6 +19,12 @@ LLong: cover from signed long long {
     times: func (fn: Func) {
         for(i in 0..this) {
             fn()
+        }
+    }
+
+    times: func ~withIndex (fn: Func(This)) {
+        for (i in 0..this) {
+            fn(i)
         }
     }
 }
@@ -42,11 +48,11 @@ UInt:   cover from unsigned int   extends ULLong
 UShort: cover from unsigned short extends ULLong
 
 //INT_MIN,    INT_MAX  : extern const static Int
-//UINT_MAX 			 : extern const static UInt
+//UINT_MAX           : extern const static UInt
 //LONG_MIN,  LONG_MAX  : extern const static Long
-//ULONG_MAX			 : extern const static ULong
+//ULONG_MAX          : extern const static ULong
 //LLONG_MIN, LLONG_MAX : extern const static LLong
-//ULLONG_MAX			 : extern const static ULLong
+//ULLONG_MAX             : extern const static ULLong
 
 INT_MAX := 2147483647
 INT_MIN := -INT_MAX - 1
@@ -67,6 +73,7 @@ UInt64: cover from uint64_t extends ULLong
 Octet:  cover from uint8_t
 SizeT:  cover from size_t extends ULLong
 SSizeT:  cover from ssize_t extends LLong
+PtrDiff: cover from ptrdiff_t extends SizeT
 
 /**
  * real types

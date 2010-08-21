@@ -19,11 +19,7 @@ CoverDecl: class extends TypeDecl {
 
     accept: func (visitor: Visitor) { visitor visitCoverDecl(this) }
 
-    setFromType: func (=fromType) {
-        for(addon in getAddons()) {
-            addon getNonMeta() as CoverDecl setFromType(fromType)
-        }
-    }
+    setFromType: func (=fromType) {}
     getFromType: func -> Type { fromType }
 
     // all functions of a cover are final, because we don't have a 'class' field
@@ -58,21 +54,6 @@ CoverDecl: class extends TypeDecl {
 
     writeSize: func (w: TabbedWriter, instance: Bool) {
         w app("sizeof("). app(underName()). app(")")
-    }
-
-    absorb: func (node: CoverDecl, params: BuildParams) {
-        if(!variables empty?()) {
-            params errorHandler onError(AddingVariablesInAddon new(node, variables[0] token))
-        }
-        getMeta() base = node getMeta()
-        //printf("%s from %s is absorbing %s from %s\n", toString(), token module toString(), node toString(), node token module toString())
-        setFromType(node getFromType())
-        node addAddon(this)
-    }
-
-    addAddon: func (node: CoverDecl) {
-        getMeta() getAddons() add(node getMeta())
-        //printf("%s from %s got %s from %s as addon\n", getMeta() toString(), token module toString(), node getMeta() toString(), node token module toString())
     }
 
     replace: func (oldie, kiddo: Node) -> Bool { false }

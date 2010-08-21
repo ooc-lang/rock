@@ -64,39 +64,39 @@ VariableAccess: class extends Expression {
 
     suggest: func (node: Node) -> Bool {
         if(node instanceOf?(VariableDecl)) {
-			candidate := node as VariableDecl
-		    // if we're accessing a member, we're expecting the
+            candidate := node as VariableDecl
+            // if we're accessing a member, we're expecting the
             // candidate to belong to a TypeDecl..
-		    if(isMember() && candidate owner == null) {
-		        return false
-		    }
+            if(isMember() && candidate owner == null) {
+                return false
+            }
 
-		    ref = candidate
+            ref = candidate
             if(isMember() && candidate owner isMeta) {
                 expr = VariableAccess new(candidate owner getNonMeta() getInstanceType(), candidate token)
             }
 
-		    return true
-	    } else if(node instanceOf?(FunctionDecl)) {
-			candidate := node as FunctionDecl
-		    // if we're accessing a member, we're expecting the candidate
-		    // to belong to a TypeDecl..
-		    if((expr != null) && (candidate owner == null)) {
-		        return false
-		    }
+            return true
+        } else if(node instanceOf?(FunctionDecl)) {
+            candidate := node as FunctionDecl
+            // if we're accessing a member, we're expecting the candidate
+            // to belong to a TypeDecl..
+            if((expr != null) && (candidate owner == null)) {
+                return false
+            }
 
-		    ref = candidate
-		    return true
-	    } else if(node instanceOf?(TypeDecl) || node instanceOf?(NamespaceDecl)) {
+            ref = candidate
+            return true
+        } else if(node instanceOf?(TypeDecl) || node instanceOf?(NamespaceDecl)) {
             if(node instanceOf?(TypeDecl) && node as TypeDecl isAddon()) {
                 // First rule of resolve club is: you do not resolve to an addon.
                 // Always resolve to the base instead.
                 return suggest(node as TypeDecl getBase() getNonMeta())
             }
-			ref = node
+            ref = node
             return true
-	    }
-	    return false
+        }
+        return false
     }
 
     isResolved: func -> Bool { ref != null && getType() != null }
@@ -232,7 +232,9 @@ VariableAccess: class extends Expression {
                         res wholeAgain(this, "need ref!")
                         return Responses OK
                     }
-                    if (!fDecl isExtern()) // extern C functions don't accept a Closure_struct
+                    // 1.) extern C functions don't accept a Closure_struct
+                    // 2.) If ref is not a FDecl, it's probably already "closured" and doesn't need to be wrapped a second time
+                    if (!fDecl isExtern() && ref instanceOf?(FunctionDecl))
                         closureType = fDecl args get(ourIndex) getType()
 
                 } elseif (parent instanceOf?(BinaryOp)) {
@@ -358,7 +360,7 @@ VariableAccess: class extends Expression {
         }
     }
 
-	setRef: func(=ref) {}
+    setRef: func(=ref) {}
 
 }
 

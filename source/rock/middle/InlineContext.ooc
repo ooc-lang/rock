@@ -112,7 +112,7 @@ InlineContext: class extends Block {
                     "resolved to %s (vDecl = %s, proxy expr = %s)" printfln(proxy ref toString(), proxy ref vDecl ? proxy ref vDecl toString() : "(nil)", proxy expr ? proxy expr toString() : "(nil)")
                     oldExpr := call expr
                     call expr = proxy expr
-                    if(call suggest(proxy ref)) {
+                    if(call suggest(proxy ref, res, trail)) {
                         "Congratulations soldier - we now have call %s, with expr %s" printfln(call toString(), call expr ? call expr toString() : "(nil)")
                         return 0
                     } else {

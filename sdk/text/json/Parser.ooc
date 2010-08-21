@@ -37,15 +37,11 @@ check: func (this: Token@, type: TokenType) {
 }*/
 
 LexingError: class extends Exception {
-    init: func ~withMsg (.msg) {
-        super(msg)
-    }
+    init: super func ~noOrigin
 }
 
 ParserError: class extends Exception {
-    init: func ~withMsg (.msg) {
-        super(msg)
-    }
+    init: super func ~noOrigin
 }
 
 getToken: func (reader: Reader, token: Token*) {

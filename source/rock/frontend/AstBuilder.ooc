@@ -14,7 +14,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Dereference, Foreach, OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess,
     Match, FlowControl, While, CharLiteral, InterfaceDecl, NamespaceDecl,
     Version, Use, Block, ArrayLiteral, EnumDecl, BaseType, FuncType,
-    Declaration, PropertyDecl, CallChain, Tuple]
+    Declaration, PropertyDecl, CallChain, Tuple, Addon]
 
 nq_parse: extern proto func (AstBuilder, String) -> Int
 
@@ -52,8 +52,12 @@ AstBuilder: class {
     tokenPos : Int*
 
     init: func (=modulePath, =module, =params) {
+        first := static true
 
-        if(params verbose) printf("- Parsing %s\n", modulePath)
+        if(params verbose) {
+            if(!first) "                                                                             \r" print()
+            "Parsing %s" printf(modulePath)
+        }
         cache put(File new(modulePath) getAbsolutePath(), module)
 
         stack = Stack<Object> new()
@@ -64,6 +68,7 @@ AstBuilder: class {
             addLangImports()
         }
 
+        first = false
         result := nq_parse(this, modulePath)
         if(result == -1) {
             Exception new(This, "File " +modulePath + " not found") throw()
@@ -73,25 +78,25 @@ AstBuilder: class {
 
     addLangImports: func {
 
-		langImports : static List<String> = null
+        langImports : static List<String> = null
 
-		if(langImports == null) {
-			langImports = ArrayList<String> new()
-			paths := params sourcePath getRelativePaths("lang")
-			for(path in paths) {
-				if(path endsWith?(".ooc")) {
-					impName := path substring(0, path length() - 4) replace(File separator, '/')
-					langImports add(impName)
-				}
-			}
-		}
+        if(langImports == null) {
+            langImports = ArrayList<String> new()
+            paths := params sourcePath getRelativePaths("lang")
+            for(path in paths) {
+                if(path endsWith?(".ooc")) {
+                    impName := path substring(0, path length() - 4) replace(File separator, '/')
+                    langImports add(impName)
+                }
+            }
+        }
 
-		for(impName in langImports) {
-			if(impName != module fullName) {
-				//printf("Adding import %s to %s\n", impName, module fullName)
-				module addImport(Import new(impName, module token))
-			}
-		}
+        for(impName in langImports) {
+            if(impName != module fullName) {
+                //printf("Adding import %s to %s\n", impName, module fullName)
+                module addImport(Import new(impName, module token))
+            }
+        }
 
     }
 
@@ -170,6 +175,19 @@ AstBuilder: class {
     }
 
     /*
+     * Addons
+     */
+    onExtendStart: unmangled(nq_onExtendStart) func (baseType: Type, doc: String) {
+        addon := Addon new(baseType, token())
+        addon doc = doc
+        stack push(addon)
+    }
+
+    onExtendEnd: unmangled(nq_onExtendEnd) func -> Addon {
+        module addAddon(pop(Addon))
+    }
+
+    /*
      * Covers
      */
 
@@ -180,38 +198,6 @@ AstBuilder: class {
         cDecl module = module
         module addType(cDecl)
         stack push(cDecl)
-
-        // cover-absorbing =)
-        absorbed := false
-        for(imp in module getGlobalImports()) { // TODO: what about namespaced imports?
-            depMod := imp getModule()
-            //printf("Treating import %s, depMod = %s\n", imp path, depMod ? depMod getFullName() : "(nil)")
-            if(depMod != null) {
-                base := depMod getTypes() get(name)
-                if(base != null) {
-                    //println(" >> While parsing "+cDecl getName()+" in "+module getFullName()+", found base in "+depMod getFullName())
-                    cDecl absorb(base as CoverDecl, params)
-                    absorbed = true
-                    break
-                }
-            }
-        }
-        if(!absorbed) {
-            for(other in cache) {
-                for(imp in other getGlobalImports()) {
-                    if(imp path == module getFullName()) {
-                        addon := other getTypes() get(name)
-                        if(addon != null) {
-                            //println(" >> [From cache] While parsing "+cDecl getName()+" in "+module getFullName() +", found addon in "+other getFullName())
-                            addon as CoverDecl absorb(cDecl, params)
-                            absorbed = true
-                            break
-                        }
-                    }
-                }
-                if(absorbed) break
-            }
-        }
     }
 
     onCoverExtern: unmangled(nq_onCoverExtern) func (externName: String) {
@@ -251,6 +237,10 @@ AstBuilder: class {
         peek(EnumDecl) setExternName(externName clone())
     }
 
+    onEnumFromType: unmangled(nq_onEnumFromType) func (fromType: Type) {
+        peek(EnumDecl) setFromType(fromType)
+    }
+
     onEnumIncrementExpr: unmangled(nq_onEnumIncrementExpr) func (oper: Char, step: IntLiteral) {
         peek(EnumDecl) setIncrement(oper, step value)
     }
@@ -261,8 +251,8 @@ AstBuilder: class {
         stack push(element)
     }
 
-    onEnumElementValue: unmangled(nq_onEnumElementValue) func (value: IntLiteral) {
-        peek(EnumElement) setValue(value value)
+    onEnumElementValue: unmangled(nq_onEnumElementValue) func (value: Expression) {
+        peek(EnumElement) setValue(value)
     }
 
     onEnumElementExtern: unmangled(nq_onEnumElementExtern) func (externName: String) {
@@ -674,14 +664,21 @@ AstBuilder: class {
         peek(FunctionDecl) returnType = type
     }
 
+    onFunctionBody: unmangled(nq_onFunctionBody) func {
+        peek(FunctionDecl) hasBody = true
+    }
+
     onFunctionEnd: unmangled(nq_onFunctionEnd) func -> FunctionDecl {
         fDecl := pop(FunctionDecl)
         node : Node = stack peek()
         if(node == module) {
             module addFunction(fDecl)
         } else if(node instanceOf?(TypeDecl)) {
-            tDecl: TypeDecl = node
+            tDecl := node as TypeDecl
             tDecl addFunction(fDecl)
+        } else if(node instanceOf?(Addon)) {
+            addon := node as Addon
+            addon addFunction(fDecl)
         } else {
             //printf("^^^^^^^^ Unexpected function %s (peek is a %s)\n", fDecl name, node class name)
         }

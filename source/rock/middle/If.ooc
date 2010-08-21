@@ -16,7 +16,9 @@ If: class extends Conditional {
     }
 
     toString: func -> String {
-        "if (" + condition toString() + ")"
+        "if (" + condition toString() + ")" + body toString()
     }
+
+    isDeadEnd: func -> Bool { false }
 
 }

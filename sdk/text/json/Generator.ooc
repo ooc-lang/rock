@@ -5,9 +5,7 @@ import text/[Buffer, EscapeSequence]
 import Parser
 
 GeneratorError: class extends Exception {
-    init: func ~withMsg (.msg) {
-        super(msg)
-    }
+    init: super func ~noOrigin
 }
 
 EXCLUDE := const "'" // don't escape the '

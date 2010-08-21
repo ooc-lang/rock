@@ -52,6 +52,10 @@ FunctionCallWriter: abstract class extends Skeleton {
                 // and still need casting
                 current app("_impl")
                 shouldCastThis = true
+            } else if(!fCall virtual) {
+                current app("_impl")
+                // and no need to cast this, it should already be of the good type
+                // (esp. for interfaces, since the struct-initialization is handled by the Cast node)
             }
         }
 

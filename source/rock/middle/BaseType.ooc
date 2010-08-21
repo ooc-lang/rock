@@ -240,7 +240,7 @@ BaseType: class extends Type {
             // if we are one of his addons, we're good
             if(other getRef() instanceOf?(TypeDecl)) {
                 for(addon in other getRef() as TypeDecl getAddons()) {
-                    hisRef := addon getNonMeta()
+                    hisRef := addon base
                     ourRef := getRef()
                     //printf("Reviewing addon %s, ref %s (%s), vs %s (%s)\n", addon getNonMeta() toString(), ourRef toString(), ourRef token toString(), hisRef toString(), hisRef token toString())
                     if(ourRef == hisRef) {
