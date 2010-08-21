@@ -212,11 +212,6 @@ version(windows) {
             }
         }
 
-        _isSelfOrParentDirEntry? : inline func (dir: CString) -> Bool {
-            l := strlen(dir)
-            return ( (l > 0 && l < 3) && (dir as Char*)@ == '.' && (l == 1 || (dir as Char* + 1)@ == '.'))
-        }
-
         _getChildren: func <T> (param: T) -> ArrayList<T> {
             result := ArrayList<T> new()
             ffd: FindData
