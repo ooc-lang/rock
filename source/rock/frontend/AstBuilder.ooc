@@ -83,15 +83,15 @@ AstBuilder: class {
         if(!langImports) {
             langImports = ArrayList<String> new()
             paths := params sourcePath getRelativePaths("lang")
-            paths filterEach(| p | p endsWith?(".ooc"), \
-                    | p | \
+            paths filterEach(|p| p endsWith?(".ooc"), 
+                    |p| 
                     impName := p substring(0, p length() - 4) replace(File separator, '/')
                     langImports add(impName)
             )
         }
         
-        langImports filterEach(| impName | impName != module fullName, \
-                    | impName | module addImport(Import new(impName, module token))
+        langImports filterEach(|impName| impName != module fullName, 
+                    |impName| module addImport(Import new(impName, module token))
         )
             
     }
@@ -118,7 +118,7 @@ AstBuilder: class {
 
     printCache: static func {
         "==== Cache ====" println()
-        cache getKeys() each(| key |
+        cache getKeys() each(|key|
             "cache %s = %s" format(key, cache get(key) fullName) println()
         )          
         "=" times(14) println() 
