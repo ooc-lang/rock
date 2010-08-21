@@ -112,6 +112,10 @@ CommandLine: class {
 
                     params newsdk = true
 
+                } else if (option == "newstr") {
+
+                    params newstr = true
+
                 } else if (option == "inline") {
 
                     params inlining = true

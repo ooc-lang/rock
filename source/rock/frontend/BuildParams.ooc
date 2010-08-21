@@ -24,7 +24,7 @@ BuildParams: class {
     compilerArgs := ArrayList<String> new()
 
     /* Builtin defines */
-	GC_DEFINE := static const "__OOC_USE_GC__"
+    GC_DEFINE := static const "__OOC_USE_GC__"
 
     init: func (execName: String) {
         findDist(execName)
@@ -33,7 +33,7 @@ BuildParams: class {
         findLibsPath()
 
         // use the GC by default =)
-		defines add(This GC_DEFINE)
+        defines add(This GC_DEFINE)
 
         // use a simple error handler by default
         errorHandler = DefaultErrorHandler new(this) as ErrorHandler // FIXME: why the workaround :(
@@ -102,6 +102,8 @@ BuildParams: class {
     // Changes the way string literals are written, among other things
     // see http://github.com/nddrylliog/newsdk for more bunnies.
     newsdk := false
+    // temporary option for string branch compilation
+    newstr := false
 
     // location of the compiler's distribution, with a libs/ folder for the gc, etc.
     distLocation: File
@@ -128,7 +130,7 @@ BuildParams: class {
     outPath: File = File new("rock_tmp")
 
     // if non-null, use 'linker' as the last step of the compile process, with driver=sequence
-	linker := null as String
+    linker := null as String
 
     // threads used by the sequence driver
     sequenceThreads := 1
@@ -137,7 +139,7 @@ BuildParams: class {
     onlyparse := false
 
     // list of symbols defined e.g. by -Dblah
-	defines := ArrayList<String> new()
+    defines := ArrayList<String> new()
 
     // Path to place the binary
     binaryPath: String = ""
@@ -213,13 +215,13 @@ BuildParams: class {
     entryPoint := "main"
 
     // if non-null, will create a static library with 'ar rcs <outlib> <all .o files>'
-	staticlib : String = null
+    staticlib : String = null
 
     // if non-null, will create a dynamic library
     dynamiclib : String = null
 
     // add a main method if there's none in the specified ooc file
-	defaultMain := true
+    defaultMain := true
 
     // maximum number of rounds the {@link Tinkerer} will do before blowing up.
     blowup := 32
@@ -250,17 +252,17 @@ BuildParams: class {
     }
 
     defineSymbol: func (symbol: String) {
-		if (!isDefined(symbol)) {
+        if (!isDefined(symbol)) {
             defines add(symbol)
         }
-	}
+    }
 
-	undefineSymbol: func (symbol: String) {
+    undefineSymbol: func (symbol: String) {
         idx := _indexOfSymbol(symbol)
         if (idx != -1) {
             defines removeAt(idx)
         }
-	}
+    }
 
     getArgsRepr: func -> String {
         b := Buffer new()
