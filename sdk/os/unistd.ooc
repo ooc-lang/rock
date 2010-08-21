@@ -5,11 +5,11 @@ STDOUT_FILENO: extern Int
 STDERR_FILENO: extern Int
 
 /* Functions */
-chdir: extern func(String) -> Int
+chdir: extern func(CString) -> Int
 dup2: extern func(Int, Int) -> Int
-execv: extern func(String, String*) -> Int
-execvp: extern func(String, String*) -> Int
-execve: extern func(String, String*, String*) -> Int
+execv: extern func(CString, CString*) -> Int
+execvp: extern func(CString, CString*) -> Int
+execve: extern func(CString, CString*, CString*) -> Int
 fileno: extern func(FILE*) -> Int
 fork: extern func -> Int
 getpid: extern func -> UInt

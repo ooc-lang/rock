@@ -22,7 +22,7 @@ version(windows) {
         creationTime:   extern(ftCreationTime)   FileTime
         lastAccessTime: extern(ftLastAccessTime) FileTime
         lastWriteTime:  extern(ftLastWriteTime)  FileTime
-        fileName:       extern(cFileName)        String
+        fileName:       extern(cFileName)        CString
     }
 
     /*
@@ -35,11 +35,11 @@ version(windows) {
     /*
      * file-related functions from Win32
      */
-    FindFirstFile: extern func (String, FindData*) -> Handle
+    FindFirstFile: extern func (CString, FindData*) -> Handle
     FindNextFile: extern func(Handle, FindData*) -> Bool
     FindClose: extern func (Handle)
-    GetFileAttributes: extern func (String) -> Long
-    CreateDirectory: extern func (String, Pointer) -> Bool
+    GetFileAttributes: extern func (CString) -> Long
+    CreateDirectory: extern func (CString, Pointer) -> Bool
     GetCurrentDirectory: extern func (Long, Pointer) -> Int
 
     /*
@@ -73,7 +73,7 @@ version(windows) {
         exists?: func -> Bool {
             result := true
             ffd: FindData
-            hFind := FindFirstFile(path, ffd&)
+            hFind := FindFirstFile(path as CString, ffd&)
             if(hFind == INVALID_HANDLE_VALUE) {
                 result = false
             }
@@ -88,19 +88,21 @@ version(windows) {
         }
 
         findFirst: func (ffdPtr: FindData*) -> Handle {
-            hFind := FindFirstFile(path, ffdPtr)
+            hFind := FindFirstFile(path as CString, ffdPtr)
             if(hFind == INVALID_HANDLE_VALUE) {
                 Exception new(This, "File not found: %s" format(path)) throw()
             }
             return hFind
         }
 
+
+        // FIXME these two functions are nearly identical, remove the bloat!
         /**
          * @return true if it's a directory (return false if it doesn't exist)
          */
         dir?: func -> Bool {
             ffd: FindData
-            hFind := FindFirstFile(path, ffd&)
+            hFind := FindFirstFile(path as CString, ffd&)
             if(hFind == INVALID_HANDLE_VALUE) return false // it's not a directory if it doesn't exist
             FindClose(hFind)
 
@@ -112,7 +114,7 @@ version(windows) {
          */
         file?: func -> Bool {
             ffd: FindData
-            hFind := FindFirstFile(path, ffd&)
+            hFind := FindFirstFile(path as CString, ffd&)
             if(hFind == INVALID_HANDLE_VALUE) return false // it's not a file if it doesn't exist
             FindClose(hFind)
 
@@ -128,7 +130,7 @@ version(windows) {
          */
         link?: func -> Bool {
             ffd: FindData
-            hFind := FindFirstFile(path, ffd&)
+            hFind := FindFirstFile(path as CString, ffd&)
             if(hFind == INVALID_HANDLE_VALUE) return false // it's not a link if it doesn't exist
             FindClose(hFind)
 
@@ -175,7 +177,7 @@ version(windows) {
 
             parent := parent()
             if(!parent exists?()) parent mkdir()
-            CreateDirectory(path, null) ? 0 : -1
+            CreateDirectory(path as CString, null) ? 0 : -1
         }
 
         /**
@@ -230,6 +232,8 @@ version(windows) {
             }
         }
 
+
+        // FIXME these two functions are nearly identical, remove the bloat!
         /**
          * List the name of the children of this path
          * Works only on directories, obviously
@@ -237,7 +241,7 @@ version(windows) {
         getChildrenNames: func -> ArrayList<String> {
             result := ArrayList<String> new()
             ffd: FindData
-            hFile := FindFirstFile(path + "\\*", ffd&)
+            hFile := FindFirstFile((path + "\\*") as CString, ffd&)
             running := (hFile != INVALID_HANDLE_VALUE)
             while(running) {
                 if(ffd fileName != "." && ffd fileName != "..") {
@@ -257,7 +261,7 @@ version(windows) {
         getChildren: func -> ArrayList<File> {
             result := ArrayList<File> new()
             ffd: FindData
-            hFile := FindFirstFile(path + "\\*", ffd&)
+            hFile := FindFirstFile((path + "\\*") as CString, ffd&)
             running := (hFile != INVALID_HANDLE_VALUE)
             while(running) {
                 if(ffd fileName != "." && ffd fileName != "..") {

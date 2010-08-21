@@ -3,8 +3,8 @@ import text/Buffer /* for String replace ~string */
 include stdlib
 
 __LINE__: extern Int
-__FILE__: extern String
-__FUNCTION__: extern String
+__FILE__: extern CString
+__FUNCTION__: extern CString
 
 strcmp: extern func (Char*, Char*) -> Int
 strncmp: extern func (Char*, Char*, Int) -> Int
@@ -815,3 +815,35 @@ operator + (left: String, right: Char) -> String {
 operator + (left: Char, right: String) -> String {
     right prepend(left)
 }
+
+//operator implicit as (s: String) -> CString { s as CString }
+
+// temporary, change to cover from Char* once the String class is introduced
+CString: cover from String {
+    clone: func -> This { return this as String clone () as CString}
+}
+// all this operator duplication is necessary since rock doesnt recognize CStrings inheritance
+operator == (str1: CString, str2: CString) -> Bool {
+    return str1 as String equals?(str2 as String)
+}
+
+operator != (str1: CString, str2: CString) -> Bool {
+    return !str1 as String equals?(str2 as String)
+}
+
+operator == (str1: String, str2: CString) -> Bool {
+    return str1 as String equals?(str2 as String)
+}
+
+operator != (str1: String, str2: CString) -> Bool {
+    return !str1 as String equals?(str2 as String)
+}
+
+operator == (str1: CString, str2: String) -> Bool {
+    return str1 as String equals?(str2 as String)
+}
+
+operator != (str1: CString, str2: String) -> Bool {
+    return !str1 as String equals?(str2 as String)
+}
+

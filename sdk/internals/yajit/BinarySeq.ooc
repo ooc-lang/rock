@@ -1,9 +1,6 @@
 import os/mmap
 import structs/[ArrayList,HashMap]
-include errno
-
-errno: extern Int
-strerror: extern func (Int) -> String
+import os/error
 
 BinarySeq transTable = HashMap<String, Int> new()
 BinarySeq transTable["c"] = Char size
