@@ -691,18 +691,6 @@ FunctionDecl: class extends Declaration {
             return false
         }
 
-        // FIXME FIXME FIXME: this will blow up with several closure arguments of different types!
-        ourIndex := -1
-        funcPointer: FuncType = null
-        for (i in 0..parentFunc args size()) {
-            arg := parentFunc args[i]
-            if (arg getType() instanceOf?(FuncType)) {
-                ourIndex = i
-                funcPointer = arg getType()
-                break
-            }
-        }
-
         if (parentFunc getOwner()) {
             if(parentCall expr getType() == null) {
                 res wholeAgain(this, "Need type of the expr of the parent call")
@@ -718,11 +706,19 @@ FunctionDecl: class extends Declaration {
                 }
             }
         }
-
+        
+        ind := parentCall args indexOf(this)
+        
+        if (ind == -1) {
+            res throwError(InternalError new(token, "[ACS]: Can't find ´this´ in the call's arguments.\ntrail = %s" format(trail toString()))) 
+        } 
+        
+        funcPointer := parentFunc args[ind] getType() as FuncType
+        
         if (!funcPointer) {
             res wholeAgain(this, "Missing type informantion in the function pointer.")
             return false
-        }
+        } 
         ix := 0
 
         fScore: Int
