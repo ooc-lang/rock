@@ -193,7 +193,7 @@ version(unix || apple) {
             return this
         }
 
-        _getChildren: func <T> (param: T) -> ArrayList<T> {
+        _getChildren: func <T> (T: Class) -> ArrayList<T> {
 
             if(!dir?()) {
                 Exception new(This, "Trying to get the children of the non-directory '" + path + "'!") throw()
@@ -218,12 +218,11 @@ version(unix || apple) {
         }
 
         getChildrenNames: func -> ArrayList<String> {
-            _getChildren (path) // only using path here so we dont have to assign a new String
+            _getChildren (String)
         }
 
         getChildren: func -> ArrayList<File> {
-            _getChildren (File new("/dev/null")) // is there a better way to signal the type ? like: _getChildren<File>()
-            // well one could possibly use (T: Class) once String is a class.
+            _getChildren (File)
         }
 
         mkdir: func ~withMode (mode: Int32) -> Int {

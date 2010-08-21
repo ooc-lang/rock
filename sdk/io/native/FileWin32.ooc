@@ -212,7 +212,7 @@ version(windows) {
             }
         }
 
-        _getChildren: func <T> (param: T) -> ArrayList<T> {
+        _getChildren: func <T> (T: Class) -> ArrayList<T> {
             result := ArrayList<T> new()
             ffd: FindData
             hFile := FindFirstFile((path + "\\*") as CString, ffd&)
@@ -233,7 +233,7 @@ version(windows) {
          * Works only on directories, obviously
          */
         getChildrenNames: func -> ArrayList<String> {
-            _getChildren( path )
+            _getChildren( String )
         }
 
         /**
@@ -241,7 +241,7 @@ version(windows) {
          * Works only on directories, obviously
          */
         getChildren: func -> ArrayList<File> {
-            _getChildren ( File new ("") )
+            _getChildren ( File )
         }
 
     }
