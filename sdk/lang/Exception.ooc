@@ -1,37 +1,78 @@
 /**
- * exceptions
+ * Base class for all exceptions that can be thrown
+ *
+ * @author Amos Wenger (nddrylliog)
  */
 Exception: class {
 
+    /** Class which threw the exception. May be null */
     origin: Class
-    msg : String
 
-    init: func ~originMsg (=origin, =msg) {}
-    init: func ~noOrigin (=msg) {}
+    /** Message associated with this exception. Printed when the exception is thrown. */
+    message : String
 
-    crash: func {
-        fflush(stdout)
-        x := 0
-        x = 1 / x
-        "%d" format( x) println()
+
+    /**
+     * Create an exception
+     *
+     * @param origin The class throwing this exception
+     * @param message A short text explaning why the exception was thrown
+     */
+    init: func  (=origin, =message) {}
+
+    /**
+     * Create an exception
+     *
+     * @param message A short text explaning why the exception was thrown
+     */
+    init: func ~noOrigin (=message) {}
+
+
+    /**
+     * @return the exception's message, nicely formatted
+     */
+    format: func -> String {
+        if(origin)
+            "[%s in %s]: %s" format(class name, origin name, message)
+        else
+            "[%s]: %s" format(class name, message)
     }
 
-    getMessage: func -> String {
-        //max := const 1024
-        max : const SizeT = 1024
-        buffer := String new (max)
-        if(origin) snprintf(buffer, max, "[%s in %s]: %s\n", this as Object class name, origin name, msg)
-        else snprintf(buffer, max, "[%s]: %s\n", this as Object class name, msg)
-        return buffer
-    }
-
+    /**
+     * Print this exception, with its origin, if specified, and its message
+     */
     print: func {
-        fprintf(stderr, "%s", getMessage())
+        fprintf(stderr, "%s", format())
     }
 
-    throw: func {
+    /**
+     * Throw this exception
+     */
+    throw: inline final func {
         print()
-        crash()
+        abort()
     }
 
 }
+
+/* ------ C interfacing ------ */
+
+include stdlib
+
+/** stdlib.h -
+ *
+ * The  abort() first unblocks the SIGABRT signal, and then raises that
+ * signal for the calling process.  This results in the abnormal
+ * termination of the process unless the SIGABRT signal is caught
+ * and the signal handler does not return (see longjmp(3)).
+ *
+ * If the abort() function causes process termination, all open streams
+ * are closed and flushed.
+ *
+ * If the SIGABRT signal is ignored, or caught by a handler that returns,
+ * the abort() function will still terminate the process.  It does this
+ * by restoring the default disposition for SIGABRT and then raising
+ * the signal for a second time.
+ */
+abort: extern func
+

@@ -5,11 +5,10 @@ import tinker/[Response, Resolver, Trail]
 StringLiteral: class extends Literal {
 
     value: String
-    type : BaseType
+    type := static BaseType new("String", nullToken)
 
     init: func ~stringLiteral (=value, .token) {
         super(token)
-        type = BaseType new("String", token)
     }
 
     clone: func -> This { new(value clone(), token) }

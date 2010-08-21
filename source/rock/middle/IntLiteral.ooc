@@ -4,11 +4,10 @@ import Literal, Visitor, Type, BaseType
 IntLiteral: class extends Literal {
 
     value: Int64
-    type : BaseType
+    type := static BaseType new("SSizeT", nullToken)
 
     init: func ~intLiteral (=value, .token) {
         super(token)
-        type = BaseType new("SSizeT", token)
     }
 
     clone: func -> This { new(value, token) }

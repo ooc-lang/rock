@@ -40,12 +40,21 @@ version(windows) {
     FindClose: extern func (Handle)
     GetFileAttributes: extern func (Char*) -> Long
     CreateDirectory:extern func (Char*, Pointer) -> Bool
+    GetCurrentDirectory: extern func (Long, Pointer) -> Int
 
     /*
      * remove implementation
      */
     _remove: unmangled func(path: String) -> Int {
         printf("Win32: should remove file %s\n", path)
+    }
+
+    ooc_get_cwd: unmangled func -> String {
+        ret := String new(File MAX_PATH_LENGTH + 1)
+        if(!GetCurrentDirectory(File MAX_PATH_LENGTH, ret)) {
+            Exception new("Failed to get current directory!") throw()
+        }
+        return ret
     }
 
     /*

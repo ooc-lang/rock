@@ -46,7 +46,7 @@ floor: extern(floorl) func ~Long (LDouble) -> LDouble
    - Scott
  */
 
-Double: cover {
+extend Double {
     cos: extern(cos) func -> This
     sin: extern(sin) func -> This
     tan: extern(tan) func -> This
@@ -66,7 +66,7 @@ Double: cover {
     abs: extern(fabs) func -> This
     pow: extern(pow) func (This) -> This
     exp: extern(exp) func -> This
-    
+
     log: extern(log) func -> This
     log10: extern(log10) func -> This
 
@@ -80,7 +80,7 @@ Double: cover {
     truncate: extern(trunc) func -> This
 }
 
-Float: cover {
+extend Float {
     cos: extern(cosf) func -> This
     sin: extern(sinf) func -> This
     tan: extern(tanf) func -> This
@@ -100,7 +100,7 @@ Float: cover {
     abs: extern(fabsf) func -> This
     pow: extern(powf) func (This) -> This
     exp: extern(expf) func -> This
-    
+
     log: extern(logf) func -> This
     log10: extern(log10f) func -> This
 
@@ -114,7 +114,7 @@ Float: cover {
     truncate: extern(truncf) func -> This
 }
 
-LDouble: cover {
+extend LDouble {
     cos: extern(cosl) func -> This
     sin: extern(sinl) func -> This
     tan: extern(tanl) func -> This
@@ -134,7 +134,7 @@ LDouble: cover {
     abs: extern(fabsl) func -> This
     pow: extern(powl) func (This) -> This
     exp: extern(expl) func -> This
-    
+
     log: extern(logl) func -> This
     log10: extern(log10l) func -> This
 

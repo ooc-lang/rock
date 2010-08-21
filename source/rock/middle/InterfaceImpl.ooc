@@ -1,5 +1,6 @@
 import ../frontend/Token
-import ClassDecl, Type, FunctionDecl, TypeDecl
+import ClassDecl, Type, FunctionDecl, TypeDecl, FunctionCall,
+       VariableAccess, Cast
 import structs/HashMap
 import tinker/[Response, Resolver, Trail, Errors]
 
@@ -53,7 +54,7 @@ InterfaceImpl: class extends ClassDecl {
                 }
                 if(value == null) {
                     if(impl instanceOf?(ClassDecl) && impl as ClassDecl isAbstract) {
-                        // relay unimplemented interface methods into an abstract class
+                        // relay unimplemented interface methods into an abstract class...
                         value = FunctionDecl new(key getName(), key token)
                         value suffix = key suffix
                         value args = key args clone()
@@ -61,10 +62,31 @@ InterfaceImpl: class extends ClassDecl {
                         value setAbstract(true)
                         impl addFunction(value)
                     } else {
-                        // but err on concrete class, cause they should implement everything
-                        res throwError(InterfaceContractNotSatisfied new(token,
-                            "%s must implement function %s, from interface %s\n" format(
-                            impl getName(), key toString(), superType toString())))
+                        // ...but err on concrete class, cause they should implement everything
+                        // except if the function's already implemented in the interfaces (aka traits/mixins)
+                        if(key hasBody) {
+                            // already implemented in the interface - alright
+                            value = FunctionDecl new(key getName(), key token)
+                            value suffix = key suffix
+                            value args = key args clone()
+                            value returnType = key returnType
+                            impl addFunction(value)
+
+                            call := FunctionCall new(key getName(), key token)
+                            call virtual = false
+                            call expr = Cast new(VariableAccess new("this", value token), superType, value token)
+                            value args each(|declArg|
+                                call args add(VariableAccess new(value getName(), value token))
+                            )
+                            // hey that's barbaric.
+                            call ref = key
+                            call refScore = 1024
+                            value getBody() add(call)
+                        } else {
+                            res throwError(InterfaceContractNotSatisfied new(token,
+                                "%s must implement function %s, from interface %s\n" format(
+                                impl getName(), key toString(), superType toString())))
+                        }
                     }
                 }
                 aliases put(hash, FunctionAlias new(key, value))

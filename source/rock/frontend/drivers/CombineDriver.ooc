@@ -35,14 +35,14 @@ CombineDriver: class extends Driver {
 
         copyLocalHeaders(module, params, ArrayList<Module> new())
 
-        if(params debug) params compiler setDebugEnabled()      
+        if(params debug) params compiler setDebugEnabled()
         params compiler addIncludePath(File new(params distLocation, "libs/headers/") getPath())
         params compiler addIncludePath(params outPath getPath())
         addDeps(module, ArrayList<Module> new(), ArrayList<String> new())
 
         for(define in params defines) {
-			params compiler defineSymbol(define)
-		}
+            params compiler defineSymbol(define)
+        }
         for(dynamicLib in params dynamicLibs) {
             params compiler addDynamicLibrary(dynamicLib)
         }
@@ -60,6 +60,7 @@ CombineDriver: class extends Driver {
             if (params binaryPath != "") {
                 params compiler setOutputPath(params binaryPath)
             } else {
+                checkBinaryNameCollision(module simpleName)
                 params compiler setOutputPath(module simpleName)
             }
             libs := getFlagsFromUse(module)

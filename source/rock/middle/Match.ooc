@@ -2,7 +2,7 @@ import structs/[ArrayList, List]
 import ../frontend/Token
 import ControlStatement, Statement, Expression, Visitor, VariableDecl,
        Node, VariableAccess, Scope, BoolLiteral, Comparison, Type,
-       FunctionDecl, Return, BinaryOp, FunctionCall
+       FunctionDecl, Return, BinaryOp, FunctionCall, Cast, Parenthesis
 import tinker/[Trail, Resolver, Response, Errors]
 
 Match: class extends Expression {
@@ -11,7 +11,8 @@ Match: class extends Expression {
     expr: Expression = null
     cases := ArrayList<Case> new()
 
-    casesResolved? := false
+    casesResolved := 0
+    casesSize := -1
 
     init: func ~match_ (.token) {
         super(token)
@@ -50,33 +51,82 @@ Match: class extends Expression {
             if(!response ok()) return response
         }
 
+        if(casesSize == -1) {
+            casesSize = cases size()
+        }
+
         trail push(this)
-        if(!casesResolved?) {
-            casesResolved? = true
-            for (caze in cases) {
+        if(casesResolved < casesSize) {
+            for (idx in casesResolved..casesSize) {
+                caze := cases[idx]
                 if(expr && caze getExpr()) {
                     // When the expr of match is `true` we generate
                     // if(caseExpr) instead of if(true == caseExpr)
+                    caseToken := caze getExpr() token
                     if(!(expr instanceOf?(BoolLiteral) && expr as BoolLiteral getValue() == true)) {
                         if(expr getType() ==  null) {
                             res wholeAgain(this, "need expr type")
-                            casesResolved? = false
                             break
                         }
-                        fCall := FunctionCall new(expr, "matches__quest", caze getExpr() token)
-                        fCall args add(caze getExpr())
-                        hmm := fCall resolve(trail, res)
-                        if(fCall getRef() != null) {
-                            returnType := fCall getRef() getReturnType() getName()
-                            if(returnType != "Bool")
-                                res throwError(WrongMatchesSignature new(expr token, "matches? returns a %s, but it should return a Bool" format(returnType)))
-                            caze setExpr(fCall)
+                        caseExpr := caze getExpr()
+                        while(caseExpr instanceOf?(Parenthesis))
+                            caseExpr = caseExpr as Parenthesis inner
+                        if(caseExpr instanceOf?(VariableDecl)) {
+                            // unwrap `VariableDecl` (e.g. `case n: Node =>`) cases here
+                            fCall: FunctionCall
+                            mType := expr getType()
+                            if(mType isGeneric()) {
+                                acc := VariableAccess new(mType, caseToken)
+                                fCall = FunctionCall new(acc, "inheritsFrom__quest", caseToken)
+                            } else {
+                                fCall = FunctionCall new(expr, "instanceOf__quest", caseToken)
+                            }
+                            fCall args add(TypeAccess new(caseExpr getType(), caseToken))
+                            hmm := fCall resolve(trail, res)
+                            vDecl := caseExpr as VariableDecl
+                            if(fCall getRef() == null) {
+                                if(res fatal) {
+                                    res throwError(
+                                        CantUseMatch new(expr token,
+                                            "You can't use the type match syntax here, can't resolve `%s`" format(fCall toString())
+                                    ))
+                                } else {
+                                    res wholeAgain(this, "call can't be resolved, let's forget it")
+                                    break
+                                }
+                            } else {
+                                caze setExpr(fCall)
+                            }
+                            // inject the variable
+                            // add the vDecl
+                            first := caze getBody() first()
+                            caze addBefore(first, vDecl)
+                            // add the Assignment (with a cast, to mute gcc)
+                            acc := VariableAccess new(vDecl, caseToken)
+                            cast := Cast new(getExpr(), vDecl getType(), caseToken)
+                            ass := BinaryOp new(acc, cast, OpType ass, caseToken)
+                            caze addBefore(first, ass)
                         } else {
-                            caze setExpr(Comparison new(expr, caze getExpr(), CompType equal, caze getExpr() token))
+                            fCall := FunctionCall new(expr, "matches__quest", caseToken)
+                            fCall args add(caze getExpr())
+                            hmm := fCall resolve(trail, res)
+                            if(fCall getRef() != null) {
+                                returnType := fCall getRef() getReturnType() getName()
+                                if(returnType != "Bool")
+                                    res throwError(WrongMatchesSignature new(expr token, "matches? returns a %s, but it should return a Bool" format(returnType)))
+                                caze setExpr(fCall)
+                            } else {
+                                caze setExpr(Comparison new(expr, caze getExpr(), CompType equal, caseToken))
+                            }
                         }
                     }
                 }
+                casesResolved += 1
             }
+        }
+        if(casesResolved < casesSize) {
+            trail pop(this)
+            return Responses OK
         }
 
         for (caze in cases) {
@@ -231,5 +281,9 @@ ExpectedExpression: class extends Error {
 }
 
 WrongMatchesSignature: class extends Error {
+    init: super func ~tokenMessage
+}
+
+CantUseMatch: class extends Error {
     init: super func ~tokenMessage
 }

@@ -1,4 +1,4 @@
-import ../File, os/Time, structs/ArrayList
+import ../File, structs/ArrayList
 
 include dirent
 
@@ -38,6 +38,15 @@ version(unix || apple) {
 
     _getcwd: extern (getcwd) func(buf: Char*, size: SizeT) -> Char*
 
+    ooc_get_cwd: unmangled func -> String {
+        ret := String new(File MAX_PATH_LENGTH + 1)
+        if(!_getcwd(ret, File MAX_PATH_LENGTH)) {
+            Exception new("Failed to get current directory!") throw()
+        }
+        return ret
+    }
+
+    TimeT: cover from time_t
     ModeT: cover from mode_t
 
     FileStat: cover from struct stat {

@@ -4,11 +4,10 @@ import Literal, Visitor, Type, BaseType
 FloatLiteral: class extends Literal {
 
     value: Float
-    type : BaseType
+    type := static BaseType new("Float", nullToken)
 
     init: func ~floatLiteral (=value, .token) {
         super(token)
-        type = BaseType new("Float", token)
     }
 
     clone: func -> This { new(value, token) }

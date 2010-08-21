@@ -4,7 +4,7 @@ import ../frontend/[Token, BuildParams, PathList, AstBuilder]
 import ../utils/FileUtils
 import Node, FunctionDecl, Visitor, Import, Include, Use, TypeDecl,
        FunctionCall, Type, Declaration, VariableAccess, OperatorDecl,
-       Scope, NamespaceDecl, BaseType, FuncType
+       Scope, NamespaceDecl, BaseType, FuncType, Addon
 import tinker/[Response, Resolver, Trail, Errors]
 
 Module: class extends Node {
@@ -16,6 +16,7 @@ Module: class extends Node {
     main := false
 
     types      := OrderedMultiMap<String, TypeDecl> new()
+    addons     := ArrayList<Addon> new()
     functions  := OrderedMultiMap<String, FunctionDecl> new()
     operators  := ArrayList<OperatorDecl> new()
 
@@ -112,6 +113,10 @@ Module: class extends Node {
             }
         }
         functions put(hash, fDecl)
+    }
+
+    addAddon: func (addon: Addon) {
+        addons add(addon)
     }
 
     addType: func (tDecl: TypeDecl) {
@@ -245,28 +250,28 @@ Module: class extends Node {
             return 0 // hmm no member calls for us
         }
 
-        resolveCallNonRecursive(call, res)
+        resolveCallNonRecursive(call, res, trail)
 
         for(imp in getGlobalImports()) {
-            imp getModule() resolveCallNonRecursive(call, res)
+            imp getModule() resolveCallNonRecursive(call, res, trail)
         }
 
         0
     }
 
-    resolveCallNonRecursive: func (call: FunctionCall, res: Resolver) {
+    resolveCallNonRecursive: func (call: FunctionCall, res: Resolver, trail: Trail) {
 
         //printf(" >> Looking for function %s in module %s!\n", call name, fullName)
         fDecl : FunctionDecl = null
         fDecl = functions get(TypeDecl hashName(call name, call suffix))
         if(fDecl) {
-            call suggest(fDecl)
+            call suggest(fDecl, res, trail)
         }
 
-        for(fDecl in functions) {
-            if(fDecl getName() == call getName() && (call getSuffix() == null || call getSuffix() == fDecl getSuffix())) {
+        if(!call suffix) for(fDecl in functions) {
+            if(fDecl name == call name && (call suffix == null)) {
                 if(call debugCondition()) printf("Suggesting fDecl %s for call %s\n", fDecl toString(), call toString())
-                call suggest(fDecl)
+                call suggest(fDecl, res, trail)
             }
         }
 
@@ -368,6 +373,14 @@ Module: class extends Node {
             response := tDecl resolve(trail, res)
             if(!response ok()) {
                 if(res params veryVerbose) printf("response of tDecl %s = %s\n", tDecl toString(), response toString())
+                finalResponse = response
+            }
+        }
+
+        for(addon in addons) {
+            response := addon resolve(trail, res)
+            if(!response ok()) {
+                if(res params veryVerbose) printf("response of addon %s = %s\n", addon toString(), response toString())
                 finalResponse = response
             }
         }

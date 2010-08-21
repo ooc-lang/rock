@@ -4,7 +4,8 @@ import ../io/TabbedWriter
 import text/Buffer
 import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
     FunctionDecl, FunctionCall, Module, VariableAccess, Node,
-    InterfaceImpl, Version, EnumDecl, BaseType, FuncType, OperatorDecl
+    InterfaceImpl, Version, EnumDecl, BaseType, FuncType, OperatorDecl,
+    Addon, Cast
 import tinker/[Resolver, Response, Trail, Errors]
 
 /**
@@ -56,7 +57,7 @@ TypeDecl: abstract class extends Declaration {
     verzion: VersionSpec = null
 
     base: TypeDecl = null
-    addons := ArrayList<TypeDecl> new()
+    addons := ArrayList<Addon> new()
 
     _finishedGhosting := false
 
@@ -113,8 +114,8 @@ TypeDecl: abstract class extends Declaration {
 
     isAddon: func -> Bool { getBase() != null }
 
-    getAddons: func -> ArrayList<TypeDecl> {
-        return isMeta ? addons : getMeta() addons
+    getAddons: func -> ArrayList<Addon> {
+        return isMeta ? getNonMeta() addons : addons
     }
 
     getFullName: func -> String {
@@ -308,8 +309,8 @@ TypeDecl: abstract class extends Declaration {
                 score := call getScore(fDecl)
                 if(call debugCondition()) "Considering fDecl %s for fCall %s, score = %d\n" format(fDecl toString(), call toString(), score) println()
                 if(score == -1) {
-                    finalScore = -1
-                    return null // special score that means "something isn't resolved"
+                    finalScore = -1 // special score that means "something isn't resolved"
+                    return null
                 }
 
                 if(score > bestScore) {
@@ -400,7 +401,7 @@ TypeDecl: abstract class extends Declaration {
 
         trail push(this)
 
-        if(debugCondition() || res params veryVerbose) printf("====== Resolving type decl %s (%p)\n", toString(), this)
+        if(debugCondition() || res params veryVerbose) printf("====== Resolving type decl %s\n", toString())
 
         if (!type isResolved()) {
             response := type resolve(trail, res)
@@ -749,48 +750,42 @@ TypeDecl: abstract class extends Declaration {
         finalScore: Int
         fDecl := getFunction(call name, call suffix, call, true, finalScore&)
         if(finalScore == -1) {
-            res wholeAgain(call, "Got -1 from finalScore!")
+            if(res fatal) {
+                // if fatal and beacause of us, resolve ourselves to get a meaningful error message
+                // instead of getting a cryptic error on the call-side (like, 'No such function blah'
+                // where clearly such a function exists)
+                resolve(trail, res)
+            }
             return -1 // something's not resolved
         }
         if(fDecl) {
             if(call debugCondition()) "    \\o/ Found fDecl for %s, it's %s" format(call name, fDecl toString()) println()
-            if(call suggest(fDecl)) {
+            if(call suggest(fDecl, res, trail)) {
                 if(call getExpr() == null) {
                     call setExpr(VariableAccess new("this", call token))
                 }
                 if(call debugCondition()) "   returning..." println()
                 return 0
             }
-        }/* else if(getSuperRef() != null) {
-            if(call debugCondition()) printf("  <== going in superRef %s\n", getSuperRef() toString())
-            if(getSuperRef() resolveCall(call, res, trail) == -1) return -1
-        }*/ // FIXME: uncomment when we're sure this doesn't cause any problems
-
-        /*
-        if(getBase() != null) {
-            if(call debugCondition()) printf("From %s (%s), ooking in base %s (%s)\n",
-                toString(), token toString(), getBase() toString(), getBase() token toString())
-            if(getBase() resolveCall(call, res, trail) == -1) return -1
         }
-        */
 
         for(addon in getAddons()) {
             has := false
 
-            for(imp in call token module getGlobalImports()) {
+            // It's also possible that the addon was defined in the
+            // function call's module.
+            if(call token module == addon token module) {
+                has = true
+            } else for(imp in call token module getGlobalImports()) {
                 if(imp getModule() == addon token module) {
                     has = true
                     break
                 }
             }
 
-            // It's also possible that the addon was defined in the
-            // function call's module.
-            if(call token module == addon token module && call token module == token module) {
-                has = true
+            if(!has) {
+                continue
             }
-
-            if(!has) continue
 
             if(addon resolveCall(call, res, trail) == -1) return -1
         }
@@ -800,7 +795,7 @@ TypeDecl: abstract class extends Declaration {
             if(vDecl != null) {
                 // FIXME this is far from good.
                 if(vDecl getType() instanceOf?(FuncType)) {
-                    if(call suggest(vDecl getFunctionDecl())) {
+                    if(call suggest(vDecl getFunctionDecl(), res, trail)) {
                         if(call getExpr() == null) {
                             call setExpr(VariableAccess new("this", call token))
                         }

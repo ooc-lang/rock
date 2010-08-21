@@ -200,6 +200,17 @@ BufferReader: class extends Reader {
     }
 }
 
+operator == (a, b: Buffer) -> Bool {
+    if (!a && !b) return true
+    if ((!a && b) || (!b && a)) return false
+    return ( (a size == b size) &&     ( memcmp ( a data as Char*, b data as Char*, a size ) == 0 ) )
+}
+
+operator != (a, b: Buffer) -> Bool {
+    if (a == b) return false
+    else        return true
+}
+
 /*  Test routines
     TODO use kinda builtin assert which doesnt crash when one test fails
     once unittest facility is builtin

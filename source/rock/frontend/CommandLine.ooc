@@ -74,6 +74,11 @@ printf("%s", args[0] )
                         params dynamiclib = arg substring(idx + 1)
                     }
 
+                } else if (option startsWith?("libfolder=")) {
+
+                    idx := arg indexOf('=')
+                    params libfolder = arg substring(idx + 1)
+
                 } else if(option startsWith?("backend")) {
                     params backend = arg substring(arg indexOf('=') + 1)
 
@@ -247,6 +252,7 @@ printf("%s", args[0] )
                     driverName := option substring("driver=" length())
                     driver = match (driverName) {
                         case "combine" =>
+                            params libcache = false
                             CombineDriver new(params)
                         case "sequence" =>
                             SequenceDriver new(params)
@@ -350,17 +356,55 @@ printf("%s", args[0] )
             }
         }
 
-        if(modulePaths empty?()) {
+        if(modulePaths empty?() && !params libfolder) {
             "rock: no ooc files" println()
             exit(1)
         }
 
+        dummyModule: Module
+
+        if(params libfolder) {
+            if(params staticlib == null && params dynamiclib == null) {
+                // by default, build both
+                params staticlib = ""
+                params dynamiclib = ""
+            }
+
+            idx := params libfolder indexOf(File pathDelimiter)
+            libfolder := File new(match idx {
+                case -1 => params libfolder
+                case    => params libfolder substring(0, idx)
+            })
+
+            name := (idx == -1 ? libfolder getAbsoluteFile() name() : params libfolder substring(idx + 1))
+            params libfolder = libfolder getPath()
+            params sourcePath add(params libfolder)
+
+            if(params verbose) "Building lib for folder %s to name %s" printfln(params libfolder, name)
+
+            dummyModule = Module new("__lib__/%s.ooc" format(name), ".", params, nullToken)
+            libfolder walk(|f|
+                // sort out links to non-existent destinations.
+                if(!f exists?())
+                    return true // = continue
+
+                path := f getPath()
+                if (!path endsWith?(".ooc")) return true
+
+                fullName := f getAbsolutePath()
+                fullName = fullName substring(libfolder getAbsolutePath() length() + 1, fullName length() - 4)
+
+                dummyModule addImport(Import new(fullName, nullToken))
+                true
+            )
+        }
+
         if(params staticlib != null || params dynamiclib != null) {
-            if(modulePaths size() != 1) {
+            if(modulePaths size() != 1 && !params libfolder) {
                 "Error: you can use -staticlib of -dynamiclib only when specifying a unique .ooc file, not %d of them." printfln(modulePaths size())
                 exit(1)
             }
-            moduleName := File new(modulePaths[0]) name()
+            moduleName := File new(dummyModule ? dummyModule path : modulePaths[0]) name()
             moduleName = moduleName[0..moduleName length() - 4]
             basePath := File new("build", moduleName) getPath()
             if(params staticlib == "") {
@@ -374,16 +418,28 @@ printf("%s", args[0] )
                 params clean = false
                 params defaultMain = false
                 params outPath = File new(basePath, "include")
+                prefix := "lib"
                 dynamicExt := ".so"
                 // TODO: version blocks for this is evil. What if we want to cross-compile?
                 // besides, it's missing some platforms.
                 version(windows) {
                     dynamicExt = ".dll"
+                    prefix = ""
                 }
                 version(apple) {
-                    dynamicExt = ".dynlib"
+                    dynamicExt = ".dylib"
                 }
-                params dynamiclib = File new(File new(basePath, "lib"), moduleName + dynamicExt) getPath()
+                params dynamiclib = File new(File new(basePath, "lib"), prefix + moduleName + dynamicExt) getPath()
+
+                // TODO: this is too gcc/Linux-specific: there should be a good way
+                // to abstract that away
+                params compilerArgs add("-fpic")
+                params compilerArgs add("-shared")
+                params compilerArgs add("-Wl,-soname," + params dynamiclib)
+                params binaryPath = params dynamiclib
+                //driver = CombineDriver new(params)
+                params libcache = false // libcache is incompatible with combine driver
+                File new(basePath, "lib") mkdirs()
             }
         }
 
@@ -393,11 +449,15 @@ printf("%s", args[0] )
         errorCode := 0
 
         while(true) {
-            for(modulePath in modulePaths) {
-                code := parse(modulePath replace('/', File separator))
-                if(code != 0) {
-                    errorCode = 2 // C compiler failure.
-                    break
+            if(dummyModule) {
+                postParsing(dummyModule)
+            } else {
+                for(modulePath in modulePaths) {
+                    code := parse(modulePath replace('/', File separator))
+                    if(code != 0) {
+                        errorCode = 2 // C compiler failure.
+                        break
+                    }
                 }
             }
 
@@ -441,9 +501,6 @@ printf("%s", args[0] )
     }
 
     parse: func (moduleName: String) -> Int {
-
-        first := static true
-
         moduleFile := params sourcePath getFile(moduleName)
 
         if(!moduleFile) {
@@ -461,8 +518,16 @@ printf("%s", args[0] )
 
         // phase 1: parse
         AstBuilder new(modulePath, module, params)
+        postParsing(module)
+
+        return 0
+    }
+
+    postParsing: func (module: Module) {
+        first := static true
 
         if(params onlyparse) {
+            if(params verbose) println()
             // Oookay, we're done here.
             success()
             return 0
@@ -477,7 +542,7 @@ printf("%s", args[0] )
             }
         }
         module parseImports(null)
-        if(params verbose) printf("Finished parsing, now tinkering...\n")
+        if(params verbose) printf("\rFinished parsing, now tinkering...                                                   \n")
 
         // phase 2: tinker
         if(!Tinkerer new(params) process(module collectDeps())) failure()
@@ -554,9 +619,6 @@ printf("%s", args[0] )
             }
 
         first = false
-
-        return 0
-
     }
 
     success: static func {

@@ -44,7 +44,7 @@ EscapeSequence: class {
                             /* invalid character in hexadecimal literal. */
                             return This invalid
                         }
-                        chr@ += pow(16, i) * value
+                        chr@ += (pow(16, i) as Int) * value
                     }
                     return This valid
                 } else {
@@ -66,7 +66,7 @@ EscapeSequence: class {
                             /* invalid character in octal literal. */
                             return This invalid
                         }
-                        chr@ += pow(8, i) * value
+                        chr@ += (pow(8, i) as Int) * value
                     }
                     return This valid
                 }

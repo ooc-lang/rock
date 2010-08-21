@@ -232,7 +232,9 @@ VariableAccess: class extends Expression {
                         res wholeAgain(this, "need ref!")
                         return Responses OK
                     }
-                    if (!fDecl isExtern()) // extern C functions don't accept a Closure_struct
+                    // 1.) extern C functions don't accept a Closure_struct
+                    // 2.) If ref is not a FDecl, it's probably already "closured" and doesn't need to be wrapped a second time
+                    if (!fDecl isExtern() && ref instanceOf?(FunctionDecl))
                         closureType = fDecl args get(ourIndex) getType()
 
                 } elseif (parent instanceOf?(BinaryOp)) {
