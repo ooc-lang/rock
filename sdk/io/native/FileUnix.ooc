@@ -181,13 +181,13 @@ version(unix || apple) {
             return this
         }
 
-        _isSelfOrParentDirEntry? : func (dir: CString) -> Bool {
+        _isSelfOrParentDirEntry? : inline func (dir: CString) -> Bool {
             l := strlen(dir)
             return ( (l > 0 && l < 3) && (dir as Char*)@ == '.' && (l == 1 || (dir as Char* + 1)@ == '.'))
         }
 
-        // FIXME these two funcs are nearly identical, remove the bloat!
-        getChildrenNames: func -> ArrayList<String> {
+        _getChildren: func <T> (param: T) -> ArrayList<T> {
+
             if(!dir?()) {
                 Exception new(This, "Trying to get the children of the non-directory '" + path + "'!") throw()
             }
@@ -195,36 +195,28 @@ version(unix || apple) {
             if(!dir) {
                 Exception new(This, "Couldn't open directory '" + path + "' for reading!") throw()
             }
-            result := ArrayList<String> new()
+
+            result := ArrayList<T> new()
             entry := readdir(dir)
             while(entry != null) {
                 if(!_isSelfOrParentDirEntry? (entry@ name)) {
-                    result add(entry@ name clone())
+                    if (T == String) result add(entry@ name clone())
+                    else if (T == File) result add(File new(this, entry@ name clone()))
                 }
                 entry = readdir(dir)
             }
             closedir(dir)
             return result
+
+        }
+
+        getChildrenNames: func -> ArrayList<String> {
+            _getChildren (path) // only using path here so we dont have to assign a new String
         }
 
         getChildren: func -> ArrayList<File> {
-            if(!dir?()) {
-                Exception new(This, "Trying to get the children of the non-directory '" + path + "'!") throw()
-            }
-            dir := opendir(path as CString)
-            if(!dir) {
-                Exception new(This, "Couldn't open directory '" + path + "' for reading!") throw()
-            }
-            result := ArrayList<File> new()
-            entry := readdir(dir)
-            while(entry != null) {
-                if(!_isSelfOrParentDirEntry? (entry@ name)) {
-                    result add(File new(this, entry@ name clone()))
-                }
-                entry = readdir(dir)
-            }
-            closedir(dir)
-            return result
+            _getChildren (File new("/dev/null")) // is there a better way to signal the type ? like: _getChildren<File>()
+            // well one could possibly use (T: Class) once String is a class.
         }
 
         mkdir: func ~withMode (mode: Int32) -> Int {
