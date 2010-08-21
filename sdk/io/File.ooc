@@ -323,7 +323,7 @@ File: abstract class {
     }
 
     _isSelfOrParentDirEntry? : inline func (dir: CString) -> Bool {
-        (dir != null && dir@ == '.') && ( (dir + 1)@ == '\0' || ( (dir + 1)@ == '.' && (dir + 2)@ == '\0'  ) )
+        (dir != null && dir[0] == '.') && ( dir[1] == '\0' || ( dir[1] == '.' && dir[2] == '\0'  ) )
     }
 
 }
