@@ -80,6 +80,14 @@ version(unix || apple) {
             return result
         }
 
+        exists?: func -> Bool {
+            fd := fopen(path, "r")
+            if(fd) {
+                fclose(fd); return true
+            }
+            false
+        }
+
         /**
          * @return true if it's a directory
          */
@@ -132,6 +140,7 @@ version(unix || apple) {
         /**
          * @return the time of last access, or -1 if it doesn't exist
          */
+        //FIXME maybe the exists call is redundant
         lastAccessed: func -> Long {
             if(!exists?()) return -1
             return _getFileStat() st_atime as Long
@@ -140,6 +149,7 @@ version(unix || apple) {
         /**
          * @return the time of last modification, or -1 if it doesn't exist
          */
+        //FIXME maybe the exists call is redundant
         lastModified: func -> Long {
             if(!exists?()) return -1
             return _getFileStat() st_mtime as Long
@@ -148,6 +158,7 @@ version(unix || apple) {
         /**
          * @return the time of creation, or -1 if it doesn't exist
          */
+        //FIXME maybe the exists call is redundant
         created: func -> Long {
             if(!exists?()) return -1
             return _getFileStat() st_ctime as Long

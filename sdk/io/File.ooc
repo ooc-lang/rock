@@ -89,13 +89,7 @@ File: abstract class {
      * :return: true if the file exists and can be
      * opened for reading
      */
-    exists?: func -> Bool {
-        fd := fopen(path, "r")
-        if(fd) {
-            fclose(fd); return true
-        }
-        false
-    }
+    exists?: abstract func -> Bool
 
     /**
      * :return: the permissions for the owner of this file
