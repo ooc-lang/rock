@@ -59,25 +59,32 @@ ControlStatementWriter: abstract class extends Skeleton {
 
     write: static func ~_match (this: Skeleton, mat: Match) {
         isFirst := true
-		writeBody := func(caze: Case) {
+		cazes := mat cases
+        writeBody := func(caze: Case) {
             current app("{"). tab()
             for (stat in caze getBody()) writeLine(stat)
             current untab(). nl(). app("}")
         }
         
         // ´case =>´ as only match-case
-        if (mat getCases() size() == 1) {
-            caze := mat getCases() get(0)
-            if (!caze getExpr()) {                 
+        if (cazes size() == 1) {
+            caze := cazes get(0)
+            if (!caze  getExpr()) {                 
                 writeBody(caze)
                 return
             }
         }
-   
+         
+        // sort is the wrong term, it basically puts the ´case =>´ at the end
+        cazes sort(|x, y| 
+            if (!x expr) return true
+                return false
+        )
+                        
         for(caze in mat getCases()) {
 			if(!isFirst) current app(" else ")
 
-			if(caze getExpr() == null) {
+			if(!caze getExpr()) {
 				if(isFirst) current.app(" else ");
 			} else {
                 // FIXME: wtf? (from the j/ooc codebase)
