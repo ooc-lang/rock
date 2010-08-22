@@ -45,6 +45,23 @@ Match: class extends Expression {
         }
     }
 
+    unwrapBinaryOpCase: func(caze: Case) {
+        head: BinaryOp = caze getExpr() clone() 
+        current := head // our pointer
+        caseToken := caze getExpr() token
+        while (current instanceOf?(BinaryOp) && (current type == OpType and || current type == OpType or)) {
+            current right = Comparison new(expr, current right clone(), CompType equal, caseToken) //replace right node with a com 'expr == right'
+            if (!current left instanceOf?(BinaryOp)) { // workaround, otherwise the very left node wouldn't be correctly replaced
+                current left = Comparison new(expr, current left clone(), CompType equal, caseToken)
+                break
+            }
+            current = current left
+        }
+        caze setExpr(head)
+    }
+
+    
+    
     resolve: func (trail: Trail, res: Resolver) -> Response {
         if (expr != null) {
             response := expr resolve(trail, res)
@@ -116,7 +133,11 @@ Match: class extends Expression {
                                     res throwError(WrongMatchesSignature new(expr token, "matches? returns a %s, but it should return a Bool" format(returnType)))
                                 caze setExpr(fCall)
                             } else {
-                                caze setExpr(Comparison new(expr, caze getExpr(), CompType equal, caseToken))
+                                if (caze getExpr() instanceOf?(BinaryOp)) {
+                                    unwrapBinaryOpCase(caze)
+                                } else { 
+                                    caze setExpr(Comparison new(expr, caze getExpr(), CompType equal, caseToken))
+                                }
                             }
                         }
                     }
