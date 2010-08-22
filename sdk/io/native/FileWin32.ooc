@@ -116,7 +116,7 @@ version(windows) {
          */
         size: func -> LLong {
             (ffd, ok) := _getFindData()
-            return (ok) ? 0 : toLLong(ffd fileSizeLow, ffd fileSizeHigh)
+            return (ok) ? toLLong(ffd fileSizeLow, ffd fileSizeHigh) : 0
         }
 
         /**
