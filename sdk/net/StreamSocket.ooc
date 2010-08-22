@@ -222,7 +222,7 @@ StreamSocketWriter: class extends Writer {
         length := vsnprintf(null, 0, fmt, list2)
         va_end (list2)
         buffer := Buffer new ( length + 1)
-        vsnprintf(buffer data as Char* + buffer size, length + 1, fmt, list)
+        vsnprintf(buffer data, length + 1, fmt, list)
         write(buffer toString(), length)
     }
 }
