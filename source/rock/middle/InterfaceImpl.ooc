@@ -33,13 +33,13 @@ InterfaceImpl: class extends ClassDecl {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        if(!super(trail, res) ok()) return Responses LOOP
+        if(!super(trail, res) ok()) return Response LOOP
 
         ref := superType getRef() as TypeDecl
-        if(ref == null) return Responses LOOP
+        if(ref == null) return Response LOOP
 
         // done already.
-        if(aliases size() == ref getMeta() getFunctions() size()) return Responses OK
+        if(aliases size() == ref getMeta() getFunctions() size()) return Response OK
 
         for(key: FunctionDecl in ref getMeta() getFunctions()) {
             hash := hashName(key)
@@ -50,7 +50,7 @@ InterfaceImpl: class extends ClassDecl {
                 value := impl getMeta() getFunction(key getName(), key getSuffix(), null, true, finalScore&)
                 if(finalScore == -1) {
                     res wholeAgain(this, "Not finished checking every function is implemented")
-                    return Responses OK
+                    return Response OK
                 }
                 if(value == null) {
                     if(impl instanceOf?(ClassDecl) && impl as ClassDecl isAbstract) {
@@ -93,7 +93,7 @@ InterfaceImpl: class extends ClassDecl {
             }
         }
 
-        return Responses OK
+        return Response OK
 
     }
 

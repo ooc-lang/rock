@@ -37,7 +37,7 @@ InterfaceDecl: class extends ClassDecl {
 
     resolve: func(trail: Trail, res: Resolver) -> Response {
 
-        if(!super(trail, res) ok()) return Responses LOOP
+        if(!super(trail, res) ok()) return Response LOOP
 
         return fatType resolve(trail, res)
 

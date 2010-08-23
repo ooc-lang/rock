@@ -56,7 +56,7 @@ PropertyDecl: class extends VariableDecl {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
         if(resolved) {
-            return Responses OK
+            return Response OK
         }
         // get and store the class.
         node := trail peek()
@@ -133,7 +133,7 @@ PropertyDecl: class extends VariableDecl {
         }
         super(trail, res)
         resolved = true
-        return Responses OK
+        return Response OK
     }
 
     /** resolve `set` and `get` functions to `getter` and `setter` */

@@ -103,7 +103,7 @@ BaseType: class extends Type {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        if(isResolved()) return Responses OK
+        if(isResolved()) return Response OK
 
         if(!getRef()) {
             depth := trail size() - 1
@@ -129,7 +129,7 @@ BaseType: class extends Type {
             if(res params veryVerbose) {
                 printf("     - type %s still not resolved, looping (ref = %p)\n", name, getRef())
             }
-            return Responses LOOP
+            return Response LOOP
         } else if(getRef() instanceOf?(TypeDecl)) {
             tDecl := getRef() as TypeDecl
             if(!tDecl isMeta && !tDecl getTypeArgs() empty?()) {
@@ -160,7 +160,7 @@ BaseType: class extends Type {
             trail pop(this)
         }
 
-        return Responses OK
+        return Response OK
 
     }
 

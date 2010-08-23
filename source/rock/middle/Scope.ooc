@@ -18,6 +18,10 @@ Scope: class extends Node {
         copy
     }
 
+    each: func (f: Func (Statement)) {
+        list each(f)
+    }
+
     accept: func (v: Visitor) { v visitScope(this) }
 
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
@@ -89,7 +93,7 @@ Scope: class extends Node {
         }
 
         trail pop(this)
-        return Responses OK
+        return Response OK
 
     }
 

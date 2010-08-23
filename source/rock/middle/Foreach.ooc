@@ -66,14 +66,14 @@ Foreach: class extends ControlStatement {
         if(!collection instanceOf?(RangeLiteral)) {
             if(collection getType() == null) {
                 res wholeAgain(this, "need collection type")
-                return Responses OK
+                return Response OK
             }
             collection getType() resolve(trail, res)
 
             iterCall := FunctionCall new(collection, "iterator", token)
 
-            response := Responses LOOP
-            while(response == Responses LOOP) {
+            response := Response LOOP
+            while(response == Response LOOP) {
                 response = iterCall resolve(trail, res)
             }
 
@@ -81,13 +81,13 @@ Foreach: class extends ControlStatement {
             if(iterType == null) {
                 if(res fatal) res throwError(InternalError new(token, "Couldn't resolve iterType of %s" format(toString())))
                 res wholeAgain(this, "need iterType")
-                return Responses OK
+                return Response OK
             }
             iterType resolve(trail, res)
             if(!iterType isResolved()) {
                 if(res fatal) res throwError(InternalError new(token, "Couldn't resolve iterType %s" format(iterType toString())))
                 res wholeAgain(this, "need iterType")
-                return Responses OK
+                return Response OK
             }
             //printf("iterCall = %s, ref = %s, iterType name = %s\n", iterCall toString(), iterCall getRef() ? iterCall getRef() toString() : "(nil)", iterType getName())
             //printf("iterType = %s\n", iterType toString())
@@ -108,7 +108,7 @@ Foreach: class extends ControlStatement {
 
             if(nextCall getType() == null || !nextCall getType() isResolved()) {
                 res wholeAgain(this, "need nextCall type")
-                return Responses OK
+                return Response OK
             }
 
             while1 getBody() add(BinaryOp new(variable, nextCall, OpType ass, token)).
@@ -117,7 +117,7 @@ Foreach: class extends ControlStatement {
             if(!list replace(this, block)) {
                 if(res fatal) printf("Failed to replace %s with %s in a %s. trail = %s", toString(), block toString(), list toString(), trail toString())
                 res wholeAgain(this, "Can't turn into a while :/, list = " + list toString() + " (it's a " + list class name)
-                return Responses LOOP
+                return Response LOOP
             }
 
             block getBody() add(vdfe).
@@ -133,8 +133,8 @@ Foreach: class extends ControlStatement {
             }
 
             res wholeAgain(this, "Just turned into a while =)")
-            return Responses OK
-            //return Responses LOOP
+            return Response OK
+            //return Response LOOP
         }
 
         return super(trail, res)

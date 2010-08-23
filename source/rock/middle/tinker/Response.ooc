@@ -1,25 +1,23 @@
-include stdint
 
-Response: cover from uint8_t {
+/**
+ * Possible Response in the resolve() method.
+ *
+ * @author Amos Wenger (nddrylliog)
+ */
+Response: enum {
+    OK
+    LOOP
+}
 
-    ok:      func -> Bool { this == Responses OK }
-    loop:    func -> Bool { this == Responses LOOP }
-    restart: func -> Bool { this == Responses RESTART }
+// tihi
+extend Response {
+    ok:      func -> Bool { this == Response OK }
+    loop:    func -> Bool { this == Response LOOP }
 
     toString: func -> String {
         return match this {
-            case 0 => "OK"
-            case 1 => "LOOP"
-            case 2 => "RESTART"
+            case This OK   => "OK"
+            case This LOOP => "LOOP"
         }
     }
-
-}
-
-Responses: class {
-
-    OK = 0,
-    LOOP = 1,
-    RESTART = 2 : static Response
-
 }

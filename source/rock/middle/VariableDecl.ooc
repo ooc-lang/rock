@@ -160,7 +160,7 @@ VariableDecl: class extends Declaration {
             if(type == null) {
                 trail pop(this)
                 res wholeAgain(this, "must determine type of a VarDecl.")
-                return Responses OK
+                return Response OK
             }
             if(debugCondition()) {
                 " >>> Just inferred type %s of %s from expr %s" printfln(type toString(), toString(), expr toString())
@@ -193,7 +193,7 @@ VariableDecl: class extends Declaration {
                 result := trail peek() replace(this, varAcc)
                 if(!result) {
                     res throwError(CouldntReplace new(token, this, varAcc, trail))
-                    return Responses LOOP
+                    return Response LOOP
                 }
 
                 idx := trail findScope()
@@ -216,7 +216,7 @@ VariableDecl: class extends Declaration {
                 }
 
                 res wholeAgain(this, "parent isn't scope nor typedecl, unwrapped")
-                return Responses LOOP
+                return Response LOOP
             }
         }
 
@@ -230,7 +230,7 @@ VariableDecl: class extends Declaration {
                 fDecl := fCall getRef()
                 if(!fDecl || !fDecl getReturnType() isResolved()) {
                     res wholeAgain(this, "fCall isn't resolved.")
-                    return Responses OK
+                    return Response OK
                 }
 
                 if(!fDecl getReturnArgs() empty?()) {
@@ -249,12 +249,12 @@ VariableDecl: class extends Declaration {
                 t := getType()
                 if (!t) {
                     res wholeAgain(this, "Need Type.")
-                    return Responses OK
+                    return Response OK
                 }
                 reference := t getRef()
                 if (!reference || !getType()) {
                     res wholeAgain(this, "Need reference.")
-                    return Responses OK
+                    return Response OK
                 }
                 if (t isPointer() || reference instanceOf?(ClassDecl)) { // Pointer OR object
                     expr = NullLiteral new(token)
@@ -264,7 +264,7 @@ VariableDecl: class extends Declaration {
 
         if(!isArg && type != null && type isGeneric() && type pointerLevel() == 0) {
             if(expr != null) {
-                if(expr instanceOf?(FunctionCall) && expr as FunctionCall getName() == "gc_malloc") return Responses OK
+                if(expr instanceOf?(FunctionCall) && expr as FunctionCall getName() == "gc_malloc") return Response OK
 
                 ass := BinaryOp new(VariableAccess new(this, token), expr, OpType ass, token)
                 if(!trail addAfterInScope(this, ass)) {
@@ -280,7 +280,7 @@ VariableDecl: class extends Declaration {
             res wholeAgain(this, "just set expr to gc_malloc cause generic!")
         }
 
-        return Responses OK
+        return Response OK
 
     }
 
@@ -357,7 +357,7 @@ VariableDeclTuple: class extends VariableDecl {
                 tuple2 := expr as Tuple
                 if(tuple elements size() != tuple2 elements size()) {
                     res throwError(TupleMismatch new(token, "Tuples don't match for multi-variable declaration."))
-                    return Responses OK
+                    return Response OK
                 }
 
                 for(i in 0..tuple elements size()) {
@@ -386,14 +386,14 @@ VariableDeclTuple: class extends VariableDecl {
                 fCall := expr as FunctionCall
                 if(fCall getRef() == null) {
                     res wholeAgain(this, "Need fCall ref")
-                    return Responses OK
+                    return Response OK
                 }
                 if(fCall getRef() getReturnArgs() empty?()) {
                     if(res fatal) {
                         res throwError(TupleMismatch new(token, "Need a multi-return function call as the expression of a tuple-variable declaration."))
                     }
                     res wholeAgain(this, "need multi-return func call")
-                    return Responses OK
+                    return Response OK
                 }
                 parent := trail peek()
 
@@ -441,7 +441,7 @@ VariableDeclTuple: class extends VariableDecl {
                 res throwError(InternalError new(token, "Unsupported expression type %s for VariableDeclTuple." format(expr class name)))
         }
 
-        Responses OK
+        Response OK
     }
 
 }

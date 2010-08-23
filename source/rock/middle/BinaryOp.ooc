@@ -134,10 +134,10 @@ BinaryOp: class extends Expression {
 
         if(type == OpType ass) {
             if(left getType() == null || !left isResolved()) {
-                res wholeAgain(this, "left type is unresolved"); return Responses OK
+                res wholeAgain(this, "left type is unresolved"); return Response OK
             }
             if(right getType() == null || !right isResolved()) {
-                res wholeAgain(this, "right type is unresolved"); return Responses OK
+                res wholeAgain(this, "right type is unresolved"); return Response OK
             }
 
             // Left side is a property access? Replace myself with a setter call.
@@ -148,7 +148,7 @@ BinaryOp: class extends Expression {
                     fCall := FunctionCall new(left as VariableAccess expr, leftProperty getSetterName(), token)
                     fCall getArguments() add(right)
                     trail peek() replace(this, fCall)
-                    return Responses OK
+                    return Response OK
                 } else {
                     // We're in a setter/getter. This means the property is not virtual.
                     leftProperty setVirtual(false)
@@ -169,14 +169,14 @@ BinaryOp: class extends Expression {
                 fDecl := fCall getRef()
                 if(!fDecl || !fDecl getReturnType() isResolved()) {
                     res wholeAgain(this, "Need more info on fDecl")
-                    return Responses OK
+                    return Response OK
                 }
 
                 if(!fDecl getReturnArgs() empty?()) {
                     fCall setReturnArg(fDecl getReturnType() isGeneric() ? left getGenericOperand() : left)
                     trail peek() replace(this, fCall)
                     res wholeAgain(this, "just replaced with fCall and set ourselves as returnArg")
-                    return Responses OK
+                    return Response OK
                 }
             }
 
@@ -201,7 +201,7 @@ BinaryOp: class extends Expression {
                 }
 
                 res wholeAgain(this, "Replaced ourselves, need to tidy up")
-                return Responses OK
+                return Response OK
             }
         }
 
@@ -209,10 +209,10 @@ BinaryOp: class extends Expression {
         // is a property, we need to unwrap this to `expr attribute = expr attribute + value`.
         if(isAssign() && left instanceOf?(VariableAccess)) {
             if(left getType() == null || !left isResolved()) {
-                res wholeAgain(this, "left type is unresolved"); return Responses OK
+                res wholeAgain(this, "left type is unresolved"); return Response OK
             }
             if(right getType() == null || !right isResolved()) {
-                res wholeAgain(this, "right type is unresolved"); return Responses OK
+                res wholeAgain(this, "right type is unresolved"); return Response OK
             }
             // are we in a +=, *=, /=, ... operator? unwrap myself.
             if(left as VariableAccess ref instanceOf?(PropertyDecl)) {
@@ -234,7 +234,7 @@ BinaryOp: class extends Expression {
             if(t1 elements size() != t2 elements size()) {
                 res throwError(InvalidOperatorUse new(token, "Invalid assignment between operands of type %s and %s\n" format(
                     left getType() toString(), right getType() toString())))
-                return Responses OK
+                return Response OK
             }
 
             size := t1 elements size()
@@ -251,7 +251,7 @@ BinaryOp: class extends Expression {
                     ra := r as VariableAccess
                     if(la getRef() == null || ra getRef() == null) {
                         res wholeAgain(this, "need ref")
-                        return Responses OK
+                        return Response OK
                     }
                     if(la getRef() == ra getRef()) {
                         if(i == j) {
@@ -301,12 +301,12 @@ BinaryOp: class extends Expression {
             if(res fatal) {
                 res throwError(InvalidOperatorUse new(token, "Invalid use of operator %s between operands of type %s and %s\n" format(
                     opTypeRepr[type], left getType() toString(), right getType() toString())))
-                return Responses OK
+                return Response OK
             }
             res wholeAgain(this, "Illegal use, looping in hope.")
         }
 
-        return Responses OK
+        return Response OK
 
     }
 
@@ -357,7 +357,7 @@ BinaryOp: class extends Expression {
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType)
             //printf("Considering %s for %s, score = %d\n", opDecl toString(), toString(), score)
-            if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Responses OK }
+            if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response OK }
             if(score > bestScore) {
                 bestScore = score
                 candidate = opDecl
@@ -369,7 +369,7 @@ BinaryOp: class extends Expression {
             for(opDecl in module getOperators()) {
                 score := getScore(opDecl, reqType)
                 //printf("Considering %s for %s, score = %d\n", opDecl toString(), toString(), score)
-                if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Responses OK }
+                if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response OK }
                 if(score > bestScore) {
                     bestScore = score
                     candidate = opDecl
@@ -384,7 +384,7 @@ BinaryOp: class extends Expression {
                 trail push(this)
                 right resolve(trail, res)
                 trail pop(this)
-                return Responses OK
+                return Response OK
             }
 
             fDecl := candidate getFunctionDecl()
@@ -395,12 +395,12 @@ BinaryOp: class extends Expression {
             if(!trail peek() replace(this, fCall)) {
                 if(res fatal) res throwError(CouldntReplace new(token, this, fCall, trail))
                 res wholeAgain(this, "failed to replace oneself, gotta try again =)")
-                return Responses OK
+                return Response OK
             }
             res wholeAgain(this, "Just replaced with an operator overload")
         }
 
-        return Responses OK
+        return Response OK
 
     }
 

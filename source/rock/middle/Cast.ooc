@@ -86,7 +86,7 @@ Cast: class extends Expression {
             }
         }
 
-        return Responses OK
+        return Response OK
 
     }
 
@@ -102,7 +102,7 @@ Cast: class extends Expression {
             if(opDecl symbol != "as") continue
             score := getScore(opDecl)
             //printf("Considering %s for %s, score = %d\n", opDecl toString(), toString(), score)
-            if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Responses OK }
+            if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response OK }
             if(score > bestScore) {
                 bestScore = score
                 candidate = opDecl
@@ -115,7 +115,7 @@ Cast: class extends Expression {
                 if(opDecl symbol != "as") continue
                 score := getScore(opDecl)
                 //printf("Considering %s for %s, score = %d\n", opDecl toString(), toString(), score)
-                if(score == -1) { res wholeAgain(this, "score of %s == -1 !!"); return Responses OK }
+                if(score == -1) { res wholeAgain(this, "score of %s == -1 !!"); return Response OK }
                 if(score > bestScore) {
                     bestScore = score
                     candidate = opDecl
@@ -131,13 +131,13 @@ Cast: class extends Expression {
             if(!trail peek() replace(this, fCall)) {
                 if(res fatal) res throwError(CouldntReplace new(token, this, fCall, trail))
                 res wholeAgain(this, "failed to replace oneself, gotta try again =)")
-                return Responses OK
+                return Response OK
             }
             // just replaced with an operator overload
-            return Responses LOOP
+            return Response LOOP
         }
 
-        return Responses OK
+        return Response OK
 
     }
 

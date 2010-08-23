@@ -126,7 +126,7 @@ Match: class extends Expression {
         }
         if(casesResolved < casesSize) {
             trail pop(this)
-            return Responses OK
+            return Response OK
         }
 
         for (caze in cases) {
@@ -146,7 +146,7 @@ Match: class extends Expression {
             if(type == null && !(trail peek() instanceOf?(Scope))) {
                 if(res fatal) res throwError(InternalError new(token, "Couldn't figure out type of match"))
                 res wholeAgain(this, "need to resolve type")
-                return Responses OK
+                return Response OK
             }
         }
 
@@ -173,47 +173,47 @@ Match: class extends Expression {
                     caze getBody() set(caze getBody() lastIndex(), ass)
                 }
                 res wholeAgain(this, "just unwrapped")
-                return Responses OK
+                return Response OK
             }
         }
 
-        return Responses OK
+        return Response OK
 
     }
 
     inferType: func (trail: Trail, res: Resolver) -> Response {
 
-		funcIndex   := trail find(FunctionDecl)
-		returnIndex := trail find(Return)
+        funcIndex   := trail find(FunctionDecl)
+        returnIndex := trail find(Return)
 
-		if(funcIndex != -1 && returnIndex != -1) {
-			funcDecl := trail get(funcIndex, FunctionDecl)
-			if(funcDecl getReturnType() isGeneric()) {
-				type = funcDecl getReturnType()
-			}
-		}
+        if(funcIndex != -1 && returnIndex != -1) {
+            funcDecl := trail get(funcIndex, FunctionDecl)
+            if(funcDecl getReturnType() isGeneric()) {
+                type = funcDecl getReturnType()
+            }
+        }
 
-		if(type == null) {
-			// TODO make it more intelligent e.g. cycle through all cases and
-			// check that all types are compatible and find a common denominator
-			if(cases empty?()) {
-                return Responses OK
+        if(type == null) {
+            // TODO make it more intelligent e.g. cycle through all cases and
+            // check that all types are compatible and find a common denominator
+            if(cases empty?()) {
+                return Response OK
             }
 
             first := cases first()
-			if(first getBody() empty?()) {
-                return Responses OK
+            if(first getBody() empty?()) {
+                return Response OK
             }
 
-			statement := first getBody() last()
-			if(!statement instanceOf?(Expression)) {
-                return Responses OK
+            statement := first getBody() last()
+            if(!statement instanceOf?(Expression)) {
+                return Response OK
             }
 
-			type = statement as Expression getType()
-		}
+            type = statement as Expression getType()
+        }
 
-        return Responses OK
+        return Response OK
 
     }
 

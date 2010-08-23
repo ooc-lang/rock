@@ -71,7 +71,7 @@ CallChain: class extends Expression {
                     trail addAfterInScope(vDecl, call)
                 }
             }
-            return Responses OK
+            return Response OK
         }
 
         if(expr instanceOf?(FunctionCall) && parent instanceOf?(Scope)) {
@@ -85,7 +85,7 @@ CallChain: class extends Expression {
         scopeIdx := trail findScope()
         if (scopeIdx == -1) {
             res throwError(InternalError new(token, "Call-chain outside a scope! That doesn't make sense :/"))
-            return Responses LOOP // in case we're in all-errors mode
+            return Response LOOP // in case we're in all-errors mode
         }
 
         scope := trail get(scopeIdx)
@@ -117,7 +117,7 @@ CallChain: class extends Expression {
             res throwError(CouldntReplace new(token, this, varAcc, trail))
         }
 
-        return Responses OK
+        return Response OK
 
     }
 

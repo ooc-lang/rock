@@ -64,39 +64,39 @@ VariableAccess: class extends Expression {
 
     suggest: func (node: Node) -> Bool {
         if(node instanceOf?(VariableDecl)) {
-			candidate := node as VariableDecl
-		    // if we're accessing a member, we're expecting the
+            candidate := node as VariableDecl
+            // if we're accessing a member, we're expecting the
             // candidate to belong to a TypeDecl..
-		    if(isMember() && candidate owner == null) {
-		        return false
-		    }
+            if(isMember() && candidate owner == null) {
+                return false
+            }
 
-		    ref = candidate
+            ref = candidate
             if(isMember() && candidate owner isMeta) {
                 expr = VariableAccess new(candidate owner getNonMeta() getInstanceType(), candidate token)
             }
 
-		    return true
-	    } else if(node instanceOf?(FunctionDecl)) {
-			candidate := node as FunctionDecl
-		    // if we're accessing a member, we're expecting the candidate
-		    // to belong to a TypeDecl..
-		    if((expr != null) && (candidate owner == null)) {
-		        return false
-		    }
+            return true
+        } else if(node instanceOf?(FunctionDecl)) {
+            candidate := node as FunctionDecl
+            // if we're accessing a member, we're expecting the candidate
+            // to belong to a TypeDecl..
+            if((expr != null) && (candidate owner == null)) {
+                return false
+            }
 
-		    ref = candidate
-		    return true
-	    } else if(node instanceOf?(TypeDecl) || node instanceOf?(NamespaceDecl)) {
+            ref = candidate
+            return true
+        } else if(node instanceOf?(TypeDecl) || node instanceOf?(NamespaceDecl)) {
             if(node instanceOf?(TypeDecl) && node as TypeDecl isAddon()) {
                 // First rule of resolve club is: you do not resolve to an addon.
                 // Always resolve to the base instead.
                 return suggest(node as TypeDecl getBase() getNonMeta())
             }
-			ref = node
+            ref = node
             return true
-	    }
-	    return false
+        }
+        return false
     }
 
     isResolved: func -> Bool { ref != null && getType() != null }
@@ -118,7 +118,7 @@ VariableAccess: class extends Expression {
         if(expr && name == "class") {
             if(expr getType() == null || expr getType() getRef() == null) {
                 res wholeAgain(this, "expr type or expr type ref is null")
-                return Responses OK
+                return Response OK
             }
             if(!expr getType() getRef() instanceOf?(ClassDecl)) {
                 name = expr getType() getName()
@@ -138,14 +138,14 @@ VariableAccess: class extends Expression {
                 exprType := expr getType()
                 if(exprType == null) {
                     res wholeAgain(this, "expr's type isn't resolved yet, and it's needed to resolve the access")
-                    return Responses OK
+                    return Response OK
                 }
                 //printf("Null ref and non-null expr (%s), looking in type %s\n", expr toString(), exprType toString())
                 typeDecl := exprType getRef()
                 if(!typeDecl) {
                     if(res fatal) res throwError(UnresolvedType new(expr token, expr getType(), "Can't resolve type %s" format(expr getType() toString())))
                     res wholeAgain(this, "unresolved access, looping")
-                    return Responses OK
+                    return Response OK
                 }
                 typeDecl resolveAccess(this, res, trail)
             }
@@ -174,7 +174,7 @@ VariableAccess: class extends Expression {
                             trail push(this)
                             response := expr resolve(trail, res)
                             trail pop(this)
-                            if(!response ok()) return Responses LOOP
+                            if(!response ok()) return Response LOOP
                             varAcc := expr as VariableAccess
                         }
                     }
@@ -230,19 +230,19 @@ VariableAccess: class extends Expression {
                     fDecl := fCall getRef()
                     if(!fDecl) {
                         res wholeAgain(this, "need ref!")
-                        return Responses OK
+                        return Response OK
                     }
                     // 1.) extern C functions don't accept a Closure_struct
                     // 2.) If ref is not a FDecl, it's probably already "closured" and doesn't need to be wrapped a second time
-                    if (!fDecl isExtern() && ref instanceOf?(FunctionDecl))  
+                    if (!fDecl isExtern() && ref instanceOf?(FunctionDecl))
                         closureType = fDecl args get(ourIndex) getType()
-                
+
                 } elseif (parent instanceOf?(BinaryOp)) {
                     binOp := parent as BinaryOp
                     if(binOp isAssign() && binOp getRight() == this) {
                         if(binOp getLeft() getType() == null) {
                             res wholeAgain(this, "need type of BinOp's lhs")
-                            return Responses OK
+                            return Response OK
                         }
                         closureType = binOp getLeft() getType() clone()
                     }
@@ -275,7 +275,7 @@ VariableAccess: class extends Expression {
                     property := ref as PropertyDecl
                     fCall := FunctionCall new(expr, property getGetterName(), token)
                     trail peek() replace(this, fCall)
-                    return Responses OK
+                    return Response OK
                 }
             } else {
                 // We are in a setter/getter and we're having a variable access. That means
@@ -305,7 +305,7 @@ VariableAccess: class extends Expression {
             res wholeAgain(this, "Couldn't resolve varacc")
         }
 
-        return Responses OK
+        return Response OK
 
     }
 
@@ -360,7 +360,7 @@ VariableAccess: class extends Expression {
         }
     }
 
-	setRef: func(=ref) {}
+    setRef: func(=ref) {}
 
 }
 

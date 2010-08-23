@@ -3,7 +3,7 @@ import ../io/TabbedWriter
 
 import ../frontend/Token
 import Expression, Type, Visitor, TypeDecl, Cast, FunctionCall, FunctionDecl,
-	   Module, Node, VariableDecl, VariableAccess, BinaryOp, Argument,
+       Module, Node, VariableDecl, VariableAccess, BinaryOp, Argument,
        Return, CoverDecl, BaseType
 import tinker/[Response, Resolver, Trail]
 
@@ -58,7 +58,7 @@ ClassDecl: class extends TypeDecl {
             if (!response ok()) return response
         }
 
-        return Responses OK
+        return Response OK
     }
 
     writeSize: func (w: TabbedWriter, instance: Bool) {
@@ -100,11 +100,11 @@ ClassDecl: class extends TypeDecl {
 
         // first look in the supertype, if any
         if(sRef != null) {
-			base := sRef getBaseClass(fDecl)
-			if(base != null) {
+            base := sRef getBaseClass(fDecl)
+            if(base != null) {
                 return base
             }
-		}
+        }
 
         // look in interface types, if any
         if(withInterfaces && getNonMeta()) for(interfaceType in getNonMeta() interfaceTypes) {
@@ -120,23 +120,23 @@ ClassDecl: class extends TypeDecl {
 
         // if all else fails, try in this
         finalScore : Int
-		if(getFunction(fDecl name, fDecl suffix ? fDecl suffix : "", null, false, finalScore&) != null) {
+        if(getFunction(fDecl name, fDecl suffix ? fDecl suffix : "", null, false, finalScore&) != null) {
             return this
         }
 
-		return null
-	}
+        return null
+    }
 
     replace: func (oldie, kiddo: Node) -> Bool { false }
 
-	addDefaultInit: func {
+    addDefaultInit: func {
 
         if(!isMeta) {
             getMeta() addDefaultInit()
             return
         }
 
-		if(!isAbstract && !isObjectClass() && !isClassClass() && defaultInit == null) {
+        if(!isAbstract && !isObjectClass() && !isClassClass() && defaultInit == null) {
             /*
              * Concrete classes that aren't `Object` nor `Class` get a
              * default, no-args constructor that does nothing.
@@ -144,7 +144,7 @@ ClassDecl: class extends TypeDecl {
              * though, see addInit()
              */
             init := FunctionDecl new("init", token)
-			addFunction(init)
+            addFunction(init)
 
             // TODO: check if the super-type actually has a no-arg constructor, throw an error if not
             if(superType != null && superType getName() != "ClassClass") {
@@ -153,7 +153,7 @@ ClassDecl: class extends TypeDecl {
 
             defaultInit = init // if defaultInit is set earlier, it'll try to remove it..
         }
-	}
+    }
 
     addFunction: func (fDecl: FunctionDecl) {
 
@@ -179,15 +179,15 @@ ClassDecl: class extends TypeDecl {
             }
         }
 
-		super(fDecl)
+        super(fDecl)
 
     }
 
-	addInit: func(fDecl: FunctionDecl) {
+    addInit: func(fDecl: FunctionDecl) {
 
         isCover := (getNonMeta() instanceOf?(CoverDecl))
 
-		if(defaultInit != null) {
+        if(defaultInit != null) {
             /*
              * As soon as we've got another init defined, remove the
              * default, no-args, empty one.
@@ -204,14 +204,14 @@ ClassDecl: class extends TypeDecl {
 
         newType := getNonMeta() getInstanceType() as BaseType
 
-		constructor := FunctionDecl new("new", fDecl token)
+        constructor := FunctionDecl new("new", fDecl token)
         constructor setStatic(true)
-		constructor setSuffix(fDecl getSuffix())
-		retType := newType clone() as BaseType
-		if(retType getTypeArgs()) retType getTypeArgs() clear()
+        constructor setSuffix(fDecl getSuffix())
+        retType := newType clone() as BaseType
+        if(retType getTypeArgs()) retType getTypeArgs() clear()
 
-		constructor getArguments() addAll(fDecl getArguments())
-		constructor getTypeArgs() addAll(getTypeArgs())
+        constructor getArguments() addAll(fDecl getArguments())
+        constructor getTypeArgs() addAll(getTypeArgs())
 
         // why use getNonMeta() here? addInit() is called only in the
         // meta-class, remember?
@@ -229,19 +229,19 @@ ClassDecl: class extends TypeDecl {
         constructor getBody() add(vdfe)
 
         for (typeArg in getTypeArgs()) {
-        	e := VariableAccess new(typeArg, constructor token)
-			retType addTypeArg(e)
+            e := VariableAccess new(typeArg, constructor token)
+            retType addTypeArg(e)
 
             thisAccess    := VariableAccess new("this",                   constructor token)
             typeArgAccess := VariableAccess new(thisAccess, typeArg name, constructor token)
             ass := BinaryOp new(typeArgAccess, e, OpType ass, constructor token)
-			constructor getBody() add(ass)
-		}
+            constructor getBody() add(ass)
+        }
 
-		constructor setReturnType(retType)
+        constructor setReturnType(retType)
 
-		thisAccess := VariableAccess new(vdfe, fDecl token)
-		thisAccess setRef(vdfe)
+        thisAccess := VariableAccess new(vdfe, fDecl token)
+        thisAccess setRef(vdfe)
 
         if(!isCover) {
             defaultsCall := FunctionCall new("__defaults__", fDecl token)
@@ -251,13 +251,13 @@ ClassDecl: class extends TypeDecl {
         initCall := FunctionCall new(fDecl getName(), fDecl token)
         initCall setSuffix(fDecl getSuffix())
         initCall setExpr(VariableAccess new(vdfe, fDecl token))
-		for (arg in constructor getArguments()) {
-			initCall getArguments() add(VariableAccess new(arg, fDecl token))
-		}
-		constructor getBody() add(initCall)
-		constructor getBody() add(Return new(thisAccess, fDecl token))
+        for (arg in constructor getArguments()) {
+            initCall getArguments() add(VariableAccess new(arg, fDecl token))
+        }
+        constructor getBody() add(initCall)
+        constructor getBody() add(Return new(thisAccess, fDecl token))
 
-		addFunction(constructor)
-	}
+        addFunction(constructor)
+    }
 }
 

@@ -124,13 +124,13 @@ Type: abstract class extends Expression {
         name := getName()
         if ((
            name == "Int"   || name == "UInt"  || name == "Short" ||
-		   name == "UShort"|| name == "Long"  || name == "ULong" ||
-		   name == "LLong" || name == "ULLong"|| name == "Int8"  ||
+           name == "UShort"|| name == "Long"  || name == "ULong" ||
+           name == "LLong" || name == "ULLong"|| name == "Int8"  ||
            name == "Int16" || name == "Int32" || name == "Int64" ||
            name == "UInt8" || name == "UInt16"|| name == "UInt32"||
            name == "UInt64"|| name == "SizeT" || name == "Float" ||
            name == "Double"|| name == "SSizeT"))
-		    return true
+            return true
 
         down := dig()
         if(down) return down isNumericType()
@@ -371,7 +371,7 @@ ArrayType: class extends PointerType {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
         if(!This realType resolve(trail, res) ok()) {
-            return Responses LOOP
+            return Response LOOP
         }
 
         if(expr != null) {

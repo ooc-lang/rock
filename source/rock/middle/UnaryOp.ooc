@@ -19,7 +19,7 @@ UnaryOp: class extends Expression {
     inner: Expression
     type: UnaryOpType
     boolType: BaseType
-    
+
     init: func ~unaryOp (=inner, =type, .token) {
         super(token)
         boolType = BaseType new("Bool", token)
@@ -33,9 +33,9 @@ UnaryOp: class extends Expression {
         visitor visitUnaryOp(this)
     }
 
-    getType: func -> Type { 
+    getType: func -> Type {
         if (type == UnaryOpType logicalNot) return boolType
-        inner getType() 
+        inner getType()
     }
 
     toString: func -> String {
@@ -61,7 +61,7 @@ UnaryOp: class extends Expression {
             if(!response ok()) return response
         }
 
-        return Responses OK
+        return Response OK
 
     }
 
@@ -77,7 +77,7 @@ UnaryOp: class extends Expression {
 
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType)
-            if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Responses OK }
+            if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response OK }
             if(score > bestScore) {
                 bestScore = score
                 candidate = opDecl
@@ -88,7 +88,7 @@ UnaryOp: class extends Expression {
             module := imp getModule()
             for(opDecl in module getOperators()) {
                 score := getScore(opDecl, reqType)
-                if(score == -1) { res wholeAgain(this, "score of %s == -1 !!"); return Responses OK }
+                if(score == -1) { res wholeAgain(this, "score of %s == -1 !!"); return Response OK }
                 if(score > bestScore) {
                     bestScore = score
                     candidate = opDecl
@@ -104,13 +104,13 @@ UnaryOp: class extends Expression {
             if(!trail peek() replace(this, fCall)) {
                 if(res fatal) res throwError(CouldntReplace new(token, this, fCall, trail))
                 res wholeAgain(this, "failed to replace oneself, gotta try again =)")
-                return Responses OK
-                //return Responses LOOP
+                return Response OK
+                //return Response LOOP
             }
             res wholeAgain(this, "Just replaced with an operator overloading")
         }
 
-        return Responses OK
+        return Response OK
 
     }
 

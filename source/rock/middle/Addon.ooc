@@ -70,7 +70,7 @@ Addon: class extends Node {
             }
         }
 
-        finalResponse := Responses OK
+        finalResponse := Response OK
         trail push(base getMeta())
         for(f in functions) {
             response := f resolve(trail, res)

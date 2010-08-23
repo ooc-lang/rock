@@ -24,14 +24,14 @@ ArrayCreation: class extends Expression {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
         if(!arrayType resolve(trail, res) ok()) {
-            return Responses LOOP
+            return Response LOOP
         }
 
         if(!realType  resolve(trail, res) ok()) {
-            return Responses LOOP
+            return Response LOOP
         }
 
-        return Responses OK
+        return Response OK
     }
 
     replace: func (oldie, kiddo: Node) -> Bool {

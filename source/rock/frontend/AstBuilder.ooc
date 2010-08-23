@@ -78,25 +78,25 @@ AstBuilder: class {
 
     addLangImports: func {
 
-		langImports : static List<String> = null
+        langImports : static List<String> = null
 
-		if(langImports == null) {
-			langImports = ArrayList<String> new()
-			paths := params sourcePath getRelativePaths("lang")
-			for(path in paths) {
-				if(path endsWith?(".ooc")) {
-					impName := path substring(0, path length() - 4) replace(File separator, '/')
-					langImports add(impName)
-				}
-			}
-		}
+        if(langImports == null) {
+            langImports = ArrayList<String> new()
+            paths := params sourcePath getRelativePaths("lang")
+            for(path in paths) {
+                if(path endsWith?(".ooc")) {
+                    impName := path substring(0, path length() - 4) replace(File separator, '/')
+                    langImports add(impName)
+                }
+            }
+        }
 
-		for(impName in langImports) {
-			if(impName != module fullName) {
-				//printf("Adding import %s to %s\n", impName, module fullName)
-				module addImport(Import new(impName, module token))
-			}
-		}
+        for(impName in langImports) {
+            if(impName != module fullName) {
+                //printf("Adding import %s to %s\n", impName, module fullName)
+                module addImport(Import new(impName, module token))
+            }
+        }
 
     }
 
@@ -454,6 +454,7 @@ AstBuilder: class {
             // same hash? compare length and then full-string comparison
             word := reservedWords[idx]
             if(word length() == vd getName() length() && word == vd getName()) {
+                "(%zd, %zd)" printfln(vd token start, vd token length)
                 params errorHandler onError(ReservedKeywordError new(vd token, "%s is a reserved C99 keyword, you can't use it in a variable declaration" format(vd getName())))
             }
         }
@@ -955,11 +956,11 @@ AstBuilder: class {
     }
 
     onBreak: unmangled(nq_onBreak) func -> FlowControl {
-        FlowControl new(FlowActions _break, token())
+        FlowControl new(FlowAction _break, token())
     }
 
     onContinue: unmangled(nq_onContinue) func -> FlowControl {
-        FlowControl new(FlowActions _continue, token())
+        FlowControl new(FlowAction _continue, token())
     }
 
     onEquals: unmangled(nq_onEquals) func (left, right: Expression) -> Comparison {
@@ -1201,6 +1202,12 @@ nq_setTokenPositionPointer: unmangled func (this: AstBuilder, tokenPos: Int*) { 
 
 // string handling
 nq_StringClone: unmangled func (string: String) -> String             { string clone() }
+nq_mangleIdents: unmangled func (string: String) -> String            {
+    match string {
+        case "this"  => "_this"
+        case         => string
+    }
+}
 nq_trailingQuest: unmangled func (string: String) -> String           { string + "__quest" }
 nq_trailingBang:  unmangled func (string: String) -> String           { string + "__bang" }
 nq_error: unmangled func (this: AstBuilder, errorID: Int, message: String, index: Int) { this error(errorID, message, index) }

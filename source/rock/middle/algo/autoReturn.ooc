@@ -11,11 +11,11 @@ import ../[Scope, Type, Return, Node, Expression, ControlStatement,
 autoReturn: func (trail: Trail, res: Resolver, origin: Node, body: Scope, returnType: Type) -> Response {
 
     if(returnType void?) {
-        return Responses OK
+        return Response OK
     }
 
     _autoReturnExplore(trail, res, origin, body, true)
-    return Responses OK
+    return Response OK
 
 }
 

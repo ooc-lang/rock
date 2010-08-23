@@ -82,7 +82,7 @@ InlineContext: class extends Block {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
         if(realThisDecl) {
-            if(!realThisDecl resolve(trail, res) ok()) return Responses OK
+            if(!realThisDecl resolve(trail, res) ok()) return Response OK
         }
 
         response := super(trail, res)
