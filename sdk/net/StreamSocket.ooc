@@ -1,6 +1,7 @@
 import net/[Socket, Address, DNS, Exceptions]
 import io/[Reader, Writer]
 import berkeley into socket
+import text/Buffer
 
 /**
     A stream based socket interface.
@@ -216,12 +217,12 @@ StreamSocketWriter: class extends Writer {
     }
 
     vwritef: func(fmt: String, list: VaList) {
-        // stolen from text/Buffer.
-        // TODO: could be optimized (notably the buffer allocation)
-        length := vsnprintf(null, 0, fmt, list)
-        output := String new(length)
-
-        vsnprintf(output, length + 1, fmt, list)
-        write(output, length)
+        list2: VaList
+        va_copy(list2, list)
+        length := vsnprintf(null, 0, fmt, list2)
+        va_end (list2)
+        buffer := Buffer new ( length + 1)
+        vsnprintf(buffer data, length + 1, fmt, list)
+        write(buffer toString(), length)
     }
 }

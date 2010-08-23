@@ -118,7 +118,7 @@ Buffer: class {
         reads a whole file into buffer, binary mode
     */
     fromFile: func (fileName: String) -> Bool {
-        STEP_SIZE : SizeT = 4096
+        STEP_SIZE : const SizeT = 4096
         file := FStream open(fileName, "rb")
         if (!file || file error()) return false
         len := file size()
@@ -411,16 +411,14 @@ Buffer_unittest: class {
 
     testFile: static func {
         // this one is a bit nasty :P
+        // TODO make it work on windows as well
+        TEST_FILE_IN : const String = "/usr/bin/env"
+        TEST_FILE_OUT : const String = "/tmp/buftest"
+
         b := Buffer new(0)
-        if (!b fromFile(__FILE__ ) || b size == 0) println("read failed")
-        version(unix || apple) {
-            if (!(b toFile("/tmp/buftest")))     println("write failed")
-        }
-        version(windows) {
-            // FIXME use GetTemporaryFolder or however the win API calls it
-            if (!(b toFile("C:\\temp\\buftest")))     println("write failed")
-        }
-        if (! ((c := Buffer new(0) fromFile(__FILE__) )     == b ) ) println( "comparison failed")
+        if (!b fromFile(TEST_FILE_IN) || b size == 0) println("read failed: b size=%d" format (b size))
+        if (!(b toFile(TEST_FILE_OUT)))     println("write failed")
+        if (! ((c := Buffer new(0) fromFile(TEST_FILE_IN) )     == b ) ) println( "comparison failed")
     }
 
     testFind: static func {

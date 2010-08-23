@@ -16,7 +16,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Version, Use, Block, ArrayLiteral, EnumDecl, BaseType, FuncType,
     Declaration, PropertyDecl, CallChain, Tuple, Addon]
 
-nq_parse: extern proto func (AstBuilder, String) -> Int
+nq_parse: extern proto func (AstBuilder, CString) -> Int
 
 // reserved C99 keywords
 reservedWords := ["auto", "int", "long", "char", "register", "short", "do",
@@ -55,7 +55,7 @@ AstBuilder: class {
         first := static true
 
         if(params verbose) {
-            if(!first) "                                                                             \r" print()
+            if(!first) "%s\r" format((" " times(76))) println()
             "Parsing %s" printf(modulePath)
         }
         cache put(File new(modulePath) getAbsolutePath(), module)
@@ -69,7 +69,7 @@ AstBuilder: class {
         }
 
         first = false
-        result := nq_parse(this, modulePath)
+        result := nq_parse(this, modulePath as CString)
         if(result == -1) {
             Exception new(This, "File " +modulePath + " not found") throw()
         }
@@ -80,23 +80,19 @@ AstBuilder: class {
 
         langImports : static List<String> = null
 
-        if(langImports == null) {
+        if(!langImports) {
             langImports = ArrayList<String> new()
             paths := params sourcePath getRelativePaths("lang")
-            for(path in paths) {
-                if(path endsWith?(".ooc")) {
-                    impName := path substring(0, path length() - 4) replace(File separator, '/')
+            paths filterEach(|p| p endsWith?(".ooc"),
+                    |p|
+                    impName := p substring(0, p length() - 4) replace(File separator, '/')
                     langImports add(impName)
-                }
-            }
+            )
         }
 
-        for(impName in langImports) {
-            if(impName != module fullName) {
-                //printf("Adding import %s to %s\n", impName, module fullName)
-                module addImport(Import new(impName, module token))
-            }
-        }
+        langImports filterEach(|impName| impName != module fullName,
+                    |impName| module addImport(Import new(impName, module token))
+        )
 
     }
 
@@ -121,11 +117,11 @@ AstBuilder: class {
     }
 
     printCache: static func {
-        printf("==== Cache ====\n")
-        for(key in cache getKeys()) {
-            printf("cache %s => %s\n", key, cache get(key) fullName)
-        }
-        printf("===============\n")
+        "==== Cache ====" println()
+        cache getKeys() each(|key|
+            "cache %s = %s" format(key, cache get(key) fullName) println()
+        )
+        "=" times(14) println()
     }
 
     error: func (errorID: Int, message: String, index: Int) {
@@ -168,10 +164,10 @@ AstBuilder: class {
             nDecl = module getNamespace(namespace)
         }
         peek(Module) // ensure we're a at root level
-        for(i in 0..quantity) {
+        quantity times(||
             nDecl addImport(module getGlobalImports() last())
             module getGlobalImports() removeAt(module getGlobalImports() lastIndex()) // no longer a global import
-        }
+        )
     }
 
     /*
@@ -391,7 +387,7 @@ AstBuilder: class {
     onVarDeclExtern: unmangled(nq_onVarDeclExtern) func (externName: String) {
         vars := peek(Stack<VariableDecl>)
         if(externName empty?()) {
-            for(var in vars) var setExternName("")
+            vars each(|var| var setExternName(""))
         } else {
             if(vars size() != 1) {
                 params errorHandler onError(SyntaxError new(token(), "Trying to set an extern name on several variables at once!"))
@@ -403,7 +399,7 @@ AstBuilder: class {
     onVarDeclUnmangled: unmangled(nq_onVarDeclUnmangled) func (unmangledName: String) {
         vars := peek(Stack<VariableDecl>)
         if(unmangledName empty?()) {
-            for(var in vars) var setUnmangledName("")
+            vars each(|var| var setUnmangledName(""))
         } else {
             if(vars size() != 1) {
                 params errorHandler onError(SyntaxError new(token(), "Trying to set an unmangled name on several variables at once!"))
@@ -417,27 +413,19 @@ AstBuilder: class {
     }
 
     onVarDeclStatic: unmangled(nq_onVarDeclStatic) func {
-        for(vd: VariableDecl in peek(Stack<VariableDecl>)) {
-            vd setStatic(true)
-        }
+        peek(Stack<VariableDecl>) each(|vd| vd setStatic(true))
     }
 
     onVarDeclProto: unmangled(nq_onVarDeclProto) func {
-        for(vd: VariableDecl in peek(Stack<VariableDecl>)) {
-            vd setProto(true)
-        }
+        peek(Stack<VariableDecl>) each(|vd| vd setProto(true))
     }
 
     onVarDeclConst: unmangled(nq_onVarDeclConst) func {
-        for(vd: VariableDecl in peek(Stack<VariableDecl>)) {
-            vd setConst(true)
-        }
+        peek(Stack<VariableDecl>) each(|vd| vd setConst(true))
     }
 
     onVarDeclType: unmangled(nq_onVarDeclType) func (type: Type) {
-        for(vd: VariableDecl in peek(Stack<VariableDecl>)) {
-            vd type = type
-        }
+        peek(Stack<VariableDecl>) each(|vd| vd type = type)
     }
 
     onVarDeclEnd: unmangled(nq_onVarDeclEnd) func -> Object {

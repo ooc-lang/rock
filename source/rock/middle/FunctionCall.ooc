@@ -22,6 +22,8 @@ import tinker/[Response, Resolver, Trail, Errors]
  * @author Amos Wenger (nddrylliog)
  */
 
+IMPLICIT_AS_EXTERNAL_ONLY: const Bool = true
+
 FunctionCall: class extends Expression {
 
     /**
@@ -204,7 +206,7 @@ FunctionCall: class extends Expression {
                         ref as TypeDecl implicitConversions each(|opdecl|
                             if(opdecl fDecl getReturnType() equals?(declArgType)) {
                                 candidateUsesAs = true
-                                if(candidate isExtern()) {
+                                if(!(IMPLICIT_AS_EXTERNAL_ONLY) || candidate isExtern()) {
                                     args set(i, Cast new(callArg, declArgType, callArg token))
                                     if(!argsBeforeConversion) {
                                         // lazy instantiation of argsBeforeConversion

@@ -72,11 +72,11 @@ ProcessUnix: class extends Process {
 
             /* set a new cwd? */
             if(cwd != null) {
-                chdir(cwd)
+                chdir(cwd as CString)
             }
 
             /* run the stuff. */
-            execvp(args get(0), args toArray()) // List<String> => String*
+            execvp(args get(0) as CString, args toArray() as CString*) // List<String> => String*
             exit(errno); // don't allow the forked process to continue if execvp fails
         }
     }
