@@ -27,6 +27,10 @@ LLong: cover from signed long long {
             fn(i)
         }
     }
+
+    abs: func -> This {
+        return this >= 0 ? this : this * -1
+    }
 }
 
 Long:  cover from signed long  extends LLong
