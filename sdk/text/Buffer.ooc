@@ -188,12 +188,12 @@ Buffer: class {
         }
     }
 
-    append: func ~str(other: This) {
-        append(other data, other size)
+    append: func ~buf(other: This) {
+        append~pointer(other data, other size)
     }
 
-    /** appends *other* to *this*, if not immutable, otherwise to a clone */
-    append: func ~pointer (other: Char*, otherLength: SizeT, immutable: Bool) -> This {
+    /** appends *other* to *this* */
+    append: func ~pointer (other: Char*, otherLength: SizeT) {
         origlen := size
         setLength(size + otherLength)
         memcpy(data + origlen, other, otherLength )
@@ -205,7 +205,7 @@ Buffer: class {
     }
 
     /** prepends *other* to *this*. */
-    prepend: func ~str (other: This) {
+    prepend: func ~buf (other: This) {
         prepend(other data, other size)
     }
 
@@ -340,7 +340,7 @@ Buffer: class {
 
     /** replaces all occurences of *what* with *whit */
     replaceAll: func ~buf (what, whit : This) {
-        replaceAll(what, whit, true, false);
+        replaceAll(what, whit, true);
     }
 
     replaceAll: func ~bufWithCase (what, whit : This, searchCaseSensitive: Bool) {
@@ -386,7 +386,7 @@ Buffer: class {
         maxItems := (maxSplits > 0) ? maxSplits : INT_MAX;
         result := ArrayList<This> new (16)
         for (i in 0..size) {
-            if ( (data + i )@ containedIn? (str) ) {
+            if ( (data + i )@ containedIn? (str data, str size) ) {
                 if ((maxItems -1) == result size()) {
                     result add ( substring (start, size , true) )
                     break

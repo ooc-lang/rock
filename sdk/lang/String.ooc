@@ -55,7 +55,7 @@ String: class {
 
     append: func ~str(other: This) {
         result := clone()
-        result _buffer append~str(other _buffer)
+        result _buffer append~buf(other _buffer)
         result
     }
 
@@ -67,7 +67,7 @@ String: class {
 
     prepend: func ~str (other: This) {
         result := clone()
-        result _buffer prepend~str(other _buffer)
+        result _buffer prepend~buf(other _buffer)
         result
     }
 
