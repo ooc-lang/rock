@@ -76,12 +76,15 @@ Token: cover {
             }
             idx += 1
         }
+        //"lines = %d, lastNewLine = %d, idx = %d, start = %d" printfln(lines, lastNewLine, idx, start)
 
         // zap the end of the line that contains us
-        while(true) {
-            if(!fr hasNext?() || fr read() == '\n') break
+        if(fr hasNext?()) while(true) {
+            // the order matters - we consider the end-of-file as a newline.
+            if(fr read() == '\n' || !fr hasNext?()) break
             idx += 1
         }
+        //"now idx = %d" printfln(idx)
 
         fr reset(lastNewLine == 0 ? 0 : lastNewLine + 1)
         over := Buffer new()
