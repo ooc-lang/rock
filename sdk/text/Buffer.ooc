@@ -21,7 +21,7 @@ Buffer: class {
     capacity: SizeT
 
     /*  stores the original pointer to the malloc'd mem
-        we need eat so the GC doesn't accidentally free the mem, when we shift the data pointer */
+        we need that so the GC doesn't accidentally free the mem, when we shift the data pointer */
     /*   shifting of data ptr is used only in combination with shiftRight function
         this is mainly used if a trimleft is done, so that we don't have to do lengthy mallocs */
     mallocAddr : Pointer
@@ -34,7 +34,7 @@ Buffer: class {
     rshift: func -> SizeT { return mallocAddr != null ? (data as SizeT - mallocAddr as SizeT) as SizeT: 0 }
 
     /* used to overwrite the data/attributes of *this* with that of another String */
-    setString: func( newOne : This ) {
+    setBuffer: func( newOne : This ) {
         data = newOne data
         mallocAddr = newOne mallocAddr
         size = newOne size
@@ -51,7 +51,7 @@ Buffer: class {
     }
 
     init: func ~str (str: String) {
-        setString(str clone())
+        setBuffer(str clone())
     }
 
     /** Create a new string of the length 1 containing only the character *c* */
@@ -224,45 +224,38 @@ Buffer: class {
         s
     }
 
-    append: func ~char (other: Char ) -> This {
-        append(other, false)
-    }
-
     /** appends a char to either *this* or a clone*/
-    append: func ~charImmutableChoice (other: Char, immutable: Bool) -> This {
+    append: func ~char (other: Char)  {
         append(other&, 1, immutable)
     }
 
     /** prepends *other* to *this*. */
-    prepend: func ~str (other: This) -> This {
-        prepend(other data, other size, false)
+    prepend: func ~str (other: This) {
+        prepend(other data, other size)
     }
 
     /** return a new string containg *other* followed by *this*. */
-    prepend: func ~immutableChoice (other: Char*, otherLength: SizeT, immutable: Bool) -> This {
-        if (rshift() < otherLength || immutable) {
+    prepend: func ~bytePtr (other: Char*, otherLength: SizeT) {
+        if (rshift() < otherLength) {
             newthis := This new (size + otherLength)
             memcpy (newthis data, other, otherLength)
             memcpy (newthis data + otherLength, data, size)
-            if (immutable) return newthis
-            setString(newthis)
-            this
+            setBuffer(newthis)
         } else {
             // seems we have enough room on the left, and we are allowed to morph
             shiftLeft(otherLength)
             memcpy( data , other, otherLength )
-            this
         }
     }
 
     /** replace *this* with  *other* followed by *this*. */
-    prepend: func ~char (other: Char) -> This{
-        prepend(other&, 1, false)
+    prepend: func ~char (other: Char) {
+        prepend(other&, 1)
     }
 
     /** replace *this* or a clone with  *other* followed by *this*. */
-    prepend: func ~charImmutableChoice (other: Char, immutable: Bool) -> This{
-        prepend( other&, 1, immutable)
+    prepend: func ~charImmutableChoice (other: Char, immutable: Bool) {
+        prepend( other&, 1)
     }
 
     /** compare *length* characters of *this* with *other*, starting at *start*.
