@@ -111,7 +111,7 @@ getToken: func (reader: Reader, token: Token*) {
             reader reset(beginning)
             length := (end - beginning - 1) as SizeT
             s := String new(length)
-            reader read(s, 0, length)
+            reader read(s _buffer data, 0, length)
             // advance '"'
             reader read()
             token@ type = TokenType String
@@ -181,7 +181,7 @@ getToken: func (reader: Reader, token: Token*) {
                 length := (end - beginning - 1) as SizeT
                 s := String new(length)
                 reader reset(beginning)
-                reader read(s, 0, length)
+                reader read(s _buffer data, 0, length)
                 token@ type = TokenType Number
                 token@ value = s
             } else {

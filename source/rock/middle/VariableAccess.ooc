@@ -1,4 +1,4 @@
-import ../frontend/[Token, BuildParams, AstBuilder], text/Buffer, io/File
+import ../frontend/[Token, BuildParams, AstBuilder], io/File
 import BinaryOp, Visitor, Expression, VariableDecl, FunctionDecl,
        TypeDecl, Declaration, Type, Node, ClassDecl, NamespaceDecl,
        EnumDecl, PropertyDecl, FunctionCall, Module, Import, FuncType,

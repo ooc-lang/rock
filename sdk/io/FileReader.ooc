@@ -1,4 +1,4 @@
-import io/Reader, io/File, text/Buffer
+import io/Reader, io/File
 
 fopen: extern func(filename: Char*, mode: Char*) -> FILE*
 fread: extern func(ptr: Pointer, size: SizeT, count: SizeT, stream: FILE*) -> SizeT

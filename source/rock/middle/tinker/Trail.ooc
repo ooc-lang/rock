@@ -1,5 +1,4 @@
 import structs/[Stack, ArrayList]
-import text/Buffer
 import ../[Node, Module, Statement, Scope, If, Else]
 
 Trail: class extends Stack<Node> {

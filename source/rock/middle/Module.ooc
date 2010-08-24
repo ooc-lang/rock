@@ -35,8 +35,8 @@ Module: class extends Node {
 
     init: func ~module (.fullName, =pathElement, =params, .token) {
         super(token)
-        this path = fullName clone() replace('/', File separator)
-        this fullName = fullName replace(File separator, '/')
+        this path = fullName clone() replaceAll('/', File separator)
+        this fullName = fullName replaceAll(File separator, '/')
         idx := this fullName lastIndexOf('/')
 
         match idx {
@@ -173,7 +173,7 @@ Module: class extends Node {
 
     getPath: func (suffix: String) -> String {
         last := (File new(pathElement) name())
-        return (last + File separator) + fullName replace('/', File separator) + suffix
+        return (last + File separator) + fullName replaceAll('/', File separator) + suffix
     }
 
     getOocPath: func -> String {

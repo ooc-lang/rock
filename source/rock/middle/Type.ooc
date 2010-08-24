@@ -1,4 +1,3 @@
-import text/Buffer
 import structs/[ArrayList, List]
 import ../frontend/[Token, BuildParams]
 import ../backend/cnaughty/AwesomeWriter

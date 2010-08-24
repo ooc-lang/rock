@@ -73,6 +73,8 @@ Buffer: class {
         memcpy(data, s, length + 1)
     }
 
+    init: func ~withStr(s: String) { init~withBuffer( s _buffer) }
+
     /** return the string's length, excluding the null byte. */
     length: func -> SizeT { size }
 
@@ -188,6 +190,11 @@ Buffer: class {
     append: func ~buf(other: This) {
         append~pointer(other data, other size)
     }
+
+    append: func ~str(other: String) {
+        append~buf(other _buffer)
+    }
+
 
     /** appends *other* to *this* */
     append: func ~pointer (other: Char*, otherLength: SizeT) {
@@ -1046,7 +1053,7 @@ Buffer_unittest: class {
         b setLength(4)
         b size = 0
         memcpy (b data as Char*, "1111", 4)
-        b append("222" _buffer)
+        b append(Buffer new("222"))
         if (b data[3] != '\0') ("trZero failed 1") println
     }
 

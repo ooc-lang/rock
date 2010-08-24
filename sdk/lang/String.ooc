@@ -32,7 +32,7 @@ String: class {
 
     length: func -> SizeT { _buffer size }
 
-    equals?: func (other: This) -> Bool { _buffer equals? (other _buffer) }
+    equals?: func (other: This) -> Bool { other != null && _buffer equals? (other _buffer) }
 
     charAt: func (index: SizeT) -> Char { _buffer charAt(index) }
 
@@ -349,6 +349,16 @@ String: class {
         return result
     }
 
+     printfln: final func ~str (...) -> This {
+        result := append('\n')
+        list: VaList
+
+        va_start(list, this )
+        vprintf((result _buffer data), list)
+        va_end(list)
+        return result
+    }
+
 }
 
 
@@ -400,6 +410,13 @@ operator + (left: LLong, right: String) -> String {
     left toString() + right
 }
 
+operator + (left: String, right: CString) -> String {
+    l := right length()
+    b:= left _buffer clone(left size + l)
+    b append(right, l)
+    b toString()
+}
+
 operator + (left: String, right: LLong) -> String {
     left + right toString()
 }
@@ -447,3 +464,13 @@ strArrayListFromCString: func (argc: Int, argv: Char**) -> ArrayList<String> {
     }
     result
 }
+
+/* damn, there's one probelm left. rock makes
+source/rock/rock.ooc:4:12 ERROR No such function strArrayListFromCString(Int, String*)
+ i make this quick hack here
+ */
+strArrayListFromCString: func~hack (argc: Int, argv: String*) -> ArrayList<String> {
+    strArrayListFromCString(argc, argv as Char**)
+}
+
+

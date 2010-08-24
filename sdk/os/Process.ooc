@@ -1,6 +1,5 @@
 import Pipe, PipeReader
 import structs/[List, ArrayList, HashMap]
-import text/Buffer
 import native/[ProcessUnix, ProcessWin32]
 
 /**

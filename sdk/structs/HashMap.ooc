@@ -18,6 +18,7 @@ nullHashEntry: HashEntry <None, None>
 memset(nullHashEntry&, 0, HashEntry size)
 
 stringEquals: func <K> (k1, k2: K) -> Bool {
+    if (K != String) Exception new~noOrigin("trying to cast something to a string which isnt one")
     k1 as String equals?(k2 as String)
 }
 

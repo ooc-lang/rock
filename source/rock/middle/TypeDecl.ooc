@@ -1,7 +1,6 @@
 import structs/[ArrayList, List, HashMap]
 import ../frontend/[Token, BuildParams]
 import ../io/TabbedWriter
-import text/Buffer
 import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
     FunctionDecl, FunctionCall, Module, VariableAccess, Node,
     InterfaceImpl, Version, EnumDecl, BaseType, FuncType, OperatorDecl,

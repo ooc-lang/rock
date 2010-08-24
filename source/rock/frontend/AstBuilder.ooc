@@ -1,5 +1,5 @@
 
-import io/File, text/[Buffer, EscapeSequence]
+import io/File, text/[EscapeSequence]
 
 import structs/[ArrayList, List, Stack, HashMap]
 
@@ -85,7 +85,7 @@ AstBuilder: class {
             paths := params sourcePath getRelativePaths("lang")
             paths filterEach(|p| p endsWith?(".ooc"),
                     |p|
-                    impName := p substring(0, p length() - 4) replace(File separator, '/')
+                    impName := p substring(0, p length() - 4) replaceAll(File separator, '/')
                     langImports add(impName)
             )
         }
@@ -442,7 +442,7 @@ AstBuilder: class {
             // same hash? compare length and then full-string comparison
             word := reservedWords[idx]
             if(word length() == vd getName() length() && word == vd getName()) {
-                "(%zd, %zd)" printfln(vd token start, vd token length)
+                "(%zd, %zd)\n" printf(vd token start, vd token length)
                 params errorHandler onError(ReservedKeywordError new(vd token, "%s is a reserved C99 keyword, you can't use it in a variable declaration" format(vd getName())))
             }
         }
@@ -738,7 +738,7 @@ AstBuilder: class {
     }
 
     onStringLiteral: unmangled(nq_onStringLiteral) func (text: String) -> StringLiteral {
-        StringLiteral new(text clone() replace("\n", "\\n") replace("\t", "\\t"), token())
+        StringLiteral new(text replaceAll("\n", "\\n") replaceAll("\t", "\\t"), token())
     }
 
     onCharLiteral: unmangled(nq_onCharLiteral) func (value: String) -> CharLiteral {
@@ -979,23 +979,23 @@ AstBuilder: class {
     }
 
     onDecLiteral: unmangled(nq_onDecLiteral) func (value: String) -> IntLiteral {
-        IntLiteral new(value replace("_", "") toLLong(), token())
+        IntLiteral new(value replaceAll("_", "") toLLong(), token())
     }
 
     onOctLiteral: unmangled(nq_onOctLiteral) func (value: String) -> IntLiteral {
-        IntLiteral new(value replace("_", "") substring(2) toLLong(8), token())
+        IntLiteral new(value replaceAll("_", "") substring(2) toLLong(8), token())
     }
 
     onBinLiteral: unmangled(nq_onBinLiteral) func (value: String) -> IntLiteral {
-        IntLiteral new(value replace("_", "") substring(2) toLLong(2), token())
+        IntLiteral new(value replaceAll("_", "") substring(2) toLLong(2), token())
     }
 
     onHexLiteral: unmangled(nq_onHexLiteral) func (value: String) -> IntLiteral {
-        IntLiteral new(value replace("_", "") toLLong(16), token())
+        IntLiteral new(value replaceAll("_", "") toLLong(16), token())
     }
 
     onFloatLiteral: unmangled(nq_onFloatLiteral) func (value: String) -> FloatLiteral {
-        FloatLiteral new(value replace("_", "") toFloat(), token())
+        FloatLiteral new(value replaceAll("_", "") toFloat(), token())
     }
 
     onBoolLiteral: unmangled(nq_onBoolLiteral) func (value: Bool) -> BoolLiteral {

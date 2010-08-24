@@ -2,7 +2,6 @@ include stdio
 
 import structs/ArrayList
 import FileReader, FileWriter, Reader
-import text/Buffer
 import native/[FileWin32, FileUnix]
 
 /**
@@ -278,7 +277,7 @@ File: abstract class {
        :param str: The string to write
      */
     write: func ~string (str: String) {
-        FileWriter new(this) write(BufferReader new(Buffer new(str))) .close()
+        str _buffer toFile(path)
     }
 
     /**

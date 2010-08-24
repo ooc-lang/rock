@@ -1,6 +1,6 @@
 import io/Writer
 import structs/[Bag, HashBag]
-import text/[Buffer, EscapeSequence]
+import text/[EscapeSequence]
 
 import Parser
 

@@ -124,7 +124,7 @@ Archive: class {
                 }
 
                 // turn "blah/file.ooc" into "blah_file.o"
-                name := element oocPath replace(File separator, '_')
+                name := element oocPath replaceAll(File separator, '_')
 
                 args := ["ar", (params veryVerbose || params debugLibcache) ? "dv" : "d",
                     outlib, name substring(0, name length() - 2)] as ArrayList<String>
@@ -284,7 +284,7 @@ Archive: class {
 
         for(module in toAdd) {
             // we add .o (object files) to the archive
-            oPath := "%s%c%s.o" format(params outPath path, File separator, module getPath() replace(File separator, '_'))
+            oPath := "%s%c%s.o" format(params outPath path, File separator, module getPath() replaceAll(File separator, '_'))
             args add(oPath)
 
             element := ArchiveModule new(module, this)

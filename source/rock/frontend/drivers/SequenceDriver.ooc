@@ -1,4 +1,4 @@
-import io/[File], os/[Terminal, Process], text/Buffer
+import io/[File], os/[Terminal, Process]
 import structs/[List, ArrayList, HashMap]
 import ../[BuildParams, Target]
 import ../compilers/AbstractCompiler
@@ -43,11 +43,11 @@ SequenceDriver: class extends Driver {
 
     init: func (.params) { super(params) }
 
-	compile: func (module: Module) -> Int {
+    compile: func (module: Module) -> Int {
 
-		if(params verbose) {
-			("Sequence driver, using " + params sequenceThreads + " thread" + (params sequenceThreads > 1 ? "s" : "")) println()
-		}
+        if(params verbose) {
+            ("Sequence driver, using " + params sequenceThreads + " thread" + (params sequenceThreads > 1 ? "s" : "")) println()
+        }
 
         if((params clean && !params libcache && !params outPath exists?()) || !File new(params libcachePath) exists?()) {
             if(params verbose)  printf("Must clean and %s doesn't exist, re-generating\n", params outPath path)
@@ -60,7 +60,7 @@ SequenceDriver: class extends Driver {
         if(params verbose) printf("Copying local headers\n")
         copyLocalHeaders(module, params, ArrayList<Module> new())
 
-		sourceFolders = collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<Module> new())
+        sourceFolders = collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<Module> new())
 
         oPaths := ArrayList<String> new()
         reGenerated := HashMap<SourceFolder, List<Module>> new()
@@ -87,13 +87,13 @@ SequenceDriver: class extends Driver {
         doesLib := (params staticlib != null || params dynamiclib != null)
         if(params link && (params staticlib == null || params dynamiclib != null)) {
 
-			initCompiler(params compiler)
+            initCompiler(params compiler)
 
-			if(params linker != null) params compiler setExecutable(params linker)
+            if(params linker != null) params compiler setExecutable(params linker)
 
-			for(oPath in oPaths) {
-				params compiler addObjectFile(oPath)
-			}
+            for(oPath in oPaths) {
+                params compiler addObjectFile(oPath)
+            }
 
             for(define in params defines) {
                 params compiler defineSymbol(define)
@@ -111,11 +111,11 @@ SequenceDriver: class extends Driver {
             for(additional in params additionals) {
                 params compiler addObjectFile(additional)
             }
-			if(!doesLib) for(libPath in params libPath getPaths()) {
-				params compiler addLibraryPath(libPath getAbsolutePath())
-			}
+            if(!doesLib) for(libPath in params libPath getPaths()) {
+                params compiler addLibraryPath(libPath getAbsolutePath())
+            }
 
-			if(params binaryPath != "") {
+            if(params binaryPath != "") {
                 params compiler setOutputPath(params binaryPath)
             } else {
                 checkBinaryNameCollision(module simpleName)
@@ -129,7 +129,7 @@ SequenceDriver: class extends Driver {
                 }
             }
 
-			if(params enableGC && !doesLib) {
+            if(params enableGC && !doesLib) {
                 params compiler addDynamicLibrary("pthread")
                 if(params dynGC) {
                     params compiler addDynamicLibrary("gc")
@@ -139,18 +139,18 @@ SequenceDriver: class extends Driver {
                     params compiler addObjectFile(File new(params distLocation, libPath) path)
                 }
             }
-			if(params verbose) params compiler getCommandLine() println()
+            if(params verbose) params compiler getCommandLine() println()
 
-			code := params compiler launch()
+            code := params compiler launch()
 
-			if(code != 0) {
+            if(code != 0) {
                 fprintf(stderr, "C compiler failed, aborting compilation process\n")
-				return code
-			}
+                return code
+            }
 
-		}
+        }
 
-		if(params staticlib != null) {
+        if(params staticlib != null) {
 
             count := 0
 
@@ -174,11 +174,11 @@ SequenceDriver: class extends Driver {
                     count)
             }
             archive save(params)
-		}
+        }
 
-		return 0
+        return 0
 
-	}
+    }
 
     /**
        Build a source folder into object files or a static library
@@ -272,7 +272,7 @@ SequenceDriver: class extends Driver {
         params compiler setCompileOnly()
 
         path := File new(params outPath, module getPath("")) getPath()
-        oPath := File new(params outPath, module getPath() replace(File separator, '_')) getPath() + ".o"
+        oPath := File new(params outPath, module getPath() replaceAll(File separator, '_')) getPath() + ".o"
         cPath := path + ".c"
         if(oPaths) {
             oPaths add(oPath)
@@ -352,23 +352,23 @@ SequenceDriver: class extends Driver {
         flagsDone
     }
 
-	initCompiler: func (compiler: AbstractCompiler) {
-		compiler reset()
+    initCompiler: func (compiler: AbstractCompiler) {
+        compiler reset()
 
-		if(params debug) params compiler setDebugEnabled()
+        if(params debug) params compiler setDebugEnabled()
         params compiler addIncludePath(File new(params distLocation, "libs/headers/") getPath())
         params compiler addIncludePath(params outPath getPath())
 
-		for(compilerArg in params compilerArgs) {
+        for(compilerArg in params compilerArgs) {
             params compiler addObjectFile(compilerArg)
         }
-	}
+    }
 
     /**
        Collect all modules imported from `module`, sort them by SourceFolder,
        put them in `toCompile`, and return it.
      */
-	collectDeps: func (module: Module, toCompile: HashMap<String, SourceFolder>, done: ArrayList<Module>) -> HashMap<String, SourceFolder> {
+    collectDeps: func (module: Module, toCompile: HashMap<String, SourceFolder>, done: ArrayList<Module>) -> HashMap<String, SourceFolder> {
 
         absolutePath := File new(module getPathElement()) getAbsolutePath()
         name := File new(absolutePath) name()
@@ -379,17 +379,17 @@ SequenceDriver: class extends Driver {
             toCompile put(name, sourceFolder)
         }
 
-		sourceFolder modules add(module)
-		done add(module)
+        sourceFolder modules add(module)
+        done add(module)
 
-		for(import1 in module getAllImports()) {
-			if(done contains?(import1 getModule())) continue
-			collectDeps(import1 getModule(), toCompile, done)
-		}
+        for(import1 in module getAllImports()) {
+            if(done contains?(import1 getModule())) continue
+            collectDeps(import1 getModule(), toCompile, done)
+        }
 
-		return toCompile
+        return toCompile
 
-	}
+    }
 
 }
 

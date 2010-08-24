@@ -1,7 +1,6 @@
 import io/[File, FileWriter]
 import structs/[Bag, HashBag, MultiMap, List]
 import text/json/Generator
-import text/Buffer
 
 import ../../frontend/[BuildParams, Token]
 
@@ -119,7 +118,7 @@ JSONGenerator: class extends Visitor {
     translateVersionSpec: func (spec: VersionSpec) -> String {
         match (spec class) {
             case VersionName => {
-                return spec as VersionName origin 
+                return spec as VersionName origin
             }
             case VersionNegation => {
                 return "not(%s)" format(translateVersionSpec(spec as VersionNegation spec))
@@ -500,7 +499,7 @@ JSONGenerator: class extends Visitor {
                     buf append(',')
                 else
                     first_ = false
-                buf append(typeArg name)                
+                buf append(typeArg name)
             }
             buf append(')')
         }
@@ -544,7 +543,7 @@ JSONGenerator: class extends Visitor {
                     buf append(',')
                 else
                     first_ = false
-                buf append(typeArg name)                
+                buf append(typeArg name)
             }
             buf append(')')
         }

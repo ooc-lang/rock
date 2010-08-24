@@ -5,7 +5,6 @@ import Literal, Visitor, Type, Expression, FunctionCall, Block,
        FunctionDecl
 import tinker/[Response, Resolver, Trail, Errors]
 import structs/[List, ArrayList]
-import text/Buffer
 
 ArrayLiteral: class extends Literal {
 

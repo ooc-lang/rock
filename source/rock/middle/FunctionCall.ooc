@@ -1,4 +1,4 @@
-import structs/[ArrayList, List, HashMap], text/Buffer
+import structs/[ArrayList, List, HashMap]
 import ../frontend/[Token, BuildParams, CommandLine]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,

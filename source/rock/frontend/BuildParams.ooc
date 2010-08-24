@@ -1,4 +1,4 @@
-import io/File, os/Env, text/Buffer
+import io/File, os/Env
 import structs/ArrayList
 
 import compilers/AbstractCompiler

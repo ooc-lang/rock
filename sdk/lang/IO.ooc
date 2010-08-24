@@ -2,9 +2,14 @@ include stdio
 
 stdout, stderr, stdin: extern FStream
 
-println: func ~withStr (str: Char*) {
+println: func ~withCStr (str: Char*) {
     printf("%s\n", str)
 }
+
+println: func ~withStr (str: String) {
+    printf("%s\n", str _buffer data)
+}
+
 println: func {
     printf("\n")
 }

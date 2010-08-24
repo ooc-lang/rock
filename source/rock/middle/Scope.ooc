@@ -1,4 +1,4 @@
-import structs/[ArrayList], text/Buffer
+import structs/[ArrayList]
 import VariableAccess, VariableDecl, Statement, Node, Visitor,
        FunctionCall, Type, FuncType, Version
 import tinker/[Trail, Resolver, Response]

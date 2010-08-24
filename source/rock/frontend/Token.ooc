@@ -1,6 +1,4 @@
-
 import ../frontend/[BuildParams, CommandLine]
-import text/Buffer
 import io/[FileReader, File]
 import ../middle/Module
 

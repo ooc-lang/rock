@@ -53,7 +53,7 @@ CommandLine: class {
 
                 } else if (option startsWith?("outlib")) {
 
-                    "Deprecated option %s! Use -staticlib instead. Abandoning." printfln(option)
+                    "Deprecated option %s! Use -staticlib instead. Abandoning.\n" printf(option)
                     exit(1)
 
                 } else if (option startsWith?("staticlib")) {
@@ -266,7 +266,7 @@ CommandLine: class {
                         case "dummy" =>
                             DummyDriver new(params)
                         case =>
-                            "Unknown driver: %s" printfln(driverName)
+                            "Unknown driver: %s\n" printf(driverName)
                             null
                     }
 
@@ -385,7 +385,7 @@ CommandLine: class {
             params libfolder = libfolder getPath()
             params sourcePath add(params libfolder)
 
-            if(params verbose) "Building lib for folder %s to name %s" printfln(params libfolder, name)
+            if(params verbose) "Building lib for folder %s to name %s\n" printf(params libfolder, name)
 
             dummyModule = Module new("__lib__/%s.ooc" format(name), ".", params, nullToken)
             libfolder walk(|f|
@@ -406,7 +406,7 @@ CommandLine: class {
 
         if(params staticlib != null || params dynamiclib != null) {
             if(modulePaths size() != 1 && !params libfolder) {
-                "Error: you can use -staticlib of -dynamiclib only when specifying a unique .ooc file, not %d of them." printfln(modulePaths size())
+                "Error: you can use -staticlib of -dynamiclib only when specifying a unique .ooc file, not %d of them.\n" printf(modulePaths size())
                 exit(1)
             }
             moduleName := File new(dummyModule ? dummyModule path : modulePaths[0]) name()
@@ -458,7 +458,7 @@ CommandLine: class {
                 postParsing(dummyModule)
             } else {
                 for(modulePath in modulePaths) {
-                    code := parse(modulePath replace('/', File separator))
+                    code := parse(modulePath replaceAll('/', File separator))
                     if(code != 0) {
                         errorCode = 2 // C compiler failure.
                         break

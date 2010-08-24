@@ -1,4 +1,4 @@
-import io/[File, FileWriter], text/Buffer
+import io/[File, FileWriter]
 
 import structs/[List, ArrayList, HashMap]
 import ../[BuildParams, Target]
@@ -44,7 +44,7 @@ MakeDriver: class extends SequenceDriver {
         wasSetup = true
     }
 
-	compile: func (module: Module) -> Int {
+    compile: func (module: Module) -> Int {
 
         if(params verbose) {
            "Make driver" println()
@@ -155,8 +155,8 @@ MakeDriver: class extends SequenceDriver {
 
         for(currentModule in toCompile) {
             path := File new(originalOutPath, currentModule getPath("")) getPath()
-            oPath := path + ".o"  
-            cPath := path + ".c"    
+            oPath := path + ".o"
+            cPath := path + ".c"
             oPaths add(oPath)
 
             fW write(oPath). write(": ").
@@ -204,9 +204,9 @@ MakeDriver: class extends SequenceDriver {
         fW write("\n\n")
 
         fW close()
-		
-		return 0    
-		
-	}
-	
+
+        return 0
+
+    }
+
 }
