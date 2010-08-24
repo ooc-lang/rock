@@ -151,12 +151,13 @@ FStream: cover from FILE* {
         fputc(chr, this)
     }
 
+    // FIXME these two break Strings immutability!
     write: func ~str (str: String) {
-        fputs(str, this)
+        fputs(str _buffer data, this)
     }
-
+    // FIXME these two break Strings immutability!
     write: func ~withLength (str: String, length: SizeT) -> SizeT {
-        write(str, 0, length)
+        write(str _buffer data, 0, length)
     }
 
     write: func ~precise (str: Char*, offset: SizeT, length: SizeT) -> SizeT {

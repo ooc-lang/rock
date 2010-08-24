@@ -50,8 +50,8 @@ Buffer: class {
         setLength(length)
     }
 
-    init: func ~str (str: This) {
-        setBuffer(str clone())
+    init: func ~withBuffer (str: This) {
+        setBuffer(str)
     }
 
     /** Create a new string of the length 1 containing only the character *c* */
@@ -224,7 +224,7 @@ Buffer: class {
     }
 
     /** replace *this* or a clone with  *other* followed by *this*. */
-    prepend: func ~char (other: Char, immutable: Bool) {
+    prepend: func ~char (other: Char) {
         prepend( other&, 1)
     }
 

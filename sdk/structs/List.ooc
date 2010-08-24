@@ -259,7 +259,7 @@ List: abstract class <T> extends BackIterable<T> {
     filterEach: inline func(f: Func(T) -> Bool, g: Func(T)) {
         filter(f) each(g)
     }
-    
+
     join: func ~stringDefault -> String { join("") }
 
     join: func ~string (str: String) -> String {
@@ -270,10 +270,10 @@ List: abstract class <T> extends BackIterable<T> {
             if(first)
                 first = false
             else
-                result append(str)
+                result append(str _buffer)
 
             match T {
-                case String => result append(item as String)
+                case String => result append(item as String _buffer)
                 case Char   => result append(item as Char)
                 case        => Exception new("You cannot use `List join` with %s instances." format(this T name)) throw()
             }

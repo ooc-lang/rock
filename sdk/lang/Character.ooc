@@ -124,7 +124,7 @@ Char: cover from char {
     }
 
     containedIn?: func(s : String) -> Bool {
-        containedIn?(s buffer data, s size)
+        containedIn?(s _buffer data, s size)
     }
 
     containedIn?: func ~charWithLength (s : Char*, sLength: SizeT) -> Bool {
