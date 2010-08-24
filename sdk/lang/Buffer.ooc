@@ -41,7 +41,7 @@ Buffer: class {
         capacity = newOne capacity
     }
 
-    init: func ~zero -> This { init(0) }
+    init: func ~zero { init(0) }
 
     /** Create a new string exactly *length* characters long (without the nullbyte).
         The contents of the string are undefined.
@@ -152,10 +152,7 @@ Buffer: class {
 
     /** return the character at position #*index* (starting at 0) */
     charAt: func (index: SizeT) -> Char {
-        if(index as SSizeT < 0 || index > length()) {
-            Exception new(This, "Accessing a String out of bounds index = %d, length = %d!" format(index, length())) throw()
-        }
-        (data + index)@
+        get(index)
     }
 
     /** return a copy of *this*. */
@@ -169,7 +166,7 @@ Buffer: class {
         return copy
     }
 
-    substring: func ~tillEnd (start: SizeT) -> This {
+    substring: func ~tillEnd (start: SizeT) {
         substring(start, size)
     }
 
@@ -477,7 +474,7 @@ Buffer: class {
         }
     }
     /* i hate circular references. */
-    toString: func -> String { s := String new(); s _buffer setBuffer(this) }
+    toString: func -> String { s := String new(); s _buffer setBuffer(this); s }
 
     /** return the index of *c*, starting at 0. If *this* does not contain *c*, return -1. */
     indexOf: func ~charZero (c: Char) -> SSizeT {
@@ -893,8 +890,8 @@ BufferWriter: class extends Writer {
         buffer append(chr)
     }
 
-    write: func (chars: String, length: SizeT) -> SizeT {
-        buffer append(chars _buffer data, length)
+    write: func (chars: Char*, length: SizeT) -> SizeT {
+        buffer append(chars, length)
         return length
     }
 
@@ -931,7 +928,7 @@ BufferReader: class extends Reader {
         /* nothing to close. */
     }
 
-    read: func(chars: String, offset: Int, count: Int) -> SizeT {
+    read: func(chars: Char*, offset: Int, count: Int) -> SizeT {
         copySize := buffer get(chars as Char* + offset, marker, count)
         marker += copySize
         return copySize

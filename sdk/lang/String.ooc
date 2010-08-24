@@ -48,31 +48,31 @@ String: class {
         result
     }
 
-    times: func (count: SizeT) -> This{
+    times: func (count: SizeT) -> This {
         result := clone()
         result _buffer times(count)
         result
     }
 
-    append: func ~str(other: This) {
+    append: func ~str(other: This) -> This{
         result := clone()
         result _buffer append~buf(other _buffer)
         result
     }
 
-    append: func ~char (other: Char)  {
+    append: func ~char (other: Char) -> This {
         result := clone()
         result _buffer append~char(other)
         result
     }
 
-    prepend: func ~str (other: This) {
+    prepend: func ~str (other: This) -> This{
         result := clone()
         result _buffer prepend~buf(other _buffer)
         result
     }
 
-    prepend: func ~char (other: Char) {
+    prepend: func ~char (other: Char) -> This {
         result := clone()
         result _buffer prepend~char(other)
         result
@@ -224,25 +224,25 @@ String: class {
         result
     }
 
-    trimLeft: func ~space {
+    trimLeft: func ~space -> This {
         result := clone()
         result _buffer trimLeft~space()
         result
     }
 
-    trimLeft: func ~char (c: Char) {
+    trimLeft: func ~char (c: Char) -> This {
         result := clone()
         result _buffer trimLeft~char(c)
         result
     }
 
-    trimLeft: func ~string (s: This) {
+    trimLeft: func ~string (s: This) -> This {
         result := clone()
         result _buffer trimLeft~buf(s _buffer)
         result
     }
 
-    trimLeft: func ~pointer (s: Char*, sLength: SizeT) {
+    trimLeft: func ~pointer (s: Char*, sLength: SizeT) -> This {
         result := clone()
         result _buffer trimLeft~pointer(s, sLength)
         result

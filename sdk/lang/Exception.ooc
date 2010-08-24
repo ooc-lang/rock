@@ -55,6 +55,12 @@ Exception: class {
 
 }
 
+OutOfBoundsException: class extends Exception {
+    init: func ~noOrigin (accessOffset: SizeT, elementLength: SizeT) {
+        message = "Trying to access an element at offset %d, but size is only %d!" format(accessOffset,elementLength)
+    }
+}
+
 /* ------ C interfacing ------ */
 
 include stdlib
