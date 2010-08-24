@@ -94,7 +94,7 @@ Partial: class {
         return bseq data
     }
 
-    pushNonClosureArgs: func(base: UChar, argSizes: String)  {
+    pushNonClosureArgs: func(base: Octet, argSizes: String)  {
         //for (c: Char in argSizes) {
         for(i in 0..argSizes length()) {
             c := argSizes[i]

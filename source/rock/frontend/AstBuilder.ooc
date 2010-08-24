@@ -55,7 +55,7 @@ AstBuilder: class {
         first := static true
 
         if(params verbose) {
-            if(!first) "%s\r" format((" " times(76))) println()
+            if(!first) "                                                                             \r" print()
             "Parsing %s" printf(modulePath)
         }
         cache put(File new(modulePath) getAbsolutePath(), module)

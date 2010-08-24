@@ -93,7 +93,6 @@ BinaryOp: class extends Expression {
     }
 
     unwrapAssign: func (trail: Trail, res: Resolver) -> Bool {
-
         if(!isAssign()) return false
 
         innerType := type - (OpType addAss - OpType add)
@@ -101,8 +100,7 @@ BinaryOp: class extends Expression {
         right = inner
         type = OpType ass
 
-        return true
-
+        true
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
@@ -227,6 +225,7 @@ BinaryOp: class extends Expression {
             }
         }
 
+        // Assigning tuples need unwinding
         if(type == OpType ass && left instanceOf?(Tuple) && right instanceOf?(Tuple)) {
             t1 := left as Tuple
             t2 := right as Tuple
@@ -316,12 +315,17 @@ BinaryOp: class extends Expression {
     }
 
     isLegal: func (res: Resolver) -> Bool {
-        if(left getType() == null || left getType() getRef() == null || right getType() == null || right getType() getRef() == null) {
+        (lType, rType) := (left getType(), right getType())
+
+        if(lType == null || lType getRef() == null || rType == null || rType getRef() == null) {
             // must resolve first
             res wholeAgain(this, "Unresolved types, looping to determine legitness")
             return true
         }
-        if(left getType() getName() == "Pointer" || right getType() getName() == "Pointer") {
+
+        (lRef, rRef) := (lType getRef(), rType getRef())
+
+        if(lType isPointer() || lType pointerLevel() > 0) {
             // pointer arithmetic: you can add, subtract, and assign pointers
             return (type == OpType add ||
                     type == OpType sub ||
@@ -329,19 +333,25 @@ BinaryOp: class extends Expression {
                     type == OpType subAss ||
                     type == OpType ass)
         }
-        if(left getType() getRef() instanceOf?(ClassDecl) ||
-           right getType() getRef() instanceOf?(ClassDecl)) {
+        if(lRef instanceOf?(ClassDecl) ||
+           rRef instanceOf?(ClassDecl)) {
             // you can only assign - all others must be overloaded
             return (type == OpType ass || isBooleanOp())
         }
-        if((left  getType() getRef() instanceOf?(CoverDecl) &&
-            left  getType() getRef() as CoverDecl getFromType() == null) ||
-           (right getType() getRef() instanceOf?(CoverDecl) &&
-            right getType() getRef() as CoverDecl getFromType() == null)) {
+        if((lRef instanceOf?(CoverDecl) &&
+            lRef as CoverDecl getFromType() == null) ||
+           (rRef instanceOf?(CoverDecl) &&
+            rRef as CoverDecl getFromType() == null)) {
             // you can only assign structs, others must be overloaded
             return (type == OpType ass)
         }
-        return true
+
+        if(isAssign()) {
+            score := lType getScore(rType)
+            if(score < 0) token formatMessage("Score of %s = %d (%s vs %s)" format(toString(), score, lType toString(), rType toString()), "INFO") println()
+        }
+
+        true
     }
 
     resolveOverload: func (trail: Trail, res: Resolver) -> Response {

@@ -7,10 +7,15 @@ import Type, Declaration, VariableAccess, VariableDecl, TypeDecl,
        InterfaceDecl, Node, ClassDecl, CoverDecl, Cast, FuncType,
        FunctionCall
 
+NumericState: enum {
+    UNKNOWN, YES, NO
+}
+
 BaseType: class extends Type {
 
     ref: Declaration = null
     name: String
+    _numeric : NumericState = NumericState UNKNOWN
 
     void? : Bool {
         get { super() || name == "void" || name == "Void" }
@@ -18,7 +23,9 @@ BaseType: class extends Type {
 
     typeArgs: List<VariableAccess> = null
 
-    init: func ~baseType (=name, .token) { super(token) }
+    init: func ~baseType (=name, .token) {
+        super(token)
+    }
 
     pointerLevel: func -> Int { 0 }
 
@@ -270,12 +277,40 @@ BaseType: class extends Type {
             }
 
             if(isNumericType() && other isNumericType()) {
-                // Only half a match - it's not too good to mix integer types. Maybe we need more safety here?
+                // a mild match - it's not too good to mix integer types. Maybe we need more safety here?
                 return scoreSeed / 4
             }
         }
 
         return This NOLUCK_SCORE // no luck.
+    }
+
+    _computeNumeric: func {
+        // FIXME: that's quite ugly - and what about custom types?
+        if ((
+           name == "Int"   || name == "UInt"  || name == "Short" ||
+           name == "UShort"|| name == "Long"  || name == "ULong" ||
+           name == "LLong" || name == "ULLong"|| name == "Int8"  ||
+           name == "Int16" || name == "Int32" || name == "Int64" ||
+           name == "UInt8" || name == "UInt16"|| name == "UInt32"||
+           name == "UInt64"|| name == "SizeT" || name == "Float" ||
+           name == "Double"|| name == "SSizeT"|| name == "Octet" )) {
+            _numeric = NumericState YES
+            return
+        }
+
+        down := dig()
+        if(down && down isNumericType()) {
+            _numeric = NumericState YES
+            return
+        }
+
+        _numeric = NumericState NO
+    }
+
+    isNumericType: func -> Bool {
+        if(_numeric == NumericState UNKNOWN) _computeNumeric()
+        (_numeric == NumericState YES)
     }
 
     dereference: func -> Type {

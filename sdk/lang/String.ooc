@@ -358,7 +358,7 @@ String: cover from CString {
         for (i: SizeT in 0..len) {
             result[i] = this[(len-1)-i]
         }
-        result[len] = 0
+        result[len] = '\0'
 
         return result as This
     }

@@ -118,24 +118,7 @@ Type: abstract class extends Expression {
     }
 
     isNumericType: func -> Bool {
-        if(pointerLevel() != 0) return false
-
-        // FIXME: that's quite ugly - and what about custom types?
-        name := getName()
-        if ((
-           name == "Int"   || name == "UInt"  || name == "Short" ||
-           name == "UShort"|| name == "Long"  || name == "ULong" ||
-           name == "LLong" || name == "ULLong"|| name == "Int8"  ||
-           name == "Int16" || name == "Int32" || name == "Int64" ||
-           name == "UInt8" || name == "UInt16"|| name == "UInt32"||
-           name == "UInt64"|| name == "SizeT" || name == "Float" ||
-           name == "Double"|| name == "SSizeT"))
-            return true
-
-        down := dig()
-        if(down) return down isNumericType()
-
-        return false
+        false
     }
 
     isPointer: func -> Bool { false }

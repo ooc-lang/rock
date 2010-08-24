@@ -1,13 +1,13 @@
 import structs/ArrayList
 import BinarySeq
 
-tmp := gc_malloc(3) as UChar*
+tmp := gc_malloc(3) as Octet*
 
 tmp[0] = 0x55
-PUSH_EBP := static const BinarySeq new(1, tmp) 
+PUSH_EBP := static const BinarySeq new(1, tmp)
 
 tmp[0] = 0x6a
-PUSH_BYTE := static const BinarySeq new(1, tmp) 
+PUSH_BYTE := static const BinarySeq new(1, tmp)
 
 tmp[0] = 0x66
 tmp[1] = 0x68
@@ -27,7 +27,7 @@ PUSHDW_EBP_VAL := static const BinarySeq new(2, tmp)
 
 tmp[0] = 0x89
 tmp[1] = 0xe5
-MOV_EBP_ESP := static const BinarySeq new(2, tmp) 
+MOV_EBP_ESP := static const BinarySeq new(2, tmp)
 
 tmp[0] = 0xb8
 MOV_EAX_ADDRESS := static const BinarySeq new(1, tmp)
