@@ -210,7 +210,7 @@ Buffer: class {
     }
 
     /** return a new string containg *other* followed by *this*. */
-    prepend: func ~bytePtr (other: Char*, otherLength: SizeT) {
+    prepend: func ~pointer (other: Char*, otherLength: SizeT) {
         if (rshift() < otherLength) {
             newthis := This new (size + otherLength)
             memcpy (newthis data, other, otherLength)
@@ -223,13 +223,8 @@ Buffer: class {
         }
     }
 
-    /** replace *this* with  *other* followed by *this*. */
-    prepend: func ~char (other: Char) {
-        prepend(other&, 1)
-    }
-
     /** replace *this* or a clone with  *other* followed by *this*. */
-    prepend: func ~charImmutableChoice (other: Char, immutable: Bool) {
+    prepend: func ~char (other: Char, immutable: Bool) {
         prepend( other&, 1)
     }
 
@@ -267,16 +262,22 @@ Buffer: class {
     }
 
     /** return true if the first character of *this* is equal to *c*. */
-    startsWith?: func ~withChar(c: Char) -> Bool {
+    startsWith?: func ~char(c: Char) -> Bool {
         return (size > 0) && (data@ == c)
     }
 
     /** return true if the last characters of *this* are equal to *s*. */
     endsWith?: func (s: This) -> Bool {
-        len := s length()
+        len := s size
         if (size < len) return false
         compare(s, size - len, len )
     }
+
+    /** return true if the last character of *this* is equal to *c*. */
+    endsWith?: func ~char(c: Char) -> Bool {
+        size > 0 && (data + size)@ == c
+    }
+
 
     /**
         calls find with searchCaseSenitive set to true by default
@@ -337,18 +338,8 @@ Buffer: class {
         return result
     }
 
-    /* legacy function, do use replaceAll instead */
-    replace: func ~stringObsolete (oldie, kiddo: This) -> This {
-        replaceAll(oldie, kiddo, true, false )
-    }
-
-    /* legacy function, do use replaceAll instead */
-    replace: func ~charObsolete (oldie, kiddo: Char) -> This {
-        replaceAll(oldie, kiddo)
-    }
-
     /** replaces all occurences of *what* with *whit */
-    replaceAll: func ~buf (what, whit : This) -> This {
+    replaceAll: func ~buf (what, whit : This) {
         replaceAll(what, whit, true, false);
     }
 
@@ -486,14 +477,14 @@ Buffer: class {
 
     /** return the index of *s*, starting at 0. If *this* does not contain *s*,
         return -1. */
-    indexOf: func ~stringZero (s: This) -> Int {
+    indexOf: func ~bufZero (s: This) -> SSizeT {
         indexOf~string(s, 0)
     }
 
     /** return the index of *s*, but only check characters ``start..length``.
         However, the return value is relative to the *this*' first character.
         If *this* does not contain *c*, return -1. */
-    indexOf: func ~string (s: This, start: Int) -> Int {
+    indexOf: func ~buf (s: This, start: Int) -> SSizeT {
         return find(s, start, false)
     }
 
@@ -502,23 +493,30 @@ Buffer: class {
     contains?: func ~char (c: Char) -> Bool { indexOf(c) != -1 }
 
     /** return *true* if *this* contains the string *s* */
-    contains?: func ~string (s: This) -> Bool { indexOf(s) != -1 }
+    contains?: func ~buf (s: This) -> Bool { indexOf(s) != -1 }
 
     /** all characters contained by *s* stripped at both ends. */
-    // TODO this function does not do what one expects, suggest renaming
-    trim: func ~pointer (s: Char*, sLength: SizeT) {
-        tmp := this
-
-        if(tmp size == 0 || sLength == 0) return tmp
+    trimMulti: func ~pointer (s: Char*, sLength: SizeT) {
+        if(size == 0 || sLength == 0) return
         start := 0
-        while (start < tmp size && tmp[start] containedIn? (s, sLength) ) start += 1
-        end := tmp size
-        while (end > 0 && tmp[end -1] containedIn? (s, sLength) ) end -= 1
+        while (start < size && tmp[start] containedIn? (s, sLength) ) start += 1
+        end := size
+        while (end > 0 && [end -1] containedIn? (s, sLength) ) end -= 1
         if(start >= end) start = end
-        tmp substring(start, end, immutable)
+        substring(start, end, immutable)
     }
 
-    trim: func ~buffer(s : This) {
+    trimMulti: func ~buf(s : This) {
+        trim(s data, s size)
+    }
+
+    trim: func~pointer(s: Char*, sLength: SizeT) {
+        // FIXME untested
+        trimRight(s, sLength)
+        trimLeft(s, sLength)
+    }
+
+    trim: func ~buf(s : This) {
         trim(s data, s size)
     }
 
@@ -528,7 +526,7 @@ Buffer: class {
     }
 
     /** whitespace characters (space, CR, LF, tab) stripped at both ends. */
-    trim: func ~whitespace -> This {
+    trim: func ~whitespace {
         whiteSpace : Char* = " \r\n\t"
         trim( whiteSpace, 4, false)
     }
@@ -542,7 +540,7 @@ Buffer: class {
     }
 
     /** all characters contained by *s* stripped from the left side. either from *this* or a clone */
-    trimLeft: func ~buffer (s: This) {
+    trimLeft: func ~buf (s: This) {
         trimLeft(s data, s size)
     }
 
@@ -556,47 +554,29 @@ Buffer: class {
     }
 
     /** space characters (ASCII 32) stripped from the right side. */
-    trimRight: func ~space -> This { trimRight(' ') }
+    trimRight: func ~space { trimRight(' ') }
 
     /** *c* characters stripped from the right side. */
-    trimRight: func ~char (c: Char) -> This {
-        trimRight(c, false)
+    trimRight: func ~char (c: Char) {
+        trimRight(c&, 1)
     }
 
-    /** *c* characters stripped from the right side. */
-    trimRight: func ~charImmutableChoice (c: Char, immutable: Bool) -> This {
-        trimRight(c&, 1, immutable)
-    }
-
-    /** strip *this* with all characters contained by *s* from the right side. */
-    trimRight: func ~string (s: This) -> This{
-        trimRight (s, false)
+    /** *this* with all characters contained by *s* stripped
+        from the right side. */
+    trimRight: func ~buf (s: This) {
+        trimRight(s data, s size)
     }
 
     /** return (a copy of) *this* with all characters contained by *s* stripped
         from the right side. */
-    trimRight: func ~stringImmutableChoice (s: This, immutable: Bool) -> This{
-        trimRight(s data, s size, immutable)
-    }
-
-    /** return (a copy of) *this* with all characters contained by *s* stripped
-        from the right side. */
-    trimRight: func ~pointerImmutableChoice (s: Char*, sLength: SizeT, immutable: Bool) -> This{
-        p := getPtr(immutable)
+    trimRight: func ~pointer (s: Char*, sLength: SizeT) {
+        p := this
         while( p size > 0 &&  (p data + (size - 1))@ containedIn?(s, sLength)) p setLength(size -1);
-        p
     }
 
-    /** reverses string in place */
-    reverse: func -> This {
-        reverse(false)
-    }
-
-    /** reverses *this*. "ABBA" -> "ABBA" .no. joke. "ABC" -> "CBA"
-        if immutable is set, returns a new String. otherwise the old will be
-        manipulated and returned */
-    reverse: func ~immutableChoice(immutable : Bool) -> This {
-        result := getPtr(immutable)
+    /** reverses *this*. "ABBA" -> "ABBA" .no. joke. "ABC" -> "CBA" */
+    reverse: func {
+        result := this
         bytesLeft := size
         i: SizeT = 0
         while (bytesLeft > 1) {
@@ -606,7 +586,6 @@ Buffer: class {
             bytesLeft -= 2
             i += 1
         }
-        return result
     }
 
     /** return the number of *what*'s occurences in *this*. */
@@ -620,7 +599,7 @@ Buffer: class {
     }
 
     /** return the number of *what*'s non-overlapping occurences in *this*. */
-    count: func ~string (what: This) -> SizeT {
+    count: func ~buf (what: This) -> SizeT {
         l := findAll(what)
         return l size()
     }
@@ -719,7 +698,7 @@ Buffer: class {
     /** returns a formated string using *this* as template. */
     // TODO this just doesnt make sense
     // TODO mutable / immutable after a decision
-    format: final func ~ str (...) -> This {
+    format: final func ~ str (...) {
         list:VaList
         fmt := this
 
