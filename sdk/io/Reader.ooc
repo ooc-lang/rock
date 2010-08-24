@@ -1,4 +1,3 @@
-import text/Buffer
 
 /**
    The reader interface provides a medium-indendant way to read characters

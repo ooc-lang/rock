@@ -134,6 +134,10 @@ Char: cover from char {
         return false
     }
 
+    compareWith: func (compareFunc: Func (Char, Char*, SizeT) -> SSizeT, target: Char*, targetSize: SizeT) -> SSizeT {
+        compareFunc(this, target, targetSize)
+    }
+
 }
 
 SChar: cover from signed char extends Char

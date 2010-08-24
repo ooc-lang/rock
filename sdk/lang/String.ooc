@@ -1,7 +1,8 @@
-import text/Buffer /* for String replace ~string */
-
 /*  The String class is immutable by default, this means every writing operation
     is done on a clone, which is then returned
+
+    most work done by rofl0r
+
     */
 
 String: class {

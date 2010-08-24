@@ -281,11 +281,17 @@ Buffer: class {
 
     /**
         calls find with searchCaseSenitive set to true by default
-        -1 is returned if nothing is found
-        otherwise the position
-    */
+        returns -1 if nothing is found, otherwise the position  */
     find : func (what: This, offset: SSizeT) -> SSizeT {
-        find(what, offset, true)
+        find(what data, what size, offset, true)
+    }
+
+    find : func ~char (what: Char, offset: SSizeT) -> SSizeT {
+        find (what&, 1, offset, true)
+    }
+
+    find : func ~charWithCase (what: Char, offset: SSizeT, searchCaseSensitive: Bool) -> SSizeT {
+        find (what&, 1, offset, searchCaseSensitive)
     }
 
     /**
@@ -294,9 +300,13 @@ Buffer: class {
         look at implementation of findAll() for an example
     */
     find : func ~withCase (what: This, offset: SSizeT, searchCaseSensitive : Bool) -> SSizeT {
-        if (offset >= size || offset < 0) return -1
+        find~pointer(what data, what size, offset, searchCaseSensitive)
+    }
 
-        maxpos : SSizeT = size - what size // need a signed type here
+    find : func ~pointer (what: Char*, whatSize: SizeT, offset: SSizeT, searchCaseSensitive : Bool) -> SSizeT {
+        if (offset >= size || offset < 0 || what == null || whatSize == 0) return -1
+
+        maxpos : SSizeT = size - whatSize // need a signed type here
         if ((maxpos) < 0) return -1
 
         found : Bool
@@ -305,20 +315,20 @@ Buffer: class {
 
         while (sstart <= maxpos) {
             found = true
-            for (j in 0..(what size)) {
+            for (j in 0..(whatSize)) {
                 if (searchCaseSensitive) {
-                    if ( (data as Char* + sstart + j)@ != (what data as Char* + j)@ ) {
+                    if ( (data + sstart + j)@ != (what + j)@ ) {
                         found = false
                         break
                     }
                 } else {
-                    if ( (data as Char* + sstart + j)@ toUpper() != (what data as Char* + j)@ toUpper() ) {
+                    if ( (data + sstart + j)@ toUpper() != (what + j)@ toUpper() ) {
                         found = false
                         break
                     }
                 }
             }
-            if (found)     return sstart
+            if (found) return sstart
             sstart += 1
         }
         return -1
@@ -331,10 +341,14 @@ Buffer: class {
 
     /** returns a list of positions where buffer has been found, or an empty list if not  */
     findAll: func ~withCase ( what : This, searchCaseSensitive: Bool) -> ArrayList <SizeT> {
-        if (what == null || what size == 0) return ArrayList <SizeT> new(0)
-        result := ArrayList <SizeT> new (size / what size)
-        offset : SSizeT = (what size ) * -1
-        while (((offset = find(what, offset + what size , searchCaseSensitive)) != -1)) result add (offset)
+        findAll(what data, what size, searchCaseSensitive)
+    }
+
+    findAll: func ~pointer ( what : Char*, whatSize: SizeT, searchCaseSensitive: Bool) -> ArrayList <SizeT> {
+        if (what == null || whatSize == 0) return ArrayList <SizeT> new(0)
+        result := ArrayList <SizeT> new (size / whatSize)
+        offset : SSizeT = (whatSize ) * -1
+        while (((offset = find(what, whatSize, offset + whatSize , searchCaseSensitive)) != -1)) result add (offset)
         return result
     }
 
@@ -388,10 +402,15 @@ Buffer: class {
         for (i in 0..size) {
             if ( (data + i )@ containedIn? (str data, str size) ) {
                 if ((maxItems -1) == result size()) {
-                    result add ( substring (start, size , true) )
+                    copylen := i - start
+                    b := This new ((data + start) as CString, copylen)
+                    result add ( b )
                     break
                 }
-                if ((maxSplits != 0) || (start < i)) result add ( substring (start, i , true) )
+                if ((maxSplits != 0) || (start < i)) {
+                    b:= This new((data + start) as CString, i - start)
+                    result add ( b )
+                }
                 start = i + 1
             }
         }
@@ -433,13 +452,13 @@ Buffer: class {
             if ( ( maxSplits > 0 ) && ( result size() == maxItems - 1 ) ) break
             sdist := item - sstart // bytes to copy
             if (maxSplits != 0 || sdist > 0) {
-                b := This new (data+ sstart, sdist)
+                b := This new ((data + sstart) as CString, sdist)
                 result add ( b )
             }
             sstart += sdist + delimiter size
         }
         sdist := size - sstart // bytes to copy
-        b := This new (data + sstart, sdist)
+        b := This new ((data + sstart) as CString, sdist)
         result add ( b )
         return result
     }
@@ -458,7 +477,7 @@ Buffer: class {
         }
     }
     /* i hate circular references. */
-    toString: func -> String { s := String new(); s buffer setBuffer(this) }
+    toString: func -> String { s := String new(); s _buffer setBuffer(this) }
 
     /** return the index of *c*, starting at 0. If *this* does not contain *c*, return -1. */
     indexOf: func ~charZero (c: Char) -> SSizeT {
@@ -478,7 +497,7 @@ Buffer: class {
     /** return the index of *s*, starting at 0. If *this* does not contain *s*,
         return -1. */
     indexOf: func ~bufZero (s: This) -> SSizeT {
-        indexOf~string(s, 0)
+        indexOf~buf(s, 0)
     }
 
     /** return the index of *s*, but only check characters ``start..length``.
@@ -499,11 +518,11 @@ Buffer: class {
     trimMulti: func ~pointer (s: Char*, sLength: SizeT) {
         if(size == 0 || sLength == 0) return
         start := 0
-        while (start < size && tmp[start] containedIn? (s, sLength) ) start += 1
+        while (start < size && (data + start)@ containedIn? (s, sLength) ) start += 1
         end := size
-        while (end > 0 && [end -1] containedIn? (s, sLength) ) end -= 1
+        while (end > 0 && (data + end -1)@ containedIn? (s, sLength) ) end -= 1
         if(start >= end) start = end
-        substring(start, end, immutable)
+        substring(start, end)
     }
 
     trimMulti: func ~buf(s : This) {
@@ -528,7 +547,7 @@ Buffer: class {
     /** whitespace characters (space, CR, LF, tab) stripped at both ends. */
     trim: func ~whitespace {
         whiteSpace : Char* = " \r\n\t"
-        trim( whiteSpace, 4, false)
+        trim( whiteSpace, 4)
     }
 
     /** space characters (ASCII 32) stripped from the left side. */
@@ -549,7 +568,7 @@ Buffer: class {
         if (size == 0 || sLength == 0) return
 
         start : SizeT = 0
-        while (start < size && this [start] containedIn?(s, sLength) ) start += 1
+        while (start < size && (data + start)@ containedIn?(s, sLength) ) start += 1
         shiftRight( start )
     }
 
@@ -606,7 +625,7 @@ Buffer: class {
 
     /** return the first character of *this*. If *this* is empty, 0 is returned. */
     first: func -> Char {
-        return this[0]
+        return data@
     }
 
     /** return the index of the last character of *this*. If *this* is empty,
@@ -617,7 +636,7 @@ Buffer: class {
 
     /** return the last character of *this*. */
     last: func -> Char {
-        return this[lastIndex()]
+        return (data + lastIndex())@
     }
 
     /** return the index of the last occurence of *c* in *this*.
@@ -626,23 +645,17 @@ Buffer: class {
         // could probably use reverse foreach here
         i : SSizeT = size - 1
         while(i >= 0) {
-            if(this[i] == c) return i
+            if((data +i)@ == c) return i
             i -= 1
         }
         return -1
     }
 
     /** print *this* to stdout without a following newline. Flush stdout. */
-    print: func {
-        This new("%s") printf( this data)
-        //This new ("%s") printf(this); stdout flush()
-    }
+    print: func { printf("%s", data) }
 
     /** print *this* followed by a newline. */
-    println: func {
-        This new("%s\n") printf( this data )
-        //This new ("%s\n") printf(this)
-    }
+    println: func { printf("%s\n", data ) }
 
     /*
         TODO make these faster by not simply calling the C api
@@ -691,6 +704,55 @@ Buffer: class {
         iter := BufferIterator<Char> new(this)
         iter i = length()
         return iter
+    }
+
+    /**
+        reads a whole file into buffer, binary mode
+    */
+    fromFile: func (fileName: String) -> Bool {
+        STEP_SIZE : const SizeT = 4096
+        file := FStream open(fileName, "rb")
+        if (!file || file error()) return false
+        len := file size()
+        setLength(len)
+        offset :SizeT= 0
+        while (len / STEP_SIZE > 0) {
+            retv := file read((data + offset) as Pointer, STEP_SIZE)
+            if (retv != STEP_SIZE || file error()) {
+                file close()
+                return false
+            }
+            len -= retv
+            offset += retv
+        }
+        if (len) file read((data + offset) as Pointer, len)
+        size += len
+        return (file error()==0) && (file close() == 0)
+    }
+
+    toFile: func (fileName: String) -> Bool {
+        toFile(fileName, false)
+    }
+    /**
+        writes the whole data to a file in binary mode
+    */
+    toFile: func ~withAppend (fileName: String, doAppend: Bool) -> Bool {
+        STEP_SIZE : SizeT = 4096
+        file := FStream open(fileName, doAppend ? "ab" : "wb")
+        if (!file || file error()) return false
+        offset :SizeT = 0
+        togo := size
+        while (togo / STEP_SIZE > 0) {
+            retv := file write ((data + offset) as String, STEP_SIZE)
+            if (retv != STEP_SIZE || file error()) {
+                file close()
+                return false
+            }
+            togo -= retv
+            offset  += retv
+        }
+        if (togo) file write((data + offset) as String, togo)
+        return (file error() == 0) && (file close()==0 )
     }
 
     // at last: our varargs "friends"
@@ -743,6 +805,32 @@ Buffer: class {
 
         return retval
     }
+
+    // safest & slowest way to access a Char
+    get: func ~chr (offset: SizeT) -> Char {
+        if(offset >= size) {
+            Exception new(This, "Buffer overflow! Offset is larger than buffer size.") throw()
+        }
+        return (data + offset)@
+    }
+
+    get: func ~strWithLengthOffset (str: Char*, offset: SizeT, length: SizeT) -> SizeT {
+        if(offset >= size) {
+            Exception new(This, "Buffer overflow! Offset is larger than buffer size.") throw()
+        }
+
+        copySize: SizeT
+        if((offset + length) > size) {
+            copySize = size - offset
+        }
+        else {
+            copySize = length
+        }
+
+        memcpy(str, (data as Char*) + offset, copySize)
+        copySize
+    }
+
 }
 
 /**
@@ -761,7 +849,7 @@ BufferIterator: class <T> extends BackIterator<T> {
     }
 
     next: func -> T {
-        c := str[i]
+        c := (str data +i)@
         i += 1
         return c
     }
@@ -772,7 +860,7 @@ BufferIterator: class <T> extends BackIterator<T> {
 
     prev: func -> T {
         i -= 1
-        return str[i]
+        return (str data + i)@
     }
 
     remove: func -> Bool { false } // this could be implemented!
@@ -806,7 +894,7 @@ BufferWriter: class extends Writer {
     }
 
     write: func (chars: String, length: SizeT) -> SizeT {
-        buffer append(chars, length)
+        buffer append(chars _buffer data, length)
         return length
     }
 
@@ -819,12 +907,11 @@ BufferWriter: class extends Writer {
         length := vsnprintf(null, 0, fmt, list2)
         va_end (list2)
 
-        buffer checkLength( buffer size + length + 1)
-        vsnprintf(buffer data as Char* + buffer size, length + 1, fmt, list)
-
-        buffer size += length
-        buffer data[buffer size] = '\0'
+        origSize := buffer size
+        buffer setLength( origSize + length)
+        vsnprintf(buffer data + origSize, length + 1, fmt, list)
     }
+
 }
 
 BufferReader: class extends Reader {
@@ -900,53 +987,53 @@ Buffer_unittest: class {
         TEST_FILE_OUT : const String = "/tmp/buftest"
 
         b := Buffer new(0)
-        if (!b fromFile(TEST_FILE_IN) || b size == 0) println("read failed: b size=%d" format (b size))
-        if (!(b toFile(TEST_FILE_OUT)))     println("write failed")
-        if (! ((c := Buffer new(0) fromFile(TEST_FILE_IN) )     == b ) ) println( "comparison failed")
+        if (!b fromFile(TEST_FILE_IN) || b size == 0) printf("read failed: b size=%d\n" format (b size))
+        if (!(b toFile(TEST_FILE_OUT)))     ("write failed") println
+        if (! ((c := Buffer new(0) fromFile(TEST_FILE_IN) )     == b ) ) ( "comparison failed") println
     }
 
     testFind: static func {
-        b := Buffer new ("123451234512345")
-        what := Buffer new ("1")
+        b := String new ("123451234512345")
+        what := String new ("1")
         p := b find(what, 0)
         p = b find(what, p+1)
         p = b find(what, p+1)
 
-        l := b findAll( Buffer new ("1"))
-        if ( l size() != ( 3 as SizeT)) println( "find failed 1")
+        l := b findAll( String new ("1"))
+        if ( l size() != ( 3 as SizeT)) ( "find failed 1") println
         else {
-            if ( l get(0) != 0) println( "find failed 2")
-            if ( l get(1) != 5) println( "find failed 3")
-            if ( l get(2) != 10) println( "find failed 4")
+            if ( l get(0) != 0) ( "find failed 2") println
+            if ( l get(1) != 5) ( "find failed 3") println
+            if ( l get(2) != 10) ( "find failed 4") println
         }
     }
 
     testOperators: static func {
-        if (null as Buffer != null as Buffer) println("op equals failed 1")
-        if (null as Buffer == Buffer new(0) ) println("op equals failed 2 ")
-        if (Buffer new ("1") == Buffer new(0) ) println("op equals failed 3")
-        if (Buffer new ("123") == Buffer new("1234") ) println("op equals failed 4")
-        if (Buffer new ("1234") != Buffer new("1234") ) println("op equals failed 5")
-        if (Buffer new ("1234") == Buffer new("4444") ) println("op equals failed 6")
+        if (null as Buffer != null as Buffer) ("op equals failed 1") println
+        if (null as Buffer == Buffer new(0) ) ("op equals failed 2 ") println
+        if (String new ("1") == String new(0) ) ("op equals failed 3") println
+        if (String new ("123") == String new("1234") ) ("op equals failed 4") println
+        if (String new ("1234") != String new("1234") ) ("op equals failed 5") println
+        if (String new ("1234") == String new("4444") ) ("op equals failed 6") println
     }
 
     testReplace: static func {
-        if ( Buffer new ("1234512345") replaceAll( "1", "2") != Buffer new ("2234522345") ) println ("replace failed 1," + Buffer new ("1234512345") replaceAll( "1", "2") toString())
-        if ( Buffer new ("1234512345") replaceAll( "12333333333333333333", "2") != Buffer new ("1234512345") ) println ("replace failed 2")
-        if ( Buffer new ("1234512345") replaceAll( "23", "11") != Buffer new ("1114511145") ) println ("replace failed 3")
-        if ( Buffer new ("112") replaceAll( "1", "XXX") != Buffer new ("XXXXXX2") ) println ("replace failed 4, " + Buffer new ("112") replaceAll( "1", "XXX") toString() )
-        if ( Buffer new ("112") replaceAll( "1", "") != Buffer new ("2") ) println ("replace failed 5")
-        if ( Buffer new ("111") replaceAll( "1", "") != Buffer new ("") ) println ("replace failed 6")
-        if ( Buffer new ("") replaceAll( "1", "") != Buffer new ("") ) println ("replace failed 7")
-        if ( Buffer new ("") replaceAll( "", "1") != Buffer new ("") ) println ("replace failed 8")
-        if ( Buffer new ("111") replaceAll( "", "") != Buffer new ("111") ) println ("replace failed 9")
+        if ( String new ("1234512345") replaceAll( "1", "2") != String new ("2234522345") )  ("replace failed 1," + String new ("1234512345") replaceAll( "1", "2")) println
+        if ( String new ("1234512345") replaceAll( "12333333333333333333", "2") != String new ("1234512345") )  ("replace failed 2") println
+        if ( String new ("1234512345") replaceAll( "23", "11") != String new ("1114511145") )  ("replace failed 3") println
+        if ( String new ("112") replaceAll( "1", "XXX") != String new ("XXXXXX2") )  ("replace failed 4, " + String new ("112") replaceAll( "1", "XXX")  )println
+        if ( String new ("112") replaceAll( "1", "") != String new ("2") )  ("replace failed 5") println
+        if ( String new ("111") replaceAll( "1", "") != String new ("") )  ("replace failed 6") println
+        if ( String new ("") replaceAll( "1", "") != String new ("") )  ("replace failed 7") println
+        if ( String new ("") replaceAll( "", "1") != String new ("") )  ("replace failed 8") println
+        if ( String new ("111") replaceAll( "", "") != String new ("111") )  ("replace failed 9") println
     }
 
     testSplit: static func {
-        if (Buffer new ("X XXX X") split (" ") size() != 3) println ("split failed 1")
-        if (Buffer new ("X XXX X") split (" ") get(0) != Buffer new("X")) println ("split failed 2")
-        if (Buffer new ("X XXX X") split (" ") get(1) != Buffer new ("XXX")) println ("split failed 3")
-        if (Buffer new ("X XXX X") split (" ") get(2) != Buffer new ("X")) println ("split failed 4")
+        if (String new ("X XXX X") split (" ") size() != 3)  ("split failed 1") println
+        if (String new ("X XXX X") split (" ") get(0) != String new("X"))  ("split failed 2") println
+        if (String new ("X XXX X") split (" ") get(1) != String new ("XXX"))  ("split failed 3") println
+        if (String new ("X XXX X") split (" ") get(2) != String new ("X"))  ("split failed 4") println
         /* actually that's hows it supposed to be, java has an additional argument to solve this: split(";" -1) or so
         if (Buffer new ("X XXX X") split ("X") size() != 2) println ("split failed 5")
         b := Buffer new ("X XXX X") split ("X")
@@ -959,10 +1046,11 @@ Buffer_unittest: class {
 
     testTrailingZero: static func {
         b := Buffer new (0)
-        b checkLength(4)
+        b setLength(4)
+        b size = 0
         memcpy (b data as Char*, "1111", 4)
-        b append("222")
-        if (b data[3] != '\0') println("trZero failed 1")
+        b append("222" _buffer)
+        if (b data[3] != '\0') ("trZero failed 1") println
     }
 
     unittest: static func {
