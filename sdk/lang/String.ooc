@@ -17,6 +17,12 @@ String: cover from CString {
         result
     }
 
+    new: static func~withCStrAndLength(s : CString, length: SizeT) -> This {
+        result := This new~withLength(length)
+        memcpy(result, s, length + 1)
+        result
+    }
+
     /** compare *length* characters of *this* with *other*, starting at *start*.
         Return true if the two strings are equal, return false if they are not. */
     compare: func (other: This, start, length: Int) -> Bool {
@@ -679,4 +685,16 @@ operator + (left: String, right: Char) -> String {
 
 operator + (left: Char, right: String) -> String {
     right prepend(left)
+}
+
+// lame static function to be called by int main, so i dont have to metaprogram it
+import structs/ArrayList
+
+strArrayListFromCString: func (argc: Int, argv: Char**) -> ArrayList<String> {
+    result := ArrayList<String> new ()
+    for (i in 0..argc) {
+        s := String new ((argv[i]) as CString, (argv[i]) as CString length())
+        result add( s )
+    }
+    result
 }

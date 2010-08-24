@@ -649,10 +649,16 @@ FunctionDecl: class extends Declaration {
                 args add(argc)
                 args add(argv)
 
+                constructCall := FunctionCall new("strArrayListFromCString", arg token)
+                constructCall args add(VariableAccess new(argc, arg token)) \
+                                  .add(VariableAccess new(argv, arg token))
+
+/*
                 constructCall := FunctionCall new(VariableAccess new(arg getType(), arg token), "new", arg token)
                 constructCall setSuffix("withData")
                 constructCall args add(VariableAccess new(argv, arg token)) \
                                   .add(VariableAccess new(argc, arg token))
+                                */
 
                 vdfe := VariableDecl new(null, arg getName(), constructCall, token)
                 body add(0, vdfe)
@@ -706,19 +712,19 @@ FunctionDecl: class extends Declaration {
                 }
             }
         }
-        
+
         ind := parentCall args indexOf(this)
-        
+
         if (ind == -1) {
-            res throwError(InternalError new(token, "[ACS]: Can't find ´this´ in the call's arguments.\ntrail = %s" format(trail toString()))) 
-        } 
-        
+            res throwError(InternalError new(token, "[ACS]: Can't find ´this´ in the call's arguments.\ntrail = %s" format(trail toString())))
+        }
+
         funcPointer := parentFunc args[ind] getType() as FuncType
-        
+
         if (!funcPointer) {
             res wholeAgain(this, "Missing type informantion in the function pointer.")
             return false
-        } 
+        }
         ix := 0
 
         fScore: Int
