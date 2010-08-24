@@ -50,7 +50,7 @@ Buffer: class {
         setLength(length)
     }
 
-    init: func ~str (str: String) {
+    init: func ~str (str: This) {
         setBuffer(str clone())
     }
 
@@ -61,22 +61,20 @@ Buffer: class {
     }
 
     /** create a new String from a zero-terminated C String */
-    init: func ~withCStr(s : Char*) {
-        init (s, strlen(s))
+    init: func ~withCStr(s : CString) {
+        init (s, s length())
     }
 
     /** create a new String from a zero-terminated C String with known length */
     // ATTENTION the mangled name of this function is hardcoded in CGenerator.ooc
     // so you'd rather not change it
-    init: func ~withCStrAndLength(s : Char*, length: SizeT) {
+    init: func ~withCStrAndLength(s : CString, length: SizeT) {
         setLength(length)
         memcpy(data, s, length + 1)
     }
 
     /** return the string's length, excluding the null byte. */
-    length: func -> SizeT {
-        return size
-    }
+    length: func -> SizeT { size }
 
 
     /** sets capacity to a sane amount and (re)allocs the needed memory,size aka length stays untouched */
@@ -172,61 +170,38 @@ Buffer: class {
     }
 
     substring: func ~tillEnd (start: SizeT) -> This {
-        substring(start, size, false)
+        substring(start, size)
     }
 
-    substring: func (start, end: SizeT) -> This {
-           substring(start, end, false)
+    /** *this* will be reduced to the characters in the range ``start..end``.  */
+    substring: func (start: SizeT, end: SizeT) {
+        setLength(end)
+        shiftRight(start)
     }
 
-    /** *this* or a clone will be reduced to the characters in the range ``start..length``.  */
-    substring: func ~immutableChoiceTillEnd (start: SizeT, immutable: Bool) -> This{
-        substring(start, size, immutable)
-    }
-
-    /** *this* or a clone will be reduced to the characters in the range ``start..end``.  */
-    substring: func ~immutableChoice (start: SizeT, end: SizeT, immutable: Bool) -> This{
-        s:=getPtr(immutable)
-        s setLength(end)
-        s shiftRight(start)
-        s
-    }
-
-    /** return a string that contains *this*, repeated *count* times. */
-    times: func (count: SizeT) -> This {
-        times (count, false)
-    }
-
-    /** return a string that contains *this*, repeated *count* times. */
-    times: func ~immutableChoice (count: SizeT, immutable: Bool) -> This {
+    /** return a This that contains *this*, repeated *count* times. */
+    times: func (count: SizeT) {
         origSize := size
-        result := getPtr(origSize * count, immutable)
+        setLength (origSize * count)
         for(i in 1..count) { // we start at 1, since the 0 entry is already there
-            memcpy(result data + (i * origSize), this data, origSize)
+            memcpy(data + (i * origSize), this data, origSize)
         }
-        return result
     }
 
-    append: func ~str(other: This) -> This {
-        append(other data, other size, false)
-    }
-
-    /** appends *other* to *this*, if not immutable, otherwise to a clone */
-    append: func ~withPointerAndLength (other: Char*, otherLength: SizeT) -> This {
-        append(other, otherLength, false)
+    append: func ~str(other: This) {
+        append(other data, other size)
     }
 
     /** appends *other* to *this*, if not immutable, otherwise to a clone */
-    append: func ~immutableChoice (other: Char*, otherLength: SizeT, immutable: Bool) -> This {
+    append: func ~pointer (other: Char*, otherLength: SizeT, immutable: Bool) -> This {
         origlen := size
-        s := getPtr(size + otherLength, immutable)
-        memcpy(s data + origlen, other, otherLength )
-        s
+        setLength(size + otherLength)
+        memcpy(data + origlen, other, otherLength )
     }
 
     /** appends a char to either *this* or a clone*/
     append: func ~char (other: Char)  {
-        append(other&, 1, immutable)
+        append(other&, 1)
     }
 
     /** prepends *other* to *this*. */

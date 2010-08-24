@@ -123,6 +123,17 @@ Char: cover from char {
         "%c\n" printf(this)
     }
 
+    containedIn?: func(s : String) -> Bool {
+        containedIn?(s buffer data, s size)
+    }
+
+    containedIn?: func ~charWithLength (s : Char*, sLength: SizeT) -> Bool {
+        for (i in 0..sLength) {
+            if ((s + i)@ == this) return true
+        }
+        return false
+    }
+
 }
 
 SChar: cover from signed char extends Char

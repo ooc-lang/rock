@@ -4,6 +4,72 @@ String: class {
 
     buffer: Buffer
 
+    size: SizeT { get { buffer size } ; set { } }
+
+    init: func { buffer = Buffer new()    }
+
+    init: func ~withBuffer(b: Buffer) { buffer = b }
+
+    init: func ~withChar(c: Char) { buffer = Buffer new~withChar(c)) }
+
+    init: func ~withLength (length: SizeT) { buffer = Buffer new~withLength(length) }
+
+    init: func ~withString (s: String) { buffer = Buffer new~withBuffer( s buffer ) }
+
+    init: func ~withCStr (s : CString) { buffer = Buffer new~withCStr(s) }
+
+    init: func ~withCStrAndLength(s : CString, length: SizeT) { buffer = Buffer new~withCStrAndLength(s, length) }
+
+    /** return the string's length, excluding the null byte. */
+    length: func -> SizeT { buffer size }
+
+    /** return true if *other* and *this* are equal (in terms of being null / having same size and content). */
+    equals?: func (other: This) -> Bool { buffer equals? (other buffer) }
+
+    /** return the character at position #*index* (starting at 0) */
+    charAt: func (index: SizeT) -> Char { buffer charAt(index) }
+
+    /** return a copy of *this*. */
+    clone: func -> This {
+        This new( buffer clone() )
+    }
+
+    substring: func ~tillEnd (start: SizeT) -> This { substring(start, buffer size) }
+
+    substring: func (start: SizeT, end: SizeT) -> This{
+        result :=clone()
+        result buffer substring(start, end)
+        result
+    }
+
+    /** return a This that contains *this*, repeated *count* times. */
+    times: func (count: SizeT) -> This{
+        result := clone()
+        result buffer times(count)
+        result
+    }
+
+    append: func ~str(other: This) {
+        result := clone()
+        result buffer append~str(other buffer)
+        result
+    }
+
+    /** appends a char to either *this* or a clone*/
+    append: func ~char (other: Char)  {
+        result := clone()
+        result buffer append~char(other)
+        result
+    }
+
+    /** prepends *other* to *this*. */
+    prepend: func ~str (other: This) {
+        result := clone()
+        result buffer prepend~str(other buffer)
+        result
+    }
+
+
 
 }
 
