@@ -377,10 +377,10 @@ Buffer: class {
         replaceAll(what, whit, true, false);
     }
 
-    replaceAll: func ~bufWithCase (what, whit : This, searchCaseSensitive: Bool, immutable: Bool) -> This{
-        if (what == null || what size == 0 || whit == null) return immutable ? clone() : this
+    replaceAll: func ~bufWithCase (what, whit : This, searchCaseSensitive: Bool) {
+        if (what == null || what size == 0 || whit == null) return
         l := findAll( what, searchCaseSensitive )
-        if (l == null || l size() == 0) return immutable ? clone() : this
+        if (l == null || l size() == 0) return
         newlen: SizeT = size + (whit size * l size()) - (what size * l size())
         result := This new( newlen + 1)
         result size = newlen
@@ -400,24 +400,15 @@ Buffer: class {
         }
         // copy remaining last piece of source
         sdist := size - sstart
-        memcpy(result data as Char* + rstart, data as Char* + sstart, sdist + 1)    // +1 to copy the trailing zero as well
-        if (immutable) return result
-        setString( result )
-        this
-    }
-
-    /** replace all occurences of *oldie* with *kiddo* in place */
-    replaceAll: func ~char(oldie, kiddo: Char) -> This{
-        replaceAll(oldie, kiddo, false)
+        memcpy(result data + rstart, data  + sstart, sdist + 1)    // +1 to copy the trailing zero as well
+        setBuffer( result )
     }
 
     /** replace all occurences of *oldie* with *kiddo* in place/ in a clone, if immutable is set */
-    replaceAll: func ~charImmutableChoice (oldie, kiddo: Char, immutable: Bool) -> This{
-        s:= getPtr(immutable)
-        for(i in 0..s size) {
-            if((s data + i)@ == oldie) (s data + i)@ = kiddo
+    replaceAll: func ~char(oldie, kiddo: Char) {
+        for(i in 0..size) {
+            if((data + i)@ == oldie) (data + i)@ = kiddo
         }
-        s
     }
 
 
@@ -487,50 +478,21 @@ Buffer: class {
         return result
     }
 
-    /* small internal helper function to get pointer to destination string, based upon immutable
-        if immutable is true, it will return a clone, otherwise *this* to work on */
-    getPtr: func ~immutableChoice (immutable: Bool) -> This {
-        return immutable ? clone() : this
-    }
-
-    /* small internal helper function to get pointer to destination string, based upon immutable
-        if immutable is true, it will return a clone, otherwise *this* to work on
-        assures a minimum size of *minimumSize* in both cases */
-    getPtr: func ~immutableChoiceWithMinimum (minimumSize: SizeT, immutable: Bool) -> This {
-        if (immutable) return clone(minimumSize)
-        else {
-            setLength(minimumSize)
-            return this
-        }
-    }
-
-    toLower: func -> This {
-        toLower(false)
-    }
-
     /** characters lowercased (if possible). */
-    toLower: func ~immutableChoice (immutable : Bool) -> This {
-        tmp:= getPtr(immutable)
-        for(i in 0..tmp size) {
-            (tmp data + i)@ = (tmp data  + i)@ toLower()
+    toLower: func {
+        for(i in 0..size) {
+            (data + i)@ = (data  + i)@ toLower()
         }
-        tmp
-    }
-
-    toUpper: func -> This {
-        toUpper(false)
     }
 
     /** characters uppercased (if possible). */
-    toUpper: func ~immutableChoice(immutable: Bool) -> This {
-        tmp := getPtr(immutable)
-        for(i in 0..tmp size) {
-            (tmp data + i)@ = (tmp data  + i)@ toUpper()
+    toUpper: func {
+        for(i in 0..size) {
+            (data + i)@ = (data  + i)@ toUpper()
         }
-        tmp
     }
-    /* only for descendants, on which toString() is called, i.e. Buffer */
-    toString: func -> This { return this }
+    /* i hate circular references. */
+    toString: func -> String { s := String new(); s buffer setBuffer(this) }
 
     /** return the index of *c*, starting at 0. If *this* does not contain *c*, return -1. */
     indexOf: func ~charZero (c: Char) -> SSizeT {
@@ -569,8 +531,8 @@ Buffer: class {
 
     /** all characters contained by *s* stripped at both ends. */
     // TODO this function does not do what one expects, suggest renaming
-    trim: func ~pointerImmutableChoice (s: Char*, sLength: SizeT, immutable: Bool) -> This{
-        tmp := getPtr(immutable)
+    trim: func ~pointer (s: Char*, sLength: SizeT) {
+        tmp := this
 
         if(tmp size == 0 || sLength == 0) return tmp
         start := 0
@@ -581,17 +543,13 @@ Buffer: class {
         tmp substring(start, end, immutable)
     }
 
-    trim: func ~stringImmutableChoice(s : This, immutable: Bool) -> This {
-        trim( s data, s size, immutable)
+    trim: func ~buffer(s : This) {
+        trim(s data, s size)
     }
 
     /** *c* characters stripped at both ends. */
-    trim: func ~charImmutableChoice (c: Char, immutable: Bool) -> This {
-        trim(c&, 1, immutable)
-    }
-
-    trim: func ~string (s: This ) -> This {
-        trim(s, false)
+    trim: func ~char (c: Char) {
+        trim(c&, 1)
     }
 
     /** whitespace characters (space, CR, LF, tab) stripped at both ends. */
@@ -600,44 +558,26 @@ Buffer: class {
         trim( whiteSpace, 4, false)
     }
 
-    /* trims *this* in place */
-    trim: func ~char (c: Char) -> This {
-        trim (c&, 1, false)
-    }
-
     /** space characters (ASCII 32) stripped from the left side. */
-    trimLeft: func ~space -> This { trimLeft(' ') }
+    trimLeft: func ~space { trimLeft(' ') }
 
     /** *c* character stripped from the left side. */
-    trimLeft: func ~char (c: Char) -> This {
-        trimLeft(c, false)
-    }
-
-    /** *c* character stripped from the left side. */
-    trimLeft: func ~charImmutableChoice (c: Char, immutable: Bool) -> This {
-        trimLeft(c&, 1, immutable)
-    }
-
-    /** all characters contained by *s* stripped from the left side. */
-    trimLeft: func ~string (s: This) -> This {
-        trimLeft(s, false)
+    trimLeft: func ~char (c: Char) {
+        trimLeft(c&, 1)
     }
 
     /** all characters contained by *s* stripped from the left side. either from *this* or a clone */
-    trimLeft: func ~stringImmutableChoice (s: This, immutable: Bool) -> This {
-        trimLeft(s data, s size, immutable)
+    trimLeft: func ~buffer (s: This) {
+        trimLeft(s data, s size)
     }
 
     /** all characters contained by *s* stripped from the left side. either from *this* or a clone */
-    trimLeft: func ~pointerImmutableChoice (s: Char*, sLength: SizeT, immutable: Bool) -> This {
-        p:= getPtr(immutable)
-
-        if (p size == 0 || sLength == 0) return p
+    trimLeft: func ~pointer (s: Char*, sLength: SizeT) {
+        if (size == 0 || sLength == 0) return
 
         start : SizeT = 0
-        while (start < p length() && p [start] containedIn?(s, sLength) ) start += 1
-        p shiftRight( start )
-        return p
+        while (start < size && this [start] containedIn?(s, sLength) ) start += 1
+        shiftRight( start )
     }
 
     /** space characters (ASCII 32) stripped from the right side. */
