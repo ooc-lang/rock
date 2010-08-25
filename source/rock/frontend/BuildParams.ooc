@@ -130,7 +130,7 @@ BuildParams: class {
     outPath: File = File new("rock_tmp")
 
     // if non-null, use 'linker' as the last step of the compile process, with driver=sequence
-    linker := null as String
+    linker : String = null
 
     // threads used by the sequence driver
     sequenceThreads := 1

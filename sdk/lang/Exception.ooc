@@ -1,5 +1,15 @@
 include assert
+include errno
+
 assert: extern func(Bool)
+
+errno: extern Int
+strerror: extern func (Int) -> CString
+
+getOSError: func -> String {
+    x := strerror(errno)
+    return (x != null) ? String new(x, x length()) : String new()
+}
 /**
  * Base class for all exceptions that can be thrown
  *
@@ -54,6 +64,15 @@ Exception: class {
         abort()
     }
 
+}
+
+OSException: class extends Exception {
+   init: func (=origin) {
+        init()
+    }
+    init: func ~noOrigin (accessOffset: SizeT, elementLength: SizeT) {
+        message = getOSError()
+    }
 }
 
 OutOfBoundsException: class extends Exception {

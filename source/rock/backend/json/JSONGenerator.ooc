@@ -263,7 +263,7 @@ JSONGenerator: class extends Visitor {
     buildFunctionDecl: func ~typed (node: FunctionDecl, type: String) -> HashBag {
         obj := HashBag new()
         putToken(obj, node token)
-        name := null as String
+        name : String = null
         if(node suffix)
             name = "%s~%s" format(node name toCString(), node suffix toCString())
         else

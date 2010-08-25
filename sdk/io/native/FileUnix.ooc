@@ -39,11 +39,11 @@ version(unix || apple) {
     _getcwd: extern(getcwd) func(buf: CString, size: SizeT) -> CString
 
     ooc_get_cwd: unmangled func -> String {
-        ret := Buffer new(File MAX_PATH_LENGTH + 1)
+        ret := Buffer new(File MAX_PATH_LENGTH)
         if(!_getcwd(ret data as CString, File MAX_PATH_LENGTH)) {
-            Exception new("Failed to get current directory!") throw()
+            OSException new(This) throw()
         }
-        return ret toString()
+        String new (ret)
     }
 
     TimeT: cover from time_t
@@ -168,8 +168,10 @@ version(unix || apple) {
          * The absolute path, e.g. "my/dir" => "/current/directory/my/dir"
          */
         getAbsolutePath: func -> String {
-            actualPath := String new(This MAX_PATH_LENGTH + 1)
-            return realpath(path as CString, actualPath as CString) as String
+            actualPath := Buffer new(This MAX_PATH_LENGTH + 1)
+            ret := realpath(path toCString(), actualPath data)
+            if (ret == null) OSException new(This) throw()
+            String new(actualPath)
         }
 
         /**
@@ -178,7 +180,7 @@ version(unix || apple) {
          */
         getAbsoluteFile: func -> File {
             actualPath := getAbsolutePath()
-            if(!path == actualPath) {
+            if(path != actualPath) {
                 return File new(actualPath)
             }
             return this
