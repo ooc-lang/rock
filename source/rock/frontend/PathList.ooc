@@ -105,8 +105,10 @@ PathList: class {
      * Find the file in the source path and return a File object associated to it
      */
     getFile: func(path: String) -> File {
+        f := File new(path)
+        if (f exists?()) return f
         element := getElement(path)
-        return element == null ? null : File new(element getPath() + File separator + path)
+        (element == null) ? null : File new(element getPath() + File separator + path)
     }
 
 

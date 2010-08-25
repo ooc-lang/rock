@@ -448,7 +448,9 @@ CommandLine: class {
             }
         }
 
-        if(params sourcePath empty?()) params sourcePath add(".")
+        if(params sourcePath empty?()) {
+            params sourcePath add(".")
+        }
         params sourcePath add(params sdkLocation path)
 
         errorCode := 0
@@ -506,10 +508,12 @@ CommandLine: class {
     }
 
     parse: func (moduleName: String) -> Int {
+        ("opening file " + moduleName + " for read...") println()
         moduleFile := params sourcePath getFile(moduleName)
 
         if(!moduleFile) {
             printf("File not found: %s\n", moduleName toCString())
+            Exception new("") throw()
             exit(1)
         }
 
@@ -638,6 +642,7 @@ CommandLine: class {
         Terminal setFgColor(Color red)
         "[FAIL]" println()
         Terminal reset()
+        Exception new("") throw() // for backtrace
         exit(1)
     }
 
