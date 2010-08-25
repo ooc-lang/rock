@@ -28,7 +28,9 @@ BuildParams: class {
 
     init: func (execName: String) {
         findDist(execName)
+        ("dist loc:" + distLocation path) println()
         findSdk()
+        ("sdk loc:" + sdkLocation path) println()
         sdkLocation = sdkLocation getAbsoluteFile()
         findLibsPath()
 
@@ -48,7 +50,8 @@ BuildParams: class {
             env = Env get("OOC_DIST")
         }
 
-        if (env) {
+        if (env && !env empty?()) {
+            ("env: " + env) println()
             distLocation = File new(env trimRight(File separator))
             return
         }
@@ -57,7 +60,7 @@ BuildParams: class {
         // e.g. if rock is in /opt/ooc/rock/bin/rock
         // then it will set dist to /opt/ooc/rock/
         exec := ShellUtils findExecutable(execName, false)
-        if(exec) {
+        if(exec && exec path != null && !exec path empty?()) {
             realpath := exec getAbsolutePath()
             distLocation = File new(realpath) parent() parent()
             return
@@ -66,6 +69,7 @@ BuildParams: class {
         // fall back on the current working directory
         file := File new(File getCwd())
         distLocation = file parent()
+        if (distLocation path empty?() || !distLocation exists?()) Exception new (This, "can not find the distribution. did you set ROCK_DIST environment variable?")
     }
 
     findSdk: func {
@@ -84,6 +88,7 @@ BuildParams: class {
 
         // fall back to dist + sdk/
         sdkLocation = File new(distLocation, "sdk")
+        if (sdkLocation path == null || sdkLocation path empty?() || !sdkLocation exists?()) Exception new (This, "can not find the sdk. did you set ROCK_SDK environment variable?")
     }
 
     findLibsPath: func {

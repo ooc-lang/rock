@@ -41,7 +41,7 @@ version(unix || apple) {
     ooc_get_cwd: unmangled func -> String {
         ret := Buffer new(File MAX_PATH_LENGTH)
         if(!_getcwd(ret data as CString, File MAX_PATH_LENGTH)) {
-            OSException new(This) throw()
+            OSException new("error trying to getcwd! ") throw()
         }
         String new (ret)
     }
@@ -168,10 +168,12 @@ version(unix || apple) {
          * The absolute path, e.g. "my/dir" => "/current/directory/my/dir"
          */
         getAbsolutePath: func -> String {
-            actualPath := Buffer new(This MAX_PATH_LENGTH + 1)
-            ret := realpath(path toCString(), actualPath data)
-            if (ret == null) OSException new(This) throw()
-            String new(actualPath)
+            assert(path != null)
+            assert(!path empty?())
+            actualPath := Buffer new(MAX_PATH_LENGTH)
+            ret := realpath(path toCString(), actualPath toCString())
+            if (ret == null) OSException new("failed to get absolute path for " + path) throw()
+            String new(ret, ret length())
         }
 
         /**

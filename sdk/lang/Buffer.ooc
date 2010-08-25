@@ -41,6 +41,8 @@ Buffer: class {
         capacity = newOne capacity
     }
 
+    toCString: func -> CString { data as CString }
+
     init: func ~zero { init(0) }
 
     /** Create a new string exactly *length* characters long (without the nullbyte).

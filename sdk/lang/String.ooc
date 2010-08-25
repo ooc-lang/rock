@@ -370,23 +370,30 @@ String: class {
 }
 
 operator implicit as (s: String) -> Char* {
-    assert(s != null)
+    if (s == null) return null
     assert(s _buffer != null)
     s _buffer data
 }
 
 operator implicit as (c: Char*) -> String {
+    if (c == null) {
+        b: String = null
+        return b
+    }
     assert(c != null)
     return c ? String new (c as CString, strlen(c)) : null
 }
 
 operator implicit as (c: CString) -> String {
-    assert(c != null)
+    if (c == null) {
+        b: String = null
+        return b
+    }
     return c ? String new (c, strlen(c)) : null
 }
 
 operator implicit as (s: String) -> CString {
-    assert(s != null)
+    if (s == null) return null
     assert(s _buffer != null)
     s _buffer data as CString
 }

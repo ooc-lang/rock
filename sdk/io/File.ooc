@@ -54,7 +54,12 @@ File: abstract class {
        Create a File object, relative to the given parent file
      */
     new: static func ~parentFile(parent: File, .path) -> This {
-        return new(parent path + This separator + path)
+        assert(parent != null)
+        assert(parent path != null)
+        assert(!parent path empty?())
+        s := parent path + This separator + path
+        s println()
+        return new(s)
     }
 
     /**

@@ -165,32 +165,27 @@ CString: cover from Char* {
         return copy as This
     }
 
+    equals?: func( other: This) -> Bool {
+        if (other == null) return false
+        l := length()
+        for (i in 0..l) {
+            if (( (this + i)@ != (other + i)@) || (other + i)@ == '\0') return false
+        }
+        return true
+    }
+
     /** return the string's length, excluding the null byte. */
     length: extern(strlen) func -> Int
 }
-// all this operator duplication is necessary since rock doesnt recognize CStrings inheritance
+
 operator == (str1: CString, str2: CString) -> Bool {
-    return str1 as String equals?(str2 as String)
+    if ((str1 != null && str2 == null) || (str2 != null && str1 == null)) return false
+    if (str1 == null && str2 == null) return true
+    return str1 equals?(str2)
 }
 
 operator != (str1: CString, str2: CString) -> Bool {
-    return !str1 as String equals?(str2 as String)
-}
-
-operator == (str1: String, str2: CString) -> Bool {
-    return str1 as String equals?(str2 as String)
-}
-
-operator != (str1: String, str2: CString) -> Bool {
-    return !str1 as String equals?(str2 as String)
-}
-
-operator == (str1: CString, str2: String) -> Bool {
-    return str1 as String equals?(str2 as String)
-}
-
-operator != (str1: CString, str2: String) -> Bool {
-    return !str1 as String equals?(str2 as String)
+    return !(str1 == str2)
 }
 
 

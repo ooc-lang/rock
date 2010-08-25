@@ -44,9 +44,9 @@ Exception: class {
      */
     formatMessage: func -> String {
         if(origin)
-            "[%s in %s]: %s" format(class name toCString(), origin name toCString(), message toCString())
+            "[%s in %s]: %s\n" format(class name toCString(), origin name toCString(), message toCString())
         else
-            "[%s]: %s" format(class name toCString(), message toCString())
+            "[%s]: %s\n" format(class name toCString(), message toCString())
     }
 
     /**
@@ -67,11 +67,15 @@ Exception: class {
 }
 
 OSException: class extends Exception {
-   init: func (=origin) {
+   init: func (=message) {
         init()
     }
-    init: func ~noOrigin (accessOffset: SizeT, elementLength: SizeT) {
-        message = getOSError()
+    init: func ~noOrigin {
+        x := getOSError()
+        if ((message != null) && (!message empty?())) {
+            message append(':')
+            message append(x)
+        } else message = x
     }
 }
 

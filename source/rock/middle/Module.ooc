@@ -48,7 +48,7 @@ Module: class extends Node {
                 packageName = this fullName substring(0, idx)
         }
 
-        underName = sanitize(this fullName clone())
+        underName = sanitize(this fullName)
         packageName = sanitize(packageName)
     }
 
@@ -87,7 +87,7 @@ Module: class extends Node {
     }
 
     sanitize: func(str: String) -> String {
-        result := str clone()
+        result := str _buffer clone()
         for(i in 0..result length()) {
             current := result[i]
             if(!current alphaNumeric?()) {
@@ -95,7 +95,7 @@ Module: class extends Node {
             }
         }
         if(!result[0] alpha?()) result = '_' + result
-        result
+        String new(result)
     }
 
     addFunction: func (fDecl: FunctionDecl) {
