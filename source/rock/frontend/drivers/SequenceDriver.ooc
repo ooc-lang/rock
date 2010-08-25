@@ -46,11 +46,11 @@ SequenceDriver: class extends Driver {
     compile: func (module: Module) -> Int {
 
         if(params verbose) {
-            ("Sequence driver, using " + params sequenceThreads + " thread" + (params sequenceThreads > 1 ? "s" : "")) println()
+            ("Sequence driver, using " + params sequenceThreads toString() + " thread" + (params sequenceThreads > 1 ? "s" : "")) println()
         }
 
         if((params clean && !params libcache && !params outPath exists?()) || !File new(params libcachePath) exists?()) {
-            if(params verbose)  printf("Must clean and %s doesn't exist, re-generating\n", params outPath path)
+            if(params verbose)  printf("Must clean and %s doesn't exist, re-generating\n", params outPath path toCString())
             params outPath mkdirs()
             for(candidate in module collectDeps()) {
                 CGenerator new(params, candidate) write()
@@ -75,7 +75,7 @@ SequenceDriver: class extends Driver {
                 hash := ac_X31_hash(sourceFolder name) + 42
                 Terminal setFgColor((hash % (Color cyan - Color red)) + Color red)
                 if(hash & 0b01) Terminal setAttr(Attr bright)
-                printf("%s, ", sourceFolder name)
+                printf("%s, ", sourceFolder name toCString())
                 Terminal reset()
                 fflush(stdout)
             }
@@ -169,8 +169,8 @@ SequenceDriver: class extends Driver {
 
             if(params verbose) {
                 "Building archive %s with %s (%d modules total)" printfln(
-                    params staticlib,
-                    params libfolder ? "modules belonging to %s" format(params libfolder) : "all object files",
+                    params staticlib toCString(),
+                    params libfolder ? "modules belonging to %s" format(params libfolder toCString()) : "all object files" toCString(),
                     count)
             }
             archive save(params)
@@ -217,7 +217,7 @@ SequenceDriver: class extends Driver {
     buildSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>, reGenerated: List<Module>) -> Int {
 
         if(params libfolder != null && sourceFolder absolutePath != File new(params libfolder) getAbsolutePath()) {
-            if(params verbose) "Skipping (not needed for build of libfolder %s)" printfln(params libfolder)
+            if(params verbose) "Skipping (not needed for build of libfolder %s)" printfln(params libfolder toCString())
             return 0
         }
 
@@ -252,7 +252,7 @@ SequenceDriver: class extends Driver {
 
         if(params libcache) {
             // now build a static library
-            if(params veryVerbose) printf("Saving to library %s\n", sourceFolder outlib)
+            if(params veryVerbose) printf("Saving to library %s\n", sourceFolder outlib toCString())
             archive save(params)
         } else {
             if(params veryVerbose) printf("Lib caching disabled, building from .o files\n")
@@ -285,7 +285,7 @@ SequenceDriver: class extends Driver {
 
         if(force || cFile lastModified() > comparison) {
 
-            if(params veryVerbose) printf("%s not in cache or out of date, (re)compiling\n", module getFullName())
+            if(params veryVerbose) printf("%s not in cache or out of date, (re)compiling\n", module getFullName() toCString())
 
             params compiler addObjectFile(cPath)
             params compiler setOutputPath(oPath)
@@ -326,7 +326,7 @@ SequenceDriver: class extends Driver {
             if(archive) archive add(module)
 
         } else {
-            if(params veryVerbose) printf("Skipping %s, unchanged source.\n", cPath)
+            if(params veryVerbose) printf("Skipping %s, unchanged source.\n", cPath toCString())
         }
 
         return 0
@@ -402,7 +402,7 @@ SourceFolder: class {
     archive : Archive
 
     init: func (=name, =absolutePath, =params) {
-        outlib = "%s%c%s-%s.a" format(params libcachePath, File separator, name, Target toString())
+        outlib = "%s%c%s-%s.a" format(params libcachePath toCString(), File separator, name toCString(), Target toString() toCString())
         archive = Archive new(name, outlib, params)
     }
 }

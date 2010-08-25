@@ -1,7 +1,7 @@
 
 /**
  * Used to represent the target platform/architecture for which we're building.
- * 
+ *
  * @author Amos Wenger
  */
 Target: class {
@@ -18,7 +18,7 @@ Target: class {
     OSX = 5 : static const Int
 
     /**
-     * @return a guess of the platform/architecture we're building on 
+     * @return a guess of the platform/architecture we're building on
      */
     guessHost: static func -> Int {
 
@@ -74,7 +74,7 @@ Target: class {
             case This SOLARIS => "solaris" + arch
             case This HAIKU   => "haiku" + arch
             case This OSX     => "osx"
-            case              => Exception new("Invalid arch: " + target) throw(); ""
+            case              => Exception new("Invalid arch: " + target toString()) throw(); ""
         }
 
     }
