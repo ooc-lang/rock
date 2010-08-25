@@ -24,7 +24,11 @@ String: class {
 
     init: func ~withLength (length: SizeT) { _buffer = Buffer new~withLength(length) }
 
-    init: func ~withString (s: String) { _buffer = s _buffer clone() }
+    init: func ~withString (s: String) {
+        assert( s != null)
+        assert( s _buffer != null)
+        _buffer = s _buffer clone()
+    }
 
     init: func ~withCStr (s : CString) { _buffer = Buffer new~withCStr(s) }
 
@@ -32,7 +36,11 @@ String: class {
 
     length: func -> SizeT { _buffer size }
 
-    equals?: func (other: This) -> Bool { other != null && _buffer equals? (other _buffer) }
+    equals?: func (other: This) -> Bool {
+        assert(this != null)
+        assert(other != null)
+        _buffer == other _buffer
+    }
 
     charAt: func (index: SizeT) -> Char { _buffer charAt(index) }
 
