@@ -518,8 +518,9 @@ CommandLine: class {
         }
 
         modulePath := moduleFile path
-
+        //FIXME doh, so you allow only .ooc extension...
         fullName := moduleName substring(0, moduleName length() - 4)
+        // FIXME damn that thing crashes here with a fully qualified name. but i wont fix it now.
         module := Module new(fullName, params sourcePath getElement(moduleName) path, params , nullToken)
         module token = Token new(0, 0, module)
         module main = true

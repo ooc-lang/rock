@@ -123,7 +123,11 @@ PathList: class {
                 return element
             }
         }
-
+        // if the full pathname was passed, give it a chance as well
+        if((f := File new(path)) exists?() && (p := f parentName()) != null) {
+            add(p)
+            return File new(p)
+        }
         return null
     }
 
