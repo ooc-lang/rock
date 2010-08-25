@@ -292,7 +292,7 @@ String: class {
 
     print: func { _buffer print() }
 
-    println: func { _buffer println() }
+    println: func { if(_buffer != null) _buffer println() }
 
     toInt: func -> Int                       { _buffer toInt() }
     toInt: func ~withBase (base: Int) -> Int { _buffer toInt~withBase(base) }
@@ -359,8 +359,9 @@ String: class {
         return result
     }
 
-}
+    toCString: func -> CString { _buffer data as CString }
 
+}
 
 operator implicit as (s: String) -> Char* {
     s _buffer data
@@ -370,86 +371,69 @@ operator implicit as (c: Char*) -> String {
     return c ? String new (c as CString, strlen(c)) : null
 }
 
+operator implicit as (c: CString) -> String {
+    return c ? String new (c, strlen(c)) : null
+}
+
+operator implicit as (s: String) -> CString {
+    s _buffer data as CString
+}
+
+
+
 operator == (str1: String, str2: String) -> Bool {
-    return str1 equals?(str2)
+    assert (str1 != null)
+    assert (str2 != null)
+    return str1 _buffer  ==  str2 _buffer
 }
 
 operator != (str1: String, str2: String) -> Bool {
-    return !str1 equals?(str2)
+    assert (str1 != null)
+    assert (str2 != null)
+    return str1 _buffer  !=  str2 _buffer
 }
 
 operator [] (string: String, index: SizeT) -> Char {
-    string charAt(index)
+    assert (string != null)
+    string _buffer [index]
 }
 
 operator []= (string: String, index: SizeT, value: Char) {
     Exception new(String, "Writing to a String breaks immutability! use a Buffer instead!" format(index, string length())) throw()
-    /*
-    if(index < 0 || index > string length()) {
-        Exception new(String, "Writing to a String out of bounds index = %d, length = %d!" format(index, string length())) throw()
-    }
-    (string _buffer data + index)@ = value
-    */
 }
 
 operator [] (string: String, range: Range) -> String {
+    assert (string != null)
     string substring(range min, range max)
 }
 
-operator * (str: String, count: Int) -> String {
-    return str times(count)
+operator * (string: String, count: Int) -> String {
+    assert (string != null)
+    return string times(count)
 }
 
 operator + (left, right: String) -> String {
+    assert ((left != null) && (right != null))
     b := left _buffer clone ( left size + right size )
     b.append(right _buffer)
     return String new~withBuffer(b)
 }
 
-operator + (left: LLong, right: String) -> String {
-    left toString() + right
-}
-
 operator + (left: String, right: CString) -> String {
+    assert ((left != null) && (right != null))
     l := right length()
     b:= left _buffer clone(left size + l)
     b append(right, l)
     b toString()
 }
 
-operator + (left: String, right: LLong) -> String {
-    left + right toString()
-}
-
-operator + (left: Int, right: String) -> String {
-    left toString() + right
-}
-
-operator + (left: String, right: Int) -> String {
-    left + right toString()
-}
-
-operator + (left: Bool, right: String) -> String {
-    left toString() + right
-}
-
-operator + (left: String, right: Bool) -> String {
-    left + right toString()
-}
-
-operator + (left: Double, right: String) -> String {
-    left toString() + right
-}
-
-operator + (left: String, right: Double) -> String {
-    left + right toString()
-}
-
 operator + (left: String, right: Char) -> String {
+    assert ((left != null))
     left append(right)
 }
 
 operator + (left: Char, right: String) -> String {
+    assert ((right != null))
     right prepend(left)
 }
 

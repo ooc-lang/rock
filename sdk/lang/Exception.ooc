@@ -1,4 +1,5 @@
-
+include assert
+assert: extern func(Bool)
 /**
  * Base class for all exceptions that can be thrown
  *
@@ -56,8 +57,20 @@ Exception: class {
 }
 
 OutOfBoundsException: class extends Exception {
+    init: func (=origin, accessOffset: SizeT, elementLength: SizeT) {
+        init(accessOffset, elementLength)
+    }
     init: func ~noOrigin (accessOffset: SizeT, elementLength: SizeT) {
         message = "Trying to access an element at offset %d, but size is only %d!" format(accessOffset,elementLength)
+    }
+}
+
+OutOfMemoryException: class extends Exception {
+    init: func (=origin) {
+        init()
+    }
+    init: func ~noOrigin {
+        message = "Failed to allocate more memory!"
     }
 }
 

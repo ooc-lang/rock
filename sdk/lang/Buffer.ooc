@@ -967,16 +967,59 @@ BufferReader: class extends Reader {
     }
 }
 
-operator == (a, b: Buffer) -> Bool {
-    if (!a && !b) return true
-    if ((!a && b) || (!b && a)) return false
-    return ( (a size == b size) &&     ( memcmp ( a data as Char*, b data as Char*, a size ) == 0 ) )
+
+operator == (str1: Buffer, str2: Buffer) -> Bool {
+assert(str1 != null)
+    return str1 equals?(str2)
 }
 
-operator != (a, b: Buffer) -> Bool {
-    if (a == b) return false
-    else        return true
+operator != (str1: Buffer, str2: Buffer) -> Bool {
+    assert(str1 != null)
+    return !str1 equals?(str2)
 }
+
+operator [] (string: Buffer, index: SizeT) -> Char {
+    assert(string != null && index < string size)
+    string charAt(index)
+}
+
+operator []= (string: Buffer, index: SizeT, value: Char) {
+    assert(string != null && index < string size)
+    (string data + index)@ = value
+}
+
+operator [] (string: Buffer, range: Range) -> Buffer {
+    assert(string != null)
+    b:= string clone()
+    b substring(range min, range max)
+    b
+}
+
+operator * (string: Buffer, count: Int) -> Buffer {
+    assert(string != null)
+    b := string clone( string size * count )
+    b times(count)
+    b
+}
+
+operator + (left, right: Buffer) -> Buffer {
+    assert((left != null) && (right != null))
+    b := left clone ( left size + right size )
+    b.append(right)
+    b
+}
+
+operator + (left: Buffer, right: Char) -> Buffer {
+    assert(left != null)
+    left append(right)
+}
+
+operator + (left: Char, right: Buffer) -> Buffer {
+    assert(right != null)
+    right prepend(left)
+}
+
+
 
 /*  Test routines
     TODO use kinda builtin assert which doesnt crash when one test fails

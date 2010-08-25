@@ -63,7 +63,7 @@ version(unix || apple) {
     lstat: extern func(CString, FileStat*) -> Int
     _mkdir: extern(mkdir) func(CString, ModeT) -> Int
     remove: extern func(path: CString) -> Int
-    _remove: unmangled func(path: CString) -> Int {
+    _remove: unmangled func(path: String) -> Int {
         remove(path)
     }
 
