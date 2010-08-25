@@ -205,8 +205,15 @@ version(windows) {
             running := (hFile != INVALID_HANDLE_VALUE)
             while(running) {
                 if(!_isSelfOrParentDirEntry?(ffd fileName)) {
-                    if (T == String) result add(path +  '\\' + ffd fileName)
-                    else if (T == File) result add(File new(path + '\\' + ffd fileName))
+                    l := ffd fileName length()
+                    b := Buffer new (l + 1 + path size)
+                    b size = 0
+                    b append(path)
+                    b append('\\')
+                    b append(ffd fileName, l)
+                    s := String new(b)
+                    candidate : T = (T == String) ? s : File new(this, s)
+                    result add(candidate)
                 }
                 running = FindNextFile(hFile, ffd&)
             }

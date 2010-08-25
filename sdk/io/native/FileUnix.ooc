@@ -198,8 +198,9 @@ version(unix || apple) {
             entry := readdir(dir)
             while(entry != null) {
                 if(!_isSelfOrParentDirEntry? (entry@ name)) {
-                    if (T == String) result add(entry@ name clone())
-                    else if (T == File) result add(File new(this, entry@ name clone() as String))
+                    s := String new(entry@ name, entry@ name length())
+                    candidate: T = (T == String) ? s : File new(this, s)
+                    result add(candidate)
                 }
                 entry = readdir(dir)
             }

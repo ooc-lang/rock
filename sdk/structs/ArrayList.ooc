@@ -168,7 +168,7 @@ ArrayList: class <T> extends List<T> {
 
     /** private */
     checkIndex: inline func (index: SizeT) {
-        if (index < 0 || index >! size()) {
+        if (index >= size()) {
             OutOfBoundsException new(This, index, size()) throw()
         }
     }

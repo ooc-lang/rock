@@ -22,7 +22,9 @@ String: class {
 
     init: func ~withChar(c: Char) { _buffer = Buffer new~withChar(c) }
 
-    init: func ~withLength (length: SizeT) { _buffer = Buffer new~withLength(length) }
+    /** warning: this function is useful when you directly want to manipulate the underlying
+        buffer. which is against the immutability concept, but still useful sometimes */
+    init: func ~withCapacity (capa: SizeT) { _buffer = Buffer new~withCapacity(capa) }
 
     init: func ~withString (s: String) {
         assert( s != null)
@@ -142,10 +144,6 @@ String: class {
         result := ArrayList<This> new( x size() )
         for (i in x) result add (This new~withBuffer( i ) )
         result
-    }
-
-    splitMulti: func(str: This, maxSplits: SSizeT) -> ArrayList <This> {
-        _bufArrayListToStrArrayList( _buffer splitMulti(str _buffer, maxSplits) )
     }
 
     split: func~withChar(c: Char, maxSplits: SSizeT) -> ArrayList <This> {
@@ -423,7 +421,7 @@ operator * (string: String, count: Int) -> String {
 operator + (left, right: String) -> String {
     assert ((left != null) && (right != null))
     b := left _buffer clone ( left size + right size )
-    b.append(right _buffer)
+    b append(right _buffer)
     return String new~withBuffer(b)
 }
 

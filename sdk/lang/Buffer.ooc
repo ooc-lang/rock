@@ -44,10 +44,9 @@ Buffer: class {
     init: func ~zero { init(0) }
 
     /** Create a new string exactly *length* characters long (without the nullbyte).
-        The contents of the string are undefined.
-        the new strings length is also set to length. */
-    init: func ~withLength (length: SizeT) {
-        setLength(length)
+        The contents of the string are undefined.   */
+    init: func ~withCapacity (capa: SizeT) {
+        setCapacity(capa)
     }
 
     init: func ~withBuffer (str: This) {
@@ -395,32 +394,6 @@ Buffer: class {
         }
     }
 
-
-    /* uses str as a set of delimiters of size 1 and splits accordingly
-        as for maxSplits, the same rules as those from split apply */
-    // FIXME untested !
-    splitMulti: func(str: This, maxSplits: SSizeT) -> ArrayList <This> {
-        start := 0
-        maxItems := (maxSplits > 0) ? maxSplits : INT_MAX;
-        result := ArrayList<This> new (16)
-        for (i in 0..size) {
-            if ( (data + i )@ containedIn? (str data, str size) ) {
-                if ((maxItems -1) == result size()) {
-                    copylen := i - start
-                    b := This new ((data + start) as CString, copylen)
-                    result add ( b )
-                    break
-                }
-                if ((maxSplits != 0) || (start < i)) {
-                    b:= This new((data + start) as CString, i - start)
-                    result add ( b )
-                }
-                start = i + 1
-            }
-        }
-        result
-    }
-
     split: func~withChar(c: Char, maxSplits: SSizeT) -> ArrayList <This> {
         split(This new(c), maxSplits)
     }
@@ -659,7 +632,8 @@ Buffer: class {
     print: func { printf("%s", data) }
 
     /** print *this* followed by a newline. */
-    println: func { printf("%s\n", data ) }
+    //TODO printf("%s\n", data should work as well, but thats not the case...
+    println: func { print(); "\n" print() }
 
     /*
         TODO make these faster by not simply calling the C api
@@ -1005,18 +979,23 @@ operator * (string: Buffer, count: Int) -> Buffer {
 operator + (left, right: Buffer) -> Buffer {
     assert((left != null) && (right != null))
     b := left clone ( left size + right size )
-    b.append(right)
+    b append(right)
     b
 }
 
 operator + (left: Buffer, right: Char) -> Buffer {
     assert(left != null)
-    left append(right)
+    b := left clone(left size + 1)
+    b append(right)
+    b
 }
 
 operator + (left: Char, right: Buffer) -> Buffer {
     assert(right != null)
-    right prepend(left)
+    b := Buffer new(1 + right size)
+    b append(left)
+    b append(right)
+    b
 }
 
 
@@ -1056,8 +1035,7 @@ Buffer_unittest: class {
     }
 
     testOperators: static func {
-        if (null as Buffer != null as Buffer) ("op equals failed 1") println
-        if (null as Buffer == Buffer new(0) ) ("op equals failed 2 ") println
+
         if (String new ("1") == String new(0) ) ("op equals failed 3") println
         if (String new ("123") == String new("1234") ) ("op equals failed 4") println
         if (String new ("1234") != String new("1234") ) ("op equals failed 5") println
@@ -1077,10 +1055,10 @@ Buffer_unittest: class {
     }
 
     testSplit: static func {
-        if (String new ("X XXX X") split (" ") size() != 3)  ("split failed 1") println
-        if (String new ("X XXX X") split (" ") get(0) != String new("X"))  ("split failed 2") println
-        if (String new ("X XXX X") split (" ") get(1) != String new ("XXX"))  ("split failed 3") println
-        if (String new ("X XXX X") split (" ") get(2) != String new ("X"))  ("split failed 4") println
+        if (("X XXX X") split (" ") size() != 3) Exception new ("split failed 1") throw()
+        if (("X XXX X") split (" ") get(0) != String new("X"))  ("split failed 2") println
+        if (("X XXX X") split (" ") get(1) != String new ("XXX"))  ("split failed 3") println
+        if (("X XXX X") split (" ") get(2) != String new ("X"))  ("split failed 4") println
         /* actually that's hows it supposed to be, java has an additional argument to solve this: split(";" -1) or so
         if (Buffer new ("X XXX X") split ("X") size() != 2) println ("split failed 5")
         b := Buffer new ("X XXX X") split ("X")
