@@ -23,6 +23,8 @@ String: cover from CString {
         result
     }
 
+    toCString: func -> CString { this as CString }
+
     /** compare *length* characters of *this* with *other*, starting at *start*.
         Return true if the two strings are equal, return false if they are not. */
     compare: func (other: This, start, length: Int) -> Bool {
