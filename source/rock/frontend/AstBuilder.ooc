@@ -55,8 +55,8 @@ AstBuilder: class {
         first := static true
 
         if(params verbose) {
-            if(!first) "%s\r" format((" " times(76))) println()
-            "Parsing %s" printf(modulePath)
+            if(!first) "%s\r" format((" " times(76) toCString())) println()
+            "Parsing %s" printf(modulePath toCString())
         }
         cache put(File new(modulePath) getAbsolutePath(), module)
 
@@ -119,7 +119,7 @@ AstBuilder: class {
     printCache: static func {
         "==== Cache ====" println()
         cache getKeys() each(|key|
-            "cache %s = %s" format(key, cache get(key) fullName) println()
+            "cache %s = %s" format(key toCString(), cache get(key) fullName toCString()) println()
         )
         "=" times(14) println()
     }
@@ -443,7 +443,7 @@ AstBuilder: class {
             word := reservedWords[idx]
             if(word length() == vd getName() length() && word == vd getName()) {
                 "(%zd, %zd)\n" printf(vd token start, vd token length)
-                params errorHandler onError(ReservedKeywordError new(vd token, "%s is a reserved C99 keyword, you can't use it in a variable declaration" format(vd getName())))
+                params errorHandler onError(ReservedKeywordError new(vd token, "%s is a reserved C99 keyword, you can't use it in a variable declaration" format(vd getName() toCString())))
             }
         }
 
@@ -669,7 +669,7 @@ AstBuilder: class {
             addon := node as Addon
             addon addFunction(fDecl)
         } else {
-            //printf("^^^^^^^^ Unexpected function %s (peek is a %s)\n", fDecl name, node class name)
+            //printf("^^^^^^^^ Unexpected function %s (peek is a %s)\n", fDecl name toCString(), node class name toCString())
         }
         return fDecl
     }
@@ -818,7 +818,7 @@ AstBuilder: class {
                 }
                 tuple getElements() add(stmt as Expression)
             case =>
-                printf("[gotStatement] Got a %s, don't know what to do with it, parent = %s\n", stmt toString(), node class name)
+                printf("[gotStatement] Got a %s, don't know what to do with it, parent = %s\n", stmt toString() toCString(), node class name toCString())
         }
     }
 
@@ -1129,7 +1129,7 @@ AstBuilder: class {
             done = node as Declaration addTypeArg(vDecl)
         }
 
-        if(!done) params errorHandler onError(InternalError new(token(), "Unexpected type argument in a %s declaration!" format(node class name)))
+        if(!done) params errorHandler onError(InternalError new(token(), "Unexpected type argument in a %s declaration!" format(node class name toCString())))
 
     }
 
@@ -1148,7 +1148,7 @@ AstBuilder: class {
     peek: func <T> (T: Class) -> T {
         node := stack peek() as Node
         if(!node instanceOf?(T)) {
-            params errorHandler onError(InternalError new(token(), "Should've peek'd a %s, but peek'd a %s. Stack = %s" format(T name, node class name, stackRepr())))
+            params errorHandler onError(InternalError new(token(), "Should've peek'd a %s, but peek'd a %s. Stack = %s" format(T name toCString(), node class name toCString(), stackRepr() toCString())))
         }
         return node
     }
@@ -1156,7 +1156,7 @@ AstBuilder: class {
     pop: func <T> (T: Class) -> T {
         node := stack pop() as Node
         if(!node instanceOf?(T)) {
-            params errorHandler onError(InternalError new(token(), "Should've pop'd a %s, but pop'd a %s. Stack = %s" format(T name, node class name, stackRepr())))
+            params errorHandler onError(InternalError new(token(), "Should've pop'd a %s, but pop'd a %s. Stack = %s" format(T name toCString(), node class name toCString(), stackRepr() toCString())))
         }
         return node
     }

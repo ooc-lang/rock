@@ -85,9 +85,9 @@ ExplanationGenerator: class extends Visitor {
             case ft: FuncType =>
                 "Func"
             case pt: PointerType =>
-                "pointer(%s)" format(resolveType(pt inner))
+                "pointer(%s)" format(resolveType(pt inner) toCString())
             case rt: ReferenceType =>
-                "reference(%s)" format(resolveType(rt inner))
+                "reference(%s)" format(resolveType(rt inner) toCString())
             case bt: BaseType =>
                 bt name
         }
@@ -98,17 +98,17 @@ ExplanationGenerator: class extends Visitor {
             case vName: VersionName =>
                 vName name
             case vNeg: VersionNegation =>
-                "not(%s)" format(translateVersionSpec(vNeg spec))
+                "not(%s)" format(translateVersionSpec(vNeg spec) toCString())
             case vAnd: VersionAnd =>
                 "and(%s,%s)" format(
-                    translateVersionSpec(vAnd specLeft),
-                    translateVersionSpec(vAnd specRight))
+                    translateVersionSpec(vAnd specLeft) toCString(),
+                    translateVersionSpec(vAnd specRight) toCString())
             case vOr: VersionOr =>
                 "or(%s,%s)" format(
-                    translateVersionSpec(vOr specLeft),
-                    translateVersionSpec(vOr specRight))
+                    translateVersionSpec(vOr specLeft) toCString(),
+                    translateVersionSpec(vOr specRight) toCString())
             case =>
-                Exception new("Unknown version spec class: %s" format(spec class name)) throw()
+                Exception new("Unknown version spec class: %s" format(spec class name toCString())) throw()
                 ""
         }
     }
@@ -175,7 +175,7 @@ ExplanationGenerator: class extends Visitor {
 
     buildFunctionDecl: func ~typed (node: FunctionDecl, type: String) {
         name := node suffix ?
-            "%s~%s" format(node name, node suffix) :
+            "%s~%s" format(node name toCString(), node suffix toCString()) :
             node name
 
         addObject("* *"+name+"*:",type)

@@ -270,7 +270,7 @@ Module: class extends Node {
 
         if(!call suffix) for(fDecl in functions) {
             if(fDecl name == call name && (call suffix == null)) {
-                if(call debugCondition()) printf("Suggesting fDecl %s for call %s\n", fDecl toString(), call toString())
+                if(call debugCondition()) printf("Suggesting fDecl %s for call %s\n", fDecl toString() toCString(), call toString() toCString())
                 call suggest(fDecl, res, trail)
             }
         }
@@ -325,7 +325,7 @@ Module: class extends Node {
 
             if(cached == null || impLastModified > cached lastModified) {
                 if(cached && params veryVerbose) {
-                    printf("%s has been changed, recompiling... (%d vs %d), impPath = %s\n", path, File new(impPath path) lastModified(), cached lastModified, impPath path);
+                    printf("%s has been changed, recompiling... (%d vs %d), impPath = %s\n", path toCString(), File new(impPath path) lastModified(), cached lastModified, impPath path toCString());
                 }
 
                 cached = Module new(path[0..(path length()-4)], impElement path, params, nullToken)
@@ -354,7 +354,7 @@ Module: class extends Node {
         {
             response := body resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("response of body = %s\n", response toString())
+                if(res params veryVerbose) printf("response of body = %s\n", response toString() toCString())
                 finalResponse = response
             }
         }
@@ -363,7 +363,7 @@ Module: class extends Node {
             if(oDecl isResolved()) continue
             response := oDecl resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("response of oDecl %s = %s\n", oDecl toString(), response toString())
+                if(res params veryVerbose) printf("response of oDecl %s = %s\n", oDecl toString() toCString(), response toString() toCString())
                 finalResponse = response
             }
         }
@@ -372,7 +372,7 @@ Module: class extends Node {
             if(tDecl isResolved()) continue
             response := tDecl resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("response of tDecl %s = %s\n", tDecl toString(), response toString())
+                if(res params veryVerbose) printf("response of tDecl %s = %s\n", tDecl toString() toCString(), response toString() toCString())
                 finalResponse = response
             }
         }
@@ -380,7 +380,7 @@ Module: class extends Node {
         for(addon in addons) {
             response := addon resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("response of addon %s = %s\n", addon toString(), response toString())
+                if(res params veryVerbose) printf("response of addon %s = %s\n", addon toString() toCString(), response toString() toCString())
                 finalResponse = response
             }
         }
@@ -389,7 +389,7 @@ Module: class extends Node {
             if(fDecl isResolved()) continue
             response := fDecl resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("response of fDecl %s = %s\n", fDecl toString(), response toString())
+                if(res params veryVerbose) printf("response of fDecl %s = %s\n", fDecl toString() toCString(), response toString() toCString())
                 finalResponse = response
             }
         }

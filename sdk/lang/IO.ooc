@@ -7,7 +7,7 @@ println: func ~withCStr (str: Char*) {
 }
 
 println: func ~withStr (str: String) {
-    printf("%s\n", str _buffer data)
+    printf("%s\n", str toCString())
 }
 
 println: func {

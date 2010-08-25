@@ -47,11 +47,11 @@ PropertyDecl: class extends VariableDecl {
     }
 
     getSetterName: func -> String {
-        "__set%s__" format(name)
+        "__set%s__" format(name toCString())
     }
 
     getGetterName: func -> String {
-        "__get%s__" format(name)
+        "__get%s__" format(name toCString())
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
@@ -61,7 +61,7 @@ PropertyDecl: class extends VariableDecl {
         // get and store the class.
         node := trail peek()
         if(!node instanceOf?(TypeDecl)) {
-            res throwError(InternalError new(token, "Properties don't make sense outside types!" format(node toString())))
+            res throwError(InternalError new(token, "Properties don't make sense outside types %s!" format(node toString() toCString())))
         }
         cls = node as ClassDecl
         // setup getter

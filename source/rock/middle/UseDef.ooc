@@ -87,7 +87,7 @@ UseDef: class {
             }
         }
 
-		return null
+        return null
     }
 
     read: func (file: File, params: BuildParams) {
@@ -161,14 +161,14 @@ UseDef: class {
                     /* is relative. TODO: better check? */
                     sourcePathFile = file parent() getChild(value) getAbsoluteFile()
                 }
-                if(params veryVerbose) "Adding %s to sourcepath ..." format(sourcePathFile path) println()
+                if(params veryVerbose) "Adding %s to sourcepath ..." format(sourcePathFile path toCString()) println()
                 params sourcePath add(sourcePathFile path)
             } else if(id == "Version") {
                 version = value
             } else if(id == "Origin" || id == "Variant") {
                 // known, but ignored ids
             } else if(!id empty?()) {
-                "%s: Unknown id %s (length %d, first = %d) in usefile" printfln(file getPath(), id, id length(), id[0])
+                "%s: Unknown id %s (length %d, first = %d) in usefile" printfln(file getPath() toCString(), id toCString(), id length(), id[0])
             }
         }
     }

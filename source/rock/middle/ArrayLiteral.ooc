@@ -97,7 +97,7 @@ ArrayLiteral: class extends Literal {
                             }
                         } else {
                             printf("%s is the %dth argument of %s, ref is %s with %d arguments\n",
-                                toString(), index, fCall toString(), fCall getRef() toString(), fCall getRef() args size())
+                                toString() toCString(), index, fCall toString() toCString(), fCall getRef() toString() toCString(), fCall getRef() args size())
                         }
                     }
                 }

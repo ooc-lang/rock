@@ -45,9 +45,9 @@ InlineContext: class extends Block {
             realThisDecl = VariableDecl new(null, "this", fCall expr, fCall expr token)
         }
 
-        "== Inline context of %s's ref has %d, and fCall has %d! ==" printfln(toString(), fCall ref getReturnArgs() size(), fCall getReturnArgs() size())
+        "== Inline context of %s's ref has %d, and fCall has %d! ==" printfln(toString() toCString(), fCall ref getReturnArgs() size(), fCall getReturnArgs() size())
         returnType = ref returnType realTypize(fCall)
-        "Return type of ref is %s, ours is %s" printfln(ref returnType toString(), returnType toString())
+        "Return type of ref is %s, ours is %s" printfln(ref returnType toString() toCString(), returnType toString() toCString())
 
     }
 
@@ -95,25 +95,25 @@ InlineContext: class extends Block {
 
     resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
         "====================================" println()
-        "In inline context of %s, looking for call %s" printfln(fCall toString(), call toString())
+        "In inline context of %s, looking for call %s" printfln(fCall toString() toCString(), call toString() toCString())
 
-        "fCall expr = %s" printfln(fCall expr ? fCall expr toString() : "<null>")
+        "fCall expr = %s" printfln(fCall expr ? fCall expr toString() toCString() : "<null>" toCString())
         if(fCall expr != null) {
             exprType := fCall expr getType()
             if(exprType != null && exprType getRef() != null) {
                 ref := exprType getRef()
-                "ref is %s (%p) and it's a %s" printfln(ref toString(), ref, ref class name)
+                "ref is %s (%p) and it's a %s" printfln(ref toString() toCString(), ref, ref class name toCString())
 
                 proxy := FunctionCall new(call getName(), call token)
                 proxy args addAll(call args)
                 proxy expr = fCall expr
                 ref as TypeDecl getMeta() resolveCall(proxy, res, trail)
                 if(proxy ref != null) {
-                    "resolved to %s (vDecl = %s, proxy expr = %s)" printfln(proxy ref toString(), proxy ref vDecl ? proxy ref vDecl toString() : "(nil)", proxy expr ? proxy expr toString() : "(nil)")
+                    "resolved to %s (vDecl = %s, proxy expr = %s)" printfln(proxy ref toString() toCString(), proxy ref vDecl ? proxy ref vDecl toString() toCString() : "(nil)" toCString(), proxy expr ? proxy expr toString() toCString() : "(nil)" toCString())
                     oldExpr := call expr
                     call expr = proxy expr
                     if(call suggest(proxy ref, res, trail)) {
-                        "Congratulations soldier - we now have call %s, with expr %s" printfln(call toString(), call expr ? call expr toString() : "(nil)")
+                        "Congratulations soldier - we now have call %s, with expr %s" printfln(call toString() toCString(), call expr ? call expr toString() toCString() : "(nil)" toCString())
                         return 0
                     } else {
                         // restore
@@ -128,13 +128,13 @@ InlineContext: class extends Block {
 
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
         "====================================" println()
-        "In inline context of %s, looking for access %s" printfln(fCall toString(), access toString())
+        "In inline context of %s, looking for access %s" printfln(fCall toString() toCString(), access toString() toCString())
 
         if(fCall expr != null) {
             exprType := fCall expr getType()
             if(exprType != null && exprType getRef() != null) {
                 ref := exprType getRef()
-                "ref is %s" printfln(ref toString())
+                "ref is %s" printfln(ref toString() toCString())
 
                 if(access getName() == "this") {
                     if(access suggest(thisDecl)) {
@@ -146,7 +146,7 @@ InlineContext: class extends Block {
                 proxy := access clone() as VariableAccess
                 ref resolveAccess(proxy, res, trail)
                 if(proxy ref != null) {
-                    "resolved to %s" printfln(proxy ref toString())
+                    "resolved to %s" printfln(proxy ref toString() toCString())
                     targetType := proxy ref getType()
                     realType := targetType realTypize(fCall)
 
@@ -154,11 +154,11 @@ InlineContext: class extends Block {
                     adjustExpr? := false
 
                     if(targetType equals?(realType)) {
-                        "Equal types! suggesting %s" printfln(proxy ref toString())
+                        "Equal types! suggesting %s" printfln(proxy ref toString() toCString())
                         suggestion = proxy ref
                         adjustExpr? = true
                     } else {
-                        "Casting! targetType = %s, realType = %s" printfln(targetType toString(), realType toString())
+                        "Casting! targetType = %s, realType = %s" printfln(targetType toString() toCString(), realType toString() toCString())
                         realtypized := VariableDecl new(null, proxy getName(), Cast new(proxy, realType, proxy ref token), proxy ref token)
                         realtypized owner = fCall ref owner
 
@@ -174,7 +174,7 @@ InlineContext: class extends Block {
                     if(suggestion != null && access suggest(suggestion)) {
                         " - Suggestion worked o/" println()
                         if(suggestion owner != null && adjustExpr?) {
-                            "Ooh, owner of %s isn't null. Setting expr :D" printfln(suggestion toString())
+                            "Ooh, owner of %s isn't null. Setting expr :D" printfln(suggestion toString() toCString())
                             thisAcc := VariableAccess new("this", token)
                             thisAcc ref = realThisDecl
                             access expr = thisAcc
@@ -190,11 +190,11 @@ InlineContext: class extends Block {
 
     resolveType: func (type: Type, res: Resolver, trail: Trail) -> Int {
         "====================================" println()
-        "In inline context of %s, looking for type %s" printfln(fCall toString(), type toString())
+        "In inline context of %s, looking for type %s" printfln(fCall toString() toCString(), type toString() toCString())
 
         real := type realTypize(fCall)
         if(real != null) {
-            "found real type %s" printfln(real toString())
+            "found real type %s" printfln(real toString() toCString())
             if(type instanceOf?(BaseType) && real instanceOf?(BaseType)) {
                 type as BaseType name = real getName()
                 type setRef(real getRef())
@@ -205,7 +205,7 @@ InlineContext: class extends Block {
     }
 
     toString: func -> String {
-        ("[InlineContext of %s] " format(fCall toString())) + super()
+        ("[InlineContext of %s] " format(fCall toString() toCString())) + super()
     }
 
 }
@@ -232,7 +232,7 @@ InlinedType: class extends TypeDecl {
 
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
         "====================================" println()
-        "In inlined type %s, looking for access %s" printfln(toString(), access toString())
+        "In inlined type %s, looking for access %s" printfln(toString() toCString(), access toString() toCString())
 
         if(access expr instanceOf?(VariableAccess)) {
             varAcc := access expr as VariableAccess
@@ -249,7 +249,7 @@ InlinedType: class extends TypeDecl {
         if(context fCall expr) {
             ref := context fCall expr getType() getRef()
             if(ref) {
-                "in InlinedType resolveCall, ref is %s and it's a %s" printfln(ref toString(), ref class name)
+                "in InlinedType resolveCall, ref is %s and it's a %s" printfln(ref toString() toCString(), ref class name toCString())
                 return ref resolveCall(call, res, trail)
             }
         }

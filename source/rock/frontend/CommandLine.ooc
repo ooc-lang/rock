@@ -53,7 +53,7 @@ CommandLine: class {
 
                 } else if (option startsWith?("outlib")) {
 
-                    "Deprecated option %s! Use -staticlib instead. Abandoning.\n" printf(option)
+                    "Deprecated option %s! Use -staticlib instead. Abandoning.\n" printf(option toCString())
                     exit(1)
 
                 } else if (option startsWith?("staticlib")) {
@@ -84,7 +84,7 @@ CommandLine: class {
                     params backend = arg substring(arg indexOf('=') + 1)
 
                     if(params backend != "c" && params backend != "json" && params backend != "explain") {
-                        "Unknown backend: %s." format(params backend) println()
+                        "Unknown backend: %s." format(params backend toCString()) println()
                         params backend = "c"
                     }
 
@@ -266,7 +266,7 @@ CommandLine: class {
                         case "dummy" =>
                             DummyDriver new(params)
                         case =>
-                            "Unknown driver: %s\n" printf(driverName)
+                            "Unknown driver: %s\n" printf(driverName toCString())
                             null
                     }
 
@@ -276,7 +276,7 @@ CommandLine: class {
 
                 } else if (option == "V" || option == "-version" || option == "version") {
 
-                    printf("rock %s, built on %s at %s\n", RockVersion getName(), ROCK_BUILD_DATE, ROCK_BUILD_TIME)
+                    printf("rock %s, built on %s at %s\n", RockVersion getName() toCString(), ROCK_BUILD_DATE, ROCK_BUILD_TIME)
                     exit(0)
 
                 } else if (option == "h" || option == "-help" || option == "help") {
@@ -340,7 +340,7 @@ CommandLine: class {
 
                 } else {
 
-                    printf("Unrecognized option: %s\n", arg)
+                    printf("Unrecognized option: %s\n", arg toCString())
 
                 }
             } else if(arg startsWith?("+")) {
@@ -385,9 +385,9 @@ CommandLine: class {
             params libfolder = libfolder getPath()
             params sourcePath add(params libfolder)
 
-            if(params verbose) "Building lib for folder %s to name %s\n" printf(params libfolder, name)
+            if(params verbose) "Building lib for folder %s to name %s\n" printf(params libfolder toCString(), name toCString())
 
-            dummyModule = Module new("__lib__/%s.ooc" format(name), ".", params, nullToken)
+            dummyModule = Module new("__lib__/%s.ooc" format(name toCString()), ".", params, nullToken)
             libfolder walk(|f|
                 // sort out links to non-existent destinations.
                 if(!f exists?())
@@ -496,20 +496,20 @@ CommandLine: class {
 
     clean: func {
         // oh that's a hack.
-        system("rm -rf %s" format(params outPath path) as CString)
+        system("rm -rf %s" format(params outPath path toCString()) toCString())
     }
 
     cleanHardcore: func {
         clean()
         // oh that's the same hack. Someone implement File recursiveDelete() already.
-        system("rm -rf %s" format(params libcachePath) as CString)
+        system("rm -rf %s" format(params libcachePath toCString()) toCString())
     }
 
     parse: func (moduleName: String) -> Int {
         moduleFile := params sourcePath getFile(moduleName)
 
         if(!moduleFile) {
-            printf("File not found: %s\n", moduleName)
+            printf("File not found: %s\n", moduleName toCString())
             exit(1)
         }
 

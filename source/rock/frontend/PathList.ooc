@@ -20,10 +20,10 @@ PathList: class {
         file := File new(path)
 
         if (!file exists?()) {
-            Exception new(This, "Classpath element cannot be found: %s" format(path)) throw()
+            Exception new(This, "Classpath element cannot be found: %s" format(path toCString())) throw()
         }
         else if (!file dir?()) {
-            Exception new(This, "Classpath element is not a directory: %s" format(path)) throw()
+            Exception new(This, "Classpath element is not a directory: %s" format(path toCString())) throw()
         }
 
         absolutePath := file getAbsolutePath()

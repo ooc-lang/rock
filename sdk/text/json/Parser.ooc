@@ -24,7 +24,7 @@ Token: cover {
 
 check: func (this: Token@, type: TokenType) {
     if(this type != type) {
-        ParserError new("Expected %d, got %d (%s)" format(type, this type, this value)) throw()
+        ParserError new("Expected %d, got %d (%s)" format(type, this type, this value toCString())) throw()
     }
 }
 
@@ -290,7 +290,7 @@ Parser: class {
                 return value
             }
             case => {
-                ParserError new("Unexpected token: %s" format(token value)) throw()
+                ParserError new("Unexpected token: %s" format(token value toCString())) throw()
             }
         }
         return null
@@ -469,8 +469,8 @@ printVerbose: func <T> (obj: T, indent: UInt, key: String) {
     indentStr := "    " times(indent)
     indentStr print()
     if(key != null)
-        "%s => " format(key) print()
-    "(%s) " format(T name) print()
+        "%s => " format(key toCString()) print()
+    "(%s) " format(T name toCString()) print()
     match T {
         case String => {
             obj as String print()

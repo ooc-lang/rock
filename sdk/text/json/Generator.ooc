@@ -13,7 +13,7 @@ EXCLUDE := const "'" // don't escape the '
 generate: func <T> (writer: Writer, obj: T) {
     match T {
         case String => {
-            writer write("\"%s\"" format(EscapeSequence escape(obj as String, EXCLUDE)))
+            writer write("\"%s\"" format(EscapeSequence escape(obj as String, EXCLUDE) toCString()))
         }
         case Int => {
             writer write(obj as Int toString())
@@ -61,7 +61,7 @@ generate: func <T> (writer: Writer, obj: T) {
             writer write(']')
         }
         case => {
-            GeneratorError new("Unknown type: %s" format(T name)) throw()
+            GeneratorError new("Unknown type: %s" format(T name toCString())) throw()
         }
     }
 }

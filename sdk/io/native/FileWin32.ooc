@@ -46,7 +46,7 @@ version(windows) {
      * remove implementation
      */
     _remove: unmangled func(path: String) -> Int {
-        printf("Win32: should remove file %s\n", path)
+        printf("Win32: should remove file %s\n", path toCString())
     }
 
     ooc_get_cwd: unmangled func -> String {

@@ -48,7 +48,7 @@ FileDescriptor: cover from Int {
 
     _errMsg: func(var: Int, funcName: String) {
         if (var < 0) {
-            printf("Error in FileDescriptor : %s\n", funcName)
+            printf("Error in FileDescriptor : %s\n", funcName toCString())
         }
     }
 }

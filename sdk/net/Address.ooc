@@ -370,7 +370,7 @@ SocketAddress: abstract class {
     length: abstract func -> UInt32
 
     toString: func -> String {
-        "[%s]:%d" format(host() toString(), port())
+        "[%s]:%d" format(host() toString() toCString(), port())
     }
 }
 

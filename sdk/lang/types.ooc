@@ -105,7 +105,7 @@ Cell: class <T> {
 
 operator [] <T> (c: Cell<T>, T: Class) -> T {
     if(!c T inheritsFrom?(T)) {
-        Exception new(Cell, "Wants a %s, but got a %s" format(T name, c T name))
+        Exception new(Cell, "Wants a %s, but got a %s" format(T name toCString(), c T name toCString()))
     }
     c val
 }

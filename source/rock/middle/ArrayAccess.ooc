@@ -115,7 +115,7 @@ ArrayAccess: class extends Expression {
                     // will be taken care of later
                     return Response OK
                 }
-                res throwError(InvalidArrayCreation new(token, "Unexpected ArrayAccess to a type, parent is a %s, ie. %s" format(parent class name, parent toString())))
+                res throwError(InvalidArrayCreation new(token, "Unexpected ArrayAccess to a type, parent is a %s, ie. %s" format(parent class name toCString(), parent toString() toCString())))
             }
 
             fCall := parent as FunctionCall
@@ -250,7 +250,7 @@ ArrayAccess: class extends Expression {
         if(!args last() instanceOf?(VarArg) && (args size() != indices size() + diff)) {
             // not a match!
             if(res params veryVerbose) {
-                "For %s vs %s, got %d args, %d indices, diff is %d - no luck!" printfln(op toString(), toString(), args size(), indices size(), diff)
+                "For %s vs %s, got %d args, %d indices, diff is %d - no luck!" printfln(op toString() toCString(), toString() toCString(), args size(), indices size(), diff)
             }
             return 0
         }

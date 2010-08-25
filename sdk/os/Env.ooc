@@ -18,10 +18,10 @@ Env: class {
     set: static func (key, value: String, overwrite: Bool) -> Int {
         version(windows) {
             // todo: handle overwrite
-            return putenv(("%s=%s" format(key, value clone())) as CString)
+            return putenv( "%s=%s" format(key toCString(), value toCString()) toCString() )
         }
         version(!windows) {
-            return setenv(key as CString, value as CString, overwrite)
+            return setenv(key toCString(), value toCString(), overwrite)
         }
         return -1
     }
@@ -33,10 +33,10 @@ Env: class {
     unset: static func (key: String) -> Int {
         version(windows) {
             // under mingw, this unsets the key
-            return putenv((key + "=") as CString)
+            return putenv((key + "=") toCString())
         }
         version(!windows) {
-            return unsetenv(key as CString)
+            return unsetenv(key toCString())
         }
         return -1
     }

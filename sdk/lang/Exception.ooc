@@ -32,18 +32,18 @@ Exception: class {
     /**
      * @return the exception's message, nicely formatted
      */
-    format: func -> String {
+    formatMessage: func -> String {
         if(origin)
-            "[%s in %s]: %s" format(class name, origin name, message)
+            "[%s in %s]: %s" format(class name toCString(), origin name toCString(), message toCString())
         else
-            "[%s]: %s" format(class name, message)
+            "[%s]: %s" format(class name toCString(), message toCString())
     }
 
     /**
      * Print this exception, with its origin, if specified, and its message
      */
     print: func {
-        fprintf(stderr, "%s", format())
+        fprintf(stderr, "%s", formatMessage() toCString())
     }
 
     /**

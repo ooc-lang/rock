@@ -104,7 +104,7 @@ VariableAccess: class extends Expression {
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         if(debugCondition()) {
-            "%s is of type %s\n" format(name, getType() ? getType() toString() : "(nil)") println()
+            "%s is of type %s\n" format(name toCString(), getType() ? getType() toString() toCString() : "(nil)" toCString()) println()
         }
 
         if(expr) {
@@ -143,7 +143,7 @@ VariableAccess: class extends Expression {
                 //printf("Null ref and non-null expr (%s), looking in type %s\n", expr toString(), exprType toString())
                 typeDecl := exprType getRef()
                 if(!typeDecl) {
-                    if(res fatal) res throwError(UnresolvedType new(expr token, expr getType(), "Can't resolve type %s" format(expr getType() toString())))
+                    if(res fatal) res throwError(UnresolvedType new(expr token, expr getType(), "Can't resolve type %s" format(expr getType() toString() toCString())))
                     res wholeAgain(this, "unresolved access, looping")
                     return Response OK
                 }
@@ -289,7 +289,7 @@ VariableAccess: class extends Expression {
                 if(res params veryVerbose) {
                     println("trail = " + trail toString())
                 }
-                msg := "Undefined symbol '%s'" format(toString())
+                msg := "Undefined symbol '%s'" format(toString() toCString())
                 if(res params helpful) {
                     similar := findSimilar(res)
                     if(similar) {
@@ -300,7 +300,7 @@ VariableAccess: class extends Expression {
             }
             if(res params veryVerbose) {
                 printf("     - access to %s%s still not resolved, looping (ref = %s)\n", \
-                expr ? (expr toString() + "->") : "", name, ref ? ref toString() : "(nil)")
+                expr ? (expr toString() + "->")  toCString() : "" toCString(), name toCString(), ref ? ref toString() toCString() : "(nil)" toCString())
             }
             res wholeAgain(this, "Couldn't resolve varacc")
         }
