@@ -12,7 +12,9 @@ version (windows) {
 
 Env: class {
     get: static func (variableName: String) -> String {
-        return getenv(variableName as CString) as String
+        ("someone wants to get an environment variable:" + variableName) println()
+        x := getenv(variableName as CString)
+        x != null ? String new(x, x length()) : String new()
     }
 
     set: static func (key, value: String, overwrite: Bool) -> Int {

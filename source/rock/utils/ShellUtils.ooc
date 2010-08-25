@@ -34,9 +34,9 @@ ShellUtils: class {
             return null
         }
 
-        st := StringTokenizer new(pathVar, File pathDelimiter)
-        while (st hasNext?()) {
-            path := st nextToken() + File separator + executableName
+        st := pathVar split(File pathDelimiter)
+        for(foo in st) {
+            path := foo + File separator + executableName
             file := File new(path)
             if (file exists?()) {
                 return file

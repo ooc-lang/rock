@@ -163,6 +163,7 @@ Buffer: class {
 
     clone: func ~withMinimum (minimumLength : SizeT) -> This {
         copy := this new( minimumLength > size ? minimumLength : size )
+        copy size = size
         memcpy( copy data, data, size + 1)
         return copy
     }
