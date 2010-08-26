@@ -66,7 +66,7 @@ Tuple: class extends Expression {
             response := element resolve(trail, res)
             if(!response ok()) {
                 trail pop(this)
-                return Responses LOOP
+                return Response LOOP
             }
         }
 
@@ -87,7 +87,7 @@ Tuple: class extends Expression {
             }
         }
 
-        Responses OK
+        Response OK
     }
 
     replace: func (oldie, kiddo: Node) -> Bool {

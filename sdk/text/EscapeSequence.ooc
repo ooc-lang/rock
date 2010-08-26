@@ -5,7 +5,7 @@ EscapeSequence: class {
     needMore := static 2
     invalid := static 3
 
-    /** This is a function for decoding an escape sequence. It supports
+    /** is a function for decoding an escape sequence. It supports
       * the most common escape sequences and also hexadecimal (\x0a) and
       * octal (\101) escape sequences.
       * You have to pass the escape sequence *without* the leading backslash
@@ -33,51 +33,51 @@ EscapeSequence: class {
                 if(sequence length() >= 3) {
                     /* have enough. convert heaxdecimal to `chr`. TODO: not nice */
                     sequence = sequence toUpper()
-                    chr@ = 0
+                    chr@ = '\0'
                     for(i in 0..2) {
-                        value := 0
+                        value := '\0'
                         if(sequence[2-i] >= 'A' && sequence[2-i] <= 'F') {
-                            value = 10 + sequence[2-i] - 'A'
+                            value = 10 as Char + sequence[2-i] - 'A'
                         } else if(sequence[2-i] >= '0' && sequence[2-i] <= '9') {
                             value = sequence[2-i] - '0'
                         } else {
                             /* invalid character in hexadecimal literal. */
-                            return This invalid
+                            return invalid
                         }
-                        chr@ += (pow(16, i) as Int) * value
+                        chr@ += ((pow(16, i) as Int) * value) as Char
                     }
-                    return This valid
+                    return valid
                 } else {
                     /* not enough characters. */
-                    return This needMore
+                    return needMore
                 }
             }
             case => {
                 /* octal? */
                 if(sequence[0] >= '0' && sequence[0] < '8') {
                     /* octal. */
-                    chr@ = 0
+                    chr@ = '\0'
                     octLength := sequence length() - 1
                     for(i in 0..octLength + 1) {
-                        value := 0
+                        value := '\0'
                         if(sequence[octLength-i] >= '0' && sequence[octLength-i] < '8') {
                             value = sequence[octLength-i] - '0'
                         } else {
                             /* invalid character in octal literal. */
-                            return This invalid
+                            return invalid
                         }
-                        chr@ += (pow(8, i) as Int) * value
+                        chr@ += ((pow(8, i) as Int) * value) as Char
                     }
-                    return This valid
+                    return valid
                 }
                 /* wtf. */
-                return This invalid
+                return invalid
             }
         }
-        return This valid
+        return valid
     }
 
-    /** Unescape the string `s`. This will handle hexadecimal, octal and one-character escape
+    /** Unescape the string `s`. will handle hexadecimal, octal and one-character escape
      * escape sequences. Unknown escape sequences will just get the '\\' stripped. ("\\u" -> "u")
      */
     unescape: static func (s: String) -> String {
@@ -101,7 +101,7 @@ EscapeSequence: class {
                     j += 1
                 }
                 chr: Char
-                if(getCharacter(s substring(i, j), chr&) == This valid) {
+                if(getCharacter(s substring(i, j), chr&) == valid) {
                     /* valid escape sequence. */
                     buffer append(chr)
                 } else {
@@ -118,7 +118,7 @@ EscapeSequence: class {
         return buffer toString()
     }
 
-    /** Escape a string. This will replace non-printable characters with equivalents like \something or \x??.
+    /** Escape a string. will replace non-printable characters with equivalents like \something or \x??.
         You can chars that should not be escaped in `exclude`.
     **/
     escape: static func ~exclude (s: String, exclude: String) -> String {

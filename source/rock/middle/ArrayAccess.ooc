@@ -67,14 +67,14 @@ ArrayAccess: class extends Expression {
 
         // TODO: put that in a function
         if(!handleArrayCreation(trail, res) ok()) {
-            return Responses LOOP
+            return Response LOOP
         }
 
         {
             response := resolveOverload(trail, res)
             if(!response ok()) {
                 res wholeAgain(this, "overload says some things aren't resolved yet")
-                return Responses OK
+                return Response OK
             }
         }
 
@@ -87,7 +87,7 @@ ArrayAccess: class extends Expression {
             }
         }
 
-        return Responses OK
+        return Response OK
 
     }
 
@@ -113,7 +113,7 @@ ArrayAccess: class extends Expression {
             if(!parent instanceOf?(FunctionCall)) {
                 if(parent instanceOf?(ArrayAccess)) {
                     // will be taken care of later
-                    return Responses OK
+                    return Response OK
                 }
                 res throwError(InvalidArrayCreation new(token, "Unexpected ArrayAccess to a type, parent is a %s, ie. %s" format(parent class name, parent toString())))
             }
@@ -157,10 +157,10 @@ ArrayAccess: class extends Expression {
 
             // used to be a LOOP
             res wholeAgain(this, "ArrayAccess turned into ArrayCreation!")
-            return Responses OK
+            return Response OK
         }
 
-        return Responses OK
+        return Response OK
 
     }
 
@@ -189,7 +189,7 @@ ArrayAccess: class extends Expression {
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType, inAssign ? parent as BinaryOp : null, res)
             if(score == -1) {
-                return Responses LOOP
+                return Response LOOP
             }
             if(score > bestScore) {
                 bestScore = score
@@ -201,7 +201,7 @@ ArrayAccess: class extends Expression {
             module := imp getModule()
             for(opDecl in module getOperators()) {
                 score := getScore(opDecl, reqType, inAssign ? parent as BinaryOp : null, res)
-                if(score == -1) return Responses LOOP
+                if(score == -1) return Response LOOP
                 if(score > bestScore) {
                     bestScore = score
                     candidate = opDecl
@@ -230,10 +230,10 @@ ArrayAccess: class extends Expression {
             }
 
             res wholeAgain(this, "Just been replaced with an overload")
-            return Responses LOOP
+            return Response LOOP
         }
 
-        return Responses OK
+        return Response OK
 
     }
 

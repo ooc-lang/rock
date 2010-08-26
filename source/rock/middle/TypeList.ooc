@@ -26,7 +26,7 @@ TypeList: class extends Type {
             type resolve(trail, res)
         }
 
-        Responses OK
+        Response OK
     }
 
     pointerLevel: func -> Int { 0 }

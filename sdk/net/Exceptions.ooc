@@ -1,8 +1,4 @@
-include errno
-include string
-
-errno: extern Int
-strerror: extern func(Int) -> String
+import os/error
 
 /**
     Base exception which all networking errors extend.

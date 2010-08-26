@@ -11,7 +11,9 @@ import ../backend/explain/ExplanationGenerator
 import ../middle/[Module, Import]
 import ../middle/tinker/Tinkerer
 
-ROCK_BUILD_DATE, ROCK_BUILD_TIME: extern String
+ROCK_BUILD_DATE, ROCK_BUILD_TIME: extern CString
+system: extern func (command: CString)
+
 
 CommandLine: class {
     params: BuildParams
@@ -109,6 +111,10 @@ CommandLine: class {
                 } else if (option == "newsdk") {
 
                     params newsdk = true
+
+                } else if (option == "newstr") {
+
+                    params newstr = true
 
                 } else if (option == "inline") {
 
@@ -490,13 +496,13 @@ CommandLine: class {
 
     clean: func {
         // oh that's a hack.
-        system("rm -rf %s" format(params outPath path))
+        system("rm -rf %s" format(params outPath path) as CString)
     }
 
     cleanHardcore: func {
         clean()
         // oh that's the same hack. Someone implement File recursiveDelete() already.
-        system("rm -rf %s" format(params libcachePath))
+        system("rm -rf %s" format(params libcachePath) as CString)
     }
 
     parse: func (moduleName: String) -> Int {
@@ -587,10 +593,10 @@ CommandLine: class {
               new := File new(module simpleName+".html")
               new write("<html>
               <head>
-              	<script type=\"text/javascript\" charset=\"utf-8\" src=\"http://code.jquery.com/jquery-1.4.2.min.js\"></script>
-              	<link href='http://fonts.googleapis.com/css?family=Josefin+Sans+Std+Light' rel='stylesheet' type='text/css'>
-              	<link href='http://fonts.googleapis.com/css?family=Molengo' rel='stylesheet' type='text/css'>
-              	<link href='http://fonts.googleapis.com/css?family=IM+Fell+DW+Pica' rel='stylesheet' type='text/css'>
+                  <script type=\"text/javascript\" charset=\"utf-8\" src=\"http://code.jquery.com/jquery-1.4.2.min.js\"></script>
+                  <link href='http://fonts.googleapis.com/css?family=Josefin+Sans+Std+Light' rel='stylesheet' type='text/css'>
+                  <link href='http://fonts.googleapis.com/css?family=Molengo' rel='stylesheet' type='text/css'>
+                  <link href='http://fonts.googleapis.com/css?family=IM+Fell+DW+Pica' rel='stylesheet' type='text/css'>
                 <title>ooc Explanations: doc_test</title>
               </head>
               <body onload=\"bootstrap()\">
@@ -636,5 +642,3 @@ CommandLine: class {
     }
 
 }
-
-system: extern func (command: String)

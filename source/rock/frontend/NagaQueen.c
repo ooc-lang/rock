@@ -114,6 +114,7 @@ void nq_setTokenPositionPointer(void *this, int *tokenPosPointer);
 char *nq_StringClone(char *string);
 char *nq_trailingQuest(char *string);
 char *nq_trailingBang (char *string);
+char *nq_mangleIdents(char *string);
 
 void nq_onUse(void *this, char *name);
 void nq_onInclude(void *this, char *path);
@@ -183,7 +184,6 @@ void nq_onVarDeclStatic(void *this);
 void nq_onVarDeclConst(void *this);
 void nq_onVarDeclProto(void *this);
 void *nq_onVarDeclEnd(void *this);
-void *nq_onVarDeclAssign(void *this, void *access, void *expr);
 
 void *nq_onTypeAccess(void *this, void *type);
 
@@ -3243,19 +3243,6 @@ YY_ACTION(void) yy_1_ConventionalVarDecl(GREG *G, char *yytext, int yyleng, yyth
 #undef varDeclName
 #undef doc
 }
-YY_ACTION(void) yy_8_VarDeclFromExpr(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
-{
-#define r G->val[-1]
-#define tup G->val[-2]
-#define i G->val[-3]
-#define doc G->val[-4]
-  yyprintf((stderr, "do yy_8_VarDeclFromExpr\n"));
-   yy=nq_onVarDeclEnd(core->this); ;
-#undef r
-#undef tup
-#undef i
-#undef doc
-}
 YY_ACTION(void) yy_7_VarDeclFromExpr(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
 #define r G->val[-1]
@@ -3263,7 +3250,7 @@ YY_ACTION(void) yy_7_VarDeclFromExpr(GREG *G, char *yytext, int yyleng, yythunk 
 #define i G->val[-3]
 #define doc G->val[-4]
   yyprintf((stderr, "do yy_7_VarDeclFromExpr\n"));
-   nq_onVarDeclExpr(core->this, r); ;
+   yy=nq_onVarDeclEnd(core->this); ;
 #undef r
 #undef tup
 #undef i
@@ -3276,7 +3263,7 @@ YY_ACTION(void) yy_6_VarDeclFromExpr(GREG *G, char *yytext, int yyleng, yythunk 
 #define i G->val[-3]
 #define doc G->val[-4]
   yyprintf((stderr, "do yy_6_VarDeclFromExpr\n"));
-   nq_onVarDeclProto (core->this); ;
+   nq_onVarDeclExpr(core->this, r); ;
 #undef r
 #undef tup
 #undef i
@@ -3289,7 +3276,7 @@ YY_ACTION(void) yy_5_VarDeclFromExpr(GREG *G, char *yytext, int yyleng, yythunk 
 #define i G->val[-3]
 #define doc G->val[-4]
   yyprintf((stderr, "do yy_5_VarDeclFromExpr\n"));
-   nq_onVarDeclConst (core->this); ;
+   nq_onVarDeclProto (core->this); ;
 #undef r
 #undef tup
 #undef i
@@ -3302,7 +3289,7 @@ YY_ACTION(void) yy_4_VarDeclFromExpr(GREG *G, char *yytext, int yyleng, yythunk 
 #define i G->val[-3]
 #define doc G->val[-4]
   yyprintf((stderr, "do yy_4_VarDeclFromExpr\n"));
-   nq_onVarDeclStatic(core->this); ;
+   nq_onVarDeclConst (core->this); ;
 #undef r
 #undef tup
 #undef i
@@ -3315,7 +3302,7 @@ YY_ACTION(void) yy_3_VarDeclFromExpr(GREG *G, char *yytext, int yyleng, yythunk 
 #define i G->val[-3]
 #define doc G->val[-4]
   yyprintf((stderr, "do yy_3_VarDeclFromExpr\n"));
-   tokenPos; ;
+   nq_onVarDeclStatic(core->this); ;
 #undef r
 #undef tup
 #undef i
@@ -3341,7 +3328,7 @@ YY_ACTION(void) yy_1_VarDeclFromExpr(GREG *G, char *yytext, int yyleng, yythunk 
 #define i G->val[-3]
 #define doc G->val[-4]
   yyprintf((stderr, "do yy_1_VarDeclFromExpr\n"));
-   nq_onVarDeclStart(core->this); nq_onVarDeclName (core->this, i,   doc); ;
+   tokenPos; nq_onVarDeclStart(core->this); nq_onVarDeclName (core->this, i,   doc); ;
 #undef r
 #undef tup
 #undef i
@@ -6311,18 +6298,18 @@ YY_RULE(int) yy_VarDeclFromExpr(GREG *G)
   {  int yypos471= G->pos, yythunkpos471= G->thunkpos;  if (!yy_IDENT(G)) { goto l472; }  yyDo(G, yySet, -3, 0);  yyDo(G, yy_1_VarDeclFromExpr, G->begin, G->end);  goto l471;
   l472:;	  G->pos= yypos471; G->thunkpos= yythunkpos471;  if (!yy_Tuple(G)) { goto l470; }  yyDo(G, yySet, -2, 0);  yyDo(G, yy_2_VarDeclFromExpr, G->begin, G->end);
   }
-  l471:;	  if (!yy__(G)) { goto l470; }  if (!yy_ASS_DECL(G)) { goto l470; }  yyDo(G, yy_3_VarDeclFromExpr, G->begin, G->end);
+  l471:;	  if (!yy__(G)) { goto l470; }  if (!yy_ASS_DECL(G)) { goto l470; }
   l473:;	
   {  int yypos474= G->pos, yythunkpos474= G->thunkpos;  if (!yy__(G)) { goto l474; }
-  {  int yypos475= G->pos, yythunkpos475= G->thunkpos;  if (!yy_STATIC_KW(G)) { goto l476; }  yyDo(G, yy_4_VarDeclFromExpr, G->begin, G->end);  goto l475;
-  l476:;	  G->pos= yypos475; G->thunkpos= yythunkpos475;  if (!yy_CONST_KW(G)) { goto l477; }  yyDo(G, yy_5_VarDeclFromExpr, G->begin, G->end);  goto l475;
-  l477:;	  G->pos= yypos475; G->thunkpos= yythunkpos475;  if (!yy_PROTO_KW(G)) { goto l474; }  yyDo(G, yy_6_VarDeclFromExpr, G->begin, G->end);
+  {  int yypos475= G->pos, yythunkpos475= G->thunkpos;  if (!yy_STATIC_KW(G)) { goto l476; }  yyDo(G, yy_3_VarDeclFromExpr, G->begin, G->end);  goto l475;
+  l476:;	  G->pos= yypos475; G->thunkpos= yythunkpos475;  if (!yy_CONST_KW(G)) { goto l477; }  yyDo(G, yy_4_VarDeclFromExpr, G->begin, G->end);  goto l475;
+  l477:;	  G->pos= yypos475; G->thunkpos= yythunkpos475;  if (!yy_PROTO_KW(G)) { goto l474; }  yyDo(G, yy_5_VarDeclFromExpr, G->begin, G->end);
   }
   l475:;	
   {  int yypos478= G->pos, yythunkpos478= G->thunkpos;  if (!yymatchClass(G, (unsigned char *)"\377\377\377\377\377\377\000\374\001\000\000\170\001\000\000\370\377\377\377\377\377\377\377\377\377\377\377\377\377\377\377\377")) goto l474;  G->pos= yypos478; G->thunkpos= yythunkpos478;
   }  goto l473;
   l474:;	  G->pos= yypos474; G->thunkpos= yythunkpos474;
-  }  if (!yy__(G)) { goto l470; }  if (!yy_Expr(G)) { goto l470; }  yyDo(G, yySet, -1, 0);  yyDo(G, yy_7_VarDeclFromExpr, G->begin, G->end);  if (!yy__(G)) { goto l470; }  yyDo(G, yy_8_VarDeclFromExpr, G->begin, G->end);
+  }  if (!yy__(G)) { goto l470; }  if (!yy_Expr(G)) { goto l470; }  yyDo(G, yySet, -1, 0);  yyDo(G, yy_6_VarDeclFromExpr, G->begin, G->end);  if (!yy__(G)) { goto l470; }  yyDo(G, yy_7_VarDeclFromExpr, G->begin, G->end);
   yyprintf((stderr, "  ok   %s @ %s\n", "VarDeclFromExpr", G->buf+G->pos));  yyDo(G, yyPop, 4, 0);
   return 1;
   l470:;	  G->pos= yypos0; G->thunkpos= yythunkpos0;
@@ -7199,9 +7186,9 @@ YY_RULE(int) yy_OPEN_SQUAR(GREG *G)
   return 0;
 }
 YY_RULE(int) yy_IDENT(GREG *G)
-{  int yypos0= G->pos, yythunkpos0= G->thunkpos;
-  yyprintf((stderr, "%s\n", "IDENT"));  if (!yy_IDENT_CORE(G)) { goto l750; }  if (!yy__(G)) { goto l750; }
-  yyprintf((stderr, "  ok   %s @ %s\n", "IDENT", G->buf+G->pos));
+{  int yypos0= G->pos, yythunkpos0= G->thunkpos;  yyDo(G, yyPush, 1, 0);
+  yyprintf((stderr, "%s\n", "IDENT"));  if (!yy_IDENT_CORE(G)) { goto l750; }  yyDo(G, yySet, 0, 0);  if (!yy__(G)) { goto l750; }
+  yyprintf((stderr, "  ok   %s @ %s\n", "IDENT", G->buf+G->pos));  yyDo(G, yyPop, 1, 0);
   return 1;
   l750:;	  G->pos= yypos0; G->thunkpos= yythunkpos0;
   yyprintf((stderr, "  fail %s @ %s\n", "IDENT", G->buf+G->pos));

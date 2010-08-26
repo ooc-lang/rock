@@ -1,28 +1,23 @@
-import structs/ArrayList
 import ../frontend/Token
 import Statement, Visitor, Node
 import tinker/[Trail, Resolver, Response]
-include stdint
 
-FlowAction: cover from Int8 {
-
-    toString: func -> String {
-        FlowActions repr get(this)
-    }
-
+FlowAction: enum {
+    _break
+    _continue
 }
 
-FlowActions: class {
-    _break    = 1,
-    _continue = 2 : static const FlowAction
-
-    repr := static ["no-op",
-        "break",
-        "continue"] as ArrayList<String>
+extend FlowAction {
+    toString: func -> String {
+        match(this) {
+            case _break     => "break"
+            case _continue  => "continue"
+            case            => "no-op"
+        }
+    }
 }
 
 FlowControl: class extends Statement {
-
     action : FlowAction
 
     init: func ~match_ (=action, .token) {
@@ -42,7 +37,6 @@ FlowControl: class extends Statement {
     replace: func (oldie, kiddo: Node) -> Bool { false }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        return Responses OK
+        Response OK
     }
-
 }

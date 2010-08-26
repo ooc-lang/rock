@@ -34,7 +34,7 @@ import algo/autoReturn
 
    VarArg (variable argument):
 
-     printf: extern func (fmt: String, ...)
+     printf: extern func (fmt: CString, ...)
 
    Or just regular Argument(s) :
 
@@ -459,7 +459,7 @@ FunctionDecl: class extends Declaration {
                 parent := base getFunction(name, suffix ? suffix : "", null, false, finalScore&)
                 if(finalScore == -1) {
                     res wholeAgain(this, "Something's not resolved, need base getFunction()")
-                    return Responses OK
+                    return Response OK
                 }
                 // todo: check for finalScore
                 for(i in 0..args size()) {
@@ -509,14 +509,14 @@ FunctionDecl: class extends Declaration {
             if (!_unwrappedACS && !argumentsReady()) {
                 if (!unwrapACS(trail, res)) {
                     trail pop(this)
-                    return Responses OK
+                    return Response OK
                 }
             }
             args each(| arg |
                 if (arg getType() == null || !arg getType() isResolved()) {
                     "Looping because of arg %s" printfln(arg toString())
                     res wholeAgain(this, "need arg type for the ref")
-                    return Responses OK
+                    return Response OK
                 }
             )
         }
@@ -540,7 +540,7 @@ FunctionDecl: class extends Declaration {
             if(!returnType isResolved()) {
                 res wholeAgain(this, "need returnType of a FunctionDecl to be resolved")
                 trail pop(this)
-                return Responses OK
+                return Response OK
             } else if(returnType isGeneric()) {
                 if(returnArgs empty?()) createReturnArg(returnType, "genericReturn")
             } else if(returnType instanceOf?(TypeList)) {
@@ -565,7 +565,7 @@ FunctionDecl: class extends Declaration {
         if(inlined) {
             trail pop(this)
             "%s is inlining, not resolving further" printfln(toString())
-            return Responses OK
+            return Response OK
         }
 
         {
@@ -574,7 +574,7 @@ FunctionDecl: class extends Declaration {
                 if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of body = %s\n", toString(), response toString())
                 trail pop(this)
                 res wholeAgain(this, "body wanna LOOP")
-                return Responses OK
+                return Response OK
 
                 // Why aren't we relaying the response of the body? Because
                 // the trail is usually clean below the body and it would
@@ -611,14 +611,14 @@ FunctionDecl: class extends Declaration {
             ref := superTypeDecl getMeta() getFunction(name, suffix, null, finalScore&)
             if(finalScore == -1) {
                 res wholeAgain(this, "something in our typedecl's functions needs resolving!")
-                return Responses OK
+                return Response OK
             }
             superCall := FunctionCall new("super", token)
             if(ref != null) {
                 for(arg in ref args) {
                     if(!arg isResolved()) {
                         res wholeAgain(arg, "some arg we need to copy needs resolving!")
-                        return Responses OK
+                        return Response OK
                     }
                 }
 
@@ -649,10 +649,16 @@ FunctionDecl: class extends Declaration {
                 args add(argc)
                 args add(argv)
 
+                constructCall := FunctionCall new("strArrayListFromCString", arg token)
+                constructCall args add(VariableAccess new(argc, arg token)) \
+                                  .add(VariableAccess new(argv, arg token))
+
+/*
                 constructCall := FunctionCall new(VariableAccess new(arg getType(), arg token), "new", arg token)
                 constructCall setSuffix("withData")
                 constructCall args add(VariableAccess new(argv, arg token)) \
                                   .add(VariableAccess new(argc, arg token))
+                                */
 
                 vdfe := VariableDecl new(null, arg getName(), constructCall, token)
                 body add(0, vdfe)
@@ -668,7 +674,7 @@ FunctionDecl: class extends Declaration {
             }
         }
 
-        return Responses OK
+        return Response OK
     }
 
     unwrapACS: func (trail: Trail, res: Resolver) -> Bool {
@@ -691,18 +697,6 @@ FunctionDecl: class extends Declaration {
             return false
         }
 
-        // FIXME FIXME FIXME: this will blow up with several closure arguments of different types!
-        ourIndex := -1
-        funcPointer: FuncType = null
-        for (i in 0..parentFunc args size()) {
-            arg := parentFunc args[i]
-            if (arg getType() instanceOf?(FuncType)) {
-                ourIndex = i
-                funcPointer = arg getType()
-                break
-            }
-        }
-
         if (parentFunc getOwner()) {
             if(parentCall expr getType() == null) {
                 res wholeAgain(this, "Need type of the expr of the parent call")
@@ -718,6 +712,14 @@ FunctionDecl: class extends Declaration {
                 }
             }
         }
+
+        ind := parentCall args indexOf(this)
+
+        if (ind == -1) {
+            res throwError(InternalError new(token, "[ACS]: Can't find ´this´ in the call's arguments.\ntrail = %s" format(trail toString())))
+        }
+
+        funcPointer := parentFunc args[ind] getType() as FuncType
 
         if (!funcPointer) {
             res wholeAgain(this, "Missing type informantion in the function pointer.")
@@ -853,7 +855,7 @@ FunctionDecl: class extends Declaration {
                         if (fScore == -1) {
                             res wholeAgain(this, "Can't figure out the actual type of generic")
                             trail pop(this)
-                            return Responses OK
+                            return Response OK
                         }
                     } else {
                         t = arg getType()

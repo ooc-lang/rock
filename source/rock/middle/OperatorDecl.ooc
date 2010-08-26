@@ -64,7 +64,7 @@ OperatorDecl: class extends Expression {
         if (implicit && !_doneImplicit) {
             if (fDecl args size() != 1) {
                 res throwError(InvalidOperatorOverload new(token, "Overloading of 'as' needs exactly one argument."))
-                return Responses LOOP
+                return Response LOOP
             }
 
             fromType := fDecl args get(0) getType()
@@ -72,7 +72,7 @@ OperatorDecl: class extends Expression {
 
             if(fromType == null || !fromType isResolved()) {
                 res wholeAgain(this, "need first arg's type")
-                return Responses OK
+                return Response OK
             }
 
             ref := fromType getRef()
@@ -82,7 +82,7 @@ OperatorDecl: class extends Expression {
             }
         }
 
-        Responses OK
+        Response OK
     }
 
     getName: func -> String {

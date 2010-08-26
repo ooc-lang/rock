@@ -63,7 +63,7 @@ Return: class extends Statement {
 
         if (retType && !retType isResolved()) {
             res wholeAgain(this, "need returnType to be resolved!")
-            return Responses OK
+            return Response OK
         }
 
         if(expr) {
@@ -75,14 +75,14 @@ Return: class extends Statement {
             }
 
             if(expr getType() == null || !expr getType() isResolved()) {
-                res wholeAgain(this, "expr type is unresolved"); return Responses OK
+                res wholeAgain(this, "expr type is unresolved"); return Response OK
             }
         } else {
             if (returnArgs empty?() && !retType void?) {
                 res throwError(InconsistentReturn new(token, "Can't return nothing in function declared as returning a %s" format(retType toString())))
             } else {
                 // no expression, and the function's alright with that - nothing more to do.
-                return Responses OK
+                return Response OK
             }
         }
 
@@ -114,7 +114,7 @@ Return: class extends Statement {
                         }
                         expr = null
                         res wholeAgain(this, "Unwrapped into outer fCall")
-                        return Responses OK
+                        return Response OK
                     }
                 }
 
@@ -163,20 +163,20 @@ Return: class extends Statement {
 
                 expr = null
                 res wholeAgain(this, "Turned into an assignment")
-                return Responses LOOP
+                return Response LOOP
 
             }
 
             if(expr) {
                 if(expr getType() == null || !expr getType() isResolved()) {
                     res wholeAgain(this, "Need info about the expr type")
-                    return Responses OK
+                    return Response OK
                 }
                 if(!retType getName() toLower() equals?("void") && !retType equals?(expr getType())) {
                     score := expr getType() getScore(retType)
                     if (score == -1) {
                         res wholeAgain(this, "something's unresolved in declared ret type vs returned type.")
-                        return Responses OK
+                        return Response OK
                     }
 
                     if (score < 0) {
@@ -196,7 +196,7 @@ Return: class extends Statement {
                 res throwError(InconsistentReturn new(expr token, "Function is declared to return `null`, not %s! trail = %s" format(expr getType() toString(), trail toString())))
         }
 
-        return Responses OK
+        return Response OK
 
     }
 

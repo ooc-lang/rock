@@ -11,11 +11,11 @@ import ../[Scope, Type, Return, Node, Expression, ControlStatement,
 autoReturn: func (trail: Trail, res: Resolver, origin: Node, body: Scope, returnType: Type) -> Response {
 
     if(returnType void?) {
-        return Responses OK
+        return Response OK
     }
 
     _autoReturnExplore(trail, res, origin, body, true)
-    return Responses OK
+    return Response OK
 
 }
 
@@ -32,7 +32,7 @@ _autoReturnExplore: func (trail: Trail, res: Resolver, origin: Node, scope: Scop
 }
 
 _returnNeeded: func (res: Resolver, origin: Node) {
-    res throwError(InconsistentReturn new(origin token, "Control reaches the end of non-void function!"))
+    res throwError(InconsistentReturn new(origin token, "Control reaches the end of non-void function! (hint: maybe return statement is missing?)"))
 }
 
 _handleLastStatement: func (trail: Trail, res: Resolver, origin: Node, scope: Scope, index: Int, last: Bool) {

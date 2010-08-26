@@ -94,7 +94,7 @@ ArrayLiteral: class extends Literal {
                                     res throwError(CouldntReplace new(token, this, cast, trail))
                                 }
                                 res wholeAgain(this, "Replaced with a cast")
-                                return Responses OK
+                                return Response OK
                             }
                         } else {
                             printf("%s is the %dth argument of %s, ref is %s with %d arguments\n",
@@ -121,7 +121,7 @@ ArrayLiteral: class extends Literal {
             innerType := elements first() getType()
             if(innerType == null || !innerType isResolved()) {
                 res wholeAgain(this, "need innerType")
-                return Responses OK
+                return Response OK
             }
 
             type = ArrayType new(innerType, IntLiteral new(elements size(), token), token)
@@ -137,7 +137,7 @@ ArrayLiteral: class extends Literal {
             return unwrapToArrayInit(trail, res)
         }
 
-        return Responses OK
+        return Response OK
 
     }
 
@@ -169,7 +169,7 @@ ArrayLiteral: class extends Literal {
             memberDecl := trail get(varDeclIdx) as VariableDecl
             if(memberDecl getType() == null) {
                 res wholeAgain(this, "need memberDecl type")
-                return Responses OK
+                return Response OK
             }
         }
 
@@ -213,13 +213,13 @@ ArrayLiteral: class extends Literal {
                 } else {
                     if(res fatal) res throwError(CouldntAddBeforeInScope new(token, this, vDecl, trail))
                     res wholeAgain(this, "Trail is messed up, gotta loop")
-                    return Responses OK
+                    return Response OK
                 }
             }
             if(!parent replace(this, vAcc)) {
                 if(res fatal) res throwError(CouldntReplace new(token, this, vAcc, trail))
                 res wholeAgain(this, "Trail is messed up, gotta loop.")
-                return Responses OK
+                return Response OK
             }
         }
 
@@ -283,7 +283,7 @@ ArrayLiteral: class extends Literal {
 
         type = PointerType new(arrType inner, arrType token)
 
-        return Responses LOOP
+        return Response LOOP
 
     }
 

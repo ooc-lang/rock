@@ -1,4 +1,5 @@
 import ../File, structs/ArrayList
+import text/Buffer
 
 include dirent
 
@@ -9,19 +10,19 @@ include dirent
 DIR: extern cover
 
 DirEnt: cover from struct dirent {
-    name: extern(d_name) String
+    name: extern(d_name) CString
     /* TODO: the struct has more members, actually */
 }
 
 closedir: extern func (DIR*) -> Int
-opendir: extern func (const String) -> DIR*
+opendir: extern func (const CString) -> DIR*
 readdir: extern func (DIR*) -> DirEnt*
 readdir_r: extern func (DIR*, DirEnt*, DirEnt**) -> Int
 rewinddir: extern func (DIR*)
 seekdir: extern func (DIR*, Long)
 telldir: extern func (DIR*) -> Long
 
-realpath: extern func(path: String, resolved: String) -> String
+realpath: extern func(path: CString, resolved: CString) -> CString
 
 version(linux) {
     include unistd | (__USE_BSD), sys/stat | (__USE_BSD), sys/types | (__USE_BSD), stdlib | (__USE_BSD), limits
@@ -36,14 +37,14 @@ version(unix || apple) {
     File separator = '/'
     File pathDelimiter = ':'
 
-    _getcwd: extern(getcwd) func(buf: String, size: SizeT) -> String
+    _getcwd: extern(getcwd) func(buf: CString, size: SizeT) -> CString
 
     ooc_get_cwd: unmangled func -> String {
-        ret := String new(File MAX_PATH_LENGTH + 1)
-        if(!_getcwd(ret, File MAX_PATH_LENGTH)) {
+        ret := Buffer new(File MAX_PATH_LENGTH + 1)
+        if(!_getcwd(ret data as CString, File MAX_PATH_LENGTH)) {
             Exception new("Failed to get current directory!") throw()
         }
-        return ret
+        return ret toString()
     }
 
     TimeT: cover from time_t
@@ -60,10 +61,10 @@ version(unix || apple) {
     S_ISLNK: extern func(...) -> Bool
     S_IRWXU, S_IRWXG, S_IRWXO: extern Int // constants
 
-    lstat: extern func(String, FileStat*) -> Int
-    _mkdir: extern(mkdir) func(String, ModeT) -> Int
-    remove: extern func(path: String) -> Int
-    _remove: unmangled func(path: String) -> Int {
+    lstat: extern func(CString, FileStat*) -> Int
+    _mkdir: extern(mkdir) func(CString, ModeT) -> Int
+    remove: extern func(path: CString) -> Int
+    _remove: unmangled func(path: CString) -> Int {
         remove(path)
     }
 
@@ -74,97 +75,86 @@ version(unix || apple) {
 
         init: func ~unix (=path) {}
 
+        _getFileStat: func -> FileStat {
+            result: FileStat
+            lstat(path as CString, result&)
+            return result
+        }
+
         /**
          * @return true if it's a directory
          */
         dir?: func -> Bool {
-            stat: FileStat
-            lstat(path, stat&)
-            return S_ISDIR(stat st_mode)
+            return S_ISDIR(_getFileStat() st_mode)
         }
 
         /**
          * @return true if it's a file (ie. not a directory nor a symbolic link)
          */
         file?: func -> Bool {
-            stat: FileStat
-            lstat(path, stat&)
-            return S_ISREG(stat st_mode)
+            return S_ISREG(_getFileStat() st_mode)
         }
 
         /**
          * @return true if the file is a symbolic link
          */
         link?: func -> Bool {
-            stat: FileStat
-            lstat(path, stat&)
-            return S_ISLNK(stat st_mode)
+            return S_ISLNK(_getFileStat() st_mode)
         }
 
         /**
          * @return the size of the file, in bytes
          */
         size: func -> LLong {
-            stat: FileStat
-            lstat(path, stat&)
-            return stat st_size as LLong
+            return _getFileStat() st_size as LLong
         }
 
         /**
          * @return the permissions for the owner of this file
          */
         ownerPerm: func -> Int {
-            stat: FileStat
-            lstat(path, stat&)
-            return ((stat st_mode) & S_IRWXU) as Int >> 6
+            return ((_getFileStat() st_mode) & S_IRWXU) as Int >> 6
         }
 
         /**
          * @return the permissions for the group of this file
          */
         groupPerm: func -> Int {
-            stat: FileStat
-            lstat(path, stat&)
-            return ((stat st_mode) & S_IRWXG) as Int >> 3
+            return ((_getFileStat() st_mode) & S_IRWXG) as Int >> 3
         }
 
         /**
          * @return the permissions for the others (not owner, not group)
          */
         otherPerm: func -> Int {
-            stat: FileStat
-            lstat(path, stat&)
-            return ((stat st_mode) & S_IRWXO) as Int
+            return ((_getFileStat() st_mode) & S_IRWXO) as Int
         }
 
         /**
          * @return the time of last access, or -1 if it doesn't exist
          */
+        //FIXME maybe the exists call is redundant
         lastAccessed: func -> Long {
             if(!exists?()) return -1
-            stat: FileStat
-            lstat(path, stat&)
-            return stat st_atime as Long
+            return _getFileStat() st_atime as Long
         }
 
         /**
          * @return the time of last modification, or -1 if it doesn't exist
          */
+        //FIXME maybe the exists call is redundant
         lastModified: func -> Long {
             if(!exists?()) return -1
-            stat: FileStat
-            lstat(path, stat&)
-            return stat st_mtime as Long
+            return _getFileStat() st_mtime as Long
         }
 
         /**
          * @return the time of creation, or -1 if it doesn't exist
          */
+        //FIXME maybe the exists call is redundant
         created: func -> Long {
             if(!exists?()) return -1
-            stat: FileStat
-            lstat(path, stat&)
-            return stat st_ctime as Long
+            return _getFileStat() st_ctime as Long
         }
 
         /**
@@ -180,7 +170,7 @@ version(unix || apple) {
          */
         getAbsolutePath: func -> String {
             actualPath := String new(This MAX_PATH_LENGTH + 1)
-            return realpath(path, actualPath)
+            return realpath(path as CString, actualPath as CString) as String
         }
 
         /**
@@ -189,54 +179,46 @@ version(unix || apple) {
          */
         getAbsoluteFile: func -> File {
             actualPath := getAbsolutePath()
-            if(!path equals?(actualPath)) {
+            if(!path == actualPath) {
                 return File new(actualPath)
             }
             return this
         }
 
-        getChildrenNames: func -> ArrayList<String> {
+        _getChildren: func <T> (T: Class) -> ArrayList<T> {
+
             if(!dir?()) {
                 Exception new(This, "Trying to get the children of the non-directory '" + path + "'!") throw()
             }
-            dir := opendir(path)
+            dir := opendir(path as CString)
             if(!dir) {
                 Exception new(This, "Couldn't open directory '" + path + "' for reading!") throw()
             }
-            result := ArrayList<String> new()
+
+            result := ArrayList<T> new()
             entry := readdir(dir)
             while(entry != null) {
-                if(!entry@ name equals?(".") && !entry@ name equals?("..")) {
-                    result add(entry@ name clone())
+                if(!_isSelfOrParentDirEntry? (entry@ name)) {
+                    if (T == String) result add(entry@ name clone())
+                    else if (T == File) result add(File new(this, entry@ name clone() as String))
                 }
                 entry = readdir(dir)
             }
             closedir(dir)
             return result
+
+        }
+
+        getChildrenNames: func -> ArrayList<String> {
+            _getChildren (String)
         }
 
         getChildren: func -> ArrayList<File> {
-            if(!dir?()) {
-                Exception new(This, "Trying to get the children of the non-directory '" + path + "'!") throw()
-            }
-            dir := opendir(path)
-            if(!dir) {
-                Exception new(This, "Couldn't open directory '" + path + "' for reading!") throw()
-            }
-            result := ArrayList<File> new()
-            entry := readdir(dir)
-            while(entry != null) {
-                if(!entry@ name equals?(".") && !entry@ name equals?("..")) {
-                    result add(File new(this, entry@ name clone()))
-                }
-                entry = readdir(dir)
-            }
-            closedir(dir)
-            return result
+            _getChildren (File)
         }
 
         mkdir: func ~withMode (mode: Int32) -> Int {
-            _mkdir(path, mode as ModeT)
+            _mkdir(path as CString, mode as ModeT)
         }
 
     }

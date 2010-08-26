@@ -49,7 +49,7 @@ CoverDecl: class extends TypeDecl {
 
         trail pop(this)
 
-        return Responses OK
+        return Response OK
     }
 
     writeSize: func (w: TabbedWriter, instance: Bool) {

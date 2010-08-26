@@ -29,7 +29,7 @@ EnumDecl: class extends TypeDecl {
             if(!response ok()) return response
         }
 
-        Responses OK
+        Response OK
     }
 
     addElement: func (element: EnumElement) {

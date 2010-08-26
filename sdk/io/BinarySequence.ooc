@@ -54,7 +54,7 @@ BinarySequenceWriter: class {
     u16: func (value: UInt16) { pushValue(value) }
     u32: func (value: UInt32) { pushValue(value) }
     u64: func (value: UInt64) { pushValue(value) }
-    
+
     pad: func (bytes: SizeT) { for(_ in 0..bytes) s8(0) }
 
     /** push it, null-terminated. */
@@ -67,7 +67,7 @@ BinarySequenceWriter: class {
 
     pascalString: func (value: String, lengthBytes: SizeT) {
         length := value length()
-        match (lengthBytes) { 
+        match (lengthBytes) {
             case 1 => u8(length)
             case 2 => u16(length)
             case 3 => u32(length)
@@ -92,7 +92,7 @@ BinarySequenceReader: class {
         array := value& as Octet*
         // pull the bytes.
         for(i in 0..size) {
-            array[i] = reader read()
+            array[i] = reader read() as Octet
         }
         if(endianness != ENDIANNESS) {
             // Seq is big, system is endian?

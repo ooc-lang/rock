@@ -1,141 +1,6 @@
 import text/Buffer /* for String replace ~string */
 
-include stdlib
-
-__LINE__: extern Int
-__FILE__: extern String
-__FUNCTION__: extern String
-
-strcmp: extern func (Char*, Char*) -> Int
-strncmp: extern func (Char*, Char*, Int) -> Int
-strstr: extern func (Char*, Char*)
-strlen:  extern func (Char*) -> Int
-
-strtol:  extern func (Char*, Pointer, Int) -> Long
-strtoll: extern func (Char*, Pointer, Int) -> LLong
-strtoul: extern func (Char*, Pointer, Int) -> ULong
-strtof:  extern func (Char*, Pointer)      -> Float
-strtod:  extern func (Char*, Pointer)      -> Double
-strtold: extern func (Char*, Pointer)      -> LDouble
-
-/**
- * character and pointer types
- */
-Char: cover from char {
-
-    /** check for an alphanumeric character */
-    alphaNumeric?: func -> Bool {
-        alpha?() || digit?()
-    }
-
-    /** check for an alphabetic character */
-    alpha?: func -> Bool {
-        lower?() || upper?()
-    }
-
-    /** check for a lowercase alphabetic character */
-    lower?: func -> Bool {
-        this >= 'a' && this <= 'z'
-    }
-
-    /** check for an uppercase alphabetic character */
-    upper?: func -> Bool {
-        this >= 'A' && this <= 'Z'
-    }
-
-    /** check for a decimal digit (0 through 9) */
-    digit?: func -> Bool {
-        this >= '0' && this <= '9'
-    }
-
-    /** check for an octal digit (0 through 7) */
-    octalDigit?: func -> Bool {
-        this >= '0' && this <= '7'
-    }
-
-    /** check for a hexadecimal digit (0 1 2 3 4 5 6 7 8 9 a b c d e f A B C D E F) */
-    hexDigit?: func -> Bool {
-        digit?() ||
-        (this >= 'A' && this <= 'F') ||
-        (this >= 'a' && this <= 'f')
-    }
-
-    /** check for a control character */
-    control?: func -> Bool {
-        (this >= 0 && this <= 31) || this == 127
-    }
-
-    /** check for any printable character except space */
-    graph?: func -> Bool {
-        printable?() && this != ' '
-    }
-
-    /** check for any printable character including space */
-    printable?: func -> Bool {
-        this >= 32 && this <= 126
-    }
-
-    /** check for any printable character which is not a space or an alphanumeric character */
-    punctuation?: func -> Bool {
-        printable?() && !alphaNumeric?() && this != ' '
-    }
-
-    /** check for white-space characters: space, form-feed ('\\f'), newline ('\\n'),
-        carriage return ('\\r'), horizontal tab ('\\t'), and vertical tab ('\\v') */
-    whitespace?: func -> Bool {
-        this == ' '  ||
-        this == '\f' ||
-        this == '\n' ||
-        this == '\r' ||
-        this == '\t' ||
-        this == '\v'
-    }
-
-    /** check for a blank character; that is, a space or a tab */
-    blank?: func -> Bool {
-        this == ' ' || this == '\t'
-    }
-
-    /** convert to an integer. This only works for digits, otherwise -1 is returned */
-    toInt: func -> Int {
-        if (digit?()) {
-            return (this - '0') as Int
-        }
-        return -1
-    }
-
-    /** return the lowered character */
-    toLower: extern(tolower) func -> This
-
-    /** return the capitalized character */
-    toUpper: extern(toupper) func -> This
-
-    /** return a one-character string containing this character. */
-    toString: func -> String {
-        String new(this)
-    }
-
-    /** write this character to stdout without a following newline. */
-    print: func {
-        "%c" printf(this)
-    }
-
-    /** write this character to stdout, followed by a newline */
-    println: func {
-        "%c\n" printf(this)
-    }
-
-}
-
-SChar: cover from signed char extends Char
-UChar: cover from unsigned char extends Char
-WChar: cover from wchar_t
-
-operator as (value: Char) -> String {
-    value toString()
-}
-
-String: cover from Char* {
+String: cover from CString {
 
     /** Create a new string exactly *length* characters long (without the nullbyte).
         The contents of the string are undefined. */
@@ -151,6 +16,14 @@ String: cover from Char* {
         result[0] = c
         result
     }
+
+    new: static func~withCStrAndLength(s : CString, length: SizeT) -> This {
+        result := This new~withLength(length)
+        memcpy(result, s, length + 1)
+        result
+    }
+
+    toCString: func -> CString { this as CString }
 
     /** compare *length* characters of *this* with *other*, starting at *start*.
         Return true if the two strings are equal, return false if they are not. */
@@ -442,7 +315,7 @@ String: cover from Char* {
 
         if(start > len) {
             Exception new(This, "String.substring: out of bounds: length = %zd, start = %zd\n" format(len, start)) throw()
-            return null
+            return null as This
         }
 
         diff = (len - start) : SizeT
@@ -465,7 +338,7 @@ String: cover from Char* {
 
         if(start > len || start > end || end > len) {
             Exception new(This, "String.substring: out of bounds: length = %zd, start = %zd, end = %zd\n" format(len, start, end)) throw()
-            return null
+            return null as This
         }
 
         diff = (end - start) : Int
@@ -480,14 +353,14 @@ String: cover from Char* {
         len := this length()
 
         if (!len) {
-            return null
+            return null as This
         }
 
         result := This new(len + 1)
         for (i: SizeT in 0..len) {
             result[i] = this[(len-1)-i]
         }
-        result[len] = 0
+        result[len] = '\0'
 
         return result as This
     }
@@ -814,4 +687,16 @@ operator + (left: String, right: Char) -> String {
 
 operator + (left: Char, right: String) -> String {
     right prepend(left)
+}
+
+// lame static function to be called by int main, so i dont have to metaprogram it
+import structs/ArrayList
+
+strArrayListFromCString: func (argc: Int, argv: Char**) -> ArrayList<String> {
+    result := ArrayList<String> new ()
+    for (i in 0..argc) {
+        s := String new ((argv[i]) as CString, (argv[i]) as CString length())
+        result add( s )
+    }
+    result
 }

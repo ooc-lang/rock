@@ -112,7 +112,7 @@ FStream: cover from FILE* {
                 break
             }
 
-            str[pos] = c
+            str[pos] = c as Char
             pos += 1
 
             if (pos >= length) {

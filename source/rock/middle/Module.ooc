@@ -71,12 +71,12 @@ Module: class extends Node {
 
     _collectDeps: func (list: List<Module>) -> List<Module> {
         list add(this)
-		for(imp in getAllImports()) {
+        for(imp in getAllImports()) {
             if(imp getModule() == null) continue // what can we do about it? nothing.
-			if(!list contains?(imp getModule())) {
-				imp getModule() _collectDeps(list)
-			}
-		}
+            if(!list contains?(imp getModule())) {
+                imp getModule() _collectDeps(list)
+            }
+        }
         list
     }
 
@@ -347,7 +347,7 @@ Module: class extends Node {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        finalResponse := Responses OK
+        finalResponse := Response OK
 
         trail push(this)
 

@@ -53,8 +53,8 @@ AddrInfo: cover from struct addrinfo {
 }
 
 HostEntry: cover from struct hostent {
-  h_name: extern String // official name of the host
-  h_aliases: extern String* // alt names
+  h_name: extern CString // official name of the host
+  h_aliases: extern CString* // alt names
   h_addr_type: extern Int // host type; AF_INET or AF_INET6 (IPv6)
   h_length: extern Int // length in bytes of each address
   h_addr_list: extern Char** // list of addresses for the host
@@ -102,23 +102,23 @@ sendTo: extern func(s: Int, buf: Pointer, len: SizeT, flags: Int, s_to: SockAddr
 select: extern func(n: Int, readfds: FdSet*, writefds: FdSet*, exceptfds: FdSet*, timeout: TimeVal*) -> Int
 getsockopt: extern func(s: Int, level: Int, optname: Int, optval: Pointer, optlen: UInt) -> Int
 setsockopt: extern func(s: Int, level: Int, optname: Int, optval: Pointer, optlen: UInt) -> Int
-getaddrinfo: extern func(nodename: String, servname: String, hints: AddrInfo*, servinfo: AddrInfo**) -> Int
-getnameinfo: extern func(sa: SockAddr*, salen: UInt32, host: String, hostlen: SizeT, serv: String, servlen: UInt32, flags: Int) -> Int
+getaddrinfo: extern func(nodename: CString, servname: CString, hints: AddrInfo*, servinfo: AddrInfo**) -> Int
+getnameinfo: extern func(sa: SockAddr*, salen: UInt32, host: CString, hostlen: SizeT, serv: CString, servlen: UInt32, flags: Int) -> Int
 freeaddrinfo: extern func(ai: AddrInfo*)
 gai_strerror: extern func(ecode: Int) -> const Char*
-gethostname: extern func(name: String, len: SizeT) -> Int
-gethostbyname: extern func(name: String) -> HostEntry*
-gethostbyaddr: extern func(addr: String, len: Int, type: Int) -> HostEntry*
+gethostname: extern func(name: CString, len: SizeT) -> Int
+gethostbyname: extern func(name: CString) -> HostEntry*
+gethostbyaddr: extern func(addr: CString, len: Int, type: Int) -> HostEntry*
 getpeername: extern func(s: Int, addr: SockAddr*, len: UInt) -> Int
 htonl: extern func(hostlong: UInt32) -> UInt32
 htons: extern func(hostshort: UInt16) -> UInt16
 ntohl: extern func (netlong: UInt32) -> UInt32
 ntohs: extern func (netshort: UInt16) -> UInt16
-inet_ntoa: extern func(inaddr: InAddr) -> String
-inet_aton: extern func(cp: String, inp: InAddr*) -> Int
-inet_addr: extern func(cp: String) -> ULong
-inet_ntop: extern func(af: Int, src: Pointer, dst: String, size: UInt) -> String
-inet_pton: extern func(af: Int, src: String, dst: Pointer) -> Int
+inet_ntoa: extern func(inaddr: InAddr) -> CString
+inet_aton: extern func(cp: CString, inp: InAddr*) -> Int
+inet_addr: extern func(cp: CString) -> ULong
+inet_ntop: extern func(af: Int, src: Pointer, dst: CString, size: UInt) -> CString
+inet_pton: extern func(af: Int, src: CString, dst: Pointer) -> Int
 
 version(unix || apple) {
     ioctl: extern func(d: Int, request: Int, arg: Pointer) -> Int

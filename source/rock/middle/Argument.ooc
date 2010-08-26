@@ -20,7 +20,7 @@ Argument: abstract class extends VariableDecl {
 
         if(type == null) {
             res wholeAgain(this, "null type")
-            return Responses OK
+            return Response OK
         }
 
         if(!type isResolved() || type getRef() == null) {
@@ -31,7 +31,7 @@ Argument: abstract class extends VariableDecl {
             if(!type isResolved() || type getRef() == null) res wholeAgain(this, "Hasn't resolved type yet!")
         }
 
-        return Responses OK
+        return Response OK
 
     }
 
@@ -51,7 +51,7 @@ VarArg: class extends Argument {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        return Responses OK
+        return Response OK
 
     }
 
@@ -78,7 +78,7 @@ DotArg: class extends Argument {
             if(res fatal) res throwError(UnresolvedArgumentAccess new(token,
                 "%s refers to non-existing member variable '%s' in type '%s'" format(class name, name, tDecl getName())))
             res wholeAgain(this, "DotArg wants its variable!")
-            return Responses OK
+            return Response OK
         }
 
         type = ref getType()
@@ -87,7 +87,7 @@ DotArg: class extends Argument {
                 res throwError(UnresolvedArgumentAccess new(token, "Couldn't resolve %s referring to '%s' in type '%s'" format(class name, name, tDecl getName())))
             }
             res wholeAgain(this, "Hasn't resolved type yet :x")
-            return Responses OK
+            return Response OK
         }
 
         return super(trail, res)
@@ -108,13 +108,13 @@ AssArg: class extends DotArg {
 
         super(trail, res)
 
-        if(unwrapped) return Responses OK
+        if(unwrapped) return Response OK
 
         if(ref == null) {
             res wholeAgain(this, "Yet has to be unwrapped =)")
         } else {
             fDecl := trail get(trail find(FunctionDecl), FunctionDecl)
-	    	//printf("Unwrapping AssArg %s in function %s\n", toString(), fDecl toString())
+            //printf("Unwrapping AssArg %s in function %s\n", toString(), fDecl toString())
             if(fDecl getName() != "new") {
                 fDecl getBody() add(0, BinaryOp new(
                     VariableAccess new(VariableAccess new("this", token), name, token),
@@ -123,11 +123,11 @@ AssArg: class extends DotArg {
                     token
                 ))
                 unwrapped = true
-	            res wholeAgain(this, "Just unwrapped!")
+                res wholeAgain(this, "Just unwrapped!")
             }
         }
 
-        return Responses OK
+        return Response OK
 
     }
 

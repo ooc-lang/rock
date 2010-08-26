@@ -81,7 +81,7 @@ ClassDeclWriter: abstract class extends Skeleton {
             if(vDecl isExtern() || vDecl isVirtual()) continue;
 
             current nl()
-            vDecl getType() write(current, vDecl getName())
+            vDecl getType() write(current, vDecl getFullName())
             current app(';')
         }
 
@@ -153,33 +153,33 @@ ClassDeclWriter: abstract class extends Skeleton {
 
     writeStaticFuncs: static func (this: Skeleton, cDecl: ClassDecl) {
 
-		for (decl: FunctionDecl in cDecl functions) {
+        for (decl: FunctionDecl in cDecl functions) {
 
-			if (!decl isStatic() || decl isProto() || decl isAbstract()) continue
+            if (!decl isStatic() || decl isProto() || decl isAbstract()) continue
 
             if(decl isExternWithName()) {
                 FunctionDeclWriter write(this, decl)
-				continue
-			}
+                continue
+            }
 
             current = cw
             current nl()
-			FunctionDeclWriter writeFuncPrototype(this, decl);
+            FunctionDeclWriter writeFuncPrototype(this, decl);
 
-			current app(' '). openBlock(). nl()
+            current app(' '). openBlock(). nl()
 
             if(decl getName() == ClassDecl LOAD_FUNC_NAME) {
                 superRef := cDecl getSuperRef()
                 finalScore: Int
-            	superLoad := superRef getFunction(ClassDecl LOAD_FUNC_NAME, null, null, finalScore&)
-            	if(superLoad) {
-					FunctionDeclWriter writeFullName(this, superLoad)
-					current app("();")
-            	}
-            	for(vDecl in cDecl variables) {
-					if(vDecl getExpr() == null) continue
-					current nl(). app(cDecl getNonMeta() underName()). app("_class()->"). app(vDecl getName()). app(" = "). app(vDecl getExpr()). app(';')
-				}
+                superLoad := superRef getFunction(ClassDecl LOAD_FUNC_NAME, null, null, finalScore&)
+                if(superLoad) {
+                    FunctionDeclWriter writeFullName(this, superLoad)
+                    current app("();")
+                }
+                for(vDecl in cDecl variables) {
+                    if(vDecl getExpr() == null) continue
+                    current nl(). app(cDecl getNonMeta() underName()). app("_class()->"). app(vDecl getName()). app(" = "). app(vDecl getExpr()). app(';')
+                }
             }
 
             for(stat in decl body) {
@@ -187,36 +187,36 @@ ClassDeclWriter: abstract class extends Skeleton {
             }
             current closeBlock()
 
-		}
-	}
+        }
+    }
 
     writeInstanceVirtualFuncs: static func (this: Skeleton, cDecl: ClassDecl) {
 
-		for(fDecl: FunctionDecl in cDecl functions) {
+        for(fDecl: FunctionDecl in cDecl functions) {
 
-			if (fDecl isStatic() || fDecl isFinal() || fDecl isExternWithName()) {
-				continue
+            if (fDecl isStatic() || fDecl isFinal() || fDecl isExternWithName()) {
+                continue
             }
 
-			current nl(). nl()
-			FunctionDeclWriter writeFuncPrototype(this, fDecl)
-			current app(' '). openBlock(). nl()
+            current nl(). nl()
+            FunctionDeclWriter writeFuncPrototype(this, fDecl)
+            current app(' '). openBlock(). nl()
 
             baseClass := cDecl getBaseClass(fDecl)
-			if (fDecl hasReturn()) {
-				current app("return ("). app(fDecl returnType). app(") ")
-			}
+            if (fDecl hasReturn()) {
+                current app("return ("). app(fDecl returnType). app(") ")
+            }
             if(cDecl getNonMeta() instanceOf?(InterfaceDecl)) {
                 current app("this.impl->")
             } else {
                 current app("(("). app(baseClass underName()). app(" *)"). app("((lang_types__Object *)this)->class)->")
             }
             FunctionDeclWriter writeSuffixedName(this, fDecl)
-			FunctionDeclWriter writeFuncArgs(this, fDecl, ArgsWriteModes NAMES_ONLY, baseClass)
-			current app(";"). closeBlock()
+            FunctionDeclWriter writeFuncArgs(this, fDecl, ArgsWriteModes NAMES_ONLY, baseClass)
+            current app(";"). closeBlock()
 
-		}
-	}
+        }
+    }
 
     writeInstanceImplFuncs: static func (this: Skeleton, cDecl: ClassDecl) {
 
@@ -233,7 +233,7 @@ ClassDeclWriter: abstract class extends Skeleton {
             if(decl getName() == ClassDecl DEFAULTS_FUNC_NAME) {
                 nonMeta := cDecl getNonMeta()
                 superType := nonMeta getSuperType()
-            	superRef  := nonMeta getSuperRef()
+                superRef  := nonMeta getSuperRef()
 
                 if(superType != null && superType getTypeArgs() != null) {
                     j := 0
@@ -268,10 +268,10 @@ ClassDeclWriter: abstract class extends Skeleton {
                     }
                 }
 
-				for(vDecl in nonMeta variables) {
-					if(vDecl getExpr() == null) continue
-					current nl(). app("this->"). app(vDecl getName()). app(" = "). app(vDecl getExpr()). app(';')
-				}
+                for(vDecl in nonMeta variables) {
+                    if(vDecl getExpr() == null) continue
+                    current nl(). app("this->"). app(vDecl getName()). app(" = "). app(vDecl getExpr()). app(';')
+                }
             }
 
             for(stat in decl body) {
@@ -369,7 +369,7 @@ ClassDeclWriter: abstract class extends Skeleton {
                 }
 
                 if (parentDecl isStatic() && parentDecl isAbstract()) {
-                    continue // skip it
+                    continue // abstract static funcs aren't written in classes
                 }
 
                 if (parentDecl isStatic() || (realDecl == null && parentDecl isAbstract())) {
@@ -403,6 +403,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
         if(realDecl != null && realDecl isAbstract) return
 
+    current nl()
         current nl(). app('.')
         FunctionDeclWriter writeSuffixedName(this, parentDecl)
         current app(" = ")
@@ -413,7 +414,7 @@ ClassDeclWriter: abstract class extends Skeleton {
             current app(") ")
         }
 
-		decl := realDecl ? realDecl : parentDecl
+        decl := realDecl ? realDecl : parentDecl
         FunctionDeclWriter writeFullName(this, decl)
         if(!decl isExternWithName() && impl) current app("_impl")
         current app(',')
@@ -424,10 +425,10 @@ ClassDeclWriter: abstract class extends Skeleton {
 
         structName := cDecl underName()
         if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
-		current nl(). app("struct _"). app(structName). app(";")
-		current nl(). app("typedef struct _"). app(structName). app(" "). app(structName). app(";")
+        current nl(). app("struct _"). app(structName). app(";")
+        current nl(). app("typedef struct _"). app(structName). app(" "). app(structName). app(";")
         if(cDecl getVersion()) VersionWriter writeEnd(this)
 
-	}
+    }
 
 }

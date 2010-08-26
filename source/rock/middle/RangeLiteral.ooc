@@ -51,13 +51,13 @@ RangeLiteral: class extends Literal {
             newCall := FunctionCall new(VariableAccess new("Range", token), "new", token)
             newCall args add(lower) .add(upper)
 
-			if(!parent replace(this, newCall)) {
+            if(!parent replace(this, newCall)) {
                 printf("Couldn't replace %s with %s in %s\n", toString(), newCall toString(), parent toString())
             }
-			res wholeAgain(this, "replaced with range constructor!")
+            res wholeAgain(this, "replaced with range constructor!")
         }
 
-        return Responses OK
+        return Response OK
     }
 
     getType: func -> Type { type }

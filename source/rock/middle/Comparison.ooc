@@ -81,7 +81,7 @@ Comparison: class extends Expression {
             if(!response ok()) return response
         }
 
-        return Responses OK
+        return Response OK
 
     }
 
@@ -97,7 +97,7 @@ Comparison: class extends Expression {
 
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType)
-            if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Responses OK }
+            if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response OK }
             if(score > bestScore) {
                 bestScore = score
                 candidate = opDecl
@@ -108,7 +108,7 @@ Comparison: class extends Expression {
             module := imp getModule()
             for(opDecl in module getOperators()) {
                 score := getScore(opDecl, reqType)
-                if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Responses OK }
+                if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response OK }
                 if(score > bestScore) {
                     bestScore = score
                     candidate = opDecl
@@ -148,12 +148,12 @@ Comparison: class extends Expression {
             if(!trail peek() replace(this, node)) {
                 if(res fatal) res throwError(CouldntReplace new(token, this, node, trail))
                 res wholeAgain(this, "failed to replace oneself, gotta try again =)")
-                return Responses OK
+                return Response OK
             }
             res wholeAgain(this, "Just replaced with an operator overloading")
         }
 
-        return Responses OK
+        return Response OK
 
     }
 

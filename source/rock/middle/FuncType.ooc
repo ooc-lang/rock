@@ -132,7 +132,7 @@ FuncType: class extends Type {
             res wholeAgain(this, "Added funcType!")
         }
 
-        return Responses OK
+        return Response OK
     }
 
     toString: func -> String {

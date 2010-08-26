@@ -22,6 +22,8 @@ import tinker/[Response, Resolver, Trail, Errors]
  * @author Amos Wenger (nddrylliog)
  */
 
+IMPLICIT_AS_EXTERNAL_ONLY: const Bool = true
+
 FunctionCall: class extends Expression {
 
     /**
@@ -204,7 +206,7 @@ FunctionCall: class extends Expression {
                         ref as TypeDecl implicitConversions each(|opdecl|
                             if(opdecl fDecl getReturnType() equals?(declArgType)) {
                                 candidateUsesAs = true
-                                if(candidate isExtern()) {
+                                if(!(IMPLICIT_AS_EXTERNAL_ONLY) || candidate isExtern()) {
                                     args set(i, Cast new(callArg, declArgType, callArg token))
                                     if(!argsBeforeConversion) {
                                         // lazy instantiation of argsBeforeConversion
@@ -288,14 +290,14 @@ FunctionCall: class extends Expression {
          */
         if(refScore <= 0) {
             if(debugCondition()) printf("\n===============\nResolving call %s\n", toString())
-        	if(name == "super") {
-				fDecl := trail get(trail find(FunctionDecl), FunctionDecl)
+            if(name == "super") {
+                fDecl := trail get(trail find(FunctionDecl), FunctionDecl)
                 superTypeDecl := fDecl owner getSuperRef()
                 finalScore: Int
                 ref = superTypeDecl getMeta() getFunction(fDecl getName(), null, this, finalScore&)
                 if(finalScore == -1) {
                     res wholeAgain(this, "something in our typedecl's functions needs resolving!")
-                    return Responses OK
+                    return Response OK
                 }
                 if(ref != null) {
                     refScore = 1
@@ -306,14 +308,14 @@ FunctionCall: class extends Expression {
                         }
                     }
                 }
-        	} else {
-        		if(expr == null) {
-				    depth := trail size() - 1
-				    while(depth >= 0) {
-				        node := trail get(depth, Node)
-				        if(node resolveCall(this, res, trail) == -1) {
+            } else {
+                if(expr == null) {
+                    depth := trail size() - 1
+                    while(depth >= 0) {
+                        node := trail get(depth, Node)
+                        if(node resolveCall(this, res, trail) == -1) {
                             res wholeAgain(this, "Waiting on other nodes to resolve before resolving call.")
-                            return Responses OK
+                            return Response OK
                         }
 
                         if(ref) {
@@ -328,9 +330,9 @@ FunctionCall: class extends Expression {
                                 }
                             }
                         }
-				        depth -= 1
-				    }
-			    } else if(expr instanceOf?(VariableAccess) && expr as VariableAccess getRef() != null && expr as VariableAccess getRef() instanceOf?(NamespaceDecl)) {
+                        depth -= 1
+                    }
+                } else if(expr instanceOf?(VariableAccess) && expr as VariableAccess getRef() != null && expr as VariableAccess getRef() instanceOf?(NamespaceDecl)) {
                     expr as VariableAccess getRef() resolveCall(this, res, trail)
                 } else if(expr getType() != null && expr getType() getRef() != null) {
                     if(!expr getType() getRef() instanceOf?(TypeDecl)) {
@@ -341,14 +343,14 @@ FunctionCall: class extends Expression {
                         res throwError(UnresolvedCall new(this, message, ""))
                     }
                     tDecl := expr getType() getRef() as TypeDecl
-		            meta := tDecl getMeta()
+                    meta := tDecl getMeta()
                     if(debugCondition()) printf("Got tDecl %s, resolving, meta = %s\n", tDecl toString(), meta == null ? "(nil)" : meta toString())
-		            if(meta) {
-		                meta resolveCall(this, res, trail)
-		            } else {
-		                tDecl resolveCall(this, res, trail)
-		            }
-		        }
+                    if(meta) {
+                        meta resolveCall(this, res, trail)
+                    } else {
+                        tDecl resolveCall(this, res, trail)
+                    }
+                }
             }
         }
 
@@ -359,7 +361,7 @@ FunctionCall: class extends Expression {
 
             if(!resolveReturnType(trail, res) ok()) {
                 res wholeAgain(this, "looping because of return type!")
-                return Responses OK
+                return Response OK
             }
 
             // resolved. if we're inlining, do it now!
@@ -367,7 +369,7 @@ FunctionCall: class extends Expression {
             if(res params inlining && ref doInline) {
                 if(expr && (expr getType() == null || !expr getType() isResolved())) {
                     res wholeAgain(this, "need expr type!")
-                    return Responses OK
+                    return Response OK
                 }
 
                 "Inlining %s! type = %s" printfln(toString(), getType() ? getType() toString() : "<unknown>")
@@ -406,17 +408,17 @@ FunctionCall: class extends Expression {
                 trail peek() replace(this, retAcc)
 
                 res wholeAgain(this, "finished inlining")
-                return Responses OK
+                return Response OK
             }
 
             if(!handleGenerics(trail, res) ok()) {
                 res wholeAgain(this, "looping because of generics!")
-                return Responses OK
+                return Response OK
             }
 
             if(!handleInterfaces(trail, res) ok()) {
                 res wholeAgain(this, "looping because of interfaces!")
-                return Responses OK
+                return Response OK
             }
 
             if(typeArgs size() > 0) {
@@ -426,7 +428,7 @@ FunctionCall: class extends Expression {
                     if(!response ok()) {
                         trail pop(this)
                         res wholeAgain(this, "typeArg failed to resolve\n")
-                        return Responses OK
+                        return Response OK
                     }
                 }
                 trail pop(this)
@@ -484,7 +486,7 @@ FunctionCall: class extends Expression {
                 res throwError(UnresolvedCall new(this, message, precisions))
             } else {
                 res wholeAgain(this, "not resolved")
-                return Responses OK
+                return Response OK
             }
 
         }
@@ -494,10 +496,10 @@ FunctionCall: class extends Expression {
             vDecl := VariableDecl new(null, generateTempName("hi_mum"), expr, expr token)
             trail addBeforeInScope(this, vDecl)
             expr = VariableAccess new(vDecl, expr token)
-            return Responses OK
+            return Response OK
         }
 
-        return Responses OK
+        return Response OK
 
     }
 
@@ -571,7 +573,7 @@ FunctionCall: class extends Expression {
 
         if(ref == null || ref returnType == null) {
             res wholeAgain(this, "need ref and refType")
-            return Responses OK
+            return Response OK
         }
 
         idx := 2
@@ -588,11 +590,11 @@ FunctionCall: class extends Expression {
                     retType := fDecl getReturnType()
                     if(!retType isResolved()) {
                         res wholeAgain(this, "Need fDecl returnType to be resolved")
-                        return Responses OK
+                        return Response OK
                     }
                     if(retType isGeneric()) {
                         // will be handled by Return resolve()
-                        return Responses OK
+                        return Response OK
                     }
                 }
             }
@@ -602,7 +604,7 @@ FunctionCall: class extends Expression {
             if(!trail addBeforeInScope(this, vDecl)) {
                 if(res fatal) res throwError(CouldntAddBeforeInScope new(token, vDecl, this, trail))
                 res wholeAgain(this, "couldn't add before scope")
-                return Responses OK
+                return Response OK
             }
 
             seq := CommaSequence new(token)
@@ -610,7 +612,7 @@ FunctionCall: class extends Expression {
                 if(res fatal) res throwError(CouldntReplace new(token, this, seq, trail))
                 // FIXME: what if we already added the vDecl?
                 res wholeAgain(this, "couldn't unwrap")
-                return Responses OK
+                return Response OK
             }
 
             // only modify ourselves if we could do the other modifications
@@ -623,23 +625,23 @@ FunctionCall: class extends Expression {
             res wholeAgain(this, "just unwrapped")
         }
 
-        return Responses OK
+        return Response OK
 
     }
 
-	/**
-	 * In some cases, a generic function call needs to be unwrapped,
-	 * e.g. when it's used as an expression in another call, etc.
-	 * However, some nodes are 'friendly' parents to us, e.g.
-	 * they handle things themselves and we don't need to unwrap.
-	 * @return true if the node is friendly, false if it is not and we
-	 * need to unwrap
-	 */
+    /**
+     * In some cases, a generic function call needs to be unwrapped,
+     * e.g. when it's used as an expression in another call, etc.
+     * However, some nodes are 'friendly' parents to us, e.g.
+     * they handle things themselves and we don't need to unwrap.
+     * @return true if the node is friendly, false if it is not and we
+     * need to unwrap
+     */
     isFriendlyHost: func (node: Node) -> Bool {
         node isScope() ||
-		node instanceOf?(CommaSequence) ||
-		node instanceOf?(VariableDecl) ||
-		(node instanceOf?(BinaryOp) && node as BinaryOp type == OpType ass)
+        node instanceOf?(CommaSequence) ||
+        node instanceOf?(VariableDecl) ||
+        (node instanceOf?(BinaryOp) && node as BinaryOp type == OpType ass)
     }
 
     /**
@@ -650,7 +652,7 @@ FunctionCall: class extends Expression {
      */
     resolveReturnType: func (trail: Trail, res: Resolver) -> Response {
 
-        if(returnType != null) return Responses OK
+        if(returnType != null) return Response OK
 
         //printf("Resolving returnType of %s (=%s), returnType of ref = %s, isGeneric() = %s, ref of returnType of ref = %s\n", toString(), returnType ? returnType toString() : "(nil)",
         //    ref returnType toString(), ref returnType isGeneric() toString(), ref returnType getRef() ? ref returnType getRef() toString() : "(nil)")
@@ -658,7 +660,7 @@ FunctionCall: class extends Expression {
         if(returnType == null && ref != null) {
             if(!ref returnType isResolved()) {
                 res wholeAgain(this, "need resolve the return type of our ref to see if it's generic")
-                return Responses OK
+                return Response OK
             }
 
             finalScore := 0
@@ -687,17 +689,17 @@ FunctionCall: class extends Expression {
                     if(expr) printf("expr = %s, type = %s\n", expr toString(), expr getType() ? expr getType() toString() : "(nil)")
                 }
                 res wholeAgain(this, "because of return type")
-                return Responses OK
+                return Response OK
             }
         }
 
         if(returnType == null) {
             if(res fatal) res throwError(InternalError new(token, "Couldn't resolve return type of function %s\n" format(toString())))
-            return Responses LOOP
+            return Response LOOP
         }
 
         //"At the end of resolveReturnType(), the return type of %s is %s" format(toString(), getType() ? getType() toString() : "(nil)") println()
-        return Responses OK
+        return Response OK
 
     }
 
@@ -745,7 +747,7 @@ FunctionCall: class extends Expression {
             if(declArg getType() == null || declArg getType() getRef() == null ||
                callArg getType() == null || callArg getType() getRef() == null) {
                 res wholeAgain(this, "To resolve interface-args, need to resolve declArg and callArg")
-                return Responses OK
+                return Response OK
             }
             if(declArg getType() getRef() instanceOf?(InterfaceDecl)) {
                 if(!declArg getType() equals?(callArg getType())) {
@@ -756,7 +758,7 @@ FunctionCall: class extends Expression {
             i += 1
         }
 
-        return Responses OK
+        return Response OK
 
     }
 
@@ -781,7 +783,7 @@ FunctionCall: class extends Expression {
             typeResult := callArg getType()
             if(typeResult == null) {
                 res wholeAgain(this, "null callArg, need to resolve it first.")
-                return Responses OK
+                return Response OK
             }
 
             isGood := ((callArg instanceOf?(AddressOf) && callArg as AddressOf isForGenerics) || typeResult isGeneric())
@@ -802,7 +804,7 @@ FunctionCall: class extends Expression {
         }
 
         if(typeArgs size() == ref typeArgs size()) {
-            return Responses OK // already resolved
+            return Response OK // already resolved
         }
 
         //if(res params veryVerbose) printf("\t$$$$ resolving typeArgs of %s (call = %d, ref = %d)\n", toString(), typeArgs size(), ref typeArgs size())
@@ -844,7 +846,7 @@ FunctionCall: class extends Expression {
             res wholeAgain(this, "Looping because of typeArgs\n")
         }
 
-        return Responses OK
+        return Response OK
 
     }
 
@@ -1200,7 +1202,7 @@ FunctionCall: class extends Expression {
     getRef: func -> FunctionDecl { ref }
     setRef: func (=ref) { refScore = 1; /* or it'll keep trying to resolve it =) */ }
 
-	getArguments: func ->  ArrayList<Expression> { args }
+    getArguments: func ->  ArrayList<Expression> { args }
 
 }
 

@@ -92,10 +92,10 @@ Try: class extends ControlStatement {
         result := trail peek() replace(this, block)
         if(!result) {
             res throwError(CouldntReplace new(token, this, block, trail))
-            return Responses LOOP
+            return Response LOOP
         }
         res wholeAgain(this, "Just unwrapped.")
-        return Responses LOOP
+        return Response LOOP
     }
 
     toString: func -> String { class name }
