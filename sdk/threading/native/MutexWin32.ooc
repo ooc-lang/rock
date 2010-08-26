@@ -45,4 +45,38 @@ version(windows) {
         CloseHandle(m as Handle)
     }
 
+    /**
+     * Win32 implementation of recursive mutexes.
+     *
+     * Apparently, Win32 mutexes are recursive by default, so this is just a
+     * copy of `MutexWin32`, which is by
+     *
+     * :author: Amos Wenger (nddrylliog)
+     */
+    RecursiveMutexWin32: class extends Mutex {
+
+        new: static func -> RecursiveMutex {
+            mut := CreateMutex (
+                null,  // default security attributes
+                false, // initially not owned
+                null)  // unnamed recursive_mutex
+            mut as RecursiveMutex
+        }
+
+    }
+
+    ooc_recursive_mutex_lock: inline unmangled func (m: RecursiveMutex) {
+        WaitForSingleObject(
+            m as Handle, // handle to recursive_mutex
+            INFINITE         // no time-out interval
+        )
+    }
+
+    ooc_recursive_mutex_unlock: inline unmangled func (m: RecursiveMutex) {
+        ReleaseMutex(m as Handle)
+    }
+
+    ooc_recursive_mutex_destroy: inline unmangled func (m: RecursiveMutex) {
+        CloseHandle(m as Handle)
+    }
 }

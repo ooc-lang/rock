@@ -1,6 +1,6 @@
 import native/[ThreadUnix, ThreadWin32]
 import native/[MutexUnix, MutexWin32]
-import native/ThreadLocalUnix
+import native/[ThreadLocalUnix, ThreadLocalWin32]
 
 /**
    A thread is a thread of execution in a program. Multiple threads
@@ -148,9 +148,9 @@ RecursiveMutex: abstract class {
         version (unix || apple) {
             return RecursiveMutexUnix new()
         }
-        //version (windows) {
-        //    return RecursiveMutexWin32 new()
-        //}
+        version (windows) {
+            return RecursiveMutexWin32 new()
+        }
 
         Exception new(This, "Unsupported platform!\n") throw()
         null
@@ -203,7 +203,9 @@ ThreadLocal: abstract class <T> {
         version (unix || apple) {
             return ThreadLocalUnix<T> new() as This
         }
-        // TODO: Windows
+        version (windows) {
+            return ThreadLocalWin32<T> new() as This
+        }
         Exception new(This, "Unsupported platform!\n") throw()
         null
     }    

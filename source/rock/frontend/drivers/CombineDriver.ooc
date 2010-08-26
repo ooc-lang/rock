@@ -73,7 +73,9 @@ CombineDriver: class extends Driver {
             }
 
             if(params enableGC) {
-                params compiler addDynamicLibrary("pthread")
+                version(linux || apple) {
+                    params compiler addDynamicLibrary("pthread")
+                }
                 if(params dynGC) {
                     params compiler addDynamicLibrary("gc")
                 } else {

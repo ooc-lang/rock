@@ -1,7 +1,8 @@
 import ../Thread
-include pthread, unistd
+include unistd
 
 version(unix || apple) {
+    include pthread
 
     /* covers & extern functions */
     PThread: cover from pthread_t
