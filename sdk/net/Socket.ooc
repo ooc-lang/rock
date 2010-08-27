@@ -16,7 +16,15 @@ Socket: abstract class {
     init: func ~descriptor(=family, =type, =protocol, =descriptor) {}
 
     close: func {
-        if (close(descriptor) == -1) {
+        result : Int
+        
+        version(windows) {
+            result = closesocket(descriptor)
+        } else {
+            result = close(descriptor)
+        }
+        
+        if (result == -1) {
             SocketError new("Failed to close socket") throw()
         }
     }
