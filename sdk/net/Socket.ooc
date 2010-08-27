@@ -17,13 +17,12 @@ Socket: abstract class {
 
     close: func {
         result : Int
-        windows := false
+
         version(windows) {
-            windows = true
             result = closesocket(descriptor)
-        }
-        
-        if (!windows) {
+        }        
+
+        version (!windows) {
             result = close(descriptor)
         }
         
@@ -58,6 +57,7 @@ Socket: abstract class {
                 
         return hostname
     }
+    
 }
 
 SocketFamily: cover {
