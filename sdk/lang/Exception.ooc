@@ -29,7 +29,7 @@ StackFrame: cover from _StackFrame* {
 
 exceptionStack := ThreadLocal<Stack<StackFrame>> new()
 
-_exception: Exception
+_exception := ThreadLocal<Exception> new()
 _EXCEPTION: Int = 1
 
 _pushStackFrame: inline func -> StackFrame {
@@ -45,15 +45,19 @@ _pushStackFrame: inline func -> StackFrame {
     buf
 }
 
-_setException: func (e: Exception) {
-    _exception = e
+_setException: inline func (e: Exception) {
+    _exception set(e)
 }
 
-_popStackFrame: func -> StackFrame {
+_getException: inline func -> Exception {
+    _exception get()
+}
+
+_popStackFrame: inline func -> StackFrame {
     exceptionStack get() as Stack<StackFrame> pop() as StackFrame
 }
 
-_hasStackFrame: func -> Bool {
+_hasStackFrame: inline func -> Bool {
     exceptionStack hasValue?() && exceptionStack get() as Stack<StackFrame> size() > 0
 }
 

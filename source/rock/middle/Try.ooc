@@ -68,9 +68,9 @@ Try: class extends ControlStatement {
         if_ getBody() addAll(this getBody())
         // else {
         else_ := Else new(token)
-        // match (_exception) { ... }
+        // match (_getException()) { ... }
         match_ := Match new(token)
-        match_ setExpr(VariableAccess new("_exception", token))
+        match_ setExpr(FunctionCall new("_getException", token))
         match_ cases addAll(catches)
         else_ add(match_)
         block add(else_)
@@ -84,8 +84,8 @@ Try: class extends ControlStatement {
         }
         if(rethrow?) {
             caze := Case new(token)
-            // _exception throw() // TODO: `rethrow, rather`
-            caze add(FunctionCall new(VariableAccess new("_exception", token), "throw", token))
+            // _getException() throw() // TODO: `rethrow, rather`
+            caze add(FunctionCall new(FunctionCall new("_getException", token), "throw", token))
             match_ addCase(caze)
         }
         // }
