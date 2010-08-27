@@ -20,7 +20,7 @@ DNS: class {
         hints ai_family = socketFamily
         hints ai_socktype = socketType
         if((rv := getaddrinfo(hostname, null, hints&, info&)) != 0) {
-            DNSError new(gai_strerror(rv as Int) as String) throw()
+            DNSError new(gai_strerror(rv as Int) as CString toString()) throw()
         }
         return HostInfo new(info)
     }
