@@ -55,3 +55,9 @@ SocketMsgFlags: cover {
     PEEK: extern(MSG_PEEK) static Int
     WAITALL: extern(MSG_WAITALL) static Int
 }
+
+SocketShutdownOptions: cover {
+    NO_MORE_RECIEVES: extern(SHUT_RD) static Int
+    NO_MORE_SENDS: extern(SHUT_WR) static Int
+    NO_MORE_SENDS_OR_RECIEVES: extern(SHUT_RDWR) static Int
+}
