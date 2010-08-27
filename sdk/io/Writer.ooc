@@ -49,7 +49,7 @@ Writer: abstract class {
     */
     write: func ~fromReader(source: Reader, bufferSize: SizeT) -> SizeT {
         buffer := Buffer new(bufferSize)
-        cursor, bytesRead, bytesTransfered: Int
+        cursor, bytesTransfered: Int
         cursor = 0; bytesTransfered = 0
 
         while(source hasNext?()) {
