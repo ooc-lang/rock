@@ -148,6 +148,14 @@ operator as (value: Char) -> String {
     value toString()
 }
 
+operator as (value: Char*) -> String {
+    value as CString toString()
+}
+
+operator as (value: CString) -> String {
+    value toString()
+}
+
 CString: cover from Char* {
 
     /** Create a new string exactly *length* characters long (without the nullbyte).
@@ -173,6 +181,8 @@ CString: cover from Char* {
         }
         return true
     }
+
+    toString: func -> String { String new(this, length()) }
 
     /** return the string's length, excluding the null byte. */
     length: extern(strlen) func -> Int
