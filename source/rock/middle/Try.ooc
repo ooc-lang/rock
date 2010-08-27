@@ -84,8 +84,8 @@ Try: class extends ControlStatement {
         }
         if(rethrow?) {
             caze := Case new(token)
-            // _getException() throw() // TODO: `rethrow, rather`
-            caze add(FunctionCall new(FunctionCall new("_getException", token), "throw", token))
+            // _getException() rethrow()
+            caze add(FunctionCall new(FunctionCall new("_getException", token), "rethrow", token))
             match_ addCase(caze)
         }
         // }

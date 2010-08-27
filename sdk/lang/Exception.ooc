@@ -142,6 +142,13 @@ Exception: class {
             frame@ buf longJmp(_EXCEPTION)
         }
     }
+
+    /**
+     * Rethrow this exception.
+     */
+    rethrow: func {
+        throw()
+    }
 }
 
 /* ------ C interfacing ------ */
