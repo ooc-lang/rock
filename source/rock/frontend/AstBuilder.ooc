@@ -56,7 +56,7 @@ AstBuilder: class {
 
         if(params verbose) {
             if(!first) "%s\r" format((" " times(76) toCString())) println()
-            "Parsing %s" printf(modulePath toCString())
+            "Parsing %s" format (modulePath toCString()) print()
         }
         cache put(File new(modulePath) getAbsolutePath(), module)
 
@@ -69,7 +69,7 @@ AstBuilder: class {
         }
 
         first = false
-        result := nq_parse(this, modulePath as CString)
+        result := nq_parse(this, modulePath toCString())
         if(result == -1) {
             Exception new(This, "File " +modulePath + " not found") throw()
         }

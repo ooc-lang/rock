@@ -35,7 +35,7 @@ Module: class extends Node {
 
     init: func ~module (.fullName, =pathElement, =params, .token) {
         super(token)
-        this path = fullName clone() replaceAll('/', File separator)
+        this path = fullName replaceAll('/', File separator)
         this fullName = fullName replaceAll(File separator, '/')
         idx := this fullName lastIndexOf('/')
 
@@ -87,6 +87,8 @@ Module: class extends Node {
     }
 
     sanitize: func(str: String) -> String {
+        assert (str != null)
+        assert (str _buffer != null)
         result := str _buffer clone()
         for(i in 0..result length()) {
             current := result[i]
@@ -94,7 +96,7 @@ Module: class extends Node {
                 result[i] = '_'
             }
         }
-        if(!result[0] alpha?()) result = '_' + result
+        if(result size > 0 && !result[0] alpha?()) result = '_' + result
         String new(result)
     }
 

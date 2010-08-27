@@ -508,6 +508,8 @@ CommandLine: class {
     }
 
     parse: func (moduleName: String) -> Int {
+        assert (moduleName != null)
+        assert (!moduleName empty?())
         ("opening file " + moduleName + " for read...") println()
         moduleFile := params sourcePath getFile(moduleName)
 
@@ -518,10 +520,18 @@ CommandLine: class {
         }
 
         modulePath := moduleFile path
+        assert(modulePath != null)
+        assert(!modulePath empty?())
         //FIXME doh, so you allow only .ooc extension...
         fullName := moduleName substring(0, moduleName length() - 4)
+        ("full name " + fullName) println()
         // FIXME damn that thing crashes here with a fully qualified name. but i wont fix it now.
-        module := Module new(fullName, params sourcePath getElement(moduleName) path, params , nullToken)
+        // WTF why do you do that ? (accessing sourcepath again?)
+        mysteriousString := params sourcePath getElement(moduleName) path
+        assert(mysteriousString != null)
+        assert(!mysteriousString empty?())
+        ("myst name " + mysteriousString) println()
+        module := Module new(fullName, mysteriousString, params , nullToken)
         module token = Token new(0, 0, module)
         module main = true
         module lastModified = moduleFile lastModified()
