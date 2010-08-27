@@ -17,10 +17,13 @@ Socket: abstract class {
 
     close: func {
         result : Int
-        
+        windows := false
         version(windows) {
+            windows = true
             result = closesocket(descriptor)
-        } else {
+        }
+        
+        if (!windows) {
             result = close(descriptor)
         }
         
@@ -41,6 +44,19 @@ Socket: abstract class {
         result: Int
         ioctl(FIONREAD, result&)
         return result;
+    }
+    
+    localHostName: static func -> String {
+        hostname := String new(255)
+        length : SizeT
+        
+        result := gethostname(hostname as CString, length)
+        
+        if(result != 0) {
+            SocketError new() throw()
+        }
+                
+        return hostname
     }
 }
 
