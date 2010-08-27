@@ -42,6 +42,27 @@ Socket: abstract class {
         ioctl(FIONREAD, result&)
         return result;
     }
+    
+    localHostName: static func -> String {
+        hostname := String new(255)
+        length : SizeT
+        
+        result := gethostname(hostname as CString, length)
+        
+        if(result != 0) {
+            SocketError new() throw()
+        }
+                
+        return hostname
+    }
+    
+    setSocketNonBlocking: func {
+        result := fcntl(descriptor, SocketControls SET_SOCKET, SocketControls NON_BLOCKING)
+        if(result != 0) {
+            SocketError new() throw()
+        }
+    }
+
 }
 
 SocketFamily: cover {
@@ -68,4 +89,10 @@ SocketShutdownOptions: cover {
     NO_MORE_RECIEVES: extern(SHUT_RD) static Int
     NO_MORE_SENDS: extern(SHUT_WR) static Int
     NO_MORE_SENDS_OR_RECIEVES: extern(SHUT_RDWR) static Int
+}
+
+SocketControls: cover {
+    SET_SOCKET: extern(F_SETFL) static Int
+    NON_BLOCKING: extern(O_NONBLOCK) static Int
+    ASYNCHRONOUS: extern(O_ASYNC) static Int // this probably shoulden't be implemented as it's badly supported
 }

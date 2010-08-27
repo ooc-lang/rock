@@ -7,6 +7,7 @@ include unistd | (__USE_BSD)
 include sys/select
 include arpa/inet
 include netdb | (__USE_POSIX)
+include sys/fcntl
 
 /**
     Low level binding to Berkeley sockets API.
@@ -113,8 +114,9 @@ gethostbyaddr: extern func(pointerToAddress: CString, addressLength: Int, type: 
 getpeername: extern func(descriptor: Int, address: SockAddr*, len: UInt) -> Int
 htonl: extern func(hostlong: UInt32) -> UInt32
 htons: extern func(hostshort: UInt16) -> UInt16
-ntohl: extern func (netlong: UInt32) -> UInt32
-ntohs: extern func (netshort: UInt16) -> UInt16
+ntohl: extern func(netlong: UInt32) -> UInt32
+ntohs: extern func(netshort: UInt16) -> UInt16
+fcntl: extern func(descriptor: Int, command: Int, argument: Int) -> Int
 
 // The following are deprecated
 inet_ntoa: extern func(address: InAddr) -> CString
