@@ -349,6 +349,7 @@ String: class {
     }
 
     printf: final func ~str (...) -> This {
+        assert(false)
         Exception new("cant set Buffer size after this call. please use format instead") throw()
         result := clone()
         list: VaList
@@ -360,6 +361,7 @@ String: class {
     }
 
      printfln: final func ~str (...) -> This {
+        assert(false)
         Exception new("cant set Buffer size after this call. please use format instead") throw()
         result := append('\n')
         list: VaList

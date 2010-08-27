@@ -15,6 +15,7 @@ FileUtils: class {
      * @return cleaned up file
      */
     resolveRedundancies: static func(path: String) -> String {
+        ("resolveRedundancies called on " + path) println()
         elems := ArrayList<String> new()
 
         for (elem in path split(File separator)) {
