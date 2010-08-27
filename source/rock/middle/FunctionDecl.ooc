@@ -844,7 +844,7 @@ FunctionDecl: class extends Declaration {
                 partialDecl := VariableDecl new(null, partialName, newCall, token)
                 trail addBeforeInScope(this, partialDecl)
                 parentCall: FunctionCall = null // ACS related, function call passing an ACS
-                argsSizes := String new(args size())
+                argsSizes := Buffer new(args size())
                 i := 0
                 for(arg in args) {
                     t: Type
@@ -878,7 +878,7 @@ FunctionDecl: class extends Declaration {
                             }
                             'P'
                     }
-                    argsSizes[i] = val
+                    argsSizes append(val)
                     i += 1
                 }
 
@@ -910,7 +910,7 @@ FunctionDecl: class extends Declaration {
 
                 fCall := FunctionCall new(partialAcc, "genCode", token)
                 fCall getArguments() add(VariableAccess new(name, token))
-                fCall getArguments() add(StringLiteral new(argsSizes, token))
+                fCall getArguments() add(StringLiteral new(String new(argsSizes), token))
                 trail peek() replace(this, fCall)
 
             } else {

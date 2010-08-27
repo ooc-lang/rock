@@ -33,7 +33,7 @@ Buffer: class {
 
     rshift: func -> SizeT { return mallocAddr != null ? (data as SizeT - mallocAddr as SizeT) as SizeT: 0 }
 
-    /* used to overwrite the data/attributes of *this* with that of another String */
+    /* used to overwrite the data/attributes of *this* with that of another This */
     setBuffer: func( newOne : This ) {
         data = newOne data
         mallocAddr = newOne mallocAddr
@@ -46,9 +46,16 @@ Buffer: class {
     init: func ~zero { init(0) }
 
     /** Create a new string exactly *length* characters long (without the nullbyte).
+        Attention! there is a catch: size will not be set, so if you manipulate Buffer data directly, be sure to set the size afterwards!
+        This has to be like that so you can i.e. prealloc a new buffer with predetermined size, then append stuff to it
         The contents of the string are undefined.   */
-    init: func ~withCapacity (capa: SizeT) {
+    init: func (capa: SizeT) {
         setCapacity(capa)
+    }
+
+    /* same as above, but set Size as well */
+    init: func ~withSize(sice: SizeT) {
+        setLength(sice)
     }
 
     init: func ~withBuffer (str: This) {
@@ -121,6 +128,15 @@ Buffer: class {
         setCapacity(length)
         size = length
         (data as Char* + size)@ = '\0'
+    }
+
+    /* does a strlen on the buffers data and sets this as the size
+        call only when you're sure that the data is zero terminated
+        only needed when you pass the data to some extern function, and don't how many bytes it wrote.
+     */
+    sizeFromData: func {
+        assert(data != null)
+        size := data as CString length()
     }
 
     /*  shifts data pointer to the right count bytes if possible
@@ -946,7 +962,7 @@ BufferReader: class extends Reader {
 
 
 operator == (str1: Buffer, str2: Buffer) -> Bool {
-assert(str1 != null)
+    assert(str1 != null)
     return str1 equals?(str2)
 }
 

@@ -24,7 +24,10 @@ String: class {
 
     /** warning: this function is useful when you directly want to manipulate the underlying
         buffer. which is against the immutability concept, but still useful sometimes */
-    init: func ~withCapacity (capa: SizeT) { _buffer = Buffer new~withCapacity(capa) }
+    init: func ~withCapacity (capa: SizeT) {
+        Exception new("it looks as if you want to use String as a Buffer! how about using Buffer instead ? i cant allow it, it would break Strings immutability.") throw()
+        _buffer = Buffer new(capa)
+    }
 
     init: func ~withString (s: String) {
         assert( s != null)
@@ -337,7 +340,7 @@ String: class {
         length := vsnprintf(null, 0, (fmt data), list)
         va_end(list)
 
-        copy := Buffer new(length)
+        copy := Buffer new~withSize(length)
 
         va_start(list, this )
         vsnprintf((copy data), length + 1, (fmt data), list)
@@ -345,7 +348,8 @@ String: class {
         This new~withBuffer(copy)
     }
 
-    printf: final func ~str (...) -> This{
+    printf: final func ~str (...) -> This {
+        Exception new("cant set Buffer size after this call. please use format instead") throw()
         result := clone()
         list: VaList
 
@@ -356,6 +360,7 @@ String: class {
     }
 
      printfln: final func ~str (...) -> This {
+        Exception new("cant set Buffer size after this call. please use format instead") throw()
         result := append('\n')
         list: VaList
 

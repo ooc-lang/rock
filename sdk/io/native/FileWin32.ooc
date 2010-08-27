@@ -50,11 +50,11 @@ version(windows) {
     }
 
     ooc_get_cwd: unmangled func -> String {
-        ret := String new(File MAX_PATH_LENGTH + 1)
-        if(!GetCurrentDirectory(File MAX_PATH_LENGTH, ret)) {
-            Exception new("Failed to get current directory!") throw()
-        }
-        return ret
+        ret := Buffer new(File MAX_PATH_LENGTH + 1)
+        bytesWritten := GetCurrentDirectory(File MAX_PATH_LENGTH, ret data)
+        if (bytesWritten == 0) OSException new("Failed to get current directory!") throw()
+        ret size = bytesWritten
+        String new(ret)
     }
 
     /*

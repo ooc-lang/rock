@@ -110,10 +110,11 @@ getToken: func (reader: Reader, token: Token*) {
             end := reader mark()
             reader reset(beginning)
             length := (end - beginning - 1) as SizeT
-            s := String new(length)
-            reader read(s _buffer data, 0, length)
+            xx := Buffer new~withSize(length)
+            reader read(xx data, 0, length)
             // advance '"'
             reader read()
+            s := String new(xx)
             token@ type = TokenType String
             token@ value = EscapeSequence unescape(s)
             return
@@ -179,11 +180,11 @@ getToken: func (reader: Reader, token: Token*) {
                 }
                 end := reader mark()
                 length := (end - beginning - 1) as SizeT
-                s := String new(length)
+                s := Buffer new~withSize(length)
                 reader reset(beginning)
-                reader read(s _buffer data, 0, length)
+                reader read(s data, 0, length)
                 token@ type = TokenType Number
-                token@ value = s
+                token@ value = String new(s)
             } else {
                 reader reset(marker)
                 LexingError new("Unknown token: %c" format(chr)) throw()

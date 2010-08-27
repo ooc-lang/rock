@@ -46,22 +46,24 @@ DNS: class {
         return reverse(SocketAddress new(ip, 0))
     }
     reverse: static func ~withSockAddr(sockaddr: SocketAddress) -> String {
-        hostname := String new(1024)
-        if((rv := getnameinfo(sockaddr addr(), sockaddr length(), hostname, 1024, null, 0, 0)) != 0) {
-            DNSError new(gai_strerror(rv as Int) as String) throw()
+        hostname := Buffer new(1024)
+        if((rv := getnameinfo(sockaddr addr(), sockaddr length(), hostname data, 1024, null, 0, 0)) != 0) {
+            DNSError new(gai_strerror(rv as Int) as CString toString()) throw()
         }
-        return hostname
+        hostname sizeFromData()
+        return String new(hostname)
     }
 
     /**
         Returns the hostname of this system.
     */
     hostname: static func -> String {
-        name := String new(128)
-        if(gethostname(name, 128) == -1) {
+        name := Buffer new(128)
+        if(gethostname(name data, 128) == -1) {
             DNSError new() throw()
         }
-        return name
+        name sizeFromData()
+        return String new(name)
     }
 
     /**
