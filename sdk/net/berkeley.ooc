@@ -92,6 +92,7 @@ accept: extern func(descriptor: Int, address: SockAddr*, address_length: UInt*) 
 bind: extern func(descriptor: Int, my_address: SockAddr*, address_length: UInt) -> Int
 connect: extern func(descriptor: Int, server_address: SockAddr*, address_length: UInt) -> Int
 close: extern func(descriptor: Int) -> Int
+closesocket: extern func(descriptor: Int) -> Int // windows version of close()
 shutdown: extern func(descriptor: Int, how: Int) -> Int
 listen: extern func(descriptor: Int, number_of_backlog_connections: Int) -> Int
 poll: extern func(ufds: PollFd*, nfds: UInt, timeout: Int) -> Int
