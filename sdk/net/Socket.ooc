@@ -44,6 +44,7 @@ SocketFamily: cover {
 
 SocketType: cover {
     STREAM: extern(SOCK_STREAM) static Int
+    DATAGRAM: extern(SOCK_DGRAM) static Int    
 }
 
 SocketMsgFlags: cover {
