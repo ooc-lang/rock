@@ -913,7 +913,7 @@ BufferReader: class extends Reader {
     }
 
     read: func(chars: Char*, offset: Int, count: Int) -> SizeT {
-        copySize := buffer get(chars as Char* + offset, marker, count)
+        copySize := buffer get(chars + offset, marker, count)
         marker += copySize
         return copySize
     }

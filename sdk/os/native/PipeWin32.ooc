@@ -46,7 +46,7 @@ PipeWin32: class extends Pipe {
         }
 
         // Don't try to read if there's no bytes ready atm
-        if(totalBytesAvail == 0) return "" as Char*
+        if(totalBytesAvail == 0) return CString new (0)
 
         // don't request more than there's available
         bytesAsked := totalBytesAvail > bytesRequested ? bytesRequested : totalBytesAvail
@@ -56,7 +56,7 @@ PipeWin32: class extends Pipe {
         if(!ReadFile(readFD, buffer, bytesAsked, bytesRead&, null)) {
             if(GetLastError() == ERROR_HANDLE_EOF) {
                 // then it's okay
-                return "\0" as Char*
+                return CString new(0)
             }
             Exception new(This, "Couldn't read pipe") throw()
         }
