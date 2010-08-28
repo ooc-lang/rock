@@ -376,7 +376,7 @@ Buffer: class {
 
     findAll: func ~pointer ( what : Char*, whatSize: SizeT, searchCaseSensitive: Bool) -> ArrayList <SizeT> {
         if (what == null || whatSize == 0) return ArrayList <SizeT> new(0)
-        cprintf("find called on %p:%s with %p:%s\n", size, data, whatSize, what)
+        //cprintf("find called on %p:%s with %p:%s\n", size, data, whatSize, what)
         if(whatSize > 1 && (what + whatSize)@ != '\0') Exception new ("something wrong here!") throw()
         if(whatSize > 1 && (what + 1)@ == '\0') Exception new ("something wrong here!") throw()
         result := ArrayList <SizeT> new (size / whatSize)
@@ -392,7 +392,7 @@ Buffer: class {
     }
 
     replaceAll: func ~bufWithCase (what, whit : This, searchCaseSensitive: Bool) {
-        cprintf("replaceAll called on %p:%s with %p:%s\n", size, data, what size, what)
+        //cprintf("replaceAll called on %p:%s with %p:%s\n", size, data, what size, what)
         if (what == null || what size == 0 || whit == null) return
         l := findAll( what, searchCaseSensitive )
         if (l == null || l size() == 0) return
