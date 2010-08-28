@@ -53,6 +53,7 @@ Token: cover {
     }
 
     formatMessage: func (prefix, message, type: String) -> String {
+        ("formatMessage called: " + prefix + "," + message + "," + type ) println()
         if(module == null) {
             return "From unknown source [%s] %s" format(type toCString(), message toCString())
         }
@@ -114,10 +115,11 @@ Token: cover {
             }
         }
         b append('\n'). append(prefix)
-        b append(over toString())
+        b append(over)
 
         fr close()
-
+        printf("C:%s", b data)
+        ("buffer is " + b toString()) println()
         b toString()
     }
 

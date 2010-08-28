@@ -106,16 +106,12 @@ FStream: cover from FILE* {
         // 128 is a reasonable default. Most terminals are 80x25
         length := 128
         buf := Buffer new (length)
-        buf size = 0
 
         // while it's not '\n' it means not all the line has been read
         while (true) {
             c := fgetc(this)
-
             if(c == '\n') break
-
             buf append~char((c & 0xFF) as Char)
-
             if(!hasNext?()) break
         }
 
@@ -143,10 +139,12 @@ FStream: cover from FILE* {
 
     // FIXME these two break Strings immutability!
     write: func ~str (str: String) {
+        Exception new("illegal access") throw()
         fputs(str _buffer data, this)
     }
     // FIXME these two break Strings immutability!
     write: func ~withLength (str: String, length: SizeT) -> SizeT {
+        Exception new("illegal access2") throw()
         write(str _buffer data, 0, length)
     }
 

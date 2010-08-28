@@ -1,5 +1,10 @@
 import io/[Writer, Reader]
 import structs/ArrayList
+
+    include stdio
+
+    cprintf:  extern(printf) func(Char*, ...) -> Int
+
 /**
     Multi-Purpose Buffer class.
     This is the big brother of String, optimized for performance. */
@@ -12,7 +17,6 @@ import structs/ArrayList
     some methods may look a bit ugly since they're optimized for best possible performance
 
     */
-
 Buffer: class {
     /*  stores current size of string */
     size: SizeT
@@ -37,8 +41,8 @@ Buffer: class {
     setBuffer: func( newOne : This ) {
         data = newOne data
         mallocAddr = newOne mallocAddr
-        size = newOne size
         capacity = newOne capacity
+        setLength(newOne size)
     }
 
     toCString: func -> CString { data as CString }
@@ -136,7 +140,7 @@ Buffer: class {
      */
     sizeFromData: func {
         assert(data != null)
-        size := data as CString length()
+        setLength(data as CString length())
     }
 
     /*  shifts data pointer to the right count bytes if possible
@@ -181,8 +185,8 @@ Buffer: class {
 
     clone: func ~withMinimum (minimumLength : SizeT) -> This {
         copy := this new( minimumLength > size ? minimumLength : size )
-        copy size = size
-        memcpy( copy data, data, size + 1)
+        copy setLength(size)
+        memcpy( copy data, data, size)
         return copy
     }
 
@@ -206,6 +210,7 @@ Buffer: class {
     }
 
     append: func ~buf(other: This) {
+        cprintf("[%p:%s]trying to append a buffer %p %s\n", size, data, other size, other data)
         append~pointer(other data, other size)
     }
 
@@ -216,6 +221,9 @@ Buffer: class {
 
     /** appends *other* to *this* */
     append: func ~pointer (other: Char*, otherLength: SizeT) {
+        //cprintf("buffer append called with %p bytes: %s\n", otherLength, other)
+        if(otherLength > 1 && (other + otherLength)@ != '\0') Exception new ("something wrong here!") throw()
+        if(otherLength > 1 && (other + 1)@ == '\0') Exception new ("something wrong here!") throw()
         origlen := size
         setLength(size + otherLength)
         memcpy(data + origlen, other, otherLength )
@@ -384,8 +392,7 @@ Buffer: class {
         l := findAll( what, searchCaseSensitive )
         if (l == null || l size() == 0) return
         newlen: SizeT = size + (whit size * l size()) - (what size * l size())
-        result := This new( newlen + 1)
-        result size = newlen
+        result := This new~withSize( newlen )
 
         sstart: SizeT = 0 //source (this) start pos
         rstart: SizeT = 0 //result start pos
@@ -473,7 +480,7 @@ Buffer: class {
         }
     }
     /* i hate circular references. */
-    toString: func -> String { s := String new(); s _buffer setBuffer(this); s }
+    toString: func -> String { String new(this) }
 
     /** return the index of *c*, starting at 0. If *this* does not contain *c*, return -1. */
     indexOf: func ~charZero (c: Char) -> SSizeT {

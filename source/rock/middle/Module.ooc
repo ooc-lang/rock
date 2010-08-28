@@ -36,6 +36,7 @@ Module: class extends Node {
     init: func ~module (.fullName, =pathElement, =params, .token) {
         super(token)
         this path = fullName replaceAll('/', File separator)
+        ("new module: " + path) println()
         this fullName = fullName replaceAll(File separator, '/')
         idx := this fullName lastIndexOf('/')
 

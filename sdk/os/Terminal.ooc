@@ -49,7 +49,7 @@ Terminal: class {
             va : VaList
 
             va_start(va, fmt)
-            vprintf(fmt, va)
+            vprintf(fmt toCString(), va)
             va_end(va)
         }
 

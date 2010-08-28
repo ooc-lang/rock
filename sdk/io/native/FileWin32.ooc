@@ -53,7 +53,7 @@ version(windows) {
         ret := Buffer new(File MAX_PATH_LENGTH + 1)
         bytesWritten := GetCurrentDirectory(File MAX_PATH_LENGTH, ret data)
         if (bytesWritten == 0) OSException new("Failed to get current directory!") throw()
-        ret size = bytesWritten
+        ret setLength(bytesWritten)
         String new(ret)
     }
 
@@ -207,7 +207,6 @@ version(windows) {
                 if(!_isSelfOrParentDirEntry?(ffd fileName)) {
                     l := ffd fileName length()
                     b := Buffer new (l + 1 + path size)
-                    b size = 0
                     b append(path)
                     b append('\\')
                     b append(ffd fileName, l)

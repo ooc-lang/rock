@@ -50,33 +50,42 @@ String: class {
     charAt: func (index: SizeT) -> Char { _buffer charAt(index) }
 
     clone: func -> This {
-        This new( _buffer clone() )
+        This new~withBuffer( _buffer clone() )
     }
 
-    substring: func ~tillEnd (start: SizeT) -> This { substring(start, _buffer size) }
+    substring: func ~tillEnd (start: SizeT) -> This { substring(start, size) }
 
     substring: func (start: SizeT, end: SizeT) -> This{
-        result :=clone()
-        result _buffer substring(start, end)
-        result
+        result := _buffer clone()
+        result substring(start, end)
+        result toString()
     }
 
     times: func (count: SizeT) -> This {
-        result := clone()
-        result _buffer times(count)
-        result
+        result := _buffer clone(size * count)
+        result times(count)
+        result toString()
     }
 
     append: func ~str(other: This) -> This{
-        result := clone()
-        result _buffer append~buf(other _buffer)
-        result
+        assert(other != null)
+        result := _buffer clone(size + other size)
+        result append (other _buffer)
+        result toString()
     }
 
     append: func ~char (other: Char) -> This {
-        result := clone()
-        result _buffer append~char(other)
-        result
+        result := _buffer clone(size + 1)
+        result append~char(other)
+        result toString()
+    }
+
+    append: func ~cStr (other: CString) -> This {
+        assert(other != null)
+        l := other length()
+        result := _buffer clone(size + l)
+        result append(other, l)
+        result toString()
     }
 
     prepend: func ~str (other: This) -> This{
@@ -440,17 +449,12 @@ operator * (string: String, count: Int) -> String {
 
 operator + (left, right: String) -> String {
     assert ((left != null) && (right != null))
-    b := left _buffer clone ( left size + right size )
-    b append(right _buffer)
-    return String new~withBuffer(b)
+    left append( right )
 }
 
 operator + (left: String, right: CString) -> String {
     assert ((left != null) && (right != null))
-    l := right length()
-    b:= left _buffer clone(left size + l)
-    b append(right, l)
-    b toString()
+    left append(right)
 }
 
 operator + (left: String, right: Char) -> String {

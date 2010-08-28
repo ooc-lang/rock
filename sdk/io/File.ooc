@@ -121,10 +121,19 @@ File: abstract class {
      * name() will return 'bluetooth'
      */
     name: func -> String {
+        if (path size > 1) {
+            end := (path _buffer data + path size - 1)@ == File separator ? path size - 1 : path size
+            start := end
+            while (start > 0 && (path _buffer data + start - 1)@ != File separator) start -= 1
+            return path substring(start, end)
+        }
+        else return ""
+        /*
         trimmed := path trim(This separator)
         idx := trimmed lastIndexOf(This separator)
         if(idx == -1) return trimmed
         return trimmed substring(idx + 1)
+        */
     }
 
     /**
