@@ -168,10 +168,10 @@ SequenceDriver: class extends Driver {
             }
 
             if(params verbose) {
-                "Building archive %s with %s (%d modules total)" printfln(
+                "Building archive %s with %s (%d modules total)" format(
                     params staticlib toCString(),
                     params libfolder ? "modules belonging to %s" format(params libfolder toCString()) : "all object files" toCString(),
-                    count)
+                    count) println()
             }
             archive save(params)
         }
@@ -217,7 +217,7 @@ SequenceDriver: class extends Driver {
     buildSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>, reGenerated: List<Module>) -> Int {
 
         if(params libfolder != null && sourceFolder absolutePath != File new(params libfolder) getAbsolutePath()) {
-            if(params verbose) "Skipping (not needed for build of libfolder %s)" printfln(params libfolder toCString())
+            if(params verbose) "Skipping (not needed for build of libfolder %s)" format(params libfolder toCString()) println()
             return 0
         }
 

@@ -163,7 +163,7 @@ VariableDecl: class extends Declaration {
                 return Response OK
             }
             if(debugCondition()) {
-                " >>> Just inferred type %s of %s from expr %s" printfln(type toString() toCString(), toString() toCString(), expr toString() toCString())
+                " >>> Just inferred type %s of %s from expr %s" format(type toString() toCString(), toString() toCString(), expr toString() toCString()) println()
             }
         }
 

@@ -250,7 +250,7 @@ ArrayAccess: class extends Expression {
         if(!args last() instanceOf?(VarArg) && (args size() != indices size() + diff)) {
             // not a match!
             if(res params veryVerbose) {
-                "For %s vs %s, got %d args, %d indices, diff is %d - no luck!" printfln(op toString() toCString(), toString() toCString(), args size(), indices size(), diff)
+                "For %s vs %s, got %d args, %d indices, diff is %d - no luck!" format(op toString() toCString(), toString() toCString(), args size(), indices size(), diff) println()
             }
             return 0
         }

@@ -168,9 +168,7 @@ Buffer: class {
 
     /** return true if *other* and *this* are equal (in terms of being null / having same size and content). */
     equals?: func (other: This) -> Bool {
-        if ((this == null) && (other == null)) return true
-        if ( ( (this == null) && (other  != null) ) || ( (other == null) && (this != null) ) ) return false
-        return ( (size == other size) &&  ( memcmp ( data , other data , size ) == 0 ) )
+        this == other
     }
 
     /** return the character at position #*index* (starting at 0) */
@@ -978,15 +976,15 @@ BufferReader: class extends Reader {
     }
 }
 
-
 operator == (str1: Buffer, str2: Buffer) -> Bool {
-    assert(str1 != null)
-    return str1 equals?(str2)
+    if (str1 == null && str2 != null) return false
+    if (str2 == null && str1 != null) return false
+    if (str1 == null && str2 == null) return true
+    return ( str1 size == str2 size) &&  ( memcmp ( str1 data , str2 data , str1 size ) == 0 )
 }
 
 operator != (str1: Buffer, str2: Buffer) -> Bool {
-    assert(str1 != null)
-    return !str1 equals?(str2)
+    return !(str1 == str2)
 }
 
 operator [] (string: Buffer, index: SizeT) -> Char {

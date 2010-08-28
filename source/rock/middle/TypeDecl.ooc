@@ -304,7 +304,7 @@ TypeDecl: abstract class extends Declaration {
         recursive: Bool, bestScore: Int, bestMatch: FunctionDecl, finalScore: Int@) -> FunctionDecl {
 
         for(fDecl: FunctionDecl in functions) {
-            if(fDecl name equals?(name) && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix equals?(suffix))) {
+            if(fDecl name == name && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix == suffix)) {
                 if(!call) return fDecl
                 score := call getScore(fDecl)
                 if(call debugCondition()) "Considering fDecl %s for fCall %s, score = %d\n" format(fDecl toString() toCString(), call toString() toCString(), score) println()
@@ -710,7 +710,7 @@ TypeDecl: abstract class extends Declaration {
             iRef := interfaceType getRef()
             if(iRef) {
                 if(name == "T") {
-                    "Trying to resolve T in interface type %s, ref %s" printfln(interfaceType toString() toCString(), iRef toString() toCString())
+                    "Trying to resolve T in interface type %s, ref %s" format(interfaceType toString() toCString(), iRef toString() toCString()) println()
                 }
                 iRef resolveAccess(access, res, trail)
             }

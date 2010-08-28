@@ -175,7 +175,7 @@ FunctionDecl: class extends Declaration {
         args each(|e| copy args add(e clone()))
         copy returnType = returnType clone()
 
-        body list each(|e| copy body add(e clone()); "Adding clone of %s to %s" printfln(e toString() toCString(), copy toString() toCString()))
+        body list each(|e| copy body add(e clone()); "Adding clone of %s to %s" format(e toString() toCString(), copy toString() toCString()) println())
 
         copy vDecl = vDecl
 
@@ -514,7 +514,7 @@ FunctionDecl: class extends Declaration {
             }
             args each(| arg |
                 if (arg getType() == null || !arg getType() isResolved()) {
-                    "Looping because of arg %s" printfln(arg toString() toCString())
+                    "Looping because of arg %s" format(arg toString() toCString()) println()
                     res wholeAgain(this, "need arg type for the ref")
                     return Response OK
                 }
@@ -564,7 +564,7 @@ FunctionDecl: class extends Declaration {
 
         if(inlined) {
             trail pop(this)
-            "%s is inlining, not resolving further" printfln(toString() toCString())
+            "%s is inlining, not resolving further" format(toString() toCString()) println()
             return Response OK
         }
 

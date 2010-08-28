@@ -63,7 +63,7 @@ Archive: class {
         cacheversion     := fR readLine()
         if(cacheversion != "cacheversion") {
             if(params veryVerbose || params debugLibcache) {
-                "Malformed cacheinfo file %s.cacheinfo, ignoring." printfln(outlib toCString())
+                "Malformed cacheinfo file %s.cacheinfo, ignoring." format(outlib toCString()) println()
             }
             return false
         }
@@ -71,7 +71,7 @@ Archive: class {
         readVersion      := fR readLine()
         if(readVersion != version) {
             if(params veryVerbose || params debugLibcache) {
-                "Wrong version %s for %s.cacheinfo. We only read version %s. Ignoring" printfln(readVersion toCString(), outlib toCString(), version toCString())
+                "Wrong version %s for %s.cacheinfo. We only read version %s. Ignoring" format(readVersion toCString(), outlib toCString(), version toCString()) println()
             }
             return false
         }
@@ -79,7 +79,7 @@ Archive: class {
         readCompilerArgs := fR readLine()
         if(readCompilerArgs != compilerArgs) {
             if(params veryVerbose || params debugLibcache) {
-                "Wrong compiler args '%s' for %s.cacheinfo. We have args '%s'. Ignoring" printfln(readCompilerArgs toCString(), outlib toCString(), compilerArgs toCString())
+                "Wrong compiler args '%s' for %s.cacheinfo. We have args '%s'. Ignoring" format(readCompilerArgs toCString(), outlib toCString(), compilerArgs toCString()) println()
             }
             return false
         }
@@ -87,7 +87,7 @@ Archive: class {
         readCompilerVersion := fR readLine()
         if(readCompilerVersion != RockVersion getName()) {
             if(params veryVerbose || params debugLibcache) {
-                "Wrong compiler version '%s' for %s.cacheinfo. We have version '%s'. Ignoring" printfln(readCompilerVersion toCString(), outlib toCString(), RockVersion getName() toCString())
+                "Wrong compiler version '%s' for %s.cacheinfo. We have version '%s'. Ignoring" format(readCompilerVersion toCString(), outlib toCString(), RockVersion getName() toCString()) println()
             }
             return false
         }
@@ -192,14 +192,14 @@ Archive: class {
         running := true
         while(running) {
             if(params veryVerbose || params debugLibcache) {
-                "Analyzing %s, %d cleanModules, %d dirtyModules" printfln(pathElement path toCString(), cleanModules size(), dirtyModules size())
+                "Analyzing %s, %d cleanModules, %d dirtyModules" format(pathElement path toCString(), cleanModules size(), dirtyModules size()) println()
             }
 
             for(module in cleanModules) {
                 subArchive := map get(module)
                 if(!subArchive) {
                     if(params veryVerbose || params debugLibcache) {
-                        "%s is dirty because we can't find the archive" printfln(module getFullName() toCString())
+                        "%s is dirty because we can't find the archive" format(module getFullName() toCString()) println()
                     }
                     transModules add(module); continue
                 }
@@ -207,13 +207,13 @@ Archive: class {
                 element := subArchive elements get(oocPath)
                 if(!element) {
                     if(params veryVerbose || params debugLibcache) {
-                        "%s is dirty because we can't find the element in archive %s" printfln(module getFullName() toCString(), subArchive pathElement path toCString())
+                        "%s is dirty because we can't find the element in archive %s" format(module getFullName() toCString(), subArchive pathElement path toCString()) println()
                     }
                     transModules add(module); continue
                 }
                 if(!element upToDate?) {
                     if(params veryVerbose || params debugLibcache) {
-                        "%s is dirty because of element" printfln(module getFullName() toCString())
+                        "%s is dirty because of element" format(module getFullName() toCString()) println()
                     }
                     subArchive elements put(oocPath, ArchiveModule new(module, subArchive))
                     structuralDirties add(module)
@@ -225,7 +225,7 @@ Archive: class {
                 lastModified := oocFile lastModified()
                 if(lastModified != element lastModified) {
                     if(params veryVerbose || params debugLibcache) {
-                        printf("%s out-of-date, recompiling... (%d vs %d, oocPath = %s)\n", module getFullName() toCString(), lastModified, element lastModified, oocPath toCString())
+                        "%s out-of-date, recompiling... (%d vs %d, oocPath = %s)" format (module getFullName() toCString(), lastModified, element lastModified, oocPath toCString()) println()
                     }
                     transModules add(module); continue
                 }
@@ -234,7 +234,7 @@ Archive: class {
                     candidate := imp getModule()
                     if(structuralDirties contains?(candidate)) {
                         if(params veryVerbose || params debugLibcache) {
-                            "%s is dirty because of import %s" printfln(module getFullName() toCString(), candidate getFullName() toCString())
+                            "%s is dirty because of import %s" format(module getFullName() toCString(), candidate getFullName() toCString()) println()
                         }
                         transModules add(module); break
                     }
@@ -245,11 +245,11 @@ Archive: class {
                 running = false
             } else {
                 if(params veryVerbose || params debugLibcache) {
-                    "[%s] We have %d transmodules to handle" printfln(pathElement path toCString(), transModules size())
+                    "[%s] We have %d transmodules to handle" format(pathElement path toCString(), transModules size()) println()
                 }
                 for (module in transModules) {
                     if(params veryVerbose || params debugLibcache) {
-                        " - %s" printfln(module getFullName() toCString())
+                        " - %s" format(module getFullName() toCString()) println()
                     }
                     dirtyModules add(module)
                     cleanModules remove(module)
@@ -267,7 +267,7 @@ Archive: class {
        to the archives.
      */
     save: func (params: BuildParams) {
-        //"Saving %s" printfln(pathElement path toCString())
+        //"Saving %s" format(pathElement path toCString()) println()
 
         args := ArrayList<String> new()
         args add("ar") // GNU ar tool, manages archives
@@ -364,7 +364,7 @@ ArchiveModule: class {
 
                 // if the type wasn't there last time - we're not up-to date!
                 if(archType == null) {
-                    //"Type %s wasn't there last time" printfln(tDecl getName())
+                    //"Type %s wasn't there last time" format(tDecl getName()) println()
                     return false
                 }
 

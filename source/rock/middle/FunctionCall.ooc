@@ -238,7 +238,7 @@ FunctionCall: class extends Expression {
             i := 0
             for(arg in args) {
                 if(debugCondition() || res params veryVerbose) {
-                    "resolving arg %s" printfln(arg toString() toCString())
+                    "resolving arg %s" format(arg toString() toCString()) println()
                 }
                 response := arg resolve(trail, res)
                 if(!response ok()) {
@@ -372,7 +372,7 @@ FunctionCall: class extends Expression {
                     return Response OK
                 }
 
-                "Inlining %s! type = %s" printfln(toString() toCString(), getType() ? getType() toString() toCString() : "<unknown>" toCString())
+                "Inlining %s! type = %s" format(toString() toCString(), getType() ? getType() toString() toCString() : "<unknown>" toCString()) println()
 
                 retDecl := VariableDecl new(getType(), generateTempName("retval"), token)
                 retAcc := VariableAccess new(retDecl, token)
@@ -903,12 +903,12 @@ FunctionCall: class extends Expression {
                         fType := argType as FuncType
 
                         if(fType returnType getName() == typeArgName) {
-                            if(debugCondition()) " >> Hey, we have an interesting FuncType %s" printfln(fType toString() toCString())
+                            if(debugCondition()) " >> Hey, we have an interesting FuncType %s" format(fType toString() toCString()) println()
                             implArg := args get(j)
                             if(implArg instanceOf?(FunctionDecl)) {
                                 fDecl := implArg as FunctionDecl
                                 if(fDecl inferredReturnType) {
-                                    if(debugCondition()) " >> Got it from inferred return type %s!" printfln(fDecl inferredReturnType toString() toCString())
+                                    if(debugCondition()) " >> Got it from inferred return type %s!" format(fDecl inferredReturnType toString() toCString()) println()
                                     return fDecl inferredReturnType
                                 } else {
                                     if(debugCondition()) " >> We need the inferred return type. Looping" println()

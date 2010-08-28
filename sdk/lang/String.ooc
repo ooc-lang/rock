@@ -42,9 +42,7 @@ String: class {
     length: func -> SizeT { _buffer size }
 
     equals?: func (other: This) -> Bool {
-        assert(this != null)
-        assert(other != null)
-        _buffer == other _buffer
+        other == this
     }
 
     charAt: func (index: SizeT) -> Char { _buffer charAt(index) }
@@ -415,15 +413,14 @@ operator implicit as (s: String) -> CString {
 
 
 operator == (str1: String, str2: String) -> Bool {
-    assert (str1 != null)
-    assert (str2 != null)
+    if (str1 == null && str2 != null) return false
+    if (str2 == null && str1 != null) return false
+    if (str1 == null && str2 == null) return true
     return str1 _buffer  ==  str2 _buffer
 }
 
 operator != (str1: String, str2: String) -> Bool {
-    assert (str1 != null)
-    assert (str2 != null)
-    return str1 _buffer  !=  str2 _buffer
+    !(str1 == str2)
 }
 
 operator [] (string: String, index: SizeT) -> Char {

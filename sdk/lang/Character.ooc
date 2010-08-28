@@ -149,10 +149,14 @@ operator as (value: Char) -> String {
 }
 
 operator as (value: Char*) -> String {
+    result: String
+    if (value == null) return result
     value as CString toString()
 }
 
 operator as (value: CString) -> String {
+    result: String
+    if (value == null) return result
     value toString()
 }
 

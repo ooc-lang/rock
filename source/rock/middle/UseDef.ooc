@@ -168,7 +168,7 @@ UseDef: class {
             } else if(id == "Origin" || id == "Variant") {
                 // known, but ignored ids
             } else if(!id empty?()) {
-                "%s: Unknown id %s (length %d, first = %d) in usefile" printfln(file getPath() toCString(), id toCString(), id length(), id[0])
+                "%s: Unknown id %s (length %d, first = %d) in usefile" format(file getPath() toCString(), id toCString(), id length(), id[0]) println()
             }
         }
     }

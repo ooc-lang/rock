@@ -36,7 +36,7 @@ DummyDriver: class extends Driver {
         copyLocalHeaders(module, params, ArrayList<Module> new())
 
         if (params verbose) {
-            "Generated sources in %s, enjoy!" printfln(params outPath path toCString())
+            "Generated sources in %s, enjoy!" format(params outPath path toCString()) println()
         }
 
         0
