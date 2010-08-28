@@ -10,6 +10,10 @@ getOSError: func -> String {
     x := strerror(errno)
     return (x != null) ? String new(x, x length()) : String new()
 }
+
+raise: func(msg: String) {
+    Exception new(msg) throw()
+}
 /**
  * Base class for all exceptions that can be thrown
  *

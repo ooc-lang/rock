@@ -603,7 +603,11 @@ Buffer: class {
     /** return (a copy of) *this* with all characters contained by *s* stripped
         from the right side. */
     trimRight: func ~pointer (s: Char*, sLength: SizeT) {
-          cprintf("trimRight: %p:%s\n", sLength, s)
+    c :Char= s@
+    if (sLength == 1) cprintf("trimRight: %02X\n", c)
+    else cprintf("trimRight: %p:%s\n", sLength, s)
+    if(sLength > 1 && (s + sLength)@ != '\0') raise("something wrong here!")
+    if(sLength > 1 && (s + 1)@ == '\0') raise("something wrong here!")
 
         end := size
         while( end > 0 &&  (data + (end - 1))@ containedIn?(s, sLength)) {
