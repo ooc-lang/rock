@@ -144,7 +144,7 @@ SequenceDriver: class extends Driver {
             code := params compiler launch()
 
             if(code != 0) {
-                fprintf(stderr, "C compiler failed, aborting compilation process\n")
+                fprintf(stderr, "C compiler failed (got code %d), aborting compilation process\n", code)
                 return code
             }
 
@@ -321,7 +321,7 @@ SequenceDriver: class extends Driver {
             code := params compiler launch()
 
             if(code != 0) {
-                fprintf(stderr, "C compiler failed, aborting compilation process\n")
+                fprintf(stderr, "C compiler failed (with code %d), aborting compilation process\n", code)
                 return code
             }
 
