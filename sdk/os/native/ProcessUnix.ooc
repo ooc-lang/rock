@@ -1,4 +1,4 @@
-import structs/[HashMap, ArrayList]
+import structs/[HashMap, ArrayList, List]
 import ../[Env, Process, wait, unistd, Pipe, PipeReader]
 import PipeUnix
 
@@ -17,7 +17,7 @@ errno : extern Int
 ProcessUnix: class extends Process {
 
     init: func ~unix (=args) {
-        this args add(null) // execvp wants NULL to end the array
+        //this args add(null) // execvp wants NULL to end the array
     }
 
     /**
@@ -89,9 +89,15 @@ ProcessUnix: class extends Process {
 
             /* run the stuff. */
             "Converting args" println()
-            cArgs := args map(|arg| arg toCString()) toArray() as CString* // FIXME: the final 'as CString*' shouldn't be needed but for some reason rock is too dumb atm.
-            cprintf("cArgs[0] = %s, cArgs[1] = %s\n", cArgs[0], cArgs[1])
-            "Calling execvp" println()
+            cArgs : CString * = gc_malloc(Pointer size * (args size() + 1))
+            args size() times(|i|
+				cArgs[i] = args[i] toCString()
+				cprintf("Arg %d = %s\n", i, cArgs[i])
+            )
+            cArgs[args size()] = null // null-terminated - makes sense
+            
+            cprintf("Calling execvp\n")
+            stdout flush()
             execvp(cArgs[0], cArgs)
             exit(errno); // don't allow the forked process to continue if execvp fails
         }

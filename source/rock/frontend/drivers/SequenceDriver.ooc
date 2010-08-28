@@ -288,6 +288,12 @@ SequenceDriver: class extends Driver {
         if(force || cFile lastModified() > comparison) {
 
             if(params veryVerbose) printf("%s not in cache or out of date, (re)compiling\n", module getFullName() toCString())
+            
+            parent := File new(oPath) parent()
+            if(!parent exists?()) {
+				if(params verbose) "Creating path %s" format(parent getPath()) println()
+				parent mkdirs()
+			}
 
             params compiler addObjectFile(cPath)
             params compiler setOutputPath(oPath)
