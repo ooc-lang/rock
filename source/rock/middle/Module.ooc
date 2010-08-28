@@ -176,6 +176,7 @@ Module: class extends Node {
 
     getPath: func (suffix: String) -> String {
         last := (File new(pathElement) name())
+        printf("getpath called. pathElement:%s, last:%s\n", pathElement toCString(), last toCString())
         return (last + File separator) + fullName replaceAll('/', File separator) + suffix
     }
 
