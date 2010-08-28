@@ -155,8 +155,8 @@ AstBuilder: class {
 
     onImport: unmangled(nq_onImport) func (path, name: CString) {
 printf("nq_import %s %s\n", path, name)
-        namestr := String new(name, name length())
-        output : String = ((path == null) || (path@ = '\0')) ? namestr : (String new(path, path length()) + namestr)
+        namestr := name toString()
+        output : String = ((path == null) || (path@ == '\0')) ? namestr : path toString() + namestr
         module addImport(Import new( output , token()))
     }
 

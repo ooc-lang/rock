@@ -382,7 +382,7 @@ Buffer: class {
         result := ArrayList <SizeT> new (size / whatSize)
         offset : SSizeT = (whatSize ) * -1
         while (((offset = find(what, whatSize, offset + whatSize , searchCaseSensitive)) != -1)) result add (offset)
-        for (elem in result) cprintf("%d\n", elem)
+        //for (elem in result) cprintf("%d\n", elem)
         return result
     }
 
