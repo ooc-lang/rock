@@ -154,12 +154,14 @@ AstBuilder: class {
     }
 
     onImport: unmangled(nq_onImport) func (path, name: CString) {
+printf("nq_import %s %s\n", path, name)
         namestr := String new(name, name length())
         output : String = ((path == null) || (path@ = '\0')) ? namestr : (String new(path, path length()) + namestr)
         module addImport(Import new( output , token()))
     }
 
     onImportNamespace: unmangled(nq_onImportNamespace) func (cnamespace: CString, quantity: Int) {
+printf("nq_importnamespace %s\n", cnamespace)
         namespace := String new(cnamespace, cnamespace length())
         nDecl: NamespaceDecl
         if(!module hasNamespace(namespace)) {

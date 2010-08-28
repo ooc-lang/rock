@@ -210,7 +210,7 @@ Buffer: class {
     }
 
     append: func ~buf(other: This) {
-        cprintf("[%p:%s]trying to append a buffer %p %s\n", size, data, other size, other data)
+        //cprintf("[%p:%s]trying to append a buffer %p %s\n", size, data, other size, other data)
         append~pointer(other data, other size)
     }
 
