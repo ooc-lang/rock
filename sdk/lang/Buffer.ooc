@@ -82,7 +82,7 @@ Buffer: class {
     // so you'd rather not change it
     init: func ~withCStrAndLength(s : CString, length: SizeT) {
         setLength(length)
-        memcpy(data, s, length + 1)
+        memcpy(data, s, length)
     }
 
     init: func ~withStr(s: String) { init~withBuffer( s _buffer) }
@@ -376,9 +376,13 @@ Buffer: class {
 
     findAll: func ~pointer ( what : Char*, whatSize: SizeT, searchCaseSensitive: Bool) -> ArrayList <SizeT> {
         if (what == null || whatSize == 0) return ArrayList <SizeT> new(0)
+        cprintf("find called on %p:%s with %p:%s\n", size, data, whatSize, what)
+        if(whatSize > 1 && (what + whatSize)@ != '\0') Exception new ("something wrong here!") throw()
+        if(whatSize > 1 && (what + 1)@ == '\0') Exception new ("something wrong here!") throw()
         result := ArrayList <SizeT> new (size / whatSize)
         offset : SSizeT = (whatSize ) * -1
         while (((offset = find(what, whatSize, offset + whatSize , searchCaseSensitive)) != -1)) result add (offset)
+        for (elem in result) cprintf("%d\n", elem)
         return result
     }
 
@@ -388,6 +392,7 @@ Buffer: class {
     }
 
     replaceAll: func ~bufWithCase (what, whit : This, searchCaseSensitive: Bool) {
+        cprintf("replaceAll called on %p:%s with %p:%s\n", size, data, what size, what)
         if (what == null || what size == 0 || whit == null) return
         l := findAll( what, searchCaseSensitive )
         if (l == null || l size() == 0) return
@@ -421,24 +426,24 @@ Buffer: class {
     }
 
     split: func~withChar(c: Char, maxSplits: SSizeT) -> ArrayList <This> {
-        split(This new(c), maxSplits)
+        split(c&, 1, maxSplits)
     }
 
     /** split s and return *all* elements, including empties */
     split: func~withStringWithoutMaxSplits(s: This) -> ArrayList <This> {
-        split ( s, -1)
+        split ( s data, s size, -1)
     }
 
     split: func~withCharWithoutMaxSplits(c: Char) -> ArrayList <This> {
-        split( This new(c))
+        split(c&, 1, -1)
     }
 
-    split: func~withStringWithEmpties( s: This, empties: Bool) -> ArrayList <This> {
-        split (s, empties ? -1 : 0 )
+    split: func~withBufWithEmpties( s: This, empties: Bool) -> ArrayList <This> {
+        split (s data, s size, empties ? -1 : 0 )
     }
 
     split: func~withCharWithEmpties(c: Char, empties: Bool) -> ArrayList <This> {
-        split( This new (c) , empties )
+        split( c& , 1,  empties ? -1 : 0 )
     }
 
     /** splits a string into an ArrayList, maxSplits denotes max elements of returned list
@@ -447,7 +452,11 @@ Buffer: class {
         pretty much the same as in java.*/
     // FIXME untested!
     split: func ~buf (delimiter: This, maxSplits: SSizeT) -> ArrayList <This> {
-        l := findAll(delimiter, true)
+        split(delimiter data, delimiter size, maxSplits)
+    }
+
+    split: func ~pointer (delimiter: Char*, delimiterLength:SizeT, maxSplits: SSizeT) -> ArrayList <This> {
+        l := findAll(delimiter, delimiterLength, true)
         maxItems := ((maxSplits <= 0) || (maxSplits >= l size())) ? l size() : maxSplits
         result := ArrayList <This> new( maxItems )
         sstart: SizeT = 0 //source (this) start pos
@@ -458,11 +467,13 @@ Buffer: class {
                 b := This new ((data + sstart) as CString, sdist)
                 result add ( b )
             }
-            sstart += sdist + delimiter size
+            sstart += sdist + delimiterLength
         }
         sdist := size - sstart // bytes to copy
         b := This new ((data + sstart) as CString, sdist)
         result add ( b )
+        cprintf("split debug out:\n")
+        for (elem in result) cprintf("%p:%s\n", elem size, elem data)
         return result
     }
 

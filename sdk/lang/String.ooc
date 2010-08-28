@@ -135,15 +135,13 @@ String: class {
     }
 
     replaceAll: func ~str (what, whit : This) -> This {
-        result := clone()
-        _buffer replaceAll~buf (what _buffer, whit _buffer)
-        result
+        replaceAll~strWithCase (what, whit, true)
     }
 
     replaceAll: func ~strWithCase (what, whit : This, searchCaseSensitive: Bool) -> This {
-        result := clone()
-        _buffer replaceAll~bufWithCase (what _buffer, whit _buffer, searchCaseSensitive)
-        result
+        result := _buffer clone()
+        result replaceAll~bufWithCase (what _buffer, whit _buffer, searchCaseSensitive)
+        result toString()
     }
 
     replaceAll: func ~char(oldie, kiddo: Char) -> This {
@@ -154,7 +152,7 @@ String: class {
 
     _bufArrayListToStrArrayList: func ( x : ArrayList<Buffer> ) -> ArrayList<This> {
         result := ArrayList<This> new( x size() )
-        for (i in x) result add (This new~withBuffer( i ) )
+        for (i in x) result add ( i toString() )
         result
     }
 
@@ -171,7 +169,7 @@ String: class {
     }
 
     split: func~withStringWithEmpties( s: This, empties: Bool) -> ArrayList <This> {
-        _bufArrayListToStrArrayList( _buffer split~withStringWithEmpties (s _buffer, empties ) )
+        _bufArrayListToStrArrayList( _buffer split~withBufWithEmpties (s _buffer, empties ) )
     }
 
     split: func~withCharWithEmpties(c: Char, empties: Bool) -> ArrayList <This> {
