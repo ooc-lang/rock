@@ -472,8 +472,8 @@ Buffer: class {
         sdist := size - sstart // bytes to copy
         b := This new ((data + sstart) as CString, sdist)
         result add ( b )
-        cprintf("split debug out:\n")
-        for (elem in result) cprintf("%p:%s\n", elem size, elem data)
+        //cprintf("split debug out:\n")
+        //for (elem in result) cprintf("%p:%s\n", elem size, elem data)
         return result
     }
 
