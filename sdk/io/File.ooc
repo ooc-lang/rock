@@ -127,7 +127,8 @@ File: abstract class {
             while (start > 0 && (path _buffer data + start - 1)@ != File separator) start -= 1
             return path substring(start, end)
         }
-        else return ""
+        else if (path size == 1 && (path toCString())@ == File separator) return ""
+        else return path
         /*
         trimmed := path trim(This separator)
         idx := trimmed lastIndexOf(This separator)

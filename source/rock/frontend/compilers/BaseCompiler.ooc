@@ -33,6 +33,8 @@ BaseCompiler: abstract class extends AbstractCompiler {
     }
 
     launch: func() -> Int {
+        printf("launch called, process commdands\n")
+        for (elem in command) elem println()
         proc := Process new(command)
         return proc execute()
     }
