@@ -537,7 +537,8 @@ printf("nq_importnamespace %s\n", cnamespace)
      */
 
     onTypeNew: unmangled(nq_onTypeNew) func (name: CString) -> Type {
-        BaseType new(String new(name, name length()) trim(), token())
+printf("onTypeNew: %s, trimmed: %s\n", name, name toString() trim() toCString())
+        BaseType new(name toString() trim(), token())
     }
 
     onTypePointer: unmangled(nq_onTypePointer) func (type: Type) -> Type {

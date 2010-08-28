@@ -120,7 +120,7 @@ murmurHash: func <K> (keyTagazok: K) -> SizeT {
  */
 ac_X31_hash: func <K> (key: K) -> SizeT {
     assert(key != null)
-    s : Char* = (K == String) ? key as String _buffer data : key as Char*
+    s : Char* = (K == String) ? (key as String) toCString() as Char* : key as Char*
     h = s@ : SizeT
     if (h) {
         s += 1

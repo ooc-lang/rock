@@ -87,15 +87,17 @@ String: class {
     }
 
     prepend: func ~str (other: This) -> This{
-        result := clone()
-        result _buffer prepend~buf(other _buffer)
-        result
+        assert(other != null)
+        result := _buffer clone()
+        result prepend~buf(other _buffer)
+        result toString()
     }
 
     prepend: func ~char (other: Char) -> This {
-        result := clone()
-        result _buffer prepend~char(other)
-        result
+        assert(other != null)
+        result := _buffer clone()
+        result prepend~char(other)
+        result toString()
     }
 
     compare: func (other: This, start, length: SizeT) -> Bool {
@@ -179,15 +181,15 @@ String: class {
     }
 
     toLower: func -> This {
-        result := clone()
-        result _buffer toLower()
-        result
+        result := _buffer clone()
+        result toLower()
+        result toString()
     }
 
     toUpper: func  -> This{
-        result := clone()
-        result _buffer toUpper()
-        result
+        result := _buffer clone()
+        result toUpper()
+        result toString()
     }
 
     indexOf: func ~charZero (c: Char) -> SSizeT { _buffer indexOf~charZero(c) }
@@ -203,93 +205,93 @@ String: class {
     contains?: func ~string (s: This) -> Bool { _buffer contains?~buf (s _buffer) }
 
     trimMulti: func ~pointer (s: Char*, sLength: SizeT) -> This {
-        result := clone()
-        result _buffer trimMulti(s, sLength)
-        result
+        result := _buffer clone()
+        result trimMulti(s, sLength)
+        result toString()
     }
 
     trimMulti: func ~string(s : This) -> This {
-        result := clone()
-        result _buffer trimMulti(s _buffer)
-        result
+        result := _buffer clone()
+        result trimMulti(s _buffer)
+        result toString()
     }
 
     trim: func~pointer(s: Char*, sLength: SizeT) -> This {
-        result := clone()
-        result _buffer trim~pointer(s, sLength)
-        result
+        result := _buffer clone()
+        result trim~pointer(s, sLength)
+        result toString()
     }
 
     trim: func ~string(s : This) -> This {
-        result := clone()
-        result _buffer trim~buf(s _buffer)
-        result
+        result := _buffer clone()
+        result trim~buf(s _buffer)
+        result toString()
     }
 
     trim: func ~char (c: Char) -> This {
-        result := clone()
-        result _buffer trim~char(c)
-        result
+        result := _buffer clone()
+        result trim~char(c)
+        result toString()
     }
 
     trim: func ~whitespace -> This {
-        result := clone()
-        result _buffer trim~whitespace()
-        result
+        result := _buffer clone()
+        result trim~whitespace()
+        result toString()
     }
 
     trimLeft: func ~space -> This {
-        result := clone()
-        result _buffer trimLeft~space()
-        result
+        result := _buffer clone()
+        result trimLeft~space()
+        result toString()
     }
 
     trimLeft: func ~char (c: Char) -> This {
-        result := clone()
-        result _buffer trimLeft~char(c)
-        result
+        result := _buffer clone()
+        result trimLeft~char(c)
+        result toString()
     }
 
     trimLeft: func ~string (s: This) -> This {
-        result := clone()
-        result _buffer trimLeft~buf(s _buffer)
-        result
+        result := _buffer clone()
+        result trimLeft~buf(s _buffer)
+        result toString()
     }
 
     trimLeft: func ~pointer (s: Char*, sLength: SizeT) -> This {
-        result := clone()
-        result _buffer trimLeft~pointer(s, sLength)
-        result
+        result := _buffer clone()
+        result trimLeft~pointer(s, sLength)
+        result toString()
     }
 
     trimRight: func ~space -> This {
-        result := clone()
-        result _buffer trimRight~space()
-        result
+        result := _buffer clone()
+        result trimRight~space()
+        result toString()
     }
 
     trimRight: func ~char (c: Char) -> This {
-        result := clone()
-        result _buffer trimRight~char(c)
-        result
+        result := _buffer clone()
+        result trimRight~char(c)
+        result toString()
     }
 
     trimRight: func ~string (s: This) -> This{
-        result := clone()
-        result _buffer trimRight~buf( s _buffer )
-        result
+        result := _buffer clone()
+        result trimRight~buf( s _buffer )
+        result toString()
     }
 
     trimRight: func ~pointer (s: Char*, sLength: SizeT) -> This{
-        result := clone()
-        result _buffer trimRight~pointer(s, sLength)
-        result
+        result := _buffer clone()
+        result trimRight~pointer(s, sLength)
+        result toString()
     }
 
     reverse: func -> This {
-        result := clone()
-        result _buffer reverse()
-        result
+        result := _buffer clone()
+        result reverse()
+        result toString()
     }
 
     count: func (what: Char) -> SizeT { _buffer count (what) }

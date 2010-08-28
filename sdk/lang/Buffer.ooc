@@ -1,9 +1,12 @@
 import io/[Writer, Reader]
 import structs/ArrayList
+import text/EscapeSequence
 
     include stdio
 
     cprintf:  extern(printf) func(Char*, ...) -> Int
+
+WHITE_SPACE := EscapeSequence unescape(" \r\n\t") toCString()
 
 /**
     Multi-Purpose Buffer class.
@@ -558,8 +561,7 @@ Buffer: class {
 
     /** whitespace characters (space, CR, LF, tab) stripped at both ends. */
     trim: func ~whitespace {
-        whiteSpace : Char* = " \r\n\t"
-        trim( whiteSpace, 4)
+        trim( WHITE_SPACE, WHITE_SPACE length())
     }
 
     /** space characters (ASCII 32) stripped from the left side. */
@@ -601,8 +603,14 @@ Buffer: class {
     /** return (a copy of) *this* with all characters contained by *s* stripped
         from the right side. */
     trimRight: func ~pointer (s: Char*, sLength: SizeT) {
-        p := this
-        while( p size > 0 &&  (p data + (size - 1))@ containedIn?(s, sLength)) p setLength(size -1);
+          cprintf("trimRight: %p:%s\n", sLength, s)
+
+        end := size
+        while( end > 0 &&  (data + (end - 1))@ containedIn?(s, sLength)) {
+            cprintf("%c contained in %s!\n", (data + (end - 1))@, s)
+            end -= 1
+        }
+        setLength(end);
     }
 
     /** reverses *this*. "ABBA" -> "ABBA" .no. joke. "ABC" -> "CBA" */
@@ -664,7 +672,7 @@ Buffer: class {
     }
 
     /** print *this* to stdout without a following newline. Flush stdout. */
-    print: func { printf("%s", data) }
+    print: func { cprintf("%s", data) }
 
     /** print *this* followed by a newline. */
     //TODO printf("%s\n", data should work as well, but thats not the case...
@@ -790,6 +798,7 @@ Buffer: class {
     }
 
     printf: final func ~str (...) {
+        assert(false) // invalid method call
         list: VaList
 
         va_start(list, this )
@@ -798,10 +807,13 @@ Buffer: class {
     }
 
     vprintf: final func ~str (list: VaList) {
+        assert(false) // invalid method call
         vprintf(this data, list)
     }
 
     printfln: final func ~str ( ...) {
+        assert(false) // invalid method call
+
         list: VaList
 
         va_start(list, this )
@@ -811,6 +823,8 @@ Buffer: class {
     }
 
     scanf: final func ~str (format: This, ...) -> Int {
+        assert(false) // invalid method call
+
         list: VaList
         va_start(list, (format))
         retval := vsscanf(this data, format data, list)

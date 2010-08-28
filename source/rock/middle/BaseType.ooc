@@ -18,7 +18,11 @@ BaseType: class extends Type {
 
     typeArgs: List<VariableAccess> = null
 
-    init: func ~baseType (=name, .token) { super(token) }
+    init: func ~baseType (=name, .token) {
+printf("new baysetype: %s\n", name toCString())
+assert(name != "Cha")
+        super(token)
+    }
 
     pointerLevel: func -> Int { 0 }
 

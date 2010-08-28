@@ -76,7 +76,7 @@ ProcessUnix: class extends Process {
             }
 
             /* run the stuff. */
-            execvp(args get(0) as CString, args toArray() as CString*) // List<String> => String*
+            execvp(args get(0) toCString(), args toArray() as CString*) // List<String> => String*
             exit(errno); // don't allow the forked process to continue if execvp fails
         }
     }

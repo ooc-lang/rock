@@ -19,7 +19,7 @@ CachedFileWriter: class extends BufferWriter {
         init(File new(path))
     }
 
-    write: func(chars: String, length: SizeT) -> SizeT {
+    write: func(chars: Char*, length: SizeT) -> SizeT {
         super(chars, length)
     }
 

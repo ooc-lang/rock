@@ -64,6 +64,8 @@ TypeDecl: abstract class extends Declaration {
     implicitConversions := ArrayList<OperatorDecl> new()
 
     init: func ~typeDeclNoSuper (=name, .token) {
+    printf("new typedecl: %s\n", name toCString())
+    assert (name != "Cha")
         super(token)
         type = BaseType new("Class", token)
         instanceType = BaseType new(name, token)
@@ -325,7 +327,7 @@ TypeDecl: abstract class extends Declaration {
            call expr getType() getRef() as ClassDecl isMeta) {
             for(fDecl: FunctionDecl in functions) {
                 // Not ignoring static methods is intended; we want static member access without explicit `This`.
-                if(fDecl name equals?(name) && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix equals?(suffix))) {
+                if(fDecl name == name && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix == suffix)) {
                     if(!fDecl isStatic) fDecl = fDecl getStaticVariant()
 
                     if(!call) return fDecl
@@ -867,6 +869,7 @@ TypeDecl: abstract class extends Declaration {
 BuiltinType: class extends TypeDecl {
 
     init: func ~builtinType (.name, .token) {
+("new builtin type " + name) println()
         super(name, null, token)
     }
 
