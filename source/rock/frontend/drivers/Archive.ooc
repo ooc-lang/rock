@@ -126,9 +126,8 @@ Archive: class {
                 // turn "blah/file.ooc" into "blah_file.o"
                 name := element oocPath replaceAll(File separator, '_')
 
-                args := ["ar", (params veryVerbose || params debugLibcache) ? "dv" : "d",
-                    outlib, name substring(0, name length() - 2)] as ArrayList<String>
-                args T = String
+                args := ArrayList<String> new()
+                args add("ar") .add((params veryVerbose || params debugLibcache) ? "dv" : "d"). add(outlib). add(name substring(0, name length() - 2))
                 output := Process new(args) getOutput()
 
                 if(params veryVerbose || params debugLibcache) {
