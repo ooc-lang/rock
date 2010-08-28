@@ -27,7 +27,7 @@ Skeleton: abstract class extends Visitor {
     writeStringLiteral: func (value: String) {
         if(params newsdk || params newstr) {
             printf("newstr/sdk is set: value is %s\n", value toCString())
-            current app( ( (params newsdk) ? NEWSDK_STRING_CONSTRUCTOR : STRING_CONSTRUCTOR) format(value toCString(), value length()))
+            current app( ( (params newsdk) ? NEWSDK_STRING_CONSTRUCTOR : STRING_CONSTRUCTOR) format(value toCString(), EscapeSequence unescape(value) length()))
         } else {
             current app('"'). app(value). app('"')
         }
