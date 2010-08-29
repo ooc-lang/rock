@@ -747,7 +747,6 @@ AstBuilder: class {
     }
 
     onStringLiteral: unmangled(nq_onStringLiteral) func (text: CString) -> StringLiteral {
-        // FIXME this magic replacement seems to lead to errors
         StringLiteral new(text toString() replaceAll("\n", "\\n") replaceAll("\t", "\\t"), token())
     }
 
