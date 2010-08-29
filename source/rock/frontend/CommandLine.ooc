@@ -514,12 +514,11 @@ CommandLine: class {
     parse: func (moduleName: String) -> Int {
         assert (moduleName != null)
         assert (!moduleName empty?())
-        ("opening file " + moduleName + " for read...") println()
+        if(params veryVerbose) ("opening file " + moduleName + " for read...") println()
         moduleFile := params sourcePath getFile(moduleName)
 
         if(!moduleFile) {
             printf("File not found: %s\n", moduleName toCString())
-            Exception new("") throw()
             exit(1)
         }
 
@@ -528,13 +527,14 @@ CommandLine: class {
         assert(!modulePath empty?())
         //FIXME doh, so you allow only .ooc extension...
         fullName := moduleName substring(0, moduleName length() - 4)
-        ("full name " + fullName) println()
+        //("full name " + fullName) println()
         // FIXME damn that thing crashes here with a fully qualified name. but i wont fix it now.
         // WTF why do you do that ? (accessing sourcepath again?)
+        // mysteriousString looks as if it'd contain the parent path element, but its not completely clear to me
         mysteriousString := params sourcePath getElement(moduleName) path
         assert(mysteriousString != null)
         assert(!mysteriousString empty?())
-        ("myst name " + mysteriousString) println()
+        //("myst name " + mysteriousString) println()
         module := Module new(fullName, mysteriousString, params , nullToken)
         module token = Token new(0, 0, module)
         module main = true
@@ -659,7 +659,7 @@ CommandLine: class {
         Terminal setFgColor(Color red)
         "[FAIL]" println()
         Terminal reset()
-        Exception new("") throw() // for backtrace
+        raise("") // for backtrace
         exit(1)
     }
 
