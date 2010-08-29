@@ -1,5 +1,3 @@
-import text/EscapeSequence
-
 /**
  * Set text colors and attributes for VT100 compatible terminals
  * @author eagle2com
