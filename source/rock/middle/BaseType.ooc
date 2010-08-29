@@ -19,8 +19,6 @@ BaseType: class extends Type {
     typeArgs: List<VariableAccess> = null
 
     init: func ~baseType (=name, .token) {
-printf("new baysetype: %s\n", name toCString())
-assert(name != "Cha")
         super(token)
     }
 
@@ -31,7 +29,7 @@ assert(name != "Cha")
     write: func (w: AwesomeWriter, name: String) {
         if(getRef() == null) {
             Exception new(This, "Trying to write unresolved type " + toString()) throw()
-        }
+        }        
         match {
             case getRef() instanceOf?(InterfaceDecl)=> writeInterfaceType(w, getRef() as InterfaceDecl)
             case getRef() instanceOf?(TypeDecl)     => writeRegularType  (w, getRef() as TypeDecl)

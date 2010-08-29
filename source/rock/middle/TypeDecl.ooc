@@ -64,8 +64,6 @@ TypeDecl: abstract class extends Declaration {
     implicitConversions := ArrayList<OperatorDecl> new()
 
     init: func ~typeDeclNoSuper (=name, .token) {
-    printf("new typedecl: %s\n", name toCString())
-    assert (name != "Cha")
         super(token)
         type = BaseType new("Class", token)
         instanceType = BaseType new(name, token)
@@ -869,7 +867,6 @@ TypeDecl: abstract class extends Declaration {
 BuiltinType: class extends TypeDecl {
 
     init: func ~builtinType (.name, .token) {
-("new builtin type " + name) println()
         super(name, null, token)
     }
 

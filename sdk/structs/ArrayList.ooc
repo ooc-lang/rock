@@ -193,16 +193,6 @@ ArrayList: class <T> extends List<T> {
 
     /** */
     toArray: func -> Pointer {
-        if(T == String) {
-            "warning: toArray called with ArrayList<String>!\n" println()
-            dataSize := 0
-            ptr := gc_malloc(size * Pointer size)
-            for (elem: String in this) {
-                (ptr as Char*)@ = elem toCString()
-                ptr += Pointer size
-            }
-            ptr
-        }
         data
     }
 

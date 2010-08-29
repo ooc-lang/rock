@@ -604,8 +604,8 @@ Buffer: class {
         from the right side. */
     trimRight: func ~pointer (s: Char*, sLength: SizeT) {
     c :Char= s@
-    if (sLength == 1) cprintf("trimRight: %02X\n", c)
-    else cprintf("trimRight: %p:%s\n", sLength, s)
+    //if (sLength == 1) cprintf("trimRight: %02X\n", c)
+    //else cprintf("trimRight: %p:%s\n", sLength, s)
     if(sLength > 1 && (s + sLength)@ != '\0') raise("something wrong here!")
     if(sLength > 1 && (s + 1)@ == '\0') raise("something wrong here!")
 

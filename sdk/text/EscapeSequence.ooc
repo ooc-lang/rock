@@ -33,18 +33,18 @@ EscapeSequence: class {
                 if(sequence length() >= 3) {
                     /* have enough. convert heaxdecimal to `chr`. TODO: not nice */
                     sequence = sequence toUpper()
-                    chr@ = 0
+                    chr@ = '\0'
                     for(i in 0..2) {
-                        value := 0
+                        value := '\0'
                         if(sequence[2-i] >= 'A' && sequence[2-i] <= 'F') {
-                            value = 10 + sequence[2-i] - 'A'
+                            value = 10 as Char + sequence[2-i] - 'A'
                         } else if(sequence[2-i] >= '0' && sequence[2-i] <= '9') {
                             value = sequence[2-i] - '0'
                         } else {
                             /* invalid character in hexadecimal literal. */
                             return This invalid
                         }
-                        chr@ += (pow(16, i) as Int) * value
+                        chr@ += ((pow(16, i) as Int) * value) as Char
                     }
                     return This valid
                 } else {
@@ -56,17 +56,17 @@ EscapeSequence: class {
                 /* octal? */
                 if(sequence[0] >= '0' && sequence[0] < '8') {
                     /* octal. */
-                    chr@ = 0
+                    chr@ = '\0'
                     octLength := sequence length() - 1
                     for(i in 0..octLength + 1) {
-                        value := 0
+                        value := '\0'
                         if(sequence[octLength-i] >= '0' && sequence[octLength-i] < '8') {
                             value = sequence[octLength-i] - '0'
                         } else {
                             /* invalid character in octal literal. */
                             return This invalid
                         }
-                        chr@ += (pow(8, i) as Int) * value
+                        chr@ += ((pow(8, i) as Int) * value) as Char
                     }
                     return This valid
                 }

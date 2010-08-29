@@ -100,7 +100,6 @@ AstBuilder: class {
      * Turn import paths like "../frontend/AstBuilder" into "/opt/ooc/rock/source/rock/frontend/AstBuilder"
      */
     getRealImportPath: static func (imp: Import, module: Module, params: BuildParams, path: String@, impPath, impElement: File@) -> File {
-("getRealImportPath called on " + imp path) println()
         path = FileUtils resolveRedundancies(imp path + ".ooc")
         impElement = params sourcePath getElement(path)
         impPath    = params sourcePath getFile(path)
@@ -537,7 +536,6 @@ printf("nq_importnamespace %s\n", cnamespace)
      */
 
     onTypeNew: unmangled(nq_onTypeNew) func (name: CString) -> Type {
-printf("onTypeNew: %s, trimmed: %s\n", name, name toString() trim() toCString())
         BaseType new(name toString() trim(), token())
     }
 
