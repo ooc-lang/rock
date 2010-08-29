@@ -36,7 +36,7 @@ extend String {
                     key := Buffer new~withSize(length)
                     memcpy(key _buffer data, identifier, length)
                     /* (the \0 byte is already set.) */
-                    value := values get(new String(key))
+                    value := values get(key toString())
                     if(!value) {
                         value = "" /* TODO: better error handling. */
                     }

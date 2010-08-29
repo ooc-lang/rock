@@ -129,11 +129,11 @@ AstBuilder: class {
     }
 
     onUse: unmangled(nq_onUse) func (name: CString) {
-        module addUse(Use new(String new(name, name length()), params, token()))
+        module addUse(Use new(name toString(), params, token()))
     }
 
     onInclude: unmangled(nq_onInclude) func (cpath: CString) {
-        path := String new(cpath, cpath length())
+        path := cpath toString()
         mode: IncludeMode
         if(path startsWith?("./")) {
             mode = IncludeModes LOCAL
@@ -149,7 +149,7 @@ AstBuilder: class {
     }
 
     onIncludeDefine: unmangled(nq_onIncludeDefine) func (name, value: CString) {
-        module includes last() addDefine(Define new(String new(name, name length()), String new(value, value length())))
+        module includes last() addDefine(Define new(name toString(), value toString()))
     }
 
     onImport: unmangled(nq_onImport) func (path, name: CString) {
@@ -161,7 +161,7 @@ AstBuilder: class {
 
     onImportNamespace: unmangled(nq_onImportNamespace) func (cnamespace: CString, quantity: Int) {
         if(params veryVerbose) printf("nq_importnamespace %s\n", cnamespace)
-        namespace := String new(cnamespace, cnamespace length())
+        namespace := cnamespace toString()
         nDecl: NamespaceDecl
         if(!module hasNamespace(namespace)) {
             nDecl = NamespaceDecl new(namespace)
@@ -181,7 +181,7 @@ AstBuilder: class {
      */
     onExtendStart: unmangled(nq_onExtendStart) func (baseType: Type, doc: CString) {
         addon := Addon new(baseType, token())
-        addon doc = String new (doc, doc length())
+        addon doc = doc toString()
         stack push(addon)
     }
 
@@ -194,16 +194,16 @@ AstBuilder: class {
      */
 
     onCoverStart: unmangled(nq_onCoverStart) func (name, doc: CString) {
-        cDecl := CoverDecl new(String new(name, name length()), token())
+        cDecl := CoverDecl new(name toString(), token())
         cDecl setVersion(getVersion())
-        cDecl doc = String new(doc, doc length())
+        cDecl doc = doc toString()
         cDecl module = module
         module addType(cDecl)
         stack push(cDecl)
     }
 
     onCoverExtern: unmangled(nq_onCoverExtern) func (externName: CString) {
-        peek(CoverDecl) setExternName(String new(externName, externName length()))
+        peek(CoverDecl) setExternName(externName toString())
     }
 
     onCoverFromType: unmangled(nq_onCoverFromType) func (type: Type) {
@@ -227,16 +227,16 @@ AstBuilder: class {
      */
 
     onEnumStart: unmangled(nq_onEnumStart) func (name, doc: CString) {
-        eDecl := EnumDecl new(String new(name, name length()), token())
+        eDecl := EnumDecl new(name toString(), token())
         eDecl setVersion(getVersion())
         eDecl module = module
-        eDecl doc = String new(doc, doc length())
+        eDecl doc = doc toString()
         module addType(eDecl)
         stack push(eDecl)
     }
 
     onEnumExtern: unmangled(nq_onEnumExtern) func (externName: CString) {
-        peek(EnumDecl) setExternName(String new(externName, externName length()))
+        peek(EnumDecl) setExternName(externName toString())
     }
 
     onEnumFromType: unmangled(nq_onEnumFromType) func (fromType: Type) {
@@ -248,8 +248,8 @@ AstBuilder: class {
     }
 
     onEnumElementStart: unmangled(nq_onEnumElementStart) func (name, doc: CString) {
-        element := EnumElement new(peek(EnumDecl) getInstanceType(), String new(name, name length()), token())
-        element doc = String new(doc, doc length())
+        element := EnumElement new(peek(EnumDecl) getInstanceType(),name toString(), token())
+        element doc = doc toString()
         stack push(element)
     }
 
@@ -258,7 +258,7 @@ AstBuilder: class {
     }
 
     onEnumElementExtern: unmangled(nq_onEnumElementExtern) func (externName: CString) {
-        peek(EnumElement) setExternName(String new(externName, externName length()))
+        peek(EnumElement) setExternName(externName toString())
     }
 
     onEnumElementEnd: unmangled(nq_onEnumElementEnd) func {
@@ -275,9 +275,9 @@ AstBuilder: class {
      */
 
     onClassStart: unmangled(nq_onClassStart) func (name, doc: CString) {
-        cDecl := ClassDecl new(String new(name, name length()), token())
+        cDecl := ClassDecl new(name toString(), token())
         cDecl setVersion(getVersion())
-        cDecl doc = String new(doc, doc length())
+        cDecl doc = doc toString()
         cDecl module = module
         module addType(cDecl)
         stack push(cDecl)
@@ -311,7 +311,7 @@ AstBuilder: class {
      */
 
     onVersionName: unmangled(nq_onVersionName) func (name: CString) -> VersionSpec {
-        VersionName new(String new(name, name length()), token())
+        VersionName new(name toString(), token())
     }
 
     onVersionNegation: unmangled(nq_onVersionNegation) func (spec: VersionSpec) -> VersionSpec {
@@ -352,9 +352,9 @@ AstBuilder: class {
      */
 
     onInterfaceStart: unmangled(nq_onInterfaceStart) func (name, doc: CString) {
-        iDecl := InterfaceDecl new(String new(name, name length()), token())
+        iDecl := InterfaceDecl new(name toString(), token())
         iDecl setVersion(getVersion())
-        iDecl doc = String new(doc, doc length())
+        iDecl doc = doc toString()
         iDecl module = module
         module addType(iDecl)
         stack push(iDecl)
@@ -381,8 +381,8 @@ AstBuilder: class {
     }
 
     onVarDeclName: unmangled(nq_onVarDeclName) func (name, doc: CString) {
-        vDecl := VariableDecl new(null, String new(name, name length()), token())
-        vDecl doc = String new(doc, doc length())
+        vDecl := VariableDecl new(null, name toString(), token())
+        vDecl doc = doc toString()
         peek(Stack<VariableDecl>) push(vDecl)
     }
 
@@ -391,7 +391,7 @@ AstBuilder: class {
     }
 
     onVarDeclExtern: unmangled(nq_onVarDeclExtern) func (cexternName: CString) {
-        externName := String new(cexternName, cexternName length())
+        externName := cexternName toString()
         vars := peek(Stack<VariableDecl>)
         if(externName empty?()) {
             vars each(|var| var setExternName(""))
@@ -404,7 +404,7 @@ AstBuilder: class {
     }
 
     onVarDeclUnmangled: unmangled(nq_onVarDeclUnmangled) func (cunmangledName: CString) {
-        unmangledName := String new(cunmangledName, cunmangledName length())
+        unmangledName :=cunmangledName toString()
         vars := peek(Stack<VariableDecl>)
         if(unmangledName empty?()) {
             vars each(|var| var setUnmangledName(""))
@@ -474,7 +474,7 @@ AstBuilder: class {
      */
 
     onPropertyDeclStart: unmangled(nq_onPropertyDeclStart) func (name: CString) {
-        stack push(PropertyDecl new(null, String new(name, name length()), token()))
+        stack push(PropertyDecl new(null, name toString(), token()))
     }
 
     onPropertyDeclStatic: unmangled(nq_onPropertyDeclStatic) func {
@@ -506,7 +506,7 @@ AstBuilder: class {
     }
 
     onPropertyDeclSetterArgument: unmangled(nq_onPropertyDeclSetterArgument) func (cname: CString, conventional: Bool) {
-        name := String new(cname, cname length())
+        name := cname toString()
         arg: Argument = match conventional {
             case true => Argument new(null, name clone(), token())
             case false => AssArg new(name clone(), token())
@@ -590,7 +590,7 @@ AstBuilder: class {
      */
 
     onOperatorStart: unmangled(nq_onOperatorStart) func (symbol: CString) {
-        oDecl := OperatorDecl new(String new(symbol, symbol length()) trim(), token())
+        oDecl := OperatorDecl new(symbol toString() trim(), token())
         fDecl := FunctionDecl new("", token())
         oDecl setFunctionDecl(fDecl)
         stack push(oDecl)
@@ -607,18 +607,18 @@ AstBuilder: class {
      */
 
     onFunctionStart: unmangled(nq_onFunctionStart) func (name, doc: CString) {
-        fDecl := FunctionDecl new(String new(name, name length()), token())
+        fDecl := FunctionDecl new(name toString(), token())
         fDecl setVersion(getVersion())
-        fDecl doc = String new(doc, doc length())
+        fDecl doc = doc toString()
         stack push(fDecl)
     }
 
     onFunctionExtern: unmangled(nq_onFunctionExtern) func (externName: CString) {
-        peek(FunctionDecl) setExternName(String new(externName, externName length()))
+        peek(FunctionDecl) setExternName(externName toString())
     }
 
     onFunctionUnmangled: unmangled(nq_onFunctionUnmangled) func (unmangledName: CString) {
-        peek(FunctionDecl) setUnmangledName(String new(unmangledName, unmangledName length()))
+        peek(FunctionDecl) setUnmangledName(unmangledName toString())
     }
 
     onFunctionAbstract: unmangled(nq_onFunctionAbstract) func {
@@ -647,7 +647,7 @@ AstBuilder: class {
     }
 
     onFunctionSuffix: unmangled(nq_onFunctionSuffix) func (suffix: CString) {
-        peek(FunctionDecl) suffix = String new(suffix, suffix length())
+        peek(FunctionDecl) suffix = suffix toString()
     }
 
     onFunctionArgsStart: unmangled(nq_onFunctionArgsStart) func {
@@ -688,11 +688,11 @@ AstBuilder: class {
      */
 
     onFunctionCallStart: unmangled(nq_onFunctionCallStart) func (name: CString) {
-        stack push(FunctionCall new(String new(name, name length()), token()))
+        stack push(FunctionCall new(name toString(), token()))
     }
 
     onFunctionCallSuffix: unmangled(nq_onFunctionCallSuffix) func (suffix: CString) {
-        peek(FunctionCall) setSuffix(String new(suffix, suffix length()))
+        peek(FunctionCall) setSuffix(suffix toString())
     }
 
     onFunctionCallArg: unmangled(nq_onFunctionCallArg) func (expr: Expression) {
@@ -846,7 +846,7 @@ AstBuilder: class {
 
     // variable access
     onVarAccess: unmangled(nq_onVarAccess) func (expr: Expression, name: CString) -> VariableAccess {
-        return VariableAccess new(expr, String new(name, name length()), token())
+        return VariableAccess new(expr, name toString(), token())
     }
 
     // cast
@@ -916,12 +916,12 @@ AstBuilder: class {
 
     onDotArg: unmangled(nq_onDotArg) func (name: CString) {
         // TODO: add check for member function
-        peek(List<Node>) add(DotArg new(String new(name, name length()), token()))
+        peek(List<Node>) add(DotArg new(name toString(), token()))
     }
 
     onAssArg: unmangled(nq_onAssArg) func (name: CString) {
         // TODO: add check for member function
-        peek(List<Node>) add(AssArg new(String new(name, name length()), token()))
+        peek(List<Node>) add(AssArg new(name toString(), token()))
     }
 
     /*
@@ -988,23 +988,23 @@ AstBuilder: class {
     }
 
     onDecLiteral: unmangled(nq_onDecLiteral) func (value: CString) -> IntLiteral {
-        IntLiteral new(String new(value, value length()) replaceAll("_", "") toLLong(), token())
+        IntLiteral new(value toString() replaceAll("_", "") toLLong(), token())
     }
 
     onOctLiteral: unmangled(nq_onOctLiteral) func (value: CString) -> IntLiteral {
-        IntLiteral new(String new(value, value length()) replaceAll("_", "") substring(2) toLLong(8), token())
+        IntLiteral new(value toString() replaceAll("_", "") substring(2) toLLong(8), token())
     }
 
     onBinLiteral: unmangled(nq_onBinLiteral) func (value: CString) -> IntLiteral {
-        IntLiteral new(String new(value, value length()) replaceAll("_", "") substring(2) toLLong(2), token())
+        IntLiteral new(value toString() replaceAll("_", "") substring(2) toLLong(2), token())
     }
 
     onHexLiteral: unmangled(nq_onHexLiteral) func (value: CString) -> IntLiteral {
-        IntLiteral new(String new(value, value length()) replaceAll("_", "") toLLong(16), token())
+        IntLiteral new(value toString() replaceAll("_", "") toLLong(16), token())
     }
 
     onFloatLiteral: unmangled(nq_onFloatLiteral) func (value: CString) -> FloatLiteral {
-        FloatLiteral new(String new(value, value length()) replaceAll("_", "") toFloat(), token())
+        FloatLiteral new(value toString() replaceAll("_", "") toFloat(), token())
     }
 
     onBoolLiteral: unmangled(nq_onBoolLiteral) func (value: Bool) -> BoolLiteral {
@@ -1129,7 +1129,7 @@ AstBuilder: class {
 
     onGenericArgument: unmangled(nq_onGenericArgument) func (cname: CString) {
         node := peek(Node)
-        name := String new(cname, cname length())
+        name := cname toString()
 
         //printf("======= Got generic argument %s, and node is a %s\n", name, node class name)
         vDecl := VariableDecl new(BaseType new("Class", token()), name, token())
@@ -1204,10 +1204,10 @@ nq_mangleIdents: unmangled func (string: CString) -> CString            {
     if(string == "this") return "_this" toCString()
     string
 }
-nq_trailingQuest: unmangled func (string: CString) -> CString           { (String new(string, string length()) + "__quest") toCString() }
-nq_trailingBang:  unmangled func (string: CString) -> CString           { (String new(string, string length()) + "__bang") toCString() }
+nq_trailingQuest: unmangled func (string: CString) -> CString           { (string toString() + "__quest") toCString() }
+nq_trailingBang:  unmangled func (string: CString) -> CString           { (string toString() + "__bang") toCString() }
 nq_error: unmangled func (this: AstBuilder, errorID: Int, message: CString, index: Int) {
-    msg : String = (message == null) ? null : String new(message, message length())
+    msg : String = (message == null) ? null : message toString()
     this error(errorID, msg, index)
 }
 

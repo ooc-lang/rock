@@ -264,6 +264,7 @@ List: abstract class <T> extends BackIterable<T> {
         for(item in this) {
             if(T==String) result += item as String _buffer size
             else if (T==Buffer) result += item as Buffer size
+            else if (T==Char) result += 1
             else result += T size
         }
         result

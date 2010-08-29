@@ -184,7 +184,7 @@ getToken: func (reader: Reader, token: Token*) {
                 reader reset(beginning)
                 reader read(s data, 0, length)
                 token@ type = TokenType Number
-                token@ value = String new(s)
+                token@ value = s toString()
             } else {
                 reader reset(marker)
                 LexingError new("Unknown token: %c" format(chr)) throw()
