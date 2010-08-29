@@ -46,8 +46,8 @@ FileUtils: class {
                 buffer append(File separator)
             }
         }
-        ("resolveRedundancies returns " + buffer toString()) println()
         printf("buffer data is %p:%s\n", buffer size, buffer data)
+        ("resolveRedundancies returns " + buffer toString()) println()
         return buffer toString()
     }
 }
