@@ -222,7 +222,7 @@ Buffer: class {
 
     /** appends *other* to *this* */
     append: func ~pointer (other: Char*, otherLength: SizeT) {
-        //cprintf("buffer append called with %p bytes: %s\n", otherLength, other)
+        cprintf("buffer append called with %p bytes: %s\n", otherLength, other)
         if(otherLength > 1 && (other + otherLength)@ != '\0') Exception new ("something wrong here!") throw()
         if(otherLength > 1 && (other + 1)@ == '\0') Exception new ("something wrong here!") throw()
         origlen := size
