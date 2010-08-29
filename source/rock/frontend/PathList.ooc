@@ -119,7 +119,7 @@ PathList: class {
     // FIXME that stuff breaks when a full pathname is passed. i.e. /devel/myfile.ooc
     getElement: func(path: String) -> File {
         for (element: File in paths) {
-            printf("PathList getElement:%s,%c,%s\n", element getPath() toCString(), File separator, path toCString())
+            //printf("PathList getElement:%s,%c,%s\n", element getPath() toCString(), File separator, path toCString())
             candidate := File new(element getPath() + File separator + path)
             if (candidate exists?()) {
                 return element
