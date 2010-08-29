@@ -145,9 +145,9 @@ String: class {
     }
 
     replaceAll: func ~char(oldie, kiddo: Char) -> This {
-        result := clone()
-        _buffer replaceAll~char(oldie, kiddo)
-        result
+        result := _buffer clone()
+        result replaceAll~char(oldie, kiddo)
+        result toString()
     }
 
     _bufArrayListToStrArrayList: func ( x : ArrayList<Buffer> ) -> ArrayList<This> {
