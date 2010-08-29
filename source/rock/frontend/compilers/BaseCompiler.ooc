@@ -11,7 +11,6 @@ BaseCompiler: abstract class extends AbstractCompiler {
     }
 
     setExecutable: func (=executableName) {
-        ("exe:" + executableName) println()
         execFile := File new(executableName)
 
         if (!execFile exists?()) {

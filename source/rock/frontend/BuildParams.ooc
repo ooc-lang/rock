@@ -28,9 +28,7 @@ BuildParams: class {
 
     init: func (execName: String) {
         findDist(execName)
-        ("dist loc:" + distLocation path) println()
         findSdk()
-        ("sdk loc:" + sdkLocation path) println()
         sdkLocation = sdkLocation getAbsoluteFile()
         findLibsPath()
 
@@ -51,7 +49,6 @@ BuildParams: class {
         }
 
         if (env && !env empty?()) {
-            ("env: " + env) println()
             distLocation = File new(env trimRight(File separator))
             return
         }

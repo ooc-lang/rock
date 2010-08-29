@@ -53,10 +53,12 @@ AstBuilder: class {
 
     init: func (=modulePath, =module, =params) {
         first := static true
+        clearline := "                                        \r"
 
         if(params verbose) {
-            if(!first) "%s\r" format((" " times(76) toCString())) println()
-            "Parsing %s" format (modulePath toCString()) println()
+            if(!first) clearline print()
+            "Parsing " print()
+            modulePath print()
         }
         cache put(File new(modulePath) getAbsolutePath(), module)
 
@@ -100,14 +102,12 @@ AstBuilder: class {
      * Turn import paths like "../frontend/AstBuilder" into "/opt/ooc/rock/source/rock/frontend/AstBuilder"
      */
     getRealImportPath: static func (imp: Import, module: Module, params: BuildParams, path: String@, impPath, impElement: File@) -> File {
-        if(params veryVerbose) ("getRealImportPath " + imp path) println()
         path = FileUtils resolveRedundancies(imp path + ".ooc")
         impElement = params sourcePath getElement(path)
         impPath    = params sourcePath getFile(path)
         if(impPath == null) {
             parent := File new(module getPath()) parent()
             if(parent != null) {
-                if(params veryVerbose) ("getRealImportPath parent = " + parent path) println()
                 path = FileUtils resolveRedundancies(parent path + File separator + imp path + ".ooc")
                 impElement = params sourcePath getElement(path)
                 impPath    = params sourcePath getFile(path)
@@ -154,7 +154,6 @@ AstBuilder: class {
     }
 
     onImport: unmangled(nq_onImport) func (path, name: CString) {
-        if(params veryVerbose) printf("nq_import %s %s\n", path, name)
         namestr := name toString()
         output : String = ((path == null) || (path@ == '\0')) ? namestr : path toString() + namestr
         module addImport(Import new( output , token()))
@@ -451,7 +450,6 @@ AstBuilder: class {
             // same hash? compare length and then full-string comparison
             word := reservedWords[idx]
             if(word length() == vd getName() length() && word == vd getName()) {
-                "(%zd, %zd)\n" printf(vd token start, vd token length)
                 params errorHandler onError(ReservedKeywordError new(vd token, "%s is a reserved C99 keyword, you can't use it in a variable declaration" format(vd getName() toCString())))
             }
         }

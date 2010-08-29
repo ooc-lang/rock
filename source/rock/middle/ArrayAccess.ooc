@@ -297,7 +297,7 @@ ArrayAccess: class extends Expression {
     }
 
     getType: func -> Type {
-        return type
+        type
     }
 
     toString: func -> String {

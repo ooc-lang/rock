@@ -57,9 +57,7 @@ File: abstract class {
         assert(parent != null)
         assert(parent path != null)
         assert(!parent path empty?())
-        s := parent path + This separator + path
-        s println()
-        return new(s)
+        new(parent path + This separator + path)
     }
 
     /**

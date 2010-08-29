@@ -201,7 +201,6 @@ SequenceDriver: class extends Driver {
                 }
                 return dirtyModules
             }
-            if(params verbose) printf("\nFirst compilation with lib-caching, we have to generate + compile everything\n")
         }
 
         oPaths := ArrayList<String> new()

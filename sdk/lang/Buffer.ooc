@@ -2,9 +2,8 @@ import io/[Writer, Reader]
 import structs/ArrayList
 import text/EscapeSequence
 
-    include stdio
-
-    cprintf:  extern(printf) func(Char*, ...) -> Int
+include stdio
+cprintf: extern(printf) func(Char*, ...) -> Int
 
 WHITE_SPACE := EscapeSequence unescape(" \r\n\t") toCString()
 
@@ -605,7 +604,7 @@ Buffer: class {
     /** return (a copy of) *this* with all characters contained by *s* stripped
         from the right side. */
     trimRight: func ~pointer (s: Char*, sLength: SizeT) {
-    c :Char= s@
+    //c :Char= s@
     //if (sLength == 1) cprintf("trimRight: %02X\n", c)
     //else cprintf("trimRight: %p:%s\n", sLength, s)
     if(sLength > 1 && (s + sLength)@ != '\0') raise("something wrong here!")
@@ -613,7 +612,7 @@ Buffer: class {
 
         end := size
         while( end > 0 &&  (data + (end - 1))@ containedIn?(s, sLength)) {
-            cprintf("%c contained in %s!\n", (data + (end - 1))@, s)
+            //cprintf("%c contained in %s!\n", (data + (end - 1))@, s)
             end -= 1
         }
         setLength(end);
@@ -1068,9 +1067,9 @@ Buffer_unittest: class {
         TEST_FILE_OUT : const String = "/tmp/buftest"
 
         b := Buffer new(0)
-        if (!b fromFile(TEST_FILE_IN) || b size == 0) printf("read failed: b size=%d\n" format (b size))
-        if (!(b toFile(TEST_FILE_OUT)))     ("write failed") println
-        if (! ((c := Buffer new(0) fromFile(TEST_FILE_IN) )     == b ) ) ( "comparison failed") println
+        if (!b fromFile(TEST_FILE_IN) || b size == 0) "read failed: b size=%d" format(b size) println()
+        if (!(b toFile(TEST_FILE_OUT)))     ("write failed") println()
+        if (! ((c := Buffer new(0) fromFile(TEST_FILE_IN) )     == b ) ) ("comparison failed") println()
     }
 
     testFind: static func {
@@ -1081,41 +1080,41 @@ Buffer_unittest: class {
         p = b find(what, p+1)
 
         l := b findAll( String new ("1"))
-        if ( l size() != ( 3 as SizeT)) ( "find failed 1") println
+        if ( l size() != ( 3 as SizeT)) ( "find failed 1") println()
         else {
-            if ( l get(0) != 0) ( "find failed 2") println
-            if ( l get(1) != 5) ( "find failed 3") println
-            if ( l get(2) != 10) ( "find failed 4") println
+            if ( l get(0) != 0) ( "find failed 2") println()
+            if ( l get(1) != 5) ( "find failed 3") println()
+            if ( l get(2) != 10) ( "find failed 4") println()
         }
     }
 
     testOperators: static func {
 
-        if (String new ("1") == String new(0) ) ("op equals failed 3") println
-        if (String new ("123") == String new("1234") ) ("op equals failed 4") println
-        if (String new ("1234") != String new("1234") ) ("op equals failed 5") println
-        if (String new ("1234") == String new("4444") ) ("op equals failed 6") println
+        if (String new ("1") == String new(0) ) ("op equals failed 3") println()
+        if (String new ("123") == String new("1234") ) ("op equals failed 4") println()
+        if (String new ("1234") != String new("1234") ) ("op equals failed 5") println()
+        if (String new ("1234") == String new("4444") ) ("op equals failed 6") println()
     }
 
     testReplace: static func {
-        if ( String new ("1234512345") replaceAll( "1", "2") != String new ("2234522345") )  ("replace failed 1," + String new ("1234512345") replaceAll( "1", "2")) println
-        if ( String new ("1234512345") replaceAll( "12333333333333333333", "2") != String new ("1234512345") )  ("replace failed 2") println
-        if ( String new ("1234512345") replaceAll( "23", "11") != String new ("1114511145") )  ("replace failed 3") println
-        if ( String new ("112") replaceAll( "1", "XXX") != String new ("XXXXXX2") )  ("replace failed 4, " + String new ("112") replaceAll( "1", "XXX")  )println
-        if ( String new ("112") replaceAll( "1", "") != String new ("2") )  ("replace failed 5") println
-        if ( String new ("111") replaceAll( "1", "") != String new ("") )  ("replace failed 6") println
-        if ( String new ("") replaceAll( "1", "") != String new ("") )  ("replace failed 7") println
-        if ( String new ("") replaceAll( "", "1") != String new ("") )  ("replace failed 8") println
-        if ( String new ("111") replaceAll( "", "") != String new ("111") )  ("replace failed 9") println
+        if ( String new ("1234512345") replaceAll( "1", "2") != String new ("2234522345") )  ("replace failed 1," + String new ("1234512345") replaceAll( "1", "2")) println()
+        if ( String new ("1234512345") replaceAll( "12333333333333333333", "2") != String new ("1234512345") )  ("replace failed 2") println()
+        if ( String new ("1234512345") replaceAll( "23", "11") != String new ("1114511145") )  ("replace failed 3") println()
+        if ( String new ("112") replaceAll( "1", "XXX") != String new ("XXXXXX2") )  ("replace failed 4, " + String new ("112") replaceAll( "1", "XXX")) println()
+        if ( String new ("112") replaceAll( "1", "") != String new ("2") )  ("replace failed 5") println()
+        if ( String new ("111") replaceAll( "1", "") != String new ("") )  ("replace failed 6") println()
+        if ( String new ("") replaceAll( "1", "") != String new ("") )  ("replace failed 7") println()
+        if ( String new ("") replaceAll( "", "1") != String new ("") )  ("replace failed 8") println()
+        if ( String new ("111") replaceAll( "", "") != String new ("111") )  ("replace failed 9") println()
     }
 
     testSplit: static func {
         if (("X XXX X") split (" ") size() != 3) Exception new ("split failed 1") throw()
-        if (("X XXX X") split (" ") get(0) != String new("X"))  ("split failed 2") println
-        if (("X XXX X") split (" ") get(1) != String new ("XXX"))  ("split failed 3") println
-        if (("X XXX X") split (" ") get(2) != String new ("X"))  ("split failed 4") println
+        if (("X XXX X") split (" ") get(0) != String new("X"))  ("split failed 2") println()
+        if (("X XXX X") split (" ") get(1) != String new ("XXX"))  ("split failed 3") println()
+        if (("X XXX X") split (" ") get(2) != String new ("X"))  ("split failed 4") println()
         /* actually that's hows it supposed to be, java has an additional argument to solve this: split(";" -1) or so
-        if (Buffer new ("X XXX X") split ("X") size() != 2) println ("split failed 5")
+        if (Buffer new ("X XXX X") split ("X") size() != 2) println("split failed 5")
         b := Buffer new ("X XXX X") split ("X")
         for (item in b) {
             if (item) (item toString() + "_") println()
@@ -1130,7 +1129,7 @@ Buffer_unittest: class {
         b size = 0
         memcpy (b data as Char*, "1111", 4)
         b append(Buffer new("222"))
-        if (b data[3] != '\0') ("trZero failed 1") println
+        if (b data[3] != '\0') ("trZero failed 1") println()
     }
 
     unittest: static func {

@@ -2,4 +2,3 @@
 Name: math
 Description: math lib
 Libs: -lm
-
