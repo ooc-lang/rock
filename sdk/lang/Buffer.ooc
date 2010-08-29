@@ -223,7 +223,7 @@ Buffer: class {
 
     /** appends *other* to *this* */
     append: func ~pointer (other: Char*, otherLength: SizeT) {
-        cprintf("buffer append called with %p bytes: %s\n", otherLength, other)
+        //cprintf("buffer append called with %p bytes: %s\n", otherLength, other)
         if(otherLength > 1 && (other + otherLength)@ != '\0') Exception new ("something wrong here!") throw()
         if(otherLength > 1 && (other + 1)@ == '\0') Exception new ("something wrong here!") throw()
         origlen := size
@@ -458,7 +458,7 @@ Buffer: class {
     }
 
     split: func ~pointer (delimiter: Char*, delimiterLength:SizeT, maxSplits: SSizeT) -> ArrayList <This> {
-        cprintf("self[%p:%s] split called with %p:%s", size, data, delimiterLength, delimiter)
+        //cprintf("self[%p:%s] split called with %p:%s", size, data, delimiterLength, delimiter)
         l := findAll(delimiter, delimiterLength, true)
         maxItems := ((maxSplits <= 0) || (maxSplits >= l size())) ? l size() : maxSplits
         result := ArrayList <This> new( maxItems )
@@ -475,8 +475,8 @@ Buffer: class {
         sdist := size - sstart // bytes to copy
         b := This new ((data + sstart) as CString, sdist)
         result add ( b )
-        cprintf("split debug out:\n")
-        for (elem in result) cprintf("%p:%s\n", elem size, elem data)
+        //cprintf("split debug out:\n")
+        //for (elem in result) cprintf("%p:%s\n", elem size, elem data)
         return result
     }
 
