@@ -457,6 +457,7 @@ Buffer: class {
     }
 
     split: func ~pointer (delimiter: Char*, delimiterLength:SizeT, maxSplits: SSizeT) -> ArrayList <This> {
+        cprintf("self[%p:%s] split called with %p:%s", size, data, delimiterLength, delimiter)
         l := findAll(delimiter, delimiterLength, true)
         maxItems := ((maxSplits <= 0) || (maxSplits >= l size())) ? l size() : maxSplits
         result := ArrayList <This> new( maxItems )
@@ -473,8 +474,8 @@ Buffer: class {
         sdist := size - sstart // bytes to copy
         b := This new ((data + sstart) as CString, sdist)
         result add ( b )
-        //cprintf("split debug out:\n")
-        //for (elem in result) cprintf("%p:%s\n", elem size, elem data)
+        cprintf("split debug out:\n")
+        for (elem in result) cprintf("%p:%s\n", elem size, elem data)
         return result
     }
 

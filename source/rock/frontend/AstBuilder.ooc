@@ -56,7 +56,7 @@ AstBuilder: class {
 
         if(params verbose) {
             if(!first) "%s\r" format((" " times(76) toCString())) println()
-            "Parsing %s" format (modulePath toCString()) print()
+            "Parsing %s" format (modulePath toCString()) println()
         }
         cache put(File new(modulePath) getAbsolutePath(), module)
 
