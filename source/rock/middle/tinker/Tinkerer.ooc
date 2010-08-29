@@ -61,7 +61,7 @@ Tinkerer: class {
         if(params stats) {
             for(res in resolvers) {
                 module := res module
-                printf(" - imported %dx, has %d deps, %s\n", module timesImported, module getAllImports() size(), module fullName)
+                printf(" - imported %dx, has %d deps, %s\n", module timesImported, module getAllImports() size(), module fullName toCString())
             }
             printf("End final order.\n")
         }
@@ -71,7 +71,7 @@ Tinkerer: class {
 
             round += 1
             if(params veryVerbose) {
-                println("\n=======================================\n\nTinkerer, round " + round + ", " + resolvers size() + " left")
+                "\n=======================================\n\nTinkerer, round %d, %d left" format(round , resolvers size()) println()
             }
 
             iter := resolvers iterator()
@@ -82,7 +82,7 @@ Tinkerer: class {
 
                 if(params veryVerbose) {
                     printf("\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
-                    printf("\tResolving module %s", resolver module fullName)
+                    printf("\tResolving module " + resolver module fullName)
                     printf("\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
                 }
 
@@ -90,7 +90,7 @@ Tinkerer: class {
 
                 // returns false = finished resolving
                 if(!resolver process()) {
-                    if(params veryVerbose) println("++++++++++++++++ Module " + resolver module fullName + " finished resolving.");
+                    if(params veryVerbose) ("++++++++++++++++ Module " + resolver module fullName + " finished resolving.") println()
 
                     // done? check it and remove it from the processing queue
                     iter remove()
@@ -110,7 +110,7 @@ Tinkerer: class {
                 }
 
                 if(params fatalError) {
-                    println("Tinkerer going round in circles. " + resolvers size() + " modules remaining.")
+                    println("Tinkerer going round in circles. " + resolvers size() toString() + " modules remaining.")
                 }
                 return false
             }
@@ -122,7 +122,7 @@ Tinkerer: class {
             totalLoops := 0
             for(module in modules) {
                 printf(" - imported %dx, has %d deps, looped %d x, %s\n", module timesImported, module getAllImports() size(),
-                    module timesLooped, module fullName)
+                    module timesLooped, module fullName toCString())
                 totalImports += module getAllImports() size()
                 totalLoops += module timesLooped
             }

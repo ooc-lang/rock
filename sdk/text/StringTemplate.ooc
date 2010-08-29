@@ -18,7 +18,7 @@ extend String {
     formatTemplate: func (values: HashMap<String, String>) -> String {
         length := this length()
         buffer := Buffer new(length)
-        p: Char* = this
+        p: Char* = this _buffer data
         identifier: Char* = null
         while(p@) {
             if(!identifier && p@ == '{' && (p + 1)@ == '{') {
@@ -33,10 +33,10 @@ extend String {
                     while(end@ == ' ') { end -= 1 }
                     /* calculate the length */
                     length := (end + 1 - identifier) as SizeT
-                    key := String new(length)
-                    memcpy(key, identifier, length)
+                    key := Buffer new~withSize(length)
+                    memcpy(key _buffer data, identifier, length)
                     /* (the \0 byte is already set.) */
-                    value := values get(key)
+                    value := values get(new String(key))
                     if(!value) {
                         value = "" /* TODO: better error handling. */
                     }

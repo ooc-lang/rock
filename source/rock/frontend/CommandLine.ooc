@@ -53,7 +53,7 @@ CommandLine: class {
 
                 } else if (option startsWith?("outlib")) {
 
-                    "Deprecated option %s! Use -staticlib instead. Abandoning." printfln(option)
+                    "Deprecated option %s! Use -staticlib instead. Abandoning.\n" printf(option toCString())
                     exit(1)
 
                 } else if (option startsWith?("staticlib")) {
@@ -84,7 +84,7 @@ CommandLine: class {
                     params backend = arg substring(arg indexOf('=') + 1)
 
                     if(params backend != "c" && params backend != "json" && params backend != "explain") {
-                        "Unknown backend: %s." format(params backend) println()
+                        "Unknown backend: %s." format(params backend toCString()) println()
                         params backend = "c"
                     }
 
@@ -107,6 +107,10 @@ CommandLine: class {
                 } else if (option startsWith?("entrypoint")) {
 
                     params entryPoint = arg substring(arg indexOf('=') + 1)
+
+                } else if (option == "dce") {
+
+                    params dce = true
 
                 } else if (option == "newsdk") {
 
@@ -266,7 +270,7 @@ CommandLine: class {
                         case "dummy" =>
                             DummyDriver new(params)
                         case =>
-                            "Unknown driver: %s" printfln(driverName)
+                            "Unknown driver: %s\n" printf(driverName toCString())
                             null
                     }
 
@@ -276,7 +280,7 @@ CommandLine: class {
 
                 } else if (option == "V" || option == "-version" || option == "version") {
 
-                    printf("rock %s, built on %s at %s\n", RockVersion getName(), ROCK_BUILD_DATE, ROCK_BUILD_TIME)
+                    printf("rock %s, built on %s at %s\n", RockVersion getName() toCString(), ROCK_BUILD_DATE, ROCK_BUILD_TIME)
                     exit(0)
 
                 } else if (option == "h" || option == "-help" || option == "help") {
@@ -340,7 +344,7 @@ CommandLine: class {
 
                 } else {
 
-                    printf("Unrecognized option: %s\n", arg)
+                    printf("Unrecognized option: %s\n", arg toCString())
 
                 }
             } else if(arg startsWith?("+")) {
@@ -385,9 +389,9 @@ CommandLine: class {
             params libfolder = libfolder getPath()
             params sourcePath add(params libfolder)
 
-            if(params verbose) "Building lib for folder %s to name %s" printfln(params libfolder, name)
+            if(params verbose) "Building lib for folder %s to name %s\n" printf(params libfolder toCString(), name toCString())
 
-            dummyModule = Module new("__lib__/%s.ooc" format(name), ".", params, nullToken)
+            dummyModule = Module new("__lib__/%s.ooc" format(name toCString()), ".", params, nullToken)
             libfolder walk(|f|
                 // sort out links to non-existent destinations.
                 if(!f exists?())
@@ -406,7 +410,7 @@ CommandLine: class {
 
         if(params staticlib != null || params dynamiclib != null) {
             if(modulePaths size() != 1 && !params libfolder) {
-                "Error: you can use -staticlib of -dynamiclib only when specifying a unique .ooc file, not %d of them." printfln(modulePaths size())
+                "Error: you can use -staticlib of -dynamiclib only when specifying a unique .ooc file, not %d of them.\n" printf(modulePaths size())
                 exit(1)
             }
             moduleName := File new(dummyModule ? dummyModule path : modulePaths[0]) name()
@@ -448,7 +452,9 @@ CommandLine: class {
             }
         }
 
-        if(params sourcePath empty?()) params sourcePath add(".")
+        if(params sourcePath empty?()) {
+            params sourcePath add(".")
+        }
         params sourcePath add(params sdkLocation path)
 
         errorCode := 0
@@ -458,7 +464,7 @@ CommandLine: class {
                 postParsing(dummyModule)
             } else {
                 for(modulePath in modulePaths) {
-                    code := parse(modulePath replace('/', File separator))
+                    code := parse(modulePath replaceAll('/', File separator))
                     if(code != 0) {
                         errorCode = 2 // C compiler failure.
                         break
@@ -496,27 +502,40 @@ CommandLine: class {
 
     clean: func {
         // oh that's a hack.
-        system("rm -rf %s" format(params outPath path) as CString)
+        system("rm -rf %s" format(params outPath path toCString()) toCString())
     }
 
     cleanHardcore: func {
         clean()
         // oh that's the same hack. Someone implement File recursiveDelete() already.
-        system("rm -rf %s" format(params libcachePath) as CString)
+        system("rm -rf %s" format(params libcachePath toCString()) toCString())
     }
 
     parse: func (moduleName: String) -> Int {
+        assert (moduleName != null)
+        assert (!moduleName empty?())
+        ("opening file " + moduleName + " for read...") println()
         moduleFile := params sourcePath getFile(moduleName)
 
         if(!moduleFile) {
-            printf("File not found: %s\n", moduleName)
+            printf("File not found: %s\n", moduleName toCString())
+            Exception new("") throw()
             exit(1)
         }
 
         modulePath := moduleFile path
-
+        assert(modulePath != null)
+        assert(!modulePath empty?())
+        //FIXME doh, so you allow only .ooc extension...
         fullName := moduleName substring(0, moduleName length() - 4)
-        module := Module new(fullName, params sourcePath getElement(moduleName) path, params , nullToken)
+        ("full name " + fullName) println()
+        // FIXME damn that thing crashes here with a fully qualified name. but i wont fix it now.
+        // WTF why do you do that ? (accessing sourcepath again?)
+        mysteriousString := params sourcePath getElement(moduleName) path
+        assert(mysteriousString != null)
+        assert(!mysteriousString empty?())
+        ("myst name " + mysteriousString) println()
+        module := Module new(fullName, mysteriousString, params , nullToken)
         module token = Token new(0, 0, module)
         module main = true
         module lastModified = moduleFile lastModified()
@@ -559,69 +578,71 @@ CommandLine: class {
                 if(result == 0) {
                     if(params shout) success()
                     if(params run) {
-                        Process new(["./" + module simpleName] as ArrayList<String>) execute()
+                        foo := ArrayList<String> new()
+                        foo add("./" + module simpleName)
+                        Process new(foo) execute()
                     }
                 } else {
                     if(params shout) failure()
                 }
             }
-            } else if(params backend == "json") {
-              // json phase 3: generate.
-              params clean = false // -backend=json implies -noclean
-              for(candidate in module collectDeps()) {
+        } else if(params backend == "json") {
+            // json phase 3: generate.
+            params clean = false // -backend=json implies -noclean
+            for(candidate in module collectDeps()) {
                 JSONGenerator new(params, candidate) write() .close()
-              }
-            } else if(params backend == "explain") {
-              params clean = false
-              for(candidate in module collectDeps()) {
-                ExplanationGenerator new(params, candidate) write() .close()
-              }
-              Terminal setAttr(Attr bright)
-              Terminal setFgColor(Color blue)
-              "[ Produced documentation in rock_tmp/ ]" println()
-
-              Terminal setFgColor(Color red)
-
-              old := File new(params outPath getPath() + File separator + module getSourceFolderName(), module getPath(".markdown"))
-
-              out: String
-
-              markdown := Process new(["markdown", old getPath()])
-              markdown setStdout(Pipe new()) .executeNoWait()
-              markdown communicate(null, out&, null)
-
-              new := File new(module simpleName+".html")
-              new write("<html>
-              <head>
-                  <script type=\"text/javascript\" charset=\"utf-8\" src=\"http://code.jquery.com/jquery-1.4.2.min.js\"></script>
-                  <link href='http://fonts.googleapis.com/css?family=Josefin+Sans+Std+Light' rel='stylesheet' type='text/css'>
-                  <link href='http://fonts.googleapis.com/css?family=Molengo' rel='stylesheet' type='text/css'>
-                  <link href='http://fonts.googleapis.com/css?family=IM+Fell+DW+Pica' rel='stylesheet' type='text/css'>
-                <title>ooc Explanations: doc_test</title>
-              </head>
-              <body onload=\"bootstrap()\">
-              <script type=\"text/javascript\" charset=\"utf-8\">
-              function bootstrap() {
-                $('body').attr('style',\"padding: 0;margin:  0;border:  0;background: #EEEEFF;\");
-                $('h1').attr('style',\"font-family: 'IM Fell DW Pica', arial, serif;padding-left: 1em;background: black;color: yellow;font-size: 2em;\");
-                $('h2').attr('style',\"font-family:'Josefin Sans Std Light',arial,serif;background:black;color:white;padding-top:5px;padding-left: 1em;border-top-left-radius: 50px;\");
-                $('p').attr('style',\"font-family: 'Molengo', arial, serif;\");
-                $('li').attr('style',\"font-family: 'Molengo', arial, serif;\");
-                $('h1').before('<div id=\"file_head\">');
-                $('body').children().each(function (i) { if (this.tagName == \"H2\") { return false } else if (this.tagName != \"DIV\") { $('#file_head').append(this)}});
-                $('#file_head').append('<div id=\"text\">');
-                $('#file_head').children().each(function (i) { if (this.tagName != \"DIV\" && this.tagName != \"H1\") { $('#text').append(this) }});
-                $(\"h2\").each(function() { var $h2 = $(this);$(\"<div class='text'/>\").append($h2.nextUntil(\"h2\")).insertAfter($h2).add($h2).wrapAll(\"<div class='box'/>\");});
-                $('.box').attr('style','width: 80%;margin: auto;border-top-left-radius: 25px;border-bottom-right-radius: 50px;background: rgba(56%, 91%, 100%, 0.5);')
-                $('.text').attr('style','padding: 0 1em 1em 1em;')
-                $('#text').attr('style','width: 70%;margin: auto;padding: 0.1em;');
-              }
-              </script>\n" + out + "\n</body></html>")
-
-              Terminal setFgColor(Color yellow)
-              ("Attempted to generate "+new getPath()+" [ markdown script needs to be in $PATH ]") println()
-              Terminal reset()
             }
+        } else if(params backend == "explain") {
+            params clean = false
+            for(candidate in module collectDeps()) {
+                ExplanationGenerator new(params, candidate) write() .close()
+            }
+            Terminal setAttr(Attr bright)
+            Terminal setFgColor(Color blue)
+            "[ Produced documentation in rock_tmp/ ]" println()
+
+            Terminal setFgColor(Color red)
+
+            old := File new(params outPath getPath() + File separator + module getSourceFolderName(), module getPath(".markdown"))
+
+            out: String
+
+            markdown := Process new(["markdown", old getPath()])
+            markdown setStdout(Pipe new()) .executeNoWait()
+            markdown communicate(null, out&, null)
+
+            new := File new(module simpleName+".html")
+            new write("<html>
+            <head>
+                <script type=\"text/javascript\" charset=\"utf-8\" src=\"http://code.jquery.com/jquery-1.4.2.min.js\"></script>
+                <link href='http://fonts.googleapis.com/css?family=Josefin+Sans+Std+Light' rel='stylesheet' type='text/css'>
+                <link href='http://fonts.googleapis.com/css?family=Molengo' rel='stylesheet' type='text/css'>
+                <link href='http://fonts.googleapis.com/css?family=IM+Fell+DW+Pica' rel='stylesheet' type='text/css'>
+                <title>ooc Explanations: doc_test</title>
+            </head>
+                <body onload=\"bootstrap()\">
+                <script type=\"text/javascript\" charset=\"utf-8\">
+                function bootstrap() {
+                    $('body').attr('style',\"padding: 0;margin:  0;border:  0;background: #EEEEFF;\");
+                    $('h1').attr('style',\"font-family: 'IM Fell DW Pica', arial, serif;padding-left: 1em;background: black;color: yellow;font-size: 2em;\");
+                    $('h2').attr('style',\"font-family:'Josefin Sans Std Light',arial,serif;background:black;color:white;padding-top:5px;padding-left: 1em;border-top-left-radius: 50px;\");
+                    $('p').attr('style',\"font-family: 'Molengo', arial, serif;\");
+                    $('li').attr('style',\"font-family: 'Molengo', arial, serif;\");
+                    $('h1').before('<div id=\"file_head\">');
+                    $('body').children().each(function (i) { if (this.tagName == \"H2\") { return false } else if (this.tagName != \"DIV\") { $('#file_head').append(this)}});
+                    $('#file_head').append('<div id=\"text\">');
+                    $('#file_head').children().each(function (i) { if (this.tagName != \"DIV\" && this.tagName != \"H1\") { $('#text').append(this) }});
+                    $(\"h2\").each(function() { var $h2 = $(this);$(\"<div class='text'/>\").append($h2.nextUntil(\"h2\")).insertAfter($h2).add($h2).wrapAll(\"<div class='box'/>\");});
+                    $('.box').attr('style','width: 80%;margin: auto;border-top-left-radius: 25px;border-bottom-right-radius: 50px;background: rgba(56%, 91%, 100%, 0.5);')
+                    $('.text').attr('style','padding: 0 1em 1em 1em;')
+                    $('#text').attr('style','width: 70%;margin: auto;padding: 0.1em;');
+                }
+            </script>\n" + out + "\n</body></html>")
+
+            Terminal setFgColor(Color yellow)
+            ("Attempted to generate "+new getPath()+" [ markdown script needs to be in $PATH ]") println()
+            Terminal reset()
+        }
 
         first = false
     }
@@ -638,6 +659,7 @@ CommandLine: class {
         Terminal setFgColor(Color red)
         "[FAIL]" println()
         Terminal reset()
+        Exception new("") throw() // for backtrace
         exit(1)
     }
 

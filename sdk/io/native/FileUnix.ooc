@@ -1,5 +1,4 @@
 import ../File, structs/ArrayList
-import text/Buffer
 
 include dirent
 
@@ -40,11 +39,12 @@ version(unix || apple) {
     _getcwd: extern(getcwd) func(buf: CString, size: SizeT) -> CString
 
     ooc_get_cwd: unmangled func -> String {
-        ret := Buffer new(File MAX_PATH_LENGTH + 1)
-        if(!_getcwd(ret data as CString, File MAX_PATH_LENGTH)) {
-            Exception new("Failed to get current directory!") throw()
+        result := Buffer new(File MAX_PATH_LENGTH)
+        if(!_getcwd(result data as CString, File MAX_PATH_LENGTH)) {
+            OSException new("error trying to getcwd! ") throw()
         }
-        return ret toString()
+        result sizeFromData()
+        String new (result)
     }
 
     TimeT: cover from time_t
@@ -64,7 +64,7 @@ version(unix || apple) {
     lstat: extern func(CString, FileStat*) -> Int
     _mkdir: extern(mkdir) func(CString, ModeT) -> Int
     remove: extern func(path: CString) -> Int
-    _remove: unmangled func(path: CString) -> Int {
+    _remove: unmangled func(path: String) -> Int {
         remove(path)
     }
 
@@ -169,8 +169,12 @@ version(unix || apple) {
          * The absolute path, e.g. "my/dir" => "/current/directory/my/dir"
          */
         getAbsolutePath: func -> String {
-            actualPath := String new(This MAX_PATH_LENGTH + 1)
-            return realpath(path as CString, actualPath as CString) as String
+            assert(path != null)
+            assert(!path empty?())
+            actualPath := Buffer new(MAX_PATH_LENGTH)
+            ret := realpath(path toCString(), actualPath toCString())
+            if (ret == null) OSException new("failed to get absolute path for " + path) throw()
+            String new(ret, ret length())
         }
 
         /**
@@ -179,7 +183,7 @@ version(unix || apple) {
          */
         getAbsoluteFile: func -> File {
             actualPath := getAbsolutePath()
-            if(!path == actualPath) {
+            if(path != actualPath) {
                 return File new(actualPath)
             }
             return this
@@ -199,8 +203,9 @@ version(unix || apple) {
             entry := readdir(dir)
             while(entry != null) {
                 if(!_isSelfOrParentDirEntry? (entry@ name)) {
-                    if (T == String) result add(entry@ name clone())
-                    else if (T == File) result add(File new(this, entry@ name clone() as String))
+                    s := String new(entry@ name, entry@ name length())
+                    candidate: T = (T == String) ? s : File new(this, s)
+                    result add(candidate)
                 }
                 entry = readdir(dir)
             }

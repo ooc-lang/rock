@@ -1,12 +1,12 @@
 /**
  * Contain the online (rather inline) help of the ooc compiler
- * 
+ *
  * @author Amos Wenger
  */
 Help: class {
 
     /**
-     * Print a helpful help message that helps 
+     * Print a helpful help message that helps
      */
     printHelp: static func {
 
@@ -48,6 +48,8 @@ rock yourmodule.ooc -backend=c -driver=sequence -gc=static -libcache -outpath=ro
     but don't generate C files.
 -onlygen
     Equivalent to -driver=dummy. See above.
+-dce
+    sets dead code elimination flags on c compiler (currently gcc only)
 -sourcepath=PATH
     Pass the location of your source files. (default=current
     directory)
@@ -93,6 +95,8 @@ rock yourmodule.ooc -backend=c -driver=sequence -gc=static -libcache -outpath=ro
     Print rock’s version and exit.
 -h, -help, --help
     Print this help and exit.
+-Dmydefine
+    sets \"mydefine\" for version blocks
 -mARCH
     Specify the architecture (either 32 or 64).
 +...

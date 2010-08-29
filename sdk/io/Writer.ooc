@@ -21,9 +21,9 @@ Writer: abstract class {
 
     /**
        Write a string to this stream.
-     */    
+     */
     write: func ~implicitLength (str: String) -> SizeT {
-        write(str, str length())
+        write(str _buffer data, str length())
     }
 
     /**
@@ -48,13 +48,13 @@ Writer: abstract class {
         :return: total bytes transfered
     */
     write: func ~fromReader(source: Reader, bufferSize: SizeT) -> SizeT {
-        buffer := String new(bufferSize)
-        cursor, bytesRead, bytesTransfered: Int
+        buffer := Buffer new(bufferSize)
+        cursor, bytesTransfered: Int
         cursor = 0; bytesTransfered = 0
 
         while(source hasNext?()) {
-            bytesRead = source read(buffer, cursor, bufferSize)
-            bytesTransfered += this write(buffer, bytesRead)
+            buffer setLength( source read(buffer data, cursor, bufferSize) )
+            bytesTransfered += this write(buffer data, buffer size)
         }
 
         return bytesTransfered

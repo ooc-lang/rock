@@ -82,7 +82,7 @@ CGenerator: class extends Skeleton {
     visitTypeAccess: func (typeAccess: TypeAccess) {
         ref := typeAccess getRef()
         if(!ref instanceOf?(TypeDecl)) {
-            Exception new(This, "Ref of TypeAccess %s isn't a TypeDecl but a %s! wtf?" format(typeAccess toString(), ref class name)) throw()
+            Exception new(This, "Ref of TypeAccess %s isn't a TypeDecl but a %s! wtf?" format(typeAccess toString() toCString(), ref class name toCString())) throw()
         }
         current app(ref as TypeDecl underName()). app("_class()")
     }
@@ -199,7 +199,7 @@ CGenerator: class extends Skeleton {
 
     visitVariableAccess: func ~refAddr(varAcc: VariableAccess, writeReferenceAddrOf: Bool) {
         if(varAcc ref == null) {
-            Exception new(This, "Trying to write unresolved variable access %s" format(varAcc getName())) throw()
+            Exception new(This, "Trying to write unresolved variable access %s" format(varAcc getName() toCString())) throw()
         }
 
         if(varAcc ref instanceOf?(EnumElement)) {
@@ -287,7 +287,7 @@ CGenerator: class extends Skeleton {
 
     visitArrayLiteral: func (arrLit: ArrayLiteral) {
         type := arrLit getType()
-        if(!type instanceOf?(PointerType)) Exception new(This, "Array literal type %s isn't a PointerType but a %s, wtf?" format(arrLit toString(), type toString())) throw()
+        if(!type instanceOf?(PointerType)) Exception new(This, "Array literal type %s isn't a PointerType but a %s, wtf?" format(arrLit toString() toCString(), type toString() toCString())) throw()
 
         current app("("). app(arrLit getType() as PointerType inner). app("[]) { ")
         isFirst := true
@@ -451,8 +451,8 @@ CGenerator: class extends Skeleton {
 
         if(node expr instanceOf?(Dereference)) {
             current app(node expr as Dereference expr)
-			return;
-		}
+            return;
+        }
 
         current app("&("). app(node expr). app(")")
     }

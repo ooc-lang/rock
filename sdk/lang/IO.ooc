@@ -2,9 +2,14 @@ include stdio
 
 stdout, stderr, stdin: extern FStream
 
-println: func ~withStr (str: Char*) {
+println: func ~withCStr (str: Char*) {
     printf("%s\n", str)
 }
+
+println: func ~withStr (str: String) {
+    printf("%s\n", str toCString())
+}
+
 println: func {
     printf("\n")
 }
@@ -100,36 +105,17 @@ FStream: cover from FILE* {
     readLine: func (chunk: Int) -> String {
         // 128 is a reasonable default. Most terminals are 80x25
         length := 128
-        pos := 0
-        str := gc_malloc(length) as Char*
+        buf := Buffer new (length)
 
         // while it's not '\n' it means not all the line has been read
         while (true) {
             c := fgetc(this)
-
-            if(c == '\n') {
-                str[pos] = '\0'
-                break
-            }
-
-            str[pos] = c as Char
-            pos += 1
-
-            if (pos >= length) {
-                // try to grow the string
-                length += chunk
-                tmp := gc_realloc(str, length) as String
-                if(!tmp) Exception new(This, "Ran out of memory while reading a (apparently never-ending) line!") throw()
-                str = tmp
-            }
-
-            if(!hasNext?()) {
-                str[pos] = '\0'
-                break
-            }
+            if(c == '\n') break
+            buf append~char((c & 0xFF) as Char)
+            if(!hasNext?()) break
         }
 
-        return str as String
+        return buf toString()
     }
 
     size: func -> SizeT {
@@ -151,12 +137,15 @@ FStream: cover from FILE* {
         fputc(chr, this)
     }
 
+    // FIXME these two break Strings immutability!
     write: func ~str (str: String) {
-        fputs(str, this)
+        Exception new("illegal access") throw()
+        fputs(str _buffer data, this)
     }
-
+    // FIXME these two break Strings immutability!
     write: func ~withLength (str: String, length: SizeT) -> SizeT {
-        write(str, 0, length)
+        Exception new("illegal access2") throw()
+        write(str _buffer data, 0, length)
     }
 
     write: func ~precise (str: Char*, offset: SizeT, length: SizeT) -> SizeT {

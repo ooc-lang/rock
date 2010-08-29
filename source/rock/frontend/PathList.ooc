@@ -20,10 +20,10 @@ PathList: class {
         file := File new(path)
 
         if (!file exists?()) {
-            Exception new(This, "Classpath element cannot be found: %s" format(path)) throw()
+            Exception new(This, "Classpath element cannot be found: %s" format(path toCString())) throw()
         }
         else if (!file dir?()) {
-            Exception new(This, "Classpath element is not a directory: %s" format(path)) throw()
+            Exception new(This, "Classpath element is not a directory: %s" format(path toCString())) throw()
         }
 
         absolutePath := file getAbsolutePath()
@@ -104,9 +104,11 @@ PathList: class {
     /**
      * Find the file in the source path and return a File object associated to it
      */
+
+     // FIXME that stuff breaks when a full pathname is passed. i.e. /devel/myfile.ooc
     getFile: func(path: String) -> File {
         element := getElement(path)
-        return element == null ? null : File new(element getPath() + File separator + path)
+        (element == null) ? null : File new(element getPath() + File separator + path)
     }
 
 
@@ -114,6 +116,7 @@ PathList: class {
      * Find the file in the source path and return the element of the path list
      * it has been found in.
      */
+    // FIXME that stuff breaks when a full pathname is passed. i.e. /devel/myfile.ooc
     getElement: func(path: String) -> File {
         for (element: File in paths) {
             candidate := File new(element getPath() + File separator + path)
@@ -121,7 +124,6 @@ PathList: class {
                 return element
             }
         }
-
         return null
     }
 

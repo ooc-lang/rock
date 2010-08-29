@@ -1,7 +1,6 @@
 import structs/[ArrayList, List, HashMap]
 import ../frontend/[Token, BuildParams]
 import ../io/TabbedWriter
-import text/Buffer
 import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
     FunctionDecl, FunctionCall, Module, VariableAccess, Node,
     InterfaceImpl, Version, EnumDecl, BaseType, FuncType, OperatorDecl,
@@ -172,7 +171,7 @@ TypeDecl: abstract class extends Declaration {
     getInterfaceDecls: func -> List<InterfaceImpl> { interfaceDecls }
 
     hashName: static func (name, suffix: String) -> String {
-        suffix ? "%s~%s" format(name, suffix) : name
+        suffix ? "%s~%s" format(name toCString(), suffix toCString()) : name
     }
 
     hashName: static func ~fromFuncDecl (fDecl: FunctionDecl) -> String {
@@ -184,7 +183,8 @@ TypeDecl: abstract class extends Declaration {
             hash := hashName(fDecl)
             old := functions get(hash)
             if (old != null && fDecl getName() != "init") { /* init is an exception */
-                if(old == fDecl) Exception new(This, "Replacing with the same!") throw()
+                if(old == fDecl) Exception new(This, "Replacing %s with %s, which is the same!" format (old getName() toCString(), fDecl getName() toCString())) throw()
+                Exception new(This, "xxx %s with %s, xxx" format (old getName() toCString(), fDecl getName() toCString())) throw()
                 token module params errorHandler onError(FunctionRedefinition new(old, fDecl))
                 return
             }
@@ -304,10 +304,10 @@ TypeDecl: abstract class extends Declaration {
         recursive: Bool, bestScore: Int, bestMatch: FunctionDecl, finalScore: Int@) -> FunctionDecl {
 
         for(fDecl: FunctionDecl in functions) {
-            if(fDecl name equals?(name) && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix equals?(suffix))) {
+            if(fDecl name == name && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix == suffix)) {
                 if(!call) return fDecl
                 score := call getScore(fDecl)
-                if(call debugCondition()) "Considering fDecl %s for fCall %s, score = %d\n" format(fDecl toString(), call toString(), score) println()
+                if(call debugCondition()) "Considering fDecl %s for fCall %s, score = %d\n" format(fDecl toString() toCString(), call toString() toCString(), score) println()
                 if(score == -1) {
                     finalScore = -1 // special score that means "something isn't resolved"
                     return null
@@ -325,7 +325,7 @@ TypeDecl: abstract class extends Declaration {
            call expr getType() getRef() as ClassDecl isMeta) {
             for(fDecl: FunctionDecl in functions) {
                 // Not ignoring static methods is intended; we want static member access without explicit `This`.
-                if(fDecl name equals?(name) && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix equals?(suffix))) {
+                if(fDecl name == name && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix == suffix)) {
                     if(!fDecl isStatic) fDecl = fDecl getStaticVariant()
 
                     if(!call) return fDecl
@@ -401,12 +401,12 @@ TypeDecl: abstract class extends Declaration {
 
         trail push(this)
 
-        if(debugCondition() || res params veryVerbose) printf("====== Resolving type decl %s\n", toString())
+        if(debugCondition() || res params veryVerbose) printf("====== Resolving type decl %s\n", toString() toCString())
 
         if (!type isResolved()) {
             response := type resolve(trail, res)
             if(!response ok()) {
-                if(debugCondition() || res params veryVerbose) printf("====== Response of type of %s == %s\n", toString(), response toString())
+                if(debugCondition() || res params veryVerbose) printf("====== Response of type of %s == %s\n", toString() toCString(), response toString() toCString())
                 trail pop(this)
                 return response
             }
@@ -446,7 +446,7 @@ TypeDecl: abstract class extends Declaration {
         for(interfaceType in interfaceTypes) {
             response := interfaceType resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("-- %s, interfaceType of %s, isn't resolved, looping.\n", interfaceType toString(), toString())
+                if(res params veryVerbose) printf("-- %s, interfaceType of %s, isn't resolved, looping.\n", interfaceType toString() toCString(), toString() toCString())
                 trail pop(this)
                 return response
             }
@@ -466,14 +466,14 @@ TypeDecl: abstract class extends Declaration {
                     for(candidate in transitiveInterfaces) {
                         has := false
                         for(champion in getInterfaceTypes()) {
-                            printf("%s vs %s\n", champion toString(), candidate toString())
+                            printf("%s vs %s\n", champion toString() toCString(), candidate toString() toCString())
                             if(candidate equals?(champion)) {
                                 has = true; break
                             }
                         }
                         if(!has) {
                             interfaceTypes add(candidate)
-                            printf("Got new interface %s in %s by interface-implementation transitivity.\n", candidate toString(), toString())
+                            printf("Got new interface %s in %s by interface-implementation transitivity.\n", candidate toString() toCString(), toString() toCString())
                             res wholeAgain(this, "Got new interface by interface-implementation transitivity.")
                         }
                     }
@@ -488,7 +488,7 @@ TypeDecl: abstract class extends Declaration {
                 response = interfaceDecl getMeta() resolve(trail, res)
             }
             if(!response ok()) {
-                if(res params veryVerbose) printf("-- %s, interfaceDecl, isn't resolved, looping.\n", interfaceDecl toString(), toString())
+                if(res params veryVerbose) printf("-- %s, interfaceDecl, isn't resolved, looping.\n", interfaceDecl toString() toCString(), toString() toCString())
                 trail pop(this)
                 return response
             }
@@ -553,7 +553,7 @@ TypeDecl: abstract class extends Declaration {
                 if(fDecl isAbstract) {
                     contract add(fDecl)
                 } else {
-                    hash := "%s_%s" format(fDecl getName(), fDecl getSuffix() ? fDecl getSuffix() : "")
+                    hash := "%s_%s" format(fDecl getName() toCString(), fDecl getSuffix() ? fDecl getSuffix() toCString() : "" toCString())
                     implemented put(hash, fDecl)
                 }
             }
@@ -566,25 +566,25 @@ TypeDecl: abstract class extends Declaration {
         }
 
         for(fDecl in contract) {
-            hash := "%s_%s" format(fDecl getName(), fDecl getSuffix() ? fDecl getSuffix() : "")
+            hash := "%s_%s" format(fDecl getName() toCString(), fDecl getSuffix() ? fDecl getSuffix() toCString() : "" toCString())
             candidate := implemented get(hash)
             if(candidate == null) {
                 if(fDecl getOwner() == getNonMeta() || fDecl getOwner() == this) {
                     res throwError(AbstractContractNotSatisfied new(token,
                         "`%s` should be declared abstract, because it defines abstract function `%s%s%s`" format(
-                        getNonMeta() getName(),
-                        fDecl getSuffix() ? fDecl getName() + "~" + fDecl getSuffix() : fDecl getName(),
-                        fDecl args empty?() ? "" : " " + fDecl getArgsRepr(),
-                        fDecl hasReturn() ? " -> " + fDecl returnType toString() : ""
+                        getNonMeta() getName() toCString(),
+                        fDecl getSuffix() ? (fDecl getName() + "~" + fDecl getSuffix()) toCString() : fDecl getName() toCString(),
+                        fDecl args empty?() ? "" toCString() : (" " + fDecl getArgsRepr()) toCString(),
+                        fDecl hasReturn() ? (" -> " + fDecl returnType toString()) toCString() : "" toCString()
                     )))
                 } else {
                     res throwError(AbstractContractNotSatisfied new(
                         token,"`%s` must implement function `%s%s%s` because it extends `%s`" format(
-                        getNonMeta() getName(),
-                        fDecl getSuffix() ? fDecl getName() + "~" + fDecl getSuffix() : fDecl getName(),
-                        fDecl args empty?() ? "" : " " + fDecl getArgsRepr(),
-                        fDecl hasReturn() ? " -> " + fDecl returnType toString() : "",
-                        fDecl getOwner() getName()
+                        getNonMeta() getName() toCString(),
+                        fDecl getSuffix() ? (fDecl getName() + "~" + fDecl getSuffix()) toCString() : fDecl getName() toCString(),
+                        fDecl args empty?() ? "" toCString() : (" " + fDecl getArgsRepr()) toCString(),
+                        fDecl hasReturn() ? (" -> " + fDecl returnType toString()) toCString() : "" toCString(),
+                        fDecl getOwner() getName() toCString()
                     )))
                 }
             }
@@ -617,7 +617,7 @@ TypeDecl: abstract class extends Declaration {
                     buff append(t getName())
                     isFirst = false
                 }
-                res throwError(InheritanceLoop new(list first() token, "Loop in type declaration: %s -> %s -> ..." format(buff toString(), next getName(), list size())))
+                res throwError(InheritanceLoop new(list first() token, "Loop in type declaration: %s -> %s -> ..." format(buff toString() toCString(), next getName() toCString(), list size())))
             }
 
             current = next
@@ -649,7 +649,7 @@ TypeDecl: abstract class extends Declaration {
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
 
         if(access debugCondition()) {
-            "Resolving access %s. isMeta = %s\n" format(access toString(), isMeta toString()) println()
+            "Resolving access %s. isMeta = %s\n" format(access toString() toCString(), isMeta toString() toCString()) println()
         }
 
         // don't allow to resolve any access before finishing ghosting
@@ -670,10 +670,10 @@ TypeDecl: abstract class extends Declaration {
 
         if(access debugCondition()) {
             for(v in variables) {
-                printf("Got var %s %s\n", toString(), v toString())
+                printf("Got var %s %s\n", toString() toCString(), v toString() toCString())
             }
             for(f in functions) {
-                printf("Got function %s %s\n", toString(), f toString())
+                printf("Got function %s %s\n", toString() toCString(), f toString() toCString())
             }
         }
 
@@ -710,7 +710,7 @@ TypeDecl: abstract class extends Declaration {
             iRef := interfaceType getRef()
             if(iRef) {
                 if(name == "T") {
-                    "Trying to resolve T in interface type %s, ref %s" printfln(interfaceType toString(), iRef toString())
+                    "Trying to resolve T in interface type %s, ref %s" format(interfaceType toString() toCString(), iRef toString() toCString()) println()
                 }
                 iRef resolveAccess(access, res, trail)
             }
@@ -741,9 +741,9 @@ TypeDecl: abstract class extends Declaration {
     resolveCall: func (call : FunctionCall, res: Resolver, trail: Trail) -> Int {
 
         if(call debugCondition()) {
-            printf("\n====> Search %s in %s (which has %d functions)\n", call toString(), name, functions size())
+            printf("\n====> Search %s in %s (which has %d functions)\n", call toString() toCString(), name toCString(), functions size())
             for(f in functions) {
-                printf("  - Got %s!\n", f toString())
+                printf("  - Got %s!\n", f toString() toCString())
             }
         }
 
@@ -759,7 +759,7 @@ TypeDecl: abstract class extends Declaration {
             return -1 // something's not resolved
         }
         if(fDecl) {
-            if(call debugCondition()) "    \\o/ Found fDecl for %s, it's %s" format(call name, fDecl toString()) println()
+            if(call debugCondition()) "    \\o/ Found fDecl for %s, it's %s" format(call name toCString(), fDecl toString() toCString()) println()
             if(call suggest(fDecl, res, trail)) {
                 if(call getExpr() == null) {
                     call setExpr(VariableAccess new("this", call token))
@@ -820,7 +820,7 @@ TypeDecl: abstract class extends Declaration {
 
     inheritsScore: func (tDecl: TypeDecl, scoreSeed: Int) -> Int {
 
-        if(debugCondition()) printf("inheritsScore between %s and %s. scoreSeed = %d\n", toString(), tDecl toString(), scoreSeed)
+        if(debugCondition()) printf("inheritsScore between %s and %s. scoreSeed = %d\n", toString() toCString(), tDecl toString() toCString(), scoreSeed)
 
         for(interfaceDecl in interfaceDecls) {
             if(interfaceTypes size() != interfaceDecls size()) return -1
@@ -831,7 +831,7 @@ TypeDecl: abstract class extends Declaration {
 
         if(getSuperType() != null) {
             superRef := getSuperRef()
-            if(debugCondition()) printf("superRef = %s\n", superRef toString())
+            if(debugCondition()) printf("superRef = %s\n", superRef toString() toCString())
 
             if(superRef == null) return -1
             if(superRef == tDecl) return scoreSeed
@@ -890,7 +890,7 @@ TypeRedefinition: class extends Error {
     first, second: TypeDecl
 
     init: func (=first, =second) {
-        message = second token formatMessage("Redefinition of '%s'%s" format(first getName(), first verzion ? " in version " + first verzion toString() : ""), "[INFO]") + '\n' +
+        message = second token formatMessage("Redefinition of '%s'%s" format(first getName() toCString(), first verzion ? (" in version " + first verzion toString()) toCString() : "" toCString()), "[INFO]") + '\n' +
                   first  token formatMessage("\n...first definition was here: ", "[ERROR]")
     }
 

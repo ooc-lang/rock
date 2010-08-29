@@ -3,7 +3,6 @@ import Literal, Visitor, Type, Expression, Node, TypeList, NullLiteral,
        Cast, StructLiteral
 import tinker/[Response, Resolver, Trail, Errors]
 import structs/[List, ArrayList]
-import text/Buffer
 
 Tuple: class extends Expression {
 

@@ -1,6 +1,5 @@
 import os/mmap
 import structs/[ArrayList,HashMap]
-import os/error
 
 BinarySeq transTable = HashMap<String, Int> new()
 BinarySeq transTable["c"] = Char size
@@ -33,7 +32,7 @@ BinarySeq: class {
         version (linux || apple) {
             result := mprotect(data, realsize, PROT_READ | PROT_WRITE | PROT_EXEC)
             if(result != 0) {
-                Exception new(This, "mprotect(%p, %zd) failed with code %d. Message = %s\n" format(data, realsize, result, strerror(errno))) throw()
+                Exception new(This, "mprotect(%p, %zd) failed with code %d. Message = %s\n" format(data, realsize, result, getOSError())) throw()
             }
         }
 

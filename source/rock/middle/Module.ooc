@@ -35,8 +35,8 @@ Module: class extends Node {
 
     init: func ~module (.fullName, =pathElement, =params, .token) {
         super(token)
-        this path = fullName clone() replace('/', File separator)
-        this fullName = fullName replace(File separator, '/')
+        this path = fullName replaceAll('/', File separator)
+        this fullName = fullName replaceAll(File separator, '/')
         idx := this fullName lastIndexOf('/')
 
         match idx {
@@ -48,12 +48,12 @@ Module: class extends Node {
                 packageName = this fullName substring(0, idx)
         }
 
-        underName = sanitize(this fullName clone())
+        underName = sanitize(this fullName)
         packageName = sanitize(packageName)
     }
 
     clone: func -> This {
-        Exception new(This, "Can't clone Module")
+        raise(This, "Can't clone Module")
         null
     }
 
@@ -87,15 +87,17 @@ Module: class extends Node {
     }
 
     sanitize: func(str: String) -> String {
-        result := str clone()
+        assert (str != null)
+        assert (str _buffer != null)
+        result := str _buffer clone()
         for(i in 0..result length()) {
             current := result[i]
             if(!current alphaNumeric?()) {
                 result[i] = '_'
             }
         }
-        if(!result[0] alpha?()) result = '_' + result
-        result
+        if(result size > 0 && !result[0] alpha?()) result = '_' + result
+        result toString()
     }
 
     addFunction: func (fDecl: FunctionDecl) {
@@ -173,7 +175,7 @@ Module: class extends Node {
 
     getPath: func (suffix: String) -> String {
         last := (File new(pathElement) name())
-        return (last + File separator) + fullName replace('/', File separator) + suffix
+        return (last + File separator) + fullName replaceAll('/', File separator) + suffix
     }
 
     getOocPath: func -> String {
@@ -270,7 +272,7 @@ Module: class extends Node {
 
         if(!call suffix) for(fDecl in functions) {
             if(fDecl name == call name && (call suffix == null)) {
-                if(call debugCondition()) printf("Suggesting fDecl %s for call %s\n", fDecl toString(), call toString())
+                if(call debugCondition()) printf("Suggesting fDecl %s for call %s\n", fDecl toString() toCString(), call toString() toCString())
                 call suggest(fDecl, res, trail)
             }
         }
@@ -325,7 +327,7 @@ Module: class extends Node {
 
             if(cached == null || impLastModified > cached lastModified) {
                 if(cached && params veryVerbose) {
-                    printf("%s has been changed, recompiling... (%d vs %d), impPath = %s\n", path, File new(impPath path) lastModified(), cached lastModified, impPath path);
+                    printf("%s has been changed, recompiling... (%d vs %d), impPath = %s\n", path toCString(), File new(impPath path) lastModified(), cached lastModified, impPath path toCString());
                 }
 
                 cached = Module new(path[0..(path length()-4)], impElement path, params, nullToken)
@@ -354,7 +356,7 @@ Module: class extends Node {
         {
             response := body resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("response of body = %s\n", response toString())
+                if(res params veryVerbose) printf("response of body = %s\n", response toString() toCString())
                 finalResponse = response
             }
         }
@@ -363,7 +365,7 @@ Module: class extends Node {
             if(oDecl isResolved()) continue
             response := oDecl resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("response of oDecl %s = %s\n", oDecl toString(), response toString())
+                if(res params veryVerbose) printf("response of oDecl %s = %s\n", oDecl toString() toCString(), response toString() toCString())
                 finalResponse = response
             }
         }
@@ -372,7 +374,7 @@ Module: class extends Node {
             if(tDecl isResolved()) continue
             response := tDecl resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("response of tDecl %s = %s\n", tDecl toString(), response toString())
+                if(res params veryVerbose) printf("response of tDecl %s = %s\n", tDecl toString() toCString(), response toString() toCString())
                 finalResponse = response
             }
         }
@@ -380,7 +382,7 @@ Module: class extends Node {
         for(addon in addons) {
             response := addon resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("response of addon %s = %s\n", addon toString(), response toString())
+                if(res params veryVerbose) printf("response of addon %s = %s\n", addon toString() toCString(), response toString() toCString())
                 finalResponse = response
             }
         }
@@ -389,7 +391,7 @@ Module: class extends Node {
             if(fDecl isResolved()) continue
             response := fDecl resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("response of fDecl %s = %s\n", fDecl toString(), response toString())
+                if(res params veryVerbose) printf("response of fDecl %s = %s\n", fDecl toString() toCString(), response toString() toCString())
                 finalResponse = response
             }
         }

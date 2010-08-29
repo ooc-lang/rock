@@ -1,3 +1,23 @@
+include assert
+include errno
+
+assert: extern func(Bool)
+
+errno: extern Int
+strerror: extern func (Int) -> CString
+
+getOSError: func -> String {
+    x := strerror(errno)
+    return (x != null) ? String new(x, x length()) : String new()
+}
+
+raise: func(msg: String) {
+    Exception new(msg) throw()
+}
+
+raise: func~withClass(clazz: Class, msg: String) {
+    Exception new(clazz, msg) throw()
+}
 
 /**
  * Base class for all exceptions that can be thrown
@@ -31,18 +51,18 @@ Exception: class {
     /**
      * @return the exception's message, nicely formatted
      */
-    format: func -> String {
+    formatMessage: func -> String {
         if(origin)
-            "[%s in %s]: %s" format(class name, origin name, message)
+            "[%s in %s]: %s\n" format(class name toCString(), origin name toCString(), message toCString())
         else
-            "[%s]: %s" format(class name, message)
+            "[%s]: %s\n" format(class name toCString(), message toCString())
     }
 
     /**
      * Print this exception, with its origin, if specified, and its message
      */
     print: func {
-        fprintf(stderr, "%s", format())
+        fprintf(stderr, "%s", formatMessage() toCString())
     }
 
     /**
@@ -53,6 +73,37 @@ Exception: class {
         abort()
     }
 
+}
+
+OSException: class extends Exception {
+   init: func (=message) {
+        init()
+    }
+    init: func ~noOrigin {
+        x := getOSError()
+        if ((message != null) && (!message empty?())) {
+            message append(':')
+            message append(x)
+        } else message = x
+    }
+}
+
+OutOfBoundsException: class extends Exception {
+    init: func (=origin, accessOffset: SizeT, elementLength: SizeT) {
+        init(accessOffset, elementLength)
+    }
+    init: func ~noOrigin (accessOffset: SizeT, elementLength: SizeT) {
+        message = "Trying to access an element at offset %d, but size is only %d!" format(accessOffset,elementLength)
+    }
+}
+
+OutOfMemoryException: class extends Exception {
+    init: func (=origin) {
+        init()
+    }
+    init: func ~noOrigin {
+        message = "Failed to allocate more memory!"
+    }
 }
 
 /* ------ C interfacing ------ */

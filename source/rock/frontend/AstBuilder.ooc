@@ -1,5 +1,5 @@
 
-import io/File, text/[Buffer, EscapeSequence]
+import io/File, text/[EscapeSequence]
 
 import structs/[ArrayList, List, Stack, HashMap]
 
@@ -55,8 +55,8 @@ AstBuilder: class {
         first := static true
 
         if(params verbose) {
-            if(!first) "                                                                             \r" print()
-            "Parsing %s" printf(modulePath)
+            if(!first) "%s\r" format((" " times(76) toCString())) println()
+            "Parsing %s" format (modulePath toCString()) print()
         }
         cache put(File new(modulePath) getAbsolutePath(), module)
 
@@ -69,7 +69,7 @@ AstBuilder: class {
         }
 
         first = false
-        result := nq_parse(this, modulePath as CString)
+        result := nq_parse(this, modulePath toCString())
         if(result == -1) {
             Exception new(This, "File " +modulePath + " not found") throw()
         }
@@ -85,7 +85,7 @@ AstBuilder: class {
             paths := params sourcePath getRelativePaths("lang")
             paths filterEach(|p| p endsWith?(".ooc"),
                     |p|
-                    impName := p substring(0, p length() - 4) replace(File separator, '/')
+                    impName := p substring(0, p length() - 4) replaceAll(File separator, '/')
                     langImports add(impName)
             )
         }
@@ -106,6 +106,7 @@ AstBuilder: class {
         if(impPath == null) {
             parent := File new(module getPath()) parent()
             if(parent != null) {
+                if(params veryVerbose) ("getRealImportPath parent = " + parent path) println()
                 path = FileUtils resolveRedundancies(parent path + File separator + imp path + ".ooc")
                 impElement = params sourcePath getElement(path)
                 impPath    = params sourcePath getFile(path)
@@ -118,7 +119,7 @@ AstBuilder: class {
     printCache: static func {
         "==== Cache ====" println()
         cache getKeys() each(|key|
-            "cache %s = %s" format(key, cache get(key) fullName) println()
+            "cache %s = %s" format(key toCString(), cache get(key) fullName toCString()) println()
         )
         "=" times(14) println()
     }
@@ -127,11 +128,12 @@ AstBuilder: class {
         params errorHandler onError(SyntaxError new(Token new(index, 1, module), message))
     }
 
-    onUse: unmangled(nq_onUse) func (identifier: String) {
-        module addUse(Use new(identifier, params, token()))
+    onUse: unmangled(nq_onUse) func (name: CString) {
+        module addUse(Use new(String new(name, name length()), params, token()))
     }
 
-    onInclude: unmangled(nq_onInclude) func (path: String) {
+    onInclude: unmangled(nq_onInclude) func (cpath: CString) {
+        path := String new(cpath, cpath length())
         mode: IncludeMode
         if(path startsWith?("./")) {
             mode = IncludeModes LOCAL
@@ -146,18 +148,23 @@ AstBuilder: class {
         inc setVersion(getVersion())
     }
 
-    onIncludeDefine: unmangled(nq_onIncludeDefine) func (name, value: String) {
-        module includes last() addDefine(Define new(name clone(), value clone()))
+    onIncludeDefine: unmangled(nq_onIncludeDefine) func (name, value: CString) {
+        module includes last() addDefine(Define new(String new(name, name length()), String new(value, value length())))
     }
 
-    onImport: unmangled(nq_onImport) func (path, name: String) {
-        module addImport(Import new(path empty?() ? name : path + name, token()))
+    onImport: unmangled(nq_onImport) func (path, name: CString) {
+        if(params veryVerbose) printf("nq_import %s %s\n", path, name)
+        namestr := name toString()
+        output : String = ((path == null) || (path@ == '\0')) ? namestr : path toString() + namestr
+        module addImport(Import new( output , token()))
     }
 
-    onImportNamespace: unmangled(nq_onImportNamespace) func (namespace: String, quantity: Int) {
+    onImportNamespace: unmangled(nq_onImportNamespace) func (cnamespace: CString, quantity: Int) {
+        if(params veryVerbose) printf("nq_importnamespace %s\n", cnamespace)
+        namespace := String new(cnamespace, cnamespace length())
         nDecl: NamespaceDecl
         if(!module hasNamespace(namespace)) {
-            nDecl = NamespaceDecl new(namespace clone())
+            nDecl = NamespaceDecl new(namespace)
             module addNamespace(nDecl)
         } else {
             nDecl = module getNamespace(namespace)
@@ -172,9 +179,9 @@ AstBuilder: class {
     /*
      * Addons
      */
-    onExtendStart: unmangled(nq_onExtendStart) func (baseType: Type, doc: String) {
+    onExtendStart: unmangled(nq_onExtendStart) func (baseType: Type, doc: CString) {
         addon := Addon new(baseType, token())
-        addon doc = doc
+        addon doc = String new (doc, doc length())
         stack push(addon)
     }
 
@@ -186,17 +193,17 @@ AstBuilder: class {
      * Covers
      */
 
-    onCoverStart: unmangled(nq_onCoverStart) func (name, doc: String) {
-        cDecl := CoverDecl new(name clone(), token())
+    onCoverStart: unmangled(nq_onCoverStart) func (name, doc: CString) {
+        cDecl := CoverDecl new(String new(name, name length()), token())
         cDecl setVersion(getVersion())
-        cDecl doc = doc
+        cDecl doc = String new(doc, doc length())
         cDecl module = module
         module addType(cDecl)
         stack push(cDecl)
     }
 
-    onCoverExtern: unmangled(nq_onCoverExtern) func (externName: String) {
-        peek(CoverDecl) setExternName(externName clone())
+    onCoverExtern: unmangled(nq_onCoverExtern) func (externName: CString) {
+        peek(CoverDecl) setExternName(String new(externName, externName length()))
     }
 
     onCoverFromType: unmangled(nq_onCoverFromType) func (type: Type) {
@@ -219,17 +226,17 @@ AstBuilder: class {
      * Enums
      */
 
-    onEnumStart: unmangled(nq_onEnumStart) func (name, doc: String) {
-        eDecl := EnumDecl new(name clone(), token())
+    onEnumStart: unmangled(nq_onEnumStart) func (name, doc: CString) {
+        eDecl := EnumDecl new(String new(name, name length()), token())
         eDecl setVersion(getVersion())
         eDecl module = module
-        eDecl doc = doc
+        eDecl doc = String new(doc, doc length())
         module addType(eDecl)
         stack push(eDecl)
     }
 
-    onEnumExtern: unmangled(nq_onEnumExtern) func (externName: String) {
-        peek(EnumDecl) setExternName(externName clone())
+    onEnumExtern: unmangled(nq_onEnumExtern) func (externName: CString) {
+        peek(EnumDecl) setExternName(String new(externName, externName length()))
     }
 
     onEnumFromType: unmangled(nq_onEnumFromType) func (fromType: Type) {
@@ -240,9 +247,9 @@ AstBuilder: class {
         peek(EnumDecl) setIncrement(oper, step value)
     }
 
-    onEnumElementStart: unmangled(nq_onEnumElementStart) func (name, doc: String) {
-        element := EnumElement new(peek(EnumDecl) getInstanceType(), name clone(), token())
-        element doc = doc
+    onEnumElementStart: unmangled(nq_onEnumElementStart) func (name, doc: CString) {
+        element := EnumElement new(peek(EnumDecl) getInstanceType(), String new(name, name length()), token())
+        element doc = String new(doc, doc length())
         stack push(element)
     }
 
@@ -250,8 +257,8 @@ AstBuilder: class {
         peek(EnumElement) setValue(value)
     }
 
-    onEnumElementExtern: unmangled(nq_onEnumElementExtern) func (externName: String) {
-        peek(EnumElement) setExternName(externName clone())
+    onEnumElementExtern: unmangled(nq_onEnumElementExtern) func (externName: CString) {
+        peek(EnumElement) setExternName(String new(externName, externName length()))
     }
 
     onEnumElementEnd: unmangled(nq_onEnumElementEnd) func {
@@ -267,10 +274,10 @@ AstBuilder: class {
      * Classes
      */
 
-    onClassStart: unmangled(nq_onClassStart) func (name, doc: String) {
-        cDecl := ClassDecl new(name clone(), token())
+    onClassStart: unmangled(nq_onClassStart) func (name, doc: CString) {
+        cDecl := ClassDecl new(String new(name, name length()), token())
         cDecl setVersion(getVersion())
-        cDecl doc = doc
+        cDecl doc = String new(doc, doc length())
         cDecl module = module
         module addType(cDecl)
         stack push(cDecl)
@@ -303,8 +310,8 @@ AstBuilder: class {
      * Version blocks
      */
 
-    onVersionName: unmangled(nq_onVersionName) func (name: String) -> VersionSpec {
-        VersionName new(name clone(), token())
+    onVersionName: unmangled(nq_onVersionName) func (name: CString) -> VersionSpec {
+        VersionName new(String new(name, name length()), token())
     }
 
     onVersionNegation: unmangled(nq_onVersionNegation) func (spec: VersionSpec) -> VersionSpec {
@@ -344,10 +351,10 @@ AstBuilder: class {
      * Interfaces
      */
 
-    onInterfaceStart: unmangled(nq_onInterfaceStart) func (name, doc: String) {
-        iDecl := InterfaceDecl new(name clone(), token())
+    onInterfaceStart: unmangled(nq_onInterfaceStart) func (name, doc: CString) {
+        iDecl := InterfaceDecl new(String new(name, name length()), token())
         iDecl setVersion(getVersion())
-        iDecl doc = doc
+        iDecl doc = String new(doc, doc length())
         iDecl module = module
         module addType(iDecl)
         stack push(iDecl)
@@ -373,9 +380,9 @@ AstBuilder: class {
         stack push(Stack<VariableDecl> new())
     }
 
-    onVarDeclName: unmangled(nq_onVarDeclName) func (name, doc: String) {
-        vDecl := VariableDecl new(null, name clone(), token())
-        vDecl doc = doc
+    onVarDeclName: unmangled(nq_onVarDeclName) func (name, doc: CString) {
+        vDecl := VariableDecl new(null, String new(name, name length()), token())
+        vDecl doc = String new(doc, doc length())
         peek(Stack<VariableDecl>) push(vDecl)
     }
 
@@ -383,7 +390,8 @@ AstBuilder: class {
         peek(Stack<VariableDecl>) push(VariableDeclTuple new(null as Type, tuple, token()))
     }
 
-    onVarDeclExtern: unmangled(nq_onVarDeclExtern) func (externName: String) {
+    onVarDeclExtern: unmangled(nq_onVarDeclExtern) func (cexternName: CString) {
+        externName := String new(cexternName, cexternName length())
         vars := peek(Stack<VariableDecl>)
         if(externName empty?()) {
             vars each(|var| var setExternName(""))
@@ -391,11 +399,12 @@ AstBuilder: class {
             if(vars size() != 1) {
                 params errorHandler onError(SyntaxError new(token(), "Trying to set an extern name on several variables at once!"))
             }
-            vars peek() setExternName(externName clone())
+            vars peek() setExternName(externName)
         }
     }
 
-    onVarDeclUnmangled: unmangled(nq_onVarDeclUnmangled) func (unmangledName: String) {
+    onVarDeclUnmangled: unmangled(nq_onVarDeclUnmangled) func (cunmangledName: CString) {
+        unmangledName := String new(cunmangledName, cunmangledName length())
         vars := peek(Stack<VariableDecl>)
         if(unmangledName empty?()) {
             vars each(|var| var setUnmangledName(""))
@@ -403,7 +412,7 @@ AstBuilder: class {
             if(vars size() != 1) {
                 params errorHandler onError(SyntaxError new(token(), "Trying to set an unmangled name on several variables at once!"))
             }
-            vars peek() setUnmangledName(unmangledName clone())
+            vars peek() setUnmangledName(unmangledName)
         }
     }
 
@@ -441,8 +450,8 @@ AstBuilder: class {
             // same hash? compare length and then full-string comparison
             word := reservedWords[idx]
             if(word length() == vd getName() length() && word == vd getName()) {
-                "(%zd, %zd)" printfln(vd token start, vd token length)
-                params errorHandler onError(ReservedKeywordError new(vd token, "%s is a reserved C99 keyword, you can't use it in a variable declaration" format(vd getName())))
+                "(%zd, %zd)\n" printf(vd token start, vd token length)
+                params errorHandler onError(ReservedKeywordError new(vd token, "%s is a reserved C99 keyword, you can't use it in a variable declaration" format(vd getName() toCString())))
             }
         }
 
@@ -464,8 +473,8 @@ AstBuilder: class {
      * Properties
      */
 
-    onPropertyDeclStart: unmangled(nq_onPropertyDeclStart) func (name: String) {
-        stack push(PropertyDecl new(null, name clone(), token()))
+    onPropertyDeclStart: unmangled(nq_onPropertyDeclStart) func (name: CString) {
+        stack push(PropertyDecl new(null, String new(name, name length()), token()))
     }
 
     onPropertyDeclStatic: unmangled(nq_onPropertyDeclStatic) func {
@@ -496,7 +505,8 @@ AstBuilder: class {
         stack push(setter)
     }
 
-    onPropertyDeclSetterArgument: unmangled(nq_onPropertyDeclSetterArgument) func (name: String, conventional: Bool) {
+    onPropertyDeclSetterArgument: unmangled(nq_onPropertyDeclSetterArgument) func (cname: CString, conventional: Bool) {
+        name := String new(cname, cname length())
         arg: Argument = match conventional {
             case true => Argument new(null, name clone(), token())
             case false => AssArg new(name clone(), token())
@@ -525,8 +535,8 @@ AstBuilder: class {
      * Types
      */
 
-    onTypeNew: unmangled(nq_onTypeNew) func (name: String) -> Type {
-        BaseType new(name clone() trim(), token())
+    onTypeNew: unmangled(nq_onTypeNew) func (name: CString) -> Type {
+        BaseType new(name toString() trim(), token())
     }
 
     onTypePointer: unmangled(nq_onTypePointer) func (type: Type) -> Type {
@@ -579,8 +589,8 @@ AstBuilder: class {
      * Operator overloads
      */
 
-    onOperatorStart: unmangled(nq_onOperatorStart) func (symbol: String) {
-        oDecl := OperatorDecl new(symbol clone() trim(), token())
+    onOperatorStart: unmangled(nq_onOperatorStart) func (symbol: CString) {
+        oDecl := OperatorDecl new(String new(symbol, symbol length()) trim(), token())
         fDecl := FunctionDecl new("", token())
         oDecl setFunctionDecl(fDecl)
         stack push(oDecl)
@@ -596,19 +606,19 @@ AstBuilder: class {
      * Functions
      */
 
-    onFunctionStart: unmangled(nq_onFunctionStart) func (name, doc: String) {
-        fDecl := FunctionDecl new(name clone(), token())
+    onFunctionStart: unmangled(nq_onFunctionStart) func (name, doc: CString) {
+        fDecl := FunctionDecl new(String new(name, name length()), token())
         fDecl setVersion(getVersion())
-        fDecl doc = doc
+        fDecl doc = String new(doc, doc length())
         stack push(fDecl)
     }
 
-    onFunctionExtern: unmangled(nq_onFunctionExtern) func (externName: String) {
-        peek(FunctionDecl) setExternName(externName clone())
+    onFunctionExtern: unmangled(nq_onFunctionExtern) func (externName: CString) {
+        peek(FunctionDecl) setExternName(String new(externName, externName length()))
     }
 
-    onFunctionUnmangled: unmangled(nq_onFunctionUnmangled) func (unmangledName: String) {
-        peek(FunctionDecl) setUnmangledName(unmangledName clone())
+    onFunctionUnmangled: unmangled(nq_onFunctionUnmangled) func (unmangledName: CString) {
+        peek(FunctionDecl) setUnmangledName(String new(unmangledName, unmangledName length()))
     }
 
     onFunctionAbstract: unmangled(nq_onFunctionAbstract) func {
@@ -636,8 +646,8 @@ AstBuilder: class {
         peek(FunctionDecl) isSuper = true
     }
 
-    onFunctionSuffix: unmangled(nq_onFunctionSuffix) func (suffix: String) {
-        peek(FunctionDecl) suffix = suffix clone()
+    onFunctionSuffix: unmangled(nq_onFunctionSuffix) func (suffix: CString) {
+        peek(FunctionDecl) suffix = String new(suffix, suffix length())
     }
 
     onFunctionArgsStart: unmangled(nq_onFunctionArgsStart) func {
@@ -668,7 +678,7 @@ AstBuilder: class {
             addon := node as Addon
             addon addFunction(fDecl)
         } else {
-            //printf("^^^^^^^^ Unexpected function %s (peek is a %s)\n", fDecl name, node class name)
+            //printf("^^^^^^^^ Unexpected function %s (peek is a %s)\n", fDecl name toCString(), node class name toCString())
         }
         return fDecl
     }
@@ -677,12 +687,12 @@ AstBuilder: class {
      * Function calls
      */
 
-    onFunctionCallStart: unmangled(nq_onFunctionCallStart) func (name: String) {
-        stack push(FunctionCall new(name clone(), token()))
+    onFunctionCallStart: unmangled(nq_onFunctionCallStart) func (name: CString) {
+        stack push(FunctionCall new(String new(name, name length()), token()))
     }
 
-    onFunctionCallSuffix: unmangled(nq_onFunctionCallSuffix) func (suffix: String) {
-        peek(FunctionCall) setSuffix(suffix clone())
+    onFunctionCallSuffix: unmangled(nq_onFunctionCallSuffix) func (suffix: CString) {
+        peek(FunctionCall) setSuffix(String new(suffix, suffix length()))
     }
 
     onFunctionCallArg: unmangled(nq_onFunctionCallArg) func (expr: Expression) {
@@ -736,12 +746,12 @@ AstBuilder: class {
         pop(Tuple)
     }
 
-    onStringLiteral: unmangled(nq_onStringLiteral) func (text: String) -> StringLiteral {
-        StringLiteral new(text clone() replace("\n", "\\n") replace("\t", "\\t"), token())
+    onStringLiteral: unmangled(nq_onStringLiteral) func (text: CString) -> StringLiteral {
+        StringLiteral new(text toString() replaceAll("\n", "\\n") replaceAll("\t", "\\t"), token())
     }
 
-    onCharLiteral: unmangled(nq_onCharLiteral) func (value: String) -> CharLiteral {
-        CharLiteral new(value clone(), token())
+    onCharLiteral: unmangled(nq_onCharLiteral) func (value: CString) -> CharLiteral {
+        CharLiteral new(value toString(), token())
     }
 
     // statement
@@ -817,7 +827,7 @@ AstBuilder: class {
                 }
                 tuple getElements() add(stmt as Expression)
             case =>
-                printf("[gotStatement] Got a %s, don't know what to do with it, parent = %s\n", stmt toString(), node class name)
+                printf("[gotStatement] Got a %s, don't know what to do with it, parent = %s\n", stmt toString() toCString(), node class name toCString())
         }
     }
 
@@ -835,8 +845,8 @@ AstBuilder: class {
     }
 
     // variable access
-    onVarAccess: unmangled(nq_onVarAccess) func (expr: Expression, name: String) -> VariableAccess {
-        return VariableAccess new(expr, name clone(), token())
+    onVarAccess: unmangled(nq_onVarAccess) func (expr: Expression, name: CString) -> VariableAccess {
+        return VariableAccess new(expr, String new(name, name length()), token())
     }
 
     // cast
@@ -904,14 +914,14 @@ AstBuilder: class {
         peek(List<Node>) add(Argument new(type, "", token()))
     }
 
-    onDotArg: unmangled(nq_onDotArg) func (name: String) {
+    onDotArg: unmangled(nq_onDotArg) func (name: CString) {
         // TODO: add check for member function
-        peek(List<Node>) add(DotArg new(name clone(), token()))
+        peek(List<Node>) add(DotArg new(String new(name, name length()), token()))
     }
 
-    onAssArg: unmangled(nq_onAssArg) func (name: String) {
+    onAssArg: unmangled(nq_onAssArg) func (name: CString) {
         // TODO: add check for member function
-        peek(List<Node>) add(AssArg new(name clone(), token()))
+        peek(List<Node>) add(AssArg new(String new(name, name length()), token()))
     }
 
     /*
@@ -977,24 +987,24 @@ AstBuilder: class {
         Comparison new(left, right, CompType greaterOrEqual, token())
     }
 
-    onDecLiteral: unmangled(nq_onDecLiteral) func (value: String) -> IntLiteral {
-        IntLiteral new(value replace("_", "") toLLong(), token())
+    onDecLiteral: unmangled(nq_onDecLiteral) func (value: CString) -> IntLiteral {
+        IntLiteral new(String new(value, value length()) replaceAll("_", "") toLLong(), token())
     }
 
-    onOctLiteral: unmangled(nq_onOctLiteral) func (value: String) -> IntLiteral {
-        IntLiteral new(value replace("_", "") substring(2) toLLong(8), token())
+    onOctLiteral: unmangled(nq_onOctLiteral) func (value: CString) -> IntLiteral {
+        IntLiteral new(String new(value, value length()) replaceAll("_", "") substring(2) toLLong(8), token())
     }
 
-    onBinLiteral: unmangled(nq_onBinLiteral) func (value: String) -> IntLiteral {
-        IntLiteral new(value replace("_", "") substring(2) toLLong(2), token())
+    onBinLiteral: unmangled(nq_onBinLiteral) func (value: CString) -> IntLiteral {
+        IntLiteral new(String new(value, value length()) replaceAll("_", "") substring(2) toLLong(2), token())
     }
 
-    onHexLiteral: unmangled(nq_onHexLiteral) func (value: String) -> IntLiteral {
-        IntLiteral new(value replace("_", "") toLLong(16), token())
+    onHexLiteral: unmangled(nq_onHexLiteral) func (value: CString) -> IntLiteral {
+        IntLiteral new(String new(value, value length()) replaceAll("_", "") toLLong(16), token())
     }
 
-    onFloatLiteral: unmangled(nq_onFloatLiteral) func (value: String) -> FloatLiteral {
-        FloatLiteral new(value replace("_", "") toFloat(), token())
+    onFloatLiteral: unmangled(nq_onFloatLiteral) func (value: CString) -> FloatLiteral {
+        FloatLiteral new(String new(value, value length()) replaceAll("_", "") toFloat(), token())
     }
 
     onBoolLiteral: unmangled(nq_onBoolLiteral) func (value: Bool) -> BoolLiteral {
@@ -1117,18 +1127,19 @@ AstBuilder: class {
         Parenthesis new(inner, token())
     }
 
-    onGenericArgument: unmangled(nq_onGenericArgument) func (name: String) {
+    onGenericArgument: unmangled(nq_onGenericArgument) func (cname: CString) {
         node := peek(Node)
+        name := String new(cname, cname length())
 
         //printf("======= Got generic argument %s, and node is a %s\n", name, node class name)
-        vDecl := VariableDecl new(BaseType new("Class", token()), name clone(), token())
+        vDecl := VariableDecl new(BaseType new("Class", token()), name, token())
 
         done := false
         if(node instanceOf?(Declaration)) {
             done = node as Declaration addTypeArg(vDecl)
         }
 
-        if(!done) params errorHandler onError(InternalError new(token(), "Unexpected type argument in a %s declaration!" format(node class name)))
+        if(!done) params errorHandler onError(InternalError new(token(), "Unexpected type argument in a %s declaration!" format(node class name toCString())))
 
     }
 
@@ -1147,7 +1158,7 @@ AstBuilder: class {
     peek: func <T> (T: Class) -> T {
         node := stack peek() as Node
         if(!node instanceOf?(T)) {
-            params errorHandler onError(InternalError new(token(), "Should've peek'd a %s, but peek'd a %s. Stack = %s" format(T name, node class name, stackRepr())))
+            params errorHandler onError(InternalError new(token(), "Should've peek'd a %s, but peek'd a %s. Stack = %s" format(T name toCString(), node class name toCString(), stackRepr() toCString())))
         }
         return node
     }
@@ -1155,7 +1166,7 @@ AstBuilder: class {
     pop: func <T> (T: Class) -> T {
         node := stack pop() as Node
         if(!node instanceOf?(T)) {
-            params errorHandler onError(InternalError new(token(), "Should've pop'd a %s, but pop'd a %s. Stack = %s" format(T name, node class name, stackRepr())))
+            params errorHandler onError(InternalError new(token(), "Should've pop'd a %s, but pop'd a %s. Stack = %s" format(T name toCString(), node class name toCString(), stackRepr() toCString())))
         }
         return node
     }
@@ -1188,16 +1199,17 @@ AstBuilder: class {
 nq_setTokenPositionPointer: unmangled func (this: AstBuilder, tokenPos: Int*) { this tokenPos = tokenPos }
 
 // string handling
-nq_StringClone: unmangled func (string: String) -> String             { string clone() }
-nq_mangleIdents: unmangled func (string: String) -> String            {
-    match string {
-        case "this"  => "_this"
-        case         => string
-    }
+nq_StringClone: unmangled func (string: CString) -> CString             { string clone() }
+nq_mangleIdents: unmangled func (string: CString) -> CString            {
+    if(string == "this") return "_this" toCString()
+    string
 }
-nq_trailingQuest: unmangled func (string: String) -> String           { string + "__quest" }
-nq_trailingBang:  unmangled func (string: String) -> String           { string + "__bang" }
-nq_error: unmangled func (this: AstBuilder, errorID: Int, message: String, index: Int) { this error(errorID, message, index) }
+nq_trailingQuest: unmangled func (string: CString) -> CString           { (String new(string, string length()) + "__quest") toCString() }
+nq_trailingBang:  unmangled func (string: CString) -> CString           { (String new(string, string length()) + "__bang") toCString() }
+nq_error: unmangled func (this: AstBuilder, errorID: Int, message: CString, index: Int) {
+    msg : String = (message == null) ? null : String new(message, message length())
+    this error(errorID, msg, index)
+}
 
 SyntaxError: class extends Error {
     init: super func ~tokenMessage

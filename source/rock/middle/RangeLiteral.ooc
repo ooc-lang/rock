@@ -52,7 +52,7 @@ RangeLiteral: class extends Literal {
             newCall args add(lower) .add(upper)
 
             if(!parent replace(this, newCall)) {
-                printf("Couldn't replace %s with %s in %s\n", toString(), newCall toString(), parent toString())
+                printf("Couldn't replace %s with %s in %s\n", toString() toCString(), newCall toString() toCString(), parent toString() toCString())
             }
             res wholeAgain(this, "replaced with range constructor!")
         }

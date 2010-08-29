@@ -123,6 +123,21 @@ Char: cover from char {
         "%c\n" printf(this)
     }
 
+    containedIn?: func(s : String) -> Bool {
+        containedIn?(s _buffer data, s size)
+    }
+
+    containedIn?: func ~charWithLength (s : Char*, sLength: SizeT) -> Bool {
+        for (i in 0..sLength) {
+            if ((s + i)@ == this) return true
+        }
+        return false
+    }
+
+    compareWith: func (compareFunc: Func (Char, Char*, SizeT) -> SSizeT, target: Char*, targetSize: SizeT) -> SSizeT {
+        compareFunc(this, target, targetSize)
+    }
+
 }
 
 SChar: cover from signed char extends Char
@@ -130,6 +145,18 @@ UChar: cover from unsigned char extends Char
 WChar: cover from wchar_t
 
 operator as (value: Char) -> String {
+    value toString()
+}
+
+operator as (value: Char*) -> String {
+    result: String
+    if (value == null) return result
+    value as CString toString()
+}
+
+operator as (value: CString) -> String {
+    result: String
+    if (value == null) return result
     value toString()
 }
 
@@ -150,32 +177,29 @@ CString: cover from Char* {
         return copy as This
     }
 
+    equals?: func( other: This) -> Bool {
+        if (other == null) return false
+        l := length()
+        for (i in 0..l) {
+            if (( (this + i)@ != (other + i)@) || (other + i)@ == '\0') return false
+        }
+        return true
+    }
+
+    toString: func -> String { String new(this, length()) }
+
     /** return the string's length, excluding the null byte. */
     length: extern(strlen) func -> Int
 }
-// all this operator duplication is necessary since rock doesnt recognize CStrings inheritance
+
 operator == (str1: CString, str2: CString) -> Bool {
-    return str1 as String equals?(str2 as String)
+    if ((str1 != null && str2 == null) || (str2 != null && str1 == null)) return false
+    if (str1 == null && str2 == null) return true
+    return str1 equals?(str2)
 }
 
 operator != (str1: CString, str2: CString) -> Bool {
-    return !str1 as String equals?(str2 as String)
-}
-
-operator == (str1: String, str2: CString) -> Bool {
-    return str1 as String equals?(str2 as String)
-}
-
-operator != (str1: String, str2: CString) -> Bool {
-    return !str1 as String equals?(str2 as String)
-}
-
-operator == (str1: CString, str2: String) -> Bool {
-    return str1 as String equals?(str2 as String)
-}
-
-operator != (str1: CString, str2: String) -> Bool {
-    return !str1 as String equals?(str2 as String)
+    return !(str1 == str2)
 }
 
 

@@ -24,7 +24,7 @@ Token: cover {
 
 check: func (this: Token@, type: TokenType) {
     if(this type != type) {
-        ParserError new("Expected %d, got %d (%s)" format(type, this type, this value)) throw()
+        ParserError new("Expected %d, got %d (%s)" format(type, this type, this value toCString())) throw()
     }
 }
 
@@ -110,10 +110,11 @@ getToken: func (reader: Reader, token: Token*) {
             end := reader mark()
             reader reset(beginning)
             length := (end - beginning - 1) as SizeT
-            s := String new(length)
-            reader read(s, 0, length)
+            xx := Buffer new~withSize(length)
+            reader read(xx data, 0, length)
             // advance '"'
             reader read()
+            s := String new(xx)
             token@ type = TokenType String
             token@ value = EscapeSequence unescape(s)
             return
@@ -179,11 +180,11 @@ getToken: func (reader: Reader, token: Token*) {
                 }
                 end := reader mark()
                 length := (end - beginning - 1) as SizeT
-                s := String new(length)
+                s := Buffer new~withSize(length)
                 reader reset(beginning)
-                reader read(s, 0, length)
+                reader read(s data, 0, length)
                 token@ type = TokenType Number
-                token@ value = s
+                token@ value = String new(s)
             } else {
                 reader reset(marker)
                 LexingError new("Unknown token: %c" format(chr)) throw()
@@ -290,7 +291,7 @@ Parser: class {
                 return value
             }
             case => {
-                ParserError new("Unexpected token: %s" format(token value)) throw()
+                ParserError new("Unexpected token: %s" format(token value toCString())) throw()
             }
         }
         return null
@@ -469,8 +470,8 @@ printVerbose: func <T> (obj: T, indent: UInt, key: String) {
     indentStr := "    " times(indent)
     indentStr print()
     if(key != null)
-        "%s => " format(key) print()
-    "(%s) " format(T name) print()
+        "%s => " format(key toCString()) print()
+    "(%s) " format(T name toCString()) print()
     match T {
         case String => {
             obj as String print()

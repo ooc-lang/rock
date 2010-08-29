@@ -1,5 +1,4 @@
 import io/File
-import text/Buffer
 import os/Process
 
 import AbstractCompiler
@@ -12,6 +11,7 @@ BaseCompiler: abstract class extends AbstractCompiler {
     }
 
     setExecutable: func (=executableName) {
+        ("exe:" + executableName) println()
         execFile := File new(executableName)
 
         if (!execFile exists?()) {
@@ -33,7 +33,7 @@ BaseCompiler: abstract class extends AbstractCompiler {
     }
 
     launch: func() -> Int {
-        proc := Process new(command) 
+        proc := Process new(command)
         return proc execute()
     }
 

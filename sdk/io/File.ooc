@@ -2,7 +2,6 @@ include stdio
 
 import structs/ArrayList
 import FileReader, FileWriter, Reader
-import text/Buffer
 import native/[FileWin32, FileUnix]
 
 /**
@@ -55,7 +54,12 @@ File: abstract class {
        Create a File object, relative to the given parent file
      */
     new: static func ~parentFile(parent: File, .path) -> This {
-        return new(parent path + This separator + path)
+        assert(parent != null)
+        assert(parent path != null)
+        assert(!parent path empty?())
+        s := parent path + This separator + path
+        s println()
+        return new(s)
     }
 
     /**
@@ -117,10 +121,20 @@ File: abstract class {
      * name() will return 'bluetooth'
      */
     name: func -> String {
+        if (path size > 1) {
+            end := (path _buffer data + path size - 1)@ == File separator ? path size - 1 : path size
+            start := end
+            while (start > 0 && (path _buffer data + start - 1)@ != File separator) start -= 1
+            return path substring(start, end)
+        }
+        else if (path size == 1 && (path toCString())@ == File separator) return ""
+        else return path
+        /*
         trimmed := path trim(This separator)
         idx := trimmed lastIndexOf(This separator)
         if(idx == -1) return trimmed
         return trimmed substring(idx + 1)
+        */
     }
 
     /**
@@ -278,7 +292,7 @@ File: abstract class {
        :param str: The string to write
      */
     write: func ~string (str: String) {
-        FileWriter new(this) write(BufferReader new(Buffer new(str))) .close()
+        str _buffer toFile(path)
     }
 
     /**

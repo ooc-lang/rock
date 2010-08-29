@@ -22,7 +22,7 @@ FileWriter: class extends Writer {
        Create a new file write on the given file object, overwriting it.
     */
     init: func ~withFileOverwrite (fileObject: File) {
-        init(fileObject, false) 
+        init(fileObject, false)
     }
 
     /**
@@ -68,9 +68,9 @@ FileWriter: class extends Writer {
 
     /**
        Equivalent to vprintf, but used to write to this file.
-     */    
+     */
     vwritef: func (fmt: String, args: VaList) {
-        vfprintf(file, fmt, args)
+        vfprintf(file, fmt toCString(), args)
     }
 
 }

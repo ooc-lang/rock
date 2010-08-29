@@ -126,7 +126,7 @@ Match: class extends Iterable<String> {
     */
     group: func ~byName(name: String) -> String {
         number := regexp pcre getStringNumber(name)
-        if(number < -1) Exception new("Invalid group name: %s" format(name)) throw()
+        if(number < -1) Exception new("Invalid group name: %s" format(name toCString())) throw()
         return group(number)
     }
 

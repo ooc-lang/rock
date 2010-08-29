@@ -1,13 +1,7 @@
-import os/error
-
 /**
     Base exception which all networking errors extend.
  */
-NetError: class extends Exception {
-    init: func {
-        super(strerror(errno) clone())
-    }
-}
+NetError: class extends OSException {}
 
 /**
     The address string provided is invalid.

@@ -1,6 +1,5 @@
 import Pipe, PipeReader
 import structs/[List, ArrayList, HashMap]
-import text/Buffer
 import native/[ProcessUnix, ProcessWin32]
 
 /**
@@ -36,7 +35,12 @@ Process: abstract class {
        Create a new process from an array of arguments
      */
     new: static func ~fromArray (args: String[]) -> This {
-        new(args as ArrayList<String>)
+        p := ArrayList<String> new()
+        for (i in 0..args length) {
+            s := args[i]
+            p add(s)
+        }
+        new(p)
     }
 
     /**

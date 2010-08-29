@@ -25,13 +25,18 @@ PkgConfigFrontend: class {
 
         path   := getPkgConfigPath()
         if(path == null) {
-            Exception new("Error! the 'pkg-config' tool, necessary to resolve package '%s' couldn't be find in the $PATH, which is %s" format(pkgName, Env get("PATH"))) throw()
+            Exception new("Error! the 'pkg-config' tool, necessary to resolve package '%s' couldn't be find in the $PATH, which is %s" format(pkgName toCString(), Env get("PATH") toCString())) throw()
         }
 
-        libs   := Process new([path getPath(), pkgName, "--libs"  ] as ArrayList<String>) getOutput() trim(" \n")
-        cflags := Process new([path getPath(), pkgName, "--cflags"] as ArrayList<String>) getOutput() trim(" \n")
+        libslist := ArrayList<String> new()
+        libslist add(path getPath()) .add(pkgName) .add("--libs")
+        libs   := Process new(libslist) getOutput() trim(" \n")
+        cfllist := ArrayList<String> new()
+        cfllist add(path getPath()) .add(pkgName) .add("--cflags")
+
+        cflags := Process new(cfllist) getOutput() trim(" \n")
         if(libs == null) {
-            Exception new("Can't find package '%s' in PKG_CONFIG_PATH. Have you configured pkg-config correctly?" format(pkgName)) throw()
+            Exception new("Can't find package '%s' in PKG_CONFIG_PATH. Have you configured pkg-config correctly?" format(pkgName toCString())) throw()
         }
 
         pkgInfo := PkgInfo new(pkgName, libs, cflags)

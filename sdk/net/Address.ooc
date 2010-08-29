@@ -203,9 +203,10 @@ IP4Address: class extends IPAddress {
     }
 
     toString: func -> String {
-        addrStr := String new(128)
-        inet_ntop(family, ai&, addrStr, 128)
-        return addrStr
+        addrStr := Buffer new(128)
+        inet_ntop(family, ai&, addrStr data, 128)
+        addrStr sizeFromData()
+        return String new(addrStr)
     }
 }
 
@@ -303,9 +304,10 @@ IP6Address: class extends IPAddress {
     }
 
     toString: func -> String {
-        addrStr := String new(128)
-        inet_ntop(family, ai&, addrStr, 128)
-        return addrStr
+        addrStr := Buffer new(128)
+        inet_ntop(family, ai&, addrStr data, 128)
+        addrStr sizeFromData()
+        return String new(addrStr)
     }
 }
 
@@ -370,7 +372,7 @@ SocketAddress: abstract class {
     length: abstract func -> UInt32
 
     toString: func -> String {
-        "[%s]:%d" format(host() toString(), port())
+        "[%s]:%d" format(host() toString() toCString(), port())
     }
 }
 
