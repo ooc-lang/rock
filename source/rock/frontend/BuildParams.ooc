@@ -108,7 +108,10 @@ BuildParams: class {
     // see http://github.com/nddrylliog/newsdk for more bunnies.
     newsdk := false
     // temporary option for string branch compilation
-    newstr := false
+    newstr := true
+
+    // dead code elimination
+    dce := false
 
     // location of the compiler's distribution, with a libs/ folder for the gc, etc.
     distLocation: File

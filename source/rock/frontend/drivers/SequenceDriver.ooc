@@ -139,6 +139,9 @@ SequenceDriver: class extends Driver {
                     params compiler addObjectFile(File new(params distLocation, libPath) path)
                 }
             }
+
+            if(params dce) params compiler addDCEFlags()
+
             if(params verbose) params compiler getCommandLine() println()
 
             code := params compiler launch()
@@ -288,12 +291,12 @@ SequenceDriver: class extends Driver {
         if(force || cFile lastModified() > comparison) {
 
             if(params veryVerbose) printf("%s not in cache or out of date, (re)compiling\n", module getFullName() toCString())
-            
+
             parent := File new(oPath) parent()
             if(!parent exists?()) {
-				if(params verbose) "Creating path %s" format(parent getPath()) println()
-				parent mkdirs()
-			}
+                if(params verbose) "Creating path %s" format(parent getPath()) println()
+                parent mkdirs()
+            }
 
             params compiler addObjectFile(cPath)
             params compiler setOutputPath(oPath)
@@ -321,6 +324,8 @@ SequenceDriver: class extends Driver {
             for(lib in libs) {
                 params compiler addObjectFile(lib)
             }
+
+            if (params dce) params compiler addDCEFlags()
 
             if(params verbose) params compiler getCommandLine() println()
 

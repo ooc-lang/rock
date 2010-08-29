@@ -10,6 +10,9 @@ AbstractCompiler: abstract class {
     /** -o option in gcc */
     setOutputPath: abstract func(path: String)
 
+    /** set flags for dead code elimination, if available */
+    addDCEFlags: abstract func
+
     /** -I option in gcc */
     addIncludePath: abstract func(path: String)
 
@@ -26,7 +29,7 @@ AbstractCompiler: abstract class {
     setDebugEnabled: abstract func
 
     /** -D option in gcc */
-	defineSymbol: abstract func (symbol: String)
+    defineSymbol: abstract func (symbol: String)
 
     /** .o file to link with */
     addObjectFile: abstract func(path: String)
