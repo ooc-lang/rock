@@ -258,7 +258,7 @@ BaseType: class extends Type {
             }
 
             if(getRef() instanceOf?(TypeDecl) && other getRef() instanceOf?(TypeDecl)) {
-                inheritsScore := getRef() as TypeDecl inheritsScore(other getRef() as TypeDecl, scoreSeed)
+                inheritsScore := getRef() as TypeDecl inheritsScore(other getRef() as TypeDecl, scoreSeed - 1)
 
                 // something needs resolving
                 if(inheritsScore == -1) {

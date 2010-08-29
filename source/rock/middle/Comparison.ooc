@@ -97,6 +97,7 @@ Comparison: class extends Expression {
 
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType)
+            //if(score > 0) ("Considering " + opDecl toString() + " for " + toString() + ", score = %d\n") format(score) println()
             if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response OK }
             if(score > bestScore) {
                 bestScore = score
@@ -108,6 +109,7 @@ Comparison: class extends Expression {
             module := imp getModule()
             for(opDecl in module getOperators()) {
                 score := getScore(opDecl, reqType)
+                //if(score > 0) ("Considering " + opDecl toString() + " for " + toString() + ", score = %d\n") format(score) println()
                 if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response OK }
                 if(score > bestScore) {
                     bestScore = score

@@ -16,9 +16,7 @@ errno : extern Int
  */
 ProcessUnix: class extends Process {
 
-    init: func ~unix (=args) {
-        //this args add(null) // execvp wants NULL to end the array
-    }
+    init: func ~unix (=args) {}
 
     /**
        Wait for the process to end. Bad things will happen if you
