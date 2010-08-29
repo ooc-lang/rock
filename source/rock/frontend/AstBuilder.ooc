@@ -100,6 +100,7 @@ AstBuilder: class {
      * Turn import paths like "../frontend/AstBuilder" into "/opt/ooc/rock/source/rock/frontend/AstBuilder"
      */
     getRealImportPath: static func (imp: Import, module: Module, params: BuildParams, path: String@, impPath, impElement: File@) -> File {
+        if(params veryVerbose) ("getRealImportPath " + imp path) println()
         path = FileUtils resolveRedundancies(imp path + ".ooc")
         impElement = params sourcePath getElement(path)
         impPath    = params sourcePath getFile(path)
