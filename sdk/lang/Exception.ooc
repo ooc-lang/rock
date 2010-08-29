@@ -14,6 +14,11 @@ getOSError: func -> String {
 raise: func(msg: String) {
     Exception new(msg) throw()
 }
+
+raise: func~withClass(clazz: Class, msg: String) {
+    Exception new(clazz, msg) throw()
+}
+
 /**
  * Base class for all exceptions that can be thrown
  *

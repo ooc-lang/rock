@@ -36,7 +36,6 @@ Module: class extends Node {
     init: func ~module (.fullName, =pathElement, =params, .token) {
         super(token)
         this path = fullName replaceAll('/', File separator)
-        ("new module: " + path) println()
         this fullName = fullName replaceAll(File separator, '/')
         idx := this fullName lastIndexOf('/')
 
@@ -54,7 +53,7 @@ Module: class extends Node {
     }
 
     clone: func -> This {
-        Exception new(This, "Can't clone Module")
+        raise(This, "Can't clone Module")
         null
     }
 
@@ -98,7 +97,7 @@ Module: class extends Node {
             }
         }
         if(result size > 0 && !result[0] alpha?()) result = '_' + result
-        String new(result)
+        result toString()
     }
 
     addFunction: func (fDecl: FunctionDecl) {

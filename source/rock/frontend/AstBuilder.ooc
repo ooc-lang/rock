@@ -106,7 +106,7 @@ AstBuilder: class {
         if(impPath == null) {
             parent := File new(module getPath()) parent()
             if(parent != null) {
-                ("getRealImportPath parent = " + parent path) println()
+                if(params veryVerbose) ("getRealImportPath parent = " + parent path) println()
                 path = FileUtils resolveRedundancies(parent path + File separator + imp path + ".ooc")
                 impElement = params sourcePath getElement(path)
                 impPath    = params sourcePath getFile(path)
@@ -153,14 +153,14 @@ AstBuilder: class {
     }
 
     onImport: unmangled(nq_onImport) func (path, name: CString) {
-printf("nq_import %s %s\n", path, name)
+        if(params veryVerbose) printf("nq_import %s %s\n", path, name)
         namestr := name toString()
         output : String = ((path == null) || (path@ == '\0')) ? namestr : path toString() + namestr
         module addImport(Import new( output , token()))
     }
 
     onImportNamespace: unmangled(nq_onImportNamespace) func (cnamespace: CString, quantity: Int) {
-printf("nq_importnamespace %s\n", cnamespace)
+        if(params veryVerbose) printf("nq_importnamespace %s\n", cnamespace)
         namespace := String new(cnamespace, cnamespace length())
         nDecl: NamespaceDecl
         if(!module hasNamespace(namespace)) {
@@ -747,11 +747,12 @@ printf("nq_importnamespace %s\n", cnamespace)
     }
 
     onStringLiteral: unmangled(nq_onStringLiteral) func (text: CString) -> StringLiteral {
-        StringLiteral new(String new(text, text length()) replaceAll("\n", "\\n") replaceAll("\t", "\\t"), token())
+        // FIXME this magic replacement seems to lead to errors
+        StringLiteral new(text toString() replaceAll("\n", "\\n") replaceAll("\t", "\\t"), token())
     }
 
     onCharLiteral: unmangled(nq_onCharLiteral) func (value: CString) -> CharLiteral {
-        CharLiteral new(String new(value, value length()), token())
+        CharLiteral new(value toString(), token())
     }
 
     // statement
