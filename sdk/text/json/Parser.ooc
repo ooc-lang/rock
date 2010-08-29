@@ -110,7 +110,7 @@ getToken: func (reader: Reader, token: Token*) {
             end := reader mark()
             reader reset(beginning)
             length := (end - beginning - 1) as SizeT
-            xx := Buffer new~withSize(length)
+            xx := Buffer new~withSize(length, false)
             reader read(xx data, 0, length)
             // advance '"'
             reader read()
@@ -180,7 +180,7 @@ getToken: func (reader: Reader, token: Token*) {
                 }
                 end := reader mark()
                 length := (end - beginning - 1) as SizeT
-                s := Buffer new~withSize(length)
+                s := Buffer new~withSize(length, false)
                 reader reset(beginning)
                 reader read(s data, 0, length)
                 token@ type = TokenType Number

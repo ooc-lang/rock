@@ -33,7 +33,7 @@ extend String {
                     while(end@ == ' ') { end -= 1 }
                     /* calculate the length */
                     length := (end + 1 - identifier) as SizeT
-                    key := Buffer new~withSize(length)
+                    key := Buffer new~withSize(length, false)
                     memcpy(key _buffer data, identifier, length)
                     /* (the \0 byte is already set.) */
                     value := values get(key toString())

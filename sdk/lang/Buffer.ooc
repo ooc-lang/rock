@@ -61,7 +61,8 @@ Buffer: class {
     }
 
     /* same as above, but set Size as well */
-    init: func ~withSize(sice: SizeT) {
+    // FIXME on x32 platforms, the above function with suffix is chosen as teh default, thats why i have to add the dummy here to have a different prototype
+    init: func ~withSize(sice: SizeT, dummy: Bool) {
         setLength(sice)
     }
 
@@ -398,7 +399,7 @@ Buffer: class {
         l := findAll( what, searchCaseSensitive )
         if (l == null || l size() == 0) return
         newlen: SizeT = size + (whit size * l size()) - (what size * l size())
-        result := This new~withSize( newlen )
+        result := This new~withSize( newlen, false )
 
         sstart: SizeT = 0 //source (this) start pos
         rstart: SizeT = 0 //result start pos

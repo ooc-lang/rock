@@ -347,7 +347,7 @@ String: class {
         length := vsnprintf(null, 0, (fmt data), list)
         va_end(list)
 
-        copy := Buffer new~withSize(length)
+        copy := Buffer new~withSize(length, false)
 
         va_start(list, this )
         vsnprintf((copy data), length + 1, (fmt data), list)

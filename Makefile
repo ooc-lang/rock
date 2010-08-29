@@ -81,3 +81,4 @@ safe:
 
 clean:
 	rm -rf *_tmp/ .libs/
+	rm -rf `find build/ -name '*.o'`
