@@ -57,7 +57,6 @@ String: class {
 
     substring: func (start: SizeT, end: SizeT) -> This{
         result := _buffer clone()
-        assert(result == _buffer)
         result substring(start, end)
         result toString()
     }

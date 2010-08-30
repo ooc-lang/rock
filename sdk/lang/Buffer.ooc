@@ -45,7 +45,7 @@ Buffer: class {
         data = newOne data
         mallocAddr = newOne mallocAddr
         capacity = newOne capacity
-        setLength(newOne size)
+        size = newOne size
     }
 
     toCString: inline func -> CString { data as CString }
@@ -61,7 +61,7 @@ Buffer: class {
     }
 
     /* same as above, but set Size as well */
-    // FIXME on x32 platforms, the above function with suffix is chosen as teh default, thats why i have to add the dummy here to have a different prototype
+    // FIXME on x32 platforms, the above function without suffix is chosen as teh default, thats why i have to add the dummy here to have a different prototype
     init: func ~withSize(sice: SizeT, dummy: Bool) {
         setLength(sice)
     }
@@ -99,7 +99,7 @@ Buffer: class {
         } else    raise("optional constant function arguments are not supported yet! otherwise this branch would execute what withCStrAndLength does currently")
     }
 
-    _literal?: inline func -> Bool {
+    _literal?: func -> Bool {
         data != null && mallocAddr == null
     }
 
@@ -163,8 +163,9 @@ Buffer: class {
 
     /** sets capacity and size flag, and a zero termination */
     setLength: func (length: SizeT) {
+        cprintf("setlen called on %d:%p:%s with size %d, literal? %d\n", size, data, data, length, _literal?())
         if(data == null || length != size || (data as Char* + size)@ != '\0') {
-            if (_literal?) _makeWritable(length)
+            if (_literal?()) _makeWritable(length)
             else if (length > capacity) {
                 setCapacity(length)
                 size = length
@@ -190,7 +191,7 @@ Buffer: class {
     shiftRight: func ( count: SSizeT ) {
         assert(data != null)
         if (count == 0) return
-        if (_literal?) _makeWritable() // sorry cant allow shifting on literals, since mallocaddr is not set and the bounds can not be checked... or could they? hmm....
+        if (_literal?()) _makeWritable() // sorry cant allow shifting on literals, since mallocaddr is not set and the bounds can not be checked... or could they? hmm....
         //printf("sR : %d\n", count)
         //debug()
         if (count == 0 || size == 0) return
@@ -242,7 +243,7 @@ Buffer: class {
 
     /** return a This that contains *this*, repeated *count* times. */
     times: func (count: SizeT) {
-        if (_literal?) _makeWritable()
+        if (_literal?()) _makeWritable()
         origSize := size
         setLength (origSize * count)
         for(i in 1..count) { // we start at 1, since the 0 entry is already there
@@ -262,10 +263,10 @@ Buffer: class {
 
     /** appends *other* to *this* */
     append: func ~pointer (other: Char*, otherLength: SizeT) {
-        //cprintf("buffer append called with %p bytes: %s\n", otherLength, other)
+        cprintf("buffer append called on %p:%s with %p bytes: %s\n", size, data, otherLength, other)
         if(otherLength > 1 && (other + otherLength)@ != '\0') Exception new ("something wrong here!") throw()
         if(otherLength > 1 && (other + 1)@ == '\0') Exception new ("something wrong here!") throw()
-        if (_literal?) _makeWritable()
+        if (_literal?()) _makeWritable()
         origlen := size
         setLength(size + otherLength)
         memcpy(data + origlen, other, otherLength )
@@ -283,14 +284,14 @@ Buffer: class {
 
     /** return a new string containg *other* followed by *this*. */
     prepend: func ~pointer (other: Char*, otherLength: SizeT) {
-        if (_literal?) _makeWritable()
+        if (_literal?()) _makeWritable()
         if (_rshift() < otherLength) {
             newthis := This new (size + otherLength)
             memcpy (newthis data, other, otherLength)
             memcpy (newthis data + otherLength, data, size)
             setBuffer(newthis)
         } else {
-            // seems we have enough room on the left, and we are allowed to morph
+            // seems we have enough room on the left
             shiftLeft(otherLength)
             memcpy( data , other, otherLength )
         }
@@ -436,7 +437,7 @@ Buffer: class {
 
     replaceAll: func ~bufWithCase (what, whit : This, searchCaseSensitive: Bool) {
         //cprintf("replaceAll called on %p:%s with %p:%s\n", size, data, what size, what)
-        if (_literal?) _makeWritable()
+        //if (_literal?()) _makeWritable()
         if (what == null || what size == 0 || whit == null) return
         l := findAll( what, searchCaseSensitive )
         if (l == null || l size() == 0) return
@@ -464,7 +465,7 @@ Buffer: class {
 
     /** replace all occurences of *oldie* with *kiddo* in place/ in a clone, if immutable is set */
     replaceAll: func ~char(oldie, kiddo: Char) {
-        if (_literal?) _makeWritable()
+        if (_literal?()) _makeWritable()
         for(i in 0..size) {
             if((data + i)@ == oldie) (data + i)@ = kiddo
         }
@@ -525,7 +526,7 @@ Buffer: class {
 
     /** characters lowercased (if possible). */
     toLower: func {
-        if (_literal?) _makeWritable()
+        if (_literal?()) _makeWritable()
         for(i in 0..size) {
             (data + i)@ = (data  + i)@ toLower()
         }
@@ -533,7 +534,7 @@ Buffer: class {
 
     /** characters uppercased (if possible). */
     toUpper: func {
-        if (_literal?) _makeWritable()
+        if (_literal?()) _makeWritable()
         for(i in 0..size) {
             (data + i)@ = (data  + i)@ toUpper()
         }
@@ -578,7 +579,7 @@ Buffer: class {
 
     /** all characters contained by *s* stripped at both ends. */
     trimMulti: func ~pointer (s: Char*, sLength: SizeT) {
-        if (_literal?) _makeWritable()
+        if (_literal?()) _makeWritable()
         if(size == 0 || sLength == 0) return
         start := 0
         while (start < size && (data + start)@ containedIn? (s, sLength) ) start += 1
@@ -666,7 +667,7 @@ Buffer: class {
 
     /** reverses *this*. "ABBA" -> "ABBA" .no. joke. "ABC" -> "CBA" */
     reverse: func {
-        if (_literal?) _makeWritable()
+        if (_literal?()) _makeWritable()
         result := this
         bytesLeft := size
         i: SizeT = 0

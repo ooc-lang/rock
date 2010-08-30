@@ -71,8 +71,7 @@ BuildParams: class {
 
     findSdk: func {
         // specified by command-line?
-        if(sdkLocation) { "sdklocation set" println()
-        return }
+        if(sdkLocation) return
 
         env := Env get("ROCK_SDK")
         if(!env) {
@@ -80,7 +79,6 @@ BuildParams: class {
         }
 
         if (env) {
-            ("env is: " + env) println()
             sdkLocation = File new(env trimRight(File separator))
             return
         }
