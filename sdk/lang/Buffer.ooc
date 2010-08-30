@@ -36,9 +36,9 @@ Buffer: class {
     /* pointer to the string data's start byte, this must be implicitly passed to functions working with Char* */
     data : Char*
 
-    debug: func { printf ("size: %x. capa: %x. rshift: %x. data: %x. data@: %s\n", size, capacity, rshift(), data, data) }
+    debug: func { printf ("size: %x. capa: %x. rshift: %x. data: %x. data@: %s\n", size, capacity, _rshift(), data, data) }
 
-    rshift: func -> SizeT { return mallocAddr != null ? (data as SizeT - mallocAddr as SizeT) as SizeT: 0 }
+    _rshift: func -> SizeT { return mallocAddr == null || data == null ? 0 :  (data as SizeT - mallocAddr as SizeT) as SizeT}
 
     /* used to overwrite the data/attributes of *this* with that of another This */
     setBuffer: func( newOne : This ) {
@@ -85,10 +85,6 @@ Buffer: class {
     // ATTENTION the mangled name of this function is hardcoded in CGenerator.ooc
     // so you'd rather not change it
     init: func ~withCStrAndLength(s : CString, length: SizeT) {
-        _sl_plus_memcpy(s, length)
-    }
-
-    _sl_plus_memcpy: inline func(s : CString, length: SizeT) {
         setLength(length)
         memcpy(data, s, length)
     }
@@ -96,22 +92,31 @@ Buffer: class {
     /* for construction of String/Buffers from a StringLiteral */
     init: func ~stringLiteral(s: CString, length: SizeT, isStringLiteral: Bool) {
         if(isStringLiteral) {
-            data = CString
+            data = s
             size = length
+            mallocAddr = null
+            capacity = 0
         } else    raise("optional constant function arguments are not supported yet! otherwise this branch would execute what withCStrAndLength does currently")
     }
 
     _literal?: inline func -> Bool {
-        data != null && mallocAddr = null
+        data != null && mallocAddr == null
     }
 
     _makeWritable: func {
+        _makeWritable(size)
+    }
+
+    _makeWritable: func~withCapacity(newSize: SizeT) {
         sizeCp := size
         dataCp := data
         data = null
         size = 0
         capacity = 0
-        _sl_plus_memcpy(dataCp, sizeCp)
+        setCapacity(newSize > sizeCp ? newSize : sizeCp)
+        size = sizeCp
+        memcpy(data, dataCp, sizeCp)
+        (data + sizeCp)@ = '\0'
     }
 
     init: func ~withStr(s: String) { init~withBuffer( s _buffer) }
@@ -131,16 +136,16 @@ Buffer: class {
             return
         }
         min := length + 1
-        min += rshift()
+        min += _rshift()
         if(min >= capacity) {
             // if length was 0 before, reset the data pointer so our trick above works
-            if (size == 0 && capacity == 0 && mallocAddr == 0) data = null
+            if (size == 0 && capacity == 0 && mallocAddr == null && data as Pointer == capacity& as Pointer) data = null
             capacity = (min * 120) / 100 + 10 // let's stay integer, mkay ?
             // align at 8 byte boundary
             al := 8 - (capacity % 8)
             if (al < 8) capacity += al
 
-            rs := rshift()
+            rs := _rshift()
             if (rs) shiftLeft( rs )
             tmp := gc_realloc(mallocAddr, capacity)
             if(!tmp) {
@@ -159,10 +164,12 @@ Buffer: class {
     /** sets capacity and size flag, and a zero termination */
     setLength: func (length: SizeT) {
         if(data == null || length != size || (data as Char* + size)@ != '\0') {
-            if (_literal?) _makeWritable() // TODO if size could be passed to makeWritable it could alloc all needed ram at once
-            if (length > capacity) setCapacity(length)
-            size = length
-            (data as Char* + size)@ = '\0'
+            if (_literal?) _makeWritable(length)
+            else if (length > capacity) {
+                setCapacity(length)
+                size = length
+                (data as Char* + size)@ = '\0'
+            }
         }
     }
 
@@ -181,13 +188,14 @@ Buffer: class {
 
     // remark: can be called with negative value (done by leftShift)
     shiftRight: func ( count: SSizeT ) {
+        assert(data != null)
         if (count == 0) return
         if (_literal?) _makeWritable() // sorry cant allow shifting on literals, since mallocaddr is not set and the bounds can not be checked... or could they? hmm....
         //printf("sR : %d\n", count)
         //debug()
         if (count == 0 || size == 0) return
         c := count
-        rshift := rshift()
+        rshift := _rshift()
         if (c > size) c = size
         else if (c < 0 && c abs() > rshift) c = rshift *-1
         data += c
@@ -276,7 +284,7 @@ Buffer: class {
     /** return a new string containg *other* followed by *this*. */
     prepend: func ~pointer (other: Char*, otherLength: SizeT) {
         if (_literal?) _makeWritable()
-        if (rshift() < otherLength) {
+        if (_rshift() < otherLength) {
             newthis := This new (size + otherLength)
             memcpy (newthis data, other, otherLength)
             memcpy (newthis data + otherLength, data, size)
