@@ -46,6 +46,7 @@ Socket: abstract class {
     }
     
     localHostName: static func -> String {
+        
         hostname := String new(255)
         length : SizeT
         
@@ -56,13 +57,41 @@ Socket: abstract class {
         }
                 
         return hostname
+        
     }
     
-    setSocketNonBlocking: func {
-        result := fcntl(descriptor, SocketControls SET_SOCKET, SocketControls NON_BLOCKING)
-        if(result != 0) {
+    setNonBlocking: func -> Int {
+        
+        flags := currentFlags()
+
+        result := fcntl(descriptor, SocketControls SET_SOCKET_FLAGS, flags | SocketControls NON_BLOCKING)
+        if (result < 0) 
             SocketError new() throw()
-        }
+            
+        return result
+        
+    }
+    
+    setBlocking: func -> Int {
+        
+        flags := currentFlags()
+
+        result := fcntl(descriptor, SocketControls SET_SOCKET_FLAGS, flags & ~(SocketControls NON_BLOCKING))
+        if (result < 0) 
+            SocketError new() throw()
+            
+        return result
+        
+    }
+    
+    currentFlags: func -> Int {
+        
+        flags := fcntl(descriptor, SocketControls GET_SOCKET_FLAGS, 0)
+        if (flags < 0) 
+            SocketError new() throw()
+            
+        return flags
+        
     }
     
 }
@@ -94,7 +123,8 @@ SocketShutdownOptions: cover {
 }
 
 SocketControls: cover {
-    SET_SOCKET: extern(F_SETFL) static Int
+    SET_SOCKET_FLAGS: extern(F_SETFL) static Int
+    GET_SOCKET_FLAGS: extern(F_GETFL) static Int
     NON_BLOCKING: extern(O_NONBLOCK) static Int
     ASYNCHRONOUS: extern(O_ASYNC) static Int // this probably shoulden't be implemented as it's badly supported
 }
