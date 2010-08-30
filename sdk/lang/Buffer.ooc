@@ -29,6 +29,7 @@ Buffer: class {
     /*  stores the original pointer to the malloc'd mem
         we need that so the GC doesn't accidentally free the mem, when we shift the data pointer */
     /*   shifting of data ptr is used only in combination with shiftRight function
+        we use it also for checking if the buffer points to a stringliteral, then it will be null.
         this is mainly used if a trimleft is done, so that we don't have to do lengthy mallocs */
     mallocAddr : Pointer
 
@@ -47,7 +48,7 @@ Buffer: class {
         setLength(newOne size)
     }
 
-    toCString: func -> CString { data as CString }
+    toCString: inline func -> CString { data as CString }
 
     init: func ~zero { init(0) }
 
@@ -84,8 +85,33 @@ Buffer: class {
     // ATTENTION the mangled name of this function is hardcoded in CGenerator.ooc
     // so you'd rather not change it
     init: func ~withCStrAndLength(s : CString, length: SizeT) {
+        _sl_plus_memcpy(s, length)
+    }
+
+    _sl_plus_memcpy: inline func(s : CString, length: SizeT) {
         setLength(length)
         memcpy(data, s, length)
+    }
+
+    /* for construction of String/Buffers from a StringLiteral */
+    init: func ~stringLiteral(s: CString, length: SizeT, isStringLiteral: Bool) {
+        if(isStringLiteral) {
+            data = CString
+            size = length
+        } else    raise("optional constant function arguments are not supported yet! otherwise this branch would execute what withCStrAndLength does currently")
+    }
+
+    _literal?: inline func -> Bool {
+        data != null && mallocAddr = null
+    }
+
+    _makeWritable: func {
+        sizeCp := size
+        dataCp := data
+        data = null
+        size = 0
+        capacity = 0
+        _sl_plus_memcpy(dataCp, sizeCp)
     }
 
     init: func ~withStr(s: String) { init~withBuffer( s _buffer) }
@@ -132,9 +158,12 @@ Buffer: class {
 
     /** sets capacity and size flag, and a zero termination */
     setLength: func (length: SizeT) {
-        setCapacity(length)
-        size = length
-        (data as Char* + size)@ = '\0'
+        if(data == null || length != size || (data as Char* + size)@ != '\0') {
+            if (_literal?) _makeWritable() // TODO if size could be passed to makeWritable it could alloc all needed ram at once
+            if (length > capacity) setCapacity(length)
+            size = length
+            (data as Char* + size)@ = '\0'
+        }
     }
 
     /* does a strlen on the buffers data and sets this as the size
@@ -152,6 +181,8 @@ Buffer: class {
 
     // remark: can be called with negative value (done by leftShift)
     shiftRight: func ( count: SSizeT ) {
+        if (count == 0) return
+        if (_literal?) _makeWritable() // sorry cant allow shifting on literals, since mallocaddr is not set and the bounds can not be checked... or could they? hmm....
         //printf("sR : %d\n", count)
         //debug()
         if (count == 0 || size == 0) return
@@ -166,11 +197,11 @@ Buffer: class {
 
     /* shifts back count bytes, only possible if shifted right before */
     shiftLeft: func ( count : SSizeT) {
-        shiftRight ( count * -1) // it can be so easy
+        if (count != 0) shiftRight ( count * -1) // it can be so easy
     }
 
     /** return true if *other* and *this* are equal (in terms of being null / having same size and content). */
-    equals?: func (other: This) -> Bool {
+    equals?: final func (other: This) -> Bool {
         this == other
     }
 
@@ -197,12 +228,13 @@ Buffer: class {
 
     /** *this* will be reduced to the characters in the range ``start..end``.  */
     substring: func (start: SizeT, end: SizeT) {
-        setLength(end)
-        shiftRight(start)
+        if (end != size) setLength(end)
+        if (start > 0) shiftRight(start)
     }
 
     /** return a This that contains *this*, repeated *count* times. */
     times: func (count: SizeT) {
+        if (_literal?) _makeWritable()
         origSize := size
         setLength (origSize * count)
         for(i in 1..count) { // we start at 1, since the 0 entry is already there
@@ -225,6 +257,7 @@ Buffer: class {
         //cprintf("buffer append called with %p bytes: %s\n", otherLength, other)
         if(otherLength > 1 && (other + otherLength)@ != '\0') Exception new ("something wrong here!") throw()
         if(otherLength > 1 && (other + 1)@ == '\0') Exception new ("something wrong here!") throw()
+        if (_literal?) _makeWritable()
         origlen := size
         setLength(size + otherLength)
         memcpy(data + origlen, other, otherLength )
@@ -242,6 +275,7 @@ Buffer: class {
 
     /** return a new string containg *other* followed by *this*. */
     prepend: func ~pointer (other: Char*, otherLength: SizeT) {
+        if (_literal?) _makeWritable()
         if (rshift() < otherLength) {
             newthis := This new (size + otherLength)
             memcpy (newthis data, other, otherLength)
@@ -394,6 +428,7 @@ Buffer: class {
 
     replaceAll: func ~bufWithCase (what, whit : This, searchCaseSensitive: Bool) {
         //cprintf("replaceAll called on %p:%s with %p:%s\n", size, data, what size, what)
+        if (_literal?) _makeWritable()
         if (what == null || what size == 0 || whit == null) return
         l := findAll( what, searchCaseSensitive )
         if (l == null || l size() == 0) return
@@ -421,6 +456,7 @@ Buffer: class {
 
     /** replace all occurences of *oldie* with *kiddo* in place/ in a clone, if immutable is set */
     replaceAll: func ~char(oldie, kiddo: Char) {
+        if (_literal?) _makeWritable()
         for(i in 0..size) {
             if((data + i)@ == oldie) (data + i)@ = kiddo
         }
@@ -481,6 +517,7 @@ Buffer: class {
 
     /** characters lowercased (if possible). */
     toLower: func {
+        if (_literal?) _makeWritable()
         for(i in 0..size) {
             (data + i)@ = (data  + i)@ toLower()
         }
@@ -488,6 +525,7 @@ Buffer: class {
 
     /** characters uppercased (if possible). */
     toUpper: func {
+        if (_literal?) _makeWritable()
         for(i in 0..size) {
             (data + i)@ = (data  + i)@ toUpper()
         }
@@ -532,6 +570,7 @@ Buffer: class {
 
     /** all characters contained by *s* stripped at both ends. */
     trimMulti: func ~pointer (s: Char*, sLength: SizeT) {
+        if (_literal?) _makeWritable()
         if(size == 0 || sLength == 0) return
         start := 0
         while (start < size && (data + start)@ containedIn? (s, sLength) ) start += 1
@@ -546,7 +585,6 @@ Buffer: class {
     }
 
     trim: func~pointer(s: Char*, sLength: SizeT) {
-        // FIXME untested
         trimRight(s, sLength)
         trimLeft(s, sLength)
     }
@@ -581,9 +619,9 @@ Buffer: class {
     /** all characters contained by *s* stripped from the left side. either from *this* or a clone */
     trimLeft: func ~pointer (s: Char*, sLength: SizeT) {
         if (size == 0 || sLength == 0) return
-
         start : SizeT = 0
         while (start < size && (data + start)@ containedIn?(s, sLength) ) start += 1
+        if(start == 0) return
         shiftRight( start )
     }
 
@@ -607,19 +645,20 @@ Buffer: class {
     //c :Char= s@
     //if (sLength == 1) cprintf("trimRight: %02X\n", c)
     //else cprintf("trimRight: %p:%s\n", sLength, s)
-    if(sLength > 1 && (s + sLength)@ != '\0') raise("something wrong here!")
-    if(sLength > 1 && (s + 1)@ == '\0') raise("something wrong here!")
+        if(sLength > 1 && (s + sLength)@ != '\0') raise("something wrong here!")
+        if(sLength > 1 && (s + 1)@ == '\0') raise("something wrong here!")
 
         end := size
         while( end > 0 &&  (data + (end - 1))@ containedIn?(s, sLength)) {
             //cprintf("%c contained in %s!\n", (data + (end - 1))@, s)
             end -= 1
         }
-        setLength(end);
+        if (end != size) setLength(end);
     }
 
     /** reverses *this*. "ABBA" -> "ABBA" .no. joke. "ABC" -> "CBA" */
     reverse: func {
+        if (_literal?) _makeWritable()
         result := this
         bytesLeft := size
         i: SizeT = 0
