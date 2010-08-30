@@ -464,6 +464,12 @@ operator + (left: Char, right: String) -> String {
     right prepend(left)
 }
 
+// constructor to be called from string literal initializers
+makeStringLiteral: func (str: CString, strLen: SizeT) -> String {
+    result := String new(str, strLen)
+    result
+}
+
 // lame static function to be called by int main, so i dont have to metaprogram it
 import structs/ArrayList
 
