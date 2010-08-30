@@ -29,25 +29,26 @@ Buffer: class {
     /*  stores the original pointer to the malloc'd mem
         we need that so the GC doesn't accidentally free the mem, when we shift the data pointer */
     /*   shifting of data ptr is used only in combination with shiftRight function
+        we use it also for checking if the buffer points to a stringliteral, then it will be null.
         this is mainly used if a trimleft is done, so that we don't have to do lengthy mallocs */
     mallocAddr : Pointer
 
     /* pointer to the string data's start byte, this must be implicitly passed to functions working with Char* */
     data : Char*
 
-    debug: func { printf ("size: %x. capa: %x. rshift: %x. data: %x. data@: %s\n", size, capacity, rshift(), data, data) }
+    debug: func { printf ("size: %x. capa: %x. rshift: %x. data: %x. data@: %s\n", size, capacity, _rshift(), data, data) }
 
-    rshift: func -> SizeT { return mallocAddr != null ? (data as SizeT - mallocAddr as SizeT) as SizeT: 0 }
+    _rshift: func -> SizeT { return mallocAddr == null || data == null ? 0 :  (data as SizeT - mallocAddr as SizeT) as SizeT}
 
     /* used to overwrite the data/attributes of *this* with that of another This */
     setBuffer: func( newOne : This ) {
         data = newOne data
         mallocAddr = newOne mallocAddr
         capacity = newOne capacity
-        setLength(newOne size)
+        size = newOne size
     }
 
-    toCString: func -> CString { data as CString }
+    toCString: inline func -> CString { data as CString }
 
     init: func ~zero { init(0) }
 
@@ -60,7 +61,7 @@ Buffer: class {
     }
 
     /* same as above, but set Size as well */
-    // FIXME on x32 platforms, the above function with suffix is chosen as teh default, thats why i have to add the dummy here to have a different prototype
+    // FIXME on x32 platforms, the above function without suffix is chosen as teh default, thats why i have to add the dummy here to have a different prototype
     init: func ~withSize(sice: SizeT, dummy: Bool) {
         setLength(sice)
     }
@@ -88,6 +89,36 @@ Buffer: class {
         memcpy(data, s, length)
     }
 
+    /* for construction of String/Buffers from a StringLiteral */
+    init: func ~stringLiteral(s: CString, length: SizeT, isStringLiteral: Bool) {
+        if(isStringLiteral) {
+            data = s
+            size = length
+            mallocAddr = null
+            capacity = 0
+        } else    raise("optional constant function arguments are not supported yet! otherwise this branch would execute what withCStrAndLength does currently")
+    }
+
+    _literal?: inline func -> Bool {
+        data != null && mallocAddr == null
+    }
+
+    _makeWritable: func {
+        _makeWritable(size)
+    }
+
+    _makeWritable: func~withCapacity(newSize: SizeT) {
+        sizeCp := size
+        dataCp := data
+        data = null
+        size = 0
+        capacity = 0
+        setCapacity(newSize > sizeCp ? newSize : sizeCp)
+        size = sizeCp
+        memcpy(data, dataCp, sizeCp)
+        (data + sizeCp)@ = '\0'
+    }
+
     init: func ~withStr(s: String) { init~withBuffer( s _buffer) }
 
     /** return the string's length, excluding the null byte. */
@@ -105,16 +136,16 @@ Buffer: class {
             return
         }
         min := length + 1
-        min += rshift()
+        min += _rshift()
         if(min >= capacity) {
             // if length was 0 before, reset the data pointer so our trick above works
-            if (size == 0 && capacity == 0 && mallocAddr == 0) data = null
+            if (size == 0 && capacity == 0 && mallocAddr == null && data as Pointer == capacity& as Pointer) data = null
             capacity = (min * 120) / 100 + 10 // let's stay integer, mkay ?
             // align at 8 byte boundary
             al := 8 - (capacity % 8)
             if (al < 8) capacity += al
 
-            rs := rshift()
+            rs := _rshift()
             if (rs) shiftLeft( rs )
             tmp := gc_realloc(mallocAddr, capacity)
             if(!tmp) {
@@ -132,9 +163,16 @@ Buffer: class {
 
     /** sets capacity and size flag, and a zero termination */
     setLength: func (length: SizeT) {
-        setCapacity(length)
-        size = length
-        (data as Char* + size)@ = '\0'
+        //cprintf("setlen called on %d:%p:%s with size %d, literal? %d\n", size, data, data, length, _literal?())
+        if(data == null || length != size || (data as Char* + size)@ != '\0') {
+            if (_literal?()) {
+                _makeWritable(length)
+            } else if (length == 0 || length > capacity) { // special case for 0 to have our zero malloc trick work
+                setCapacity(length)
+            }
+            size = length
+            (data as Char* + size)@ = '\0'
+        }
     }
 
     /* does a strlen on the buffers data and sets this as the size
@@ -152,11 +190,14 @@ Buffer: class {
 
     // remark: can be called with negative value (done by leftShift)
     shiftRight: func ( count: SSizeT ) {
+        assert(data != null)
+        if (count == 0) return
+        if (_literal?()) _makeWritable() // sorry cant allow shifting on literals, since mallocaddr is not set and the bounds can not be checked... or could they? hmm....
         //printf("sR : %d\n", count)
         //debug()
         if (count == 0 || size == 0) return
         c := count
-        rshift := rshift()
+        rshift := _rshift()
         if (c > size) c = size
         else if (c < 0 && c abs() > rshift) c = rshift *-1
         data += c
@@ -166,11 +207,11 @@ Buffer: class {
 
     /* shifts back count bytes, only possible if shifted right before */
     shiftLeft: func ( count : SSizeT) {
-        shiftRight ( count * -1) // it can be so easy
+        if (count != 0) shiftRight ( count * -1) // it can be so easy
     }
 
     /** return true if *other* and *this* are equal (in terms of being null / having same size and content). */
-    equals?: func (other: This) -> Bool {
+    equals?: final func (other: This) -> Bool {
         this == other
     }
 
@@ -197,12 +238,13 @@ Buffer: class {
 
     /** *this* will be reduced to the characters in the range ``start..end``.  */
     substring: func (start: SizeT, end: SizeT) {
-        setLength(end)
-        shiftRight(start)
+        if (end != size) setLength(end)
+        if (start > 0) shiftRight(start)
     }
 
     /** return a This that contains *this*, repeated *count* times. */
     times: func (count: SizeT) {
+        if (_literal?()) _makeWritable()
         origSize := size
         setLength (origSize * count)
         for(i in 1..count) { // we start at 1, since the 0 entry is already there
@@ -222,9 +264,10 @@ Buffer: class {
 
     /** appends *other* to *this* */
     append: func ~pointer (other: Char*, otherLength: SizeT) {
-        //cprintf("buffer append called with %p bytes: %s\n", otherLength, other)
+        //cprintf("buffer append called on %p:%s with %p bytes: %s\n", size, data, otherLength, other)
         if(otherLength > 1 && (other + otherLength)@ != '\0') Exception new ("something wrong here!") throw()
         if(otherLength > 1 && (other + 1)@ == '\0') Exception new ("something wrong here!") throw()
+        if (_literal?()) _makeWritable()
         origlen := size
         setLength(size + otherLength)
         memcpy(data + origlen, other, otherLength )
@@ -242,13 +285,14 @@ Buffer: class {
 
     /** return a new string containg *other* followed by *this*. */
     prepend: func ~pointer (other: Char*, otherLength: SizeT) {
-        if (rshift() < otherLength) {
+        if (_literal?()) _makeWritable()
+        if (_rshift() < otherLength) {
             newthis := This new (size + otherLength)
             memcpy (newthis data, other, otherLength)
             memcpy (newthis data + otherLength, data, size)
             setBuffer(newthis)
         } else {
-            // seems we have enough room on the left, and we are allowed to morph
+            // seems we have enough room on the left
             shiftLeft(otherLength)
             memcpy( data , other, otherLength )
         }
@@ -394,6 +438,7 @@ Buffer: class {
 
     replaceAll: func ~bufWithCase (what, whit : This, searchCaseSensitive: Bool) {
         //cprintf("replaceAll called on %p:%s with %p:%s\n", size, data, what size, what)
+        //if (_literal?()) _makeWritable()
         if (what == null || what size == 0 || whit == null) return
         l := findAll( what, searchCaseSensitive )
         if (l == null || l size() == 0) return
@@ -421,6 +466,7 @@ Buffer: class {
 
     /** replace all occurences of *oldie* with *kiddo* in place/ in a clone, if immutable is set */
     replaceAll: func ~char(oldie, kiddo: Char) {
+        if (_literal?()) _makeWritable()
         for(i in 0..size) {
             if((data + i)@ == oldie) (data + i)@ = kiddo
         }
@@ -481,6 +527,7 @@ Buffer: class {
 
     /** characters lowercased (if possible). */
     toLower: func {
+        if (_literal?()) _makeWritable()
         for(i in 0..size) {
             (data + i)@ = (data  + i)@ toLower()
         }
@@ -488,6 +535,7 @@ Buffer: class {
 
     /** characters uppercased (if possible). */
     toUpper: func {
+        if (_literal?()) _makeWritable()
         for(i in 0..size) {
             (data + i)@ = (data  + i)@ toUpper()
         }
@@ -532,6 +580,7 @@ Buffer: class {
 
     /** all characters contained by *s* stripped at both ends. */
     trimMulti: func ~pointer (s: Char*, sLength: SizeT) {
+        if (_literal?()) _makeWritable()
         if(size == 0 || sLength == 0) return
         start := 0
         while (start < size && (data + start)@ containedIn? (s, sLength) ) start += 1
@@ -546,7 +595,6 @@ Buffer: class {
     }
 
     trim: func~pointer(s: Char*, sLength: SizeT) {
-        // FIXME untested
         trimRight(s, sLength)
         trimLeft(s, sLength)
     }
@@ -581,9 +629,9 @@ Buffer: class {
     /** all characters contained by *s* stripped from the left side. either from *this* or a clone */
     trimLeft: func ~pointer (s: Char*, sLength: SizeT) {
         if (size == 0 || sLength == 0) return
-
         start : SizeT = 0
         while (start < size && (data + start)@ containedIn?(s, sLength) ) start += 1
+        if(start == 0) return
         shiftRight( start )
     }
 
@@ -607,19 +655,20 @@ Buffer: class {
     //c :Char= s@
     //if (sLength == 1) cprintf("trimRight: %02X\n", c)
     //else cprintf("trimRight: %p:%s\n", sLength, s)
-    if(sLength > 1 && (s + sLength)@ != '\0') raise("something wrong here!")
-    if(sLength > 1 && (s + 1)@ == '\0') raise("something wrong here!")
+        if(sLength > 1 && (s + sLength)@ != '\0') raise("something wrong here!")
+        if(sLength > 1 && (s + 1)@ == '\0') raise("something wrong here!")
 
         end := size
         while( end > 0 &&  (data + (end - 1))@ containedIn?(s, sLength)) {
             //cprintf("%c contained in %s!\n", (data + (end - 1))@, s)
             end -= 1
         }
-        setLength(end);
+        if (end != size) setLength(end);
     }
 
     /** reverses *this*. "ABBA" -> "ABBA" .no. joke. "ABC" -> "CBA" */
     reverse: func {
+        if (_literal?()) _makeWritable()
         result := this
         bytesLeft := size
         i: SizeT = 0
