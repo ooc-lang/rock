@@ -17,3 +17,8 @@ DNSError: class extends NetError {}
     A Socket error occured.
  */
 SocketError: class extends NetError {}
+
+/**
+    A Timeout occored.
+ */
+TimeoutError: class extends NetError {}

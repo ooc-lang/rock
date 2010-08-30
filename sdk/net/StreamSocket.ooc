@@ -238,7 +238,7 @@ StreamSocketWriter: class extends Writer {
     }
 
     write: func(chars: String, length: SizeT) -> SizeT {
-        return dest send(chars, length, 0)
+        return dest send(chars, length, 0, true)
     }
 
     vwritef: func(fmt: String, list: VaList) {
