@@ -18,6 +18,8 @@ String: class {
 
     init: func { _buffer = Buffer new() }
 
+    init: func ~zeroCopy(dummy: Bool) {_buffer = null}
+
     init: func ~withBuffer(b: Buffer) { _buffer = b }
 
     init: func ~withChar(c: Char) { _buffer = Buffer new~withChar(c) }
@@ -466,7 +468,8 @@ operator + (left: Char, right: String) -> String {
 
 // constructor to be called from string literal initializers
 makeStringLiteral: func (str: CString, strLen: SizeT) -> String {
-    result := String new(str, strLen)
+    result := String new~zeroCopy(false)
+    result _buffer = Buffer new~stringLiteral(str, strLen, true)
     result
 }
 
@@ -475,10 +478,7 @@ import structs/ArrayList
 
 strArrayListFromCString: func (argc: Int, argv: Char**) -> ArrayList<String> {
     result := ArrayList<String> new ()
-    for (i in 0..argc) {
-        s := String new ((argv[i]) as CString, (argv[i]) as CString length())
-        result add( s )
-    }
+    for (i in 0..argc)  result add( argv[i] as CString toString() )
     result
 }
 

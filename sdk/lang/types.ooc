@@ -67,7 +67,7 @@ Array: cover from _lang_array__Array {
 }
 
 None: class {
-    init: func {  a:=1  } // maybe this nop tricks nagaqueen
+    init: func { }
 }
 
 /**
