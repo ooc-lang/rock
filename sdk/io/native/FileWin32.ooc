@@ -46,15 +46,15 @@ version(windows) {
      * remove implementation
      */
     _remove: unmangled func(path: String) -> Int {
-        printf("Win32: should remove file %s\n", path)
+        printf("Win32: should remove file %s\n", path toCString())
     }
 
     ooc_get_cwd: unmangled func -> String {
-        ret := String new(File MAX_PATH_LENGTH + 1)
-        if(!GetCurrentDirectory(File MAX_PATH_LENGTH, ret)) {
-            Exception new("Failed to get current directory!") throw()
-        }
-        return ret
+        ret := Buffer new(File MAX_PATH_LENGTH + 1)
+        bytesWritten := GetCurrentDirectory(File MAX_PATH_LENGTH, ret data)
+        if (bytesWritten == 0) OSException new("Failed to get current directory!") throw()
+        ret setLength(bytesWritten)
+        String new(ret)
     }
 
     /*
@@ -205,8 +205,14 @@ version(windows) {
             running := (hFile != INVALID_HANDLE_VALUE)
             while(running) {
                 if(!_isSelfOrParentDirEntry?(ffd fileName)) {
-                    if (T == String) result add(path +  '\\' + ffd fileName)
-                    else if (T == File) result add(File new(path + '\\' + ffd fileName))
+                    l := ffd fileName length()
+                    b := Buffer new (l + 1 + path size)
+                    b append(path)
+                    b append('\\')
+                    b append(ffd fileName, l)
+                    s := String new(b)
+                    candidate : T = (T == String) ? s : File new(this, s)
+                    result add(candidate)
                 }
                 running = FindNextFile(hFile, ffd&)
             }

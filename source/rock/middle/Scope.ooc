@@ -1,4 +1,4 @@
-import structs/[ArrayList], text/Buffer
+import structs/[ArrayList]
 import VariableAccess, VariableDecl, Statement, Node, Visitor,
        FunctionCall, Type, FuncType, Version
 import tinker/[Trail, Resolver, Response]
@@ -86,7 +86,7 @@ Scope: class extends Node {
         for(stat in this) {
             response := stat resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("Response of statement [%s] %s = %s\n", stat class name, stat toString(), response toString())
+                if(res params veryVerbose) printf("Response of statement [%s] %s = %s\n", stat class name toCString(), stat toString() toCString(), response toString() toCString())
                 trail pop(this)
                 return response
             }

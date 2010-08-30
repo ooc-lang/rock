@@ -1,4 +1,4 @@
-import io/File, os/Env, text/Buffer
+import io/File, os/Env
 import structs/ArrayList
 
 import compilers/AbstractCompiler
@@ -48,7 +48,7 @@ BuildParams: class {
             env = Env get("OOC_DIST")
         }
 
-        if (env) {
+        if (env && !env empty?()) {
             distLocation = File new(env trimRight(File separator))
             return
         }
@@ -57,7 +57,7 @@ BuildParams: class {
         // e.g. if rock is in /opt/ooc/rock/bin/rock
         // then it will set dist to /opt/ooc/rock/
         exec := ShellUtils findExecutable(execName, false)
-        if(exec) {
+        if(exec && exec path != null && !exec path empty?()) {
             realpath := exec getAbsolutePath()
             distLocation = File new(realpath) parent() parent()
             return
@@ -66,6 +66,7 @@ BuildParams: class {
         // fall back on the current working directory
         file := File new(File getCwd())
         distLocation = file parent()
+        if (distLocation path empty?() || !distLocation exists?()) Exception new (This, "can not find the distribution. did you set ROCK_DIST environment variable?")
     }
 
     findSdk: func {
@@ -84,6 +85,7 @@ BuildParams: class {
 
         // fall back to dist + sdk/
         sdkLocation = File new(distLocation, "sdk")
+        if (sdkLocation path == null || sdkLocation path empty?() || !sdkLocation exists?()) Exception new (This, "can not find the sdk. did you set ROCK_SDK environment variable?")
     }
 
     findLibsPath: func {
@@ -102,8 +104,12 @@ BuildParams: class {
     // Changes the way string literals are written, among other things
     // see http://github.com/nddrylliog/newsdk for more bunnies.
     newsdk := false
+
     // temporary option for string branch compilation
-    newstr := false
+    newstr := true
+
+    // dead code elimination
+    dce := false
 
     // location of the compiler's distribution, with a libs/ folder for the gc, etc.
     distLocation: File
@@ -130,7 +136,7 @@ BuildParams: class {
     outPath: File = File new("rock_tmp")
 
     // if non-null, use 'linker' as the last step of the compile process, with driver=sequence
-    linker := null as String
+    linker : String = null
 
     // threads used by the sequence driver
     sequenceThreads := 1

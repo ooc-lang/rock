@@ -85,8 +85,7 @@ PtrDiff: cover from ptrdiff_t extends SizeT
 LDouble: cover from long double {
 
     toString: func -> String {
-        str = gc_malloc(64) : String
-        sprintf(str, "%.2Lf", this)
+        str := "%.2Lf" format (this)
         str
     }
 

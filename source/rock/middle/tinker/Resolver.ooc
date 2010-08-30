@@ -59,7 +59,7 @@ Resolver: class {
         wholeAgain = false
 
         response := module resolve(Trail new(), this)
-        if(params veryVerbose) printf("[Module] response = %s (wholeAgain = %s)\n", response toString(), wholeAgain toString())
+        if(params veryVerbose) printf("[Module] response = %s (wholeAgain = %s)\n", response toString() toCString(), wholeAgain toString() toCString())
 
         return !response ok() || wholeAgain
     }
@@ -90,7 +90,7 @@ Resolver: class {
         }
 
         if((params veryVerbose && fatal) || params debugLoop) {
-            node token formatMessage("%s : %s because '%s'\n" format(node toString(), node class name, reason), "LOOP") println()
+            node token formatMessage("%s : %s because '%s'\n" format(node toString() toCString(), node class name toCString(), reason toCString()), "LOOP") println()
         }
         wholeAgain = true
     }

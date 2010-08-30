@@ -1,4 +1,4 @@
-import structs/[List, ArrayList], text/Buffer
+import structs/[List, ArrayList]
 
 import ../backend/cnaughty/AwesomeWriter, ../frontend/BuildParams
 import tinker/[Response, Resolver, Trail]

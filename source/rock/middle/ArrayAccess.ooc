@@ -1,4 +1,4 @@
-import structs/ArrayList, text/Buffer
+import structs/ArrayList
 import ../frontend/[Token, BuildParams]
 import Visitor, Expression, VariableDecl, Declaration, Type, Node,
        OperatorDecl, FunctionCall, Import, Module, BinaryOp,
@@ -115,7 +115,7 @@ ArrayAccess: class extends Expression {
                     // will be taken care of later
                     return Response OK
                 }
-                res throwError(InvalidArrayCreation new(token, "Unexpected ArrayAccess to a type, parent is a %s, ie. %s" format(parent class name, parent toString())))
+                res throwError(InvalidArrayCreation new(token, "Unexpected ArrayAccess to a type, parent is a %s, ie. %s" format(parent class name toCString(), parent toString() toCString())))
             }
 
             fCall := parent as FunctionCall
@@ -250,7 +250,7 @@ ArrayAccess: class extends Expression {
         if(!args last() instanceOf?(VarArg) && (args size() != indices size() + diff)) {
             // not a match!
             if(res params veryVerbose) {
-                "For %s vs %s, got %d args, %d indices, diff is %d - no luck!" printfln(op toString(), toString(), args size(), indices size(), diff)
+                "For %s vs %s, got %d args, %d indices, diff is %d - no luck!" format(op toString() toCString(), toString() toCString(), args size(), indices size(), diff) println()
             }
             return 0
         }
@@ -297,7 +297,7 @@ ArrayAccess: class extends Expression {
     }
 
     getType: func -> Type {
-        return type
+        type
     }
 
     toString: func -> String {

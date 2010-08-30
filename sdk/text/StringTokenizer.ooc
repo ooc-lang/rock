@@ -2,9 +2,8 @@ import structs/ArrayList
 
 StringTokenizer: class extends Iterable<String> {
 
-    input, delim: String
-    index = 0, length, maxSplits, splits: Int
-    empties: Bool
+    splitted : ArrayList<String>
+    index = 0 : Int
 
     init: func~withCharWithoutMaxSplits(input: String, delim: Char) {
         init~withChar(input, delim, -1)
@@ -14,50 +13,26 @@ StringTokenizer: class extends Iterable<String> {
         init~withString(input, delim, -1)
     }
 
-    init: func~withChar(input: String, delim: Char, maxSplits: Int) {
+    init: func~withChar(input: String, delim: Char, maxSplits: SSizeT) {
         init~withString(input, String new(delim), maxSplits)
     }
 
-    init: func~withString(=input, =delim, =maxSplits) {
-        T = String // small fix for runtime introspection
-        length = input length()
-        splits = 0
-        empties = false
+    init: func~withString(input, delim: String, maxSplits: SSizeT) {
+        splitted = input split(delim, maxSplits)
     }
 
     iterator: func -> Iterator<String> { StringTokenizerIterator<String> new(this) }
 
-    hasNext?: func -> Bool { index < length }
+    hasNext?: func -> Bool { splitted != null && index < splitted size }
 
     /**
      * @return the next token, or null if we're at the end.
      */
     nextToken: func() -> String {
         // at the end?
-        if(!hasNext?()) return null
-
-        if(!empties) {
-            // skip all delimiters
-            while(hasNext?() && delim contains?(input[index])) index += 1
-        } else if(hasNext?() && delim contains?(input[index])) {
-            // skip only one delimiter
-            index += 1
-        }
-
-        // save the index
-        oldIndex := index
-
-        // maximal count of splits done?
-        if(splits == maxSplits) {
-            index = length
-            return input substring(oldIndex)
-        }
-
-        // skip all non-delimiters
-        while(hasNext?() && !delim contains?(input[index])) index += 1
-
-        splits += 1
-        return input substring(oldIndex, index)
+        if(!hasNext?() || splitted == null ) return null
+        index += 1
+        return splitted get(index -1)
     }
 }
 
@@ -72,37 +47,5 @@ StringTokenizerIterator: class <T> extends Iterator<T> {
     hasPrev?: func -> Bool { false }
     prev: func -> T       { null }
     remove: func -> Bool  { false }
-
-}
-
-extend String {
-
-    split: func~withString(s: String, maxSplits: Int) -> StringTokenizer {
-        StringTokenizer new(this, s, maxSplits)
-    }
-
-    split: func~withChar(c: Char, maxSplits: Int) -> StringTokenizer {
-        StringTokenizer new(this, c, maxSplits)
-    }
-
-    split: func~withStringWithoutMaxSplits(s: String) -> StringTokenizer {
-        StringTokenizer new(this, s)
-    }
-
-    split: func~withCharWithoutMaxSplits(c: Char) -> StringTokenizer {
-        StringTokenizer new(this, c)
-    }
-
-    split: func~withStringWithEmpties(s: String, empties: Bool) -> StringTokenizer {
-        tok := StringTokenizer new(this, s)
-        tok empties = empties
-        tok
-    }
-
-    split: func~withCharWithEmpties(c: Char, empties: Bool) -> StringTokenizer {
-        tok := StringTokenizer new(this, c)
-        tok empties = empties
-        tok
-    }
 
 }

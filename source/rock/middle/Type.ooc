@@ -1,4 +1,3 @@
-import text/Buffer
 import structs/[ArrayList, List]
 import ../frontend/[Token, BuildParams]
 import ../backend/cnaughty/AwesomeWriter
@@ -318,7 +317,7 @@ ArrayType: class extends PointerType {
     init: func ~arrayType (.inner, =expr, .token) { super(inner, token) }
 
     setRef: func (ref: Declaration) {
-        Exception new(This, "Trying to set ref of an ArrayType! wtf? ref (%s) = %s" format(ref class name, ref toString())) throw()
+        Exception new(This, "Trying to set ref of an ArrayType! wtf? ref (%s) = %s" format(ref class name toCString(), ref toString() toCString())) throw()
     }
     getRef: func -> Declaration {
         This realType getRef()
@@ -381,7 +380,7 @@ ArrayType: class extends PointerType {
         copy
     }
 
-    toString: func -> String { inner toString() append(expr != null ? "[%s]" format(expr toString()) : "[]") }
+    toString: func -> String { inner toString() append(expr != null ? "[%s]" format(expr toString() toCString()) : "[]") }
     toMangledString: func -> String { inner toString() + "__array" }
 
     isPointer: func -> Bool { false }

@@ -1,4 +1,3 @@
-import text/Buffer
 
 /**
    The reader interface provides a medium-indendant way to read characters
@@ -32,9 +31,10 @@ Reader: abstract class {
        rewinded once `end` has been read.
      */
     readUntil: func (end: Char) -> String {
-        sb := Buffer new(40) // let's be optimistic
+        sb := Buffer new(1024) // let's be pragmatic
         while(hasNext?()) {
             c := read()
+            // FIXME this behaviour would lead to errors when reading a binary file
             // for some reason, some files end with the ASCII character 8, ie. BackSpace.
             // we definitely don't want that to end up in the String.
             if(c == end || (!hasNext?() && c == 8)) break

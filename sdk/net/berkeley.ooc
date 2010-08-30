@@ -88,37 +88,42 @@ INADDR_NONE: extern ULong
 AI_CANONNAME: extern Int
 
 socket: extern func(family, type, protocol: Int) -> Int
-accept: extern func(s: Int, addr: SockAddr*, addrlen: UInt*) -> Int
-bind: extern func(sockfd: Int, my_addr: SockAddr*, addrlen: UInt) -> Int
-connect: extern func(sockfd: Int, serv_addr: SockAddr*, addrlen: UInt) -> Int
+accept: extern func(descriptor: Int, address: SockAddr*, addressLength: UInt*) -> Int
+bind: extern func(descriptor: Int, myAddress: SockAddr*, addressLength: UInt) -> Int
+connect: extern func(descriptor: Int, serverAddress: SockAddr*, addressLength: UInt) -> Int
 close: extern func(descriptor: Int) -> Int
-shutdown: extern func(s: Int, how: Int) -> Int
-listen: extern func(s: Int, backlog: Int) -> Int
+closesocket: extern func(descriptor: Int) -> Int // windows version of close()
+shutdown: extern func(descriptor: Int, how: Int) -> Int
+listen: extern func(descriptor: Int, numberOfBacklogConnections: Int) -> Int
 poll: extern func(ufds: PollFd*, nfds: UInt, timeout: Int) -> Int
-recv: extern func(s: Int, buf: Pointer, len: SizeT, flags: Int) -> Int
-recvFrom: extern func(s: Int, buf: Pointer, len: SizeT, flags: Int, s_from: SockAddr*, fromlen: UInt) -> Int
-send: extern func(s: Int, buf: Pointer, len: SizeT, flags: Int) -> Int
-sendTo: extern func(s: Int, buf: Pointer, len: SizeT, flags: Int, s_to: SockAddr*, tolen: UInt) -> Int
-select: extern func(n: Int, readfds: FdSet*, writefds: FdSet*, exceptfds: FdSet*, timeout: TimeVal*) -> Int
+recv: extern func(descriptor: Int, buffer: Pointer, maxBufferLength: SizeT, flags: Int) -> Int
+recvFrom: extern func(descriptor: Int, buffer: Pointer, maxBufferLength: SizeT, flags: Int, senderAddress: SockAddr*, senderAddressLength: UInt) -> Int
+send: extern func(descriptor: Int, message: Pointer, messageLength: SizeT, flags: Int) -> Int
+sendTo: extern func(descriptor: Int, message: Pointer, messageLength: SizeT, flags: Int, recieverAddress: SockAddr*, recieverAddressLength: UInt) -> Int
+select: extern func(numfds: Int, readfds: FdSet*, writefds: FdSet*, exceptfds: FdSet*, timeout: TimeVal*) -> Int
 getsockopt: extern func(s: Int, level: Int, optname: Int, optval: Pointer, optlen: UInt) -> Int
 setsockopt: extern func(s: Int, level: Int, optname: Int, optval: Pointer, optlen: UInt) -> Int
-getaddrinfo: extern func(nodename: CString, servname: CString, hints: AddrInfo*, servinfo: AddrInfo**) -> Int
-getnameinfo: extern func(sa: SockAddr*, salen: UInt32, host: CString, hostlen: SizeT, serv: CString, servlen: UInt32, flags: Int) -> Int
-freeaddrinfo: extern func(ai: AddrInfo*)
-gai_strerror: extern func(ecode: Int) -> const Char*
-gethostname: extern func(name: CString, len: SizeT) -> Int
-gethostbyname: extern func(name: CString) -> HostEntry*
-gethostbyaddr: extern func(addr: CString, len: Int, type: Int) -> HostEntry*
-getpeername: extern func(s: Int, addr: SockAddr*, len: UInt) -> Int
+getaddrinfo: extern func(domain_name_or_ip: CString, service_name_or_port: CString, hints: AddrInfo*, service_information: AddrInfo**) -> Int
+getnameinfo: extern func(serviceInformation: SockAddr*, serviceInformationLength: UInt32, hostName: CString, hostNameLength: SizeT, serviceName: CString, serviceNameLength: UInt32, flags: Int) -> Int
+freeaddrinfo: extern func(serviceInformation: AddrInfo*)
+gai_strerror: extern func(errorCode: Int) -> const Char*
+gethostname: extern func(localSystemName: CString, localSystemNameLength: SizeT) -> Int
+gethostbyname: extern func(domainName: CString) -> HostEntry*
+gethostbyaddr: extern func(pointerToAddress: CString, addressLength: Int, type: Int) -> HostEntry*
+getpeername: extern func(descriptor: Int, address: SockAddr*, len: UInt) -> Int
 htonl: extern func(hostlong: UInt32) -> UInt32
 htons: extern func(hostshort: UInt16) -> UInt16
 ntohl: extern func (netlong: UInt32) -> UInt32
 ntohs: extern func (netshort: UInt16) -> UInt16
-inet_ntoa: extern func(inaddr: InAddr) -> CString
-inet_aton: extern func(cp: CString, inp: InAddr*) -> Int
-inet_addr: extern func(cp: CString) -> ULong
-inet_ntop: extern func(af: Int, src: Pointer, dst: CString, size: UInt) -> CString
-inet_pton: extern func(af: Int, src: CString, dst: Pointer) -> Int
+
+// The following are deprecated
+inet_ntoa: extern func(address: InAddr) -> CString
+inet_aton: extern func(ipAddress: CString, inp: InAddr*) -> Int
+inet_addr: extern func(ipAddress: CString) -> ULong
+// end deprecated
+
+inet_ntop: extern func(addressFamily: Int, address: Pointer, destination: CString, destinationSize: UInt) -> CString
+inet_pton: extern func(addressFamily: Int, address: CString, destination: Pointer) -> Int
 
 version(unix || apple) {
     ioctl: extern func(d: Int, request: Int, arg: Pointer) -> Int

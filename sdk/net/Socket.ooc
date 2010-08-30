@@ -16,7 +16,15 @@ Socket: abstract class {
     init: func ~descriptor(=family, =type, =protocol, =descriptor) {}
 
     close: func {
-        if (close(descriptor) == -1) {
+        result : Int
+        
+        version(windows) {
+            result = closesocket(descriptor)
+        } else {
+            result = close(descriptor)
+        }
+        
+        if (result == -1) {
             SocketError new("Failed to close socket") throw()
         }
     }
@@ -44,6 +52,7 @@ SocketFamily: cover {
 
 SocketType: cover {
     STREAM: extern(SOCK_STREAM) static Int
+    DATAGRAM: extern(SOCK_DGRAM) static Int    
 }
 
 SocketMsgFlags: cover {
@@ -53,4 +62,10 @@ SocketMsgFlags: cover {
     NOSIGNAL: extern(MSG_NOSIGNAL) static Int
     PEEK: extern(MSG_PEEK) static Int
     WAITALL: extern(MSG_WAITALL) static Int
+}
+
+SocketShutdownOptions: cover {
+    NO_MORE_RECIEVES: extern(SHUT_RD) static Int
+    NO_MORE_SENDS: extern(SHUT_WR) static Int
+    NO_MORE_SENDS_OR_RECIEVES: extern(SHUT_RDWR) static Int
 }

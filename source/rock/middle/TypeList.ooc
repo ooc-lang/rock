@@ -2,7 +2,6 @@ import structs/[List, ArrayList]
 import Type, Visitor, Declaration, VariableAccess, FunctionCall
 import tinker/[Response, Resolver, Trail]
 import ../backend/cnaughty/AwesomeWriter
-import text/Buffer
 
 TypeList: class extends Type {
 

@@ -46,7 +46,7 @@ Match: class extends Expression {
     }
 
     unwrapBinaryOpCase: func(caze: Case) {
-        head: BinaryOp = caze getExpr() clone() 
+        head: BinaryOp = caze getExpr() clone()
         current := head // our pointer
         caseToken := caze getExpr() token
         while (current instanceOf?(BinaryOp) && (current type == OpType and || current type == OpType or)) {
@@ -60,8 +60,8 @@ Match: class extends Expression {
         caze setExpr(head)
     }
 
-    
-    
+
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
         if (expr != null) {
             response := expr resolve(trail, res)
@@ -105,7 +105,7 @@ Match: class extends Expression {
                                 if(res fatal) {
                                     res throwError(
                                         CantUseMatch new(expr token,
-                                            "You can't use the type match syntax here, can't resolve `%s`" format(fCall toString())
+                                            "You can't use the type match syntax here, can't resolve `%s`" format(fCall toString() toCString())
                                     ))
                                 } else {
                                     res wholeAgain(this, "call can't be resolved, let's forget it")
@@ -130,12 +130,12 @@ Match: class extends Expression {
                             if(fCall getRef() != null) {
                                 returnType := fCall getRef() getReturnType() getName()
                                 if(returnType != "Bool")
-                                    res throwError(WrongMatchesSignature new(expr token, "matches? returns a %s, but it should return a Bool" format(returnType)))
+                                    res throwError(WrongMatchesSignature new(expr token, "matches? returns a %s, but it should return a Bool" format(returnType toCString())))
                                 caze setExpr(fCall)
                             } else {
                                 if (caze getExpr() instanceOf?(BinaryOp)) {
                                     unwrapBinaryOpCase(caze)
-                                } else { 
+                                } else {
                                     caze setExpr(Comparison new(expr, caze getExpr(), CompType equal, caseToken))
                                 }
                             }

@@ -10,7 +10,7 @@ Import: class {
     token: Token
 
     init: func ~imp (=path, =token) {
-        this path = this path replace('/', File separator)
+        this path = this path replaceAll('/', File separator)
     }
 
     setModule: func(=module) {

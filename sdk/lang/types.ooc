@@ -60,13 +60,15 @@ Class: abstract class {
 }
 
 Array: cover from _lang_array__Array {
-    length: extern Int
+    length: extern SizeT
     data: extern Pointer
 
     free: extern(_lang_array__Array_free) func
 }
 
-None: class {init: func {}}
+None: class {
+    init: func {  a:=1  } // maybe this nop tricks nagaqueen
+}
 
 /**
  * Pointer type
@@ -105,7 +107,7 @@ Cell: class <T> {
 
 operator [] <T> (c: Cell<T>, T: Class) -> T {
     if(!c T inheritsFrom?(T)) {
-        Exception new(Cell, "Wants a %s, but got a %s" format(T name, c T name))
+        Exception new(Cell, "Wants a %s, but got a %s" format(T name toCString(), c T name toCString()))
     }
     c val
 }

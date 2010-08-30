@@ -3,7 +3,7 @@ import text/EscapeSequence, rock/frontend/BuildParams, io/File
 
 Skeleton: abstract class extends Visitor {
 
-    STRING_CONSTRUCTOR := static const "(void*) lang_String__String_new_withCStrAndLength(\"%s\", %d)"
+    STRING_CONSTRUCTOR := static const "(void*) lang_String__makeStringLiteral(\"%s\", %d)"
     NEWSDK_STRING_CONSTRUCTOR := static const "(void*) lang_UTF8String__UTF8String_fromNull(\"%s\", %d)"
 
     params: BuildParams
@@ -26,8 +26,7 @@ Skeleton: abstract class extends Visitor {
 
     writeStringLiteral: func (value: String) {
         if(params newsdk || params newstr) {
-            printf("newstr/sdk is set: value is %s\n", value toCString())
-            current app( ( (params newsdk) ? NEWSDK_STRING_CONSTRUCTOR : STRING_CONSTRUCTOR) format(value toCString(), value length()))
+            current app( ( (params newsdk) ? NEWSDK_STRING_CONSTRUCTOR : STRING_CONSTRUCTOR) format(value toCString(), EscapeSequence unescape(value) length()))
         } else {
             current app('"'). app(value). app('"')
         }

@@ -64,6 +64,9 @@ BinaryOp: class extends Expression {
     left, right: Expression
     type: OpType
 
+    inferredType: Type
+    replaced := false
+
     init: func ~binaryOp (=left, =right, =type, .token) {
         super(token)
     }
@@ -83,8 +86,8 @@ BinaryOp: class extends Expression {
     // It's just an access, it has no side-effects whatsoever
     hasSideEffects : func -> Bool { !isAssign() }
 
-    // that's probably not right (haha)
-    getType: func -> Type { left getType() }
+    getType: func -> Type { inferredType }
+    
     getLeft:  func -> Expression { left  }
     getRight: func -> Expression { right }
 
@@ -127,7 +130,12 @@ BinaryOp: class extends Expression {
 
         {
             response := resolveOverload(trail, res)
-            if(!response ok()) return response
+            if(!response ok()) return Response OK // needs another resolve later
+        }
+
+        if(!replaced && inferredType == null) {
+            // that's probably not right - for example, for integer/float types promotion, etc.
+            inferredType = left getType()
         }
 
         if(type == OpType ass) {
@@ -232,7 +240,7 @@ BinaryOp: class extends Expression {
 
             if(t1 elements size() != t2 elements size()) {
                 res throwError(InvalidOperatorUse new(token, "Invalid assignment between operands of type %s and %s\n" format(
-                    left getType() toString(), right getType() toString())))
+                    left getType() toString() toCString(), right getType() toString() toCString())))
                 return Response OK
             }
 
@@ -299,7 +307,7 @@ BinaryOp: class extends Expression {
         if(!isLegal(res)) {
             if(res fatal) {
                 res throwError(InvalidOperatorUse new(token, "Invalid use of operator %s between operands of type %s and %s\n" format(
-                    opTypeRepr[type], left getType() toString(), right getType() toString())))
+                    opTypeRepr[type] toCString(), left getType() toString() toCString(), right getType() toString() toCString())))
                 return Response OK
             }
             res wholeAgain(this, "Illegal use, looping in hope.")
@@ -354,7 +362,7 @@ BinaryOp: class extends Expression {
         true
     }
 
-    resolveOverload: func (trail: Trail, res: Resolver) -> Response {
+    resolveOverload: func (trail: Trail, res: Resolver) -> (Response, Bool) {
 
         // so here's the plan: we give each operator overload a score
         // depending on how well it fits our requirements (types)
@@ -366,8 +374,8 @@ BinaryOp: class extends Expression {
 
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType)
-            //printf("Considering %s for %s, score = %d\n", opDecl toString(), toString(), score)
-            if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response OK }
+            //if(score > 0) ("Considering " + opDecl toString() + " for " + toString() + ", score = %d\n") format(score) println()
+            if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response LOOP }
             if(score > bestScore) {
                 bestScore = score
                 candidate = opDecl
@@ -378,8 +386,8 @@ BinaryOp: class extends Expression {
             module := imp getModule()
             for(opDecl in module getOperators()) {
                 score := getScore(opDecl, reqType)
-                //printf("Considering %s for %s, score = %d\n", opDecl toString(), toString(), score)
-                if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response OK }
+                //if(score > 0) ("Considering " + opDecl toString() + " for " + toString() + ", score = %d\n") format(score) println()
+                if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response LOOP }
                 if(score > bestScore) {
                     bestScore = score
                     candidate = opDecl
@@ -394,7 +402,7 @@ BinaryOp: class extends Expression {
                 trail push(this)
                 right resolve(trail, res)
                 trail pop(this)
-                return Response OK
+                return Response LOOP
             }
 
             fDecl := candidate getFunctionDecl()
@@ -405,8 +413,9 @@ BinaryOp: class extends Expression {
             if(!trail peek() replace(this, fCall)) {
                 if(res fatal) res throwError(CouldntReplace new(token, this, fCall, trail))
                 res wholeAgain(this, "failed to replace oneself, gotta try again =)")
-                return Response OK
+                return Response LOOP
             }
+            replaced = true
             res wholeAgain(this, "Just replaced with an operator overload")
         }
 
@@ -434,7 +443,7 @@ BinaryOp: class extends Expression {
         args := fDecl getArguments()
         if(args size() != 2) {
             token module params errorHandler onError(InvalidBinaryOverload new(op token,
-                "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol, args size())))
+                "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol toCString(), args size())))
         }
 
         opLeft  := args get(0)

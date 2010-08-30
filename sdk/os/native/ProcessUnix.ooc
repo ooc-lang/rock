@@ -1,4 +1,4 @@
-import structs/[HashMap, ArrayList]
+import structs/[HashMap, ArrayList, List]
 import ../[Env, Process, wait, unistd, Pipe, PipeReader]
 import PipeUnix
 
@@ -16,9 +16,7 @@ errno : extern Int
  */
 ProcessUnix: class extends Process {
 
-    init: func ~unix (=args) {
-        this args add(null) // execvp wants NULL to end the array
-    }
+    init: func ~unix (=args) {}
 
     /**
        Wait for the process to end. Bad things will happen if you
@@ -48,6 +46,7 @@ ProcessUnix: class extends Process {
        You have to call `wait` manually.
     */
     executeNoWait: func {
+
         pid := fork()
         if (pid == 0) {
             if (stdIn != null) {
@@ -76,7 +75,13 @@ ProcessUnix: class extends Process {
             }
 
             /* run the stuff. */
-            execvp(args get(0) as CString, args toArray() as CString*) // List<String> => String*
+            cArgs : CString * = gc_malloc(Pointer size * (args size() + 1))
+            args size() times(|i|
+                cArgs[i] = args[i] toCString()
+            )
+            cArgs[args size()] = null // null-terminated - makes sense
+
+            execvp(cArgs[0], cArgs)
             exit(errno); // don't allow the forked process to continue if execvp fails
         }
     }

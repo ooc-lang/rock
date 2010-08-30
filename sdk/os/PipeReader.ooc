@@ -1,5 +1,4 @@
 import os/Pipe
-import text/Buffer
 
 PipeReader: class {
 
@@ -15,9 +14,9 @@ PipeReader: class {
         if(eof) return ""
 
         buf = pipe read(This BUF_SIZE)
-        if(buf as String == "\0") eof = true
+        if(buf@ == '\0') eof = true
 
-        return buf as String
+        return String new(buf as CString, strlen(buf))
     }
 
     hasNext?: func() -> Bool {
@@ -27,7 +26,7 @@ PipeReader: class {
     toString: func -> String {
         sb := Buffer new()
         while(hasNext?()) {
-            sb append(read())
+            sb append(read() _buffer)
         }
         return sb toString()
 

@@ -1,4 +1,3 @@
-import text/Buffer /* for List join */
 import math/Random, structs/ArrayList /* for List shuffle */
 import structs/HashMap /* for getStandardEquals() - should probably move that in a separate Module */
 
@@ -259,23 +258,33 @@ List: abstract class <T> extends BackIterable<T> {
     filterEach: inline func(f: Func(T) -> Bool, g: Func(T)) {
         filter(f) each(g)
     }
-    
+
+    itemsSizeInBytes: func -> SizeT {
+        result := 0
+        for(item in this) {
+            if(T==String) result += item as String _buffer size
+            else if (T==Buffer) result += item as Buffer size
+            else if (T==Char) result += 1
+            else result += T size
+        }
+        result
+    }
+
     join: func ~stringDefault -> String { join("") }
 
     join: func ~string (str: String) -> String {
-        /* TODO: A more performant implementation is possible. */
-        result := Buffer new()
+        result := Buffer new(itemsSizeInBytes())
         first := true
         for(item in this) {
             if(first)
                 first = false
             else
-                result append(str)
+                result append(str _buffer)
 
             match T {
-                case String => result append(item as String)
+                case String => result append((item as String) _buffer)
                 case Char   => result append(item as Char)
-                case        => Exception new("You cannot use `List join` with %s instances." format(this T name)) throw()
+                case        => Exception new("You cannot use `List join` with %s instances." format(this T name toCString())) throw()
             }
         }
         result toString()

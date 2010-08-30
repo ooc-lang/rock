@@ -62,9 +62,9 @@ VariableDecl: class extends Declaration {
 
     toString: func -> String {
         "%s : %s%s" format(
-            name,
-            type ? type toString() : "<unknown type>",
-            expr ? " = " + expr toString() : ""
+            name toCString(),
+            type ? type toString()  toCString(): "<unknown type>" toCString(),
+            expr ? (" = " + expr toString()) toCString() : "" toCString()
         )
     }
 
@@ -86,7 +86,7 @@ VariableDecl: class extends Declaration {
     setConst: func (=isConst) {}
 
     isProto: func -> Bool { isProto }
-    setProto: func (=isProto) { "%s is now proto!" format(name) println() }
+    setProto: func (=isProto) { "%s is now proto!" format(name toCString()) println() }
 
     isGlobal: func -> Bool { isGlobal }
     setGlobal: func (=isGlobal) {}
@@ -121,7 +121,7 @@ VariableDecl: class extends Declaration {
                 if(!isGlobal()) {
                     fullName = name
                 } else {
-                    fullName = "%s__%s" format(token module getUnderName(), name)
+                    fullName = "%s__%s" format(token module getUnderName() toCString(), name toCString())
                 }
             }
         }
@@ -143,7 +143,7 @@ VariableDecl: class extends Declaration {
         trail push(this)
 
         if(debugCondition() || res params veryVerbose) {
-            printf("Resolving variable decl %s\n", toString())
+            printf("Resolving variable decl %s\n", toString() toCString())
         }
 
         if(expr) {
@@ -163,7 +163,7 @@ VariableDecl: class extends Declaration {
                 return Response OK
             }
             if(debugCondition()) {
-                " >>> Just inferred type %s of %s from expr %s" printfln(type toString(), toString(), expr toString())
+                " >>> Just inferred type %s of %s from expr %s" format(type toString() toCString(), toString() toCString(), expr toString() toCString()) println()
             }
         }
 
@@ -412,7 +412,7 @@ VariableDeclTuple: class extends VariableDecl {
                         }
                         if(element as VariableAccess getName() != "_") bad = true
                     }
-                    if(bad) res throwError(TupleMismatch new(tuple token, "Tuple variable declaration doesn't match return type %s of function %s" format(returnType toString(), fCall getName())))
+                    if(bad) res throwError(TupleMismatch new(tuple token, "Tuple variable declaration doesn't match return type %s of function %s" format(returnType toString() toCString(), fCall getName() toCString())))
                 }
 
                 j := 0

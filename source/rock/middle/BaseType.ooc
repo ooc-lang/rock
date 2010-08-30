@@ -1,4 +1,4 @@
-import structs/[List, ArrayList], text/Buffer
+import structs/[List, ArrayList]
 
 import ../backend/cnaughty/AwesomeWriter, ../frontend/BuildParams
 import tinker/[Response, Resolver, Trail, Errors]
@@ -128,13 +128,13 @@ BaseType: class extends Type {
                     trail toString() println()
                 }
 
-                msg := "Undefined type '%s'" format(getName())
+                msg := "Undefined type '%s'" format(getName() toCString())
                 similar := findSimilar(res)
                 if(similar) msg += similar
                 res throwError(UnresolvedType new(token, this, msg))
             }
             if(res params veryVerbose) {
-                printf("     - type %s still not resolved, looping (ref = %p)\n", name, getRef())
+                printf("     - type %s still not resolved, looping (ref = %p)\n", name toCString(), getRef())
             }
             return Response LOOP
         } else if(getRef() instanceOf?(TypeDecl)) {
@@ -150,7 +150,7 @@ BaseType: class extends Type {
                             "Too many"
                     }
 
-                    res throwError(MismatchedTypeParams new(token, "%s type parameters for %s. It should match %s" format(message, toString(), tDecl getInstanceType() toString())))
+                    res throwError(MismatchedTypeParams new(token, "%s type parameters for %s. It should match %s" format(message toCString(), toString() toCString(), tDecl getInstanceType() toString() toCString())))
                 }
             }
         }
@@ -258,7 +258,7 @@ BaseType: class extends Type {
             }
 
             if(getRef() instanceOf?(TypeDecl) && other getRef() instanceOf?(TypeDecl)) {
-                inheritsScore := getRef() as TypeDecl inheritsScore(other getRef() as TypeDecl, scoreSeed)
+                inheritsScore := getRef() as TypeDecl inheritsScore(other getRef() as TypeDecl, scoreSeed - 1)
 
                 // something needs resolving
                 if(inheritsScore == -1) {
@@ -356,7 +356,7 @@ BaseType: class extends Type {
                         buff append(t toString())
                         isFirst = false
                     }
-                    res throwError(CoverDeclLoop new(list first() token, "Loop in cover declaration: %s -> %s -> ..." format(buff toString(), next toString(), list size())))
+                    res throwError(CoverDeclLoop new(list first() token, "Loop in cover declaration: %s -> %s -> ..." format(buff toString() toCString(), next toString() toCString(), list size())))
                 }
                 next checkedDigImpl(list, res)
             }

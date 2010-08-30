@@ -9,7 +9,7 @@ FunctionAlias: class {
     key, value: FunctionDecl
     init: func ~funcAlias(=key, =value) {}
 
-    toString: func -> String { "alias %s <=> %s" format(key toString(), value toString()) }
+    toString: func -> String { "alias %s <=> %s" format(key toString() toCString(), value toString() toCString()) }
 
 }
 
@@ -85,7 +85,7 @@ InterfaceImpl: class extends ClassDecl {
                         } else {
                             res throwError(InterfaceContractNotSatisfied new(token,
                                 "%s must implement function %s, from interface %s\n" format(
-                                impl getName(), key toString(), superType toString())))
+                                impl getName() toCString(), key toString() toCString(), superType toString() toCString())))
                         }
                     }
                 }

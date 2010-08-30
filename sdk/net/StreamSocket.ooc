@@ -39,6 +39,13 @@ StreamSocket: class extends Socket {
     }
 
 
+    /**
+       Create a new socket to a given hostname, port number and specific family
+
+       :param host: The hostname, for example 'localhost', or 'www.example.org'
+       :param port: The port, for example 8080, or 80.
+       :param port: The port, for example SocketFamily IP4.
+     */
     init: func ~family(host: String, port: Int, family: Int) {
         ip := DNS resolveOne(host, SocketType STREAM, family)
         init(SocketAddress new(ip, port))
@@ -74,14 +81,22 @@ StreamSocket: class extends Socket {
        :param data: The data to be sent
        :param length: The length of the data to be sent
        :param flags: Send flags
+       :param resend: Attempt to resend any data left unsent
 
        :return: The number of bytes sent
      */
-    send: func ~withLength(data: String, length: SizeT, flags: Int) -> Int {
+    send: func ~withLength(data: String, length: SizeT, flags: Int, resend: Bool) -> Int {
         bytesSent := socket send(descriptor, data, length, flags)
-        if(bytesSent == -1) {
+
+        if (resend)
+            while(bytesSent < length && bytesSent != -1) {
+                dataSubstring := data substring(bytesSent)
+                bytesSent += socket send(descriptor, dataSubstring, dataSubstring length(), flags)
+            }
+        
+        if(bytesSent == -1)
             SocketError new() throw()
-        }
+
         return bytesSent
     }
 
@@ -89,20 +104,30 @@ StreamSocket: class extends Socket {
        Send a string through this socket
        :param data: The string to be sent
        :param flags: Send flags
+       :param resend: Attempt to resend any data left unsent
 
        :return: The number of bytes sent
      */
-    send: func ~withFlags(data: String, flags: Int) -> Int {
-        send(data, data length(), flags)
+    send: func ~withFlags(data: String, flags: Int, resend: Bool) -> Int {
+        send(data, data length(), flags, resend)
     }
 
     /**
        Send a string through this socket
-       :param flags: Send flags
+       :param data: The string to be sent
+       :param resend: Attempt to resend any data left unsent      
 
        :return: The number of bytes sent
      */
-    send: func(data: String) -> Int { send(data, 0) }
+    send: func ~withResend(data: String, resend: Bool) -> Int { send(data, 0, resend) }
+    
+    /**
+       Send a string through this socket with resend attempted for unsent data
+       :param data: The string to be sent
+
+       :return: The number of bytes sent
+     */
+    send: func(data: String) -> Int { send(data, true) }
 
     /**
        Send a byte through this socket

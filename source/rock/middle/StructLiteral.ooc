@@ -2,7 +2,6 @@ import ../frontend/[Token, BuildParams]
 import Literal, Visitor, Type, Expression, Node, TypeList, Tuple
 import tinker/[Response, Resolver, Trail]
 import structs/[List, ArrayList]
-import text/Buffer
 
 StructLiteral: class extends Tuple {
 

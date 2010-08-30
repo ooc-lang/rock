@@ -52,7 +52,7 @@ Node: abstract class {
 
     generateTempName: func (origin: String) -> String {
         This nameSeed += 1
-        return "__" + origin + This nameSeed
+        return "__" + origin + This nameSeed toString()
     }
 
     // Just to be on the safe side - everything has side effects by default
