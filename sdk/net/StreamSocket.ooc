@@ -44,7 +44,7 @@ StreamSocket: class extends Socket {
 
        :param host: The hostname, for example 'localhost', or 'www.example.org'
        :param port: The port, for example 8080, or 80.
-       :param port: The port, for example SocketFamily IP4.
+       :param family: The port, for example SocketFamily IP4.
      */
     init: func ~family(host: String, port: Int, family: Int) {
         ip := DNS resolveOne(host, SocketType STREAM, family)
