@@ -99,7 +99,7 @@ Buffer: class {
         } else    raise("optional constant function arguments are not supported yet! otherwise this branch would execute what withCStrAndLength does currently")
     }
 
-    _literal?: func -> Bool {
+    _literal?: inline func -> Bool {
         data != null && mallocAddr == null
     }
 
@@ -163,14 +163,15 @@ Buffer: class {
 
     /** sets capacity and size flag, and a zero termination */
     setLength: func (length: SizeT) {
-        cprintf("setlen called on %d:%p:%s with size %d, literal? %d\n", size, data, data, length, _literal?())
+        //cprintf("setlen called on %d:%p:%s with size %d, literal? %d\n", size, data, data, length, _literal?())
         if(data == null || length != size || (data as Char* + size)@ != '\0') {
-            if (_literal?()) _makeWritable(length)
-            else if (length > capacity) {
+            if (_literal?()) {
+                _makeWritable(length)
+            } else if (length == 0 || length > capacity) { // special case for 0 to have our zero malloc trick work
                 setCapacity(length)
-                size = length
-                (data as Char* + size)@ = '\0'
             }
+            size = length
+            (data as Char* + size)@ = '\0'
         }
     }
 
@@ -263,7 +264,7 @@ Buffer: class {
 
     /** appends *other* to *this* */
     append: func ~pointer (other: Char*, otherLength: SizeT) {
-        cprintf("buffer append called on %p:%s with %p bytes: %s\n", size, data, otherLength, other)
+        //cprintf("buffer append called on %p:%s with %p bytes: %s\n", size, data, otherLength, other)
         if(otherLength > 1 && (other + otherLength)@ != '\0') Exception new ("something wrong here!") throw()
         if(otherLength > 1 && (other + 1)@ == '\0') Exception new ("something wrong here!") throw()
         if (_literal?()) _makeWritable()
