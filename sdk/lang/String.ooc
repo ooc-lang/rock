@@ -467,7 +467,7 @@ operator + (left: Char, right: String) -> String {
 // constructor to be called from string literal initializers
 makeStringLiteral: func (str: CString, strLen: SizeT) -> String {
     result := String new()
-    result _buffer = Buffer new~stringLiteral(str, strlen, true)
+    result _buffer = Buffer new~stringLiteral(str, strLen, true)
     result
 }
 // lame static function to be called by int main, so i dont have to metaprogram it
