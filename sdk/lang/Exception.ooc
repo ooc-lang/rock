@@ -1,4 +1,4 @@
-/**
+/*
   For bestest backtraces, pass `-g +-rdynamic` to rock when compiling.
 
   gcc's documentation for -rdynamic:
