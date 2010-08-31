@@ -94,20 +94,17 @@ Socket: abstract class {
      */
     localHostName: static func -> String {
         BUF_SIZE = 255 : SizeT
-        hostname := Buffer new(BUF_SIZE)
+        hostname := Buffer new(BUF_SIZE + 1) // we alloc one byte more so we're always zero terminated
 
         // according to docs, if the hostname is longer than the buffer,
         // the result will be truncated and zero termination is not guaranteed
-        // thats why we dont call strlen on it below
         result := gethostname(hostname data as Pointer, BUF_SIZE)
 
         if(result != 0) {
             SocketError new() throw()
         }
 
-        i := 0
-        while (i < BUF_SIZE && (hostname data + i)@ != '\0') i += 1
-        hostname setLength(i)
+        hostname sizeFromData()
         return hostname toString()
 
     }
