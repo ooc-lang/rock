@@ -4,6 +4,7 @@ import text/EscapeSequence
 
 include stdio
 cprintf: extern(printf) func(Char*, ...) -> Int
+cputc: extern(putc) func (Char, FStream)
 
 WHITE_SPACE := EscapeSequence unescape(" \r\n\t") toCString()
 

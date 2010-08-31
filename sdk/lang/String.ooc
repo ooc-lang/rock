@@ -357,28 +357,21 @@ String: class {
         This new~withBuffer(copy)
     }
 
-    printf: final func ~str (...) -> This {
-        assert(false)
-        Exception new("cant set Buffer size after this call. please use format instead") throw()
-        result := clone()
+    printf: final func ~str (...) -> Int {
         list: VaList
-
         va_start(list, this )
-        vprintf((result _buffer data), list)
+        retVal := vprintf(_buffer data, list)
         va_end(list)
-        return result
+        retVal
     }
 
-     printfln: final func ~str (...) -> This {
-        assert(false)
-        Exception new("cant set Buffer size after this call. please use format instead") throw()
-        result := append('\n')
+     printfln: final func ~str (...) -> Int {
         list: VaList
-
         va_start(list, this )
-        vprintf((result _buffer data), list)
+        retVal := vprintf(_buffer data, list)
         va_end(list)
-        return result
+        cputc('\n', stdout)
+        retVal
     }
 
     toCString: func -> CString { _buffer data as CString }

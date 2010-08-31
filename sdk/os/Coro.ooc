@@ -28,6 +28,8 @@ Coro: class {
     }
 
     allocStackIfNeeded: func {
+        "AllocStackIfNeeded of %p, alloc/req = %d/%d" format(this, allocatedStackSize, requestedStackSize) println()
+        
         if (stack != null && allocatedStackSize > requestedStackSize) {
            gc_free(stack)
            stack = gc_malloc(requestedStackSize)
