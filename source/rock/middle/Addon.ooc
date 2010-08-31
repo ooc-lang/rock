@@ -1,5 +1,5 @@
 import structs/HashMap
-import Node, Type, TypeDecl, FunctionDecl, FunctionCall, Visitor
+import Node, Type, TypeDecl, FunctionDecl, FunctionCall, Visitor, VariableAccess
 import tinker/[Trail, Resolver, Response]
 
 /**
@@ -84,6 +84,8 @@ Addon: class extends Node {
     }
 
     resolveCall: func (call : FunctionCall, res: Resolver, trail: Trail) -> Int {
+        if(base == null) return 0
+    
         hash := TypeDecl hashName(call name, call suffix)
         fDecl := functions get(hash)
         if(fDecl) {
@@ -91,8 +93,15 @@ Addon: class extends Node {
         }
 
         if(!call getSuffix()) {
-            for(f in functions) {
-                if(f name == call name) call suggest(f, res, trail)
+            for(fDecl in functions) {
+                if(fDecl name == call name) {
+                    if(call suggest(fDecl, res, trail)) {
+                        // success? set this if needed.
+                        if(fDecl hasThis() && !call getExpr()) {
+                            call setExpr(VariableAccess new("this", call token))
+                        }
+                    }
+                }
             }
         }
 
