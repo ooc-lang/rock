@@ -90,7 +90,7 @@ HostInfo: class {
     init: func(addrinfo: AddrInfo*) {
         addresses = LinkedList<IPAddress> new()
 
-        name = addrinfo@ ai_canonname
+        name = addrinfo@ ai_canonname as CString toString()
         info := addrinfo
         while(info) {
             if(info@ ai_addrlen && info@ ai_addr) {

@@ -17,13 +17,14 @@ Socket: abstract class {
 
     close: func {
         result : Int
-        
+
         version(windows) {
             result = closesocket(descriptor)
-        } else {
+        }
+        version (unix || apple) {
             result = close(descriptor)
         }
-        
+
         if (result == -1) {
             SocketError new("Failed to close socket") throw()
         }
@@ -47,11 +48,11 @@ Socket: abstract class {
         ioctl(FIONREAD, result&)
         return result;
     }
-    
+
     /**
        Waits on the socket for data to be recieved or a timeout. If sucessful the return value
        is the number of bytes waiting to be consumed.
-       
+
        :param timeoutSec: The timeout in seconds before wait is returned without data available.
        :param timeoutuSec: The timeout in micro seconds before wait is returned without data available.
        :throws: A TimeoutError if the wait times out before data becomes available
@@ -61,92 +62,97 @@ Socket: abstract class {
         timeout : TimeVal
         timeout tv_sec = timeoutSec
         timeout tv_usec = timeoutuSec
-         
+
         descriptors : FdSet
         descriptors zero()
         descriptors set(descriptor)
-         
+
         select(descriptor+1, descriptors&, null, null, timeout&)
-        
+
         if (!descriptors set?(descriptor))
             TimeoutError new("Wait on socket timedout.") throw()
-            
+
         return available()
-     
+
      }
-     
+
     /**
       Waits on the socket for data to be recieved or a timeout. If sucessful the return value
       is the number of bytes waiting to be consumed.
 
       :param timeoutSec: The timeout in seconds before wait is returned without data available.
       :throws: A TimeoutError if the wait times out before data becomes available
-    */   
+    */
      wait: func ~justSeconds(timeoutSec: Int) -> Int {
-         
+
          return wait(timeoutSec, 0)
-         
+
      }
-    
+
     /**
        Attempts to retrieve the local machines hostname
      */
     localHostName: static func -> String {
-        
-        hostname := String new(255)
-        length : SizeT
-        
-        result := gethostname(hostname as CString, length)
-        
+        BUF_SIZE = 255 : SizeT
+        hostname := Buffer new(BUF_SIZE)
+
+        // according to docs, if the hostname is longer than the buffer,
+        // the result will be truncated and zero termination is not guaranteed
+        // thats why we dont call strlen on it below
+        result := gethostname(hostname data as Pointer, BUF_SIZE)
+
         if(result != 0) {
             SocketError new() throw()
         }
-                
-        return hostname
-        
+
+        i := 0
+        while (i < BUF_SIZE && (hostname data + i)@ != '\0') i += 1
+        hostname setLength(i)
+        return hostname toString()
+
     }
-    
+
     /**
        Sets the socket to non-blocking mode
      */
     setNonBlocking: func -> Int {
-        
+
         flags := currentFlags()
 
         result := fcntl(descriptor, SocketControls SET_SOCKET_FLAGS, flags | SocketControls NON_BLOCKING)
-        if (result < 0) 
+        if (result < 0)
             SocketError new() throw()
-            
+
         return result
-        
+
     }
-    
+
     /**
        Sets the socket to blocking mode
      */
     setBlocking: func -> Int {
-        
+
         flags := currentFlags()
 
         result := fcntl(descriptor, SocketControls SET_SOCKET_FLAGS, flags & ~(SocketControls NON_BLOCKING))
-        if (result < 0) 
+        if (result < 0)
             SocketError new() throw()
-            
+
         return result
-        
+
     }
-    
+
     /**
        Retrieves the current socket flags from the underlying socket
      */
     currentFlags: func -> Int {
-        
+
         flags := fcntl(descriptor, SocketControls GET_SOCKET_FLAGS, 0)
-        if (flags < 0) 
+        if (flags < 0)
             SocketError new() throw()
-            
+
         return flags
-        
+
     }
 
 }
@@ -159,7 +165,7 @@ SocketFamily: cover {
 
 SocketType: cover {
     STREAM: extern(SOCK_STREAM) static Int
-    DATAGRAM: extern(SOCK_DGRAM) static Int    
+    DATAGRAM: extern(SOCK_DGRAM) static Int
 }
 
 SocketMsgFlags: cover {

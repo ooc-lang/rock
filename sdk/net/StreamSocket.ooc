@@ -84,13 +84,13 @@ StreamSocket: class extends Socket {
 
        :return: The number of bytes sent
      */
-    send: func ~withLength(data: String, length: SizeT, flags: Int, resend: Bool) -> Int {
+    send: func ~withLength(data: Char*, length: SizeT, flags: Int, resend: Bool) -> Int {
         bytesSent := socket send(descriptor, data, length, flags)
 
         if (resend)
             while(bytesSent < length && bytesSent != -1) {
-                dataSubstring := data substring(bytesSent)
-                bytesSent += socket send(descriptor, dataSubstring, dataSubstring length(), flags)
+                dataSubstring := data as Char* + bytesSent
+                bytesSent += socket send(descriptor, dataSubstring, length - bytesSent, flags)
             }
 
         if(bytesSent == -1)
@@ -108,7 +108,7 @@ StreamSocket: class extends Socket {
        :return: The number of bytes sent
      */
     send: func ~withFlags(data: String, flags: Int, resend: Bool) -> Int {
-        send(data, data length(), flags, resend)
+        send(data toCString(), data size, flags, resend)
     }
 
     /**
@@ -134,9 +134,7 @@ StreamSocket: class extends Socket {
        :param flags: Send flags
      */
     sendByte: func ~withFlags(byte: Char, flags: Int) {
-        if(socket send(descriptor, byte&, Char size, flags) == -1) {
-            SocketError new() throw()
-        }
+        send(byte&, Char size, flags, true)
     }
 
     /**
@@ -153,8 +151,8 @@ StreamSocket: class extends Socket {
 
        :return: Number of received bytes
      */
-    receive: func ~withFlags(buffer: String, length: SizeT, flags: Int) -> Int {
-        bytesRecv := socket recv(descriptor, buffer, length, flags)
+    receive: func ~withFlags(chars: Char*, length: SizeT, flags: Int) -> Int {
+        bytesRecv := socket recv(descriptor, chars, length, flags)
         if(bytesRecv == -1) {
             SocketError new() throw()
         }
@@ -168,7 +166,12 @@ StreamSocket: class extends Socket {
 
        :return: Number of received bytes
      */
-    receive: func(buffer: String, length: SizeT) -> Int { receive(buffer, length, 0) }
+    receive: func(buffer: Buffer, length: SizeT) -> Int {
+        assert (length <= buffer capacity)
+        ret := receive(buffer data, length, 0)
+        buffer setLength(ret)
+        ret
+    }
 
     /**
        Receive a byte from this socket
@@ -201,9 +204,9 @@ StreamSocketReader: class extends Reader {
         source close()
     }
 
-    read: func(chars: String, offset: Int, count: Int) -> SizeT {
+    read: func(chars: Char*, offset: Int, count: Int) -> SizeT {
         skip(offset - marker)
-        source receive(chars, count)
+        source receive(chars, count, 0)
     }
 
     read: func ~char -> Char {
@@ -236,17 +239,18 @@ StreamSocketWriter: class extends Writer {
         dest sendByte(chr)
     }
 
-    write: func(chars: String, length: SizeT) -> SizeT {
+    write: func(chars: Char*, length: SizeT) -> SizeT {
         return dest send(chars, length, 0, true)
     }
 
     vwritef: func(fmt: String, list: VaList) {
         list2: VaList
         va_copy(list2, list)
-        length := vsnprintf(null, 0, fmt, list2)
+        length := vsnprintf(null, 0, fmt toCString(), list2)
         va_end (list2)
-        buffer := Buffer new ( length + 1)
-        vsnprintf(buffer data, length + 1, fmt, list)
-        write(buffer toString(), length)
+        buffer := Buffer new (length)
+        vsnprintf(buffer data, length + 1, fmt toCString(), list)
+        buffer setLength(length)
+        write(buffer toCString(), length)
     }
 }

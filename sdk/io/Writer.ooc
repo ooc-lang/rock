@@ -23,7 +23,7 @@ Writer: abstract class {
        Write a string to this stream.
      */
     write: func ~implicitLength (str: String) -> SizeT {
-        write(str _buffer data, str length())
+        write(str _buffer data, str size)
     }
 
     /**
