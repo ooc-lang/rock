@@ -17,10 +17,12 @@ Socket: abstract class {
 
     close: func {
         result : Int
-        
+
         version(windows) {
             result = closesocket(descriptor)
-        } else {
+        }        
+
+        version (!windows) {
             result = close(descriptor)
         }
         
@@ -148,7 +150,7 @@ Socket: abstract class {
         return flags
         
     }
-
+    
 }
 
 SocketFamily: cover {
