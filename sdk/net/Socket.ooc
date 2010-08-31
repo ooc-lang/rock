@@ -90,26 +90,6 @@ Socket: abstract class {
      }
 
     /**
-       Attempts to retrieve the local machines hostname
-     */
-    localHostName: static func -> String {
-        BUF_SIZE = 255 : SizeT
-        hostname := Buffer new(BUF_SIZE + 1) // we alloc one byte more so we're always zero terminated
-
-        // according to docs, if the hostname is longer than the buffer,
-        // the result will be truncated and zero termination is not guaranteed
-        result := gethostname(hostname data as Pointer, BUF_SIZE)
-
-        if(result != 0) {
-            SocketError new() throw()
-        }
-
-        hostname sizeFromData()
-        return hostname toString()
-
-    }
-
-    /**
        Sets the socket to non-blocking mode
      */
     setNonBlocking: func -> Int {
