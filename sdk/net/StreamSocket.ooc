@@ -1,7 +1,6 @@
 import net/[Socket, Address, DNS, Exceptions]
 import io/[Reader, Writer]
 import berkeley into socket
-import text/Buffer
 
 /**
     A stream based socket interface.
@@ -93,7 +92,7 @@ StreamSocket: class extends Socket {
                 dataSubstring := data substring(bytesSent)
                 bytesSent += socket send(descriptor, dataSubstring, dataSubstring length(), flags)
             }
-        
+
         if(bytesSent == -1)
             SocketError new() throw()
 
@@ -115,12 +114,12 @@ StreamSocket: class extends Socket {
     /**
        Send a string through this socket
        :param data: The string to be sent
-       :param resend: Attempt to resend any data left unsent      
+       :param resend: Attempt to resend any data left unsent
 
        :return: The number of bytes sent
      */
     send: func ~withResend(data: String, resend: Bool) -> Int { send(data, 0, resend) }
-    
+
     /**
        Send a string through this socket with resend attempted for unsent data
        :param data: The string to be sent
