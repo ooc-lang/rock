@@ -472,59 +472,6 @@ Buffer: class {
         }
     }
 
-    split: func~withChar(c: Char, maxSplits: SSizeT) -> ArrayList <This> {
-        split(c&, 1, maxSplits)
-    }
-
-    /** split s and return *all* elements, including empties */
-    split: func~withStringWithoutMaxSplits(s: This) -> ArrayList <This> {
-        split ( s data, s size, -1)
-    }
-
-    split: func~withCharWithoutMaxSplits(c: Char) -> ArrayList <This> {
-        split(c&, 1, -1)
-    }
-
-    split: func~withBufWithEmpties( s: This, empties: Bool) -> ArrayList <This> {
-        split (s data, s size, empties ? -1 : 0 )
-    }
-
-    split: func~withCharWithEmpties(c: Char, empties: Bool) -> ArrayList <This> {
-        split( c& , 1,  empties ? -1 : 0 )
-    }
-
-    /** splits a string into an ArrayList, maxSplits denotes max elements of returned list
-        if it is > 0, it will be splitted maxSplits -1 times, and in the last element the rest of the string will be held.
-        if maxSplits is negative, it will return all elements, if 0 it will return all non-empty elements.
-        pretty much the same as in java.*/
-    // FIXME untested!
-    split: func ~buf (delimiter: This, maxSplits: SSizeT) -> ArrayList <This> {
-        split(delimiter data, delimiter size, maxSplits)
-    }
-
-    split: func ~pointer (delimiter: Char*, delimiterLength:SizeT, maxSplits: SSizeT) -> ArrayList <This> {
-        //cprintf("self[%p:%s] split called with %p:%s", size, data, delimiterLength, delimiter)
-        l := findAll(delimiter, delimiterLength, true)
-        maxItems := ((maxSplits <= 0) || (maxSplits >= l size())) ? l size() : maxSplits
-        result := ArrayList <This> new( maxItems )
-        sstart: SizeT = 0 //source (this) start pos
-        for (item in l) {
-            if ( ( maxSplits > 0 ) && ( result size() == maxItems - 1 ) ) break
-            sdist := item - sstart // bytes to copy
-            if (maxSplits != 0 || sdist > 0) {
-                b := This new ((data + sstart) as CString, sdist)
-                result add ( b )
-            }
-            sstart += sdist + delimiterLength
-        }
-        sdist := size - sstart // bytes to copy
-        b := This new ((data + sstart) as CString, sdist)
-        result add ( b )
-        //cprintf("split debug out:\n")
-        //for (elem in result) cprintf("%p:%s\n", elem size, elem data)
-        return result
-    }
-
     /** characters lowercased (if possible). */
     toLower: func {
         if (_literal?()) _makeWritable()
@@ -1156,7 +1103,7 @@ Buffer_unittest: class {
         if ( String new ("") replaceAll( "", "1") != String new ("") )  ("replace failed 8") println()
         if ( String new ("111") replaceAll( "", "") != String new ("111") )  ("replace failed 9") println()
     }
-
+/*
     testSplit: static func {
         if (("X XXX X") split (" ") size() != 3) Exception new ("split failed 1") throw()
         if (("X XXX X") split (" ") get(0) != String new("X"))  ("split failed 2") println()
@@ -1170,7 +1117,9 @@ Buffer_unittest: class {
             else "null" println()
         }
         */
+        /*
     }
+*/
 
     testTrailingZero: static func {
         b := Buffer new (0)
@@ -1186,7 +1135,7 @@ Buffer_unittest: class {
         testFile()
         testFind()
         testReplace()
-        testSplit()
+        //testSplit()
         testTrailingZero()
     }
 
