@@ -68,7 +68,7 @@ strerror: extern func (Int) -> CString
 
 getOSError: func -> String {
     x := strerror(errno)
-    return (x != null) ? String new(x, x length()) : String new()
+    return (x != null) ? x toString() : String new()
 }
 
 raise: func(msg: String) {
@@ -176,8 +176,7 @@ OSException: class extends Exception {
     init: func ~noOrigin {
         x := getOSError()
         if ((message != null) && (!message empty?())) {
-            message append(':')
-            message append(x)
+            message = message append(':') append(x)
         } else message = x
     }
 }
