@@ -771,7 +771,6 @@ TypeDecl: abstract class extends Declaration {
                 if(fDecl hasThis() && !call getExpr()) {
                     call setExpr(VariableAccess new("this", call token))
                 }
-                if(call debugCondition()) "   returning..." println()
                 return 0
             }
         }
