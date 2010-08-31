@@ -10,6 +10,7 @@ import Cast, Expression, Type, Visitor, Argument, TypeDecl, Scope,
 import tinker/[Resolver, Response, Trail, Errors]
 
 import algo/autoReturn
+import lang/Hacks
 
 /**
    A function declaration.

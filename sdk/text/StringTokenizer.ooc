@@ -1,6 +1,7 @@
 import structs/ArrayList
 
 extend Buffer {
+
     split: func~withChar(c: Char, maxSplits: SSizeT) -> ArrayList <This> {
         split(c&, 1, maxSplits)
     }

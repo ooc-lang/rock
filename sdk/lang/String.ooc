@@ -130,12 +130,6 @@ String: class {
         _buffer find~withCase( what _buffer, offset, searchCaseSensitive )
     }
 
-    findAll: func ( what : This) -> ArrayList <SizeT> { _buffer findAll( what _buffer ) }
-
-    findAll: func ~withCase ( what : This, searchCaseSensitive: Bool) -> ArrayList <SizeT> {
-        _buffer findAll~withCase( what _buffer, searchCaseSensitive )
-    }
-
     replaceAll: func ~str (what, whit : This) -> This {
         replaceAll~strWithCase (what, whit, true)
     }
@@ -442,6 +436,4 @@ makeStringLiteral: func (str: CString, strLen: SizeT) -> String {
     result _buffer = Buffer new~stringLiteral(str, strLen, true)
     result
 }
-
-
 
