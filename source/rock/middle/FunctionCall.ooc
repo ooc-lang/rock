@@ -558,7 +558,7 @@ FunctionCall: class extends Expression {
                     b append("\t..but the type of this arg should be `%s` (%s), not %s (%s)\n" format(declArgType toString() toCString(), declArgType getRef() ? declArgType getRef() token toString() toCString() : "(nil)" toCString(),
                                                                                            callArg getType() toString() toCString(), callArg getType() getRef() ? callArg getType() getRef() token toString() toCString() : "(nil)" toCString()))
                 } else {
-                    b append("\t..but the type of this arg should be `%s`, not `%s`\n" format(declArgType toString() toCString(), callArg getType() toString() toCString()))
+                    b append("\t..but the type of this arg (%s) should be `%s`, not `%s`\n" format(callArg toString() toCString(), declArgType toString() toCString(), callArg getType() toString() toCString()))
                 }
                 b append(token formatMessage("\t\t", "", ""))
             }

@@ -43,7 +43,7 @@ String: class {
 
     length: func -> SizeT { _buffer size }
 
-    equals?: func (other: This) -> Bool {
+    equals?: final func (other: This) -> Bool {
         other == this
     }
 

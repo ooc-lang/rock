@@ -356,13 +356,13 @@ BinaryOp: class extends Expression {
 
         if(isAssign()) {
             score := lType getScore(rType)
-            if(score < 0) token formatMessage("Score of %s = %d (%s vs %s)" format(toString(), score, lType toString(), rType toString()), "INFO") println()
+            if(score < 0) token formatMessage("Score of %s = %d (%s vs %s)" format(toString() toCString(), score, lType toString() toCString(), rType toString() toCString()), "INFO") println()
         }
 
         true
     }
 
-    resolveOverload: func (trail: Trail, res: Resolver) -> (Response, Bool) {
+    resolveOverload: func (trail: Trail, res: Resolver) -> Response {
 
         // so here's the plan: we give each operator overload a score
         // depending on how well it fits our requirements (types)

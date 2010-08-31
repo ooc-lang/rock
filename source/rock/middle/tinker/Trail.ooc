@@ -31,6 +31,11 @@ Trail: class extends Stack<Node> {
         find(T, size() - 1)
     }
 
+    onOuter: func <T> (T: Class, f: Func (T)) {
+        idx := find(T)
+        if(idx != -1) f(get(idx, T))
+    }
+
     /**
      * Finds the nearest (from top to bottom) object of class T (or subclasses)
      * and return its index, or -1 if not found

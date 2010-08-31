@@ -69,7 +69,9 @@ TypeDecl: abstract class extends Declaration {
         instanceType = BaseType new(name, token)
         instanceType as BaseType ref = this
         thisDecl    = VariableDecl new(instanceType, "this", token)
+        thisDecl owner = this
         thisRefDecl = VariableDecl new(ReferenceType new(instanceType, token), "this", token)
+        thisRefDecl owner = this
 
         if(!isMeta) {
             meta = ClassDecl new(name + "Class", null, true, token)
@@ -657,11 +659,15 @@ TypeDecl: abstract class extends Declaration {
             return -1
         }
 
+        /*
         if(access getName() == "this") {
             meat := (getNonMeta() ? getNonMeta() : this)
             if(meat isAddon()) meat = meat getBase() getNonMeta()
-            if(access suggest(meat thisDecl)) return 0
+            if(access suggest(meat thisDecl)) {
+                return 0
+            }
         }
+        */
 
         if(access getName() == "This") {
             //printf("Asking for 'This' in %s (non-meta %s)\n", toString(), getNonMeta() ? getNonMeta() toString() : "(nil)")
@@ -682,7 +688,8 @@ TypeDecl: abstract class extends Declaration {
             //"&&&&&&&& Found vDecl %s for %s in %s" format(vDecl toString(), access name, name) println()
             if(access suggest(vDecl)) {
                 if(access expr == null) {
-                    varAcc := VariableAccess new("this", nullToken)
+                    varAcc := VariableAccess new("this", access token)
+                    varAcc reverseExpr = access
                     access expr = varAcc
                 }
                 return 0
@@ -761,7 +768,7 @@ TypeDecl: abstract class extends Declaration {
         if(fDecl) {
             if(call debugCondition()) "    \\o/ Found fDecl for %s, it's %s" format(call name toCString(), fDecl toString() toCString()) println()
             if(call suggest(fDecl, res, trail)) {
-                if(call getExpr() == null) {
+                if(fDecl hasThis() && !call getExpr()) {
                     call setExpr(VariableAccess new("this", call token))
                 }
                 if(call debugCondition()) "   returning..." println()

@@ -3,14 +3,27 @@ import BinaryOp, Visitor, Expression, VariableDecl, FunctionDecl,
        TypeDecl, Declaration, Type, Node, ClassDecl, NamespaceDecl,
        EnumDecl, PropertyDecl, FunctionCall, Module, Import, FuncType,
        NullLiteral, AddressOf, BaseType, StructLiteral, Return,
-       Argument, InlineContext
+       Argument, InlineContext, Scope
 
 import tinker/[Resolver, Response, Trail, Errors]
 import structs/ArrayList
 
 VariableAccess: class extends Expression {
 
-    expr: Expression { get set }
+    _staticFunc : FunctionDecl = null
+    
+    expr: Expression {
+        get
+        set (newExpr) {
+            expr = newExpr
+            match newExpr {
+                case acc: VariableAccess => acc reverseExpr = this
+            }
+        }
+    }
+    
+    reverseExpr: VariableAccess
+    
     name: String
 
     ref: Declaration
@@ -63,40 +76,54 @@ VariableAccess: class extends Expression {
     }
 
     suggest: func (node: Node) -> Bool {
-        if(node instanceOf?(VariableDecl)) {
-            candidate := node as VariableDecl
-            // if we're accessing a member, we're expecting the
-            // candidate to belong to a TypeDecl..
-            if(isMember() && candidate owner == null) {
-                return false
-            }
+        match node {
+            case candidate: VariableDecl =>
+                // if we're accessing a member, we're expecting the
+                // candidate to belong to a TypeDecl..
+                if(isMember() && !candidate isMember()) {
+                    return false
+                }
 
-            ref = candidate
-            if(isMember() && candidate owner isMeta) {
-                expr = VariableAccess new(candidate owner getNonMeta() getInstanceType(), candidate token)
-            }
+                if(_staticFunc && candidate isMember() && candidate == candidate owner thisDecl) {
+                    //token formatMessage("Got thisDecl of " + candidate owner toString() + " in static func " + _staticFunc toString(), "INFO") println()
 
-            return true
-        } else if(node instanceOf?(FunctionDecl)) {
-            candidate := node as FunctionDecl
-            // if we're accessing a member, we're expecting the candidate
-            // to belong to a TypeDecl..
-            if((expr != null) && (candidate owner == null)) {
-                return false
-            }
+                    // Can't access an instance variable from static function
+                    return false
+                }
 
-            ref = candidate
-            return true
-        } else if(node instanceOf?(TypeDecl) || node instanceOf?(NamespaceDecl)) {
-            if(node instanceOf?(TypeDecl) && node as TypeDecl isAddon()) {
-                // First rule of resolve club is: you do not resolve to an addon.
-                // Always resolve to the base instead.
-                return suggest(node as TypeDecl getBase() getNonMeta())
-            }
-            ref = node
-            return true
+                ref = candidate
+                if(isMember() && candidate owner isMeta) {
+                    expr = VariableAccess new(candidate owner getNonMeta() getInstanceType(), candidate token)
+                }
+
+                true
+            case candidate: FunctionDecl =>
+                // if we're accessing a member, we're expecting the candidate
+                // to belong to a TypeDecl..
+                if((expr != null) && (candidate owner == null)) {
+                    return false
+                }
+
+                ref = candidate
+                true
+            case tDecl: TypeDecl =>
+                // TODO: the use of 'val' here is a workaround - an if/else should
+                // be an expression.
+                val := true
+                if(tDecl isAddon()) {
+                    // First rule of resolve club is: you do not resolve to an addon.
+                    // Always resolve to the base instead.
+                    val = suggest(tDecl getBase() getNonMeta())
+                } else {
+                    ref = node
+                }
+                val
+            case nDecl: NamespaceDecl =>
+                ref = node
+                true
+            case =>
+                false
         }
-        return false
     }
 
     isResolved: func -> Bool { ref != null && getType() != null }
@@ -106,6 +133,10 @@ VariableAccess: class extends Expression {
         if(debugCondition()) {
             "%s is of type %s\n" format(name toCString(), getType() ? getType() toString() toCString() : "(nil)" toCString()) println()
         }
+
+        trail onOuter(FunctionDecl, |fDecl|
+            if(fDecl isStatic()) _staticFunc = fDecl
+        )
 
         if(expr) {
             trail push(this)
@@ -164,8 +195,12 @@ VariableAccess: class extends Expression {
                 if(node instanceOf?(TypeDecl)) {
                     tDecl := node as TypeDecl
                     if(tDecl isMeta) node = tDecl getNonMeta()
-                }
 
+                    // in initialization of a member object!
+                    if(!ref && name == "this" && trail find(Scope) == -1) {
+                        suggest(node as TypeDecl thisDecl)
+                    }
+                }
                 node resolveAccess(this, res, trail)
 
                 if(ref) {
@@ -286,17 +321,24 @@ VariableAccess: class extends Expression {
 
         if(!ref) {
             if(res fatal) {
+                subject := this
+                if(reverseExpr && _staticFunc && name == "this") {
+                    res throwError(InvalidAccess new(this,
+                        "Can't access instance variable '%s' from static function '%s'!" format(reverseExpr getName() toCString(), _staticFunc getName() toCString())
+                    ))
+                }
+                
                 if(res params veryVerbose) {
                     println("trail = " + trail toString())
                 }
-                msg := "Undefined symbol '%s'" format(toString() toCString())
+                msg := "Undefined symbol '%s'" format(subject toString() toCString())
                 if(res params helpful) {
-                    similar := findSimilar(res)
+                    similar := subject findSimilar(res)
                     if(similar) {
                         msg += similar
                     }
                 }
-                res throwError(UnresolvedAccess new(this, msg))
+                res throwError(UnresolvedAccess new(subject, msg))
             }
             if(res params veryVerbose) {
                 printf("     - access to %s%s still not resolved, looping (ref = %s)\n", \
@@ -371,5 +413,14 @@ UnresolvedAccess: class extends Error {
         super(access token, message)
     }
 }
+
+InvalidAccess: class extends Error {
+    access: VariableAccess
+
+    init: func (=access, .message) {
+        super(access token, message)
+    }
+}
+
 
 

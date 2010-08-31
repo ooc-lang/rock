@@ -369,9 +369,9 @@ FunctionDecl: class extends Declaration {
     }
 
     toString: func ~withCallContext (call: FunctionCall) -> String {
+        (isStatic ? " static" : "") +
         (owner ? owner getName() + " " : "") +
         (suffix ? (name + "~" + suffix) : name) +
-        (isStatic ? " static" : "") +
         getArgsRepr(call) +
         (hasReturn() ? " -> " + returnType toString() : "")
     }
