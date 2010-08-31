@@ -19,8 +19,6 @@ version(unix || apple) {
 
     PTHREAD_MUTEX_RECURSIVE: extern Int
 
-    __SIZEOF_PTHREAD_MUTEX_T: extern SizeT
-
     /**
      * pthreads implementation of mutexes.
      *
@@ -29,7 +27,7 @@ version(unix || apple) {
     MutexUnix: class extends Mutex {
 
         new: static func -> Mutex {
-            mut := gc_malloc(__SIZEOF_PTHREAD_MUTEX_T) as PThreadMutex*
+            mut := gc_malloc(PThreadMutex size) as PThreadMutex*
             pthread_mutex_init(mut, null)
             mut as Mutex
         }
@@ -51,7 +49,7 @@ version(unix || apple) {
     RecursiveMutexUnix: class extends Mutex {
 
         new: static func -> RecursiveMutex {
-            mut := gc_malloc(__SIZEOF_PTHREAD_MUTEX_T) as PThreadMutex*
+            mut := gc_malloc(PThreadMutex size) as PThreadMutex*
         attr: PThreadMutexAttr
         pthread_mutexattr_init(attr&)
         pthread_mutexattr_settype(attr&, PTHREAD_MUTEX_RECURSIVE)
