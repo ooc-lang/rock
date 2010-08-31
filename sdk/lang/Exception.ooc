@@ -99,7 +99,7 @@ Exception: class {
     printBacktrace: func {
         version(linux) {
             if(backtraceBuffer != null) {
-                "[backtrace] " print()
+                fprintf(stderr, "[backtrace] ")
                 backtraceSymbolsFd(backtraceBuffer, backtraceLength, 2) // hell yeah stderr fd.
             }
         }
