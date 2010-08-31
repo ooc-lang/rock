@@ -1,5 +1,4 @@
 import io/[Reader, Writer]
-import text/Buffer
 
 Endianness: enum {
     little

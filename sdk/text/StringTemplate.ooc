@@ -1,4 +1,3 @@
-import text/Buffer
 import structs/HashMap
 
 extend String {
