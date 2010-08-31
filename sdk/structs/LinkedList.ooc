@@ -51,7 +51,7 @@ LinkedList: class <T> extends List<T> {
 			head next = node
 			size += 1
 		} else {
-			Exception new(This, "Check index: 0 <= " + index + " < " + size()) throw()
+			Exception new(This, "Check index: 0 <= " + index toString() + " < " + size() toString()) throw()
 		}
     }
 
@@ -71,7 +71,7 @@ LinkedList: class <T> extends List<T> {
 	*/
     getNode: func(index: Int) -> Node<T> {
 		if(index < 0 || index >= size()) {
-			Exception new(This, "Check index: 0 <= " + index + " < " + size()) throw()
+			Exception new(This, "Check index: 0 <= " + index toString() + " < " + size() toString()) throw()
 		}
 
 		i = 0 : Int
@@ -155,7 +155,7 @@ LinkedList: class <T> extends List<T> {
 			removeNode(toRemove)
 			return toRemove data
 		}
-		Exception new(This, "Check index: 0 <= " + index + " < " + size()) throw()
+		Exception new(This, "Check index: 0 <= " + index toString() + " < " + size() toString()) throw()
 	}
 
 	/**
