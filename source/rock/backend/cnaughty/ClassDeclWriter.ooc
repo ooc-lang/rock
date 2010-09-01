@@ -403,16 +403,9 @@ ClassDeclWriter: abstract class extends Skeleton {
 
         if(realDecl != null && realDecl isAbstract) return
 
-    current nl()
         current nl(). app('.')
         FunctionDeclWriter writeSuffixedName(this, parentDecl)
-        current app(" = ")
-
-        if(realDecl != null || parentDecl isExtern()) {
-            current app("(")
-            writeFunctionDeclPointer(this, parentDecl, false)
-            current app(") ")
-        }
+        current app(" = (void*) ")
 
         decl := realDecl ? realDecl : parentDecl
         FunctionDeclWriter writeFullName(this, decl)
