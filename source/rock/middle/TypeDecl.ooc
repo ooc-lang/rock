@@ -758,10 +758,10 @@ TypeDecl: abstract class extends Declaration {
         fDecl := getFunction(call name, call suffix, call, true, finalScore&)
         if(finalScore == -1) {
             if(res fatal) {
-                // if fatal and beacause of us, resolve ourselves to get a meaningful error message
+                // if fatal and because of us, resolve ourselves to get a meaningful error message
                 // instead of getting a cryptic error on the call-side (like, 'No such function blah'
                 // where clearly such a function exists)
-                resolve(trail, res)
+                resolve(Trail new(token module), res)
             }
             return -1 // something's not resolved
         }
