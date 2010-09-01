@@ -6,7 +6,7 @@ import net/[berkeley, Exceptions, Socket, StreamSocket, Address]
 ServerSocket: class extends Socket {
 
     init: func ~server {
-        super(SocketFamily IP4, SocketType STREAM, 0)
+        super(AddressFamily IP4, SocketType STREAM, 0)
     }
 
     /**

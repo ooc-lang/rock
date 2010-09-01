@@ -97,7 +97,7 @@ HostInfo: class {
         while(info) {
             if(info@ ai_addrlen && info@ ai_addr) {
                 match(info@ ai_family) {
-                    case SocketFamily IP4 =>
+                    case AddressFamily IP4 =>
                         sockaddrin := info@ ai_addr as SockAddrIn*
                         addresses add(IP4Address new(sockaddrin@ sin_addr))
                 }

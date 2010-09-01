@@ -152,7 +152,7 @@ IP4Address: class extends IPAddress {
             InvalidAddress new("Address must not be blank") throw()
         }
 
-        family = SocketFamily IP4
+        family = AddressFamily IP4
         if(inet_pton(family, ipAddress, ai&) == -1) {
             InvalidAddress new("Could not parse address") throw()
         }
@@ -163,7 +163,7 @@ IP4Address: class extends IPAddress {
     }
 
     init: func ~withAddr(addr: InAddr) {
-        family = SocketFamily IP4
+        family = AddressFamily IP4
         memcpy(ai&, addr&, InAddr size)
     }
 
@@ -193,7 +193,7 @@ IP4Address: class extends IPAddress {
         mask(mask, IP4Address new("0.0.0.0"))
     }
     mask: func ~withSet(mask: IPAddress, set: IPAddress) {
-        if(mask family != SocketFamily IP4 || set family != SocketFamily IP4) {
+        if(mask family != AddressFamily IP4 || set family != AddressFamily IP4) {
             NetError new("Both mask and set must be of IP4 family") throw()
         }
         maskAddr := (mask as IP4Address) ai
@@ -226,14 +226,14 @@ IP6Address: class extends IPAddress {
             InvalidAddress new("Address must not be blank") throw()
         }
 
-        family = SocketFamily IP6
+        family = AddressFamily IP6
         if(inet_pton(family, ipAddress, ai&) == -1) {
             InvalidAddress new("Could not parse address") throw()
         }
     }
 
     init: func ~withAddr(addr: In6Addr) {
-        family = SocketFamily IP6
+        family = AddressFamily IP6
         memcpy(ai&, addr&, In6Addr size)
     }
 
@@ -323,7 +323,7 @@ operator == (a1, a2: IPAddress) -> Bool {
     if (a1 family != a2 family)
         return false
 
-    if (a1 family == SocketFamily IP4)
+    if (a1 family == AddressFamily IP4)
         return (a1 as IP4Address) == (a2 as IP4Address)
     else
         return (a1 as IP6Address) == (a2 as IP6Address)
@@ -337,11 +337,11 @@ SocketAddress: abstract class {
     new: static func(host: IPAddress, port: Int) -> This {
         nPort: Int = htons(port)
 
-        if(host family == SocketFamily IP4) {
+        if(host family == AddressFamily IP4) {
             ip4Host := host as IP4Address
             return SocketAddressIP4 new(ip4Host ai, nPort)
         }
-        else if(host family == SocketFamily IP6) {
+        else if(host family == AddressFamily IP6) {
             ip6Host := host as IP6Address
             return SocketAddressIP6 new(ip6Host ai, nPort)
         }
@@ -389,7 +389,7 @@ SocketAddressIP4: class extends SocketAddress {
 
     init: func ~SocketAddressIP4 (addr: InAddr, port: Int) {
         memset(sa&, 0, SockAddrIn size)
-        sa sin_family = SocketFamily IP4
+        sa sin_family = AddressFamily IP4
         memcpy(sa sin_addr&, addr&, InAddr size)
         sa sin_port = port
     }
@@ -410,7 +410,7 @@ SocketAddressIP6: class extends SocketAddress {
 
     init: func ~SocketAddressIP6 (addr: In6Addr, port: Int) {
         memset(sa&, 0, SockAddrIn6 size)
-        sa sin6_family = SocketFamily IP6
+        sa sin6_family = AddressFamily IP6
         memcpy(sa sin6_addr&, addr&, In6Addr size)
         sa sin6_port = port
     }

@@ -134,7 +134,7 @@ Socket: abstract class {
 
 }
 
-SocketFamily: cover {
+AddressFamily: cover {
     UNSPEC: extern(AF_UNSPEC) static Int
     IP4: extern(AF_INET) static Int
     IP6: extern(AF_INET6) static Int
