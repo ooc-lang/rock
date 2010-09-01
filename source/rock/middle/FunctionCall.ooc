@@ -852,7 +852,7 @@ FunctionCall: class extends Expression {
 
     resolveTypeArg: func (typeArgName: String, trail: Trail, finalScore: Int@) -> Type {
 
-        if(debugCondition()) printf("Should resolve typeArg %s in call %s\n", typeArgName, toString() toCString())
+        if(debugCondition()) printf("Should resolve typeArg %s in call %s\n", typeArgName toCString(), toString() toCString())
 
         if(ref && refScore > 0) {
 

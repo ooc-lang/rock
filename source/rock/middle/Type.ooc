@@ -246,6 +246,12 @@ SugarType: abstract class extends Type {
             // void pointer, a half match!
             return scoreSeed / 2
         }
+
+        if(other getRef() instanceOf?(CoverDecl)) {
+            dug := other dig()
+            if(dug) return getScoreImpl(dug, scoreSeed / 2)
+        }
+        
         return This NOLUCK_SCORE
     }
 
@@ -293,7 +299,8 @@ PointerType: class extends SugarType {
 
     equals?: func (other: This) -> Bool {
         if(other class != this class) return false
-        return (other as PointerType inner equals?(inner))
+        
+        other as PointerType inner equals?(inner)
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {

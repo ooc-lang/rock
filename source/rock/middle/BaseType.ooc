@@ -211,6 +211,12 @@ BaseType: class extends Type {
 
         if(void?) return This NOLUCK_SCORE
 
+        ourRef := getRef()
+        if(!ourRef) return -1
+        
+        hisRef := other getRef()
+        if(!hisRef) return -1
+
         if(other isGeneric() && other pointerLevel() == 0) {
             // every type is always a match against a flat generic type
             return scoreSeed
@@ -221,12 +227,12 @@ BaseType: class extends Type {
             return scoreSeed / 2
         }
 
-        if(isPointer() && other getRef() instanceOf?(ClassDecl)) {
+        if(isPointer() && hisRef instanceOf?(ClassDecl)) {
             // objects are references in ooc
             return scoreSeed / 4
         }
 
-        if(getRef() instanceOf?(ClassDecl) && other isPointer()) {
+        if(ourRef instanceOf?(ClassDecl) && other isPointer()) {
             // objects are still references in ooc
             return scoreSeed / 4
         }
@@ -236,42 +242,37 @@ BaseType: class extends Type {
             // two pointers = okay
             return scoreSeed / 2
         }
-
+        
         if(other instanceOf?(BaseType)) {
-            if(getRef() == null || other getRef() == null) {
-                //printf("%s ref = %s, other %s ref = %s\n", toString(), getRef() ? getRef() toString() : "(nil)", other toString(), other getRef() ? other getRef() toString() : "(nil)")
-                return -1
-            }
-
-            if(getRef() == other getRef()) {
+            if(ourRef == hisRef) {
                 // perfect match
                 return scoreSeed
             }
 
             // if we are one of his addons, we're good
-            if(other getRef() instanceOf?(TypeDecl)) {
-                for(addon in other getRef() as TypeDecl getAddons()) {
-                    hisRef := addon base
-                    ourRef := getRef()
+            if(hisRef instanceOf?(TypeDecl)) {
+                for(addon in hisRef as TypeDecl getAddons()) {
+                    hisRef2 := addon base
                     //printf("Reviewing addon %s, ref %s (%s), vs %s (%s)\n", addon getNonMeta() toString(), ourRef toString(), ourRef token toString(), hisRef toString(), hisRef token toString())
-                    if(ourRef == hisRef) {
+                    if(ourRef == hisRef2) {
                         // perfect match
                         return scoreSeed
                     }
                 }
             }
 
-            if(getRef() instanceOf?(TypeDecl) && other getRef() instanceOf?(TypeDecl)) {
-                inheritsScore := getRef() as TypeDecl inheritsScore(other getRef() as TypeDecl, scoreSeed - 1)
+            if(ourRef instanceOf?(TypeDecl) && hisRef instanceOf?(TypeDecl)) {
+                inheritsScore := ourRef as TypeDecl inheritsScore(hisRef as TypeDecl, scoreSeed - 1)
 
                 // something needs resolving
                 if(inheritsScore == -1) {
-                    return inheritsScore
+                    return -1
                 }
 
-                if(inheritsScore <= 0 && getRef() instanceOf?(CoverDecl) && other getRef() instanceOf?(CoverDecl)) {
+                bothCovers := ourRef instanceOf?(CoverDecl) && hisRef instanceOf?(CoverDecl)
+                if(inheritsScore <= 0 && bothCovers) {
                     // well, try the other way around - covers are lax - but it'll be weaker this time
-                    inheritsScore = other getRef() as TypeDecl inheritsScore(getRef() as TypeDecl, scoreSeed / 2)
+                    inheritsScore = hisRef as TypeDecl inheritsScore(ourRef as TypeDecl, scoreSeed / 2)
                 }
 
                 // cool, a match =)
