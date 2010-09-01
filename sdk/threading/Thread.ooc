@@ -1,6 +1,10 @@
-import native/[ThreadUnix, ThreadWin32]
-import native/[MutexUnix, MutexWin32]
-import native/[ThreadLocalUnix, ThreadLocalWin32]
+version (!windows) {
+    import native/[ThreadUnix, MutexUnix, ThreadLocalUnix]
+}
+version (windows) {
+    import native/[ThreadWin32, MutexWin32, ThreadLocalWin32]
+}
+
 
 /**
    A thread is a thread of execution in a program. Multiple threads
@@ -208,7 +212,7 @@ ThreadLocal: abstract class <T> {
         }
         Exception new(This, "Unsupported platform!\n") throw()
         null
-    }    
+    }
 
     /**
         Set the data.
@@ -222,6 +226,6 @@ ThreadLocal: abstract class <T> {
 
     /**
         Return true if there is any data set.
-      */ 
+      */
     hasValue?: abstract func -> Bool
 }

@@ -2,7 +2,12 @@ include stdio
 
 import structs/ArrayList
 import FileReader, FileWriter, Reader
-import native/[FileWin32, FileUnix]
+version (windows) {
+    import native/FileWin32
+}
+version (!windows) {
+    import native/FileUnix
+}
 
 /**
    Represents a file/directory path, allows to retrieve informations like

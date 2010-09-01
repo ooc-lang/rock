@@ -1,4 +1,9 @@
-import native/[PipeUnix, PipeWin32]
+version(!windows) {
+    import native/PipeUnix
+}
+version(windows) {
+    import native/PipeWin32
+}
 
 Pipe: abstract class {
 
