@@ -659,7 +659,11 @@ CommandLine: class {
         Terminal setFgColor(Color red)
         "[FAIL]" println()
         Terminal reset()
-        raise("") // for backtrace
+        
+        // compile with -Ddebug if you want rock to raise an exception here
+        version(debug) {
+            raise("Debugging a CommandLine failure()") // for backtrace
+        }
         exit(1)
     }
 
