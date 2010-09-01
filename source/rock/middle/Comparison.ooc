@@ -1,7 +1,7 @@
 import structs/ArrayList
 import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
-       IntLiteral, Ternary, BaseType
+       IntLiteral, Ternary, BaseType, BinaryOp, CoverDecl
 import tinker/[Resolver, Trail, Response, Errors]
 
 CompType: enum {
@@ -78,11 +78,42 @@ Comparison: class extends Expression {
 
         {
             response := resolveOverload(trail, res)
-            if(!response ok()) return response
+            if(!response ok()) return Response OK // needs another resolve later
+        }
+
+        if(!isLegal(res)) {
+            if(res fatal) {
+                res throwError(InvalidOperatorUse new(token, "Invalid comparison between operands of type %s and %s\n" format(
+                    left getType() toString() toCString(), right getType() toString() toCString())))
+                return Response OK
+            }
+            res wholeAgain(this, "Illegal use, looping in hope.")
         }
 
         return Response OK
 
+    }
+
+    isLegal: func (res: Resolver) -> Bool {
+        (lType, rType) := (left getType(), right getType())
+
+        if(lType == null || lType getRef() == null || rType == null || rType getRef() == null) {
+            // must resolve first
+            res wholeAgain(this, "Unresolved types, looping to determine legitness")
+            return true
+        }
+
+        (lRef, rRef) := (lType getRef(), rType getRef())
+
+        lCompound := lRef instanceOf?(CoverDecl) && !lRef as CoverDecl getFromType()
+        rCompound := rRef instanceOf?(CoverDecl) && !rRef as CoverDecl getFromType()
+
+        if(lCompound || rCompound) {
+            // if either side are compound covers (structs) - it's illegal.
+            return false
+        }
+
+        true
     }
 
     resolveOverload: func (trail: Trail, res: Resolver) -> Response {
@@ -98,7 +129,7 @@ Comparison: class extends Expression {
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType)
             //if(score > 0) ("Considering " + opDecl toString() + " for " + toString() + ", score = %d\n") format(score) println()
-            if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response OK }
+            if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response LOOP }
             if(score > bestScore) {
                 bestScore = score
                 candidate = opDecl
@@ -110,7 +141,7 @@ Comparison: class extends Expression {
             for(opDecl in module getOperators()) {
                 score := getScore(opDecl, reqType)
                 //if(score > 0) ("Considering " + opDecl toString() + " for " + toString() + ", score = %d\n") format(score) println()
-                if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response OK }
+                if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response LOOP }
                 if(score > bestScore) {
                     bestScore = score
                     candidate = opDecl
@@ -150,7 +181,7 @@ Comparison: class extends Expression {
             if(!trail peek() replace(this, node)) {
                 if(res fatal) res throwError(CouldntReplace new(token, this, node, trail))
                 res wholeAgain(this, "failed to replace oneself, gotta try again =)")
-                return Response OK
+                return Response LOOP
             }
             res wholeAgain(this, "Just replaced with an operator overloading")
         }

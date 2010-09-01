@@ -346,11 +346,17 @@ BinaryOp: class extends Expression {
             // you can only assign - all others must be overloaded
             return (type == OpType ass || isBooleanOp())
         }
-        if((lRef instanceOf?(CoverDecl) &&
-            lRef as CoverDecl getFromType() == null) ||
-           (rRef instanceOf?(CoverDecl) &&
-            rRef as CoverDecl getFromType() == null)) {
-            // you can only assign structs, others must be overloaded
+
+        lCompound := lRef instanceOf?(CoverDecl) && !lRef as CoverDecl getFromType()
+        rCompound := rRef instanceOf?(CoverDecl) && !rRef as CoverDecl getFromType()
+
+        if(lCompound ^ rCompound) {
+            // if only one of the sides are compound covers (structs) - it's illegal.
+            return false
+        }
+        
+        if(lCompound || rCompound) {
+            // you can only assign compound covers (structs), others must be overloaded
             return (type == OpType ass)
         }
 
