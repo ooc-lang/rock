@@ -26,21 +26,21 @@ scheduler: func {
         
         i := 0
         for(coro in coros) {
-            "Main coro %p dispatching to coro %p, %d/%d" printfln(mainCoro, coro, i + 1, coros size())
+            //"Main coro %p dispatching to coro %p, %d/%d" printfln(mainCoro, coro, i + 1, coros size())
             switchTo(coro)
             if(!deadCoros empty?() || !newCoros empty?()) {
-                "Dead coros / new coros, breaking!" println()
+                //"Dead coros / new coros, breaking!" println()
                 break
             }
             i += 1
         }
 
         if(!newCoros empty?()) {
-            "Adding %d new coros" printfln(newCoros size())
+            //"Adding %d new coros" printfln(newCoros size())
             for(info in newCoros)  {
-                "Adding coro!" println()
                 newCoro := Coro new()
                 coros add(newCoro)
+                //"Just added coro %p!" printfln(newCoro)
                 oldCoro := currentCoro
                 currentCoro = newCoro
 
@@ -51,9 +51,9 @@ scheduler: func {
                     // Adjust the stackbottom and add our Coro's stack as a root for the GC
                     GC_stackbottom = stackBase
                     GC_add_roots(stackBase, stackBase + stackSize)
-                    "Coro started!" println()
+                    //"Coro started!" println()
                     info c()
-                    "Terminating a coro!" printfln()
+                    //"Terminating a coro!" printfln()
                     GC_stackbottom = oldStackBase
                     GC_remove_roots(stackBase, stackBase + stackSize)
                     terminate()
@@ -63,7 +63,7 @@ scheduler: func {
         }
 
         if(!deadCoros empty?()) {
-            "Cleaning up %d dead coros" printfln(deadCoros size())
+            //"Cleaning up %d dead coros" printfln(deadCoros size())
             for(deadCoro in deadCoros) { coros remove(deadCoro) }
             deadCoros clear()
         }
@@ -73,13 +73,12 @@ scheduler: func {
 Channel: class <T> {
 
     queue := LinkedList<T> new()
-    //queue := ArrayList<T> new()
-
+    
     send: func (t: T) {
         //"Sending %d" printfln(t as Int)
         queue add(t)
-        while(queue size() > 100) {
-            //"Queue filled, switching to %p. (Coro = %p)" printfln(mainCoro, currentCoro)
+        while(queue size() >= 100) {
+            //"Queue filled, yielding"
             yield()
         }
     }
@@ -90,7 +89,7 @@ Channel: class <T> {
                 val := queue removeAt(0)
                 return val
             }
-            //"Queue empty, switching to %p. (Coro = %p)" printfln(mainCoro, currentCoro)
+            //"Queue empty, yielding"
             yield()
         }
         // yay hacks
@@ -113,10 +112,12 @@ terminate: func {
 }
 
 yield: func {
+    //"Yield!" println()
     switchTo(mainCoro)
 }
 
 switchTo: func (newCoro: Coro) {
+    //"Switching from %p to %p" printfln(currentCoro, newCoro)
     oldCoro := currentCoro
     currentCoro = newCoro
     oldCoro switchTo(currentCoro)
