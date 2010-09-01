@@ -32,9 +32,9 @@ EnumDecl: class extends TypeDecl {
         Response OK
     }
 
-    addFunction: func (kalamazoo: FunctionDecl) {
-        kalamazoo setFinal(true)
-        super(kalamazoo)
+    addFunction: func (fDecl: FunctionDecl) {
+        fDecl setFinal(true)
+        super(fDecl)
     }
 
     addElement: func (element: EnumElement) {
