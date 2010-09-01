@@ -342,14 +342,17 @@ void nq_error(void *this, int errorID, char *defaultMessage, int index);
 
 // NQE stands for 'NagaQueen Error"
 
-#define NQE_EXP_STATEMENT_OR_CLOSING_BRACKET                1
-#define NQE_EXP_INC_IMP_STMT_OR_DECL                        2
-#define NQE_EXP_CASE_IN_MATCH                               3
-#define NQE_EXP_VAR_OR_FUNC_DECL                            4
-#define NQE_EXP_RET_TYPE                                    5
-#define NQE_EXP_CLOSING_PAREN                               6
-#define NQE_EXP_CLOSING_SQUAR                               7
-#define NQE_MISPLACED_OOCDOC                                8
+enum NagaQueenError {
+    NQE_EXP_STATEMENT_OR_CLOSING_BRACKET = 1,
+    NQE_EXP_INC_IMP_STMT_OR_DECL,
+    NQE_EXP_CASE_IN_MATCH,
+    NQE_EXP_VAR_OR_FUNC_DECL,
+    NQE_EXP_RET_TYPE,
+    NQE_EXP_CLOSING_PAREN,
+    NQE_EXP_CLOSING_SQUAR,
+    NQE_MISPLACED_OOCDOC,
+    NQE_EXP_ARG,
+};
 
 /////////////////////                  error IDs end                 ////////////////////////
 
@@ -4046,7 +4049,7 @@ YY_ACTION(void) yy_1_ClassDecl(GREG *G, char *yytext, int yyleng, yythunk *thunk
 #define className G->val[-6]
 #define doc G->val[-7]
   yyprintf((stderr, "do yy_1_ClassDecl\n"));
-   tokenPos; nq_onClassStart(core->this, className, doc); ;
+   tokenPos; nq_onClassStart(core->this, className, doc) ;
 #undef stmt
 #undef fd
 #undef pd
@@ -4062,7 +4065,7 @@ YY_ACTION(void) yy_5_Argument(GREG *G, char *yytext, int yyleng, yythunk *thunk,
 #define assName G->val[-3]
 #define dotName G->val[-4]
   yyprintf((stderr, "do yy_5_Argument\n"));
-   tokenPos; nq_onVarArg(core->this); ;
+   tokenPos; nq_onVarArg(core->this) ;
 #undef type
 #undef vd
 #undef assName
@@ -4075,7 +4078,7 @@ YY_ACTION(void) yy_4_Argument(GREG *G, char *yytext, int yyleng, yythunk *thunk,
 #define assName G->val[-3]
 #define dotName G->val[-4]
   yyprintf((stderr, "do yy_4_Argument\n"));
-   tokenPos; nq_onTypeArg(core->this, type); ;
+   tokenPos; nq_onTypeArg(core->this, type) ;
 #undef type
 #undef vd
 #undef assName
@@ -4088,7 +4091,7 @@ YY_ACTION(void) yy_3_Argument(GREG *G, char *yytext, int yyleng, yythunk *thunk,
 #define assName G->val[-3]
 #define dotName G->val[-4]
   yyprintf((stderr, "do yy_3_Argument\n"));
-   tokenPos; nq_onStatement(core->this, vd); ;
+   tokenPos; nq_onStatement(core->this, vd) ;
 #undef type
 #undef vd
 #undef assName
@@ -4101,7 +4104,7 @@ YY_ACTION(void) yy_2_Argument(GREG *G, char *yytext, int yyleng, yythunk *thunk,
 #define assName G->val[-3]
 #define dotName G->val[-4]
   yyprintf((stderr, "do yy_2_Argument\n"));
-   tokenPos; nq_onAssArg(core->this, assName); ;
+   tokenPos; nq_onAssArg(core->this, assName) ;
 #undef type
 #undef vd
 #undef assName
@@ -4114,7 +4117,7 @@ YY_ACTION(void) yy_1_Argument(GREG *G, char *yytext, int yyleng, yythunk *thunk,
 #define assName G->val[-3]
 #define dotName G->val[-4]
   yyprintf((stderr, "do yy_1_Argument\n"));
-   tokenPos; nq_onDotArg(core->this, dotName); ;
+   tokenPos; nq_onDotArg(core->this, dotName) ;
 #undef type
 #undef vd
 #undef assName
@@ -4152,7 +4155,7 @@ YY_ACTION(void) yy_3_FunctionDeclBody(GREG *G, char *yytext, int yyleng, yythunk
 #define s G->val[-1]
 #define t G->val[-2]
   yyprintf((stderr, "do yy_3_FunctionDeclBody\n"));
-   nq_onFunctionReturnType(core->this, t); ;
+   nq_onFunctionReturnType(core->this, t) ;
 #undef s
 #undef t
 }
@@ -4161,7 +4164,7 @@ YY_ACTION(void) yy_2_FunctionDeclBody(GREG *G, char *yytext, int yyleng, yythunk
 #define s G->val[-1]
 #define t G->val[-2]
   yyprintf((stderr, "do yy_2_FunctionDeclBody\n"));
-   nq_onFunctionArgsEnd(core->this); ;
+   nq_onFunctionArgsEnd(core->this) ;
 #undef s
 #undef t
 }
@@ -4170,7 +4173,7 @@ YY_ACTION(void) yy_1_FunctionDeclBody(GREG *G, char *yytext, int yyleng, yythunk
 #define s G->val[-1]
 #define t G->val[-2]
   yyprintf((stderr, "do yy_1_FunctionDeclBody\n"));
-   nq_onFunctionArgsStart(core->this); ;
+   nq_onFunctionArgsStart(core->this) ;
 #undef s
 #undef t
 }
@@ -4178,20 +4181,20 @@ YY_ACTION(void) yy_2_FunctionDeclCore(GREG *G, char *yytext, int yyleng, yythunk
 {
 #define suffix G->val[-1]
   yyprintf((stderr, "do yy_2_FunctionDeclCore\n"));
-   nq_onFunctionSuffix(core->this, suffix); ;
+   nq_onFunctionSuffix(core->this, suffix) ;
 #undef suffix
 }
 YY_ACTION(void) yy_1_FunctionDeclCore(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
 #define suffix G->val[-1]
   yyprintf((stderr, "do yy_1_FunctionDeclCore\n"));
-   nq_onFunctionThisRef(core->this); ;
+   nq_onFunctionThisRef(core->this) ;
 #undef suffix
 }
 YY_ACTION(void) yy_1_AnonymousFunctionDecl(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
   yyprintf((stderr, "do yy_1_AnonymousFunctionDecl\n"));
-   nq_onFunctionStart(core->this, "", ""); ;
+   nq_onFunctionStart(core->this, "", "") ;
 }
 YY_ACTION(void) yy_8_RegularFunctionDecl(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
@@ -4200,7 +4203,7 @@ YY_ACTION(void) yy_8_RegularFunctionDecl(GREG *G, char *yytext, int yyleng, yyth
 #define name G->val[-3]
 #define doc G->val[-4]
   yyprintf((stderr, "do yy_8_RegularFunctionDecl\n"));
-   nq_onFunctionProto(core->this); ;
+   nq_onFunctionProto(core->this) ;
 #undef unmangledName
 #undef externName
 #undef name
@@ -4213,7 +4216,7 @@ YY_ACTION(void) yy_7_RegularFunctionDecl(GREG *G, char *yytext, int yyleng, yyth
 #define name G->val[-3]
 #define doc G->val[-4]
   yyprintf((stderr, "do yy_7_RegularFunctionDecl\n"));
-   nq_onFunctionFinal(core->this); ;
+   nq_onFunctionFinal(core->this) ;
 #undef unmangledName
 #undef externName
 #undef name
@@ -4226,7 +4229,7 @@ YY_ACTION(void) yy_6_RegularFunctionDecl(GREG *G, char *yytext, int yyleng, yyth
 #define name G->val[-3]
 #define doc G->val[-4]
   yyprintf((stderr, "do yy_6_RegularFunctionDecl\n"));
-   nq_onFunctionInline(core->this); ;
+   nq_onFunctionInline(core->this) ;
 #undef unmangledName
 #undef externName
 #undef name
@@ -4239,7 +4242,7 @@ YY_ACTION(void) yy_5_RegularFunctionDecl(GREG *G, char *yytext, int yyleng, yyth
 #define name G->val[-3]
 #define doc G->val[-4]
   yyprintf((stderr, "do yy_5_RegularFunctionDecl\n"));
-   nq_onFunctionStatic(core->this); ;
+   nq_onFunctionStatic(core->this) ;
 #undef unmangledName
 #undef externName
 #undef name
@@ -4252,7 +4255,7 @@ YY_ACTION(void) yy_4_RegularFunctionDecl(GREG *G, char *yytext, int yyleng, yyth
 #define name G->val[-3]
 #define doc G->val[-4]
   yyprintf((stderr, "do yy_4_RegularFunctionDecl\n"));
-   nq_onFunctionAbstract(core->this); ;
+   nq_onFunctionAbstract(core->this) ;
 #undef unmangledName
 #undef externName
 #undef name
@@ -4265,7 +4268,7 @@ YY_ACTION(void) yy_3_RegularFunctionDecl(GREG *G, char *yytext, int yyleng, yyth
 #define name G->val[-3]
 #define doc G->val[-4]
   yyprintf((stderr, "do yy_3_RegularFunctionDecl\n"));
-   nq_onFunctionUnmangled(core->this, unmangledName); ;
+   nq_onFunctionUnmangled(core->this, unmangledName) ;
 #undef unmangledName
 #undef externName
 #undef name
@@ -4278,7 +4281,7 @@ YY_ACTION(void) yy_2_RegularFunctionDecl(GREG *G, char *yytext, int yyleng, yyth
 #define name G->val[-3]
 #define doc G->val[-4]
   yyprintf((stderr, "do yy_2_RegularFunctionDecl\n"));
-   nq_onFunctionExtern(core->this, externName); ;
+   nq_onFunctionExtern(core->this, externName) ;
 #undef unmangledName
 #undef externName
 #undef name
@@ -4291,7 +4294,7 @@ YY_ACTION(void) yy_1_RegularFunctionDecl(GREG *G, char *yytext, int yyleng, yyth
 #define name G->val[-3]
 #define doc G->val[-4]
   yyprintf((stderr, "do yy_1_RegularFunctionDecl\n"));
-   tokenPos; nq_onFunctionStart(core->this, name, doc); ;
+   tokenPos; nq_onFunctionStart(core->this, name, doc) ;
 #undef unmangledName
 #undef externName
 #undef name
@@ -4302,7 +4305,7 @@ YY_ACTION(void) yy_3_SuperFunctionDecl(GREG *G, char *yytext, int yyleng, yythun
 #define suffix G->val[-1]
 #define name G->val[-2]
   yyprintf((stderr, "do yy_3_SuperFunctionDecl\n"));
-   yy=nq_onFunctionEnd(core->this); ;
+   yy=nq_onFunctionEnd(core->this) ;
 #undef suffix
 #undef name
 }
@@ -4311,7 +4314,7 @@ YY_ACTION(void) yy_2_SuperFunctionDecl(GREG *G, char *yytext, int yyleng, yythun
 #define suffix G->val[-1]
 #define name G->val[-2]
   yyprintf((stderr, "do yy_2_SuperFunctionDecl\n"));
-   nq_onFunctionSuffix(core->this, suffix); ;
+   nq_onFunctionSuffix(core->this, suffix) ;
 #undef suffix
 #undef name
 }
@@ -4320,19 +4323,19 @@ YY_ACTION(void) yy_1_SuperFunctionDecl(GREG *G, char *yytext, int yyleng, yythun
 #define suffix G->val[-1]
 #define name G->val[-2]
   yyprintf((stderr, "do yy_1_SuperFunctionDecl\n"));
-   tokenPos; nq_onFunctionStart(core->this, name, ""); nq_onFunctionSuper(core->this); ;
+   tokenPos; nq_onFunctionStart(core->this, name, ""); nq_onFunctionSuper(core->this) ;
 #undef suffix
 #undef name
 }
 YY_ACTION(void) yy_3_OperatorDecl(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
   yyprintf((stderr, "do yy_3_OperatorDecl\n"));
-   nq_onOperatorEnd(core->this); ;
+   nq_onOperatorEnd(core->this) ;
 }
 YY_ACTION(void) yy_2_OperatorDecl(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
   yyprintf((stderr, "do yy_2_OperatorDecl\n"));
-   nq_onOperatorStart(core->this, yytext); ;
+   nq_onOperatorStart(core->this, yytext) ;
 }
 YY_ACTION(void) yy_1_OperatorDecl(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
@@ -4343,32 +4346,32 @@ YY_ACTION(void) yy_2_GenericArguments(GREG *G, char *yytext, int yyleng, yythunk
 {
 #define name G->val[-1]
   yyprintf((stderr, "do yy_2_GenericArguments\n"));
-   nq_onGenericArgument(core->this, name); ;
+   nq_onGenericArgument(core->this, name) ;
 #undef name
 }
 YY_ACTION(void) yy_1_GenericArguments(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
 #define name G->val[-1]
   yyprintf((stderr, "do yy_1_GenericArguments\n"));
-   nq_onGenericArgument(core->this, name); ;
+   nq_onGenericArgument(core->this, name) ;
 #undef name
 }
 YY_ACTION(void) yy_1_Decl(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
 #define vd G->val[-1]
   yyprintf((stderr, "do yy_1_Decl\n"));
-   nq_onStatement(core->this, vd); ;
+   nq_onStatement(core->this, vd) ;
 #undef vd
 }
 YY_ACTION(void) yy_1_ImportName(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
   yyprintf((stderr, "do yy_1_ImportName\n"));
-   yy=nq_StringClone(yytext); ;
+   yy=nq_StringClone(yytext) ;
 }
 YY_ACTION(void) yy_1_ImportPath(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
   yyprintf((stderr, "do yy_1_ImportPath\n"));
-   yy=nq_StringClone(yytext); ;
+   yy=nq_StringClone(yytext) ;
 }
 YY_ACTION(void) yy_9_ImportAtom(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
@@ -4376,7 +4379,7 @@ YY_ACTION(void) yy_9_ImportAtom(GREG *G, char *yytext, int yyleng, yythunk *thun
 #define name G->val[-2]
 #define path G->val[-3]
   yyprintf((stderr, "do yy_9_ImportAtom\n"));
-   nq_onImportNamespace(core->this, (char*) namespace, core->importQuantity); ;
+   nq_onImportNamespace(core->this, (char*) namespace, core->importQuantity) ;
 #undef namespace
 #undef name
 #undef path
@@ -4387,7 +4390,7 @@ YY_ACTION(void) yy_8_ImportAtom(GREG *G, char *yytext, int yyleng, yythunk *thun
 #define name G->val[-2]
 #define path G->val[-3]
   yyprintf((stderr, "do yy_8_ImportAtom\n"));
-   core->importQuantity++; nq_onImport(core->this, (char*) path, (char*) name); ;
+   core->importQuantity++; nq_onImport(core->this, (char*) path, (char*) name) ;
 #undef namespace
 #undef name
 #undef path
@@ -4409,7 +4412,7 @@ YY_ACTION(void) yy_6_ImportAtom(GREG *G, char *yytext, int yyleng, yythunk *thun
 #define name G->val[-2]
 #define path G->val[-3]
   yyprintf((stderr, "do yy_6_ImportAtom\n"));
-   core->importQuantity++; nq_onImport(core->this, (char*) path, (char*) name); ;
+   core->importQuantity++; nq_onImport(core->this, (char*) path, (char*) name) ;
 #undef namespace
 #undef name
 #undef path
@@ -4442,7 +4445,7 @@ YY_ACTION(void) yy_3_ImportAtom(GREG *G, char *yytext, int yyleng, yythunk *thun
 #define name G->val[-2]
 #define path G->val[-3]
   yyprintf((stderr, "do yy_3_ImportAtom\n"));
-   nq_onImportNamespace(core->this, (char*) namespace, 1); ;
+   nq_onImportNamespace(core->this, (char*) namespace, 1) ;
 #undef namespace
 #undef name
 #undef path
@@ -4453,7 +4456,7 @@ YY_ACTION(void) yy_2_ImportAtom(GREG *G, char *yytext, int yyleng, yythunk *thun
 #define name G->val[-2]
 #define path G->val[-3]
   yyprintf((stderr, "do yy_2_ImportAtom\n"));
-   nq_onImport(core->this, (char*) path, (char*) name); ;
+   nq_onImport(core->this, (char*) path, (char*) name) ;
 #undef namespace
 #undef name
 #undef path
@@ -4474,7 +4477,7 @@ YY_ACTION(void) yy_3_IncludeCore(GREG *G, char *yytext, int yyleng, yythunk *thu
 #define defineVal G->val[-1]
 #define defineName G->val[-2]
   yyprintf((stderr, "do yy_3_IncludeCore\n"));
-   nq_onIncludeDefine(core->this, defineName, defineVal); ;
+   nq_onIncludeDefine(core->this, defineName, defineVal) ;
 #undef defineVal
 #undef defineName
 }
@@ -4483,7 +4486,7 @@ YY_ACTION(void) yy_2_IncludeCore(GREG *G, char *yytext, int yyleng, yythunk *thu
 #define defineVal G->val[-1]
 #define defineName G->val[-2]
   yyprintf((stderr, "do yy_2_IncludeCore\n"));
-   nq_onIncludeDefine(core->this, defineName, defineVal); ;
+   nq_onIncludeDefine(core->this, defineName, defineVal) ;
 #undef defineVal
 #undef defineName
 }
@@ -4504,12 +4507,12 @@ YY_ACTION(void) yy_2_DefineValue(GREG *G, char *yytext, int yyleng, yythunk *thu
 YY_ACTION(void) yy_1_DefineValue(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
   yyprintf((stderr, "do yy_1_DefineValue\n"));
-   yy=nq_StringClone(yytext); ;
+   yy=nq_StringClone(yytext) ;
 }
 YY_ACTION(void) yy_1_DefineName(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
   yyprintf((stderr, "do yy_1_DefineName\n"));
-   yy=nq_StringClone(yytext); ;
+   yy=nq_StringClone(yytext) ;
 }
 YY_ACTION(void) yy_1_UseCore(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
@@ -4520,7 +4523,7 @@ YY_ACTION(void) yy_2_VersionNegation(GREG *G, char *yytext, int yyleng, yythunk 
 {
 #define spec G->val[-1]
   yyprintf((stderr, "do yy_2_VersionNegation\n"));
-   yy=nq_onVersionNegation(core->this, spec); ;
+   yy=nq_onVersionNegation(core->this, spec) ;
 #undef spec
 }
 YY_ACTION(void) yy_1_VersionNegation(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
@@ -4533,7 +4536,7 @@ YY_ACTION(void) yy_1_VersionNegation(GREG *G, char *yytext, int yyleng, yythunk 
 YY_ACTION(void) yy_1_VersionName(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
   yyprintf((stderr, "do yy_1_VersionName\n"));
-   tokenPos; yy=nq_onVersionName(core->this, yytext); ;
+   tokenPos; yy=nq_onVersionName(core->this, yytext) ;
 }
 YY_ACTION(void) yy_4_VersionSpec(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
@@ -4576,7 +4579,7 @@ YY_ACTION(void) yy_5_ModuleCore(GREG *G, char *yytext, int yyleng, yythunk *thun
 #define stmt G->val[-1]
 #define spec G->val[-2]
   yyprintf((stderr, "do yy_5_ModuleCore\n"));
-   nq_error(core->this, NQE_MISPLACED_OOCDOC, "Misplaced oocdoc block! Use a standard comment instead, ie. /* */ or //, instead of /** */ and ///\n", G->pos + G->offset - 3); ;
+   nq_error(core->this, NQE_MISPLACED_OOCDOC, "Misplaced oocdoc block! Use a standard comment instead, ie. /* */ or //, instead of /** */ and ///\n", G->pos + G->offset - 3) ;
 #undef stmt
 #undef spec
 }
@@ -4585,7 +4588,7 @@ YY_ACTION(void) yy_4_ModuleCore(GREG *G, char *yytext, int yyleng, yythunk *thun
 #define stmt G->val[-1]
 #define spec G->val[-2]
   yyprintf((stderr, "do yy_4_ModuleCore\n"));
-   nq_onStatement(core->this, stmt); ;
+   nq_onStatement(core->this, stmt) ;
 #undef stmt
 #undef spec
 }
@@ -4594,7 +4597,7 @@ YY_ACTION(void) yy_3_ModuleCore(GREG *G, char *yytext, int yyleng, yythunk *thun
 #define stmt G->val[-1]
 #define spec G->val[-2]
   yyprintf((stderr, "do yy_3_ModuleCore\n"));
-   nq_onVersionEnd(core->this); ;
+   nq_onVersionEnd(core->this) ;
 #undef stmt
 #undef spec
 }
@@ -4603,7 +4606,7 @@ YY_ACTION(void) yy_2_ModuleCore(GREG *G, char *yytext, int yyleng, yythunk *thun
 #define stmt G->val[-1]
 #define spec G->val[-2]
   yyprintf((stderr, "do yy_2_ModuleCore\n"));
-   nq_onVersionStart(core->this, spec); ;
+   nq_onVersionStart(core->this, spec) ;
 #undef stmt
 #undef spec
 }
@@ -4612,7 +4615,7 @@ YY_ACTION(void) yy_1_ModuleCore(GREG *G, char *yytext, int yyleng, yythunk *thun
 #define stmt G->val[-1]
 #define spec G->val[-2]
   yyprintf((stderr, "do yy_1_ModuleCore\n"));
-   tokenPos; ;
+   tokenPos ;
 #undef stmt
 #undef spec
 }
@@ -6787,11 +6790,11 @@ YY_RULE(int) yy_FunctionDeclBody(GREG *G)
   }  goto l589;
   l588:;	  G->pos= yypos588; G->thunkpos= yythunkpos588;
   }
-  l589:;	  if (!yy__(G)) { goto l586; }  if (!yy_CLOS_PAREN(G)) { goto l586; }  yyDo(G, yy_2_FunctionDeclBody, G->begin, G->end);  goto l587;
+  l589:;	  if (!yy__(G)) { goto l586; }  if (!yy_CLOS_PAREN(G)) { { YY_XTYPE YY_XVAR = (YY_XTYPE) G->data; int yyindex = G->offset + G->pos;  nq_error(core->this, NQE_EXP_ARG, "Malformed function argument (remember, it's `name: Type` in ooc, not `Type name`)\n", G->pos + G->offset) ; } goto l586; }  yyDo(G, yy_2_FunctionDeclBody, G->begin, G->end);  goto l587;
   l586:;	  G->pos= yypos586; G->thunkpos= yythunkpos586;
   }
   l587:;	
-  {  int yypos592= G->pos, yythunkpos592= G->thunkpos;  if (!yy__(G)) { goto l592; }  if (!yy_R_ARROW(G)) { goto l592; }  if (!yy__(G)) { goto l592; }  if (!yy_Type(G)) { { YY_XTYPE YY_XVAR = (YY_XTYPE) G->data; int yyindex = G->offset + G->pos;  nq_error(core->this, NQE_EXP_RET_TYPE, "Expected return type!\n", G->pos + G->offset) ; } goto l592; }  yyDo(G, yySet, -2, 0);  yyDo(G, yy_3_FunctionDeclBody, G->begin, G->end);  goto l593;
+  {  int yypos592= G->pos, yythunkpos592= G->thunkpos;  if (!yy__(G)) { goto l592; }  if (!yy_R_ARROW(G)) { goto l592; }  if (!yy__(G)) { goto l592; }  if (!yy_Type(G)) { { YY_XTYPE YY_XVAR = (YY_XTYPE) G->data; int yyindex = G->offset + G->pos;  nq_error(core->this, NQE_EXP_RET_TYPE, "Missing return type.\n", G->pos + G->offset) ; } goto l592; }  yyDo(G, yySet, -2, 0);  yyDo(G, yy_3_FunctionDeclBody, G->begin, G->end);  goto l593;
   l592:;	  G->pos= yypos592; G->thunkpos= yythunkpos592;
   }
   l593:;	
@@ -6799,7 +6802,7 @@ YY_RULE(int) yy_FunctionDeclBody(GREG *G)
   l596:;	
   {  int yypos597= G->pos, yythunkpos597= G->thunkpos;  if (!yy_WS(G)) { goto l597; }  if (!yy_Stmt(G)) { goto l597; }  yyDo(G, yySet, -1, 0);  yyDo(G, yy_5_FunctionDeclBody, G->begin, G->end);  if (!yy_WS(G)) { goto l597; }  goto l596;
   l597:;	  G->pos= yypos597; G->thunkpos= yythunkpos597;
-  }  if (!yy_WS(G)) { goto l594; }  if (!yy_CLOS_BRACK(G)) { { YY_XTYPE YY_XVAR = (YY_XTYPE) G->data; int yyindex = G->offset + G->pos;  rewindWhiteSpace; nq_error(core->this, NQE_EXP_STATEMENT_OR_CLOSING_BRACKET, "Expected statement or a closing bracket to finish the function\n", G->pos + G->offset) ; } goto l594; }  goto l595;
+  }  if (!yy_WS(G)) { goto l594; }  if (!yy_CLOS_BRACK(G)) { { YY_XTYPE YY_XVAR = (YY_XTYPE) G->data; int yyindex = G->offset + G->pos;  rewindWhiteSpace; nq_error(core->this, NQE_EXP_STATEMENT_OR_CLOSING_BRACKET, "Malformed statement or closing bracket missing\n", G->pos + G->offset) ; } goto l594; }  goto l595;
   l594:;	  G->pos= yypos594; G->thunkpos= yythunkpos594;
   }
   l595:;	  yyDo(G, yy_6_FunctionDeclBody, G->begin, G->end);
