@@ -1,14 +1,14 @@
 import structs/HashMap
 import ../io/TabbedWriter
 import TypeDecl, Declaration, Visitor, Node, VariableAccess, Type,
-       VariableDecl, IntLiteral, FloatLiteral, Expression
+       VariableDecl, IntLiteral, FloatLiteral, Expression, FunctionDecl
 import tinker/[Trail, Resolver, Response, Errors]
 import ../frontend/Token
 
 EnumDecl: class extends TypeDecl {
     lastElementValue := IntLiteral new(0, nullToken)
     incrementOper := '+'
-    incrementStep := 1
+    incrementStep : Int64 = 1
     fromType: Type
 
     init: func ~enumDecl(.name, .token) {
@@ -30,6 +30,11 @@ EnumDecl: class extends TypeDecl {
         }
 
         Response OK
+    }
+
+    addFunction: func (kalamazoo: FunctionDecl) {
+        kalamazoo setFinal(true)
+        super(kalamazoo)
     }
 
     addElement: func (element: EnumElement) {

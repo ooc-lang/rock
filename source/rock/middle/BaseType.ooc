@@ -110,19 +110,23 @@ BaseType: class extends Type {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        if(isResolved()) return Response OK
+        if(isResolved()) {
+            return Response OK
+        }
 
-        if(!getRef()) {
+        if(!ref) {
             depth := trail size() - 1
             while(depth >= 0) {
                 node := trail get(depth, Node)
                 node resolveType(this, res, trail)
-                if(getRef()) break // break on first match
+                if(ref) {
+                    break // break on first match
+                }
                 depth -= 1
             }
         }
 
-        if(getRef() == null) {
+        if(!ref) {
             if(res fatal) {
                 if(res params veryVerbose) {
                     trail toString() println()
@@ -137,8 +141,8 @@ BaseType: class extends Type {
                 printf("     - type %s still not resolved, looping (ref = %p)\n", name toCString(), getRef())
             }
             return Response LOOP
-        } else if(getRef() instanceOf?(TypeDecl)) {
-            tDecl := getRef() as TypeDecl
+        } else if(ref instanceOf?(TypeDecl)) {
+            tDecl := ref as TypeDecl
             if(!tDecl isMeta && !tDecl getTypeArgs() empty?()) {
                 if((typeArgs == null || typeArgs size() != tDecl getTypeArgs() size()) && !trail peek() instanceOf?(Cast)) {
                     message : String = match {
@@ -189,7 +193,7 @@ BaseType: class extends Type {
     }
 
     isResolved: func -> Bool {
-        if(getRef() == null) return false
+        if(ref == null) return false
         if(typeArgs == null) return true
         for(typeArg in typeArgs) if(!typeArg isResolved()) {
             return false

@@ -236,7 +236,10 @@ FunctionDecl: class extends Declaration {
     getOwner: func -> TypeDecl { owner }
 
     getStaticVariant: func -> This {
-        if(isStatic) token module params errorHandler onError(InternalError new(token, "Should get the static variant of a static function.. wtf?"))
+        if(isStatic) {
+            token module params errorHandler onError(
+            InternalError new(token, "Should get the static variant of a static function.. wtf?"))
+        }
 
         if(!staticVariant) {
             staticVariant = new(name, token)
@@ -447,8 +450,12 @@ FunctionDecl: class extends Declaration {
 
         if(debugCondition() || res params veryVerbose) printf("** Resolving function decl %s\n", name toCString())
 
+        if(debugCondition()) ("isFatal ? " + res fatal toString()) println()
+
         trail push(this)
 
+        if(debugCondition()) "Handling the owner"
+        
         // handle the case where we specialize a generic function
         if(owner) {
             meat := owner isMeta ? owner as ClassDecl : owner getMeta()
@@ -459,6 +466,7 @@ FunctionDecl: class extends Declaration {
                 parent := base getFunction(name, suffix ? suffix : "", null, false, finalScore&)
                 if(finalScore == -1) {
                     res wholeAgain(this, "Something's not resolved, need base getFunction()")
+                    if(debugCondition()) "Got -1 from finalScore!" println()
                     return Response OK
                 }
                 // todo: check for finalScore
@@ -494,7 +502,10 @@ FunctionDecl: class extends Declaration {
             }
         }
 
+        if(debugCondition()) "Handling the args"
+
         for(arg in args) {
+            if(debugCondition()) "Handling arg %s" format(arg toString() toCString()) println()
             response := arg resolve(trail, res)
             if(!response ok()) {
                 if(debugCondition() || res params veryVerbose) printf("Response of arg %s = %s\n", arg toString() toCString(), response toString() toCString())
@@ -502,6 +513,8 @@ FunctionDecl: class extends Declaration {
                 return response
             }
         }
+
+        if(debugCondition()) "Handling isClosure"
 
         isClosure := name empty?()
 
@@ -521,6 +534,8 @@ FunctionDecl: class extends Declaration {
             )
         }
 
+        if(debugCondition()) "Handling typeArgs"
+
         for(typeArg in typeArgs) {
             response := typeArg resolve(trail, res)
             if(!response ok()) {
@@ -529,6 +544,8 @@ FunctionDecl: class extends Declaration {
                 return response
             }
         }
+
+        if(debugCondition()) "Handling the body."
 
         {
             response := returnType resolve(trail, res)

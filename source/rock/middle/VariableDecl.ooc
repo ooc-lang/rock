@@ -147,6 +147,7 @@ VariableDecl: class extends Declaration {
         }
 
         if(expr) {
+            if(debugCondition()) ("Resolving expr " + expr toString()) println()
             response := expr resolve(trail, res)
             if(!response ok()) {
                 trail pop(this)
@@ -168,8 +169,11 @@ VariableDecl: class extends Declaration {
         }
 
         if(type != null) {
-            //if(res params veryVerbose) printf("Resolving type %s, of type %s\n", type toString(), type class name)
+            if(debugCondition() || res params veryVerbose) {
+                ("For " + toString() + ", resolving type " + type toString() + ", of type " + type class name) println()
+            }
             response := type resolve(trail, res)
+            if(debugCondition()) "Done resolving the type, ref = %s" printfln(type getRef() ? type getRef() toString() toCString() : "nil" toCString())
             if(!response ok()) {
                 trail pop(this)
                 return response
@@ -177,11 +181,13 @@ VariableDecl: class extends Declaration {
         }
 
         if(fDecl != null) {
+            if(debugCondition()) "Resolving the fDecl." println()
             response := fDecl resolve(trail, res)
             if(!response ok()) {
                 trail pop(this)
                 return response
             }
+            if(debugCondition()) "Done resolving the fDecl" println()
         }
 
         trail pop(this)
@@ -189,6 +195,7 @@ VariableDecl: class extends Declaration {
         parent := trail peek()
         {
             if(!parent isScope() && !parent instanceOf?(TypeDecl)) {
+                if(debugCondition()) "Parent isn't scope nor typedecl, unwrapping." println()
                 varAcc := VariableAccess new(this, token)
                 result := trail peek() replace(this, varAcc)
                 if(!result) {
@@ -221,6 +228,7 @@ VariableDecl: class extends Declaration {
         }
 
         if(expr != null) {
+            if(debugCondition()) "Expr isn't null, handling generic calls" println()
             realExpr := expr
             while(realExpr instanceOf?(Cast)) {
                 realExpr = realExpr as Cast inner
@@ -245,6 +253,7 @@ VariableDecl: class extends Declaration {
                 }
             }
         } else { // Set pointer references to null
+            if(debugCondition()) "Expr is null, set pointer reference to null" println()
             if (!owner && trail peek() instanceOf?(Scope)) { // don't touch a member-variable or an argument
                 t := getType()
                 if (!t) {
@@ -263,6 +272,7 @@ VariableDecl: class extends Declaration {
         }
 
         if(!isArg && type != null && type isGeneric() && type pointerLevel() == 0) {
+            if(debugCondition()) "Generic, set expr to malloc" println()
             if(expr != null) {
                 if(expr instanceOf?(FunctionCall) && expr as FunctionCall getName() == "gc_malloc") return Response OK
 
@@ -279,6 +289,8 @@ VariableDecl: class extends Declaration {
             expr = fCall
             res wholeAgain(this, "just set expr to gc_malloc cause generic!")
         }
+
+        if(debugCondition()) "Done resolving!" println()
 
         return Response OK
 
