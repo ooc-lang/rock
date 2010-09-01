@@ -7,6 +7,11 @@ Trail: class extends Stack<Node> {
         super()
     }
 
+    init: func ~trailWithModule (module: Module) {
+        init()
+        push(module)
+    }
+
     /**
      * A checked pop, pops a node from the trail, and verify
      * it's equal to the reference node. It is used mostly as a
