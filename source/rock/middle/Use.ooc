@@ -6,7 +6,7 @@ import tinker/Errors
 Use: class {
 
     identifier: String
-    useDef: UseDef
+    useDef: UseDef { get set }
     token: Token
 
     init: func (=identifier, params: BuildParams, =token) {

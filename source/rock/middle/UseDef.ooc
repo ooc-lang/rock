@@ -33,10 +33,13 @@ UseDef: class {
 
     identifier, name = "", description = "", version = "": String
 
+    sourcePath : String = null
+
     requirements := ArrayList<Requirement> new()
     pkgs         := ArrayList<String> new()
     libs         := ArrayList<String> new()
     includes     := ArrayList<String> new()
+    imports      := ArrayList<String> new()
     libPaths     := ArrayList<String> new()
     includePaths := ArrayList<String> new()
 
@@ -162,9 +165,13 @@ UseDef: class {
                     sourcePathFile = file parent() getChild(value) getAbsoluteFile()
                 }
                 if(params veryVerbose) "Adding %s to sourcepath ..." format(sourcePathFile path toCString()) println()
-                params sourcePath add(sourcePathFile path)
+                sourcePath = sourcePathFile path
+                params sourcePath add(sourcePath)
             } else if(id == "Version") {
                 version = value
+            } else if(id == "Imports") {
+                for(imp in value split(','))
+                    imports add(imp trim())
             } else if(id == "Origin" || id == "Variant") {
                 // known, but ignored ids
             } else if(id startsWith?("_")) {
