@@ -1,6 +1,6 @@
-version(windows) {
-    import native/win32/types
-}
+
+import native/win32/types
+
 /* includes */
 
 version(linux) {

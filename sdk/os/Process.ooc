@@ -1,11 +1,6 @@
 import Pipe, PipeReader
 import structs/[List, ArrayList, HashMap]
-version(!windows) {
-    import native/ProcessUnix
-}
-version(windows) {
-    import native/ProcessWin32
-}
+import native/[ProcessUnix, ProcessWin32]
 
 /**
    Allows to launch processes with arbitrary arguments, redirect
