@@ -6,6 +6,12 @@ import structs/HashMap /* for getStandardEquals() - should probably move that in
  */
 List: abstract class <T> extends BackIterable<T> {
 
+	size: SizeT {
+		get {
+			getSize()
+		}
+	}
+
     equals? := getStandardEquals(T)
 
     /**
@@ -213,7 +219,7 @@ List: abstract class <T> extends BackIterable<T> {
      */
     reverse!: func {
         i := 0
-        j := getSize() - 1
+        j := size - 1
         limit := j / 2
         while (i <= limit) {
             set(i, set(j, get(i)))
