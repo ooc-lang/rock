@@ -363,12 +363,12 @@ VariableDeclTuple: class extends VariableDecl {
 
             case expr instanceOf?(Tuple) =>
                 tuple2 := expr as Tuple
-                if(tuple elements size() != tuple2 elements size()) {
+                if(tuple elements getSize() != tuple2 elements getSize()) {
                     res throwError(TupleMismatch new(token, "Tuples don't match for multi-variable declaration."))
                     return Response OK
                 }
 
-                for(i in 0..tuple elements size()) {
+                for(i in 0..tuple elements getSize()) {
                     element := tuple elements[i]
                     if(!element instanceOf?(VariableAccess)) {
                         res throwError(IncompatibleElementInTupleVarDecl new(element token, "Expected a variable access in a tuple-variable declaration!"))
@@ -377,7 +377,7 @@ VariableDeclTuple: class extends VariableDecl {
 
                     child := VariableDecl new(null, argName, tuple2 elements[i], token)
 
-                    if(i == tuple elements size() - 1) {
+                    if(i == tuple elements getSize() - 1) {
                         // last? replace
                         if(!trail peek() replace(this, child)) {
                             res throwError(CouldntReplace new(token, this, child, trail))
@@ -409,7 +409,7 @@ VariableDeclTuple: class extends VariableDecl {
                 returnType := fCall getRef() getReturnType() as TypeList
                 returnTypes := returnType types
 
-                if(tuple getElements() size() < returnTypes size()) {
+                if(tuple getElements() getSize() < returnTypes getSize()) {
                     bad := false
                     if(tuple getElements() empty?()) {
                         bad = true

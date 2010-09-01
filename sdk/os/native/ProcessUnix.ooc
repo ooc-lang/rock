@@ -75,11 +75,11 @@ ProcessUnix: class extends Process {
             }
 
             /* run the stuff. */
-            cArgs : CString * = gc_malloc(Pointer size * (args size() + 1))
-            args size() times(|i|
+            cArgs : CString * = gc_malloc(Pointer size * (args getSize() + 1))
+            args getSize() times(|i|
                 cArgs[i] = args[i] toCString()
             )
-            cArgs[args size()] = null // null-terminated - makes sense
+            cArgs[args getSize()] = null // null-terminated - makes sense
 
             execvp(cArgs[0], cArgs)
             exit(errno); // don't allow the forked process to continue if execvp fails

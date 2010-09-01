@@ -417,8 +417,8 @@ CommandLine: class {
         }
 
         if(params staticlib != null || params dynamiclib != null) {
-            if(modulePaths size() != 1 && !params libfolder) {
-                "Error: you can use -staticlib of -dynamiclib only when specifying a unique .ooc file, not %d of them.\n" printf(modulePaths size())
+            if(modulePaths getSize() != 1 && !params libfolder) {
+                "Error: you can use -staticlib of -dynamiclib only when specifying a unique .ooc file, not %d of them.\n" printf(modulePaths getSize())
                 exit(1)
             }
             moduleName := File new(dummyModule ? dummyModule path : modulePaths[0]) name()

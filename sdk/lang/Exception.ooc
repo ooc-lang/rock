@@ -70,7 +70,7 @@ _popStackFrame: inline func -> StackFrame {
 }
 
 _hasStackFrame: inline func -> Bool {
-    exceptionStack hasValue?() && exceptionStack get() as Stack<StackFrame> size() > 0
+    exceptionStack hasValue?() && exceptionStack get() as Stack<StackFrame> size > 0
 }
 
 assert: extern func(Bool)

@@ -61,7 +61,7 @@ OperatorDecl: class extends Expression {
         fDecl resolve(trail, res)
 
         if (implicit && !_doneImplicit) {
-            if (fDecl args size() != 1) {
+            if (fDecl args getSize() != 1) {
                 res throwError(InvalidOperatorOverload new(token, "Overloading of 'as' needs exactly one argument."))
                 return Response LOOP
             }

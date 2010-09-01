@@ -147,9 +147,9 @@ Cast: class extends Expression {
         fDecl := op getFunctionDecl()
 
         args := fDecl getArguments()
-        if(args size() < 1) {
+        if(args getSize() < 1) {
             token module params errorHandler onError(InvalidCastOverload new(op token,
-                "Ohum, you need 1 argument to override the '%s' operator, not %d" format(symbol toCString(), args size())))
+                "Ohum, you need 1 argument to override the '%s' operator, not %d" format(symbol toCString(), args getSize())))
         }
 
         srcType := args get(0) getType()

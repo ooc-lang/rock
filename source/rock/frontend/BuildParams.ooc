@@ -245,7 +245,7 @@ BuildParams: class {
     backend: String = "c"
 
     _indexOfSymbol: func (symbol: String) -> Int {
-        for(i in 0..defines size()) {
+        for(i in 0..defines getSize()) {
             if(defines[i] == symbol) {
                 return i
             }

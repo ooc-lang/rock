@@ -234,12 +234,12 @@ Parser: class {
 
     state: ParserState {
         get {
-            states get(states size() - 1) as ParserState
+            states get(states getSize() - 1) as ParserState
         }
     }
 
     setState: func (state: ParserState) {
-        states set(states size() - 1, state)
+        states set(states getSize() - 1, state)
     }
 
     pushState: func (state: ParserState) {
@@ -247,7 +247,7 @@ Parser: class {
     }
 
     popState: func -> ParserState {
-        states removeAt(states size() - 1) as ParserState
+        states removeAt(states getSize() - 1) as ParserState
     }
 
     _parseSimpleValue: func (token: Token@, T: Class*) -> Pointer {
@@ -302,7 +302,7 @@ Parser: class {
     }
 
     pop: func <T> (T: Class) -> T {
-        stack removeAt(stack size() - 1, T)
+        stack removeAt(stack getSize() - 1, T)
     }
 
     rootClass: Class {
@@ -341,11 +341,11 @@ Parser: class {
 
     startObject: func {
         push(HashBag new())
-        objects push(stack size() - 1)
+        objects push(stack getSize() - 1)
     }
 
     endObject: func {
-        lastIndex := stack size() - 1
+        lastIndex := stack getSize() - 1
         hashbagIndex := objects pop() as SizeT
         // add everything yay.
         hashbag := stack get(hashbagIndex, HashBag)
@@ -361,11 +361,11 @@ Parser: class {
 
     startArray: func {
         push(Bag new())
-        arrays push(stack size() - 1)
+        arrays push(stack getSize() - 1)
     }
 
     endArray: func {
-        lastIndex := stack size() - 1
+        lastIndex := stack getSize() - 1
         bagIndex := arrays pop() as SizeT
         // add everything yay.
         bag := stack get(bagIndex, Bag)
@@ -501,7 +501,7 @@ printVerbose: func <T> (obj: T, indent: UInt, key: String) {
         case Bag => {
             "[" println()
             bag := obj as Bag
-            for(i: SizeT in 0..bag size()) {
+            for(i: SizeT in 0..bag getSize()) {
                 U := bag getClass(i)
                 printVerbose(bag get(i, U), indent + 1, null)
             }

@@ -187,8 +187,8 @@ FunctionCall: class extends Expression {
             }
             candidateUsesAs = false
 
-            for(i in 0..args size()) {
-                if(i >= candidate args size()) break
+            for(i in 0..args getSize()) {
+                if(i >= candidate args getSize()) break
                 declArg := candidate args get(i)
                 if(declArg instanceOf?(VarArg)) break
                 callArg := args get(i)
@@ -233,7 +233,7 @@ FunctionCall: class extends Expression {
         }
 
         // resolve all arguments
-        if(args size() > 0) {
+        if(args getSize() > 0) {
             trail push(this)
             i := 0
             for(arg in args) {
@@ -265,7 +265,7 @@ FunctionCall: class extends Expression {
 
         // resolve all returnArgs (secret arguments used when we have
         // multi-return and/or generic return type
-        for(i in 0..returnArgs size()) {
+        for(i in 0..returnArgs getSize()) {
             returnArg := returnArgs[i]
             if(!returnArg) continue // they can be null, after all.
 
@@ -310,7 +310,7 @@ FunctionCall: class extends Expression {
                 }
             } else {
                 if(expr == null) {
-                    depth := trail size() - 1
+                    depth := trail getSize() - 1
                     while(depth >= 0) {
                         node := trail get(depth, Node)
                         if(node resolveCall(this, res, trail) == -1) {
@@ -383,7 +383,7 @@ FunctionCall: class extends Expression {
 
                 reservedNames := ref args map(|arg| arg name)
 
-                for(i in 0..args size()) {
+                for(i in 0..args getSize()) {
                     callArg := args get(i)
 
                     name := ref args get(i) getName()
@@ -421,7 +421,7 @@ FunctionCall: class extends Expression {
                 return Response OK
             }
 
-            if(typeArgs size() > 0) {
+            if(typeArgs getSize() > 0) {
                 trail push(this)
                 for(typeArg in typeArgs) {
                     response := typeArg resolve(trail, res)
@@ -742,7 +742,7 @@ FunctionCall: class extends Expression {
         i := 0
         for(declArg in ref args) {
             if(declArg instanceOf?(VarArg)) break
-            if(i >= args size()) break
+            if(i >= args getSize()) break
             callArg := args get(i)
             if(declArg getType() == null || declArg getType() getRef() == null ||
                callArg getType() == null || callArg getType() getRef() == null) {
@@ -803,15 +803,15 @@ FunctionCall: class extends Expression {
             j += 1
         }
 
-        if(typeArgs size() == ref typeArgs size()) {
+        if(typeArgs getSize() == ref typeArgs getSize()) {
             return Response OK // already resolved
         }
 
-        //if(res params veryVerbose) printf("\t$$$$ resolving typeArgs of %s (call = %d, ref = %d)\n", toString(), typeArgs size(), ref typeArgs size())
+        //if(res params veryVerbose) printf("\t$$$$ resolving typeArgs of %s (call = %d, ref = %d)\n", toString(), typeArgs getSize(), ref typeArgs getSize())
         //if(res params veryVerbose) printf("trail = %s\n", trail toString())
 
-        i := typeArgs size()
-        while(i < ref typeArgs size()) {
+        i := typeArgs getSize()
+        while(i < ref typeArgs getSize()) {
             typeArg := ref typeArgs get(i)
             //if(res params veryVerbose) printf("\t$$$$ resolving typeArg %s\n", typeArg name)
 
@@ -839,9 +839,9 @@ FunctionCall: class extends Expression {
             }
         }
 
-        if(typeArgs size() != ref typeArgs size()) {
+        if(typeArgs getSize() != ref typeArgs getSize()) {
             if(res fatal) {
-                res throwError(InternalError new(token, "Missing info for type argument %s. Have you forgotten to qualify %s, e.g. List<Int>?" format(ref typeArgs get(typeArgs size()) getName() toCString(), ref toString() toCString())))
+                res throwError(InternalError new(token, "Missing info for type argument %s. Have you forgotten to qualify %s, e.g. List<Int>?" format(ref typeArgs get(typeArgs getSize()) getName() toCString(), ref toString() toCString())))
             }
             res wholeAgain(this, "Looping because of typeArgs\n")
         }
@@ -1004,7 +1004,7 @@ FunctionCall: class extends Expression {
             idx = trail find(FunctionDecl)
             while(idx != -1) {
                 fDecl := trail get(idx, FunctionDecl)
-                if(debugCondition()) "\n===\nFound fDecl %s, with %d typeArgs" format(fDecl toString() toCString(), fDecl getTypeArgs() size()) println()
+                if(debugCondition()) "\n===\nFound fDecl %s, with %d typeArgs" format(fDecl toString() toCString(), fDecl getTypeArgs() getSize()) println()
                 for(typeArg in fDecl getTypeArgs()) {
                     if(typeArg getName() == typeArgName) {
                         result := BaseType new(typeArgName, token)
@@ -1054,7 +1054,7 @@ FunctionCall: class extends Expression {
             score += Type SCORE_SEED / 4
         }
 
-        if(declArgs size() == 0) return score
+        if(declArgs getSize() == 0) return score
 
         declIter : Iterator<Argument> = declArgs iterator()
         callIter : Iterator<Expression> = args iterator()
@@ -1119,8 +1119,8 @@ FunctionCall: class extends Expression {
      * Returns true if decl has a signature compatible with this function call
      */
     matchesArgs: func (decl: FunctionDecl) -> Bool {
-        declArgs := decl args size()
-        callArgs := args size()
+        declArgs := decl args getSize()
+        callArgs := args getSize()
 
         // same number of args
         if(declArgs == callArgs) {
@@ -1128,7 +1128,7 @@ FunctionCall: class extends Expression {
         }
 
         // or, vararg
-        if(decl args size() > 0) {
+        if(decl args getSize() > 0) {
             last := decl args last()
 
             // and less fixed decl args than call args ;)

@@ -115,7 +115,7 @@ BaseType: class extends Type {
         }
 
         if(!ref) {
-            depth := trail size() - 1
+            depth := trail getSize() - 1
             while(depth >= 0) {
                 node := trail get(depth, Node)
                 node resolveType(this, res, trail)
@@ -144,11 +144,11 @@ BaseType: class extends Type {
         } else if(ref instanceOf?(TypeDecl)) {
             tDecl := ref as TypeDecl
             if(!tDecl isMeta && !tDecl getTypeArgs() empty?()) {
-                if((typeArgs == null || typeArgs size() != tDecl getTypeArgs() size()) && !trail peek() instanceOf?(Cast)) {
+                if((typeArgs == null || typeArgs getSize() != tDecl getTypeArgs() getSize()) && !trail peek() instanceOf?(Cast)) {
                     message : String = match {
                         case typeArgs == null =>
                             "No"
-                        case typeArgs size() < tDecl getTypeArgs() size() =>
+                        case typeArgs getSize() < tDecl getTypeArgs() getSize() =>
                             "Too few"
                         case =>
                             "Too many"
@@ -361,7 +361,7 @@ BaseType: class extends Type {
                         buff append(t toString())
                         isFirst = false
                     }
-                    res throwError(CoverDeclLoop new(list first() token, "Loop in cover declaration: %s -> %s -> ..." format(buff toString() toCString(), next toString() toCString(), list size())))
+                    res throwError(CoverDeclLoop new(list first() token, "Loop in cover declaration: %s -> %s -> ..." format(buff toString() toCString(), next toString() toCString(), list getSize())))
                 }
                 next checkedDigImpl(list, res)
             }
@@ -416,7 +416,7 @@ BaseType: class extends Type {
         for(arg in typeRef typeArgs) {
             if(arg getName() == typeArgName) {
                 //printf("Looking for %s in %s (ref %s), candidate = %s, j = %d, typeArgs size() = %d\n", typeArgName, toString(), typeRef toString(), arg getName(), j, typeArgs ? typeArgs size() : -1)
-                if(typeArgs == null || typeArgs size() <= j) {
+                if(typeArgs == null || typeArgs getSize() <= j) {
                     continue
                 }
                 candidate := typeArgs get(j)
@@ -481,7 +481,7 @@ BaseType: class extends Type {
         for(superArg in superArgs) {
             if(superArg getName() == typeArgName) {
                 superRealArgs := superType getTypeArgs()
-                if(superRealArgs == null || superRealArgs size() < j) {
+                if(superRealArgs == null || superRealArgs getSize() < j) {
                     continue
                 }
                 candidate := superRealArgs get(j)

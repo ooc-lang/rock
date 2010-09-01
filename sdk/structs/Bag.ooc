@@ -4,8 +4,14 @@ Bag: class {
 
     // NOTE: most "real" code taken from sdk/structs/ArrayList
     data: ArrayList<Cell<Pointer>>
+    
+    size: SizeT {
+    	get {
+    		data getSize()
+    	}
+    }
 
-    init: func ~withCapacity(len: Int) {
+    init: func ~withCapacity(len: SizeT) {
         data = ArrayList<Cell<Pointer>> new(len)
     }
 
@@ -18,19 +24,19 @@ Bag: class {
         data add(tmp)
     }
 
-    add: func ~withIndex <T> (index: Int, element: T) {
+    add: func ~withIndex <T> (index: SSizeT, element: T) {
         tmp := Cell<T> new(element)
         data add(index, tmp)
     }
 
     clear: func {data clear()}
 
-    get: func <T> (index: Int, T: Class) -> T {
+    get: func <T> (index: SSizeT, T: Class) -> T {
         tmp := data get(index)
         return tmp val
     }
 
-    indexOf: func <T> (element: T) -> Int {
+    indexOf: func <T> (element: T) -> SSizeT {
         index := -1
         while (index < data size) {
             index += 1
@@ -41,7 +47,7 @@ Bag: class {
         return -1
     }
 
-    lastIndexOf: func <T> (element: T) -> Int {
+    lastIndexOf: func <T> (element: T) -> SSizeT {
         index := data size
 		while(index) {
 			candidate: T
@@ -53,7 +59,7 @@ Bag: class {
 		return -1
     }
 
-    removeAt: func <T> (index: Int, T: Class) -> T {
+    removeAt: func <T> (index: SSizeT, T: Class) -> T {
         tmp := data removeAt(index)
         return tmp val 
     }
@@ -63,14 +69,14 @@ Bag: class {
         data remove(tmp)
     }
 
-    set: func <T> (index: Int, element: T) {
+    set: func <T> (index: SSizeT, element: T) {
         tmp := Cell<T> new(element)
         data set(index, tmp)
     }
 
-    size: func -> Int {data size}
+    getSize: func -> SizeT {data size}
 
-    getClass: func (index: SizeT) -> Class {
+    getClass: func (index: SSizeT) -> Class {
         data get(index) T
     }
 }
@@ -80,7 +86,7 @@ operator as <T> (array : T[]) -> Bag {
 }
 
 operator as <T> (list : List<T>) -> Bag {
-    bag := Bag new(list size())
+    bag := Bag new(list getSize())
 
     for (item : T in list)
     {

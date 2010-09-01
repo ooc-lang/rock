@@ -334,7 +334,7 @@ FunctionDecl: class extends Declaration {
     }
 
     getArgsRepr: func ~withCallContext (call: FunctionCall) -> String {
-        if(args size() == 0) return ""
+        if(args getSize() == 0) return ""
         sb := Buffer new()
         if(typeArgs != null && !typeArgs empty?()) {
             sb append("<")
@@ -470,7 +470,7 @@ FunctionDecl: class extends Declaration {
                     return Response OK
                 }
                 // todo: check for finalScore
-                for(i in 0..args size()) {
+                for(i in 0..args getSize()) {
                     arg := args[i]
                     if(arg getType() instanceOf?(FuncType)) {
                         fType1 := arg getType() as FuncType
@@ -479,7 +479,7 @@ FunctionDecl: class extends Declaration {
 
                         //"for %s, got %s vs %s" printfln(toString(), fType1 toString(), fType2 toString())
 
-                        for(j in 0..fType1 argTypes size()) {
+                        for(j in 0..fType1 argTypes getSize()) {
                             type1 := fType1 argTypes[j]
                             type2 := fType2 argTypes[j]
 
@@ -562,7 +562,7 @@ FunctionDecl: class extends Declaration {
                 if(returnArgs empty?()) createReturnArg(returnType, "genericReturn")
             } else if(returnType instanceOf?(TypeList)) {
                 list := returnType as TypeList
-                if(list types size() > returnArgs size()) {
+                if(list types getSize() > returnArgs getSize()) {
                     for(type in list types) {
                         createReturnArg(ReferenceType new(type, type token), "tupleArg")
                     }
@@ -665,7 +665,7 @@ FunctionDecl: class extends Declaration {
         }
 
         if(name == "main" && owner == null) {
-            if(args size() == 1 && args first() getType() getName() == "ArrayList") {
+            if(args getSize() == 1 && args first() getType() getName() == "ArrayList") {
                 arg := args first()
                 args clear()
                 argc := Argument new(BaseType new("Int", arg token), "argc", arg token)
@@ -875,7 +875,7 @@ FunctionDecl: class extends Declaration {
                 partialDecl := VariableDecl new(null, partialName, newCall, token)
                 trail addBeforeInScope(this, partialDecl)
                 parentCall: FunctionCall = null // ACS related, function call passing an ACS
-                argsSizes := Buffer new(args size())
+                argsSizes := Buffer new(args getSize())
                 i := 0
                 for(arg in args) {
                     t: Type

@@ -13,8 +13,14 @@ import List
 ArrayList: class <T> extends List<T> {
 
     data : T*
-    capacity : Int
-    size = 0 : Int
+    capacity : SizeT
+    _size = 0 : SizeT
+    
+    size: SizeT {
+    	get {
+    		_size
+    	}
+    }
 
     init: func {
         init(10)
@@ -24,59 +30,59 @@ ArrayList: class <T> extends List<T> {
         data = gc_malloc(capacity * T size)
     }
 
-    init: func ~withData (.data, =size) {
-        this data = gc_malloc(size * T size)
-        memcpy(this data, data, size * T size)
-        capacity = size
+    init: func ~withData (.data, =_size) {
+        this data = gc_malloc(_size * T size)
+        memcpy(this data, data, _size * T size)
+        capacity = _size
     }
 
     add: func (element: T) {
-        ensureCapacity(size + 1)
-        data[size] = element
-        size += 1
+        ensureCapacity(_size + 1)
+        data[_size] = element
+        _size += 1
     }
 
-    add: func ~withIndex (index: Int, element: T) {
+    add: func ~withIndex (index: SSizeT, element: T) {
         // inserting at 0 can be optimized
         if(index == 0) {
-            ensureCapacity(size + 1)
+            ensureCapacity(_size + 1)
             dst, src: Octet*
             dst = data + (T size)
             src = data
-            memmove(dst, src, T size * size)
+            memmove(dst, src, T size * _size)
             data[0] = element
-            size += 1
+            _size += 1
             return
         }
 
-        if(index == size) {
+        if(index == _size) {
             add(element)
             return
         }
 
         checkIndex(index)
-        ensureCapacity(size + 1)
+        ensureCapacity(_size + 1)
         dst, src: Octet*
         dst = data + (T size * (index + 1))
         src = data + (T size * index)
-        bsize := (size - index) * T size
+        bsize := (_size - index) * T size
         memmove(dst, src, bsize)
         data[index] = element
-        size += 1
+        _size += 1
     }
 
     clear: func {
-        size = 0
+        _size = 0
     }
 
-    get: inline func(index: Int) -> T {
+    get: inline func(index: SSizeT) -> T {
         checkIndex(index)
         return data[index]
     }
 
-    indexOf: func(element: T) -> Int {
+    indexOf: func(element: T) -> SSizeT {
         index := 0
-        while(index < size) {
+        while(index < _size) {
             //if(memcmp(data + index * T size, element, T size) == 0) return index
             if(this as List equals?(this[index], element)) return index
             index += 1
@@ -84,8 +90,8 @@ ArrayList: class <T> extends List<T> {
         return -1
     }
 
-    lastIndexOf: func(element: T) -> Int {
-        index := size
+    lastIndexOf: func(element: T) -> SSizeT {
+        index := _size
         while(index > -1) {
             if(memcmp(data + index * T size, element, T size) == 0) return index
             index -= 1
@@ -93,10 +99,10 @@ ArrayList: class <T> extends List<T> {
         return -1
     }
 
-    removeAt: func (index: Int) -> T {
+    removeAt: func (index: SSizeT) -> T {
         element := data[index]
-        memmove(data + (index * T size), data + ((index + 1) * T size), (size - index) * T size)
-        size -= 1
+        memmove(data + (index * T size), data + ((index + 1) * T size), (_size - index) * T size)
+        _size -= 1
         return element
     }
 
@@ -147,14 +153,14 @@ ArrayList: class <T> extends List<T> {
     /**
      * @return the number of elements in this list.
      */
-    size: inline func -> Int { size }
+    getSize: inline func -> SizeT { _size }
 
     /**
      * Increases the capacity of this ArrayList instance, if necessary,
      * to ensure that it can hold at least the number of elements
      * specified by the minimum capacity argument.
      */
-    ensureCapacity: inline func (newSize: Int) {
+    ensureCapacity: inline func (newSize: SizeT) {
         if(newSize > capacity) {
             capacity = newSize * (newSize > 50000 ? 2 : 4)
             tmpData := gc_realloc(data, capacity * T size)
@@ -167,9 +173,9 @@ ArrayList: class <T> extends List<T> {
     }
 
     /** private */
-    checkIndex: inline func (index: SizeT) {
-        if (index >= size()) {
-            OutOfBoundsException new(This, index, size()) throw()
+    checkIndex: inline func (index: SSizeT) {
+        if (index >= _size) {
+            OutOfBoundsException new(This, index, _size) throw()
         }
     }
 
@@ -177,12 +183,12 @@ ArrayList: class <T> extends List<T> {
 
     backIterator: func -> BackIterator<T> {
         iter := ArrayListIterator<T> new(this)
-        iter index = size()
+        iter index = _size
         return iter
     }
 
     clone: func -> This<T> {
-        copy := This<T> new(size())
+        copy := This<T> new(size)
         copy addAll(this)
         return copy
     }
@@ -201,11 +207,11 @@ ArrayList: class <T> extends List<T> {
 ArrayListIterator: class <T> extends BackIterator<T> {
 
     list: ArrayList<T>
-    index := 0
+    index : SSizeT = 0
 
     init: func ~iter (=list) {}
 
-    hasNext?: func -> Bool { index < list size() }
+    hasNext?: func -> Bool { index < list size }
 
     next: func -> T {
         element := list get(index)
@@ -223,7 +229,7 @@ ArrayListIterator: class <T> extends BackIterator<T> {
 
     remove: func -> Bool {
         if(list removeAt(index - 1) == null) return false
-        if(index <= list size()) index -= 1
+        if(index <= list size) index -= 1
         return true
     }
 

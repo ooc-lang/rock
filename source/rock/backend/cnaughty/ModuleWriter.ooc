@@ -389,7 +389,7 @@ ModuleWriter: abstract class extends Skeleton {
     writeTypesForward: static func (this: Skeleton, module: Module, meta: Bool) {
 
         for(tDecl: TypeDecl in module types) {
-            if(tDecl getInterfaceTypes() size() > 0) {
+            if(tDecl getInterfaceTypes() getSize() > 0) {
                 for(interfaceDecl in tDecl getInterfaceDecls()) {
                     if(!meta) {
                         ClassDeclWriter writeStructTypedef(this, interfaceDecl)

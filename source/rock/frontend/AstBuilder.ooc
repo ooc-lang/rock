@@ -405,7 +405,7 @@ AstBuilder: class {
         if(externName empty?()) {
             vars each(|var| var setExternName(""))
         } else {
-            if(vars size() != 1) {
+            if(vars getSize() != 1) {
                 params errorHandler onError(SyntaxError new(token(), "Trying to set an extern name on several variables at once!"))
             }
             vars peek() setExternName(externName)
@@ -418,7 +418,7 @@ AstBuilder: class {
         if(unmangledName empty?()) {
             vars each(|var| var setUnmangledName(""))
         } else {
-            if(vars size() != 1) {
+            if(vars getSize() != 1) {
                 params errorHandler onError(SyntaxError new(token(), "Trying to set an unmangled name on several variables at once!"))
             }
             vars peek() setUnmangledName(unmangledName)
@@ -447,7 +447,7 @@ AstBuilder: class {
 
     onVarDeclEnd: unmangled(nq_onVarDeclEnd) func -> Object {
         stack := pop(Stack<VariableDecl>)
-        if(stack size() == 1) return stack peek() as Object
+        if(stack getSize() == 1) return stack peek() as Object
         // FIXME: Better detection to avoid 'stack' being passed as a Statement to, say, an If
         return stack as Object
     }
@@ -501,7 +501,7 @@ AstBuilder: class {
     onPropertyDeclGetterEnd: unmangled(nq_onPropertyDeclGetterEnd) func {
         getter := pop(FunctionDecl)
         // getter has 0 statements and isn't extern? use default getter
-        if(getter body size() == 0 && !getter isExtern()) {
+        if(getter body getSize() == 0 && !getter isExtern()) {
             peek(PropertyDecl) setDefaultGetter()
         } else {
             peek(PropertyDecl) setGetter(getter)
@@ -525,7 +525,7 @@ AstBuilder: class {
     onPropertyDeclSetterEnd: unmangled(nq_onPropertyDeclSetterEnd) func {
         setter := pop(FunctionDecl)
         // setter has 0 statements and isn't extern? use default setter
-        if(setter body size() == 0 && !setter isExtern()) {
+        if(setter body getSize() == 0 && !setter isExtern()) {
             peek(PropertyDecl) setDefaultSetter()
         } else {
             peek(PropertyDecl) setSetter(setter)

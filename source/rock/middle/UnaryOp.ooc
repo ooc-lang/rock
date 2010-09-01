@@ -127,11 +127,11 @@ UnaryOp: class extends Expression {
         args := fDecl getArguments()
 
         //if we have 2 arguments, then it's a binary plus binary
-        if(args size() == 2) return 0
+        if(args getSize() == 2) return 0
 
-        if(args size() != 1) {
+        if(args getSize() != 1) {
             token module params errorHandler onError(InvalidUnaryOverload new(op token,
-                "Ohum, you need 1 argument to override the '%s' operator, not %d" format(symbol toCString(), args size())))
+                "Ohum, you need 1 argument to override the '%s' operator, not %d" format(symbol toCString(), args getSize())))
         }
 
         if(args get(0) getType() == null || inner getType() == null) { return -1 }

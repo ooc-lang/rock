@@ -101,7 +101,7 @@ FunctionCallWriter: abstract class extends Skeleton {
             }
             k += 1
         }
-        for(i in k..fDecl getReturnArgs() size()) {
+        for(i in k..fDecl getReturnArgs() getSize()) {
             if(isFirst) {
                 isFirst = false
             } else {
@@ -144,7 +144,7 @@ FunctionCallWriter: abstract class extends Skeleton {
             writeCast := false
 
             declArg : Argument = null
-            if(i < fDecl args size())                         declArg = fDecl args get(i)
+            if(i < fDecl args getSize())                         declArg = fDecl args get(i)
             if(declArg != null && declArg instanceOf?(VarArg)) declArg = null
 
             writeRefAddrOf := true

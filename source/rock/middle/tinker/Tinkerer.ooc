@@ -61,7 +61,7 @@ Tinkerer: class {
         if(params stats) {
             for(res in resolvers) {
                 module := res module
-                printf(" - imported %dx, has %d deps, %s\n", module timesImported, module getAllImports() size(), module fullName toCString())
+                printf(" - imported %dx, has %d deps, %s\n", module timesImported, module getAllImports() getSize(), module fullName toCString())
             }
             printf("End final order.\n")
         }
@@ -71,7 +71,7 @@ Tinkerer: class {
 
             round += 1
             if(params veryVerbose) {
-                "\n=======================================\n\nTinkerer, round %d, %d left" format(round , resolvers size()) println()
+                "\n=======================================\n\nTinkerer, round %d, %d left" format(round , resolvers getSize()) println()
             }
 
             iter := resolvers iterator()
@@ -110,7 +110,7 @@ Tinkerer: class {
                 }
 
                 if(params fatalError) {
-                    println("Tinkerer going round in circles. " + resolvers size() toString() + " modules remaining.")
+                    println("Tinkerer going round in circles. " + resolvers getSize() toString() + " modules remaining.")
                 }
                 return false
             }
@@ -121,9 +121,9 @@ Tinkerer: class {
             totalImports := 0
             totalLoops := 0
             for(module in modules) {
-                printf(" - imported %dx, has %d deps, looped %d x, %s\n", module timesImported, module getAllImports() size(),
+                printf(" - imported %dx, has %d deps, looped %d x, %s\n", module timesImported, module getAllImports() getSize(),
                     module timesLooped, module fullName toCString())
-                totalImports += module getAllImports() size()
+                totalImports += module getAllImports() getSize()
                 totalLoops += module timesLooped
             }
             printf("Total imports = %d, total modules looped = %d, final round = %d\n", totalImports, totalLoops, round)

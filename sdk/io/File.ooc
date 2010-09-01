@@ -85,7 +85,7 @@ File: abstract class {
     /**
      * :return: the size of the file, in bytes
      */
-    size: abstract func -> LLong
+    getSize: abstract func -> LLong
 
     /**
      * :return: true if the file exists and can be

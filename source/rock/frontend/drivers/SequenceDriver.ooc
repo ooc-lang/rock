@@ -230,8 +230,8 @@ SequenceDriver: class extends Driver {
             objectFiles add(sourceFolder outlib)
 
             if(archive exists?) {
-                if(reGenerated size() > 0) {
-                    if(params verbose) printf("\n%d new/updated modules to compile\n", reGenerated size())
+                if(reGenerated getSize() > 0) {
+                    if(params verbose) printf("\n%d new/updated modules to compile\n", reGenerated getSize())
                     for(module in reGenerated) {
                         code := buildIndividual(module, sourceFolder, null, archive, true)
                         if(code != 0) return code

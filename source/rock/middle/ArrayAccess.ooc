@@ -99,7 +99,7 @@ ArrayAccess: class extends Expression {
         }
 
         if(deepDown instanceOf?(VariableAccess) && deepDown as VariableAccess getRef() instanceOf?(TypeDecl)) {
-            if(indices size() > 1) {
+            if(indices getSize() > 1) {
                 res throwError(InvalidArrayCreation new(token, "You can't call new on an ArrayAccess with several indices! Only one index is supported."))
             }
             index := indices[0]
@@ -130,7 +130,7 @@ ArrayAccess: class extends Expression {
             deepDown = array
             while(deepDown instanceOf?(ArrayAccess)) {
                 arrAcc := deepDown as ArrayAccess
-                if(arrAcc indices size() > 1) {
+                if(arrAcc indices getSize() > 1) {
                     res throwError(InvalidArrayCreation new(token, "You can't call new on an ArrayAccess with several indices! Only one index is supported."))
                 }
                 arrayType = ArrayType new(arrayType, arrAcc indices[0], token)
@@ -247,10 +247,10 @@ ArrayAccess: class extends Expression {
         fDecl := op getFunctionDecl()
 
         args := fDecl getArguments()
-        if(!args last() instanceOf?(VarArg) && (args size() != indices size() + diff)) {
+        if(!args last() instanceOf?(VarArg) && (args getSize() != indices getSize() + diff)) {
             // not a match!
             if(res params veryVerbose) {
-                "For %s vs %s, got %d args, %d indices, diff is %d - no luck!" format(op toString() toCString(), toString() toCString(), args size(), indices size(), diff) println()
+                "For %s vs %s, got %d args, %d indices, diff is %d - no luck!" format(op toString() toCString(), toString() toCString(), args getSize(), indices getSize(), diff) println()
             }
             return 0
         }
@@ -263,7 +263,7 @@ ArrayAccess: class extends Expression {
         if(arrayScore == -1) return -1
 
         indexScore := 0
-        for(i in 0..(args size() - diff)) {
+        for(i in 0..(args getSize() - diff)) {
             opIndex := args[i + 1]
             index := indices[i]
             //"opIndex = %s, index = %s (diff = %d)" printfln(opIndex toString(), index toString(), diff)

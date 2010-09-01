@@ -22,7 +22,7 @@ ControlStatementWriter: abstract class extends Skeleton {
     }
 
     write: static func ~_else (this: Skeleton, else1: Else) {
-        isIf := else1 getBody() size() == 1 && else1 getBody() first() instanceOf?(If)
+        isIf := else1 getBody() getSize() == 1 && else1 getBody() first() instanceOf?(If)
 
         if(isIf) {
             current app("else ")
@@ -67,7 +67,7 @@ ControlStatementWriter: abstract class extends Skeleton {
         }
         
         // ´case =>´ as only match-case
-        if (cazes size() == 1) {
+        if (cazes getSize() == 1) {
             caze := cazes get(0)
             if (!caze  getExpr()) {                 
                 writeBody(caze)

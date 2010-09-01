@@ -204,9 +204,9 @@ Comparison: class extends Expression {
         fDecl := op getFunctionDecl()
 
         args := fDecl getArguments()
-        if(args size() != 2) {
+        if(args getSize() != 2) {
             token module params errorHandler onError(InvalidComparisonOverload new(op token,
-                "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol toCString(), args size())))
+                "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol toCString(), args getSize())))
         }
 
         opLeft  := args get(0)

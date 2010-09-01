@@ -442,8 +442,8 @@ Buffer: class {
         //if (_literal?()) _makeWritable()
         if (what == null || what size == 0 || whit == null) return
         l := findAll( what, searchCaseSensitive )
-        if (l == null || l size() == 0) return
-        newlen: SizeT = size + (whit size * l size()) - (what size * l size())
+        if (l == null || l size == 0) return
+        newlen: SizeT = size + (whit size * l size) - (what size * l size)
         result := This new~withSize( newlen, false )
 
         sstart: SizeT = 0 //source (this) start pos
@@ -506,11 +506,11 @@ Buffer: class {
     split: func ~pointer (delimiter: Char*, delimiterLength:SizeT, maxSplits: SSizeT) -> ArrayList <This> {
         //cprintf("self[%p:%s] split called with %p:%s", size, data, delimiterLength, delimiter)
         l := findAll(delimiter, delimiterLength, true)
-        maxItems := ((maxSplits <= 0) || (maxSplits >= l size())) ? l size() : maxSplits
+        maxItems := ((maxSplits <= 0) || (maxSplits >= l size)) ? l size : maxSplits
         result := ArrayList <This> new( maxItems )
         sstart: SizeT = 0 //source (this) start pos
         for (item in l) {
-            if ( ( maxSplits > 0 ) && ( result size() == maxItems - 1 ) ) break
+            if ( ( maxSplits > 0 ) && ( result size == maxItems - 1 ) ) break
             sdist := item - sstart // bytes to copy
             if (maxSplits != 0 || sdist > 0) {
                 b := This new ((data + sstart) as CString, sdist)
@@ -695,7 +695,7 @@ Buffer: class {
     /** return the number of *what*'s non-overlapping occurences in *this*. */
     count: func ~buf (what: This) -> SizeT {
         l := findAll(what)
-        return l size()
+        return l size
     }
 
     /** return the first character of *this*. If *this* is empty, 0 is returned. */
@@ -789,7 +789,7 @@ Buffer: class {
         STEP_SIZE : const SizeT = 4096
         file := FStream open(fileName, "rb")
         if (!file || file error()) return false
-        len := file size()
+        len := file getSize()
         setLength(len)
         offset :SizeT= 0
         while (len / STEP_SIZE > 0) {
@@ -1130,7 +1130,7 @@ Buffer_unittest: class {
         p = b find(what, p+1)
 
         l := b findAll( String new ("1"))
-        if ( l size() != ( 3 as SizeT)) ( "find failed 1") println()
+        if ( l size != ( 3 as SizeT)) ( "find failed 1") println()
         else {
             if ( l get(0) != 0) ( "find failed 2") println()
             if ( l get(1) != 5) ( "find failed 3") println()
@@ -1159,12 +1159,12 @@ Buffer_unittest: class {
     }
 
     testSplit: static func {
-        if (("X XXX X") split (" ") size() != 3) Exception new ("split failed 1") throw()
+        if (("X XXX X") split (" ") size != 3) Exception new ("split failed 1") throw()
         if (("X XXX X") split (" ") get(0) != String new("X"))  ("split failed 2") println()
         if (("X XXX X") split (" ") get(1) != String new ("XXX"))  ("split failed 3") println()
         if (("X XXX X") split (" ") get(2) != String new ("X"))  ("split failed 4") println()
         /* actually that's hows it supposed to be, java has an additional argument to solve this: split(";" -1) or so
-        if (Buffer new ("X XXX X") split ("X") size() != 2) println("split failed 5")
+        if (Buffer new ("X XXX X") split ("X") size != 2) println("split failed 5")
         b := Buffer new ("X XXX X") split ("X")
         for (item in b) {
             if (item) (item toString() + "_") println()

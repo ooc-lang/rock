@@ -79,7 +79,7 @@ Random: class {
        :return: An element pseudo-randomly picked from the given list
      */
     choice: static func <T> (l: List<T>) -> T {
-        return l get(randRange(0, l size()))
+        return l get(randRange(0, l getSize()))
     }
 
     /**

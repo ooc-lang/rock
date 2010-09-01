@@ -17,7 +17,7 @@ List: abstract class <T> extends BackIterable<T> {
      * Inserts the specified element at the specified position in
      * this list.
      */
-    add: abstract func~withIndex(index: Int, element: T)
+    add: abstract func~withIndex(index: SSizeT, element: T)
 
     /**
      * Appends all of the elements in the specified Collection to the
@@ -34,7 +34,7 @@ List: abstract class <T> extends BackIterable<T> {
      * Inserts all of the elements in the specified Collection into
      * this list, starting at the specified position.
      */
-    addAll: func ~atStart (start: Int, list: Iterable<T>) {
+    addAll: func ~atStart (start: SSizeT, list: Iterable<T>) {
 
         if(start == 0) {
             for(element: T in list) {
@@ -64,9 +64,9 @@ List: abstract class <T> extends BackIterable<T> {
      * was empty.
      */
     removeLast: func -> Bool {
-        size := size()
-        if(size > 0) {
-            removeAt(size - 1)
+        mysize := getSize()
+        if(mysize > 0) {
+            removeAt(mysize - 1)
             return true
         }
         return false
@@ -92,7 +92,7 @@ List: abstract class <T> extends BackIterable<T> {
     /**
      * @return the element at the specified position in this list.
      */
-    get: abstract func(index: Int) -> T
+    get: abstract func(index: SSizeT) -> T
 
     /**
      * @return the index of the first occurence of the given argument,
@@ -104,7 +104,7 @@ List: abstract class <T> extends BackIterable<T> {
      * @return true if this list has no elements.
      */
     empty?: func() -> Bool {
-        size() == 0
+        getSize() == 0
     }
 
     /**
@@ -117,7 +117,7 @@ List: abstract class <T> extends BackIterable<T> {
      * Removes the element at the specified position in this list.
      * @return the element just removed
      */
-    removeAt: abstract func(index: Int) -> T
+    removeAt: abstract func(index: SSizeT) -> T
 
     /**
      * Removes a single instance of the specified element from this list,
@@ -131,12 +131,12 @@ List: abstract class <T> extends BackIterable<T> {
      * Replaces the element at the specified position in this list with
      * the specified element.
      */
-    set: abstract func(index: Int, element: T) -> T
+    set: abstract func(index: SSizeT, element: T) -> T
 
     /**
      * @return the number of elements in this list.
      */
-    size: abstract func -> Int
+    getSize: abstract func -> SizeT
 
     /**
        @return an interator on this list
@@ -177,12 +177,12 @@ List: abstract class <T> extends BackIterable<T> {
     shuffle: func -> This<T> {
         shuffled := emptyClone()
 
-        indexes := ArrayList<Int> new()
-        for(i in 0..size()) indexes add(i)
+        indexes := ArrayList<SSizeT> new()
+        for(i in 0..getSize()) indexes add(i)
 
         while(!indexes empty?()) {
-            i := Random randRange(0, indexes size())
-            shuffled add(this[indexes removeAt(i) as Int])
+            i := Random randRange(0, indexes getSize())
+            shuffled add(this[indexes removeAt(i) as SSizeT])
         }
         shuffled
     }
@@ -204,8 +204,8 @@ List: abstract class <T> extends BackIterable<T> {
     /**
      * @return the last index of this list (e.g. size() - 1)
      */
-    lastIndex: func -> Int {
-        return size() - 1
+    lastIndex: func -> SSizeT {
+        return getSize() - 1
     }
 
     /**
@@ -213,7 +213,7 @@ List: abstract class <T> extends BackIterable<T> {
      */
     reverse!: func {
         i := 0
-        j := size() - 1
+        j := getSize() - 1
         limit := j / 2
         while (i <= limit) {
             set(i, set(j, get(i)))
@@ -235,8 +235,8 @@ List: abstract class <T> extends BackIterable<T> {
      * Convert this list to a raw C array
      */
     toArray: func -> Pointer {
-        arr : T* = gc_malloc(size() * T size)
-        for(i in 0..size()) {
+        arr : T* = gc_malloc(getSize() * T size)
+        for(i in 0..getSize()) {
             arr[i] = this[i]
         }
         return arr& as Pointer
@@ -283,6 +283,7 @@ List: abstract class <T> extends BackIterable<T> {
 
             match T {
                 case String => result append((item as String) _buffer)
+                case Buffer  => result append(item as Buffer)
                 case Char   => result append(item as Char)
                 case        => Exception new("You cannot use `List join` with %s instances." format(this T name toCString())) throw()
             }
@@ -296,7 +297,7 @@ List: abstract class <T> extends BackIterable<T> {
 }
 
 /* Operators */
-operator [] <T> (list: List<T>, i: Int) -> T { list get(i) }
-operator []= <T> (list: List<T>, i: Int, element: T) { list set(i, element) }
+operator [] <T> (list: List<T>, i: SSizeT) -> T { list get(i) }
+operator []= <T> (list: List<T>, i: SSizeT, element: T) { list set(i, element) }
 operator += <T> (list: List<T>, element: T) { list add(element) }
 operator -= <T> (list: List<T>, element: T) -> Bool { list remove(element) }

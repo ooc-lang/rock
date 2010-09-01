@@ -148,7 +148,7 @@ Archive: class {
         fW writef("cacheversion\n%s\n", version toCString())
         fW writef("%s\n", compilerArgs toCString())
         fW writef("%s\n", RockVersion getName() toCString())
-        fW writef("%d\n", elements size())
+        fW writef("%d\n", elements getSize())
         for(element in elements) {
             element write(fW)
         }
@@ -191,7 +191,7 @@ Archive: class {
         running := true
         while(running) {
             if(params veryVerbose || params debugLibcache) {
-                "Analyzing %s, %d cleanModules, %d dirtyModules" format(pathElement path toCString(), cleanModules size(), dirtyModules size()) println()
+                "Analyzing %s, %d cleanModules, %d dirtyModules" format(pathElement path toCString(), cleanModules getSize(), dirtyModules getSize()) println()
             }
 
             for(module in cleanModules) {
@@ -244,7 +244,7 @@ Archive: class {
                 running = false
             } else {
                 if(params veryVerbose || params debugLibcache) {
-                    "[%s] We have %d transmodules to handle" format(pathElement path toCString(), transModules size()) println()
+                    "[%s] We have %d transmodules to handle" format(pathElement path toCString(), transModules getSize()) println()
                 }
                 for (module in transModules) {
                     if(params veryVerbose || params debugLibcache) {
@@ -406,7 +406,7 @@ ArchiveModule: class {
 
                 for (function in tDecl getFunctions()) {
                     if(!functionIter hasNext?()) {
-                        //printf("Function %s has changed (%d vs %d), %s not up-to-date\n", function getFullName(), archType functions size(), tDecl getFunctions() size(), oocPath)
+                        //printf("Function %s has changed (%d vs %d), %s not up-to-date\n", function getFullName(), archType functions getSize(), tDecl getFunctions() getSize(), oocPath)
                         return false
                     }
                     next := functionIter next()
@@ -448,7 +448,7 @@ ArchiveModule: class {
         // ooc path
         // lastModified
         // number of types
-        fW writef("%s\n%ld\n%d\n", oocPath toCString(), lastModified, types size())
+        fW writef("%s\n%ld\n%d\n", oocPath toCString(), lastModified, types getSize())
 
         // write each type
         i := 0
@@ -513,19 +513,19 @@ ArchiveType: class {
         fW writef("%s\n", name toCString())
 
         // write static variables
-        fW writef("%d\n", staticVariables size())
+        fW writef("%d\n", staticVariables getSize())
         for(variable in staticVariables) {
             fW writef("%s\n", variable toCString())
         }
 
         // write instance variables
-        fW writef("%d\n", variables size())
+        fW writef("%d\n", variables getSize())
         for(variable in variables) {
             fW writef("%s\n", variable toCString())
         }
 
         // write functions
-        fW writef("%d\n", functions size())
+        fW writef("%d\n", functions getSize())
         for(function in functions) {
             fW writef("%s\n", function toCString())
         }

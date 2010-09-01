@@ -238,13 +238,13 @@ BinaryOp: class extends Expression {
             t1 := left as Tuple
             t2 := right as Tuple
 
-            if(t1 elements size() != t2 elements size()) {
+            if(t1 elements getSize() != t2 elements getSize()) {
                 res throwError(InvalidOperatorUse new(token, "Invalid assignment between operands of type %s and %s\n" format(
                     left getType() toString() toCString(), right getType() toString() toCString())))
                 return Response OK
             }
 
-            size := t1 elements size()
+            size := t1 elements getSize()
 
             for(i in 0..size) {
                 l := t1 elements[i]
@@ -287,10 +287,10 @@ BinaryOp: class extends Expression {
                 }
             }
 
-            for(i in 0..t1 elements size()) {
+            for(i in 0..t1 elements getSize()) {
                 child := new(t1 elements[i], t2 elements[i], type, token)
 
-                if(i == t1 elements size() - 1) {
+                if(i == t1 elements getSize() - 1) {
                     // last? replace
                     if(!trail peek() replace(this, child)) {
                         res throwError(CouldntReplace new(token, this, child, trail))
@@ -447,9 +447,9 @@ BinaryOp: class extends Expression {
         fDecl := op getFunctionDecl()
 
         args := fDecl getArguments()
-        if(args size() != 2) {
+        if(args getSize() != 2) {
             token module params errorHandler onError(InvalidBinaryOverload new(op token,
-                "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol toCString(), args size())))
+                "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol toCString(), args getSize())))
         }
 
         opLeft  := args get(0)

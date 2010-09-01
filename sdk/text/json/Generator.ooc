@@ -50,7 +50,7 @@ generate: func <T> (writer: Writer, obj: T) {
             writer write('[')
             bag := obj as Bag
             first := true
-            for(i: SizeT in 0..bag size()) {
+            for(i: SizeT in 0..bag getSize()) {
                 if(first)
                     first = false
                 else

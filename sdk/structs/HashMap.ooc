@@ -182,12 +182,18 @@ getStandardHashFunc: func <T> (T: Class) -> Func <T> (T) -> SizeT {
 
 HashMap: class <K, V> extends BackIterable<V> {
 
-    size, capacity: SizeT
+    _size, capacity: SizeT
     keyEquals: Func <K> (K, K) -> Bool
     hashKey: Func <K> (K) -> SizeT
 
     buckets: HashEntry[]
     keys: ArrayList<K>
+    
+    size : SizeT {
+    	get {
+    		_size
+    	}
+    }
 
     /**
      * Returns a hash table with 100 buckets
@@ -204,7 +210,7 @@ HashMap: class <K, V> extends BackIterable<V> {
      * @return HashTable
      */
     init: func ~withCapacity (capaArg: SizeT) {
-        size = 0
+        _size = 0
         capacity = capaArg * 1.5
 
         buckets = HashEntry[capacity] new()
@@ -329,10 +335,10 @@ HashMap: class <K, V> extends BackIterable<V> {
 
                 buckets[hash] = entry
             }
-            size += 1
+            _size += 1
 
-            if ((size as Float / capacity as Float) > 0.75) {
-                resize(size * (size > 50000 ? 2 : 4))
+            if ((_size as Float / capacity as Float) > 0.75) {
+                resize(_size * (_size > 50000 ? 2 : 4))
             }
         }
         return true
@@ -401,14 +407,14 @@ HashMap: class <K, V> extends BackIterable<V> {
                         buckets[hash] = nullHashEntry
                     }
                 }
-                for (i in 0..keys size()) {
+                for (i in 0..keys size) {
                     cKey := keys get(i)
                     if(keyEquals(key, cKey)) {
                         keys removeAt(i)
                         break
                     }
                 }
-                size -= 1
+                _size -= 1
                 return true
             }
 
@@ -438,7 +444,7 @@ HashMap: class <K, V> extends BackIterable<V> {
 
         /* Clear key list and size */
         keys clear()
-        size = 0
+        _size = 0
 
         /* Transfer old buckets to new buckets! */
         capacity = _capacity
@@ -465,7 +471,7 @@ HashMap: class <K, V> extends BackIterable<V> {
 
     backIterator: func -> BackIterator<V> {
         iter := HashMapValueIterator<K, V> new(this)
-        iter index = keys size()
+        iter index = keys getSize()
         return iter
     }
 
@@ -473,7 +479,7 @@ HashMap: class <K, V> extends BackIterable<V> {
         init(capacity)
     }
 
-    size: func -> SizeT { size }
+    getSize: func -> SizeT { _size }
 
     getKeys: func -> ArrayList<K> { keys }
 
@@ -498,7 +504,7 @@ HashMapValueIterator: class <K, T> extends BackIterator<T> {
 
     init: func ~withMap (=map) {}
 
-    hasNext?: func -> Bool { index < map keys size() }
+    hasNext?: func -> Bool { index < map keys size }
 
     next: func -> T {
         key := map keys get(index)
@@ -516,7 +522,7 @@ HashMapValueIterator: class <K, T> extends BackIterator<T> {
 
     remove: func -> Bool {
         result := map remove(map keys get(index))
-        if(index <= map keys size()) index -= 1
+        if(index <= map keys size) index -= 1
         return result
     }
 

@@ -52,7 +52,7 @@ MultiMap: class <K, V> extends HashMap<K, V> {
             // Already at least two - remove from the list, from last to first
             list := already as List<V>
             list removeAt(list lastIndex())
-            if(list size() == 1) {
+            if(list getSize() == 1) {
                 // Only one left - turn the list into a single element
                 put~_super(key, list first())
             }
@@ -97,7 +97,7 @@ MultiMapValueIterator: class <K, V> extends BackIterator<V> {
 
     init: func ~multiMap (=map) {}
 
-    hasNext?: func -> Bool { index < map getKeys() size() && (sub == null || sub hasNext?()) }
+    hasNext?: func -> Bool { index < map getKeys() getSize() && (sub == null || sub hasNext?()) }
 
     next: func -> V {
 

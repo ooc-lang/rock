@@ -157,7 +157,7 @@ String: class {
     }
 
     _bufArrayListToStrArrayList: func ( x : ArrayList<Buffer> ) -> ArrayList<This> {
-        result := ArrayList<This> new( x size() )
+        result := ArrayList<This> new( x size )
         for (i in x) result add ( i toString() )
         result
     }

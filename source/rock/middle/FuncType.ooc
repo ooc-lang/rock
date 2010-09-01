@@ -85,7 +85,7 @@ FuncType: class extends Type {
             fType := other as FuncType
 
             // not the same number of args? forget it
-            if(fType argTypes size() != argTypes size()) {
+            if(fType argTypes getSize() != argTypes getSize()) {
                 return NOLUCK_SCORE
             }
 

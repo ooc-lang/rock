@@ -11,7 +11,14 @@ import os/Terminal
 getchar: extern func
 
 LinkedList: class <T> extends List<T> {
-    size = 0 : Int
+    _size = 0 : SizeT
+    
+    size : SizeT {
+    	get {
+    		_size
+    	}
+    }
+    
     head: Node<T>
 
     init: func {
@@ -25,7 +32,7 @@ LinkedList: class <T> extends List<T> {
         node := Node<T> new(head prev, head, data)
         head prev next = node
         head prev = node
-        size += 1
+        _size += 1
     }
 
     /**
@@ -35,23 +42,23 @@ LinkedList: class <T> extends List<T> {
         Throws an exception when the index is less than zero or greater
         than the size of the list.
     */
-    add: func ~withIndex(index: Int, data: T) {
+    add: func ~withIndex(index: SSizeT, data: T) {
         if(index > 0 && index <= lastIndex()) {
 			prevNode := getNode(index - 1)
 			nextNode := prevNode next
 			node := Node<T> new(prevNode,nextNode,data)
 			prevNode next = node
 			nextNode prev = node
-			size += 1
-		} else if(index > 0 && index == size()) {
+			_size += 1
+		} else if(index > 0 && index == _size) {
 			add(data)
 		} else if (index == 0) {
 			node := Node<T> new(head,head next,data)
 			head next prev = node
 			head next = node
-			size += 1
+			_size += 1
 		} else {
-			Exception new(This, "Check index: 0 <= " + index toString() + " < " + size() toString()) throw()
+			Exception new(This, "Check index: 0 <= " + index toString() + " < " + size toString()) throw()
 		}
     }
 
@@ -60,7 +67,7 @@ LinkedList: class <T> extends List<T> {
 
         Throws an exception when the index is out of range.
     */
-    get: func(index: Int) -> T {
+    get: func(index: SSizeT) -> T {
 		return getNode(index) data
 	}
 
@@ -69,9 +76,9 @@ LinkedList: class <T> extends List<T> {
 
 	    Throws an exception when the index is out of range.
 	*/
-    getNode: func(index: Int) -> Node<T> {
-		if(index < 0 || index >= size()) {
-			Exception new(This, "Check index: 0 <= " + index toString() + " < " + size() toString()) throw()
+    getNode: func(index: SSizeT) -> Node<T> {
+		if(index < 0 || index >= _size) {
+			Exception new(This, "Check index: 0 <= " + index toString() + " < " + size toString()) throw()
 		}
 
 		i = 0 : Int
@@ -89,13 +96,13 @@ LinkedList: class <T> extends List<T> {
 	clear: func {
 	    head next = head
 	    head prev = head
-        size = 0
+        _size = 0
 	}
 
 	/**
 	    Returns the first index containing the `data`.
 	*/
-	indexOf: func (data: T) -> Int {
+	indexOf: func (data: T) -> SSizeT {
 		current := head next
 		i := 0
 		while(current != head) {
@@ -111,9 +118,9 @@ LinkedList: class <T> extends List<T> {
 	/**
 	    Returns the last index containing the `data`.
 	*/
-	lastIndexOf: func (data: T) -> Int {
+	lastIndexOf: func (data: T) -> SSizeT {
 		current := head prev
-		i := size() - 1
+		i := _size - 1
 		while(current != head) {
 			if(memcmp(current data, data, T size) == 0){
 				return i
@@ -149,13 +156,13 @@ LinkedList: class <T> extends List<T> {
 
 	    Throws an exception when the index is out of range.
 	*/
-	removeAt: func (index: Int) -> T {
-		if(head next != head && 0 <= index && index < size()) {
+	removeAt: func (index: SSizeT) -> T {
+		if(head next != head && 0 <= index && index < _size) {
 			toRemove := getNode(index)
 			removeNode(toRemove)
 			return toRemove data
 		}
-		Exception new(This, "Check index: 0 <= " + index toString() + " < " + size() toString()) throw()
+		Exception new(This, "Check index: 0 <= " + index toString() + " < " + size toString()) throw()
 	}
 
 	/**
@@ -204,7 +211,7 @@ LinkedList: class <T> extends List<T> {
 
 	    Throws an exception if the index is out of range.
 	*/
-	set: func (index: Int, data: T) -> T {
+	set: func (index: SSizeT, data: T) -> T {
 		node := getNode(index)
 		ret := node data
 		node data = data
@@ -214,7 +221,7 @@ LinkedList: class <T> extends List<T> {
 	/**
 	    Returns the size of the list.
 	*/
-	size: func -> Int {return size}
+	getSize: func -> SizeT {_size}
 
 	/**
 	    Returns an Iterator pointing to the front of the list.

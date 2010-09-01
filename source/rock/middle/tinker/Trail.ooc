@@ -33,7 +33,7 @@ Trail: class extends Stack<Node> {
      * and return its index, or -1 if not found
      */
     find: func ~default (T: Class) -> Int {
-        find(T, size() - 1)
+        find(T, getSize() - 1)
     }
 
     onOuter: func <T> (T: Class, f: Func (T)) {
@@ -66,7 +66,7 @@ Trail: class extends Stack<Node> {
      */
     findScope: func -> Int {
 
-        i := size() - 1
+        i := getSize() - 1
         while(i >= 0) {
             node := data get(i) as Node
             if(node instanceOf?(Scope)) break
@@ -86,12 +86,12 @@ Trail: class extends Stack<Node> {
      */
     addBeforeInScope: func (mark, newcomer: Statement) -> Bool {
 
-        i := size() - 1
+        i := getSize() - 1
         while(i >= 0) {
             node := get(i)
             if(node instanceOf?(Scope)) {
                 // if we're in an else - maybe we're in an if-else chain!
-                if(i - 2 >= 0 && get(i - 1) instanceOf?(Else) && i + 1 < size() && get(i + 1) instanceOf?(If)) {
+                if(i - 2 >= 0 && get(i - 1) instanceOf?(Else) && i + 1 < getSize() && get(i + 1) instanceOf?(If)) {
 
                     // the mark is now the Else. We wanna be before it!
                     mark = get(i - 1)
@@ -120,7 +120,7 @@ Trail: class extends Stack<Node> {
                     }
                 }
 
-                if(node addBefore(i + 1 >= size() ? mark : get(i + 1), newcomer)) {
+                if(node addBefore(i + 1 >= getSize() ? mark : get(i + 1), newcomer)) {
                     return true
                 }
             }
@@ -139,11 +139,11 @@ Trail: class extends Stack<Node> {
      */
     addAfterInScope: func (mark, newcomer: Statement) -> Bool {
 
-        i := size() - 1
+        i := getSize() - 1
         while(i >= 0) {
             node := data get(i) as Node
             if(node instanceOf?(Scope) &&
-               get(i) addAfter(i + 1 >= size() ? mark : get(i + 1), newcomer)) {
+               get(i) addAfter(i + 1 >= getSize() ? mark : get(i + 1), newcomer)) {
                 return true
             }
             i -= 1
@@ -161,7 +161,7 @@ Trail: class extends Stack<Node> {
         sb := Buffer new()
         sb append('\n')
 
-        for(i in 0..size()) {
+        for(i in 0..getSize()) {
             for(j in 0..i) {
                 sb append("  ")
             }

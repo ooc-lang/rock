@@ -45,7 +45,7 @@ InlineContext: class extends Block {
             realThisDecl = VariableDecl new(null, "this", fCall expr, fCall expr token)
         }
 
-        "== Inline context of %s's ref has %d, and fCall has %d! ==" format(toString() toCString(), fCall ref getReturnArgs() size(), fCall getReturnArgs() size()) println()
+        "== Inline context of %s's ref has %d, and fCall has %d! ==" format(toString() toCString(), fCall ref getReturnArgs() getSize(), fCall getReturnArgs() getSize()) println()
         returnType = ref returnType realTypize(fCall)
         "Return type of ref is %s, ours is %s" format(ref returnType toString() toCString(), returnType toString() toCString()) println()
 

@@ -32,17 +32,18 @@ FileUtils: class {
             }
         }
 
-        buffer := Buffer new(path length())
+        mysize := elems getSize()
+        
+        buffer := Buffer new(path size + mysize + 1)
         if (path startsWith?(File separator)) {
             buffer append(File separator)
-        }
-
-        size := elems size()
+        }        
+        
         count := 0
         for (elem in elems) {
             buffer append(elem)
             count += 1
-            if (count < size) {
+            if (count < mysize) {
                 buffer append(File separator)
             }
         }

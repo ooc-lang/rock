@@ -68,7 +68,7 @@ _handleLastStatement: func (trail: Trail, res: Resolver, origin: Node, scope: Sc
                     prevStatement := scope get(currentIndex)
                     if(prevStatement instanceOf?(Else)) {
                         prevElse := prevStatement as Else
-                        if(prevElse getBody() size() == 1 && prevElse getBody() get(0) instanceOf?(If)) {
+                        if(prevElse getBody() getSize() == 1 && prevElse getBody() get(0) instanceOf?(If)) {
                             ifBody := prevElse getBody() get(0) as If getBody()
                             _handleLastStatement(trail, res, origin, ifBody, ifBody lastIndex(), true)
 

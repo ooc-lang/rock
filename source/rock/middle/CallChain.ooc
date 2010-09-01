@@ -90,7 +90,7 @@ CallChain: class extends Expression {
 
         scope := trail get(scopeIdx)
         mark  : Statement
-        if(scopeIdx + 1 < trail size()) {
+        if(scopeIdx + 1 < trail getSize()) {
             mark = trail get(scopeIdx + 1) // just before the scope - could be us, could be a call, who knows?
         } else {
             mark = this
@@ -114,7 +114,7 @@ CallChain: class extends Expression {
         i := 1 // huhu.
         for(call in calls) {
             call expr = varAcc
-            if(i == calls size()) {
+            if(i == calls getSize()) {
                 if(!trail peek() replace(this, call)) {
                     res throwError(CouldntReplace new(token, this, call, trail))
                 }

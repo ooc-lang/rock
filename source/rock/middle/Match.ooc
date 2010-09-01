@@ -74,7 +74,7 @@ Match: class extends Expression {
         }
 
         if(casesSize == -1) {
-            casesSize = cases size()
+            casesSize = cases getSize()
         }
         
         if(casesResolved < casesSize) {

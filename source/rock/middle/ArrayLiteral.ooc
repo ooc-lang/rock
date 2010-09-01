@@ -84,7 +84,7 @@ ArrayLiteral: class extends Literal {
                         if(fCall getRef() == null) {
                             res wholeAgain(this, "Need call ref to infer type")
                             readyToUnwrap = false
-                        } else if(fCall getRef() args size() > index) {
+                        } else if(fCall getRef() args getSize() > index) {
                             targetType := fCall getRef() args get(index) getType()
                             if((type == null || !type equals?(targetType)) &&
                                (!targetType instanceOf?(SugarType) || !targetType as SugarType inner isGeneric())) {
@@ -97,7 +97,7 @@ ArrayLiteral: class extends Literal {
                             }
                         } else {
                             printf("%s is the %dth argument of %s, ref is %s with %d arguments\n",
-                                toString() toCString(), index, fCall toString() toCString(), fCall getRef() toString() toCString(), fCall getRef() args size())
+                                toString() toCString(), index, fCall toString() toCString(), fCall getRef() toString() toCString(), fCall getRef() args getSize())
                         }
                     }
                 }
@@ -123,7 +123,7 @@ ArrayLiteral: class extends Literal {
                 return Response OK
             }
 
-            type = ArrayType new(innerType, IntLiteral new(elements size(), token), token)
+            type = ArrayType new(innerType, IntLiteral new(elements getSize(), token), token)
             //if(res params veryVerbose) printf("Inferred type %s for %s\n", type toString(), toString())
         }
 
@@ -231,7 +231,7 @@ ArrayLiteral: class extends Literal {
 
         // if varDecl is our immediate parent
         success := false
-        if(trail size() - varDeclIdx == 1) {
+        if(trail getSize() - varDeclIdx == 1) {
             success = trail addAfterInScope(vDecl, block)
         } else {
             success = trail addBeforeInScope(this, block)
@@ -263,7 +263,7 @@ ArrayLiteral: class extends Literal {
                     memberDecl setExpr(null)
                 }
             } else {
-                res throwError(CouldntAddAfterInScope new(token, (trail size() - varDeclIdx == 1) ? vDecl : this, block, trail))
+                res throwError(CouldntAddAfterInScope new(token, (trail getSize() - varDeclIdx == 1) ? vDecl : this, block, trail))
             }
         }
 

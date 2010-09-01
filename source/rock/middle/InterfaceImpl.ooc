@@ -39,7 +39,7 @@ InterfaceImpl: class extends ClassDecl {
         if(ref == null) return Response LOOP
 
         // done already.
-        if(aliases size() == ref getMeta() getFunctions() size()) return Response OK
+        if(aliases getSize() == ref getMeta() getFunctions() getSize()) return Response OK
 
         for(key: FunctionDecl in ref getMeta() getFunctions()) {
             hash := hashName(key)

@@ -5,6 +5,12 @@ import tinker/[Trail, Resolver, Response]
 import ../frontend/[BuildParams]
 
 Scope: class extends Node {
+	
+	size: SizeT {
+		get {
+			list getSize()
+		}
+	}
 
     list : ArrayList<Statement> { get set }
 
@@ -25,19 +31,19 @@ Scope: class extends Node {
     accept: func (v: Visitor) { v visitScope(this) }
 
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
-        index := list size()
+        index := list getSize()
         ourIndex := trail indexOf(this)
 
         if(ourIndex != -1) {
             node : Statement = null
 
-            if(ourIndex + 1 >= trail size()) node = access
+            if(ourIndex + 1 >= trail getSize()) node = access
             else                             node = trail get(ourIndex + 1)
             index = list indexOf(node)
         }
 
         // probably a global
-        if(index == -1) index = list size()
+        if(index == -1) index = list getSize()
 
         for(i in 0..index) {
             candidate := list get(i)
@@ -154,7 +160,7 @@ Scope: class extends Node {
 
     replace: func (oldie, kiddo: Statement) -> Bool { list replace(oldie, kiddo) }
 
-    size: func -> Int { list size() }
+    getSize: func -> Int { list getSize() }
 
     isScope: func -> Bool { true }
 

@@ -43,8 +43,8 @@ TypeList: class extends Type {
     equals?: func (t: Type) -> Bool {
         if(!t instanceOf?(This)) return false
         other := t as This
-        if(other types size() != types size()) return false
-        for(i in 0..types size()) {
+        if(other types getSize() != types getSize()) return false
+        for(i in 0..types getSize()) {
             if(!types[i] equals?(other types[i])) return false
         }
         true

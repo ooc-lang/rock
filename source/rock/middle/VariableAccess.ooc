@@ -190,7 +190,7 @@ VariableAccess: class extends Expression {
          * explore the trail from top to bottom and retain the first match.
          */
         if(!ref && !expr) {
-            depth := trail size() - 1
+            depth := trail getSize() - 1
             while(depth >= 0) {
                 node := trail get(depth)
                 if(node instanceOf?(TypeDecl)) {
@@ -323,7 +323,7 @@ VariableAccess: class extends Expression {
         if(!_warned && trail peek() instanceOf?(Scope)) {
             parent := trail peek() as Scope
 
-            size := parent list size()
+            size := parent list getSize()
             idxOf := parent list indexOf(this)
             if(idxOf != -1 && idxOf != (size - 1)) {
                 res throwError(Warning new(token, "Statement with no effect"))

@@ -26,7 +26,7 @@ scheduler: func {
         
         i := 0
         for(coro in coros) {
-            //"Main coro %p dispatching to coro %p, %d/%d" printfln(mainCoro, coro, i + 1, coros size())
+            //"Main coro %p dispatching to coro %p, %d/%d" printfln(mainCoro, coro, i + 1, coros getSize())
             switchTo(coro)
             if(!deadCoros empty?() || !newCoros empty?()) {
                 //"Dead coros / new coros, breaking!" println()
@@ -36,7 +36,7 @@ scheduler: func {
         }
 
         if(!newCoros empty?()) {
-            //"Adding %d new coros" printfln(newCoros size())
+            //"Adding %d new coros" printfln(newCoros getSize())
             for(info in newCoros)  {
                 newCoro := Coro new()
                 coros add(newCoro)
@@ -63,7 +63,7 @@ scheduler: func {
         }
 
         if(!deadCoros empty?()) {
-            //"Cleaning up %d dead coros" printfln(deadCoros size())
+            //"Cleaning up %d dead coros" printfln(deadCoros getSize())
             for(deadCoro in deadCoros) { coros remove(deadCoro) }
             deadCoros clear()
         }

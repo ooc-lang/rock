@@ -455,7 +455,7 @@ TypeDecl: abstract class extends Declaration {
             if(interfaceType getRef() == null) {
                 res wholeAgain(this, "Should resolve interface type first.")
                 break
-            } else if(i >= interfaceDecls size()) {
+            } else if(i >= interfaceDecls getSize()) {
                 iName := getName() + "__impl__" + interfaceType getName()
                 interfaceDecl := InterfaceImpl new(iName, interfaceType, this, token)
                 interfaceDecls add(interfaceDecl)
@@ -619,7 +619,7 @@ TypeDecl: abstract class extends Declaration {
                     buff append(t getName())
                     isFirst = false
                 }
-                res throwError(InheritanceLoop new(list first() token, "Loop in type declaration: %s -> %s -> ..." format(buff toString() toCString(), next getName() toCString(), list size())))
+                res throwError(InheritanceLoop new(list first() token, "Loop in type declaration: %s -> %s -> ..." format(buff toString() toCString(), next getName() toCString(), list getSize())))
             }
 
             current = next
@@ -634,7 +634,7 @@ TypeDecl: abstract class extends Declaration {
             if(type suggest(getNonMeta() ? getNonMeta() : this)) return 0
         }
 
-        //printf("** Looking for type %s in func %s with %d type args\n", type name, toString(), getTypeArgs() size())
+        //printf("** Looking for type %s in func %s with %d type args\n", type name, toString(), getTypeArgs() getSize())
         for(typeArg: VariableDecl in getTypeArgs()) {
             //printf("*** For typeArg %s\n", typeArg name)
             if(typeArg name == type name) {
@@ -748,7 +748,7 @@ TypeDecl: abstract class extends Declaration {
     resolveCall: func (call : FunctionCall, res: Resolver, trail: Trail) -> Int {
 
         if(call debugCondition()) {
-            printf("\n====> Search %s in %s (which has %d functions)\n", call toString() toCString(), name toCString(), functions size())
+            printf("\n====> Search %s in %s (which has %d functions)\n", call toString() toCString(), name toCString(), functions getSize())
             for(f in functions) {
                 printf("  - Got %s!\n", f toString() toCString())
             }
@@ -829,7 +829,7 @@ TypeDecl: abstract class extends Declaration {
         if(debugCondition()) printf("inheritsScore between %s and %s. scoreSeed = %d\n", toString() toCString(), tDecl toString() toCString(), scoreSeed)
 
         for(interfaceDecl in interfaceDecls) {
-            if(interfaceTypes size() != interfaceDecls size()) return -1
+            if(interfaceTypes getSize() != interfaceDecls getSize()) return -1
             if(interfaceDecl == tDecl) return scoreSeed
             score := interfaceDecl inheritsScore(tDecl, scoreSeed / 2)
             if(score != Type NOLUCK_SCORE) return score

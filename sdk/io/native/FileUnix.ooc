@@ -105,7 +105,7 @@ version(unix || apple) {
         /**
          * @return the size of the file, in bytes
          */
-        size: func -> LLong {
+        getSize: func -> LLong {
             return _getFileStat() st_size as LLong
         }
 

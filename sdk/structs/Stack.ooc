@@ -3,6 +3,12 @@ import structs/ArrayList
 Stack: class <T> extends BackIterable<T> {
 	data: ArrayList<T>
 	
+	size: SizeT {
+		get {
+			data != null ? data size : 0		
+		}
+	}
+	
 	init: func {
 		data = ArrayList<T> new()
 	}
@@ -25,23 +31,23 @@ Stack: class <T> extends BackIterable<T> {
 		return data last()
 	}
 
-    peek: func ~index (index: Int) -> T {
-        size := data size()
+    peek: func ~index (index: SSizeT) -> T {
+        mysize := data size
         if (index < 1)
             Exception new(This, "Trying to peek(%d)! index must be >= 1 <= size" format(index)) throw()
 
-        if (index > size)
-			Exception new(This, "Trying to peek(%d) a stack of size %d" format(index, size)) throw()
+        if (index > mysize)
+			Exception new(This, "Trying to peek(%d) a stack of size %d" format(index, mysize)) throw()
 
-        return data get(size - index)
+        return data get(mysize - index)
     }
 
-    indexOf: func(element: T) -> Int {
+    indexOf: func(element: T) -> SSizeT {
         return data indexOf(element)
     }
 	
-	size: func -> Int {	
-		return data size()
+	getSize: func -> SizeT {	
+		return data size
 	}
 	
 	empty?: func -> Bool {
@@ -49,7 +55,7 @@ Stack: class <T> extends BackIterable<T> {
 	}
 	
 	lastIndex: func -> Int {
-		return size() - 1
+		return size - 1
 	}
 
     clear: func {

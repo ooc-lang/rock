@@ -114,7 +114,7 @@ version(windows) {
         /**
          * @return the size of the file, in bytes
          */
-        size: func -> LLong {
+        getSize: func -> LLong {
             (ffd, ok) := _getFindData()
             return (ok) ? toLLong(ffd fileSizeLow, ffd fileSizeHigh) : 0
         }

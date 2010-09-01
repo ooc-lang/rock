@@ -28,7 +28,7 @@ ExplanationGenerator: class extends Visitor {
         addObject("# "+module getPath())
         addObject()
 
-        addObject("This file depends on *"+(module getGlobalImports() size() toString())+"* other files during runtime.")
+        addObject("This file depends on *"+(module getGlobalImports() getSize() toString())+"* other files during runtime.")
         addObject("Some of these are **import**s, or files that were manually added for dependency through an **import** statement.")
         addObject("This file depends on the following files:")
         addObject()
@@ -47,7 +47,7 @@ ExplanationGenerator: class extends Visitor {
         addObject()
 
         if (!module getUses() empty?()) {
-            addObject("This file also **use**s *"+(module getUses() size() toString())+"* other file(s). *use* files are located in $OOC_LIBS.")
+            addObject("This file also **use**s *"+(module getUses() getSize() toString())+"* other file(s). *use* files are located in $OOC_LIBS.")
             addObject("They contain extra information about a particular ooc library, such as name, description, what C libraries are included, etc...")
             addObject("This file **use**s the following libraries:")
             addObject()
@@ -134,8 +134,8 @@ ExplanationGenerator: class extends Visitor {
         if (node isAbstract) addObject("* "+(node name as String)+" is **abstract**; it cannot be instantiated, though it still can be extended by other classes"); addObject()
         if (node isFinal) addObject("* "+(node name as String)+" is **final**; it cannot be further extended or subclassed"); addObject()
         //if (node doc != "") { addObject("* "+(node name as String)+" has attached documentation (/\*\* \*/):"); addObject("    "+node doc); addObject() }
-        if (node typeArgs size() > 0) {
-            addObject("* "+(node name as String)+" is a generic class with *"+(node typeArgs size() toString())+"* generic type(s). Generic types are placeholders for more specific types a class could operate on. "+(node name as String)+" features the following generic types:"); addObject()
+        if (node typeArgs getSize() > 0) {
+            addObject("* "+(node name as String)+" is a generic class with *"+(node typeArgs getSize() toString())+"* generic type(s). Generic types are placeholders for more specific types a class could operate on. "+(node name as String)+" features the following generic types:"); addObject()
             node typeArgs each(|typeArg| addObject("    * "+typeArg name as String))
             addObject()
         }
@@ -185,13 +185,13 @@ ExplanationGenerator: class extends Visitor {
         if (node isStatic())   addObject("    * "+name+" is **static**; it has a class scope and is called by the class, not by an instance of the class", type)
         if (node isInline())   addObject("    * "+name+" is **inline**; calls to this function will be substituted with the actual function code. Functions that are called often would be optimal **inline** functions", type)
         if (!node args empty?()) {
-            addObject("    * "+name+" takes *"+node args size() toString()+"* argument(s):",type)
+            addObject("    * "+name+" takes *"+node args getSize() toString()+"* argument(s):",type)
             node args each(|arg| if(!arg instanceOf?(VarArg)) addObject("        * "+(arg name as String)+" of type *"+(resolveType(arg type))+"*", type))
         }
 
         if (!node returnType void?) addObject("    * "+name+" has a non-void return type: *"+node getReturnType() getName()+"*", type)
         if (!node typeArgs empty?()) {
-            addObject("    * "+name+" is a generic function with *"+(node typeArgs size() toString())+"* generic types:", type)
+            addObject("    * "+name+" is a generic function with *"+(node typeArgs getSize() toString())+"* generic types:", type)
             node typeArgs each(|typeArg| addObject("        * "+typeArg name as String, type))
         }
         //if (node doc != "") { addObject("    * "+name+" has attached documentation (/\*\* \*/):", type); addObject("       "+node doc,type) }
