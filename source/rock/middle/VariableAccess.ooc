@@ -10,6 +10,7 @@ import structs/ArrayList
 
 VariableAccess: class extends Expression {
 
+    _warned := false    
     _staticFunc : FunctionDecl = null
     
     expr: Expression {
@@ -317,6 +318,17 @@ VariableAccess: class extends Expression {
                 // the property is not virtual.
                 ref as PropertyDecl setVirtual(false)
             }
+        }
+
+        if(!_warned && trail peek() instanceOf?(Scope)) {
+            parent := trail peek() as Scope
+
+            size := parent list size()
+            idxOf := parent list indexOf(this)
+            if(idxOf != -1 && idxOf != (size - 1)) {
+                res throwError(Warning new(token, "Statement with no effect"))
+            }
+            _warned = true
         }
 
         if(!ref) {

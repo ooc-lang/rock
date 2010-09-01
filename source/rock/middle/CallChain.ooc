@@ -76,7 +76,7 @@ CallChain: class extends Expression {
 
         if(expr instanceOf?(FunctionCall) && parent instanceOf?(Scope)) {
             fCall := expr as FunctionCall
-            //printf("  >>> Composite call-chain %s\n", toString())
+            //printf("  >>> Composite call-chain %s\n", toString() toCString())
             expr = fCall expr
             fCall expr = null
             calls add(0, fCall)
@@ -96,25 +96,34 @@ CallChain: class extends Expression {
             mark = this
         }
 
-        // we need a VariableDecl to store the result of expr and
-        // make all our calls on it
-        if (!expr instanceOf?(VariableDecl)) {
-            expr = VariableDecl new(null, generateTempName("callRoot"), expr, expr token)
+        // we need a VariableDecl to store the result of expr and make all our calls on it
+        varAcc := match expr {
+            case vd: VariableDecl =>
+                VariableAccess new(vd, vd token)
+            case va: VariableAccess =>
+                va
+            case =>
+                vd := VariableDecl new(null, generateTempName("callRoot"), expr, expr token)
+                if(!trail addBeforeInScope(mark, vd)) {
+                    res throwError(CouldntAddBeforeInScope new(token, mark, vd, trail))
+                }
+                expr = vd
+                VariableAccess new(vd, vd token)
         }
-        varAcc := VariableAccess new(expr as VariableDecl, expr token)
 
-        if(!trail addBeforeInScope(mark, expr)) {
-            res throwError(CouldntAddBeforeInScope new(token, mark, expr, trail))
-        }
-
+        i := 1 // huhu.
         for(call in calls) {
             call expr = varAcc
-            if(!trail addBeforeInScope(mark, call)) {
-                res throwError(CouldntAddBeforeInScope new(token, mark, call, trail))
+            if(i == calls size()) {
+                if(!trail peek() replace(this, call)) {
+                    res throwError(CouldntReplace new(token, this, call, trail))
+                }
+            } else {
+                if(!trail addBeforeInScope(mark, call)) {
+                    res throwError(CouldntAddBeforeInScope new(token, mark, call, trail))
+                }
             }
-        }
-        if(!trail peek() replace(this, varAcc)) {
-            res throwError(CouldntReplace new(token, this, varAcc, trail))
+            i += 1
         }
 
         return Response OK

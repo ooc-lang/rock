@@ -63,16 +63,20 @@ Match: class extends Expression {
 
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
+        trail push(this)
+
         if (expr != null) {
             response := expr resolve(trail, res)
-            if(!response ok()) return response
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
         }
 
         if(casesSize == -1) {
             casesSize = cases size()
         }
-
-        trail push(this)
+        
         if(casesResolved < casesSize) {
             for (idx in casesResolved..casesSize) {
                 caze := cases[idx]
