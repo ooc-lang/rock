@@ -630,6 +630,13 @@ FunctionDecl: class extends Declaration {
                 res wholeAgain(this, "something in our typedecl's functions needs resolving!")
                 return Response OK
             }
+
+            if(ref isSuper) {
+                // oh really? then wait until it's not super anymore.
+                res wholeAgain(this, "superRef of a super func is super itself! looping.")
+                return Response OK
+            }
+            
             superCall := FunctionCall new("super", token)
             if(ref != null) {
                 for(arg in ref args) {
