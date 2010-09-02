@@ -13,6 +13,7 @@ __va_call: func <T> (f: Func <T> (T), T: Class, arg: T) {
 /*  */
 VarArgs: cover {
 
+    packed: Bool
     args, argsPtr: UInt8* // because the size of stuff (T size) is expressed in bytes
     count: SSizeT // number of elements
     
@@ -32,13 +33,17 @@ VarArgs: cover {
             type := (argsPtr as Class*)@ as Class
             "argsPtr = Got type %p" format(type) println()
             "Got type %s, of type size %zd" format(type name ? type name toCString() : "nil" toCString(), type size)
+
             argsPtr += Class size
 
             // retrieve the arg and use it
             "Now argsPtr = %p, value is %d" format(argsPtr, (argsPtr as Int*)@) println()
             __va_call(f, type, argsPtr@)
             
-            argsPtr += type size
+
+            // if we're packed, skip at least the size of a pointer - else, skip the exact class size
+            argsPtr += (packed ? (type size < Pointer size ? Pointer size : type size) : type size)
+            //argsPtr += type size
 
             countdown -= 1 // count down!
         }
@@ -49,6 +54,7 @@ VarArgs: cover {
      */
     
 	init: func@ (=count, bytes: SizeT) {
+        packed = false
         args = gc_malloc(bytes + (count * Class size))
         argsPtr = args
     }
@@ -62,6 +68,9 @@ VarArgs: cover {
 
         // store the arg
         memcpy(argsPtr, value&, T size)
+
+        realSize := (T size / Pointer size) * Pointer size
+        "Instead of pushing %zd, will push %zd" format(T size, realSize) println()
         argsPtr += T size
     }
     

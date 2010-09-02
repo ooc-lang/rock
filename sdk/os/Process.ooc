@@ -12,8 +12,6 @@ import native/[ProcessUnix, ProcessWin32]
  */
 Process: abstract class {
 
-    pid: Int
-
     /**
        Arguments passed to the executable. The first argument
        should be the path to the executable.

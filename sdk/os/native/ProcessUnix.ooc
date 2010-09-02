@@ -47,7 +47,7 @@ ProcessUnix: class extends Process {
     */
     executeNoWait: func -> Long {
 
-        pid = fork()
+        pid := fork()
         if (pid == 0) {
             if (stdIn != null) {
                 stdIn close('w')
