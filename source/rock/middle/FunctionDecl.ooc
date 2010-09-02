@@ -320,7 +320,7 @@ FunctionDecl: class extends Declaration {
         }
         type returnType = returnType
         for(typeArg in typeArgs) {
-            type typeArgs add(VariableAccess new(typeArg, typeArg token))
+            type addTypeArg(typeArg)
         }
         if (vDecl != null) {
             type isClosure = true

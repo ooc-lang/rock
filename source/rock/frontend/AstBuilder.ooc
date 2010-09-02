@@ -559,10 +559,6 @@ AstBuilder: class {
         ArrayType new(type, inner, token())
     }
 
-    onTypeGenericArgument: unmangled(nq_onTypeGenericArgument) func (type: Type, typeInner: Type) {
-        type addTypeArg(VariableAccess new(typeInner, token()))
-    }
-
     onTypeList: unmangled(nq_onTypeList) func -> TypeList {
         TypeList new(token())
     }
@@ -1160,11 +1156,22 @@ AstBuilder: class {
         Parenthesis new(inner, token())
     }
 
+    onTypeGenericArgument: unmangled(nq_onTypeGenericArgument) func (type: Type, typeInner: Type) {
+        type addTypeArg(VariableAccess new(typeInner, token()))
+    }
+
+
+    onFuncTypeGenericArgument: unmangled(nq_onFuncTypeGenericArgument) func (type: FuncType, cname: CString) {
+        name := cname toString()
+
+        vDecl := VariableDecl new(BaseType new("Class", token()), name, token())
+        type addTypeArg(vDecl)
+    }
+
     onGenericArgument: unmangled(nq_onGenericArgument) func (cname: CString) {
         node := peek(Node)
         name := cname toString()
 
-        //printf("======= Got generic argument %s, and node is a %s\n", name, node class name)
         vDecl := VariableDecl new(BaseType new("Class", token()), name, token())
 
         done := false

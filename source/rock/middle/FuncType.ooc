@@ -4,12 +4,12 @@ import ../backend/cnaughty/AwesomeWriter, ../frontend/BuildParams
 import tinker/[Response, Resolver, Trail]
 
 import Type, BaseType, VariableAccess, Declaration, CoverDecl, TypeDecl,
-       Module, FunctionCall
+       Module, FunctionCall, VariableDecl
 
 FuncType: class extends Type {
 
     argTypes := ArrayList<Type> new()
-    typeArgs := ArrayList<VariableAccess> new()
+    typeArgs: ArrayList<VariableDecl>
     varArg := false
     returnType : Type = null
     cached := ArrayList<Module> new()
@@ -44,7 +44,7 @@ FuncType: class extends Type {
 
     realTypize: func (call: FunctionCall) -> Type {
         copy := This new(token)
-        copy typeArgs addAll(typeArgs)
+        if(typeArgs) typeArgs each(|typeArg| copy addTypeArg(typeArg))
         for(argType in argTypes) {
             copy argTypes add(argType realTypize(call))
         }
@@ -55,17 +55,17 @@ FuncType: class extends Type {
 
     clone: func -> This {
         copy := This new(token)
-        copy typeArgs addAll(typeArgs)
+        if(typeArgs) typeArgs each(|typeArg| copy addTypeArg(typeArg))
         copy argTypes addAll(argTypes)
         copy returnType = returnType
         copy varArg = varArg
         copy
     }
 
-    getTypeArgs: func -> List<VariableAccess> { typeArgs }
+    getTypeArgs: func -> List<VariableDecl> { typeArgs }
 
-    addTypeArg: func (typeArg: VariableAccess) -> Bool {
-        if(!typeArgs) typeArgs = ArrayList<VariableAccess> new()
+    addTypeArg: func (typeArg: VariableDecl) -> Bool {
+        if(!typeArgs) typeArgs = ArrayList<VariableDecl> new()
         typeArgs add(typeArg); true
     }
 
@@ -99,13 +99,11 @@ FuncType: class extends Type {
     resolve: func (trail: Trail, res: Resolver) -> Response {
         trail push(this)
 
-        if(typeArgs && !typeArgs empty?()) {
-            for(typeArg in typeArgs) {
-                response := typeArg resolve(trail, res)
-                if(!response ok()) {
-                    trail pop(this)
-                    return response
-                }
+        if(typeArgs) for(typeArg in typeArgs) {
+            response := typeArg resolve(trail, res)
+            if(!response ok()) {
+                trail pop(this)
+                return response
             }
         }
 
@@ -159,12 +157,31 @@ FuncType: class extends Type {
         b toString()
     }
 
+    resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
+
+        if(typeArgs) for(typeArg in typeArgs) {
+            if(typeArg name == type name) {
+                type suggest(typeArg)
+                return 0
+            }
+        }
+
+        0
+
+    }
+
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
 
         if(access getName() == "size") {
             // a func is the size of a pointer
             access expr = VariableAccess new("Pointer", token)
             return 0
+        }
+
+        if(typeArgs) for(typeArg in typeArgs) {
+            if(access name == typeArg name) {
+                if(access suggest(typeArg)) return 0
+            }
         }
 
         super(access, res, trail)
@@ -174,10 +191,7 @@ FuncType: class extends Type {
     toMangledString: func -> String {
         b := Buffer new()
         b append("__FUNC__")
-        for(typeArg in typeArgs) {
-            /*
-            b append('_'). append(typeArg getRef() as Type toMangledString())
-            */
+        if(typeArgs) for(typeArg in typeArgs) {
             b append('_'). append(typeArg getName())
         }
         for(argType in argTypes) {

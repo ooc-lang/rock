@@ -665,7 +665,7 @@ CommandLine: class {
         Terminal reset()
         
         // compile with -Ddebug if you want rock to raise an exception here
-        version(debug) {
+        version(_DEBUG) {
             raise("Debugging a CommandLine failure()") // for backtrace
         }
         exit(1)

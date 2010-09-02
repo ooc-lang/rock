@@ -324,7 +324,7 @@ ModuleWriter: abstract class extends Skeleton {
         }
 
         /* Step 3 : write generic type args */
-        for(typeArg in funcType typeArgs) {
+        if(funcType typeArgs) for(typeArg in funcType typeArgs) {
             if(isFirst) isFirst = false
             else        current app(", ")
             current app(typeArg getType())

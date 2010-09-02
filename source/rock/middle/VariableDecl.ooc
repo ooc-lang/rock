@@ -194,7 +194,7 @@ VariableDecl: class extends Declaration {
 
         parent := trail peek()
         {
-            if(!parent isScope() && !parent instanceOf?(TypeDecl)) {
+            if(!parent isScope() && !parent instanceOf?(TypeDecl) && !parent instanceOf?(FuncType)) {
                 if(debugCondition()) "Parent isn't scope nor typedecl, unwrapping." println()
                 varAcc := VariableAccess new(this, token)
                 result := trail peek() replace(this, varAcc)
@@ -312,11 +312,7 @@ VariableDecl: class extends Declaration {
                 if(owner) fDecl setOwner(owner)
                 if(fType typeArgs != null && !fType typeArgs empty?()) {
                     classType := BaseType new("Class", fType token)
-                    for(typeArg in fType typeArgs) {
-                        vDecl := VariableDecl new(classType, typeArg name, typeArg token)
-                        fDecl typeArgs add(vDecl)
-                        typeArg setRef(vDecl)
-                    }
+                    if(fType typeArgs) for(typeArg in fType typeArgs) fDecl addTypeArg(typeArg)
                 }
                 for(argType in fType argTypes) {
                     fDecl args add(Argument new(argType, "", token))
