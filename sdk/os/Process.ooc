@@ -12,6 +12,8 @@ import native/[ProcessUnix, ProcessWin32]
  */
 Process: abstract class {
 
+    pid: Int
+
     /**
        Arguments passed to the executable. The first argument
        should be the path to the executable.
@@ -134,6 +136,7 @@ Process: abstract class {
         exitCode := execute()
 
         result := PipeReader new(stdErr) toString()
+
 
         stdErr close('r'). close('w')
         stdErr = null
