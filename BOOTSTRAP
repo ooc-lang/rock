@@ -1,0 +1,26 @@
+Bootstrapping
+=============
+
+So you just checked out the rock git repository and ran `make` to
+get a fancy executable. Nice try, but ...
+
+rock is a *self-hosting* compiler, ie. it's written in ooc, and we
+use rock to compile rock, and so you also need a rock executable to
+compile rock.
+True, it sounds complicated, but it doesn't have to be. There is
+an online service called *alpaca* that automatically detects commits
+on our git repository, fetches all changes and compiles rock for you.
+
+To ensure compatibility across platforms, it also generates a
+tarball of rock's generated C sources. Just download them, extract them
+and run `make` again.
+
+Visit the alpaca at:
+
+    http://ooc-lang.org/alpaca/index
+
+Fetch the `C sources for manual bootstrapping` - or just use this link:
+
+    http://commondatastorage.googleapis.com/rock-linux/rock-bootstrap-only.tar.bz2
+
+Extract, run `make` again. Enjoy.

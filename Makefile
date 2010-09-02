@@ -19,6 +19,8 @@ endif
 OOC?=rock
 OOC_CMD=${OOC} ${OOC_OWN_FLAGS} ${OOC_FLAGS}
 
+IS_BOOTSTRAP=$(wildcard build/Makefile)
+
 all: bootstrap
 
 # Regenerate NagaQueen.c from the greg grammar
@@ -49,6 +51,7 @@ prepare_bootstrap:
 # For c-source based rock releases, 'make bootstrap' will compile a version
 # of rock from the C sources in build/, then use that version to re-compile itself
 bootstrap:
+ifneq ($(IS_BOOTSTRAP),)
 	@echo "Creating bin/ in case it does not exist."
 	mkdir -p bin/
 	@echo "Compiling from C source"
@@ -56,7 +59,10 @@ bootstrap:
 	@echo "Now re-compiling ourself"
 	OOC=bin/c_rock ROCK_DIST=. make self
 	@echo "Congrats! you have a boostrapped version of rock in bin/rock now. Have fun!"
-
+else
+	@cat BOOTSTRAP
+	@exit 1
+endif
 # Copy the manpage and create a symlink to the binary
 install:
 	if [ -e ${BIN_INSTALL_PATH}/rock ]; then echo "${BIN_INSTALL_PATH}/rock already exists, overwriting."; rm -f ${BIN_INSTALL_PATH}/rock ${BIN_INSTALL_PATH}/rock.exe; fi
