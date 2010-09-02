@@ -902,7 +902,7 @@ FunctionCall: class extends Expression {
                     if(argType instanceOf?(FuncType)) {
                         fType := argType as FuncType
 
-                        if(fType returnType getName() == typeArgName) {
+                        if(fType returnType && fType returnType getName() == typeArgName) {
                             if(debugCondition()) " >> Hey, we have an interesting FuncType %s" format(fType toString() toCString()) println()
                             implArg := args get(j)
                             if(implArg instanceOf?(FunctionDecl)) {

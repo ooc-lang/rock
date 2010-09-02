@@ -135,14 +135,20 @@ FuncType: class extends Type {
 
     toString: func -> String {
         b := Buffer new()
-        isFirst := true
 
-        b append("Func (")
-        for(typeArg in typeArgs) {
-            if(isFirst) isFirst = false
-            else        b append(", ")
-            b append(typeArg getName())
+        b append("Func ")
+        isFirst := true
+        if(typeArgs) {
+            b append("<")
+            for(typeArg in typeArgs) {
+                if(isFirst) isFirst = false
+                else        b append(", ")
+                b append(typeArg getName())
+            }
+            b append("> ")
         }
+        b append("(")
+        isFirst = true
         for(argType in argTypes) {
             if(isFirst) isFirst = false
             else        b append(", ")
