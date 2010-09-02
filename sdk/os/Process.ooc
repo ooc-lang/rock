@@ -12,8 +12,6 @@ import native/[ProcessUnix, ProcessWin32]
  */
 Process: abstract class {
 
-    pid: Int
-
     /**
        Arguments passed to the executable. The first argument
        should be the path to the executable.
@@ -100,9 +98,10 @@ Process: abstract class {
 
     /**
      * Execute the process without waiting for it to end.
-     * You have to call `wait` manually.
+     * You have to call `wait` manually
+     * @return child pid process.
      */
-    executeNoWait: abstract func
+    executeNoWait: abstract func -> Int
 
     /**
      * Execute the process, and return all the output to stdout
