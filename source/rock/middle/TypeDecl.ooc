@@ -186,7 +186,6 @@ TypeDecl: abstract class extends Declaration {
             old := functions get(hash)
             if (old != null && fDecl getName() != "init") { /* init is an exception */
                 if(old == fDecl) Exception new(This, "Replacing %s with %s, which is the same!" format (old getName() toCString(), fDecl getName() toCString())) throw()
-                "redefinition of %s with %s (hash = %s, otherHash = %s)" printfln(old getName() toCString(), fDecl getName() toCString(), hash toCString(), hashName(old) toCString())
                 token module params errorHandler onError(FunctionRedefinition new(old, fDecl))
                 return
             }
