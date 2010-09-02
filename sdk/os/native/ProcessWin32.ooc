@@ -52,7 +52,7 @@ ProcessWin32: class extends Process {
        Execute the process without waiting for it to end.
        You have to call `wait` manually.
     */
-    executeNoWait: func {
+    executeNoWait: func -> Long {
         if (stdIn != null || stdOut != null || stdErr != null) {
             if(stdIn) {
                 si stdInput  = stdIn as PipeWin32 readFD
@@ -84,8 +84,10 @@ ProcessWin32: class extends Process {
             pi&          // Pointer to PROCESS_INFORMATION structure
         )) {
             Exception new(This, "CreateProcess failed (error %d).\n" format(GetLastError())) throw()
-            return
+            return -1
         }
+
+        return pi pid
     }
 
 }
@@ -141,6 +143,7 @@ StartFlags: cover {
 ProcessInformation: cover from PROCESS_INFORMATION {
     process: extern(hProcess) Handle
     thread:  extern(hThread)  Handle
+    pid: extern(dwProcessId)  Long
 }
 INFINITE: extern Long
 WAIT_OBJECT_0: extern Long

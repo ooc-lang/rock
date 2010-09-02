@@ -45,7 +45,7 @@ ProcessUnix: class extends Process {
        Execute the process without waiting for it to end.
        You have to call `wait` manually.
     */
-    executeNoWait: func ->Int {
+    executeNoWait: func -> Long {
 
         pid := fork()
         if (pid == 0) {

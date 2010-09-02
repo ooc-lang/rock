@@ -101,7 +101,7 @@ Process: abstract class {
      * You have to call `wait` manually
      * @return child pid process.
      */
-    executeNoWait: abstract func -> Int
+    executeNoWait: abstract func -> Long
 
     /**
      * Execute the process, and return all the output to stdout
