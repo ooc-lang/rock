@@ -88,9 +88,13 @@ CommandLine: class {
                         params backend = "c"
                     }
 
-                } else if (option startsWith?("incpath")) {
+                } else if (option startsWith?("incpath=")) {
 
                     params incPath add(arg substring(arg indexOf('=') + 1))
+
+                } else if (option startsWith?("D")) {
+
+                    params defineSymbol(arg substring(2))
 
                 } else if (option startsWith?("I")) {
 

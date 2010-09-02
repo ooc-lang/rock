@@ -336,6 +336,15 @@ AstBuilder: class {
         }
     }
 
+    onVersionElseIfStart: unmangled(nq_onVersionElseIfStart) func (oldSpec, elseSpec: VersionSpec) -> VersionSpec {
+        onVersionStart(VersionAnd new(VersionNegation new(oldSpec, token()), elseSpec, token()))
+        VersionOr new(oldSpec, elseSpec, token())
+    }
+
+    onVersionElseStart: unmangled(nq_onVersionElseStart) func (oldSpec: VersionSpec) {
+        onVersionStart(VersionNegation new(oldSpec, token()))
+    }
+
     onVersionEnd: unmangled(nq_onVersionEnd) func -> VersionBlock {
         object := peek(Object)
         if(object instanceOf?(Module)) {

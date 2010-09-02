@@ -287,6 +287,16 @@ BuildParams: class {
             b append("off")
         }
         b append(" -backend="). append(backend)
+        for(define in defines) {
+            ignored := false
+            for(ignoredDefine in ignoredDefines) {
+                if(define startsWith?(ignoredDefine)) {
+                    ignored = true
+                    break
+                }
+            }
+            if(!ignored) b append(" -D"). append(define)
+        }
         for(arg in compilerArgs) {
             ignored := false
             for(ignoredDefine in ignoredDefines) {

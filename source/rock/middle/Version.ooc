@@ -111,7 +111,7 @@ VersionNegation: class extends VersionSpec {
 
     init: func ~negation (=spec, .token) { super(token) }
 
-    toString: func -> String { "!(" + spec toString() + ')' }
+    toString: func -> String { "!(" + spec toString() + ")" }
 
     write: func (w: AwesomeWriter) {
         w app("!(")
@@ -136,7 +136,7 @@ VersionAnd: class extends VersionSpec {
 
     init: func ~and (=specLeft, =specRight, .token) { super(token) }
 
-    toString: func -> String { '(' + specLeft toString() + " && " + specRight toString() + ')' }
+    toString: func -> String { "(" + specLeft toString() + " && " + specRight toString() + ")" }
 
     write: func (w: AwesomeWriter) {
         w app("(")
@@ -163,7 +163,7 @@ VersionOr: class extends VersionSpec {
 
     init: func ~or (=specLeft, =specRight, .token) { super(token) }
 
-    toString: func -> String { '(' + specLeft toString() + " || " + specRight toString() + ')' }
+    toString: func -> String { "(" + specLeft toString() + " || " + specRight toString() + ")" }
 
     write: func (w: AwesomeWriter) {
         w app("(")
