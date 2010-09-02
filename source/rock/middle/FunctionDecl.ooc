@@ -754,8 +754,6 @@ FunctionDecl: class extends Declaration {
         fScore: Int
         needTrampoline := false
 
-        token formatMessage("Inferring type from FuncType %s. Has typeArgs? %p" format(funcPointer toString() toCString(), funcPointer typeArgs), "INFO") println()
-        
         for (fType in funcPointer argTypes) {
             if (!fType isResolved()) {
                 res wholeAgain(this, "Can't figure out the type of the argument.")
@@ -771,7 +769,6 @@ FunctionDecl: class extends Declaration {
         }
 
         if(funcPointer typeArgs) for(typeArg in funcPointer typeArgs) {
-            "Got typeArg %s, adding it" format(typeArg toString() toCString()) println()
             addTypeArg(typeArg)
         }
 
