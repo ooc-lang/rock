@@ -124,6 +124,10 @@ CommandLine: class {
 
                     params newstr = true
 
+                } else if(option == "cstrings") {
+
+                    params newstr = false
+
                 } else if (option == "inline") {
 
                     params inlining = true

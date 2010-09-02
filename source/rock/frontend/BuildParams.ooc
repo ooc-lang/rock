@@ -105,7 +105,7 @@ BuildParams: class {
     // see http://github.com/nddrylliog/newsdk for more bunnies.
     newsdk := false
 
-    // temporary option for string branch compilation
+    // If it's true, will use String makeLiteral() to make string literals instaed of just C string literals
     newstr := true
 
     // dead code elimination
