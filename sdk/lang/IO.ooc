@@ -137,14 +137,11 @@ FStream: cover from FILE* {
         fputc(chr, this)
     }
 
-    // FIXME these two break Strings immutability!
     write: func ~str (str: String) {
-        Exception new("illegal access") throw()
         fputs(str _buffer data, this)
     }
-    // FIXME these two break Strings immutability!
+
     write: func ~withLength (str: String, length: SizeT) -> SizeT {
-        Exception new("illegal access2") throw()
         write(str _buffer data, 0, length)
     }
 
