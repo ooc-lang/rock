@@ -118,7 +118,7 @@ FStream: cover from FILE* {
         return buf toString()
     }
 
-    getSize: func -> SizeT {
+    getSize: func -> SSizeT {
         prev := tell()
 
         seek(0, SEEK_END)

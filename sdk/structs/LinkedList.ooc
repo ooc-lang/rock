@@ -221,7 +221,7 @@ LinkedList: class <T> extends List<T> {
 	/**
 	    Returns the size of the list.
 	*/
-	getSize: func -> SizeT {_size}
+	getSize: func -> SSizeT {_size}
 
 	/**
 	    Returns an Iterator pointing to the front of the list.

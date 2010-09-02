@@ -46,7 +46,7 @@ Stack: class <T> extends BackIterable<T> {
         return data indexOf(element)
     }
 	
-	getSize: func -> SizeT {	
+	getSize: func -> SSizeT {	
 		return data size
 	}
 	

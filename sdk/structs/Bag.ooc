@@ -74,7 +74,7 @@ Bag: class {
         data set(index, tmp)
     }
 
-    getSize: func -> SizeT {data size}
+    getSize: func -> SSizeT {data size}
 
     getClass: func (index: SSizeT) -> Class {
         data get(index) T

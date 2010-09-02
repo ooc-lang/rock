@@ -479,7 +479,7 @@ HashMap: class <K, V> extends BackIterable<V> {
         init(capacity)
     }
 
-    getSize: func -> SizeT { _size }
+    getSize: func -> SSizeT { _size }
 
     getKeys: func -> ArrayList<K> { keys }
 
