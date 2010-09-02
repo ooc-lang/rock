@@ -1,4 +1,4 @@
-import io/File, structs/HashMap
+import io/[BufferReader, BufferWriter, File], structs/HashMap
 
 /**
    Cached file writer.

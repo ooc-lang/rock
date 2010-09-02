@@ -1,4 +1,4 @@
-import io/Writer
+import io/[Writer, BufferWriter]
 import structs/[Bag, HashBag]
 import text/[EscapeSequence]
 

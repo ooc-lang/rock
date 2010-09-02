@@ -1,7 +1,7 @@
 include stdio
 
 import structs/ArrayList
-import FileReader, FileWriter, Reader
+import FileReader, FileWriter, Reader, BufferWriter, BufferReader
 import native/[FileWin32, FileUnix]
 
 /**

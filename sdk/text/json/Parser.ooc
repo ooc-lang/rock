@@ -1,6 +1,6 @@
 import structs/[ArrayList, Bag, HashBag, Stack]
-import io/Reader
-import text/[EscapeSequence, StringReader]
+import io/[Reader, StringReader]
+import text/EscapeSequence
 
 TokenType: enum {
     None,
@@ -27,14 +27,6 @@ check: func (this: Token@, type: TokenType) {
         ParserError new("Expected %d, got %d (%s)" format(type, this type, this value toCString())) throw()
     }
 }
-
-/*PToken: cover from Token* {
-    toString: func -> String { // TODO: should be func@
-        //"<Token '%s' (%d) at %p>" format(this@ value, this@ type, this)
-        "ufbar"
-        return "ICHHASS"
-    }
-}*/
 
 LexingError: class extends Exception {
     init: super func ~noOrigin
