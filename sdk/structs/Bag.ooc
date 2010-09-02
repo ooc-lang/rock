@@ -5,7 +5,7 @@ Bag: class {
     // NOTE: most "real" code taken from sdk/structs/ArrayList
     data: ArrayList<Cell<Pointer>>
     
-    size: SizeT {
+    size: SSizeT {
     	get {
     		data getSize()
     	}

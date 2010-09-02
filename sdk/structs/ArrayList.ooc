@@ -16,7 +16,7 @@ ArrayList: class <T> extends List<T> {
     capacity : SizeT
     _size = 0 : SizeT
     
-    size: SizeT {
+    size: SSizeT {
     	get {
     		_size
     	}

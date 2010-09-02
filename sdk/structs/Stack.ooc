@@ -3,7 +3,7 @@ import structs/ArrayList
 Stack: class <T> extends BackIterable<T> {
 	data: ArrayList<T>
 	
-	size: SizeT {
+	size: SSizeT {
 		get {
 			data != null ? data size : 0		
 		}

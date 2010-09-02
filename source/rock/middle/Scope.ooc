@@ -6,7 +6,7 @@ import ../frontend/[BuildParams]
 
 Scope: class extends Node {
 	
-	size: SizeT {
+	size: SSizeT {
 		get {
 			list getSize()
 		}

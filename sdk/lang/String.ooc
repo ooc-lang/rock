@@ -14,7 +14,7 @@ String: class {
     // accessing this member directly can break immutability, so you should avoid it.
     _buffer: Buffer
 
-    size: SizeT {
+    size: SSizeT {
         get {
             _buffer size
         }

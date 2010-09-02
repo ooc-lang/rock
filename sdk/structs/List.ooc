@@ -6,7 +6,7 @@ import structs/HashMap /* for getStandardEquals() - should probably move that in
  */
 List: abstract class <T> extends BackIterable<T> {
 
-	size: SizeT {
+	size: SSizeT {
 		get {
 			getSize()
 		}
