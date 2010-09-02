@@ -137,30 +137,6 @@ String: class extends Iterable<Char> {
         result
     }
 
-    split: func~withChar(c: Char, maxSplits: SSizeT) -> ArrayList <This> {
-        _bufArrayListToStrArrayList( _buffer split~withChar(c, maxSplits) )
-    }
-
-    split: func~withStringWithoutMaxSplits(s: This) -> ArrayList <This> {
-        _bufArrayListToStrArrayList( _buffer split ( s _buffer, -1) )
-    }
-
-    split: func~withCharWithoutMaxSplits(c: Char) -> ArrayList <This> {
-        _bufArrayListToStrArrayList( _buffer split~withCharWithoutMaxSplits(c) )
-    }
-
-    split: func~withStringWithEmpties( s: This, empties: Bool) -> ArrayList <This> {
-        _bufArrayListToStrArrayList( _buffer split~withBufWithEmpties (s _buffer, empties ) )
-    }
-
-    split: func~withCharWithEmpties(c: Char, empties: Bool) -> ArrayList <This> {
-        _bufArrayListToStrArrayList( _buffer split~withCharWithEmpties( c , empties ) )
-    }
-
-    split: func ~str (delimiter: This, maxSplits: SSizeT) -> ArrayList <This> {
-        _bufArrayListToStrArrayList( _buffer split~buf ( delimiter _buffer, maxSplits ) )
-    }
-
     toLower: func -> This {
         result := _buffer clone()
         result toLower()

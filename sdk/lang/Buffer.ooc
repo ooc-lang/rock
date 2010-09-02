@@ -412,59 +412,6 @@ Buffer: class extends Iterable<Char> {
         }
     }
 
-    split: func~withChar(c: Char, maxSplits: SSizeT) -> ArrayList <This> {
-        split(c&, 1, maxSplits)
-    }
-
-    /** split s and return *all* elements, including empties */
-    split: func~withStringWithoutMaxSplits(s: This) -> ArrayList <This> {
-        split(s data, s size, -1)
-    }
-
-    split: func~withCharWithoutMaxSplits(c: Char) -> ArrayList <This> {
-        split(c&, 1, -1)
-    }
-
-    split: func~withBufWithEmpties( s: This, empties: Bool) -> ArrayList <This> {
-        split(s data, s size, empties ? -1 : 0)
-    }
-
-    split: func~withCharWithEmpties(c: Char, empties: Bool) -> ArrayList <This> {
-        split(c&, 1, empties ? -1 : 0)
-    }
-
-    /** splits a string into an ArrayList, maxSplits denotes max elements of returned list
-        if it is > 0, it will be splitted maxSplits -1 times, and in the last element the rest of the string will be held.
-        if maxSplits is negative, it will return all elements, if 0 it will return all non-empty elements.
-        pretty much the same as in java.*/
-    // FIXME untested!
-    split: func ~buf (delimiter: This, maxSplits: SSizeT) -> ArrayList <This> {
-        split(delimiter data, delimiter size, maxSplits)
-    }
-
-    split: func ~pointer (delimiter: Char*, delimiterLength:SizeT, maxSplits: SSizeT) -> ArrayList <This> {
-        findResults := findAll(delimiter, delimiterLength, true)
-        maxItems := ((maxSplits <= 0) || (maxSplits >= findResults size)) ? findResults size : maxSplits
-        result := ArrayList <This> new(maxItems)
-        sstart: SizeT = 0 //source (this) start pos
-        
-        for (item in findResults) {
-            if ((maxSplits > 0) && (result size == maxItems - 1)) break
-            
-            sdist := item - sstart // bytes to copy
-            if (maxSplits != 0 || sdist > 0) {
-                b := This new ((data + sstart) as CString, sdist)
-                result add(b)
-            }
-            sstart += sdist + delimiterLength
-        }
-        sdist := size - sstart // bytes to copy
-        
-        b := This new((data + sstart) as CString, sdist)
-        result add(b)
-        return result
-    }
-
     /**
      * Converts all of the characters in this Buffer to lower case.
      */
