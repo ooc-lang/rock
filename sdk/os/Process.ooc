@@ -98,9 +98,10 @@ Process: abstract class {
 
     /**
      * Execute the process without waiting for it to end.
-     * You have to call `wait` manually.
+     * You have to call `wait` manually
+     * @return child pid process.
      */
-    executeNoWait: abstract func
+    executeNoWait: abstract func -> Long
 
     /**
      * Execute the process, and return all the output to stdout
@@ -134,6 +135,7 @@ Process: abstract class {
         exitCode := execute()
 
         result := PipeReader new(stdErr) toString()
+
 
         stdErr close('r'). close('w')
         stdErr = null

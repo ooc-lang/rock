@@ -45,7 +45,7 @@ ProcessUnix: class extends Process {
        Execute the process without waiting for it to end.
        You have to call `wait` manually.
     */
-    executeNoWait: func {
+    executeNoWait: func -> Long {
 
         pid := fork()
         if (pid == 0) {
@@ -84,6 +84,7 @@ ProcessUnix: class extends Process {
             execvp(cArgs[0], cArgs)
             exit(errno); // don't allow the forked process to continue if execvp fails
         }
+        return pid
     }
 
 }
