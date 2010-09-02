@@ -5,13 +5,13 @@
  * This implementation is quite optimised.
  */
 
-// that's one *sexy* hack.
+// that's one *sexy* hack
 __va_call: func <T> (f: Func <T> (T), T: Class, arg: T) {
     f(arg)
 }
 
 /*  */
-VarArgs: class {
+VarArgs: cover {
 
     args, argsPtr: UInt8* // because the size of stuff (T size) is expressed in bytes
     count: SSizeT // number of elements
@@ -48,12 +48,12 @@ VarArgs: class {
      * private api used by C code
      */
     
-	init: func (=count, bytes: SizeT) {
+	init: func@ (=count, bytes: SizeT) {
         args = gc_malloc(bytes + (count * Class size))
         argsPtr = args
     }
     
-	_addValue: func <T> (value: T) {
+	_addValue: func@ <T> (value: T) {
         "Adding value %d of type (%p) %s, of type size %zd" format(value as Int, T, T name ? T name toCString() : "(nil)" toCString(), T size) println()
 
         // store the type
