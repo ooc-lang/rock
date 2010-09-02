@@ -14,7 +14,7 @@ StringTokenizer: class extends Iterable<String> {
     }
 
     init: func~withChar(input: String, delim: Char, maxSplits: SSizeT) {
-        init~withString(input, String new(delim), maxSplits)
+        init~withString(input, delim toString(), maxSplits)
     }
 
     init: func~withString(input, delim: String, maxSplits: SSizeT) {

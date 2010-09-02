@@ -96,7 +96,7 @@ Module: class extends Node {
                 result[i] = '_'
             }
         }
-        if(result size > 0 && !result[0] alpha?()) result = '_' + result
+        if(result size > 0 && !result[0] alpha?()) result prepend("_")
         result toString()
     }
 
@@ -321,7 +321,6 @@ Module: class extends Node {
                 params errorHandler onError(ModuleNotFound new(imp))
                 continue
             }
-
             absolutePath := File new(impPath path) getAbsolutePath()
 
             cached : Module = null

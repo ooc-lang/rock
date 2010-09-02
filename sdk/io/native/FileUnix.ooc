@@ -190,7 +190,6 @@ version(unix || apple) {
         }
 
         _getChildren: func <T> (T: Class) -> ArrayList<T> {
-
             if(!dir?()) {
                 Exception new(This, "Trying to get the children of the non-directory '" + path + "'!") throw()
             }
@@ -202,8 +201,8 @@ version(unix || apple) {
             result := ArrayList<T> new()
             entry := readdir(dir)
             while(entry != null) {
-                if(!_isSelfOrParentDirEntry? (entry@ name)) {
-                    s := String new(entry@ name, entry@ name length())
+                if(!_isDirHardlink?(entry@ name)) {
+                    s := String new(entry@ name, entry@ name length()) clone()
                     candidate: T = (T == String) ? s : File new(this, s)
                     result add(candidate)
                 }

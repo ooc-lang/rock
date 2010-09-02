@@ -94,8 +94,7 @@ PathList: class {
         for (child: File in parent getChildren()) {
             if (child file?()) {
                 list add(basePath + File separator + child name())
-            }
-            else if (child dir?()) {
+            } else if (child dir?()) {
                 addChildren(basePath + File separator + child name(), list, child)
             }
         }

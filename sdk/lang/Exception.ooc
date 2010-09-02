@@ -80,7 +80,7 @@ strerror: extern func (Int) -> CString
 
 getOSError: func -> String {
     x := strerror(errno)
-    return (x != null) ? x toString() : String new()
+    return (x != null) ? x toString() : ""
 }
 
 raise: func(msg: String) {

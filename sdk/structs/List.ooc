@@ -298,7 +298,7 @@ List: abstract class <T> extends BackIterable<T> {
     }
 
     join: func ~char (chr: Char) -> String {
-        join(String new(chr))
+        join(chr toString())
     }
 }
 

@@ -17,7 +17,7 @@ strtod:  extern func (Char*, Pointer)      -> Double
 strtold: extern func (Char*, Pointer)      -> LDouble
 
 /**
- * character and pointer types
+ * Character type
  */
 Char: cover from char {
 
@@ -110,17 +110,18 @@ Char: cover from char {
 
     /** return a one-character string containing this character. */
     toString: func -> String {
-        String new(this)
+        String new(this& as CString, 1)
     }
 
     /** write this character to stdout without a following newline. */
     print: func {
-        "%c" printf(this)
+        fputc(this, stdout)
     }
 
     /** write this character to stdout, followed by a newline */
     println: func {
-        "%c\n" printf(this)
+        fputc(this, stdout)
+        fputc('\n', stdout)
     }
 
     containedIn?: func(s : String) -> Bool {
@@ -149,15 +150,11 @@ operator as (value: Char) -> String {
 }
 
 operator as (value: Char*) -> String {
-    result: String
-    if (value == null) return result
-    value as CString toString()
+    value ? value as CString toString() : null
 }
 
 operator as (value: CString) -> String {
-    result: String
-    if (value == null) return result
-    value toString()
+    value ? value toString() : null
 }
 
 CString: cover from Char* {
@@ -190,16 +187,16 @@ CString: cover from Char* {
 
     /** return the string's length, excluding the null byte. */
     length: extern(strlen) func -> Int
+    
 }
 
 operator == (str1: CString, str2: CString) -> Bool {
-    if ((str1 != null && str2 == null) || (str2 != null && str1 == null)) return false
-    if (str1 == null && str2 == null) return true
-    return str1 equals?(str2)
+    if ((str1 == null) || (str2 == null)) return false
+    str1 equals?(str2)
 }
 
 operator != (str1: CString, str2: CString) -> Bool {
-    return !(str1 == str2)
+    !(str1 == str2)
 }
 
 

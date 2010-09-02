@@ -1,4 +1,5 @@
-/*
+
+/**
  * The String class represents character strings.
  * 
  * The String class is immutable by default, this means every writing operation
@@ -8,53 +9,42 @@
  * @author Amos Wenger (nddrylliog) - initial SDK work
  * @author Scott Olson (tsion/_scott)
  */
+String: class extends Iterable<Char> {
 
-String: class {
-
-    // accessing this member directly can break immutability, so you should avoid it.
+    /**
+     * Underlying buffer used to store a string's data.
+     * Avoid direct access, as it breaks immutability.
+     */
     _buffer: Buffer
 
+    /** Size of this string, in bytes */
     size: SSizeT {
         get {
             _buffer size
         }
     }
 
-    init: func { _buffer = Buffer new() }
+    init: func ~withBuffer(=_buffer) {}
 
-    init: func ~zeroCopy(dummy: Bool) {_buffer = null}
-
-    init: func ~withBuffer(b: Buffer) { _buffer = b }
-
-    init: func ~withChar(c: Char) { _buffer = Buffer new~withChar(c) }
-
-    /** warning: this function is useful when you directly want to manipulate the underlying
-        buffer. which is against the immutability concept, but still useful sometimes */
-    init: func ~withCapacity (capa: SizeT) {
-        Exception new("it looks as if you want to use String as a Buffer! how about using Buffer instead ? i cant allow it, it would break Strings immutability.") throw()
-        _buffer = Buffer new(capa)
+    init: func ~withCStr (s: CString) {
+        init(s, s length())
     }
 
-    init: func ~withString (s: String) {
-        assert( s != null)
-        assert( s _buffer != null)
-        _buffer = s _buffer clone()
+    init: func ~withCStrAndLength(s: CString, length: SizeT) {
+        _buffer = Buffer new(s, length)
     }
 
-    init: func ~withCStr (s : CString) { _buffer = Buffer new~withCStr(s) }
-
-    init: func ~withCStrAndLength(s : CString, length: SizeT) { _buffer = Buffer new~withCStrAndLength(s, length) }
-
-    length: func -> SizeT { _buffer size }
+    length: func -> SizeT {
+        _buffer size
+    }
 
     equals?: final func (other: This) -> Bool {
-        other == this
+        if(this == null) return (other == null)
+        _buffer equals?(other _buffer)
     }
 
-    charAt: func (index: SizeT) -> Char { _buffer charAt(index) }
-
     clone: func -> This {
-        This new~withBuffer( _buffer clone() )
+        new(_buffer clone())
     }
 
     substring: func ~tillEnd (start: SizeT) -> This { substring(start, size) }
@@ -80,12 +70,11 @@ String: class {
 
     append: func ~char (other: Char) -> This {
         result := _buffer clone(size + 1)
-        result append~char(other)
+        result append(other)
         result toString()
     }
 
     append: func ~cStr (other: CString) -> This {
-        assert(other != null)
         l := other length()
         result := _buffer clone(size + l)
         result append(other, l)
@@ -93,29 +82,15 @@ String: class {
     }
 
     prepend: func ~str (other: This) -> This{
-        assert(other != null)
         result := _buffer clone()
-        result prepend~buf(other _buffer)
+        result prepend(other _buffer)
         result toString()
     }
 
     prepend: func ~char (other: Char) -> This {
-        assert(other != null)
         result := _buffer clone()
-        result prepend~char(other)
+        result prepend(other)
         result toString()
-    }
-
-    compare: func (other: This, start, length: SizeT) -> Bool {
-        _buffer compare(other _buffer, start, length)
-    }
-
-    compare: func ~implicitLength (other: This, start: SizeT) -> Bool {
-        _buffer compare(other _buffer, start)
-    }
-
-    compare: func ~whole (other: This) -> Bool {
-        _buffer compare(other _buffer)
     }
 
     empty?: func -> Bool { _buffer empty?() }
@@ -141,7 +116,7 @@ String: class {
     }
 
     replaceAll: func ~str (what, whit : This) -> This {
-        replaceAll~strWithCase (what, whit, true)
+        replaceAll~strWithCase(what, whit, true)
     }
 
     replaceAll: func ~strWithCase (what, whit : This, searchCaseSensitive: Bool) -> This {
@@ -304,12 +279,6 @@ String: class {
 
     count: func ~string (what: This) -> SizeT { _buffer count~buf(what _buffer) }
 
-    first: func -> Char { _buffer first() }
-
-    lastIndex: func -> SSizeT { _buffer lastIndex() }
-
-    last: func -> Char { _buffer last() }
-
     lastIndexOf: func (c: Char) -> SSizeT { _buffer lastIndexOf(c) }
 
     print: func { _buffer print() }
@@ -344,21 +313,19 @@ String: class {
         _buffer backIterator()
     }
 
-    format: final func ~ str (...) -> This {
-        result := clone()
-        list:VaList
-        fmt := result _buffer
-
+    format: final func ~str (...) -> This {
+        list: VaList
         va_start(list, this)
-        length := vsnprintf(null, 0, (fmt data), list)
+        numBytes := vsnprintf(null, 0, _buffer data, list)
         va_end(list)
 
-        copy := Buffer new~withSize(length, false)
-
-        va_start(list, this )
-        vsnprintf((copy data), length + 1, (fmt data), list)
+        copy := Buffer new(numBytes)
+        copy size = numBytes
+        va_start(list, this)
+        vsnprintf(copy data, numBytes + 1, _buffer data, list)
         va_end(list)
-        This new~withBuffer(copy)
+        
+        new(copy)
     }
 
     printf: final func ~str (...) -> Int {
@@ -369,12 +336,12 @@ String: class {
         retVal
     }
 
-     printfln: final func ~str (...) -> Int {
+    printfln: final func ~str (...) -> Int {
         list: VaList
         va_start(list, this )
         retVal := vprintf(_buffer data, list)
         va_end(list)
-        cputc('\n', stdout)
+        fputc('\n', stdout)
         retVal
     }
 
@@ -382,92 +349,71 @@ String: class {
 
 }
 
-operator implicit as (s: String) -> Char* {
-    if (s == null) return null
-    assert(s _buffer != null)
-    s _buffer data
-}
+/* conversions C world -> String */
 
 operator implicit as (c: Char*) -> String {
-    if (c == null) {
-        b: String = null
-        return b
-    }
-    assert(c != null)
-    return c ? String new (c as CString, strlen(c)) : null
+    c ? String new(c, strlen(c)) : null
 }
 
 operator implicit as (c: CString) -> String {
-    if (c == null) {
-        b: String = null
-        return b
-    }
-    return c ? String new (c, strlen(c)) : null
+    c ? String new(c, strlen(c)) : null
+}
+
+/* conversions String -> C world */
+
+operator implicit as (s: String) -> Char* {
+    s ? s toCString() : null
 }
 
 operator implicit as (s: String) -> CString {
-    if (s == null) return null
-    assert(s _buffer != null)
-    s _buffer data as CString
+    s ? s toCString() : null
 }
 
-
+/* Comparisons */
 
 operator == (str1: String, str2: String) -> Bool {
-    if (str1 == null && str2 != null) return false
-    if (str2 == null && str1 != null) return false
-    if (str1 == null && str2 == null) return true
-    return str1 _buffer  ==  str2 _buffer
+    str1 equals?(str2)
 }
 
 operator != (str1: String, str2: String) -> Bool {
-    !(str1 == str2)
+    !str1 equals?(str2)
 }
 
+/* Access and modification */
+
 operator [] (string: String, index: SizeT) -> Char {
-    assert (string != null)
     string _buffer [index]
 }
 
-operator []= (string: String, index: SizeT, value: Char) {
-    Exception new(String, "Writing to a String breaks immutability! use a Buffer instead!" format(index, string length())) throw()
-}
-
 operator [] (string: String, range: Range) -> String {
-    assert (string != null)
     string substring(range min, range max)
 }
 
+/* Concatenation and other fun stuff */
+
 operator * (string: String, count: Int) -> String {
-    assert (string != null)
-    return string times(count)
+    string times(count)
 }
 
 operator + (left, right: String) -> String {
-    assert ((left != null) && (right != null))
-    left append( right )
+    left append(right)
 }
 
 operator + (left: String, right: CString) -> String {
-    assert ((left != null) && (right != null))
     left append(right)
 }
 
 operator + (left: String, right: Char) -> String {
-    assert ((left != null))
     left append(right)
 }
 
 operator + (left: Char, right: String) -> String {
-    assert ((right != null))
     right prepend(left)
 }
 
 // constructor to be called from string literal initializers
 makeStringLiteral: func (str: CString, strLen: SizeT) -> String {
-    result := String new~zeroCopy(false)
-    result _buffer = Buffer new~stringLiteral(str, strLen, true)
-    result
+    String new(Buffer new(str, strLen, true))
 }
 
 // lame static function to be called by int main, so i dont have to metaprogram it
@@ -479,12 +425,6 @@ strArrayListFromCString: func (argc: Int, argv: Char**) -> ArrayList<String> {
     result
 }
 
-/* damn, there's one probelm left. rock makes
-source/rock/rock.ooc:4:12 ERROR No such function strArrayListFromCString(Int, String*)
- i make this quick hack here
- */
 strArrayListFromCString: func~hack (argc: Int, argv: String*) -> ArrayList<String> {
     strArrayListFromCString(argc, argv as Char**)
 }
-
-

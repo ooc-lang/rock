@@ -455,7 +455,7 @@ JSONGenerator: class extends Visitor {
         /* `doc` */
         obj put("doc", node doc)
         /* `incrementOper` */
-        obj put("incrementOper", String new(node incrementOper))
+        obj put("incrementOper", node incrementOper toString())
         /* `incrementStep` */
         obj put("incrementStep", node incrementStep)
         /* `elements` */

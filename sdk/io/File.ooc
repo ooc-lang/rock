@@ -119,20 +119,10 @@ File: abstract class {
      * name() will return 'bluetooth'
      */
     name: func -> String {
-        if (path size > 1) {
-            end := (path _buffer data + path size - 1)@ == File separator ? path size - 1 : path size
-            start := end
-            while (start > 0 && (path _buffer data + start - 1)@ != File separator) start -= 1
-            return path substring(start, end)
-        }
-        else if (path size == 1 && (path toCString())@ == File separator) return ""
-        else return path
-        /*
         trimmed := path trim(This separator)
         idx := trimmed lastIndexOf(This separator)
         if(idx == -1) return trimmed
         return trimmed substring(idx + 1)
-        */
     }
 
     /**
@@ -290,7 +280,7 @@ File: abstract class {
        :param str: The string to write
      */
     write: func ~string (str: String) {
-        str _buffer toFile(path)
+        FileWriter new(this) write(BufferReader new(str _buffer)). close()
     }
 
     /**
@@ -340,8 +330,8 @@ File: abstract class {
         ooc_get_cwd()
     }
 
-    _isSelfOrParentDirEntry? : inline func (dir: CString) -> Bool {
-        (dir != null && dir[0] == '.') && ( dir[1] == '\0' || ( dir[1] == '.' && dir[2] == '\0'  ) )
-    }
+}
 
+_isDirHardlink? : inline func (dir: CString) -> Bool {
+    (dir[0] == '.') && (dir[1] == '\0' || ( dir[1] == '.' && dir[2] == '\0'))
 }

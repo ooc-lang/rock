@@ -204,7 +204,7 @@ version(windows) {
             hFile := FindFirstFile((path + "\\*") as CString, ffd&)
             running := (hFile != INVALID_HANDLE_VALUE)
             while(running) {
-                if(!_isSelfOrParentDirEntry?(ffd fileName)) {
+                if(!_isDirHardlink?(ffd fileName)) {
                     l := ffd fileName length()
                     b := Buffer new (l + 1 + path size)
                     b append(path)

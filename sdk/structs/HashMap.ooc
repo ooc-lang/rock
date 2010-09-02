@@ -360,7 +360,7 @@ HashMap: class <K, V> extends BackIterable<V> {
     get: func (key: K) -> V {
         entry: HashEntry
 
-        //"\nget(%s" printfln(key as String)
+        //if(K == String) "\nget(%s)" printfln(key as String toCString())
         if (getEntry(key, entry&)) {
             return entry value as V
         }
