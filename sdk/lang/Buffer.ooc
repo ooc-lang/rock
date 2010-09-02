@@ -554,7 +554,7 @@ Buffer: class extends Iterable<Char> {
 
     /** whitespace characters (space, CR, LF, tab) stripped at both ends. */
     trim: func ~whitespace {
-        trim(" \r\n\t" as CString, 4)
+        trim(" \r\n\t" toCString(), 4)
     }
 
     /** space characters (ASCII 32) stripped from the left side. */

@@ -420,8 +420,8 @@ makeStringLiteral: func (str: CString, strLen: SizeT) -> String {
 import structs/ArrayList
 
 strArrayListFromCString: func (argc: Int, argv: Char**) -> ArrayList<String> {
-    result := ArrayList<String> new ()
-    for (i in 0..argc)  result add( argv[i] as CString toString() )
+    result := ArrayList<String> new()
+    for (i in 0..argc)  result add(argv[i] as CString toString())
     result
 }
 
