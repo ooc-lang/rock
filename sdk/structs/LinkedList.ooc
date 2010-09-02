@@ -187,7 +187,7 @@ LinkedList: class <T> extends List<T> {
 		toRemove next prev = toRemove prev
 		toRemove prev = null
 		toRemove next = null
-        size -= 1
+        _size -= 1
 	}
 
 	/**
@@ -221,7 +221,7 @@ LinkedList: class <T> extends List<T> {
 	/**
 	    Returns the size of the list.
 	*/
-	getSize: func -> SSizeT {_size}
+	getSize: func -> SSizeT { _size }
 
 	/**
 	    Returns an Iterator pointing to the front of the list.
