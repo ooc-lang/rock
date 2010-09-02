@@ -77,7 +77,7 @@ TypeDecl: abstract class extends Declaration {
             meta = ClassDecl new(name + "Class", null, true, token)
             meta nonMeta = this
             meta thisDecl = this thisDecl
-            meta setSuperType(BaseType new("Class", nullToken))
+            meta setSuperType(BaseType new("Class", token))
 
             // if we access to "Dog", we access to an object of type "DogClass"
             type = meta getInstanceType()
@@ -127,9 +127,9 @@ TypeDecl: abstract class extends Declaration {
         if(!this isMeta && superType != null) {
             // TODO: there's probably a better way, but this works fine =)
             if(superType getName() == "Object" && name != "Class") {
-                meta setSuperType(BaseType new("ClassClass", nullToken))
+                meta setSuperType(BaseType new("ClassClass", superType token))
             } else {
-                meta setSuperType(BaseType new(superType getName() + "Class", nullToken))
+                meta setSuperType(BaseType new(superType getName() + "Class", superType token))
             }
         }
     }
