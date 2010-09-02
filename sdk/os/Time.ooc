@@ -43,6 +43,7 @@ version(!windows) {
     localtime: extern func (TimeT*) -> TMStruct*
     gettimeofday: extern func (TimeVal*, TimeZone*) -> Int
     usleep: extern func (UInt)
+    sleep: extern func (Double)
 }
 
 /* implementation */
