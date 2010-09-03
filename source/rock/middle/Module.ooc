@@ -9,12 +9,20 @@ import tinker/[Response, Resolver, Trail, Errors]
 
 Module: class extends Node {
 
+    // statistics house-keeping
     timesImported := 0
     timesLooped := 0
 
-    path, fullName, simpleName, packageName, underName, pathElement : String
+    // if this module is out-of-date, 'dead' is set to true.
+    dead: Bool { get set }
+
+    // all variants of useful paths
+    path, fullName, simpleName, packageName, underName, pathElement, oocPath: String
+    
+    // mostly controls the generation of an implicit main
     main := false
 
+    // 
     types      := OrderedMultiMap<String, TypeDecl> new()
     addons     := ArrayList<Addon> new()
     functions  := OrderedMultiMap<String, FunctionDecl> new()
@@ -36,6 +44,8 @@ Module: class extends Node {
     init: func ~module (.fullName, =pathElement, =params, .token) {
         super(token)
         this path = fullName replaceAll('/', File separator)
+        this oocPath = pathElement + File separator + path + ".ooc"
+        
         this fullName = fullName replaceAll(File separator, '/')
         idx := this fullName lastIndexOf('/')
 
@@ -50,6 +60,8 @@ Module: class extends Node {
 
         underName = sanitize(this fullName)
         packageName = sanitize(packageName)
+        
+        dead = false
     }
 
     clone: func -> This {
@@ -175,22 +187,13 @@ Module: class extends Node {
 
     accept: func (visitor: Visitor) { visitor visitModule(this) }
 
-    getPath: func ~full -> String { path }
-
     getPath: func (suffix: String) -> String {
         last := (File new(pathElement) name())
         return (last + File separator) + fullName replaceAll('/', File separator) + suffix
     }
 
     getOocPath: func -> String {
-        path + ".ooc"
-    }
-
-    getParentPath: func -> String {
-        // FIXME that's sub-optimal
-        fileName := pathElement + File separator + fullName + ".ooc"
-        parentPath := File new(fileName) parent() path
-        return parentPath
+        oocPath
     }
 
     /** return global (e.g. non-namespaced) imports */
@@ -323,8 +326,7 @@ Module: class extends Node {
             }
             absolutePath := File new(impPath path) getAbsolutePath()
 
-            cached : Module = null
-            cached = AstBuilder cache get(absolutePath)
+            cached := AstBuilder cache get(absolutePath)
 
             impLastModified := impPath lastModified()
 
@@ -334,8 +336,8 @@ Module: class extends Node {
                 }
 
                 cached = Module new(path[0..(path size - 4)], impElement path, params, nullToken)
-                AstBuilder cache remove(impPath path)
-                AstBuilder cache put(File new(impPath path) getAbsolutePath(), cached)
+                AstBuilder cache remove(absolutePath)
+                AstBuilder cache put(absolutePath, cached)
                 imp setModule(cached)
 
                 cached token = Token new(0, 0, cached)

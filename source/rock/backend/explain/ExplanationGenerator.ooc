@@ -25,7 +25,7 @@ ExplanationGenerator: class extends Visitor {
         outFile parent() mkdirs()
         explanation = Buffer new()
         // build the structure!
-        addObject("# "+module getPath())
+        addObject("# " + module path)
         addObject()
 
         addObject("This file depends on *"+(module getGlobalImports() getSize() toString())+"* other files during runtime.")
@@ -35,12 +35,12 @@ ExplanationGenerator: class extends Visitor {
 
         i := 1
         for(imp in module getGlobalImports()) {
-          addObject((i toString())+". "+imp getModule() getPath())
+          addObject((i toString())+". "+imp getModule() path)
           i += 1
         }
         for(ns in module namespaces) {
             for(imp in ns getImports()) {
-                addObject((i toString())+". "+imp getModule() getPath())
+                addObject((i toString())+". "+imp getModule() path)
                 i += 1
             }
         }

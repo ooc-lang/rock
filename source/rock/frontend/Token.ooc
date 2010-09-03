@@ -125,7 +125,7 @@ Token: cover {
     }
 
     getPath: func -> String {
-        module getPathElement() + File separator + module getPath() + ".ooc"
+        module oocPath
     }
 
     getLineNumber: func -> Int {

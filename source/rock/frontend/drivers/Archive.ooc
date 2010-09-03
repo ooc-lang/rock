@@ -202,7 +202,7 @@ Archive: class {
                     }
                     transModules add(module); continue
                 }
-                oocPath := module getOocPath()
+                oocPath := module path + ".ooc"
                 element := subArchive elements get(oocPath)
                 if(!element) {
                     if(params veryVerbose || params debugLibcache) {
@@ -283,7 +283,7 @@ Archive: class {
 
         for(module in toAdd) {
             // we add .o (object files) to the archive
-            oPath := "%s%c%s.o" format(params outPath path toCString(), File separator, module getPath() replaceAll(File separator, '_') toCString())
+            oPath := "%s%c%s.o" format(params outPath path toCString(), File separator, module path replaceAll(File separator, '_') toCString())
             args add(oPath)
 
             element := ArchiveModule new(module, this)
@@ -326,7 +326,7 @@ ArchiveModule: class {
        Create info about a module
      */
     init: func ~fromModule (=module, =archive) {
-        oocPath = module getOocPath()
+        oocPath = module path + ".ooc"
         if(archive pathElement) {
             lastModified = File new(archive pathElement, oocPath) lastModified()
         } else {

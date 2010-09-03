@@ -468,19 +468,24 @@ CommandLine: class {
         errorCode := 0
 
         while(true) {
-            if(dummyModule) {
-                postParsing(dummyModule)
-            } else {
-                for(modulePath in modulePaths) {
-                    code := parse(modulePath replaceAll('/', File separator))
-                    if(code != 0) {
-                        errorCode = 2 // C compiler failure.
-                        break
+            try {
+                if(dummyModule) {
+                    postParsing(dummyModule)
+                } else {
+                    for(modulePath in modulePaths) {
+                        code := parse(modulePath replaceAll('/', File separator))
+                        if(code != 0) {
+                            errorCode = 2 // C compiler failure.
+                            break
+                        }
                     }
                 }
+            } catch e: CompilationFailedException {
+                if(!params slave) e rethrow()
             }
 
             if(!params slave) break
+            //params veryVerbose = true
 
             Terminal setFgColor(Color yellow). setAttr(Attr bright)
             "-- press [Enter] to re-compile, [c] to clean, [q] to quit. --" println()
@@ -531,19 +536,10 @@ CommandLine: class {
         }
 
         modulePath := moduleFile path
-        assert(modulePath != null)
-        assert(!modulePath empty?())
-        //FIXME doh, so you allow only .ooc extension...
-        fullName := moduleName substring(0, moduleName length() - 4)
-        //("full name " + fullName) println()
-        // FIXME damn that thing crashes here with a fully qualified name. but i wont fix it now.
-        // WTF why do you do that ? (accessing sourcepath again?)
-        // mysteriousString looks as if it'd contain the parent path element, but its not completely clear to me
-        mysteriousString := params sourcePath getElement(moduleName) path
-        assert(mysteriousString != null)
-        assert(!mysteriousString empty?())
-        //("myst name " + mysteriousString) println()
-        module := Module new(fullName, mysteriousString, params , nullToken)
+        fullName := moduleName substring(0, moduleName size - 4)
+
+        pathElement := params sourcePath getElement(moduleName) path
+        module := Module new(fullName, pathElement, params , nullToken)
         module token = Token new(0, 0, module)
         module main = true
         module lastModified = moduleFile lastModified()
@@ -566,18 +562,26 @@ CommandLine: class {
         }
 
         if(params slave && !first) {
-            // slave and non-first = cache is filled, we must re-parse every import.
-            for(dep in module collectDeps()) {
-                for(imp in dep getAllImports()) {
-                    imp setModule(null)
+            // slave and non-first = cache is filled, we must re-check every import.
+            deadModules := ArrayList<Module> new()
+            AstBuilder cache each(|mod|
+                if(File new(mod oocPath) lastModified() > mod lastModified) {
+                    deadModules add(mod)
                 }
-            }
+                mod getAllImports() each(|imp|
+                    imp setModule(null)
+                )
+            )
+            deadModules each(|mod|
+                mod dead = true
+                AstBuilder cache remove(File new(mod oocPath) getAbsolutePath())
+            )
         }
         module parseImports(null)
         if(params verbose) printf("\rFinished parsing, now tinkering...                                                   \n")
 
         // phase 2: tinker
-        if(!Tinkerer new(params) process(module collectDeps())) failure()
+        if(!Tinkerer new(params) process(module collectDeps())) failure(params)
 
         if(params backend == "c") {
             // c phase 3: launch the driver
@@ -591,7 +595,7 @@ CommandLine: class {
                         Process new(foo) execute()
                     }
                 } else {
-                    if(params shout) failure()
+                    if(params shout) failure(params)
                 }
             }
         } else if(params backend == "json") {
@@ -662,7 +666,7 @@ CommandLine: class {
         Terminal reset()
     }
 
-    failure: static func {
+    failure: static func (params: BuildParams) {
         Terminal setAttr(Attr bright)
         Terminal setFgColor(Color red)
         "[FAIL]" println()
@@ -670,9 +674,21 @@ CommandLine: class {
         
         // compile with -Ddebug if you want rock to raise an exception here
         version(_DEBUG) {
-            raise("Debugging a CommandLine failure()") // for backtrace
+            raise("Debugging a CommandLine failure") // for backtrace
+        }
+
+        // in slave-mode, we raise a specific exception so we have a chance to loop
+        if(params slave) {
+            CompilationFailedException new() throw()
         }
         exit(1)
     }
 
 }
+
+CompilationFailedException: class extends Exception {
+    init: func {
+        super("Compilation failed!")
+    }
+}
+

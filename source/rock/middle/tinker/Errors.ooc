@@ -27,7 +27,7 @@ DefaultErrorHandler: class implements ErrorHandler {
     onError: func (e: Error) {
         e format() println()
         if(e fatal?() && params fatalError) {
-            CommandLine failure()
+            CommandLine failure(params)
         }
     }
 

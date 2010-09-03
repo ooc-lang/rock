@@ -53,12 +53,12 @@ AstBuilder: class {
 
     init: func (=modulePath, =module, =params) {
         first := static true
-        clearline := "                                                   \r"
+        //clearline := "                                                   \r"
 
         if(params verbose) {
-            if(!first) clearline print()
+            //if(!first) clearline print()
             "Parsing " print()
-            modulePath print()
+            modulePath println()
         }
         cache put(File new(modulePath) getAbsolutePath(), module)
 
@@ -106,7 +106,7 @@ AstBuilder: class {
         impElement = params sourcePath getElement(path)
         impPath    = params sourcePath getFile(path)
         if(impPath == null) {
-            parent := File new(module getPath()) parent()
+            parent := File new(module path) parent()
             if(parent != null) {
                 path = FileUtils resolveRedundancies(parent path + File separator + imp path + ".ooc")
                 impElement = params sourcePath getElement(path)

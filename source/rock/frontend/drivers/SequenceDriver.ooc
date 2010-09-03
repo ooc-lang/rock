@@ -276,7 +276,7 @@ SequenceDriver: class extends Driver {
         path := File new(params outPath, module getPath("")) getPath()
         //printf("build individual called, outPath=%s module=%s path=%s\n", params outPath path toCString(), module getPath("") toCString(), path toCString())
 
-        oPath := File new(params outPath, module getPath() replaceAll(File separator, '_')) getPath() + ".o"
+        oPath := File new(params outPath, module path replaceAll(File separator, '_')) getPath() + ".o"
         cPath := path + ".c"
         if(oPaths) {
             oPaths add(oPath)

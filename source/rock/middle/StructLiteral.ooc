@@ -20,3 +20,30 @@ StructLiteral: class extends Tuple {
     }
 
 }
+
+/*
+AnonymousStructType: class extends Type {
+
+    types := ArrayList<Type> new()
+
+    init: super func ~type
+
+    pointerLevel: func -> Int { 0 }
+
+    equals?: func (t: Type) -> Bool {
+        if(t class != class) return false
+        other := t as This
+        if(other types size != types size) return false
+        for(i in 0..types size) {
+            if(!other types[i] equals?(types[i])) return false
+        }
+        true
+    }
+
+    write: func (w: AwesomeWriter, name: String) {
+        
+    }
+
+}
+*/
+

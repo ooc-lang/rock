@@ -29,18 +29,18 @@ JSONGenerator: class extends Visitor {
         objects = MultiMap<String, HashBag> new()
 
         /* build the structure! */
-        root put("path", module getPath())
+        root put("path", module path)
 
         globalImports := Bag new()
         for(imp in module getGlobalImports())
-            globalImports add(imp getModule() getPath())
+            globalImports add(imp getModule() path)
         root put("globalImports", globalImports)
 
         namespacedImports := HashBag new()
         for(ns in module namespaces) {
             modules := Bag new()
             for(imp in ns getImports()) {
-                modules add(imp getModule() getPath())
+                modules add(imp getModule() path)
             }
             namespacedImports put(ns getName(), modules)
         }

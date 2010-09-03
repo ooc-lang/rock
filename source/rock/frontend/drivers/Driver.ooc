@@ -158,7 +158,7 @@ Driver: abstract class {
     checkBinaryNameCollision: func (name: String) {
         if (File new(name) dir?()) {
             fprintf(stderr, "Naming conflict (output binary) : There is already a directory called %s.\nTry a different name, e.g. '-o=%s2'\n", name toCString(), name toCString())
-            CommandLine failure()
+            CommandLine failure(params)
             exit(1)
         }
     } 
