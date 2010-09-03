@@ -1,6 +1,6 @@
 import ../frontend/Token
 import VariableDecl, Type, Visitor, Node, TypeDecl, VariableAccess, BinaryOp,
-       FunctionDecl
+       FunctionDecl, BaseType
 import tinker/[Trail, Resolver, Response, Errors]
 
 /**
@@ -39,7 +39,11 @@ Argument: abstract class extends VariableDecl {
 
 VarArg: class extends Argument {
 
-    init: func ~varArg (.token) { super(null, "<...>", token) }
+    // an null name means a C vararg. otherwise, it's an ooc vararg.
+    init: func ~varArg (.token, .name) {
+        super(null, name, token)
+        if(name) type = BaseType new("VarArgs", token)
+    }
 
     accept: func (visitor: Visitor) {
         visitor visitVarArg(this)
@@ -47,12 +51,14 @@ VarArg: class extends Argument {
 
     replace: func (oldie, kiddo: Node) -> Bool { false }
 
-    isResolved: func -> Bool { true }
+    isResolved: func -> Bool { type ? type isResolved() : true }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-
-        return Response OK
-
+        if(type && !type isResolved()) {
+            type resolve(trail, res)
+        }
+        
+        Response OK
     }
 
     toString: func -> String { "..." }

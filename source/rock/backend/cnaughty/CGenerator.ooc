@@ -431,10 +431,11 @@ CGenerator: class extends Skeleton {
     }
 
     visitVarArg: func (varArg: VarArg) {
-        // note: this is a hack to support C-style varargs function definitions
-        // in the future, this will be half-deprecated to support varargs
-        // with ArrayLists of Cell<T>
-        current app("...")
+        if(varArg name) {
+            visitVariableDecl(varArg) // ooc-style varargs
+        } else {
+            current app("...") // C-style varargs
+        }
     }
 
     visitAddressOf: func (node: AddressOf) {

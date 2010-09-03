@@ -317,8 +317,8 @@ VariableDecl: class extends Declaration {
                 for(argType in fType argTypes) {
                     fDecl args add(Argument new(argType, "", token))
                 }
-                if(fType varArg) {
-                    fDecl args add(VarArg new(token))
+                if(fType varArg != VarArgType NONE) {
+                    fDecl args add(VarArg new(token, fType varArg == VarArgType OOC ? "" : null))
                 }
                 if(fType returnType != null) {
                     fDecl setReturnType(fType returnType)
@@ -326,7 +326,7 @@ VariableDecl: class extends Declaration {
                 fDecl vDecl = this
             } else if(getType() getName() == "Closure") {
                 fDecl = FunctionDecl new(name, token)
-                fDecl args add(VarArg new(token))
+                fDecl args add(VarArg new(token, null))
                 fDecl vDecl = this
             }
         }

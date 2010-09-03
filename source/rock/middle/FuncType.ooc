@@ -6,11 +6,20 @@ import tinker/[Response, Resolver, Trail]
 import Type, BaseType, VariableAccess, Declaration, CoverDecl, TypeDecl,
        Module, FunctionCall, VariableDecl
 
+VarArgType: enum {
+    /** No variable arguments at all */
+    NONE
+    /** ooc-style variable arguments */
+    OOC
+    /** C-style variable arguments */
+    C
+}
+
 FuncType: class extends Type {
 
     argTypes := ArrayList<Type> new()
     typeArgs: ArrayList<VariableDecl>
-    varArg := false
+    varArg := VarArgType NONE
     returnType : Type = null
     cached := ArrayList<Module> new()
 

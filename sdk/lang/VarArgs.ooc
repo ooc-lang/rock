@@ -39,6 +39,9 @@ VarArgs: cover {
 
         argsPtr := args
         while(countdown > 0) {
+            // count down!
+            countdown -= 1
+            
             // retrieve the type
             type := (argsPtr as Class*)@ as Class
 
@@ -50,8 +53,6 @@ VarArgs: cover {
 
             // skip the size of the argument - aligned on 8 bytes, that is.
             argsPtr += __pointer_align(type size)
-            
-            countdown -= 1 // count down!
         }
     }
 
@@ -115,16 +116,24 @@ VarArgsIterator: cover {
         if(countdown < 0) {
             Exception new(This, "Vararg underflow!") throw()
         }
+
+        // count down!
         countdown -= 1
 
-        if(!first) {
-            // back up a class size to find out the type we need to skip
+        if(first) {
+            // find, nothing to skip on the first round.
+            first = false
+        } else {
+            // back up a class size to find out the size we need to skip
             type := ((argsPtr - Class size) as Class*)@ as Class
+            // skip the previous arg
             argsPtr += __pointer_align(type size)
         }
-        first = false
 
+        // skip the type
         argsPtr += Class size
+
+        // return the current arg
         (argsPtr as T*)@
     }
 }

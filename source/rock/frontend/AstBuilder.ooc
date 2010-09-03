@@ -582,7 +582,9 @@ AstBuilder: class {
     }
 
     onFuncTypeVarArg: unmangled(nq_onFuncTypeVarArg) func (f: FuncType) {
-        f varArg = true
+        // TODO: what if we actually want ooc varargs in a FuncType?
+        // I'm really not sure what to do syntax-wise.
+        f varArg = VarArgType C
     }
 
     onFuncTypeReturnType: unmangled(nq_onFuncTypeReturnType) func (f: FuncType, returnType: Type) {
@@ -909,8 +911,8 @@ AstBuilder: class {
     /*
      * Arguments
      */
-    onVarArg: unmangled(nq_onVarArg) func {
-        peek(List<Node>) add(VarArg new(token()))
+    onVarArg: unmangled(nq_onVarArg) func (name: CString) {
+        peek(List<Node>) add(VarArg new(token(), name ? name toString() : null))
     }
 
     onTypeArg: unmangled(nq_onTypeArg) func (type: Type) {

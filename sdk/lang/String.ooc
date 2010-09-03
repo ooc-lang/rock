@@ -40,6 +40,7 @@ String: class extends Iterable<Char> {
 
     equals?: final func (other: This) -> Bool {
         if(this == null) return (other == null)
+        if(other == null) return false
         _buffer equals?(other _buffer)
     }
 
