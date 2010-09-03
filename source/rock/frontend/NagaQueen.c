@@ -5973,11 +5973,11 @@ YY_RULE(int) yy_Catch(GREG *G)
   {  int yypos303= G->pos, yythunkpos303= G->thunkpos;  if (!yy__(G)) { goto l303; }  if (!yy_Expr(G)) { goto l303; }  yyDo(G, yySet, -2, 0);  yyDo(G, yy_2_Catch, G->begin, G->end);  goto l304;
   l303:;	  G->pos= yypos303; G->thunkpos= yythunkpos303;
   }
-  l304:;	
+  l304:;	  if (!yy_WS(G)) { goto l302; }  if (!yy_OPEN_BRACK(G)) { goto l302; }
   l305:;	
-  {  int yypos306= G->pos, yythunkpos306= G->thunkpos;  if (!yy_WS(G)) { goto l306; }  if (!yy_Stmt(G)) { goto l306; }  yyDo(G, yySet, -1, 0);  yyDo(G, yy_3_Catch, G->begin, G->end);  if (!yy_WS(G)) { goto l306; }  goto l305;
+  {  int yypos306= G->pos, yythunkpos306= G->thunkpos;  if (!yy_WS(G)) { goto l306; }  if (!yy_Stmt(G)) { goto l306; }  yyDo(G, yySet, -1, 0);  if (!yy_WS(G)) { goto l306; }  yyDo(G, yy_3_Catch, G->begin, G->end);  goto l305;
   l306:;	  G->pos= yypos306; G->thunkpos= yythunkpos306;
-  }  if (!yy_WS(G)) { goto l302; }  yyDo(G, yy_4_Catch, G->begin, G->end);
+  }  if (!yy_WS(G)) { goto l302; }  if (!yy_CLOS_BRACK(G)) { goto l302; }  yyDo(G, yy_4_Catch, G->begin, G->end);
   yyprintf((stderr, "  ok   %s @ %s\n", "Catch", G->buf+G->pos));  yyDo(G, yyPop, 2, 0);
   return 1;
   l302:;	  G->pos= yypos0; G->thunkpos= yythunkpos0;
