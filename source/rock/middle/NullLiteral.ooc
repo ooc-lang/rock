@@ -4,11 +4,10 @@ import tinker/[Resolver, Response, Trail]
 
 NullLiteral: class extends Literal {
 
-    type : BaseType
+    type := static BaseType new("Pointer", nullToken)
 
     init: func ~nullLiteral (.token) {
         super(token)
-        type = BaseType new("Pointer", token)
     }
 
     clone: func -> This {

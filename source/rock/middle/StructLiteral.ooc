@@ -59,8 +59,24 @@ AnonymousStructType: class extends Type {
     }
 
     write: func (w: AwesomeWriter, name: String) {
+        counter := 1
+        w app("struct { "). tab()
+        types each(|t|
+            w nl(). app(t). app(" __f"). app(counter toString()). app(";")
+            counter += 1
+        )
+        w untab(). nl(). app("} ")
+        if(name) w app(name)
+    }
+
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        types each(|type|
+            type resolve(trail, res)
+        )
         
+        Response OK
     }
 
 }
+
 

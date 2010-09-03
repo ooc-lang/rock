@@ -3,7 +3,8 @@ import ../frontend/[Token, BuildParams, CommandLine]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
        InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType, Return,
-       TypeList, Scope, Block, InlineContext
+       TypeList, Scope, Block, InlineContext, StructLiteral, NullLiteral,
+       IntLiteral
 import tinker/[Response, Resolver, Trail, Errors]
 
 /**
@@ -416,6 +417,11 @@ FunctionCall: class extends Expression {
                 return Response OK
             }
 
+            if(!handleVarargs(trail, res) ok()) {
+                res wholeAgain(this, "looping because of varargs")
+                return Response OK
+            }
+
             if(!handleInterfaces(trail, res) ok()) {
                 res wholeAgain(this, "looping because of interfaces!")
                 return Response OK
@@ -759,6 +765,63 @@ FunctionCall: class extends Expression {
         }
 
         return Response OK
+
+    }
+
+    /**
+     * Resolve varargs
+     */
+    handleVarargs: func (trail: Trail, res: Resolver) -> Response {
+
+        if(ref args empty?()) return Response OK
+
+        match (lastArg := ref args last()) {
+            case vararg: VarArg =>
+                if(vararg name != null) {
+                    numVarArgs := (args size - (ref args size - 1))
+                    
+                    "Got ooc varargs for call %s!" printfln(toString() toCString())
+                    if(args last() getType() getName() == "VarArgs") {
+                        return Response OK
+                    }
+                    
+                    ast := AnonymousStructType new(token)
+                    elements := ArrayList<Expression> new()
+                    for(i in (ref args size - 1)..(args size)) {
+                        arg := args[i]
+                        "Handling arg %s" printfln(arg toString() toCString())
+                        elements add(TypeAccess new(arg getType(), token))
+                        ast types add(NullLiteral type)
+                        
+                        elements add(arg)
+                        ast types add(arg getType())
+                    }
+                    argsSl := StructLiteral new(ast, elements, token)
+                    argsDecl := VariableDecl new(null, generateTempName("__va_args"), argsSl, token)
+                    if(!trail addBeforeInScope(this, argsDecl)) {
+                        res throwError(CouldntAddBeforeInScope new(token, this, argsDecl, trail))
+                    }
+
+                    vaType := BaseType new("VarArgs", token)
+                    elements2 := [
+                        AddressOf new(VariableAccess new(argsDecl, token), token)
+                        NullLiteral new(token)
+                        IntLiteral new(numVarArgs, token)
+                    ] as ArrayList<Expression>
+                    
+                    varargsSl := StructLiteral new(vaType, elements2, token)
+                    vaDecl := VariableDecl new(null, generateTempName("__va"), varargsSl, token)
+                    if(!trail addBeforeInScope(this, vaDecl)) {
+                        res throwError(CouldntAddBeforeInScope new(token, this, vaDecl, trail))
+                    }
+                    numVarArgs times(||
+                        args removeAt(args lastIndex())
+                    )
+                    args add(VariableAccess new(vaDecl, token))
+                }
+        }
+
+        Response OK
 
     }
 
