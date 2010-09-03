@@ -5,21 +5,32 @@
  * This implementation is quite optimised.
  */
 
-// that's one *sexy* hack
-__va_call: func <T> (f: Func <T> (T), T: Class, arg: T) {
+// that thunk is needed to correctly infer the 'T'. It shows at the
+// same time the limitations of ooc generics and still how incredibly
+// powerful they are.
+__va_call: inline func <T> (f: Func <T> (T), T: Class, arg: T) {
     f(arg)
 }
 
-/*  */
+// we heard, more than once: don't use sizeof in ooc! why? because it'll
+// actually be the size of the _class(), ie. the size of a pointer - which is
+// what we want, so we're fine.
+__sizeof: extern(sizeof) func (Class) -> SizeT
+
+// used to align values on the pointer-size boundary, both for performance
+// and to match the layout of structs
+__pointer_align: inline func (s: SizeT) -> SizeT {
+    // 'Pointer size' isn't a constant expression, but sizeof(Pointer) is.
+    ps := static __sizeof(Pointer)
+    diff := s % ps
+    diff ? s + (ps - diff) : s
+}
+
 VarArgs: cover {
 
     args, argsPtr: UInt8* // because the size of stuff (T size) is expressed in bytes
     count: SSizeT // number of elements
     
-	/*
-     * public api for retrieving varargs
-     */
-
     /*
      * Iterate through the arguments
      */
@@ -30,22 +41,16 @@ VarArgs: cover {
         while(countdown > 0) {
             // retrieve the type
             type := (argsPtr as Class*)@ as Class
-            "argsPtr = Got type %p" format(type) println()
-            "Got type %s, of type size %zd" format(type name ? type name toCString() : "nil" toCString(), type size)
 
+            // advance of one class size
             argsPtr += Class size
 
             // retrieve the arg and use it
-            "Now argsPtr = %p, value is %d" format(argsPtr, (argsPtr as Int*)@) println()
             __va_call(f, type, argsPtr@)
+
+            // skip the size of the argument - aligned on 8 bytes, that is.
+            argsPtr += __pointer_align(type size)
             
-
-            // if we're packed, skip at least the size of a pointer - else, skip the exact class size
-            diff := type size % Pointer size
-            realSize := diff ? type size + (Pointer size - diff) : type size
-            argsPtr += realSize
-            //argsPtr += type size
-
             countdown -= 1 // count down!
         }
     }
@@ -58,22 +63,74 @@ VarArgs: cover {
         args = gc_malloc(bytes + (count * Class size))
         argsPtr = args
     }
-    
-	_addValue: func@ <T> (value: T) {
-        "Adding value %d of type (%p) %s, of type size %zd" format(value as Int, T, T name ? T name toCString() : "(nil)" toCString(), T size) println()
 
+    /**
+     * Internal testing method to add arguments
+     */
+	_addValue: func@ <T> (value: T) {
         // store the type
         (argsPtr as Class*)@ = T
+
+        // advance of one class size
         argsPtr += Class size
 
         // store the arg
-        memcpy(argsPtr, value&, T size)
+        (argsPtr as T*)@ = value
+        
+        // align on the pointer-size boundary
+        argsPtr += __pointer_align(T size)
+    }
 
-        diff := T size % Pointer size
-        realSize := diff ? T size + (Pointer size - diff) : T size
-        "Instead of pushing %zd, will push %zd" format(T size, realSize) println()
-        argsPtr += realSize
+    /**
+     * @return an iterator that can be used to retrieve every argument
+     */
+    iterator: func -> VarArgsIterator {
+        (args, count, true) as VarArgsIterator
     }
     
 }
-/* */
+
+/**
+ * Can be used to iterate over variable arguments - it has more overhead
+ * than each() because it involves at least one memcpy, except in a future
+ * where we take advantage of generic inlining.
+ *
+ * Apart from that, it's a regular iterator, except that next takes the
+ * type that you want to retrieve.
+ *
+ * The only checking done is that the size of the type you're trying
+ * to get and the size of the actual type must match. Otherwise, you're
+ * free to mix and match up types as you wish - just be careful.
+ */
+VarArgsIterator: cover {
+    argsPtr: UInt8*
+    countdown: SSizeT
+    first: Bool
+
+    hasNext?: func -> Bool {
+        countdown >= 0
+    }
+
+    next: func@ <T> (T: Class) -> T {        
+        if(countdown < 0) {
+            Exception new(This, "Vararg underflow!") throw()
+        }
+        countdown -= 1
+
+        if(!first) {
+            // back up a class size to find out the type we need to skip
+            type := ((argsPtr - Class size) as Class*)@ as Class
+            argsPtr += __pointer_align(type size)
+        }
+        first = false
+
+        argsPtr += Class size
+        (argsPtr as T*)@
+    }
+}
+
+
+
+
+
+
