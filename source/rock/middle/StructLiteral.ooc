@@ -1,5 +1,7 @@
 import ../frontend/[Token, BuildParams]
-import Literal, Visitor, Type, Expression, Node, TypeList, Tuple
+import ../backend/cnaughty/AwesomeWriter
+import Literal, Visitor, Type, Expression, Node, TypeList, Tuple,
+       Declaration, FunctionCall, VariableAccess
 import tinker/[Response, Resolver, Trail]
 import structs/[List, ArrayList]
 
@@ -21,7 +23,6 @@ StructLiteral: class extends Tuple {
 
 }
 
-/*
 AnonymousStructType: class extends Type {
 
     types := ArrayList<Type> new()
@@ -29,6 +30,19 @@ AnonymousStructType: class extends Type {
     init: super func ~type
 
     pointerLevel: func -> Int { 0 }
+
+    getName: func -> String { "<anon struct>" }
+    getRef: func -> Declaration { null }
+    setRef: func (d: Declaration) { raise("Setting ref of an anonymous struct type!") }
+
+    realTypize: func (call: FunctionCall) -> Type { this }
+    clone: func -> This { this }
+    
+    dig: func -> Type { this }
+    checkedDigImpl: func (list: List<Type>, res: Resolver) {}
+    
+    dereference: func -> Type { raise("Dereferencing an anonymous struct type"); null }
+    getTypeArgs: func -> List<VariableAccess> { null }
 
     equals?: func (t: Type) -> Bool {
         if(t class != class) return false
@@ -40,10 +54,13 @@ AnonymousStructType: class extends Type {
         true
     }
 
+    getScoreImpl: func (other: This, scoreSeed: Int) -> Int {
+        0
+    }
+
     write: func (w: AwesomeWriter, name: String) {
         
     }
 
 }
-*/
 
