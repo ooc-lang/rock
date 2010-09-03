@@ -1,7 +1,7 @@
 import structs/List
 import ../../middle/[Module, Include, Import, TypeDecl, FunctionDecl,
        CoverDecl, ClassDecl, OperatorDecl, InterfaceDecl, VariableDecl,
-       Type, FuncType, Argument]
+       Type, FuncType, Argument, StructLiteral]
 import ../../frontend/BuildParams
 import CoverDeclWriter, ClassDeclWriter, VersionWriter, Skeleton
 
@@ -92,7 +92,7 @@ ModuleWriter: abstract class extends Skeleton {
 
         // write all global variables
         for(stmt in module body) {
-            if(stmt instanceOf?(VariableDecl)) {
+            if(stmt instanceOf?(VariableDecl) && !stmt as VariableDecl getType() instanceOf?(AnonymousStructType)) {
                 vd := stmt as VariableDecl
                 // TODO: add 'local'
                 if(vd isExtern() && !vd isProto()) continue
@@ -132,7 +132,7 @@ ModuleWriter: abstract class extends Skeleton {
         }
 
         for(stmt in module body) {
-            if(stmt instanceOf?(VariableDecl)) {
+            if(stmt instanceOf?(VariableDecl) && !stmt as VariableDecl getType() instanceOf?(AnonymousStructType)) {
                 vd := stmt as VariableDecl
                 if(vd isExtern() || vd getExpr() == null) continue
                 current nl(). app(vd getFullName()). app(" = "). app(vd getExpr()). app(';')
