@@ -417,8 +417,13 @@ FunctionCall: class extends Expression {
                 return Response OK
             }
 
+            if(!handleOptargs(trail, res) ok()) {
+                res wholeAgain(this, "looping because of optargs!")
+                return Response OK
+            }
+
             if(!handleVarargs(trail, res) ok()) {
-                res wholeAgain(this, "looping because of varargs")
+                res wholeAgain(this, "looping because of varargs!")
                 return Response OK
             }
 
@@ -769,7 +774,24 @@ FunctionCall: class extends Expression {
     }
 
     /**
-     * Resolve varargs
+     * Resolve optional arguments, ie. fill in default values
+     */
+    handleOptargs: func (trail: Trail, res: Resolver) -> Response {
+        if(ref args size <= args size) return Response OK
+
+        for(i in args size..ref args size) {
+            refArg := ref args[i]
+            if(refArg expr) {
+                "Adding default value %s for argument %s in call %s" printfln(refArg expr toString() toCString(), refArg toString() toCString(), toString() toCString())
+                args add(refArg expr)
+            }
+        }
+        
+        Response OK
+    }
+
+    /**
+     * Resolve ooc variable arguments
      */
     handleVarargs: func (trail: Trail, res: Resolver) -> Response {
 
@@ -1182,29 +1204,47 @@ FunctionCall: class extends Expression {
      * Returns true if decl has a signature compatible with this function call
      */
     matchesArgs: func (decl: FunctionDecl) -> Bool {
-        declArgs := decl args getSize()
-        callArgs := args getSize()
 
-        // same number of args
-        if(declArgs == callArgs) {
-            return true
-        }
+        callIter := args iterator()
+        declIter := decl args iterator()
 
-        // or, vararg
-        if(decl args getSize() > 0) {
-            last := decl args last()
-
-            // and less fixed decl args than call args ;)
-            if(last instanceOf?(VarArg) && declArgs - 1 <= callArgs) {
+        // deal with all the callArgs we have
+        while(callIter hasNext?()) {
+            if(!declIter hasNext?()) {
+                if(debugCondition()) "Args don't match! Too many call args" println()
+                return false
+            }
+            
+            if(declIter next() instanceOf?(VarArg)) {
+                if(debugCondition()) "Varargs swallow all!" println()
+                // well, whatever we have left, VarArgs swallows it all.
                 return true
             }
+
+            if(debugCondition()) "Regular arg consumes one." println()
+            // if not varargs, consume one callarg.
+            callIter next()
         }
 
-        if(debugCondition()) {
-            "Args don't match! declArgs = %d, callArgs = %d" format(declArgs, callArgs) println()
+        // deal with remaining declArgs
+        while(declIter hasNext?()) {
+            declArg := declIter next()
+            if(declArg instanceOf?(VarArg)) {
+                if(debugCondition()) "Ending on a classy varargs." println()
+                // varargs can also be omitted.
+                return true
+            }
+            
+            if(declArg expr) {
+                // optional arg
+                if(debugCondition()) "Optional arg." println()
+                continue
+            }
+            // not an optional arg? then it's not a match, sorry m'am.
+            if(debugCondition()) "Args don't match! Not enough call args" println()
+            return false
         }
-
-        return false
+        true
     }
 
     getType: func -> Type { returnType }

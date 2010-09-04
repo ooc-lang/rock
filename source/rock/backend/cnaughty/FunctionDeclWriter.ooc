@@ -175,7 +175,6 @@ FunctionDeclWriter: abstract class extends Skeleton {
         /* Step 4 : write real args */
         while(iter hasNext?()) {
             arg := iter next()
-            //"Writing arg %s" format(arg toString()) println()
             if(!isFirst) current app(", ")
             else isFirst = false
 

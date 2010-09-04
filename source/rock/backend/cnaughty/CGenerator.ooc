@@ -181,7 +181,7 @@ CGenerator: class extends Skeleton {
             current app("static ")
         }
         vDecl getType() write(current, vDecl getFullName())
-        if(vDecl expr)
+        if(vDecl expr && !vDecl isArg)
             current app(" = "). app(vDecl expr)
     }
 
