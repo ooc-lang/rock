@@ -1,4 +1,4 @@
-.PHONY: all clean mrproper prepare_bootstrap bootstrap install
+.PHONY: all clean mrproper prepare_bootstrap bootstrap install rescue backup
 PARSER_GEN=greg
 NQ_PATH=source/rock/frontend/NagaQueen.c
 DATE=$(shell date +%Y-%m-%d)
@@ -79,12 +79,22 @@ self: .libs/NagaQueen.o
 	mkdir -p bin/
 	${OOC_CMD} rock/rock -o=bin/rock .libs/NagaQueen.o
 
+# Save your rock binary under bin/safe_rock
 backup:
 	cp bin/rock bin/safe_rock
 
+# Attempt to grab a rock bootstrap from Alpaca and recompile
+rescue:
+	git pull
+	rm -rf build/
+	wget http://commondatastorage.googleapis.com/rock-linux/rock-bootstrap-only.tar.bz2 -O - | tar xjvmp
+	make clean bootstrap
+
+# Compile rock with the backup'd version of itself
 safe:
 	OOC=bin/safe_rock make self
 
+# Clean all temporary files that may make a build fail
 clean:
 	rm -rf *_tmp/ .libs/
 	rm -rf `find build/ -name '*.o'`
