@@ -1,8 +1,8 @@
 import structs/[ArrayList]
 import VariableAccess, VariableDecl, Statement, Node, Visitor,
-       FunctionCall, Type, FuncType, Version
+       FunctionCall, Type, FuncType, Version, BaseType
 import tinker/[Trail, Resolver, Response]
-import ../frontend/[BuildParams]
+import ../frontend/[BuildParams, Token]
 
 Scope: class extends Node {
 	
@@ -29,6 +29,19 @@ Scope: class extends Node {
     }
 
     accept: func (v: Visitor) { v visitScope(this) }
+
+    resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
+        va: static VariableAccess
+        
+        if(!va) va = VariableAccess new(null, nullToken)
+        va name = type getName()
+        va ref = null
+        
+        if(resolveAccess(va, res, trail) == -1) return -1
+        if(va ref) type suggest(va ref)
+
+        0
+    }
 
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
         index := list getSize()

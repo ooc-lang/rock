@@ -628,23 +628,18 @@ TypeDecl: abstract class extends Declaration {
     }
 
     resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
-
         if(type getName() == "This") {
             if(type suggest(getNonMeta() ? getNonMeta() : this)) return 0
         }
 
-        //printf("** Looking for type %s in func %s with %d type args\n", type name, toString(), getTypeArgs() getSize())
         for(typeArg: VariableDecl in getTypeArgs()) {
-            //printf("*** For typeArg %s\n", typeArg name)
             if(typeArg name == type name) {
-                //printf("***** Found match for %s in function decl %s\n", type name, toString())
                 type suggest(typeArg)
                 return 0
             }
         }
 
         0
-
     }
 
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
@@ -657,16 +652,6 @@ TypeDecl: abstract class extends Declaration {
         if(!_finishedGhosting) {
             return -1
         }
-
-        /*
-        if(access getName() == "this") {
-            meat := (getNonMeta() ? getNonMeta() : this)
-            if(meat isAddon()) meat = meat getBase() getNonMeta()
-            if(access suggest(meat thisDecl)) {
-                return 0
-            }
-        }
-        */
 
         if(access getName() == "This") {
             //printf("Asking for 'This' in %s (non-meta %s)\n", toString(), getNonMeta() ? getNonMeta() toString() : "(nil)")
@@ -684,7 +669,7 @@ TypeDecl: abstract class extends Declaration {
 
         vDecl := variables get(access getName())
         if(vDecl) {
-            //"&&&&&&&& Found vDecl %s for %s in %s" format(vDecl toString(), access name, name) println()
+            //"&&&&&&&& Found vDecl %s for %s in %s" printfln(vDecl toString() toCString(), access name toCString(), name toCString())
             if(access suggest(vDecl)) {
                 if(access expr == null) {
                     varAcc := VariableAccess new("this", access token)

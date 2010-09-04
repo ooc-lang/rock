@@ -802,7 +802,6 @@ FunctionCall: class extends Expression {
                 if(vararg name != null) {
                     numVarArgs := (args size - (ref args size - 1))
                     
-                    "Got ooc varargs for call %s!" printfln(toString() toCString())
                     if(args last() getType() getName() == "VarArgs") {
                         return Response OK
                     }
@@ -811,7 +810,6 @@ FunctionCall: class extends Expression {
                     elements := ArrayList<Expression> new()
                     for(i in (ref args size - 1)..(args size)) {
                         arg := args[i]
-                        "Handling arg %s" printfln(arg toString() toCString())
                         elements add(TypeAccess new(arg getType(), token))
                         ast types add(NullLiteral type)
                         
@@ -1007,20 +1005,21 @@ FunctionCall: class extends Expression {
                     /* myFunction: func <T> (T: Class) */
                     if(arg getName() == typeArgName) {
                         implArg := args get(j)
-                        if(implArg instanceOf?(VariableAccess)) {
-                            if(implArg as VariableAccess getRef() == null) {
-                                finalScore == -1
-                                return null
-                            }
-                            result := BaseType new(implArg as VariableAccess getName(), implArg token)
-                            result setRef(implArg as VariableAccess getRef()) // FIXME: that is experimental. is that a good idea?
+                        match implArg {
+                            case vAcc: VariableAccess =>
+                                if(!vAcc getRef()) {
+                                    finalScore == -1
+                                    return null
+                                }
+                                result := BaseType new(vAcc getName(), implArg token)
+                                result setRef(vAcc getRef())
 
-                            if(debugCondition()) " >> Found ref-arg %s for typeArgName %s, returning %s" format(implArg toString() toCString(), typeArgName toCString(), result toString() toCString()) println()
-                            return result
-                        } else if(implArg instanceOf?(TypeAccess)) {
-                            return implArg as TypeAccess inner
-                        } else if(implArg instanceOf?(Type)) {
-                            return implArg as Type
+                                if(debugCondition()) " >> Found ref-arg %s for typeArgName %s, returning %s" format(implArg toString() toCString(), typeArgName toCString(), result toString() toCString()) println()
+                                return result
+                            case tAcc: TypeAccess =>
+                                return tAcc inner
+                            case type: Type =>
+                                return type
                         }
                     }
                     j += 1
