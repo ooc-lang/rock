@@ -21,13 +21,13 @@ version(!gc) {
 version(gc) {
     include gc/gc | (GC_THREADS)
 
-    gc_malloc: extern(GC_MALLOC) func (size: SizeT) -> Pointer
-    gc_malloc_atomic: extern(GC_MALLOC_ATOMIC) func (size: SizeT) -> Pointer
-    gc_realloc: extern(GC_REALLOC) func (ptr: Pointer, size: SizeT) -> Pointer
+    gc_malloc: extern(GC_malloc) func (size: SizeT) -> Pointer
+    gc_malloc_atomic: extern(GC_malloc_atomic) func (size: SizeT) -> Pointer
+    gc_realloc: extern(GC_realloc) func (ptr: Pointer, size: SizeT) -> Pointer
     gc_calloc: func (nmemb: SizeT, size: SizeT) -> Pointer {
         gc_malloc(nmemb * size)
     }
-    gc_free: extern(GC_FREE) func (ptr: Pointer)
+    gc_free: extern(GC_free) func (ptr: Pointer)
 }
 
 // memory management
