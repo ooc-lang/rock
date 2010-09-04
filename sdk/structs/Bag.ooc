@@ -76,6 +76,24 @@ Bag: class {
     getClass: func (index: SSizeT) -> Class {
         data get(index) T
     }
+
+    /**
+     * Converts this bag to a variable argument list
+     */
+    toVarArgs: func -> VarArgs {
+        va: VarArgs
+        
+        bytesCount := 0
+        for(cell in data) bytesCount += __pointer_align(cell T size)
+        
+        va init(size, bytesCount)
+        for(cell in data) {
+            T := cell T
+            val: T = cell val
+            va _addValue(val)
+        }
+        va
+    }
 }
 
 operator as <T> (array : T[]) -> Bag {
