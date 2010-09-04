@@ -168,11 +168,15 @@ Buffer: class extends Iterable<Char> {
         substring(start, size)
     }
 
-    /** *this* will be reduced to the characters in the range ``start..end`` */
-    substring: func (start: SizeT, end: SizeT) {
-        if (end != size) setLength(end)
-        if (start > 0) shiftRight(start)
-    }
+    /** *this* will be reduced to the characters in the range ``start..end``
+    	The substring begins at the specified start and extends to the character at index end - 1.
+    	So the length of the substring is end-start */
+    substring: func (start: SSizeT, end: SSizeT) {
+		if(start < 0) start += size + 1
+		if(end < 0) end += size + 1
+		if(end != size) setLength(end)
+		if(start > 0) shiftRight(start)
+	}
 
     /** return a This that contains *this*, repeated *count* times. */
     times: func (count: SizeT) {
