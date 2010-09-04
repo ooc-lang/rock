@@ -7,7 +7,7 @@ Bag: class {
     
     size: SSizeT {
     	get {
-    		data getSize()
+    		data size
     	}
     }
 
@@ -20,20 +20,17 @@ Bag: class {
     }
 
     add: func <T> (element: T) {
-        tmp := Cell<T> new(element)
-        data add(tmp)
+        data add(Cell<T> new(element))
     }
 
     add: func ~withIndex <T> (index: SSizeT, element: T) {
-        tmp := Cell<T> new(element)
-        data add(index, tmp)
+        data add(index, Cell<T> new(element))
     }
 
-    clear: func {data clear()}
+    clear: func { data clear() }
 
     get: func <T> (index: SSizeT, T: Class) -> T {
-        tmp := data get(index)
-        return tmp val
+        data get(index) val
     }
 
     indexOf: func <T> (element: T) -> SSizeT {
@@ -88,10 +85,25 @@ operator as <T> (array : T[]) -> Bag {
 operator as <T> (list : List<T>) -> Bag {
     bag := Bag new(list getSize())
 
-    for (item : T in list)
-    {
+    for (item: T in list) {
         bag add(item)
     }
-
     bag
 }
+
+// Add the toBag() method to VarArgs - this belongs here because Bag
+// is defined here and because we don't want to pull in structs/Bag
+// because of lang/VarArgs
+extend VarArgs {
+
+    toBag: func -> Bag {
+        bag := Bag new(count)
+        each(|arg|
+            bag add(arg)
+        )
+        bag
+    }
+
+}
+
+
