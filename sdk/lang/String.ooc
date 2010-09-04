@@ -104,25 +104,17 @@ String: class extends Iterable<Char> {
 
     endsWith?: func ~char(c: Char) -> Bool { _buffer endsWith?~char (c) }
 
-    find : func (what: This, offset: SSizeT) -> SSizeT { _buffer find( what _buffer, offset) }
-
-    find : func ~withCase (what: This, offset: SSizeT, searchCaseSensitive : Bool) -> SSizeT {
-        _buffer find~withCase( what _buffer, offset, searchCaseSensitive )
+    find : func (what: This, offset: SSizeT, searchCaseSensitive : const Bool = true) -> SSizeT {
+        _buffer find( what _buffer, offset, searchCaseSensitive )
     }
 
-    findAll: func ( what : This) -> ArrayList <SizeT> { _buffer findAll( what _buffer ) }
-
-    findAll: func ~withCase ( what : This, searchCaseSensitive: Bool) -> ArrayList <SizeT> {
-        _buffer findAll~withCase( what _buffer, searchCaseSensitive )
+    findAll: func ( what : This, searchCaseSensitive: const Bool = true) -> ArrayList <SizeT> {
+        _buffer findAll( what _buffer, searchCaseSensitive )
     }
 
-    replaceAll: func ~str (what, whit : This) -> This {
-        replaceAll~strWithCase(what, whit, true)
-    }
-
-    replaceAll: func ~strWithCase (what, whit : This, searchCaseSensitive: Bool) -> This {
+    replaceAll: func ~str (what, whit : This, searchCaseSensitive: const Bool = true) -> This {
         result := _buffer clone()
-        result replaceAll~bufWithCase (what _buffer, whit _buffer, searchCaseSensitive)
+        result replaceAll (what _buffer, whit _buffer, searchCaseSensitive)
         result toString()
     }
 
@@ -150,29 +142,13 @@ String: class extends Iterable<Char> {
         result toString()
     }
 
-    indexOf: func ~charZero (c: Char) -> SSizeT { _buffer indexOf~charZero(c) }
+    indexOf: func ~char (c: Char, start: const SSizeT = 0) -> SSizeT { _buffer indexOf~char(c, start) }
 
-    indexOf: func ~char (c: Char, start: SizeT) -> SSizeT { _buffer indexOf~char(c, start) }
-
-    indexOf: func ~stringZero (s: This) -> SSizeT { _buffer indexOf~bufZero (s _buffer) }
-
-    indexOf: func ~buf (s: This, start: Int) -> SSizeT { _buffer indexOf~buf(s _buffer, start) }
+    indexOf: func ~string (s: This, start: const SSizeT = 0) -> SSizeT { _buffer indexOf~buf(s _buffer, start) }
 
     contains?: func ~char (c: Char) -> Bool { _buffer contains?~char (c) }
 
     contains?: func ~string (s: This) -> Bool { _buffer contains?~buf (s _buffer) }
-
-    trimMulti: func ~pointer (s: Char*, sLength: SizeT) -> This {
-        result := _buffer clone()
-        result trimMulti(s, sLength)
-        result toString()
-    }
-
-    trimMulti: func ~string(s : This) -> This {
-        result := _buffer clone()
-        result trimMulti(s _buffer)
-        result toString()
-    }
 
     trim: func~pointer(s: Char*, sLength: SizeT) -> This {
         result := _buffer clone()
@@ -358,7 +334,7 @@ operator != (str1: String, str2: String) -> Bool {
 
 /* Access and modification */
 
-operator [] (string: String, index: SizeT) -> Char {
+operator [] (string: String, index: SSizeT) -> Char {
     string _buffer [index]
 }
 
@@ -368,7 +344,7 @@ operator [] (string: String, range: Range) -> String {
 
 /* Concatenation and other fun stuff */
 
-operator * (string: String, count: Int) -> String {
+operator * (string: String, count: SizeT) -> String {
     string times(count)
 }
 
