@@ -56,8 +56,8 @@ Buffer: class extends Iterable<Char> {
      * Create a new String from a zero-terminated C String with known length
      * optional flag for stringliteral initializaion with zero copying
      */
-    init: func ~cStrWithLength(s: CString, length: SizeT, isStringLiteral: const Bool = false) {
-        if(isStringLiteral) {
+    init: func ~cStrWithLength(s: CString, length: SizeT, stringLiteral? := false) {
+        if(stringLiteral?) {
             data = s
             size = length
             mallocAddr = null
@@ -155,7 +155,7 @@ Buffer: class extends Iterable<Char> {
         clone(size)
     }
 
-    clone: func ~withMinimum (minimumLength : SizeT) -> This {
+    clone: func ~withMinimum (minimumLength := size) -> This {
         newCapa := minimumLength > size ? minimumLength : size
         copy := new(newCapa)
         //"Cloning %s, new capa %zd, new size %zd" printfln(data, newCapa, size)
@@ -290,7 +290,7 @@ Buffer: class extends Iterable<Char> {
         (size > 0) && data[size] == c
     }
 
-    find: func ~char (what: Char, offset: SSizeT, searchCaseSensitive: const Bool = true) -> SSizeT {
+    find: func ~char (what: Char, offset: SSizeT, searchCaseSensitive := true) -> SSizeT {
         find (what&, 1, offset, searchCaseSensitive)
     }
 
@@ -299,11 +299,11 @@ Buffer: class extends Iterable<Char> {
         use offset 0 for a new search, then increase it by the last found position +1
         look at implementation of findAll() for an example
     */
-    find: func (what: This, offset: SSizeT, searchCaseSensitive : const Bool = true) -> SSizeT {
+    find: func (what: This, offset: SSizeT, searchCaseSensitive := true) -> SSizeT {
         find~pointer(what data, what size, offset, searchCaseSensitive)
     }
 
-    find: func ~pointer (what: Char*, whatSize: SizeT, offset: SSizeT, searchCaseSensitive :const Bool = true) -> SSizeT {
+    find: func ~pointer (what: Char*, whatSize: SizeT, offset: SSizeT, searchCaseSensitive := true) -> SSizeT {
         if (offset >= size || offset < 0 || what == null || whatSize == 0) return -1
 
         maxpos : SSizeT = size - whatSize // need a signed type here
@@ -333,11 +333,11 @@ Buffer: class extends Iterable<Char> {
     }
 
     /** returns a list of positions where buffer has been found, or an empty list if not  */
-    findAll: func ~withCase ( what : This, searchCaseSensitive: const Bool = true) -> ArrayList <SizeT> {
+    findAll: func ~withCase ( what : This, searchCaseSensitive := true) -> ArrayList <SizeT> {
         findAll(what data, what size, searchCaseSensitive)
     }
 
-    findAll: func ~pointer ( what : Char*, whatSize: SizeT, searchCaseSensitive: const Bool = true) -> ArrayList <SizeT> {
+    findAll: func ~pointer ( what : Char*, whatSize: SizeT, searchCaseSensitive := true) -> ArrayList <SizeT> {
         if (what == null || whatSize == 0) return ArrayList <SizeT> new(0)
         result := ArrayList <SizeT> new (size / whatSize)
         offset : SSizeT = (whatSize ) * -1
@@ -345,7 +345,7 @@ Buffer: class extends Iterable<Char> {
         result
     }
 
-    replaceAll: func ~buf (what, whit: This, searchCaseSensitive: const Bool = true) {
+    replaceAll: func ~buf (what, whit: This, searchCaseSensitive := true) {
         findResults := findAll(what, searchCaseSensitive)
         if (findResults == null || findResults size == 0) return
         
@@ -406,7 +406,7 @@ Buffer: class extends Iterable<Char> {
     /** return the index of *c*, but only check characters ``start..length``.
         However, the return value is the index of the *c* relative to the
         string's beginning. If *this* does not contain *c*, return -1. */
-    indexOf: func ~char (c: Char, start: const SSizeT = 0) -> SSizeT {
+    indexOf: func ~char (c: Char, start: SSizeT = 0) -> SSizeT {
         for(i in start..size) {
             if((data + i)@ == c) return i
         }
@@ -416,7 +416,7 @@ Buffer: class extends Iterable<Char> {
     /** return the index of *s*, but only check characters ``start..length``.
         However, the return value is relative to the *this*' first character.
         If *this* does not contain *c*, return -1. */
-    indexOf: func ~buf (s: This, start: const SSizeT = 0) -> SSizeT {
+    indexOf: func ~buf (s: This, start: SSizeT = 0) -> SSizeT {
         return find(s, start, false)
     }
 

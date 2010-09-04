@@ -98,21 +98,21 @@ String: class extends Iterable<Char> {
 
     startsWith?: func (s: This) -> Bool { _buffer startsWith? (s _buffer) }
 
-    startsWith?: func ~char(c: Char) -> Bool { _buffer startsWith?~char(c) }
+    startsWith?: func ~char(c: Char) -> Bool { _buffer startsWith?(c) }
 
     endsWith?: func (s: This) -> Bool { _buffer endsWith? (s _buffer) }
 
-    endsWith?: func ~char(c: Char) -> Bool { _buffer endsWith?~char (c) }
+    endsWith?: func ~char(c: Char) -> Bool { _buffer endsWith?(c) }
 
-    find : func (what: This, offset: SSizeT, searchCaseSensitive : const Bool = true) -> SSizeT {
-        _buffer find( what _buffer, offset, searchCaseSensitive )
+    find : func (what: This, offset: SSizeT, searchCaseSensitive := true) -> SSizeT {
+        _buffer find(what _buffer, offset, searchCaseSensitive)
     }
 
-    findAll: func ( what : This, searchCaseSensitive: const Bool = true) -> ArrayList <SizeT> {
-        _buffer findAll( what _buffer, searchCaseSensitive )
+    findAll: func ( what : This, searchCaseSensitive := true) -> ArrayList <SizeT> {
+        _buffer findAll(what _buffer, searchCaseSensitive)
     }
 
-    replaceAll: func ~str (what, whit : This, searchCaseSensitive: const Bool = true) -> This {
+    replaceAll: func ~str (what, whit : This, searchCaseSensitive := true) -> This {
         result := _buffer clone()
         result replaceAll (what _buffer, whit _buffer, searchCaseSensitive)
         result toString()
@@ -142,13 +142,13 @@ String: class extends Iterable<Char> {
         result toString()
     }
 
-    indexOf: func ~char (c: Char, start: const SSizeT = 0) -> SSizeT { _buffer indexOf~char(c, start) }
+    indexOf: func ~char (c: Char, start: SSizeT = 0) -> SSizeT { _buffer indexOf(c, start) }
 
-    indexOf: func ~string (s: This, start: const SSizeT = 0) -> SSizeT { _buffer indexOf~buf(s _buffer, start) }
+    indexOf: func ~string (s: This, start: SSizeT = 0) -> SSizeT { _buffer indexOf(s _buffer, start) }
 
-    contains?: func ~char (c: Char) -> Bool { _buffer contains?~char (c) }
+    contains?: func ~char (c: Char) -> Bool { _buffer contains?(c) }
 
-    contains?: func ~string (s: This) -> Bool { _buffer contains?~buf (s _buffer) }
+    contains?: func ~string (s: This) -> Bool { _buffer contains?(s _buffer) }
 
     trim: func~pointer(s: Char*, sLength: SizeT) -> This {
         result := _buffer clone()
@@ -374,7 +374,7 @@ import structs/ArrayList
 
 strArrayListFromCString: func (argc: Int, argv: Char**) -> ArrayList<String> {
     result := ArrayList<String> new()
-    for (i in 0..argc)  result add(argv[i] as CString toString())
+    argc times(|i| result add(argv[i] as CString toString()))
     result
 }
 
