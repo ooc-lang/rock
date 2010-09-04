@@ -420,6 +420,10 @@ FunctionDecl: class extends Declaration {
             if(access suggest(isThisRef ? meat thisRefDecl : meat thisDecl)) return 0
         }
 
+        if(access debugCondition()) {
+            "Looking for %s in %s, got %d typeArgs" printfln(access toString() toCString(), toString() toCString(), typeArgs size)
+        }
+        
         for(typeArg in typeArgs) {
             if(access name == typeArg name) {
                 if(access suggest(typeArg)) return 0
@@ -995,6 +999,7 @@ FunctionDecl: class extends Declaration {
                 trail addBeforeInScope(this, closureDecl)
 
                 thunk := FunctionDecl new(getName() + "_thunk", token)
+                thunk typeArgs addAll(typeArgs)
                 thunk args addAll(args)
                 ctxArg := VariableDecl new(ReferenceType new(ctxStruct getInstanceType(), token), "__context__", token)
                 thunk args add(ctxArg)

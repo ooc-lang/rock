@@ -132,7 +132,7 @@ VariableAccess: class extends Expression {
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         if(debugCondition()) {
-            "%s is of type %s\n" format(name toCString(), getType() ? getType() toString() toCString() : "(nil)" toCString()) println()
+            "%s is of type %s" printfln(name toCString(), getType() ? getType() toString() toCString() : "(nil)" toCString())
         }
 
         trail onOuter(FunctionDecl, |fDecl|
