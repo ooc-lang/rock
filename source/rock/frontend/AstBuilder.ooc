@@ -30,10 +30,10 @@ ReservedKeywordError: class extends Error {
 
 computeReservedHashs: func (words: String[]) -> ArrayList<Int> {
     list := ArrayList<Int> new()
-    for(i in 0..words length) {
+    words length times(|i|
         word := words[i]
         list add(ac_X31_hash(word))
-    }
+    )
     list
 }
 
@@ -331,12 +331,11 @@ AstBuilder: class {
     }
 
     onVersionStart: unmangled(nq_onVersionStart) func (spec: VersionSpec) {
-        object := peek(Object)
-        if(object instanceOf?(Module)) {
-            versionStack push(spec)
-        } else {
-            vb := VersionBlock new(spec, token())
-            stack push(vb)
+        match (object := peek(Object)) {
+            case mod: Module =>
+                versionStack push(spec)
+            case =>
+                stack push(VersionBlock new(spec, token()))
         }
     }
 
@@ -351,13 +350,13 @@ AstBuilder: class {
 
     onVersionEnd: unmangled(nq_onVersionEnd) func -> VersionBlock {
         object := peek(Object)
-        if(object instanceOf?(Module)) {
-            versionStack pop()
-        } else {
-            vb := pop(VersionBlock)
-            return vb
+        match object {
+            case mod: Module =>
+                versionStack pop()
+                null
+            case =>
+                pop(VersionBlock)
         }
-        return null
     }
 
     /*
@@ -467,17 +466,14 @@ AstBuilder: class {
             }
         }
 
-        node : Node = stack peek()
-        //printf("[gotVarDecl] Got variable decl %s, and parent is a %s\n", vd toString(), node class name)
-        if(node instanceOf?(TypeDecl)) {
-            tDecl := node as TypeDecl
-            tDecl addVariable(vd)
-        } else if(node instanceOf?(List)) {
-            vd isArg = true
-            node as List<Node> add(vd)
-        } else {
-            //printf("[gotVarDecl] Parent is a %s, don't know what to do, calling gotStatement()\n", node class name)
-            gotStatement(vd)
+        match (node := peek(Object)) {
+            case tDecl: TypeDecl =>
+                tDecl addVariable(vd)
+            case list: List<Node> =>
+                vd isArg = true
+                list add(vd)
+            case =>
+                gotStatement(vd)
         }
     }
 
@@ -520,7 +516,7 @@ AstBuilder: class {
     onPropertyDeclSetterArgument: unmangled(nq_onPropertyDeclSetterArgument) func (cname: CString, conventional: Bool) {
         name := cname toString()
         arg: Argument = match conventional {
-            case true => Argument new(null, name clone(), token())
+            case true  => Argument new(null, name clone(), token())
             case false => AssArg new(name clone(), token())
         }
         peek(FunctionDecl) args add(arg)
@@ -678,17 +674,14 @@ AstBuilder: class {
 
     onFunctionEnd: unmangled(nq_onFunctionEnd) func -> FunctionDecl {
         fDecl := pop(FunctionDecl)
-        node : Node = stack peek()
-        if(node == module) {
-            module addFunction(fDecl)
-        } else if(node instanceOf?(TypeDecl)) {
-            tDecl := node as TypeDecl
-            tDecl addFunction(fDecl)
-        } else if(node instanceOf?(Addon)) {
-            addon := node as Addon
-            addon addFunction(fDecl)
-        } else {
-            //printf("^^^^^^^^ Unexpected function %s (peek is a %s)\n", fDecl name toCString(), node class name toCString())
+        
+        match(node := peek(Node)) {
+            case module =>
+                module addFunction(fDecl)
+            case tDecl: TypeDecl =>
+                tDecl addFunction(fDecl)
+            case addon: Addon =>
+                addon addFunction(fDecl)
         }
         return fDecl
     }
@@ -725,14 +718,12 @@ AstBuilder: class {
     }
 
     onFunctionCallChain: unmangled(nq_onFunctionCallChain) func (expr: Expression, call: FunctionCall) -> CallChain {
-        if(expr instanceOf?(CallChain)) {
-            chain := expr as CallChain
-            //printf("Adding %s to existing callchain %s\n", call toString(), chain toString())
-            chain calls add(call)
-            return chain
-        } else {
-            //printf("Creating new call chain with expr %s and call %s\n", expr toString(), call toString())
-            return CallChain new(expr, call)
+        match expr {
+            case chain: CallChain =>
+                chain calls add(call)
+                chain
+            case =>
+                CallChain new(expr, call)
         }
     }
 
@@ -766,23 +757,18 @@ AstBuilder: class {
 
     // statement
     onStatement: unmangled(nq_onStatement) func (stmt: Statement) {
-        if(stmt instanceOf?(VariableDecl)) {
-            //printf("[onStatement] stmt %s is a VariableDecl, calling gotVarDecl\n", stmt toString())
-            gotVarDecl(stmt as VariableDecl)
-            return
-        } else if(stmt instanceOf?(Stack<VariableDecl>)) {
-            stack : Stack<VariableDecl> = stmt
-            if(stack T inheritsFrom?(VariableDecl)) {
-                //printf("[onStatement] stmt is a Stack<VariableDecl>, calling gotVarDecl on each of'em\n")
-                for(vd in stack) {
-                    //printf("[onStatement] among em, %s\n", vd toString())
-                    gotVarDecl(vd)
+        match stmt {
+            case vd: VariableDecl =>
+                gotVarDecl(vd)
+            case stack: Stack<VariableDecl> =>
+                if(stack T inheritsFrom?(VariableDecl)) {
+                    for(vd in stack) {
+                        gotVarDecl(vd)
+                    }
                 }
-                return
-            }
+            case =>
+                gotStatement(stmt)
         }
-
-        gotStatement(stmt)
     }
 
     gotStatement: func (stmt: Statement) {

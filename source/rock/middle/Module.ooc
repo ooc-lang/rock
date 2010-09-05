@@ -331,7 +331,7 @@ Module: class extends Node {
                     printf("%s has been changed, recompiling... (%d vs %d), impPath = %s\n", _path toCString(), File new(impPath path) lastModified(), cached lastModified, impPath path toCString());
                 }
 
-                cached = Module new(_path[0..(_path size - 4)], impElement path, params, nullToken)
+                cached = Module new(_path[0..-4], impElement path, params, nullToken)
                 // clean the cache
                 AstBuilder cache remove(absolutePath)
                 AstBuilder cache put(absolutePath, cached)
