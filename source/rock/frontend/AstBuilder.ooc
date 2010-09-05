@@ -113,7 +113,7 @@ AstBuilder: class {
         if(!impElement) {
             parent := File new(module path) parent()
             if(parent) {
-                path = parent path + File separator + oocImpPath
+                path = FileUtils resolveRedundancies(parent path + File separator + oocImpPath)
                 (impPat2, impElemen2) := params sourcePath getFile(path)
                 (impPath, impElement) = (impPat2, impElemen2)
             }

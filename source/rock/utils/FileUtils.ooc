@@ -15,7 +15,6 @@ FileUtils: class {
      * @return cleaned up file
      */
     resolveRedundancies: static func(path: String) -> String {
-        //("resolveRedundancies called on " + path) println()
         elems := ArrayList<String> new()
 
         for (elem in path split(File separator)) {
@@ -47,8 +46,6 @@ FileUtils: class {
                 buffer append(File separator)
             }
         }
-        //printf("buffer data is %p:%s\n", buffer size, buffer data)
-        //("resolveRedundancies returns " + buffer toString()) println()
         return buffer toString()
     }
 }
