@@ -781,10 +781,8 @@ FunctionCall: class extends Expression {
 
         for(i in args size..ref args size) {
             refArg := ref args[i]
-            if(refArg expr) {
-                "Adding default value %s for argument %s in call %s" printfln(refArg expr toString() toCString(), refArg toString() toCString(), toString() toCString())
-                args add(refArg expr)
-            }
+            // use the default value as an argument expression.
+            if(refArg expr) args add(refArg expr)
         }
         
         Response OK
