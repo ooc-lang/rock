@@ -245,17 +245,6 @@ TypeDecl: abstract class extends Declaration {
     getFunctions: func -> HashMap<String, FunctionDecl> { functions }
 
     underName: func -> String {
-
-        // TODO underize it.
-        /*
-        if(module != null) {
-            printf("module fullName = %s\n", module fullName)
-            printf("module packageName = %s\n", module packageName)
-            printf("externName = %s\n", externName)
-            printf("module packageName empty?() = %d\n", module packageName empty?())
-            printf("isExtern = %d\n", isExtern())
-        }
-        */
         if(module != null && !module underName empty?() && !isExtern()) {
             return module underName + "__" + name
         }

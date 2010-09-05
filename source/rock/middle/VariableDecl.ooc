@@ -389,6 +389,7 @@ VariableDeclTuple: class extends VariableDecl {
                         }
                     }
                 }
+                return Response LOOP
 
             case expr instanceOf?(FunctionCall) =>
                 fCall := expr as FunctionCall

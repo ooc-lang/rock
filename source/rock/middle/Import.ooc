@@ -21,15 +21,11 @@ Import: class {
 
     getModule: func -> Module {
         if(module == null && token module != null) {
-            impPath = null, impElement = null : File
-            path = null: String
-            AstBuilder getRealImportPath(this, token module, token module params, path&, impPath&, impElement&)
-
+            (path, impPath, impElement) :=  AstBuilder getRealImportPath(this, token module, token module params)
             if(impPath != null) {
                 setModule(AstBuilder cache get(impPath path))
             }
         }
-
         module
     }
 

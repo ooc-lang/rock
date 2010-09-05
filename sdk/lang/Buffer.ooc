@@ -151,7 +151,6 @@ Buffer: class extends Iterable<Char> {
 
     /** return a copy of *this*. */
     clone: func -> This {
-        //"Cloning %s, size %zd" printfln(data, size)
         clone(size)
     }
 

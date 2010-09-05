@@ -76,22 +76,17 @@ PathList: class {
      */
     getRelativePaths: func(path: String) -> List<String> {
         files := ArrayList<String> new()
-
         for (element: File in paths) {
-            //printf("Looking for path %s in element %s\n", path, element path)
             candidate := File new((element path + File separator) + path)
-            //printf("Candidate = %s\n", candidate path)
             if (candidate exists?() && candidate dir?()) {
-                addChildren(path, files, candidate);
+                addChildren(path, files, candidate)
             }
         }
-
         return files
     }
 
     addChildren: func(basePath: String, list: List<String>, parent: File) {
-
-        for (child: File in parent getChildren()) {
+        for (child in parent getChildren()) {
             if (child file?()) {
                 list add(basePath + File separator + child name())
             } else if (child dir?()) {
@@ -101,30 +96,18 @@ PathList: class {
     }
 
     /**
-     * Find the file in the source path and return a File object associated to it
+     * Find the file in the source path and return
+     *   - a File object associated to it
+     *   - the element of the path list it's been found in
      */
-
-     // FIXME that stuff breaks when a full pathname is passed. i.e. /devel/myfile.ooc
-    getFile: func(path: String) -> File {
-        element := getElement(path)
-        (element == null) ? null : File new(element getPath() + File separator + path)
-    }
-
-
-    /**
-     * Find the file in the source path and return the element of the path list
-     * it has been found in.
-     */
-    // FIXME that stuff breaks when a full pathname is passed. i.e. /devel/myfile.ooc
-    getElement: func(path: String) -> File {
-        for (element: File in paths) {
-            //printf("PathList getElement:%s,%c,%s\n", element getPath() toCString(), File separator, path toCString())
-            candidate := File new(element getPath() + File separator + path)
+    getFile: func (path: String) -> (File, File) {
+        for(element in paths) {
+            candidate := File new(element path, path)
             if (candidate exists?()) {
-                return element
+                return (candidate, element)
             }
         }
-        return null
+        (null, null)
     }
 
     /**

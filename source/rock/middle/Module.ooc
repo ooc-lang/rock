@@ -17,7 +17,7 @@ Module: class extends Node {
     dead: Bool { get set }
 
     // all variants of useful paths
-    path, fullName, simpleName, packageName, underName, pathElement, oocPath: String
+    path, fullName, simpleName, underName, pathElement, oocPath: String
     
     // mostly controls the generation of an implicit main
     main := false
@@ -43,23 +43,21 @@ Module: class extends Node {
 
     init: func ~module (.fullName, =pathElement, =params, .token) {
         super(token)
-        this path = fullName replaceAll('/', File separator)
+        this path = (File separator == '/') ? fullName : fullName replaceAll('/', File separator)
         this oocPath = pathElement + File separator + path + ".ooc"
-        
+
+        // that's a Win32 fix - but I think it's due to an issue in 
         this fullName = fullName replaceAll(File separator, '/')
         idx := this fullName lastIndexOf('/')
 
         match idx {
             case -1 =>
                 simpleName = this fullName clone()
-                packageName = ""
             case =>
                 simpleName = this fullName substring(idx + 1)
-                packageName = this fullName substring(0, idx)
         }
 
         underName = sanitize(this fullName)
-        packageName = sanitize(packageName)
         
         dead = false
     }
@@ -313,40 +311,39 @@ Module: class extends Node {
      * we expect to add to the resolvers list.
      */
     parseImports: func (resolver: Resolver) {
+        for (imp in getAllImports()) {
+            if (imp module) continue // nothing to do
 
-        for(imp: Import in getAllImports()) {
-            if(imp module != null) continue
-
-            impPath = null, impElement = null : File
-            path = null: String
-            AstBuilder getRealImportPath(imp, this, params, path&, impPath&, impElement&)
-            if(impPath == null) {
+            // import paths may contain ".." or relative paths - get it straight first
+            (_path, impPath, impElement) := AstBuilder getRealImportPath(imp, this, params)
+            if(!impPath) {
                 params errorHandler onError(ModuleNotFound new(imp))
                 continue
             }
             absolutePath := File new(impPath path) getAbsolutePath()
-
+            // the cache is a key-value store where keys are the absolute paths of modules.
             cached := AstBuilder cache get(absolutePath)
-
             impLastModified := impPath lastModified()
 
-            if(cached == null || impLastModified > cached lastModified) {
+            // if it's not in the cache or outdated, reparse.
+            if(!cached || impLastModified > cached lastModified) {
                 if(cached && params veryVerbose) {
-                    printf("%s has been changed, recompiling... (%d vs %d), impPath = %s\n", path toCString(), File new(impPath path) lastModified(), cached lastModified, impPath path toCString());
+                    printf("%s has been changed, recompiling... (%d vs %d), impPath = %s\n", _path toCString(), File new(impPath path) lastModified(), cached lastModified, impPath path toCString());
                 }
 
-                cached = Module new(path[0..(path size - 4)], impElement path, params, nullToken)
+                cached = Module new(_path[0..(_path size - 4)], impElement path, params, nullToken)
+                // clean the cache
                 AstBuilder cache remove(absolutePath)
                 AstBuilder cache put(absolutePath, cached)
                 imp setModule(cached)
 
                 cached token = Token new(0, 0, cached)
-                if(resolver != null) {
-                    resolver addModule(cached)
-                }
+                if(resolver) resolver addModule(cached)
+                
                 cached lastModified = impLastModified
                 AstBuilder new(impPath path, cached, params)
             }
+            
             imp setModule(cached)
             cached parseImports(resolver)
         }

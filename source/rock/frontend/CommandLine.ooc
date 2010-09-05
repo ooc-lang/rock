@@ -525,21 +525,15 @@ CommandLine: class {
     }
 
     parse: func (moduleName: String) -> Int {
-        assert (moduleName != null)
-        assert (!moduleName empty?())
-        if(params veryVerbose) ("opening file " + moduleName + " for read...") println()
-        moduleFile := params sourcePath getFile(moduleName)
-
+        (moduleFile, pathElement) := params sourcePath getFile(moduleName)
         if(!moduleFile) {
             printf("File not found: %s\n", moduleName toCString())
             exit(1)
         }
 
         modulePath := moduleFile path
-        fullName := moduleName substring(0, moduleName size - 4)
-
-        pathElement := params sourcePath getElement(moduleName) path
-        module := Module new(fullName, pathElement, params , nullToken)
+        fullName := moduleName[0..-4]
+        module := Module new(fullName, pathElement path, params, nullToken)
         module token = Token new(0, 0, module)
         module main = true
         module lastModified = moduleFile lastModified()

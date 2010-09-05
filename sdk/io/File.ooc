@@ -22,7 +22,7 @@ import native/[FileWin32, FileUnix]
 File: abstract class {
 
     /** The path we're representing */
-    path: String
+    path: String { get set }
 
     /** Separator for path elements. Usually '/' on *nix and '\\' on Windows. */
     separator : static Char

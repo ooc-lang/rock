@@ -100,21 +100,25 @@ AstBuilder: class {
 
     /**
      * Turn import paths like "../frontend/AstBuilder" into "/opt/ooc/rock/source/rock/frontend/AstBuilder"
+     *
+     * @return
+     *   - The non-redundant path
+     *   - The .ooc File
+     *   - A File to the pathElement where the .ooc File was found.
      */
-    getRealImportPath: static func (imp: Import, module: Module, params: BuildParams, path: String@, impPath, impElement: File@) -> File {
-        path = FileUtils resolveRedundancies(imp path + ".ooc")
-        impElement = params sourcePath getElement(path)
-        impPath    = params sourcePath getFile(path)
-        if(impPath == null) {
+    getRealImportPath: static func (imp: Import, module: Module, params: BuildParams) -> (String, File, File) {
+        oocImpPath := imp path + ".ooc"
+        path := FileUtils resolveRedundancies(oocImpPath)
+        (impPath, impElement) := params sourcePath getFile(path)
+        if(!impElement) {
             parent := File new(module path) parent()
-            if(parent != null) {
-                path = FileUtils resolveRedundancies(parent path + File separator + imp path + ".ooc")
-                impElement = params sourcePath getElement(path)
-                impPath    = params sourcePath getFile(path)
+            if(parent) {
+                path = parent path + File separator + oocImpPath
+                (impPat2, impElemen2) := params sourcePath getFile(path)
+                (impPath, impElement) = (impPat2, impElemen2)
             }
         }
-        return impPath
-
+        (path, impPath, impElement)
     }
 
     printCache: static func {
