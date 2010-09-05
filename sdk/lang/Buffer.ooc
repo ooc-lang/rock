@@ -172,7 +172,7 @@ Buffer: class extends Iterable<Char> {
     	So the length of the substring is end-start */
     substring: func (start: SSizeT, end: SSizeT) {
 		if(start < 0) start += size + 1
-		if(end < 0) end += size
+		if(end < 0) end += size + 1
 		if(end != size) setLength(end)
 		if(start > 0) shiftRight(start)
 	}
