@@ -6,3 +6,27 @@ How to contribute to rock
 
 We used to be a lot more open about contributions, but things went awry.
 Maybe we'll go back to a more open model later. who knows.
+
+Working with forks
+------------------
+
+GitHub has good documentation on that, everything you need is here:
+
+  * http://help.github.com/forking/
+
+If you still have questions, ask on IRC (#ooc-lang channel on Freenode)
+
+What happens with pull requests?
+--------------------------------
+
+Pull requests are examined as soon as possible by reviewers. If they need
+adjustments to meet our quality standards or we feel they could be
+significantly improved, we'll let you know by commenting on the pull request.
+
+When the commits are ready to be merged, a reviewer will do so as soon as
+possible.
+
+So far, here's our team of reviewers:
+
+  * http://github.com/fredreichbier
+  * http://github.com/nddrylliog
