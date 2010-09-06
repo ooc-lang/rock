@@ -35,20 +35,14 @@ Color: class {
     white  =     38    : static const Int
 }
 
+// this should be a constant but gcc cant find the symbol o0
+COLOR_FORMAT_STRING := "\033[%dm"
+
 version (unix || apple) {
 
 import unistd
 
 Terminal: class {
-    // this should be a constant but gcc cant find the symbol o0
-    COLOR_FORMAT_STRING : static func -> String {
-         result := Buffer new(32)
-         esc : Octet = 0x1b
-         result append(esc as Char)
-         result append ("[%dm")
-         result toString()
-    }
-
     /* Background color codes are the same as Foreground + 10
      * example: background blue = 34 + 10 = 44
      */
@@ -75,21 +69,21 @@ Terminal: class {
     /** Set foreground color */
     setFgColor: static func(c: Int) {
         if(c >= 30 && c <= 37) {
-            output(COLOR_FORMAT_STRING(), c)
+            output(COLOR_FORMAT_STRING, c)
         }
     }
 
     /** Set background color */
     setBgColor: static func(c: Int) {
         if(c >= 30 && c <= 37) {
-            output(COLOR_FORMAT_STRING(), c + 10)
+            output(COLOR_FORMAT_STRING, c + 10)
         }
     }
 
     /** Set text attribute */
     setAttr: static func(att: Int) {
         if(att >= 0 && att <= 8) {
-            output(COLOR_FORMAT_STRING(), att)
+            output(COLOR_FORMAT_STRING, att)
         }
     }
 
