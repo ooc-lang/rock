@@ -2,11 +2,12 @@ import rock/RockVersion
 
 import structs/[List, ArrayList, HashMap]
 
-import io/[File, FileReader, FileWriter], os/Process
+import io/[File, FileReader, FileWriter], os/[Process, Env]
 
 import ../[AstBuilder, BuildParams, PathList]
 
 import ../../middle/[Module, TypeDecl, VariableDecl, FunctionDecl]
+import ../../backend/cnaughty/ModuleWriter
 
 /**
    Manage .a files stored in .libs/, with their .a.cacheinfo
@@ -188,6 +189,15 @@ Archive: class {
         cleanModules := ArrayList<Module> new()
         cleanModules addAll(modules)
 
+        dotOutput := (Env get("ROCK_DOT_OUTPUT") == "1")
+        dotFile: FileWriter
+        if(dotOutput) {
+            params debugLibcache = true
+            dotFile = FileWriter new("deps-" + sourceFolder + ".dot")
+            dotFile write("digraph deps {\n")
+            dotFile write("rankdir = LR;\n")
+        }
+        
         running := true
         while(running) {
             if(params veryVerbose || params debugLibcache) {
@@ -199,6 +209,9 @@ Archive: class {
                 if(!subArchive) {
                     if(params veryVerbose || params debugLibcache) {
                         "%s is dirty because we can't find the archive" format(module getFullName() toCString()) println()
+                        if(dotOutput) {
+                            dotFile write("\""). write(module simpleName). write("\""). write(" -> "). write("ArchiveNotFound;\n")
+                        }
                     }
                     transModules add(module); continue
                 }
@@ -208,11 +221,17 @@ Archive: class {
                     if(params veryVerbose || params debugLibcache) {
                         "%s is dirty because we can't find the element in archive %s" format(module getFullName() toCString(), subArchive pathElement path toCString()) println()
                     }
+                    if(dotOutput) {
+                        dotFile write("\""). write(module simpleName). write("\""). write(" -> "). write("\"ElementNotInArchive\";\n")
+                    }
                     transModules add(module); continue
                 }
                 if(!element upToDate?) {
                     if(params veryVerbose || params debugLibcache) {
                         "%s is dirty because of element" format(module getFullName() toCString()) println()
+                    }
+                    if(dotOutput) {
+                        dotFile write("\""). write(module simpleName). write("\""). write(" -> "). write("\"StructuralDirty\";\n")
                     }
                     subArchive elements put(oocPath, ArchiveModule new(module, subArchive))
                     structuralDirties add(module)
@@ -226,16 +245,30 @@ Archive: class {
                     if(params veryVerbose || params debugLibcache) {
                         "%s out-of-date, recompiling... (%d vs %d, oocPath = %s)" format (module getFullName() toCString(), lastModified, element lastModified, oocPath toCString()) println()
                     }
+                    if(dotOutput) {
+                        dotFile write("\""). write(module simpleName). write("\""). write(" -> "). write("\"OutOfDate\";\n")
+                    }
                     transModules add(module); continue
                 }
 
-                for(imp in module getAllImports()) {
+                trans := false
+                for(imp in ModuleWriter classifyImports(null, module)) {
                     candidate := imp getModule()
                     if(structuralDirties contains?(candidate)) {
                         if(params veryVerbose || params debugLibcache) {
                             "%s is dirty because of import %s" format(module getFullName() toCString(), candidate getFullName() toCString()) println()
                         }
-                        transModules add(module); break
+                        if(!trans) {
+                            if(dotOutput) {
+                                dotFile write("\""). write(module simpleName). write("\""). write(" -> "). write("\""). write(candidate simpleName). write("\";\n")
+                            }
+                            transModules add(module)
+                            trans = true
+                        }
+                        if(imp isTight) {
+                            structuralDirties add(module)
+                            break // and we can stop searching
+                        }
                     }
                 }
             }
@@ -255,6 +288,10 @@ Archive: class {
                 }
                 transModules clear()
             }
+        }
+
+        if(dotOutput) {
+            dotFile write("}\n"). close()
         }
 
         dirtyModules
@@ -363,7 +400,7 @@ ArchiveModule: class {
 
                 // if the type wasn't there last time - we're not up-to date!
                 if(archType == null) {
-                    //"Type %s wasn't there last time" format(tDecl getName()) println()
+                    "Type %s wasn't there last time" format(tDecl getName() toCString()) println()
                     return false
                 }
 
@@ -373,32 +410,32 @@ ArchiveModule: class {
                 for (variable in tDecl getVariables()) {
                     if(variable isStatic) {
                         if(!statVarIter hasNext?()) {
-                            //printf("Static var %s has changed, %s not up-to-date\n", variable getName(), oocPath)
+                            printf("Static var %s has changed, %s not up-to-date\n", variable getName() toCString(), oocPath toCString())
                             return false
                         }
                         next := statVarIter next()
                         if(next != variable getName()) {
-                            //printf("Static var %s has changed, %s not up-to-date\n", variable getName(), oocPath)
+                            printf("Static var %s has changed, %s not up-to-date\n", variable getName() toCString(), oocPath toCString())
                             return false
                         }
                     } else {
                         if(!instanceVarIter hasNext?()) {
-                            //printf("Instance var %s has changed, %s not up-to-date\n", variable getName(), oocPath)
+                            printf("Instance var %s has changed, %s not up-to-date\n", variable getName() toCString(), oocPath toCString())
                             return false
                         }
                         next := instanceVarIter next()
                         if(next != variable getName()) {
-                            //printf("Instance var %s has changed, %s not up-to-date\n", variable getName(), oocPath)
+                            printf("Instance var %s has changed, %s not up-to-date\n", variable getName() toCString(), oocPath toCString())
                             return false
                         }
                     }
                 }
                 if(statVarIter hasNext?()) {
-                    //printf("Less static vars, %s not up-to-date\n", oocPath)
+                    printf("Less static vars, %s not up-to-date\n", oocPath toCString())
                     return false
                 }
                 if(instanceVarIter hasNext?()) {
-                    //printf("Less instance vars, %s not up-to-date\n", oocPath)
+                    printf("Less instance vars, %s not up-to-date\n", oocPath toCString())
                     return false
                 }
 
@@ -406,18 +443,18 @@ ArchiveModule: class {
 
                 for (function in tDecl getFunctions()) {
                     if(!functionIter hasNext?()) {
-                        //printf("Function %s has changed (%d vs %d), %s not up-to-date\n", function getFullName(), archType functions getSize(), tDecl getFunctions() getSize(), oocPath)
+                        printf("Function %s has changed (%d vs %d), %s not up-to-date\n", function getFullName() toCString(), archType functions getSize(), tDecl getFunctions() getSize(), oocPath toCString())
                         return false
                     }
                     next := functionIter next()
                     if(next != function getFullName()) {
-                        //printf("Function %s has changed (vs %s), %s not up-to-date\n", function getFullName(), next, oocPath)
+                        printf("Function %s has changed (vs %s), %s not up-to-date\n", function getFullName() toCString(), next toCString(), oocPath toCString())
                         return false
                     }
                 }
 
                 if(functionIter hasNext?()) {
-                    //printf("Less methods, %s not up-to-date\n", oocPath)
+                    printf("Less methods, %s not up-to-date\n", oocPath toCString())
                     return false
                 }
             }

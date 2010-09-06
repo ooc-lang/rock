@@ -60,7 +60,7 @@ ModuleWriter: abstract class extends Skeleton {
 
 		// include .h-level imports (which contains types we extend)
         for(imp in imports) {
-            if(!imp isTight()) continue
+            if(!imp isTight) continue
             inc := imp getModule() getPath(".h")
             current nl(). app("#include <"). app(inc). app(">")
         }
@@ -74,7 +74,7 @@ ModuleWriter: abstract class extends Skeleton {
 
         // now loose imports, in the .c it's safe =)
         for(imp in imports) {
-            if(imp isTight()) continue
+            if(imp isTight) continue
             inc := imp getModule() getPath(".h")
             current nl(). app("#include <"). app(inc). app(">")
         }
@@ -357,10 +357,10 @@ ModuleWriter: abstract class extends Skeleton {
             for(imp in imports) {
                 if(selfDecl getSuperRef() != null && selfDecl getSuperRef() getModule() == imp getModule()) {
                     // tighten imports of modules which contain classes we extend
-                    imp setTight(true)
+                    imp isTight = true
                 } else if(imp getModule() types getKeys() contains?("Class")) {
                     // tighten imports of core module
-                    imp setTight(true)
+                    imp isTight = true
                 } else {
                     for(member in selfDecl getVariables()) {
                         ref := member getType() getRef()
@@ -369,12 +369,12 @@ ModuleWriter: abstract class extends Skeleton {
                         if(coverDecl getFromType() != null) continue
                         if(coverDecl getModule() != imp getModule()) continue
                         // uses compound cover, tightening!
-                        imp setTight(true)
+                        imp isTight = true
                         continue
                     }
                     for(interfaceType in selfDecl interfaceTypes) {
                         if(interfaceType getRef() as TypeDecl getModule() == imp getModule()) {
-                            imp setTight(true)
+                            imp isTight = true
                             break
                         }
                     }

@@ -13,7 +13,6 @@ version (windows) {
 Env: class {
     /** returns an environment variable. if not found, it returns null */
     get: static func (variableName: String) -> String {
-        //("someone wants to get an environment variable:" + variableName) println()
         x := getenv(variableName as CString)
         x != null ? x toString() : null
     }

@@ -6,11 +6,12 @@ Import: class {
 
     path: String
     module : Module = null
-    isTight := false // tight imports include '.h', loose imports include '-fwd.h'
+    isTight: Bool { get set } // tight imports include '.h', loose imports include '-fwd.h'
     token: Token
 
     init: func ~imp (=path, =token) {
         this path = this path replaceAll('/', File separator)
+        this isTight = false
     }
 
     setModule: func(=module) {
@@ -30,8 +31,5 @@ Import: class {
     }
 
     getPath: func -> String { path }
-
-    isTight: func -> Bool { isTight }
-    setTight: func (=isTight) {}
 
 }
