@@ -76,9 +76,10 @@ ProcessUnix: class extends Process {
 
             /* run the stuff. */
             cArgs : CString * = gc_malloc(Pointer size * (args getSize() + 1))
-            args getSize() times(|i|
+            for(i in 0..args getSize()) {
+//            args getSize() times(|i| // FIXME: Yes, I'd really like to do a closure here, but it breaks cross-platform awesomess. Yes really.
                 cArgs[i] = args[i] toCString()
-            )
+            }
             cArgs[args getSize()] = null // null-terminated - makes sense
 
             execvp(cArgs[0], cArgs)
