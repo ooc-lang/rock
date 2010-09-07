@@ -139,11 +139,11 @@ VersionAnd: class extends VersionSpec {
     toString: func -> String { "(" + specLeft toString() + " && " + specRight toString() + ")" }
 
     write: func (w: AwesomeWriter) {
-        w app("(")
+        w app("((")
         specLeft  write(w)
-        w app(" && ")
+        w app(") && (")
         specRight write(w)
-        w app(")")
+        w app("))")
     }
 
     equals?: func (other: VersionSpec) -> Bool {
@@ -166,11 +166,11 @@ VersionOr: class extends VersionSpec {
     toString: func -> String { "(" + specLeft toString() + " || " + specRight toString() + ")" }
 
     write: func (w: AwesomeWriter) {
-        w app("(")
+        w app("((")
         specLeft  write(w)
-        w app(" || ")
+        w app(") || (")
         specRight write(w)
-        w app(")")
+        w app("))")
     }
 
     equals?: func (other: VersionSpec) -> Bool {
