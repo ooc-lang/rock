@@ -211,7 +211,7 @@ version(windows) {
                     b append('\\')
                     b append(ffd fileName, l)
                     s := String new(b)
-                    candidate : T = (T == String) ? s : File new(this, s)
+                    candidate : T = (T == String) ? s : File new(s)
                     result add(candidate)
                 }
                 running = FindNextFile(hFile, ffd&)
