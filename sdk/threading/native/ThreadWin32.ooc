@@ -6,7 +6,12 @@ version(windows) {
     include windows
 
     /* covers & extern functions */
-    CreateThread: extern func (...) -> Handle
+    version(gc) {
+        CreateThread: extern(GC_CreateThread) func (...) -> Handle
+    }
+    version(!gc) {
+        CreateThread: extern func (...) -> Handle
+    }
     WaitForSingleObject: extern func (...) -> Long // laziness
     INFINITE: extern Long
     WAIT_OBJECT_0: extern Long

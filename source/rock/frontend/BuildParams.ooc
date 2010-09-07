@@ -34,6 +34,11 @@ BuildParams: class {
 
         // use the GC by default =)
         defines add(This GC_DEFINE)
+        // also, don't use the thread redirects by default. It causes problems on
+        // mingw where the mingw definition of `_beginthreadex` gets messed up by
+        // the gc's `_beginthreadex` -> `GC_beginthreadex` macro. And we don't
+        // need them anyway, do we?
+        defines add("GC_NO_THREAD_REDIRECTS")
 
         // use a simple error handler by default
         errorHandler = DefaultErrorHandler new(this) as ErrorHandler // FIXME: why the workaround :(
