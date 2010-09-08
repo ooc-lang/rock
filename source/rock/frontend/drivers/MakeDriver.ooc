@@ -193,7 +193,7 @@ MakeDriver: class extends SequenceDriver {
         }
 
         if(params enableGC) {
-            version (!windows) { fW write(" -lpthread ") }
+            fW write(" -lpthread ")
             if(params dynGC) {
                 fW write("-lgc")
             } else {
