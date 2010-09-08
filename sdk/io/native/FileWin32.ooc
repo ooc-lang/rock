@@ -80,11 +80,7 @@ version(windows) {
             hFind := FindFirstFile(path toCString(), ffd&)
             if (hFind != INVALID_HANDLE_VALUE) FindClose(hFind)
             else {
-/*                getOSError() println()
-                ("invalid file handle when opening " + path + ", zeroterm? " + ((path _buffer data + path size)@ == '\0' ? "yup" : "nay")) println()
-*/
                 return (ffd, false)
-
             }
             return (ffd, true)
         }
