@@ -1,6 +1,7 @@
 import structs/[HashMap, ArrayList]
 import ../Process, PipeWin32
 import native/win32/[types, errors]
+import text/EscapeSequence
 
 version(windows) {
 
@@ -21,8 +22,8 @@ ProcessWin32: class extends Process {
     init: func ~win32 (=args) {
         sb := Buffer new()
         for(arg in args) {
-            //sb append('"'). append(arg). append("\" ")
-            sb append(arg). append(' ')
+            // TODO: Surely not the best solution. Should everything be escaped?
+            sb append('"'). append(EscapeSequence escape(arg)). append("\" ")
         }
         cmdLine = sb toString()
 
@@ -73,7 +74,7 @@ ProcessWin32: class extends Process {
         // Start the child process.
         if(!CreateProcess(
             null,        // No module name (use command line)
-            cmdLine,     // Command line
+            cmdLine toCString(),     // Command line
             null,        // Process handle not inheritable
             null,        // Thread handle not inheritable
             true,        // Set handle inheritance to true
