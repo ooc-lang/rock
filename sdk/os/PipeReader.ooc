@@ -14,9 +14,9 @@ PipeReader: class {
         if(eof) return ""
 
         buf = pipe read(This BUF_SIZE)
-        if(buf@ == '\0') eof = true
+        if(buf == null || buf@ == '\0') eof = true
 
-        return String new(buf as CString, strlen(buf))
+        return buf == null ? "" : buf as CString toString()
     }
 
     hasNext?: func() -> Bool {

@@ -46,22 +46,22 @@ PipeWin32: class extends Pipe {
         }
 
         // Don't try to read if there's no bytes ready atm
-        if(totalBytesAvail == 0) return CString new (0)
+        if(totalBytesAvail == 0) return null
 
         // don't request more than there's available
         bytesAsked := totalBytesAvail > bytesRequested ? bytesRequested : totalBytesAvail
-        buffer := gc_malloc(bytesAsked + 1)
+        buffer :=  Buffer new(bytesAsked + 1)
 
         bytesRead: Long
-        if(!ReadFile(readFD, buffer, bytesAsked, bytesRead&, null)) {
+        if(!ReadFile(readFD, buffer data, bytesAsked, bytesRead&, null)) {
             if(GetLastError() == ERROR_HANDLE_EOF) {
                 // then it's okay
-                return CString new(0)
+                return null
             }
             Exception new(This, "Couldn't read pipe") throw()
         }
-        buffer[bytesRead] = '\0'
-        return buffer
+        buffer setLength(bytesRead)
+        return buffer data
     }
 
     /** write 'len' bytes of 'data' to the pipe */
