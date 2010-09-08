@@ -94,10 +94,11 @@ version(windows) {
         len : SSizeT = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_ARGUMENT_ARRAY,
             null, err, 0, buf data as CString, BUF_SIZE, null)
         buf setLength(len)
-          while ((len > 0) && (buf[len - 1] as Octet < 32)) len -= 1
-         buf setLength(len)
-         buf toString()
-     }
+        // rip away trailing CR LF TAB SPACES etc.
+        while ((len > 0) && (buf[len - 1] as Octet < 32)) len -= 1
+        buf setLength(len)
+        buf toString()
+    }
 } else {
     errno: extern Int
     strerror: extern func (Int) -> CString
