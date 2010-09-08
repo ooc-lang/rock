@@ -21,9 +21,12 @@ BaseCompiler: abstract class extends AbstractCompiler {
                     execFile = ShellUtils findExecutable(executableName, true)
                 }
             }
+            executablePath = execFile name()
+        } else {
+            // If we initially got an existing compiler path, just use this one.
+            executablePath = execFile getAbsoluteFile() getPath()
         }
 
-        executablePath = execFile name()
         if(command empty?()) {
             command add(executablePath)
         } else {
