@@ -36,16 +36,14 @@ ProcessWin32: class extends Process {
        if you haven't called `executeNoWait` before.
      */
     wait: func -> Int {
-        CloseHandle(pi thread)
         // Wait until child process exits.
         WaitForSingleObject(pi process, INFINITE);
-
 
         exitCode : Long
         GetExitCodeProcess(pi process, exitCode&)
 
         CloseHandle(pi process)
-
+        CloseHandle(pi thread)
 
         exitCode
     }
