@@ -130,7 +130,7 @@ SequenceDriver: class extends Driver {
             }
 
             if(params enableGC && !doesLib) {
-                params compiler addDynamicLibrary("pthread")
+                version(!windows) { params compiler addDynamicLibrary("pthread") }
                 if(params dynGC) {
                     params compiler addDynamicLibrary("gc")
                 } else {
