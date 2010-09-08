@@ -73,7 +73,7 @@ ProcessWin32: class extends Process {
         // Start the child process.
         if(!CreateProcess(
             null,        // No module name (use command line)
-            cmdLine,     // Command line
+            cmdLine toCString(),     // Command line
             null,        // Process handle not inheritable
             null,        // Thread handle not inheritable
             true,        // Set handle inheritance to true
