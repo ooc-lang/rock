@@ -78,6 +78,8 @@ MakeDriver: class extends SequenceDriver {
         fW write("    ARCH=win\n")
         fW write("else ifeq ($(OS), MINGW32_NT-5.1)\n")
         fW write("    ARCH=win\n")
+        fW write("else ifeq ($(OS), MINGW32_NT-6.1)\n")
+        fW write("    ARCH=win\n")
         fW write("else\n")
         fW write("    $(error \"OS ${OS} doesn't have pre-built Boehm GC packages. Please compile and install your own and recompile with GC_PATH=-lgc\")\n")
         fW write("endif\n")
