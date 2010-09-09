@@ -1,4 +1,4 @@
-import text/[EscapeSequence, Buffer]
+import text/[EscapeSequence]
 import structs/ArrayList
 
 WAIT := 0
