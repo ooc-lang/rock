@@ -27,8 +27,13 @@
 
 
 InvalidFormatException: class extends Exception {
-    init: func(b: Buffer) { msg = "invalid format string: " + b toString() }
+    init: func(msg :CString) { message = "invalid format string! \"" + msg == null ? "" : msg toString() + "\"" }
 }
+
+InvalidTypeException: class extends Exception {
+    init: func { message = "invalid type passed to generic function!" }
+}
+
 
 /* Text Formatting */
 TF_ALTERNATE := 1 << 0
@@ -54,7 +59,7 @@ __digits_small: String = "0123456789abcdefghijklmnopqrstuvwxyz"
 
 
 argNext: inline func<T> (va: VarArgsIterator) -> T {
-    if (!va hasNext?()) InvalidFormatException new() throw()
+    if (!va hasNext?()) InvalidFormatException new(null) throw()
     return va next()
 }
 
@@ -129,6 +134,30 @@ m_printn: func<T> (res: Buffer, info: FSInfoStruct@, arg: T) {
         }
 }
 
+getCharPtrFromStringType: func <T> (s : T) -> Char* {
+    res : Char*
+    match (T) {
+        case String => res = s as String toCString()
+        case Buffer => res = s as Buffer toCString()
+        case CString => res = s as Char*
+        case Pointer => res = s as Char*
+        case => InvalidTypeExection new() throw()
+    }
+    return res
+}
+
+getSizeFromStringType: func<T> (s : T) -> SizeT {
+    res : SizeT
+    match (T) {
+        case String => res = s as String size
+        case Buffer => res = s as Buffer size
+        case CString => res = s as CString length()
+        case Pointer => res = s as CString length()
+        case => InvalidTypeExection new() throw()
+    }
+    return res
+}
+
 parseArg: func(res: This, info: FSInfoStruct*, va: VarArgsIterator, p: Char*) {
     info@ flags |= TF_UNSIGNED
     info@ base = 10
@@ -166,7 +195,8 @@ parseArg: func(res: This, info: FSInfoStruct*, va: VarArgsIterator, p: Char*) {
         case 's' =>
             mprintCall = false
             s : T = argNext(va)
-            sval: Char* = (T == CString || T == Char*) ? s as Char* : (T == String) ? s as String toCString() : s as Buffer toCString()
+            sval: Char*
+            sval = getCharPtr(s)
             /* Change to -2 so that 0-1 doesn't cause the
              * loop to keep going. */
             if(precision == -1)
@@ -193,7 +223,7 @@ getEntityInfo: inline func (info: FSInfoStruct@, va: VarArgsIterator, start: Cha
 
     checkedInc := func {
         if (p < end) p += 1
-        else InvalidFormatException new() throw()
+        else InvalidFormatException new(start) throw()
     }
 
     /* Find any flags. */
@@ -251,14 +281,14 @@ nformat: func~main <T> (fmt: T, args: ... ) -> T {
     if (args count == 0) return fmt
     res := Buffer new(512)
     va := args iterator()
-    ptr := (T == CString || T == Char*) ? fmt : (T==String) ? fmt as String toCString() : fmt as Buffer toCString()
-    end : Pointer = ptr + (T == CString || T == Char*) ? fmt as CString length() : (T==String) ? fmt as String size : fmt as Buffer size
+    ptr := getCharPtrFromStringType(fmt)
+    end : Pointer = ptr + getSizeFromStringType(fmt) as Pointer
     while (ptr as Pointer < end) {
         if (!va hasNext?()) {
             res append(ptr, (end - ptr as Pointer) as SizeT)
             break
         }
-        match ptr@ {
+        match (ptr@) {
             case '%' => {
                 info: FSInfoStruct
                 getEntityInfo(info&, va, ptr, end)
@@ -269,7 +299,9 @@ nformat: func~main <T> (fmt: T, args: ... ) -> T {
         }
         ptr += 1
     }
-    return (T == CString || T == Char*) ? res toCString() as Char* : (T == String) ? res toString() : res
+    if (T == CString || T == Pointer) return res toCString() as Char*
+    else if (T == String) return res toString()
+    else return res
 }
 
 
