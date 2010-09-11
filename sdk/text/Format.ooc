@@ -1,6 +1,7 @@
 /*
  @author Martin Brandenburg
- @author Nick Markwell and Scott Olson
+ @author Nick Markwell
+ @author Scott Olson
  @author rofl0r
 
  Permission is hereby granted, free of charge, to any person
@@ -58,9 +59,9 @@ __digits: String = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 __digits_small: String = "0123456789abcdefghijklmnopqrstuvwxyz"
 
 
-argNext: inline func<T> (va: VarArgsIterator) -> T {
+argNext: inline func<T> (va: VarArgsIterator, T: Class) -> T {
     if (!va hasNext?()) InvalidFormatException new(null) throw()
-    return va next()
+    return va next(T)
 }
 
 m_printn: func<T> (res: Buffer, info: FSInfoStruct@, arg: T) {
@@ -84,7 +85,7 @@ m_printn: func<T> (res: Buffer, info: FSInfoStruct@, arg: T) {
     if(!(info flags & TF_UNSIGNED) && signed_n < 0) {
         sign = '-'
         n = -signed_n
-    } else if(flags & TF_EXP_SIGN) {
+    } else if(info flags & TF_EXP_SIGN) {
         sign = '+'
     }
 
@@ -97,9 +98,9 @@ m_printn: func<T> (res: Buffer, info: FSInfoStruct@, arg: T) {
         i += 1
     } else {
         while(n != 0) {
-            tmp[i] = digits[n % base]
+            tmp[i] = digits[n % info base]
             i += 1
-            n /= base
+            n /= info base
         }
     }
 
@@ -107,7 +108,7 @@ m_printn: func<T> (res: Buffer, info: FSInfoStruct@, arg: T) {
     if(!(info flags & TF_LEFT))
         while(size > i) {
             size -= 1
-            if(flags & TF_ZEROPAD) res append('0')
+            if(info flags & TF_ZEROPAD) res append('0')
             else res append (' ')
         }
 
@@ -141,7 +142,7 @@ getCharPtrFromStringType: func <T> (s : T) -> Char* {
         case Buffer => res = s as Buffer toCString()
         case CString => res = s as Char*
         case Pointer => res = s as Char*
-        case => InvalidTypeExection new() throw()
+        case => InvalidTypeException new() throw()
     }
     return res
 }
@@ -149,16 +150,16 @@ getCharPtrFromStringType: func <T> (s : T) -> Char* {
 getSizeFromStringType: func<T> (s : T) -> SizeT {
     res : SizeT
     match (T) {
-        case String => res = s as String size
+        case String => res = s as String _buffer size
         case Buffer => res = s as Buffer size
         case CString => res = s as CString length()
         case Pointer => res = s as CString length()
-        case => InvalidTypeExection new() throw()
+        case => InvalidTypeException new() throw()
     }
     return res
 }
 
-parseArg: func(res: This, info: FSInfoStruct*, va: VarArgsIterator, p: Char*) {
+parseArg: func(res: Buffer, info: FSInfoStruct*, va: VarArgsIterator, p: Char*) {
     info@ flags |= TF_UNSIGNED
     info@ base = 10
     mprintCall := true
@@ -187,23 +188,23 @@ parseArg: func(res: This, info: FSInfoStruct*, va: VarArgsIterator, p: Char*) {
                     i += 1
                     res append(' ')
                 }
-            res append(argNext(va) as Char)
+            res append(argNext(va, Char) as Char)
             while(i < info@ fieldwidth) {
                 i += 1
                 res append(' ')
             }
         case 's' =>
             mprintCall = false
-            s : T = argNext(va)
+            T := va getNextType()
+            s : T = argNext(va, T)
             sval: Char*
-            sval = getCharPtr(s)
+            sval = getCharPtrFromStringType(s)
             /* Change to -2 so that 0-1 doesn't cause the
              * loop to keep going. */
-            if(precision == -1)
-                precision = -2
-            while(sval@ && (precision > 0 || precision <= -2)) {
-                if(precision > 0) {
-                    precision -= 1
+            if(info@ precision == -1) info@ precision = -2
+            while((sval@) && (info@ precision > 0 || info@ precision <= -2)) {
+                if(info@ precision > 0) {
+                    info@ precision -= 1
                 }
                 res append(sval@)
                 sval += 1
@@ -213,7 +214,10 @@ parseArg: func(res: This, info: FSInfoStruct*, va: VarArgsIterator, p: Char*) {
                    mprintCall = false
         case => mprintCall = false
     }
-    if(mprintCall) m_printn(res, info, argNext(va))
+    if(mprintCall) {
+        T := va getNextType()
+        m_printn(res, info, argNext(va, T))
+    }
 }
 
 getEntityInfo: inline func (info: FSInfoStruct@, va: VarArgsIterator, start: Char*, end: Pointer) {
@@ -256,7 +260,8 @@ getEntityInfo: inline func (info: FSInfoStruct@, va: VarArgsIterator, start: Cha
         checkedInc()
         info precision = 0
         if(p@ == '*') {
-            info precision = argNext(va) as Int
+            T := va getNextType()
+            info precision = argNext(va, T) as Int
             checkedInc()
         }
         while(p@ digit?()) {
@@ -273,7 +278,6 @@ getEntityInfo: inline func (info: FSInfoStruct@, va: VarArgsIterator, start: Cha
     }
 
     info bytesProcessed = p as SizeT - start as SizeT
-    return info
 }
 
 
@@ -282,7 +286,7 @@ nformat: func~main <T> (fmt: T, args: ... ) -> T {
     res := Buffer new(512)
     va := args iterator()
     ptr := getCharPtrFromStringType(fmt)
-    end : Pointer = ptr + getSizeFromStringType(fmt) as Pointer
+    end : Pointer = (ptr as SizeT + getSizeFromStringType(fmt) as SizeT) as Pointer
     while (ptr as Pointer < end) {
         if (!va hasNext?()) {
             res append(ptr, (end - ptr as Pointer) as SizeT)
@@ -299,9 +303,13 @@ nformat: func~main <T> (fmt: T, args: ... ) -> T {
         }
         ptr += 1
     }
-    if (T == CString || T == Pointer) return res toCString() as Char*
-    else if (T == String) return res toString()
-    else return res
+    result: T
+    match (T) {
+        case String => result = res toString()
+        case Buffer => result = res
+        case => result = res toCString()
+    }
+    return result
 }
 
 

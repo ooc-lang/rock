@@ -30,7 +30,7 @@ VarArgs: cover {
 
     args, argsPtr: UInt8* // because the size of stuff (T size) is expressed in bytes
     count: SSizeT // number of elements
-    
+
     /*
      * Iterate through the arguments
      */
@@ -41,7 +41,7 @@ VarArgs: cover {
         while(countdown > 0) {
             // count down!
             countdown -= 1
-            
+
             // retrieve the type
             type := (argsPtr as Class*)@ as Class
 
@@ -56,11 +56,11 @@ VarArgs: cover {
         }
     }
 
-	/*
+    /*
      * private api used by C code
      */
-    
-	init: func@ (=count, bytes: SizeT) {
+
+    init: func@ (=count, bytes: SizeT) {
         args = gc_malloc(bytes + (count * Class size))
         argsPtr = args
     }
@@ -68,7 +68,7 @@ VarArgs: cover {
     /**
      * Internal testing method to add arguments
      */
-	_addValue: func@ <T> (value: T) {
+    _addValue: func@ <T> (value: T) {
         // store the type
         (argsPtr as Class*)@ = T
 
@@ -77,7 +77,7 @@ VarArgs: cover {
 
         // store the arg
         (argsPtr as T*)@ = value
-        
+
         // align on the pointer-size boundary
         argsPtr += __pointer_align(T size)
     }
@@ -88,7 +88,7 @@ VarArgs: cover {
     iterator: func -> VarArgsIterator {
         (args, count, true) as VarArgsIterator
     }
-    
+
 }
 
 /**
@@ -112,7 +112,8 @@ VarArgsIterator: cover {
         countdown >= 0
     }
 
-    next: func@ <T> (T: Class) -> T {        
+    next: func@ <T> (T: Class) -> T {
+        "next called, argsPtr is at %p, T == %s\n" format(argsPtr, T name toCString()) println()
         if(countdown < 0) {
             Exception new(This, "Vararg underflow!") throw()
         }
@@ -135,6 +136,13 @@ VarArgsIterator: cover {
 
         // return the current arg
         (argsPtr as T*)@
+    }
+
+    getNextType: func@ -> Class {
+        if (countdown < 0) Exception new(This, "Vararg underflow!") throw()
+        "nextType called, argsPtr is at %p\n" format(argsPtr) println()
+        (argsPtr as Class*)@ as Class name println()
+        (argsPtr as Class*)@ as Class
     }
 }
 
