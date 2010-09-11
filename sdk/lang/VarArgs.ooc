@@ -112,8 +112,9 @@ VarArgsIterator: cover {
         countdown >= 0
     }
 
+    // convention: argsPtr points to type of next element when called.
     next: func@ <T> (T: Class) -> T {
-        "next called, argsPtr is at %p, T == %s\n" format(argsPtr, T name toCString()) println()
+        "next called, argsPtr is at %p, T == %s, T Size == %d\n" format(argsPtr, (T name != null) ? T name toCString() : "" toCString(), T size) println()
         if(countdown < 0) {
             Exception new(This, "Vararg underflow!") throw()
         }
@@ -121,27 +122,16 @@ VarArgsIterator: cover {
         // count down!
         countdown -= 1
 
-        if(first) {
-            // find, nothing to skip on the first round.
-            first = false
-        } else {
-            // back up a class size to find out the size we need to skip
-            type := ((argsPtr - Class size) as Class*)@ as Class
-            // skip the previous arg
-            argsPtr += __pointer_align(type size)
-        }
+        nextType := (argsPtr as Class*)@ as Class
+        result := ((argsPtr + Class size) as T*)@
 
-        // skip the type
-        argsPtr += Class size
-
-        // return the current arg
-        (argsPtr as T*)@
+        argsPtr += Class size + __pointer_align(nextType size)
+        result
     }
 
     getNextType: func@ -> Class {
         if (countdown < 0) Exception new(This, "Vararg underflow!") throw()
         "nextType called, argsPtr is at %p\n" format(argsPtr) println()
-        (argsPtr as Class*)@ as Class name println()
         (argsPtr as Class*)@ as Class
     }
 }

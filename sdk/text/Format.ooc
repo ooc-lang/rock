@@ -59,9 +59,9 @@ __digits: String = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 __digits_small: String = "0123456789abcdefghijklmnopqrstuvwxyz"
 
 
-argNext: inline func<T> (va: VarArgsIterator, T: Class) -> T {
-    if (!va hasNext?()) InvalidFormatException new(null) throw()
-    return va next(T)
+argNext: inline func<T> (va: VarArgsIterator*, T: Class) -> T {
+    if (!va@ hasNext?()) InvalidFormatException new(null) throw()
+    return va@ next(T)
 }
 
 m_printn: func<T> (res: Buffer, info: FSInfoStruct@, arg: T) {
@@ -159,7 +159,7 @@ getSizeFromStringType: func<T> (s : T) -> SizeT {
     return res
 }
 
-parseArg: func(res: Buffer, info: FSInfoStruct*, va: VarArgsIterator, p: Char*) {
+parseArg: func(res: Buffer, info: FSInfoStruct*, va: VarArgsIterator*, p: Char*) {
     info@ flags |= TF_UNSIGNED
     info@ base = 10
     mprintCall := true
@@ -195,7 +195,7 @@ parseArg: func(res: Buffer, info: FSInfoStruct*, va: VarArgsIterator, p: Char*) 
             }
         case 's' =>
             mprintCall = false
-            T := va getNextType()
+            T := va@ getNextType()
             s : T = argNext(va, T)
             sval: Char*
             sval = getCharPtrFromStringType(s)
@@ -215,12 +215,12 @@ parseArg: func(res: Buffer, info: FSInfoStruct*, va: VarArgsIterator, p: Char*) 
         case => mprintCall = false
     }
     if(mprintCall) {
-        T := va getNextType()
+        T := va@ getNextType()
         m_printn(res, info, argNext(va, T))
     }
 }
 
-getEntityInfo: inline func (info: FSInfoStruct@, va: VarArgsIterator, start: Char*, end: Pointer) {
+getEntityInfo: inline func (info: FSInfoStruct@, va: VarArgsIterator*, start: Char*, end: Pointer) {
 
     /* save original pointer */
     p := start
@@ -260,7 +260,7 @@ getEntityInfo: inline func (info: FSInfoStruct@, va: VarArgsIterator, start: Cha
         checkedInc()
         info precision = 0
         if(p@ == '*') {
-            T := va getNextType()
+            T := va@ getNextType()
             info precision = argNext(va, T) as Int
             checkedInc()
         }
@@ -295,9 +295,9 @@ nformat: func~main <T> (fmt: T, args: ... ) -> T {
         match (ptr@) {
             case '%' => {
                 info: FSInfoStruct
-                getEntityInfo(info&, va, ptr, end)
+                getEntityInfo(info&, va&, ptr, end)
                 ptr += info bytesProcessed
-                parseArg(res, info&, va, ptr)
+                parseArg(res, info&, va&, ptr)
             }
             case => res append(ptr@)
         }
