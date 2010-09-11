@@ -38,7 +38,7 @@ extend Buffer {
 
     split: func ~pointer (delimiter: Char*, delimiterLength:SizeT, maxTokens: SSizeT) -> ArrayList<This> {
         findResults := findAll(delimiter, delimiterLength, true)
-        maxItems := ((maxTokens <= 0) || (maxTokens >= findResults size)) ? findResults size : maxTokens
+        maxItems := ((maxTokens <= 0) || (maxTokens > findResults size + 1)) ? findResults size + 1 : maxTokens
         result := ArrayList<This> new(maxItems)
         sstart: SizeT = 0 //source (this) start pos
         
@@ -52,10 +52,13 @@ extend Buffer {
             }
             sstart += sdist + delimiterLength
         }
-        sdist := size - sstart // bytes to copy
+
+        if(result size < maxItems) {
+            sdist := size - sstart // bytes to copy
+            b := new((data + sstart) as CString, sdist)
+            result add(b)
+        }
         
-        b := new((data + sstart) as CString, sdist)
-        result add(b)
         result
     }
 
