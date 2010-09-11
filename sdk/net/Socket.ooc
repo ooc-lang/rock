@@ -6,6 +6,7 @@ import net/[berkeley, Exceptions]
 Socket: abstract class {
     descriptor: Int
     family, type, protocol: Int
+    connected? := false
 
     init: func ~sock(=family, =type, =protocol) {
         descriptor = socket(family, type, protocol)
@@ -28,6 +29,8 @@ Socket: abstract class {
         if (result == -1) {
             SocketError new("Failed to close socket") throw()
         }
+
+        connected? = false
     }
 
     ioctl: func(request: Int, arg: Pointer) {
