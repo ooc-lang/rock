@@ -114,7 +114,6 @@ VarArgsIterator: cover {
 
     // convention: argsPtr points to type of next element when called.
     next: func@ <T> (T: Class) -> T {
-        "next called, argsPtr is at %p, T == %s, T Size == %d\n" format(argsPtr, (T name != null) ? T name toCString() : "" toCString(), T size) println()
         if(countdown < 0) {
             Exception new(This, "Vararg underflow!") throw()
         }
@@ -131,7 +130,6 @@ VarArgsIterator: cover {
 
     getNextType: func@ -> Class {
         if (countdown < 0) Exception new(This, "Vararg underflow!") throw()
-        "nextType called, argsPtr is at %p\n" format(argsPtr) println()
         (argsPtr as Class*)@ as Class
     }
 }
