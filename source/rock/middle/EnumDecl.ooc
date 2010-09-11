@@ -1,3 +1,4 @@
+import text/Format
 import structs/HashMap
 import ../io/TabbedWriter
 import TypeDecl, Declaration, Visitor, Node, VariableAccess, Type,

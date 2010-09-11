@@ -1,3 +1,4 @@
+import text/Format
 import ../frontend/Token
 import ClassDecl, Type, FunctionDecl, TypeDecl, FunctionCall,
        VariableAccess, Cast

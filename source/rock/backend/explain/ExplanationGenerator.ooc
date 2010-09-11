@@ -1,3 +1,4 @@
+import text/Format
 import io/[File, FileWriter]
 import structs/[Bag, HashBag]
 import text/json/Generator

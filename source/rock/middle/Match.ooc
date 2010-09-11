@@ -1,3 +1,4 @@
+import text/Format
 import structs/[ArrayList, List]
 import ../frontend/Token
 import ControlStatement, Statement, Expression, Visitor, VariableDecl,
@@ -76,7 +77,7 @@ Match: class extends Expression {
         if(casesSize == -1) {
             casesSize = cases getSize()
         }
-        
+
         if(casesResolved < casesSize) {
             for (idx in casesResolved..casesSize) {
                 caze := cases[idx]

@@ -1,3 +1,4 @@
+import text/Format
 import io/[File, FileReader]
 import structs/[List, ArrayList, HashMap]
 import text/StringTokenizer

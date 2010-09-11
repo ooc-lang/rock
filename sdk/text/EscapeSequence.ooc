@@ -137,7 +137,7 @@ EscapeSequence: class {
                     case '\r' => "\\r"
                     case '\t' => "\\t"
                     case '\v' => "\\v"
-                    case => "\\x%hhx" format(chr)
+                    case => "\\x" + chr toHexString()
                 })
             } else {
                 buf append(chr)

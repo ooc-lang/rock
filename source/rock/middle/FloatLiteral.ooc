@@ -16,6 +16,6 @@ FloatLiteral: class extends Literal {
 
     getType: func -> Type { type }
 
-    toString: func -> String { "%f" format(value) }
+    toString: func -> String { value toString() }
 
 }

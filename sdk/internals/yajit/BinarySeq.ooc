@@ -1,5 +1,6 @@
 import os/mmap
 import structs/[ArrayList,HashMap]
+import text/Format
 
 BinarySeq transTable = HashMap<String, Int> new()
 BinarySeq transTable["c"] = Char size

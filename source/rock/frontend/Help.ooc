@@ -1,3 +1,5 @@
+import text/Format
+
 /**
  * Contain the online (rather inline) help of the ooc compiler
  *

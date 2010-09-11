@@ -1,3 +1,4 @@
+import text/Format
 import ../[Module, Node, Import], structs/List, io/File
 import ../../frontend/[BuildParams, Token, AstBuilder]
 import Response, Trail, Tinkerer, Errors

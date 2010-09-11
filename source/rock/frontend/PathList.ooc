@@ -1,3 +1,5 @@
+import text/Format
+
 import io/[File]
 import structs/[ArrayList, List, HashMap]
 

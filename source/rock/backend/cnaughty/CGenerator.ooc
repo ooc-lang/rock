@@ -1,3 +1,4 @@
+import text/Format
 import structs/List
 
 import ../../middle/Visitor

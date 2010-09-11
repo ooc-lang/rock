@@ -1,3 +1,4 @@
+import text/Format
 import AwesomeWriter, ../../middle/[Visitor, Statement, ControlStatement]
 import text/EscapeSequence, rock/frontend/BuildParams, io/File
 

@@ -1,3 +1,4 @@
+import text/Format
 import structs/HashMap
 import Node, Type, TypeDecl, FunctionDecl, FunctionCall, Visitor, VariableAccess
 import tinker/[Trail, Resolver, Response]
@@ -85,7 +86,7 @@ Addon: class extends Node {
 
     resolveCall: func (call : FunctionCall, res: Resolver, trail: Trail) -> Int {
         if(base == null) return 0
-    
+
         hash := TypeDecl hashName(call name, call suffix)
         fDecl := functions get(hash)
         if(fDecl) {

@@ -1,3 +1,4 @@
+import text/Format
 import structs/[List, ArrayList]
 
 import ../backend/cnaughty/AwesomeWriter, ../frontend/[BuildParams, Token]
@@ -220,7 +221,7 @@ BaseType: class extends Type {
 
         ourRef := getRef()
         if(!ourRef) return -1
-        
+
         hisRef := other getRef()
         if(!hisRef) return -1
 
@@ -249,7 +250,7 @@ BaseType: class extends Type {
             // two pointers = okay
             return scoreSeed / 2
         }
-        
+
         if(other instanceOf?(BaseType)) {
             if(ourRef == hisRef) {
                 // perfect match

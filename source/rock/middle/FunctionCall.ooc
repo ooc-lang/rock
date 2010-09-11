@@ -1,3 +1,4 @@
+import text/Format
 import structs/[ArrayList, List, HashMap]
 import ../frontend/[Token, BuildParams, CommandLine]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
@@ -784,7 +785,7 @@ FunctionCall: class extends Expression {
             // use the default value as an argument expression.
             if(refArg expr) args add(refArg expr)
         }
-        
+
         Response OK
     }
 
@@ -799,18 +800,18 @@ FunctionCall: class extends Expression {
             case vararg: VarArg =>
                 if(vararg name != null) {
                     numVarArgs := (args size - (ref args size - 1))
-                    
+
                     if(args last() getType() getName() == "VarArgs") {
                         return Response OK
                     }
-                    
+
                     ast := AnonymousStructType new(token)
                     elements := ArrayList<Expression> new()
                     for(i in (ref args size - 1)..(args size)) {
                         arg := args[i]
                         elements add(TypeAccess new(arg getType(), token))
                         ast types add(NullLiteral type)
-                        
+
                         elements add(arg)
                         ast types add(arg getType())
                     }
@@ -826,7 +827,7 @@ FunctionCall: class extends Expression {
                         NullLiteral new(token)
                         IntLiteral new(numVarArgs, token)
                     ] as ArrayList<Expression>
-                    
+
                     varargsSl := StructLiteral new(vaType, elements2, token)
                     vaDecl := VariableDecl new(null, generateTempName("__va"), varargsSl, token)
                     if(!trail addBeforeInScope(this, vaDecl)) {
@@ -1211,7 +1212,7 @@ FunctionCall: class extends Expression {
                 if(debugCondition()) "Args don't match! Too many call args" println()
                 return false
             }
-            
+
             if(declIter next() instanceOf?(VarArg)) {
                 if(debugCondition()) "Varargs swallow all!" println()
                 // well, whatever we have left, VarArgs swallows it all.
@@ -1231,7 +1232,7 @@ FunctionCall: class extends Expression {
                 // varargs can also be omitted.
                 return true
             }
-            
+
             if(declArg expr) {
                 // optional arg
                 if(debugCondition()) "Optional arg." println()

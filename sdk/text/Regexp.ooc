@@ -114,7 +114,7 @@ Match: class extends Iterable<String> {
     */
     group: func ~byIndex(index: Int) -> String {
         if(index >= groupCount) {
-            Exception new("Invalid group index: %d" format(index)) throw()
+            Exception new("Invalid group index: " + index toString()) throw()
         }
 
         offset := index * 2
@@ -126,7 +126,7 @@ Match: class extends Iterable<String> {
     */
     group: func ~byName(name: String) -> String {
         number := regexp pcre getStringNumber(name)
-        if(number < -1) Exception new("Invalid group name: %s" format(name toCString())) throw()
+        if(number < -1) Exception new("Invalid group name: " + name) throw()
         return group(number)
     }
 

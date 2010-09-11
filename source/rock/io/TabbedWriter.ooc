@@ -1,4 +1,5 @@
 import io/Writer
+import text/Format
 
 /**
    Wrapper upon io/Writer to allow easy writing of tabbed text.

@@ -1,6 +1,8 @@
 import io/File, structs/[ArrayList, HashMap], os/[Process, Env]
 import ../../utils/ShellUtils
 import PkgInfo
+import text/Format
+
 
 /**
  * A frontend to pkgconfig, to retrieve information for packages,

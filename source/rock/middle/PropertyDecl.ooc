@@ -1,3 +1,4 @@
+import text/Format
 import structs/[ArrayList]
 import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
        Node, ClassDecl, CoverDecl, FunctionCall, Argument, BinaryOp, Cast, Module,

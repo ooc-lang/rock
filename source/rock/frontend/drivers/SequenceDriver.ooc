@@ -1,3 +1,4 @@
+import text/Format
 import io/[File], os/[Terminal, Process]
 import structs/[List, ArrayList, HashMap]
 import ../[BuildParams, Target]

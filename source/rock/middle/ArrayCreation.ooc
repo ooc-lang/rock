@@ -1,3 +1,4 @@
+import text/Format
 import Type, Expression, Visitor, Node
 
 import tinker/[Trail, Resolver, Response]

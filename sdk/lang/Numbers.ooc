@@ -2,8 +2,8 @@ include stdlib, stdint, stddef, float, ctype, sys/types
 
 LLong: cover from signed long long {
 
-    toString:    func -> String { "%lld" format(this) }
-    toHexString: func -> String { "%llx" format(this) }
+    toString:    func -> String { numberToString(this, 10) }
+    toHexString: func -> String { numberToString(this, 16) }
 
     odd?:  func -> Bool { this % 2 == 1 }
     even?: func -> Bool { this % 2 == 0 }
@@ -39,7 +39,7 @@ Short: cover from signed short extends LLong
 
 ULLong: cover from unsigned long long extends LLong {
 
-    toString:    func -> String { "%llu" format(this) }
+    toString:    func -> String { numberToString(this, 10) }
 
     in?: func(range: Range) -> Bool {
         return this >= range min && this < range max
@@ -77,7 +77,7 @@ UInt64: cover from uint64_t extends ULLong
 Octet:  cover from uint8_t
 SizeT:  cover from size_t extends ULLong
 SSizeT:  cover from ssize_t extends LLong
-PtrDiff: cover from ptrdiff_t extends SizeT
+PtrDiff: cover from ptrdiff_t extends LLong
 
 /**
  * real types
@@ -85,8 +85,10 @@ PtrDiff: cover from ptrdiff_t extends SizeT
 LDouble: cover from long double {
 
     toString: func -> String {
-        str := "%.2Lf" format (this)
-        str
+        b := Buffer new (512)
+        len := snprintf(b data, 512, "%.2Lf" toCString(), this)
+        b setLength(len)
+        b toString()
     }
 
     abs: func -> This {
@@ -100,6 +102,62 @@ Double: cover from double extends LDouble
 DBL_MIN,  DBL_MAX : extern static const Double
 FLT_MIN,  FLT_MAX : extern static const Float
 LDBL_MIN, LDBL_MAX: extern static const LDouble
+
+
+_conv_cypher := "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+/**
+    converts integral type num into a String with base base
+    @author rofl0r
+    @params num: number to convert
+    @params base: i.e. 2 for binary, 10 for dec, 16 for hex
+    @params maxLength: signal maximum length of returned string (will be incremented by one if negative, to have space for the "-")
+        if 0, the algorithm chooses the maxLength.
+    @params pad: pad with zeroes
+*/
+numberToString: func (num: UInt64, base: SizeT, maxLength: SizeT = 0, pad:= false) -> String {
+    assert(base % 2 == 0)
+    assert(base <= _conv_cypher size)
+    myNum : UInt64
+    _signed := false
+    if ((num& as Int64*)@ < 0) {
+        _signed = true
+        tmp : Int64 = -num
+        myNum = tmp
+    } else myNum = num
+
+    maxLen := 64 / (base / 2)
+    if (maxLength != 0 && maxLength < maxLen) maxLen := maxLength
+    len := maxLen
+
+    result := Buffer new (len + (_signed ? 1 : 0))
+    result setLength(len + (_signed ? 1 : 0))
+
+    if (_signed) result shiftRight(1) // shift 1 so we have place for the minus char
+
+    for (i in 0..len) result[i] = '0'
+
+    while ((myNum > 0) && (len > 0)) {
+        i := myNum % base
+        result[len - 1] = _conv_cypher[i]
+        myNum -= i
+        len -= 1
+        myNum /= base
+    }
+    if (!pad) {
+        shr := 0
+        for (i in 0..maxLen) {
+            if (result[i] == '0') shr += 1
+            else break
+        }
+        result shiftRight(shr)
+    }
+    if (_signed) {
+        result shiftLeft(1)
+        result[0] = '-'
+    }
+    result toString()
+}
+
 
 /**
  * custom types

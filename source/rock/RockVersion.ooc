@@ -1,3 +1,4 @@
+import text/Format
 
 RockVersion: class {
     execName := static ""

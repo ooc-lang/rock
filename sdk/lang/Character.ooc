@@ -139,6 +139,11 @@ Char: cover from char {
         compareFunc(this, target, targetSize)
     }
 
+    toHexString: func -> String {
+        x: UInt64 = this
+        numberToString(x, 16, 2)
+    }
+
 }
 
 SChar: cover from signed char extends Char
@@ -187,7 +192,7 @@ CString: cover from Char* {
 
     /** return the string's length, excluding the null byte. */
     length: extern(strlen) func -> Int
-    
+
 }
 
 operator == (str1: CString, str2: CString) -> Bool {

@@ -1,6 +1,8 @@
 import io/File, os/[Terminal, Process, Pipe]
 import structs/[ArrayList, List, Stack]
 import text/StringTokenizer
+import text/Format
+
 
 import rock/RockVersion
 import Help, Token, BuildParams, AstBuilder
@@ -665,7 +667,7 @@ CommandLine: class {
         Terminal setFgColor(Color red)
         "[FAIL]" println()
         Terminal reset()
-        
+
         // compile with -Ddebug if you want rock to raise an exception here
         version(_DEBUG) {
             raise("Debugging a CommandLine failure") // for backtrace

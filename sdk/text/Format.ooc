@@ -281,7 +281,7 @@ getEntityInfo: inline func (info: FSInfoStruct@, va: VarArgsIterator*, start: Ch
 }
 
 
-nformat: func~main <T> (fmt: T, args: ... ) -> T {
+format: func~main <T> (fmt: T, args: ... ) -> T {
     if (args count == 0) return fmt
     res := Buffer new(512)
     va := args iterator()
@@ -314,7 +314,21 @@ nformat: func~main <T> (fmt: T, args: ... ) -> T {
 
 
 extend Buffer {
-    nformat: func(args: ...) {
-        setBuffer(nformat~main(this, args))
+    format: func(args: ...) {
+        setBuffer(format~main(this, args))
+    }
+}
+
+extend String {
+    format: func(args: ...) -> This {
+        format~main(this, args)
+    }
+
+    printf: func(args: ...) {
+        format~main(this, args) print()
+    }
+
+    printfln: func(args: ...) {
+        format~main(this, args) println()
     }
 }

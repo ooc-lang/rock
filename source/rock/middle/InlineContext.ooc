@@ -1,3 +1,4 @@
+import text/Format
 
 import structs/[ArrayList, HashMap]
 import ../frontend/Token

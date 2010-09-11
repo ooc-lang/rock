@@ -85,7 +85,7 @@ ProcessWin32: class extends Process {
             si&,         // Pointer to STARTUPINFO structure
             pi&          // Pointer to PROCESS_INFORMATION structure
         )) {
-            Exception new(This, "CreateProcess failed (error %d).\n" format(GetLastError())) throw()
+            OSException new(This, "CreateProcess failed") throw()
             return -1
         }
 

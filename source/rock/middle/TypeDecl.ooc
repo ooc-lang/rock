@@ -1,3 +1,4 @@
+import text/Format
 import structs/[ArrayList, List, HashMap]
 import ../frontend/[Token, BuildParams]
 import ../io/TabbedWriter

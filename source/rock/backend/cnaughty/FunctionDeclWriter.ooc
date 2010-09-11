@@ -1,3 +1,4 @@
+import text/Format
 import ../../middle/[FunctionDecl, TypeDecl, ClassDecl, Argument, Type, InterfaceDecl]
 import Skeleton, CGenerator, ClassDeclWriter, VersionWriter
 import ../../frontend/BuildParams

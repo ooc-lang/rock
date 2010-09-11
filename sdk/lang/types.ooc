@@ -1,4 +1,5 @@
 include stddef, stdlib, stdio, ctype, ./Array
+import text/Format
 
 version(!_MSC_VER) {
     // MSVC doesn't support C99, so no stdbool for it
@@ -76,7 +77,7 @@ None: class {
 Void: cover from void
 
 Pointer: cover from Void* {
-    toString: func -> String { "%p" format(this) }
+    toString: func -> String { "0x" + numberToString(this as SSizeT, 16) }
 }
 
 Bool: cover from bool {
@@ -107,7 +108,7 @@ Cell: class <T> {
 
 operator [] <T> (c: Cell<T>, T: Class) -> T {
     if(!c T inheritsFrom?(T)) {
-        Exception new(Cell, "Wants a %s, but got a %s" format(T name toCString(), c T name toCString()))
+        Exception new(Cell, "Wants a " + T name + ", but got a " + c T name)
     }
     c val
 }

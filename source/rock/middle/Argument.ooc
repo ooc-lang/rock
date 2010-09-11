@@ -1,3 +1,4 @@
+import text/Format
 import ../frontend/Token
 import VariableDecl, Type, Visitor, Node, TypeDecl, VariableAccess, BinaryOp,
        FunctionDecl, BaseType
@@ -57,7 +58,7 @@ VarArg: class extends Argument {
         if(type && !type isResolved()) {
             type resolve(trail, res)
         }
-        
+
         Response OK
     }
 

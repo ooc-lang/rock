@@ -11,7 +11,7 @@ MultiMap: class <K, V> extends HashMap<K, V> {
 
     init: func ~multiMapWithCapa(.capacity) {
         if(!V inheritsFrom?(Object)) {
-            Exception new(This, "Can't create multimaps of %s, V must inherit from Object." format(V name toCString())) throw()
+            Exception new(This, "Can't create multimaps of " + V name + ", V must inherit from Object.") throw()
         }
         super(capacity)
     }

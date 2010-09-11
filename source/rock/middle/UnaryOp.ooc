@@ -1,3 +1,4 @@
+import text/Format
 import structs/ArrayList
 import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl, BaseType

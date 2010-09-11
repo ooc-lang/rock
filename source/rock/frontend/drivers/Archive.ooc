@@ -1,3 +1,4 @@
+import text/Format
 import rock/RockVersion
 
 import structs/[List, ArrayList, HashMap]
@@ -197,7 +198,7 @@ Archive: class {
             dotFile write("digraph deps {\n")
             dotFile write("rankdir = LR;\n")
         }
-        
+
         running := true
         while(running) {
             if(params veryVerbose || params debugLibcache) {

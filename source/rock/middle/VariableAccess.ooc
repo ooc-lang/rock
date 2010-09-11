@@ -1,3 +1,4 @@
+import text/Format
 import ../frontend/[Token, BuildParams, AstBuilder], io/File
 import BinaryOp, Visitor, Expression, VariableDecl, FunctionDecl,
        TypeDecl, Declaration, Type, Node, ClassDecl, NamespaceDecl,
@@ -10,9 +11,9 @@ import structs/ArrayList
 
 VariableAccess: class extends Expression {
 
-    _warned := false    
+    _warned := false
     _staticFunc : FunctionDecl = null
-    
+
     expr: Expression {
         get
         set (newExpr) {
@@ -22,9 +23,9 @@ VariableAccess: class extends Expression {
             }
         }
     }
-    
+
     reverseExpr: VariableAccess
-    
+
     name: String
 
     ref: Declaration
@@ -339,7 +340,7 @@ VariableAccess: class extends Expression {
                         "Can't access instance variable '%s' from static function '%s'!" format(reverseExpr getName() toCString(), _staticFunc getName() toCString())
                     ))
                 }
-                
+
                 if(res params veryVerbose) {
                     println("trail = " + trail toString())
                 }

@@ -1,3 +1,4 @@
+import text/Format
 import ../frontend/Token
 import FunctionDecl, Expression, Type, Visitor, Node, Argument, TypeDecl
 import tinker/[Resolver, Response, Trail, Errors]

@@ -1,3 +1,4 @@
+import text/Format
 
 import io/File, text/[EscapeSequence]
 
@@ -674,7 +675,7 @@ AstBuilder: class {
 
     onFunctionEnd: unmangled(nq_onFunctionEnd) func -> FunctionDecl {
         fDecl := pop(FunctionDecl)
-        
+
         match(node := peek(Object)) {
             case module =>
                 module addFunction(fDecl)

@@ -1,3 +1,4 @@
+import text/Format
 import structs/[List, ArrayList, HashMap]
 import ../../middle/[Cast, InterfaceDecl, TypeDecl, Type]
 import Skeleton

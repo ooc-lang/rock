@@ -1,3 +1,4 @@
+import text/Format
 import structs/[ArrayList, List]
 import ../frontend/[Token, BuildParams]
 import ../backend/cnaughty/AwesomeWriter
@@ -251,7 +252,7 @@ SugarType: abstract class extends Type {
             dug := other dig()
             if(dug) return getScoreImpl(dug, scoreSeed / 2)
         }
-        
+
         return This NOLUCK_SCORE
     }
 
@@ -299,7 +300,7 @@ PointerType: class extends SugarType {
 
     equals?: func (other: This) -> Bool {
         if(other class != this class) return false
-        
+
         other as PointerType inner equals?(inner)
     }
 

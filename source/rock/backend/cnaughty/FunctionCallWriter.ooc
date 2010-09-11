@@ -1,3 +1,4 @@
+import text/Format
 
 import ../../middle/[FunctionDecl, FunctionCall, TypeDecl, Argument,
         Type, Expression, InterfaceDecl, VariableAccess, VariableDecl,

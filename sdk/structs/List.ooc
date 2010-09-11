@@ -6,11 +6,11 @@ import structs/HashMap /* for getStandardEquals() - should probably move that in
  */
 List: abstract class <T> extends BackIterable<T> {
 
-	size: SSizeT {
-		get {
-			getSize()
-		}
-	}
+    size: SSizeT {
+        get {
+            getSize()
+        }
+    }
 
     equals? := getStandardEquals(T)
 
@@ -291,7 +291,7 @@ List: abstract class <T> extends BackIterable<T> {
                 case String => result append((item as String) _buffer)
                 case Buffer  => result append(item as Buffer)
                 case Char   => result append(item as Char)
-                case        => Exception new("You cannot use `List join` with %s instances." format(this T name toCString())) throw()
+                case        => Exception new("You cannot use `List join` with " + this T name + " instances.") throw()
             }
         }
         result toString()

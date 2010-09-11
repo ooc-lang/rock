@@ -175,16 +175,16 @@ Exception: class {
      */
     formatMessage: func -> String {
         if(origin)
-            "[%s in %s]: %s\n" format(class name toCString(), origin name toCString(), message toCString())
+            "[" + class name + " in " + origin name + "]: " + message + "\n"
         else
-            "[%s]: %s\n" format(class name toCString(), message toCString())
+            "["+ class name +"]: " + message + "\n"
     }
 
     /**
      * Print this exception, with its origin, if specified, and its message
      */
     print: func {
-        fprintf(stderr, "%s", formatMessage() toCString())
+        fputs(formatMessage(), stderr)
         printBacktrace()
     }
 
@@ -228,7 +228,7 @@ OutOfBoundsException: class extends Exception {
         init(accessOffset, elementLength)
     }
     init: func ~noOrigin (accessOffset: SizeT, elementLength: SizeT) {
-        message = "Trying to access an element at offset %d, but size is only %d!" format(accessOffset,elementLength)
+        message = "Trying to access an element at offset " + accessOffset toString() + ", but size is only " + elementLength toString()+ "!"
     }
 }
 

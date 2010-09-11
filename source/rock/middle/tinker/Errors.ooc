@@ -1,3 +1,4 @@
+import text/Format
 import Trail
 import ../../frontend/[CommandLine, Token, BuildParams]
 import ../Node

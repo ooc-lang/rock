@@ -1,6 +1,8 @@
 import ../frontend/[BuildParams, CommandLine]
 import io/[FileReader, File]
 import ../middle/Module
+import text/Format
+
 
 /* Will go into the load method of Token */
 nullToken : Token

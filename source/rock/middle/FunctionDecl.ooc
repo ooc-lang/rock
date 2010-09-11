@@ -1,3 +1,4 @@
+import text/Format
 import structs/[Stack, ArrayList, List, HashMap]
 import ../frontend/[Token, BuildParams, AstBuilder]
 import Cast, Expression, Type, Visitor, Argument, TypeDecl, Scope,
@@ -423,7 +424,7 @@ FunctionDecl: class extends Declaration {
         if(access debugCondition()) {
             "Looking for %s in %s, got %d typeArgs" printfln(access toString() toCString(), toString() toCString(), typeArgs size)
         }
-        
+
         for(typeArg in typeArgs) {
             if(access name == typeArg name) {
                 if(access suggest(typeArg)) return 0
@@ -459,7 +460,7 @@ FunctionDecl: class extends Declaration {
         trail push(this)
 
         if(debugCondition()) "Handling the owner"
-        
+
         // handle the case where we specialize a generic function
         if(owner) {
             meat := owner isMeta ? owner as ClassDecl : owner getMeta()
@@ -640,7 +641,7 @@ FunctionDecl: class extends Declaration {
                 res wholeAgain(this, "superRef of a super func is super itself! looping.")
                 return Response OK
             }
-            
+
             superCall := FunctionCall new("super", token)
             if(ref != null) {
                 for(arg in ref args) {

@@ -1,3 +1,4 @@
+import text/Format
 import structs/[Stack, ArrayList]
 import ../[Node, Module, Statement, Scope, If, Else]
 

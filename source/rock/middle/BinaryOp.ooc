@@ -1,3 +1,4 @@
+import text/Format
 import structs/ArrayList
 import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
@@ -87,7 +88,7 @@ BinaryOp: class extends Expression {
     hasSideEffects : func -> Bool { !isAssign() }
 
     getType: func -> Type { inferredType }
-    
+
     getLeft:  func -> Expression { left  }
     getRight: func -> Expression { right }
 
@@ -354,7 +355,7 @@ BinaryOp: class extends Expression {
             // if only one of the sides are compound covers (structs) - it's illegal.
             return false
         }
-        
+
         if(lCompound || rCompound) {
             // you can only assign compound covers (structs), others must be overloaded
             return (type == OpType ass)
