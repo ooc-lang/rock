@@ -126,7 +126,8 @@ numberToString: func (num: UInt64, base: SizeT, maxLength: SizeT = 0, pad:= fals
     } else myNum = num
 
     maxLen := 64 / (base / 2)
-    if (maxLength != 0 && maxLength < maxLen) maxLen := maxLength
+    if (64 % (base / 2) > 0) maxLen += 1
+    if (maxLength != 0 && maxLength < maxLen) maxLen = maxLength
     len := maxLen
 
     result := Buffer new (len + (_signed ? 1 : 0))
