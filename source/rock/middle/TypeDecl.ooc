@@ -7,7 +7,7 @@ import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
     Addon, Cast
 import tinker/[Resolver, Response, Trail, Errors]
 
-/*
+/**
    A type declaration - a class, a cover, an interface, an enum..
 
    A type declaration has a name, optionally an extern-name,
@@ -125,7 +125,7 @@ TypeDecl: abstract class extends Declaration {
 
     setSuperType: func(=superType) {
         if(!this isMeta && superType != null) {
-            // TODO: there's probably a better way, but this works fine
+            // TODO: there's probably a better way, but this works fine =)
             if(superType getName() == "Object" && name != "Class") {
                 meta setSuperType(BaseType new("ClassClass", superType token))
             } else {
