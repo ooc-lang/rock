@@ -12,7 +12,7 @@ import text/StringTokenizer
     use like this: http://gist.github.com/576154 or the example below.
 
     compilerPath := File new ( (opts set?("cc")) ? opts get("cc") : pathList find("gcc") )
-    if (compilerPath exists?() && opts? get("driver") != "explain")
+    if (compilerPath exists?() && opts get?("driver") != "explain")
         raise ("couldnt find C compiler")
     opts args each(|cFile| compile(compilerPath, File new(cFile)) )
 
