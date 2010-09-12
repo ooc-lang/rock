@@ -1,7 +1,6 @@
 import ../frontend/[BuildParams, CommandLine]
 import io/[FileReader, File]
 import ../middle/Module
-import text/Format
 
 
 /* Will go into the load method of Token */
@@ -43,10 +42,11 @@ Token: cover {
      * Gives a string representation of the boundaries of this module
      */
     toString: func -> String {
+        msgShort := "[" + getStart() toString() + ", " + getEnd() toString() + "]"
         module != null ? (
-            "%s [%d, %d]" format(module getFullName() toCString(), getStart(), getEnd())
+            module getFullName() + " " + msgShort
         ) : (
-            "[%d, %d]" format(getStart(), getEnd())
+            msgShort
         )
     }
 
@@ -57,7 +57,7 @@ Token: cover {
     formatMessage: func (prefix, message, type: String) -> String {
 
         if(module == null) {
-            return "From unknown source [%s] %s" format(type toCString(), message toCString())
+            return ("From unknown source [" + type + "] " + message)
         }
 
         b := Buffer new()
@@ -91,7 +91,8 @@ Token: cover {
         over := Buffer new()
 
         if(type != "") {
-            b append(prefix). append("%s:%d:%d %s %s\n" format(module getPath(".ooc") toCString(), lines, start - lastNewLine, type toCString(), message toCString()))
+            b append(prefix). append(module getPath(".ooc")) .append(":") .append(lines toString()) .append(":") .append((start - lastNewLine) toString())
+            b append(" ") .append(type) .append(" ") .append(message) .append("\n")
         } else if(message != "") {
             b append(prefix). append(message). append('\n')
         }

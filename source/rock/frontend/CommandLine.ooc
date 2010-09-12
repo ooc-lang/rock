@@ -1,9 +1,6 @@
 import io/File, os/[Terminal, Process, Pipe]
 import structs/[ArrayList, List, Stack]
 import text/StringTokenizer
-import text/Format
-
-
 import rock/RockVersion
 import Help, Token, BuildParams, AstBuilder
 import compilers/[Gcc, Clang, Icc, Tcc]
@@ -55,7 +52,7 @@ CommandLine: class {
 
                 } else if (option startsWith?("outlib")) {
 
-                    "Deprecated option %s! Use -staticlib instead. Abandoning.\n" printf(option toCString())
+                    ("Deprecated option " + option + "! Use -staticlib instead. Abandoning.") println()
                     exit(1)
 
                 } else if (option startsWith?("staticlib")) {
@@ -86,7 +83,7 @@ CommandLine: class {
                     params backend = arg substring(arg indexOf('=') + 1)
 
                     if(params backend != "c" && params backend != "json" && params backend != "explain") {
-                        "Unknown backend: %s." format(params backend toCString()) println()
+                        ("Unknown backend: " + params backend) println()
                         params backend = "c"
                     }
 
@@ -280,7 +277,7 @@ CommandLine: class {
                         case "dummy" =>
                             DummyDriver new(params)
                         case =>
-                            "Unknown driver: %s\n" printf(driverName toCString())
+                            ("Unknown driver: " + driverName) println()
                             null
                     }
 
@@ -290,7 +287,7 @@ CommandLine: class {
 
                 } else if (option == "V" || option == "-version" || option == "version") {
 
-                    printf("rock %s, built on %s at %s\n", RockVersion getName() toCString(), ROCK_BUILD_DATE, ROCK_BUILD_TIME)
+                    ("rock " + RockVersion getName() + ", built on " + ROCK_BUILD_DATE + " at " + ROCK_BUILD_TIME) println()
                     exit(0)
 
                 } else if (option == "h" || option == "-help" || option == "help") {
@@ -354,7 +351,7 @@ CommandLine: class {
 
                 } else {
 
-                    printf("Unrecognized option: %s\n", arg toCString())
+                    ("Unrecognized option: " + arg) println()
 
                 }
             } else if(arg startsWith?("+")) {
@@ -399,9 +396,9 @@ CommandLine: class {
             params libfolder = libfolder getPath()
             params sourcePath add(params libfolder)
 
-            if(params verbose) "Building lib for folder %s to name %s\n" printf(params libfolder toCString(), name toCString())
+            if(params verbose) ("Building lib for folder " + params libfolder + " to name " + name) println()
 
-            dummyModule = Module new("__lib__/%s.ooc" format(name toCString()), ".", params, nullToken)
+            dummyModule = Module new("__lib__/" + name + ".ooc", ".", params, nullToken)
             libfolder walk(|f|
                 // sort out links to non-existent destinations.
                 if(!f exists?())
@@ -420,7 +417,7 @@ CommandLine: class {
 
         if(params staticlib != null || params dynamiclib != null) {
             if(modulePaths getSize() != 1 && !params libfolder) {
-                "Error: you can use -staticlib of -dynamiclib only when specifying a unique .ooc file, not %d of them.\n" printf(modulePaths getSize())
+                ("Error: you can use -staticlib of -dynamiclib only when specifying a unique .ooc file, not " + modulePaths getSize() toString() + " of them.") println()
                 exit(1)
             }
             moduleName := File new(dummyModule ? dummyModule path : modulePaths[0]) name()
@@ -517,19 +514,19 @@ CommandLine: class {
 
     clean: func {
         // oh that's a hack.
-        system("rm -rf %s" format(params outPath path toCString()) toCString())
+        system(("rm -rf " + params outPath path) toCString())
     }
 
     cleanHardcore: func {
         clean()
         // oh that's the same hack. Someone implement File recursiveDelete() already.
-        system("rm -rf %s" format(params libcachePath toCString()) toCString())
+        system(("rm -rf " + params libcachePath) toCString())
     }
 
     parse: func (moduleName: String) -> Int {
         (moduleFile, pathElement) := params sourcePath getFile(moduleName)
         if(!moduleFile) {
-            printf("File not found: %s\n", moduleName toCString())
+            ("File not found: " + moduleName) println()
             exit(1)
         }
 
@@ -574,7 +571,7 @@ CommandLine: class {
             )
         }
         module parseImports(null)
-        if(params verbose) printf("\rFinished parsing, now tinkering...                                                   \n")
+        if(params verbose) ("\rFinished parsing, now tinkering...                                                   \n") print()
 
         // phase 2: tinker
         if(!Tinkerer new(params) process(module collectDeps())) failure(params)

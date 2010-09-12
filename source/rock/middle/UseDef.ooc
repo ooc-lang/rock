@@ -1,4 +1,3 @@
-import text/Format
 import io/[File, FileReader]
 import structs/[List, ArrayList, HashMap]
 import text/StringTokenizer
@@ -165,7 +164,7 @@ UseDef: class {
                     /* is relative. TODO: better check? */
                     sourcePathFile = file parent() getChild(value) getAbsoluteFile()
                 }
-                if(params veryVerbose) "Adding %s to sourcepath ..." format(sourcePathFile path toCString()) println()
+                if(params veryVerbose) "Adding %s to sourcepath ..." cformat(sourcePathFile path toCString()) println()
                 sourcePath = sourcePathFile path
                 params sourcePath add(sourcePath)
             } else if(id == "Version") {
@@ -178,7 +177,7 @@ UseDef: class {
             } else if(id startsWith?("_")) {
                 // unknown and ignored ids
             } else if(!id empty?()) {
-                "%s: Unknown id %s (length %d, first = %d) in usefile" format(file getPath() toCString(), id toCString(), id length(), id[0]) println()
+                "%s: Unknown id %s (length %d, first = %d) in usefile" cformat(file getPath() toCString(), id toCString(), id length(), id[0]) println()
             }
         }
     }

@@ -1,4 +1,3 @@
-import text/Format
 import Trail
 import ../../frontend/[CommandLine, Token, BuildParams]
 import ../Node
@@ -80,7 +79,7 @@ CouldntAdd: class extends InternalError {
     mark, newcomer: Node
 
     init: func (.token, =mark, =newcomer, trail: Trail) {
-        super(token, "Couldn't add a %s before a %s, trail = %s" format(newcomer toString() toCString(), mark toString() toCString(), trail toString() toCString()))
+        super(token, "Couldn't add a " + newcomer toString() + " before a " + mark toString() + ", trail = " + trail toString())
     }
 
 }
@@ -90,7 +89,7 @@ CouldntAddBefore: class extends InternalError {
     mark, newcomer: Node
 
     init: func (.token, =mark, =newcomer, trail: Trail) {
-        super(token, "Couldn't add %s before %s. trail = %s" format(newcomer toString() toCString(), mark toString() toCString(), trail toString() toCString()))
+        super(token, "Couldn't add a " + newcomer toString() + " before a " + mark toString() + ", trail = " + trail toString())
     }
 
 }
@@ -100,7 +99,7 @@ CouldntAddAfter: class extends InternalError {
     mark, newcomer: Node
 
     init: func (.token, =mark, =newcomer, trail: Trail) {
-        super(token, "Couldn't add %s after %s. trail = %s" format(newcomer toString() toCString(), mark toString() toCString(), trail toString() toCString()))
+        super(token, "Couldn't add a " + newcomer toString() + " after a " + mark toString() + ", trail = " + trail toString())
     }
 
 }
@@ -110,7 +109,7 @@ CouldntAddBeforeInScope: class extends InternalError {
     mark, newcomer: Node
 
     init: func (.token, =mark, =newcomer, trail: Trail) {
-        super(token, "Couldn't add %s before %s in scope. trail = %s" format(newcomer toString() toCString(), mark toString() toCString(), trail toString() toCString()))
+        super(token, "Couldn't add " + newcomer toString() + " before " + mark toString() + " in scope. trail = " + trail toString())
     }
 
 }
@@ -120,7 +119,7 @@ CouldntAddAfterInScope: class extends InternalError {
     mark, newcomer: Node
 
     init: func (.token, =mark, =newcomer, trail: Trail) {
-        super(token, "Couldn't add %s after %s in scope. trail = %s" format(newcomer toString() toCString(), mark toString() toCString(), trail toString() toCString()))
+        super(token, "Couldn't add " + newcomer toString() + " after " + mark toString() + " in scope. trail = " + trail toString())
     }
 
 }
@@ -130,7 +129,7 @@ CouldntReplace: class extends InternalError {
     oldie, kiddo: Node
 
     init: func (.token, =oldie, =kiddo, trail: Trail) {
-        super(token, "Couldn't replace %s with %s, trail = %s" format(oldie toString() toCString(), kiddo toString() toCString(), trail toString() toCString()))
+        super(token, "Couldn't replace " + oldie toString() + " with " + kiddo toString() + ", trail = " + trail toString())
     }
 
 }

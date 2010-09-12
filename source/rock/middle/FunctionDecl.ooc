@@ -1,4 +1,3 @@
-import text/Format
 import structs/[Stack, ArrayList, List, HashMap]
 import ../frontend/[Token, BuildParams, AstBuilder]
 import Cast, Expression, Type, Visitor, Argument, TypeDecl, Scope,
@@ -176,7 +175,7 @@ FunctionDecl: class extends Declaration {
         args each(|e| copy args add(e clone()))
         copy returnType = returnType clone()
 
-        body list each(|e| copy body add(e clone()); "Adding clone of %s to %s" format(e toString() toCString(), copy toString() toCString()) println())
+        body list each(|e| copy body add(e clone()); "Adding clone of %s to %s" cformat(e toString() toCString(), copy toString() toCString()) println())
 
         copy vDecl = vDecl
 
@@ -297,12 +296,12 @@ FunctionDecl: class extends Declaration {
                 fullName = name
             } else {
                 if(isMember()) {
-                    fullName = "%s_%s" format(owner getFullName() toCString(), name toCString())
+                    fullName = "%s_%s" cformat(owner getFullName() toCString(), name toCString())
                 } else {
-                    fullName = "%s__%s" format(token module getUnderName() toCString(), name toCString())
+                    fullName = "%s__%s" cformat(token module getUnderName() toCString(), name toCString())
                 }
                 if(suffix != null) {
-                    fullName = "%s_%s" format(fullName toCString(), suffix toCString())
+                    fullName = "%s_%s" cformat(fullName toCString(), suffix toCString())
                 }
             }
         }
@@ -422,7 +421,7 @@ FunctionDecl: class extends Declaration {
         }
 
         if(access debugCondition()) {
-            "Looking for %s in %s, got %d typeArgs" printfln(access toString() toCString(), toString() toCString(), typeArgs size)
+            "Looking for %s in %s, got %d typeArgs" cformat(access toString() toCString(), toString() toCString(), typeArgs size) println()
         }
 
         for(typeArg in typeArgs) {
@@ -510,7 +509,7 @@ FunctionDecl: class extends Declaration {
         if(debugCondition()) "Handling the args"
 
         for(arg in args) {
-            if(debugCondition()) "Handling arg %s" format(arg toString() toCString()) println()
+            if(debugCondition()) "Handling arg %s" cformat(arg toString() toCString()) println()
             response := arg resolve(trail, res)
             if(!response ok()) {
                 if(debugCondition() || res params veryVerbose) printf("Response of arg %s = %s\n", arg toString() toCString(), response toString() toCString())
@@ -532,7 +531,7 @@ FunctionDecl: class extends Declaration {
             }
             args each(| arg |
                 if (arg getType() == null || !arg getType() isResolved()) {
-                    "Looping because of arg %s" format(arg toString() toCString()) println()
+                    "Looping because of arg %s" cformat(arg toString() toCString()) println()
                     res wholeAgain(this, "need arg type for the ref")
                     return Response OK
                 }
@@ -586,7 +585,7 @@ FunctionDecl: class extends Declaration {
 
         if(inlined) {
             trail pop(this)
-            "%s is inlining, not resolving further" format(toString() toCString()) println()
+            "%s is inlining, not resolving further" cformat(toString() toCString()) println()
             return Response OK
         }
 
@@ -610,7 +609,7 @@ FunctionDecl: class extends Declaration {
                 if(isVoid()) {
                     returnType = BaseType new("Int", token)
                     body add(Return new(IntLiteral new(0, nullToken), nullToken))
-                    res wholeAgain(this, "because changed returnType to %s" format(returnType toString() toCString()))
+                    res wholeAgain(this, "because changed returnType to %s" cformat(returnType toString() toCString()))
                 }
             }
 
@@ -665,7 +664,7 @@ FunctionDecl: class extends Declaration {
                     owner removeFunction(this). addFunction(this)
                 }
             } else {
-                res throwError(UnresolvedCall new(token, superCall, "There is no such super-func in %s!" format(superTypeDecl toString() toCString())))
+                res throwError(UnresolvedCall new(token, superCall, "There is no such super-func in %s!" cformat(superTypeDecl toString() toCString())))
             }
         }
 
@@ -715,7 +714,7 @@ FunctionDecl: class extends Declaration {
                 _unwrappedACS = true
                 return true
             } else {
-                res throwError(InternalError new(token, "Got an ACS without any function-call. THIS IS NOT SUPPOSED TO HAPPEN\ntrail= %s" format(trail toString() toCString())))
+                res throwError(InternalError new(token, "Got an ACS without any function-call. THIS IS NOT SUPPOSED TO HAPPEN\ntrail= %s" cformat(trail toString() toCString())))
             }
         }
         parentCall := trail get(fCallIndex) as FunctionCall
@@ -745,7 +744,7 @@ FunctionDecl: class extends Declaration {
         ind := parentCall args indexOf(this)
 
         if (ind == -1) {
-            res throwError(InternalError new(token, "[ACS]: Can't find ´this´ in the call's arguments.\ntrail = %s" format(trail toString() toCString())))
+            res throwError(InternalError new(token, "[ACS]: Can't find ´this´ in the call's arguments.\ntrail = %s" cformat(trail toString() toCString())))
         }
 
         funcPointer := parentFunc args[ind] getType() as FuncType
@@ -910,7 +909,7 @@ FunctionDecl: class extends Declaration {
                         case          =>
 
                             if(!arg getType() isPointer() && !arg getType() getGroundType() isPointer() && !arg getType() isGeneric() && !arg getType() getRef() instanceOf?(ClassDecl)) {
-                                res throwError(InternalError new(arg token, "Unknown closure arg type %s\n" format(arg getType() toString() toCString())))
+                                res throwError(InternalError new(arg token, "Unknown closure arg type %s\n" cformat(arg getType() toString() toCString())))
                             }
                             'P'
                     }
@@ -1104,7 +1103,7 @@ FunctionRedefinition: class extends Error {
     first, second: FunctionDecl
 
     init: func (=first, =second) {
-        message = second token formatMessage("Redefinition of '%s'%s" format(first getName() toCString(), first verzion ? (" in version " + first verzion toString()) toCString() : "" toCString()), "[INFO]") + '\n' +
+        message = second token formatMessage("Redefinition of '%s'%s" cformat(first getName() toCString(), first verzion ? (" in version " + first verzion toString()) toCString() : "" toCString()), "[INFO]") + '\n' +
                   first  token formatMessage("\n...first definition was here: ", "[ERROR]")
     }
 

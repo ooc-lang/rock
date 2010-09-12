@@ -1,5 +1,3 @@
-import text/Format
-
 import io/File, text/[EscapeSequence]
 
 import structs/[ArrayList, List, Stack, HashMap]
@@ -125,7 +123,7 @@ AstBuilder: class {
     printCache: static func {
         "==== Cache ====" println()
         cache getKeys() each(|key|
-            "cache %s = %s" format(key toCString(), cache get(key) fullName toCString()) println()
+            ("cache " + key + " = "+ cache get(key) fullName) println()
         )
         "=" times(14) println()
     }
@@ -463,7 +461,7 @@ AstBuilder: class {
             // same hash? compare length and then full-string comparison
             word := reservedWords[idx]
             if(word length() == vd getName() length() && word == vd getName()) {
-                params errorHandler onError(ReservedKeywordError new(vd token, "%s is a reserved C99 keyword, you can't use it in a variable declaration" format(vd getName() toCString())))
+                params errorHandler onError(ReservedKeywordError new(vd token, vd getName() + " is a reserved C99 keyword, you can't use it in a variable declaration" ))
             }
         }
 
@@ -1172,7 +1170,7 @@ AstBuilder: class {
             done = node as Declaration addTypeArg(vDecl)
         }
 
-        if(!done) params errorHandler onError(InternalError new(token(), "Unexpected type argument in a %s declaration!" format(node class name toCString())))
+        if(!done) params errorHandler onError(InternalError new(token(), "Unexpected type argument in a " + node class name + " declaration!" ))
 
     }
 
@@ -1191,7 +1189,7 @@ AstBuilder: class {
     peek: func <T> (T: Class) -> T {
         node := stack peek() as Node
         if(!node instanceOf?(T)) {
-            params errorHandler onError(InternalError new(token(), "Should've peek'd a %s, but peek'd a %s. Stack = %s" format(T name toCString(), node class name toCString(), stackRepr() toCString())))
+            params errorHandler onError(InternalError new(token(), "Should've peek'd a " + T name + ", but peek'd a " + node class name + ". Stack = " + stackRepr()))
         }
         return node
     }
@@ -1199,7 +1197,7 @@ AstBuilder: class {
     pop: func <T> (T: Class) -> T {
         node := stack pop() as Node
         if(!node instanceOf?(T)) {
-            params errorHandler onError(InternalError new(token(), "Should've pop'd a %s, but pop'd a %s. Stack = %s" format(T name toCString(), node class name toCString(), stackRepr() toCString())))
+            params errorHandler onError(InternalError new(token(), "Should've pop'd a " + T name + ", but peek'd a " + node class name + ". Stack = " + stackRepr()))
         }
         return node
     }

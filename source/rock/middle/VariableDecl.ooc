@@ -1,4 +1,3 @@
-import text/Format
 import structs/[ArrayList]
 import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
        Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast, Module,
@@ -62,11 +61,7 @@ VariableDecl: class extends Declaration {
     getName: func -> String { name }
 
     toString: func -> String {
-        "%s : %s%s" format(
-            name toCString(),
-            type ? type toString()  toCString(): "<unknown type>" toCString(),
-            expr ? (" = " + expr toString()) toCString() : "" toCString()
-        )
+        name + " : " + (type ? type toString() : "<unknown type>") + (expr ? (" = " + expr toString()) : "")
     }
 
     /** If `true`, the property should not be added to the instance struct as a member.
@@ -87,7 +82,7 @@ VariableDecl: class extends Declaration {
     setConst: func (=isConst) {}
 
     isProto: func -> Bool { isProto }
-    setProto: func (=isProto) { "%s is now proto!" format(name toCString()) println() }
+    setProto: func (=isProto) { (name + " is now proto!") println() }
 
     isGlobal: func -> Bool { isGlobal }
     setGlobal: func (=isGlobal) {}
@@ -122,7 +117,7 @@ VariableDecl: class extends Declaration {
                 if(!isGlobal()) {
                     fullName = name
                 } else {
-                    fullName = "%s__%s" format(token module getUnderName() toCString(), name toCString())
+                    fullName = token module getUnderName() + "__" + name
                 }
             }
         }
@@ -144,7 +139,7 @@ VariableDecl: class extends Declaration {
         trail push(this)
 
         if(debugCondition() || res params veryVerbose) {
-            printf("Resolving variable decl %s\n", toString() toCString())
+            ("Resolving variable decl " + toString()) println()
         }
 
         if(expr) {
@@ -165,7 +160,7 @@ VariableDecl: class extends Declaration {
                 return Response OK
             }
             if(debugCondition()) {
-                " >>> Just inferred type %s of %s from expr %s" format(type toString() toCString(), toString() toCString(), expr toString() toCString()) println()
+                (" >>> Just inferred type " + type toString()+ " of " + toString() + " from expr " + expr toString()) println()
             }
         }
 
@@ -174,7 +169,7 @@ VariableDecl: class extends Declaration {
                 ("For " + toString() + ", resolving type " + type toString() + ", of type " + type class name) println()
             }
             response := type resolve(trail, res)
-            if(debugCondition()) "Done resolving the type, ref = %s" printfln(type getRef() ? type getRef() toString() toCString() : "nil" toCString())
+            if(debugCondition()) ("Done resolving the type, ref = " + (type getRef() ? type getRef() toString() : "nil")) println()
             if(!response ok()) {
                 trail pop(this)
                 return response
@@ -422,7 +417,7 @@ VariableDeclTuple: class extends VariableDecl {
                         }
                         if(element as VariableAccess getName() != "_") bad = true
                     }
-                    if(bad) res throwError(TupleMismatch new(tuple token, "Tuple variable declaration doesn't match return type %s of function %s" format(returnType toString() toCString(), fCall getName() toCString())))
+                    if(bad) res throwError(TupleMismatch new(tuple token, "Tuple variable declaration doesn't match return type " + returnType toString() + " of function " + fCall getName()))
                 }
 
                 j := 0
@@ -448,7 +443,7 @@ VariableDeclTuple: class extends VariableDecl {
                 trail addBeforeInScope(this, fCall)
                 parent as Scope remove(this)
             case =>
-                res throwError(InternalError new(token, "Unsupported expression type %s for VariableDeclTuple." format(expr class name)))
+                res throwError(InternalError new(token, "Unsupported expression type " + expr class name + " for VariableDeclTuple."))
         }
 
         Response OK

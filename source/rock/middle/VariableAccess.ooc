@@ -1,4 +1,3 @@
-import text/Format
 import ../frontend/[Token, BuildParams, AstBuilder], io/File
 import BinaryOp, Visitor, Expression, VariableDecl, FunctionDecl,
        TypeDecl, Declaration, Type, Node, ClassDecl, NamespaceDecl,
@@ -133,7 +132,7 @@ VariableAccess: class extends Expression {
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         if(debugCondition()) {
-            "%s is of type %s" printfln(name toCString(), getType() ? getType() toString() toCString() : "(nil)" toCString())
+            "%s is of type %s" cformat(name toCString(), getType() ? getType() toString() toCString() : "(nil)" toCString()) println()
         }
 
         trail onOuter(FunctionDecl, |fDecl|
@@ -176,7 +175,7 @@ VariableAccess: class extends Expression {
                 //printf("Null ref and non-null expr (%s), looking in type %s\n", expr toString(), exprType toString())
                 typeDecl := exprType getRef()
                 if(!typeDecl) {
-                    if(res fatal) res throwError(UnresolvedType new(expr token, expr getType(), "Can't resolve type %s" format(expr getType() toString() toCString())))
+                    if(res fatal) res throwError(UnresolvedType new(expr token, expr getType(), "Can't resolve type %s" cformat(expr getType() toString() toCString())))
                     res wholeAgain(this, "unresolved access, looping")
                     return Response OK
                 }
@@ -337,14 +336,14 @@ VariableAccess: class extends Expression {
                 subject := this
                 if(reverseExpr && _staticFunc && name == "this") {
                     res throwError(InvalidAccess new(this,
-                        "Can't access instance variable '%s' from static function '%s'!" format(reverseExpr getName() toCString(), _staticFunc getName() toCString())
+                        "Can't access instance variable '%s' from static function '%s'!" cformat(reverseExpr getName() toCString(), _staticFunc getName() toCString())
                     ))
                 }
 
                 if(res params veryVerbose) {
                     println("trail = " + trail toString())
                 }
-                msg := "Undefined symbol '%s'" format(subject toString() toCString())
+                msg := "Undefined symbol '%s'" cformat(subject toString() toCString())
                 if(res params helpful) {
                     similar := subject findSimilar(res)
                     if(similar) {

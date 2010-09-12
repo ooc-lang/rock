@@ -268,6 +268,22 @@ String: class extends Iterable<Char> {
 
     toCString: func -> CString { _buffer data as CString }
 
+    cformat: final func(...) -> String {
+
+        list: VaList
+        va_start(list, this)
+        numBytes := vsnprintf(null, 0, _buffer data, list)
+        va_end(list)
+
+        copy := Buffer new(numBytes)
+        copy size = numBytes
+        va_start(list, this)
+        vsnprintf(copy data, numBytes + 1, _buffer data, list)
+        va_end(list)
+
+        new(copy)
+    }
+
 }
 
 /* conversions C world -> String */

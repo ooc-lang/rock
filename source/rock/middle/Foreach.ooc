@@ -1,4 +1,3 @@
-import text/Format
 import ../frontend/Token
 import ControlStatement, Expression, Visitor, VariableDecl, Node,
        VariableAccess, VariableDecl, IntLiteral, Type, RangeLiteral,
@@ -80,13 +79,13 @@ Foreach: class extends ControlStatement {
 
             iterType := iterCall getType()
             if(iterType == null) {
-                if(res fatal) res throwError(InternalError new(token, "Couldn't resolve iterType of %s" format(toString() toCString())))
+                if(res fatal) res throwError(InternalError new(token, "Couldn't resolve iterType of %s" cformat(toString() toCString())))
                 res wholeAgain(this, "need iterType")
                 return Response OK
             }
             iterType resolve(trail, res)
             if(!iterType isResolved()) {
-                if(res fatal) res throwError(InternalError new(token, "Couldn't resolve iterType %s" format(iterType toString() toCString())))
+                if(res fatal) res throwError(InternalError new(token, "Couldn't resolve iterType %s" cformat(iterType toString() toCString())))
                 res wholeAgain(this, "need iterType")
                 return Response OK
             }

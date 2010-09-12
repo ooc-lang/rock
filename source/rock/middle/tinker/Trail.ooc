@@ -1,4 +1,3 @@
-import text/Format
 import structs/[Stack, ArrayList]
 import ../[Node, Module, Statement, Scope, If, Else]
 
@@ -181,7 +180,7 @@ Trail: class extends Stack<Node> {
     get: func ~checked <T> (index: Int, T: Class) -> T {
         node := data get(index) as Node
         if(!node instanceOf?(T)) {
-            Exception new(This, "In Trail get(), expecting getting %s, got %s\n" format(T name toCString(), node class name toCString())) throw()
+            Exception new(This, "In Trail get(), expecting getting " + T name + ", got " + node class name + "\n") throw()
         }
         return node
     }

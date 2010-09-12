@@ -1,4 +1,3 @@
-import text/Format
 import structs/[ArrayList, List, HashMap]
 import ../frontend/[Token, BuildParams, CommandLine]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
@@ -158,7 +157,7 @@ FunctionCall: class extends Expression {
      */
     suggest: func (candidate: FunctionDecl, res: Resolver, trail: Trail) -> Bool {
 
-        if(debugCondition()) "** [refScore = %d] Got suggestion %s for %s" format(refScore, candidate toString() toCString(), toString() toCString()) println()
+        if(debugCondition()) "** [refScore = %d] Got suggestion %s for %s" cformat(refScore, candidate toString() toCString(), toString() toCString()) println()
 
         if(isMember() && candidate owner == null) {
             if(debugCondition()) printf("** %s is no fit!, we need something to fit %s\n", candidate toString() toCString(), toString() toCString())
@@ -176,7 +175,7 @@ FunctionCall: class extends Expression {
         }
 
         if(score > refScore) {
-            if(debugCondition()) "** New high score, %d/%s wins against %d/%s" format(score, candidate toString() toCString(), refScore, ref ? ref toString()  toCString(): "(nil)" toCString()) println()
+            if(debugCondition()) "** New high score, %d/%s wins against %d/%s" cformat(score, candidate toString() toCString(), refScore, ref ? ref toString()  toCString(): "(nil)" toCString()) println()
             refScore = score
             ref = candidate
 
@@ -240,7 +239,7 @@ FunctionCall: class extends Expression {
             i := 0
             for(arg in args) {
                 if(debugCondition() || res params veryVerbose) {
-                    "resolving arg %s" format(arg toString() toCString()) println()
+                    "resolving arg %s" cformat(arg toString() toCString()) println()
                 }
                 response := arg resolve(trail, res)
                 if(!response ok()) {
@@ -338,7 +337,7 @@ FunctionCall: class extends Expression {
                     expr as VariableAccess getRef() resolveCall(this, res, trail)
                 } else if(expr getType() != null && expr getType() getRef() != null) {
                     if(!expr getType() getRef() instanceOf?(TypeDecl)) {
-                        message := "No such function %s%s for `%s`" format(name toCString(), getArgsTypesRepr() toCString(), expr getType() getName() toCString())
+                        message := "No such function %s%s for `%s`" cformat(name toCString(), getArgsTypesRepr() toCString(), expr getType() getName() toCString())
                         if(expr getType() isGeneric()) {
                             message += " (you can't call methods on generic types! you have to cast them first)"
                         }
@@ -374,7 +373,7 @@ FunctionCall: class extends Expression {
                     return Response OK
                 }
 
-                "Inlining %s! type = %s" format(toString() toCString(), getType() ? getType() toString() toCString() : "<unknown>" toCString()) println()
+                "Inlining %s! type = %s" cformat(toString() toCString(), getType() ? getType() toString() toCString() : "<unknown>" toCString()) println()
 
                 retDecl := VariableDecl new(getType(), generateTempName("retval"), token)
                 retAcc := VariableAccess new(retDecl, token)
@@ -470,13 +469,13 @@ FunctionCall: class extends Expression {
             if(res fatal) {
                 message := "No such function"
                 if(expr == null) {
-                    message = "No such function %s%s" format(name toCString(), getArgsTypesRepr() toCString())
+                    message = "No such function %s%s" cformat(name toCString(), getArgsTypesRepr() toCString())
                 } else if(expr getType() != null) {
                     if(res params veryVerbose) {
-                        message = "No such function %s%s for `%s` (%s)" format(name toCString(), getArgsTypesRepr() toCString(),
+                        message = "No such function %s%s for `%s` (%s)" cformat(name toCString(), getArgsTypesRepr() toCString(),
                             expr getType() toString() toCString(), expr getType() getRef() ? expr getType() getRef() token toString() toCString() : "(nil)" toCString())
                     } else {
-                        message = "No such function %s%s for `%s`" format(name toCString(), getArgsTypesRepr() toCString(), expr getType() toString() toCString())
+                        message = "No such function %s%s for `%s`" cformat(name toCString(), getArgsTypesRepr() toCString(), expr getType() toString() toCString())
                     }
                 }
 
@@ -539,7 +538,7 @@ FunctionCall: class extends Expression {
     showNearestMatch: func (params: BuildParams) -> String {
         b := Buffer new()
 
-        b append("\n\n\tNearest match is:\n\n\t\t%s\n" format(ref toString(this) toCString()))
+        b append("\n\n\tNearest match is:\n\n\t\t%s\n" cformat(ref toString(this) toCString()))
 
         callIter := args iterator()
         declIter := ref args iterator()
@@ -567,10 +566,10 @@ FunctionCall: class extends Expression {
             score := callArg getType() getScore(declArgType)
             if(score < 0) {
                 if(params veryVerbose) {
-                    b append("\t..but the type of this arg should be `%s` (%s), not %s (%s)\n" format(declArgType toString() toCString(), declArgType getRef() ? declArgType getRef() token toString() toCString() : "(nil)" toCString(),
+                    b append("\t..but the type of this arg should be `%s` (%s), not %s (%s)\n" cformat(declArgType toString() toCString(), declArgType getRef() ? declArgType getRef() token toString() toCString() : "(nil)" toCString(),
                                                                                            callArg getType() toString() toCString(), callArg getType() getRef() ? callArg getType() getRef() token toString() toCString() : "(nil)" toCString()))
                 } else {
-                    b append("\t..but the type of this arg (%s) should be `%s`, not `%s`\n" format(callArg toString() toCString(), declArgType toString() toCString(), callArg getType() toString() toCString()))
+                    b append("\t..but the type of this arg (%s) should be `%s`, not `%s`\n" cformat(callArg toString() toCString(), declArgType toString() toCString(), callArg getType() toString() toCString()))
                 }
                 b append(token formatMessage("\t\t", "", ""))
             }
@@ -680,7 +679,7 @@ FunctionCall: class extends Expression {
                 if(res params veryVerbose) printf("\t$$$$ resolving returnType %s for %s\n", ref returnType toString() toCString(), toString() toCString())
                 returnType = resolveTypeArg(ref returnType getName(), trail, finalScore&)
                 if((finalScore == -1 || returnType == null) && res fatal) {
-                    res throwError(InternalError new(token, "Not enough info to resolve return type %s of function call\n" format(ref returnType toString() toCString())))
+                    res throwError(InternalError new(token, "Not enough info to resolve return type %s of function call\n" cformat(ref returnType toString() toCString())))
                 }
             } else {
                 returnType = ref returnType clone()
@@ -706,7 +705,7 @@ FunctionCall: class extends Expression {
         }
 
         if(returnType == null) {
-            if(res fatal) res throwError(InternalError new(token, "Couldn't resolve return type of function %s\n" format(toString() toCString())))
+            if(res fatal) res throwError(InternalError new(token, "Couldn't resolve return type of function %s\n" cformat(toString() toCString())))
             return Response LOOP
         }
 
@@ -916,14 +915,14 @@ FunctionCall: class extends Expression {
         for(typeArg in typeArgs) {
             response := typeArg resolve(trail, res)
             if(!response ok()) {
-                if(res fatal) res throwError(InternalError new(token, "Couldn't resolve typeArg %s in call %s" format(typeArg toString() toCString(), toString() toCString())))
+                if(res fatal) res throwError(InternalError new(token, "Couldn't resolve typeArg %s in call %s" cformat(typeArg toString() toCString(), toString() toCString())))
                 return response
             }
         }
 
         if(typeArgs getSize() != ref typeArgs getSize()) {
             if(res fatal) {
-                res throwError(InternalError new(token, "Missing info for type argument %s. Have you forgotten to qualify %s, e.g. List<Int>?" format(ref typeArgs get(typeArgs getSize()) getName() toCString(), ref toString() toCString())))
+                res throwError(InternalError new(token, "Missing info for type argument %s. Have you forgotten to qualify %s, e.g. List<Int>?" cformat(ref typeArgs get(typeArgs getSize()) getName() toCString(), ref toString() toCString())))
             }
             res wholeAgain(this, "Looping because of typeArgs\n")
         }
@@ -985,12 +984,12 @@ FunctionCall: class extends Expression {
                         fType := argType as FuncType
 
                         if(fType returnType && fType returnType getName() == typeArgName) {
-                            if(debugCondition()) " >> Hey, we have an interesting FuncType %s" format(fType toString() toCString()) println()
+                            if(debugCondition()) " >> Hey, we have an interesting FuncType %s" cformat(fType toString() toCString()) println()
                             implArg := args get(j)
                             if(implArg instanceOf?(FunctionDecl)) {
                                 fDecl := implArg as FunctionDecl
                                 if(fDecl inferredReturnType) {
-                                    if(debugCondition()) " >> Got it from inferred return type %s!" format(fDecl inferredReturnType toString() toCString()) println()
+                                    if(debugCondition()) " >> Got it from inferred return type %s!" cformat(fDecl inferredReturnType toString() toCString()) println()
                                     return fDecl inferredReturnType
                                 } else {
                                     if(debugCondition()) " >> We need the inferred return type. Looping" println()
@@ -1013,7 +1012,7 @@ FunctionCall: class extends Expression {
                                 result := BaseType new(vAcc getName(), implArg token)
                                 result setRef(vAcc getRef())
 
-                                if(debugCondition()) " >> Found ref-arg %s for typeArgName %s, returning %s" format(implArg toString() toCString(), typeArgName toCString(), result toString() toCString()) println()
+                                if(debugCondition()) " >> Found ref-arg %s for typeArgName %s, returning %s" cformat(implArg toString() toCString(), typeArgName toCString(), result toString() toCString()) println()
                                 return result
                             case tAcc: TypeAccess =>
                                 return tAcc inner
@@ -1065,7 +1064,7 @@ FunctionCall: class extends Expression {
             idx := trail find(TypeDecl)
             if(idx != -1) {
                 tDecl := trail get(idx, TypeDecl)
-                if(debugCondition()) "\n===\nFound tDecl %s" format(tDecl toString() toCString()) println()
+                if(debugCondition()) "\n===\nFound tDecl %s" cformat(tDecl toString() toCString()) println()
                 for(typeArg in tDecl getTypeArgs()) {
                     if(typeArg getName() == typeArgName) {
                         result := BaseType new(typeArgName, token)
@@ -1087,7 +1086,7 @@ FunctionCall: class extends Expression {
             idx = trail find(FunctionDecl)
             while(idx != -1) {
                 fDecl := trail get(idx, FunctionDecl)
-                if(debugCondition()) "\n===\nFound fDecl %s, with %d typeArgs" format(fDecl toString() toCString(), fDecl getTypeArgs() getSize()) println()
+                if(debugCondition()) "\n===\nFound fDecl %s, with %d typeArgs" cformat(fDecl toString() toCString(), fDecl getTypeArgs() getSize()) println()
                 for(typeArg in fDecl getTypeArgs()) {
                     if(typeArg getName() == typeArgName) {
                         result := BaseType new(typeArgName, token)
@@ -1148,11 +1147,11 @@ FunctionCall: class extends Expression {
             // avoid null types
             if(declArg instanceOf?(VarArg)) break
             if(declArg getType() == null) {
-                if(debugCondition()) "Score is -1 because of declArg %s\n" format(declArg toString() toCString()) println()
+                if(debugCondition()) "Score is -1 because of declArg %s\n" cformat(declArg toString() toCString()) println()
                 return -1
             }
             if(callArg getType() == null) {
-                if(debugCondition()) "Score is -1 because of callArg %s\n" format(callArg toString() toCString()) println()
+                if(debugCondition()) "Score is -1 because of callArg %s\n" cformat(callArg toString() toCString()) println()
                 return -1
             }
 

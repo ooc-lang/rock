@@ -1,4 +1,3 @@
-import text/Format
 import structs/ArrayList
 import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
@@ -240,7 +239,7 @@ BinaryOp: class extends Expression {
             t2 := right as Tuple
 
             if(t1 elements getSize() != t2 elements getSize()) {
-                res throwError(InvalidOperatorUse new(token, "Invalid assignment between operands of type %s and %s\n" format(
+                res throwError(InvalidOperatorUse new(token, "Invalid assignment between operands of type %s and %s\n" cformat(
                     left getType() toString() toCString(), right getType() toString() toCString())))
                 return Response OK
             }
@@ -307,7 +306,7 @@ BinaryOp: class extends Expression {
 
         if(!isLegal(res)) {
             if(res fatal) {
-                res throwError(InvalidOperatorUse new(token, "Invalid use of operator %s between operands of type %s and %s\n" format(
+                res throwError(InvalidOperatorUse new(token, "Invalid use of operator %s between operands of type %s and %s\n" cformat(
                     opTypeRepr[type] toCString(), left getType() toString() toCString(), right getType() toString() toCString())))
                 return Response OK
             }
@@ -363,7 +362,7 @@ BinaryOp: class extends Expression {
 
         if(isAssign()) {
             score := lType getScore(rType)
-            if(score < 0) token formatMessage("Score of %s = %d (%s vs %s)" format(toString() toCString(), score, lType toString() toCString(), rType toString() toCString()), "INFO") println()
+            if(score < 0) token formatMessage("Score of %s = %d (%s vs %s)" cformat(toString() toCString(), score, lType toString() toCString(), rType toString() toCString()), "INFO") println()
         }
 
         true
@@ -381,7 +380,7 @@ BinaryOp: class extends Expression {
 
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType)
-            //if(score > 0) ("Considering " + opDecl toString() + " for " + toString() + ", score = %d\n") format(score) println()
+            //if(score > 0) ("Considering " + opDecl toString() + " for " + toString() + ", score = %d\n") cformat(score) println()
             if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response LOOP }
             if(score > bestScore) {
                 bestScore = score
@@ -393,7 +392,7 @@ BinaryOp: class extends Expression {
             module := imp getModule()
             for(opDecl in module getOperators()) {
                 score := getScore(opDecl, reqType)
-                //if(score > 0) ("Considering " + opDecl toString() + " for " + toString() + ", score = %d\n") format(score) println()
+                //if(score > 0) ("Considering " + opDecl toString() + " for " + toString() + ", score = %d\n") cformat(score) println()
                 if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response LOOP }
                 if(score > bestScore) {
                     bestScore = score
@@ -450,7 +449,7 @@ BinaryOp: class extends Expression {
         args := fDecl getArguments()
         if(args getSize() != 2) {
             token module params errorHandler onError(InvalidBinaryOverload new(op token,
-                "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol toCString(), args getSize())))
+                "Argl, you need 2 arguments to override the '%s' operator, not %d" cformat(symbol toCString(), args getSize())))
         }
 
         opLeft  := args get(0)

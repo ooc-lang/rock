@@ -1,4 +1,3 @@
-import text/Format
 import structs/[List, ArrayList]
 
 import ../backend/cnaughty/AwesomeWriter, ../frontend/[BuildParams, Token]
@@ -113,7 +112,7 @@ BaseType: class extends Type {
 
         if(isResolved()) {
             if(ref token module && ref token module dead) {
-                "%s outdated from module %s, re-resolving!" printfln(name toCString(), ref token module fullName toCString())
+                "%s outdated from module %s, re-resolving!" cformat(name toCString(), ref token module fullName toCString()) println()
                 ref = null
                 res wholeAgain(this, "re-resolved because of dead module")
             } else {
@@ -139,7 +138,7 @@ BaseType: class extends Type {
                     trail toString() println()
                 }
 
-                msg := "Undefined type '%s'" format(getName() toCString())
+                msg := "Undefined type '%s'" cformat(getName() toCString())
                 similar := findSimilar(res)
                 if(similar) msg += similar
                 res throwError(UnresolvedType new(token, this, msg))
@@ -161,7 +160,7 @@ BaseType: class extends Type {
                             "Too many"
                     }
 
-                    res throwError(MismatchedTypeParams new(token, "%s type parameters for %s. It should match %s" format(message toCString(), toString() toCString(), tDecl getInstanceType() toString() toCString())))
+                    res throwError(MismatchedTypeParams new(token, "%s type parameters for %s. It should match %s" cformat(message toCString(), toString() toCString(), tDecl getInstanceType() toString() toCString())))
                 }
             }
         }
@@ -369,7 +368,7 @@ BaseType: class extends Type {
                         buff append(t toString())
                         isFirst = false
                     }
-                    res throwError(CoverDeclLoop new(list first() token, "Loop in cover declaration: %s -> %s -> ..." format(buff toString() toCString(), next toString() toCString(), list getSize())))
+                    res throwError(CoverDeclLoop new(list first() token, "Loop in cover declaration: %s -> %s -> ..." cformat(buff toString() toCString(), next toString() toCString(), list getSize())))
                 }
                 next checkedDigImpl(list, res)
             }

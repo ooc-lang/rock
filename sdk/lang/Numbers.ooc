@@ -149,6 +149,7 @@ numberToString: func (num: UInt64, base: SizeT, maxLength: SizeT = 0, pad:= fals
             if (result[i] == '0') shr += 1
             else break
         }
+        if (num == 0) shr -= 1
         result shiftRight(shr)
     }
     if (_signed) {

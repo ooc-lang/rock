@@ -149,12 +149,12 @@ CGenerator: class extends Skeleton {
 
     /** Write an int literal */
     visitIntLiteral: func (lit: IntLiteral) {
-        current app("%lld" format(lit value))
+        current app(lit value toString())
     }
 
     /** Write a float literal */
     visitFloatLiteral: func (lit: FloatLiteral) {
-        current app("%f" format(lit value))
+        current app(lit value toString())
     }
 
     /** Write a string literal */

@@ -1,4 +1,3 @@
-import text/Format
 import io/[File], os/[Terminal, Process]
 import structs/[List, ArrayList, HashMap]
 import ../[BuildParams, Target]
@@ -172,9 +171,9 @@ SequenceDriver: class extends Driver {
             }
 
             if(params verbose) {
-                "Building archive %s with %s (%d modules total)" format(
+                "Building archive %s with %s (%d modules total)" cformat(
                     params staticlib toCString(),
-                    params libfolder ? "modules belonging to %s" format(params libfolder toCString()) : "all object files" toCString(),
+                    params libfolder ? "modules belonging to %s" cformat(params libfolder toCString()) : "all object files" toCString(),
                     count) println()
             }
             archive save(params)
@@ -220,7 +219,7 @@ SequenceDriver: class extends Driver {
     buildSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>, reGenerated: List<Module>) -> Int {
 
         if(params libfolder != null && sourceFolder absolutePath != File new(params libfolder) getAbsolutePath()) {
-            if(params verbose) "Skipping (not needed for build of libfolder %s)" format(params libfolder toCString()) println()
+            if(params verbose) "Skipping (not needed for build of libfolder %s)" cformat(params libfolder toCString()) println()
             return 0
         }
 
@@ -294,7 +293,7 @@ SequenceDriver: class extends Driver {
 
             parent := File new(oPath) parent()
             if(!parent exists?()) {
-                if(params verbose) "Creating path %s" format(parent getPath()) println()
+                if(params verbose) "Creating path %s" cformat(parent getPath()) println()
                 parent mkdirs()
             }
 
@@ -415,7 +414,7 @@ SourceFolder: class {
     archive : Archive
 
     init: func (=name, =absolutePath, =params) {
-        outlib = "%s%c%s-%s.a" format(params libcachePath toCString(), File separator, name toCString(), Target toString() toCString())
+        outlib = "%s%c%s-%s.a" cformat(params libcachePath toCString(), File separator, name toCString(), Target toString() toCString())
         archive = Archive new(name, outlib, params)
     }
 }

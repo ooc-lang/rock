@@ -1,7 +1,6 @@
 import structs/[ArrayList, Bag, HashBag, Stack]
 import io/[Reader, StringReader]
 import text/EscapeSequence
-import text/Format
 
 
 TokenType: enum {
@@ -26,7 +25,7 @@ Token: cover {
 
 check: func (this: Token@, type: TokenType) {
     if(this type != type) {
-        ParserError new("Expected %d, got %d (%s)" format(type, this type, this value toCString())) throw()
+        ParserError new("Expected %d, got %d (%s)" cformat(type, this type, this value toCString())) throw()
     }
 }
 
@@ -62,7 +61,7 @@ getToken: func (reader: Reader, token: Token*) {
                 return
             } else {
                 reader reset(marker)
-                LexingError new("Unknown token: %c" format(chr)) throw()
+                LexingError new("Unknown token: %c" cformat(chr)) throw()
             }
         }
         case 'f' => {
@@ -73,7 +72,7 @@ getToken: func (reader: Reader, token: Token*) {
                 return
             } else {
                 reader reset(marker)
-                LexingError new("Unknown token: %c" format(chr)) throw()
+                LexingError new("Unknown token: %c" cformat(chr)) throw()
             }
         }
         case 'n' => {
@@ -83,7 +82,7 @@ getToken: func (reader: Reader, token: Token*) {
                 return
             } else {
                 reader reset(marker)
-                LexingError new("Unknown token: %c" format(chr)) throw()
+                LexingError new("Unknown token: %c" cformat(chr)) throw()
             }
         }
         case '"' => {
@@ -186,7 +185,7 @@ getToken: func (reader: Reader, token: Token*) {
                 token@ value = s toString()
             } else {
                 reader reset(marker)
-                LexingError new("Unknown token: %c" format(chr)) throw()
+                LexingError new("Unknown token: %c" cformat(chr)) throw()
             }
         }
     }
@@ -290,7 +289,7 @@ Parser: class {
                 return value
             }
             case => {
-                ParserError new("Unexpected token: %s" format(token value toCString())) throw()
+                ParserError new("Unexpected token: %s" cformat(token value toCString())) throw()
             }
         }
         return null
@@ -420,7 +419,7 @@ Parser: class {
                         pushSimpleValue(token&)
                     }
                     case => {
-                        ParserError new("Expected string, got %d" format(token type)) throw()
+                        ParserError new("Expected string, got %d" cformat(token type)) throw()
                     }
                 }
             }
@@ -449,7 +448,7 @@ Parser: class {
                 }
             }
             case => {
-                ParserError new("WTF STATE? %d" format(state)) throw()
+                ParserError new("WTF STATE? %d" cformat(state)) throw()
             }
         }
     }
@@ -469,8 +468,8 @@ printVerbose: func <T> (obj: T, indent: UInt, key: String) {
     indentStr := "    " times(indent)
     indentStr print()
     if(key != null)
-        "%s => " format(key toCString()) print()
-    "(%s) " format(T name toCString()) print()
+        "%s => " cformat(key toCString()) print()
+    "(%s) " cformat(T name toCString()) print()
     match T {
         case String => {
             obj as String print()
