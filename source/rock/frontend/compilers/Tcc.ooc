@@ -1,8 +1,8 @@
 import Gcc
 
 /**
- * TinyCC - originally by Fabrice Bellard 
- * 
+ * TinyCC - originally by Fabrice Bellard
+ *
  * @author Amos Wenger
  */
 Tcc: class extends Gcc {

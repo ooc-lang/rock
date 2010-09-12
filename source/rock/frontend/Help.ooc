@@ -35,6 +35,8 @@ rock yourmodule.ooc -backend=c -driver=sequence -gc=static -libcache -outpath=ro
     are the GNU Compiler Collection, TinyCC, Intel C++ Compiler and
     the LLVM’s clang frontend. Also, you can pass onlygen to only
     generate the code and not to run any compiler.
+-cc=[/path/to/ccompiler/binary]
+    point to the C compilers executable
 -gc=[dynamic,static,off]
     Link dynamically, link statically, or don’t link with the boehm
     GC at all.
