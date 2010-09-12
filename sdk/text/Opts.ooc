@@ -1,7 +1,7 @@
 import structs/[ArrayList,HashMap]
 import text/StringTokenizer
 
-/*
+/**
     class for automated command line options parsing. pass it the ArrayList<String>
     received from main.
 
@@ -54,7 +54,7 @@ Opts: class {
         res := Buffer new()
         opts each(|k, v|
             if (k != "self") {
-                res append(k) .append('=') .append(v) .append('\n')
+                res append('-') .append(k) .append('=') .append(v) .append('\n')
             }
         )
         args each(|arg| res append(arg) .append('\n'))
