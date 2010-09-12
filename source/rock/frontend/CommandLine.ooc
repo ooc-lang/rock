@@ -18,6 +18,11 @@ system: extern func (command: CString)
 CommandLine: class {
     params: BuildParams
     driver: Driver
+    cCPath := ""
+
+    setCompilerPath: func {
+           if (params compiler != null && cCPath != "") params compiler setExecutable(cCPath)
+    }
 
     init: func(args : ArrayList<String>) {
 
@@ -296,31 +301,32 @@ CommandLine: class {
                     Help printHelp()
                     exit(0)
 
+                } else if(option startsWith?("cc=")) {
+
+                    cCPath := option substring(3)
+                    setCompilerPath()
+
                 } else if (option startsWith?("gcc")) {
-                    if(option startsWith?("gcc=")) {
-                        params compiler = Gcc new(option substring(4))
-                    } else {
-                        params compiler = Gcc new()
-                    }
+
+                    params compiler = Gcc new()
+                    setCompilerPath()
+
                 } else if (option startsWith?("icc")) {
-                    if(option startsWith?("icc=")) {
-                        params compiler = Icc new(option substring(4))
-                    } else {
-                        params compiler = Icc new()
-                    }
+
+                    params compiler = Icc new()
+                    setCompilerPath()
+
                 } else if (option startsWith?("tcc")) {
-                    if(option startsWith?("tcc=")) {
-                        params compiler = Tcc new(option substring(4))
-                    } else {
-                        params compiler = Tcc new()
-                    }
+
+                    params compiler = Tcc new()
                     params dynGC = true
+                    setCompilerPath()
+
                 } else if (option startsWith?("clang")) {
-                    if(option startsWith?("clang=")) {
-                        params compiler = Clang new(option substring(6))
-                    } else {
-                        params compiler = Clang new()
-                    }
+
+                    params compiler = Clang new()
+                    setCompilerPath()
+
                 } else if (option == "onlyparse") {
 
                     driver = null
