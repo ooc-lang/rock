@@ -122,10 +122,10 @@ VarArgsIterator: cover {
         countdown -= 1
 
         nextType := (argsPtr as Class*)@ as Class
-        result := ((argsPtr + Class size) as T*)@
+        result := (argsPtr + Class size) as T*
 
         argsPtr += Class size + __pointer_align(nextType size)
-        result
+        result@
     }
 
     getNextType: func@ -> Class {
