@@ -6,7 +6,7 @@ __FUNCTION__: extern CString
 
 strcmp: extern func (Char*, Char*) -> Int
 strncmp: extern func (Char*, Char*, Int) -> Int
-strstr: extern func (Char*, Char*)
+strstr: extern func (Char*, Char*) -> Char*
 strlen:  extern func (Char*) -> Int
 
 strtol:  extern func (Char*, Pointer, Int) -> Long

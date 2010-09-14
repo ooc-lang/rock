@@ -10,18 +10,20 @@ ftell: extern func(stream: FILE*) -> Long
 
 FileReader: class extends Reader {
 
+    fileName := "<stream>"
     file: FILE*
 
     init: func ~withFile (fileObject: File) {
-        init (fileObject getPath())
+        init(fileObject getPath())
     }
 
     init: func ~withName (fileName: String) {
-        init (fileName, "r")
+        init(fileName, "r")
     }
 
     init: func ~withMode (fileName, mode: String) {
-        file = fopen(fileName, mode)
+        this fileName = fileName
+        file = fopen(fileName toCString(), mode)
         if (!file)
             Exception new(This, "File not found: " + fileName) throw()
     }
@@ -33,9 +35,9 @@ FileReader: class extends Reader {
     read: func ~char -> Char {
         value: Char
         if(fread(value&, 1, 1, file) != 1 && ferror(file)) {
-            Exception new(This, "Error reading char from file") throw()
+            Exception new(This, "Error reading char from file " + fileName) throw()
         }
-        return value
+        value
     }
 
     hasNext?: func -> Bool {
