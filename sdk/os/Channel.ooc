@@ -1,4 +1,5 @@
-import structs/[ArrayList, LinkedList], os/Time, os/Coro
+import structs/[ArrayList, LinkedList], os/[Time, Coro]
+import threading/Thread
 
 coros := LinkedList<Coro> new()
 deadCoros := LinkedList<Coro> new()
@@ -18,55 +19,56 @@ GC_add_roots: extern func (Pointer, Pointer)
 GC_remove_roots: extern func (Pointer, Pointer)
 GC_stackbottom: extern Pointer
 
+schedulerMutex := Mutex new()
+
 scheduler: func {
-    mainCoro initializeMainCoro()
+    if(!mainCoro isMain) mainCoro initializeMainCoro()
 
     while(true) {
-        if(coros empty?() && newCoros empty?()) break
-        
-        i := 0
-        for(coro in coros) {
-            //"Main coro %p dispatching to coro %p, %d/%d" printfln(mainCoro, coro, i + 1, coros getSize())
-            switchTo(coro)
-            if(!deadCoros empty?() || !newCoros empty?()) {
-                //"Dead coros / new coros, breaking!" println()
-                break
-            }
-            i += 1
-        }
-
+        schedulerMutex lock()
         if(!newCoros empty?()) {
-            //"Adding %d new coros" printfln(newCoros getSize())
-            for(info in newCoros)  {
-                newCoro := Coro new()
-                coros add(newCoro)
-                //"Just added coro %p!" printfln(newCoro)
-                oldCoro := currentCoro
-                currentCoro = newCoro
+            info := newCoros removeAt(0)
+            schedulerMutex unlock()
+            
+            newCoro := Coro new()
+            coros add(newCoro)
+            "Just added coro %p!" printfln(newCoro)
+            oldCoro := currentCoro
+            currentCoro = newCoro
 
-                oldCoro startCoro(currentCoro, ||
-                    stackBase := currentCoro stack
-                    stackSize := currentCoro allocatedStackSize
-                    oldStackBase := GC_stackbottom
-                    // Adjust the stackbottom and add our Coro's stack as a root for the GC
-                    GC_stackbottom = stackBase
-                    GC_add_roots(stackBase, stackBase + stackSize)
-                    //"Coro started!" println()
-                    info c()
-                    //"Terminating a coro!" printfln()
-                    GC_stackbottom = oldStackBase
-                    GC_remove_roots(stackBase, stackBase + stackSize)
-                    terminate()
-                )
-            }
-            newCoros clear()
+            oldCoro startCoro(currentCoro, ||
+                stackBase := currentCoro stack
+                stackSize := currentCoro allocatedStackSize
+                oldStackBase := GC_stackbottom
+                // Adjust the stackbottom and add our Coro's stack as a root for the GC
+                GC_stackbottom = stackBase
+                GC_add_roots(stackBase, stackBase + stackSize)
+                "Coro started!" println()
+                info c()
+                "Terminating a coro!" printfln()
+                GC_stackbottom = oldStackBase
+                GC_remove_roots(stackBase, stackBase + stackSize)
+                terminate()
+            )
+            "Started coro yielded! " println()
+            continue
         }
 
-        if(!deadCoros empty?()) {
-            //"Cleaning up %d dead coros" printfln(deadCoros getSize())
-            for(deadCoro in deadCoros) { coros remove(deadCoro) }
-            deadCoros clear()
+        if(coros empty?()) break // stop the scheduler
+        
+        coro := coros removeAt(0)
+        schedulerMutex unlock()
+        switchTo(coro)
+
+        schedulerMutex lock()
+        if(deadCoros contains?(coro)) {
+            // dead for dead.
+            deadCoros remove(coro)
+        } else {
+            // reschedule it
+            coros add(coro)
         }
+        schedulerMutex unlock()
     }
 }
 
@@ -75,10 +77,10 @@ Channel: class <T> {
     queue := LinkedList<T> new()
     
     send: func (t: T) {
-        //"Sending %d" printfln(t as Int)
+        "Sending %d" printfln(t as Int)
         queue add(t)
-        while(queue size() >= 100) {
-            //"Queue filled, yielding"
+        while(queue size >= 100) {
+            "Queue filled, yielding" println()
             yield()
         }
     }
@@ -86,10 +88,9 @@ Channel: class <T> {
     recv: func -> T {
         while(true) {
             if(!queue empty?()) {
-                val := queue removeAt(0)
-                return val
+                return queue removeAt(0)
             }
-            //"Queue empty, yielding"
+            "Queue empty, yielding" println()
             yield()
         }
         // yay hacks

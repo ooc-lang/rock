@@ -75,6 +75,7 @@ Coro: class {
     }
 
     initializeMainCoro: func {
+        
         isMain = true
     }
 
