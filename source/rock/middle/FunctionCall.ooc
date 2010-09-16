@@ -800,10 +800,12 @@ FunctionCall: class extends Expression {
                 if(vararg name != null) {
                     numVarArgs := (args size - (ref args size - 1))
                     
-                    if(args last() getType() getName() == "VarArgs") {
+                    lastType := args last() getType()
+                    if(!lastType) return Response LOOP
+                    if(lastType getName() == "VarArgs") {
                         return Response OK
                     }
-                    
+
                     ast := AnonymousStructType new(token)
                     elements := ArrayList<Expression> new()
                     for(i in (ref args size - 1)..(args size)) {
