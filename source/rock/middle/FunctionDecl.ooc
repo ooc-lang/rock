@@ -1040,7 +1040,8 @@ FunctionDecl: class extends Declaration {
                 thunk args addAll(args)
 
                 // The thunk might have to be versioned, too.
-                thunk setVersion(ctxVersion)
+                if(ctxVersion != null)
+                    thunk setVersion(ctxVersion)
 
                 ctxArg := VariableDecl new(ReferenceType new(ctxStruct getInstanceType(), token), "__context__", token)
                 thunk args add(ctxArg)
