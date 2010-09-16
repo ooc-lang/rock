@@ -955,6 +955,43 @@ FunctionDecl: class extends Declaration {
                 // create the context struct's cover
                 ctxStruct := CoverDecl new(name + "_ctx", token)
 
+                // look for versioned nodes or VersionBlocks in the trail. If we're using
+                // a closure in a versioned context, we don't want the context struct to appear
+                // in any other context - it results in gcc errors. See #197.
+                // The same `ctxVersion` instance is used for the thunk function later.
+                ctxVersion: VersionSpec
+                for(i in 1..trail size) {
+                    node := trail peek(i)
+                    verzion: VersionSpec
+                    // There are several types of versioned nodes.
+                    if(node instanceOf?(TypeDecl) && node as TypeDecl verzion != null) {
+                        // TypeDecl?
+                        verzion = node as TypeDecl verzion
+                    } else if(node instanceOf?(FunctionDecl) && node as FunctionDecl verzion != null) {
+                        // Or a versioned FunctionDecl?
+                        verzion = node as FunctionDecl verzion
+                    } else if(node instanceOf?(VersionBlock)) {
+                        // Or, of course, a version block.
+                        verzion = node as VersionBlock spec
+                    } else {
+                        // No? Okay. Skip this.
+                        continue
+                    }
+                    // There is a version somewhere - merge the specs.
+                    if(ctxVersion == null) {
+                        ctxVersion = verzion clone()
+                    } else {
+                        ctxVersion = VersionAnd new(
+                            ctxVersion,
+                            verzion clone(),
+                            node token
+                        )
+                    }
+                }
+
+                if(ctxVersion != null)
+                    ctxStruct setVersion(ctxVersion)
+
                 // add corresponding variables to the context struct
                 // and to the struct initializer for the context
                 elements := ArrayList<Expression> new()
@@ -1001,6 +1038,10 @@ FunctionDecl: class extends Declaration {
                 thunk := FunctionDecl new(getName() + "_thunk", token)
                 thunk typeArgs addAll(typeArgs)
                 thunk args addAll(args)
+
+                // The thunk might have to be versioned, too.
+                thunk setVersion(ctxVersion)
+
                 ctxArg := VariableDecl new(ReferenceType new(ctxStruct getInstanceType(), token), "__context__", token)
                 thunk args add(ctxArg)
 
