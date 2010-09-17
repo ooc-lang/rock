@@ -674,7 +674,7 @@ AstBuilder: class {
 
     onFunctionEnd: unmangled(nq_onFunctionEnd) func -> FunctionDecl {
         fDecl := pop(FunctionDecl)
-        
+
         match(node := peek(Object)) {
             case module =>
                 module addFunction(fDecl)
@@ -1025,7 +1025,7 @@ AstBuilder: class {
     }
 
     onFloatLiteral: unmangled(nq_onFloatLiteral) func (value: CString) -> FloatLiteral {
-        FloatLiteral new(value toString() replaceAll("_", "") toFloat(), token())
+        FloatLiteral new(value toString() replaceAll("_", ""), token())
     }
 
     onBoolLiteral: unmangled(nq_onBoolLiteral) func (value: Bool) -> BoolLiteral {
