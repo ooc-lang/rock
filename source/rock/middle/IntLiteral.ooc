@@ -16,6 +16,6 @@ IntLiteral: class extends Literal {
 
     getType: func -> Type { type }
 
-    toString: func -> String { "%lld" format(value) }
+    toString: func -> String { value toString() }
 
 }
