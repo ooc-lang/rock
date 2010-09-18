@@ -1,7 +1,7 @@
 
 /**
  * The String class represents character strings.
- * 
+ *
  * The String class is immutable by default, this means every writing operation
  * is done on a clone, which is then returned
  *
@@ -266,7 +266,7 @@ String: class extends Iterable<Char> {
         _buffer backIterator()
     }
 
-    format: final func ~str (...) -> This {
+    cformat: final func ~str (...) -> This {
         list: VaList
         va_start(list, this)
         numBytes := vsnprintf(null, 0, _buffer data, list)
@@ -277,25 +277,8 @@ String: class extends Iterable<Char> {
         va_start(list, this)
         vsnprintf(copy data, numBytes + 1, _buffer data, list)
         va_end(list)
-        
+
         new(copy)
-    }
-
-    printf: final func ~str (...) -> Int {
-        list: VaList
-        va_start(list, this )
-        retVal := vprintf(_buffer data, list)
-        va_end(list)
-        retVal
-    }
-
-    printfln: final func ~str (...) -> Int {
-        list: VaList
-        va_start(list, this )
-        retVal := vprintf(_buffer data, list)
-        va_end(list)
-        fputc('\n', stdout)
-        retVal
     }
 
     toCString: func -> CString { _buffer data as CString }
