@@ -180,6 +180,29 @@ parseArg: func(res: Buffer, info: FSInfoStruct*, va: VarArgsIterator*, p: Char*)
         case 'p' =>
             info@ flags |= TF_ALTERNATE | TF_SMALL
             info@ base = 16
+        case 'f' =>
+            // reconstruct the original format statement.
+            // TODO let this do the real thing.
+            mprintCall = false
+            tmp := Buffer new()
+            tmp append('%')
+            if(info@ flags & TF_ALTERNATE)
+                tmp append('#')
+            else if(info@ flags & TF_ZEROPAD)
+                tmp append('0')
+            else if (info@ flags & TF_LEFT)
+                tmp append('-')
+            else if (info@ flags & TF_SPACE)
+                tmp append(' ')
+            else if (info@ flags & TF_EXP_SIGN)
+                tmp append('+')
+            if (info@ fieldwidth != 0)
+                tmp append(info@ fieldwidth toString())
+            if (info@ precision != 0)
+                tmp append("." + info@ precision toString())
+            tmp append("f")
+            res append(tmp toString() cformat(argNext(va, Float) as Float))
+
         case 'c' =>
             mprintCall = false
             i := 0
@@ -273,9 +296,7 @@ getEntityInfo: inline func (info: FSInfoStruct@, va: VarArgsIterator*, start: Ch
     }
 
     /* Find the length modifier. */
-    if(p@ == 'l' || p@ == 'h' || p@ == 'L') {
-        checkedInc()
-    }
+    while (p@ == 'l' || p@ == 'h' || p@ == 'L') checkedInc()
 
     info bytesProcessed = p as SizeT - start as SizeT
 }
