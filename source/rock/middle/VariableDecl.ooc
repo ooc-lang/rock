@@ -154,7 +154,7 @@ VariableDecl: class extends Declaration {
                 return response
             }
         }
-
+        
         if(type == null && expr != null) {
             // infer the type
             type = expr getType()
@@ -188,6 +188,23 @@ VariableDecl: class extends Declaration {
                 return response
             }
             if(debugCondition()) "Done resolving the fDecl" println()
+        }
+
+        // Check if the expression's type inherits from our type 
+        // and add a Cast in that case. (Fixes compiler warnings.)
+        // Example: "a: Node = EmptyNode new()
+        // => "a: Node = EmptyNode new() as Node
+                 
+        if (type && expr) {
+            exprType := expr getType()
+            if (!exprType) {
+                trail pop(this)
+                res wholeAgain(this, "Need type of an Expression.")
+                return Response OK
+            }
+            if (exprType inheritsFrom?(type)) {
+                expr = Cast new(expr, type, token)
+            }
         }
 
         trail pop(this)
