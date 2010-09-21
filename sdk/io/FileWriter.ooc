@@ -1,9 +1,13 @@
 import io/Writer, io/File
 
 /**
-   Implement the Writer interface for file input/output.
-
-   :author: Amos Wenger (nddrylliog)
+ * Implement the Writer interface for file output
+ * 
+ * By default, files are opened in binary mode. If you want to open
+ * them in text mode, use the new~withMode variant, but beware: on 
+ * mingw, rewind()/mark() won't work correctly.
+ * 
+ * @author Amos Wenger (nddrylliog)
  */
 FileWriter: class extends Writer {
 
@@ -12,7 +16,7 @@ FileWriter: class extends Writer {
 
     /**
        Create a new file writer on the given file object.
-       :param append: If true, appends to the file. If false, overwrites it.
+       @param append If true, appends to the file. If false, overwrites it.
      */
     init: func ~withFile (fileObject: File, append: Bool) {
         init(fileObject getPath(), append)
@@ -27,10 +31,17 @@ FileWriter: class extends Writer {
 
     /**
        Create a new file writer on the given file path.
-       :param append: If true, appends to the file. If false, overwrites it.
+       @param append If true, appends to the file. If false, overwrites it.
      */
     init: func ~withName (fileName: String, append: Bool) {
-        file = FStream open(fileName, append ? "a" : "w");
+		// mingw fseek/ftell are *really* unreliable with text mode
+		// if for some weird reason you need to open in text mode, use
+		// FileWriter new(fileName, "ab") or "wb"
+		init(fileName, append ? "ab" : "wb")
+	}
+		
+	init: func ~withMode (fileName: String, mode: String) {
+        file = FStream open(fileName, mode)
         if (!file) {
             Exception new(This, "File not found: " + fileName) throw()
         }
