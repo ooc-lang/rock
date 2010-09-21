@@ -222,7 +222,7 @@ SequenceDriver: class extends Driver {
 			if(reGenerated empty?()) {
 				"No files generated." println()
 			} else {
-				"%d files generated." printfln(reGenerated size())
+				"%d files generated." printfln(reGenerated size)
 			}
 		}
 
