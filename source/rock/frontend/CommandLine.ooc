@@ -48,7 +48,8 @@ CommandLine: class {
                     sourcePathOption := arg substring(arg indexOf('=') + 1)
                     tokenizer := StringTokenizer new(sourcePathOption, File pathDelimiter)
                     for (token: String in tokenizer) {
-                        params sourcePath add(token)
+						// rock allows '/' instead of '\' on Win32
+                        params sourcePath add(token replaceAll('/', File separator))
                     }
 
                 } else if (option startsWith?("outpath=")) {
