@@ -49,7 +49,7 @@ SequenceDriver: class extends Driver {
             ("Sequence driver, using " + params sequenceThreads toString() + " thread" + (params sequenceThreads > 1 ? "s" : "")) println()
         }
 
-        if((params clean && !params libcache && !params outPath exists?()) || !File new(params libcachePath) exists?()) {
+        if(params clean && ((!params libcache && !params outPath exists?()) || !File new(params libcachePath) exists?())) {
             if(params verbose)  printf("Must clean and %s doesn't exist, re-generating\n", params outPath path toCString())
             params outPath mkdirs()
             for(candidate in module collectDeps()) {
@@ -106,7 +106,9 @@ SequenceDriver: class extends Driver {
                 params compiler addIncludePath(incPath getPath())
             }
             for(sourceFolder in sourceFolders) {
-                params compiler addIncludePath(params libcachePath + File separator + sourceFolder name)
+				if(params libcache) {
+					params compiler addIncludePath(params libcachePath + File separator + sourceFolder name)
+				}
             }
             for(additional in params additionals) {
                 params compiler addObjectFile(additional)
@@ -204,12 +206,27 @@ SequenceDriver: class extends Driver {
         }
 
         oPaths := ArrayList<String> new()
-        if(params verbose) printf("Re-generating all modules...\n")
+        if(params verbose) printf("Re-generating modules...")
+        reGenerated := ArrayList<Module> new()
         for(module in sourceFolder modules) {
-            CGenerator new(params, module) write()
+			if(params verbose) printf("                                       \rRe-generating " + module fullName)
+            if(CGenerator new(params, module) write()) {
+				reGenerated add(module)
+			} else {
+				// already compiled, but still need to link with it
+				oPath := File new(params outPath, module path replaceAll(File separator, '_')) getPath() + ".o"
+				objectFiles add(oPath)
+			}
         }
+        if(params verbose) {
+			if(reGenerated empty?()) {
+				"No files generated." println()
+			} else {
+				"%d files generated." printfln(reGenerated size())
+			}
+		}
 
-        return ArrayList<Module> new() // yay empty list
+        return reGenerated
 
     }
 
@@ -245,8 +262,9 @@ SequenceDriver: class extends Driver {
 
         oPaths := ArrayList<String> new()
 
-        if(params verbose) printf("Compiling all modules...\n")
-        for(module in sourceFolder modules) {
+        if(params verbose) printf("Compiling regenerated modules...\n")
+        //for(module in sourceFolder modules) {
+		for(module in reGenerated) {
             code := buildIndividual(module, sourceFolder, oPaths, null, false)
             archive add(module)
             if(code != 0) return code
