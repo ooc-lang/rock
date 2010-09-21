@@ -109,11 +109,13 @@ AstBuilder: class {
     getRealImportPath: static func (imp: Import, module: Module, params: BuildParams) -> (String, File, File) {
         oocImpPath := imp path + ".ooc"
         path := FileUtils resolveRedundancies(oocImpPath)
+        if(params veryVerbose) ("Trying path " + path) println()
         (impPath, impElement) := params sourcePath getFile(path)
         if(!impElement) {
             parent := File new(module path) parent()
             if(parent) {
                 path = FileUtils resolveRedundancies(parent path + File separator + oocImpPath)
+                if(params veryVerbose) ("Trying path " + path) println()
                 (impPat2, impElemen2) := params sourcePath getFile(path)
                 (impPath, impElement) = (impPat2, impElemen2)
             }
