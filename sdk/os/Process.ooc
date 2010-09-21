@@ -7,8 +7,8 @@ import native/[ProcessUnix, ProcessWin32]
    standard input, output, and error, get the error code, and wait
    for the end of the execution
 
-   :author: Yannic Ahrens (showstopper)
-   :author: Amos Wenger (nddrylliog)
+   @author Yannic Ahrens (showstopper)
+   @author Amos Wenger (nddrylliog)
  */
 Process: abstract class {
 

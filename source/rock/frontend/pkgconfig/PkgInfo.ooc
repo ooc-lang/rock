@@ -32,12 +32,10 @@ PkgInfo: class {
 	 * Create a new Package info
 	 */
     init: func (=name, =libsString, =cflagsString) {
-        //printf("Created PkgInfo %s, %s, %s\n", name, libsString, cflagsString)
-
         extractTokens("-L", libsString, libPaths)
-		extractTokens("-l", libsString, libraries);
-		extractTokens("-I", cflagsString, includePaths);
-		extractTokens("", cflagsString, cflags);
+		extractTokens("-l", libsString, libraries)
+		extractTokens("-I", cflagsString, includePaths)
+		extractTokens("", cflagsString, cflags)
 	}
 
 	extractTokens: func (prefix, string: String, list: List<String>) {
@@ -45,8 +43,8 @@ PkgInfo: class {
 		
         for(token in StringTokenizer new(string, ' ')) {
 			if(token startsWith?(prefix)) {
-                                add := token substring(prefixLength) trim(' ') trim('\n')
-                                if(!add empty?()) list add(add)
+				add := token substring(prefixLength) trim()
+				if(!add empty?()) list add(add)
 			}
 		}
 		

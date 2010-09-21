@@ -175,9 +175,9 @@ Exception: class {
      */
     formatMessage: func -> String {
         if(origin)
-            "[%s in %s]: %s\n" format(class name toCString(), origin name toCString(), message toCString())
+            "[%s in %s]: %s\n" format(class name toCString(), origin name toCString(), message ? message toCString() : "<no message>" toCString())
         else
-            "[%s]: %s\n" format(class name toCString(), message toCString())
+            "[%s]: %s\n" format(class name toCString(), message ? message toCString() : "<no message>" toCString())
     }
 
     /**

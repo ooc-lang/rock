@@ -30,7 +30,7 @@ VarArgs: cover {
 
     args, argsPtr: UInt8* // because the size of stuff (T size) is expressed in bytes
     count: SSizeT // number of elements
-    
+
     /*
      * Iterate through the arguments
      */
@@ -41,7 +41,7 @@ VarArgs: cover {
         while(countdown > 0) {
             // count down!
             countdown -= 1
-            
+
             // retrieve the type
             type := (argsPtr as Class*)@ as Class
 
@@ -56,11 +56,11 @@ VarArgs: cover {
         }
     }
 
-	/*
+    /*
      * private api used by C code
      */
-    
-	init: func@ (=count, bytes: SizeT) {
+
+    init: func@ (=count, bytes: SizeT) {
         args = gc_malloc(bytes + (count * Class size))
         argsPtr = args
     }
@@ -68,7 +68,7 @@ VarArgs: cover {
     /**
      * Internal testing method to add arguments
      */
-	_addValue: func@ <T> (value: T) {
+    _addValue: func@ <T> (value: T) {
         // store the type
         (argsPtr as Class*)@ = T
 
@@ -77,7 +77,7 @@ VarArgs: cover {
 
         // store the arg
         (argsPtr as T*)@ = value
-        
+
         // align on the pointer-size boundary
         argsPtr += __pointer_align(T size)
     }
@@ -88,7 +88,7 @@ VarArgs: cover {
     iterator: func -> VarArgsIterator {
         (args, count, true) as VarArgsIterator
     }
-    
+
 }
 
 /**
@@ -112,7 +112,8 @@ VarArgsIterator: cover {
         countdown >= 0
     }
 
-    next: func@ <T> (T: Class) -> T {        
+    // convention: argsPtr points to type of next element when called.
+    next: func@ <T> (T: Class) -> T {
         if(countdown < 0) {
             Exception new(This, "Vararg underflow!") throw()
         }
@@ -120,21 +121,16 @@ VarArgsIterator: cover {
         // count down!
         countdown -= 1
 
-        if(first) {
-            // find, nothing to skip on the first round.
-            first = false
-        } else {
-            // back up a class size to find out the size we need to skip
-            type := ((argsPtr - Class size) as Class*)@ as Class
-            // skip the previous arg
-            argsPtr += __pointer_align(type size)
-        }
+        nextType := (argsPtr as Class*)@ as Class
+        result := (argsPtr + Class size) as T*
 
-        // skip the type
-        argsPtr += Class size
+        argsPtr += Class size + __pointer_align(nextType size)
+        result@
+    }
 
-        // return the current arg
-        (argsPtr as T*)@
+    getNextType: func@ -> Class {
+        if (countdown < 0) Exception new(This, "Vararg underflow!") throw()
+        (argsPtr as Class*)@ as Class
     }
 }
 

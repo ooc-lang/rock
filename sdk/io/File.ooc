@@ -15,9 +15,9 @@ import native/[FileWin32, FileUnix]
    For input/output (I/O) beyond 'reading to a String' and
    'writing a String', see the FileReader and FileWriter classes
 
-   :author: Pierre-Alexandre Croiset
-   :author: Friedrich Weber (fredreichbier)
-   :author: Amos Wenger (nddrylliog)
+   @author Pierre-Alexandre Croiset
+   @author Friedrich Weber (fredreichbier)
+   @author Amos Wenger (nddrylliog)
  */
 File: abstract class {
 
@@ -68,54 +68,55 @@ File: abstract class {
     }
 
     /**
-     * :return: true if it's a directory
+     * @return true if it's a directory
      */
     dir?: abstract func -> Bool
 
     /**
-     * :return: true if it's a file (ie. not a directory nor a symbolic link)
+     * @return true if it's a file (ie. not a directory nor a symbolic link)
      */
     file?: abstract func -> Bool
 
     /**
-     * :return: true if the file is a symbolic link
+     * @return true if the file is a symbolic link
      */
     link?: abstract func -> Bool
 
     /**
-     * :return: the size of the file, in bytes
+     * @return the size of the file, in bytes
      */
     getSize: abstract func -> LLong
 
     /**
-     * :return: true if the file exists and can be
+     * @return true if the file exists and can be
      * opened for reading
      */
     exists?: func -> Bool {
-        fd := fopen(path, "r")
+        fd := FStream open(path, "rb")
         if(fd) {
-            fclose(fd); return true
+            fd close()
+            return true
         }
         false
     }
 
     /**
-     * :return: the permissions for the owner of this file
+     * @return the permissions for the owner of this file
      */
     ownerPerm: abstract func -> Int
 
     /**
-     * :return: the permissions for the group of this file
+     * @return the permissions for the group of this file
      */
     groupPerm: abstract func -> Int
 
     /**
-     * :return: the permissions for the others (not owner, not group)
+     * @return the permissions for the others (not owner, not group)
      */
     otherPerm: abstract func -> Int
 
     /**
-     * :return: the last part of the path, e.g. for /etc/init.d/bluetooth
+     * @return the last part of the path, e.g. for /etc/init.d/bluetooth
      * name() will return 'bluetooth'
      */
     name: func -> String {
@@ -126,7 +127,7 @@ File: abstract class {
     }
 
     /**
-     * :return: the parent of this file, e.g. for /etc/init.d/bluetooth
+     * @return the parent of this file, e.g. for /etc/init.d/bluetooth
      * it will return /etc/init.d/ (as a File), or null if it's the
      * root directory.
      */
@@ -138,7 +139,7 @@ File: abstract class {
     }
 
     /**
-     * :return: the parent of this file, e.g. for /etc/init.d/bluetooth
+     * @return the parent of this file, e.g. for /etc/init.d/bluetooth
      * it will return /etc/init.d/ (as a File), or null if it's the
      * root directory.
      */
@@ -186,22 +187,22 @@ File: abstract class {
     }
 
     /**
-     * :return: the time of last access
+     * @return the time of last access
      */
     lastAccessed: abstract func -> Long
 
     /**
-     * :return: the time of last modification
+     * @return the time of last modification
      */
     lastModified: abstract func -> Long
 
     /**
-     * :return: the time of creation
+     * @return the time of creation
      */
     created: abstract func -> Long
 
     /**
-     * :return: true if the function is relative to the current directory
+     * @return true if the function is relative to the current directory
      */
     relative?: abstract func -> Bool
 
@@ -265,7 +266,7 @@ File: abstract class {
     }
 
     /**
-       :return: The content of this file, as a String
+       @return The content of this file, as a String
      */
     read: func -> String {
         fR := FileReader new(this)
@@ -277,7 +278,7 @@ File: abstract class {
     /**
        Write a string to this file.
 
-       :param str: The string to write
+       @param str The string to write
      */
     write: func ~string (str: String) {
         FileWriter new(this) write(BufferReader new(str _buffer)). close()
@@ -286,7 +287,7 @@ File: abstract class {
     /**
        Write from a reader to this file
 
-       :param reader: What to write in the file
+       @param reader What to write in the file
      */
     write: func ~reader (reader: Reader) {
         FileWriter new(this) write(reader) .close()
@@ -299,7 +300,7 @@ File: abstract class {
 
        If we're not a directory, calls f(this) once and returns true.
 
-       :return: true if we finished walking normally, false if we
+       @return true if we finished walking normally, false if we
        got cancelled by `f` returning false.
      */
     walk: func (f: Func(File) -> Bool) -> Bool {
@@ -317,14 +318,14 @@ File: abstract class {
     /**
        Get a child of this path
 
-       :param name: The name of the child, relatively to this path
+       @param name The name of the child, relatively to this path
      */
     getChild: func (name: String) -> This {
         new(this path + This separator + name)
     }
 
     /**
-       :return: the current working directory
+       @return the current working directory
      */
     getCwd: static func -> String {
         ooc_get_cwd()
