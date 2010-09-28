@@ -96,8 +96,24 @@ TypeList: class extends Type {
     getTypeArgs: func -> List<VariableAccess> { null }
 
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
-        // there's no use for this method in this class anyway.
-        return This NOLUCK_SCORE
+        match other {
+            case list: This =>
+                if(list types size != types size) return NOLUCK_SCORE
+                
+                globalScore := 0.0
+                for(i in 0..types size) {
+                    score := types[i] getScoreImpl(list types[i], scoreSeed / types size)
+                    if(score < 0) {
+                        globalScore = score
+                        break
+                    } else {
+                        globalScore += score
+                    }
+                }
+                globalScore as Int
+            case =>
+                NOLUCK_SCORE
+        }
     }
 
     dig: func -> Type {
