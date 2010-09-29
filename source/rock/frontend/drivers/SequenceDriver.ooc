@@ -365,8 +365,7 @@ SequenceDriver: class extends Driver {
 
         for(module in sourceFolder modules) {
             for(use1 in module uses) {
-                useDef := use1 getUseDef()
-                getFlagsFromUse(useDef, flagsDone, usesDone)
+                getFlagsFromUse(use1 useDef, flagsDone, usesDone)
             }
         }
 

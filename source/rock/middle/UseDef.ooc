@@ -15,11 +15,9 @@ import ../frontend/BuildParams
  */
 Requirement: class {
     name, ver: String
-    useDef: UseDef
+    useDef: UseDef { get set }
 
     init: func (=name, =ver) {}
-
-    getUseDef: func -> UseDef { useDef }
 }
 
 /**

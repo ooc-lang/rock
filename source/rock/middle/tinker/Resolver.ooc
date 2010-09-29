@@ -115,7 +115,6 @@ Resolver: class {
         dummyModule := Module new("dummy", ".", params, nullToken)
 
         for (pathElem in params sourcePath getPaths()) {
-
             pathElem walk(|f|
                 // sort out links to non-existent destinations.
                 if(!f exists?())
@@ -130,7 +129,6 @@ Resolver: class {
                 dummyModule addImport(Import new(fullName, nullToken))
                 true
             )
-
         }
 
         params verbose = false
