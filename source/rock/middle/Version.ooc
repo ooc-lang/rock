@@ -39,6 +39,8 @@ VersionSpec: abstract class {
 
     init: func(=token) {}
 
+    clone: abstract func -> This
+
     toString: abstract func -> String
 
     write: abstract func (w: AwesomeWriter)
@@ -83,6 +85,10 @@ VersionName: class extends VersionSpec {
         if(real) this name = real
     }
 
+    clone: func -> This {
+        new(name, token)
+    }
+
     toString: func -> String { name }
 
     write: func (w: AwesomeWriter) {
@@ -111,6 +117,10 @@ VersionNegation: class extends VersionSpec {
 
     init: func ~negation (=spec, .token) { super(token) }
 
+    clone: func -> This {
+        new(spec clone(), token)
+    }
+
     toString: func -> String { "!(" + spec toString() + ")" }
 
     write: func (w: AwesomeWriter) {
@@ -135,6 +145,10 @@ VersionAnd: class extends VersionSpec {
     specLeft, specRight: VersionSpec
 
     init: func ~and (=specLeft, =specRight, .token) { super(token) }
+
+    clone: func -> This {
+        new(specLeft clone(), specRight clone(), token)
+    }
 
     toString: func -> String { "(" + specLeft toString() + " && " + specRight toString() + ")" }
 
@@ -162,6 +176,10 @@ VersionOr: class extends VersionSpec {
     specLeft, specRight: VersionSpec
 
     init: func ~or (=specLeft, =specRight, .token) { super(token) }
+
+    clone: func -> This {
+        new(specLeft clone(), specRight clone(), token)
+    }
 
     toString: func -> String { "(" + specLeft toString() + " || " + specRight toString() + ")" }
 

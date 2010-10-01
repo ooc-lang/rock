@@ -10,8 +10,8 @@ Use: class {
     token: Token
 
     init: func (=identifier, params: BuildParams, =token) {
-        useDef = UseDef parse(identifier, params)
-        if(useDef == null) {
+        uDef := UseDef parse(identifier, params)
+        if(!uDef) {
             params errorHandler onError(UseNotFound new(this,
 "Use not found in the ooc library path: %s
 \nTo install ooc libraries, copy their directories to /usr/lib/ooc/
@@ -21,10 +21,7 @@ For more informations, see http://docs.ooc-lang.org/libs.html
 -------------------" format(identifier toCString(), identifier toCString()))
             )
         }
-    }
-
-    getUseDef: func -> UseDef {
-        useDef
+        useDef = uDef
     }
 
 }
