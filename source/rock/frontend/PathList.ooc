@@ -9,6 +9,7 @@ import structs/[ArrayList, List, HashMap]
  */
 PathList: class {
     paths := HashMap<String, File> new()
+    debug := false
 
     getPaths : func -> HashMap<String, File> { paths }
 
@@ -103,6 +104,7 @@ PathList: class {
     getFile: func (path: String) -> (File, File) {
         for(element in paths) {
             candidate := File new(element path, path)
+            if(debug) ("Trying path " + candidate getPath()) println()
             if (candidate exists?()) {
                 return (candidate, element)
             }

@@ -49,15 +49,6 @@ SequenceDriver: class extends Driver {
             ("Sequence driver, using " + params sequenceThreads toString() + " thread" + (params sequenceThreads > 1 ? "s" : "")) println()
         }
 
-        if(params clean && ((!params libcache && !params outPath exists?()) || !File new(params libcachePath) exists?())) {
-            if(params verbose)  printf("Must clean and %s doesn't exist, re-generating\n", params outPath path toCString())
-            params outPath mkdirs()
-            for(candidate in module collectDeps()) {
-                CGenerator new(params, candidate) write()
-            }
-        }
-
-        if(params verbose) printf("Copying local headers\n")
         copyLocalHeaders(module, params, ArrayList<Module> new())
 
         sourceFolders = collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<Module> new())
@@ -206,10 +197,10 @@ SequenceDriver: class extends Driver {
         }
 
         oPaths := ArrayList<String> new()
-        if(params verbose) printf("Re-generating modules...")
+        if(params verbose) "Re-generating modules..." println()
         reGenerated := ArrayList<Module> new()
         for(module in sourceFolder modules) {
-			if(params verbose) printf("                                       \rRe-generating " + module fullName)
+			if(params verbose) ("Re-generating " + module fullName) println()
             if(CGenerator new(params, module) write()) {
 				reGenerated add(module)
 			} else {
@@ -218,6 +209,7 @@ SequenceDriver: class extends Driver {
 				objectFiles add(oPath)
 			}
         }
+        
         if(params verbose) {
 			if(reGenerated empty?()) {
 				"No files generated." println()
@@ -373,8 +365,7 @@ SequenceDriver: class extends Driver {
 
         for(module in sourceFolder modules) {
             for(use1 in module uses) {
-                useDef := use1 getUseDef()
-                getFlagsFromUse(useDef, flagsDone, usesDone)
+                getFlagsFromUse(use1 useDef, flagsDone, usesDone)
             }
         }
 

@@ -172,7 +172,7 @@ Module: class extends Node {
 
     addUse: func (uze: Use) {
         uses add(uze)
-        for(imp in uze useDef imports) {
+        if(uze useDef) for(imp in uze useDef imports) {
             // todo: make use imports only findable in the SourcePath specified.
             addImport(Import new(imp, uze token))
         }

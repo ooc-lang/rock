@@ -3,7 +3,7 @@ import structs/[ArrayList, List, Stack]
 import text/StringTokenizer
 
 import rock/RockVersion
-import Help, Token, BuildParams, AstBuilder
+import Help, Token, BuildParams, AstBuilder, PathList
 import compilers/[Gcc, Clang, Icc, Tcc]
 import drivers/[Driver, CombineDriver, SequenceDriver, MakeDriver, DummyDriver]
 import ../backend/json/JSONGenerator
@@ -260,6 +260,7 @@ CommandLine: class {
 
                     params verbose = true
                     params veryVerbose = true
+                    params sourcePath debug = true
 
                 } else if (option == "stats") {
 
