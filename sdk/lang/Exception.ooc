@@ -207,7 +207,15 @@ Exception: class {
      * Rethrow this exception.
      */
     rethrow: func {
-        throw()
+        _setException(this)
+        // don't re-set the backtrace!
+        if(!_hasStackFrame()) {
+            print()
+            abort()
+        } else {
+            frame := _popStackFrame()
+            frame@ buf longJmp(_EXCEPTION)
+        }
     }
 }
 

@@ -668,32 +668,51 @@ FunctionDecl: class extends Declaration {
             }
         }
 
-        if(name == "main" && owner == null) {
-            if(args getSize() == 1 && args first() getType() getName() == "ArrayList") {
-                arg := args first()
-                args clear()
-                argc := Argument new(BaseType new("Int", arg token), "argc", arg token)
-                argv := Argument new(PointerType new(BaseType new("CString", arg token), arg token), "argv", arg token)
-                args add(argc)
-                args add(argv)
+       if(name == "main" && owner == null) {
+            // TODO: move me out of middle/ !!
+            
+            match (args getSize()) {
+                case 1 => {
+                    if (args first() getType() getName() == "ArrayList") {
+                        arg := args first()
+                        args clear()
+                        argc := Argument new(BaseType new("Int", arg token), "argc", arg token)
+                        argv := Argument new(PointerType new(BaseType new("CString", arg token), arg token), "argv", arg token)
+                        args add(argc)
+                        args add(argv)
 
-                constructCall := FunctionCall new("strArrayListFromCString", arg token)
-                constructCall args add(VariableAccess new(argc, arg token)) \
-                                  .add(VariableAccess new(argv, arg token))
+                        constructCall := FunctionCall new("strArrayListFromCString", arg token)
+                        constructCall args add(VariableAccess new(argc, arg token)) \
+                                          .add(VariableAccess new(argv, arg token))
 
-/*
-                constructCall := FunctionCall new(VariableAccess new(arg getType(), arg token), "new", arg token)
-                constructCall setSuffix("withData")
-                constructCall args add(VariableAccess new(argv, arg token)) \
-                                  .add(VariableAccess new(argc, arg token))
-                                */
+                        vdfe := VariableDecl new(null, arg getName(), constructCall, token)
+                        body add(0, vdfe)
+                    }
+                }
+                case 2 => {
+                    // Replace (argc: Int, argv: String*) with (argc: Int, argv1: CString) 
+                    // and assign argv to the "String" version of argv1
+                    // argv := cStringPtrToStringPtr(argv1, argc)
 
-                vdfe := VariableDecl new(null, arg getName(), constructCall, token)
-                body add(0, vdfe)
+                    if (args get(0) getType() getName() == "Int" && args get(1) getType() getName() == "String") { 
+                        arg := args get(1)
+                        pseudoArgv := BaseType new("CString", arg token)
+                        argv := Argument new(PointerType new(pseudoArgv, arg token), generateTempName("argv"), arg token)
+                        argvAccess := VariableAccess new(argv, argv token)
+                        argcAccess := VariableAccess new(args get(0), args get(0) token)
+                        constructCall := FunctionCall new("cStringPtrToStringPtr", arg token)
+                        constructCall args add(argvAccess)
+                        constructCall args add(argcAccess) 
+
+                        myArgv := VariableDecl new(null, "argv", constructCall, nullToken)
+                        args[1] = argv
+                        body add(0, myArgv)
+                    }
+                }
             }
         }
-
-        if (isClosure) {
+        
+	    if (isClosure) {
             if(countdown > 0) {
                 countdown -= 1
                 res wholeAgain(this, "countdown!")
