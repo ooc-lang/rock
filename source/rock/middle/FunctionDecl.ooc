@@ -690,6 +690,10 @@ FunctionDecl: class extends Declaration {
                     }
                 }
                 case 2 => {
+                    // Replace (argc: Int, argv: String*) with (argc: Int, argv1: CString) 
+                    // and assign argv to the "String" version of argv1
+                    // argv := cStringPtrToStringPtr(argv1, argc)
+
                     if (args get(0) getType() getName() == "Int" && args get(1) getType() getName() == "String") { 
                         arg := args get(1)
                         pseudoArgv := BaseType new("CString", arg token)
@@ -708,7 +712,7 @@ FunctionDecl: class extends Declaration {
             }
         }
         
-	if (isClosure) {
+	    if (isClosure) {
             if(countdown > 0) {
                 countdown -= 1
                 res wholeAgain(this, "countdown!")
