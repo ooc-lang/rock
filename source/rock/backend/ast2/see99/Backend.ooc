@@ -1,5 +1,6 @@
 
-import rock/middle/ast2/[Module, Node, FuncDecl, Access, Var, Scope, Type]
+import rock/middle/ast2/[Module, Node, FuncDecl, Access, Var, Scope, Type,
+    Call]
 
 import structs/HashMap, io/FileWriter
 
@@ -23,6 +24,10 @@ Backend: class {
             fw write("void")
             fw write(" "). write(f name). write("() ")
             write(f body)
+        })
+        
+        put(Call, func(c: Call) {
+            fw write(c name). write("()")
         })
 
         put(Scope, func(s: Scope) {
