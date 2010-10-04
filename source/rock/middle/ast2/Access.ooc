@@ -1,5 +1,6 @@
 
 
+import tinker/Resolver
 import Expression, Type, Var
 
 Access: class extends Expression {
@@ -17,6 +18,18 @@ Access: class extends Expression {
 
     toString: func -> String {
         name
+    }
+
+    resolve: func (task: Task) {
+        task walkBackward(|node|
+            node resolveAccess(this, task, |var|
+                ref = var
+            )
+        )
+        if(!ref)
+            Exception new("Couldn't resolve access to " + name) throw()
+        
+        task done()
     }
 
 }

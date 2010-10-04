@@ -1,24 +1,20 @@
 
 import structs/ArrayList
 
-import Node, Statement, Call
+import Node, Statement, Call, Scope
 import tinker/Resolver
 
 FuncDecl: class extends Node {
 
     resolved := false // artificial testing
     name: String { get set }
-    body: ArrayList<Statement> { get set }
+    body := Scope new()
 
-    init: func ~fDecl (=name) {
-        body = ArrayList<Statement> new()
-    }
+    init: func ~fDecl (=name) {}
 
     resolve: func (task: Task) {
         resolved = true // artificial testing
-        task queueAll(|queue|
-            body each(|s| queue(s))
-        )
+        task queue(body)
         task done()
     }
 

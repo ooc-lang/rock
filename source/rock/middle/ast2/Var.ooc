@@ -16,7 +16,6 @@ Var: class extends Expression {
     }
 
     resolve: func (task: Task) {
-
         if(!type) {
             task queue(expr)
             _type = expr getType()
@@ -26,6 +25,10 @@ Var: class extends Expression {
 
         task queue(type)
         task done()
+    }
+
+    toString: func -> String {
+        name + (type ? ": " + type toString() : " :") + (expr ? "= " + expr toString() : "")
     }
 
 }
