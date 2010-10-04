@@ -22,6 +22,10 @@ version(!gc) {
 version(gc) {
     include gc/gc | (GC_THREADS)
 
+    GC_add_roots: extern func (Pointer, Pointer)
+    GC_remove_roots: extern func (Pointer, Pointer)
+    GC_stackbottom: extern Pointer
+
     gc_malloc: extern(GC_malloc) func (size: SizeT) -> Pointer
     gc_malloc_atomic: extern(GC_malloc_atomic) func (size: SizeT) -> Pointer
     gc_strdup: extern(GC_strdup) func (str: CString) -> CString

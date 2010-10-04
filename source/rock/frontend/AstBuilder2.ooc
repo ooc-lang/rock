@@ -95,7 +95,7 @@ main: func (argc: Int, argv: CString*) {
 
     r := Resolver new()
     r modules add(builder module)
-    r resolve()
+    r start()
     
 }
 

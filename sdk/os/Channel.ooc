@@ -14,10 +14,6 @@ currentCoro := mainCoro
 
 atexit(scheduler)
 
-GC_add_roots: extern func (Pointer, Pointer)
-GC_remove_roots: extern func (Pointer, Pointer)
-GC_stackbottom: extern Pointer
-
 scheduler: func {
     mainCoro initializeMainCoro()
 
