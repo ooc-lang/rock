@@ -81,7 +81,7 @@ Task: class {
                 if(!task done?) pool add(task)
             )
 
-            yield()
+            if(!pool empty?()) yield()
         }
     }
 
