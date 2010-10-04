@@ -15,6 +15,7 @@ AstBuilder: class extends OocListener {
     parse: func (path: String) {
         try {
             module = Module new(path substring(0, -5))
+            stack push(module)
             super(path)
         } catch (e: Exception) {
             e print()
@@ -27,18 +28,25 @@ AstBuilder: class extends OocListener {
     pop: func <T> (T: Class) -> T {
         v := stack pop()
         if(!v instanceOf?(T)) Exception new("Expected " + T name + ", pop'd " + v class name) throw()
-        v as T
+        v
     }
 
     /*
      * Functions
      */
     onFunctionStart: func (name, doc: CString) {
-        stack push(FuncDecl new(name toString()))
+        fd := FuncDecl new(name toString())
+        stack push(fd)
     }
 
     onFunctionEnd: func -> FuncDecl {
-        pop(FuncDecl)
+        fd := pop(FuncDecl)
+        node := stack peek()
+        match node {
+            case m: Module =>
+                m functions add(fd)
+        }
+        fd
     }
 
     onFunctionBody: func {

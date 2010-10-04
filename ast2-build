@@ -6,4 +6,4 @@ if [[ ! -e .libs/NagaQueen.o ]]; then
   gcc -c -std=c99 -D_OOC_USE_GC .libs/NagaQueen.c -o .libs/NagaQueen.o
 fi
 echo "Compiling rock"
-OOC_LIBS=.. rock -g -v -sourcepath=source rock/frontend/AstBuilder2 .libs/NagaQueen.o -o=bin/ast2-rock
+OOC_LIBS=.. rock -g -v -sourcepath=source rock/frontend/AstBuilder2 .libs/NagaQueen.o -o=bin/ast2-rock $OOC_FLAGS

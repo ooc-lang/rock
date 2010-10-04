@@ -30,10 +30,9 @@ Module: class extends Node {
 
 
     resolve: func (task: Task) {
-        for (i in 0..3) {
-            ("Tasking module " + fullName + ", countdown = %d") printfln(i + 1)
-            task yield()
-        }
+        task queueAll(|queue|
+            functions each(|f| queue(f))
+        )
         task done()
     }
 
