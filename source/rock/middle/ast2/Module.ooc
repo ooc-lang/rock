@@ -1,6 +1,7 @@
 
 import structs/ArrayList
 
+import tinker/Resolver
 import Node, FuncDecl
 
 /**
@@ -25,6 +26,15 @@ Module: class extends Node {
     
     init: func (=fullName) {
         ("Built module " + fullName) println()
+    }
+
+
+    resolve: func (task: Task) {
+        for (i in 0..3) {
+            ("Tasking module " + fullName + ", countdown = %d") printfln(i + 1)
+            task yield()
+        }
+        task done()
     }
 
 }

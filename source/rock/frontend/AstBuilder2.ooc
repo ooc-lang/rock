@@ -5,6 +5,7 @@ import structs/Stack
 import nagaqueen/OocListener
 
 import ../middle/ast2/[Module, FuncDecl, Call, Statement]
+import ../middle/ast2/tinker/Resolver
 
 AstBuilder: class extends OocListener {
 
@@ -81,7 +82,12 @@ main: func (argc: Int, argv: CString*) {
     "Parsing %s" printfln(argv[1])
     builder := AstBuilder new()
     builder parse(argv[1] toString())
-    "Parsed module fully!" println()
+    "Done parsing!" println()
+    "=================================" println()
+
+    r := Resolver new()
+    r modules add(builder module)
+    r resolve()
     
 }
 
