@@ -24,8 +24,6 @@ Task: class {
         id = idSeed
         coro = Coro new()
         done? = false
-        
-        (toString() + " created") println()
     }
 
     start: func {
@@ -46,14 +44,25 @@ Task: class {
     done: func {
         (toString() + " done") println()
         done? = true
-        yield()
+        coro switchTo(parentCoro)
     }
 
     yield: func {
-        (toString() + " yielding, switching back to parent") println()
+        (toString() + " yield") println()
         GC_stackbottom = parentCoro stack
         
         coro switchTo(parentCoro)
+    }
+
+    queue: func (n: Node) {
+        task := Task new(this, n)
+        (toString() + " queuing " + n toString() + " with " + task toString()) println()  
+        task start()
+        while(!task done?) {
+            (task toString() + " not done yet, looping") println()  
+            switchTo(task)
+            yield()
+        }
     }
 
     queueAll: func (f: Func (Func (Node))) {
