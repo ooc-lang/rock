@@ -2,7 +2,7 @@
 import structs/ArrayList
 
 import tinker/Resolver
-import Node, FuncDecl
+import Node, FuncDecl, Call
 
 /**
  * A module contains types, functions, global variables.
@@ -24,9 +24,7 @@ Module: class extends Node {
      */
     functions := ArrayList<FuncDecl> new()
     
-    init: func (=fullName) {
-        ("Built module " + fullName) println()
-    }
+    init: func (=fullName) {}
 
 
     resolve: func (task: Task) {
@@ -34,6 +32,13 @@ Module: class extends Node {
             functions each(|f| queue(f))
         )
         task done()
+    }
+
+    resolveCall: func (call: Call, task: Task, suggest: Func (FuncDecl)) {
+        functions each(|f|
+            if(f name == call name)
+                suggest(f)
+        )
     }
 
 }

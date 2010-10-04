@@ -6,7 +6,8 @@ import ../[Node, Module]
 Task: class {
     id: Int { get set }
     idSeed := static 0
-    
+
+    parent: Task
     parentCoro, coro: Coro
 
     oldStackBase: Pointer
@@ -14,7 +15,11 @@ Task: class {
     node: Node { get set }
     done?: Bool { get set }
 
-    init: func (=parentCoro, =node) {
+    init: func (=parent, .node) {
+        init(parent coro, node)
+    }
+
+    init: func ~onlyCoro (=parentCoro, =node) {
         idSeed += 1
         id = idSeed
         coro = Coro new()
@@ -59,7 +64,7 @@ Task: class {
 
     spawn: func (n: Node, pool: List<Task>) {
         (toString() + " spawning for " + n toString())
-        task := Task new(coro, n)
+        task := Task new(this, n)
         task start()
         if(!task done?) pool add(task)
     }
@@ -71,11 +76,17 @@ Task: class {
             pool = ArrayList<Task> new()
 
             oldPool each(|task|
-                (toString() + " switching to unfinished task") println()
+                (toString() + " switching to unfinished task " + task toString()) println()
                 switchTo(task)
                 if(!task done?) pool add(task)
             )
 
+            yield()
+        }
+    }
+
+    need: func (f: Func -> Bool) {
+        while(!f()) {
             yield()
         }
     }
@@ -87,6 +98,12 @@ Task: class {
 
     toString: func -> String {
         "[#%d %s]" format(id, node toString() toCString())
+    }
+
+    walkBackward: func (f: Func (Node)) {
+        f(node)
+        if(parent)
+            parent walkBackward(f)
     }
 }
 
@@ -106,16 +123,18 @@ Resolver: class extends Node {
 
         mainTask := Task new(mainCoro, this)
         mainTask start()
-        if(mainTask done?) {
-            "All done resolving!" println()
-        } else {
-            "Not everything was resolved!" println()
+        while(!mainTask done?) {
+            "" println()
+            "========================== Looping! ===============" println()
+            "" println()
+            
+            mainCoro switchTo(mainTask coro)
         }
+        "All done resolving!" println()
         "=================================" println()
     }
 
     resolve: func (task: Task) {
-        // TODO: this is basically queueAll, allow a main Task instead
         task queueAll(|queue|
             modules each(|m| queue(m))
         )
