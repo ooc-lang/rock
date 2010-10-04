@@ -193,9 +193,6 @@ FunctionCall: class extends Expression {
                 declArg := candidate args get(i)
                 if(declArg instanceOf?(VarArg)) break
                 callArg := args get(i)
-                if (declArg getType() == null) {
-                    declArg class name println()
-                }
                 declArgType := declArg getType() refToPointer()
                 if (declArgType isGeneric()) {
                     declArgType = declArgType realTypize(this)
