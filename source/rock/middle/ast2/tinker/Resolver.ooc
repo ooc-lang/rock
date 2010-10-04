@@ -2,6 +2,7 @@
 import os/Coro, structs/[ArrayList, List]
 
 import ../[Node, Module]
+import rock/backend/ast2/see99/Backend
 
 Task: class {
     id: Int { get set }
@@ -141,6 +142,11 @@ Resolver: class extends Node {
         }
         "All done resolving!" println()
         "=================================" println()
+
+        modules each(|module|
+            b := Backend new(module)
+            b generate()
+        )
     }
 
     resolve: func (task: Task) {
