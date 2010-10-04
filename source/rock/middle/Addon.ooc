@@ -67,6 +67,7 @@ Addon: class extends Node {
                 }
             } else {
                 res wholeAgain(this, "need baseType ref")
+                return Response OK
             }
         }
 
@@ -84,7 +85,10 @@ Addon: class extends Node {
     }
 
     resolveCall: func (call : FunctionCall, res: Resolver, trail: Trail) -> Int {
-        if(base == null) return 0
+        if(base == null) {
+            ("Resolving call " + call toString() + (", base = %p" format(call))) println()
+            return 0
+        }
     
         hash := TypeDecl hashName(call name, call suffix)
         fDecl := functions get(hash)

@@ -1,5 +1,7 @@
 
-import Node
+import structs/ArrayList
+
+import Node, FuncDecl
 
 /**
  * A module contains types, functions, global variables.
@@ -22,6 +24,7 @@ Module: class extends Node {
     functions := ArrayList<FuncDecl> new()
     
     init: func (=fullName) {
+        ("Built module " + fullName) println()
     }
 
 }

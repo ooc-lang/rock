@@ -1,0 +1,9 @@
+#!/bin/sh
+mkdir -p bin .libs
+if [[ ! -e .libs/NagaQueen.o ]]; then
+  echo "Re-generating naga"
+  greg ../nagaqueen/grammar/nagaqueen.leg > .libs/NagaQueen.c
+  gcc -c -std=c99 -D_OOC_USE_GC .libs/NagaQueen.c -o .libs/NagaQueen.o
+fi
+echo "Compiling rock"
+OOC_LIBS=.. rock -g -v -sourcepath=source rock/frontend/AstBuilder2 .libs/NagaQueen.o -o=bin/ast2-rock

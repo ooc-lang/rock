@@ -1,4 +1,3 @@
-
 import io/File, text/[EscapeSequence]
 
 import structs/[ArrayList, List, Stack, HashMap]
