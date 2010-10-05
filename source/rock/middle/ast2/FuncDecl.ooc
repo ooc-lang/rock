@@ -1,10 +1,10 @@
 
 import structs/ArrayList
 
-import Node, Statement, Call, Scope, Var
+import Expression, Statement, Scope, Var, Type
 import tinker/Resolver
 
-FuncDecl: class extends Node {
+FuncDecl: class extends Expression {
 
     resolved := false // artificial testing
     name: String { get set }
@@ -18,11 +18,13 @@ FuncDecl: class extends Node {
     
     body := Scope new()
     args := ArrayList<Var> new()
+    retType := BaseType new("void")
 
     init: func ~fDecl (=name) {}
 
     resolve: func (task: Task) {
         task queueList(args)
+        task queue(retType)
         resolved = true // artificial testing
         
         task queue(body)
@@ -31,6 +33,10 @@ FuncDecl: class extends Node {
 
     toString: func -> String {
         name + ": func"
+    }
+
+    getType: func -> Type {
+        BaseType new("Func")
     }
 
 }

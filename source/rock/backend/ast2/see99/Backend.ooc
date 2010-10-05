@@ -2,7 +2,7 @@
 import rock/middle/ast2/[Module, Node, FuncDecl, Access, Var, Scope, Type,
     Call, StringLit]
 
-import structs/HashMap, io/FileWriter
+import structs/[HashMap, List], io/[File, FileWriter]
 
 CallBack: class {
     f: Func (Node)
@@ -18,23 +18,23 @@ Backend: class {
     map := HashMap<Class, CallBack> new()
 
     init: func (=module) {
-        fw = FileWriter new("out.c")
+        file := File new("rock2_tmp", (module fullName replaceAll('/', File separator)) + ".c")
+        file parent() mkdirs()
+        fw = FileWriter new(file)
         
         put(FuncDecl, func(f: FuncDecl) {
             if(f isExtern) return
             
-            fw write("void")
-            fw write(" "). write(f name). write("() ")
+            write(f retType)
+            fw write(" "). write(f name). write("(")
+            writeCommaSeparated(f args)
+            fw write(") ")
             write(f body)
         })
         
         put(Call, func(c: Call) {
             fw write(c name). write("(")
-            first := true
-            c args each(|arg|
-                if(!first) fw write(", ")
-                write(arg)
-            )
+            writeCommaSeparated(c args)
             fw write(")")
         })
 
@@ -71,6 +71,15 @@ Backend: class {
 
     put: func (c: Class, f: Func (Node)) {
         map put(c, CallBack new(f))
+    }
+
+    writeCommaSeparated: func (l: List<Node>) {
+        first := true
+        l each(|n|
+            if(!first) fw write(", ")
+            write(n)
+            first = false
+        )
     }
 
     write: func (n: Node) {
