@@ -1,7 +1,7 @@
 
 import AstBuilder2
 
-import rock/middle/ast2/[Module]
+import rock/middle/ast2/[Module, Import]
 import rock/middle/ast2/tinker/Resolver
 
 import threading/Thread, structs/[List, ArrayList], os/[Time, System]
@@ -15,14 +15,14 @@ main: func (argc: Int, argv: CString*) {
     
     "Parsing %s" printfln(argv[1])
     pool := ParsingPool new()
-    mainJob := ParsingJob new(argv[1] toString())
+    mainJob := ParsingJob new(argv[1] toString(), null)
     pool push(mainJob)
     pool exhaust()
     "Done parsing!" println()
     "=================================" println()
 
     r := Resolver new()
-    r modules add(mainJob module)
+    r modules addAll(mainJob module getDeps())
     r start()
     
 }
@@ -31,8 +31,9 @@ ParsingJob: class {
 
     path: String
     module: Module
+    _import: Import
 
-    init: func (=path) {}
+    init: func (=path, =_import) {}
 
 }
 
@@ -121,6 +122,7 @@ ParserWorker: class {
                     builder := AstBuilder new(pool)
                     builder parse(job path)
                     job module = builder module
+                    if(job _import) job _import module = builder module
                     pool done(job)
                     busy = false
                 } else {

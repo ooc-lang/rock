@@ -1,5 +1,5 @@
 
-import structs/ArrayList
+import structs/[ArrayList, List]
 
 import tinker/Resolver
 import Node, FuncDecl, Call, Import
@@ -40,6 +40,16 @@ Module: class extends Node {
     }
 
     callResolver?: func -> Bool { true }
+
+    getDeps: func (list := ArrayList<Module> new()) -> List<Module> {
+        list add(this)
+        imports each(|i|
+            if(!list contains?(i module)) {
+                i module getDeps(list)
+            }
+        )
+        list
+    }
 
 }
 

@@ -62,14 +62,15 @@ AstBuilder: class extends OocListener {
     onImport: func (path, name: CString) {
         nullPath := (path == null || (path as Char*)[0] == '\0')
         importName := nullPath ? path toString() + name toString() : name toString()
-        peek(Module) imports add(Import new(importName))
+        _import := Import new(importName)
+        peek(Module) imports add(_import)
 
         // FIXME: this is a very very dumb strategy to get the real path of an Import
         // but oh well, I'm testing ParsingPool right now.
         realPath := File new(File new(module fullName) parent() path, importName) path + ".ooc"
         //("realPath (fingers crossed) is " + realPath) println()
         // FIXME: and what about caching? huh?
-        pool push(ParsingJob new(realPath))
+        pool push(ParsingJob new(realPath, _import))
     }
 
     /*
