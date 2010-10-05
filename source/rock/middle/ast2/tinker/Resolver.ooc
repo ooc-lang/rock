@@ -116,8 +116,8 @@ Task: class {
         "[#%d %s]" format(id, node toString() toCString())
     }
 
-    walkBackward: func (f: Func (Node)) {
-        f(node)
+    walkBackward: func (f: Func (Node) -> Bool) {
+        if(f(node)) return // true = break
         if(parent)
             parent walkBackward(f)
     }

@@ -23,9 +23,9 @@ Access: class extends Expression {
     resolve: func (task: Task) {
         task walkBackward(|node|
             node resolveAccess(this, task, |var|
-                // TODO: break on resolve - also, do we need a sugg-like class?
                 ref = var
             )
+            (ref != null) // break if resolved
         )
         if(!ref)
             Exception new("Couldn't resolve access to " + name) throw()

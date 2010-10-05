@@ -39,5 +39,7 @@ Module: class extends Node {
         )
     }
 
+    callResolver?: func -> Bool { true }
+
 }
 

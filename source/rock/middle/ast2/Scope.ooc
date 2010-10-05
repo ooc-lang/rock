@@ -22,10 +22,11 @@ Scope: class extends Node {
         idx := -1
 
         task walkBackward(|node|
-            // TODO: find a way to break out of it
             if(idx == -1 && node instanceOf?(Statement)) {
                 idx = body indexOf(node as Statement)
+                return true // break
             }
+            false
         )
         if(idx == -1) return
 
@@ -37,6 +38,8 @@ Scope: class extends Node {
             }
         }
     }
+
+    accessResolver?: func -> Bool { true }
 
     add: func (s: Statement) {
         body add(s)

@@ -15,10 +15,14 @@ Node: class {
         class name
     }
 
+    callResolver?: func -> Bool { false }
+    
     resolveCall: func (call: Call, task: Task, suggest: Func (FuncDecl)) {
         // bah bah bah.
     }
 
+    accessResolver?: func -> Bool { false }
+    
     resolveAccess: func (acc: Access, task: Task, suggest: Func (Var)) {
         // et des scoubidou bi dou.
     }

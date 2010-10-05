@@ -21,7 +21,8 @@ Call: class extends Statement {
         sugg: CallSugg = null
         task walkBackward(|node|
             _sugg := sugg // yay workarounds
-            
+
+            if(!node callResolver?) return false // continue
             node resolveCall(this, task, |decl|
                 _sugg = _sugg
                 task need(func -> Bool {
@@ -34,6 +35,7 @@ Call: class extends Statement {
                 }
             )
             sugg = _sugg
+            false
         )
         if(!sugg)
             Exception new("Couldn't resolve call to " + name) throw()
