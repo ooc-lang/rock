@@ -35,7 +35,7 @@ Task: class {
         // Adjust the stackbottom and add our Coro's stack as a root for the GC
         GC_stackbottom = stackBase
         GC_add_roots   (stackBase, stackBase + stackSize)
-        
+
         parentCoro startCoro(coro, ||
             node resolve(this)
             Exception new("Error! task returned - this shouldn't happened") throw()

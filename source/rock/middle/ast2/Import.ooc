@@ -1,5 +1,5 @@
 
-import Node
+import Node, Module
 
 /**
  * Imports allow a module to use the functions, types, globals defined
@@ -13,6 +13,6 @@ Import: class extends Node {
     importName: String
     module: Module { get set }
 
-    init: func (=fullName) {}
+    init: func (=importName) {}
 
 }

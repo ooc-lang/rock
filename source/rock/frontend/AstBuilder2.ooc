@@ -1,11 +1,13 @@
 use nagaqueen
 
-import structs/Stack
+import structs/Stack, io/File
 
 import nagaqueen/OocListener
 
+import ParsingPool
+
 import ../middle/ast2/[Module, FuncDecl, Call, Statement, Type, Expression,
-    Var, Access, StringLit]
+    Var, Access, StringLit, Import]
 import ../middle/ast2/tinker/Resolver
 
 /**
@@ -24,6 +26,10 @@ AstBuilder: class extends OocListener {
 
     module: Module
     stack := Stack<Object> new()
+
+    pool: ParsingPool
+
+    init: func (=pool) {}
 
     parse: func (path: String) {
         try {
@@ -48,6 +54,22 @@ AstBuilder: class extends OocListener {
         v := stack peek()
         if(!v instanceOf?(T)) Exception new("Expected " + T name + ", peek'd " + v class name) throw()
         v
+    }
+
+    /*
+     * Import
+     */
+    onImport: func (path, name: CString) {
+        nullPath := (path == null || (path as Char*)[0] == '\0')
+        importName := nullPath ? path toString() + name toString() : name toString()
+        peek(Module) imports add(Import new(importName))
+
+        // FIXME: this is a very very dumb strategy to get the real path of an Import
+        // but oh well, I'm testing ParsingPool right now.
+        realPath := File new(File new(module fullName) parent() path, importName) path + ".ooc"
+        //("realPath (fingers crossed) is " + realPath) println()
+        // FIXME: and what about caching? huh?
+        pool push(ParsingJob new(realPath))
     }
 
     /*

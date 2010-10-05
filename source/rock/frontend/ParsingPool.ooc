@@ -83,10 +83,8 @@ ParsingPool: class {
     }
 
     exhaust: func {
-        "Exhausting pool" println()
         active = true
         numCores := numProcessors()
-        "Adding %d workers" printfln(numCores + 1)
         for(i in 0..(numCores + 1)) {
             worker := ParserWorker new(this). run()
             workers add(worker)
@@ -95,7 +93,6 @@ ParsingPool: class {
         while (active) {
             Time sleepMilli(10)
         }
-        "Pool exhausted!" println()
     }
 
 }
@@ -114,14 +111,14 @@ ParserWorker: class {
 
     run: func {
         Thread new(||
-            "Hey, I'm worker thread %d" printfln(id)
+            "[%d] Initialized" printfln(id)
 
             while (pool active) {
                 job := pool pop()
                 if(job) {
                     busy = true
-                    "Worker thread %d working on %s" printfln(id, job path toCString())
-                    builder := AstBuilder new()
+                    "[%d] Parsing %s" printfln(id, job path toCString())
+                    builder := AstBuilder new(pool)
                     builder parse(job path)
                     job module = builder module
                     pool done(job)

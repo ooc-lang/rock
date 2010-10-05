@@ -2,7 +2,7 @@
 import structs/ArrayList
 
 import tinker/Resolver
-import Node, FuncDecl, Call
+import Node, FuncDecl, Call, Import
 
 /**
  * A module contains types, functions, global variables.
@@ -19,10 +19,10 @@ Module: class extends Node {
      */
     fullName: String
 
-    /**
-     * List of functions in thie module that don't belong to any type
-     */
+    /** List of functions in thie module that don't belong to any type */
     functions := ArrayList<FuncDecl> new()
+
+    imports := ArrayList<Import> new()
     
     init: func (=fullName) {}
 

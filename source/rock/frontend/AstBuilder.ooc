@@ -159,7 +159,7 @@ AstBuilder: class {
     onImport: unmangled(nq_onImport) func (path, name: CString) {
         namestr := name toString()
         output : String = ((path == null) || (path@ == '\0')) ? namestr : path toString() + namestr
-        module addImport(Import new( output , token()))
+        module addImport(Import new(output , token()))
     }
 
     onImportNamespace: unmangled(nq_onImportNamespace) func (cnamespace: CString, quantity: Int) {
