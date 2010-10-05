@@ -1,21 +1,19 @@
 
-import structs/ArrayList
+import structs/[ArrayList, List]
 
 import tinker/Resolver
 import Node, Statement, Var, Access
 
 Scope: class extends Node {
 
-    body: ArrayList<Statement> { get set }
+    body: List<Statement> { get set }
 
     init: func {
         body = ArrayList<Statement> new()
     }
 
     resolve: func (task: Task) {
-        task queueAll(|queue|
-            body each(|s| queue(s))
-        )
+        task queueList(body)
         task done()
     }
 

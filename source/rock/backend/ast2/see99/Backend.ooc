@@ -1,6 +1,6 @@
 
 import rock/middle/ast2/[Module, Node, FuncDecl, Access, Var, Scope, Type,
-    Call]
+    Call, StringLit]
 
 import structs/HashMap, io/FileWriter
 
@@ -21,13 +21,25 @@ Backend: class {
         fw = FileWriter new("out.c")
         
         put(FuncDecl, func(f: FuncDecl) {
+            if(f isExtern) return
+            
             fw write("void")
             fw write(" "). write(f name). write("() ")
             write(f body)
         })
         
         put(Call, func(c: Call) {
-            fw write(c name). write("()")
+            fw write(c name). write("(")
+            first := true
+            c args each(|arg|
+                if(!first) fw write(", ")
+                write(arg)
+            )
+            fw write(")")
+        })
+
+        put(StringLit, func(c: StringLit) {
+            fw write('"'). write(c value). write('"')
         })
 
         put(Scope, func(s: Scope) {

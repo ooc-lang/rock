@@ -1,15 +1,23 @@
 
+import structs/[List, ArrayList]
+
 import tinker/Resolver
-import Statement, FuncDecl
+import Statement, FuncDecl, Expression
 
 Call: class extends Statement {
 
     name: String { get set }
+    args: List<Expression> { get set }
+    
     ref: FuncDecl
 
-    init: func (=name) {}
+    init: func (=name) {
+        args = ArrayList<Expression> new()
+    }
 
     resolve: func (task: Task) {
+        task queueList(args)
+        
         sugg: CallSugg = null
         task walkBackward(|node|
             _sugg := sugg // yay workarounds

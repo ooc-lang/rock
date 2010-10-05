@@ -4,7 +4,8 @@ import structs/Stack
 
 import nagaqueen/OocListener
 
-import ../middle/ast2/[Module, FuncDecl, Call, Statement, Type, Expression, Var, Access]
+import ../middle/ast2/[Module, FuncDecl, Call, Statement, Type, Expression,
+    Var, Access, StringLit]
 import ../middle/ast2/tinker/Resolver
 
 /**
@@ -67,8 +68,27 @@ AstBuilder: class extends OocListener {
         fd
     }
 
+    onFunctionArgsStart: func {
+        stack push(peek(FuncDecl) args)
+    }
+
+    onFunctionArgsEnd: func {
+        stack pop() // args
+    }
+    
+
     onFunctionBody: func {
         // ignore
+    }
+
+    onFunctionAttr: func (f: FuncAttributes, value: CString = null) {
+        fd := peek(FuncDecl)
+        match f {
+            case FuncAttributes _extern =>
+                fd externName = (value ? value : "")
+            case =>
+                "Unknown function attribute %d" printfln(f)
+        }
     }
 
     /*
@@ -77,6 +97,10 @@ AstBuilder: class extends OocListener {
     
     onFunctionCallStart: func (name: CString) {
         stack push(Call new(name toString()))
+    }
+
+    onFunctionCallArg: func (arg: Expression) {
+        peek(Call) args add(arg)
     }
 
     onFunctionCallEnd: func -> Call {
@@ -115,7 +139,11 @@ AstBuilder: class extends OocListener {
         BaseType new(name toString())
     }
 
-    /* Various statements */
+    /* Various expression/statements */
+    
+    onStringLiteral: func (text: CString) -> StringLit {
+        StringLit new(text toString())
+    }
 
     onVarAccess: func (expr: Expression, name: CString) -> Access {
         Access new(expr, name toString())

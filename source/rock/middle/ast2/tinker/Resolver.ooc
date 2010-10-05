@@ -66,6 +66,14 @@ Task: class {
         }
     }
 
+    queueList: func (l: List<Node>) {
+        queueAll(|enqueue|
+            l each(|n|
+                enqueue(n)
+            )
+        )
+    }
+
     queueAll: func (f: Func (Func (Node))) {
         pool := ArrayList<Node> new()
         f(|n| spawn(n, pool))

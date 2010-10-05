@@ -28,9 +28,7 @@ Module: class extends Node {
 
 
     resolve: func (task: Task) {
-        task queueAll(|queue|
-            functions each(|f| queue(f))
-        )
+        task queueList(functions)
         task done()
     }
 
