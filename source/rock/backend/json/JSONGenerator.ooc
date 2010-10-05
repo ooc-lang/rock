@@ -332,11 +332,18 @@ JSONGenerator: class extends Visitor {
         args := Bag new()
         for(arg in node args) {
             l := Bag new()
-            l add(arg name as String) /* TODO: why is that needed? */
-            if(arg instanceOf?(VarArg))
-                l add("")
-            else
-                l add(resolveType(arg type)) /* this handles generic types well. */
+            if(arg instanceOf?(VarArg)) {
+                if(arg name == null) {
+                    // C varargs
+                    l add("...") .add("...")
+                } else {
+                    // ooc varargs
+                    l add(arg name) .add("...")
+                }
+            } else {
+                l add(arg name) \
+                 .add(resolveType(arg type)) /* this handles generic types well. */
+            }
             if(arg isConst) {
                 m := Bag new()
                 m add("const")
@@ -490,7 +497,7 @@ JSONGenerator: class extends Visitor {
         buf := Buffer new()
         buf append("Func(")
         first := true
-        if(!node typeArgs empty?()) {
+        if(node typeArgs != null && !node typeArgs empty?()) {
             first = false
             first_ := true
             buf append("generics(")
@@ -503,11 +510,12 @@ JSONGenerator: class extends Visitor {
             }
             buf append(')')
         }
-        if(!node argTypes empty?()) {
+        if(node argTypes != null && !node argTypes empty?()) {
             if(!first)
                 buf append(',')
             else
                 first = false
+            // TODO: C/ooc varargs?
             buf append("arguments(")
             first_ := true
             for(arg in node argTypes) {
