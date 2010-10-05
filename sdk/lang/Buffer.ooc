@@ -59,13 +59,15 @@ Buffer: class extends Iterable<Char> {
     init: func ~cStrWithLength(s: CString, length: SizeT, stringLiteral? := false) {
         if(stringLiteral?) {
             data = s
-            size = length
             mallocAddr = null
             capacity = 0
         } else {
-    	    setLength(length)
-	        memcpy(data, s, length) 
-        }        
+    	    data = gc_malloc(length)
+	        memcpy(data, s, length)
+            mallocAddr = data
+            capacity = length
+        }
+        size = length
     }
 
     /**
