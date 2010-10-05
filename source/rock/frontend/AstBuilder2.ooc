@@ -91,6 +91,10 @@ AstBuilder: class extends OocListener {
         }
     }
 
+    onFunctionReturnType: func (returnType: Type) {
+        peek(FuncDecl) retType = returnType
+    }
+
     /*
      * Function calls
      */
@@ -171,24 +175,5 @@ AstBuilder: class extends OocListener {
         }
     }
 
-}
-
-main: func (argc: Int, argv: CString*) {
-
-    if(argc <= 1) {
-        "Usage: ast2-rock FILE" println()
-        exit(1)
-    }
-    
-    "Parsing %s" printfln(argv[1])
-    builder := AstBuilder new()
-    builder parse(argv[1] toString())
-    "Done parsing!" println()
-    "=================================" println()
-
-    r := Resolver new()
-    r modules add(builder module)
-    r start()
-    
 }
 

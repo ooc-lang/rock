@@ -39,7 +39,7 @@ Call: class extends Statement {
             Exception new("Couldn't resolve call to " + name) throw()
 
         ref = sugg ref
-        ("Resolved call to " + name + ", with decl " + ref name) println()
+        //("Resolved call to " + name + ", with decl " + ref name) println()
         task done()
     }
 

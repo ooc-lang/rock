@@ -28,7 +28,7 @@ Task: class {
     }
 
     start: func {
-        (toString() + " started") println()
+        version(OOC_TASK_DEBUG) { (toString() + " started") println() }
         stackBase := coro stack
         stackSize := coro allocatedStackSize
         
@@ -43,13 +43,13 @@ Task: class {
     }
 
     done: func {
-        (toString() + " done") println()
+        version(OOC_TASK_DEBUG) { (toString() + " done") println() }
         done? = true
         coro switchTo(parentCoro)
     }
 
     yield: func {
-        (toString() + " yield") println()
+        version(OOC_TASK_DEBUG) { (toString() + " yield") println() }
         GC_stackbottom = parentCoro stack
         
         coro switchTo(parentCoro)
@@ -57,21 +57,19 @@ Task: class {
 
     queue: func (n: Node) {
         task := Task new(this, n)
-        (toString() + " queuing " + n toString() + " with " + task toString()) println()  
+        version(OOC_TASK_DEBUG) { (toString() + " queuing " + n toString() + " with " + task toString()) println() }
         task start()
         while(!task done?) {
-            (task toString() + " not done yet, looping") println()  
+            version(OOC_TASK_DEBUG) { (task toString() + " not done yet, looping") println() }
             switchTo(task)
             yield()
         }
     }
 
     queueList: func (l: List<Node>) {
-        queueAll(|enqueue|
-            l each(|n|
-                enqueue(n)
-            )
-        )
+        pool := ArrayList<Node> new()
+        l each(|n| spawn(n, pool))
+        exhaust(pool)
     }
 
     queueAll: func (f: Func (Func (Node))) {
@@ -81,20 +79,20 @@ Task: class {
     }
 
     spawn: func (n: Node, pool: List<Task>) {
-        (toString() + " spawning for " + n toString())
+        version(OOC_TASK_DEBUG) {  (toString() + " spawning for " + n toString()) }
         task := Task new(this, n)
         task start()
         if(!task done?) pool add(task)
     }
 
     exhaust: func (pool: List<Task>) {
-        (toString() + " exhausting pool ") println()
+        version(OOC_TASK_DEBUG) { (toString() + " exhausting pool ") println() }
         while(!pool empty?()) {
             oldPool := pool
             pool = ArrayList<Task> new()
 
             oldPool each(|task|
-                (toString() + " switching to unfinished task " + task toString()) println()
+                version(OOC_TASK_DEBUG) {  (toString() + " switching to unfinished task " + task toString()) println() }
                 switchTo(task)
                 if(!task done?) pool add(task)
             )
