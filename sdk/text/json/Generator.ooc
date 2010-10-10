@@ -21,6 +21,9 @@ generate: func <T> (writer: Writer, obj: T) {
         case UInt => {
             writer write(obj as UInt toString())
         }
+        case SSizeT => { // for int literals
+            writer write(obj as SSizeT toString())
+        }
         case Bool => {
             writer write((obj as Bool ? "true" : "false"))
         }

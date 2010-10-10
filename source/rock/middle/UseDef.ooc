@@ -15,11 +15,9 @@ import ../frontend/BuildParams
  */
 Requirement: class {
     name, ver: String
-    useDef: UseDef
+    useDef: UseDef { get set }
 
     init: func (=name, =ver) {}
-
-    getUseDef: func -> UseDef { useDef }
 }
 
 /**
@@ -95,9 +93,12 @@ UseDef: class {
 
     read: func (file: File, params: BuildParams) {
         reader := FileReader new(file)
+        if(params veryVerbose) ("Reading use file " + file path) println()
+        
         while(reader hasNext?()) {
             reader mark()
             c := reader read()
+            if(params veryVerbose) "Got character %c" printfln(c)
 
             if(c == '\t' || c == ' ' || c == '\r' || c == '\n' || c == '\v') {
                 continue
@@ -115,8 +116,14 @@ UseDef: class {
             }
 
             reader rewind(1)
-            id := reader readUntil(':') trim() trim(8 as Char /* backspace */) trim(0 as Char /* null-character */)
+            id := reader readUntil(':')
+            if(params veryVerbose) ("at first, id = '" + id + "'") println()
+            
+            id = id trim() trim(8 as Char /* backspace */) trim(0 as Char /* null-character */)
+            
             value := reader readLine() trim()
+            
+            if(params veryVerbose) ("id = '" + id + "', value = '" + value + "'") println()
 
             if(id startsWith?("_")) {
                 // reserved ids for external tools (packaging, etc.)

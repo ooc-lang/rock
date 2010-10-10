@@ -28,8 +28,7 @@ ModuleWriter: abstract class extends Skeleton {
         if(!module includes empty?()) current nl()
 
         for(uze in module uses) {
-            useDef := uze getUseDef()
-            for(ynclude in useDef getIncludes()) {
+            for(ynclude in uze useDef getIncludes()) {
                 current nl(). app("#include <"). app(ynclude). app(">")
             }
         }

@@ -76,8 +76,7 @@ Driver: abstract class {
         modulesDone add(module)
 
         for(use1: Use in module getUses()) {
-            useDef := use1 getUseDef()
-            getFlagsFromUse(useDef, flagsDone, usesDone)
+            getFlagsFromUse(use1 useDef, flagsDone, usesDone)
         }
 
         for(imp: Import in module getAllImports()) {
@@ -137,7 +136,7 @@ Driver: abstract class {
         }
 
         for(req in useDef getRequirements()) {
-            getFlagsFromUse(req getUseDef(), flagsDone, usesDone)
+            getFlagsFromUse(req useDef, flagsDone, usesDone)
         }
 
     }

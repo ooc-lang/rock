@@ -1,56 +1,99 @@
 import io/Reader, io/File
 
-fopen: extern func(filename: Char*, mode: Char*) -> FILE*
-fread: extern func(ptr: Pointer, size: SizeT, count: SizeT, stream: FILE*) -> SizeT
-ferror: extern func(stream: FILE*) -> Int
-feof: extern func(stream: FILE*) -> Int
-fseek: extern func(stream: FILE*, offset: Long, origin: Int) -> Int
-SEEK_CUR, SEEK_SET, SEEK_END: extern Int
-ftell: extern func(stream: FILE*) -> Long
-
+/**
+ * Implement the Reader interface for file input
+ * 
+ * By default, files are opened in binary mode. If you want to open
+ * them in text mode, use the new~withMode variant, but beware: on 
+ * mingw, rewind()/mark() won't work correctly.
+ * @author Amos Wenger (nddrylliog)
+ */
 FileReader: class extends Reader {
 
     fileName := "<stream>"
-    file: FILE*
+    
+    /** The underlying file descriptor */
+    file: FStream
 
+	/**
+	 * Open a file for reading in binary mode, given a `File` object.
+	 */
     init: func ~withFile (fileObject: File) {
         init(fileObject getPath())
     }
 
+	/**
+	 * Open a file for reading in binary mode, given its name.
+	 */
     init: func ~withName (fileName: String) {
-        init(fileName, "r")
+		// mingw fseek/ftell are *really* unreliable with text mode
+		// if for some weird reason you need to open in text mode, use
+		// FileReader new(fileName, "rt")
+        init(fileName, "rb")
     }
 
+	/**
+	 * Open a file for reading, given its name and the mode in which to open it.
+	 * 
+	 * "r" = for reading
+	 * "w" = for writing
+	 * "r+" = for reading and writing
+	 * 
+	 * suffix "a" = appending
+	 * suffix "b" = binary mode
+	 * suffix "t" = text mode (warning: rewind/mark are unreliable in text mode under mingw32)
+	 */
     init: func ~withMode (fileName, mode: String) {
         this fileName = fileName
-        file = fopen(fileName toCString(), mode)
+        file = FStream open(fileName, mode)
         if (!file)
-            Exception new(This, "File not found: " + fileName) throw()
+            Exception new(This, "Couldn't open " + fileName + " for reading.") throw()
     }
 
-    read: func(chars: Char*, offset: Int, count: Int) -> SizeT {
-        fread(chars + offset, 1, count, file)
+	/**
+	 * Read at most `bytesToRead` bytes and writes them at offset `offset` into `dest`
+	 * 
+	 * @param dest Pointer to a memory block large enough to hold up to
+	 * `bytesToRead` bytes.
+	 * @param offset Offset from `dest` where to actually write the bytes.
+	 * @param bytesToRead Maximum number of bytes to be read. It might
+	 * read exactly `bytesToRead` bytes, or less, or even none.
+	 * 
+	 * @return The number of bytes read.
+	 */
+    read: func(buffer: Pointer, offset: Int, count: SizeT) -> SizeT {
+		file read((buffer as Char*) + offset, count)
     }
 
+	/**
+	 * @return a single char read from this file.
+	 */
     read: func ~char -> Char {
-        value: Char
-        if(fread(value&, 1, 1, file) != 1 && ferror(file)) {
-            Exception new(This, "Error reading char from file " + fileName) throw()
-        }
-        value
+		file readChar()
     }
 
+	/**
+	 * @return true if there is still data available to be read from this file
+	 */
     hasNext?: func -> Bool {
-        return feof(file) == 0
+        feof(file) == 0
     }
 
-    rewind: func(offset: Int) {
-        fseek(file, -offset, SEEK_CUR)
+	/**
+	 * Rewind this stream of `offset` bytes.
+	 * 
+	 * @return true if successful
+	 */
+    rewind: func(offset: Int) -> Bool {
+		file seek(-offset, SEEK_CUR) == 0
     }
 
+	/**
+	 * 
+	 */
     mark: func -> Long {
-        marker = ftell(file)
-        return marker
+        marker = file tell()
+        marker
     }
 
     reset: func(marker: Long) {
@@ -58,7 +101,7 @@ FileReader: class extends Reader {
     }
 
     close: func {
-        fclose(file)
+        file close()
     }
 
 }

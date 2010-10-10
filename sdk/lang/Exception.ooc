@@ -10,7 +10,7 @@
            program.
 
  */
-import threading/Thread, structs/Stack
+import threading/Thread, structs/Stack, structs/LinkedList
 import native/win32/errors
 
 include setjmp, assert, errno
@@ -121,28 +121,47 @@ raise: func~withClass(clazz: Class, msg: String) {
     Exception new(clazz, msg) throw()
 }
 
+Backtrace: class {
+    length: Int
+    buffer: Pointer*
+    init: func(=length, =buffer) {}
+}
+
 /**
  * Base class for all exceptions that can be thrown
  *
  * @author Amos Wenger (nddrylliog)
  */
 Exception: class {
-    backtraceBuffer: Pointer*
-    backtraceLength: Int
+    backtraces: LinkedList<Backtrace> = LinkedList<Backtrace> new()
 
-    setBacktrace: func {
+    addBacktrace: func {
         version(linux) {
-            backtraceBuffer = gc_malloc(Pointer size * BACKTRACE_LENGTH)
-            backtraceLength = backtrace(backtraceBuffer, BACKTRACE_LENGTH)
+            backtraceBuffer := gc_malloc(Pointer size * BACKTRACE_LENGTH)
+            backtraceLength := backtrace(backtraceBuffer, BACKTRACE_LENGTH)
+            backtraces add(Backtrace new(backtraceLength, backtraceBuffer))
         }
         // TODO: other platforms
     }
 
     printBacktrace: func {
         version(linux) {
-            if(backtraceBuffer != null) {
-                fprintf(stderr, "[backtrace] ")
-                backtraceSymbolsFd(backtraceBuffer, backtraceLength, 2) // hell yeah stderr fd.
+            if (!backtraces empty?()) {
+                fprintf(stderr, "[backtrace]\n")
+            }
+
+            first := true
+
+            for (backtrace in backtraces) {
+                if (first) {
+                    first = false
+                } else {
+                    fprintf(stderr, "[rethrow]\n")
+                }
+                
+                if(backtrace buffer != null) {
+                    backtraceSymbolsFd(backtrace buffer, backtrace length, 2) // hell yeah stderr fd.
+                }
             }
         }
         // TODO: other platforms
@@ -160,14 +179,16 @@ Exception: class {
      * @param origin The class throwing this exception
      * @param message A short text explaning why the exception was thrown
      */
-    init: func  (=origin, =message) {}
+    init: func  (=origin, =message) {
+    }
 
     /**
      * Create an exception
      *
      * @param message A short text explaning why the exception was thrown
      */
-    init: func ~noOrigin (=message) {}
+    init: func ~noOrigin (=message) {
+    }
 
 
     /**
@@ -175,9 +196,9 @@ Exception: class {
      */
     formatMessage: func -> String {
         if(origin)
-            "[%s in %s]: %s\n" format(class name toCString(), origin name toCString(), message toCString())
+            "[%s in %s]: %s\n" format(class name toCString(), origin name toCString(), message ? message toCString() : "<no message>" toCString())
         else
-            "[%s]: %s\n" format(class name toCString(), message toCString())
+            "[%s]: %s\n" format(class name toCString(), message ? message toCString() : "<no message>" toCString())
     }
 
     /**
@@ -193,7 +214,7 @@ Exception: class {
      */
     throw: func {
         _setException(this)
-        setBacktrace()
+        addBacktrace()
         if(!_hasStackFrame()) {
             print()
             abort()
@@ -212,7 +233,7 @@ Exception: class {
 }
 
 OSException: class extends Exception {
-   init: func (=message) {
+    init: func (=message) {
         init()
     }
     init: func ~noOrigin {

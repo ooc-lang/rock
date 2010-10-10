@@ -364,3 +364,14 @@ strArrayListFromCString: func (argc: Int, argv: Char**) -> ArrayList<String> {
 strArrayListFromCString: func~hack (argc: Int, argv: String*) -> ArrayList<String> {
     strArrayListFromCString(argc, argv as Char**)
 }
+
+cStringPtrToStringPtr: func (cstr: CString*, len: SizeT) -> String* {
+    // Mostly to allow main to accept String*
+    // func-name sucks, I am open to all suggestions 
+
+    toRet: String* = gc_malloc(Pointer size * len) // otherwise the pointers are stack-allocated 
+    for (i in 0..len) {
+        toRet[i] = makeStringLiteral(cstr[i], cstr[i] length())
+    }
+    toRet
+}
