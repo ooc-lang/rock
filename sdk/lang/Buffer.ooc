@@ -38,6 +38,10 @@ Buffer: class extends Iterable<Char> {
         size = newOne size
     }
 
+    format: func(args: ...) {
+        setBuffer(format~main(this, args))
+    }
+
     /**
      * Create a new, empty buffer with an 1KB capacity
      */

@@ -334,7 +334,7 @@ format: func~main <T> (fmt: T, args: ... ) -> T {
 }
 
 
-extend Buffer {
+/*extend Buffer {
     format: func(args: ...) {
         setBuffer(format~main(this, args))
     }
@@ -352,4 +352,5 @@ extend String {
     printfln: func(args: ...) {
         format~main(this, args) println()
     }
-}
+
+}*/

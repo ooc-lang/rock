@@ -94,6 +94,18 @@ String: class extends Iterable<Char> {
         result toString()
     }
 
+    format: func(args: ...) -> This {
+        format~main(this, args)
+    }
+
+    printf: func(args: ...) {
+        format~main(this, args) print()
+    }
+
+    printfln: func(args: ...) {
+        format~main(this, args) println()
+    }
+
     empty?: func -> Bool { _buffer empty?() }
 
     startsWith?: func (s: This) -> Bool { _buffer startsWith? (s _buffer) }

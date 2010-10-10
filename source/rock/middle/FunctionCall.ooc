@@ -795,6 +795,12 @@ FunctionCall: class extends Expression {
 
         if(ref args empty?()) return Response OK
 
+        // This needs to be done here to avoid a null struct element
+        // later. TODO: is there a more pleasant way to do it?
+        for(arg in args)
+            if(!arg getType())
+                return Response LOOP
+
         match (lastArg := ref args last()) {
             case vararg: VarArg =>
                 if(vararg name != null) {
