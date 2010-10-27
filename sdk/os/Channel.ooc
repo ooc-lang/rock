@@ -77,7 +77,7 @@ Channel: class <T> {
     send: func (t: T) {
         //"Sending %d" printfln(t as Int)
         queue add(t)
-        while(queue size() >= 100) {
+        while(queue size >= 100) {
             //"Queue filled, yielding"
             yield()
         }
