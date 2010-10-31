@@ -391,7 +391,7 @@ SocketAddressIP4: class extends SocketAddress {
         memset(sa&, 0, SockAddrIn size)
         sa sin_family = AddressFamily IP4
         memcpy(sa sin_addr&, addr&, InAddr size)
-        sa sin_port = port
+        sa sin_port = htons(port)
     }
     init: func ~sock(sockAddr: SockAddrIn*) {
         memcpy(sa&, sockAddr, SockAddrIn size)
@@ -412,7 +412,7 @@ SocketAddressIP6: class extends SocketAddress {
         memset(sa&, 0, SockAddrIn6 size)
         sa sin6_family = AddressFamily IP6
         memcpy(sa sin6_addr&, addr&, In6Addr size)
-        sa sin6_port = port
+        sa sin6_port = htons(port)
     }
     init: func ~sock6(sockAddr: SockAddrIn6*) {
         memcpy(sa&, sockAddr, SockAddrIn6 size)
