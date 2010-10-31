@@ -30,6 +30,10 @@ version(gc) {
         gc_malloc(nmemb * size)
     }
     gc_free: extern(GC_free) func (ptr: Pointer)
+
+    GC_add_roots: extern func (Pointer, Pointer)
+    GC_remove_roots: extern func (Pointer, Pointer)
+    GC_stackbottom: extern Pointer
 }
 
 // memory management
