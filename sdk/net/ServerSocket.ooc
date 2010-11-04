@@ -64,11 +64,10 @@ ServerSocket: class extends Socket {
         Bind a local address and port to the socket.
     */
 
-    bind: func ~withIp(ipS: String, port: Int) {
-        ip := ipS as CString // Grrr....
+    bind: func ~withIp(ip: String, port: Int) {
         addr: SocketAddress
-        type := ipType(ipS)
-        if(validIp?(ipS)) {
+        type := ipType(ip)
+        if(validIp?(ip)) {
             match(type) {
                 case AddressFamily IP4 =>
                     addr = _getSocketAddress(ip, port)
@@ -90,10 +89,9 @@ ServerSocket: class extends Socket {
         }
     }
 
-    _getSocketAddress: func (ip: CString, port: Int) -> SocketAddress {
+    _getSocketAddress: func (ip: String, port: Int) -> SocketAddress {
         ai: InAddr
-        ipS := ip as String
-        type := ipType(ipS)
+        type := ipType(ip)
         match(inet_pton(type, ip, ai&)) {
             case -1 =>
                 // TODO: Check errno, it should be set to EAFNOSUPPORT
@@ -105,10 +103,9 @@ ServerSocket: class extends Socket {
         addr
     }
 
-    _getSocketAddress6: func (ip: CString, port: Int) -> SocketAddress {
+    _getSocketAddress6: func (ip: String, port: Int) -> SocketAddress {
         ai: In6Addr
-        ipS := ip as String
-        type := ipType(ipS)
+        type := ipType(ip)
         match(inet_pton(type, ip, ai&)) {
             case -1 =>
                 // TODO: Check errno, it should be set to EAFNOSUPPORT
