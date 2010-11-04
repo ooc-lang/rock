@@ -134,7 +134,7 @@ ServerSocket: class extends Socket {
     */
     listen: func ~defaultbacklog {
         // 100 seems to be a good backlog setting to
-        // not be as too badly affected by SYN floods
+        // not be as badly affected by SYN floods.
         // See http://tangentsoft.net/wskfaq/advanced.html#backlog for details
         listen(100)
     }
