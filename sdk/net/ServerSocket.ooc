@@ -142,13 +142,28 @@ ServerSocket: class extends Socket {
         This method will normally block if no connection is
         available immediately.
     */
-    accept: func -> StreamSocket {
+    accept: func -> ReaderWriterPair {
         addr: SockAddr
         addrSize: UInt
         conn := accept(descriptor, addr&, addrSize&)
         if(conn == -1) {
             SocketError new() throw()
         }
-        return StreamSocket new(SocketAddress newFromSock(addr&, addrSize), conn)
+        sock := StreamSocket new(SocketAddress newFromSock(addr&, addrSize), conn)
+        return ReaderWriterPair new(sock)
+    }
+}
+
+ReaderWriterPair: class { // I thought StreamSocketReaderWriterPair was a bit too long
+    in: StreamSocketReader
+    out: StreamSocketWriter
+    sock: StreamSocket
+    init: func (=sock) {
+        in = sock reader()
+        out = sock writer()
+    }
+
+    close: func {
+        sock close()
     }
 }
