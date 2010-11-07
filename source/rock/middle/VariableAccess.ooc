@@ -270,8 +270,13 @@ VariableAccess: class extends Expression {
                     }
                     // 1.) extern C functions don't accept a Closure_struct
                     // 2.) If ref is not a FDecl, it's probably already "closured" and doesn't need to be wrapped a second time
-                    if (!fDecl isExtern() && ref instanceOf?(FunctionDecl))
+                    if (!fDecl isExtern() && ref instanceOf?(FunctionDecl)) {
+			if(fDecl args size <= ourIndex) {
+			    res wholeAgain(this, "bad index for ref")
+			    return Response OK
+			}
                         closureType = fDecl args get(ourIndex) getType()
+		    }
 
                 } elseif (parent instanceOf?(BinaryOp)) {
                     binOp := parent as BinaryOp
