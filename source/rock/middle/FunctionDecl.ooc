@@ -766,6 +766,10 @@ FunctionDecl: class extends Declaration {
             res throwError(InternalError new(token, "[ACS]: Can't find ´this´ in the call's arguments.\ntrail = %s" format(trail toString() toCString())))
         }
 
+		if(ind >= parentFunc args size) {
+			res wholeAgain(this, "Invalid argument index - call candidate probably doesn't match")
+			return false
+		}
         funcPointer := parentFunc args[ind] getType() as FuncType
 
         if (!funcPointer) {
