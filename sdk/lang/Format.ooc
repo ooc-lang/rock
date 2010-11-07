@@ -201,7 +201,8 @@ parseArg: func(res: Buffer, info: FSInfoStruct*, va: VarArgsIterator*, p: Char*)
             if (info@ precision != 0)
                 tmp append("." + info@ precision toString())
             tmp append("f")
-            res append(tmp toString() cformat(argNext(va, Float) as Float))
+            //res append(tmp toString() cformat(argNext(va, Float) as Float))
+            res append(tmp toString() format(argNext(va, Float) as Float))
 
         case 'c' =>
             mprintCall = false
