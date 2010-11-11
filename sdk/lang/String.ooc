@@ -281,25 +281,6 @@ String: class extends Iterable<Char> {
         new(copy)
     }
 
-    /*
-    printf: final func ~str (...) -> Int {
-        list: VaList
-        va_start(list, this )
-        retVal := vprintf(_buffer data, list)
-        va_end(list)
-        retVal
-    }
-
-    printfln: final func ~str (...) -> Int {
-        list: VaList
-        va_start(list, this )
-        retVal := vprintf(_buffer data, list)
-        va_end(list)
-        fputc('\n', stdout)
-        retVal
-    }
-    */
-
     toCString: func -> CString { _buffer data as CString }
 
 }
