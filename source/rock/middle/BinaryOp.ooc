@@ -362,7 +362,12 @@ BinaryOp: class extends Expression {
 
         if(isAssign()) {
             score := lType getScore(rType)
-            if(score < 0) token formatMessage("Score of %s = %d (%s vs %s)" format(toString() toCString(), score, lType toString() toCString(), rType toString() toCString()), "INFO") println()
+            if(score == -1) {
+                // must resolve first
+                res wholeAgain(this, "Unresolved types, looping to determine legitness")
+                return true
+            }
+            if(score < 0) return false
         }
 
         true
