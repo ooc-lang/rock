@@ -201,9 +201,8 @@ parseArg: func(res: Buffer, info: FSInfoStruct*, va: VarArgsIterator*, p: Char*)
             if (info@ precision != 0)
                 tmp append("." + info@ precision toString())
             tmp append("f")
-            //res append(tmp toString() cformat(argNext(va, Float) as Float))
-            res append(tmp toString() format(argNext(va, Float) as Float))
-
+            res append(tmp toString() cformat(argNext(va, Float) as Float))
+            
         case 'c' =>
             mprintCall = false
             i := 0
@@ -274,7 +273,7 @@ getEntityInfo: inline func (info: FSInfoStruct@, va: VarArgsIterator*, start: Ch
     while(p@ digit?()) {
         if(info fieldwidth > 0)
             info fieldwidth *= 10
-        info fieldwidth += (p@ - 0x30)
+        info fieldwidth += (p@ as Int - 0x30)
         checkedInc()
     }
 
@@ -291,7 +290,7 @@ getEntityInfo: inline func (info: FSInfoStruct@, va: VarArgsIterator*, start: Ch
         while(p@ digit?()) {
             if (info precision > 0)
                 info precision *= 10
-            info precision += (p@ - 0x30)
+            info precision += (p@ as Int - 0x30)
             checkedInc()
         }
     }

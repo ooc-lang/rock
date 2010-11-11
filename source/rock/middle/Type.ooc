@@ -167,6 +167,7 @@ TypeAccess: class extends Type {
     inner: Type
 
     init: func ~typeAccess (=inner, .token) {
+        if(!inner) Exception new("Creating null typeAccess") throw()
         super(token)
     }
 

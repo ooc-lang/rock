@@ -266,7 +266,7 @@ String: class extends Iterable<Char> {
         _buffer backIterator()
     }
 
-    format: final func ~str (...) -> This {
+    cformat: final func ~str (...) -> This {
         list: VaList
         va_start(list, this)
         numBytes := vsnprintf(null, 0, _buffer data, list)
@@ -281,6 +281,7 @@ String: class extends Iterable<Char> {
         new(copy)
     }
 
+    /*
     printf: final func ~str (...) -> Int {
         list: VaList
         va_start(list, this )
@@ -297,6 +298,7 @@ String: class extends Iterable<Char> {
         fputc('\n', stdout)
         retVal
     }
+    */
 
     toCString: func -> CString { _buffer data as CString }
 

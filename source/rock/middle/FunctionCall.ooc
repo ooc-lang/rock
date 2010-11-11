@@ -810,6 +810,7 @@ FunctionCall: class extends Expression {
                     elements := ArrayList<Expression> new()
                     for(i in (ref args size - 1)..(args size)) {
                         arg := args[i]
+                        if(!arg getType()) return Response LOOP
                         elements add(TypeAccess new(arg getType(), token))
                         ast types add(NullLiteral type)
                         
