@@ -51,6 +51,13 @@ StreamSocket: class extends Socket {
     }
 
     /**
+       Check if socket is connected by writing a zero-length string to it
+    */
+    connected?: func -> Bool {
+        send("") == 0
+    }
+
+    /**
        Attempt to connect this socket to the remote host.
 
        :throws: A SocketError if something went wrong
@@ -59,7 +66,7 @@ StreamSocket: class extends Socket {
         if(socket connect(descriptor, remote addr(), remote length()) == -1) {
             SocketError new() throw()
         }
-        connected? = true
+        connected?()
     }
 
     /**
@@ -215,7 +222,7 @@ StreamSocketReader: class extends Reader {
     }
 
     hasNext?: func -> Bool {
-        source connected?
+        source connected?()
     }
 
     rewind: func(offset: Int) {
