@@ -119,7 +119,7 @@ ClassDecl: class extends TypeDecl {
         }
 
         // if all else fails, try in this
-        finalScore : Int
+        finalScore := 0
         if(getFunction(fDecl name, fDecl suffix ? fDecl suffix : "", null, false, finalScore&) != null) {
             return this
         }

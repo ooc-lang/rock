@@ -466,7 +466,7 @@ FunctionDecl: class extends Declaration {
             base := meat getBaseClass(this, true)
 
             if(base != null) {
-                finalScore: Int
+                finalScore := 0
                 parent := base getFunction(name, suffix ? suffix : "", null, false, finalScore&)
                 if(finalScore == -1) {
                     res wholeAgain(this, "Something's not resolved, need base getFunction()")
@@ -778,7 +778,7 @@ FunctionDecl: class extends Declaration {
         }
         ix := 0
 
-        fScore: Int
+        fScore := 0
         needTrampoline := false
 
         for (fType in funcPointer argTypes) {

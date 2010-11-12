@@ -294,7 +294,7 @@ FunctionCall: class extends Expression {
             if(name == "super") {
                 fDecl := trail get(trail find(FunctionDecl), FunctionDecl)
                 superTypeDecl := fDecl owner getSuperRef()
-                finalScore: Int
+                finalScore := 0
                 ref = superTypeDecl getMeta() getFunction(fDecl getName(), null, this, finalScore&)
                 if(finalScore == -1) {
                     res wholeAgain(this, "something in our typedecl's functions needs resolving!")
