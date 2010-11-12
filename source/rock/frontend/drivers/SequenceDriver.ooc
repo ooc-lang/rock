@@ -66,7 +66,7 @@ SequenceDriver: class extends Driver {
                 hash := ac_X31_hash(sourceFolder name) + 42
                 Terminal setFgColor((hash % (Color cyan - Color red)) + Color red)
                 if(hash & 0b01) Terminal setAttr(Attr bright)
-                printf("%s, ", sourceFolder name toCString())
+                "%s, " printf(sourceFolder name)
                 Terminal reset()
                 fflush(stdout)
             }
@@ -164,10 +164,10 @@ SequenceDriver: class extends Driver {
             }
 
             if(params verbose) {
-                "Building archive %s with %s (%d modules total)" format(
-                    params staticlib toCString(),
-                    params libfolder ? "modules belonging to %s" format(params libfolder toCString()) : "all object files" toCString(),
-                    count) println()
+                "Building archive %s with %s (%d modules total)" printfln(
+                    params staticlib,
+                    params libfolder ? "modules belonging to %s" format(params libfolder) : "all object files",
+                    count)
             }
             archive save(params)
         }
@@ -228,7 +228,7 @@ SequenceDriver: class extends Driver {
     buildSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>, reGenerated: List<Module>) -> Int {
 
         if(params libfolder != null && sourceFolder absolutePath != File new(params libfolder) getAbsolutePath()) {
-            if(params verbose) "Skipping (not needed for build of libfolder %s)" format(params libfolder toCString()) println()
+            if(params verbose) "Skipping (not needed for build of libfolder %s)" format(params libfolder) println()
             return 0
         }
 
@@ -264,7 +264,7 @@ SequenceDriver: class extends Driver {
 
         if(params libcache) {
             // now build a static library
-            if(params veryVerbose) printf("Saving to library %s\n", sourceFolder outlib toCString())
+            if(params veryVerbose) printf("Saving to library %s\n", sourceFolder outlib)
             archive save(params)
         } else {
             if(params veryVerbose) printf("Lib caching disabled, building from .o files\n")
@@ -284,7 +284,7 @@ SequenceDriver: class extends Driver {
         params compiler setCompileOnly()
 
         path := File new(params outPath, module getPath("")) getPath()
-        //printf("build individual called, outPath=%s module=%s path=%s\n", params outPath path toCString(), module getPath("") toCString(), path toCString())
+        //printf("build individual called, outPath=%s module=%s path=%s\n", params outPath path, module getPath(""), path)
 
         oPath := File new(params outPath, module path replaceAll(File separator, '_')) getPath() + ".o"
         cPath := path + ".c"
@@ -299,7 +299,7 @@ SequenceDriver: class extends Driver {
 
         if(force || cFile lastModified() > comparison) {
 
-            if(params veryVerbose) printf("%s not in cache or out of date, (re)compiling\n", module getFullName() toCString())
+            if(params veryVerbose) printf("%s not in cache or out of date, (re)compiling\n", module getFullName())
 
             parent := File new(oPath) parent()
             if(!parent exists?()) {
@@ -348,7 +348,7 @@ SequenceDriver: class extends Driver {
             if(archive) archive add(module)
 
         } else {
-            if(params veryVerbose) printf("Skipping %s, unchanged source.\n", cPath toCString())
+            if(params veryVerbose) printf("Skipping %s, unchanged source.\n", cPath)
         }
 
         return 0
@@ -423,7 +423,7 @@ SourceFolder: class {
     archive : Archive
 
     init: func (=name, =absolutePath, =params) {
-        outlib = "%s%c%s-%s.a" format(params libcachePath toCString(), File separator, name toCString(), Target toString() toCString())
+        outlib = "%s%c%s-%s.a" format(params libcachePath, File separator, name, Target toString())
         archive = Archive new(name, outlib, params)
     }
 }

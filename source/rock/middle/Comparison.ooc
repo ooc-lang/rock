@@ -84,7 +84,7 @@ Comparison: class extends Expression {
         if(!isLegal(res)) {
             if(res fatal) {
                 res throwError(InvalidOperatorUse new(token, "Invalid comparison between operands of type %s and %s\n" format(
-                    left getType() toString() toCString(), right getType() toString() toCString())))
+                    left getType() toString(), right getType() toString())))
                 return Response OK
             }
             res wholeAgain(this, "Illegal use, looping in hope.")
@@ -206,7 +206,7 @@ Comparison: class extends Expression {
         args := fDecl getArguments()
         if(args getSize() != 2) {
             token module params errorHandler onError(InvalidComparisonOverload new(op token,
-                "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol toCString(), args getSize())))
+                "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol, args getSize())))
         }
 
         opLeft  := args get(0)

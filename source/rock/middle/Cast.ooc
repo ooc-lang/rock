@@ -79,7 +79,7 @@ Cast: class extends Expression {
                 trail addAfterInScope(varDecl, memcpyCall)
             } else {
                 if(res fatal) {
-                    Exception new(This, "Casting to ArrayType %s in unrecognized parent node %s (%s)!" format(type toString() toCString(), parent toString() toCString(), parent class name toCString())) throw()
+                    Exception new(This, "Casting to ArrayType %s in unrecognized parent node %s (%s)!" format(type toString(), parent toString(), parent class name)) throw()
                 } else {
                     res wholeAgain(this, "Mysterious parent.")
                 }
@@ -149,7 +149,7 @@ Cast: class extends Expression {
         args := fDecl getArguments()
         if(args getSize() < 1) {
             token module params errorHandler onError(InvalidCastOverload new(op token,
-                "Ohum, you need 1 argument to override the '%s' operator, not %d" format(symbol toCString(), args getSize())))
+                "Ohum, you need 1 argument to override the '%s' operator, not %d" format(symbol, args getSize())))
         }
 
         srcType := args get(0) getType()

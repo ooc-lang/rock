@@ -64,7 +64,7 @@ EnumDecl: class extends TypeDecl {
                             }, floatLit token)
                         case =>
                             token module params errorHandler onError(ImpossibleIncrement new(element token,
-                                "It's impossible to increment implicitly elements of type %s!" format(fromType toString() toCString())))
+                                "It's impossible to increment implicitly elements of type %s!" format(fromType toString())))
                             return
                             null
                 }

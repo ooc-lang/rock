@@ -167,6 +167,7 @@ TypeAccess: class extends Type {
     inner: Type
 
     init: func ~typeAccess (=inner, .token) {
+        if(!inner) Exception new("Creating null typeAccess") throw()
         super(token)
     }
 
@@ -324,7 +325,7 @@ ArrayType: class extends PointerType {
     init: func ~arrayType (.inner, =expr, .token) { super(inner, token) }
 
     setRef: func (ref: Declaration) {
-        Exception new(This, "Trying to set ref of an ArrayType! wtf? ref (%s) = %s" format(ref class name toCString(), ref toString() toCString())) throw()
+        Exception new(This, "Trying to set ref of an ArrayType! wtf? ref (%s) = %s" format(ref class name, ref toString())) throw()
     }
     getRef: func -> Declaration {
         This realType getRef()
@@ -387,7 +388,7 @@ ArrayType: class extends PointerType {
         copy
     }
 
-    toString: func -> String { inner toString() append(expr != null ? "[%s]" format(expr toString() toCString()) : "[]") }
+    toString: func -> String { inner toString() append(expr != null ? "[%s]" format(expr toString()) : "[]") }
     toMangledString: func -> String { inner toString() + "__array" }
 
     isPointer: func -> Bool { false }

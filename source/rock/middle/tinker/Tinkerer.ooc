@@ -61,7 +61,7 @@ Tinkerer: class {
         if(params stats) {
             for(res in resolvers) {
                 module := res module
-                printf(" - imported %dx, has %d deps, %s\n", module timesImported, module getAllImports() getSize(), module fullName toCString())
+                printf(" - imported %dx, has %d deps, %s\n", module timesImported, module getAllImports() getSize(), module fullName)
             }
             printf("End final order.\n")
         }
@@ -122,7 +122,7 @@ Tinkerer: class {
             totalLoops := 0
             for(module in modules) {
                 printf(" - imported %dx, has %d deps, looped %d x, %s\n", module timesImported, module getAllImports() getSize(),
-                    module timesLooped, module fullName toCString())
+                    module timesLooped, module fullName)
                 totalImports += module getAllImports() getSize()
                 totalLoops += module timesLooped
             }

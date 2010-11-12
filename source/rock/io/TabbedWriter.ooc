@@ -26,7 +26,7 @@ TabbedWriter: class {
     printf: final func ~format (fmt: String, ...) {
         ap: VaList
         va_start(ap, fmt)
-        vprintf(fmt toCString(), ap)
+        vprintf(fmt, ap)
         va_end(ap)
     }
 
@@ -34,12 +34,12 @@ TabbedWriter: class {
         ap: VaList
         va_start(ap, fmt)
         nl()
-        vprintf(fmt toCString(), ap)
+        vprintf(fmt, ap)
         va_end(ap)
     }
 
     writeTabs: func {
-        stream write(" " times (tabLevel * tabWidth) toCString(), tabLevel * tabWidth)
+        stream write(" " times (tabLevel * tabWidth), tabLevel * tabWidth)
     }
 
     newUntabbedLine: func {

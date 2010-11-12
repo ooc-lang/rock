@@ -64,7 +64,7 @@ Archive: class {
         cacheversion     := fR readLine()
         if(cacheversion != "cacheversion") {
             if(params veryVerbose || params debugLibcache) {
-                "Malformed cacheinfo file %s.cacheinfo, ignoring." format(outlib toCString()) println()
+                "Malformed cacheinfo file %s.cacheinfo, ignoring." format(outlib) println()
             }
             return false
         }
@@ -72,7 +72,7 @@ Archive: class {
         readVersion      := fR readLine()
         if(readVersion != version) {
             if(params veryVerbose || params debugLibcache) {
-                "Wrong version %s for %s.cacheinfo. We only read version %s. Ignoring" format(readVersion toCString(), outlib toCString(), version toCString()) println()
+                "Wrong version %s for %s.cacheinfo. We only read version %s. Ignoring" format(readVersion, outlib, version) println()
             }
             return false
         }
@@ -80,7 +80,7 @@ Archive: class {
         readCompilerArgs := fR readLine()
         if(readCompilerArgs != compilerArgs) {
             if(params veryVerbose || params debugLibcache) {
-                "Wrong compiler args '%s' for %s.cacheinfo. We have args '%s'. Ignoring" format(readCompilerArgs toCString(), outlib toCString(), compilerArgs toCString()) println()
+                "Wrong compiler args '%s' for %s.cacheinfo. We have args '%s'. Ignoring" format(readCompilerArgs, outlib, compilerArgs) println()
             }
             return false
         }
@@ -88,7 +88,7 @@ Archive: class {
         readCompilerVersion := fR readLine()
         if(readCompilerVersion != RockVersion getName()) {
             if(params veryVerbose || params debugLibcache) {
-                "Wrong compiler version '%s' for %s.cacheinfo. We have version '%s'. Ignoring" format(readCompilerVersion toCString(), outlib toCString(), RockVersion getName() toCString()) println()
+                "Wrong compiler version '%s' for %s.cacheinfo. We have version '%s'. Ignoring" format(readCompilerVersion, outlib, RockVersion getName()) println()
             }
             return false
         }
@@ -121,7 +121,7 @@ Archive: class {
                 // For now, we remove it anyway - later, we might want to check
                 // if it does really contain a main
                 if(params veryVerbose || params debugLibcache) {
-                    printf("Removing %s from archive %s\n", element oocPath toCString(), outlib toCString())
+                    printf("Removing %s from archive %s\n", element oocPath, outlib)
                 }
 
                 // turn "blah/file.ooc" into "blah_file.o"
@@ -146,9 +146,9 @@ Archive: class {
     _write: func {
         fW := FileWriter new(outlib + ".cacheinfo")
 
-        fW writef("cacheversion\n%s\n", version toCString())
-        fW writef("%s\n", compilerArgs toCString())
-        fW writef("%s\n", RockVersion getName() toCString())
+        fW writef("cacheversion\n%s\n", version)
+        fW writef("%s\n", compilerArgs)
+        fW writef("%s\n", RockVersion getName())
         fW writef("%d\n", elements getSize())
         for(element in elements) {
             element write(fW)
@@ -201,14 +201,14 @@ Archive: class {
         running := true
         while(running) {
             if(params veryVerbose || params debugLibcache) {
-                "Analyzing %s, %d cleanModules, %d dirtyModules" format(pathElement path toCString(), cleanModules getSize(), dirtyModules getSize()) println()
+                "Analyzing %s, %d cleanModules, %d dirtyModules" format(pathElement path, cleanModules getSize(), dirtyModules getSize()) println()
             }
 
             for(module in cleanModules) {
                 subArchive := map get(module)
                 if(!subArchive) {
                     if(params veryVerbose || params debugLibcache) {
-                        "%s is dirty because we can't find the archive" format(module getFullName() toCString()) println()
+                        "%s is dirty because we can't find the archive" format(module getFullName()) println()
                         if(dotOutput) {
                             dotFile write("\""). write(module simpleName). write("\""). write(" -> "). write("ArchiveNotFound;\n")
                         }
@@ -219,7 +219,7 @@ Archive: class {
                 element := subArchive elements get(oocPath)
                 if(!element) {
                     if(params veryVerbose || params debugLibcache) {
-                        "%s is dirty because we can't find the element in archive %s" format(module getFullName() toCString(), subArchive pathElement path toCString()) println()
+                        "%s is dirty because we can't find the element in archive %s" format(module getFullName(), subArchive pathElement path) println()
                     }
                     if(dotOutput) {
                         dotFile write("\""). write(module simpleName). write("\""). write(" -> "). write("\"ElementNotInArchive\";\n")
@@ -228,7 +228,7 @@ Archive: class {
                 }
                 if(!element upToDate?) {
                     if(params veryVerbose || params debugLibcache) {
-                        "%s is dirty because of element" format(module getFullName() toCString()) println()
+                        "%s is dirty because of element" format(module getFullName()) println()
                     }
                     if(dotOutput) {
                         dotFile write("\""). write(module simpleName). write("\""). write(" -> "). write("\"StructuralDirty\";\n")
@@ -243,7 +243,7 @@ Archive: class {
                 lastModified := oocFile lastModified()
                 if(lastModified != element lastModified) {
                     if(params veryVerbose || params debugLibcache) {
-                        "%s out-of-date, recompiling... (%d vs %d, oocPath = %s)" format (module getFullName() toCString(), lastModified, element lastModified, oocPath toCString()) println()
+                        "%s out-of-date, recompiling... (%d vs %d, oocPath = %s)" format (module getFullName(), lastModified, element lastModified, oocPath) println()
                     }
                     if(dotOutput) {
                         dotFile write("\""). write(module simpleName). write("\""). write(" -> "). write("\"OutOfDate\";\n")
@@ -256,7 +256,7 @@ Archive: class {
                     candidate := imp getModule()
                     if(structuralDirties contains?(candidate)) {
                         if(params veryVerbose || params debugLibcache) {
-                            "%s is dirty because of import %s" format(module getFullName() toCString(), candidate getFullName() toCString()) println()
+                            "%s is dirty because of import %s" format(module getFullName(), candidate getFullName()) println()
                         }
                         if(!trans) {
                             if(dotOutput) {
@@ -277,11 +277,11 @@ Archive: class {
                 running = false
             } else {
                 if(params veryVerbose || params debugLibcache) {
-                    "[%s] We have %d transmodules to handle" format(pathElement path toCString(), transModules getSize()) println()
+                    "[%s] We have %d transmodules to handle" format(pathElement path, transModules getSize()) println()
                 }
                 for (module in transModules) {
                     if(params veryVerbose || params debugLibcache) {
-                        " - %s" format(module getFullName() toCString()) println()
+                        " - %s" format(module getFullName()) println()
                     }
                     dirtyModules add(module)
                     cleanModules remove(module)
@@ -303,7 +303,7 @@ Archive: class {
        to the archives.
      */
     save: func (params: BuildParams) {
-        //"Saving %s" format(pathElement path toCString()) println()
+        //"Saving %s" format(pathElement path) println()
 
         args := ArrayList<String> new()
         args add("ar") // GNU ar tool, manages archives
@@ -320,7 +320,7 @@ Archive: class {
 
         for(module in toAdd) {
             // we add .o (object files) to the archive
-            oPath := "%s%c%s.o" format(params outPath path toCString(), File separator, module path replaceAll(File separator, '_') toCString())
+            oPath := "%s%c%s.o" format(params outPath path, File separator, module path replaceAll(File separator, '_'))
             args add(oPath)
 
             element := ArchiveModule new(module, this)
@@ -329,7 +329,7 @@ Archive: class {
         toAdd clear()
 
         if(params veryVerbose || params debugLibcache) {
-            printf("%s archive %s\n", (this exists? ? "Updating" : "Creating") toCString(), outlib toCString())
+            printf("%s archive %s\n", (this exists? ? "Updating" : "Creating"), outlib)
             args join(" ") println()
         }
 
@@ -400,7 +400,7 @@ ArchiveModule: class {
 
                 // if the type wasn't there last time - we're not up-to date!
                 if(archType == null) {
-                    "Type %s wasn't there last time" format(tDecl getName() toCString()) println()
+                    //"Type %s wasn't there last time" printfln(tDecl getName())
                     return false
                 }
 
@@ -410,32 +410,32 @@ ArchiveModule: class {
                 for (variable in tDecl getVariables()) {
                     if(variable isStatic) {
                         if(!statVarIter hasNext?()) {
-                            printf("Static var %s has changed, %s not up-to-date\n", variable getName() toCString(), oocPath toCString())
+                            //"Static var %s has changed, %s not up-to-date\n" printfln(variable getName(), oocPath)
                             return false
                         }
                         next := statVarIter next()
                         if(next != variable getName()) {
-                            printf("Static var %s has changed, %s not up-to-date\n", variable getName() toCString(), oocPath toCString())
+                            //"Static var %s has changed, %s not up-to-date\n" printfln(variable getName(), oocPath)
                             return false
                         }
                     } else {
                         if(!instanceVarIter hasNext?()) {
-                            printf("Instance var %s has changed, %s not up-to-date\n", variable getName() toCString(), oocPath toCString())
+                            //"Instance var %s has changed, %s not up-to-date\n" printfln(variable getName(), oocPath)
                             return false
                         }
                         next := instanceVarIter next()
                         if(next != variable getName()) {
-                            printf("Instance var %s has changed, %s not up-to-date\n", variable getName() toCString(), oocPath toCString())
+                            //"Instance var %s has changed, %s not up-to-date\n" printfln(variable getName(), oocPath)
                             return false
                         }
                     }
                 }
                 if(statVarIter hasNext?()) {
-                    printf("Less static vars, %s not up-to-date\n", oocPath toCString())
+                    //"Less static vars, %s not up-to-date\n" printfln(oocPath)
                     return false
                 }
                 if(instanceVarIter hasNext?()) {
-                    printf("Less instance vars, %s not up-to-date\n", oocPath toCString())
+                    //"Less instance vars, %s not up-to-date\n" printfln(oocPath)
                     return false
                 }
 
@@ -443,18 +443,18 @@ ArchiveModule: class {
 
                 for (function in tDecl getFunctions()) {
                     if(!functionIter hasNext?()) {
-                        printf("Function %s has changed (%d vs %d), %s not up-to-date\n", function getFullName() toCString(), archType functions getSize(), tDecl getFunctions() getSize(), oocPath toCString())
+                        //"Function %s has changed (%d vs %d), %s not up-to-date\n" printfln(function getFullName(), archType functions getSize(), tDecl getFunctions() getSize(), oocPath)
                         return false
                     }
                     next := functionIter next()
                     if(next != function getFullName()) {
-                        printf("Function %s has changed (vs %s), %s not up-to-date\n", function getFullName() toCString(), next toCString(), oocPath toCString())
+                        //"Function %s has changed (vs %s), %s not up-to-date\n" printfln(function getFullName(), next, oocPath)
                         return false
                     }
                 }
 
                 if(functionIter hasNext?()) {
-                    printf("Less methods, %s not up-to-date\n", oocPath toCString())
+                    //"Less methods, %s not up-to-date\n" printfln(oocPath)
                     return false
                 }
             }
@@ -485,7 +485,7 @@ ArchiveModule: class {
         // ooc path
         // lastModified
         // number of types
-        fW writef("%s\n%ld\n%d\n", oocPath toCString(), lastModified, types getSize())
+        fW writef("%s\n%ld\n%d\n", oocPath, lastModified, types getSize())
 
         // write each type
         i := 0
@@ -547,24 +547,24 @@ ArchiveType: class {
     }
 
     write: func (fW: FileWriter) {
-        fW writef("%s\n", name toCString())
+        fW writef("%s\n", name)
 
         // write static variables
         fW writef("%d\n", staticVariables getSize())
         for(variable in staticVariables) {
-            fW writef("%s\n", variable toCString())
+            fW writef("%s\n", variable)
         }
 
         // write instance variables
         fW writef("%d\n", variables getSize())
         for(variable in variables) {
-            fW writef("%s\n", variable toCString())
+            fW writef("%s\n", variable)
         }
 
         // write functions
         fW writef("%d\n", functions getSize())
         for(function in functions) {
-            fW writef("%s\n", function toCString())
+            fW writef("%s\n", function)
         }
     }
 

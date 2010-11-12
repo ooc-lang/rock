@@ -81,7 +81,7 @@ Buffer_unittest: class {
 
     testConcat: static func {
         result1 := ('/' + "usr" + '/' + "bin")
-        if (result1 != "/usr/bin") "testConcat failed 1, gave %s" printfln(result1 toCString())
+        if (result1 != "/usr/bin") "testConcat failed 1, gave %s" printfln(result1)
     }
 
     unittest: static func {

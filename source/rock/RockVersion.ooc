@@ -7,5 +7,5 @@ RockVersion: class {
     getPatch:    static func -> Int    { 2 }
     getRevision: static func -> String { "head" }
     getName: static func -> String { "%d.%d.%d%s" format(
-        getMajor(), getMinor(), getPatch(), (getRevision() ? "-" + getRevision() : "") toCString()) }
+        getMajor(), getMinor(), getPatch(), (getRevision() ? "-" + getRevision() : "")) }
 }

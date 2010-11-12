@@ -42,7 +42,7 @@ Token: cover {
      */
     toString: func -> String {
         module != null ? (
-            "%s [%d, %d]" format(module getFullName() toCString(), getStart(), getEnd())
+            "%s [%d, %d]" format(module getFullName(), getStart(), getEnd())
         ) : (
             "[%d, %d]" format(getStart(), getEnd())
         )
@@ -55,7 +55,7 @@ Token: cover {
     formatMessage: func (prefix, message, type: String) -> String {
 
         if(module == null) {
-            return "From unknown source [%s] %s" format(type toCString(), message toCString())
+            return "From unknown source [%s] %s" format(type, message)
         }
 
         b := Buffer new()
@@ -89,7 +89,7 @@ Token: cover {
         over := Buffer new()
 
         if(type != "") {
-            b append(prefix). append("%s:%d:%d %s %s\n" format(module getPath(".ooc") toCString(), lines, start - lastNewLine, type toCString(), message toCString()))
+            b append(prefix). append("%s:%d:%d %s %s\n" format(module getPath(".ooc"), lines, start - lastNewLine, type, message))
         } else if(message != "") {
             b append(prefix). append(message). append('\n')
         }

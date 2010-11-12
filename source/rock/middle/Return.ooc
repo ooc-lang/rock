@@ -79,7 +79,7 @@ Return: class extends Statement {
             }
         } else {
             if (returnArgs empty?() && !retType void?) {
-                res throwError(InconsistentReturn new(token, "Can't return nothing in function declared as returning a %s" format(retType toString() toCString())))
+                res throwError(InconsistentReturn new(token, "Can't return nothing in function declared as returning a %s" format(retType toString())))
             } else {
                 // no expression, and the function's alright with that - nothing more to do.
                 return Response OK
@@ -182,9 +182,9 @@ Return: class extends Statement {
                     if (score < 0) {
                         msg: String
                         if (res params veryVerbose) {
-                            msg = "The declared return type (%s) and the returned value (%s) do not match!\nscore = %d\ntrail = %s" format(retType toString() toCString(), expr getType() toString() toCString(), score, trail toString() toCString())
+                            msg = "The declared return type (%s) and the returned value (%s) do not match!\nscore = %d\ntrail = %s" format(retType toString(), expr getType() toString(), score, trail toString())
                         } else {
-                            msg = "The declared return type (%s) and the returned value (%s) do not match!" format(retType toString() toCString(), expr getType() toString() toCString())
+                            msg = "The declared return type (%s) and the returned value (%s) do not match!" format(retType toString(), expr getType() toString())
                         }
                         res throwError(InconsistentReturn new(token, msg))
                     }
@@ -193,7 +193,7 @@ Return: class extends Statement {
             }
 
             if (retType == voidType && !expr)
-                res throwError(InconsistentReturn new(expr token, "Function is declared to return `null`, not %s! trail = %s" format(expr getType() toString() toCString(), trail toString() toCString())))
+                res throwError(InconsistentReturn new(expr token, "Function is declared to return `null`, not %s! trail = %s" format(expr getType() toString(), trail toString())))
         }
 
         return Response OK

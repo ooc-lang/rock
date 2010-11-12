@@ -85,9 +85,9 @@ ExplanationGenerator: class extends Visitor {
             case ft: FuncType =>
                 "Func"
             case pt: PointerType =>
-                "pointer(%s)" format(resolveType(pt inner) toCString())
+                "pointer(%s)" format(resolveType(pt inner))
             case rt: ReferenceType =>
-                "reference(%s)" format(resolveType(rt inner) toCString())
+                "reference(%s)" format(resolveType(rt inner))
             case bt: BaseType =>
                 bt name
         }
@@ -98,17 +98,17 @@ ExplanationGenerator: class extends Visitor {
             case vName: VersionName =>
                 vName name
             case vNeg: VersionNegation =>
-                "not(%s)" format(translateVersionSpec(vNeg spec) toCString())
+                "not(%s)" format(translateVersionSpec(vNeg spec))
             case vAnd: VersionAnd =>
                 "and(%s,%s)" format(
-                    translateVersionSpec(vAnd specLeft) toCString(),
-                    translateVersionSpec(vAnd specRight) toCString())
+                    translateVersionSpec(vAnd specLeft),
+                    translateVersionSpec(vAnd specRight))
             case vOr: VersionOr =>
                 "or(%s,%s)" format(
-                    translateVersionSpec(vOr specLeft) toCString(),
-                    translateVersionSpec(vOr specRight) toCString())
+                    translateVersionSpec(vOr specLeft),
+                    translateVersionSpec(vOr specRight))
             case =>
-                Exception new("Unknown version spec class: %s" format(spec class name toCString())) throw()
+                Exception new("Unknown version spec class: %s" format(spec class name)) throw()
                 ""
         }
     }
@@ -175,7 +175,7 @@ ExplanationGenerator: class extends Visitor {
 
     buildFunctionDecl: func ~typed (node: FunctionDecl, type: String) {
         name := node suffix ?
-            "%s~%s" format(node name toCString(), node suffix toCString()) :
+            "%s~%s" format(node name, node suffix) :
             node name
 
         addObject("* *"+name+"*:",type)

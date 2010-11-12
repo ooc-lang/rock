@@ -11,7 +11,7 @@ FunctionCallWriter: abstract class extends Skeleton {
         //"|| Writing function call %s (expr = %s)" format(fCall name, fCall expr ? fCall expr toString() : "(nil)") println()
 
         if(!fCall ref) {
-            Exception new(This, "Trying to write unresolved function %s\n" format(fCall toString() toCString())) throw()
+            Exception new(This, "Trying to write unresolved function %s\n" format(fCall toString())) throw()
         }
         fDecl : FunctionDecl = fCall ref
 

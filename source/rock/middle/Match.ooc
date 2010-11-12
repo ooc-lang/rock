@@ -109,7 +109,7 @@ Match: class extends Expression {
                                 if(res fatal) {
                                     res throwError(
                                         CantUseMatch new(expr token,
-                                            "You can't use the type match syntax here, can't resolve `%s`" format(fCall toString() toCString())
+                                            "You can't use the type match syntax here, can't resolve `%s`" format(fCall toString())
                                     ))
                                 } else {
                                     res wholeAgain(this, "call can't be resolved, let's forget it")
@@ -134,7 +134,7 @@ Match: class extends Expression {
                             if(fCall getRef() != null) {
                                 returnType := fCall getRef() getReturnType() getName()
                                 if(returnType != "Bool")
-                                    res throwError(WrongMatchesSignature new(expr token, "matches? returns a %s, but it should return a Bool" format(returnType toCString())))
+                                    res throwError(WrongMatchesSignature new(expr token, "matches? returns a %s, but it should return a Bool" format(returnType)))
                                 caze setExpr(fCall)
                             } else {
                                 if (caze getExpr() instanceOf?(BinaryOp)) {

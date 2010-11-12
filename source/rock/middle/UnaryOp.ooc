@@ -131,7 +131,7 @@ UnaryOp: class extends Expression {
 
         if(args getSize() != 1) {
             token module params errorHandler onError(InvalidUnaryOverload new(op token,
-                "Ohum, you need 1 argument to override the '%s' operator, not %d" format(symbol toCString(), args getSize())))
+                "Ohum, you need 1 argument to override the '%s' operator, not %d" format(symbol, args getSize())))
         }
 
         if(args get(0) getType() == null || inner getType() == null) { return -1 }

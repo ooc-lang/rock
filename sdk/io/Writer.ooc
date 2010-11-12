@@ -25,6 +25,13 @@ Writer: abstract class {
     write: func ~implicitLength (str: String) -> SizeT {
         write(str _buffer data, str size)
     }
+    
+    /**
+       Write part of a string to this stream.
+     */
+    write: func ~strGivenLength (str: String, length: SizeT) -> SizeT {
+        write(str _buffer data, length)
+    }
 
     /**
        Equivalent of printf, but used to write to this stream.

@@ -76,13 +76,13 @@ DotArg: class extends Argument {
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         idx := trail find(TypeDecl)
-        if(idx == -1) res throwError(InternalError new(token, "Use of a %s outside a type declaration! That's nonsensical." format(class name toCString())))
+        if(idx == -1) res throwError(InternalError new(token, "Use of a %s outside a type declaration! That's nonsensical." format(class name)))
 
         tDecl := trail get(idx, TypeDecl)
         ref = tDecl getVariable(name)
         if(ref == null) {
             if(res fatal) res throwError(UnresolvedArgumentAccess new(token,
-                "%s refers to non-existing member variable '%s' in type '%s'" format(class name toCString(), name toCString(), tDecl getName() toCString())))
+                "%s refers to non-existing member variable '%s' in type '%s'" format(class name, name, tDecl getName())))
             res wholeAgain(this, "DotArg wants its variable!")
             return Response OK
         }
@@ -90,7 +90,7 @@ DotArg: class extends Argument {
         type = ref getType()
         if(type == null) {
             if(res fatal) {
-                res throwError(UnresolvedArgumentAccess new(token, "Couldn't resolve %s referring to '%s' in type '%s'" format(class name toCString(), name toCString(), tDecl getName() toCString())))
+                res throwError(UnresolvedArgumentAccess new(token, "Couldn't resolve %s referring to '%s' in type '%s'" format(class name, name, tDecl getName())))
             }
             res wholeAgain(this, "Hasn't resolved type yet :x")
             return Response OK

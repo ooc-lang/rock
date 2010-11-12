@@ -123,7 +123,7 @@ OperatorDecl: class extends Expression {
             case "~"   =>  "B_NEG"
             case "as"  =>  "AS"
 
-            case       =>  token module params errorHandler onError(InvalidOperatorOverload new(token, "Unknown overloaded symbol: %s" format(symbol toCString()))); "UNKNOWN"
+            case       =>  token module params errorHandler onError(InvalidOperatorOverload new(token, "Unknown overloaded symbol: %s" format(symbol))); "UNKNOWN"
         }
     }
 

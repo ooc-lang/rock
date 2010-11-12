@@ -16,7 +16,7 @@ CastWriter: abstract class extends Skeleton {
 
             implementor := getImplementor(cast inner getType() getRef() as TypeDecl, iDecl getType())
             if(implementor == null) {
-                Exception new(This, "Couldn't find implementor for %s in %s\n" format(iDecl toString() toCString(), cast inner getType() getRef() toString() toCString())) throw()
+                Exception new(This, "Couldn't find implementor for %s in %s\n" format(iDecl toString(), cast inner getType() getRef() toString())) throw()
             }
 
             current app("(struct _"). app(iDecl getFatType() getInstanceType()). app(") {").

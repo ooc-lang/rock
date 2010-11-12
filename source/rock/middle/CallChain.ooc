@@ -76,7 +76,7 @@ CallChain: class extends Expression {
 
         if(expr instanceOf?(FunctionCall) && parent instanceOf?(Scope)) {
             fCall := expr as FunctionCall
-            //printf("  >>> Composite call-chain %s\n", toString() toCString())
+            //printf("  >>> Composite call-chain %s\n", toString())
             expr = fCall expr
             fCall expr = null
             calls add(0, fCall)
