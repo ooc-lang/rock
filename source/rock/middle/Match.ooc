@@ -190,12 +190,16 @@ Match: class extends Expression {
                     res throwError(CouldntReplace new(token, this, varAcc, trail))
                 }
                 for(caze in cases) {
-                    last := caze getBody() last()
-                    if(!last instanceOf?(Expression)) {
-                        res throwError(ExpectedExpression new(last token, "Last statement of a match used an expression should be an expression itself!"))
+                    if(caze getBody() empty?()) {
+                        res throwError(ExpectedExpression new(caze token, "Cases in a Match used an expression should be expressions themselves!"))
+                    } else {
+                        last := caze getBody() last()
+                        if(!last instanceOf?(Expression)) {
+                            res throwError(ExpectedExpression new(last token, "Last statement of a match used an expression should be an expression itself!"))
+                        }
+                        ass := BinaryOp new(varAcc, last as Expression, OpType ass, caze token)
+                        caze getBody() set(caze getBody() lastIndex(), ass)
                     }
-                    ass := BinaryOp new(varAcc, last as Expression, OpType ass, caze token)
-                    caze getBody() set(caze getBody() lastIndex(), ass)
                 }
                 res wholeAgain(this, "just unwrapped")
                 return Response OK
