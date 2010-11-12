@@ -264,10 +264,11 @@ SequenceDriver: class extends Driver {
 
         if(params libcache) {
             // now build a static library
-            if(params veryVerbose) printf("Saving to library %s\n", sourceFolder outlib)
+            if(params veryVerbose || params debugLibcache) "Saving to library %s\n" printfln(sourceFolder outlib)
             archive save(params)
         } else {
-            if(params veryVerbose) printf("Lib caching disabled, building from .o files\n")
+            if(params veryVerbose || params debugLibcache) "Lib caching disabled, building from .o files\n" println()
+         
             objectFiles addAll(oPaths)
         }
 
@@ -299,7 +300,7 @@ SequenceDriver: class extends Driver {
 
         if(force || cFile lastModified() > comparison) {
 
-            if(params veryVerbose) printf("%s not in cache or out of date, (re)compiling\n", module getFullName())
+            if(params veryVerbose || params debugLibcache) "%s not in cache or out of date, (re)compiling" printfln(module getFullName())
 
             parent := File new(oPath) parent()
             if(!parent exists?()) {
@@ -348,7 +349,7 @@ SequenceDriver: class extends Driver {
             if(archive) archive add(module)
 
         } else {
-            if(params veryVerbose) printf("Skipping %s, unchanged source.\n", cPath)
+            if(params veryVerbose || params debugLibcache) "Skipping %s, unchanged source.\n" printfln(cPath)
         }
 
         return 0

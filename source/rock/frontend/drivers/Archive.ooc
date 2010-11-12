@@ -61,7 +61,7 @@ Archive: class {
     }
 
     _readHeader: func (fR: FileReader) -> Bool {
-        cacheversion     := fR readLine()
+        cacheversion  := fR readLine()
         if(cacheversion != "cacheversion") {
             if(params veryVerbose || params debugLibcache) {
                 "Malformed cacheinfo file %s.cacheinfo, ignoring." format(outlib) println()
@@ -69,7 +69,7 @@ Archive: class {
             return false
         }
 
-        readVersion      := fR readLine()
+        readVersion := fR readLine()
         if(readVersion != version) {
             if(params veryVerbose || params debugLibcache) {
                 "Wrong version %s for %s.cacheinfo. We only read version %s. Ignoring" format(readVersion, outlib, version) println()
@@ -121,7 +121,7 @@ Archive: class {
                 // For now, we remove it anyway - later, we might want to check
                 // if it does really contain a main
                 if(params veryVerbose || params debugLibcache) {
-                    printf("Removing %s from archive %s\n", element oocPath, outlib)
+                    "Removing %s from archive %s" printfln(element oocPath, outlib)
                 }
 
                 // turn "blah/file.ooc" into "blah_file.o"
@@ -329,7 +329,7 @@ Archive: class {
         toAdd clear()
 
         if(params veryVerbose || params debugLibcache) {
-            printf("%s archive %s\n", (this exists? ? "Updating" : "Creating"), outlib)
+            "%s archive %s"printfln((this exists? ? "Updating" : "Creating"), outlib)
             args join(" ") println()
         }
 
