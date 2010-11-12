@@ -18,7 +18,7 @@ Use: class {
 If you want to install libraries elsewhere, use the OOC_LIBS environment variable,
 which is the path ooc will scan for .use files (in this case, %s.use)
 For more informations, see http://docs.ooc-lang.org/libs.html
--------------------" format(identifier toCString(), identifier toCString()))
+-------------------" format(identifier, identifier))
             )
         }
         useDef = uDef

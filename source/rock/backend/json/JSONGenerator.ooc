@@ -71,9 +71,9 @@ JSONGenerator: class extends Visitor {
         if(type instanceOf?(FuncType)) {
             return generateFuncTag(type as FuncType)
         } else if(type instanceOf?(PointerType)) {
-            return "pointer(%s)" format(resolveType(type as PointerType inner) toCString())
+            return "pointer(%s)" format(resolveType(type as PointerType inner))
         } else if(type instanceOf?(ReferenceType)) {
-            return "reference(%s)" format(resolveType(type as ReferenceType inner) toCString())
+            return "reference(%s)" format(resolveType(type as ReferenceType inner))
         } else if(type instanceOf?(TypeList)) {
             buffer := Buffer new()
             buffer append("multi(")
@@ -121,22 +121,22 @@ JSONGenerator: class extends Visitor {
                 return spec as VersionName origin
             }
             case VersionNegation => {
-                return "not(%s)" format(translateVersionSpec(spec as VersionNegation spec) toCString())
+                return "not(%s)" format(translateVersionSpec(spec as VersionNegation spec))
             }
             case VersionAnd => {
                 mySpec := spec as VersionAnd
                 return "and(%s,%s)" format(
-                        translateVersionSpec(mySpec specLeft) toCString(),
-                        translateVersionSpec(mySpec specRight) toCString())
+                        translateVersionSpec(mySpec specLeft),
+                        translateVersionSpec(mySpec specRight))
             }
             case VersionOr => {
                 mySpec := spec as VersionOr
                 return "or(%s,%s)" format(
-                        translateVersionSpec(mySpec specLeft) toCString(),
-                        translateVersionSpec(mySpec specRight) toCString())
+                        translateVersionSpec(mySpec specLeft),
+                        translateVersionSpec(mySpec specRight))
             }
             case => {
-                Exception new("Unknown version spec class: %s" format(spec class name toCString())) throw()
+                Exception new("Unknown version spec class: %s" format(spec class name)) throw()
             }
         }
         null
@@ -265,7 +265,7 @@ JSONGenerator: class extends Visitor {
         putToken(obj, node token)
         name : String = null
         if(node suffix)
-            name = "%s~%s" format(node name toCString(), node suffix toCString())
+            name = "%s~%s" format(node name, node suffix)
         else
             name = node name
         /* `name` */
@@ -278,7 +278,7 @@ JSONGenerator: class extends Visitor {
         obj put("doc", node doc)
         /* `tag` */
         if(type == "method") {
-            obj put("tag", "method(%s, %s)" format(node owner name toCString(), name toCString()))
+            obj put("tag", "method(%s, %s)" format(node owner name, name))
         } else {
             obj put("tag", name)
         }
@@ -397,7 +397,7 @@ JSONGenerator: class extends Visitor {
         obj put("type", type)
         /* `tag` */
         if(type == "field") {
-            obj put("tag", "field(%s, %s)" format(node owner name toCString(), node name toCString()))
+            obj put("tag", "field(%s, %s)" format(node owner name, node name))
         } else {
             obj put("tag", node name)
         }
@@ -474,7 +474,7 @@ JSONGenerator: class extends Visitor {
             elem := var as EnumElement
             elemInfo := HashBag new()
             elemInfo put("name", elem name) \
-                    .put("tag", "enumElement(%s, %s)" format(node name toCString(), elem name toCString())) \
+                    .put("tag", "enumElement(%s, %s)" format(node name, elem name)) \
                     .put("type", "enumElement") \
                     .put("value", elem value) \
                     .put("doc", "")
@@ -532,7 +532,7 @@ JSONGenerator: class extends Visitor {
                 buf append(',')
             else
                 first = false
-            buf append("return(%s)" format(resolveType(node returnType) toCString()))
+            buf append("return(%s)" format(resolveType(node returnType)))
         }
         buf append(')')
         buf toString()
@@ -576,7 +576,7 @@ JSONGenerator: class extends Visitor {
                 buf append(',')
             else
                 first = false
-            buf append("return(%s)" format(resolveType(node getReturnType()) toCString()))
+            buf append("return(%s)" format(resolveType(node getReturnType())))
         }
         buf append(')')
         buf toString()
@@ -586,7 +586,7 @@ JSONGenerator: class extends Visitor {
         obj := HashBag new()
         putToken(obj, node token)
         name := node getName()
-        tag := generateFuncTag(node getFunctionDecl(), "operator(%s," format(name toCString()))
+        tag := generateFuncTag(node getFunctionDecl(), "operator(%s," format(name))
         obj put("symbol", node symbol) \
            .put("name", name) \
            .put("tag", tag) \
@@ -620,7 +620,7 @@ JSONGenerator: class extends Visitor {
         putToken(obj, node token)
         name := node getSuperType() getName()
         target := node impl getName()
-        tag := "interfaceImpl(%s, %s)" format(name toCString(), target toCString())
+        tag := "interfaceImpl(%s, %s)" format(name, target)
         /* `version` */
         putVersion(node verzion, obj)
         obj put("tag", tag) \

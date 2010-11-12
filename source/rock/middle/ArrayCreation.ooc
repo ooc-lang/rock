@@ -43,7 +43,7 @@ ArrayCreation: class extends Expression {
     }
 
     toString: func -> String {
-        "%s new()" format(arrayType toString() toCString())
+        "%s new()" format(arrayType toString())
     }
 
     getType: func -> Type {

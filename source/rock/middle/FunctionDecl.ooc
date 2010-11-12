@@ -175,7 +175,7 @@ FunctionDecl: class extends Declaration {
         args each(|e| copy args add(e clone()))
         copy returnType = returnType clone()
 
-        body list each(|e| copy body add(e clone()); "Adding clone of %s to %s" format(e toString() toCString(), copy toString() toCString()) println())
+        body list each(|e| copy body add(e clone()); "Adding clone of %s to %s" format(e toString(), copy toString()) println())
 
         copy vDecl = vDecl
 
@@ -296,12 +296,12 @@ FunctionDecl: class extends Declaration {
                 fullName = name
             } else {
                 if(isMember()) {
-                    fullName = "%s_%s" format(owner getFullName() toCString(), name toCString())
+                    fullName = "%s_%s" format(owner getFullName(), name)
                 } else {
-                    fullName = "%s__%s" format(token module getUnderName() toCString(), name toCString())
+                    fullName = "%s__%s" format(token module getUnderName(), name)
                 }
                 if(suffix != null) {
-                    fullName = "%s_%s" format(fullName toCString(), suffix toCString())
+                    fullName = "%s_%s" format(fullName, suffix)
                 }
             }
         }
@@ -421,7 +421,7 @@ FunctionDecl: class extends Declaration {
         }
 
         if(access debugCondition()) {
-            "Looking for %s in %s, got %d typeArgs" printfln(access toString() toCString(), toString() toCString(), typeArgs size)
+            "Looking for %s in %s, got %d typeArgs" printfln(access toString(), toString(), typeArgs size)
         }
         
         for(typeArg in typeArgs) {
@@ -452,7 +452,7 @@ FunctionDecl: class extends Declaration {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        if(debugCondition() || res params veryVerbose) printf("** Resolving function decl %s\n", name toCString())
+        if(debugCondition() || res params veryVerbose) printf("** Resolving function decl %s\n", name)
 
         if(debugCondition()) ("isFatal ? " + res fatal toString()) println()
 
@@ -509,10 +509,10 @@ FunctionDecl: class extends Declaration {
         if(debugCondition()) "Handling the args"
 
         for(arg in args) {
-            if(debugCondition()) "Handling arg %s" format(arg toString() toCString()) println()
+            if(debugCondition()) "Handling arg %s" format(arg toString()) println()
             response := arg resolve(trail, res)
             if(!response ok()) {
-                if(debugCondition() || res params veryVerbose) printf("Response of arg %s = %s\n", arg toString() toCString(), response toString() toCString())
+                if(debugCondition() || res params veryVerbose) printf("Response of arg %s = %s\n", arg toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -531,7 +531,7 @@ FunctionDecl: class extends Declaration {
             }
             args each(| arg |
                 if (arg getType() == null || !arg getType() isResolved()) {
-                    "Looping because of arg %s" format(arg toString() toCString()) println()
+                    "Looping because of arg %s" format(arg toString()) println()
                     res wholeAgain(this, "need arg type for the ref")
                     return Response OK
                 }
@@ -543,7 +543,7 @@ FunctionDecl: class extends Declaration {
         for(typeArg in typeArgs) {
             response := typeArg resolve(trail, res)
             if(!response ok()) {
-                if(debugCondition() || res params veryVerbose) printf("Response of typeArg %s = %s\n", typeArg toString() toCString(), response toString() toCString())
+                if(debugCondition() || res params veryVerbose) printf("Response of typeArg %s = %s\n", typeArg toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -554,7 +554,7 @@ FunctionDecl: class extends Declaration {
         {
             response := returnType resolve(trail, res)
             if(!response ok()) {
-                if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of return type %s = %s\n", toString() toCString(), returnType toString() toCString(), response toString() toCString())
+                if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of return type %s = %s\n", toString(), returnType toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -585,14 +585,14 @@ FunctionDecl: class extends Declaration {
 
         if(inlined) {
             trail pop(this)
-            "%s is inlining, not resolving further" format(toString() toCString()) println()
+            "%s is inlining, not resolving further" format(toString()) println()
             return Response OK
         }
 
         {
             response := body resolve(trail, res)
             if(!response ok()) {
-                if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of body = %s\n", toString() toCString(), response toString() toCString())
+                if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of body = %s\n", toString(), response toString())
                 trail pop(this)
                 res wholeAgain(this, "body wanna LOOP")
                 return Response OK
@@ -609,13 +609,13 @@ FunctionDecl: class extends Declaration {
                 if(isVoid()) {
                     returnType = BaseType new("Int", token)
                     body add(Return new(IntLiteral new(0, nullToken), nullToken))
-                    res wholeAgain(this, "because changed returnType to %s" format(returnType toString() toCString()))
+                    res wholeAgain(this, "because changed returnType to %s" format(returnType toString()))
                 }
             }
 
             response := autoReturn(trail, res, this, body, returnType)
             if(!response ok()) {
-                if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of autoReturn = %s\n", toString() toCString(), response toString() toCString())
+                if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of autoReturn = %s\n", toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -664,7 +664,7 @@ FunctionDecl: class extends Declaration {
                     owner removeFunction(this). addFunction(this)
                 }
             } else {
-                res throwError(UnresolvedCall new(token, superCall, "There is no such super-func in %s!" format(superTypeDecl toString() toCString())))
+                res throwError(UnresolvedCall new(token, superCall, "There is no such super-func in %s!" format(superTypeDecl toString())))
             }
         }
 
@@ -733,7 +733,7 @@ FunctionDecl: class extends Declaration {
                 _unwrappedACS = true
                 return true
             } else {
-                res throwError(InternalError new(token, "Got an ACS without any function-call. THIS IS NOT SUPPOSED TO HAPPEN\ntrail= %s" format(trail toString() toCString())))
+                res throwError(InternalError new(token, "Got an ACS without any function-call. THIS IS NOT SUPPOSED TO HAPPEN\ntrail= %s" format(trail toString())))
             }
         }
         parentCall := trail get(fCallIndex) as FunctionCall
@@ -763,7 +763,7 @@ FunctionDecl: class extends Declaration {
         ind := parentCall args indexOf(this)
 
         if (ind == -1) {
-            res throwError(InternalError new(token, "[ACS]: Can't find ´this´ in the call's arguments.\ntrail = %s" format(trail toString() toCString())))
+            res throwError(InternalError new(token, "[ACS]: Can't find ´this´ in the call's arguments.\ntrail = %s" format(trail toString())))
         }
 
 		if(ind >= parentFunc args size) {
@@ -932,7 +932,7 @@ FunctionDecl: class extends Declaration {
                         case          =>
 
                             if(!arg getType() isPointer() && !arg getType() getGroundType() isPointer() && !arg getType() isGeneric() && !arg getType() getRef() instanceOf?(ClassDecl)) {
-                                res throwError(InternalError new(arg token, "Unknown closure arg type %s\n" format(arg getType() toString() toCString())))
+                                res throwError(InternalError new(arg token, "Unknown closure arg type %s\n" format(arg getType() toString())))
                             }
                             'P'
                     }
@@ -1168,7 +1168,7 @@ FunctionRedefinition: class extends Error {
     first, second: FunctionDecl
 
     init: func (=first, =second) {
-        message = second token formatMessage("Redefinition of '%s'%s" format(first getName() toCString(), first verzion ? (" in version " + first verzion toString()) toCString() : "" toCString()), "[INFO]") + '\n' +
+        message = second token formatMessage("Redefinition of '%s'%s" format(first getName(), first verzion ? (" in version " + first verzion toString()) : ""), "[INFO]") + '\n' +
                   first  token formatMessage("\n...first definition was here: ", "[ERROR]")
     }
 

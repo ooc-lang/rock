@@ -240,7 +240,7 @@ BinaryOp: class extends Expression {
 
             if(t1 elements getSize() != t2 elements getSize()) {
                 res throwError(InvalidOperatorUse new(token, "Invalid assignment between operands of type %s and %s\n" format(
-                    left getType() toString() toCString(), right getType() toString() toCString())))
+                    left getType() toString(), right getType() toString())))
                 return Response OK
             }
 
@@ -307,7 +307,7 @@ BinaryOp: class extends Expression {
         if(!isLegal(res)) {
             if(res fatal) {
                 res throwError(InvalidOperatorUse new(token, "Invalid use of operator %s between operands of type %s and %s\n" format(
-                    opTypeRepr[type] toCString(), left getType() toString() toCString(), right getType() toString() toCString())))
+                    opTypeRepr[type], left getType() toString(), right getType() toString())))
                 return Response OK
             }
             res wholeAgain(this, "Illegal use, looping in hope.")
@@ -454,7 +454,7 @@ BinaryOp: class extends Expression {
         args := fDecl getArguments()
         if(args getSize() != 2) {
             token module params errorHandler onError(InvalidBinaryOverload new(op token,
-                "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol toCString(), args getSize())))
+                "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol, args getSize())))
         }
 
         opLeft  := args get(0)

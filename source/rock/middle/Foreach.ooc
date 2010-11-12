@@ -79,13 +79,13 @@ Foreach: class extends ControlStatement {
 
             iterType := iterCall getType()
             if(iterType == null) {
-                if(res fatal) res throwError(InternalError new(token, "Couldn't resolve iterType of %s" format(toString() toCString())))
+                if(res fatal) res throwError(InternalError new(token, "Couldn't resolve iterType of %s" format(toString())))
                 res wholeAgain(this, "need iterType")
                 return Response OK
             }
             iterType resolve(trail, res)
             if(!iterType isResolved()) {
-                if(res fatal) res throwError(InternalError new(token, "Couldn't resolve iterType %s" format(iterType toString() toCString())))
+                if(res fatal) res throwError(InternalError new(token, "Couldn't resolve iterType %s" format(iterType toString())))
                 res wholeAgain(this, "need iterType")
                 return Response OK
             }
@@ -115,7 +115,7 @@ Foreach: class extends ControlStatement {
                              addAll(getBody())
 
             if(!list replace(this, block)) {
-                if(res fatal) printf("Failed to replace %s with %s in a %s. trail = %s", toString() toCString(), block toString() toCString(), list toString() toCString(), trail toString() toCString())
+                if(res fatal) printf("Failed to replace %s with %s in a %s. trail = %s", toString(), block toString(), list toString(), trail toString())
                 res wholeAgain(this, "Can't turn into a while :/, list = " + list toString() + " (it's a " + list class name)
                 return Response LOOP
             }
