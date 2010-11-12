@@ -76,12 +76,4 @@ FileWriter: class extends Writer {
     close: func() {
         file close()
     }
-
-    /**
-       Equivalent to vprintf, but used to write to this file.
-     */
-    vwritef: func (fmt: String, args: VaList) {
-        vfprintf(file, fmt toCString(), args)
-    }
-
 }
