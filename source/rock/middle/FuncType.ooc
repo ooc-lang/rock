@@ -117,6 +117,10 @@ FuncType: class extends Type {
         }
 
         for(argType in argTypes) {
+            if(!argType) {
+                "Got null argType in FuncType %s" printfln(toString())
+                continue
+            }
             response := argType resolve(trail, res)
             if(!response ok()) {
                 trail pop(this)
