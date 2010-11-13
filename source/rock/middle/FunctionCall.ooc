@@ -294,7 +294,7 @@ FunctionCall: class extends Expression {
             if(name == "super") {
                 fDecl := trail get(trail find(FunctionDecl), FunctionDecl)
                 superTypeDecl := fDecl owner getSuperRef()
-                finalScore: Int
+                finalScore := 0
                 ref = superTypeDecl getMeta() getFunction(fDecl getName(), null, this, finalScore&)
                 if(finalScore == -1) {
                     res wholeAgain(this, "something in our typedecl's functions needs resolving!")
@@ -800,10 +800,12 @@ FunctionCall: class extends Expression {
                 if(vararg name != null) {
                     numVarArgs := (args size - (ref args size - 1))
                     
-                    lastType := args last() getType()
-                    if(!lastType) return Response LOOP
-                    if(lastType getName() == "VarArgs") {
-                        return Response OK
+                    if(!args empty?()) {
+                        lastType := args last() getType()
+                        if(!lastType) return Response LOOP
+                        if(lastType getName() == "VarArgs") {
+                            return Response OK
+                        }
                     }
 
                     ast := AnonymousStructType new(token)

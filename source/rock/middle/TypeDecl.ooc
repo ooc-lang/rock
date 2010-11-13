@@ -669,7 +669,7 @@ TypeDecl: abstract class extends Declaration {
             }
         }
 
-        finalScore: Int
+        finalScore := 0
         fDecl := getFunction(access name, null, null, finalScore&)
         if(finalScore == -1) {
             return -1 // something's not resolved
@@ -727,7 +727,7 @@ TypeDecl: abstract class extends Declaration {
             }
         }
 
-        finalScore: Int
+        finalScore := 0
         fDecl := getFunction(call name, call suffix, call, true, finalScore&)
         if(finalScore == -1) {
             if(res fatal) {

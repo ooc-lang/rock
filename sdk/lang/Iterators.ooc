@@ -28,6 +28,14 @@ Iterable: abstract class <T> {
             f(elem)
         }
     }
+    
+    each: func ~withIndex (f: Func (T, Int)) {
+        index := 0
+        for(elem in this) {
+            f(elem, index)
+            index += 1
+        }
+    }
 
 }
 

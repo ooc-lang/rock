@@ -36,18 +36,9 @@ Writer: abstract class {
     /**
        Equivalent of printf, but used to write to this stream.
      */
-    writef: final func(fmt: String, ...) {
-        ap: VaList
-        va_start(ap, fmt)
-        vwritef(fmt, ap)
-        va_end(ap)
+    writef: final func(fmt: String, args: ...) {
+        write(fmt format(args as VarArgs))
     }
-
-    /**
-       Equivalent to vprintf, but used to write to this stream.
-     */
-    vwritef: abstract func(fmt: String, args: VaList)
-
     /**
         Copies data from a Reader into this Writer.
 
