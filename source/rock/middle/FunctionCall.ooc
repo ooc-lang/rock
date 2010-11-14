@@ -193,12 +193,12 @@ FunctionCall: class extends Expression {
                 declArg := candidate args get(i)
                 if(declArg instanceOf?(VarArg)) break
                 callArg := args get(i)
+                
+                if(callArg getType() == null) return false
+                if(declArg getType() == null) return false
                 declArgType := declArg getType() refToPointer()
                 if (declArgType isGeneric()) {
                     declArgType = declArgType realTypize(this)
-                }
-                if(callArg getType() == null) {
-                    return false
                 }
 
                 if(callArg getType() getScore(declArgType) == Type NOLUCK_SCORE) {
