@@ -187,10 +187,12 @@ Buffer: class extends Iterable<Char> {
     }
 
     append: func ~buf(other: This) {
+        if(!other) return
         append~pointer(other data, other size)
     }
 
     append: func ~str(other: String) {
+        if(!other) return
         append~buf(other _buffer)
     }
 

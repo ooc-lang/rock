@@ -62,8 +62,8 @@ String: class extends Iterable<Char> {
         result toString()
     }
 
-    append: func ~str(other: This) -> This{
-        assert(other != null)
+    append: func ~str (other: This) -> This {
+        if(!other) return this
         result := _buffer clone(size + other size)
         result append (other _buffer)
         result toString()
