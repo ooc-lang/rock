@@ -21,7 +21,13 @@ Object: abstract class {
     /** return true if *class* is a subclass of *T*. */
     instanceOf?: final func (T: Class) -> Bool {
         if(!this) return false
-        class inheritsFrom?(T)
+        
+        current := class
+        while(current) {
+            if(current == T) return true
+            current = current super
+        }
+        false
     }
 
 }
@@ -53,8 +59,12 @@ Class: abstract class {
     }
 
     inheritsFrom?: final func ~_class (T: Class) -> Bool {
-        if(this == T) return true
-        return (super ? super inheritsFrom?(T) : false)
+        current := this
+        while(current) {
+            if(current == T) return true
+            current = current super
+        }
+        false
     }
 
 }
