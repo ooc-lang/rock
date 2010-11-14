@@ -378,6 +378,13 @@ Buffer: class extends Iterable<Char> {
             if(data[i] == oldie) data[i] = kiddo
         }
     }
+    
+    /** Transform all characters according to a transformation function */
+    map: func (f: Func (Char) -> Char) {
+        for(i in 0..size) {
+            data[i] = f(data[i])
+        }
+    }
 
     /**
      * Converts all of the characters in this Buffer to lower case.
