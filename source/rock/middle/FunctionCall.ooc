@@ -812,8 +812,13 @@ FunctionCall: class extends Expression {
                     elements := ArrayList<Expression> new()
                     for(i in (ref args size - 1)..(args size)) {
                         arg := args[i]
-                        if(!arg getType()) return Response LOOP
-                        elements add(TypeAccess new(arg getType(), token))
+                        argType := arg getType()
+                        if(!argType) return Response LOOP
+                        
+                        if(argType pointerLevel() > 0) {
+                            argType = NullLiteral type // 'T*' = 'Pointer', != 'T'
+                        }
+                        elements add(TypeAccess new(argType, token))
                         ast types add(NullLiteral type)
                         
                         elements add(arg)
