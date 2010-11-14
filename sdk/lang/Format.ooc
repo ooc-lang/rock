@@ -32,7 +32,7 @@ InvalidFormatException: class extends Exception {
 }
 
 InvalidTypeException: class extends Exception {
-    init: func { message = "invalid type passed to generic function!" }
+    init: func (T: Class) { message = "invalid type %s passed to generic function!" format(T name) }
 }
 
 
@@ -64,14 +64,23 @@ argNext: inline func<T> (va: VarArgsIterator*, T: Class) -> T {
     return va@ next(T)
 }
 
-m_printn: func<T> (res: Buffer, info: FSInfoStruct@, arg: T) {
+m_printn: func <T> (res: Buffer, info: FSInfoStruct@, arg: T) {
     sign: Char = '\0'
     tmp: Char[36]
     digits := __digits
     size := info fieldwidth
     i := 0
-    n := arg as SizeT
-    signed_n := arg as SSizeT
+    
+    n: UInt32
+    signed_n: Int32
+    
+    if(T size == 4) {
+        n = arg as UInt32
+        signed_n = arg as Int32
+    } else {
+        n = arg as UInt64
+        signed_n = arg as Int64
+    }
 
     /* Preprocess the flags. */
 
@@ -138,11 +147,16 @@ m_printn: func<T> (res: Buffer, info: FSInfoStruct@, arg: T) {
 getCharPtrFromStringType: func <T> (s : T) -> Char* {
     res : Char*
     match (T) {
-        case String => res = s as String toCString()
-        case Buffer => res = s as Buffer toCString()
+        case String => res = s as String ? s as String toCString() : null
+        case Buffer => res = s as Buffer ? s as Buffer toCString() : null
         case CString => res = s as Char*
         case Pointer => res = s as Char*
-        case => InvalidTypeException new() throw()
+        case =>
+            if(T size == Pointer size) {
+                res = s as Char*
+            } else {
+                InvalidTypeException new(T) throw()
+            }
     }
     return res
 }
@@ -154,7 +168,7 @@ getSizeFromStringType: func<T> (s : T) -> SizeT {
         case Buffer => res = s as Buffer size
         case CString => res = s as CString length()
         case Pointer => res = s as CString length()
-        case => InvalidTypeException new() throw()
+        case => InvalidTypeException new(T) throw()
     }
     return res
 }
@@ -220,17 +234,20 @@ parseArg: func(res: Buffer, info: FSInfoStruct*, va: VarArgsIterator*, p: Char*)
             mprintCall = false
             T := va@ getNextType()
             s : T = argNext(va, T)
-            sval: Char*
-            sval = getCharPtrFromStringType(s)
-            /* Change to -2 so that 0-1 doesn't cause the
-             * loop to keep going. */
-            if(info@ precision == -1) info@ precision = -2
-            while((sval@) && (info@ precision > 0 || info@ precision <= -2)) {
-                if(info@ precision > 0) {
-                    info@ precision -= 1
+            sval: Char* = getCharPtrFromStringType(s)
+            if(sval) {
+                /* Change to -2 so that 0-1 doesn't cause the
+                 * loop to keep going. */
+                if(info@ precision == -1) info@ precision = -2
+                while((sval@) && (info@ precision > 0 || info@ precision <= -2)) {
+                    if(info@ precision > 0) {
+                        info@ precision -= 1
+                    }
+                    res append(sval@)
+                    sval += 1
                 }
-                res append(sval@)
-                sval += 1
+            } else {
+                res append("(nil)")
             }
         case '%' =>
                 res append('%')
