@@ -220,6 +220,7 @@ HashMap: class <K, V> extends BackIterable<V> {
         keyEquals = getStandardEquals(K)
         hashKey = getStandardHashFunc(K)
 
+        T = V // workarounds ftw
     }
 
     /**
