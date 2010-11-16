@@ -334,14 +334,14 @@ operator != (a1, a2: IPAddress) -> Bool {
 }
 
 SocketAddress: abstract class {
-    new: static func(host: IPAddress, port: Int) -> This {
+    new: static func(host: IPAddress, nPort: Int) -> This {
         if(host family == AddressFamily IP4) {
             ip4Host := host as IP4Address
-            return SocketAddressIP4 new(ip4Host ai, port)
+            return SocketAddressIP4 new(ip4Host ai, nPort)
         }
         else if(host family == AddressFamily IP6) {
             ip6Host := host as IP6Address
-            return SocketAddressIP6 new(ip6Host ai, port)
+            return SocketAddressIP6 new(ip6Host ai, nPort)
         }
         else {
             NetError new("Unsupported IP Address type!") throw()
