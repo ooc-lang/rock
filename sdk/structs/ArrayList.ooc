@@ -161,8 +161,7 @@ ArrayList: class <T> extends List<T> {
      * specified by the minimum capacity argument.
      */
     ensureCapacity: inline func (newSize: SizeT) {
-        if(newSize > capacity) {
-            capacity = newSize * (newSize > 50000 ? 2 : 4)
+        if(newSize > capacity) {            capacity = newSize * (newSize > 50000 ? 2 : 4)
             tmpData := gc_realloc(data, capacity * T size)
             if (tmpData) {
                 data = tmpData
@@ -202,6 +201,22 @@ ArrayList: class <T> extends List<T> {
         data
     }
 
+    /** @return This<T> containing the items from this[min] through (including) this[max-1]  */
+    slice: func (min, max: SSizeT) -> This<T> {
+        ret := This<T> new(max-min)
+        /*for(i in min..max) {
+            ret add(this[i])
+        }*/
+        memcpy(ret data, data + (min * T size), (max - min) * T size)
+        ret _size = _size
+        ret capacity = _size
+        ret
+    }
+
+    slice: func ~withRange (r: Range) -> This<T> {
+        slice(r min, r max)
+    }
+
 }
 
 ArrayListIterator: class <T> extends BackIterator<T> {
@@ -236,6 +251,7 @@ ArrayListIterator: class <T> extends BackIterator<T> {
 }
 
 /* Operators */
+operator [] <T> (list: ArrayList<T>, r: Range) -> ArrayList<T> { list slice(r) }
 operator [] <T> (list: ArrayList<T>, i: Int) -> T { list get(i) }
 operator []= <T> (list: ArrayList<T>, i: Int, element: T) { list set(i, element) }
 operator += <T> (list: ArrayList<T>, element: T) { list add(element) }
