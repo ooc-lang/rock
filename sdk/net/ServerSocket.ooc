@@ -1,4 +1,4 @@
-import net/[berkeley, Exceptions, Socket, StreamSocket, Address]
+import net/[berkeley, Exceptions, Socket, TCPSocket, Address]
 import text/StringTokenizer
 
 /**
@@ -149,15 +149,15 @@ ServerSocket: class extends Socket {
         if(conn == -1) {
             SocketError new() throw()
         }
-        sock := StreamSocket new(SocketAddress newFromSock(addr&, addrSize), conn)
+        sock := TCPSocket new(SocketAddress newFromSock(addr&, addrSize), conn)
         return ReaderWriterPair new(sock)
     }
 }
 
-ReaderWriterPair: class { // I thought StreamSocketReaderWriterPair was a bit too long
-    in: StreamSocketReader
-    out: StreamSocketWriter
-    sock: StreamSocket
+ReaderWriterPair: class { // I thought TCPSocketReaderWriterPair was a bit too long
+    in: TCPSocketReader
+    out: TCPSocketWriter
+    sock: TCPSocket
     init: func (=sock) {
         in = sock reader()
         out = sock writer()

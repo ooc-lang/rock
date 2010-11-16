@@ -5,7 +5,7 @@ import berkeley into socket
 /**
     A stream based socket interface.
  */
-StreamSocket: class extends Socket {
+TCPSocket: class extends Socket {
     remote: SocketAddress
 
     /**
@@ -72,15 +72,15 @@ StreamSocket: class extends Socket {
     /**
        :return: A reader that reads data from this socket
      */
-    reader: func -> StreamSocketReader {
-        return StreamSocketReader new(this)
+    reader: func -> TCPSocketReader {
+        return TCPSocketReader new(this)
     }
 
     /**
        :return: A writer that writes data to this socket
      */
-    writer: func -> StreamSocketWriter {
-        return StreamSocketWriter new(this)
+    writer: func -> TCPSocketWriter {
+        return TCPSocketWriter new(this)
     }
 
     /**
@@ -203,10 +203,10 @@ StreamSocket: class extends Socket {
     receiveByte: func -> Char { receiveByte(0) }
 }
 
-StreamSocketReader: class extends Reader {
-    source: StreamSocket
+TCPSocketReader: class extends Reader {
+    source: TCPSocket
 
-    init: func ~StreamSocketReader (=source) { marker = 0 }
+    init: func ~TCPSocketReader (=source) { marker = 0 }
 
     close: func {
         source close()
@@ -236,10 +236,10 @@ StreamSocketReader: class extends Reader {
     }
 }
 
-StreamSocketWriter: class extends Writer {
-    dest: StreamSocket
+TCPSocketWriter: class extends Writer {
+    dest: TCPSocket
 
-    init: func ~StreamSocketWriter (=dest) {}
+    init: func ~TCPSocketWriter (=dest) {}
 
     close: func { dest close() }
 
