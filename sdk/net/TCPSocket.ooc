@@ -51,13 +51,6 @@ TCPSocket: class extends Socket {
     }
 
     /**
-       Check if socket is connected by writing a zero-length string to it
-    */
-    connected?: func -> Bool {
-        send("") == 0
-    }
-
-    /**
        Attempt to connect this socket to the remote host.
 
        :throws: A SocketError if something went wrong
@@ -66,7 +59,7 @@ TCPSocket: class extends Socket {
         if(socket connect(descriptor, remote addr(), remote length()) == -1) {
             SocketError new() throw()
         }
-        connected?()
+        connected? = true
     }
 
     /**
@@ -164,6 +157,9 @@ TCPSocket: class extends Socket {
         if(bytesRecv == -1) {
             SocketError new() throw()
         }
+        if(bytesRecv == 0) {
+            connected? = false // disconnected!
+        }
         return bytesRecv
     }
 
@@ -189,9 +185,7 @@ TCPSocket: class extends Socket {
      */
     receiveByte: func ~withFlags(flags: Int) -> Char {
         c: Char
-        if(socket recv(descriptor, c&, Char size, flags) == -1) {
-            SocketError new() throw()
-        }
+        receive(c&, 1, 0)
         return c
     }
 
@@ -222,7 +216,7 @@ TCPSocketReader: class extends Reader {
     }
 
     hasNext?: func -> Bool {
-        source connected?()
+        source connected?
     }
 
     rewind: func(offset: Int) {
