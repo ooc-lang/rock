@@ -187,10 +187,12 @@ Buffer: class extends Iterable<Char> {
     }
 
     append: func ~buf(other: This) {
+        if(!other) return
         append~pointer(other data, other size)
     }
 
     append: func ~str(other: String) {
+        if(!other) return
         append~buf(other _buffer)
     }
 
@@ -376,6 +378,13 @@ Buffer: class extends Iterable<Char> {
     replaceAll: func ~char (oldie, kiddo: Char) {
         for(i in 0..size) {
             if(data[i] == oldie) data[i] = kiddo
+        }
+    }
+    
+    /** Transform all characters according to a transformation function */
+    map: func (f: Func (Char) -> Char) {
+        for(i in 0..size) {
+            data[i] = f(data[i])
         }
     }
 

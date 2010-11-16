@@ -2,8 +2,8 @@ include stdlib, stdint, stddef, float, ctype, sys/types
 
 LLong: cover from signed long long {
 
-    toString:    func -> String { "%lld" format(this) }
-    toHexString: func -> String { "%llx" format(this) }
+    toString:    func -> String { "%lld" format(this as LLong) }
+    toHexString: func -> String { "%llx" format(this as LLong) }
 
     odd?:  func -> Bool { this % 2 == 1 }
     even?: func -> Bool { this % 2 == 0 }
@@ -39,7 +39,7 @@ Short: cover from signed short extends LLong
 
 ULLong: cover from unsigned long long extends LLong {
 
-    toString:    func -> String { "%llu" format(this) }
+    toString:    func -> String { "%llu" format(this as ULLong) }
 
     in?: func(range: Range) -> Bool {
         return this >= range min && this < range max

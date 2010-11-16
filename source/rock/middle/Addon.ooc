@@ -70,6 +70,11 @@ Addon: class extends Node {
             }
         }
 
+        if(base == null) {
+            res wholeAgain(this, "need base")
+            return Response OK
+        }
+
         finalResponse := Response OK
         trail push(base getMeta())
         for(f in functions) {

@@ -62,8 +62,8 @@ String: class extends Iterable<Char> {
         result toString()
     }
 
-    append: func ~str(other: This) -> This{
-        assert(other != null)
+    append: func ~str (other: This) -> This {
+        if(!other) return this
         result := _buffer clone(size + other size)
         result append (other _buffer)
         result toString()
@@ -119,27 +119,25 @@ String: class extends Iterable<Char> {
     }
 
     replaceAll: func ~char(oldie, kiddo: Char) -> This {
-        result := _buffer clone()
-        result replaceAll~char(oldie, kiddo)
-        result toString()
+        (_buffer clone()) replaceAll~char(oldie, kiddo). toString()
+    }
+    
+    map: func (f: Func (Char) -> Char) -> This {
+        (_buffer clone()) map(f). toString()
     }
 
-    _bufArrayListToStrArrayList: func ( x : ArrayList<Buffer> ) -> ArrayList<This> {
+    _bufArrayListToStrArrayList: func (x: ArrayList<Buffer>) -> ArrayList<This> {
         result := ArrayList<This> new( x size )
-        for (i in x) result add ( i toString() )
+        for (i in x) result add (i toString())
         result
     }
 
     toLower: func -> This {
-        result := _buffer clone()
-        result toLower()
-        result toString()
+        (_buffer clone()) toLower(). toString()
     }
 
     toUpper: func  -> This{
-        result := _buffer clone()
-        result toUpper()
-        result toString()
+        (_buffer clone()) toUpper(). toString()
     }
 
     indexOf: func ~char (c: Char, start: SSizeT = 0) -> SSizeT { _buffer indexOf(c, start) }
