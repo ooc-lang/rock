@@ -334,9 +334,7 @@ operator != (a1, a2: IPAddress) -> Bool {
 }
 
 SocketAddress: abstract class {
-    new: static func(host: IPAddress, port: Int) -> This {
-        nPort: Int = htons(port)
-
+    new: static func(host: IPAddress, nPort: Int) -> This {
         if(host family == AddressFamily IP4) {
             ip4Host := host as IP4Address
             return SocketAddressIP4 new(ip4Host ai, nPort)
