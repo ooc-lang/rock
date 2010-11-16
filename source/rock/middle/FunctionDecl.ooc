@@ -523,7 +523,8 @@ FunctionDecl: class extends Declaration {
         isClosure := name empty?()
 
         if (isClosure) {
-            if (!_unwrappedACS && !argumentsReady()) {
+            //if (!_unwrappedACS && !argumentsReady()) {
+            if (!_unwrappedACS) {
                 if (!unwrapACS(trail, res)) {
                     trail pop(this)
                     return Response OK
@@ -781,6 +782,12 @@ FunctionDecl: class extends Declaration {
         fScore := 0
         needTrampoline := false
 
+        // infer return type 
+        if(funcPointer returnType) {
+            returnType = funcPointer returnType
+        }
+
+        // infer arg types
         for (fType in funcPointer argTypes) {
             if (!fType isResolved()) {
                 res wholeAgain(this, "Can't figure out the type of the argument.")
@@ -789,10 +796,6 @@ FunctionDecl: class extends Declaration {
             if (fType isGeneric()) needTrampoline = true
             args get(ix) type = fType
             ix += 1
-        }
-
-        if(funcPointer returnType) {
-            returnType = funcPointer returnType
         }
 
         if(funcPointer typeArgs) for(typeArg in funcPointer typeArgs) {
@@ -1061,6 +1064,7 @@ FunctionDecl: class extends Declaration {
                 thunk := FunctionDecl new(getName() + "_thunk", token)
                 thunk typeArgs addAll(typeArgs)
                 thunk args addAll(args)
+                thunk returnType = returnType
 
                 // The thunk might have to be versioned, too.
                 if(ctxVersion != null)
