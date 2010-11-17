@@ -1,6 +1,6 @@
 import HTTPRequest, io/[BufferWriter, BufferReader], text/StringTokenizer
 
-// RestClient get(HTTPRequest new("http://github.com/api/v2/json/user/show/pheuter")) println()
+// RestClient get("http://github.com/api/v2/json/user/show/pheuter") println()
 
 RestClient: class {
   
@@ -15,6 +15,8 @@ RestClient: class {
     return html toString() split("\r\n\r\n") get(1)
   }
   
+  get: static func ~asString (url: String) -> String { get(HTTPRequest new(url)) }
+  
   post: static func (request: HTTPRequest) -> String {
     request stream connect()
     request stream writer() write("POST "+request path+request requestParams toString()+" "+request requestHeader toString()+"\r\n")
@@ -25,4 +27,7 @@ RestClient: class {
     
     return html toString() split("\r\n\r\n") get(1)
   }
+  
+  post: static func ~asString (url: String) -> String { post(HTTPRequest new(url)) }
+  
 }

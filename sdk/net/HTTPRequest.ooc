@@ -25,7 +25,6 @@ HTTPRequest: class {
     // Default header values
     addHeader("HTTP/1.1")
     addHeader("Host: "+host)
-    addHeader("Accept: */*")
     addHeader("Connection: close")
     
     requestParams = Buffer new()
