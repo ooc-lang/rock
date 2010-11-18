@@ -614,7 +614,7 @@ Buffer: class extends Iterable<Char> {
      * @return the index-th character of this string
      */
     set: func (index: SSizeT, value: Char) {
-        if(index < 0) index = size - index
+        if(index < 0) index = size + index
         if(index >= size) OutOfBoundsException new(This, index, size) throw()
         data[index] = value
     }
