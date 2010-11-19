@@ -215,6 +215,9 @@ ArrayList: class <T> extends List<T> {
 
     /** @return This<T> containing the items from this[min] through (including) this[max-1]  */
     slice: func (min, max: SSizeT) -> This<T> {
+        if(min < 0) min = _size + min
+        if(min < 0 || min >= _size) OutOfBoundsException new(This, min, _size) throw()
+
         if(max < 0) max = _size + max
         if(max < 0 || max >= _size) OutOfBoundsException new(This, max, _size) throw()
 
