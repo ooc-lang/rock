@@ -51,7 +51,7 @@ ArrayList: class <T> extends List<T> {
 
     add: func ~withIndex (index: SSizeT, element: T) {
         if(index < 0) index = _size + index
-        if(index < 0 || index >= _size) OutOfBoundsException new(This, index, _size) throw()
+        if(index < 0 || index > _size) OutOfBoundsException new(This, index, _size) throw()
 
         // inserting at 0 can be optimized
         if(index == 0) {
