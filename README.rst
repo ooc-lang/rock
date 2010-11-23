@@ -11,7 +11,7 @@ rock is an ooc compiler written in ooc - in other words, it's
 where things begin to become really exciting.
 
 it has been bootstrapping since 2010-04-22 under Gentoo, Ubuntu,
-Arch Linux, Win32, OSX..
+Arch Linux, Win32, OSX...
 
 Install
 -------
