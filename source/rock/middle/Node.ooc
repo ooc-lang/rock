@@ -51,8 +51,8 @@ Node: abstract class {
     }
 
     generateTempName: func (origin: String) -> String {
-        This nameSeed += 1
-        return "__" + origin + This nameSeed toString()
+        nameSeed += 1
+        "__%s%d" format(origin, nameSeed)
     }
 
     // Just to be on the safe side - everything has side effects by default
