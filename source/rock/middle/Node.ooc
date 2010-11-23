@@ -4,7 +4,7 @@ import tinker/[Resolver, Response, Trail]
 
 Node: abstract class {
 
-    nameSeed: static Int = 0
+    nameSeed := static 0
 
     token: Token
 
