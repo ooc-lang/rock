@@ -34,7 +34,9 @@ LLong: cover from signed long long {
 }
 
 Long:  cover from signed long  extends LLong
-Int:   cover from signed int   extends LLong
+Int:   cover from signed int   extends LLong {
+    toString:    func -> String { "%d" format(this) }
+}
 Short: cover from signed short extends LLong
 
 ULLong: cover from unsigned long long extends LLong {
@@ -48,7 +50,9 @@ ULLong: cover from unsigned long long extends LLong {
 }
 
 ULong:  cover from unsigned long  extends ULLong
-UInt:   cover from unsigned int   extends ULLong
+UInt:   cover from unsigned int   extends ULLong {
+    toString:    func -> String { "%u" format(this) }
+}
 UShort: cover from unsigned short extends ULLong
 
 //INT_MIN,    INT_MAX  : extern const static Int
@@ -76,7 +80,9 @@ UInt64: cover from uint64_t extends ULLong
 
 Octet:  cover from uint8_t
 SizeT:  cover from size_t extends ULLong
-SSizeT:  cover from ssize_t extends LLong
+SSizeT:  cover from ssize_t extends LLong {
+    toString:    func -> String { "%u" format(this) }
+}
 PtrDiff: cover from ptrdiff_t extends SizeT
 
 /**
