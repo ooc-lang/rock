@@ -44,6 +44,19 @@ Reader: abstract class {
         }
         return sb toString()
     }
+    
+    readWhile: func ~filter (filter: Func(Char) -> Bool) -> String {
+        sb := Buffer new(1024) // let's be pragmatic
+        while(hasNext?()) {
+            c := read()
+            if(!filter(c)) {
+                rewind(1)
+                break
+            }
+            sb append(c)
+        }
+        return sb toString()
+    }
 
     /**
        Read the stream until character `end` is reached.
@@ -58,6 +71,18 @@ Reader: abstract class {
         while(hasNext?()) {
             c := read()
             if(c == end) break
+        }
+    }
+    
+    skipUntil: func ~str (end: String) {
+        while(hasNext?()) {
+            c := read()
+            i := 0
+            while(c == end[i]) {
+                c = read()
+                i += 1
+                if(i >= end size) return // caught it!
+            }
         }
     }
 
