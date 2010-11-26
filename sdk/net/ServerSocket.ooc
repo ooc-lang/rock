@@ -162,15 +162,15 @@ ServerSocket: class extends Socket {
 
         This method will block.
     */
-    accept: func ~withClosure (f: Func(ReaderWriterPair)) {
+    accept: func ~withClosure (f: Func(ReaderWriterPair) -> Bool) {
         if(!listening?)
             listen()
 
         loop(||
             conn := accept()
-            f(conn)
+            ret := f(conn)
             conn close()
-            conn
+            conn && ret // Break out of the loop if one of conn or ret is 0 or null
         )
     }
 }
