@@ -120,20 +120,24 @@ ServerSocket: class extends Socket {
     /**
         Places the socket into a listening state.
     */
-    listen: func(backlog: Int) {
-        if(listen(descriptor, backlog) == -1) {
+    listen: func(backlog: Int) -> Bool {
+        ret := listen(descriptor, backlog)
+        if(ret == -1) {
             SocketError new() throw()
         }
+        listening? = (ret == 0)
+        listening?
     }
 
     /**
         Places the socket into a listening state, with default backlog (100).
     */
-    listen: func ~defaultbacklog {
+    listen: func ~defaultbacklog -> Bool {
         // 100 seems to be a good backlog setting to
         // not be as badly affected by SYN floods.
         // See http://tangentsoft.net/wskfaq/advanced.html#backlog for details
         listen(100)
+        listening?
     }
 
     /**
@@ -151,6 +155,23 @@ ServerSocket: class extends Socket {
         }
         sock := TCPSocket new(SocketAddress newFromSock(addr&, addrSize), conn)
         return ReaderWriterPair new(sock)
+    }
+
+    /**
+        Run f() in a loop that calls accept()
+
+        This method will block.
+    */
+    accept: func ~withClosure (f: Func(ReaderWriterPair)) {
+        if(!listening?)
+            listen()
+
+        loop(||
+            conn := accept()
+            f(conn)
+            conn close()
+            conn
+        )
     }
 }
 
