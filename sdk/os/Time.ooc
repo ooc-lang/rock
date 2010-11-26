@@ -97,6 +97,16 @@ Time: class {
             return -1
         }
     }
+    
+    /**
+     * @return the number of milliseconds spent executing 'action'
+     */
+    measure: static func (action: Func) -> UInt {
+        t1 := runTime
+        action()
+        t2 := runTime
+        t2 - t1
+    }
 
     /**
         Returns the seconds that have elapsed in the current minute.

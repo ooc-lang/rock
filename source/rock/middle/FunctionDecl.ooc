@@ -740,7 +740,7 @@ FunctionDecl: class extends Declaration {
         parentCall := trail get(fCallIndex) as FunctionCall
         parentFunc := parentCall getRef()
 
-        if (!parentFunc) {
+        if (!parentFunc || parentCall refScore < 0) {
             res wholeAgain(this, "Need ACS reference.")
             return false
         }
@@ -771,12 +771,14 @@ FunctionDecl: class extends Declaration {
 			res wholeAgain(this, "Invalid argument index - call candidate probably doesn't match")
 			return false
 		}
-        funcPointer := parentFunc args[ind] getType() as FuncType
-
-        if (!funcPointer) {
-            res wholeAgain(this, "Missing type informantion in the function pointer.")
+        
+        argType := parentFunc args[ind] getType()
+        if (!argType || argType class != FuncType) {
+            res wholeAgain(this, "Missing type information in the function pointer.")
             return false
         }
+        funcPointer := argType as FuncType
+
         ix := 0
 
         fScore := 0
@@ -1181,4 +1183,3 @@ FunctionRedefinition: class extends Error {
     }
 
 }
-

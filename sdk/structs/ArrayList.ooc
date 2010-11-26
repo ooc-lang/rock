@@ -36,6 +36,13 @@ ArrayList: class <T> extends List<T> {
         capacity = _size
     }
 
+    init: func ~fromNullTerminated (.data) {
+        i := 0
+        while(data[i] != null)
+            i += 1
+        init(data, i)
+    }
+
     add: func (element: T) {
         ensureCapacity(_size + 1)
         data[_size] = element
@@ -43,6 +50,9 @@ ArrayList: class <T> extends List<T> {
     }
 
     add: func ~withIndex (index: SSizeT, element: T) {
+        if(index < 0) index = _size + index
+        if(index < 0 || index > _size) OutOfBoundsException new(This, index, _size) throw()
+
         // inserting at 0 can be optimized
         if(index == 0) {
             ensureCapacity(_size + 1)
@@ -76,6 +86,8 @@ ArrayList: class <T> extends List<T> {
     }
 
     get: inline func(index: SSizeT) -> T {
+        if(index < 0) index = _size + index
+        if(index < 0 || index >= _size) OutOfBoundsException new(This, index, _size) throw()
         checkIndex(index)
         return data[index]
     }
@@ -203,13 +215,23 @@ ArrayList: class <T> extends List<T> {
 
     /** @return This<T> containing the items from this[min] through (including) this[max-1]  */
     slice: func (min, max: SSizeT) -> This<T> {
-        ret := This<T> new(max-min)
-        /*for(i in min..max) {
+        if(min < 0) min = _size + min
+        if(min < 0 || min >= _size) OutOfBoundsException new(This, min, _size) throw()
+
+        if(max < 0) max = _size + max
+        if(max < 0 || max >= _size) OutOfBoundsException new(This, max, _size) throw()
+
+        // We use +1 since it's zero based, and we want the *size* instead of the last index
+        retSize := max - min + 1
+
+        ret := This<T> new(retSize)
+        /*for(i in min..(max + 1)) { // Used (max + 1) to compensate for Ranges being exclusive
             ret add(this[i])
         }*/
-        memcpy(ret data, data + (min * T size), (max - min) * T size)
-        ret _size = _size
-        ret capacity = _size
+        memcpy(ret data, data + (min * T size), (retSize) * T size)
+        ret _size = retSize
+        ret capacity = retSize
+
         ret
     }
 
