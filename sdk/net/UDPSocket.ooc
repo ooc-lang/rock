@@ -9,7 +9,7 @@ UDPSocket: class extends Socket {
     remote: SocketAddress
 
     init: func() {
-        super(remote family(), SocketType DATAGRAM, 0)
+        //super(remote family(), SocketType DATAGRAM, 0)
     }
 
     /**
@@ -24,6 +24,8 @@ UDPSocket: class extends Socket {
     send: func ~withLength(data: Char*, length: SizeT, flags: Int, other: String, port: SizeT, resend: Bool) -> Int {
         ip := DNS resolveOne(other, SocketType DATAGRAM, AddressFamily IP4) // Ohai, IP4-specificness. TODO: Fix this
         remote := SocketAddress new(ip, port)
+        init(remote family(), SocketType DATAGRAM, 0)
+
         bytesSent := socket sendTo(descriptor, data, length, flags, remote addr(), remote length())
         if (resend)
             while(bytesSent < length && bytesSent != -1) {
@@ -92,6 +94,8 @@ UDPSocket: class extends Socket {
     receive: func ~withFlags(chars: Char*, length: SizeT, flags: Int, other: String, port: Int) -> Int {
         ip := DNS resolveOne(other, SocketType DATAGRAM, AddressFamily IP4) // Ohai, IP4-specificness. TODO: Fix this
         remote := SocketAddress new(ip, port)
+        init(remote family(), SocketType DATAGRAM, 0)
+
         bytesRecv := socket recvFrom(descriptor, chars, length, flags, remote addr(), remote length())
         if(bytesRecv == -1) {
             SocketError new() throw()
