@@ -98,9 +98,9 @@ shutdown: extern func(descriptor: Int, how: Int) -> Int
 listen: extern func(descriptor: Int, numberOfBacklogConnections: Int) -> Int
 poll: extern func(ufds: PollFd*, nfds: UInt, timeout: Int) -> Int
 recv: extern func(descriptor: Int, buffer: Pointer, maxBufferLength: SizeT, flags: Int) -> Int
-recvFrom: extern func(descriptor: Int, buffer: Pointer, maxBufferLength: SizeT, flags: Int, senderAddress: SockAddr*, senderAddressLength: UInt) -> Int
+recvFrom: extern(recvfrom) func(descriptor: Int, buffer: Pointer, maxBufferLength: SizeT, flags: Int, senderAddress: SockAddr*, senderAddressLength: UInt) -> Int
 send: extern func(descriptor: Int, message: Pointer, messageLength: SizeT, flags: Int) -> Int
-sendTo: extern func(descriptor: Int, message: Pointer, messageLength: SizeT, flags: Int, recieverAddress: SockAddr*, recieverAddressLength: UInt) -> Int
+sendTo: extern(sendto) func(descriptor: Int, message: Pointer, messageLength: SizeT, flags: Int, recieverAddress: SockAddr*, recieverAddressLength: UInt) -> Int
 select: extern func(numfds: Int, readfds: FdSet*, writefds: FdSet*, exceptfds: FdSet*, timeout: TimeVal*) -> Int
 getsockopt: extern func(s: Int, level: Int, optname: Int, optval: Pointer, optlen: UInt) -> Int
 setsockopt: extern func(s: Int, level: Int, optname: Int, optval: Pointer, optlen: UInt) -> Int
