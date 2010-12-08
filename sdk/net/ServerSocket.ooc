@@ -5,20 +5,25 @@ import text/StringTokenizer
     A server based socket interface.
 */
 ServerSocket: class extends Socket {
+    backlog: Int
 
     init: func ~server {
         super(AddressFamily IP4, SocketType STREAM, 0) 
     }
 
-    init: func ~port(port: Int) {
-        init("0.0.0.0", port, false)
-    }
+    /**
+        Initialize the socket.
 
-    init: func ~ipAndPort(ip: String, port: Int) {
-        init(ip, port, false)
-    }
+        100 seems to be a good backlog setting to not be as badly affected by SYN floods.
+        See http://tangentsoft.net/wskfaq/advanced.html#backlog for details
 
-    init: func ~ipPortAndListen(ip: String, port: Int, enabled: Bool) {
+        :param ip: The IP, for now it can NOT be a hostname (TODO: This is a bug! Fix it!)
+        :param port: The port, for example 8080, or 80.
+        :param bl: The backlog, defaults to 100
+        :param enabled: If true, call listen(), otherwise do not
+    */
+    init: func ~ipPortBacklogAndListen(ip := "0.0.0.0", port: Int, bl := 100, enabled := false) {
+        backlog = bl
         type = ipType(ip)
         super(type, SocketType STREAM, 0)
         bind(ip, port)
@@ -130,13 +135,10 @@ ServerSocket: class extends Socket {
     }
 
     /**
-        Places the socket into a listening state, with default backlog (100).
+        Places the socket into a listening state, using backlog variable.
     */
-    listen: func ~defaultbacklog -> Bool {
-        // 100 seems to be a good backlog setting to
-        // not be as badly affected by SYN floods.
-        // See http://tangentsoft.net/wskfaq/advanced.html#backlog for details
-        listen(100)
+    listen: func ~nobacklog -> Bool {
+        listen(backlog)
         listening?
     }
 
