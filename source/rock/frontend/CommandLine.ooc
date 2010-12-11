@@ -432,29 +432,36 @@ CommandLine: class {
             moduleName := File new(dummyModule ? dummyModule path : modulePaths[0]) name()
             moduleName = moduleName[0..moduleName length() - 4]
             basePath := File new("build", moduleName) getPath()
-            if(params staticlib == "") {
+            if(params staticlib) {
                 params clean = false
                 params defaultMain = false
                 params outPath = File new(basePath, "include")
-                staticExt := ".a"
-                params staticlib = File new(File new(basePath, "lib"), moduleName + staticExt) getPath()
+                
+                if(params staticlib == "") {
+                    staticExt := ".a"
+                    params staticlib = File new(File new(basePath, "lib"), moduleName + staticExt) getPath()
+                }
             }
-            if(params dynamiclib == "") {
+            
+            if(params dynamiclib) {
                 params clean = false
                 params defaultMain = false
                 params outPath = File new(basePath, "include")
-                prefix := "lib"
-                dynamicExt := ".so"
-                // TODO: version blocks for this is evil. What if we want to cross-compile?
-                // besides, it's missing some platforms.
-                version(windows) {
-                    dynamicExt = ".dll"
-                    prefix = ""
+                
+                if(params dynamiclib == "") {
+                    prefix := "lib"
+                    dynamicExt := ".so"
+                    // TODO: version blocks for this is evil. What if we want to cross-compile?
+                    // besides, it's missing some platforms.
+                    version(windows) {
+                        dynamicExt = ".dll"
+                        prefix = ""
+                    }
+                    version(apple) {
+                        dynamicExt = ".dylib"
+                    }
+                    params dynamiclib = File new(File new(basePath, "lib"), prefix + moduleName + dynamicExt) getPath()
                 }
-                version(apple) {
-                    dynamicExt = ".dylib"
-                }
-                params dynamiclib = File new(File new(basePath, "lib"), prefix + moduleName + dynamicExt) getPath()
 
                 // TODO: this is too gcc/Linux-specific: there should be a good way
                 // to abstract that away
@@ -462,7 +469,6 @@ CommandLine: class {
                 params compilerArgs add("-shared")
                 params compilerArgs add("-Wl,-soname," + params dynamiclib)
                 params binaryPath = params dynamiclib
-                //driver = CombineDriver new(params)
                 params libcache = false // libcache is incompatible with combine driver
                 File new(basePath, "lib") mkdirs()
             }
