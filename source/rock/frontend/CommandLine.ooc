@@ -360,7 +360,7 @@ CommandLine: class {
 
                 } else {
 
-                    printf("Unrecognized option: %s\n", arg)
+                    "Unrecognized option: %s" printfln(arg)
 
                 }
             } else if(arg startsWith?("+")) {
@@ -405,7 +405,7 @@ CommandLine: class {
             params libfolder = libfolder getPath()
             params sourcePath add(params libfolder)
 
-            if(params verbose) "Building lib for folder %s to name %s\n" printf(params libfolder, name)
+            if(params verbose) "Building lib for folder %s to name %s" printfln(params libfolder, name)
 
             dummyModule = Module new("__lib__/%s.ooc" format(name), ".", params, nullToken)
             libfolder walk(|f|
@@ -426,7 +426,7 @@ CommandLine: class {
 
         if(params staticlib != null || params dynamiclib != null) {
             if(modulePaths getSize() != 1 && !params libfolder) {
-                "Error: you can use -staticlib of -dynamiclib only when specifying a unique .ooc file, not %d of them.\n" printf(modulePaths getSize())
+                "Error: you can use -staticlib of -dynamiclib only when specifying a unique .ooc file, not %d of them." printfln(modulePaths getSize())
                 exit(1)
             }
             moduleName := File new(dummyModule ? dummyModule path : modulePaths[0]) name()
@@ -535,7 +535,7 @@ CommandLine: class {
     parse: func (moduleName: String) -> Int {
         (moduleFile, pathElement) := params sourcePath getFile(moduleName)
         if(!moduleFile) {
-            printf("File not found: %s\n", moduleName)
+            "File not found: %s" printfln(moduleName)
             exit(1)
         }
 
@@ -580,7 +580,7 @@ CommandLine: class {
             )
         }
         module parseImports(null)
-        if(params verbose) printf("\rFinished parsing, now tinkering...                                                   \n")
+        if(params verbose) "\rFinished parsing, now tinkering...                                                   " println()
 
         // phase 2: tinker
         if(!Tinkerer new(params) process(module collectDeps())) failure(params)
@@ -693,4 +693,3 @@ CompilationFailedException: class extends Exception {
         super("Compilation failed!")
     }
 }
-
