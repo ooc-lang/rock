@@ -206,13 +206,18 @@ SequenceDriver: class extends Driver {
         if(params verbose) "Re-generating modules..." println()
         reGenerated := ArrayList<Module> new()
         for(module in sourceFolder modules) {
-			if(params verbose) ("Re-generating " + module fullName) println()
+			result := CGenerator new(params, module) write()
             
-            result := CGenerator new(params, module) write()
+            if(result && params verbose) ("Re-generated " + module fullName) println()
             
-            // apply package filter to see if it belongs here
+            // apply libfolder and package filter to see if it belongs here
+            if(params libfolder) {
+                path1 := File new(params libfolder) getAbsolutePath()
+                path2 := File new(module oocPath) getAbsolutePath()
+                if(!path2 startsWith?(path1)) continue
+            }
             if(params packageFilter && !module fullName startsWith?(params packageFilter)) {
-                "Filtering %s out" printfln(module fullName)
+                if(params verbose) "Filtering %s out" printfln(module fullName)
                 continue
             }
             
