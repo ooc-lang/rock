@@ -134,11 +134,11 @@ BinarySequenceReader: class {
             case 3 => u32()
             case 4 => u64()
         }
-        s := String new(length)
+        b := Buffer new(length)
         for(i in 0..length) {
-            s[i] = u8() as Char
+            b[i] = u8() as Char
         }
-        s
+        b toString()
     }
 }
 
