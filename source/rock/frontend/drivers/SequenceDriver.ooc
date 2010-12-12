@@ -189,14 +189,14 @@ SequenceDriver: class extends Driver {
 
             if(archive exists?) {
                 dirtyModules := archive dirtyModules(sourceFolder modules)
+                for(module in dirtyModules) {
+                    CGenerator new(params, module) write()
+                }
+                
                 if(params packageFilter) {
                     dirtyModules = dirtyModules filter(|m|
                         m fullName startsWith?(params packageFilter)
                     )
-                }
-                
-                for(module in dirtyModules) {
-                    CGenerator new(params, module) write()
                 }
                 return dirtyModules
             }
@@ -208,13 +208,15 @@ SequenceDriver: class extends Driver {
         for(module in sourceFolder modules) {
 			if(params verbose) ("Re-generating " + module fullName) println()
             
-            // filter out modules!
+            result := CGenerator new(params, module) write()
+            
+            // apply package filter to see if it belongs here
             if(params packageFilter && !module fullName startsWith?(params packageFilter)) {
                 "Filtering %s out" printfln(module fullName)
                 continue
             }
             
-            if(CGenerator new(params, module) write()) {
+            if(result) {
 				reGenerated add(module)
 			} else {
 				// already compiled, but still need to link with it
