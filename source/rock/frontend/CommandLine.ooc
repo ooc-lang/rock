@@ -81,6 +81,11 @@ CommandLine: class {
                         params dynamiclib = arg substring(idx + 1)
                     }
 
+                } else if (option startsWith?("packagefilter=")) {
+
+                    idx := arg indexOf('=')
+                    params packageFilter = arg substring(idx + 1)
+
                 } else if (option startsWith?("libfolder=")) {
 
                     idx := arg indexOf('=')
@@ -408,6 +413,7 @@ CommandLine: class {
             if(params verbose) "Building lib for folder %s to name %s" printfln(params libfolder, name)
 
             dummyModule = Module new("__lib__/%s.ooc" format(name), ".", params, nullToken)
+            dummyModule dummy = true
             libfolder walk(|f|
                 // sort out links to non-existent destinations.
                 if(!f exists?())

@@ -12,6 +12,9 @@ Module: class extends Node {
     // statistics house-keeping
     timesImported := 0
     timesLooped := 0
+    
+    // true if this module is a dummy only used to get imports!
+    dummy := false
 
     // if this module is out-of-date, 'dead' is set to true.
     dead: Bool { get set }

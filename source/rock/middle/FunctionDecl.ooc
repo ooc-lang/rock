@@ -755,7 +755,9 @@ FunctionDecl: class extends Declaration {
             callExprTypeArgs := parentCall expr getType() getTypeArgs()
             if(callExprTypeArgs) {
                 for(typeArg in parentFunc getOwner() typeArgs) {
-                    body add(0, VariableDecl new(null, typeArg getName(), callExprTypeArgs get(j), token))
+                    helperDecl := VariableDecl new(null, typeArg getName(), callExprTypeArgs get(j), token)
+                    helperDecl externName = "" // declare it as extern so it doesn't get written
+                    body add(0, helperDecl)
                     j += 1
                 }
             }

@@ -230,6 +230,11 @@ BuildParams: class {
 
     // if non-null, will create a dynamic library
     dynamiclib : String = null
+    
+    // name of the package we should only be packaging
+    // modules in any other package will be ignored
+    // when building static/dynamic libraries
+    packageFilter : String = null
 
     // add a main method if there's none in the specified ooc file
     defaultMain := true

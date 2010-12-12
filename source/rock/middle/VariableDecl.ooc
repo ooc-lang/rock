@@ -479,5 +479,3 @@ TupleMismatch: class extends Error {
 IncompatibleElementInTupleVarDecl: class extends Error {
     init: super func ~tokenMessage
 }
-
-
