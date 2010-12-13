@@ -54,7 +54,7 @@ Coro: class {
         b
     }
 
-    bytesLeftOnStack: func -> SizeT {
+    bytesLeftOnStack: func -> SSizeT {
         dummy: UChar
         p1: PtrDiff = dummy&
         p2: PtrDiff = currentStackPointer()
@@ -124,17 +124,3 @@ getcontext: extern func (ucp: UContext*) -> Int
 setcontext: extern func (ucp: UContext*) -> Int
 makecontext: extern func (ucp: UContext*, _func: Pointer, argc: Int, ...)
 swapcontext: extern func (oucp: UContext*, ucp: UContext*) -> Int
-
-
-
-
-
-
-
-
-
-
-
-
-
-
