@@ -83,7 +83,7 @@ SizeT:  cover from size_t extends ULLong
 SSizeT:  cover from ssize_t extends LLong {
     toString:    func -> String { "%u" format(this) }
 }
-PtrDiff: cover from ptrdiff_t extends SizeT
+PtrDiff: cover from ptrdiff_t extends SSizeT
 
 /**
  * real types
