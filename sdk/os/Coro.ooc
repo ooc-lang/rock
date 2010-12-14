@@ -2,7 +2,7 @@
 /**
  * Portable ucontext-based coroutines implementation for cooperative multitasking.
  *
- * Largely based on Steve Dekorte's libcoroutine, see authors below.
+ * Originally based on Steve Dekorte's libcoroutine, see authors below.
  *
  * @author Steve Dekorte (libcoroutine - http://github.com/stevedekorte/coroutine)
  * @author Russ Cox (libcoroutine OSX10.6 fixes)
@@ -16,85 +16,35 @@ Coro: class {
     DEFAULT_STACK_SIZE := static 128 * 1_024
     MIN_STACK_SIZE := static 8_192
 
-    requestedStackSize: SizeT { get set }
-    allocatedStackSize: SizeT
-    stack: Pointer { get set }
+    stack: Pointer
     env: UContext
     isMain: Bool
 
-    init: func {
-        requestedStackSize = DEFAULT_STACK_SIZE
-        allocatedStackSize = 0
-    }
-
-    allocStackIfNeeded: func {
-        //"AllocStackIfNeeded of %p, alloc/req = %d/%d" format(this, allocatedStackSize, requestedStackSize) println()
-        
-        if (stack != null && allocatedStackSize > requestedStackSize) {
-           gc_free(stack)
-           stack = gc_malloc(requestedStackSize)
-           allocatedStackSize = requestedStackSize
-        }
-
-        if (stack == null) {
-            stack = gc_malloc(requestedStackSize)
-            allocatedStackSize = requestedStackSize
-        }
-    }
-
-    free: func {
-        if(stack) {
-            gc_free(stack)
-        }
-    }
-
-    currentStackPointer: func -> UInt8* {
-        a: UInt8
-        b := a& // to avoid compiler warning about unused variables
-        b
-    }
-
-    bytesLeftOnStack: func -> SSizeT {
-        dummy: UChar
-        p1: PtrDiff = dummy&
-        p2: PtrDiff = currentStackPointer()
-
-        start: PtrDiff = stack
-        end: PtrDiff = stack + requestedStackSize
-
-        stackMovesUp := (p2 > p1)
-        if(stackMovesUp) { // like x86
-            end - p1
-        } else { // like OSX on PPC
-            p1 - start
-        }
-    }
-
-    stackSpaceAlmostGone: func -> Bool {
-        bytesLeftOnStack() < MIN_STACK_SIZE
-    }
+    init: func {}
 
     initializeMainCoro: func {
         isMain = true
     }
 
     startCoro: func (other: This, callback: Func) {
-        other allocStackIfNeeded()
-        other setup(||
+        allocdStack: Char[DEFAULT_STACK_SIZE]
+        other stack = allocdStack
+        
+        other setup(this, ||
             callback()
-            "Scheduler error: returned from coro start function" println()
+            "Scheduler error: returned from coro start function" println(stderr)
             exit(-1)
         )
         switchTo(other)
     }
 
-    setup: func (callback: Func) {
+    setup: func (coro: Coro, callback: Func) {
         getcontext(env&)
 
         env stack stackPointer = stack
-        env stack stackSize    = requestedStackSize
+        env stack stackSize    = DEFAULT_STACK_SIZE
         env stack flags        = 0
-        env link               = null
+        env link               = coro env&
 
         makecontext(env&, callback as Closure thunk, 1, callback as Closure context)
     }
