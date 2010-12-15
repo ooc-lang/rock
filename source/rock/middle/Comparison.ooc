@@ -15,7 +15,7 @@ CompType: enum {
 }
 
 
-compTypeRepr := static ["no-op",
+compTypeRepr := ["no-op",
         "==",
         "!=",
         ">",
