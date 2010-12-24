@@ -251,17 +251,15 @@ ArrayListIterator: class <T> extends BackIterator<T> {
     hasNext?: func -> Bool { index < list size }
 
     next: func -> T {
-        element := list get(index)
         index += 1
-        return element
+        list get(index - 1)
     }
 
     hasPrev?: func -> Bool { index > 0 }
 
     prev: func -> T {
         index -= 1
-        element := list get(index)
-        return element
+        list get(index)
     }
 
     remove: func -> Bool {
