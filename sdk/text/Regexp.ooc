@@ -50,7 +50,7 @@ Regexp: class {
         :return: new regular expression object if successful, null if error occured.
     */
     compile: static func ~withOptions(pattern: String, options: Int) -> This {
-        p := Pcre compile(pattern, options, (Regexp errorMsg&) as const Char**, Regexp errorOffset&, null)
+        p := Pcre compile(pattern toCString(), options, (Regexp errorMsg&) as const Char**, Regexp errorOffset&, null)
         if(!p) {
             //TODO: once true exceptions work, throw an exception instead
             return null
@@ -75,7 +75,7 @@ Regexp: class {
     */
     matches: func ~withLengthAndStart(subject: String, start: Int, length: SizeT) -> Match {
         ovector: Int* = gc_malloc(Int size * maxSubstrings)
-        count := pcre exec(null, subject, length, start, 0, ovector, maxSubstrings)
+        count := pcre exec(null, subject toCString(), length, start, 0, ovector, maxSubstrings)
         if(count > 0) {
             return Match new(this, count, subject, ovector)
         }
@@ -125,7 +125,7 @@ Match: class extends Iterable<String> {
         Returns a subgroup of the matched string by name.
     */
     group: func ~byName(name: String) -> String {
-        number := regexp pcre getStringNumber(name)
+        number := regexp pcre getStringNumber(name toCString())
         if(number < -1) Exception new("Invalid group name: %s" format(name toCString())) throw()
         return group(number)
     }
