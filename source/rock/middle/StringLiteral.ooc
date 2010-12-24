@@ -37,7 +37,7 @@ StringLiteral: class extends Literal {
                 vDecl isStatic = true
                 vAcc := VariableAccess new(vDecl, token)
                 
-                trail module() body add(vDecl)
+                trail module() body add(0, vDecl)
                 if(!parent replace(this, vAcc)) {
                     res throwError(CouldntReplace new(token, this, vAcc, trail))
                 }
