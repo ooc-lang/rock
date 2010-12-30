@@ -510,6 +510,33 @@ FunctionCall: class extends Expression {
             return Response OK
         }
 
+        /* check for String instances passed to C vararg functions if helpful.
+           Skip `va_arg`. `va_arg` is a vararg function that takes the last-before-vararg
+           argument as an argument. For methods, it's always `this` (implicit first argument).
+           So, skip it.
+          */
+        if(res params helpful && this name != "va_start") {
+            doIt := true
+            idx := 0
+            for(arg in ref args) {
+                if(!doIt)
+                    break
+                if(arg instanceOf?(VarArg)) {
+                    varIdx := idx
+                    // Yes, Virginia, there are varargs.
+                    pi := 0
+                    for(passedArg in this args) {
+                        if(passedArg getType() && passedArg getType() getName() == "String" && pi >= varIdx) {
+                            passedArg token formatMessage("Passing String to C vararg function.", "HINT") println()
+                        }
+                        doIt = false
+                        pi += 1
+                    }
+                }
+                idx += 1
+            }
+        }
+
         return Response OK
 
     }
