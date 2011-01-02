@@ -766,7 +766,7 @@ FunctionDecl: class extends Declaration {
         ind := parentCall args indexOf(this)
 
         if (ind == -1) {
-            res throwError(InternalError new(token, "[ACS]: Can't find ´this´ in the call's arguments.\ntrail = %s" format(trail toString())))
+            res throwError(InternalError new(token, "[ACS]: Can't find `this` in the call's arguments.\ntrail = %s" format(trail toString())))
         }
 
 		if(ind >= parentFunc args size) {
