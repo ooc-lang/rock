@@ -18,6 +18,9 @@ generate: func <T> (writer: Writer, obj: T) {
         case Int => {
             writer write(obj as Int toString())
         }
+        case Int64 => {
+            writer write(obj as Int64 toString())
+        }
         case UInt => {
             writer write(obj as UInt toString())
         }
