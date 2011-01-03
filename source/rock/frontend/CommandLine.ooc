@@ -310,7 +310,7 @@ CommandLine: class {
 
                 } else if(option startsWith?("cc=")) {
 
-                    cCPath := option substring(3)
+                    cCPath = option substring(3)
                     setCompilerPath()
 
                 } else if (option startsWith?("gcc")) {
