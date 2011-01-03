@@ -6,6 +6,7 @@ TIME=$(shell date +%H:%M)
 OOC_WARN_FLAGS?=+-w
 OOC_OWN_FLAGS=-sourcepath=source -v +-O0 -g -ignoredefine=ROCK_BUILD_ ${OOC_WARN_FLAGS}
 
+CC?=gcc
 PREFIX?=/usr
 MAN_INSTALL_PATH?=/usr/local/man/man1
 BIN_INSTALL_PATH?=${PREFIX}/bin
@@ -34,7 +35,7 @@ grammar:
 
 .libs/NagaQueen.o: source/rock/frontend/NagaQueen.c
 	mkdir -p .libs
-	gcc -std=c99 ${NQ_PATH} -O3 -fomit-frame-pointer -D__OOC_USE_GC__ -w -c -o .libs/NagaQueen.o
+	${CC} -std=c99 ${NQ_PATH} -O3 -fomit-frame-pointer -D__OOC_USE_GC__ -w -c -o .libs/NagaQueen.o
 #	gcc -std=c99 ${NQ_PATH} -O0 -g -D__OOC_USE_GC__ -w -c -o .libs/NagaQueen.o
 
 # Prepares the build/ directory, used for bootstrapping
