@@ -59,7 +59,7 @@ CommandLine: class {
 
                 } else if (option startsWith?("outlib")) {
 
-                    "Deprecated option %s! Use -staticlib instead. Abandoning.\n" printf(option)
+                    "Deprecated option %s! Use -staticlib instead. Abandoning." printfln(option)
                     exit(1)
 
                 } else if (option startsWith?("staticlib")) {
@@ -290,7 +290,7 @@ CommandLine: class {
                         case "dummy" =>
                             DummyDriver new(params)
                         case =>
-                            "Unknown driver: %s\n" printf(driverName)
+                            "Unknown driver: %s" printfln(driverName)
                             null
                     }
 
@@ -300,7 +300,7 @@ CommandLine: class {
 
                 } else if (option == "V" || option == "-version" || option == "version") {
 
-                    printf("rock %s, built on %s at %s\n", RockVersion getName(), ROCK_BUILD_DATE, ROCK_BUILD_TIME)
+                    "rock %s, built on %s at %s" printfln(RockVersion getName(), ROCK_BUILD_DATE, ROCK_BUILD_TIME)
                     exit(0)
 
                 } else if (option == "h" || option == "-help" || option == "help") {

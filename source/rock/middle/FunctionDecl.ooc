@@ -452,7 +452,7 @@ FunctionDecl: class extends Declaration {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        if(debugCondition() || res params veryVerbose) printf("** Resolving function decl %s\n", name)
+        if(debugCondition() || res params veryVerbose) "** Resolving function decl %s" printfln(name)
 
         if(debugCondition()) ("isFatal ? " + res fatal toString()) println()
 
@@ -512,7 +512,7 @@ FunctionDecl: class extends Declaration {
             if(debugCondition()) "Handling arg %s" format(arg toString()) println()
             response := arg resolve(trail, res)
             if(!response ok()) {
-                if(debugCondition() || res params veryVerbose) printf("Response of arg %s = %s\n", arg toString(), response toString())
+                if(debugCondition() || res params veryVerbose) "Response of arg %s = %s" printfln(arg toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -544,7 +544,7 @@ FunctionDecl: class extends Declaration {
         for(typeArg in typeArgs) {
             response := typeArg resolve(trail, res)
             if(!response ok()) {
-                if(debugCondition() || res params veryVerbose) printf("Response of typeArg %s = %s\n", typeArg toString(), response toString())
+                if(debugCondition() || res params veryVerbose) "Response of typeArg %s = %s" printfln(typeArg toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -555,7 +555,7 @@ FunctionDecl: class extends Declaration {
         {
             response := returnType resolve(trail, res)
             if(!response ok()) {
-                if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of return type %s = %s\n", toString(), returnType toString(), response toString())
+                if(debugCondition() || res params veryVerbose) "))))))) For %s, response of return type %s = %s" printfln(toString(), returnType toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -593,7 +593,7 @@ FunctionDecl: class extends Declaration {
         {
             response := body resolve(trail, res)
             if(!response ok()) {
-                if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of body = %s\n", toString(), response toString())
+                if(debugCondition() || res params veryVerbose) "))))))) For %s, response of body = %s" printfln(toString(), response toString())
                 trail pop(this)
                 res wholeAgain(this, "body wanna LOOP")
                 return Response OK
@@ -616,7 +616,7 @@ FunctionDecl: class extends Declaration {
 
             response := autoReturn(trail, res, this, body, returnType)
             if(!response ok()) {
-                if(debugCondition() || res params veryVerbose) printf("))))))) For %s, response of autoReturn = %s\n", toString(), response toString())
+                if(debugCondition() || res params veryVerbose) "))))))) For %s, response of autoReturn = %s" printfln(toString(), response toString())
                 trail pop(this)
                 return response
             }

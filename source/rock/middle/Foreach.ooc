@@ -115,7 +115,7 @@ Foreach: class extends ControlStatement {
                              addAll(getBody())
 
             if(!list replace(this, block)) {
-                if(res fatal) printf("Failed to replace %s with %s in a %s. trail = %s", toString(), block toString(), list toString(), trail toString())
+                if(res fatal) "Failed to replace %s with %s in a %s. trail = %s" printfln(toString(), block toString(), list toString(), trail toString())
                 res wholeAgain(this, "Can't turn into a while :/, list = " + list toString() + " (it's a " + list class name)
                 return Response LOOP
             }

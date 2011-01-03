@@ -144,7 +144,7 @@ BaseType: class extends Type {
                 res throwError(UnresolvedType new(token, this, msg))
             }
             if(res params veryVerbose) {
-                printf("     - type %s still not resolved, looping (ref = %p)\n", name, getRef())
+                "     - type %s still not resolved, looping (ref = %p)" printfln(name, getRef())
             }
             return Response LOOP
         } else if(ref instanceOf?(TypeDecl)) {

@@ -358,7 +358,7 @@ VariableAccess: class extends Expression {
                 res throwError(UnresolvedAccess new(subject, msg))
             }
             if(res params veryVerbose) {
-                printf("     - access to %s%s still not resolved, looping (ref = %s)\n", \
+                "     - access to %s%s still not resolved, looping (ref = %s)" printfln(\
                 expr ? (expr toString() + "->")  : "", name, ref ? ref toString() : "(nil)")
             }
             res wholeAgain(this, "Couldn't resolve varacc")

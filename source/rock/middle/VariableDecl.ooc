@@ -143,7 +143,7 @@ VariableDecl: class extends Declaration {
         trail push(this)
 
         if(debugCondition() || res params veryVerbose) {
-            printf("Resolving variable decl %s\n", toString())
+            "Resolving variable decl %s\n" printfln(toString())
         }
 
         if(expr) {
