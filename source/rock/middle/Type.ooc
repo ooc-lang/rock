@@ -388,7 +388,14 @@ ArrayType: class extends PointerType {
         copy
     }
 
-    toString: func -> String { inner toString() append(expr != null ? "[%s]" format(expr toString()) : "[]") }
+    toString: func -> String {
+        s := inner toString()
+        if(expr != null)
+            s append("[%s]" format(expr toString()))
+        else
+            s append("[]")
+        s
+    }
     toMangledString: func -> String { inner toString() + "__array" }
 
     isPointer: func -> Bool { false }
