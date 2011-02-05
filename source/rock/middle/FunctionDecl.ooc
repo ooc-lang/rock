@@ -481,7 +481,7 @@ FunctionDecl: class extends Declaration {
                         fType1 := arg getType() as FuncType
                         // check 1) number of argument 2) it's a FuncType
                         if(parentArgs <= i || !parent args[i] getType() instanceOf?(FuncType)) {
-                            break
+                            continue
                         }
                         fType2 := parent args[i] getType() as FuncType
 
