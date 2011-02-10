@@ -473,16 +473,12 @@ FunctionDecl: class extends Declaration {
                     if(debugCondition()) "Got -1 from finalScore!" println()
                     return Response OK
                 }
-                parentArgs := parent args getSize()
                 // todo: check for finalScore
                 for(i in 0..args getSize()) {
                     arg := args[i]
                     if(arg getType() instanceOf?(FuncType)) {
                         fType1 := arg getType() as FuncType
-                        // check 1) number of argument 2) it's a FuncType
-                        if(parentArgs <= i || !parent args[i] getType() instanceOf?(FuncType)) {
-                            break
-                        }
+                        // TODO: add check 1) number of argument 2) it's a FuncType
                         fType2 := parent args[i] getType() as FuncType
 
                         //"for %s, got %s vs %s" printfln(toString(), fType1 toString(), fType2 toString())
