@@ -9,8 +9,8 @@ UnaryOpType: enum {
     unaryMinus       /*  -  */
 }
 
-unaryOpRepr := ["no-op",
-        "~",
+unaryOpRepr := [
+		"~",
         "!",
         "-"]
 

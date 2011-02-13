@@ -33,7 +33,7 @@ OpType: enum {
     and        /*  && */
 }
 
-opTypeRepr := ["no-op",
+opTypeRepr := [
         "+",
         "-",
         "*",
