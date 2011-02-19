@@ -73,7 +73,7 @@ rock yourmodule.ooc -backend=c -driver=sequence -gc=static -libcache -outpath=ro
 -t, -timing
     Print how much time the compilation took.
 -r, -run
-    Run the exectuable after a successful compilation.
+    Run the executable after a successful compilation.
 -editor=EDITOR
     The editor to run when an error in a ooc file was encountered.
 -entrypoint=FUNC
