@@ -197,7 +197,7 @@ BuildParams: class {
     //shout := false
     shout := true // true as long as we're debugging
 
-    // If false, output .o files. Otherwise output exectuables
+    // If false, output .o files. Otherwise output executables
     link := true
 
     // Run files after compilation
@@ -230,7 +230,7 @@ BuildParams: class {
 
     // if non-null, will create a dynamic library
     dynamiclib : String = null
-    
+
     // name of the package we should only be packaging
     // modules in any other package will be ignored
     // when building static/dynamic libraries
