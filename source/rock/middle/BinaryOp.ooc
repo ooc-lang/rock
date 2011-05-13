@@ -143,7 +143,7 @@ BinaryOp: class extends Expression {
                 res wholeAgain(this, "Can't resolve '%s'. (maybe you forgot to declare a variable?)" format(left toString()))
                 return Response OK
             } elseif (!right isResolved()) {
-                res wholeAgain(this, "Can't resolve %s. (maybe you forgot to declare a variable?" format(left toString()))
+                res wholeAgain(this, "Can't resolve %s. (maybe you forgot to declare a variable?" format(right toString()))
                 return Response OK
             }
 
