@@ -139,6 +139,14 @@ BinaryOp: class extends Expression {
         }
 
         if(type == OpType ass) {
+            if (!left isResolved()) {
+                res wholeAgain(this, "Can't resolve '%s'. (maybe you forgot to declare a variable?)" format(left toString()))
+                return Response OK
+            } elseif (!right isResolved()) {
+                res wholeAgain(this, "Can't resolve %s. (maybe you forgot to declare a variable?" format(left toString()))
+                return Response OK
+            }
+
             if(left getType() == null || !left isResolved()) {
                 res wholeAgain(this, "left type is unresolved"); return Response OK
             }
