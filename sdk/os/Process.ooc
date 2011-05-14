@@ -148,7 +148,7 @@ Process: abstract class {
      * Send `data` to the process, wait for the process to end and get the
      * stdout and stderr data. You have to do `setStdIn(Pipe new())`/
      * `setStdOut(Pipe new())`/`setStdErr(Pipe new())`
-     * before in order to send / get the data.
+     * before in order to send / get the data. You have to run `executeNoWait` before.
      * You can pass null as data, stdoutData or stderrData.
      */
     communicate: func (data: String, stdoutData, stderrData: String*) -> Int {
@@ -160,8 +160,8 @@ Process: abstract class {
                 written += stdIn write(data)
         }
 
-        /* Execute the process */
-        result := execute()
+        /* Wait for the process */
+        result := wait()
 
         /* get the data */
         if(stdoutData != null)
