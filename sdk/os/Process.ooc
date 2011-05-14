@@ -160,8 +160,8 @@ Process: abstract class {
                 written += stdIn write(data)
         }
 
-        /* wait for the process */
-        result := wait()
+        /* Execute the process */
+        result := execute()
 
         /* get the data */
         if(stdoutData != null)
