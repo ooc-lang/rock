@@ -45,8 +45,14 @@ VarArgs: cover {
             // retrieve the type
             type := (argsPtr as Class*)@ as Class
 
-            // advance of one class size
-            argsPtr += Class size
+            version(!windows) {
+                // advance of one class size
+                argsPtr += Class size
+            }
+            version(windows) {
+                // advance of the size of current type
+                argsPtr += type size
+            }
 
             // retrieve the arg and use it
             __va_call(f, type, argsPtr@)
@@ -122,9 +128,21 @@ VarArgsIterator: cover {
         countdown -= 1
 
         nextType := (argsPtr as Class*)@ as Class
-        result := (argsPtr + Class size) as T*
+        result : T*
+        version(!windows) {
+            result = (argsPtr + Class size) as T*
+            argsPtr += Class size + __pointer_align(nextType size)
+        }
+        version(windows) {
+            if(nextType size > Class size) {
+                result = (argsPtr + nextType size) as T*
+                argsPtr += nextType size + __pointer_align(nextType size)
+            } else {
+                result = (argsPtr + Class size) as Char*
+                argsPtr += Class size + __pointer_align(nextType size)
+            }
+        }
 
-        argsPtr += Class size + __pointer_align(nextType size)
         result@
     }
 
