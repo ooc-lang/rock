@@ -141,7 +141,7 @@ VarArgsIterator: cover {
                 result = (argsPtr + nextType size) as T*
                 argsPtr += nextType size + __pointer_align(nextType size)
             } else {
-                result = (argsPtr + Class size) as Char*
+                result = (argsPtr + Class size) as T*
                 argsPtr += Class size + __pointer_align(nextType size)
             }
         }
