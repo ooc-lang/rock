@@ -50,8 +50,11 @@ VarArgs: cover {
                 argsPtr += Class size
             }
             version(windows) {
-                // advance of the size of current type
-                argsPtr += type size
+                if(type size < Class size) {
+                    argsPtr += Class size
+                } else {
+                    argsPtr += type size
+                }
             }
 
             // retrieve the arg and use it
