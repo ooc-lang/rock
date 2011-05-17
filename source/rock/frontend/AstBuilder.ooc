@@ -714,6 +714,7 @@ AstBuilder: class {
         name := call generateTempName("comboRoot")
         call setName(name)
         vDecl := VariableDecl new(null, name, expr, expr token)
+        vDecl isGlobal = true // well, that's not true, but at least this way it won't be marked for partialing...
         onStatement(vDecl)
     }
 

@@ -325,7 +325,7 @@ FunctionCall: class extends Expression {
 
                                 if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
                                     closure := trail get(closureIndex) as FunctionDecl
-                                    if(closure isAnon && expr == null) {
+                                    if(closure isAnon && expr == null && !ref vDecl isGlobal) {
                                         closure markForPartialing(ref vDecl, "v")
                                     }
                                 }
