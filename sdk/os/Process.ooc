@@ -156,11 +156,11 @@ Process: abstract class {
         /* send data to stdin */
         if(data != null) {
             written := 0
-            while(written < data length())
+            while(written <= data length())
                 written += stdIn write(data)
         }
 
-        /* wait for the process */
+        /* Wait for the process */
         result := wait()
 
         /* get the data */
