@@ -23,6 +23,12 @@ File: abstract class {
 
     /** The path we're representing */
     path: String { get set }
+    
+    children: ArrayList<This> {
+        get {
+            getChildren()
+        }
+    }
 
     /** Separator for path elements. Usually '/' on *nix and '\\' on Windows. */
     separator : static Char
