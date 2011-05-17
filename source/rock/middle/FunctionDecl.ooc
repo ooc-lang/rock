@@ -746,14 +746,14 @@ FunctionDecl: class extends Declaration {
         }
 
         if (parentFunc getOwner()) {
+            if(parentCall expr == null || parentCall expr getType() == null) {
+                res wholeAgain(this, "Need type of the expr of the parent call")
+                return false
+            }
+            
             j := 0
             callExprTypeArgs := parentCall expr getType() getTypeArgs()
             if(callExprTypeArgs) {
-                if(parentCall expr == null || parentCall expr getType() == null) {
-                    res wholeAgain(this, "Need type of the expr of the parent call")
-                    return false
-                }
-                
                 for(typeArg in parentFunc getOwner() typeArgs) {
                     helperDecl := VariableDecl new(null, typeArg getName(), callExprTypeArgs get(j), token)
                     helperDecl externName = "" // declare it as extern so it doesn't get written
