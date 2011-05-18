@@ -164,7 +164,7 @@ AstBuilder: class {
     }
 
     onImportNamespace: unmangled(nq_onImportNamespace) func (cnamespace: CString, quantity: Int) {
-        if(params veryVerbose) printf("nq_importnamespace %s\n", cnamespace)
+        if(params veryVerbose) "nq_importnamespace %s" printfln(cnamespace)
         namespace := cnamespace toString()
         nDecl: NamespaceDecl
         if(!module hasNamespace(namespace)) {
@@ -714,6 +714,7 @@ AstBuilder: class {
         name := call generateTempName("comboRoot")
         call setName(name)
         vDecl := VariableDecl new(null, name, expr, expr token)
+        vDecl isGlobal = true // well, that's not true, but at least this way it won't be marked for partialing...
         onStatement(vDecl)
     }
 
@@ -823,7 +824,7 @@ AstBuilder: class {
                 }
                 tuple getElements() add(stmt as Expression)
             case =>
-                printf("[gotStatement] Got a %s, don't know what to do with it, parent = %s\n", stmt toString(), node class name)
+                "[gotStatement] Got a %s, don't know what to do with it, parent = %s\n" printfln(stmt toString(), node class name)
         }
     }
 

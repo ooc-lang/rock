@@ -229,7 +229,7 @@ ClassDeclWriter: abstract class extends Skeleton {
             current nl(). nl()
             FunctionDeclWriter writeFuncPrototype(this, decl, (decl isFinal()) ? null : "_impl")
             current app(' '). openBlock()
-
+            
             if(decl getName() == ClassDecl DEFAULTS_FUNC_NAME) {
                 nonMeta := cDecl getNonMeta()
                 superType := nonMeta getSuperType()

@@ -49,6 +49,12 @@ ArrayAccess: class extends Expression {
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         if(res fatal && type == null) {
+            if (array instanceOf?(VariableAccess)) {
+                if (!array isResolved()) {
+                    res wholeAgain(this, "Reference to undeclared variable.")
+                    return Response OK
+                }
+            }
             res throwError(InvalidArrayAccess new(token, "Trying to index something that isn't an array, nor has an overload for the []/[]= operators"))
         }
 
@@ -237,6 +243,7 @@ ArrayAccess: class extends Expression {
 
     }
 
+    isResolved: func -> Bool { array isResolved() && type != null }
     getScore: func (op: OperatorDecl, reqType: Type, assign: BinaryOp, res: Resolver) -> Int {
 
         if(!(op getSymbol() equals?(assign != null ? "[]=" : "[]"))) {

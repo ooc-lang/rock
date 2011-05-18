@@ -235,6 +235,8 @@ String: class extends Iterable<Char> {
     print: func { _buffer print() }
 
     println: func { if(_buffer != null) _buffer println() }
+    
+    println: func ~withStream (stream: FStream) { if(_buffer != null) _buffer println(stream) }
 
     toInt: func -> Int                       { _buffer toInt() }
     toInt: func ~withBase (base: Int) -> Int { _buffer toInt~withBase(base) }

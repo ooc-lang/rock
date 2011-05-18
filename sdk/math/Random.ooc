@@ -10,6 +10,7 @@ srand: extern func(Int)
    C stdlib function to generate a random integer between INT_MIN and INT_MAX
  */
 rand: extern func -> Int
+RAND_MAX: extern const Int
 
 // Executed at loadtime: we initialize the random number generator from
 // the current time in microsecond

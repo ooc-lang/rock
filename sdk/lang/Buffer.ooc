@@ -547,11 +547,18 @@ Buffer: class extends Iterable<Char> {
     print: func {
         fwrite(data, 1, size, stdout)
     }
+    
+    print: func ~withStream (stream: FStream) {
+        fwrite(data, 1, size, stream)
+    }
 
     /** print *this* followed by a newline. */
     println: func {
-        print()
-        '\n' print()
+        print(stdout); '\n' print(stdout)
+    }
+    
+    println: func ~withStream (stream: FStream) {
+        print(stream); '\n' print(stream)
     }
 
     // TODO make these faster by not simply calling the C API.

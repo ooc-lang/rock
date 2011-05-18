@@ -391,12 +391,12 @@ TypeDecl: abstract class extends Declaration {
 
         trail push(this)
 
-        if(debugCondition() || res params veryVerbose) printf("====== Resolving type decl %s\n", toString())
+        if(debugCondition() || res params veryVerbose) "====== Resolving type decl %s" printfln(toString())
 
         if (!type isResolved()) {
             response := type resolve(trail, res)
             if(!response ok()) {
-                if(debugCondition() || res params veryVerbose) printf("====== Response of type of %s == %s\n", toString(), response toString())
+                if(debugCondition() || res params veryVerbose) "====== Response of type of %s == %s" printfln(toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -436,7 +436,7 @@ TypeDecl: abstract class extends Declaration {
         for(interfaceType in interfaceTypes) {
             response := interfaceType resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("-- %s, interfaceType of %s, isn't resolved, looping.\n", interfaceType toString(), toString())
+                if(res params veryVerbose) "-- %s, interfaceType of %s, isn't resolved, looping." printfln(interfaceType toString(), toString())
                 trail pop(this)
                 return response
             }
@@ -456,14 +456,14 @@ TypeDecl: abstract class extends Declaration {
                     for(candidate in transitiveInterfaces) {
                         has := false
                         for(champion in getInterfaceTypes()) {
-                            printf("%s vs %s\n", champion toString(), candidate toString())
+                            "%s vs %s\n" printfln(champion toString(), candidate toString())
                             if(candidate equals?(champion)) {
                                 has = true; break
                             }
                         }
                         if(!has) {
                             interfaceTypes add(candidate)
-                            printf("Got new interface %s in %s by interface-implementation transitivity.\n", candidate toString(), toString())
+                            "Got new interface %s in %s by interface-implementation transitivity." printfln(candidate toString(), toString())
                             res wholeAgain(this, "Got new interface by interface-implementation transitivity.")
                         }
                     }
@@ -478,7 +478,7 @@ TypeDecl: abstract class extends Declaration {
                 response = interfaceDecl getMeta() resolve(trail, res)
             }
             if(!response ok()) {
-                if(res params veryVerbose) printf("-- %s, interfaceDecl, isn't resolved, looping.\n", interfaceDecl toString(), toString())
+                if(res params veryVerbose) "-- %s, interfaceDecl, isn't resolved, looping." printfln(interfaceDecl toString(), toString())
                 trail pop(this)
                 return response
             }
@@ -649,10 +649,10 @@ TypeDecl: abstract class extends Declaration {
 
         if(access debugCondition()) {
             for(v in variables) {
-                printf("Got var %s %s\n", toString(), v toString())
+                "Got var %s %s" printfln(toString(), v toString())
             }
             for(f in functions) {
-                printf("Got function %s %s\n", toString(), f toString())
+                "Got function %s %s" printfln(toString(), f toString())
             }
         }
 
@@ -721,9 +721,9 @@ TypeDecl: abstract class extends Declaration {
     resolveCall: func (call : FunctionCall, res: Resolver, trail: Trail) -> Int {
 
         if(call debugCondition()) {
-            printf("\n====> Search %s in %s (which has %d functions)\n", call toString(), name, functions getSize())
+            "\n====> Search %s in %s (which has %d functions)" printfln(call toString(), name, functions getSize())
             for(f in functions) {
-                printf("  - Got %s!\n", f toString())
+                "  - Got %s!" printfln(f toString())
             }
         }
 
@@ -799,7 +799,7 @@ TypeDecl: abstract class extends Declaration {
 
     inheritsScore: func (tDecl: TypeDecl, scoreSeed: Int) -> Int {
 
-        if(debugCondition()) printf("inheritsScore between %s and %s. scoreSeed = %d\n", toString(), tDecl toString(), scoreSeed)
+        if(debugCondition()) "inheritsScore between %s and %s. scoreSeed = %d" printfln(toString(), tDecl toString(), scoreSeed)
 
         for(interfaceDecl in interfaceDecls) {
             if(interfaceTypes getSize() != interfaceDecls getSize()) return -1
@@ -810,7 +810,7 @@ TypeDecl: abstract class extends Declaration {
 
         if(getSuperType() != null) {
             superRef := getSuperRef()
-            if(debugCondition()) printf("superRef = %s\n", superRef toString())
+            if(debugCondition()) "superRef = %s" printfln(superRef toString())
 
             if(superRef == null) return -1
             if(superRef == tDecl) return scoreSeed

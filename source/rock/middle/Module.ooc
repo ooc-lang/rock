@@ -12,6 +12,9 @@ Module: class extends Node {
     // statistics house-keeping
     timesImported := 0
     timesLooped := 0
+    
+    // true if this module is a dummy only used to get imports!
+    dummy := false
 
     // if this module is out-of-date, 'dead' is set to true.
     dead: Bool { get set }
@@ -277,7 +280,7 @@ Module: class extends Node {
 
         if(!call suffix) for(fDecl in functions) {
             if(fDecl name == call name && (call suffix == null)) {
-                if(call debugCondition()) printf("Suggesting fDecl %s for call %s\n", fDecl toString(), call toString())
+                if(call debugCondition()) "Suggesting fDecl %s for call %s" printfln(fDecl toString(), call toString())
                 call suggest(fDecl, res, trail)
             }
         }
@@ -328,7 +331,7 @@ Module: class extends Node {
             // if it's not in the cache or outdated, reparse.
             if(!cached || impLastModified > cached lastModified) {
                 if(cached && params veryVerbose) {
-                    printf("%s has been changed, recompiling... (%d vs %d), impPath = %s\n", _path, File new(impPath path) lastModified(), cached lastModified, impPath path);
+                    "%s has been changed, recompiling... (%d vs %d), impPath = %s" printfln(_path, File new(impPath path) lastModified(), cached lastModified, impPath path)
                 }
 
                 cached = Module new(_path[0..-5], impElement path, params, nullToken)
@@ -358,7 +361,7 @@ Module: class extends Node {
         {
             response := body resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("response of body = %s\n", response toString())
+                if(res params veryVerbose) "response of body = %s" printfln(response toString())
                 finalResponse = response
             }
         }
@@ -367,7 +370,7 @@ Module: class extends Node {
             if(oDecl isResolved()) continue
             response := oDecl resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("response of oDecl %s = %s\n", oDecl toString(), response toString())
+                if(res params veryVerbose) "response of oDecl %s = %s" printfln(oDecl toString(), response toString())
                 finalResponse = response
             }
         }
@@ -376,7 +379,7 @@ Module: class extends Node {
             if(tDecl isResolved()) continue
             response := tDecl resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("response of tDecl %s = %s\n", tDecl toString(), response toString())
+                if(res params veryVerbose) "response of tDecl %s = %s" printfln(tDecl toString(), response toString())
                 finalResponse = response
             }
         }
@@ -384,7 +387,7 @@ Module: class extends Node {
         for(addon in addons) {
             response := addon resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("response of addon %s = %s\n", addon toString(), response toString())
+                if(res params veryVerbose) "response of addon %s = %s" printfln(addon toString(), response toString())
                 finalResponse = response
             }
         }
@@ -393,7 +396,7 @@ Module: class extends Node {
             if(fDecl isResolved()) continue
             response := fDecl resolve(trail, res)
             if(!response ok()) {
-                if(res params veryVerbose) printf("response of fDecl %s = %s\n", fDecl toString(), response toString())
+                if(res params veryVerbose) "response of fDecl %s = %s" printfln(fDecl toString(), response toString())
                 finalResponse = response
             }
         }

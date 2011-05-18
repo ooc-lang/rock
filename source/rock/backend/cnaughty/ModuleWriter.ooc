@@ -78,6 +78,21 @@ ModuleWriter: abstract class extends Skeleton {
             current nl(). app("#include <"). app(inc). app(">")
         }
         current nl()
+        
+        // write the .c part of all global variables
+        for(stmt in module body) {
+            if(stmt instanceOf?(VariableDecl) && !stmt as VariableDecl getType() instanceOf?(AnonymousStructType)) {
+                vd := stmt as VariableDecl
+                // TODO: add 'local'
+                if(vd isExtern() && !vd isProto()) continue
+                
+                current = cw
+                current nl()
+                if(vd isStatic()) current app("static ")
+                vd getType() write(current, vd getFullName())
+                current app(';')
+            }
+        }
 
         // write all types, non-metas first, then metas
         for(tDecl: TypeDecl in module types) {
@@ -88,21 +103,20 @@ ModuleWriter: abstract class extends Skeleton {
             if(!tDecl isMeta) continue
             tDecl accept(this)
         }
-
-        // write all global variables
+        
+        // write the .h part of all global variables
         for(stmt in module body) {
             if(stmt instanceOf?(VariableDecl) && !stmt as VariableDecl getType() instanceOf?(AnonymousStructType)) {
                 vd := stmt as VariableDecl
                 // TODO: add 'local'
                 if(vd isExtern() && !vd isProto()) continue
-                current = fw
-                current nl(). app("extern ")
-                vd getType() write(current, vd getFullName())
-                current app(';')
-                current = cw
-                current nl()
-                vd getType() write(current, vd getFullName())
-                current app(';')
+                
+                if(!vd isStatic()) {
+                    current = fw
+                    current nl(). app("extern ")
+                    vd getType() write(current, vd getFullName())
+                    current app(';')
+                }
             }
         }
 

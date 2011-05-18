@@ -9,8 +9,8 @@ UnaryOpType: enum {
     unaryMinus       /*  -  */
 }
 
-unaryOpRepr := static ["no-op",
-        "~",
+unaryOpRepr := [
+		"~",
         "!",
         "-"]
 
@@ -157,4 +157,3 @@ UnaryOp: class extends Expression {
 InvalidUnaryOverload: class extends Error {
     init: super func ~tokenMessage
 }
-

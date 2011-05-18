@@ -47,6 +47,7 @@ EnumDecl: class extends TypeDecl {
             // If no value is provided for a non-extern element,
             // calculate it by incrementing the last used value.
             if(!element valueSet) {
+                element setValue(lastElementValue)
                 lastElementValue = match lastElementValue {
                         case intLit: IntLiteral =>
                             IntLiteral new(match incrementOper {
@@ -68,7 +69,6 @@ EnumDecl: class extends TypeDecl {
                             return
                             null
                 }
-                element setValue(lastElementValue)
             } else {
                 lastElementValue = element getValue()
             }

@@ -50,7 +50,7 @@ LonesomeElse: class extends Error {
 
     first: Statement
     init: func (=first) {
-        message = first token formatMessage("Found a single-standing ´else´. (Note, there must be an if before)", "[ERROR]")
+        message = first token formatMessage("Found a single-standing `else`. (Note, there must be an if before)", "[ERROR]")
     }
     format: func -> String {
         message

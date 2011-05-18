@@ -52,7 +52,7 @@ Tinkerer: class {
         // and total number of rounds. It turns out - not so much. But I'm
         // leaving that here, because it's interesting. -- nddrylliog
         if (Env get("ROCK_SORT") == "1") {
-            printf("Sorting!\n")
+            "Sorting!\n" print()
             resolvers sort(|r1, r2|
                 r1 module timesImported < r2 module timesImported
             )
@@ -61,9 +61,9 @@ Tinkerer: class {
         if(params stats) {
             for(res in resolvers) {
                 module := res module
-                printf(" - imported %dx, has %d deps, %s\n", module timesImported, module getAllImports() getSize(), module fullName)
+                " - imported %dx, has %d deps, %s" printfln(module timesImported, module getAllImports() getSize(), module fullName)
             }
-            printf("End final order.\n")
+            "End final order." println()
         }
 
         round := 0
@@ -81,9 +81,9 @@ Tinkerer: class {
                 resolver := iter next()
 
                 if(params veryVerbose) {
-                    printf("\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
-                    printf("\tResolving module " + resolver module fullName)
-                    printf("\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n")
+                    "\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" println()
+                    ("\tResolving module " + resolver module fullName) println()
+                    ("\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++") println()
                 }
 
                 resolver module timesLooped += 1
@@ -121,12 +121,12 @@ Tinkerer: class {
             totalImports := 0
             totalLoops := 0
             for(module in modules) {
-                printf(" - imported %dx, has %d deps, looped %d x, %s\n", module timesImported, module getAllImports() getSize(),
+                " - imported %dx, has %d deps, looped %d x, %s" printfln(module timesImported, module getAllImports() getSize(),
                     module timesLooped, module fullName)
                 totalImports += module getAllImports() getSize()
                 totalLoops += module timesLooped
             }
-            printf("Total imports = %d, total modules looped = %d, final round = %d\n", totalImports, totalLoops, round)
+            "Total imports = %d, total modules looped = %d, final round = %d" printfln(totalImports, totalLoops, round)
         }
 
         true

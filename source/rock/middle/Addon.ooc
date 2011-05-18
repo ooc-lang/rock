@@ -94,9 +94,15 @@ Addon: class extends Node {
         hash := TypeDecl hashName(call name, call suffix)
         fDecl := functions get(hash)
         if(fDecl) {
-            call suggest(fDecl, res, trail)
+            if(call suggest(fDecl, res, trail)) {
+                // add `this` if needed.
+                if(fDecl hasThis() && !call getExpr()) {
+                    call setExpr(VariableAccess new("this", call token))
+                }
+            }
         }
 
+        // TODO: why do we even need this?
         if(!call getSuffix()) {
             for(fDecl in functions) {
                 if(fDecl name == call name) {

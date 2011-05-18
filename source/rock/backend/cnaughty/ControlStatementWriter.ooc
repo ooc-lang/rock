@@ -66,7 +66,7 @@ ControlStatementWriter: abstract class extends Skeleton {
             current untab(). nl(). app("}")
         }
         
-        // ´case =>´ as only match-case
+        // `case =>` as only match-case
         if (cazes getSize() == 1) {
             caze := cazes get(0)
             if (!caze  getExpr()) {                 
@@ -75,7 +75,7 @@ ControlStatementWriter: abstract class extends Skeleton {
             }
         }
          
-        // sort is the wrong term, it basically puts the ´case =>´ at the end
+        // sort is the wrong term, it basically puts the `case =>` at the end
         cazes sort(|x, y| 
             if (!x expr) return true
                 return false

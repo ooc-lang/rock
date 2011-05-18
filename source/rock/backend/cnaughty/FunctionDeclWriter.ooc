@@ -224,4 +224,3 @@ FunctionDeclWriter: abstract class extends Skeleton {
     }
 
 }
-

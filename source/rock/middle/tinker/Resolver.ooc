@@ -59,7 +59,7 @@ Resolver: class {
         wholeAgain = false
 
         response := module resolve(Trail new(), this)
-        if(params veryVerbose) printf("[Module] response = %s (wholeAgain = %s)\n", response toString(), wholeAgain toString())
+        if(params veryVerbose) "[Module] response = %s (wholeAgain = %s)" printfln(response toString(), wholeAgain toString())
 
         return !response ok() || wholeAgain
     }

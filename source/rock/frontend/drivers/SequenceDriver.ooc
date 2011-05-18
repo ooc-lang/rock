@@ -75,7 +75,6 @@ SequenceDriver: class extends Driver {
         }
         if(params verbose) println()
 
-        doesLib := (params staticlib != null || params dynamiclib != null)
         if(params link && (params staticlib == null || params dynamiclib != null)) {
 
             initCompiler(params compiler)
@@ -90,7 +89,7 @@ SequenceDriver: class extends Driver {
                 params compiler defineSymbol(define)
             }
 
-            if(!doesLib) for(dynamicLib in params dynamicLibs) {
+            for(dynamicLib in params dynamicLibs) {
                 params compiler addDynamicLibrary(dynamicLib)
             }
             for(incPath in params incPath getPaths()) {
@@ -104,7 +103,7 @@ SequenceDriver: class extends Driver {
             for(additional in params additionals) {
                 params compiler addObjectFile(additional)
             }
-            if(!doesLib) for(libPath in params libPath getPaths()) {
+            for(libPath in params libPath getPaths()) {
                 params compiler addLibraryPath(libPath getAbsolutePath())
             }
 
@@ -115,15 +114,16 @@ SequenceDriver: class extends Driver {
                 params compiler setOutputPath(module simpleName)
             }
 
-            if(!doesLib) {
-                libs := getFlagsFromUse(module)
-                for(lib in libs) {
-                    params compiler addObjectFile(lib)
-                }
+            libs := getFlagsFromUse(module)
+            for(lib in libs) {
+                params compiler addObjectFile(lib)
             }
-
-            if(params enableGC && !doesLib) {
+            
+            if(params enableGC) {
                 params compiler addDynamicLibrary("pthread")
+                if(params dynamiclib != null) {
+                    params dynGC = true
+                }
                 if(params dynGC) {
                     params compiler addDynamicLibrary("gc")
                 } else {
@@ -192,6 +192,12 @@ SequenceDriver: class extends Driver {
                 for(module in dirtyModules) {
                     CGenerator new(params, module) write()
                 }
+                
+                if(params packageFilter) {
+                    dirtyModules = dirtyModules filter(|m|
+                        m fullName startsWith?(params packageFilter)
+                    )
+                }
                 return dirtyModules
             }
         }
@@ -200,8 +206,22 @@ SequenceDriver: class extends Driver {
         if(params verbose) "Re-generating modules..." println()
         reGenerated := ArrayList<Module> new()
         for(module in sourceFolder modules) {
-			if(params verbose) ("Re-generating " + module fullName) println()
-            if(CGenerator new(params, module) write()) {
+			result := CGenerator new(params, module) write()
+            
+            if(result && params verbose) ("Re-generated " + module fullName) println()
+            
+            // apply libfolder and package filter to see if it belongs here
+            if(params libfolder) {
+                path1 := File new(params libfolder) getAbsolutePath()
+                path2 := File new(module oocPath) getAbsolutePath()
+                if(!path2 startsWith?(path1)) continue
+            }
+            if(params packageFilter && !module fullName startsWith?(params packageFilter)) {
+                if(params verbose) "Filtering %s out" printfln(module fullName)
+                continue
+            }
+            
+            if(result) {
 				reGenerated add(module)
 			} else {
 				// already compiled, but still need to link with it
@@ -392,16 +412,17 @@ SequenceDriver: class extends Driver {
      */
     collectDeps: func (module: Module, toCompile: HashMap<String, SourceFolder>, done: ArrayList<Module>) -> HashMap<String, SourceFolder> {
 
-        absolutePath := File new(module getPathElement()) getAbsolutePath()
-        name := File new(absolutePath) name()
+        if(!module dummy) {
+            absolutePath := File new(module getPathElement()) getAbsolutePath()
+            name := File new(absolutePath) name()
 
-        sourceFolder := toCompile get(name)
-        if(sourceFolder == null) {
-            sourceFolder = SourceFolder new(name, absolutePath, params)
-            toCompile put(name, sourceFolder)
+            sourceFolder := toCompile get(name)
+            if(sourceFolder == null) {
+                sourceFolder = SourceFolder new(name, absolutePath, params)
+                toCompile put(name, sourceFolder)
+            }
+            sourceFolder modules add(module)
         }
-
-        sourceFolder modules add(module)
         done add(module)
 
         for(import1 in module getAllImports()) {
@@ -428,4 +449,3 @@ SourceFolder: class {
         archive = Archive new(name, outlib, params)
     }
 }
-

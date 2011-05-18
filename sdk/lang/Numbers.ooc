@@ -83,7 +83,7 @@ SizeT:  cover from size_t extends ULLong
 SSizeT:  cover from ssize_t extends LLong {
     toString:    func -> String { "%u" format(this) }
 }
-PtrDiff: cover from ptrdiff_t extends SizeT
+PtrDiff: cover from ptrdiff_t extends SSizeT
 
 /**
  * real types
@@ -91,8 +91,7 @@ PtrDiff: cover from ptrdiff_t extends SizeT
 LDouble: cover from long double {
 
     toString: func -> String {
-        str := "%.2Lf" format (this)
-        str
+        "%.2Lf" format(this)
     }
 
     abs: func -> This {
@@ -100,8 +99,16 @@ LDouble: cover from long double {
     }
 
 }
-Float: cover from float extends LDouble
-Double: cover from double extends LDouble
+Double: cover from double extends LDouble {
+    toString: func -> String {
+        "%.2f" format(this)
+    }
+}
+Float: cover from float extends LDouble {
+    toString: func -> String {
+        "%.2f" format(this)
+    }
+}
 
 DBL_MIN,  DBL_MAX : extern static const Double
 FLT_MIN,  FLT_MAX : extern static const Float
