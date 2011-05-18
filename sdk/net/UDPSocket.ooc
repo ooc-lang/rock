@@ -1,6 +1,5 @@
 import net/[berkeley, Socket, Address, DNS, Exceptions, utilities]
 import io/[Reader, Writer]
-//import net/berkeley into socket
 
 /**
     A DATAGRAM based socket interface.
@@ -8,9 +7,11 @@ import io/[Reader, Writer]
 UDPSocket: class extends Socket {
     remote: SocketAddress
 
-    init: func() {
-        // Nothing needed here!
-    }
+    /**
+        Initialize the socket, do not bind to any IP or port.
+        Can be used with 
+    */
+    init: func() {}
 
     /**
         Initialize the socket
