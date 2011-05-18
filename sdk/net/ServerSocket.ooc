@@ -117,7 +117,7 @@ ServerSocket: class extends Socket {
             conn := accept()
             ret := f(conn)
             conn close()
-            conn && ret // Break out of the loop if one of conn or ret is 0 or null
+            (conn && ret) as Bool // Break out of the loop if one of conn or ret is 0 or null
         )
     }
 }
