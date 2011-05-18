@@ -1,6 +1,6 @@
-import net/[Socket, Address, DNS, Exceptions]
+import net/[berkeley, Socket, Address, DNS, Exceptions, utilities]
 import io/[Reader, Writer]
-import berkeley into socket
+//import net/berkeley into socket
 
 /**
     A DATAGRAM based socket interface.
@@ -9,7 +9,58 @@ UDPSocket: class extends Socket {
     remote: SocketAddress
 
     init: func() {
-        //super(remote family(), SocketType DATAGRAM, 0)
+        // Nothing needed here!
+    }
+
+    /**
+        Initialize the socket
+
+        :param ip: The IP, for now it can NOT be a hostname (TODO: This is a bug! Fix it!)
+        :param port: The port, for example 8080, or 80.
+    */
+    init: func ~ipPortAndBufLength(ip := "0.0.0.0", port: Int) {
+        super(remote family(), SocketType DATAGRAM, 0)
+        type = ipType(ip)
+        super(type, SocketType STREAM, 0)
+        bind(ip, port)
+    }
+
+    // Yes, yes, these bind() functions are in ServerSocket. Suck it up for a while :)
+
+    /**
+        Bind a local port to the socket.
+    */
+    bind: func(port: Int) {
+        addr := SocketAddress new(IP4Address new(), port)
+        bind(addr)
+    }
+
+    /**
+        Bind a local address and port to the socket.
+    */
+    bind: func ~withIp(ip: String, port: Int) {
+        addr: SocketAddress
+        type := ipType(ip)
+        if(validIp?(ip)) {
+            match(type) {
+                case AddressFamily IP4 =>
+                    addr = getSocketAddress(ip, port)
+                case AddressFamily IP6 =>
+                    addr = getSocketAddress6(ip, port)
+            }
+            bind(addr)
+        } else {
+            InvalidAddress new("Address must be a valid IPv4 or IPv6 IP.") throw()
+        }
+    }
+
+    /**
+        Bind a local address to the socket.
+    */
+    bind: func ~withAddr(addr: SocketAddress) {
+        if(bind(descriptor, addr addr(), addr length()) == -1) {
+            SocketError new() throw()
+        }
     }
 
     /**
@@ -26,11 +77,11 @@ UDPSocket: class extends Socket {
         remote := SocketAddress new(ip, port)
         init(remote family(), SocketType DATAGRAM, 0)
 
-        bytesSent := socket sendTo(descriptor, data, length, flags, remote addr(), remote length())
+        bytesSent := sendTo(descriptor, data, length, flags, remote addr(), remote length())
         if (resend)
             while(bytesSent < length && bytesSent != -1) {
                 dataSubstring := data as Char* + bytesSent
-                bytesSent += socket sendTo(descriptor, dataSubstring, length - bytesSent, flags, remote addr(), remote length())
+                bytesSent += sendTo(descriptor, dataSubstring, length - bytesSent, flags, remote addr(), remote length())
             }
 
         if(bytesSent == -1)
@@ -96,7 +147,7 @@ UDPSocket: class extends Socket {
         remote := SocketAddress new(ip, port)
         init(remote family(), SocketType DATAGRAM, 0)
 
-        bytesRecv := socket recvFrom(descriptor, chars, length, flags, remote addr(), remote length())
+        bytesRecv := recvFrom(descriptor, chars, length, flags, remote addr(), remote length())
         if(bytesRecv == -1) {
             SocketError new() throw()
         }
@@ -144,5 +195,8 @@ UDPSocket: class extends Socket {
        :return: The byte read
      */
     receiveByte: func(other: String, port: Int) -> Char { receiveByte(0, other, port) }
+
+
+//    receiveFrom:
 }
 

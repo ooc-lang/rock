@@ -135,7 +135,6 @@ Socket: abstract class {
         return flags
 
     }
-
 }
 
 AddressFamily: cover {
