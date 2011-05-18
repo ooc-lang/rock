@@ -19,11 +19,24 @@ UDPSocket: class extends Socket {
         :param ip: The IP, for now it can NOT be a hostname (TODO: This is a bug! Fix it!)
         :param port: The port, for example 8080, or 80.
     */
-    init: func ~ipPort(ip := "0.0.0.0", port: Int) {
+    init: func ~ipPort(ip: String, port: Int) {
         super(remote family(), SocketType DATAGRAM, 0)
         type = ipType(ip)
         super(type, SocketType STREAM, 0)
         bind(ip, port)
+    }
+
+    /**
+        Initialize the socket. Binds to all available IPs.
+
+        :param port: The pot, for example 8080, or 80.
+    */
+    init: func ~port(port: Int) {
+        /*
+            Somebody tell me why ip := "0.0.0.0"
+            in init(ip,port) didn't work? Oh well...
+        */
+        init("0.0.0.0", port)
     }
 
     /**
