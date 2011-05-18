@@ -25,8 +25,6 @@ UDPSocket: class extends Socket {
         bind(ip, port)
     }
 
-    // Yes, yes, these bind() functions are in ServerSocket. Suck it up for a while :)
-
     /**
         Bind a local port to the socket.
     */
