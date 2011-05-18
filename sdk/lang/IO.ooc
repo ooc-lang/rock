@@ -56,6 +56,8 @@ ferror: extern func(stream: FStream) -> Int
 
 FILE: extern cover
 
+EOF: extern Int
+
 /**
  * Low-level interface with the C I/O API.
  * 
@@ -180,6 +182,7 @@ FStream: cover from FILE* {
         // while it's not '\n' it means not all the line has been read
         while (true) {
             c := fgetc(this)
+            if (c == EOF) break
             if(c == '\n') break
             buf append((c & 0xFF) as Char)
             if(!hasNext?()) break
