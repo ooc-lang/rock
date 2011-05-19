@@ -3,23 +3,8 @@
     between UDPSocket and ServerSocket.
 */
 
-import net/[berkeley, Socket, Address, DNS, Exceptions]
+import net/[berkeley, Socket, Address, Exceptions]
 import text/StringTokenizer
-
-/**
-    Get the IP regardless of if given an IPv4 IP, IPv6 IP, or a hostname
-*/
-resolveIp: func(host: String) -> String {
-    if(ipType(host) == AddressFamily IP4) {
-        for(x in host) {
-            if(x alpha?()) {
-                host = DNS resolveOne(host) toString()
-                break // exit each
-            }
-        }
-    }
-    host
-}
 
 /**
     Is the IP provided valid as either IPv6 or IPv4? (Returns type, from AddressFamily)
