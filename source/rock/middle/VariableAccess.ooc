@@ -225,7 +225,7 @@ VariableAccess: class extends Expression {
                             if(closure isAnon()) {
                                 bOpIDX := trail find(BinaryOp)
                                 if (trail find(BinaryOp) != -1) {
-                                    bOp: BinaryOp = trail get(bOpIDX)
+                                    bOp := trail get(bOpIDX, BinaryOp)
                                     if (bOp getLeft() == this && bOp isAssign()) mode = "r"
                                 }
                                 closure markForPartialing(ref as VariableDecl, mode)

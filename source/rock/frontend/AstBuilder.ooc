@@ -518,7 +518,7 @@ AstBuilder: class {
         arg: Argument = match conventional {
             case true  => Argument new(null, name clone(), token())
             case false => AssArg new(name clone(), token())
-        }
+        } as Argument
         peek(FunctionDecl) args add(arg)
     }
 

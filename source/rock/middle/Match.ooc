@@ -46,7 +46,7 @@ Match: class extends Expression {
     }
 
     unwrapBinaryOpCase: func(caze: Case) {
-        head: BinaryOp = caze getExpr() clone()
+        head := caze getExpr() clone() as BinaryOp
         current := head // our pointer
         caseToken := caze getExpr() token
         while (current instanceOf?(BinaryOp) && (current type == OpType and || current type == OpType or)) {

@@ -495,6 +495,7 @@ FunctionCall: class extends Expression {
                     }
                 }
                 res throwError(UnresolvedCall new(this, message, precisions))
+                return Response OK
             } else {
                 res wholeAgain(this, "not resolved")
                 return Response OK
