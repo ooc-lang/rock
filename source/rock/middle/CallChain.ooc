@@ -40,7 +40,6 @@ CallChain: class extends Expression {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-
         parent := trail peek()
         if(parent instanceOf?(VariableDecl)) {
             //printf("    ==== Callchain is in variableDecl %s\n", parent toString())
@@ -103,6 +102,11 @@ CallChain: class extends Expression {
             case va: VariableAccess =>
                 va
             case =>
+                if(expr == null) {
+                    "throwing error! expr of %s is null" printfln(toString())
+                    res throwError(InvalidCallChain new(token, "Invalid callchain: first method call should have an expr"))
+                    return Response OK
+                }
                 vd := VariableDecl new(null, generateTempName("callRoot"), expr, expr token)
                 if(!trail addBeforeInScope(mark, vd)) {
                     res throwError(CouldntAddBeforeInScope new(token, mark, vd, trail))
@@ -134,4 +138,8 @@ CallChain: class extends Expression {
         false
     }
 
+}
+
+InvalidCallChain: class extends Error {
+    init: super func ~tokenMessage
 }
