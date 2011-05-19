@@ -5016,7 +5016,7 @@ YY_RULE(int) yy_CHAR_LIT(GREG *G)
   l70:;	  G->pos= yypos70; G->thunkpos= yythunkpos70;
   }
   l71:;	  goto l63;
-  l67:;	  G->pos= yypos63; G->thunkpos= yythunkpos63;  if (!yymatchClass(G, (unsigned char *)"\000\000\000\000\204\000\001\000\000\000\000\000\106\100\124\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000")) goto l62;
+  l67:;	  G->pos= yypos63; G->thunkpos= yythunkpos63;  if (!yymatchClass(G, (unsigned char *)"\000\000\000\000\204\000\001\000\000\000\000\020\106\100\124\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000")) goto l62;
   }
   l63:;	  goto l61;
   l62:;	  G->pos= yypos61; G->thunkpos= yythunkpos61;  if (!yymatchDot(G)) goto l59;
@@ -5051,7 +5051,7 @@ YY_RULE(int) yy_STRING_LIT(GREG *G)
   l85:;	  G->pos= yypos85; G->thunkpos= yythunkpos85;
   }
   l86:;	  goto l78;
-  l82:;	  G->pos= yypos78; G->thunkpos= yythunkpos78;  if (!yymatchClass(G, (unsigned char *)"\000\000\000\000\204\000\001\000\000\000\000\000\106\100\124\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000")) goto l77;
+  l82:;	  G->pos= yypos78; G->thunkpos= yythunkpos78;  if (!yymatchClass(G, (unsigned char *)"\000\000\000\000\204\000\001\000\000\000\000\020\106\100\124\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000")) goto l77;
   }
   l78:;	  goto l76;
   l77:;	  G->pos= yypos76; G->thunkpos= yythunkpos76;  if (!yy_EOL(G)) { goto l87; }  goto l76;
