@@ -4816,10 +4816,15 @@ YY_ACTION(void) yy_1_ModuleCore(GREG *G, char *yytext, int yyleng, yythunk *thun
 #undef elseSpec
 #undef spec
 }
+YY_ACTION(void) yy_2_Module(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
+{
+  yyprintf((stderr, "do yy_2_Module\n"));
+   tokenPos; nq_error(core->this, NQE_EXP_INC_IMP_STMT_OR_DECL, "Expected include, import, statement or declaration\n", core->token[0]); ;
+}
 YY_ACTION(void) yy_1_Module(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
   yyprintf((stderr, "do yy_1_Module\n"));
-   tokenPos; nq_error(core->this, NQE_EXP_INC_IMP_STMT_OR_DECL, "Expected include, import, statement or declaration\n", core->token[0]); ;
+   tokenPos; nq_error(core->this, NQE_EXP_INC_IMP_STMT_OR_DECL, "Unmatched closing bracket", core->token[0]); ;
 }
 
 YY_RULE(int) yy_DOUBLE_QUOTE(GREG *G)
@@ -7935,7 +7940,11 @@ YY_RULE(int) yy_Module(GREG *G)
   l918:;	  G->pos= yypos918; G->thunkpos= yythunkpos918;
   }  if (!yymatchDot(G)) goto l917;  goto l916;
   l917:;	  G->pos= yypos917; G->thunkpos= yythunkpos917;
-  }  if (!yy_EOL(G)) { goto l913; }  yyDo(G, yy_1_Module, G->begin, G->end);
+  }
+  {  int yypos919= G->pos, yythunkpos919= G->thunkpos;  if (!yymatchChar(G, '}')) goto l919;  goto l920;
+  l919:;	  G->pos= yypos919; G->thunkpos= yythunkpos919;
+  }
+  l920:;	  yyDo(G, yy_1_Module, G->begin, G->end);  if (!yy_EOL(G)) { goto l913; }  yyDo(G, yy_2_Module, G->begin, G->end);
   }
   l914:;	
   yyprintf((stderr, "  ok   %s @ %s\n", "Module", G->buf+G->pos));
