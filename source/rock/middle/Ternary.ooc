@@ -1,6 +1,6 @@
 import ../frontend/Token
-import Expression, Visitor, Type, Node
-import tinker/[Response, Resolver, Trail]
+import Expression, Visitor, Type, Node, FunctionCall, FunctionDecl, ClassDecl
+import tinker/[Response, Resolver, Trail, Errors]
 
 Ternary: class extends Expression {
 
@@ -56,6 +56,24 @@ Ternary: class extends Expression {
             }
         }
         trail pop(this)
+        
+        
+        parent := trail peek()
+            
+        if(ifTrue getType() == null || ifFalse getType() == null) {
+            res wholeAgain(this, "Need ifTrue/ifFalse types")
+            return Response OK
+        }
+        
+        if(!ifTrue getType() equals?(ifFalse getType())) {
+            isLeftPointerLike  := ifTrue  getType() getGroundType() pointerLevel() > 0 || ifTrue  getType() getGroundType() getRef() instanceOf?(ClassDecl)
+            isRightPointerLike := ifFalse getType() getGroundType() pointerLevel() > 0 || ifFalse getType() getGroundType() getRef() instanceOf?(ClassDecl)
+            compatible := !(isLeftPointerLike ^ isRightPointerLike)
+            
+            if(!compatible) {
+                res throwError(DifferentTernaryTypes new(token, "Using different types in a ternary expression is forbidden. Find another way :)"))
+            }
+        }
 
         return Response OK
 
@@ -72,4 +90,8 @@ Ternary: class extends Expression {
         }
     }
 
+}
+
+DifferentTernaryTypes: class extends Error {
+    init: super func ~tokenMessage
 }
