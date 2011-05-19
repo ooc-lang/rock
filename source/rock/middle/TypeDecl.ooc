@@ -838,7 +838,10 @@ TypeDecl: abstract class extends Declaration {
     getMeta: func -> ClassDecl { meta }
     getNonMeta: func -> This { nonMeta }
 
-    setVersion: func (=verzion) {}
+    setVersion: func (=verzion) {
+        meat := getMeta()
+        if(meat) meat setVersion(verzion) // let's hope there's no meta loop
+    }
     getVersion: func -> VersionSpec { verzion ? verzion : (getNonMeta() ? getNonMeta() getVersion() : null) }
 
 }
