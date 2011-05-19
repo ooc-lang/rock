@@ -23,6 +23,7 @@ ServerSocket: class extends Socket {
     */
     init: func ~ipPortBacklogAndListen(ip := "0.0.0.0", port: Int, bl := 100, enabled := false) {
         backlog = bl
+        ip = DNS resolveOne(ip) toString()
         type = ipType(ip)
         super(type, SocketType STREAM, 0)
         bind(ip, port)
