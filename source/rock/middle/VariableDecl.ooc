@@ -307,10 +307,51 @@ VariableDecl: class extends Declaration {
             res wholeAgain(this, "just set expr to gc_malloc cause generic!")
         }
 
+        /*
+        if(!isLegal(res)) {
+            res throwError(InvalidOperatorUse new(token, "Incompatible type for declaration between %s and %s (which is a %s, ie. a %s)\n" format(
+                type toString(), expr getType() toString(), expr class name, expr toString())))
+        }
+        */
+
         if(debugCondition()) "Done resolving!" println()
 
         return Response OK
 
+    }
+    
+        
+    isLegal: func (res: Resolver) -> Bool {
+        if(!expr) return true
+        
+        (lType, rType) := (type, expr getType())
+
+        if(lType == null || lType getRef() == null || rType == null || rType getRef() == null) {
+            // must resolve first
+            res wholeAgain(this, "Unresolved types in decl because of types, looping to determine legitness")
+            /*
+            res wholeAgain(this, "Unresolved types in decl because of types (%s, %s), looping to determine legitness %d %d %d %d" format(
+                lType == null ? "(nil)" : lType toString(),
+                rType == null ? "(nil)" : rType toString(),
+                lType == null,
+                lType == null || lType getRef() == null,
+                rType == null,
+                rType == null || rType getRef() == null
+            ))
+            */
+            return true
+        }
+
+        (lRef, rRef) := (lType getRef(), rType getRef())
+        
+        score := lType getScore(rType)
+        if(score == -1) {
+            // must resolve first
+            res wholeAgain(this, "Unresolved types in decl because of score, looping to determine legitness")
+            return true
+        }
+        
+        score >= 0
     }
 
     replace: func (oldie, kiddo: Node) -> Bool {

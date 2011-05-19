@@ -1,7 +1,7 @@
 import ../frontend/[Token, BuildParams]
 import ../backend/cnaughty/AwesomeWriter
 import Literal, Visitor, Type, Expression, Node, TypeList, Tuple,
-       Declaration, FunctionCall, VariableAccess
+       Declaration, FunctionCall, VariableAccess, ClassDecl
 import tinker/[Response, Resolver, Trail]
 import structs/[List, ArrayList]
 
@@ -32,7 +32,7 @@ AnonymousStructType: class extends Type {
     pointerLevel: func -> Int { 0 }
 
     getName: func -> String { "<anon struct>" }
-    getRef: func -> Declaration { null }
+    getRef: func -> Declaration { ClassDecl new(getName(), token) }
     setRef: func (d: Declaration) { raise("Setting ref of an anonymous struct type!") }
 
     realTypize: func (call: FunctionCall) -> Type { this }

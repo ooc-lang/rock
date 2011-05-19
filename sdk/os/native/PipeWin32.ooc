@@ -19,7 +19,8 @@ SecurityAttributes: cover from SECURITY_ATTRIBUTES {
 
 PipeWin32: class extends Pipe {
 
-    readFD = 0, writeFD = 0 : Handle
+    readFD  := null as Handle
+    writeFD := null as Handle
 
     init: func ~twos {
         saAttr: SecurityAttributes

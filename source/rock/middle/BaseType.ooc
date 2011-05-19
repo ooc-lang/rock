@@ -250,8 +250,30 @@ BaseType: class extends Type {
             return scoreSeed / 2
         }
         
-        if(other instanceOf?(BaseType)) {
+        if(other instanceOf?(BaseType)) {            
             if(ourRef == hisRef) {
+                lType := this
+                rType := other as BaseType
+                if(lType typeArgs != null && rType typeArgs) {
+                    for(i in 0..lType typeArgs size) {
+                        lta := lType typeArgs[i]
+                        rta := rType typeArgs[i]
+                    
+                        if(lta getRef() instanceOf?(TypeDecl) && rta getRef() instanceOf?(TypeDecl)) {
+                            if(!(
+                                (lta getType() equals?(rta getType())) ||
+                                (lta getRef() as TypeDecl inheritsFrom?(rta getRef() as TypeDecl))
+                            )) {
+                                "No luck between %s and %s" printfln(lta getRef()  toString(), rta getRef()  toString())
+                                "    ie. between %s and %s" printfln(lta getType() toString(), rta getType() toString())
+                                return This NOLUCK_SCORE
+                            }                    
+                        } else {
+                            break
+                        }
+                    }
+                }
+                
                 // perfect match
                 return scoreSeed
             }
