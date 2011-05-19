@@ -366,6 +366,7 @@ enum NagaQueenError {
     NQE_MISPLACED_SUFFIX,
     NQE_MALFORMED_STRINGLIT,
     NQE_MALFORMED_CHARLIT,
+    NQE_MALFORMED_TERNARY,
 };
 
 /////////////////////                  error IDs end                 ////////////////////////
@@ -5846,7 +5847,7 @@ YY_RULE(int) yy_ASS_ADD(GREG *G)
 YY_RULE(int) yy_Ternary(GREG *G)
 {  int yypos0= G->pos, yythunkpos0= G->thunkpos;  yyDo(G, yyPush, 3, 0);
   yyprintf((stderr, "%s\n", "Ternary"));  if (!yy_LogicalOr(G)) { goto l281; }  yyDo(G, yySet, -3, 0);
-  {  int yypos282= G->pos, yythunkpos282= G->thunkpos;  if (!yy__(G)) { goto l282; }  if (!yy_QUEST(G)) { goto l282; }  yyDo(G, yy_1_Ternary, G->begin, G->end);  if (!yy_WS(G)) { goto l282; }  if (!yy_LogicalOr(G)) { goto l282; }  yyDo(G, yySet, -2, 0);  if (!yy__(G)) { goto l282; }  if (!yy_COLON(G)) { goto l282; }  if (!yy_WS(G)) { goto l282; }  if (!yy_LogicalOr(G)) { goto l282; }  yyDo(G, yySet, -1, 0);  yyDo(G, yy_2_Ternary, G->begin, G->end);  goto l283;
+  {  int yypos282= G->pos, yythunkpos282= G->thunkpos;  if (!yy__(G)) { goto l282; }  if (!yy_QUEST(G)) { goto l282; }  yyDo(G, yy_1_Ternary, G->begin, G->end);  if (!yy_WS(G)) { goto l282; }  if (!yy_LogicalOr(G)) { { YY_XTYPE YY_XVAR = (YY_XTYPE) G->data; int yyindex = G->offset + G->pos;  nq_error(core->this, NQE_MALFORMED_TERNARY, "Expected expression between ? and : in ternary expression!\n", G->pos + G->offset) ; } goto l282; }  yyDo(G, yySet, -2, 0);  if (!yy__(G)) { goto l282; }  if (!yy_COLON(G)) { goto l282; }  if (!yy_WS(G)) { goto l282; }  if (!yy_LogicalOr(G)) { goto l282; }  yyDo(G, yySet, -1, 0);  yyDo(G, yy_2_Ternary, G->begin, G->end);  goto l283;
   l282:;	  G->pos= yypos282; G->thunkpos= yythunkpos282;
   }
   l283:;	
