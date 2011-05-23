@@ -307,6 +307,12 @@ VariableDecl: class extends Declaration {
             res wholeAgain(this, "just set expr to gc_malloc cause generic!")
         }
 
+        if(expr != null && !isLegal(res)) {
+            res throwError(IncompatibleInit new(token, "Incompatible type in initialization: %s initialized to a %s\n" format(
+                type toString(), expr getType() toString())))
+            return Response OK
+        }
+        
         if(debugCondition()) "Done resolving!" println()
 
         return Response OK
@@ -351,7 +357,31 @@ VariableDecl: class extends Declaration {
     }
 
     isMember: func -> Bool { owner != null }
+    
+    isLegal: func (res: Resolver) -> Bool {
+        (lType, rType) := (type, expr getType())
 
+        if(lType == null || lType getRef() == null || rType == null || rType getRef() == null) {
+            // must resolve first
+            res wholeAgain(this, "Unresolved types in vDecl, looping to determine legitness")
+            return true
+        }
+
+        (lRef, rRef) := (lType getRef(), rType getRef())
+        
+        if(lRef instanceOf?(ClassDecl) && rRef instanceOf?(ClassDecl)) {
+            if(!(
+                (lType equals?(rType)) ||
+                (rRef as ClassDecl inheritsFrom?(lRef as ClassDecl))
+            )) {
+                "Decl, l = %s, r = %s" printfln(lType toString(), rType toString())
+                return false
+            }
+        }
+        
+        return true
+    }
+        
 }
 
 VariableDeclTuple: class extends VariableDecl {
@@ -477,5 +507,9 @@ TupleMismatch: class extends Error {
 }
 
 IncompatibleElementInTupleVarDecl: class extends Error {
+    init: super func ~tokenMessage
+}
+
+IncompatibleInit: class extends Error {
     init: super func ~tokenMessage
 }

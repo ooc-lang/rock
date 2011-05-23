@@ -749,24 +749,17 @@ TypeDecl: abstract class extends Declaration {
         }
 
         for(addon in getAddons()) {
-            has := false
-
-            // It's also possible that the addon was defined in the
-            // function call's module.
-            if(call token module == addon token module) {
-                has = true
-            } else for(imp in call token module getGlobalImports()) {
-                if(imp getModule() == addon token module) {
-                    has = true
-                    break
+            if(resolveCallInAddon(addon, call, res, trail) == -1) return -1
+        }
+        
+        {
+            ancester := getSuperRef()
+            while(ancester != null) {
+                for(addon in ancester getAddons()) {
+                    if(resolveCallInAddon(addon, call, res, trail) == -1) return -1
                 }
+                ancester = ancester getSuperRef()
             }
-
-            if(!has) {
-                continue
-            }
-
-            if(addon resolveCall(call, res, trail) == -1) return -1
         }
 
         if(call getRef() == null) {
@@ -785,6 +778,27 @@ TypeDecl: abstract class extends Declaration {
 
         0
 
+    }
+    
+    resolveCallInAddon: func (addon: Addon, call: FunctionCall, res: Resolver, trail: Trail) -> Int {
+        has := false
+
+        // It's also possible that the addon was defined in the
+        // function call's module.
+        if(call token module == addon token module) {
+            has = true
+        } else for(imp in call token module getGlobalImports()) {
+            if(imp getModule() == addon token module) {
+                has = true
+                break
+            }
+        }
+
+        if(has) {
+            if(addon resolveCall(call, res, trail) == -1) return -1
+        }
+        
+        0
     }
 
     inheritsFrom?: func (tDecl: TypeDecl) -> Bool {
@@ -838,7 +852,10 @@ TypeDecl: abstract class extends Declaration {
     getMeta: func -> ClassDecl { meta }
     getNonMeta: func -> This { nonMeta }
 
-    setVersion: func (=verzion) {}
+    setVersion: func (=verzion) {
+        meat := getMeta()
+        if(meat) meat setVersion(verzion) // let's hope there's no meta loop
+    }
     getVersion: func -> VersionSpec { verzion ? verzion : (getNonMeta() ? getNonMeta() getVersion() : null) }
 
 }

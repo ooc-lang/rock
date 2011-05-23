@@ -495,6 +495,7 @@ FunctionCall: class extends Expression {
                     }
                 }
                 res throwError(UnresolvedCall new(this, message, precisions))
+                return Response OK
             } else {
                 res wholeAgain(this, "not resolved")
                 return Response OK
@@ -895,7 +896,7 @@ FunctionCall: class extends Expression {
             }
             if(!implType isGeneric() || implType pointerLevel() > 0) { j += 1; continue }
 
-            //printf(" >> Reviewing arg %s in call %s\n", arg toString(), toString())
+            //" >> Reviewing arg %s in call %s, in ref %s" printfln(implArg toString(), toString(), ref toString())
 
             callArg := args get(j)
             typeResult := callArg getType()

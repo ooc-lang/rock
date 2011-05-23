@@ -238,7 +238,7 @@ JSONGenerator: class extends Visitor {
         }
         /* `members` */
         members := Bag new()
-        for(function in node functions) {
+        for(function in node meta functions) {
             member := Bag new()
             member add(function name) .add(buildFunctionDecl(function, "method"))
             members add(member)

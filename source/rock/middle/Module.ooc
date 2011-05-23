@@ -139,14 +139,13 @@ Module: class extends Node {
         if (old != null) {
             if ((old verzion == tDecl verzion) ||
                 (old verzion != null && tDecl verzion != null && old verzion equals?(tDecl verzion))) {
-
                 params errorHandler onError(TypeRedefinition new(old, tDecl))
                 return
             }
         }
 
         types put(tDecl name, tDecl)
-        if(tDecl getMeta()) types put(tDecl getMeta() name, tDecl getMeta())
+        if(tDecl getMeta()) addType(tDecl getMeta())
     }
 
     addOperator: func (oDecl: OperatorDecl) {

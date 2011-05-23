@@ -1,7 +1,7 @@
 import ../frontend/[Token, BuildParams]
 import ../backend/cnaughty/AwesomeWriter
 import Literal, Visitor, Type, Expression, Node, TypeList, Tuple,
-       Declaration, FunctionCall, VariableAccess
+       Declaration, FunctionCall, VariableAccess, CoverDecl
 import tinker/[Response, Resolver, Trail]
 import structs/[List, ArrayList]
 
@@ -23,6 +23,8 @@ StructLiteral: class extends Tuple {
 
 }
 
+anonStructUniversalType := CoverDecl new("<anon struct>", nullToken)
+
 AnonymousStructType: class extends Type {
 
     types := ArrayList<Type> new()
@@ -32,7 +34,7 @@ AnonymousStructType: class extends Type {
     pointerLevel: func -> Int { 0 }
 
     getName: func -> String { "<anon struct>" }
-    getRef: func -> Declaration { null }
+    getRef: func -> Declaration { anonStructUniversalType }
     setRef: func (d: Declaration) { raise("Setting ref of an anonymous struct type!") }
 
     realTypize: func (call: FunctionCall) -> Type { this }

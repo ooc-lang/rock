@@ -5,7 +5,7 @@ import ../frontend/Token
 import Expression, Type, Visitor, TypeDecl, Cast, FunctionCall, FunctionDecl,
        Module, Node, VariableDecl, VariableAccess, BinaryOp, Argument,
        Return, CoverDecl, BaseType
-import tinker/[Response, Resolver, Trail]
+import tinker/[Response, Resolver, Trail, Errors]
 
 ClassDecl: class extends TypeDecl {
 
@@ -15,6 +15,8 @@ ClassDecl: class extends TypeDecl {
 
     isAbstract := false
     isFinal := false
+    
+    shouldCheckNoArgConstructor := false
 
     defaultInit := null as FunctionDecl
 
@@ -36,7 +38,39 @@ ClassDecl: class extends TypeDecl {
 
     accept: func (visitor: Visitor) { visitor visitClassDecl(this) }
 
+    hasOtherInit: func -> Bool {
+        for(fDecl in functions) if(fDecl getName() == "init") {
+            if(fDecl != defaultInit) return true
+        }
+        false
+    }
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
+
+        if(shouldCheckNoArgConstructor) {
+            finalScore := 0
+            if(defaultInit == null || hasOtherInit()) {
+                shouldCheckNoArgConstructor = false
+            } else {
+                if(getSuperRef() == null) superType resolve(trail, res)
+                if(getSuperRef() == null) {
+                    res wholeAgain(this, "need superRef to check for noarg cons")
+                    return Response OK
+                } else {
+                    superRef := getSuperRef()
+                    fDecl := superRef getFunction("init", "", finalScore&)
+                    if(finalScore == -1) {
+                        res wholeAgain(this, "something not resolved in getFunction")
+                        return Response OK
+                    }
+                    
+                    if (fDecl == null || fDecl getArguments() size > 0) {
+                        res throwError(NoDefaultConstructorError new(token, "No default no-arg constructor in super-class %s. You need to define a constructor yourself." format(
+                            superType getName())))
+                    }
+                }
+            }
+        }
 
         if(isMeta) {
             if(getNonMeta() class == ClassDecl) {
@@ -149,6 +183,7 @@ ClassDecl: class extends TypeDecl {
             // TODO: check if the super-type actually has a no-arg constructor, throw an error if not
             if(superType != null && superType getName() != "ClassClass") {
                 init getBody() add(FunctionCall new("super", token))
+                shouldCheckNoArgConstructor = true
             }
 
             defaultInit = init // if defaultInit is set earlier, it'll try to remove it..
@@ -261,3 +296,6 @@ ClassDecl: class extends TypeDecl {
     }
 }
 
+NoDefaultConstructorError: class extends Error {
+    init: super func ~tokenMessage
+}

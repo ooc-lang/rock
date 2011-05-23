@@ -149,7 +149,7 @@ Scope: class extends Node {
     }
 
     add:      func ~append (n: Statement) { list add(n) }
-    remove:   func (n: Statement) { list remove(n) }
+    remove:   func (n: Statement) -> Bool { list remove(n) }
     removeAt: func (i: Int) -> Statement  { list removeAt(i) }
 
     iterator: func -> Iterator<Statement> {

@@ -123,18 +123,15 @@ Foreach: class extends ControlStatement {
             block getBody() add(vdfe).
                             add(while1)
 
-            if(variable getType() == null) {
-                decl : VariableDecl = variable
-                if(!variable instanceOf?(VariableDecl)) {
-                    acc := variable as VariableAccess
-                    decl = acc ref
-                }
-                decl setType(nextCall getType())
+            if(variable getType() == null) match variable {
+                case vd : VariableDecl   =>
+                    vd setType(nextCall getType())
+                case acc: VariableAccess =>
+                    acc ref as VariableDecl setType(nextCall getType())
             }
 
             res wholeAgain(this, "Just turned into a while =)")
             return Response OK
-            //return Response LOOP
         }
 
         return super(trail, res)
