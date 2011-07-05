@@ -13,10 +13,10 @@ Target: class {
     SOLARIS = 3,
     /* Haiku */
     HAIKU = 4,
-    /* FreeBSD */
-    FREEBSD = 5,
     /* Mac OS X */
-    OSX = 6 : static const Int
+    OSX = 5,
+    /* FreeBSD */
+    FREEBSD = 6 : static const Int
 
     /**
      * @return a guess of the platform/architecture we're building on
@@ -35,11 +35,11 @@ Target: class {
         version(haiku) {
             return This HAIKU
         }
-        version(freebsd) {
-            return This FREEBSD
-        }
         version(apple) {
             return This OSX
+        }
+        version(freebsd) {
+            return This FREEBSD
         }
 
         fprintf(stderr, "Unknown operating system, assuming Linux...\n")
@@ -77,8 +77,8 @@ Target: class {
             case This LINUX   => "linux" + arch
             case This SOLARIS => "solaris" + arch
             case This HAIKU   => "haiku" + arch
-            case This FREEBSD   => "freebsd" + arch
             case This OSX     => "osx"
+            case This FREEBSD   => "freebsd" + arch
             case              => Exception new("Invalid arch: " + target toString()) throw(); ""
         }
 
