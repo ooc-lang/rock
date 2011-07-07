@@ -72,6 +72,8 @@ MakeDriver: class extends SequenceDriver {
         fW write("MACHINE := $(shell uname -m)\n")
         fW write("ifeq ($(MYOS), Linux)\n")
         fW write("    ARCH=linux\n")
+        fW write("else ifeq ($(MYOS), FreeBSD)\n")
+        fW write("    ARCH=freebsd\n")
         fW write("else ifeq ($(MYOS), Darwin)\n")
         fW write("    ARCH=osx\n")
         fW write("else ifeq ($(MYOS), CYGWIN_NT-5.1)\n")
@@ -101,12 +103,16 @@ MakeDriver: class extends SequenceDriver {
         fW write("# this folder must contains libs/\n")
         fW write("ROCK_DIST?=.\n")
 
-        fW write("# uncomment to link dynamically with the gc instead (e.g. -lgc)\n")
-        fW write("#GC_PATH?=-lgc\n")
-        fW write("GC_PATH?=${ROCK_DIST}/libs/${ARCH}/libgc.a\n")
+        fW write("ifeq ($(MYOS), FreeBSD)\n")
+        fW write("    GC_PATH?=-lgc\n")
+        fW write("else\n")
+        fW write("    # uncomment to link dynamically with the gc instead (e.g. -lgc)\n")
+        fW write("    #GC_PATH?=-lgc\n")
+        fW write("    GC_PATH?=${ROCK_DIST}/libs/${ARCH}/libgc.a\n")
+        fW write("endif\n")
 
         fW write("CFLAGS+=-I %s" format(originalOutPath getPath()))
-        fW write(" -I ${ROCK_DIST}/libs/headers/")
+        fW write(" -I ${ROCK_DIST}/libs/headers/ -L/usr/local/lib -I/usr/local/include")
 
         if(params debug) {
             fW write(" -g")
