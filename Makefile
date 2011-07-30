@@ -97,6 +97,13 @@ rescue:
 	wget http://commondatastorage.googleapis.com/rock-linux/rock-bootstrap-only.tar.bz2 -O - | tar xjvmp
 	$(MAKE) clean bootstrap
 
+# Attempt to grab a rock bootstrap from Git and recompile
+rescue-git:
+	git pull
+	rm -rf build/
+	git clone git://github.com/nikobordx/build.git
+	$(MAKE) clean bootstrap
+
 # Compile rock with the backup'd version of itself
 safe:
 	OOC=bin/safe_rock $(MAKE) self
