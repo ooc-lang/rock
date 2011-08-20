@@ -48,6 +48,13 @@ FileWriter: class extends Writer {
     }
 
     /**
+        Create a new file writer from a given FStream
+    */
+    init: func ~withFStream (=file) {
+
+    }
+
+    /**
        Create a new file writer on the given file path, overwriting it.
      */
     init: func ~withNameOverwrite (fileName: String) {

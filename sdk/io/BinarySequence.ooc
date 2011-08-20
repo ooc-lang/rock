@@ -100,6 +100,12 @@ BinarySequenceWriter: class {
             u8(value[i] as UInt8)
         }
     }
+
+    bytes: func ~string (value: String) {
+        for(i in 0..value length()) {
+            u8(value[i] as UInt8)
+        }
+    }
 }
 
 BinarySequenceReader: class {
