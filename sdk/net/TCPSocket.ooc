@@ -187,7 +187,7 @@ TCPSocket: class extends Socket {
      */
     receiveByte: func ~withFlags(flags: Int) -> Char {
         c: Char
-        receive(c&, 1, 0)
+        receive(c&, 1, flags)
         return c
     }
 
