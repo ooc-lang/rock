@@ -117,6 +117,7 @@ ServerSocket: class extends Socket {
         loop(||
             conn := accept()
             ret := f(conn)
+            shutdown(conn sock descriptor, SHUT_RDWR)
             conn close()
             (conn && ret) as Bool // Break out of the loop if one of conn or ret is 0 or null
         )
