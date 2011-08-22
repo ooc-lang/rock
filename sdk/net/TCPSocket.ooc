@@ -155,11 +155,13 @@ TCPSocket: class extends Socket {
     receive: func ~withFlags(chars: Char*, length: SizeT, flags: Int) -> Int {
         bytesRecv := socket recv(descriptor, chars, length, flags)
         if(bytesRecv == -1) {
+            connected? = false
             SocketError new() throw()
         }
-        if(bytesRecv == 0) {
-            connected? = false // disconnected!
-        }
+        /* hasData? is true if there's data left (aka, if bytesRecv != 0),
+         * and false otherwise
+         */
+        hasData? = (bytesRecv != 0)
         return bytesRecv
     }
 
@@ -216,7 +218,8 @@ TCPSocketReader: class extends Reader {
     }
 
     hasNext?: func -> Bool {
-        source connected?
+        source receiveByte(SocketMsgFlags PEEK)
+        source hasData?
     }
 
     rewind: func(offset: Int) {
