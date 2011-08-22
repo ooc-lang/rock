@@ -88,6 +88,10 @@ INADDR_ANY: extern ULong
 INADDR_NONE: extern ULong
 AI_CANONNAME: extern Int
 
+SHUT_RD: extern Int
+SHUT_WR: extern Int
+SHUT_RDWR: extern Int
+
 socket: extern func(family, type, protocol: Int) -> Int
 accept: extern func(descriptor: Int, address: SockAddr*, addressLength: UInt*) -> Int
 bind: extern func(descriptor: Int, myAddress: SockAddr*, addressLength: UInt) -> Int
