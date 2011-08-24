@@ -38,8 +38,8 @@ Reader: abstract class {
             // for some reason, some files end with the ASCII character 8, ie. BackSpace.
             // we definitely don't want that to end up in the String.
             if(c == end || (!hasNext?() && c == 8)) {
-				break
-			}
+                break
+            }
             sb append(c)
         }
         return sb toString()
