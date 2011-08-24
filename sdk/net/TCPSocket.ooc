@@ -259,3 +259,17 @@ TCPSocketWriter: class extends Writer {
         write(buffer toCString(), length)
     }
 }
+
+TCPReaderWriterPair: class { // I thought TCPSocketReaderWriterPair was a bit too long
+    in: TCPSocketReader
+    out: TCPSocketWriter
+    sock: TCPSocket
+    init: func (=sock) {
+        in = sock reader()
+        out = sock writer()
+    }
+
+    close: func {
+        sock close()
+    }
+}

@@ -94,7 +94,7 @@ ServerSocket: class extends Socket {
         This method will normally block if no connection is
         available immediately.
     */
-    accept: func -> ReaderWriterPair {
+    accept: func -> TCPServerReaderWriterPair {
         addr: SockAddr
         addrSize: UInt
         conn := accept(descriptor, addr&, addrSize&)
@@ -102,7 +102,7 @@ ServerSocket: class extends Socket {
             SocketError new() throw()
         }
         sock := TCPSocket new(SocketAddress newFromSock(addr&, addrSize), conn)
-        return ReaderWriterPair new(sock)
+        return TCPServerReaderWriterPair new(sock)
     }
 
     /**
@@ -110,7 +110,7 @@ ServerSocket: class extends Socket {
 
         This method will block.
     */
-    accept: func ~withClosure (f: Func(ReaderWriterPair) -> Bool) {
+    accept: func ~withClosure (f: Func(TCPServerReaderWriterPair) -> Bool) {
         if(!listening?)
             listen()
 
@@ -124,16 +124,11 @@ ServerSocket: class extends Socket {
     }
 }
 
-ReaderWriterPair: class { // I thought TCPSocketReaderWriterPair was a bit too long
-    in: TCPSocketReader
-    out: TCPSocketWriter
-    sock: TCPSocket
+/** This makes me sad, but it works and allows TCPReaderWriterPair to be
+ *+ in net/TCPSocket
+ */
+TCPServerReaderWriterPair: class extends TCPReaderWriterPair {
     init: func (=sock) {
-        in = sock reader()
-        out = sock writer()
-    }
-
-    close: func {
-        sock close()
+        super(sock)
     }
 }
