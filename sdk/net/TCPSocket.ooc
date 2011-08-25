@@ -63,6 +63,21 @@ TCPSocket: class extends Socket {
     }
 
     /**
+       Attempt to connect this socket to the remote host, then runs f(),
+       passing a TCPReaderWriterPair.
+
+       :throws: A SocketError if something went wrong
+     */
+    connect: func ~withClosure (f: Func(TCPReaderWriterPair) -> Bool) {
+        if(!connected?)
+            connect()
+
+        conn := TCPReaderWriterPair new(this)
+
+        f(conn)
+    }
+
+    /**
        :return: A reader that reads data from this socket
      */
     reader: func -> TCPSocketReader {
