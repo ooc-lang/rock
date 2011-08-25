@@ -5,7 +5,7 @@ import berkeley into socket
 /**
     A stream based socket interface.
  */
-StreamSocket: class extends Socket {
+TCPSocket: class extends Socket {
     remote: SocketAddress
 
     /**
@@ -63,17 +63,32 @@ StreamSocket: class extends Socket {
     }
 
     /**
+       Attempt to connect this socket to the remote host, then runs f(),
+       passing a TCPReaderWriterPair.
+
+       :throws: A SocketError if something went wrong
+     */
+    connect: func ~withClosure (f: Func(TCPReaderWriterPair) -> Bool) {
+        if(!connected?)
+            connect()
+
+        conn := TCPReaderWriterPair new(this)
+
+        f(conn)
+    }
+
+    /**
        :return: A reader that reads data from this socket
      */
-    reader: func -> StreamSocketReader {
-        return StreamSocketReader new(this)
+    reader: func -> TCPSocketReader {
+        return TCPSocketReader new(this)
     }
 
     /**
        :return: A writer that writes data to this socket
      */
-    writer: func -> StreamSocketWriter {
-        return StreamSocketWriter new(this)
+    writer: func -> TCPSocketWriter {
+        return TCPSocketWriter new(this)
     }
 
     /**
@@ -155,11 +170,13 @@ StreamSocket: class extends Socket {
     receive: func ~withFlags(chars: Char*, length: SizeT, flags: Int) -> Int {
         bytesRecv := socket recv(descriptor, chars, length, flags)
         if(bytesRecv == -1) {
+            connected? = false
             SocketError new() throw()
         }
-        if(bytesRecv == 0) {
-            connected? = false // disconnected!
-        }
+        /* hasData? is true if there's data left (aka, if bytesRecv != 0),
+         * and false otherwise
+         */
+        hasData? = (bytesRecv != 0)
         return bytesRecv
     }
 
@@ -185,7 +202,7 @@ StreamSocket: class extends Socket {
      */
     receiveByte: func ~withFlags(flags: Int) -> Char {
         c: Char
-        receive(c&, 1, 0)
+        receive(c&, 1, flags)
         return c
     }
 
@@ -197,10 +214,10 @@ StreamSocket: class extends Socket {
     receiveByte: func -> Char { receiveByte(0) }
 }
 
-StreamSocketReader: class extends Reader {
-    source: StreamSocket
+TCPSocketReader: class extends Reader {
+    source: TCPSocket
 
-    init: func ~StreamSocketReader (=source) { marker = 0 }
+    init: func ~TCPSocketReader (=source) { marker = 0 }
 
     close: func {
         source close()
@@ -216,7 +233,8 @@ StreamSocketReader: class extends Reader {
     }
 
     hasNext?: func -> Bool {
-        source connected?
+        source receiveByte(SocketMsgFlags PEEK)
+        source hasData?
     }
 
     rewind: func(offset: Int) {
@@ -230,10 +248,10 @@ StreamSocketReader: class extends Reader {
     }
 }
 
-StreamSocketWriter: class extends Writer {
-    dest: StreamSocket
+TCPSocketWriter: class extends Writer {
+    dest: TCPSocket
 
-    init: func ~StreamSocketWriter (=dest) {}
+    init: func ~TCPSocketWriter (=dest) {}
 
     close: func { dest close() }
 
@@ -254,5 +272,19 @@ StreamSocketWriter: class extends Writer {
         vsnprintf(buffer data, length + 1, fmt toCString(), list)
         buffer setLength(length)
         write(buffer toCString(), length)
+    }
+}
+
+TCPReaderWriterPair: class { // I thought TCPSocketReaderWriterPair was a bit too long
+    in: TCPSocketReader
+    out: TCPSocketWriter
+    sock: TCPSocket
+    init: func (=sock) {
+        in = sock reader()
+        out = sock writer()
+    }
+
+    close: func {
+        sock close()
     }
 }

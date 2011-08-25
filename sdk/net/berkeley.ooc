@@ -88,6 +88,10 @@ INADDR_ANY: extern ULong
 INADDR_NONE: extern ULong
 AI_CANONNAME: extern Int
 
+SHUT_RD: extern Int
+SHUT_WR: extern Int
+SHUT_RDWR: extern Int
+
 socket: extern func(family, type, protocol: Int) -> Int
 accept: extern func(descriptor: Int, address: SockAddr*, addressLength: UInt*) -> Int
 bind: extern func(descriptor: Int, myAddress: SockAddr*, addressLength: UInt) -> Int
@@ -98,9 +102,9 @@ shutdown: extern func(descriptor: Int, how: Int) -> Int
 listen: extern func(descriptor: Int, numberOfBacklogConnections: Int) -> Int
 poll: extern func(ufds: PollFd*, nfds: UInt, timeout: Int) -> Int
 recv: extern func(descriptor: Int, buffer: Pointer, maxBufferLength: SizeT, flags: Int) -> Int
-recvFrom: extern func(descriptor: Int, buffer: Pointer, maxBufferLength: SizeT, flags: Int, senderAddress: SockAddr*, senderAddressLength: UInt) -> Int
+recvFrom: extern(recvfrom) func(descriptor: Int, buffer: Pointer, maxBufferLength: SizeT, flags: Int, senderAddress: SockAddr*, senderAddressLength: UInt) -> Int
 send: extern func(descriptor: Int, message: Pointer, messageLength: SizeT, flags: Int) -> Int
-sendTo: extern func(descriptor: Int, message: Pointer, messageLength: SizeT, flags: Int, recieverAddress: SockAddr*, recieverAddressLength: UInt) -> Int
+sendTo: extern(sendto) func(descriptor: Int, message: Pointer, messageLength: SizeT, flags: Int, recieverAddress: SockAddr*, recieverAddressLength: UInt) -> Int
 select: extern func(numfds: Int, readfds: FdSet*, writefds: FdSet*, exceptfds: FdSet*, timeout: TimeVal*) -> Int
 getsockopt: extern func(s: Int, level: Int, optname: Int, optval: Pointer, optlen: UInt) -> Int
 setsockopt: extern func(s: Int, level: Int, optname: Int, optval: Pointer, optlen: UInt) -> Int

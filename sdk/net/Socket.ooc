@@ -7,6 +7,8 @@ Socket: abstract class {
     descriptor: Int
     family, type, protocol: Int
     connected? := false
+    listening? := false
+    hasData?   := false
 
     init: func ~sock(=family, =type, =protocol) {
         descriptor = socket(family, type, protocol)
@@ -134,7 +136,6 @@ Socket: abstract class {
         return flags
 
     }
-
 }
 
 AddressFamily: cover {

@@ -139,6 +139,13 @@ IPAddress: abstract class {
     mask: abstract func ~withSet(mask: IPAddress, set: IPAddress)
 
     /**
+        Is the address valid? (Does not return type)
+    */
+    valid?: func(ip: String) -> Bool {
+        family != AddressFamily UNSPEC
+    }
+
+    /**
         Returns a string representation of the address in presentation format.
     */
     toString: abstract func -> String
