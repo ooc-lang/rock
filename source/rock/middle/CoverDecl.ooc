@@ -10,7 +10,7 @@ CoverDecl: class extends TypeDecl {
     fromType: Type
 
     init: func ~coverDeclNoSuper(.name, .token) {
-        init(name, null, token)
+        super(name, token)
     }
 
     init: func ~coverDecl(.name, .superType, .token) {
@@ -76,3 +76,4 @@ AddingVariablesInAddon: class extends Error {
 CoverDeclLoop: class extends Error {
     init: super func ~tokenMessage
 }
+
