@@ -486,19 +486,19 @@ FunctionDecl: class extends Declaration {
                         for(j in 0..fType1 argTypes getSize()) {
                             type1 := fType1 argTypes[j]
                             type2 := (fType2 != null && j < fType2 argTypes getSize()) ? fType2 argTypes[j] : null
-
-                            if(!type1 isResolved() || (!type2 isResolved() && type2 != null)) {
-                                res wholeAgain(this, "should determine interface specialization")
-                                break
-                            }
-
-                            if(type2 isGeneric() && !type1 isGeneric()) {
-                                // there's a specialization going on!
-                                fType1 argTypes[j] = type2
-                                if(!genericConstraints) {
-                                    genericConstraints = HashMap<Type, Type> new()
+                            if(type2 != null) {
+                                if(!type1 isResolved() || !type2 isResolved()) {
+                                    res wholeAgain(this, "should determine interface specialization")
+                                    break
                                 }
-                                genericConstraints put(type2 clone(), type1 clone())
+                                if(type2 isGeneric() && !type1 isGeneric()) {
+                                    // there's a specialization going on!
+                                    fType1 argTypes[j] = type2
+                                    if(!genericConstraints) {
+                                        genericConstraints = HashMap<Type, Type> new()
+                                    }
+                                    genericConstraints put(type2 clone(), type1 clone())
+                                }
                             }
                         }
                     }
