@@ -479,15 +479,15 @@ FunctionDecl: class extends Declaration {
                     if(arg getType() instanceOf?(FuncType)) {
                         fType1 := arg getType() as FuncType
                         // TODO: add check 1) number of argument 2) it's a FuncType
-                        fType2 := parent args[i] getType() as FuncType
+                        fType2 := ((i < parent args getSize()) ? parent args[i] getType() : null) as FuncType
 
                         //"for %s, got %s vs %s" printfln(toString(), fType1 toString(), fType2 toString())
 
                         for(j in 0..fType1 argTypes getSize()) {
                             type1 := fType1 argTypes[j]
-                            type2 := fType2 argTypes[j]
+                            type2 := (fType2 != null && j < fType2 argTypes getSize()) ? fType2 argTypes[j] : null
 
-                            if(!type1 isResolved() || !type2 isResolved()) {
+                            if(!type1 isResolved() || (!type2 isResolved() && type2 != null)) {
                                 res wholeAgain(this, "should determine interface specialization")
                                 break
                             }
