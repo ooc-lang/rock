@@ -46,6 +46,27 @@ FunctionDeclWriter: abstract class extends Skeleton {
 
             // don't write to source.
             return
+        } else if(fDecl isWrapped()) {
+            argStr := ""
+            for(i in 0 .. fDecl args getSize()) {
+                argStr += fDecl args get(i) getFullName()
+                if(i != fDecl args getSize() - 1) {
+                    argStr += ","
+                }
+            }
+            name := (fDecl getWrappedName() empty?()) ? fDecl name : fDecl getWrappedName()
+            current = cw
+            if(fDecl getVersion()) VersionWriter writeStart(this, fDecl getVersion())
+            current nl(). nl()
+            writeFuncPrototype(this, fDecl)
+            current app(" {"). tab(). nl()
+            if(fDecl returnType != voidType) {
+                current app("return ")
+            }
+            current app(name). app("("). app(argStr). app(");")
+            current untab(). nl(). app("}")
+            if(fDecl getVersion()) VersionWriter writeEnd(this)
+            return
         }
 
         // source
