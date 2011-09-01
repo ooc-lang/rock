@@ -65,6 +65,7 @@ FunctionDecl: class extends Declaration {
     isProto := false
     isSuper := false
     externName : String = null
+    wrappedName : String = null
     unmangledName: String = null
 
     /** if true, 'this' has byref semantics */
@@ -279,6 +280,13 @@ FunctionDecl: class extends Declaration {
     isExtern: func -> Bool { externName != null }
     isExternWithName: func -> Bool {
         (externName != null) && !(externName empty?())
+    }
+    
+    getWrappedName: func -> String { wrappedName }
+    setWrappedName: func (=wrappedName)
+    isWrapped: func -> Bool { wrappedName != null }
+    isWrappedWithName: func -> Bool {
+        (wrappedName != null) && !(wrappedName empty?())
     }
 
     getUnmangledName: func -> String { unmangledName empty?() ? name : unmangledName }

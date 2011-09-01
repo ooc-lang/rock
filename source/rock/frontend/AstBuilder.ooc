@@ -622,6 +622,10 @@ AstBuilder: class {
     onFunctionExtern: unmangled(nq_onFunctionExtern) func (externName: CString) {
         peek(FunctionDecl) setExternName(externName toString())
     }
+    
+    onFunctionWrapped: unmangled(nq_onFunctionWrapped) func(wrappedName: CString) {
+        peek(FunctionDecl) setWrappedName(wrappedName toString())
+    }
 
     onFunctionUnmangled: unmangled(nq_onFunctionUnmangled) func (unmangledName: CString) {
         peek(FunctionDecl) setUnmangledName(unmangledName toString())
