@@ -479,26 +479,26 @@ FunctionDecl: class extends Declaration {
                     if(arg getType() instanceOf?(FuncType)) {
                         fType1 := arg getType() as FuncType
                         // TODO: add check 1) number of argument 2) it's a FuncType
-                        fType2 := parent args[i] getType() as FuncType
+                        fType2 := ((i < parent args getSize()) ? parent args[i] getType() : null) as FuncType
 
                         //"for %s, got %s vs %s" printfln(toString(), fType1 toString(), fType2 toString())
 
                         for(j in 0..fType1 argTypes getSize()) {
                             type1 := fType1 argTypes[j]
-                            type2 := fType2 argTypes[j]
-
-                            if(!type1 isResolved() || !type2 isResolved()) {
-                                res wholeAgain(this, "should determine interface specialization")
-                                break
-                            }
-
-                            if(type2 isGeneric() && !type1 isGeneric()) {
-                                // there's a specialization going on!
-                                fType1 argTypes[j] = type2
-                                if(!genericConstraints) {
-                                    genericConstraints = HashMap<Type, Type> new()
+                            type2 := (fType2 != null && j < fType2 argTypes getSize()) ? fType2 argTypes[j] : null
+                            if(type2 != null) {
+                                if(!type1 isResolved() || !type2 isResolved()) {
+                                    res wholeAgain(this, "should determine interface specialization")
+                                    break
                                 }
-                                genericConstraints put(type2 clone(), type1 clone())
+                                if(type2 isGeneric() && !type1 isGeneric()) {
+                                    // there's a specialization going on!
+                                    fType1 argTypes[j] = type2
+                                    if(!genericConstraints) {
+                                        genericConstraints = HashMap<Type, Type> new()
+                                    }
+                                    genericConstraints put(type2 clone(), type1 clone())
+                                }
                             }
                         }
                     }
