@@ -237,7 +237,7 @@ ClassDecl: class extends TypeDecl {
             return
         }
 
-        newType := getNonMeta() getInstanceType() as BaseType
+        newType := isMeta ? getNonMeta() getInstanceType() as BaseType : getInstanceType() as BaseType
 
         constructor := FunctionDecl new("new", fDecl token)
         constructor setStatic(true)
