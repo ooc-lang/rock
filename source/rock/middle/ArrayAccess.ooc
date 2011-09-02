@@ -2,7 +2,7 @@ import structs/ArrayList
 import ../frontend/[Token, BuildParams]
 import Visitor, Expression, VariableDecl, Declaration, Type, Node,
        OperatorDecl, FunctionCall, Import, Module, BinaryOp,
-       VariableAccess, AddressOf, ArrayCreation, TypeDecl, Argument
+       VariableAccess, AddressOf, ArrayCreation, TypeDecl, Argument, Scope
 import tinker/[Resolver, Response, Trail, Errors]
 
 ArrayAccess: class extends Expression {
@@ -115,6 +115,9 @@ ArrayAccess: class extends Expression {
             innerType := tDecl getInstanceType()
 
             parent := trail peek()
+            if(parent instanceOf?(Scope)) {
+                parent = (parent as Scope getSize() == 1) ? parent as Scope first() : parent
+            }
 
             if(!parent instanceOf?(FunctionCall)) {
                 if(parent instanceOf?(ArrayAccess)) {
