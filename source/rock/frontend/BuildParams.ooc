@@ -163,6 +163,9 @@ BuildParams: class {
 
     // Cache libs in `libcachePath` directory
     libcache := true
+    version(windows) {
+        libcache = false
+    }
 
     // Path to store cache-libs
     libcachePath := ".libs"
