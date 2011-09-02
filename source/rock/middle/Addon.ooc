@@ -1,5 +1,5 @@
 import structs/HashMap
-import Node, Type, TypeDecl, FunctionDecl, FunctionCall, Visitor, VariableAccess
+import Node, Type, TypeDecl, FunctionDecl, FunctionCall, Visitor, VariableAccess, ClassDecl, CoverDecl
 import tinker/[Trail, Resolver, Response]
 
 /**
@@ -63,6 +63,10 @@ Addon: class extends Node {
                 base addons add(this)
 
                 for(fDecl in functions) {
+                    if(fDecl name == "init" && (base instanceOf?(ClassDecl) || base instanceOf?(CoverDecl))) {
+                        if(base instanceOf?(ClassDecl)) base as ClassDecl addInit(fDecl)
+                        else base getMeta() addInit(fDecl)
+                    }
                     fDecl setOwner(base)
                 }
             } else {
