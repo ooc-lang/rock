@@ -59,7 +59,6 @@ endif
 # of rock from the C sources in build/, then use that version to re-compile itself
 bootstrap:
 ifneq ($(IS_BOOTSTRAP),)
-	@echo "Creating bin/ in case it does not exist."
 	mkdir -p bin/
 	@echo "Compiling from C source"
 	cd build/ && ROCK_DIST=.. $(MAKE)
@@ -94,6 +93,8 @@ backup:
 rescue:
 	git pull
 	rm -rf build/
+	# note: if someone can make it use curl instead when wget is missing, that'd be good
+	# note: don't use --no-check-certificate, it breaks on OSX
 	wget http://www.fileville.net/ooc/bootstrap.tar.bz2 -O - | tar xjvmp 1>/dev/null
 	$(MAKE) clean bootstrap
 
