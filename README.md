@@ -16,7 +16,7 @@ Run `make rescue` and you're good.
 ## Wait, what?
 
 `make rescue` downloads a set of C sources, compiles them, uses them to compile your copy of rock,
-and then uses that copy to recompile itself (just to be sure).
+and then uses that copy to recompile itself
 
 Then you'll have a 'rock' executable in bin/rock. Add it to your PATH, symlink it, copy it, just
 make sure it can find the SDK!
@@ -25,7 +25,7 @@ make sure it can find the SDK!
 
 See the INSTALL file
 
-To switch to the most recent git, read docs/workflow/ReleaseToGit.md
+To switch to the most recent git, read [ReleaseToGit](https://github.com/nddrylliog/rock/blob/master/docs/workflow/ReleaseToGit.md)
 
 ## License
 
