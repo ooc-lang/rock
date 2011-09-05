@@ -1,0 +1,9 @@
+*.o
+*.lo
+*.la
+linux*
+win*
+osx*
+freebsd
+sources/Makefile
+sources/config.*
