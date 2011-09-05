@@ -1,5 +1,29 @@
 
-0.9.1 release ()
+0.9.2 release (2011-09-05)
+
+  - Lots of bugfixes, refactorings (see GitHub milestone), thanks to
+    @shamanas, @duckinator, @fredreichbier, @showstopper, @tsion, @rofl0r, @nddrylliog
+  - New Socket API by @duckinator (aka Nicholas Markwell)
+  - FreeBSD support by @nikobordx
+  - Better error messages through nagaqueen fixes
+  - Enums now start at 0 instead of 1 (a really hard change to make
+    in a self-hosting compiler)
+  - String literal optimizations - allocate once, not per-usage
+  - New command-line options: libfolder, staticlib, dynamiclib
+  - yajit removal, it wasn't being used anywhere in rock
+  - New Time methods
+  - Somehow the SDK now includes an HTTPRequest and RestClient?
+    Courtesy of @pheuter aka Mark Fayngersh
+  - Added loop(|| ...)
+  - Variants of each(...) with index
+  - main now acceps String* as parameter (@showstopper aka Yannic Ahrens)
+  - version blocks now support else {} (@nddrylliog aka Amos Wenger)
+  - Probably the biggest change, which also explains why this release took
+    a whopping 15 months - newstr, ie. String is now a class, and CStrnig
+    is now the cover of char*. It's handled smoothly in many cases, thanks
+    to implicit cases and related trickery but it's a scar rock will always bear.
+
+0.9.1 release (2010-06-02)
 
   - 2010-05 reverse iterators / backIterator() added to collection classes
     by Noel Cower (nilium)
