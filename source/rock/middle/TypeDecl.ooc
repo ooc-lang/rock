@@ -617,16 +617,23 @@ TypeDecl: abstract class extends Declaration {
     }
 
     resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
+	
         if(type getName() == "This") {
             if(type suggest(getNonMeta() ? getNonMeta() : this)) return 0
         }
 
         for(typeArg: VariableDecl in getTypeArgs()) {
             if(typeArg name == type name) {
-                type suggest(typeArg)
-                return 0
+                if(type suggest(typeArg)) return 0
             }
         }
+
+	finalScore := 0
+	haystack := getInstanceType()
+	result := haystack searchTypeArg(type getName(), finalScore&)
+	if (result && finalScore >= 0) {
+	    if(type suggest(result getRef())) return 0
+	}
 
         0
     }
