@@ -261,6 +261,10 @@ CommandLine: class {
 
                     params verbose = true
 
+                } else if (option == "!verbose" || option == "!v") {
+
+                    params compiler silence = true
+
                 } else if (option == "veryVerbose" || option == "vv") {
 
                     params verbose = true
