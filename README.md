@@ -1,10 +1,7 @@
 # rock
 
-+-----+------------------------------------+
-|ooc  | http://ooc-lang.org                |
-+-----+------------------------------------+
-|rock | http://github.com/nddrylliog/rock  |
-+-----+------------------------------------+
+  * [ooc](http://ooc-lang.org/)
+  * [rock](https://github.com/nddrylliog/rock)
 
 rock is an ooc compiler written in ooc - in other words, it's
 where things begin to become really exciting.
