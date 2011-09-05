@@ -231,11 +231,15 @@ ModuleWriter: abstract class extends Skeleton {
                 else        hw app(", ")
                 hw app(retArg getName())
             }
-
+            
+            // We eliminate any generic variable that is passed as a "true" function argument
+            // E.g. in __va_call: inline func <T> (f: Func <T> (T), T: Class, arg: T)
+            // T is passed as a first param while it shouldnt as it is passed later :D
+            typeArgs := fDecl typeArgs filter(|arg| fDecl args each(|rarg| if(arg getName() == rarg getName()) return true); false)
             /* Step 3 : write generic type args */
-            for(typeArg in fDecl typeArgs) {
+            for(typeArg in typeArgs) {
                 if(isFirst) isFirst = false
-                else        hw app(", ")
+                else hw app(", ")
                 hw app(typeArg getName())
             }
 
@@ -243,9 +247,9 @@ ModuleWriter: abstract class extends Skeleton {
             /* Step 4 : write real args */
             for(arg in fDecl args) {
                 if(isFirst) isFirst = false
-                else        hw app(", ")
+                else hw app(", ")
                 if(arg instanceOf?(VarArg)) hw app("...")
-                else                       hw app(arg getName())
+                else hw app(arg getName())
             }
 
             hw app(") ")
@@ -272,7 +276,7 @@ ModuleWriter: abstract class extends Skeleton {
             }
 
             /* Step 3 : write generic type args */
-            for(typeArg in fDecl typeArgs) {
+            for(typeArg in typeArgs) {
                 if(isFirst) isFirst = false
                 else        hw app(", ")
                 hw app('('). app(typeArg getName()). app(')')
