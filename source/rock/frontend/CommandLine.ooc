@@ -261,10 +261,6 @@ CommandLine: class {
 
                     params verbose = true
 
-                } else if (option == "!verbose" || option == "!v") {
-
-                    params compiler silence = true
-
                 } else if (option == "veryVerbose" || option == "vv") {
 
                     params verbose = true
@@ -604,7 +600,7 @@ CommandLine: class {
         if(params backend == "c") {
             // c phase 3: launch the driver
             if(params compiler != null && driver != null) {
-                if(params run) params compiler silence = true
+                if(!params verbose) params compiler silence = true
                 result := driver compile(module)
                 if(result == 0) {
                     if(params shout) success()
