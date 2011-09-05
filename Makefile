@@ -97,8 +97,9 @@ backup:
 rescue:
 	git pull
 	rm -rf build/
-	#wget http://commondatastorage.googleapis.com/rock-linux/rock-bootstrap-only.tar.bz2 -O - | tar xjvmp
-	wget --no-check-certificate http://www.fileville.net/ooc/bootstrap.tar.bz2 -O - | tar xjvmp 1>/dev/null
+	# Note: don't use --no-check-certificate, OSX is retarded
+	# Note: someone make a curl fallback already
+	wget http://www.fileville.net/ooc/bootstrap.tar.bz2 -O - | tar xjvmp 1>/dev/null
 	$(MAKE) clean bootstrap
 
 # Compile rock with the backup'd version of itself
