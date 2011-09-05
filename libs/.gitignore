@@ -5,5 +5,3 @@ linux*
 win*
 osx*
 freebsd
-sources/Makefile
-sources/config.*
