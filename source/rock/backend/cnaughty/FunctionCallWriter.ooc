@@ -1,7 +1,7 @@
 
 import ../../middle/[FunctionDecl, FunctionCall, TypeDecl, Argument,
         Type, Expression, InterfaceDecl, VariableAccess, VariableDecl,
-        ClassDecl, Dereference]
+        ClassDecl, Dereference, StructLiteral]
 import Skeleton, FunctionDeclWriter, ModuleWriter
 
 FunctionCallWriter: abstract class extends Skeleton {
@@ -16,6 +16,15 @@ FunctionCallWriter: abstract class extends Skeleton {
         fDecl : FunctionDecl = fCall ref
 
         shouldCastThis := false
+
+        if(fCall inBinOrTern) {
+            current app("(")
+            ast := fCall botRight realType
+            fCall botRight elements each(|element,index| 
+                            current app(fCall botLeft). app("."). app("__f"+(index+1) toString()). app(" = ") \
+                            . app(element). app(", ")
+                        )
+        }
 
         // write the function name
         if(fDecl vDecl != null) {
@@ -194,6 +203,7 @@ FunctionCallWriter: abstract class extends Skeleton {
         }
 
         current app(')')
+        if(fCall inBinOrTern) current app(")")
 
     }
 
