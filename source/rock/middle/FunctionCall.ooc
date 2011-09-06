@@ -4,7 +4,7 @@ import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
        InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType, Return,
        TypeList, Scope, Block, InlineContext, StructLiteral, NullLiteral,
-       IntLiteral
+       IntLiteral, Ternary
 import tinker/[Response, Resolver, Trail, Errors]
 
 /**
@@ -852,6 +852,45 @@ FunctionCall: class extends Expression {
                         elements add(arg)
                         ast types add(arg getType())
                     }
+                    
+                    
+                    i := trail getSize() - 1
+                    while(i >= 0) {
+                        node := trail data get(i) as Node
+                        // boolean binary ops and ternary ops are the problem!
+                        if((node instanceOf?(BinaryOp) && node as BinaryOp isBooleanOp()) || node instanceOf?(Ternary)) {
+                            
+                            argsDecl := VariableDecl new(ast, generateTempName("__va_args"),token)
+                            if(!trail addBeforeInScope(this, argsDecl)) {
+                                res throwError(CouldntAddBeforeInScope new(token, this, argsDecl, trail))
+                            }
+                            
+                            vaType := BaseType new("VarArgs", token)
+                            elements2 := [
+                                AddressOf new(VariableAccess new(argsDecl, token), token)
+                                NullLiteral new(token)
+                                IntLiteral new(numVarArgs, token)
+                            ] as ArrayList<Expression>
+                            
+                            varargsSl := StructLiteral new(vaType, elements2, token)
+                            vaDecl := VariableDecl new(null, generateTempName("__va"), varargsSl, token)
+                            if(!trail addBeforeInScope(this, vaDecl)) {
+                                res throwError(CouldntAddBeforeInScope new(token, this, vaDecl, trail))
+                            }
+                            numVarArgs times(||
+                                args removeAt(args lastIndex())
+                            )
+                            args add(VariableAccess new(vaDecl, token))
+                            
+                            return Response OK
+                        } else if(node instanceOf?(Scope)) {
+                            // we're not part of the same expression anymore!
+                            break;
+                        }
+                        i -= 1
+                    }
+                    
+                    
                     argsSl := StructLiteral new(ast, elements, token)
                     argsDecl := VariableDecl new(null, generateTempName("__va_args"), argsSl, token)
                     if(!trail addBeforeInScope(this, argsDecl)) {
