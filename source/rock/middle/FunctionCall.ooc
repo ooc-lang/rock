@@ -1,7 +1,7 @@
 import structs/[ArrayList, List, HashMap]
 import ../frontend/[Token, BuildParams, CommandLine]
-import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
-       TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
+import Visitor, Expression, FunctionDecl, Argument, Type,
+       TypeDecl, Node, VariableDecl, VariableAccess, AddressOf, CommaSequence, BinaryOp,
        InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType, Return,
        TypeList, Scope, Block, InlineContext, StructLiteral, NullLiteral,
        IntLiteral, Ternary
@@ -27,6 +27,10 @@ IMPLICIT_AS_EXTERNAL_ONLY: const Bool = true
 
 FunctionCall: class extends Expression {
 
+    inBinOrTern := false
+    //Binary or Ternary left/right
+    botLeft: String
+    botRight: StructLiteral
     /**
      * Expression on which we call something, if any. Function calls
      * have a null expr, method calls have a non-null ones.
@@ -826,7 +830,7 @@ FunctionCall: class extends Expression {
         match (lastArg := ref args last()) {
             case vararg: VarArg =>
                 if(vararg name != null) {
-                    inBinOrTern := false
+                    
                     i := trail getSize() - 1
                     while(i >= 0) {
                         node := trail data get(i) as Node
@@ -872,6 +876,8 @@ FunctionCall: class extends Expression {
                     if(inBinOrTern) {
 
                         argsDecl = VariableDecl new(ast, generateTempName("__va_args"),token)
+                        botLeft = argsDecl getName()
+                        botRight = StructLiteral new(ast, elements, token)
 
                     } else {
                         argsSl = StructLiteral new(ast, elements, token)
