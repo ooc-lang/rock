@@ -55,9 +55,12 @@ endif
 	cp ${NQ_PATH} build/c-source/${NQ_PATH}
 	@echo "Done!"
 
+boehmgc:
+	cd libs && make
+
 # For c-source based rock releases, 'make bootstrap' will compile a version
 # of rock from the C sources in build/, then use that version to re-compile itself
-bootstrap:
+bootstrap: boehmgc 
 ifneq ($(IS_BOOTSTRAP),)
 	@echo "Creating bin/ in case it does not exist."
 	mkdir -p bin/
@@ -94,8 +97,9 @@ backup:
 rescue:
 	git pull
 	rm -rf build/
-	#wget http://commondatastorage.googleapis.com/rock-linux/rock-bootstrap-only.tar.bz2 -O - | tar xjvmp
-	wget http://www.fileville.net/ooc/bootstrap.tar.bz2 -O - | tar xjvmp
+	# Note: don't use --no-check-certificate, OSX is retarded
+	# Note: someone make a curl fallback already
+	wget http://www.fileville.net/ooc/bootstrap.tar.bz2 -O - | tar xjvmp 1>/dev/null
 	$(MAKE) clean bootstrap
 
 # Compile rock with the backup'd version of itself

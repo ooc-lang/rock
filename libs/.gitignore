@@ -1,0 +1,7 @@
+*.o
+*.lo
+*.la
+linux*
+win*
+osx*
+freebsd

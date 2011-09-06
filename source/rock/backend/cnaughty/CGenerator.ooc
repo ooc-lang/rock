@@ -14,7 +14,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Cast, Comparison, Ternary, BoolLiteral, Argument, Statement,
     AddressOf, Dereference, CommaSequence, UnaryOp, ArrayAccess, Match,
     FlowControl, InterfaceDecl, Version, Block, EnumDecl, ArrayLiteral,
-    ArrayCreation, StructLiteral, InlineContext]
+    ArrayCreation, StructLiteral, InlineContext, FuncType]
 
 import Skeleton, FunctionDeclWriter, ControlStatementWriter,
     ClassDeclWriter, ModuleWriter, CoverDeclWriter, FunctionCallWriter,
@@ -260,6 +260,9 @@ CGenerator: class extends Skeleton {
         } else if(varAcc ref instanceOf?(FunctionDecl)) {
             fDecl := varAcc ref as FunctionDecl
             FunctionDeclWriter writeFullName(this, fDecl)
+        } else if(varAcc ref instanceOf?(FuncType)) {
+            // Yes, we need to write function types too ;D
+            current app("lang_types__Closure_class()")
         }
     }
 

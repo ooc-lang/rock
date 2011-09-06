@@ -340,7 +340,7 @@ Buffer: class extends Iterable<Char> {
 
     findAll: func ~pointer ( what : Char*, whatSize: SizeT, searchCaseSensitive := true) -> ArrayList <SizeT> {
         if (what == null || whatSize == 0) return ArrayList <SizeT> new(0)
-        result := ArrayList <SizeT> new (size / whatSize)
+        result := ArrayList <SSizeT> new (size / whatSize)
         offset : SSizeT = (whatSize ) * -1
         while (((offset = find(what, whatSize, offset + whatSize, searchCaseSensitive)) != -1)) result add (offset)
         result
