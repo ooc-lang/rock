@@ -19,11 +19,15 @@ FunctionCallWriter: abstract class extends Skeleton {
 
         if(fCall inBinOrTern) {
             current app("(")
-            ast := fCall botRight realType
-            fCall botRight elements each(|element,index| 
-                            current app(fCall botLeft). app("."). app("__f"+(index+1) toString()). app(" = ") \
-                            . app(element). app(", ")
-                        )
+            if(fCall botRight instanceOf?(StructLiteral) && fCall botLeft != null && !fCall botLeft empty?()) {
+                ast := fCall botRight as StructLiteral realType
+                fCall botRight as StructLiteral elements each(|element,index| 
+                                current app(fCall botLeft). app("."). app("__f"+(index+1) toString()). app(" = ") \
+                                . app(element). app(", ")
+                            )
+            } else {
+                current app(fDecl vDecl getFullName()). app(" = "). app(fCall botRight). app(", ")
+            }
         }
 
         // write the function name

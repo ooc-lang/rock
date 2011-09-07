@@ -23,8 +23,14 @@ VariableDecl: class extends Declaration {
     externName: String = null
     unmangledName: String = null
 
+    discardExpr := false // Wether to discard expression after we get its type
+
     /** if this VariableDecl is a Func, it can be called! */
     fDecl : FunctionDecl = null
+
+    init: func ~discExpr (=type, =name, =expr, =discardExpr, .token) {
+        super(token)
+    }
 
     init: func ~vDecl (.type, .name, .token) {
         init(type, name, null, token)
@@ -179,6 +185,8 @@ VariableDecl: class extends Declaration {
                 return response
             }
         }
+        
+        if(discardExpr) expr = null
 
         if(fDecl != null) {
             if(debugCondition()) "Resolving the fDecl." println()

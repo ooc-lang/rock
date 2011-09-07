@@ -30,7 +30,7 @@ FunctionCall: class extends Expression {
     inBinOrTern := false
     //Binary or Ternary left/right
     botLeft: String
-    botRight: StructLiteral
+    botRight: Expression
     /**
      * Expression on which we call something, if any. Function calls
      * have a null expr, method calls have a non-null ones.
