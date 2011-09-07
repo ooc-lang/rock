@@ -685,8 +685,9 @@ FunctionDecl: class extends Declaration {
                         constructCall := FunctionCall new("strArrayListFromCString", arg token)
                         constructCall args add(VariableAccess new(argc, arg token)) \
                                           .add(VariableAccess new(argv, arg token))
-
-                        vdfe := VariableDecl new(null, arg getName(), constructCall, token)
+                        // Mangle the argument's name :D
+                        arg fullName = "%s__%s" format(arg token module getUnderName(), arg name)
+                        vdfe := VariableDecl new(null, arg getFullName(), constructCall, token)
                         body add(0, vdfe)
                     }
                 }
