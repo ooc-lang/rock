@@ -71,8 +71,8 @@ FileReader: class extends Reader {
     }
 
     read: func ~fullBuffer (buffer: Buffer) {
-	count := file read(buffer data, buffer capacity)
-	buffer size = count
+        count := file read(buffer data, buffer capacity)
+        buffer size = count
     }
 
     /**
