@@ -70,6 +70,11 @@ FileReader: class extends Reader {
 	file read((buffer as Char*) + offset, count)
     }
 
+    read: func ~fullBuffer (buffer: Buffer) {
+	count := file read(buffer data, buffer capacity)
+	buffer size = count
+    }
+
     /**
      * @return a single char read from this file.
      */
