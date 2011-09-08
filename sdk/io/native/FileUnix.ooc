@@ -63,6 +63,7 @@ version(unix || apple) {
 
     lstat: extern func(CString, FileStat*) -> Int
     _mkdir: extern(mkdir) func(CString, ModeT) -> Int
+    _mkfifo: extern(mkfifo) func(CString, ModeT) -> Int
     remove: extern func(path: CString) -> Int
     _remove: unmangled func(path: String) -> Int {
         remove(path)
@@ -225,6 +226,9 @@ version(unix || apple) {
             _mkdir(path as CString, mode as ModeT)
         }
 
+        mkfifo: func ~withMode (mode: Int32) -> Int {
+            _mkfifo(path as CString, mode as ModeT)
+        }
     }
 
 }

@@ -155,6 +155,10 @@ version(windows) {
             CreateDirectory(path toCString(), null) ? 0 : -1
         }
 
+	mkfifo: func ~withMode (mode: Int32) -> Int {
+	    fprintf(stderr, "FileWin32:stub mkfifo")
+	}
+
         /**
          * @return the time of last access
          */
