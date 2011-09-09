@@ -29,6 +29,10 @@ FileWriter: class extends Writer {
         init(fileObject, false)
     }
 
+    init: func ~withFileAndFlags (fileObject: File, flags: Int) {
+        init(fileObject getPath(), "wb", flags)
+    }
+
     /**
        Create a new file writer on the given file path.
        @param append If true, appends to the file. If false, overwrites it.
@@ -40,8 +44,16 @@ FileWriter: class extends Writer {
         init(fileName, append ? "ab" : "wb")
     }
             
-    init: func ~withMode (fileName: String, mode: String) {
+    init: func ~withMode (fileName, mode: String) {
         file = FStream open(fileName, mode)
+        if (!file) {
+            // TODO: that's wrong - many other things could happen. Use strerror instead.
+            Exception new(This, "File not found: " + fileName) throw()
+        }
+    }
+
+    init: func ~withModeAndFlags (fileName, mode: String, flags: Int) {
+        file = FStream open(fileName, mode, flags)
         if (!file) {
             Exception new(This, "File not found: " + fileName) throw()
         }
@@ -50,9 +62,7 @@ FileWriter: class extends Writer {
     /**
         Create a new file writer from a given FStream
     */
-    init: func ~withFStream (=file) {
-
-    }
+    init: func ~withFStream (=file) {}
 
     /**
        Create a new file writer on the given file path, overwriting it.
