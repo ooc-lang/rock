@@ -15,6 +15,9 @@ println: func {
 }
 
 // input/output
+open: extern func (Char*, Int, ...) -> Int
+fdopen: extern func (Int, Char*) -> FStream
+
 printf: extern func (Char*, ...) -> Int
 
 fprintf: extern func (FStream, Char*, ...) -> Int
@@ -58,6 +61,8 @@ FILE: extern cover
 
 EOF: extern Int
 
+EAGAIN, EWOULDBLOCK, EBADF, EDESTADDRREQ, EFAULT, EFBIG, EINTR, EINVAL, EIO, ENOSPC, EPIPE: extern Int
+
 /**
  * Low-level interface with the C I/O API.
  * 
@@ -65,6 +70,10 @@ EOF: extern Int
  * so that for non-C backends, it will be easier to reimplement them
  */
 FStream: cover from FILE* {
+
+    NON_BLOCKING: extern(O_NONBLOCK) static Int
+    READ_ONLY:    extern(O_RDONLY) static Int
+    WRITE_ONLY:   extern(O_WRONLY) static Int
 	
     /**
      * Open a file with the given mode
@@ -79,6 +88,11 @@ FStream: cover from FILE* {
      */
     open: static func (filename, mode: const String) -> This {
         fopen(filename, mode)
+    }
+
+    open: static func ~withFlags (filename, mode: const String, flags: Int) -> This {
+        fd := open(filename, flags)
+        fdopen(fd, mode)
     }
 
     /**
