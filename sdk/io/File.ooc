@@ -156,6 +156,21 @@ File: abstract class {
     }
 
     /**
+     * create a named pipe at the path specified by this file,
+     * with permissions 0c755 by default
+     */
+    mkfifo: func -> Int {
+	mkfifo(0c755)
+    }
+
+    /**
+     * create a directory at the path specified by this file
+     *
+     * :param mode: The permissions at the creation of the directory
+     */
+    mkfifo: abstract func ~withMode (mode: Int32) -> Int
+
+    /**
      * create a directory at the path specified by this file,
      * with permissions 0c755 by default
      */

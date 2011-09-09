@@ -34,13 +34,13 @@ FileWriter: class extends Writer {
        @param append If true, appends to the file. If false, overwrites it.
      */
     init: func ~withName (fileName: String, append: Bool) {
-		// mingw fseek/ftell are *really* unreliable with text mode
-		// if for some weird reason you need to open in text mode, use
-		// FileWriter new(fileName, "ab") or "wb"
-		init(fileName, append ? "ab" : "wb")
-	}
-		
-	init: func ~withMode (fileName: String, mode: String) {
+        // mingw fseek/ftell are *really* unreliable with text mode
+        // if for some weird reason you need to open in text mode, use
+        // FileWriter new(fileName, "ab") or "wb"
+        init(fileName, append ? "ab" : "wb")
+    }
+            
+    init: func ~withMode (fileName: String, mode: String) {
         file = FStream open(fileName, mode)
         if (!file) {
             Exception new(This, "File not found: " + fileName) throw()

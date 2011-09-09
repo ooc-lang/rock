@@ -136,6 +136,16 @@ Socket: abstract class {
         return flags
 
     }
+
+    /**
+	Enable/disable the reuse of the same address
+     */
+    setReuseAddr: func (reuse: Bool) {
+	
+	option := reuse ? 1 : 0
+	setsockopt(descriptor, SOL_SOCKET, SO_REUSEADDR, option&, option class size)
+
+    }
 }
 
 AddressFamily: cover {

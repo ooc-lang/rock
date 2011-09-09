@@ -92,6 +92,10 @@ SHUT_RD: extern Int
 SHUT_WR: extern Int
 SHUT_RDWR: extern Int
 
+SOL_SOCKET: extern Int
+
+SO_REUSEADDR: extern Int
+
 socket: extern func(family, type, protocol: Int) -> Int
 accept: extern func(descriptor: Int, address: SockAddr*, addressLength: UInt*) -> Int
 bind: extern func(descriptor: Int, myAddress: SockAddr*, addressLength: UInt) -> Int
