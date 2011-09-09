@@ -100,6 +100,7 @@ rescue:
 	# Note: don't use --no-check-certificate, OSX is retarded
 	# Note: someone make a curl fallback already
 	wget http://www.fileville.net/ooc/bootstrap.tar.bz2 -O - | tar xjvmp 1>/dev/null
+	if [ ! -e build ]; then cp -rfv rock-*/build ./; fi	
 	$(MAKE) clean bootstrap
 
 # Compile rock with the backup'd version of itself
