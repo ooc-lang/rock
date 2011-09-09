@@ -4,9 +4,12 @@ import PipeUnix
 
 version(unix || apple) {
 
-include errno
+include errno, signal
 
 errno : extern Int
+SIGTERM: extern Int
+
+kill: extern func (Long, Int)
 
 /**
    Process implementation for *nix
@@ -17,6 +20,12 @@ errno : extern Int
 ProcessUnix: class extends Process {
 
     init: func ~unix (=args) {}
+
+    /** terminate my child pid! */
+    terminate: func {
+        if(pid)
+            kill(pid, SIGTERM)
+    }
 
     /**
        Wait for the process to end. Bad things will happen if you
@@ -29,6 +38,7 @@ ProcessUnix: class extends Process {
             stdIn close('w')
         }
         waitpid(-1, status&, 0)
+        pid = status
         if (WIFEXITED(status)) {
             result = WEXITSTATUS(status)
             if (stdOut != null) {
@@ -47,7 +57,7 @@ ProcessUnix: class extends Process {
     */
     executeNoWait: func -> Long {
 
-        pid := fork()
+        pid = fork()
         if (pid == 0) {
             if (stdIn != null) {
                 stdIn close('w')
@@ -83,7 +93,7 @@ ProcessUnix: class extends Process {
             cArgs[args getSize()] = null // null-terminated - makes sense
 
             execvp(cArgs[0], cArgs)
-            exit(errno); // don't allow the forked process to continue if execvp fails
+            exit(errno) // don't allow the forked process to continue if execvp fails
         }
         return pid
     }
