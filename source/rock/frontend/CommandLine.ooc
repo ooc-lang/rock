@@ -600,6 +600,7 @@ CommandLine: class {
         if(params backend == "c") {
             // c phase 3: launch the driver
             if(params compiler != null && driver != null) {
+                if(!params verbose) params compiler silence = true
                 result := driver compile(module)
                 if(result == 0) {
                     if(params shout) success()
