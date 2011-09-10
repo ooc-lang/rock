@@ -2,6 +2,8 @@ import structs/ArrayList
 
 AbstractCompiler: abstract class {
 
+    silence: Bool
+
     command := ArrayList<String> new()
     executablePath = "", executableName = "" : String
 
