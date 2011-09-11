@@ -95,7 +95,6 @@ backup:
 
 # Attempt to grab a rock bootstrap from Alpaca and recompile
 rescue:
-	git pull
 	rm -rf build/
 	# Note: don't use --no-check-certificate, OSX is retarded
 	# Note: someone make a curl fallback already
