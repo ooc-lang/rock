@@ -37,15 +37,24 @@ ROCK_LIBS_DIR?=.
 GC_PATH?=${ROCK_LIBS_DIR}/${ARCH}/
 GC_PREFIX?=/usr/lib/
 
-SYSTEM_GC_PRESENT?=$(shell nm ${GC_PREFIX}/libgc.a | grep GC_pthread_create)
+LIBGC_PRESENT?=$(wildcard ${GC_PREFIX}/libgc.a)
+LIBGC_SUPPORTS_THREADS?=$(shell nm $(wildcard ${GC_PREFIX}/libgc.a) | grep GC_pthread_create)
 
 all:
 	mkdir -p ${GC_PATH}
-ifdef SYSTEM_GC_PRESENT
+ifdef LIBGC_PRESENT
+ifdef LIBGC_SUPPORTS_THREADS
 	@echo "Using system libgc"
 	cp /usr/lib/libgc.a ${GC_PATH}
 else
-	@echo "No system libgc or it doesn't support threads, building our own"
+	@echo "System libgc doesn't support threads, building our own"
+	make buildgc
+endif
+else
+	@echo "No system libgc, building our own"
+	make buildgc
+endif
+
+buildgc:
 	cd sources && ./configure --enable-threads=posix --enable-thread-local-alloc && make
 	cp sources/.libs/libgc.a ${GC_PATH}
-endif
