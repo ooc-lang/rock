@@ -37,13 +37,13 @@ ROCK_LIBS_DIR?=.
 GC_PATH?=${ROCK_LIBS_DIR}/${ARCH}/
 GC_PREFIX?=/usr/lib/
 
-LIBGC_PRESENT?=$(wildcard ${GC_PREFIX}/libgc.a)
-LIBGC_SUPPORTS_THREADS?=$(shell nm $(wildcard ${GC_PREFIX}/libgc.a) | grep GC_pthread_create)
+LIBGC_PRESENT=$(wildcard ${GC_PREFIX}/libgc.a)
+LIBGC_SUPPORTS_THREADS=$(shell nm $(wildcard ${GC_PREFIX}/libgc.a) | grep GC_pthread_create)
 
 all:
 	mkdir -p ${GC_PATH}
-ifdef LIBGC_PRESENT
-ifdef LIBGC_SUPPORTS_THREADS
+ifneq (${LIBGC_PRESENT},)
+ifneq (${LIBGC_SUPPORTS_THREADS},)
 	@echo "Using system libgc"
 	cp /usr/lib/libgc.a ${GC_PATH}
 else
