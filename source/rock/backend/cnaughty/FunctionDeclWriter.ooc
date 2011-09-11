@@ -48,13 +48,14 @@ FunctionDeclWriter: abstract class extends Skeleton {
             return
         } else if(fDecl isWrapped()) {
             argStr := ""
+            if(fDecl getOwner() && !fDecl isStatic()) argStr += "this" + ((fDecl args getSize() == 0) ? "" : ", ")
             for(i in 0 .. fDecl args getSize()) {
                 argStr += fDecl args get(i) getFullName()
                 if(i != fDecl args getSize() - 1) {
                     argStr += ","
                 }
             }
-            name := (fDecl getWrappedName() empty?()) ? fDecl name : fDecl getWrappedName()
+            name := (!fDecl isWrappedWithName()) ? fDecl name : fDecl getWrappedName()
             current = cw
             if(fDecl getVersion()) VersionWriter writeStart(this, fDecl getVersion())
             current nl(). nl()
