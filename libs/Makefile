@@ -31,12 +31,21 @@ ifneq ($(ARCH), osx)
   endif
 endif
 # this folder must contains libs/
-ROCK_DIST?=.
+ROCK_LIBS_DIR?=.
 
 # uncomment to link dynamically with the gc instead (e.g. -lgc)
-GC_PATH?=${ROCK_DIST}/${ARCH}/
+GC_PATH?=${ROCK_LIBS_DIR}/${ARCH}/
+GC_PREFIX?=/usr/lib/
+
+SYSTEM_GC_PRESENT?=$(shell nm ${GC_PREFIX}/libgc.a | grep GC_pthread_create)
 
 all:
 	mkdir -p ${GC_PATH}
-	cd sources && ./configure --enable-threads=posix --enable-thread-local-alloc && make # Note: see http://www.hpl.hp.com/personal/Hans_Boehm/gc/simple_example.html
+ifdef SYSTEM_GC_PRESENT
+	@echo "Using system libgc"
+	cp /usr/lib/libgc.a ${GC_PATH}
+else
+	@echo "No system libgc or it doesn't support threads, building our own"
+	cd sources && ./configure --enable-threads=posix --enable-thread-local-alloc && make
 	cp sources/.libs/libgc.a ${GC_PATH}
+endif
