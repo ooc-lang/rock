@@ -1,5 +1,4 @@
 import net/[berkeley, Exceptions, Socket, TCPSocket, Address, DNS, utilities]
-_sizeof: extern(sizeof) func(SockAddr)->SSizeT
 
 /**
     A server based socket interface.
@@ -97,7 +96,7 @@ ServerSocket: class extends Socket {
     */
     accept: func -> TCPServerReaderWriterPair {
         addr: SockAddr
-        addrSize: UInt = _sizeof(addr)
+        addrSize: UInt = SockAddr size
         conn := accept(descriptor, addr&, addrSize&)
         if(conn == -1) {
             SocketError new() throw()
