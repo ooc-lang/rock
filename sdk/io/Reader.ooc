@@ -87,6 +87,29 @@ Reader: abstract class {
     }
 
     /**
+       Read as many `unwanted` chars as
+     */
+    skipWhile: func (unwanted: Char) {
+        while(hasNext?()) {
+            c := read()
+            if(c != unwanted) {
+                rewind(1)
+                break
+            }
+        }
+    }
+
+    skipWhile: func ~filter (filter: Func(Char) -> Bool) {
+        while (hasNext?()) {
+            c := read()
+            if (!filter(c)) {
+                rewind(1)
+                break
+            }
+        }
+    }
+
+    /**
        Read a single line and return it.
 
        More specifically, read until a '\n', trim any '\r' character
@@ -132,19 +155,6 @@ Reader: abstract class {
         c := read()
         rewind(1)
         return c
-    }
-
-    /**
-       Read as many `unwanted` chars as
-     */
-    skipWhile: func (unwanted: Char) {
-        while(hasNext?()) {
-            c := read()
-            if(c != unwanted) {
-                rewind(1)
-                break
-            }
-        }
     }
 
     /**
