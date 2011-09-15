@@ -28,6 +28,10 @@ BufferReader: class extends Reader {
         copySize
     }
 
+    peek: func -> Char {
+        buffer get(marker)
+    }
+
     read: func ~char -> Char {
         c := buffer get(marker)
         marker += 1

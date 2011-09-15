@@ -154,7 +154,7 @@ Reader: abstract class {
     peek: func -> Char {
         c := read()
         rewind(1)
-        return c
+        c
     }
 
     /**
