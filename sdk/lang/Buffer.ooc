@@ -199,12 +199,12 @@ Buffer: class extends Iterable<Char> {
     /** appends *other* to *this* */
     append: func ~pointer (other: Char*, otherLength: SizeT) {
         origlen := size
-        //"appending `" print()
-        //fwrite(other, 1, otherLength, stdout)
-        //"` to `%s`, new length = %zd" printfln(data, size + otherLength)
-        
         setLength(size + otherLength)
         memcpy(data + origlen, other, otherLength)
+    }
+
+    append: func ~bufLength (other: This, otherLength: SizeT) {
+        append(other data, otherLength)
     }
 
     /** appends a char to either *this* or a clone*/

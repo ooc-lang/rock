@@ -24,6 +24,23 @@ Reader: abstract class {
     read: abstract func ~char -> Char
 
     /**
+       Read a bufferfull at most, and return the number of bytes read
+     */
+    read: func ~buffer (buffer: Buffer) -> SizeT {
+       read(buffer data, 0, buffer capacity)
+    }
+   
+    readAll: func -> String {
+        in  := Buffer new(4096)
+        out := Buffer new(4096)
+        while(hasNext?()) {
+            readBytes := read(in)
+            out append(in, readBytes)
+        }
+        out toString()
+    } 
+
+    /**
        Read the stream until character `end` is reached, and return
        the result
 
