@@ -65,6 +65,7 @@ FunctionDecl: class extends Declaration {
     isProto := false
     isSuper := false
     externName : String = null
+    wrappedName : String = null
     unmangledName: String = null
 
     /** if true, 'this' has byref semantics */
@@ -165,6 +166,7 @@ FunctionDecl: class extends Declaration {
         copy isProto = isProto
         copy isSuper = isSuper
         copy externName = externName
+        copy wrappedName = wrappedName
         copy unmangledName = unmangledName
 
         copy isThisRef = isThisRef
@@ -279,6 +281,13 @@ FunctionDecl: class extends Declaration {
     isExtern: func -> Bool { externName != null }
     isExternWithName: func -> Bool {
         (externName != null) && !(externName empty?())
+    }
+    
+    getWrappedName: func -> String { wrappedName }
+    setWrappedName: func (=wrappedName)
+    isWrapped: func -> Bool { wrappedName != null }
+    isWrappedWithName: func -> Bool {
+        (wrappedName != null) && !(wrappedName empty?())
     }
 
     getUnmangledName: func -> String { unmangledName empty?() ? name : unmangledName }
@@ -605,7 +614,7 @@ FunctionDecl: class extends Declaration {
             }
         }
 
-        if(!isAbstract() && !isExtern() && vDecl == null) {
+        if(!isAbstract() && !isExtern() && !isWrapped() && vDecl == null) {
             if(isMain()) {
                 if(isVoid()) {
                     returnType = BaseType new("Int", token)
@@ -622,6 +631,16 @@ FunctionDecl: class extends Declaration {
             }
         }
         trail pop(this)
+        
+        if(isWrapped()) {
+            // Make sure our arguments have names ;)
+            // Is that the right place? :D
+            for(i in 0 .. args getSize()) {
+                if(args get(i) name empty?()) {
+                    args get(i) name = "arg" + i toString()
+                }
+            }
+        }
 
         if(isSuper) {
             if(!owner) {
@@ -880,7 +899,7 @@ FunctionDecl: class extends Declaration {
         closureType := getType() clone()
         closureType as FuncType isClosure = true
 
-        isFlat := (parentCall != null && parentCall getRef() isExtern())
+        isFlat := (parentCall != null && (parentCall getRef() isExtern() || parentCall getRef() isWrapped()))
 
         if(partialByReference empty?() && partialByValue empty?()) {
 

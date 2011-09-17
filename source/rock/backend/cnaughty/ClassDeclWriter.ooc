@@ -141,7 +141,7 @@ ClassDeclWriter: abstract class extends Skeleton {
             if(fDecl isProto()) current app("extern ")
             FunctionDeclWriter writeFuncPrototype(this, fDecl, null)
             current app(';')
-            if(!fDecl isStatic() && !fDecl isAbstract() && !fDecl isFinal()) {
+            if(!fDecl isStatic() && !fDecl isAbstract() && !fDecl isFinal() && !fDecl isWrapped()) {
                 current nl()
                 FunctionDeclWriter writeFuncPrototype(this, fDecl, "_impl")
                 current app(';')
@@ -157,7 +157,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
             if (!decl isStatic() || decl isProto() || decl isAbstract()) continue
 
-            if(decl isExternWithName()) {
+            if(decl isExternWithName() || decl isWrapped()) {
                 FunctionDeclWriter write(this, decl)
                 continue
             }
@@ -194,7 +194,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
         for(fDecl: FunctionDecl in cDecl functions) {
 
-            if (fDecl isStatic() || fDecl isFinal() || fDecl isExternWithName()) {
+            if (fDecl isStatic() || fDecl isFinal() || fDecl isExternWithName() || fDecl isWrapped()) {
                 continue
             }
 
@@ -227,7 +227,7 @@ ClassDeclWriter: abstract class extends Skeleton {
             }
 
             current nl(). nl()
-            FunctionDeclWriter writeFuncPrototype(this, decl, (decl isFinal()) ? null : "_impl")
+            FunctionDeclWriter writeFuncPrototype(this, decl, (decl isFinal() || decl isWrapped()) ? null : "_impl")
             current app(' '). openBlock()
             
             if(decl getName() == ClassDecl DEFAULTS_FUNC_NAME) {
@@ -274,8 +274,24 @@ ClassDeclWriter: abstract class extends Skeleton {
                 }
             }
 
-            for(stat in decl body) {
-                writeLine(stat)
+            if(!decl isWrapped()) {
+                for(stat in decl body) {
+                    writeLine(stat)
+                }
+            } else {
+                argStr := ""
+                if(decl getOwner()) argStr += "this" + ((decl args getSize() == 0) ? "" : ", ")
+                for(i in 0 .. decl args getSize()) {
+                    argStr += decl args get(i) getFullName()
+                    if(i != decl args getSize() - 1) {
+                        argStr += ","
+                    }
+                }
+                name := (!decl isWrappedWithName()) ? decl name : decl getWrappedName()
+                if(decl returnType != voidType) {
+                    current app("return ")
+                }
+                current app(name). app("("). app(argStr). app(");")
             }
             current closeBlock()
         }
@@ -389,7 +405,7 @@ ClassDeclWriter: abstract class extends Skeleton {
             for(alias: FunctionAlias in interfaceImpl getAliases()) {
                 current nl(). app('.'). app(alias key getName()). app(" = (void*) ")
                 FunctionDeclWriter writeFullName(this, alias value)
-                if(!alias value isFinal() && !alias value isAbstract()) current app("_impl")
+                if(!alias value isFinal() && !alias value isAbstract() && !alias value isWrapped()) current app("_impl")
                 current app(",")
             }
         }
@@ -409,7 +425,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
         decl := realDecl ? realDecl : parentDecl
         FunctionDeclWriter writeFullName(this, decl)
-        if(!decl isExternWithName() && impl) current app("_impl")
+        if(!decl isExternWithName() && !decl isWrapped() && impl) current app("_impl")
         current app(',')
 
     }
