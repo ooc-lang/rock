@@ -50,7 +50,7 @@ Regexp: class {
         :return: new regular expression object if successful, null if error occured.
     */
     compile: static func ~withOptions(pattern: String, options: Int) -> This {
-        p := Pcre compile(pattern toCString(), options, (Regexp errorMsg&) as const Char**, Regexp errorOffset&, null)
+        p := Pcre compile(pattern toCString(), options, (Regexp errorMsg&) as Pointer, Regexp errorOffset&, null)
         if(!p) {
             //TODO: once true exceptions work, throw an exception instead
             return null
