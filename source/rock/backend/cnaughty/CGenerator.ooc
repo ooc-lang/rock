@@ -282,11 +282,15 @@ CGenerator: class extends Skeleton {
             current app('('). app(sl getType()). app(") ")
         }
         current app("{ "). tab()
-        isFirst := true
+
+        isVarArgs := sl getType() getName() == "VarArgs"
+        i := 0
         for(element in sl elements) {
-            if(!isFirst) current app(", ")
-            current nl(). app(element)
-            isFirst = false
+            if(i > 0) current app(", ")
+            current nl()
+            if(isVarArgs && i == 0) current app("(void*) ")
+            current app(element)
+            i += 1
         }
         current untab(). nl(). app("}")
     }

@@ -878,8 +878,9 @@ FunctionCall: class extends Expression {
                     }
 
                     vaType := BaseType new("VarArgs", token)
+                    argsAddress := AddressOf new(VariableAccess new(argsDecl, token), token)
                     elements2 := [
-                        AddressOf new(VariableAccess new(argsDecl, token), token)
+                        argsAddress
                         NullLiteral new(token)
                         IntLiteral new(numVarArgs, token)
                     ] as ArrayList<Expression>
