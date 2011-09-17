@@ -11,7 +11,7 @@ BufferWriter: class extends Writer {
         buffer = Buffer new(1024)
     }
 
-    init: func ~withBuffer (=buffer) {}
+    init: func ~withBuffer (=buffer)
 
     buffer: func -> Buffer {
         return buffer
@@ -33,11 +33,11 @@ BufferWriter: class extends Writer {
     /* check out the Writer writef method for a simple varargs usage,
        this version here is mostly for internal usage (it is called by writef)
      */
-    vwritef: func(fmt: String, list: VaList) {
+    vwritef: func (fmt: String, list: VaList) {
         list2: VaList
         va_copy(list2, list)
         length := vsnprintf(null, 0, fmt, list2)
-        va_end (list2)
+        va_end(list2)
 
         origSize := buffer size
         buffer setLength(origSize + length)
