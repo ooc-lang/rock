@@ -311,7 +311,7 @@ File: abstract class {
        @param reader What to write in the file
      */
     write: func ~reader (reader: Reader) {
-        FileWriter new(this) write(reader) .close()
+        FileWriter new(this) write(reader) . close()
     }
 
     /**
