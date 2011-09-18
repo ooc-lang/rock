@@ -311,7 +311,6 @@ Buffer: class extends Iterable<Char> {
         if (maxpos < 0) return -1
 
         found : Bool
-        sstart := offset
 
         for (sstart in offset..(maxpos + 1)) {
             found = true
