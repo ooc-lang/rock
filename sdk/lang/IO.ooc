@@ -1,4 +1,4 @@
-include stdio
+include stdio, fcntl
 
 stdout, stderr, stdin: extern FStream
 
