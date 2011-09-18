@@ -66,8 +66,8 @@ FileReader: class extends Reader {
      * 
      * @return The number of bytes read.
      */
-    read: func(buffer: Pointer, offset: Int, count: SizeT) -> SizeT {
-	file read((buffer as Char*) + offset, count)
+    read: func (buffer: Pointer, offset: Int, count: SizeT) -> SizeT {
+        file read((buffer as Char*) + offset, count)
     }
 
     read: func ~fullBuffer (buffer: Buffer) {
@@ -79,7 +79,7 @@ FileReader: class extends Reader {
      * @return a single char read from this file.
      */
     read: func ~char -> Char {
-	file readChar()
+        file readChar()
     }
 
     /**
