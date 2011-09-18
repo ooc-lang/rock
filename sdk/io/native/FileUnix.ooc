@@ -204,8 +204,10 @@ version (unix || apple) {
             while (entry != null) {
                 if (!_isDirHardlink?(entry@ name)) {
                     s := String new(entry@ name, entry@ name length()) clone()
-                    candidate: T = (T == String) ? s : File new(this, s)
-                    result add(candidate)
+                    match T {
+                        case String => result add(s)
+                        case        => result add(File new(this, s))
+                    }
                 }
                 entry = readdir(dir)
             }
