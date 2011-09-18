@@ -159,7 +159,8 @@ UDPSocket: class extends Socket {
         remote := SocketAddress new(ip, port)
         init(remote family(), SocketType DATAGRAM, 0)
 
-        bytesRecv := recvFrom(descriptor, chars, length, flags, remote addr(), remote length())
+        socketLength := remote length()
+        bytesRecv := recvFrom(descriptor, chars, length, flags, remote addr(), socketLength&)
         if(bytesRecv == -1) {
             SocketError new() throw()
         }
