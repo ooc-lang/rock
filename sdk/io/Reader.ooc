@@ -16,7 +16,7 @@ Reader: abstract class {
        Read 'count' bytes and store them in 'chars' with offset 'offset'
        :return: The number of bytes read
      */
-    read: abstract func(chars: Char*, offset: Int, count: Int) -> SizeT
+    read: abstract func (chars: Char*, offset: Int, count: Int) -> SizeT
 
     /**
        Read a single character, and return int
@@ -33,7 +33,7 @@ Reader: abstract class {
     readAll: func -> String {
         in  := Buffer new(4096)
         out := Buffer new(4096)
-        while(hasNext?()) {
+        while (hasNext?()) {
             readBytes := read(in)
             out append(in, readBytes)
         }
@@ -49,12 +49,12 @@ Reader: abstract class {
      */
     readUntil: func (end: Char) -> String {
         sb := Buffer new(1024) // let's be pragmatic
-        while(hasNext?()) {
+        while (hasNext?()) {
             c := read()
             // FIXME this behaviour would lead to errors when reading a binary file
             // for some reason, some files end with the ASCII character 8, ie. BackSpace.
             // we definitely don't want that to end up in the String.
-            if(c == end || (!hasNext?() && c == 8)) {
+            if (c == end || (!hasNext?() && c == 8)) {
                 break
             }
             sb append(c)
@@ -64,9 +64,9 @@ Reader: abstract class {
     
     readWhile: func ~filter (filter: Func(Char) -> Bool) -> String {
         sb := Buffer new(1024) // let's be pragmatic
-        while(hasNext?()) {
+        while (hasNext?()) {
             c := read()
-            if(!filter(c)) {
+            if (!filter(c)) {
                 rewind(1)
                 break
             }
@@ -85,20 +85,20 @@ Reader: abstract class {
        rewinded once `end` has been read.
      */
     skipUntil: func (end: Char) {
-        while(hasNext?()) {
+        while (hasNext?()) {
             c := read()
-            if(c == end) break
+            if (c == end) break
         }
     }
     
     skipUntil: func ~str (end: String) {
-        while(hasNext?()) {
+        while (hasNext?()) {
             c := read()
             i := 0
-            while(c == end[i]) {
+            while (c == end[i]) {
                 c = read()
                 i += 1
-                if(i >= end size) return // caught it!
+                if (i >= end size) return // caught it!
             }
         }
     }
@@ -107,9 +107,9 @@ Reader: abstract class {
        Read as many `unwanted` chars as
      */
     skipWhile: func (unwanted: Char) {
-        while(hasNext?()) {
+        while (hasNext?()) {
             c := read()
-            if(c != unwanted) {
+            if (c != unwanted) {
                 rewind(1)
                 break
             }
@@ -155,8 +155,8 @@ Reader: abstract class {
        if we were cancelled by `f` returning false.
      */
     eachLine: func (f: Func(String) -> Bool) -> Bool {
-        while(hasNext?()) {
-            if(!f(readLine())) return false
+        while (hasNext?()) {
+            if (!f(readLine())) return false
         }
         true
     }
@@ -207,8 +207,7 @@ Reader: abstract class {
     skip: func(offset: Int) {
         if (offset < 0) {
             rewind(-offset)
-        }
-        else {
+        } else {
             for (i: Int in 0..offset) read()
         }
     }

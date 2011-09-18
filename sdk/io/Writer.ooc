@@ -17,7 +17,7 @@ Writer: abstract class {
        Write a given number of bytes to this stream, and return
        the number that has been effectively written.
      */
-    write: abstract func(bytes: Char*, length: SizeT) -> SizeT
+    write: abstract func (bytes: Char*, length: SizeT) -> SizeT
 
     /**
        Write a string to this stream.
@@ -43,7 +43,7 @@ Writer: abstract class {
     /**
        Equivalent of printf, but used to write to this stream.
      */
-    writef: final func(fmt: String, args: ...) {
+    writef: final func (fmt: String, args: ...) {
         write(fmt format(args as VarArgs))
     }
     /**
@@ -57,7 +57,7 @@ Writer: abstract class {
         cursor, bytesTransfered: Int
         cursor = 0; bytesTransfered = 0
 
-        while(source hasNext?()) {
+        while (source hasNext?()) {
             buffer setLength( source read(buffer data, cursor, bufferSize) )
             bytesTransfered += this write(buffer data, buffer size)
         }
@@ -68,7 +68,7 @@ Writer: abstract class {
     /**
         Same as write(source, bufferSize) except uses a default buffer size of 8192 bytes.
     */
-    write: func ~fromReaderDefaultBufferSize(source: Reader) {
+    write: func ~fromReaderDefaultBufferSize (source: Reader) {
         write(source, 8192)
     }
 

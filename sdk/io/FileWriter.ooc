@@ -62,7 +62,7 @@ FileWriter: class extends Writer {
     /**
         Create a new file writer from a given FStream
     */
-    init: func ~withFStream (=file) {}
+    init: func ~withFStream (=file)
 
     /**
        Create a new file writer on the given file path, overwriting it.
@@ -75,7 +75,7 @@ FileWriter: class extends Writer {
        Write a given number of bytes to this file, and return
        the number that has been effectively written.
      */
-    write: func(bytes: Char*, length: SizeT) -> SizeT {
+    write: func (bytes: Char*, length: SizeT) -> SizeT {
         file write(bytes, 0, length)
     }
 
@@ -90,7 +90,7 @@ FileWriter: class extends Writer {
     /**
        Close this writer and free the associated system resources, if any.
      */
-    close: func() {
+    close: func {
         file close()
     }
 }
