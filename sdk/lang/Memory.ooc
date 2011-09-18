@@ -20,7 +20,7 @@ version(!gc) {
 }
 
 version(gc) {
-    include gc/gc | (GC_THREADS)
+    include gc/gc | (GC_THREADS, GC_PTHREADS, GC_NO_THREADS_REDIRECT)
 
     gc_malloc: extern(GC_malloc) func (size: SizeT) -> Pointer
     gc_malloc_atomic: extern(GC_malloc_atomic) func (size: SizeT) -> Pointer
