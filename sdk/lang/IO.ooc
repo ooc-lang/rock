@@ -3,15 +3,16 @@ include stdio, fcntl
 stdout, stderr, stdin: extern FStream
 
 println: func ~withCStr (str: Char*) {
-    printf("%s\n", str)
+    fputs(str, stdout)
+    println()
 }
 
 println: func ~withStr (str: String) {
-    printf("%s\n", str toCString())
+    println(str toCString())
 }
 
 println: func {
-    printf("\n")
+    fputc('\n', stdout)
 }
 
 // input/output
