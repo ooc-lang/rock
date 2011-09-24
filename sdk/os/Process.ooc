@@ -83,6 +83,9 @@ Process: abstract class {
     /** Terminate the child process with a SIGTERM signal */
     terminate: abstract func
 
+    /** Terminate the child process with a SIGKILL signal. Like `terminate`, but more violent. */
+    kill: abstract func
+
     setStdout: func(=stdOut){}
     setStdin:  func(=stdIn) {}
     setStderr: func(=stdErr) {}

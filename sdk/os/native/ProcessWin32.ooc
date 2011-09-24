@@ -97,6 +97,11 @@ ProcessWin32: class extends Process {
         // TODO!
         "please implement me! ProcessWin32 terminate" println()
     }
+
+    kill: func {
+        // TODO!
+        "please implement me! ProcessWin32 kill" println()
+    }
 }
 
 // extern functions

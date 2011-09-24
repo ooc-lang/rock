@@ -8,6 +8,7 @@ include errno, signal
 
 errno : extern Int
 SIGTERM: extern Int
+SIGKILL: extern Int
 
 kill: extern func (Long, Int)
 
@@ -25,6 +26,11 @@ ProcessUnix: class extends Process {
     terminate: func {
         if(pid)
             kill(pid, SIGTERM)
+    }
+
+    kill: func {
+        if(pid)
+            kill(pid, SIGKILL)
     }
 
     /**
