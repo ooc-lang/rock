@@ -72,6 +72,10 @@ FileWriter: class extends Writer {
         init(fileName, false)
     }
 
+    createTempFile: static func (pattern: String, mode: String) -> This {
+        new(fdopen(mkstemp(pattern), mode))
+    }
+
     /**
        Write a given number of bytes to this file, and return
        the number that has been effectively written.

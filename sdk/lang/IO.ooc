@@ -1,4 +1,4 @@
-include stdio, fcntl
+include stdio, fcntl, unistd
 
 stdout, stderr, stdin: extern FStream
 
@@ -18,6 +18,7 @@ println: func {
 // input/output
 open: extern func (Char*, Int, ...) -> Int
 fdopen: extern func (Int, Char*) -> FStream
+mkstemp: extern func (Char*) -> Int
 
 printf: extern func (Char*, ...) -> Int
 
