@@ -43,12 +43,33 @@ version(!windows) {
     localtime: extern func (TimeT*) -> TMStruct*
     gettimeofday: extern func (TimeVal*, TimeZone*) -> Int
     usleep: extern func (UInt)
+    _asctime: extern(asctime) func (TMStruct*) -> CString
+
+    /**
+        An `asctime` wrapper that copies the result to a new string. Otherwise,
+        it would be overwritten in later calls.
+        Also, the trailing newline character is stripped.
+    */
+    asctime: func (timePtr: TMStruct*) -> String {
+        cStr := _asctime(timePtr)
+        String new(cStr, cStr length() - 1)
+    }
 }
 
 /* implementation */
 
 Time: class {
     __time_millisec_base := static This runTime
+
+    /**
+        Returns the current date + time as a human-readable string without a trailing newline character.
+        TODO: windows support!
+    */
+    dateTime: static func -> String {
+        tm: TimeT
+        time(tm&)
+        asctime(localtime(tm&))
+    }
 
     /**
         Returns the microseconds that have elapsed in the current minute.
@@ -97,7 +118,7 @@ Time: class {
             return -1
         }
     }
-    
+
     /**
      * @return the number of milliseconds spent executing 'action'
      */
