@@ -12,8 +12,20 @@ HashBag: class {
         myMap = HashMap<String, Cell<Pointer>> new(capacity)
     }
 
+    /** Fetch the value. If it doesn't exist in the HashMap or the types don't
+        match, throw an Exception. */
     get: func <T> (key: String, T: Class) -> T {
-        return getEntry(key, T) value as T // TODO: segfault if `key` is not in this
+        if(!contains?(key)) {
+            Exception new(This, "Invalid value: %s" format(key)) throw() // TODO: more specific exception
+        } else {
+            storedType := getClass(key)
+            // is `T` a derived type or the same type as the stored type?
+            if(T inheritsFrom?(storedType)) {
+                return getEntry(key, T) value as T
+            } else {
+                Exception new(This, "Invalid type: %s (stored: %s)" format(T name, storedType name)) throw() // TODO: more specific exception
+            }
+        }
     }
 
     getClass: func (key: String) -> Class {
@@ -49,7 +61,7 @@ HashBag: class {
     size: func -> Int {myMap size}
 
     contains?: func(key: String) -> Bool {
-        myMap get(key) ? true : false
+        myMap contains?(key)
     }
 
     getKeys: func -> ArrayList<String> {
