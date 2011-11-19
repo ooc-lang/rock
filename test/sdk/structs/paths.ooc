@@ -16,3 +16,6 @@ printPath("glossary/GlossDiv/GlossList/GlossEntry/ID")
 printPath("glossary/GlossDiv/GlossList/GlossEntry/GlossDef/para")
 printPath("glossary/GlossDiv/GlossList/GlossEntry/GlossDef/GlossSeeAlso#0")
 printPath("glossary/GlossDiv/GlossList/GlossEntry/GlossDef/GlossSeeAlso#1")
+
+printPath("foo#1/muh")
+printPath("foo#1/blargh#0#0#0")

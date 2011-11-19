@@ -108,11 +108,11 @@ Bag: class {
             if(chr == '#') {
                 // a bag is requested. well, just do it recursively.
                 bag := get(currentKey toString() toInt(), Bag)
-                return bag getPath(path substring(index), T)
+                return bag getPath(path substring(index + 1), T)
             } else if(chr == '/') {
                 // a hashbag.
                 hashBag := get(currentKey toString() toInt(), HashBag)
-                return hashBag getPath(path substring(index), T)
+                return hashBag getPath(path substring(index + 1), T)
             } else {
                 // oh, nothing special, just add it
                 currentKey append(chr)
