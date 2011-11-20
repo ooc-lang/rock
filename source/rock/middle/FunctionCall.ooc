@@ -325,7 +325,7 @@ FunctionCall: class extends Expression {
 
                                 if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
                                     closure := trail get(closureIndex) as FunctionDecl
-                                    if(closure isAnon && expr == null && !ref vDecl isGlobal) {
+                                    if(closure isAnon && expr == null && !ref vDecl isGlobal() && !closure args map(|value| value name) contains?(ref vDecl name + "_generic")) { // the ref may also be a closure's generic argument, in wich case we just ignore this
                                         closure markForPartialing(ref vDecl, "v")
                                     }
                                 }
