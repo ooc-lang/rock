@@ -22,6 +22,7 @@ For more informations, see http://docs.ooc-lang.org/libs.html
             )
         }
         useDef = uDef
+        useDef apply(params)
     }
 
 }

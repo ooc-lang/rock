@@ -8,7 +8,7 @@ import compilers/[Gcc, Clang, Icc, Tcc]
 import drivers/[Driver, CombineDriver, SequenceDriver, MakeDriver, DummyDriver]
 import ../backend/json/JSONGenerator
 import ../backend/explain/ExplanationGenerator
-import ../middle/[Module, Import]
+import ../middle/[Module, Import, UseDef]
 import ../middle/tinker/Tinkerer
 
 ROCK_BUILD_DATE, ROCK_BUILD_TIME: extern CString
@@ -374,21 +374,38 @@ CommandLine: class {
 
             } else {
                 lowerArg := arg toLower()
-                if(lowerArg endsWith?(".ooc")) {
-                    modulePaths add(arg)
-                } else {
-                    if(lowerArg contains?('.')) {
+                match {
+                    case lowerArg endsWith?(".ooc") =>
+                        modulePaths add(arg)
+                    case lowerArg endsWith?(".use") =>
+                        prepareCompilationFromUse(File new(arg), modulePaths)
+                    case lowerArg contains?(".") =>
+                        // used for example if you want to pass .s assembly files to gcc
                         params additionals add(arg)
-                    } else {
+                    case =>
+                        // probably an ooc file without the extension
                         modulePaths add(arg+".ooc")
-                    }
                 }
             }
         }
 
         if(modulePaths empty?() && !params libfolder) {
-            "rock: no ooc files" println()
-            exit(1)
+            uzeFile : File = null
+
+            // try to find a .use file
+            File new(".") children each(|c|
+                // anyone using an uppercase use file is a criminal anyway.
+                if(c path toLower() endsWith?(".use")) {
+                    uzeFile = c
+                }
+            )
+
+            if(!uzeFile) {
+                "rock: no .ooc nor .use files found" println()
+                exit(1)
+            }
+
+            prepareCompilationFromUse(uzeFile, modulePaths)
         }
 
         dummyModule: Module
@@ -432,7 +449,7 @@ CommandLine: class {
 
         if(params staticlib != null || params dynamiclib != null) {
             if(modulePaths getSize() != 1 && !params libfolder) {
-                "Error: you can use -staticlib of -dynamiclib only when specifying a unique .ooc file, not %d of them." printfln(modulePaths getSize())
+                "Error: you can use -staticlib or -dynamiclib only when specifying a unique .ooc file, not %d of them." printfln(modulePaths getSize())
                 exit(1)
             }
             moduleName := File new(dummyModule ? dummyModule path : modulePaths[0]) name()
@@ -491,13 +508,11 @@ CommandLine: class {
             try {
                 if(dummyModule) {
                     postParsing(dummyModule)
-                } else {
-                    for(modulePath in modulePaths) {
-                        code := parse(modulePath replaceAll('/', File separator))
-                        if(code != 0) {
-                            errorCode = 2 // C compiler failure.
-                            break
-                        }
+                } else for(modulePath in modulePaths) {
+                    code := parse(modulePath replaceAll('/', File separator))
+                    if(code != 0) {
+                        errorCode = 2 // C compiler failure.
+                        break
                     }
                 }
             } catch e: CompilationFailedException {
@@ -505,7 +520,6 @@ CommandLine: class {
             }
 
             if(!params slave) break
-            //params veryVerbose = true
 
             Terminal setFgColor(Color yellow). setAttr(Attr bright)
             "-- press [Enter] to re-compile, [c] to clean, [q] to quit. --" println()
@@ -531,6 +545,19 @@ CommandLine: class {
             clean()
         }
 
+    }
+
+    prepareCompilationFromUse: func (uzeFile: File, modulePaths: ArrayList<String>) {
+        uze := UseDef new(uzeFile name())
+        uze read(uzeFile, params)
+        if(uze main) {
+            // compile as a program
+            uze apply(params)
+            modulePaths add(uze main)
+        } else {
+            // compile as a library
+            params libfolder = uze sourcePath ? uze sourcePath : "."
+        }
     }
 
     clean: func {
