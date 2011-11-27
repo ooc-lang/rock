@@ -389,12 +389,10 @@ ArrayType: class extends PointerType {
     }
 
     toString: func -> String {
-        s := inner toString()
-        if(expr != null)
-            s append("[%s]" format(expr toString()))
-        else
-            s append("[]")
-        s
+        match(expr) {
+            case null => inner toString() append("[]")
+            case => inner toString() append("[%s]" format(expr toString())
+        }
     }
     toMangledString: func -> String { inner toString() + "__array" }
 
