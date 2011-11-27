@@ -319,15 +319,16 @@ FunctionCall: class extends Expression {
                             return Response OK
                         }
 
-                        if(ref) {
-                            if(ref vDecl) {
-                                closureIndex := trail find(FunctionDecl)
+                        if(ref && ref vDecl) {
+                            closureIndex := trail find(FunctionDecl)
 
-                                if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
-                                    closure := trail get(closureIndex) as FunctionDecl
-                                    if(closure isAnon && expr == null && !ref vDecl isGlobal() && !closure args map(|value| value name) contains?(ref vDecl name + "_generic") && !closure args contains?(ref vDecl)) { // the ref may also be a closure's argument, in wich case we just ignore this
-                                        closure markForPartialing(ref vDecl, "v")
-                                    }
+                            if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
+                                closure := trail get(closureIndex) as FunctionDecl
+                                // the ref may also be a closure's argument, in wich case we just ignore this
+
+                                if(closure isAnon && !ref vDecl isGlobal &&
+                                    !closure args contains?(|arg| arg == ref vDecl || arg name == ref vDecl name + "_generic")) {
+                                    closure markForPartialing(ref vDecl, "v")
                                 }
                             }
                         }
