@@ -278,7 +278,7 @@ CommandLine: class {
                 } else if (option == "q" || option == "quiet") {
 
                     // quiet mode
-                    if(!longOption && option != "q") warnUseLong("timing")
+                    if(!longOption && option != "q") warnUseLong("quiet")
                     params shout = false
                     params verbose = false
                     params veryVerbose = false
