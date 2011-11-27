@@ -363,6 +363,12 @@ CommandLine: class {
                     else
                         ("Unrecognized architecture: " + arch) println()
 
+                } else if (option == "x") {
+                   
+                    "Cleaning up outpath and .libs" println()
+                    cleanHardcore()
+                    exit(0)
+
                 } else {
 
                     "Unrecognized option: %s" printfln(arg)
