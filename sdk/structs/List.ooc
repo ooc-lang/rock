@@ -6,11 +6,11 @@ import structs/HashMap /* for getStandardEquals() - should probably move that in
  */
 List: abstract class <T> extends BackIterable<T> {
 
-	size: SSizeT {
-		get {
-			getSize()
-		}
-	}
+    size: SSizeT {
+        get {
+            getSize()
+        }
+    }
 
     equals? := getStandardEquals(T)
 
@@ -83,6 +83,15 @@ List: abstract class <T> extends BackIterable<T> {
      */
     contains?: func(element: T) -> Bool {
         return indexOf(element) != -1
+    }
+
+    contains?: func ~filter (f: Func (T) -> Bool) -> Bool {
+        result := false
+        eachUntil(|elem|
+            result |= f(elem)
+            !result // break on first match
+        )
+        result
     }
 
     /**
