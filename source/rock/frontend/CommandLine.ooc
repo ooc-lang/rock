@@ -123,10 +123,6 @@ CommandLine: class {
 
                     params entryPoint = arg substring(arg indexOf('=') + 1)
 
-                } else if (option == "dce") {
-
-                    params dce = true
-
                 } else if (option == "newsdk") {
 
                     params newsdk = true

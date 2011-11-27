@@ -133,8 +133,6 @@ SequenceDriver: class extends Driver {
                 }
             }
 
-            if(params dce) params compiler addDCEFlags()
-
             if(params verbose) params compiler getCommandLine() println()
 
             code := params compiler launch()
@@ -354,8 +352,6 @@ SequenceDriver: class extends Driver {
             for(lib in libs) {
                 params compiler addObjectFile(lib)
             }
-
-            if (params dce) params compiler addDCEFlags()
 
             if(params verbose) params compiler getCommandLine() println()
 

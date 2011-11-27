@@ -15,11 +15,6 @@ Gcc: class extends BaseCompiler {
         super(executableName)
     }
 
-    // sets the flags for dead code elimination
-    addDCEFlags: func {
-        command add("-ftree-dce") .add("-fdata-sections") .add("-ffunction-sections") .add("-Wl,--gc-sections")
-    }
-
     addDynamicLibrary: func (library: String) {
         command add("-l" + library)
     }

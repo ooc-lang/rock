@@ -113,9 +113,6 @@ BuildParams: class {
     // If it's true, will use String makeLiteral() to make string literals instaed of just C string literals
     newstr := true
 
-    // dead code elimination
-    dce := false
-
     // location of the compiler's distribution, with a libs/ folder for the gc, etc.
     distLocation: File
 

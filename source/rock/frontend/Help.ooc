@@ -29,9 +29,6 @@ or a library (if it only has a 'SourcePath: something' directive)
 -cc=[/path/to/ccompiler/binary]
     point to the C compilers executable
 
--dce
-    sets dead code elimination flags on c compiler (currently gcc only)
-
 -driver=[combine,sequence,make,dummy]
     Choose the compile driver to use. combine compiles all C files
     combined, sequence compiles them sequentially, make creates a
