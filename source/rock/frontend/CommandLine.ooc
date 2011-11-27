@@ -21,7 +21,11 @@ CommandLine: class {
     cCPath := ""
 
     setCompilerPath: func {
-           if (params compiler != null && cCPath != "") params compiler setExecutable(cCPath)
+        if (params compiler != null && cCPath != "") params compiler setExecutable(cCPath)
+    }
+
+    warnUseLong: func (option: String) {
+        "[WARNING] Option -%s is deprecated, use --%s instead. It will completely disappear in later releases." println()
     }
 
     init: func(args : ArrayList<String>) {
@@ -40,11 +44,18 @@ CommandLine: class {
                 continue
             }
 
+            longOption := false
             if (arg startsWith?("-")) {
                 option := arg substring(1)
 
+                if (option startsWith?("-")) {
+                    longOption = true
+                    option = option substring(1)
+                }
+
                 if (option startsWith?("sourcepath=")) {
 
+                    if(!longOption) warnUseLong("sourcepath")
                     sourcePathOption := arg substring(arg indexOf('=') + 1)
                     tokenizer := StringTokenizer new(sourcePathOption, File pathDelimiter)
                     for (token: String in tokenizer) {
@@ -54,16 +65,13 @@ CommandLine: class {
 
                 } else if (option startsWith?("outpath=")) {
 
+                    if(!longOption) warnUseLong("outpath")
                     params outPath = File new(arg substring(arg indexOf('=') + 1))
                     params clean = false
 
-                } else if (option startsWith?("outlib")) {
-
-                    "Deprecated option %s! Use -staticlib instead. Abandoning." printfln(option)
-                    exit(1)
-
                 } else if (option startsWith?("staticlib")) {
 
+                    if(!longOption) warnUseLong("staticlib")
                     idx := arg indexOf('=')
                     if(idx == -1) {
                         params staticlib = ""
@@ -74,6 +82,7 @@ CommandLine: class {
 
                 } else if (option startsWith?("dynamiclib")) {
 
+                    if(!longOption) warnUseLong("dynamiclib")
                     idx := arg indexOf('=')
                     if(idx == -1) {
                         params dynamiclib = ""
@@ -83,15 +92,19 @@ CommandLine: class {
 
                 } else if (option startsWith?("packagefilter=")) {
 
+                    if(!longOption) warnUseLong("packagefilter")
                     idx := arg indexOf('=')
                     params packageFilter = arg substring(idx + 1)
 
                 } else if (option startsWith?("libfolder=")) {
 
+                    if(!longOption) warnUseLong("libfolder")
                     idx := arg indexOf('=')
                     params libfolder = arg substring(idx + 1)
 
                 } else if(option startsWith?("backend")) {
+
+                    if(!longOption) warnUseLong("backend")
                     params backend = arg substring(arg indexOf('=') + 1)
 
                     if(params backend != "c" && params backend != "json" && params backend != "explain") {
@@ -101,6 +114,7 @@ CommandLine: class {
 
                 } else if (option startsWith?("incpath=")) {
 
+                    if(!longOption) warnUseLong("incpath")
                     params incPath add(arg substring(arg indexOf('=') + 1))
 
                 } else if (option startsWith?("D")) {
@@ -113,34 +127,42 @@ CommandLine: class {
 
                 } else if (option startsWith?("libpath")) {
 
+                    if(!longOption) warnUseLong("libpath")
                     params libPath add(arg substring(arg indexOf('=') + 1))
 
                 } else if (option startsWith?("editor")) {
 
+                    if(!longOption) warnUseLong("editor")
                     params editor = arg substring(arg indexOf('=') + 1)
 
                 } else if (option startsWith?("entrypoint")) {
 
+                    if(!longOption) warnUseLong("entrypoint")
                     params entryPoint = arg substring(arg indexOf('=') + 1)
 
                 } else if (option == "newsdk") {
 
+                    if(!longOption) warnUseLong("newsdk")
                     params newsdk = true
 
                 } else if (option == "newstr") {
 
+                    if(!longOption) warnUseLong("newstr")
                     params newstr = true
 
                 } else if(option == "cstrings") {
 
+                    if(!longOption) warnUseLong("cstrings")
                     params newstr = false
 
                 } else if (option == "inline") {
 
+                    if(!longOption) warnUseLong("inline")
                     params inlining = true
 
                 } else if (option == "no-inline") {
 
+                    if(!longOption) warnUseLong("no-inline")
                     params inlining = false
 
                 } else if (option == "c") {
@@ -149,34 +171,42 @@ CommandLine: class {
 
                 } else if(option == "debugloop") {
 
+                    if(!longOption) warnUseLong("debugloop")
                     params debugLoop = true
 
                 } else if(option == "debuglibcache") {
 
+                    if(!longOption) warnUseLong("debuglibcache")
                     params debugLibcache = true
 
                 } else if(option startsWith?("ignoredefine=")) {
 
+                    if(!longOption) warnUseLong("ignoredefine")
                     params ignoredDefines add(option substring(13))
 
                 } else if (option == "allerrors") {
 
+                    if(!longOption) warnUseLong("allerrors")
                     params fatalError = false
 
                 } else if(option startsWith?("dist=")) {
 
+                    if(!longOption) warnUseLong("dist")
                     params distLocation = File new(option substring(5))
 
                 } else if(option startsWith?("sdk=")) {
 
+                    if(!longOption) warnUseLong("sdk")
                     params sdkLocation = File new(option substring(4))
 
                 } else if(option startsWith?("libs=")) {
 
+                    if(!longOption) warnUseLong("libs")
                     params libPath = File new(option substring(5))
 
                 } else if(option startsWith?("linker=")) {
 
+                    if(!longOption) warnUseLong("linker")
                     params linker = option substring(7)
 
                 } else if (option startsWith?("L")) {
@@ -189,10 +219,12 @@ CommandLine: class {
 
                 } else if (option == "nolang") { // FIXME debug option.
 
+                    if(!longOption) warnUseLong("nolang")
                     params includeLang = false
 
                 } else if (option == "nomain") {
 
+                    if(!longOption) warnUseLong("nolang")
                     params defaultMain = false
 
                 } else if (option startsWith?("gc=")) {
@@ -215,60 +247,73 @@ CommandLine: class {
 
                 } else if (option == "noclean") {
 
+                    if(!longOption) warnUseLong("noclean")
                     params clean = false
 
                 } else if (option == "nohints") {
 
+                    if(!longOption) warnUseLong("nohints")
                     params helpful = false
 
                 } else if (option == "nolibcache") {
 
+                    if(!longOption) warnUseLong("nolibcache")
                     params libcache = false
 
                 } else if (option == "libcachepath") {
 
+                    if(!longOption) warnUseLong("libcachepath")
                     params libcachePath = option substring(option indexOf('=') + 1)
 
                 } else if (option == "nolines") {
 
+                    if(!longOption) warnUseLong("inline")
                     params lineDirectives = false
 
                 } else if (option == "shout") {
 
+                    if(!longOption) warnUseLong("inline")
                     params shout = true
 
                 } else if (option == "q" || option == "quiet") {
 
                     // quiet mode
+                    if(!longOption && option != "q") warnUseLong("timing")
                     params shout = false
                     params verbose = false
                     params veryVerbose = false
 
                 } else if (option == "timing" || option == "t") {
 
+                    if(!longOption && option != "t") warnUseLong("timing")
                     params timing = true
 
                 } else if (option == "debug" || option == "g") {
 
+                    if(!longOption && option != "g") warnUseLong("debug")
                     params debug = true
                     params clean = false
 
                 } else if (option == "verbose" || option == "v") {
 
+                    if(!longOption && option != "v") warnUseLong("verbose")
                     params verbose = true
 
                 } else if (option == "veryVerbose" || option == "vv") {
 
+                    if(!longOption && option != "vv") warnUseLong("veryVerbose")
                     params verbose = true
                     params veryVerbose = true
                     params sourcePath debug = true
 
                 } else if (option == "stats") {
 
+                    if(!longOption) warnUseLong("stats")
                     params stats = true
 
                 } else if (option == "run" || option == "r") {
 
+                    if(!longOption && option != "r") warnUseLong("run")
                     params run = true
                     params shout = false
 
@@ -292,55 +337,66 @@ CommandLine: class {
 
                 } else if (option startsWith?("blowup=")) {
 
+                    if(!longOption) warnUseLong("blowup")
                     params blowup = option substring(7) toInt()
 
-                } else if (option == "V" || option == "-version" || option == "version") {
+                } else if (option == "V" || option == "version") {
 
+                    if(!longOption && option != "V") warnUseLong("version")
                     "rock %s, built on %s at %s" printfln(RockVersion getName(), ROCK_BUILD_DATE, ROCK_BUILD_TIME)
                     exit(0)
 
-                } else if (option == "h" || option == "-help" || option == "help") {
+                } else if (option == "h" || option == "help") {
 
+                    if(!longOption && option != "h") warnUseLong("help")
                     Help printHelp()
                     exit(0)
 
                 } else if(option startsWith?("cc=")) {
 
+                    if(!longOption) warnUseLong("cc")
                     cCPath = option substring(3)
                     setCompilerPath()
 
                 } else if (option startsWith?("gcc")) {
 
+                    if(!longOption) warnUseLong("gcc")
                     params compiler = Gcc new()
                     setCompilerPath()
 
                 } else if (option startsWith?("icc")) {
 
+                    if(!longOption) warnUseLong("icc")
                     params compiler = Icc new()
                     setCompilerPath()
 
                 } else if (option startsWith?("tcc")) {
 
+                    if(!longOption) warnUseLong("tcc")
                     params compiler = Tcc new()
                     params dynGC = true
                     setCompilerPath()
 
                 } else if (option startsWith?("clang")) {
 
+                    if(!longOption) warnUseLong("clang")
                     params compiler = Clang new()
                     setCompilerPath()
 
                 } else if (option == "onlyparse") {
 
+                    if(!longOption) warnUseLong("onlyparse")
                     driver = null
                     params onlyparse = true
 
                 } else if (option == "onlycheck") {
 
+                    if(!longOption) warnUseLong("onlycheck")
                     driver = null
 
                 } else if (option == "onlygen") {
 
+                    if(!longOption) warnUseLong("onlygen")
                     driver = DummyDriver new(params)
 
                 } else if (option startsWith?("o=")) {
