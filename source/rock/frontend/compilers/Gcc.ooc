@@ -7,7 +7,7 @@ import BaseCompiler
  */
 Gcc: class extends BaseCompiler {
 
-    init: func~withGcc {
+    init: func ~withGcc {
         super("gcc")
     }
 

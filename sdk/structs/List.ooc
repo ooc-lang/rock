@@ -23,7 +23,7 @@ List: abstract class <T> extends BackIterable<T> {
      * Inserts the specified element at the specified position in
      * this list.
      */
-    add: abstract func~withIndex(index: SSizeT, element: T)
+    add: abstract func ~withIndex(index: SSizeT, element: T)
 
     /**
      * Appends all of the elements in the specified Collection to the
