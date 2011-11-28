@@ -117,7 +117,7 @@ raise: func(msg: String) {
     Exception new(msg) throw()
 }
 
-raise: func~withClass(clazz: Class, msg: String) {
+raise: func ~withClass(clazz: Class, msg: String) {
     Exception new(clazz, msg) throw()
 }
 

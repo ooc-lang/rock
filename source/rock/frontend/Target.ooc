@@ -62,11 +62,11 @@ Target: class {
         return is64() ? "64" : "32"
     }
 
-    toString: static func~defaults -> String {
+    toString: static func ~defaults -> String {
         return toString(getArch())
     }
 
-    toString: static func~defaultsWithArch (arch: String) -> String {
+    toString: static func ~defaultsWithArch (arch: String) -> String {
         return toString(guessHost(), arch)
     }
 

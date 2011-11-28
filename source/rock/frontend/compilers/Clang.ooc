@@ -4,7 +4,7 @@ import Gcc
  * Clang (C-language, LLVM-based) Compiler
  */
 Clang: class extends Gcc {
-    init: func~withClang(){
+    init: func ~withClang(){
         super("clang")
     }
 

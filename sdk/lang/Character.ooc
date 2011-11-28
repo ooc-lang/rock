@@ -170,7 +170,7 @@ CString: cover from Char* {
 
     /** Create a new string exactly *length* characters long (without the nullbyte).
         The contents of the string are undefined. */
-    new: static func~withLength (length: Int) -> This {
+    new: static func ~withLength (length: Int) -> This {
         result := gc_malloc(length + 1) as Char*
         result[length] = '\0'
         result as This

@@ -6,7 +6,7 @@ import Gcc
  * @author Amos Wenger
  */
 Tcc: class extends Gcc {
-    init: func~withTcc(){
+    init: func ~withTcc(){
         super("tcc")
     }
 
