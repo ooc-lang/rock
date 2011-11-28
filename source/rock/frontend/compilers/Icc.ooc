@@ -6,7 +6,7 @@ import Gcc
  * @author Amos Wenger
  */
 Icc: class extends Gcc {
-    init: func~withIcc(){
+    init: func ~withIcc(){
         super("icc")
     }
 

@@ -434,7 +434,7 @@ Buffer: class extends Iterable<Char> {
     /** return *true* if *this* contains the string *s* */
     contains?: func ~buf (s: This) -> Bool { indexOf(s) != -1 }
 
-    trim: func~pointer(s: Char*, sLength: SizeT) {
+    trim: func ~pointer(s: Char*, sLength: SizeT) {
         trimRight(s, sLength)
         trimLeft(s, sLength)
     }
