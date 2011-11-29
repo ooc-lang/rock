@@ -10,6 +10,7 @@ OpType: enum {
     add        /*  +  */
     sub        /*  -  */
     mul        /*  *  */
+    exp        /*..**.*/
     div        /*  /  */
     mod        /*  %  */
     rshift     /*  >> */
@@ -22,6 +23,7 @@ OpType: enum {
     addAss     /*  += */
     subAss     /*  -= */
     mulAss     /*  *= */
+    expAss     /*.**=.*/
     divAss     /*  /= */
     rshiftAss  /* >>= */
     lshiftAss  /* <<= */
@@ -37,6 +39,7 @@ opTypeRepr := [
         "+",
         "-",
         "*",
+        "**",
         "/",
         "%",
         ">>",
@@ -49,6 +52,7 @@ opTypeRepr := [
         "+=",
         "-=",
         "*=",
+        "**=",
         "/=",
         ">>=",
         "<<=",

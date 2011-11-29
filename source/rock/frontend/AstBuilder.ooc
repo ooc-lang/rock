@@ -713,9 +713,13 @@ AstBuilder: class {
     onFunctionCallCombo: unmangled(nq_onFunctionCallCombo) func (call: FunctionCall, expr: Expression) {
         name := call generateTempName("comboRoot")
         call setName(name)
-        vDecl := VariableDecl new(null, name, expr, expr token)
+
+        vDecl := VariableDecl new(null, name, expr, true, expr token)
         vDecl isGlobal = true // well, that's not true, but at least this way it won't be marked for partialing...
         onStatement(vDecl)
+
+        call inBinOrTern = true // We don't know that, but we assume it :D
+        call botRight = expr
     }
 
     onFunctionCallChain: unmangled(nq_onFunctionCallChain) func (expr: Expression, call: FunctionCall) -> CallChain {
@@ -1053,6 +1057,10 @@ AstBuilder: class {
         BinaryOp new(left, right, OpType mulAss, token())
     }
 
+    onAssignExp: unmangled(nq_onAssignExp) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpType expAss, token())
+    }
+
     onAssignDiv: unmangled(nq_onAssignDiv) func (left, right: Expression) -> BinaryOp {
         BinaryOp new(left, right, OpType divAss, token())
     }
@@ -1095,6 +1103,10 @@ AstBuilder: class {
 
     onMul: unmangled(nq_onMul) func (left, right: Expression) -> BinaryOp {
         BinaryOp new(left, right, OpType mul, token())
+    }
+
+    onExp: unmangled(nq_onExp) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpType exp, token())
     }
 
     onDiv: unmangled(nq_onDiv) func (left, right: Expression) -> BinaryOp {
