@@ -25,7 +25,7 @@ CommandLine: class {
     }
 
     warnUseLong: func (option: String) {
-        "[WARNING] Option -%s is deprecated, use --%s instead. It will completely disappear in later releases." println()
+        "[WARNING] Option -%s is deprecated, use --%s instead. It will completely disappear in later releases." printfln(option, option)
     }
 
     init: func(args : ArrayList<String>) {
