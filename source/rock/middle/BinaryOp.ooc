@@ -372,6 +372,12 @@ BinaryOp: class extends Expression {
             return (type == OpType ass)
         }
 
+        lCover := lRef instanceOf?(CoverDecl)
+        rCover := rRef instanceOf?(CoverDecl)
+        if((!lCompound || !rCompound) && (lCover || rCover)) {
+            if(type == OpType exp) return false
+        }
+
         if(isAssign()) {
             score := lType getScore(rType)
             if(score == -1) {
