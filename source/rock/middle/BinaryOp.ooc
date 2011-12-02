@@ -375,7 +375,8 @@ BinaryOp: class extends Expression {
         lCover := lRef instanceOf?(CoverDecl)
         rCover := rRef instanceOf?(CoverDecl)
         if((!lCompound || !rCompound) && (lCover || rCover)) {
-            if(type == OpType exp) return false
+            // If a C struct is involved
+            if(type == OpType exp || type == OpType expAss) return false
         }
 
         if(isAssign()) {
