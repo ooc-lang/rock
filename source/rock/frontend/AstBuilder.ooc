@@ -1053,6 +1053,10 @@ AstBuilder: class {
         BinaryOp new(left, right, OpType mulAss, token())
     }
 
+    onAssignExp: unmangled(nq_onAssignExp) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpType expAss, token())
+    }
+
     onAssignDiv: unmangled(nq_onAssignDiv) func (left, right: Expression) -> BinaryOp {
         BinaryOp new(left, right, OpType divAss, token())
     }
@@ -1095,6 +1099,10 @@ AstBuilder: class {
 
     onMul: unmangled(nq_onMul) func (left, right: Expression) -> BinaryOp {
         BinaryOp new(left, right, OpType mul, token())
+    }
+
+    onExp: unmangled(nq_onExp) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpType exp, token())
     }
 
     onDiv: unmangled(nq_onDiv) func (left, right: Expression) -> BinaryOp {
