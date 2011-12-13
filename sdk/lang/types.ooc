@@ -52,7 +52,9 @@ Object: abstract class {
     /// Increments the retain count of the instance in a non-GC'ed environment.
     retain: final func -> This {
         version(!gc) {
+            __g_retainLock lock()
             __g_retainMap put(this as Pointer, __g_retainMap get(this) + 1)
+            __g_retainLock unlock()
         }
 
         return this
@@ -62,16 +64,22 @@ Object: abstract class {
         If the retain count reaches zero, the instance is destroyed. */
     release: final func {
         version(!gc) {
+            __g_retainLock lock()
             count := __g_retainMap get(this as Pointer)
 
             if (count == 0) {
+                __g_retainLock unlock()
+                
                 __destroy__()
                 gc_free(this as Pointer)
+                
+                return
             } else if (count == 1) {
                 __g_retainMap remove(this as Pointer)
             } else {
                 __g_retainMap put(this as Pointer, count - 1)
             }
+            __g_retainLock unlock()
         }
     }
 
