@@ -1,8 +1,27 @@
 include stddef, stdlib, stdio, ctype, ./Array
+import structs/HashMap, threading/Thread
 
 version(!_MSC_VER) {
     // MSVC doesn't support C99, so no stdbool for it
     include stdbool
+}
+
+/**
+ * Map of retained objects - objects with a retain count of 1 are not included
+ * (this kind of solves the chicken-egg problem with creating a hashmap object
+ * that starts with a retain count of 1)
+ */
+__g_retainMap: HashMap<Pointer, Int>
+
+/**
+ * A lock to delude ourselves into thinking that this is even remotely safe.
+ * Probably be better to use something other than a mutex here.
+ */
+__g_retainLock: Mutex
+
+version(!gc) {
+    __g_retainMap = HashMap<Pointer, Int> new()
+    __g_retainLock = Mutex new()
 }
 
 /**
@@ -28,6 +47,32 @@ Object: abstract class {
             current = current super
         }
         false
+    }
+
+    /// Increments the retain count of the instance in a non-GC'ed environment.
+    retain: final func -> This {
+        version(!gc) {
+            __g_retainMap put(this as Pointer, __g_retainMap get(this) + 1)
+        }
+
+        return this
+    }
+
+    /** Decrements the retain count of the instance in a non-GC'ed environment.
+        If the retain count reaches zero, the instance is destroyed. */
+    release: final func {
+        version(!gc) {
+            count := __g_retainMap get(this as Pointer)
+
+            if (count == 0) {
+                __destroy__()
+                gc_free(this as Pointer)
+            } else if (count == 1) {
+                __g_retainMap remove(this as Pointer)
+            } else {
+                __g_retainMap put(this as Pointer, count - 1)
+            }
+        }
     }
 
 }
