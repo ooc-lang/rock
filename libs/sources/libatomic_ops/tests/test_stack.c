@@ -9,12 +9,23 @@
  * It is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE.  See the GNU General Public License in the
- * file doc/COPYING for more details.
+ * file COPYING for more details.
  */
 
 #if defined(HAVE_CONFIG_H)
 # include "config.h"
 #endif
+
+#if defined(__vxworks) || defined(_MSC_VER) || defined(_WIN32_WINCE) \
+    || (defined(_WIN32) && !defined(__CYGWIN32__) && !defined(__CYGWIN__))
+
+  /* Skip the test if no pthreads.  */
+  int main(void)
+  {
+    return 0;
+  }
+
+#else
 
 #include <pthread.h>
 #include <stdlib.h>
@@ -239,3 +250,5 @@ int main(int argc, char **argv)
 # endif /* !NO_TIMES */
   return 0;
 }
+
+#endif /* !_MSC_VER */
