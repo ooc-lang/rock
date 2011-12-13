@@ -9,7 +9,7 @@
  * It is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE.  See the GNU General Public License in the
- * file doc/COPYING for more details.
+ * file COPYING for more details.
  */
 
 #if defined(HAVE_CONFIG_H)
@@ -163,17 +163,20 @@ AO_malloc_enable_mmap(void)
 {
 }
 
+/*ARGSUSED*/
 static char *get_mmaped(size_t sz)
 {
   return 0;
 }
 
+/*ARGSUSED*/
 static char *
 AO_malloc_large(size_t sz)
 {
   return 0;
 }
 
+/*ARGSUSED*/
 static void
 AO_free_large(char * p)
 {
