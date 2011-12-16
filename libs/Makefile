@@ -48,13 +48,13 @@ ifneq (${LIBGC_SUPPORTS_THREADS},)
 	cp /usr/lib/libgc.a ${GC_PATH}
 else
 	@echo "System libgc doesn't support threads, building our own"
-	make buildgc
+	$(MAKE) buildgc
 endif
 else
 	@echo "No system libgc, building our own"
-	make buildgc
+	$(MAKE) buildgc
 endif
 
 buildgc:
-	cd sources && ./configure --enable-threads=posix --enable-thread-local-alloc && make
+	cd sources && ./configure --enable-threads=posix --enable-thread-local-alloc && $(MAKE)
 	cp sources/.libs/libgc.a ${GC_PATH}

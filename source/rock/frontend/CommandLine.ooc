@@ -224,7 +224,7 @@ CommandLine: class {
 
                 } else if (option == "nomain") {
 
-                    if(!longOption) warnUseLong("nolang")
+                    if(!longOption) warnUseLong("nomain")
                     params defaultMain = false
 
                 } else if (option startsWith?("gc=")) {
