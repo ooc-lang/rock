@@ -211,11 +211,11 @@ CommandLine: class {
 
                 } else if (option startsWith?("L")) {
 
-                    params libPath add(arg substring(2))
+                    params libPath add(option substring(1))
 
                 } else if (option startsWith?("l")) {
 
-                    params dynamicLibs add(arg substring(2))
+                    params dynamicLibs add(option substring(1))
 
                 } else if (option == "nolang") { // FIXME debug option.
 
