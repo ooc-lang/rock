@@ -6,7 +6,8 @@ TIME=$(shell date +%H:%M)
 OOC_WARN_FLAGS?=+-w
 OOC_OWN_FLAGS=-sourcepath=source -v +-O0 -g -ignoredefine=ROCK_BUILD_ ${OOC_WARN_FLAGS}
 
-CC?=gcc
+# used to be CC?=gcc, but that breaks on mingw where CC is set to 'cc' apparently
+CC=gcc
 PREFIX?=/usr
 MAN_INSTALL_PATH?=/usr/local/man/man1
 BIN_INSTALL_PATH?=${PREFIX}/bin
@@ -98,7 +99,7 @@ rescue:
 	rm -rf build/
 	# Note: don't use --no-check-certificate, OSX is retarded
 	# Note: someone make a curl fallback already
-	wget http://www.fileville.net/ooc/bootstrap.tar.bz2 -O - | tar xjvmp 1>/dev/null
+	wget --no-check-certificate http://www.fileville.net/ooc/bootstrap.tar.bz2 -O - | tar xjvmp 1>/dev/null
 	if [ ! -e build ]; then cp -rfv rock-*/build ./; fi	
 	$(MAKE) clean bootstrap
 

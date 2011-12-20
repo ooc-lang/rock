@@ -19,6 +19,7 @@ println: func {
 open: extern func (Char*, Int, ...) -> Int
 fdopen: extern func (Int, Char*) -> FStream
 mkstemp: extern func (Char*) -> Int
+mktemp: extern func (Char*) -> CString
 
 printf: extern func (Char*, ...) -> Int
 

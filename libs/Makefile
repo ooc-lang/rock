@@ -21,6 +21,13 @@ else ifeq ($(MYOS),)
     $(error "OS ${OS} unrecognized - please open an issue at https://github.com/nddrylliog/rock/issues")
   endif
 endif
+
+ifeq ($(ARCH), win)
+    GC_FLAGS=--enable-threads=win32 --enable-local-thread-alloc
+else
+    GC_FLAGS=--enable-threads=posix --enable-local-thread-alloc
+endif
+
 ifneq ($(ARCH), osx)
   ifeq ($(MACHINE), x86_64)
     ARCH:=${ARCH}64
@@ -56,5 +63,5 @@ else
 endif
 
 buildgc:
-	cd sources && ./configure --enable-threads=posix --enable-thread-local-alloc && $(MAKE)
+	cd sources && ./configure ${GC_FLAGS} && $(MAKE)
 	cp sources/.libs/libgc.a ${GC_PATH}

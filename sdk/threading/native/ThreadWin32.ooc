@@ -6,12 +6,10 @@ version(windows) {
     include windows
 
     /* covers & extern functions */
-    version(gc) {
-        CreateThread: extern(GC_CreateThread) func (...) -> Handle
-    }
-    version(!gc) {
-        CreateThread: extern func (...) -> Handle
-    }
+    // this used to be GC_CreateThread, but as it turns out, it doesn't 
+    // work with recent versions of the gc, and it was redirected to the Win32
+    // API anyway :)
+    CreateThread: extern func (...) -> Handle
     WaitForSingleObject: extern func (...) -> Long // laziness
     INFINITE: extern Long
     WAIT_OBJECT_0: extern Long

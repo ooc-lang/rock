@@ -8,6 +8,8 @@ version(windows) {
 
     include windows
 
+    LocaleId: cover from LCID
+
     /*
      * File handle
      */

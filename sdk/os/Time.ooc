@@ -26,6 +26,10 @@ version(windows) {
     QueryPerformanceCounter: extern func (LargeInteger*)
     QueryPerformanceFrequency: extern func (LargeInteger*)
     Sleep: extern func (UInt)
+
+    LocaleId: cover from LCID
+    LOCALE_USER_DEFAULT: extern LocaleId
+    GetTimeFormat: extern func (LocaleId, Long, SystemTime*, CString, CString, Int) -> Int
 }
 
 version(!windows) {
@@ -63,12 +67,20 @@ Time: class {
 
     /**
         Returns the current date + time as a human-readable string without a trailing newline character.
-        TODO: windows support!
     */
     dateTime: static func -> String {
-        tm: TimeT
-        time(tm&)
-        asctime(localtime(tm&))
+	version (windows) {
+	    length := GetTimeFormat(LOCALE_USER_DEFAULT, 0, null, null, null, 0)
+	    buffer := gc_malloc(length + 1) as Char*
+	    GetTimeFormat(LOCALE_USER_DEFAULT, 0, null, null, buffer, length)
+	    return String new(buffer, length)
+	}
+	version (!windows) {
+	    tm: TimeT
+	    time(tm&)
+	    return asctime(localtime(tm&))
+	}
+	return "<unsupported platform>"
     }
 
     /**
