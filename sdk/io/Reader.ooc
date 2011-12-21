@@ -27,7 +27,9 @@ Reader: abstract class {
        Read a bufferfull at most, and return the number of bytes read
      */
     read: func ~buffer (buffer: Buffer) -> SizeT {
-       read(buffer data, 0, buffer capacity)
+       count := read(buffer data, 0, buffer capacity)
+       buffer size = count
+       count
     }
    
     readAll: func -> String {
