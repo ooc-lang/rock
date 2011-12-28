@@ -18,7 +18,7 @@ Pipe: abstract class {
 
     /** write a string to the pipe */
     write: func ~string (str: String) -> Int {
-        write(str toCString(), str length()+1)
+        write(str toCString(), str length())
     }
 
     /** write 'len' bytes of 'data' to the pipe */
