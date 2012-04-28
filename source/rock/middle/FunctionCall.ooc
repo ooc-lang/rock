@@ -517,7 +517,8 @@ FunctionCall: class extends Expression {
         (expr as VariableAccess getRef() instanceOf?(ClassDecl) || expr as VariableAccess getRef() instanceOf?(CoverDecl)) && \
         (expr as VariableAccess getRef() as TypeDecl inheritsFrom?(ref getOwner()) || \
         expr as VariableAccess getRef() == ref getOwner()) && !ref isStatic) {
-            res throwError(NonStaticCallOnMeta new(token, "Calling a non-static method on the metaclass object"))
+            res throwError(UnresolvedCall new(this, "No such function %s%s for `%s` (%s)" format(name, getArgsTypesRepr(),
+                            expr getType() toString(), expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)"), ""))
         }
 
         /* check for String instances passed to C vararg functions if helpful.
@@ -1400,10 +1401,6 @@ UnresolvedCall: class extends Error {
 }
 
 UseOfVoidExpression: class extends Error {
-    init: super func ~tokenMessage
-}
-
-NonStaticCallOnMeta: class extends Error {
     init: super func ~tokenMessage
 }
 
