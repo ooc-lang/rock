@@ -1,3 +1,9 @@
+/**
+ * Set text colors and attributes for VT100 compatible terminals
+ * @author eagle2com
+ * @autor shamanas (Windows port)
+ */
+
 Attr: class {
     /* text attribute codes */
     /* Reset All Attributes (return to normal mode) */
