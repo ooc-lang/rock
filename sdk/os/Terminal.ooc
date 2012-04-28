@@ -22,6 +22,9 @@ Attr: class {
     hidden =  8 : static const Int
 }
 
+// this should be a constant but gcc cant find the symbol o0
+COLOR_FORMAT_STRING := "\033[%dm"
+
 version (unix || apple) {
 
 Color: class {
@@ -36,9 +39,6 @@ Color: class {
     grey =       37,
     white  =     38    : static const Int
 }
-
-// this should be a constant but gcc cant find the symbol o0
-COLOR_FORMAT_STRING := "\033[%dm"
 
 import unistd
 
