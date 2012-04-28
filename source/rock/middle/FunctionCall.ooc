@@ -4,7 +4,7 @@ import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
        InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType, Return,
        TypeList, Scope, Block, InlineContext, StructLiteral, NullLiteral,
-       IntLiteral, Ternary
+       IntLiteral, Ternary, ClassDecl, CoverDecl
 import tinker/[Response, Resolver, Trail, Errors]
 
 /**
@@ -510,6 +510,14 @@ FunctionCall: class extends Expression {
             trail addBeforeInScope(this, vDecl)
             expr = VariableAccess new(vDecl, expr token)
             return Response OK
+        }
+
+        // check we are not trying to call a non-static member function on the metaclass
+        if(expr instanceOf?(VariableAccess) && \
+        (expr as VariableAccess getRef() instanceOf?(ClassDecl) || expr as VariableAccess getRef() instanceOf?(CoverDecl)) && \
+        (expr as VariableAccess getRef() as TypeDecl inheritsFrom?(ref getOwner()) || \
+        expr as VariableAccess getRef() == ref getOwner()) && !ref isStatic) {
+            res throwError(NonStaticCallOnMeta new(token, "Calling a non-static method on the metaclass object"))
         }
 
         /* check for String instances passed to C vararg functions if helpful.
@@ -1392,6 +1400,10 @@ UnresolvedCall: class extends Error {
 }
 
 UseOfVoidExpression: class extends Error {
+    init: super func ~tokenMessage
+}
+
+NonStaticCallOnMeta: class extends Error {
     init: super func ~tokenMessage
 }
 
