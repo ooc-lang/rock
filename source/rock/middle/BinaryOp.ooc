@@ -19,6 +19,7 @@ OpType: enum {
     bXor       /*  ^  */
     bAnd       /*  &  */
 
+    doubleArr  /*  => */
     ass        /*  =  */
     addAss     /*  += */
     subAss     /*  -= */
@@ -48,6 +49,7 @@ opTypeRepr := [
         "^",
         "&",
 
+        "=>",
         "=",
         "+=",
         "-=",
@@ -375,8 +377,8 @@ BinaryOp: class extends Expression {
         lCover := lRef instanceOf?(CoverDecl)
         rCover := rRef instanceOf?(CoverDecl)
         if((!lCompound || !rCompound) && (lCover || rCover)) {
-            // If a C struct is involved then we check wether the operator has a C "meaning" and thus can be translated to itself in C. If it does not, it is not valid without an overload
-            if(type == OpType exp || type == OpType expAss) return false
+            // If a C struct is involved then we check whether the operator has a C "meaning" and thus can be translated to itself in C. If it does not, it is not valid without an overload
+            if(type == OpType exp || type == OpType expAss || type == OpType doubleArr) return false
         }
 
         if(isAssign()) {
