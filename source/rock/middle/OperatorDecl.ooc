@@ -110,6 +110,7 @@ OperatorDecl: class extends Expression {
             case "&="  =>  "B_AND_ASS"
             case "|="  =>  "B_OR_ASS"
 
+            case "=>"  =>  "DOUBLE_ARR"
             case "&&"  =>  "L_AND"
             case "||"  =>  "L_OR"
             case "%"   =>  "MOD"

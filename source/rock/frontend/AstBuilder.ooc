@@ -1041,6 +1041,10 @@ AstBuilder: class {
         Ternary new(condition, ifTrue, ifFalse, token())
     }
 
+    onDoubleArrow: unmangled(nq_onDoubleArrow) func(left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpType doubleArr, token())
+    }
+
     onAssignAdd: unmangled(nq_onAssignAdd) func (left, right: Expression) -> BinaryOp {
         BinaryOp new(left, right, OpType addAss, token())
     }
