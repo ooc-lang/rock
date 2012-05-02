@@ -171,24 +171,6 @@ ModuleWriter: abstract class extends Skeleton {
             oDecl accept(this)
         }
 
-        // write for-C aliases
-        hw nl(). app("#ifdef OOC_FROM_C")
-        for(fDecl in module functions) {
-            writeFunctionAlias(this, fDecl, null)
-        }
-
-        for(tDecl in module types) {
-            fullName := tDecl getFullName()
-            if(tDecl getName() != fullName) {
-                hw nl(). app("#define "). app(tDecl getName()). app(' '). app(fullName)
-                hw nl(). app("#define "). app(tDecl getName()). app("_class() "). app(fullName). app("_class()")
-                for(fDecl in tDecl getFunctions()) {
-                    writeFunctionAlias(this, fDecl, tDecl)
-                }
-            }
-        }
-        hw nl(). app("#endif")
-
         // header end
         current = hw
         current nl(). nl(). app("#endif")
