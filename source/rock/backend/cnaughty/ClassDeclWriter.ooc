@@ -344,14 +344,14 @@ ClassDeclWriter: abstract class extends Skeleton {
         if (parentClass name equals?("Class")) {
             current app("{ /* class */ NULL }")
 
-            current app(','). nl(). app(" /* instanceSize */ ")
+            current app(','). app(" /* instanceSize */ ")
             realClass getNonMeta() writeSize(current, true) // instance = true
 
-            current app(','). nl(). app(" /* size */ ")
+            current app(','). app(" /* size */ ")
             realClass getNonMeta() writeSize(current, false) // instance = false
 
-            current app(','). nl(). app(" /* name */ NULL")
-            current app(','). nl(). app(" /* super */ NULL")
+            current app(','). app(" /* name */ NULL")
+            current app(','). app(" /* super */ NULL")
         } else {
             writeClassStructInitializers(this, parentClass getSuperRef() as ClassDecl, realClass, done, false)
         }
@@ -400,7 +400,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
             interfaceImpl := realClass getNonMeta() as InterfaceImpl
             for(alias: FunctionAlias in interfaceImpl getAliases()) {
-                current nl(). app(" /* "). app(alias key getName()). app(" */ (void*) ")
+                current nl(). app(" (void*) ")
                 FunctionDeclWriter writeFullName(this, alias value)
                 if(!alias value isFinal() && !alias value isAbstract()) current app("_impl")
                 current app(",")
@@ -416,9 +416,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
         if(realDecl != null && realDecl isAbstract) return
 
-        current nl(). app(" /* ")
-        FunctionDeclWriter writeSuffixedName(this, parentDecl)
-        current app(" */ (void*) ")
+        current nl(). app(" (void*) ")
 
         decl := realDecl ? realDecl : parentDecl
         FunctionDeclWriter writeFullName(this, decl)
