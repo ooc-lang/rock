@@ -30,7 +30,7 @@ FuncType: class extends Type {
     }
 
     write: func (w: AwesomeWriter, name: String) {
-        w app("lang_types__Closure")
+        w app("lang_core__Closure")
         if(name) w app(' '). app(name)
     }
 
