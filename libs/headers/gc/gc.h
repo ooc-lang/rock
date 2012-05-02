@@ -464,8 +464,6 @@ GC_API void * GC_malloc_atomic_ignore_off_page(size_t lb);
 #endif
 
 #if defined(__linux__) || defined(__GLIBC__)
-// Google Native Client doesn't have features.h, and it doesn't seem to hurt to not include it on Linux at least
-//# include <features.h>
 # if (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 1 || __GLIBC__ > 2) \
      && !defined(__ia64__) && !defined(__UCLIBC__)
 #   ifndef GC_HAVE_BUILTIN_BACKTRACE
