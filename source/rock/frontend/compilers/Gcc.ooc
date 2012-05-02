@@ -54,7 +54,7 @@ Gcc: class extends BaseCompiler {
 
     reset: func() {
         super()
-        command add("-std=gnu99")
+        command add("-std=c89")
         command add("-Wall")
     }
 
