@@ -41,11 +41,11 @@ Token: cover {
      * Gives a string representation of the boundaries of this module
      */
     toString: func -> String {
-        module != null ? (
+        if (module) {
             "%s [%d, %d]" format(module getFullName(), getStart(), getEnd())
-        ) : (
+        } else {
             "[%d, %d]" format(getStart(), getEnd())
-        )
+        }
     }
 
     formatMessage: func ~noPrefix (message, type: String) -> String {
