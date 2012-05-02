@@ -162,10 +162,12 @@ SequenceDriver: class extends Driver {
             }
 
             if(params verbose) {
-                "Building archive %s with %s (%d modules total)" printfln(
-                    params staticlib,
-                    params libfolder ? "modules belonging to %s" format(params libfolder) : "all object files",
-                    count)
+                whichModules := "all object files"
+                if (params libfolder) {
+                    whichModules = "modules belonging to " + params libfolder
+                }
+
+                "Building archive %s with %s (%d modules total)" printfln(params staticlib, whichModules, count)
             }
             archive save(params)
         }
