@@ -140,20 +140,9 @@ CommandLine: class {
                     if(!longOption) warnUseLong("entrypoint")
                     params entryPoint = arg substring(arg indexOf('=') + 1)
 
-                } else if (option == "newsdk") {
+                } else if (option == "newsdk" || option == "newstr" || option == "cstrings") {
 
-                    if(!longOption) warnUseLong("newsdk")
-                    params newsdk = true
-
-                } else if (option == "newstr") {
-
-                    if(!longOption) warnUseLong("newstr")
-                    params newstr = true
-
-                } else if(option == "cstrings") {
-
-                    if(!longOption) warnUseLong("cstrings")
-                    params newstr = false
+                    Exception new("newsdk is dead. long live newsdk!") throw()
 
                 } else if (option == "inline") {
 

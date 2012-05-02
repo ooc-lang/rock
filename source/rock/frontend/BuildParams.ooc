@@ -106,13 +106,6 @@ BuildParams: class {
         libsPath = File new(path)
     }
 
-    // Changes the way string literals are written, among other things
-    // see http://github.com/nddrylliog/newsdk for more bunnies.
-    newsdk := false
-
-    // If it's true, will use String makeLiteral() to make string literals instaed of just C string literals
-    newstr := true
-
     // location of the compiler's distribution, with a libs/ folder for the gc, etc.
     distLocation: File
 

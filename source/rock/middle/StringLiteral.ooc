@@ -24,10 +24,10 @@ StringLiteral: class extends Literal {
 
         if(!super(trail, res) ok()) return Response LOOP
 
-        if(res params newstr) {
+        // unwrap string literals, for optimization
+        {
             parent := trail peek()
             if(parent class != VariableDecl) {
-                //"Unwrapping string literal %s" printfln(value)
                 {
                     idx := trail find(FunctionDecl)
                     if(idx == -1) return Response OK
