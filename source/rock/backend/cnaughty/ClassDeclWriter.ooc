@@ -6,7 +6,7 @@ import Skeleton, FunctionDeclWriter, VersionWriter
 ClassDeclWriter: abstract class extends Skeleton {
 
     CLASS_NAME := static const "lang_core__Class"
-    OBJECT_NAME := static const "lang_core__Class"
+    OBJECT_NAME := static const "lang_core__Object"
 
     write: static func ~_class (this: Skeleton, cDecl: ClassDecl) {
 
