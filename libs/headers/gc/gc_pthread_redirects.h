@@ -22,7 +22,7 @@
                         const pthread_attr_t *attr,
 		        void *(*start_routine)(void *), void *arg);
 #ifndef GC_DARWIN_THREADS
-  int GC_pthread_sigmask(int how, const sigset_t *set, sigset_t *oset);
+  int GC_pthread_sigmask(int how, const __sigset_t *set, __sigset_t *oset);
 #endif
   int GC_pthread_join(pthread_t thread, void **retval);
   int GC_pthread_detach(pthread_t thread);
