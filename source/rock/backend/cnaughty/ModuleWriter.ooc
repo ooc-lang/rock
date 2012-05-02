@@ -125,11 +125,10 @@ ModuleWriter: abstract class extends Skeleton {
         current nl(). app("void "). app(module getLoadFuncName()). app("();")
         current = cw
         current nl(). app("void "). app(module getLoadFuncName()). app("() {"). tab()
-        current nl(). app("static "). app("bool __done__ = false;"). nl(). app("if (!__done__)"). app("{"). tab()
-		current nl(). app("__done__ = true;")
-        for (imp in module getAllImports()) {
-			current nl(). app(imp getModule() getLoadFuncName()). app("();")
-		}
+        current nl(). app("static "). app("int __done__ = 0;"). nl(). app("if (!__done__++)"). app("{"). tab()
+            for (imp in module getAllImports()) {
+                current nl(). app(imp getModule() getLoadFuncName()). app("();")
+            }
 
         for (type in module types) {
             if(type instanceOf?(ClassDecl)) {
