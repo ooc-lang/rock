@@ -179,12 +179,6 @@ ADVANCED OPTIONS
 --libcachepath=path
     Specify an explicit path where to store libcache files
 
---newstr
-    Use the String class to store normal string literals, not C strings
-
---cstrings
-    Use C strings for normal string literals, not the ooc String class
-
 --no-inline
     Disable generic inlining
 
