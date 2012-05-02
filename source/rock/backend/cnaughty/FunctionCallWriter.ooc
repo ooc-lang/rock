@@ -126,7 +126,7 @@ FunctionCallWriter: abstract class extends Skeleton {
                 else        current app(", ")
                 // FIXME: it's really ugly to hardcode class
                 // it should be resolved once and for all in Resolver and used from there.
-                current app("("). app(ClassDeclWriter CLASS_NAME). ("*)"). app(typeArg)
+                current app("("). app(ClassDeclWriter CLASS_NAME). app("*)"). app(typeArg)
             }
 
             i += 1
