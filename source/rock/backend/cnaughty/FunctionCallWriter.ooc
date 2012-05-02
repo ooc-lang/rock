@@ -2,7 +2,7 @@
 import ../../middle/[FunctionDecl, FunctionCall, TypeDecl, Argument,
         Type, Expression, InterfaceDecl, VariableAccess, VariableDecl,
         ClassDecl, Dereference]
-import Skeleton, FunctionDeclWriter, ModuleWriter
+import Skeleton, FunctionDeclWriter, ClassDeclWriter, ModuleWriter
 
 FunctionCallWriter: abstract class extends Skeleton {
 
@@ -126,7 +126,7 @@ FunctionCallWriter: abstract class extends Skeleton {
                 else        current app(", ")
                 // FIXME: it's really ugly to hardcode class
                 // it should be resolved once and for all in Resolver and used from there.
-                current app("(lang_types__Class*)"). app(typeArg)
+                current app("("). app(ClassDeclWriter CLASS_NAME). ("*)"). app(typeArg)
             }
 
             i += 1
