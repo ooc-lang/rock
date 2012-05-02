@@ -191,11 +191,11 @@ ModuleWriter: abstract class extends Skeleton {
 
         // header end
         current = hw
-        current nl(). nl(). app("#endif // "). app(hName)
+        current nl(). nl(). app("#endif")
 
         // forward-header end
         current = fw
-        current nl(). nl(). app("#endif // "). app(hFwdName)
+        current nl(). nl(). app("#endif")
 
         // Write a default main if none provided in source
         if(module main && !module functions contains?("main")) {
