@@ -19,19 +19,8 @@ ClassDeclWriter: abstract class extends Skeleton {
             writeObjectStruct(this, cDecl)
             if(cDecl getVersion()) VersionWriter writeEnd(this)
 
-            //TODO: split into InterfaceImplWriter ?
-            if(!cDecl getNonMeta() instanceOf?(InterfaceImpl)) {
-                current = fw
-                if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
-                writeMemberFuncPrototypes(this, cDecl)
-                if(cDecl getVersion()) VersionWriter writeEnd(this)
-
-                current = cw
-                if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
-                writeInstanceImplFuncs(this, cDecl)
-                writeInstanceVirtualFuncs(this, cDecl)
-                writeStaticFuncs(this, cDecl)
-            } else {
+            if(cDecl getNonMeta() instanceOf?(InterfaceImpl)) {
+                // for interfaces
                 current = fw
                 if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
                 writeClassGettingPrototype(this, cDecl)
@@ -39,6 +28,20 @@ ClassDeclWriter: abstract class extends Skeleton {
 
                 current = cw
                 if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
+            } else {
+                // for regular classes
+                current = fw
+                if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
+                writeMemberFuncPrototypes(this, cDecl)
+                if(cDecl getVersion()) VersionWriter writeEnd(this)
+
+                current = fw
+                writeInstanceVirtualFuncs(this, cDecl)
+                writeStaticFuncs(this, cDecl)
+
+                current = cw
+                if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
+                writeInstanceImplFuncs(this, cDecl)
             }
 
             // don't write class-getting functions of extern covers - it hurts
@@ -139,10 +142,13 @@ ClassDeclWriter: abstract class extends Skeleton {
                 continue
             }
 
-            current nl()
-            if(fDecl isProto()) current app("extern ")
-            FunctionDeclWriter writeFuncPrototype(this, fDecl, null)
-            current app(';')
+            if(!fDecl isVirtual()) {
+                current nl()
+                if(fDecl isProto()) current app("extern ")
+                FunctionDeclWriter writeFuncPrototype(this, fDecl, null)
+                current app(';')
+            }
+
             if(!fDecl isStatic() && !fDecl isAbstract() && !fDecl isFinal()) {
                 current nl()
                 FunctionDeclWriter writeFuncPrototype(this, fDecl, "_impl")
@@ -196,18 +202,19 @@ ClassDeclWriter: abstract class extends Skeleton {
 
         for(fDecl: FunctionDecl in cDecl functions) {
 
-            if (fDecl isStatic() || fDecl isFinal() || fDecl isExternWithName()) {
+            if (!fDecl isVirtual()) {
                 continue
             }
 
             current nl(). nl()
-            FunctionDeclWriter writeFuncPrototype(this, fDecl)
-            current app(' '). openBlock(). nl()
 
             baseClass := cDecl getBaseClass(fDecl)
-            if (fDecl hasReturn()) {
-                current app("return ("). app(fDecl returnType). app(") ")
-            }
+
+            current app("#define ")
+            FunctionDeclWriter writeFullName(this, fDecl)
+            FunctionDeclWriter writeFuncArgs(this, fDecl, ArgsWriteModes NAMES_ONLY, null)
+            current app(' ')
+
             if(cDecl getNonMeta() instanceOf?(InterfaceDecl)) {
                 current app("this.impl->")
             } else {
@@ -215,7 +222,6 @@ ClassDeclWriter: abstract class extends Skeleton {
             }
             FunctionDeclWriter writeSuffixedName(this, fDecl)
             FunctionDeclWriter writeFuncArgs(this, fDecl, ArgsWriteModes NAMES_ONLY, baseClass)
-            current app(";"). closeBlock()
 
         }
     }

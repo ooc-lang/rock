@@ -281,6 +281,10 @@ FunctionDecl: class extends Declaration {
         (externName != null) && !(externName empty?())
     }
 
+    isVirtual: func -> Bool {
+        !(isStatic() || isFinal() || isExternWithName())
+    }
+
     getUnmangledName: func -> String { unmangledName empty?() ? name : unmangledName }
     setUnmangledName: func (=unmangledName) {}
     isUnmangled: func -> Bool { unmangledName != null }
