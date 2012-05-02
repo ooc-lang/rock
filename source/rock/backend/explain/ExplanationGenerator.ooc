@@ -174,9 +174,10 @@ ExplanationGenerator: class extends Visitor {
     }
 
     buildFunctionDecl: func ~typed (node: FunctionDecl, type: String) {
-        name := node suffix ?
-            "%s~%s" format(node name, node suffix) :
-            node name
+        name := node name
+        if (node suffix) {
+            name = name + "~" + node suffix
+        }
 
         addObject("* *"+name+"*:",type)
 
