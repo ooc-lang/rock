@@ -342,16 +342,16 @@ ClassDeclWriter: abstract class extends Skeleton {
         current openBlock(). nl()
 
         if (parentClass name equals?("Class")) {
-            current app("{ /* class */ NULL }")
+            current app("{ NULL }") // class
 
-            current app(','). app(" /* instanceSize */ ")
-            realClass getNonMeta() writeSize(current, true) // instance = true
+            current app(", ")
+            realClass getNonMeta() writeSize(current, true) // instanceSize
 
-            current app(','). app(" /* size */ ")
-            realClass getNonMeta() writeSize(current, false) // instance = false
+            current app(", ")
+            realClass getNonMeta() writeSize(current, false) // size
 
-            current app(','). app(" /* name */ NULL")
-            current app(','). app(" /* super */ NULL")
+            current app(", NULL") // name
+            current app(", NULL") // super
         } else {
             writeClassStructInitializers(this, parentClass getSuperRef() as ClassDecl, realClass, done, false)
         }
