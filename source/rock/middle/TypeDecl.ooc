@@ -173,7 +173,11 @@ TypeDecl: abstract class extends Declaration {
     getInterfaceDecls: func -> List<InterfaceImpl> { interfaceDecls }
 
     hashName: static func (name, suffix: String) -> String {
-        suffix ? "%s~%s" format(name, suffix) : name
+        if (suffix) {
+            name + "~" + suffix
+        } else {
+            name
+        }
     }
 
     hashName: static func ~fromFuncDecl (fDecl: FunctionDecl) -> String {
