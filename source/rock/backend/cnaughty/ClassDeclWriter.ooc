@@ -88,7 +88,9 @@ ClassDeclWriter: abstract class extends Skeleton {
         // Now write all virtual functions prototypes in the class struct
         for (fDecl in cDecl functions) {
 
-            if(fDecl isExtern()) continue
+            if(fDecl isExtern()) continue // extern functions are just aliases for C funcs
+
+            if(fDecl isFinal()) continue // final functions are not virtual, since they can't be overriden
 
             if(cDecl getSuperRef() != null) {
                 superDecl : FunctionDecl = null
@@ -334,11 +336,16 @@ ClassDeclWriter: abstract class extends Skeleton {
         current openBlock(). nl()
 
         if (parentClass name equals?("Class")) {
-            current app(".instanceSize = ")
+            current app("{ /* class */ NULL }")
+
+            current app(','). nl(). app(" /* instanceSize */ ")
             realClass getNonMeta() writeSize(current, true) // instance = true
 
-            current app(','). nl(). app(".size = ")
+            current app(','). nl(). app(" /* size */ ")
             realClass getNonMeta() writeSize(current, false) // instance = false
+
+            current app(','). nl(). app(" /* name */ NULL")
+            current app(','). nl(). app(" /* super */ NULL")
         } else {
             writeClassStructInitializers(this, parentClass getSuperRef() as ClassDecl, realClass, done, false)
         }
@@ -373,9 +380,9 @@ ClassDeclWriter: abstract class extends Skeleton {
                 }
 
                 if (parentDecl isStatic() || (realDecl == null && parentDecl isAbstract())) {
-                    writeDesignatedInit(this, parentDecl, realDecl, false)
+                    writeDesignatedInit(this, parentDecl, realDecl, false) // impl = false
                 } else {
-                    writeDesignatedInit(this, parentDecl, realDecl, true)
+                    writeDesignatedInit(this, parentDecl, realDecl, true) // impl = true
                 }
             }
         }
@@ -387,7 +394,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
             interfaceImpl := realClass getNonMeta() as InterfaceImpl
             for(alias: FunctionAlias in interfaceImpl getAliases()) {
-                current nl(). app('.'). app(alias key getName()). app(" = (void*) ")
+                current nl(). app(" /* "). app(alias key getName()). app(" */ (void*) ")
                 FunctionDeclWriter writeFullName(this, alias value)
                 if(!alias value isFinal() && !alias value isAbstract()) current app("_impl")
                 current app(",")
@@ -403,9 +410,9 @@ ClassDeclWriter: abstract class extends Skeleton {
 
         if(realDecl != null && realDecl isAbstract) return
 
-        current nl(). app('.')
+        current nl(). app(" /* ")
         FunctionDeclWriter writeSuffixedName(this, parentDecl)
-        current app(" = (void*) ")
+        current app(" */ (void*) ")
 
         decl := realDecl ? realDecl : parentDecl
         FunctionDeclWriter writeFullName(this, decl)
