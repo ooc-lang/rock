@@ -14,7 +14,7 @@ ModuleWriter: abstract class extends Skeleton {
 
         /* write the fwd-.h file */
         current = fw
-        current nl(). app("#ifndef "). app(hFwdName)
+        current       app("#ifndef "). app(hFwdName)
         current nl(). app("#define "). app(hFwdName). nl()
 
         // write all includes
@@ -48,7 +48,7 @@ ModuleWriter: abstract class extends Skeleton {
 
         /* write the .h file */
         current = hw
-        current nl(). app("#ifndef "). app(hName)
+        current       app("#ifndef "). app(hName)
         current nl(). app("#define "). app(hName). nl()
 
         current nl(). app("#include <"). app(module getPath("-fwd.h")). app(">")
@@ -65,7 +65,7 @@ ModuleWriter: abstract class extends Skeleton {
         current = cw
 
         // write include to the module's. h file
-        current nl(). app("#include <"). app(module getPath(".h")). app(">")
+        current app("#include <"). app(module getPath(".h")). app(">")
 
         // now loose imports, in the .c it's safe =)
         for(imp in imports) {
