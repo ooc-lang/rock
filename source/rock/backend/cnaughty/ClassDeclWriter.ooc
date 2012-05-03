@@ -314,7 +314,7 @@ ClassDeclWriter: abstract class extends Skeleton {
         isCover := cDecl getNonMeta() instanceOf?(CoverDecl)
         if (isCover) {
             // FOR COVERS
-            current app("static "). app(underName). app("* classPtr = NULL;"). nl()
+            current app("static "). app(This CLASS_NAME). app("* classPtr = NULL;"). nl()
 
             current app("if (!classPtr) "). openBlock(). nl()
 
@@ -329,12 +329,13 @@ ClassDeclWriter: abstract class extends Skeleton {
 
             // super
             current app(", ("). app(This CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getFullName()). app("_class()")
-
-            // name
-            current app(",")
-            writeStringLiteral(realDecl getNonMeta() name)
-
             current app(");")
+
+            // name needs to be done separately because of String constructor
+            current nl(). app("classPtr->name = ")
+            writeStringLiteral(realDecl getNonMeta() name)
+            current app(";")
+
 
             current closeBlock();
             current nl(). app("return classPtr;"). closeBlock()
