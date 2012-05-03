@@ -64,7 +64,7 @@ Buffer: class extends Iterable<Char> {
             capacity = 0
         } else {
     	    setLength(length)
-	        memcpy(data, s, length) 
+            memcpy(data, s, length) 
         }        
     }
 
