@@ -202,7 +202,7 @@ VariableDecl: class extends Declaration {
                 res wholeAgain(this, "Need type of an Expression.")
                 return Response OK
             }
-            if (exprType inheritsFrom?(type)) {
+            if (exprType subclassOf?(type)) {
                 expr = Cast new(expr, type, token)
             }
         }
@@ -372,7 +372,7 @@ VariableDecl: class extends Declaration {
         if(lRef instanceOf?(ClassDecl) && rRef instanceOf?(ClassDecl)) {
             if(!(
                 (lType equals?(rType)) ||
-                (rRef as ClassDecl inheritsFrom?(lRef as ClassDecl))
+                (rRef as ClassDecl subclassOf?(lRef as ClassDecl))
             )) {
                 "Decl, l = %s, r = %s" printfln(lType toString(), rType toString())
                 return false

@@ -125,7 +125,7 @@ CGenerator: class extends Skeleton {
             if(leftType  isPointer() ||
                rightType isPointer()) {
                 current app("(void*) ")
-            } else if(rightType inheritsFrom?(leftType)) {
+            } else if(rightType subclassOf?(leftType)) {
                 current app('('). app(leftType). app(") ")
             }
         }

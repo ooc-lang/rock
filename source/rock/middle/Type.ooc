@@ -127,7 +127,7 @@ Type: abstract class extends Expression {
 
     getScoreImpl: abstract func (other: This, scoreSeed: Int) -> Int
 
-    inheritsFrom?: func (t: This) -> Bool { false }
+    subclassOf?: func (t: This) -> Bool { false }
 
     dig: abstract func -> This
 

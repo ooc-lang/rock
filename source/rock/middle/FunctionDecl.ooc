@@ -1108,7 +1108,7 @@ FunctionDecl: class extends Declaration {
 
     }
 
-    isVoid: func -> Bool { returnType == Type voidType() }
+    isVoid: func -> Bool { returnType void? }
 
     isMain: func -> Bool { name == "main" && suffix == null && !isMember() }
 

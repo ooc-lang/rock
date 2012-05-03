@@ -468,7 +468,7 @@ FunctionCall: class extends Expression {
         // check we are not trying to call a non-static member function on the metaclass
         if(expr instanceOf?(VariableAccess) && \
         (expr as VariableAccess getRef() instanceOf?(ClassDecl) || expr as VariableAccess getRef() instanceOf?(CoverDecl)) && \
-        (expr as VariableAccess getRef() as TypeDecl inheritsFrom?(ref getOwner()) || \
+        (expr as VariableAccess getRef() as TypeDecl subclassOf?(ref getOwner()) || \
         expr as VariableAccess getRef() == ref getOwner()) && !ref isStatic) {
             res throwError(UnresolvedCall new(this, "No such function %s%s for `%s` (%s)" format(name, getArgsTypesRepr(),
                             expr getType() toString(), expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)"), ""))

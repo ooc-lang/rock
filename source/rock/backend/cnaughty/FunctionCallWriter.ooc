@@ -154,8 +154,7 @@ FunctionCallWriter: abstract class extends Skeleton {
                     if (arg instanceOf?(VariableAccess)) {
                         writeRefAddrOf = false
                     }
-                } else if(arg getType() != null && declArg getType() != null && arg getType() inheritsFrom?(declArg getType())) {
-                    //printf("%s inherits from %s, casting!\n", arg getType() toString(), declArg getType() toString())
+                } else if(arg getType() != null && declArg getType() != null && arg getType() subclassOf?(declArg getType())) {
                     current app("("). app(declArg getType()). app(") (")
                     writeCast = true
                 }
