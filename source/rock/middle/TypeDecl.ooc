@@ -813,11 +813,11 @@ TypeDecl: abstract class extends Declaration {
         0
     }
 
-    inheritsFrom?: func (tDecl: TypeDecl) -> Bool {
+    subclassOf?: func (tDecl: TypeDecl) -> Bool {
         superRef := getSuperRef()
         if(superRef != null) {
             if(superRef == tDecl) return true
-            return superRef inheritsFrom?(tDecl)
+            return superRef subclassOf?(tDecl)
         }
 
         return false

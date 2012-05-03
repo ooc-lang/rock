@@ -375,13 +375,13 @@ BaseType: class extends Type {
         }
     }
 
-    inheritsFrom?: func (t: Type) -> Bool {
+    subclassOf?: func (t: Type) -> Bool {
         if(!t instanceOf?(BaseType)) return false
         bt := t as BaseType
         if(   ref == null || !   ref instanceOf?(TypeDecl)) return false
         if(bt ref == null || !bt ref instanceOf?(TypeDecl)) return false
 
-        return ref as TypeDecl inheritsFrom?(bt ref as TypeDecl)
+        return ref as TypeDecl subclassOf?(bt ref as TypeDecl)
     }
 
     replace: func (oldie, kiddo: Node) -> Bool {
