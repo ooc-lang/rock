@@ -3,6 +3,7 @@ include stdio
 import structs/ArrayList
 import FileReader, FileWriter, Reader, BufferWriter, BufferReader
 import native/[FileWin32, FileUnix]
+import text/StringTokenizer
 
 /**
    Represents a file/directory path, allows to retrieve informations like
@@ -247,6 +248,34 @@ File: abstract class {
     }
 
     /**
+     * Resolve redundancies, ie. ".." and "."
+     */
+    getReducedPath: func -> String {
+        elems := ArrayList<String> new()
+
+        for (elem in path split(File separator)) {
+            if (elem == "..") {
+                if (!elems empty?()) {
+                    elems removeAt(elems lastIndex())
+                } else {
+                    elems add(elem)
+                }
+            } else if (elem == ".") {
+                // do nothing
+            } else {
+                elems add(elem)
+            }
+        }
+
+        result := elems join(File separator)
+        if (path startsWith?(File separator)) {
+            result = File separator + result
+        }        
+
+        result
+    }
+
+    /**
      * List the name of the children of this path
      * Works only on directories, obviously
      */
@@ -357,3 +386,4 @@ File: abstract class {
 _isDirHardlink?: inline func (dir: CString) -> Bool {
     (dir[0] == '.') && (dir[1] == '\0' || ( dir[1] == '.' && dir[2] == '\0'))
 }
+

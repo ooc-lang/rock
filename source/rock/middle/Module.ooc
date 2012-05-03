@@ -1,7 +1,6 @@
 import io/File, text/EscapeSequence
 import structs/[HashMap, ArrayList, List, OrderedMultiMap]
 import ../frontend/[Token, BuildParams, PathList, AstBuilder]
-import ../utils/FileUtils
 import Node, FunctionDecl, Visitor, Import, Include, Use, UseDef, TypeDecl,
        FunctionCall, Type, Declaration, VariableAccess, OperatorDecl,
        Scope, NamespaceDecl, BaseType, FuncType, Addon
