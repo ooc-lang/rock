@@ -116,7 +116,7 @@ ClassDeclWriter: abstract class extends Skeleton {
     /** Write a function declaration's pointer */
     writeFunctionDeclPointer: static func (this: Skeleton, fDecl: FunctionDecl, doName: Bool) {
 
-        current app((fDecl hasReturn() ? fDecl getReturnType() : voidType) as Node)
+        current app((fDecl hasReturn() ? fDecl getReturnType() : Type voidType()) as Node)
 
         current app(" (*")
         if(doName) FunctionDeclWriter writeSuffixedName(this, fDecl)

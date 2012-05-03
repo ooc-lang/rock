@@ -23,8 +23,6 @@ StructLiteral: class extends Tuple {
 
 }
 
-anonStructUniversalType := CoverDecl new("<anon struct>", nullToken)
-
 AnonymousStructType: class extends Type {
 
     types := ArrayList<Type> new()
@@ -34,7 +32,7 @@ AnonymousStructType: class extends Type {
     pointerLevel: func -> Int { 0 }
 
     getName: func -> String { "<anon struct>" }
-    getRef: func -> Declaration { anonStructUniversalType }
+    getRef: func -> Declaration { CoverDecl new("<anon struct>", nullToken) }
     setRef: func (d: Declaration) { raise("Setting ref of an anonymous struct type!") }
 
     realTypize: func (call: FunctionCall) -> Type { this }

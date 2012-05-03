@@ -47,7 +47,7 @@ FunctionDecl: class extends Declaration {
     name = "", suffix = null, fullName = null, doc = "" : String
 
     /** The return type of this function. If it's generic, or if it's a TypeList, then returnArgs will be used */
-    returnType := voidType
+    returnType := Type voidType()
     /** For some extreme inference cases, this is the type we can infer from return expression inside the body. See Return */
     inferredReturnType : Type = null
 
@@ -246,7 +246,7 @@ FunctionDecl: class extends Declaration {
     }
 
     hasReturn: func -> Bool {
-        returnType != voidType && !returnType isGeneric()
+        returnType != Type voidType() && !returnType isGeneric()
     }
 
     hasThis:  func -> Bool { isMember() && !isStatic() }
@@ -1108,7 +1108,7 @@ FunctionDecl: class extends Declaration {
 
     }
 
-    isVoid: func -> Bool { returnType == voidType }
+    isVoid: func -> Bool { returnType == Type voidType() }
 
     isMain: func -> Bool { name == "main" && suffix == null && !isMember() }
 

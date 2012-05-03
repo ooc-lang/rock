@@ -12,7 +12,7 @@ TypeList: class extends Type {
     }
 
     accept: func (visitor: Visitor) {
-        voidType accept(visitor)
+        Type voidType() accept(visitor)
     }
 
     isResolved: func -> Bool {
@@ -37,7 +37,7 @@ TypeList: class extends Type {
     }
 
     write: func (w: AwesomeWriter, name: String) {
-        voidType write(w, name)
+        Type voidType() write(w, name)
     }
 
     equals?: func (t: Type) -> Bool {
