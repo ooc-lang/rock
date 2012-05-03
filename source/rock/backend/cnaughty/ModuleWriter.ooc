@@ -9,10 +9,6 @@ ModuleWriter: abstract class extends Skeleton {
 
     write: static func (this: Skeleton, module: Module) {
 
-        hw app("/* "). app(module fullName). app(" header file, generated with rock, the ooc compiler written in ooc */"). nl()
-        fw app("/* "). app(module fullName). app(" header-forward file, generated with rock, the ooc compiler written in ooc */"). nl()
-        cw app("/* "). app(module fullName). app(" source file, generated with rock, the ooc compiler written in ooc */"). nl()
-
         hName    := "___"+ module getUnderName() + "___"
         hFwdName := "___"+ module getUnderName() + "_fwd___"
 
@@ -125,34 +121,42 @@ ModuleWriter: abstract class extends Skeleton {
         current nl(). app("void "). app(module getLoadFuncName()). app("();")
         current = cw
         current nl(). app("void "). app(module getLoadFuncName()). app("() {"). tab()
-        current nl(). app("static "). app("int __done__ = 0;"). nl(). app("if (!__done__++)"). app("{"). tab()
-            for (imp in module getAllImports()) {
+
+        toInit := module getImportsToInit()
+
+        if (!toInit empty?() || !module types empty?() || !module body empty?()) {
+
+            current nl(). app("static "). app("int __done__ = 0;"). nl(). app("if (!__done__++)"). app("{"). tab()
+
+            for (imp in toInit) {
                 current nl(). app(imp getModule() getLoadFuncName()). app("();")
             }
 
-        for (type in module types) {
-            if(type instanceOf?(ClassDecl)) {
-                cDecl := type as ClassDecl
-                finalScore: Int
-                loadFunc := cDecl getFunction(ClassDecl LOAD_FUNC_NAME, null, null, finalScore&)
-                if(loadFunc) {
-                    if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
-                    current nl(). app(loadFunc getFullName()). app("();")
-                    if(cDecl getVersion()) VersionWriter writeEnd(this)
+            for (type in module types) {
+                if(type instanceOf?(ClassDecl)) {
+                    cDecl := type as ClassDecl
+                    finalScore: Int
+                    loadFunc := cDecl getFunction(ClassDecl LOAD_FUNC_NAME, null, null, finalScore&)
+                    if(loadFunc) {
+                        if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
+                        current nl(). app(loadFunc getFullName()). app("();")
+                        if(cDecl getVersion()) VersionWriter writeEnd(this)
+                    }
                 }
             }
+
+            for(stmt in module body) {
+                if(stmt instanceOf?(VariableDecl) && !stmt as VariableDecl getType() instanceOf?(AnonymousStructType)) {
+                    vd := stmt as VariableDecl
+                    if(vd isExtern() || vd getExpr() == null) continue
+                    current nl(). app(vd getFullName()). app(" = "). app(vd getExpr()). app(';')
+                } else {
+                    writeLine(stmt)
+                }
+            }
+            current untab(). nl(). app("}")
         }
 
-        for(stmt in module body) {
-            if(stmt instanceOf?(VariableDecl) && !stmt as VariableDecl getType() instanceOf?(AnonymousStructType)) {
-                vd := stmt as VariableDecl
-                if(vd isExtern() || vd getExpr() == null) continue
-                current nl(). app(vd getFullName()). app(" = "). app(vd getExpr()). app(';')
-            } else {
-                writeLine(stmt)
-            }
-        }
-        current untab(). nl(). app("}")
         current untab(). nl(). app("}"). nl()
 
         // write all addons
