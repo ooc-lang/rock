@@ -123,7 +123,7 @@ ClassDeclWriter: abstract class extends Skeleton {
         if(doName) FunctionDeclWriter writeSuffixedName(this, fDecl)
         current app(")")
 
-        FunctionDeclWriter writeFuncArgs(this, fDecl, ArgsWriteModes TYPES_ONLY, null);
+        FunctionDeclWriter writeFuncArgs(this, fDecl, ArgsWriteMode TYPES_ONLY, null);
 
     }
 
@@ -212,7 +212,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
             current app("#define ")
             FunctionDeclWriter writeFullName(this, fDecl)
-            FunctionDeclWriter writeFuncArgs(this, fDecl, ArgsWriteModes NAMES_ONLY, null)
+            FunctionDeclWriter writeFuncArgs(this, fDecl, ArgsWriteMode NAMES_ONLY, null)
             current app(' ')
 
             if(cDecl getNonMeta() instanceOf?(InterfaceDecl)) {
@@ -221,7 +221,7 @@ ClassDeclWriter: abstract class extends Skeleton {
                 current app("(("). app(baseClass underName()). app(" *)"). app("(("). app(This OBJECT_NAME). app(" *)this)->class)->")
             }
             FunctionDeclWriter writeSuffixedName(this, fDecl)
-            FunctionDeclWriter writeFuncArgs(this, fDecl, ArgsWriteModes NAMES_ONLY, baseClass)
+            FunctionDeclWriter writeFuncArgs(this, fDecl, ArgsWriteMode VALUES_ONLY, baseClass)
 
         }
     }
@@ -415,8 +415,10 @@ ClassDeclWriter: abstract class extends Skeleton {
                     continue // abstract static funcs aren't written in classes
                 }
 
-                if (parentDecl isStatic() || (realDecl == null && parentDecl isAbstract())) {
+                if (parentDecl isStatic()) {
                     writeDesignatedInit(this, parentDecl, realDecl, false) // impl = false
+                } else if(realDecl == null && parentDecl isAbstract()) {
+                    current nl(). app("NULL, ")
                 } else {
                     writeDesignatedInit(this, parentDecl, realDecl, true) // impl = true
                 }
