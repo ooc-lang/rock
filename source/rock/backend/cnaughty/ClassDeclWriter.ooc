@@ -19,6 +19,9 @@ ClassDeclWriter: abstract class extends Skeleton {
             writeObjectStruct(this, cDecl)
             if(cDecl getVersion()) VersionWriter writeEnd(this)
 
+            current = cw
+            if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
+
             if(cDecl getNonMeta() instanceOf?(InterfaceImpl)) {
                 // for interfaces
                 current = fw
@@ -26,8 +29,6 @@ ClassDeclWriter: abstract class extends Skeleton {
                 writeClassGettingPrototype(this, cDecl)
                 if(cDecl getVersion()) VersionWriter writeEnd(this)
 
-                current = cw
-                if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
             } else {
                 // for regular classes
                 current = fw
@@ -40,12 +41,12 @@ ClassDeclWriter: abstract class extends Skeleton {
                 writeStaticFuncs(this, cDecl)
 
                 current = cw
-                if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
                 writeInstanceImplFuncs(this, cDecl)
             }
 
             // don't write class-getting functions of extern covers - it hurts
             if(cDecl getNonMeta() == null || !cDecl getNonMeta() instanceOf?(CoverDecl) || !(cDecl getNonMeta() as CoverDecl isExtern() || cDecl getNonMeta() as CoverDecl isAddon())) {
+                current = cw
                 writeClassGettingFunction(this, cDecl)
             }
 
