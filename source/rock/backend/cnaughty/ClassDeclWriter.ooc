@@ -310,25 +310,56 @@ ClassDeclWriter: abstract class extends Skeleton {
 
         current nl(). nl(). app(underName). app(" *"). app(cDecl getNonMeta() getFullName()). app("_class()"). openBlock(). nl()
 
-        if (cDecl getNonMeta() getSuperRef()) {
-            current app("static int __done__ = 0;"). nl()
-        }
-        current app("static "). app(underName). app(" class = "). nl()
+        isCover := cDecl getNonMeta() instanceOf?(CoverDecl)
+        if (isCover) {
+            // FOR COVERS
+            current app("static "). app(underName). app("* classPtr = NULL;"). nl()
 
-        writeClassStructInitializers(this, realDecl, cDecl, ArrayList<FunctionDecl> new(), true)
+            current app("if (!classPtr) "). openBlock(). nl()
 
-        current app(';')
-        if (cDecl getNonMeta() getSuperRef()) {
-            current nl(). app(This CLASS_NAME). app(" *classPtr = ("). app(This CLASS_NAME). app(" *) &class;")
-            current nl(). app("if(!__done__++)"). openBlock().
-                    nl(). app("classPtr->super = ("). app(This CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getFullName()). app("_class();")
-            current nl(). app("classPtr->name = ")
+            current app("classPtr = (void*) "). app(This CLASS_NAME). app("_forCover(")
+
+            // instanceSize
+            cDecl getNonMeta() writeSize(current, true) 
+
+            // size
+            current app(", ")
+            cDecl getNonMeta() writeSize(current, false)
+
+            // super
+            current app(", ("). app(This CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getFullName()). app("_class()")
+
+            // name
+            current app(",")
             writeStringLiteral(realDecl getNonMeta() name)
-            current app(";").
-                    closeBlock()
-        }
 
-        current nl(). app("return &class;"). closeBlock()
+            current app(");")
+
+            current closeBlock();
+            current nl(). app("return classPtr;"). closeBlock()
+        } else {
+            // FOR NON-COVERS
+            if (cDecl getNonMeta() getSuperRef()) {
+                current app("static int __done__ = 0;"). nl()
+            }
+            current app("static "). app(underName). app(" class = ")
+
+
+            current nl()
+            writeClassStructInitializers(this, realDecl, cDecl, ArrayList<FunctionDecl> new(), true)
+            current app(';')
+
+            if (cDecl getNonMeta() getSuperRef()) {
+                current nl(). app(This CLASS_NAME). app(" *classPtr = ("). app(This CLASS_NAME). app(" *) &class;")
+                current nl(). app("if(!__done__++)"). openBlock().
+                        nl(). app("classPtr->super = ("). app(This CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getFullName()). app("_class();")
+                current nl(). app("classPtr->name = ")
+                writeStringLiteral(realDecl getNonMeta() name)
+                current app(";").
+                        closeBlock()
+            }
+            current nl(). app("return &class;"). closeBlock()
+        }
     }
 
     /**
