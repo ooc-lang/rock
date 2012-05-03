@@ -47,25 +47,6 @@ Tinkerer: class {
             resolvers add(Resolver new(module, params, this))
         }
 
-        // this was experimental stuff to figure out if the order modules
-        // were resolved in was actually meaningful and impacted on speed
-        // and total number of rounds. It turns out - not so much. But I'm
-        // leaving that here, because it's interesting. -- nddrylliog
-        if (Env get("ROCK_SORT") == "1") {
-            "Sorting!\n" print()
-            resolvers sort(|r1, r2|
-                r1 module timesImported < r2 module timesImported
-            )
-        }
-
-        if(params stats) {
-            for(res in resolvers) {
-                module := res module
-                " - imported %dx, has %d deps, %s" printfln(module timesImported, module getAllImports() getSize(), module fullName)
-            }
-            "End final order." println()
-        }
-
         round := 0
         while(!resolvers empty?()) {
 
@@ -115,18 +96,6 @@ Tinkerer: class {
                 return false
             }
 
-        }
-
-         if(params stats) {
-            totalImports := 0
-            totalLoops := 0
-            for(module in modules) {
-                " - imported %dx, has %d deps, looped %d x, %s" printfln(module timesImported, module getAllImports() getSize(),
-                    module timesLooped, module fullName)
-                totalImports += module getAllImports() getSize()
-                totalLoops += module timesLooped
-            }
-            "Total imports = %d, total modules looped = %d, final round = %d" printfln(totalImports, totalLoops, round)
         }
 
         true

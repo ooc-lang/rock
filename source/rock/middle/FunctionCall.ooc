@@ -366,53 +366,6 @@ FunctionCall: class extends Expression {
                 return Response OK
             }
 
-            // resolved. if we're inlining, do it now!
-            // FIXME: this is oh-so-primitive.
-            if(res params inlining && ref doInline) {
-                if(expr && (expr getType() == null || !expr getType() isResolved())) {
-                    res wholeAgain(this, "need expr type!")
-                    return Response OK
-                }
-
-                "Inlining %s! type = %s" format(toString(), getType() ? getType() toString() : "<unknown>") println()
-
-                retDecl := VariableDecl new(getType(), generateTempName("retval"), token)
-                retAcc := VariableAccess new(retDecl, token)
-                trail addBeforeInScope(this, retDecl)
-
-                block := InlineContext new(this, token)
-                block returnArgs add(retDecl) // Note: this isn't sufficient. What with TypeList return types?
-
-                reservedNames := ref args map(|arg| arg name)
-
-                for(i in 0..args getSize()) {
-                    callArg := args get(i)
-
-                    name := ref args get(i) getName()
-
-                    if(callArg instanceOf?(VariableAccess)) {
-                        vAcc := callArg as VariableAccess
-                        if(reservedNames contains?(vAcc getName())) {
-                            tempDecl := VariableDecl new(null, generateTempName(name), callArg, callArg token)
-                            block body add(0, tempDecl)
-                            callArg = VariableAccess new(tempDecl, tempDecl token)
-                        }
-                    }
-
-                    block body add(VariableDecl new(null, name, callArg, callArg token))
-                }
-
-                ref inlineCopy getBody() list each(|x|
-                    block body add(x clone())
-                )
-
-                trail addBeforeInScope(this, block)
-                trail peek() replace(this, retAcc)
-
-                res wholeAgain(this, "finished inlining")
-                return Response OK
-            }
-
             if(!handleGenerics(trail, res) ok()) {
                 res wholeAgain(this, "looping because of generics!")
                 return Response OK

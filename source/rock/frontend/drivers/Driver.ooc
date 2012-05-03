@@ -27,10 +27,8 @@ Driver: abstract class {
 
         for(inc: Include in module includes) {
             if(inc mode == IncludeModes LOCAL) {
-                destPath := (params libcache) ? \
-                    params libcachePath + File separator + module getSourceFolderName() : \
-                    params outPath path
-
+                destPath := params outPath path 
+                
                 path := module path + ".ooc"
                 pathElement := params sourcePath getFile(path) parent()
 
@@ -141,24 +139,4 @@ Driver: abstract class {
 
     }
 
-    findExec: func (name: String) -> File {
-
-        execFile := ShellUtils findExecutable(name, false)
-        if(!execFile) {
-            execFile = ShellUtils findExecutable(name + ".exe", false)
-        }
-        if(!execFile) {
-            Exception new(This, "Executable " + name + " not found :/")  throw()
-        }
-        return execFile
-
-    }
-
-    checkBinaryNameCollision: func (name: String) {
-        if (File new(name) dir?()) {
-            stderr write("Naming conflict (output binary) : There is already a directory called %s.\nTry a different name, e.g. '-o=%s2'\n" format(name, name))
-            CommandLine failure(params)
-            exit(1)
-        }
-    } 
 }

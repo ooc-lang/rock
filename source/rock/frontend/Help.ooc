@@ -24,37 +24,14 @@ or a library (if it only has a 'SourcePath: something' directive)
     the first one. The reason this is optional is because the output of
     allerrors is sometimes not so helpful. You might want to pipe it to less :)
 
---backend=[c]
-    Choose the rock backend. Currently, only the default backend c is
-    supported.
-
--c
-    Don't link.
-
---cc=[/path/to/ccompiler/binary]
-    point to the C compilers executable
-
---driver=[combine,sequence,make,dummy]
-    Choose the compile driver to use. combine compiles all C files
-    combined, sequence compiles them sequentially, make creates a
-    Makefile. dummy only generates the .c sources to rock_tmp/ (or whatever
-    you set your -outpath to)
-
 -Dmydefine
     sets \"mydefine\" for version blocks
-
---editor=EDITOR
-    The editor to run when an error in a ooc file was encountered.
 
 --entrypoint=FUNC
     Use FUNC as entrypoint. (default=main)
 
 -g, --debug
     Compile with debug information.
-
---gc=[dynamic,static,off]
-    Link dynamically, link statically, or don't link with the boehm
-    GC at all.
 
 --gcc,--tcc,--icc,--clang
     Choose the compiler backend. (default=gcc) Available compilers
@@ -68,34 +45,16 @@ or a library (if it only has a 'SourcePath: something' directive)
 -IPATH, -incpath=PATH
     Add PATH to the C header search path.
 
---libcache, --nolibcache
-    Use (or not) a library cache. By default, rock compiles related
-    bunches of .ooc files to a static library for further compilation
-    processes speedups in the .libs/ directory. When the source files
-    change, the static library will be recompiled automatically.
-    However, if you want to turn off library caching for some reason,
-    use this option.
-
 --libs=path/to/libs
     Specify the path where you keep all your ooc libraries, with .use files
     in them so it's easy to use them! You can also use the OOC_LIBS environment
     variable.
-
---linker=LINKER
-    Use LINKER in the last step of the sequence driver.
 
 -lLIB
     Link with library LIB.
 
 -LPATH, -libpath=PATH
     Add PATH to the C library search path.
-
---mARCH
-    Specify the architecture (either 32 or 64).
-
---noclean
-    Don't delete any temporary file produced by the backend, useful
-    for debugging.
 
 --nohints
     Don't even try to be helpful, ie. give hints when it encounters an error.
@@ -119,22 +78,15 @@ or a library (if it only has a 'SourcePath: something' directive)
     Only parse the given source file, fail on syntax errors only.
 
 --outpath=PATH
-    Place all .c and .h files in PATH. (default=rock_tmp/)
+    Place all .c and .h files in PATH. (default=snowflake/)
 
 -q, --quiet
-    Makes rock shut up. Disables any previous shout, verbose, veryVerbose.
-
--r, --run
-    Run the executable after a successful compilation.
+    Makes rock shut up. Disables any previous verbose, veryVerbose.
 
 --sdk=path/to/sdk
     Specify an explicit path to the sdk. Use if rock cannot find it itself, and
     you're not willing to export ROCK_SDK to path/to/rock/sdk or ROCK_DIST to
     path/to/rock. The sdk should contain a few basic things in lang/
-
---shout
-    Print a big fat status indicator (usually [ OK ] or [FAIL]) when a build
-    process is finished.
 
 --sourcepath=PATH
     Pass the location of your source files. (default=current
@@ -166,21 +118,8 @@ ADVANCED OPTIONS
     if a recompile is needed, because they change all the time. Use ignoredefine to
     ignore them when comparing build states.
 
---debuglibcache
-    Print debug message about libcache (might help in case of weird C compiler errors
-    about missing files and the such)
-
 --debugloop
     Print debug messages about the resolving loop (might help in case of blowup)
-
---inline
-    Enable generic inlining (EXPERIMENTAL, it will eat your dog)
-
---libcachepath=path
-    Specify an explicit path where to store libcache files
-
---no-inline
-    Disable generic inlining
 
 --nolang
     Don't include 'lang/' by default. Here be dragons!

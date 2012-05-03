@@ -1,6 +1,6 @@
 import io/File
 import structs/[List, ArrayList]
-import ../[BuildParams, Target]
+import ../[BuildParams]
 import ../../middle/Module
 import ../../backend/cnaughty/CGenerator
 import Driver
@@ -8,7 +8,7 @@ import Driver
 /**
    Dummy driver, which only generates the .c source code
 
-   Use it with -onlygen or -driver=dummy
+   Use it with --onlygen or --driver=dummy
 
    :author: Amos Wenger (nddrylliog)
  */
@@ -16,12 +16,6 @@ DummyDriver: class extends Driver {
 
     init: func (.params) {
         super(params)
-
-        // Generating the sources is the *whole point* of onlygen.
-        params clean = false
-
-        // Don't do lib-caching, we don't want things in .libs/
-        params libcache = false
     }
 
     compile: func (module: Module) -> Int {

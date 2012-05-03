@@ -75,23 +75,7 @@ FunctionDecl: class extends Declaration {
 
     /** internal hack used to ensure resolving of variables inside closure after they're unwrapped */
     countdown := 5
-
-    /**
-     * if true, calls to this FunctionDecl will be inlined.
-     * For this purpose, a clone will be made, stored as 'inlineCopy' (declared below),
-     * for which 'inlined' will be true
-     */
-    doInline := false
-
-    /** if this FunctinoDecl is a 'for-inlining' copy of another one */
-    inlined := false
-
-    /**
-     * reference to an inlined copy of this FunctionDecl, before any resolving takes place,
-     * allowing generic inlining, among others
-     */
-    inlineCopy: FunctionDecl = null
-
+    
     /** If this FunctionDecl is a shim to make a VariableDecl callable, then vDecl is set to that variable decl. */
     vDecl : VariableDecl = null
 
@@ -144,11 +128,6 @@ FunctionDecl: class extends Declaration {
         // signatures in a hierarchy without having to bother with suffixes and without
         // trying to overload constructors
         this isFinal = (name == "init")
-
-        // until we have a proper algorithm to determine which functions should be inlined
-        // for testing, every call to function prefixed with __inline__ will be inlined.
-        // note that this is conditioned currently with -inline
-        this doInline = (name startsWith?("__inline__"))
     }
 
     clone: func -> This {
@@ -577,21 +556,6 @@ FunctionDecl: class extends Declaration {
                     }
                 }
             }
-        }
-
-        if(res params inlining && doInline) {
-            if(inlineCopy == null) {
-                // FIXME: bah, ugly testing workarounds, don't pay attention.
-                inlineCopy = clone(name + "__inline")
-                inlineCopy inlined = true
-                inlineCopy doInline = false
-            }
-        }
-
-        if(inlined) {
-            trail pop(this)
-            "%s is inlining, not resolving further" format(toString()) println()
-            return Response OK
         }
 
         {
