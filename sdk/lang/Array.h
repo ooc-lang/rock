@@ -21,7 +21,7 @@
 
 typedef struct {
     size_t length;
-    void* restrict data;
+    void* data;
 } _lang_array__Array;
 
 #endif
