@@ -355,8 +355,17 @@ ClassDeclWriter: abstract class extends Skeleton {
                         nl(). app("classPtr->super = ("). app(This CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getFullName()). app("_class();")
                 current nl(). app("classPtr->name = ")
                 writeStringLiteral(realDecl getNonMeta() name)
-                current app(";").
-                        closeBlock()
+                current app(";")
+
+                current nl(). app("classPtr->instanceSize = ")
+                cDecl getNonMeta() writeSize(current, true) 
+                current app(";")
+
+                current nl(). app("classPtr->size = ")
+                cDecl getNonMeta() writeSize(current, false) 
+                current app(";")
+
+                current closeBlock()
             }
             current nl(). app("return &class;"). closeBlock()
         }
@@ -372,18 +381,18 @@ ClassDeclWriter: abstract class extends Skeleton {
         current openBlock(). nl()
 
         if (parentClass name equals?("Class")) {
-            current app("{ NULL }") // class
-
-            current app(", ")
-            realClass getNonMeta() writeSize(current, true) // instanceSize
-
-            current app(", ")
-            realClass getNonMeta() writeSize(current, false) // size
-
-            current app(", NULL") // name
-            current app(", NULL") // super
+            current app("{ NULL }, ") // class
         } else {
             writeClassStructInitializers(this, parentClass getSuperRef() as ClassDecl, realClass, done, false)
+        }
+
+        for(vDecl in parentClass variables) {
+            // ignore extern and virtual variables (usually properties)
+            if(vDecl isExtern() || vDecl isVirtual()) continue;
+
+            current nl(). app(" (")
+            vDecl getType() write(current, null)
+            current app(") 0,")
         }
 
         if(parentClass != realClass ||
