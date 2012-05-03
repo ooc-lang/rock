@@ -324,10 +324,12 @@ ClassDeclWriter: abstract class extends Skeleton {
             // size
             current app(", ")
             cDecl getNonMeta() writeSize(current, false)
+            current app(");")
 
             // super
-            current app(", ("). app(This CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getFullName()). app("_class()")
-            current app(");")
+            current nl(). app("classPtr->super = ")
+            current app(" ("). app(This CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getFullName()). app("_class()")
+            current app(";")
 
             // name needs to be done separately because of String constructor
             current nl(). app("classPtr->name = ")
@@ -351,11 +353,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
             if (cDecl getNonMeta() getSuperRef()) {
                 current nl(). app(This CLASS_NAME). app(" *classPtr = ("). app(This CLASS_NAME). app(" *) &class;")
-                current nl(). app("if(!__done__++)"). openBlock().
-                        nl(). app("classPtr->super = ("). app(This CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getFullName()). app("_class();")
-                current nl(). app("classPtr->name = ")
-                writeStringLiteral(realDecl getNonMeta() name)
-                current app(";")
+                current nl(). app("if(!__done__++)"). openBlock()
 
                 current nl(). app("classPtr->instanceSize = ")
                 cDecl getNonMeta() writeSize(current, true) 
@@ -363,6 +361,13 @@ ClassDeclWriter: abstract class extends Skeleton {
 
                 current nl(). app("classPtr->size = ")
                 cDecl getNonMeta() writeSize(current, false) 
+                current app(";")
+
+
+                current nl(). app("classPtr->super = ("). app(This CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getFullName()). app("_class();")
+
+                current nl(). app("classPtr->name = ")
+                writeStringLiteral(realDecl getNonMeta() name)
                 current app(";")
 
                 current closeBlock()
