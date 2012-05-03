@@ -35,13 +35,11 @@ MakeDriver: class extends Driver {
 
     compile: func (module: Module) -> Int {
 
-        if(params verbose) {
-           "Make driver" println()
-        }
-
         setup()
 
         params outPath mkdirs()
+
+        "Spawning bunnies in %s" printfln(makefile path)
 
         toCompile := module collectDeps()
         for(candidate in toCompile) {
@@ -50,7 +48,6 @@ MakeDriver: class extends Driver {
 
         copyLocalHeaders(module, params, ArrayList<Module> new())
 
-        "Writing to %s" printfln(makefile path)
         fW := FileWriter new(makefile)
 
         fW write("CC=%s\n" format(params compiler executablePath))
@@ -192,8 +189,7 @@ MakeDriver: class extends Driver {
         fW write("\n\n")
 
         fW write("\nclean:")
-        fW write("\n\t rm ${OBJECT_FILES}")
-        fW write("\n\t rm ${EXECUTABLE}")
+        fW write("\n\t rm -f ${OBJECT_FILES} ${EXECUTABLE}")
 
         fW close()
 
