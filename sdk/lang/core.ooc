@@ -67,6 +67,15 @@ Class: abstract class {
         false
     }
 
+    forCover: static func (instanceSize, size: SizeT, super: Class, name: String) -> Class {
+        _class := gc_malloc(Class size) as Class
+        _class instanceSize = instanceSize
+        _class size = size
+        _class super = super
+        _class name = name
+        _class
+    }
+
 }
 
 Array: cover from _lang_array__Array {
