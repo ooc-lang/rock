@@ -80,6 +80,7 @@ TypeDecl: abstract class extends Declaration {
             meta setSuperType(BaseType new("Class", token))
 
             // if we access to "Dog", we access to an object of type "DogClass"
+            if (!meta getInstanceType()) Exception new("meta has null instance type for %s" format(name)) throw()
             type = meta getInstanceType()
             type as BaseType ref = meta
         }

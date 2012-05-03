@@ -7,9 +7,6 @@ import Node, Visitor, Declaration, TypeDecl, ClassDecl, VariableDecl,
 import BaseType
 import tinker/[Response, Resolver, Trail]
 
-voidType := BaseType new("void", nullToken)
-voidType ref = BuiltinType new("void", nullToken)
-
 Type: abstract class extends Expression {
 
     SCORE_SEED := const static 1024
@@ -19,7 +16,13 @@ Type: abstract class extends Expression {
         super(token)
     }
 
-    void?: Bool { get { this == voidType } }
+    void?: Bool { get { getName() == "void" } }
+
+    voidType: static func -> Type {
+        type := BaseType new("void", nullToken)
+        type ref = BuiltinType new("void", nullToken)
+        type
+    }
 
     accept: func (visitor: Visitor) { visitor visitType(this) }
 
