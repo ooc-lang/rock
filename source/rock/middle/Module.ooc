@@ -210,6 +210,20 @@ Module: class extends Node {
         return list
     }
 
+    getImportsToInit: func -> List<Import> {
+        list := ArrayList<Import> new()
+        if (main) {
+            list addAll(getAllImports())
+        } else {
+            getAllImports() each(|i|
+                if (!(i path startsWith?("lang/"))) {
+                    list add(i)
+                }
+            )
+        }
+        list
+    }
+
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
 
         //printf("Looking for %s in %s\n", access toString(), toString())

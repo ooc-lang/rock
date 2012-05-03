@@ -56,6 +56,9 @@ TabbedWriter: class {
     }
 
     untab: func {
+        if (tabLevel <= 0) {
+            Exception new("Untabbing at zero. That shall not pass.") throw()
+        }
         tabLevel -= 1
     }
 
