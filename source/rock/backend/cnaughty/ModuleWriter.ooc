@@ -287,12 +287,10 @@ ModuleWriter: abstract class extends Skeleton {
     /** Write default main function */
     writeDefaultMain: static func (this: Skeleton) {
         // If just outputing .o files, do not add a default main
-        if(!params link || !params defaultMain) return
+        if(!params defaultMain) return
 
         cw nl(). nl(). app("int main() "). openBlock()
-        if(params enableGC) {
-            cw nl(). app("GC_INIT();")
-        }
+        cw nl(). app("GC_INIT();")
         cw nl(). app(module getLoadFuncName()). app("();")
         cw closeBlock(). nl()
     }

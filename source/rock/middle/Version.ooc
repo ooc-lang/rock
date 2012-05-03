@@ -105,8 +105,6 @@ VersionName: class extends VersionSpec {
 
     isSatisfied: func (params: BuildParams) -> Bool {
         if(params isDefined(name)) return true
-        if(origin == "64" && params arch == "64") return true
-
         false
     }
 

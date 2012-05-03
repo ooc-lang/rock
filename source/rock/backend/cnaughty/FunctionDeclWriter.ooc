@@ -55,7 +55,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
         writeFuncPrototype(this, fDecl)
         current app(" {"). tab()
 
-        if(params enableGC && fDecl isEntryPoint()) current nl(). app("GC_INIT();")
+        if(fDecl isEntryPoint()) current nl(). app("GC_INIT();")
         if(fDecl isEntryPoint()) current nl(). app(module getLoadFuncName()). app("();")
 
         for(stat in fDecl body) {
