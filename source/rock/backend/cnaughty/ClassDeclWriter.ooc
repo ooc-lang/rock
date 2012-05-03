@@ -36,11 +36,9 @@ ClassDeclWriter: abstract class extends Skeleton {
                 writeMemberFuncPrototypes(this, cDecl)
                 if(cDecl getVersion()) VersionWriter writeEnd(this)
 
-                current = fw
-                writeInstanceVirtualFuncs(this, cDecl)
-                writeStaticFuncs(this, cDecl)
-
                 current = cw
+                writeStaticFuncs(this, cDecl)
+                writeInstanceVirtualFuncs(this, cDecl)
                 writeInstanceImplFuncs(this, cDecl)
             }
 
@@ -143,12 +141,10 @@ ClassDeclWriter: abstract class extends Skeleton {
                 continue
             }
 
-            if(!fDecl isVirtual()) {
-                current nl()
-                if(fDecl isProto()) current app("extern ")
-                FunctionDeclWriter writeFuncPrototype(this, fDecl, null)
-                current app(';')
-            }
+            current nl()
+            if(fDecl isProto()) current app("extern ")
+            FunctionDeclWriter writeFuncPrototype(this, fDecl, null)
+            current app(';')
 
             if(!fDecl isStatic() && !fDecl isAbstract() && !fDecl isFinal()) {
                 current nl()
@@ -171,7 +167,6 @@ ClassDeclWriter: abstract class extends Skeleton {
                 continue
             }
 
-            current = cw
             current nl()
             FunctionDeclWriter writeFuncPrototype(this, decl);
 
@@ -209,12 +204,14 @@ ClassDeclWriter: abstract class extends Skeleton {
 
             current nl(). nl()
 
+            FunctionDeclWriter writeFuncPrototype(this, fDecl)
+            current app(" { ")
+
             baseClass := cDecl getBaseClass(fDecl)
 
-            current app("#define ")
-            FunctionDeclWriter writeFullName(this, fDecl)
-            FunctionDeclWriter writeFuncArgs(this, fDecl, ArgsWriteMode NAMES_ONLY, null)
-            current app(' ')
+            if (fDecl hasReturn()) {
+                current app("return ("). app(fDecl returnType). app(") ")
+            }
 
             if(cDecl getNonMeta() instanceOf?(InterfaceDecl)) {
                 current app("this.impl->")
@@ -224,6 +221,7 @@ ClassDeclWriter: abstract class extends Skeleton {
             FunctionDeclWriter writeSuffixedName(this, fDecl)
             FunctionDeclWriter writeFuncArgs(this, fDecl, ArgsWriteMode VALUES_ONLY, baseClass)
 
+            current app("; }")
         }
     }
 
