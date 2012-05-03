@@ -4,7 +4,7 @@ NQ_PATH=source/rock/frontend/NagaQueen.c
 DATE=$(shell date +%Y-%m-%d)
 TIME=$(shell date +%H:%M)
 OOC_WARN_FLAGS?=+-w
-OOC_OWN_FLAGS=-sourcepath=source -v +-O0 -g -ignoredefine=ROCK_BUILD_ ${OOC_WARN_FLAGS}
+OOC_OWN_FLAGS=--sourcepath=source -g --nolines --ignoredefine=ROCK_BUILD_ ${OOC_WARN_FLAGS}
 
 # used to be CC?=gcc, but that breaks on mingw where CC is set to 'cc' apparently
 CC=gcc
