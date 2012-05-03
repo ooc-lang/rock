@@ -96,7 +96,9 @@ ClassDeclWriter: abstract class extends Skeleton {
 
             if(cDecl getSuperRef() != null) {
                 superDecl : FunctionDecl = null
-                superDecl = cDecl getSuperRef() lookupFunction(fDecl name, fDecl suffix)
+                finalScore := 0
+                superDecl = cDecl getSuperRef() getFunction(fDecl name, fDecl suffix, finalScore&)
+
                 // don't write the function if it was declared in the parent
                 if(superDecl != null) {
                     //printf("Already declared in super %s, skipping (superDecl = %s)\n", cDecl getSuperRef() toString(), superDecl toString())
