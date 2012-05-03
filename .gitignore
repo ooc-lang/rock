@@ -10,6 +10,7 @@ bin-linux
 *tmp*
 .libs
 callgrind.out.*
+snowflake
 
 # This is ugly, BUT IT WORKS.
 libs/sources/.deps/
