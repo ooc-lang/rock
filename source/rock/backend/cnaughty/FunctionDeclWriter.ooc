@@ -3,12 +3,11 @@ import Skeleton, CGenerator, ClassDeclWriter, VersionWriter
 import ../../frontend/BuildParams
 include stdint
 
-ArgsWriteMode: cover from Int32
-
-ArgsWriteModes: class {
-    FULL = 1,
-    NAMES_ONLY = 2,
-    TYPES_ONLY = 3 : static const Int32
+ArgsWriteMode: enum {
+    FULL
+    NAMES_ONLY
+    VALUES_ONLY
+    TYPES_ONLY
 }
 
 FunctionDeclWriter: abstract class extends Skeleton {
@@ -81,7 +80,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
 
     /** Write the arguments of a function (default params) */
     writeFuncArgs: static func ~defaults (this: Skeleton, fDecl: FunctionDecl) {
-        writeFuncArgs(this, fDecl, ArgsWriteModes FULL, null)
+        writeFuncArgs(this, fDecl, ArgsWriteMode FULL, null)
     }
 
     /**
@@ -115,13 +114,15 @@ FunctionDeclWriter: abstract class extends Skeleton {
             type := (fDecl isThisRef ? fDecl owner thisRefDecl : fDecl owner thisDecl) getType()
 
             match mode {
-                case ArgsWriteModes NAMES_ONLY =>
+                case ArgsWriteMode NAMES_ONLY =>
+                    current app("this")
+                case ArgsWriteMode VALUES_ONLY =>
                     if(baseType != null && !isInterface) {
                         current app("("). app(baseType getNonMeta() getInstanceType()). app(")")
                     }
                     current app("this")
                     if(isInterface) current app(".obj")
-                case ArgsWriteModes TYPES_ONLY =>
+                case ArgsWriteMode TYPES_ONLY =>
                     if(isInterface) {
                         current app("void*")
                     } else {
@@ -138,9 +139,11 @@ FunctionDeclWriter: abstract class extends Skeleton {
             else isFirst = false
 
             match mode {
-                case ArgsWriteModes NAMES_ONLY =>
+                case ArgsWriteMode NAMES_ONLY =>
                     current app(retArg getName())
-                case ArgsWriteModes TYPES_ONLY =>
+                case ArgsWriteMode VALUES_ONLY =>
+                    current app(retArg getName())
+                case ArgsWriteMode TYPES_ONLY =>
                     current app(retArg getType())
                 case =>
                     current app(retArg)
@@ -162,9 +165,11 @@ FunctionDeclWriter: abstract class extends Skeleton {
                 else isFirst = false
 
                 match mode {
-                    case ArgsWriteModes NAMES_ONLY =>
+                    case ArgsWriteMode NAMES_ONLY =>
                         current app(typeArg getName())
-                    case ArgsWriteModes TYPES_ONLY =>
+                    case ArgsWriteMode VALUES_ONLY =>
+                        current app(typeArg getName())
+                    case ArgsWriteMode TYPES_ONLY =>
                         current app(typeArg getType())
                     case =>
                         current app(typeArg)
@@ -179,9 +184,11 @@ FunctionDeclWriter: abstract class extends Skeleton {
             else isFirst = false
 
             match mode {
-                case ArgsWriteModes NAMES_ONLY =>
+                case ArgsWriteMode NAMES_ONLY =>
                     current app(arg name)
-                case ArgsWriteModes TYPES_ONLY =>
+                case ArgsWriteMode VALUES_ONLY =>
+                    current app(arg name)
+                case ArgsWriteMode TYPES_ONLY =>
                     {
                         if(arg instanceOf?(VarArg)) {
                             current app("...")
