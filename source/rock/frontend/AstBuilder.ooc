@@ -3,7 +3,6 @@ import io/File, text/[EscapeSequence]
 
 import structs/[ArrayList, List, Stack, HashMap]
 
-import ../utils/FileUtils
 import ../frontend/[Token, BuildParams]
 import ../middle/tinker/Errors
 import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
@@ -108,12 +107,12 @@ AstBuilder: class {
      */
     getRealImportPath: static func (imp: Import, module: Module, params: BuildParams) -> (String, File, File) {
         oocImpPath := imp path + ".ooc"
-        path := FileUtils resolveRedundancies(oocImpPath)
+        path := File new(oocImpPath) getReducedPath()
         (impPath, impElement) := params sourcePath getFile(path)
         if(!impElement) {
             parent := File new(module path) parent()
             if(parent) {
-                path = FileUtils resolveRedundancies(parent path + File separator + oocImpPath)
+                path = File new(parent path + File separator + oocImpPath) getReducedPath()
                 (impPat2, impElemen2) := params sourcePath getFile(path)
                 (impPath, impElement) = (impPat2, impElemen2)
             }
