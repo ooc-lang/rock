@@ -19,9 +19,9 @@ CastWriter: abstract class extends Skeleton {
                 Exception new(This, "Couldn't find implementor for %s in %s\n" format(iDecl toString(), cast inner getType() getRef() toString())) throw()
             }
 
-            current app("(struct _"). app(iDecl getFatType() getInstanceType()). app(") {").
+            current app("((struct _"). app(iDecl getFatType() getInstanceType()). app(") {").
                 app(".impl = "). app(implementor underName()). app("__impl__"). app(iDecl getName()). app("_class(), .obj = (lang_core__Object*) ").
-                app(cast inner). app('}')
+                app(cast inner). app("})")
 
         } else {
 
