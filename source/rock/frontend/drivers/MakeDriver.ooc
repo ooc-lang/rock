@@ -138,7 +138,7 @@ MakeDriver: class extends Driver {
             fW write(path). write(".o ")
         }
 
-        fW write("\n\n.PHONY: compile link\n\n")
+        fW write("\n\n.PHONY: compile link clean\n\n")
 
         fW write("all: compile link\n\n")
 
@@ -190,6 +190,10 @@ MakeDriver: class extends Driver {
         fW write(" ${GC_PATH}")
 
         fW write("\n\n")
+
+        fW write("\nclean:")
+        fW write("\n\t rm ${OBJECT_FILES}")
+        fW write("\n\t rm ${EXECUTABLE}")
 
         fW close()
 
