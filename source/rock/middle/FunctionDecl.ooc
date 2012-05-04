@@ -126,6 +126,7 @@ FunctionDecl: class extends Declaration {
         token := Token new(0, 0, module)
         fDecl := new(name, token)
         fDecl setExternName(name)
+        fDecl setUnmangledName(name)
         fDecl args add(VarArg new(token, null)) // c vararg
         fDecl
     }
