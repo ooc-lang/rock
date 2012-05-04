@@ -746,6 +746,13 @@ AstBuilder: class {
     onTupleEnd: unmangled(nq_onTupleEnd) func -> Tuple {
         pop(Tuple)
     }
+    
+    onRawStringLiteral: unmangled(nq_onRawStringLiteral) func (object: Object) {
+        match object {
+            case sl: StringLiteral => sl raw = true
+            case => Exception new("Called onRawStringLiteral on invalid type %s" format(object class name)) throw()
+        }
+    }
 
     onStringLiteral: unmangled(nq_onStringLiteral) func (text: CString) -> StringLiteral {
         StringLiteral new(text toString() replaceAll("\n", "\\n") replaceAll("\t", "\\t"), token())

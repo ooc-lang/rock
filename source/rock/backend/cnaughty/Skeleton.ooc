@@ -23,8 +23,12 @@ Skeleton: abstract class extends Visitor {
             current app(';')
     }
 
-    writeStringLiteral: func (value: String) {
-        current app(STRING_CONSTRUCTOR format(value, EscapeSequence unescape(value) length()))
+    writeStringLiteral: func (value: String, raw: Bool) {
+        if (raw) {
+            current app('"'). app(value). app('"')
+        } else {
+            current app(STRING_CONSTRUCTOR format(value, EscapeSequence unescape(value) length()))
+        }
     }
 
 }

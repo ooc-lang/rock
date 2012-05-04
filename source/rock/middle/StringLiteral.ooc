@@ -6,7 +6,9 @@ import tinker/[Response, Resolver, Trail, Errors]
 StringLiteral: class extends Literal {
 
     value: String
-    type := static BaseType new("String", nullToken)
+    raw := false
+    objectType := static BaseType new("String", nullToken)
+    rawType := static BaseType new("CString", nullToken)
 
     init: func ~stringLiteral (=value, .token) {
         super(token)
@@ -16,7 +18,7 @@ StringLiteral: class extends Literal {
 
     accept: func (visitor: Visitor) { visitor visitStringLiteral(this) }
 
-    getType: func -> Type { type }
+    getType: func -> Type { raw ? rawType : objectType }
 
     toString: func -> String { "\"" + value + "\"" }
     
@@ -24,8 +26,8 @@ StringLiteral: class extends Literal {
 
         if(!super(trail, res) ok()) return Response LOOP
 
-        // unwrap string literals, for optimization
-        {
+        // unwrap object string literals, for optimization
+        if (!raw) {
             parent := trail peek()
             if(parent class != VariableDecl) {
                 {
