@@ -14,6 +14,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
 
     write: static func ~function (this: Skeleton, fDecl: FunctionDecl) {
         //"|| Writing function %s" format(fDecl name) println()
+        old := current
 
         if(!fDecl isExtern() || fDecl isProto()) {
 
@@ -44,6 +45,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
             if(fDecl getVersion()) VersionWriter writeEnd(this)
 
             // don't write to source.
+            current = old
             return
         }
 
@@ -62,6 +64,8 @@ FunctionDeclWriter: abstract class extends Skeleton {
         }
         current untab(). nl(). app("}")
         if(fDecl getVersion()) VersionWriter writeEnd(this)
+
+        current = old
     }
 
     /** Write the name of a function, with its suffix, and prefixed by its owner if any */
