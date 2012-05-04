@@ -37,8 +37,8 @@ ClassDeclWriter: abstract class extends Skeleton {
                 if(cDecl getVersion()) VersionWriter writeEnd(this)
 
                 current = cw
-                writeStaticFuncs(this, cDecl)
                 writeInstanceVirtualFuncs(this, cDecl)
+                writeStaticFuncs(this, cDecl)
                 writeInstanceImplFuncs(this, cDecl)
             }
 

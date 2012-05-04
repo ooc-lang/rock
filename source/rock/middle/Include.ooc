@@ -1,4 +1,5 @@
 import structs/[ArrayList, List]
+import rock/parser/HeaderParser
 import Version
 
 IncludeMode: cover from Int
@@ -21,7 +22,15 @@ Include: class {
     verzion: VersionSpec
     defines := ArrayList<Define> new()
 
-    init: func (=path, =mode) {}
+    header: Header { get set }
+
+    init: func (=path, =mode) {
+        header = Header find(path + ".h")
+        if (header) {
+            "In %s" printfln(path)
+            header symbols each(|k, v| k println())
+        }
+    }
 
     setVersion: func(=verzion) {}
     getVersion: func -> VersionSpec { verzion }
