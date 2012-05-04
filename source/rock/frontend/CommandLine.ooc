@@ -32,7 +32,7 @@ CommandLine: class {
         driver = MakeDriver new(params)
 
         modulePaths := ArrayList<String> new()
-        params compiler = Gcc new()
+        params compiler = Clang new()
 
         isFirst := true
 
