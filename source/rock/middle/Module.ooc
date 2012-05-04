@@ -297,6 +297,20 @@ Module: class extends Node {
             }
         }
 
+        for(inc in includes) {
+            if (!inc header) {
+                continue
+            }
+
+
+            symbols := inc header symbols
+            if (symbols contains?(call name)) {
+                fDecl := FunctionDecl shim(call name, this)
+                "%s is in include %s (with %d symbols)" printfln(call name, inc path, symbols size)
+                call suggest(fDecl, res, trail)
+            }
+        }
+
     }
 
     resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
