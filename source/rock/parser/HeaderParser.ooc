@@ -24,7 +24,8 @@ PreprocessorReader: class extends FileReader {
 Header: class {
     
     path: String
-    fR: FileReader
+    mark: Long
+    reader: FileReader
     symbols : HashMap<String, String> { get set } 
 
     find: static func (name: String) -> Header {
@@ -46,54 +47,46 @@ Header: class {
    
     init: func (=path) {
         symbols = HashMap<String, String> new()
-        fR = PreprocessorReader new(path)
+        reader = PreprocessorReader new(path)
         parse()
+    }
+
+    log: func (msg: String) {
+        "HeaderParser [%s:%d] %s" printfln(path, mark, msg)
     }
     
     parse: func {
         lastId: String
         
-        while(fR hasNext?()) {
+        while(reader hasNext?()) {
             skipComments()
-            if(!fR hasNext?()) return
+            if(!reader hasNext?()) return
             
-            mark := fR mark()
-            match (c1 := fR read()) {
+            mark = reader mark()
+            match (c1 := reader read()) {
                 case '#' =>
                     skipWhitespace()
-                    //"[%d] Skipping directive #%s" printfln(mark, fR readWhile(|c| !c whitespace?()))
+                    // log("Skipping directive #%s" format(reader readWhile(|c| !c whitespace?())))
                     skipLine()
                 case '(' =>
-                    parenCount := 1
-                    call := fR readWhile(|c|
-                        match c {
-                            case '(' => parenCount += 1; true
-                            case ')' => parenCount -= 1; true
-                            case     => parenCount > 0
-                        }
-                    ) replaceAll("\n", "")
-                    //"[%d] Got symbol %s(%s" printfln(mark, lastId, call)
-                    symbols put(lastId, call)
+                    args := readPair('(', ')') replaceAll("\n", "")
+                    log("Got symbol %s with args %s" format(lastId, args))
+                    symbols put(lastId, args)
                 case ';' =>
-                    //"[%d] End of line, should probably handle stuff, just skipping for now!" printfln(mark)
+                    // End of line, should probably handle stuff, skipping instead
                 case '*' =>
-                    //"[%d] Pointer type, maybe? got *" printfln(mark)
+                    // Pointer type, maybe? got '*'
+                case ',' =>
+                    // Multiple variable declaration?
                 case '"' =>
-                    // TODO: escapes
-                    fR readWhile(|c| c != '"')
-                    fR read() // skip the last one
+                    reader readWhile(|c| c != '"')
+                    reader read() // skip the last one
                 case '{' =>
-                    // TODO: strings and stuff
-                    parenCount := 1
-                    call := fR readWhile(|c|
-                        match c {
-                            case '{' => parenCount += 1; true
-                            case '}' => parenCount -= 1; true
-                            case     => parenCount > 0
-                        }
-                    ) replaceAll("\n", "")
+                    readPair('{', '}')
+                case '[' =>
+                    readPair('[', ']')
                 case =>
-                    fR rewind(1)
+                    reader rewind(1)
                     
                     id := readIdentifier()
                     if(id) {
@@ -103,34 +96,46 @@ Header: class {
                                 skipWhitespace()
                                 id2 := readIdentifier()
                                 if(!id2) {
-                                    "[%s:%d] Aborting on unfinished struct" printfln(path, mark)
+                                    // log("Aborting on unfinished struct")
                                     return
                                 }
-                                //"[%d] Got type 'struct %s'" printfln(mark, id2)
+                                // log("Got type 'struct %s'" format(id2))
                             case =>
-                                //"[%d] Got '%s'" printfln(mark, id)
+                                // log("Got '%s'" format(id))
                         }
                     } else if(c1 whitespace?()) {
-                        // skip
-                        //"[%d] Skipping whitespace" printfln(fR mark())
-                        fR read(). read()
+                        // skip whitespace
+                        reader read(). read()
                     } else {
-                        "[%s:%d] Aborting on unknown char '%c', (code %d)" printfln(path, mark, c1, c1 as Int)
+                        log("Aborting on unknown char '%c', (code %d)" format(c1, c1 as Int))
                         return
                     }
             }
         }
     }
+
+    readPair: func (beg, end: Char) -> String {
+        balance := 1
+        result := reader readWhile(|c|
+            match c {
+                case beg => balance += 1; balance > 0
+                case end => balance -= 1; balance > 0
+                case     => true
+            }
+        )
+        reader read() // skip last 'end'
+        result
+    }
     
     readIdentifier: func -> String {
-        mark := fR mark()
-        c := fR read()
+        mark := reader mark()
+        c := reader read()
         
         result := match {
             case c alpha?() || c == '_' =>
-                "%c%s" format(c, fR readWhile(|c| c alphaNumeric?() || c == '_'))
+                "%c%s" format(c, reader readWhile(|c| c alphaNumeric?() || c == '_'))
             case =>
-                fR reset(mark)
+                reader reset(mark)
                 null
         }
         //"Just read identifier %s" printfln(result)
@@ -138,11 +143,11 @@ Header: class {
     }
     
     skipLine: func {
-        fR readWhile(|c| c != '\n')
+        reader readWhile(|c| c != '\n')
     }
     
     skipWhitespace: func {
-        fR readWhile(|c| c whitespace?())
+        reader readWhile(|c| c whitespace?())
     }
     
     skipComments: func {
@@ -150,13 +155,13 @@ Header: class {
         while(true) {
             skipWhitespace()
        
-            mark := fR mark()
-            match (c1 := fR read()) {
-                case '/' => match(c2 := fR read()) {
+            mark := reader mark()
+            match (c1 := reader read()) {
+                case '/' => match(c2 := reader read()) {
                     case '/' => skipLine()
                         //"[%d] skipped single-line comment!" printfln(mark); 
                         continue
-                    case '*' => fR skipUntil("*/"). rewind(1)
+                    case '*' => reader skipUntil("*/"). rewind(1)
                         //"[%d] skipped multi-line comment!"  printfln(mark);
                         continue
                 }
@@ -164,7 +169,7 @@ Header: class {
                     //"At %d, stumbled upon %c" printfln(mark, c1)
             }
             
-            fR reset(mark)
+            reader reset(mark)
             break
         }
     }
