@@ -147,7 +147,7 @@ AstBuilder: class {
             mode = IncludeModes PATHY
         }
 
-        inc := Include new(path, mode)
+        inc := Include new(path + ".h", mode)
         module addInclude(inc)
         inc setVersion(getVersion())
     }

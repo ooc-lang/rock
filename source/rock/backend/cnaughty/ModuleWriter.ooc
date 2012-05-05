@@ -430,7 +430,7 @@ ModuleWriter: abstract class extends Skeleton {
 
         chevron := (inc mode == IncludeModes PATHY)
         current nl(). app("#include "). app(chevron ? '<' : '"').
-            app(inc path). app(".h").
+            app(inc path).
         app(chevron ? '>' : '"')
 
         for(define in inc getDefines()) {
