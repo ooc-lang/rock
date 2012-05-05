@@ -60,13 +60,16 @@ Header: class {
         
         while(reader hasNext?()) {
             skipComments()
-            if(!reader hasNext?()) return
+            if(!reader hasNext?()) {
+                log("Reached end!")
+                return
+            }
             
             mark = reader mark()
             match (c1 := reader read()) {
                 case '#' =>
                     skipWhitespace()
-                    // log("Skipping directive #%s" format(reader readWhile(|c| !c whitespace?())))
+                    //log("Skipping directive #%s" format(reader readWhile(|c| !c whitespace?())))
                     skipLine()
                 case '(' =>
                     args := readPair('(', ')') replaceAll("\n", "")
@@ -82,9 +85,12 @@ Header: class {
                     reader readWhile(|c| c != '"')
                     reader read() // skip the last one
                 case '{' =>
-                    readPair('{', '}')
+                    // just skip
+                case '}' =>
+                    // just skip
                 case '[' =>
                     readPair('[', ']')
+                    log("[%d-%d] Just read pair of '[', ']'" format(mark, reader mark()))
                 case =>
                     reader rewind(1)
                     
@@ -95,11 +101,10 @@ Header: class {
                             case "struct" =>
                                 skipWhitespace()
                                 id2 := readIdentifier()
-                                if(!id2) {
-                                    // log("Aborting on unfinished struct")
-                                    return
+                                if(id2) {
+                                    log("Got type 'struct %s'" format(id2))
                                 }
-                                // log("Got type 'struct %s'" format(id2))
+                                
                             case =>
                                 // log("Got '%s'" format(id))
                         }
@@ -159,10 +164,10 @@ Header: class {
             match (c1 := reader read()) {
                 case '/' => match(c2 := reader read()) {
                     case '/' => skipLine()
-                        //"[%d] skipped single-line comment!" printfln(mark); 
+                        "[%d-%d] skipped single-line comment!" printfln(mark, reader mark());
                         continue
                     case '*' => reader skipUntil("*/"). rewind(1)
-                        //"[%d] skipped multi-line comment!"  printfln(mark);
+                        "[%d-%d] skipped multi-line comment!" printfln(mark, reader mark())
                         continue
                 }
                 case =>
