@@ -26,7 +26,7 @@ Driver: abstract class {
         done add(module)
 
         for(inc: Include in module includes) {
-            if(inc mode == IncludeModes LOCAL) {
+            if(inc mode == IncludeMode QUOTED) {
                 destPath := params outPath path 
                 
                 path := module path + ".ooc"
@@ -83,57 +83,44 @@ Driver: abstract class {
 
     }
 
+    addFlag: func (flags: List<String>, flag: String) {
+        if (!flags contains?(flag)) flags add(flag)
+    }
+
     getFlagsFromUse: func (useDef: UseDef, flagsDone : List<String>, usesDone: List<UseDef>) {
 
-        // hacky workaround, but seriously, wtf?
         if(useDef == null) return
 
         if(usesDone contains?(useDef)) return
         usesDone add(useDef)
 
-        //compileNasms(useDef getLibs(), flagsDone)
-        flagsDone addAll(useDef getLibs())
+        flagsDone addAll(useDef libs)
 
-        for(pkg in useDef getPkgs()) {
+        for(pkg in useDef pkgs) {
             info := PkgConfigFrontend getInfo(pkg)
+
             for(cflag in info cflags) {
-                if(!flagsDone contains?(cflag)) {
-                    flagsDone add(cflag)
-                }
+                addFlag(flagsDone, cflag)
             }
+
             for(library in info libraries) {
-                // FIXME lazy
-                lpath := "-l"+library
-                if(!flagsDone contains?(lpath)) {
-                    flagsDone add(lpath)
-                }
+                addFlag(flagsDone, "-l"+library)
             }
+
             for(libPath in info libPaths) {
-                // FIXME just goin' with the flow
-                lpath := "-L"+libPath
-                if(!flagsDone contains?(lpath)) {
-                    flagsDone add(lpath)
-                }
+                addFlag(flagsDone, "-L"+libPath)
             }
         }
 
-        for(includePath in useDef getIncludePaths()) {
-            // FIXME lazy too
-            ipath := "-I" + includePath
-            if(!flagsDone contains?(ipath)) {
-                flagsDone add(ipath)
-            }
+        for(includePath in useDef includePaths) {
+            addFlag(flagsDone, "-I" + includePath)
         }
 
-        for(libPath in useDef getLibPaths()) {
-            // FIXME lazy too
-            lpath := "-L" + libPath
-            if(!flagsDone contains?(lpath)) {
-                flagsDone add(lpath)
-            }
+        for(libPath in useDef libPaths) {
+            addFlag(flagsDone, "-L" + libPath)
         }
 
-        for(req in useDef getRequirements()) {
+        for(req in useDef requirements) {
             getFlagsFromUse(req useDef, flagsDone, usesDone)
         }
 
