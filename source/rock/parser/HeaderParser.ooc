@@ -103,7 +103,7 @@ Header: class {
                                 skipWhitespace()
                                 id2 := readIdentifier()
                                 if(!id2) {
-                                    "[%d] Aborting on unfinished struct" printfln(mark)
+                                    "[%s:%d] Aborting on unfinished struct" printfln(path, mark)
                                     return
                                 }
                                 //"[%d] Got type 'struct %s'" printfln(mark, id2)
@@ -115,7 +115,7 @@ Header: class {
                         //"[%d] Skipping whitespace" printfln(fR mark())
                         fR read(). read()
                     } else {
-                        "[%d] Aborting on unknown char '%c', (code %d)" printfln(mark, c1, c1 as Int)
+                        "[%s:%d] Aborting on unknown char '%c', (code %d)" printfln(path, mark, c1, c1 as Int)
                         return
                     }
             }
