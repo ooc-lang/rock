@@ -1,6 +1,7 @@
 import io/[File, FileReader]
 import structs/[List, ArrayList, HashMap]
 import text/StringTokenizer
+import Include
 
 import ../frontend/BuildParams
 
@@ -36,22 +37,23 @@ UseDef: class {
 
     sourcePath : String = null
 
-    requirements := ArrayList<Requirement> new()
-    pkgs         := ArrayList<String> new()
-    libs         := ArrayList<String> new()
-    includes     := ArrayList<String> new()
-    imports      := ArrayList<String> new()
-    libPaths     := ArrayList<String> new()
-    includePaths := ArrayList<String> new()
+    requirements : List<Requirement> { set get }
+    pkgs         : List<String>      { set get }
+    libs         : List<String>      { set get }
+    includes     : List<Include>     { set get }
+    imports      : List<String>      { set get }
+    libPaths     : List<String>      { set get }
+    includePaths : List<String>      { set get }
 
-    init: func (=identifier) {}
-
-    getRequirements: func -> List<Requirement> { requirements }
-    getPkgs:         func -> List<String>      { pkgs }
-    getLibs:         func -> List<String>      { libs }
-    getIncludes:     func -> List<String>      { includes }
-    getLibPaths:     func -> List<String>      { libPaths }
-    getIncludePaths: func -> List<String>      { includePaths }
+    init: func (=identifier) {
+        requirements = ArrayList<Requirement> new()
+        pkgs         = ArrayList<String>      new()
+        libs         = ArrayList<String>      new()
+        includes     = ArrayList<Include>     new()
+        imports      = ArrayList<String>      new()
+        libPaths     = ArrayList<String>      new()
+        includePaths = ArrayList<String>      new()
+    }
 
     parse: static func (identifier: String, params: BuildParams) -> UseDef {
         cached := This cache get(identifier)
@@ -96,13 +98,7 @@ UseDef: class {
 
     apply: func (params: BuildParams) {
         if(!sourcePath) return
-
-        sourcePathFile := File new(sourcePath)
-        if(sourcePathFile relative?()) {
-            /* is relative. TODO: better check? */
-            sourcePathFile = file parent() getChild(sourcePath) getAbsoluteFile()
-        }
-        sourcePath = sourcePathFile path
+        sourcePath = absolutizePath(sourcePath)
 
         if(params veryVerbose) {
             "Adding %s to sourcepath ..." printfln(sourcePath)
@@ -161,24 +157,15 @@ UseDef: class {
                     libs add(lib trim())
             } else if(id == "Includes") {
                 for(inc in value split(','))
-                    includes add(inc trim())
+                    includes add(Include new(inc trim(), IncludeMode BRACKETED))
             } else if(id == "LibPaths") {
                 for(path in value split(',')) {
-                    libFile := File new(path trim())
-                    if(libFile getAbsoluteFile() != libFile) {
-                        /* is relative. TODO: better check? */
-                        libFile = file getChild(path) getAbsoluteFile()
-                    }
-                    libPaths add(libFile path)
+                    libPaths add(absolutizePath(path trim()))
                 }
             } else if(id == "IncludePaths") {
                 for(path in value split(',')) {
-                    incFile := File new(path trim())
-                    if(incFile getAbsoluteFile() != incFile) {
-                        /* is relative. TODO: better check? */
-                        incFile = file getChild(path) getAbsoluteFile()
-                    }
-                    includePaths add(incFile path)
+                    // TODO: make include parser look up in those paths
+                    includePaths add(absolutizePath(path trim()))
                 }
             } else if(id == "Requires") {
                 for(req in value split(',')) {
@@ -198,8 +185,17 @@ UseDef: class {
             } else if(id startsWith?("_")) {
                 // unknown and ignored ids
             } else if(!id empty?()) {
-                "%s: Unknown id %s (length %d, first = %d) in usefile" format(file getPath(), id, id length(), id[0]) println()
+                "%s: Unknown id %s" format(file getPath(), id) println()
             }
         }
     }
+
+    absolutizePath: func (path: String) -> String {
+        if(File new(path) relative?()) {
+            file parent() getChild(path) getAbsolutePath()
+        } else {
+            path
+        }
+    }
+
 }
