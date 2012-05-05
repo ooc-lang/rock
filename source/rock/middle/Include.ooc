@@ -25,7 +25,7 @@ Include: class {
     header: Header { get set }
 
     init: func (=path, =mode) {
-        header = Header find(path + ".h")
+        header = Header find(path)
         if (header) {
             "In %s" printfln(path)
             header symbols each(|k, v| k println())
