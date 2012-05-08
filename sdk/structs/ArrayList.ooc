@@ -15,6 +15,8 @@ ArrayList: class <T> extends List<T> {
     data : T*
     capacity : SizeT
     _size = 0 : SizeT
+
+    emptyIterator := static ArrayListIterator<Object> new(ArrayList<Object> new())
     
     size: SSizeT {
     	get {
@@ -88,7 +90,6 @@ ArrayList: class <T> extends List<T> {
     indexOf: func(element: T) -> SSizeT {
         index := 0
         while(index < _size) {
-            //if(memcmp(data + index * T size, element, T size) == 0) return index
             if(this as List equals?(this[index], element)) return index
             index += 1
         }
@@ -183,10 +184,16 @@ ArrayList: class <T> extends List<T> {
         }
     }
 
-    iterator: func -> BackIterator<T> { return ArrayListIterator<T> new(this) }
+    iterator: func -> BackIterator<T> {
+        if (_size == 0) {
+            emptyIterator // avoid a horseload of instanciations
+        } else {
+            ArrayListIterator<T> new(this)
+        }
+    }
 
     backIterator: func -> BackIterator<T> {
-        iter := ArrayListIterator<T> new(this)
+        iter := iterator() as ArrayListIterator<T>
         iter index = _size
         return iter
     }
