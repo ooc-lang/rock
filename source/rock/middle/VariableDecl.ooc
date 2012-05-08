@@ -291,7 +291,7 @@ VariableDecl: class extends Declaration {
         if(!isArg && type != null && type isGeneric() && type pointerLevel() == 0) {
             if(debugCondition()) "Generic, set expr to malloc" println()
             if(expr != null) {
-                if(expr instanceOf?(FunctionCall) && expr as FunctionCall getName() == "gc_malloc") return Response OK
+                if(expr instanceOf?(FunctionCall) && expr as FunctionCall getName() == "gc_malloc_for_generics") return Response OK
 
                 ass := BinaryOp new(VariableAccess new(this, token), expr, OpType ass, token)
                 if(!trail addAfterInScope(this, ass)) {
@@ -299,7 +299,7 @@ VariableDecl: class extends Declaration {
                 }
                 expr = null
             }
-            fCall := FunctionCall new("gc_malloc", token)
+            fCall := FunctionCall new("gc_malloc_for_generics", token)
             tAccess := VariableAccess new(type getName(), token)
             sizeAccess := VariableAccess new(tAccess, "size", token)
             fCall getArguments() add(sizeAccess)
