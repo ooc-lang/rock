@@ -41,7 +41,7 @@ Header: class {
             if(file exists?()) return new(file path)
         }
 
-        "Include <%s> not found!" printfln(name)
+        //"Include <%s> not found!" printfln(name)
         null
     }
    
@@ -52,7 +52,7 @@ Header: class {
     }
 
     log: func (msg: String) {
-        "HeaderParser [%s:%d] %s" printfln(path, mark, msg)
+        //"HeaderParser [%s:%d] %s" printfln(path, mark, msg)
     }
     
     parse: func {
@@ -164,10 +164,10 @@ Header: class {
             match (c1 := reader read()) {
                 case '/' => match(c2 := reader read()) {
                     case '/' => skipLine()
-                        "[%d-%d] skipped single-line comment!" printfln(mark, reader mark());
+                        //"[%d-%d] skipped single-line comment!" printfln(mark, reader mark());
                         continue
                     case '*' => reader skipUntil("*/"). rewind(1)
-                        "[%d-%d] skipped multi-line comment!" printfln(mark, reader mark())
+                        //"[%d-%d] skipped multi-line comment!" printfln(mark, reader mark())
                         continue
                 }
                 case =>

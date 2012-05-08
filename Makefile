@@ -3,7 +3,7 @@ PARSER_GEN=greg
 NQ_PATH=source/rock/frontend/NagaQueen.c
 DATE=$(shell date +%Y-%m-%d)
 TIME=$(shell date +%H:%M)
-OOC_WARN_FLAGS?=+-w -v
+OOC_WARN_FLAGS?=+-w
 OOC_OWN_FLAGS=--sourcepath=source -g --nolines +-pthread --ignoredefine=ROCK_BUILD_ ${OOC_WARN_FLAGS}
 
 # used to be CC?=gcc, but that breaks on mingw where CC is set to 'cc' apparently
@@ -24,6 +24,9 @@ OOC_CMD=${OOC} ${OOC_OWN_FLAGS} ${OOC_FLAGS}
 IS_BOOTSTRAP=$(wildcard build/Makefile)
 
 all: bootstrap
+
+profile:
+	OOC='valgrind --tool=callgrind bin/rock -onlycheck' make self
 
 # Regenerate NagaQueen.c from the greg grammar
 # you need ../nagaqueen and greg to be in your path

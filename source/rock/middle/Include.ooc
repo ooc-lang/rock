@@ -26,10 +26,12 @@ Include: class {
         defines = ArrayList<Define> new()
 
         header = Header find(path)
+        /*
         if (header) {
             "In %s" printfln(path)
             header symbols each(|k, v| k println())
         }
+        */
     }
 
 }
