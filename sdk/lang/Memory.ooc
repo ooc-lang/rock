@@ -22,6 +22,10 @@ version(gc) {
     // to get the GC_pthread_* prototypes
     include gc/gc_pthread_redirects | (GC_NO_THREAD_REDIRECTS)
 
+    gc_malloc_for_generics: func (size: SizeT) -> Pointer {
+        gc_malloc(size)
+    }
+
     gc_malloc: extern(GC_malloc) func (size: SizeT) -> Pointer
     gc_malloc_atomic: extern(GC_malloc_atomic) func (size: SizeT) -> Pointer
     gc_strdup: extern(GC_strdup) func (str: CString) -> CString

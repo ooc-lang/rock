@@ -276,6 +276,34 @@ File: abstract class {
     }
 
     /**
+     * Resolve redundancies, ie. ".." and "."
+     */
+    getReducedPath: func -> String {
+        elems := ArrayList<String> new()
+
+        for (elem in path split(File separator)) {
+            if (elem == "..") {
+                if (!elems empty?()) {
+                    elems removeAt(elems lastIndex())
+                } else {
+                    elems add(elem)
+                }
+            } else if (elem == ".") {
+                // do nothing
+            } else {
+                elems add(elem)
+            }
+        }
+
+        result := elems join(File separator)
+        if (path startsWith?(File separator)) {
+            result = File separator + result
+        }        
+
+        result
+    }
+
+    /**
      * List the name of the children of this path
      * Works only on directories, obviously
      */
