@@ -56,6 +56,7 @@ Gcc: class extends BaseCompiler {
         super()
         command add("-std=c89")
         command add("-Wall")
+        command add("-pthread")
     }
 
     supportsDeclInFor: func() -> Bool {

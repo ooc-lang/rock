@@ -1,11 +1,10 @@
 import structs/[ArrayList, List]
+import rock/parser/HeaderParser
 import Version
 
-IncludeMode: cover from Int
-
-IncludeModes: class {
-    LOCAL = 1,
-    PATHY = 2 : static const IncludeMode
+IncludeMode: enum {
+    QUOTED
+    BRACKETED
 }
 
 Define: class {
@@ -18,15 +17,19 @@ Include: class {
 
     path: String
     mode: IncludeMode
-    verzion: VersionSpec
-    defines := ArrayList<Define> new()
+    verzion: VersionSpec { get set }
+    defines: ArrayList<Define> { get set }
 
-    init: func (=path, =mode) {}
+    header: Header { get set }
 
-    setVersion: func(=verzion) {}
-    getVersion: func -> VersionSpec { verzion }
+    init: func (=path, =mode) {
+        defines = ArrayList<Define> new()
 
-    addDefine: func (define: Define) { defines add(define) }
-    getDefines: func -> List<Define> { defines }
+        header = Header find(path)
+        if (header) {
+            "In %s" printfln(path)
+            header symbols each(|k, v| k println())
+        }
+    }
 
 }

@@ -24,8 +24,8 @@ ModuleWriter: abstract class extends Skeleton {
         if(!module includes empty?()) current nl()
 
         for(uze in module uses) {
-            for(ynclude in uze useDef getIncludes()) {
-                current nl(). app("#include <"). app(ynclude). app(">")
+            for(inc in uze useDef includes) {
+                visitInclude(this, inc)
             }
         }
 
@@ -416,31 +416,30 @@ ModuleWriter: abstract class extends Skeleton {
     /** Write an include */
     visitInclude: static func (this: Skeleton, inc: Include) {
 
-        if(inc getVersion()) VersionWriter writeStart(this, inc getVersion())
+        if(inc verzion) VersionWriter writeStart(this, inc verzion)
 
-        for(define in inc getDefines()) {
-			current nl(). app("#ifndef "). app(define name)
-			current nl(). app("#define "). app(define name)
+        for(define in inc defines) {
+            current nl(). app("#ifndef "). app(define name)
+            current nl(). app("#define "). app(define name)
             if(define value != null) {
                 current app(' '). app(define value)
             }
             current nl(). app("#define "). app(define name). app("___defined")
-			current nl(). app("#endif")
-		}
+            current nl(). app("#endif")
+        }
 
-        chevron := (inc mode == IncludeModes PATHY)
-        current nl(). app("#include "). app(chevron ? '<' : '"').
-            app(inc path). app(".h").
-        app(chevron ? '>' : '"')
+        current nl(). app("#include ")
+        template := (inc mode == IncludeMode BRACKETED) ? "<%s>" : "\"%s\""
+        current app(template format(inc path))
 
-        for(define in inc getDefines()) {
+        for(define in inc defines) {
             current nl(). app("#ifdef "). app(define name). app("___defined")
             current nl(). app("#undef "). app(define name)
             current nl(). app("#undef "). app(define name). app("___defined")
             current nl(). app("#endif")
         }
 
-        if(inc getVersion()) VersionWriter writeEnd(this)
+        if(inc verzion) VersionWriter writeEnd(this)
 
     }
 

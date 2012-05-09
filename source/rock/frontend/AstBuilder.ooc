@@ -138,22 +138,22 @@ AstBuilder: class {
 
     onInclude: unmangled(nq_onInclude) func (cpath: CString) {
         path := cpath toString()
-        mode: IncludeMode
-        if(path startsWith?("./")) {
-            mode = IncludeModes LOCAL
-            path = path substring(2) // remove ./ from path
-        }
-        else {
-            mode = IncludeModes PATHY
-        }
 
-        inc := Include new(path, mode)
+        mode := match {
+            case path startsWith?("./") =>
+                path = path substring(2)
+                IncludeMode QUOTED
+            case =>
+                IncludeMode BRACKETED
+        }
+        inc := Include new(path + ".h", mode)
+
         module addInclude(inc)
-        inc setVersion(getVersion())
+        inc verzion = getVersion()
     }
 
     onIncludeDefine: unmangled(nq_onIncludeDefine) func (name, value: CString) {
-        module includes last() addDefine(Define new(name toString(), value toString()))
+        module includes last() defines add(Define new(name toString(), value toString()))
     }
 
     onImport: unmangled(nq_onImport) func (path, name: CString) {
@@ -745,6 +745,13 @@ AstBuilder: class {
 
     onTupleEnd: unmangled(nq_onTupleEnd) func -> Tuple {
         pop(Tuple)
+    }
+    
+    onRawStringLiteral: unmangled(nq_onRawStringLiteral) func (object: Object) {
+        match object {
+            case sl: StringLiteral => sl raw = true
+            case => Exception new("Called onRawStringLiteral on invalid type %s" format(object class name)) throw()
+        }
     }
 
     onStringLiteral: unmangled(nq_onStringLiteral) func (text: CString) -> StringLiteral {

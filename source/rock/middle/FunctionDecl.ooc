@@ -120,6 +120,17 @@ FunctionDecl: class extends Declaration {
 
     genericConstraints: HashMap<Type, Type>
 
+    // create a function only used to fool rock into thinking a function exists
+    // as ooc, whereas it's probably just in C
+    shim: static func (.name, module: Module) -> This {
+        token := Token new(0, 0, module)
+        fDecl := new(name, token)
+        fDecl setExternName(name)
+        fDecl setUnmangledName(name)
+        fDecl args add(VarArg new(token, null)) // c vararg
+        fDecl
+    }
+
     init: func ~funcDecl (=name, .token) {
         super(token)
         this isAnon = name empty?()
