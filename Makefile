@@ -105,7 +105,7 @@ rescue:
 
 # Compile rock with the backup'd version of itself
 safe:
-	OOC=bin/safe_rock $(MAKE) self
+	OOC_SDK=../rock-master/sdk OOC=bin/safe_rock $(MAKE) self
 
 # Clean all temporary files that may make a build fail
 clean:
