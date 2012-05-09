@@ -1,4 +1,5 @@
 import structs/[ArrayList, List]
+import rock/frontend/BuildParams
 import rock/parser/HeaderParser
 import Version
 
@@ -22,16 +23,18 @@ Include: class {
 
     header: Header { get set }
 
-    init: func (=path, =mode) {
+    init: func (=path, =mode, params: BuildParams) {
         defines = ArrayList<Define> new()
 
-        header = Header find(path)
-        /*
-        if (header) {
-            "In %s" printfln(path)
-            header symbols each(|k, v| k println())
+        if (params parseHeaders) {
+            header = Header find(path)
+            /*
+            if (header) {
+                "In %s" printfln(path)
+                header symbols each(|k, v| k println())
+            }
+            */
         }
-        */
     }
 
 }

@@ -146,7 +146,7 @@ AstBuilder: class {
             case =>
                 IncludeMode BRACKETED
         }
-        inc := Include new(path + ".h", mode)
+        inc := Include new(path + ".h", mode, module params)
 
         module addInclude(inc)
         inc verzion = getVersion()

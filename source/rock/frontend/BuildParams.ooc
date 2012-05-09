@@ -179,6 +179,9 @@ BuildParams: class {
     // if non-null, rock will create a virtual module containing all ooc modules in the given path
     libfolder: String = null
 
+    // if true, rock will attempt to parse C headers and take symbols from there
+    parseHeaders := false
+
     // backend: actually only "c"
     backend: String = "c"
 
