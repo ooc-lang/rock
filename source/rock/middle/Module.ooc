@@ -238,7 +238,7 @@ Module: class extends Node {
 
         for(f in functions) {
             if(f name == access name) {
-                access suggest(f)
+                if(access suggest(f)) return 0
             }
         }
 
