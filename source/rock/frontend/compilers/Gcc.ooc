@@ -11,7 +11,7 @@ Gcc: class extends BaseCompiler {
         super("gcc")
     }
 
-    init: func~withExecutableName (executableName: String) {
+    init: func ~withExecutableName (executableName: String) {
         super(executableName)
     }
 
