@@ -11,7 +11,7 @@ NamespaceDecl: class extends Declaration {
     name: String
     imports := ArrayList<Import> new()
 
-    init: func~namespace(=name) {
+    init: func ~namespace(=name) {
         super(nullToken)
     }
 
