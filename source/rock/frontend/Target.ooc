@@ -23,24 +23,14 @@ Target: class {
      */
     guessHost: static func -> Int {
 
-        version(linux) {
-            return This LINUX
-        }
-        version(windows) {
-            return This WIN
-        }
-        version(solaris) {
-            return This SOLARIS
-        }
-        version(haiku) {
-            return This HAIKU
-        }
-        version(apple) {
-            return This OSX
-        }
-        version(freebsd) {
-            return This FREEBSD
-        }
+        version(linux)   return This LINUX
+        version(windows) return This WIN
+        version(solaris) return This SOLARIS
+        version(haiku)   return This HAIKU
+        version(apple)   return This OSX
+        version(freebsd) return This FREEBSD
+        //version(openbsd) return This OPENBSD // TODO: Make me work.
+        //version(netbsd)  return This NETBSD  // TODO: Make me work, too.
 
         fprintf(stderr, "Unknown operating system, assuming Linux...\n")
         return This LINUX
