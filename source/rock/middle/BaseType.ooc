@@ -81,6 +81,7 @@ BaseType: class extends Type {
     }
 
     equals?: func (other: This) -> Bool {
+        if(other instanceOf?(NamespaceType)) other = other as NamespaceType inner
         if(other class != this class) return false
         return (other as BaseType name equals?(name))
     }
