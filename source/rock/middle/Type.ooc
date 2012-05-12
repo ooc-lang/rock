@@ -3,9 +3,9 @@ import ../frontend/[Token, BuildParams]
 import ../backend/cnaughty/AwesomeWriter
 import Node, Visitor, Declaration, TypeDecl, ClassDecl, VariableDecl,
        Module, Import, CoverDecl, VariableAccess, Expression,
-       InterfaceDecl, FunctionCall, NullLiteral
+       InterfaceDecl, FunctionCall, NullLiteral, NamespaceDecl
 import BaseType
-import tinker/[Response, Resolver, Trail]
+import tinker/[Response, Resolver, Trail, Errors]
 
 voidType := BaseType new("void", nullToken)
 voidType ref = BuiltinType new("void", nullToken)
@@ -159,6 +159,105 @@ Type: abstract class extends Expression {
     searchTypeArg: func (typeArgName: String, finalScore: Int@) -> Type {
         null
     }
+
+}
+
+NamespaceType: class extends Type {
+
+    inner: Type
+    access: VariableAccess
+
+    init: func ~access (=inner, =access, .token) {
+        super(token)
+    }
+
+    write: func (w: AwesomeWriter, name: String) { inner write(w, name) }
+
+    accept: func (visitor: Visitor) {
+        visitor visitType(inner)
+    }
+
+    resolve: func(trail: Trail, res: Resolver) -> Response {
+        if(access) {
+            trail push(this)
+            response := access resolve(trail, res)
+            trail pop(this)
+            if(!response ok()) {
+                if(res params veryVerbose) "Failed to resolve expr %s of call %s, looping" printfln(access toString(), toString())
+                return response
+            }
+        }
+
+        if(access && access getRef() != null && access getRef() instanceOf?(NamespaceDecl)) {
+            if(inner instanceOf?(BaseType)) {
+                access getRef() as NamespaceDecl resolveType(inner as BaseType, res, trail)
+            } else {
+                res throwError(InvalidNamespaceType new(token, this, "Trying to acces a non-base type %s from namespace %s" format(inner toString(), access toString())))
+            }
+        } else {
+            res throwError(InvalidNamespaceAccess new(token, this, "Trying to access a type from %s, that is not a namespace" format(access toString())))
+        }
+
+        trail push(this)
+        inner resolve(trail, res)
+        trail pop(this)
+
+        if(!inner isResolved()) {
+            res throwError(UnresolvedType new(token, this, "Undefined type %s from namespace %s" format(inner toString(), access toString())))
+        }
+        return Response OK
+    }
+
+    getName: func -> String { inner getName() }
+
+    pointerLevel: func -> Int { inner pointerLevel() }
+
+    equals?: func (other: Type) -> Bool { inner equals?(other) }
+
+    getRef: func -> Declaration { inner getRef() }
+    setRef: func(d: Declaration) { inner setRef(d) }
+
+    clone: func -> Type {
+        new(inner, access, token)
+    }
+
+    dereference: func -> Type { inner dereference() }
+
+    getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
+        inner getScoreImpl(other, scoreSeed)
+    }
+
+    dig: func -> Type { inner dig() }
+
+    checkedDigImpl: func (list: List<Type>, res: Resolver) {
+        inner checkedDigImpl(list, res)
+    }
+
+    searchTypeArg: func (typeArgName: String, finalScore: Int@) -> Type {
+        inner searchTypeArg(typeArgName, finalScore&)
+    }
+
+    realTypize: func (call: FunctionCall) -> Type {
+        diff := inner realTypize(call)
+        if(diff != inner) {
+            return new(diff, access, token)
+        }
+        this
+    }
+
+    refToPointer: func -> Type { inner refToPointer() }
+
+    isNumericType: func -> Bool { inner isNumericType() }
+
+    isPointer: func -> Bool { inner isPointer() }
+
+    inheritsFrom?: func (t: This) -> Bool { inner inheritsFrom?(t) }
+
+    addTypeArg: func (typeArg: VariableAccess) -> Bool { inner addTypeArg(typeArg) }
+
+    getTypeArgs: func -> List<VariableAccess> { inner getTypeArgs() }
+
+    getType: func -> Type { inner getRef() ? inner getRef() getType() : null }
 
 }
 
@@ -432,4 +531,20 @@ ReferenceType: class extends SugarType {
         inner getScoreImpl(other, scoreSeed)
     }
 
+}
+
+InvalidNamespaceAccess: class extends Error {
+    type: Type
+
+    init: func (.token, =type, .message) {
+        super(token, message)
+    }
+}
+
+InvalidNamespaceType: class extends Error {
+    type: Type
+
+    init: func (.token, =type, .message) {
+        super(token, message)
+    }
 }
