@@ -99,7 +99,7 @@ rescue:
 	rm -rf build/
 	# Note: don't use --no-check-certificate, OSX is retarded
 	# Note: someone make a curl fallback already
-	wget --no-check-certificate http://www.fileville.net/ooc/bootstrap.tar.bz2 -O - | tar xjvmp 1>/dev/null
+	wget --no-check-certificate http://www.fileville.net/ooc/bootstrap.tar.bz2 -O - | tar xjvmpf - 1>/dev/null
 	if [ ! -e build ]; then cp -rfv rock-*/build ./; fi	
 	$(MAKE) clean bootstrap
 
