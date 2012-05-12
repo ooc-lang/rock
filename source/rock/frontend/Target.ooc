@@ -16,7 +16,11 @@ Target: class {
     /* Mac OS X */
     OSX = 5,
     /* FreeBSD */
-    FREEBSD = 6 : static const Int
+    FREEBSD = 6,
+    /* OpenBSD */
+    OPENBSD = 7,
+    /* NetBSD */
+    NETBSD = 8 : static const Int
 
     /**
      * @return a guess of the platform/architecture we're building on
@@ -29,8 +33,8 @@ Target: class {
         version(haiku)   return This HAIKU
         version(apple)   return This OSX
         version(freebsd) return This FREEBSD
-        //version(openbsd) return This OPENBSD // TODO: Make me work.
-        //version(netbsd)  return This NETBSD  // TODO: Make me work, too.
+        version(openbsd) return This OPENBSD
+        version(netbsd)  return This NETBSD
 
         fprintf(stderr, "Unknown operating system, assuming Linux...\n")
         return This LINUX
