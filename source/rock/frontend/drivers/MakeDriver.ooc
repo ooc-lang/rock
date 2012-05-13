@@ -74,9 +74,9 @@ MakeDriver: class extends SequenceDriver {
         fW write("    ARCH=linux\n")
         fW write("else ifeq ($(MYOS), FreeBSD)\n")
         fW write("    ARCH=freebsd\n")
-        fW write("else ifeq ($(MYOS), OpenBSD)\n") // TODO: Double check this.
+        fW write("else ifeq ($(MYOS), OpenBSD)\n")
         fW write("    ARCH=openbsd\n")
-        fW write("else ifeq ($(MYOS), NetBSD)\n") // TODO: Double check this.
+        fW write("else ifeq ($(MYOS), NetBSD)\n")
         fW write("    ARCH=netbsd\n")
         fW write("else ifeq ($(MYOS), DragonFly)\n")
         fW write("    ARCH=dragonfly\n")
@@ -111,9 +111,9 @@ MakeDriver: class extends SequenceDriver {
 
         fW write("ifeq ($(MYOS), FreeBSD)\n")
         fW write("    GC_PATH?=-lgc\n")
-        fW write("else ifeq ($(MYOS), OpenBSD)\n") // TODO: Double check this.
+        fW write("else ifeq ($(MYOS), OpenBSD)\n")
         fW write("    GC_PATH?=-lgc\n")
-        fW write("else ifeq ($(MYOS), NetBSD)\n") // TODO: Double check this.
+        fW write("else ifeq ($(MYOS), NetBSD)\n")
         fW write("    GC_PATH?=-lgc\n")
         fW write("else ifeq ($(MYOS), DragonFly)\n")
         fW write("    GC_PATH?=-lgc\n")
