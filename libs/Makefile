@@ -6,6 +6,12 @@ ifeq ($(MYOS), Linux)
     ARCH=linux
 else ifeq ($(MYOS), FreeBSD)
     ARCH=freebsd
+else ifeq ($(MYOS), OpenBSD)
+    ARCH=openbsd
+else ifeq ($(MYOS), NetBSD)
+    ARCH=netbsd
+else ifeq ($(MYOS), DragonFly)
+    ARCH=dragonfly
 else ifeq ($(MYOS), Darwin)
     ARCH=osx
 else ifeq ($(MYOS), CYGWIN_NT-5.1)
