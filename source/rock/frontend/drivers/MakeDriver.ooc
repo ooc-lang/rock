@@ -111,7 +111,7 @@ MakeDriver: class extends SequenceDriver {
 
         fW write("ifeq ($(MYOS), FreeBSD)\n")
         fW write("    GC_PATH?=-lgc\n")
-        fW write("else  ($(MYOS), OpenBSD)\n") // TODO: Double check this.
+        fW write("else ifeq ($(MYOS), OpenBSD)\n") // TODO: Double check this.
         fW write("    GC_PATH?=-lgc\n")
         fW write("else ifeq ($(MYOS), NetBSD)\n") // TODO: Double check this.
         fW write("    GC_PATH?=-lgc\n")
