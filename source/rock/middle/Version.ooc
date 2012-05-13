@@ -63,9 +63,9 @@ builtinNames := HashMap<String, String> new()
     builtinNames put("haiku", 	"__HAIKU__")
     builtinNames put("apple", 	"__APPLE__")
     builtinNames put("freebsd",		"__FreeBSD__")
-    builtinNames put("openbsd",		"__OpenBSD__") // TODO: Verify name of __OpenBSD__ macro
-    builtinNames put("netbsd",		"__NetBSD__") // TODO: Verify name of __NetBSD__ macro
-    builtinNames put("dragonfly",	"__DragonFlyBSD__") // TODO: Verify name of __DragonFlyBSD__ macro
+    builtinNames put("openbsd",		"__OpenBSD__")
+    builtinNames put("netbsd",		"__NetBSD__")
+    builtinNames put("dragonfly",	"__DragonFly__")
     builtinNames put("gnuc", 	"__GNUC__")
     builtinNames put("i386", 	"__i386__")
     builtinNames put("x86", 		"__X86__")
