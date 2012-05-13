@@ -48,7 +48,8 @@ ROCK_LIBS_DIR?=.
 
 # uncomment to link dynamically with the gc instead (e.g. -lgc)
 GC_PATH?=${ROCK_LIBS_DIR}/${ARCH}/
-GC_PREFIX?=/usr/lib/
+#GC_PREFIX?=/usr/lib/
+GC_PREFIX=?=$(pkg-config --variable=libdir bdw-gc)
 
 LIBGC_PRESENT=$(wildcard ${GC_PREFIX}/libgc.a)
 LIBGC_SUPPORTS_THREADS=$(shell nm $(wildcard ${GC_PREFIX}/libgc.a) | grep GC_pthread_create)
