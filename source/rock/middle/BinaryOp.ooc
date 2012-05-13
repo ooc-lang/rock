@@ -387,7 +387,15 @@ BinaryOp: class extends Expression {
             if (!isAssign()) {
                 return false
             }
+
+            // If the left side is an immutable function, fail immediately.
+            l := lRef as FuncType
+            if (!(l isClosure)) {
+            token module params errorHandler onError(InvalidBinaryOverload new(token,
+                "%s is an immutable function. You must not reassign it. (Perhaps you want to use a first-class function instead?)" format(left toString())))
+            }
         }
+
         if(isAssign()) {
             score := lType getScore(rType)
             if(score == -1) {
