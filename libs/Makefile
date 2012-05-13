@@ -49,7 +49,7 @@ ROCK_LIBS_DIR?=.
 # uncomment to link dynamically with the gc instead (e.g. -lgc)
 GC_PATH?=${ROCK_LIBS_DIR}/${ARCH}/
 #GC_PREFIX?=/usr/lib/
-GC_PREFIX=?=$(pkg-config --variable=libdir bdw-gc)
+GC_PREFIX?=$(shell pkg-config --variable=libdir bdw-gc)
 
 LIBGC_PRESENT=$(wildcard ${GC_PREFIX}/libgc.a)
 LIBGC_SUPPORTS_THREADS=$(shell nm $(wildcard ${GC_PREFIX}/libgc.a) | grep GC_pthread_create)
@@ -59,7 +59,7 @@ all:
 ifneq (${LIBGC_PRESENT},)
 ifneq (${LIBGC_SUPPORTS_THREADS},)
 	@echo "Using system libgc"
-	cp /usr/lib/libgc.a ${GC_PATH}
+	cp ${GC_PREFIX}/libgc.a ${GC_PATH}
 else
 	@echo "System libgc doesn't support threads, building our own"
 	$(MAKE) buildgc
