@@ -124,7 +124,7 @@ MakeDriver: class extends SequenceDriver {
         fW write("endif\n")
 
         fW write("CFLAGS+=-I %s" format(originalOutPath getPath()))
-        fW write(" -I ${ROCK_DIST}/libs/headers/ -L/usr/local/lib -L/usr/pkg/lib -I/usr/local/include")
+        fW write(" -I ${ROCK_DIST}/libs/headers/ -L/usr/local/lib -L/usr/pkg/lib -I/usr/local/include -I/usr/pkg/include")
 
         if(params debug) {
             fW write(" -g")
