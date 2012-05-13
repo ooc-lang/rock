@@ -3,7 +3,7 @@ import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
        Import, Module, FunctionCall, ClassDecl, CoverDecl, AddressOf,
        ArrayAccess, VariableAccess, Cast, NullLiteral, PropertyDecl,
-       Tuple, VariableDecl
+       Tuple, VariableDecl, FuncType
 import tinker/[Trail, Resolver, Response, Errors]
 
 OpType: enum {
@@ -381,6 +381,13 @@ BinaryOp: class extends Expression {
             if(type == OpType exp || type == OpType expAss || type == OpType doubleArr) return false
         }
 
+        if (lRef instanceOf?(FuncType) || rRef instanceOf?(FuncType)) {
+            // By default, only assignment should be allowed when a Func-type is involved.
+            // Exception, of course, is an overloaded operator.
+            if (!isAssign()) {
+                return false
+            }
+        }
         if(isAssign()) {
             score := lType getScore(rType)
             if(score == -1) {
