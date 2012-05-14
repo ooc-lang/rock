@@ -309,6 +309,7 @@ ModuleWriter: abstract class extends Skeleton {
             cw nl(). app("GC_INIT();")
         }
         cw nl(). app(module getLoadFuncName()). app("();")
+        cw nl(). app("return 0;")
         cw closeBlock(). nl()
     }
 
