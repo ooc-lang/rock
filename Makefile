@@ -46,13 +46,12 @@ prepare_bootstrap:
 	@echo "Preparing boostrap (in build/ directory)"
 	rm -rf build/
 	${OOC} -driver=make -sourcepath=source -outpath=c-source rock/rock -o=../bin/c_rock c-source/${NQ_PATH} -v -g +-w
-ifeq ($(shell uname -s), FreeBSD)
+	
+	# Don't use `sed -i`. That breaks on FreeBSD, and likely other systems as well.
 	sed s/-w.*/-w\ -DROCK_BUILD_DATE=\\\"\\\\\"bootstrapped\\\\\"\\\"\ -DROCK_BUILD_TIME=\\\"\\\\\"\\\\\"\\\"/ build/Makefile > build/Makefile.tmp
 	rm build/Makefile
 	mv build/Makefile.tmp build/Makefile
-else
-	sed s/-w.*/-w\ -DROCK_BUILD_DATE=\\\"\\\\\"bootstrapped\\\\\"\\\"\ -DROCK_BUILD_TIME=\\\"\\\\\"\\\\\"\\\"/ -i build/Makefile
-endif
+	
 	cp ${NQ_PATH} build/c-source/${NQ_PATH}
 	@echo "Done!"
 
@@ -99,7 +98,7 @@ rescue:
 	rm -rf build/
 	# Note: don't use --no-check-certificate, OSX is retarded
 	# Note: someone make a curl fallback already
-	wget --no-check-certificate http://www.fileville.net/ooc/bootstrap.tar.bz2 -O - | tar xjvmp 1>/dev/null
+	wget --no-check-certificate http://www.fileville.net/ooc/bootstrap.tar.bz2 -O - | tar xjvmpf - 1>/dev/null
 	if [ ! -e build ]; then cp -rfv rock-*/build ./; fi	
 	$(MAKE) clean bootstrap
 
