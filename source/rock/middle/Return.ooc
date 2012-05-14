@@ -2,13 +2,12 @@ import structs/List
 import ../frontend/[Token,BuildParams]
 import Visitor, Statement, Expression, Node, FunctionDecl, FunctionCall,
        VariableAccess, VariableDecl, AddressOf, ArrayAccess, If,
-       BinaryOp, Cast, Type, Module, Tuple, InlineContext
+       BinaryOp, Cast, Type, Module, Tuple
 import tinker/[Response, Resolver, Trail, Errors]
 
 Return: class extends Statement {
 
     expr: Expression = null
-    label: String = null // if non-null, written as a 'goto label' instead of 'return'. Useful in inlines.
 
     init: func ~ret (.token) {
         init(null, token)
@@ -26,38 +25,19 @@ Return: class extends Statement {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        /*
-         * This part used to be simpler, before inlining came to life.
-         * When inlining, we might have to deal with an InlineContext
-         * instead of a FunctionDecl.
-         *
-         * Hence, we only attempt to get 1) a return type 2) return args
-         */
-
         retType: Type = null
         returnArgs: List<VariableDecl> = null
 
         {
-            // Do we have an inline context? we have to be careful if yes.
-            idx := trail find(InlineContext)
+            idx := trail find(FunctionDecl)
             if(idx != -1) {
-                // Yes we do. Take the return type and return args from here, then.
-                ctx := trail get(idx, InlineContext)
+                // Found a function decl! It's the regular case: we're all set.
+                fDecl := trail get(idx, FunctionDecl)
 
-                retType = ctx returnType
-                returnArgs = ctx returnArgs
-                label = ctx label
-            } else {
-                idx = trail find(FunctionDecl)
-                if(idx != -1) {
-                    // Found a function decl! It's the regular case: we're all set.
-                    fDecl := trail get(idx, FunctionDecl)
+                if(expr) fDecl inferredReturnType = expr getType()
 
-                    if(expr) fDecl inferredReturnType = expr getType()
-
-                    retType = fDecl getReturnType()
-                    returnArgs = fDecl getReturnArgs()
-                }
+                retType = fDecl getReturnType()
+                returnArgs = fDecl getReturnArgs()
             }
         }
 
@@ -78,7 +58,7 @@ Return: class extends Statement {
                 res wholeAgain(this, "expr type is unresolved"); return Response OK
             }
         } else {
-            if (returnArgs empty?() && !retType void?) {
+            if (returnArgs && returnArgs empty?() && !retType void?) {
                 res throwError(InconsistentReturn new(token, "Can't return nothing in function declared as returning a %s" format(retType toString())))
             } else {
                 // no expression, and the function's alright with that - nothing more to do.

@@ -218,7 +218,7 @@ ModuleWriter: abstract class extends Skeleton {
             }
             
             // We eliminate any generic variable that is passed as a "true" function argument
-            // E.g. in __va_call: inline func <T> (f: Func <T> (T), T: Class, arg: T)
+            // E.g. in __va_call: func <T> (f: Func <T> (T), T: Class, arg: T)
             // T is passed as a first param while it shouldnt as it is passed later :D
             typeArgs := fDecl typeArgs filter(|arg| fDecl args each(|rarg| if(arg getName() == rarg getName()) return true); false)
             /* Step 3 : write generic type args */
