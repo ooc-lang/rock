@@ -117,10 +117,7 @@ ClassDecl: class extends TypeDecl {
     getDefaultsFunc: func -> FunctionDecl {
         // TODO: a more elegant solution maybe?
         meat : ClassDecl = isMeta ? this : getMeta()
-        fDecl: FunctionDecl
-        if (meat functions contains?(This DEFAULTS_FUNC_NAME)) {
-            fDecl = meat functions get(This DEFAULTS_FUNC_NAME)
-        }
+        fDecl := meat functions get(This DEFAULTS_FUNC_NAME)
         if(fDecl == null) {
             fDecl = FunctionDecl new(This DEFAULTS_FUNC_NAME, token)
             addFunction(fDecl)
