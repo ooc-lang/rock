@@ -3,7 +3,7 @@ import ../frontend/[Token, BuildParams, CommandLine]
 import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
        TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
        InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType, Return,
-       TypeList, Scope, Block, InlineContext, StructLiteral, NullLiteral,
+       TypeList, Scope, Block, StructLiteral, NullLiteral,
        IntLiteral, Ternary, ClassDecl, CoverDecl
 import tinker/[Response, Resolver, Trail, Errors]
 
@@ -144,7 +144,7 @@ FunctionCall: class extends Expression {
      * Usually has 'name == "something"' instead of 'false' as
      * a return expression, when it's being used.
      */
-    debugCondition: inline func -> Bool {
+    debugCondition: func -> Bool {
         false
     }
 

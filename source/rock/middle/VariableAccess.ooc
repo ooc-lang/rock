@@ -3,7 +3,7 @@ import BinaryOp, Visitor, Expression, VariableDecl, FunctionDecl,
        TypeDecl, Declaration, Type, Node, ClassDecl, NamespaceDecl,
        EnumDecl, PropertyDecl, FunctionCall, Module, Import, FuncType,
        NullLiteral, AddressOf, BaseType, StructLiteral, Return,
-       Argument, InlineContext, Scope
+       Argument, Scope
 
 import tinker/[Resolver, Response, Trail, Errors]
 import structs/ArrayList
@@ -72,7 +72,7 @@ VariableAccess: class extends Expression {
     // It's just an access, it has no side-effects whatsoever
     hasSideEffects : func -> Bool { false }
 
-    debugCondition: inline func -> Bool {
+    debugCondition: func -> Bool {
         false
     }
 

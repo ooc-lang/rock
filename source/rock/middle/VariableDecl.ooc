@@ -34,7 +34,7 @@ VariableDecl: class extends Declaration {
         super(token)
     }
 
-    debugCondition: inline func -> Bool {
+    debugCondition: func -> Bool {
         false
     }
 
