@@ -32,8 +32,8 @@ Driver: abstract class {
                 path := module path + ".ooc"
                 pathElement := params sourcePath getFile(path) parent()
 
-                File new(pathElement, inc path + ".h") copyTo(
-                File new(destPath,    inc path + ".h"))
+                File new(pathElement, inc path) copyTo(
+                File new(destPath,    inc path))
             }
         }
 
