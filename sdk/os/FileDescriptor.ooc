@@ -6,6 +6,7 @@ import unistd
 open:  extern func(CString, Int) -> Int
 
 
+PIPE_BUF: extern Int
 STDIN_FILENO : extern FileDescriptor
 STDOUT_FILENO: extern FileDescriptor
 STDERR_FILENO: extern FileDescriptor
