@@ -112,5 +112,5 @@ safe:
 
 # Clean all temporary files that may make a build fail
 clean:
-	rm -rf *_tmp/ snowflake/
+	rm -rf *_tmp/ .libs snowflake/
 	rm -rf `find build/ -name '*.o'`
