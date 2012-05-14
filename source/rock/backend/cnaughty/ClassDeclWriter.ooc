@@ -340,7 +340,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
 
             current closeBlock();
-            current nl(). app("return classPtr;"). closeBlock()
+            current nl(). app("return (void*) classPtr;"). closeBlock()
         } else {
             // FOR NON-COVERS
             current app("static int __done__ = 0;"). nl()
