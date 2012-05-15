@@ -1,5 +1,6 @@
 import io/[File, FileReader]
 import structs/[List, ArrayList, HashMap]
+import rock/frontend/Token
 import text/StringTokenizer
 import Include
 
@@ -157,7 +158,7 @@ UseDef: class {
                     libs add(lib trim())
             } else if(id == "Includes") {
                 for(inc in value split(','))
-                    includes add(Include new(inc trim(), IncludeMode BRACKETED))
+                    includes add(Include new(inc trim(), IncludeMode BRACKETED, params))
             } else if(id == "LibPaths") {
                 for(path in value split(',')) {
                     libPaths add(absolutizePath(path trim()))
