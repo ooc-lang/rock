@@ -120,6 +120,9 @@ FunctionDecl: class extends Declaration {
 
     genericConstraints: HashMap<Type, Type>
 
+    original: FunctionDecl
+    specializations: List<FunctionDecl>
+
     // create a function only used to fool rock into thinking a function exists
     // as ooc, whereas it's probably just in C
     shim: static func (.name, module: Module) -> This {
@@ -165,7 +168,7 @@ FunctionDecl: class extends Declaration {
         args each(|e| copy args add(e clone()))
         copy returnType = returnType clone()
 
-        body list each(|e| copy body add(e clone()); "Adding clone of %s to %s" format(e toString(), copy toString()) println())
+        body list each(|e| copy body add(e clone()))
 
         copy vDecl = vDecl
 
@@ -430,7 +433,6 @@ FunctionDecl: class extends Declaration {
             }
         }
 
-        // FIXME: I'm pretty sure this isn't necessary (harmful, even)
         body resolveAccess(access, res, trail)
 
         0
@@ -453,52 +455,14 @@ FunctionDecl: class extends Declaration {
         trail push(this)
 
         if(debugCondition()) "Handling the owner"
-        
-        // handle the case where we specialize a generic function
-        if(owner) {
-            meat := owner isMeta ? owner as ClassDecl : owner getMeta()
-            base := meat getBaseClass(this, true)
 
-            if(base != null) {
-                finalScore := 0
-                parent := base getFunction(name, suffix ? suffix : "", null, false, finalScore&)
-                if(finalScore == -1) {
-                    res wholeAgain(this, "Something's not resolved, need base getFunction()")
-                    if(debugCondition()) "Got -1 from finalScore!" println()
-                    return Response OK
-                }
-                // todo: check for finalScore
-                for(i in 0..args getSize()) {
-                    arg := args[i]
-                    if(arg getType() instanceOf?(FuncType)) {
-                        fType1 := arg getType() as FuncType
-                        // TODO: add check 1) number of argument 2) it's a FuncType
-                        fType2 := ((i < parent args getSize()) ? parent args[i] getType() : null) as FuncType
-
-                        //"for %s, got %s vs %s" printfln(toString(), fType1 toString(), fType2 toString())
-
-                        for(j in 0..fType1 argTypes getSize()) {
-                            type1 := fType1 argTypes[j]
-                            type2 := (fType2 != null && j < fType2 argTypes getSize()) ? fType2 argTypes[j] : null
-                            if(type2 != null) {
-                                if(!type1 isResolved() || !type2 isResolved()) {
-                                    res wholeAgain(this, "should determine interface specialization")
-                                    break
-                                }
-                                if(type2 isGeneric() && !type1 isGeneric()) {
-                                    // there's a specialization going on!
-                                    fType1 argTypes[j] = type2
-                                    if(!genericConstraints) {
-                                        genericConstraints = HashMap<Type, Type> new()
-                                    }
-                                    genericConstraints put(type2 clone(), type1 clone())
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        // if we're inline keep an original in case we specialize
+        if(isInline) {
+            original = clone()
         }
+        
+        // handle the case where we manually specialize a generic function by implementing a generic interface
+        handleSubclassSpecialization(trail, res)
 
         if(debugCondition()) "Handling the args"
 
@@ -517,7 +481,6 @@ FunctionDecl: class extends Declaration {
         isClosure := name empty?()
 
         if (isClosure) {
-            //if (!_unwrappedACS && !argumentsReady()) {
             if (!_unwrappedACS) {
                 if (!unwrapACS(trail, res)) {
                     trail pop(this)
@@ -693,7 +656,7 @@ FunctionDecl: class extends Declaration {
             }
         }
         
-	    if (isClosure) {
+        if (isClosure) {
             if(countdown > 0) {
                 countdown -= 1
                 res wholeAgain(this, "countdown!")
@@ -702,7 +665,58 @@ FunctionDecl: class extends Declaration {
             }
         }
 
+        if(isInline) {
+            " ----------------------- " println()
+            "Done resolving inline function, now = " println()
+            "resolved = %s" printfln(toString())
+            "original = %s" printfln(original toString())
+            " ----------------------- " println()
+        }
+
         return Response OK
+    }
+
+    handleSubclassSpecialization: func (trail: Trail, res: Resolver) {
+        if(owner) {
+            meat := owner isMeta ? owner as ClassDecl : owner getMeta()
+            base := meat getBaseClass(this, true)
+
+            if(base != null) {
+                finalScore := 0
+                parent := base getFunction(name, suffix ? suffix : "", null, false, finalScore&)
+                if(finalScore == -1) {
+                    res wholeAgain(this, "Something's not resolved, need base getFunction()")
+                    if(debugCondition()) "Got -1 from finalScore!" println()
+                    return Response OK
+                }
+                for(i in 0..args getSize()) {
+                    arg := args[i]
+                    if(arg getType() instanceOf?(FuncType)) {
+                        fType1 := arg getType() as FuncType
+                        fType2 := ((i < parent args getSize()) ? parent args[i] getType() : null) as FuncType
+
+                        for(j in 0..fType1 argTypes getSize()) {
+                            type1 := fType1 argTypes[j]
+                            type2 := (fType2 != null && j < fType2 argTypes getSize()) ? fType2 argTypes[j] : null
+                            if(type2 != null) {
+                                if(!type1 isResolved() || !type2 isResolved()) {
+                                    res wholeAgain(this, "should determine interface specialization")
+                                    break
+                                }
+                                if(type2 isGeneric() && !type1 isGeneric()) {
+                                    // there's a specialization going on!
+                                    fType1 argTypes[j] = type2
+                                    if(!genericConstraints) {
+                                        genericConstraints = HashMap<Type, Type> new()
+                                    }
+                                    genericConstraints put(type2 clone(), type1 clone())
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     unwrapACS: func (trail: Trail, res: Resolver) -> Bool {

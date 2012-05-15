@@ -145,7 +145,7 @@ FunctionCall: class extends Expression {
      * a return expression, when it's being used.
      */
     debugCondition: func -> Bool {
-        false
+        name == "inlineIdentity"
     }
 
     /**
@@ -881,7 +881,9 @@ FunctionCall: class extends Expression {
             }
             if(!implType isGeneric() || implType pointerLevel() > 0) { j += 1; continue }
 
-            //" >> Reviewing arg %s in call %s, in ref %s" printfln(implArg toString(), toString(), ref toString())
+            if (debugCondition()) {
+              " >> Reviewing arg %s in call %s, in ref %s" printfln(implArg toString(), toString(), ref toString())
+            }
 
             callArg := args get(j)
             typeResult := callArg getType()
