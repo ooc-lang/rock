@@ -145,7 +145,7 @@ FunctionCall: class extends Expression {
      * a return expression, when it's being used.
      */
     debugCondition: func -> Bool {
-        name == "inlineIdentity"
+        false
     }
 
     /**
@@ -178,6 +178,11 @@ FunctionCall: class extends Expression {
             if(debugCondition()) "** New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
             refScore = score
             ref = candidate
+
+            // an inline func? most excellent.
+            if(ref isInline && !ref typeArgs empty?()) {
+                "Calling an inline / generic func: %s" printfln(ref toString())
+            }
 
             // todo: optimize that. not all of this needs to happen in many cases
             if(argsBeforeConversion) {
@@ -214,10 +219,10 @@ FunctionCall: class extends Expression {
                                         argsBeforeConversion = HashMap<Int, Expression> new()
                                     }
                                     argsBeforeConversion put(i, callArg)
-                                }
-                            }
-                        )
-                    }
+                                } // extern only && extern
+                            } // returnType equals declArgType
+                        ) // implicitConversions each
+                    } // instanceOf?(TypeDecl)
                 }
             }
             return score > 0
@@ -649,8 +654,6 @@ FunctionCall: class extends Expression {
     /**
      * Attempt to resolve the *actual* return type of the call, as oppposed
      * to the declared return type of our reference (a function decl).
-     *
-     * Mostly usefeful when the
      */
     resolveReturnType: func (trail: Trail, res: Resolver) -> Response {
 
