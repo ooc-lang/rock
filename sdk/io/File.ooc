@@ -383,7 +383,7 @@ File: abstract class {
 
 }
 
-_isDirHardlink?: inline func (dir: CString) -> Bool {
+_isDirHardlink?: func (dir: CString) -> Bool {
     (dir[0] == '.') && (dir[1] == '\0' || ( dir[1] == '.' && dir[2] == '\0'))
 }
 

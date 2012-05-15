@@ -45,7 +45,7 @@ exceptionStack := ThreadLocal<Stack<StackFrame>> new()
 _exception := ThreadLocal<Exception> new()
 _EXCEPTION: Int = 1
 
-_pushStackFrame: inline func -> StackFrame {
+_pushStackFrame: func -> StackFrame {
     stack: Stack<StackFrame>
     if(!exceptionStack hasValue?()) {
         stack = Stack<StackFrame> new()
@@ -58,19 +58,19 @@ _pushStackFrame: inline func -> StackFrame {
     buf
 }
 
-_setException: inline func (e: Exception) {
+_setException: func (e: Exception) {
     _exception set(e)
 }
 
-_getException: inline func -> Exception {
+_getException: func -> Exception {
     _exception get()
 }
 
-_popStackFrame: inline func -> StackFrame {
+_popStackFrame: func -> StackFrame {
     exceptionStack get() as Stack<StackFrame> pop() as StackFrame
 }
 
-_hasStackFrame: inline func -> Bool {
+_hasStackFrame: func -> Bool {
     exceptionStack hasValue?() && exceptionStack get() as Stack<StackFrame> size > 0
 }
 

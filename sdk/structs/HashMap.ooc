@@ -348,7 +348,7 @@ HashMap: class <K, V> extends BackIterable<V> {
     /**
      * Alias of put
      */
-    add: inline func (key: K, value: V) -> Bool {
+    add: func (key: K, value: V) -> Bool {
         return put(key, value)
     }
 
