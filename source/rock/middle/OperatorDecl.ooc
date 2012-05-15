@@ -24,9 +24,7 @@ OperatorDecl: class extends Expression {
         copy
     }
 
-    setFunctionDecl: func (=fDecl) {
-        fDecl setInline(true)
-    }
+    setFunctionDecl: func (=fDecl)
     getFunctionDecl: func -> FunctionDecl { fDecl }
 
     getSymbol: func -> String { symbol }
