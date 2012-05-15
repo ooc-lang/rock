@@ -109,7 +109,6 @@ Type: abstract class extends Expression {
         left := this
         while(left != null) {
             score := left getScoreImpl(other, scoreSeed)
-            //printf(" >> Compared %s with %s, got score %d\n", left toString(), other toString(), score)
             if(score > bestScore) {
                 bestScore = score
             }

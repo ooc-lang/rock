@@ -166,6 +166,7 @@ FunctionDecl: class extends Declaration {
         copy verzion = verzion
 
         args each(|e| copy args add(e clone()))
+        typeArgs each(|e| copy typeArgs add(e clone()))
         copy returnType = returnType clone()
 
         body list each(|e| copy body add(e clone()))
@@ -450,23 +451,40 @@ FunctionDecl: class extends Declaration {
         " ----------------- " println()
         " Specializing!" println()
         " this = %s" printfln(toString())
+        " orig = %s" printfln(original toString())
         " call = %s%s" printfln(call name, call getArgsTypesRepr())
 
-        " %d args to resolve" printfln(typeArgs size)
-
-        typeArgs each(|typeArg|
-            score := -1
-            result := call resolveTypeArg(typeArg name, null, score&)
-            "   %s => %s" printfln(typeArg name, result toString())
-        )
-
         // find correspondances and add genericConstraints to the copy
-        target := original clone()
+        target := original clone() as FunctionDecl
         target name = generateTempName(name)
         // TODO: that's hilariously just not working for member functions
         token module addFunction(target)
 
-        " target = %s" printfln(target toString())
+        " %d args to resolve" printfln(target typeArgs size)
+        " target bef = %s" printfln(target toString())
+
+        iterator := target typeArgs iterator()
+        while (iterator hasNext?()) {
+            typeArg := iterator next()
+            score := -1
+            result := call resolveTypeArg(typeArg name, null, score&)
+            "   %s => %s" printfln(typeArg name, result toString())
+
+            // transform types!
+            for (arg in target args) {
+                if (arg type getName() == typeArg name) {
+                    arg type = result clone()
+                }
+            }
+
+            if (target returnType getName() == typeArg name) {
+                target returnType = result clone()
+            }
+            
+            iterator remove()
+        }
+
+        " target now = %s" printfln(target toString())
         " ----------------- " println()
 
         target
