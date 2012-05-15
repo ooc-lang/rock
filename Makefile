@@ -96,9 +96,9 @@ backup:
 # Attempt to grab a rock bootstrap from Alpaca and recompile
 rescue:
 	rm -rf build/
-	# Note: don't use --no-check-certificate, OSX is retarded
-	# Note: someone make a curl fallback already
-	wget --no-check-certificate http://www.fileville.net/ooc/bootstrap.tar.bz2 -O - | tar xjvmpf - 1>/dev/null
+	# Note: ./utils/downloader tries curl, ftp, and then wget.
+	#        GNU ftp will _not_ work: it does not accept a url as an argument.
+	./utils/downloader.sh http://www.fileville.net/ooc/bootstrap.tar.bz2 | tar xjvmpf - 1>/dev/null
 	if [ ! -e build ]; then cp -rfv rock-*/build ./; fi	
 	$(MAKE) clean bootstrap
 
