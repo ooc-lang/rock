@@ -115,7 +115,8 @@ MakeDriver: class extends Driver {
         }
 
         for(compilerArg in params compilerArgs) {
-            fW write(" "). write(compilerArg)
+            escapee := compilerArg replaceAll("\"", "\\\"")
+            fW write(" "). write(escapee)
         }
 
         for(incPath in params incPath getPaths()) {
