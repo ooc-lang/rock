@@ -373,7 +373,7 @@ FunctionDecl: class extends Declaration {
         (owner ? owner getName() + " " : "") +
         (suffix ? (name + "~" + suffix) : name) +
         getArgsRepr(call) +
-        (hasReturn() ? " -> " + returnType toString() : "")
+        (returnType void? ? "" : " -> " + returnType toString())
     }
 
     isResolved: func -> Bool { false }
@@ -451,9 +451,25 @@ FunctionDecl: class extends Declaration {
         " Specializing!" println()
         " this = %s" printfln(toString())
         " call = %s%s" printfln(call name, call getArgsTypesRepr())
+
+        " %d args to resolve" printfln(typeArgs size)
+
+        typeArgs each(|typeArg|
+            score := -1
+            result := call resolveTypeArg(typeArg name, null, score&)
+            "   %s => %s" printfln(typeArg name, result toString())
+        )
+
+        // find correspondances and add genericConstraints to the copy
+        target := original clone()
+        target name = generateTempName(name)
+        // TODO: that's hilariously just not working for member functions
+        token module addFunction(target)
+
+        " target = %s" printfln(target toString())
         " ----------------- " println()
 
-        this
+        target
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
