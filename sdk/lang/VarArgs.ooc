@@ -8,7 +8,7 @@
 // that thunk is needed to correctly infer the 'T'. It shows at the
 // same time the limitations of ooc generics and still how incredibly
 // powerful they are.
-__va_call: inline func <T> (f: Func <T> (T), T: Class, arg: T) {
+__va_call: func <T> (f: Func <T> (T), T: Class, arg: T) {
     f(arg)
 }
 
@@ -19,7 +19,7 @@ __sizeof: extern(sizeof) func (Class) -> SizeT
 
 // used to align values on the pointer-size boundary, both for performance
 // and to match the layout of structs
-__pointer_align: inline func (s: SizeT) -> SizeT {
+__pointer_align: func (s: SizeT) -> SizeT {
     // 'Pointer size' isn't a constant expression, but sizeof(Pointer) is.
     ps := static __sizeof(Pointer)
     diff := s % ps
