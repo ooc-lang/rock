@@ -217,6 +217,9 @@ CommandLine: class {
                     if(!longOption) warnUseLong("onlycheck")
                     driver = null
 
+                } else if (option == "parseHeaders") {
+                    params parseHeaders = true
+
                 } else {
 
                     "Unrecognized option: %s" printfln(arg)
