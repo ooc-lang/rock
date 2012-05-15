@@ -182,6 +182,7 @@ FunctionCall: class extends Expression {
             // an inline func? most excellent.
             if(ref isInline && !ref typeArgs empty?()) {
                 "Calling an inline / generic func: %s" printfln(ref toString())
+                ref = ref specialize(this)
             }
 
             // todo: optimize that. not all of this needs to happen in many cases
@@ -916,13 +917,9 @@ FunctionCall: class extends Expression {
             return Response OK // already resolved
         }
 
-        //if(res params veryVerbose) printf("\t$$$$ resolving typeArgs of %s (call = %d, ref = %d)\n", toString(), typeArgs getSize(), ref typeArgs getSize())
-        //if(res params veryVerbose) printf("trail = %s\n", trail toString())
-
         i := typeArgs getSize()
         while(i < ref typeArgs getSize()) {
             typeArg := ref typeArgs get(i)
-            //if(res params veryVerbose) printf("\t$$$$ resolving typeArg %s\n", typeArg name)
 
             finalScore := 0
             typeResult := resolveTypeArg(typeArg name, trail, finalScore&)

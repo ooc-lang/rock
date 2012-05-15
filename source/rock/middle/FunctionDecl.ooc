@@ -446,6 +446,16 @@ FunctionDecl: class extends Declaration {
         return true
     }
 
+    specialize: func (call: FunctionCall) -> FunctionDecl {
+        " ----------------- " println()
+        " Specializing!" println()
+        " this = %s" printfln(toString())
+        " call = %s%s" printfln(call name, call getArgsTypesRepr())
+        " ----------------- " println()
+
+        this
+    }
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         if(debugCondition() || res params veryVerbose) "** Resolving function decl %s" printfln(name)
@@ -663,14 +673,6 @@ FunctionDecl: class extends Declaration {
             } else {
                 unwrapClosure(trail, res)
             }
-        }
-
-        if(isInline) {
-            " ----------------------- " println()
-            "Done resolving inline function, now = " println()
-            "resolved = %s" printfln(toString())
-            "original = %s" printfln(original toString())
-            " ----------------------- " println()
         }
 
         return Response OK
