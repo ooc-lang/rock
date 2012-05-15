@@ -16,7 +16,13 @@ Target: class {
     /* Mac OS X */
     OSX = 5,
     /* FreeBSD */
-    FREEBSD = 6 : static const Int
+    FREEBSD = 6,
+    /* OpenBSD */
+    OPENBSD = 7,
+    /* NetBSD */
+    NETBSD = 8,
+    /* DragonFly BSD */
+    DRAGONFLY : static const Int
 
     /**
      * @return a guess of the platform/architecture we're building on
@@ -29,8 +35,9 @@ Target: class {
         version(haiku)   return This HAIKU
         version(apple)   return This OSX
         version(freebsd) return This FREEBSD
-        //version(openbsd) return This OPENBSD // TODO: Make me work.
-        //version(netbsd)  return This NETBSD  // TODO: Make me work, too.
+        version(openbsd) return This OPENBSD
+        version(netbsd)  return This NETBSD
+        version(dragonfly)  return This DRAGONFLY
 
         fprintf(stderr, "Unknown operating system, assuming Linux...\n")
         return This LINUX
@@ -63,13 +70,16 @@ Target: class {
     toString: static func(target: Int, arch: String) -> String {
 
         return match(target) {
-            case This WIN     => "win" + arch
-            case This LINUX   => "linux" + arch
-            case This SOLARIS => "solaris" + arch
-            case This HAIKU   => "haiku" + arch
-            case This OSX     => "osx"
+            case This WIN       => "win" + arch
+            case This LINUX     => "linux" + arch
+            case This SOLARIS   => "solaris" + arch
+            case This HAIKU     => "haiku" + arch
+            case This OSX       => "osx"
             case This FREEBSD   => "freebsd" + arch
-            case              => Exception new("Invalid arch: " + target toString()) throw(); ""
+            case This OPENBSD   => "openbsd" + arch
+            case This NETBSD    => "netbsd" + arch
+            case This DRAGONFLY => "dragonfly" + arch
+            case                => Exception new("Invalid arch: " + target toString()) throw(); ""
         }
 
     }

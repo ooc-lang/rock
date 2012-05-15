@@ -4,4 +4,7 @@
 linux*
 win*
 osx*
-freebsd
+freebsd*
+dragonfly*
+openbsd*
+netbsd*
