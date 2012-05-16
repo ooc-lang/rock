@@ -1,6 +1,7 @@
 .anjuta*
 old-sdk*
 rock-*-source
+rock-*-bootstrap-only.tar.*
 build
 *~
 *.swp
