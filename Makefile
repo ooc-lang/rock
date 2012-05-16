@@ -98,7 +98,7 @@ rescue:
 	rm -rf build/
 	# Note: ./utils/downloader tries curl, ftp, and then wget.
 	#        GNU ftp will _not_ work: it does not accept a url as an argument.
-	./utils/downloader.sh http://www.fileville.net/ooc/bootstrap.tar.bz2 | tar xjvmpf - 1>/dev/null
+	./utils/downloader.sh http://www.fileville.net/ooc/bootstrap.tar.bz2 | tar xjvmf - 1>/dev/null
 	if [ ! -e build ]; then cp -rfv rock-*/build ./; fi	
 	$(MAKE) clean bootstrap
 
@@ -111,7 +111,7 @@ ifeq ($(VERSION),)
 	@echo "You must specify VERSION. Generates rock-VERSION-bootstrap-only.tar.bz2"
 else
 	$(MAKE) prepare_bootstrap
-	tar cjvfmp rock-${VERSION}-bootstrap-only.tar.bz2 build
+	tar cjvfm rock-${VERSION}-bootstrap-only.tar.bz2 build
 endif
 
 # Clean all temporary files that may make a build fail
