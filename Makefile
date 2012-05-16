@@ -106,6 +106,14 @@ rescue:
 safe:
 	OOC=bin/safe_rock $(MAKE) self
 
+bootstrap_tarball:
+ifeq ($(VERSION),)
+	@echo "You must specify VERSION. Generates rock-VERSION-bootstrap-only.tar.bz2"
+else
+	$(MAKE) prepare_bootstrap
+	tar cjvfmp ../rock-${VERSION}-bootstrap-only.tar.bz2 build
+endif
+
 # Clean all temporary files that may make a build fail
 clean:
 	rm -rf *_tmp/ .libs/
