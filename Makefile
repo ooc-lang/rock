@@ -111,7 +111,7 @@ ifeq ($(VERSION),)
 	@echo "You must specify VERSION. Generates rock-VERSION-bootstrap-only.tar.bz2"
 else
 	$(MAKE) prepare_bootstrap
-	tar cjvfmp ../rock-${VERSION}-bootstrap-only.tar.bz2 build
+	tar cjvfmp rock-${VERSION}-bootstrap-only.tar.bz2 build
 endif
 
 # Clean all temporary files that may make a build fail
