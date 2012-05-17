@@ -138,12 +138,12 @@ ClassDecl: class extends TypeDecl {
     getBaseClass: func (fDecl: FunctionDecl, withInterfaces: Bool, comeBack: Bool*) -> ClassDecl {
         sRef := getSuperRef() as ClassDecl
         // An interface might not yet be resolved.
-        comeBack = false 
+        comeBack@ = false 
         // first look in the supertype, if any
         if(sRef != null) {
              
             base := sRef getBaseClass(fDecl, comeBack)
-            if (comeBack) { // ugly_
+            if (comeBack@) { // ugly_
                 return null
             }
             if(base != null) {
