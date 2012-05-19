@@ -1,0 +1,15 @@
+before_script: "sudo aptitude -y -q install curl make"
+script: make rescue
+
+notifications:
+  irc:
+    channels:
+      - "irc.freenode.org#ooc-lang"
+#      - "irc.tenthbit.net#programming"
+    template:
+      # A shortened %{build_url} being between %{commit} and %{author} would be awesome.
+      - "\x02%{repository_url}\x02: %{branch} %{commit} \x02%{author}\x02 %{message}"
+      - "Build details: %{build_url}"
+#    on_success: change # default: always
+#    on_failure: change # default: always
+
