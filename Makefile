@@ -101,7 +101,8 @@ download-bootstrap:
 	if [ ! -e build ]; then cp -rfv rock-*/build ./; fi
 
 # Attempt to grab a rock bootstrap from Alpaca and recompile
-rescue: clean download-bootstrap bootstrap
+rescue: download-bootstrap
+	$(MAKE) clean bootstrap
 
 # Compile rock with the backup'd version of itself
 safe:
