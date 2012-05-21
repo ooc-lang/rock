@@ -1,4 +1,4 @@
-.PHONY: all clean mrproper prepare_bootstrap bootstrap install rescue backup
+.PHONY: all clean mrproper prepare_bootstrap bootstrap install download-bootstrap rescue backup
 PARSER_GEN=greg
 NQ_PATH=source/rock/frontend/NagaQueen.c
 DATE=$(shell date +%Y-%m-%d)
@@ -93,14 +93,15 @@ self: .libs/NagaQueen.o
 backup:
 	cp bin/rock bin/safe_rock
 
-# Attempt to grab a rock bootstrap from Alpaca and recompile
-rescue:
+download-bootstrap:
 	rm -rf build/
 	# Note: ./utils/downloader tries curl, ftp, and then wget.
 	#        GNU ftp will _not_ work: it does not accept a url as an argument.
 	./utils/downloader.sh http://www.fileville.net/ooc/bootstrap.tar.bz2 | tar xjvmf - 1>/dev/null
-	if [ ! -e build ]; then cp -rfv rock-*/build ./; fi	
-	$(MAKE) clean bootstrap
+	if [ ! -e build ]; then cp -rfv rock-*/build ./; fi
+
+# Attempt to grab a rock bootstrap from Alpaca and recompile
+rescue: download-bootstrap clean bootstrap
 
 # Compile rock with the backup'd version of itself
 safe:
