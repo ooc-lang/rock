@@ -7,6 +7,25 @@ import berkeley into socket
  */
 TCPSocket: class extends Socket {
     remote: SocketAddress
+    readerWriter: TCPReaderWriterPair
+
+    /**
+      Getter for accessing `readerWriter in`
+    */
+    in: TCPSocketReader {
+        get {
+            readerWriter in
+        }
+    }
+
+    /**
+      Getter for accessing `readerWriter out`
+    */
+    out: TCPSocketWriter {
+        get {
+            readerWriter out
+        }
+    }
 
     /**
        Create a new socket to a given remote address
@@ -59,6 +78,9 @@ TCPSocket: class extends Socket {
         if(socket connect(descriptor, remote addr(), remote length()) == -1) {
             SocketError new() throw()
         }
+
+        readerWriter = TCPReaderWriterPair new(this)
+
         connected? = true
     }
 
@@ -72,9 +94,7 @@ TCPSocket: class extends Socket {
         if(!connected?)
             connect()
 
-        conn := TCPReaderWriterPair new(this)
-
-        f(conn)
+        f(readerWriter)
     }
 
     /**
