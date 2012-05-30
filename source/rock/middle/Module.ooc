@@ -2,7 +2,7 @@ import io/File, text/EscapeSequence
 import structs/[HashMap, ArrayList, List, OrderedMultiMap]
 import ../frontend/[Token, BuildParams, PathList, AstBuilder]
 import Node, FunctionDecl, Visitor, Import, Include, Use, UseDef, TypeDecl,
-       FunctionCall, Type, Declaration, VariableAccess, OperatorDecl,
+       ClassDecl, FunctionCall, Type, Declaration, VariableAccess, OperatorDecl,
        Scope, NamespaceDecl, BaseType, FuncType, Addon
 import tinker/[Response, Resolver, Trail, Errors]
 
@@ -384,6 +384,27 @@ Module: class extends Node {
         finalResponse := Response OK
 
         trail push(this)
+
+        {
+            for (tts in typesToSpecialize) if (tts getRef() == null) {
+                response := tts resolve(trail, res)
+                if(!response ok()) {
+                    finalResponse = response
+                } else {
+                    match (tts getRef())  {
+                        case cd: ClassDecl =>
+                            "Type to specialize refers to %s" printfln(tts getRef() toString())
+                            cd specialize(tts)
+                        case =>
+                            Exception new("Trying to specialize a non-object type! %s") throw()
+                    }
+                }
+            }
+
+            if (!finalResponse ok()) {
+                return finalResponse;
+            }
+        }
 
         {
             response := body resolve(trail, res)

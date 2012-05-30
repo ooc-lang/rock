@@ -180,7 +180,6 @@ AstBuilder: class {
     }
 
     onSpecialize: unmangled(nq_onSpecialize) func (type: Type) {
-        "Type to be specialized: %s" printfln(type toString())
         module typesToSpecialize add(type)
     }
 

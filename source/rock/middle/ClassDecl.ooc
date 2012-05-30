@@ -1,4 +1,4 @@
-import structs/ArrayList
+import structs/[ArrayList, HashMap]
 import ../io/TabbedWriter
 
 import ../frontend/Token
@@ -12,6 +12,9 @@ ClassDecl: class extends TypeDecl {
     DESTROY_FUNC_NAME   := static const "__destroy__"
     LOAD_FUNC_NAME      := static const "__load__"
     DEFAULTS_FUNC_NAME  := static const "__defaults__"
+
+    specializations := HashMap<Type, ClassDecl> new()
+    typeArgMappings := HashMap<String, Type> new()
 
     isAbstract := false
     isFinal := false
@@ -43,6 +46,33 @@ ClassDecl: class extends TypeDecl {
             if(fDecl != defaultInit) return true
         }
         false
+    }
+
+    clone: func -> This {
+        copy := This new(name, superType, isMeta, token)
+        typeArgs each(|ta| copy addTypeArg(ta clone()))
+        // TODO: missing things here probably.
+        copy
+    }
+
+    specialize: func (tts: Type) {
+        ta := tts getTypeArgs()
+
+        if (ta size != typeArgs size) {
+            Exception new("Wrong specialization (typeargs don't match)") throw()
+        }
+
+        copy := clone()
+        specializations put(tts, copy)
+
+        for (i in 0..typeArgs size) {
+            lhs := typeArgs get(i)
+            rhs := ta get(i)
+            "-- Mappings --" println()
+            "%s => %s" printfln(lhs getName(), rhs toString())
+            // Oh, this is unsafe..
+            copy typeArgMappings put(lhs getName(), rhs getRef() as TypeDecl getType())
+        }
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
