@@ -26,6 +26,7 @@ Module: class extends Node {
 
     // 
     types      := OrderedMultiMap<String, TypeDecl> new()
+    typesToSpecialize := ArrayList<Type> new()
     addons     := ArrayList<Addon> new()
     functions  := OrderedMultiMap<String, FunctionDecl> new()
     operators  := ArrayList<OperatorDecl> new()
