@@ -11,6 +11,15 @@ where things begin to become really exciting.
 it has been bootstrapping since April 22, 2010 under Gentoo, Ubuntu,
 Arch Linux, Win32, OSX...
 
+## Prerequisites
+
+You need the following packages when building rock:
+
+* GNU Make (`make` or `gmake`, depending on your operating system)
+* boehm-gc
+* tar (for extracting the C sources)
+* bzip2 (used by tar)
+
 ## Get started
 
 Run `make rescue` and you're good.
