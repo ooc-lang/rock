@@ -302,6 +302,14 @@ ClassDeclWriter: abstract class extends Skeleton {
     writeClassGettingPrototype: static func (this: Skeleton, cDecl: ClassDecl) {
         realDecl := getClassType(cDecl)
         current nl(). app(realDecl underName()). app(" *"). app(cDecl getNonMeta() getFullName()). app("_class();")
+
+        if (cDecl getNonMeta() && cDecl getNonMeta() instanceOf?(ClassDecl)) {
+            meat := cDecl getNonMeta() as ClassDecl
+            "Writing specializations for %s, has %d of them" printfln(meat getName(), meat specializations size)
+            meat specializations each(|tts, specialized|
+                writeClassGettingPrototype(this, specialized getMeta())
+            )
+        }
     }
 
     writeClassGettingFunction: static func (this: Skeleton, cDecl: ClassDecl) {

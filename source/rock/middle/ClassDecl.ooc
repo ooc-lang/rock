@@ -13,8 +13,12 @@ ClassDecl: class extends TypeDecl {
     LOAD_FUNC_NAME      := static const "__load__"
     DEFAULTS_FUNC_NAME  := static const "__defaults__"
 
+    // for the specializer
     specializations := HashMap<Type, ClassDecl> new()
+
+    // for the specialized
     typeArgMappings := HashMap<String, Type> new()
+    specializedSuffix := ""
 
     isAbstract := false
     isFinal := false
@@ -50,9 +54,23 @@ ClassDecl: class extends TypeDecl {
 
     clone: func -> This {
         copy := This new(name, superType, isMeta, token)
+        copy module = module
+
         typeArgs each(|ta| copy addTypeArg(ta clone()))
         // TODO: missing things here probably.
         copy
+    }
+    
+    underName: func -> String {
+        if (isSpecialized()) {
+            super() + "__" + specializedSuffix
+        } else {
+            super()
+        }
+    }
+
+    isSpecialized: func -> Bool {
+        !typeArgMappings empty?()
     }
 
     specialize: func (tts: Type) {
@@ -73,9 +91,14 @@ ClassDecl: class extends TypeDecl {
             // Oh, this is unsafe..
             copy typeArgMappings put(lhs getName(), rhs getRef() as TypeDecl getType())
         }
+        copy specializedSuffix = generateTempName("specialized")
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
+
+        specializations each(|k, specialized|
+            specialized resolve(trail, res)
+        )
 
         if(shouldCheckNoArgConstructor) {
             finalScore := 0
