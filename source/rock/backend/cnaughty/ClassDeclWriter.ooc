@@ -194,6 +194,15 @@ ClassDeclWriter: abstract class extends Skeleton {
             current closeBlock()
 
         }
+
+
+        if (cDecl getNonMeta() && cDecl getNonMeta() instanceOf?(ClassDecl)) {
+            meat := cDecl getNonMeta() as ClassDecl
+            meat specializations each(|tts, specialized|
+                "Writing static functions for %s | %s" printfln(meat getName(), specialized toString())
+                writeStaticFuncs(this, specialized getMeta())
+            )
+        }
     }
 
     writeInstanceVirtualFuncs: static func (this: Skeleton, cDecl: ClassDecl) {
