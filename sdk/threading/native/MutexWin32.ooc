@@ -30,18 +30,18 @@ version(windows) {
 
     }
 
-    ooc_mutex_lock: inline unmangled func (m: Mutex) {
+    ooc_mutex_lock: unmangled func (m: Mutex) {
         WaitForSingleObject(
             m as Handle, // handle to mutex
             INFINITE         // no time-out interval
         )
     }
 
-    ooc_mutex_unlock: inline unmangled func (m: Mutex) {
+    ooc_mutex_unlock: unmangled func (m: Mutex) {
         ReleaseMutex(m as Handle)
     }
 
-    ooc_mutex_destroy: inline unmangled func (m: Mutex) {
+    ooc_mutex_destroy: unmangled func (m: Mutex) {
         CloseHandle(m as Handle)
     }
 
@@ -65,18 +65,18 @@ version(windows) {
 
     }
 
-    ooc_recursive_mutex_lock: inline unmangled func (m: RecursiveMutex) {
+    ooc_recursive_mutex_lock: unmangled func (m: RecursiveMutex) {
         WaitForSingleObject(
             m as Handle, // handle to recursive_mutex
             INFINITE         // no time-out interval
         )
     }
 
-    ooc_recursive_mutex_unlock: inline unmangled func (m: RecursiveMutex) {
+    ooc_recursive_mutex_unlock: unmangled func (m: RecursiveMutex) {
         ReleaseMutex(m as Handle)
     }
 
-    ooc_recursive_mutex_destroy: inline unmangled func (m: RecursiveMutex) {
+    ooc_recursive_mutex_destroy: unmangled func (m: RecursiveMutex) {
         CloseHandle(m as Handle)
     }
 }

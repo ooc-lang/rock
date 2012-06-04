@@ -14,7 +14,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Cast, Comparison, Ternary, BoolLiteral, Argument, Statement,
     AddressOf, Dereference, CommaSequence, UnaryOp, ArrayAccess, Match,
     FlowControl, InterfaceDecl, Version, Block, EnumDecl, ArrayLiteral,
-    ArrayCreation, StructLiteral, InlineContext, FuncType]
+    ArrayCreation, StructLiteral, FuncType]
 
 import Skeleton, FunctionDeclWriter, ControlStatementWriter,
     ClassDeclWriter, ModuleWriter, CoverDeclWriter, FunctionCallWriter,
@@ -366,10 +366,6 @@ CGenerator: class extends Skeleton {
             writeLine(stmt)
         }
         current untab(). nl(). app('}')
-        // ifs are evil. fix that.
-        if(b instanceOf?(InlineContext)) {
-            current nl(). app(b as InlineContext label). app(":;")
-        }
     }
 
     /** Write a range literal */
@@ -401,13 +397,8 @@ CGenerator: class extends Skeleton {
     }
 
     visitReturn: func (ret: Return) {
-        if(ret label) {
-            // oh, it's a return-goto (ie we're in an inlined block)
-            current app("goto "). app(ret label)
-        } else {
-            current app("return")
-            if(ret expr) current app(' '). app(ret expr)
-        }
+        current app("return")
+        if(ret expr) current app(' '). app(ret expr)
     }
 
     visitCast: func (cast: Cast) {

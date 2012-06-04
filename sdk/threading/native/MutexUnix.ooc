@@ -34,15 +34,15 @@ version(unix || apple) {
 
     }
 
-    ooc_mutex_lock: inline unmangled func (m: Mutex) {
+    ooc_mutex_lock: unmangled func (m: Mutex) {
         pthread_mutex_lock(m as PThreadMutex*)
     }
 
-    ooc_mutex_unlock: inline unmangled func (m: Mutex) {
+    ooc_mutex_unlock: unmangled func (m: Mutex) {
         pthread_mutex_unlock(m as PThreadMutex*)
     }
 
-    ooc_mutex_destroy: inline unmangled func (m: Mutex) {
+    ooc_mutex_destroy: unmangled func (m: Mutex) {
         pthread_mutex_destroy(m as PThreadMutex*)
     }
 
@@ -59,15 +59,15 @@ version(unix || apple) {
 
     }
 
-    ooc_recursive_mutex_lock: inline unmangled func (m: RecursiveMutex) {
+    ooc_recursive_mutex_lock: unmangled func (m: RecursiveMutex) {
         pthread_mutex_lock(m as PThreadMutex*)
     }
 
-    ooc_recursive_mutex_unlock: inline unmangled func (m: RecursiveMutex) {
+    ooc_recursive_mutex_unlock: unmangled func (m: RecursiveMutex) {
         pthread_mutex_unlock(m as PThreadMutex*)
     }
 
-    ooc_recursive_mutex_destroy: inline unmangled func (m: RecursiveMutex) {
+    ooc_recursive_mutex_destroy: unmangled func (m: RecursiveMutex) {
         pthread_mutex_destroy(m as PThreadMutex*)
     }
 
