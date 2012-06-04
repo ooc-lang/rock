@@ -289,6 +289,13 @@ ClassDeclWriter: abstract class extends Skeleton {
             current closeBlock()
         }
 
+        if (cDecl getNonMeta() && cDecl getNonMeta() instanceOf?(ClassDecl)) {
+            meat := cDecl getNonMeta() as ClassDecl
+            meat specializations each(|tts, specialized|
+                "Writing instance impl functions for %s | %s" printfln(meat getName(), specialized toString())
+                writeInstanceImplFuncs(this, specialized getMeta())
+            )
+        }
     }
 
     getClassType: static func (cDecl: ClassDecl) -> ClassDecl {
@@ -494,6 +501,16 @@ ClassDeclWriter: abstract class extends Skeleton {
         current nl(). app("typedef struct _"). app(structName). app(" "). app(structName). app(";")
         if(cDecl getVersion()) VersionWriter writeEnd(this)
 
+        cDecl specializations each(|tts, specialized|
+            "Writing struct typedefs for %s | %s" printfln(cDecl getName(), specialized toString())
+            specializedStructName := specialized underName()
+
+            if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
+            current nl(). app("/* specialized stuff ahead! */")
+            current nl(). app("typedef struct _"). app(structName). app(" "). app(specializedStructName). app(";")
+            current nl(). app("/* done with specialized stuff */")
+            if(cDecl getVersion()) VersionWriter writeEnd(this)
+        )
     }
 
 }
