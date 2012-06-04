@@ -457,7 +457,12 @@ FunctionDecl: class extends Declaration {
         // handle the case where we specialize a generic function
         if(owner) {
             meat := owner isMeta ? owner as ClassDecl : owner getMeta()
-            base := meat getBaseClass(this, true)
+            comeBack: Bool
+            base := meat getBaseClass(this, true, comeBack&)
+            if (comeBack) { // ugly_
+                res wholeAgain(this, "Resolving a missing interface declaration.")
+                return Response OK
+            }
 
             if(base != null) {
                 finalScore := 0

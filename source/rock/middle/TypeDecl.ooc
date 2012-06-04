@@ -130,7 +130,8 @@ TypeDecl: abstract class extends Declaration {
             if(superType getName() == "Object" && name != "Class") {
                 meta setSuperType(BaseType new("ClassClass", superType token))
             } else {
-                meta setSuperType(BaseType new(superType getName() + "Class", superType token))
+                namespace := (superType instanceOf?(BaseType)) ? superType as BaseType namespace : null
+                meta setSuperType(BaseType new(superType getName() + "Class", namespace, superType token))
             }
         }
     }

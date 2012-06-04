@@ -125,16 +125,26 @@ ClassDecl: class extends TypeDecl {
         return fDecl
     }
 
-    getBaseClass: func ~noInterfaces (fDecl: FunctionDecl) -> ClassDecl {
-        getBaseClass(fDecl, false)
+    getBaseClass: func ~afterResolve(fDecl: FunctionDecl) -> ClassDecl {
+        b: Bool
+        getBaseClass(fDecl, false, b&)
     }
 
-    getBaseClass: func (fDecl: FunctionDecl, withInterfaces: Bool) -> ClassDecl {
-        sRef := getSuperRef() as ClassDecl
+    getBaseClass: func ~noInterfaces (fDecl: FunctionDecl, comeBack: Bool*) -> ClassDecl {
+        getBaseClass(fDecl, false, comeBack)
+    }
 
+    getBaseClass: func (fDecl: FunctionDecl, withInterfaces: Bool, comeBack: Bool*) -> ClassDecl {
+        sRef := getSuperRef() as ClassDecl
+        // An interface might not yet be resolved.
+        comeBack@ = false 
         // first look in the supertype, if any
         if(sRef != null) {
-            base := sRef getBaseClass(fDecl)
+             
+            base := sRef getBaseClass(fDecl, comeBack)
+            if (comeBack@) { // ugly_
+                return null
+            }
             if(base != null) {
                 return base
             }
@@ -142,10 +152,19 @@ ClassDecl: class extends TypeDecl {
 
         // look in interface types, if any
         if(withInterfaces && getNonMeta()) for(interfaceType in getNonMeta() interfaceTypes) {
-            iRef := interfaceType getRef() as ClassDecl
+            iRef := interfaceType getRef() as ClassDecl // missing interface
+            if (!iRef) { // ugly_
+                comeBack=true
+                return null
+            }
+
             if(!iRef isMeta) iRef = iRef getMeta()
             if(iRef != null) {
-                base := iRef getBaseClass(fDecl)
+                base := iRef getBaseClass(fDecl, comeBack)
+                if (comeBack) { // ugly_
+                    comeBack=true
+                    return null
+                }
                 if(base != null) {
                     return base
                 }

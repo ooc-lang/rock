@@ -72,7 +72,8 @@ FunctionCallWriter: abstract class extends Skeleton {
             // TODO maybe check there's some kind of inheritance/compatibility here?
             // or in the tinker phase?
             if(shouldCastThis || !(callType equals?(declType))) {
-                current app("("). app(declType). app(") ")
+                // If this is a ref call, we should write down the referenced type that is passed as the callType (as determined in tinkering phase)
+                current app("("). app(fDecl isThisRef ? callType : declType). app(") ")
             }
 
             if(fDecl isThisRef) current app("&("). app(fCall expr). app(")")
