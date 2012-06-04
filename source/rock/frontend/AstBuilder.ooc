@@ -566,6 +566,10 @@ AstBuilder: class {
         list types add(element)
     }
 
+    onTypeNamespace: unmangled(nq_onTypeNamespace) func (type: BaseType, ident: CString) {
+        type setNamespace(VariableAccess new(ident toString(), token()))
+    }
+
     /*
      * Function types
      */
@@ -811,7 +815,7 @@ AstBuilder: class {
                 }
             case node instanceOf?(ClassDecl) =>
                 cDecl := node as ClassDecl
-                fDecl := cDecl lookupFunction(ClassDecl DEFAULTS_FUNC_NAME, "")
+                fDecl := (cDecl isMeta) ? cDecl lookupFunction(ClassDecl DEFAULTS_FUNC_NAME, null) : cDecl meta lookupFunction(ClassDecl DEFAULTS_FUNC_NAME, null)
                 if(fDecl == null) {
                     fDecl = FunctionDecl new(ClassDecl DEFAULTS_FUNC_NAME, cDecl token)
                     cDecl addFunction(fDecl)

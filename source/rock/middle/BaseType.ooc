@@ -5,7 +5,7 @@ import tinker/[Response, Resolver, Trail, Errors]
 
 import Type, Declaration, VariableAccess, VariableDecl, TypeDecl,
        InterfaceDecl, Node, ClassDecl, CoverDecl, Cast, FuncType,
-       FunctionCall, Module
+       FunctionCall, Module, NamespaceDecl
 
 NumericState: enum {
     UNKNOWN, YES, NO
@@ -13,6 +13,7 @@ NumericState: enum {
 
 BaseType: class extends Type {
 
+    namespace: VariableAccess = null
     ref: Declaration = null
     name: String
     _numeric : NumericState = NumericState UNKNOWN
@@ -24,6 +25,10 @@ BaseType: class extends Type {
     typeArgs: List<VariableAccess> = null
 
     init: func ~baseType (=name, .token) {
+        super(token)
+    }
+
+    init: func ~withNamespace (=name, =namespace, .token) {
         super(token)
     }
 
@@ -117,6 +122,23 @@ BaseType: class extends Type {
                 res wholeAgain(this, "re-resolved because of dead module")
             } else {
                 return Response OK
+            }
+        }
+
+        if(namespace) {
+
+            trail push(this)
+            response := namespace resolve(trail, res)
+            trail pop(this)
+            if(!response ok()) {
+                if(res params veryVerbose) "Failed to resolve expr %s of type %s, looping" printfln(namespace toString(), toString())
+                return response
+            }
+
+            if(namespace getRef() != null && namespace getRef() instanceOf?(NamespaceDecl)) {
+                namespace getRef() as NamespaceDecl resolveType(this, res, trail)
+            } else {
+                res throwError(InvalidNamespaceAccess new(token, this, "Trying to access a type from %s, which is not a namespace" format(namespace toString())))
             }
         }
 
@@ -524,6 +546,8 @@ BaseType: class extends Type {
         this
     }
 
+    setNamespace: func (=namespace) {}
+
 }
 
 UnresolvedType: class extends Error {
@@ -538,4 +562,11 @@ MismatchedTypeParams: class extends Error {
     init: super func ~tokenMessage
 }
 
+InvalidNamespaceAccess: class extends Error {
+    type: Type
+
+    init: func (.token, =type, .message) {
+        super(token, message)
+    }
+}
 

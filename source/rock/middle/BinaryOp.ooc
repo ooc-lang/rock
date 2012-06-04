@@ -3,7 +3,7 @@ import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
        Import, Module, FunctionCall, ClassDecl, CoverDecl, AddressOf,
        ArrayAccess, VariableAccess, Cast, NullLiteral, PropertyDecl,
-       Tuple, VariableDecl
+       Tuple, VariableDecl, FuncType
 import tinker/[Trail, Resolver, Response, Errors]
 
 OpType: enum {
@@ -379,6 +379,21 @@ BinaryOp: class extends Expression {
         if((!lCompound || !rCompound) && (lCover || rCover)) {
             // If a C struct is involved then we check whether the operator has a C "meaning" and thus can be translated to itself in C. If it does not, it is not valid without an overload
             if(type == OpType exp || type == OpType expAss || type == OpType doubleArr) return false
+        }
+
+        if (lRef instanceOf?(FuncType) || rRef instanceOf?(FuncType)) {
+            // By default, only assignment should be allowed when a Func-type is involved.
+            // Exception, of course, is an overloaded operator.
+            if (!isAssign()) {
+                return false
+            }
+
+            // If the left side is an immutable function, fail immediately.
+            l := lRef as FuncType
+            if (!(l isClosure)) {
+            token module params errorHandler onError(InvalidBinaryOverload new(token,
+                "%s is an immutable function. You must not reassign it. (Perhaps you want to use a first-class function instead?)" format(left toString())))
+            }
         }
 
         if(isAssign()) {
