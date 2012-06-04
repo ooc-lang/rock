@@ -57,7 +57,9 @@ ClassDecl: class extends TypeDecl {
         copy module = module
 
         typeArgs each(|ta| copy addTypeArg(ta clone()))
-        // TODO: missing things here probably.
+        variables each(|k, v| copy getMeta() addVariable(v clone()))
+        getMeta() functions each(|fuuuuu| copy getMeta() addFunction(fuuuuu clone()))
+
         copy
     }
     
@@ -74,6 +76,7 @@ ClassDecl: class extends TypeDecl {
     }
 
     specialize: func (tts: Type) {
+        "Specializing %s with %s" printfln(toString(), tts toString())
         ta := tts getTypeArgs()
 
         if (ta size != typeArgs size) {
