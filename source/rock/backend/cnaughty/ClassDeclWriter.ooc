@@ -305,8 +305,8 @@ ClassDeclWriter: abstract class extends Skeleton {
 
         if (cDecl getNonMeta() && cDecl getNonMeta() instanceOf?(ClassDecl)) {
             meat := cDecl getNonMeta() as ClassDecl
-            "Writing specializations for %s, has %d of them" printfln(meat getName(), meat specializations size)
             meat specializations each(|tts, specialized|
+                "Writing class-getting prototype for %s | %s" printfln(meat getName(), specialized toString())
                 writeClassGettingPrototype(this, specialized getMeta())
             )
         }
@@ -380,6 +380,14 @@ ClassDeclWriter: abstract class extends Skeleton {
 
             current closeBlock()
             current nl(). app("return &class;"). closeBlock()
+        }
+
+        if (cDecl getNonMeta() && cDecl getNonMeta() instanceOf?(ClassDecl)) {
+            meat := cDecl getNonMeta() as ClassDecl
+            meat specializations each(|tts, specialized|
+                "Writing class-getting function for %s | %s" printfln(meat getName(), specialized toString())
+                writeClassGettingFunction(this, specialized getMeta())
+            )
         }
     }
 
