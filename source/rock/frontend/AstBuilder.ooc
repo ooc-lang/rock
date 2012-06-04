@@ -566,6 +566,10 @@ AstBuilder: class {
         list types add(element)
     }
 
+    onTypeNamespace: unmangled(nq_onTypeNamespace) func (type: BaseType, ident: CString) {
+        type setNamespace(VariableAccess new(ident toString(), token()))
+    }
+
     /*
      * Function types
      */
