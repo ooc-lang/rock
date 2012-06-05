@@ -500,10 +500,10 @@ BinaryOp: class extends Expression {
             return -1
         }
 
-        leftScore  := left  getType() getStrictScore(opLeft  getType())
+        leftScore  := left  getType() getScore(opLeft  getType())
         if(leftScore  == -1) return -1
 
-        rightScore := right getType() getStrictScore(opRight getType())
+        rightScore := right getType() getScore(opRight getType())
         if(rightScore == -1) return -1
 
         reqScore   := reqType ? fDecl getReturnType() getScore(reqType) : 0
