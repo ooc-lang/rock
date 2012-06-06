@@ -114,7 +114,6 @@ ClassDecl: class extends TypeDecl {
         }
 
         spe := cloneWith(|copy|
-            copy typeArgs clear()
             copy specializedSuffix = generateTempName("specialized")
 
             "-- Mappings --" println()
@@ -130,6 +129,18 @@ ClassDecl: class extends TypeDecl {
             }
         )
         specializations put(tts, spe)
+    }
+
+    resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
+        if (isSpecialized()) {
+            "[special] Resolving %s in %s" printfln(type toString(), toString())
+            mapped := typeArgMappings get(type getName())
+            if (mapped) {
+                "[special] Suggesting %s for %s!" printfln(mapped toString(), type toString())
+                if (type suggest(mapped getRef())) return 0
+            }
+        }
+        super(type, res, trail)
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
