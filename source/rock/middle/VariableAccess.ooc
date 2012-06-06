@@ -73,7 +73,7 @@ VariableAccess: class extends Expression {
     hasSideEffects : func -> Bool { false }
 
     debugCondition: func -> Bool {
-        name == "X"
+        false
     }
 
     suggest: func (node: Node) -> Bool {

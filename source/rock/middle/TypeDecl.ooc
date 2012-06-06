@@ -628,6 +628,8 @@ TypeDecl: abstract class extends Declaration {
         }
 
         for(typeArg: VariableDecl in getTypeArgs()) {
+            // DEBUG
+            if(type name == "X") "[special] Resolving %s in %s" printfln(type name, toString())
             if(typeArg name == type name) {
                 if(type suggest(typeArg)) return 0
             }

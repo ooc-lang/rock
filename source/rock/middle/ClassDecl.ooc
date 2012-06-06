@@ -17,7 +17,16 @@ ClassDecl: class extends TypeDecl {
     specializations := HashMap<Type, ClassDecl> new()
 
     // for the specialized
-    typeArgMappings := HashMap<String, Type> new()
+    typeArgMappings: HashMap<String, Type> {
+        get {
+            if (isMeta && getNonMeta() instanceOf?(ClassDecl)) {
+                getNonMeta() as ClassDecl _typeArgMappings
+            } else {
+                _typeArgMappings
+            }
+        }
+    }
+    _typeArgMappings := HashMap<String, Type> new()
     specializedSuffix := ""
 
     isAbstract := false
@@ -51,16 +60,33 @@ ClassDecl: class extends TypeDecl {
         }
         false
     }
-
+    
     clone: func -> This {
+        cloneWith(|cd|)
+    }
+
+    cloneWith: func (prepare: Func(ClassDecl)) -> This {
         copy := This new(name, superType, isMeta, token)
         copy module = module
 
         typeArgs each(|ta| copy addTypeArg(ta clone()))
+        prepare(copy)
+
         variables each(|k, v| copy addVariable(v clone()))
-        getMeta() functions each(|fuuuuu| copy getMeta() addFunction(fuuuuu clone()))
+        
+        getMeta() functions each(|f|
+            "Adding function %s to %s" printfln(f toString(), copy toString())
+            copy getMeta() addFunction(f clone())
+        )
 
         copy
+    }
+
+    addTypeArg: func (typeArg: VariableDecl) -> Bool {
+        if (typeArg getName() == "X") {
+            "[special] adding typeArg %s to %s" printfln(typeArg toString(), toString())
+        }
+        super(typeArg)
     }
     
     underName: func -> String {
@@ -72,29 +98,37 @@ ClassDecl: class extends TypeDecl {
     }
 
     isSpecialized: func -> Bool {
-        !typeArgMappings empty?()
+        if (isMeta && getNonMeta() instanceOf?(ClassDecl)) {
+            getNonMeta() as ClassDecl isSpecialized()
+        } else {
+            !typeArgMappings empty?()
+        }
     }
 
     specialize: func (tts: Type) {
-        "Specializing %s with %s" printfln(toString(), tts toString())
+        "[special] Specializing %s with %s" printfln(toString(), tts toString())
         ta := tts getTypeArgs()
 
         if (ta size != typeArgs size) {
-            Exception new("Wrong specialization (typeargs don't match)") throw()
+            Exception new("[special] Wrong specialization (typeargs count don't match)") throw()
         }
 
-        copy := clone()
-        specializations put(tts, copy)
+        spe := cloneWith(|copy|
+            copy specializedSuffix = generateTempName("specialized")
 
-        for (i in 0..typeArgs size) {
-            lhs := typeArgs get(i)
-            rhs := ta get(i)
             "-- Mappings --" println()
-            "%s => %s" printfln(lhs getName(), rhs toString())
-            // Oh, this is unsafe..
-            copy typeArgMappings put(lhs getName(), rhs getRef() as TypeDecl getType())
-        }
-        copy specializedSuffix = generateTempName("specialized")
+            for (i in 0..typeArgs size) {
+                lhs := copy typeArgs get(i)
+                rhs := ta get(i)
+                "%s => %s" printfln(lhs getName(), rhs toString())
+                // Oh, this is unsafe..
+                copy typeArgMappings put(lhs getName(), rhs getRef() as TypeDecl getType())
+
+                // set refs straight
+                lhs setType(rhs getType())
+            }
+        )
+        specializations put(tts, spe)
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
@@ -307,7 +341,13 @@ ClassDecl: class extends TypeDecl {
         if(retType getTypeArgs()) retType getTypeArgs() clear()
 
         constructor getArguments() addAll(fDecl getArguments())
-        constructor getTypeArgs() addAll(getTypeArgs())
+        // [special] TODO: use 'filter' instead? that'd be cleaner
+        if(getName() contains?("Glass")) "addInit for %s" printfln(toString())
+        getTypeArgs() each (|typeArg|
+            if(!typeArgMappings contains?(typeArg getName())) {
+                constructor getTypeArgs() addAll(getTypeArgs())
+            }
+        )
 
         // why use getNonMeta() here? addInit() is called only in the
         // meta-class, remember?
@@ -324,15 +364,26 @@ ClassDecl: class extends TypeDecl {
         }
         constructor getBody() add(vdfe)
 
-        for (typeArg in getTypeArgs()) {
-            e := VariableAccess new(typeArg, constructor token)
-            retType addTypeArg(e)
+        getTypeArgs() each(|typeArg|
+            // assign type arg parameters from the constructor arguments
+            // to their member fields
+            rhs := VariableAccess new(typeArg, constructor token)
+            retType addTypeArg(rhs)
+
+            mapped := typeArgMappings get(typeArg name)
+            if (mapped) {
+                rhs = VariableAccess new(mapped getName(), mapped token)
+            }
 
             thisAccess    := VariableAccess new("this",                   constructor token)
-            typeArgAccess := VariableAccess new(thisAccess, typeArg name, constructor token)
-            ass := BinaryOp new(typeArgAccess, e, OpType ass, constructor token)
+            lhs           := VariableAccess new(thisAccess, typeArg name, constructor token)
+            if (mapped) {
+                "[special] in %s, doing %s = %s" printfln(toString(), lhs toString(), rhs toString())
+            }
+
+            ass := BinaryOp new(lhs, rhs, OpType ass, constructor token)
             constructor getBody() add(ass)
-        }
+        )
 
         constructor setReturnType(retType)
 
