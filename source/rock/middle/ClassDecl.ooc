@@ -90,7 +90,7 @@ ClassDecl: class extends TypeDecl {
     }
     
     underName: func -> String {
-        if (isSpecialized()) {
+        if (isSpecialized() && !isMeta) {
             super() + "__" + specializedSuffix
         } else {
             super()
@@ -354,10 +354,10 @@ ClassDecl: class extends TypeDecl {
 
         constructor getArguments() addAll(fDecl getArguments())
         // [special] TODO: use 'filter' instead? that'd be cleaner
-        if(getName() contains?("Glass")) "addInit for %s" printfln(toString())
+        "[special] addInit for %s" printfln(toString())
         getTypeArgs() each (|typeArg|
             if(!typeArgMappings contains?(typeArg getName())) {
-                constructor getTypeArgs() addAll(getTypeArgs())
+                constructor getTypeArgs() add(typeArg)
             }
         )
 
