@@ -74,10 +74,12 @@ ClassDecl: class extends TypeDecl {
 
         variables each(|k, v| copy addVariable(v clone()))
         
+        "==============================" println()
         getMeta() functions each(|f|
-            "Adding function %s to %s" printfln(f toString(), copy toString())
+            "[special] Adding function %s to %s" printfln(f toString(), copy toString())
             copy getMeta() addFunction(f clone())
         )
+        getMeta() getDefaultsFunc()
 
         copy
     }
@@ -354,7 +356,7 @@ ClassDecl: class extends TypeDecl {
 
         constructor getArguments() addAll(fDecl getArguments())
         // [special] TODO: use 'filter' instead? that'd be cleaner
-        "[special] addInit for %s" printfln(toString())
+        if(getName() contains?("Glass")) "[special] addInit for %s" printfln(toString())
         getTypeArgs() each (|typeArg|
             if(!typeArgMappings contains?(typeArg getName())) {
                 constructor getTypeArgs() add(typeArg)

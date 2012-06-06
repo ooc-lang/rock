@@ -156,6 +156,14 @@ ClassDeclWriter: abstract class extends Skeleton {
 
         }
 
+        if (cDecl getNonMeta() && cDecl getNonMeta() instanceOf?(ClassDecl)) {
+            meat := cDecl getNonMeta() as ClassDecl
+            meat specializations each(|tts, specialized|
+                "Writing member func prototypes for %s | %s" printfln(meat getName(), specialized toString())
+                writeMemberFuncPrototypes(this, specialized getMeta())
+            )
+        }
+
     }
 
     writeStaticFuncs: static func (this: Skeleton, cDecl: ClassDecl) {
@@ -234,9 +242,20 @@ ClassDeclWriter: abstract class extends Skeleton {
 
             current app("; }")
         }
+
+        if (cDecl getNonMeta() && cDecl getNonMeta() instanceOf?(ClassDecl)) {
+            meat := cDecl getNonMeta() as ClassDecl
+            meat specializations each(|tts, specialized|
+                "Writing instance virtual funcs for %s | %s" printfln(meat getName(), specialized toString())
+                writeInstanceVirtualFuncs(this, specialized getMeta())
+            )
+        }
+
     }
 
     writeInstanceImplFuncs: static func (this: Skeleton, cDecl: ClassDecl) {
+
+        if(cDecl getName() contains?("Glass")) "writing instance impl funcs for %s" printfln(cDecl toString())
 
         // Non-static (ie  instance) functions
         for (decl: FunctionDecl in cDecl functions) {
