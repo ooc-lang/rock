@@ -39,7 +39,7 @@ VariableDecl: class extends Declaration {
     }
 
     clone: func -> This {
-        copy := new(type, name, expr ? expr clone() : null, token)
+        copy := new(type ? type clone() : null, name, expr ? expr clone() : null, token)
         copy isArg         = isArg
         copy isGlobal      = isGlobal
         copy isConst       = isConst

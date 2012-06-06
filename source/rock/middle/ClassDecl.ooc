@@ -114,18 +114,19 @@ ClassDecl: class extends TypeDecl {
         }
 
         spe := cloneWith(|copy|
+            copy typeArgs clear()
             copy specializedSuffix = generateTempName("specialized")
 
             "-- Mappings --" println()
             for (i in 0..typeArgs size) {
-                lhs := copy typeArgs get(i)
+                lhs := typeArgs get(i)
                 rhs := ta get(i)
                 "%s => %s" printfln(lhs getName(), rhs toString())
                 // Oh, this is unsafe..
                 copy typeArgMappings put(lhs getName(), rhs)
 
                 // set refs straight
-                lhs setType(rhs getType())
+                "[special] setting type of %s to %s's type" printfln(lhs toString(), rhs toString())
             }
         )
         specializations put(tts, spe)
