@@ -344,6 +344,21 @@ TypeDecl: abstract class extends Declaration {
         if(finalScore == -1) return null
 
         finalScore = bestScore
+
+        if (bestMatch && bestMatch owner && bestMatch owner instanceOf?(ClassDecl)) {
+            cDecl := bestMatch owner as ClassDecl
+            if(cDecl hasSpecializations()) {
+                "[special] bestMatch for %s is %s from %s" printfln(name, bestMatch ? bestMatch toString() : "(nil)", cDecl toString())
+                "[special] we have %d specializations" printfln(cDecl specializations size)
+
+                if (bestMatch isStatic) {
+                    "[special] bestMatch is static, call = %p" printfln(call)
+                    if (call) {
+                        "[special] call expr = %s" printfln(call expr toString())
+                    }
+                }
+            }
+        }
         return bestMatch
 
     }

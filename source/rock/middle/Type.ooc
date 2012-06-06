@@ -220,6 +220,10 @@ TypeAccess: class extends Type {
         this
     }
 
+    toString: func -> String {
+        inner toString()
+    }
+
 }
 
 SugarType: abstract class extends Type {

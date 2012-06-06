@@ -99,6 +99,14 @@ ClassDecl: class extends TypeDecl {
         }
     }
 
+    hasSpecializations: func -> Bool {
+        if (isMeta && getNonMeta() instanceOf?(ClassDecl)) {
+            getNonMeta() as ClassDecl hasSpecializations()
+        } else {
+            !specializations empty?()
+        }
+    }
+
     isSpecialized: func -> Bool {
         if (isMeta && getNonMeta() instanceOf?(ClassDecl)) {
             getNonMeta() as ClassDecl isSpecialized()
