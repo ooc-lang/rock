@@ -17,7 +17,7 @@ ClassDecl: class extends TypeDecl {
     specializations := HashMap<Type, ClassDecl> new()
 
     // for the specialized
-    typeArgMappings: HashMap<String, Type> {
+    typeArgMappings: HashMap<String, VariableAccess> {
         get {
             if (isMeta && getNonMeta() instanceOf?(ClassDecl)) {
                 getNonMeta() as ClassDecl _typeArgMappings
@@ -26,7 +26,7 @@ ClassDecl: class extends TypeDecl {
             }
         }
     }
-    _typeArgMappings := HashMap<String, Type> new()
+    _typeArgMappings := HashMap<String, VariableAccess> new()
     specializedSuffix := ""
 
     isAbstract := false
@@ -122,7 +122,7 @@ ClassDecl: class extends TypeDecl {
                 rhs := ta get(i)
                 "%s => %s" printfln(lhs getName(), rhs toString())
                 // Oh, this is unsafe..
-                copy typeArgMappings put(lhs getName(), rhs getRef() as TypeDecl getType())
+                copy typeArgMappings put(lhs getName(), rhs)
 
                 // set refs straight
                 lhs setType(rhs getType())
@@ -372,7 +372,8 @@ ClassDecl: class extends TypeDecl {
 
             mapped := typeArgMappings get(typeArg name)
             if (mapped) {
-                rhs = VariableAccess new(mapped getName(), mapped token)
+                //rhs = VariableAccess new(VariableAccess new(mapped getName(), mapped token), "class", mapped token)
+                rhs = mapped
             }
 
             thisAccess    := VariableAccess new("this",                   constructor token)
