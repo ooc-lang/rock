@@ -44,6 +44,7 @@ VariableDecl: class extends Declaration {
         copy isGlobal      = isGlobal
         copy isConst       = isConst
         copy isProto       = isProto
+        copy isStatic      = isStatic
         copy externName    = externName
         copy unmangledName = unmangledName
         copy fDecl         = fDecl

@@ -57,7 +57,7 @@ ClassDecl: class extends TypeDecl {
         copy module = module
 
         typeArgs each(|ta| copy addTypeArg(ta clone()))
-        variables each(|k, v| copy getMeta() addVariable(v clone()))
+        variables each(|k, v| copy addVariable(v clone()))
         getMeta() functions each(|fuuuuu| copy getMeta() addFunction(fuuuuu clone()))
 
         copy
@@ -98,10 +98,6 @@ ClassDecl: class extends TypeDecl {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-
-        specializations each(|k, specialized|
-            specialized resolve(trail, res)
-        )
 
         if(shouldCheckNoArgConstructor) {
             finalScore := 0
@@ -148,7 +144,16 @@ ClassDecl: class extends TypeDecl {
             if (!response ok()) return response
         }
 
-        return Response OK
+        finalResponse := Response OK
+        specializations each(|k, specialized|
+            response := specialized resolve(trail, res)
+            if (!response ok()) finalResponse = response
+
+            response  = specialized getMeta() resolve(trail, res)
+            if (!response ok()) finalResponse = response
+        )
+
+        return finalResponse
     }
 
     writeSize: func (w: TabbedWriter, instance: Bool) {
@@ -349,6 +354,14 @@ ClassDecl: class extends TypeDecl {
         constructor getBody() add(Return new(thisAccess, fDecl token))
 
         addFunction(constructor)
+    }
+
+    toString: func -> String {
+        if (isSpecialized()) {
+            super() + " (specialized)"
+        } else {
+            super()
+        }
     }
 }
 

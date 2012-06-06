@@ -75,11 +75,19 @@ DotArg: class extends Argument {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
+        if(debugCondition()) "Resolving %s" printfln(toString())
+
         idx := trail find(TypeDecl)
         if(idx == -1) res throwError(InternalError new(token, "Use of a %s outside a type declaration! That's nonsensical." format(class name)))
 
+
         tDecl := trail get(idx, TypeDecl)
         ref = tDecl getVariable(name)
+
+        if(debugCondition()) "tDecl = %s" printfln(tDecl toString())
+
+        if(debugCondition()) "ref = %s" printfln(ref ? ref toString() : "nil")
+
         if(ref == null) {
             if(res fatal) res throwError(UnresolvedArgumentAccess new(token,
                 "%s refers to non-existing member variable '%s' in type '%s'" format(class name, name, tDecl getName())))
@@ -89,6 +97,7 @@ DotArg: class extends Argument {
 
 	if(type == null) {
 	    type = ref getType()
+            if(debugCondition()) "type = %s" printfln(type ? type toString() : "nil")
 	    
 	    if(type == null) {
 		if(res fatal) {
@@ -97,6 +106,8 @@ DotArg: class extends Argument {
 		res wholeAgain(this, "Hasn't resolved type yet :x")
 		return Response OK
 	    } else if(type isGeneric()) {
+                if(debugCondition()) "type %s is generic, cloning and resolving" printfln(type ? type toString() : "nil")
+
 		type = type clone()
 		// force re-resolving in the child's context
 		// useful in case of generic specialization, e.g.
@@ -104,10 +115,14 @@ DotArg: class extends Argument {
 		// B: class extends A<Int> {}
 		type setRef(null)
 		type resolve(trail, res)
+
+                if(debugCondition()) "now type = %s and ref is %s" printfln(type toString(), type getRef() ? type getRef() toString() : "nil")
 	    }
+
+            if(debugCondition()) "now type for %p = %s" printfln(this, type ? type toString() : "nil")
 	}
 
-                return super(trail, res)
+        return super(trail, res)
 
     }
 

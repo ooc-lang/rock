@@ -622,7 +622,7 @@ TypeDecl: abstract class extends Declaration {
     }
 
     resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
-	
+
         if(type getName() == "This") {
             if(type suggest(getNonMeta() ? getNonMeta() : this)) return 0
         }
@@ -646,7 +646,7 @@ TypeDecl: abstract class extends Declaration {
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
 
         if(access debugCondition()) {
-            "Resolving access %s. isMeta = %s\n" format(access toString(), isMeta toString()) println()
+            "resolveAccess(%s) in %s\n" format(access toString(), toString()) println()
         }
 
         // don't allow to resolve any access before finishing ghosting

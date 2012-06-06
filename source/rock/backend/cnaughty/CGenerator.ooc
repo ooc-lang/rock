@@ -173,7 +173,15 @@ CGenerator: class extends Skeleton {
         if(vDecl isStatic()) {
             current app("static ")
         }
-        vDecl getType() write(current, vDecl getFullName())
+
+        if (vDecl debugCondition()) "vDecl %p (%s) has type %s" printfln(vDecl, vDecl toString(), vDecl getType() ? vDecl getType() toString() : "nil")
+
+        if (vDecl getType()) {
+            vDecl getType() write(current, vDecl getFullName())
+        } else {
+            // FIXME: just testing
+            current app(" wtf_unknown_type "). app(vDecl getFullName())
+        }
         if(vDecl expr && !vDecl isArg)
             current app(" = "). app(vDecl expr)
     }

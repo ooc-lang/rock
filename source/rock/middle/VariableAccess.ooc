@@ -73,7 +73,7 @@ VariableAccess: class extends Expression {
     hasSideEffects : func -> Bool { false }
 
     debugCondition: func -> Bool {
-        false
+        name == "X"
     }
 
     suggest: func (node: Node) -> Bool {
@@ -202,6 +202,7 @@ VariableAccess: class extends Expression {
                         suggest(node as TypeDecl thisDecl)
                     }
                 }
+
                 node resolveAccess(this, res, trail)
 
                 if(ref) {
