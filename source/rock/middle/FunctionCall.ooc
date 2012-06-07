@@ -1204,8 +1204,9 @@ FunctionCall: class extends Expression {
             // to any of the suffixed versions, if both the call
             // and the decl don't have a suffix, that's a good sign.
             // a slight boost of 1 should be enough to make rock use
-            // the correct version of a function with the same argument
-            // types and use the one declared with no suffix.
+            // the correct version of a function with multiple definitions
+            // that have the same argument types and use the one declared
+            // with no suffix.
             score += 1
         }
 
