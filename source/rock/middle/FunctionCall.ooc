@@ -1203,7 +1203,10 @@ FunctionCall: class extends Expression {
             // even though an unsuffixed call could be a call
             // to any of the suffixed versions, if both the call
             // and the decl don't have a suffix, that's a good sign.
-            score += Type SCORE_SEED / 4
+            // a slight boost of 1 should be enough to make rock use
+            // the correct version of a function with the same argument
+            // types and use the one declared with no suffix.
+            score += 1
         }
 
         if(declArgs getSize() == 0) return score
