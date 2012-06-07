@@ -386,7 +386,7 @@ TypeDecl: abstract class extends Declaration {
                             )
 
                             if (bestScore > 0) {
-                                "[special] best spe is %s, resolving there instead" printfln(bestSpe)
+                                "[special] best spe is %s, resolving there instead" printfln(bestSpe toString())
                                 return bestSpe getMeta() getFunction(name, suffix, call, true, 0, null, finalScore&)
                             }
                         }

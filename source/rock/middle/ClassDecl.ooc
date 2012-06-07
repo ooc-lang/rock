@@ -196,18 +196,7 @@ ClassDecl: class extends TypeDecl {
             if (!response ok()) return response
         }
 
-        finalResponse := Response OK
-        specializations each(|k, specialized|
-            "===================== resolving specialization =============" println()
-            response := specialized resolve(trail, res)
-            if (!response ok()) finalResponse = response
-
-            response  = specialized getMeta() resolve(trail, res)
-            if (!response ok()) finalResponse = response
-            "===================== resolving done           =============" println()
-        )
-
-        return finalResponse
+        return Response OK
     }
 
     writeSize: func (w: TabbedWriter, instance: Bool) {
@@ -429,11 +418,7 @@ ClassDecl: class extends TypeDecl {
     }
 
     toString: func -> String {
-        if (isSpecialized()) {
-            super() + " (specialized)"
-        } else {
-            super()
-        }
+        super()
     }
 }
 
