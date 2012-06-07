@@ -150,6 +150,7 @@ FunctionDecl: class extends Declaration {
 
     clone: func ~withName (name: String) -> This {
         copy := new(name, token)
+        copy suffix = suffix
 
         copy isAbstract = isAbstract
         copy isStatic = isStatic

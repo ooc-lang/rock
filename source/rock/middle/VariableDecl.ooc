@@ -40,6 +40,10 @@ VariableDecl: class extends Declaration {
 
     clone: func -> This {
         copy := new(type ? type clone() : null, name, expr ? expr clone() : null, token)
+        cloneInto(copy)
+    }
+
+    cloneInto: func (copy: This) -> This {
         copy isArg         = isArg
         copy isGlobal      = isGlobal
         copy isConst       = isConst
@@ -144,7 +148,8 @@ VariableDecl: class extends Declaration {
         trail push(this)
 
         if(debugCondition() || res params veryVerbose) {
-            "Resolving variable decl %s\n" printfln(toString())
+            "= VariableDecl =====================" println()
+            "Resolving %s %s" printfln(class name, toString())
         }
 
         if(expr) {

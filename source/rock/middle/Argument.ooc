@@ -35,6 +35,12 @@ Argument: abstract class extends VariableDecl {
 
     }
 
+    clone: func -> This {
+        copy := new(type ? type clone() : null, name, token)
+        cloneInto(copy)
+        copy as Argument
+    }
+
 }
 
 VarArg: class extends Argument {
@@ -75,7 +81,10 @@ DotArg: class extends Argument {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        if(debugCondition()) "Resolving %s" printfln(toString())
+        if(debugCondition()) {
+            "= DotArg ====================" println()
+            "Resolving %s %s" printfln(class name, toString())
+        }
 
         idx := trail find(TypeDecl)
         if(idx == -1) res throwError(InternalError new(token, "Use of a %s outside a type declaration! That's nonsensical." format(class name)))
@@ -126,6 +135,12 @@ DotArg: class extends Argument {
 
     }
 
+    clone: func -> This {
+        copy := new(name, token)
+        cloneInto(copy)
+        copy
+    }
+
     toString: func -> String { "." + name }
 
 }
@@ -146,7 +161,6 @@ AssArg: class extends DotArg {
             res wholeAgain(this, "Yet has to be unwrapped =)")
         } else {
             fDecl := trail get(trail find(FunctionDecl), FunctionDecl)
-            //printf("Unwrapping AssArg %s in function %s\n", toString(), fDecl toString())
             if(fDecl getName() != "new") {
                 fDecl getBody() add(0, BinaryOp new(
                     VariableAccess new(VariableAccess new("this", token), name, token),
@@ -161,6 +175,12 @@ AssArg: class extends DotArg {
 
         return Response OK
 
+    }
+
+    clone: func -> This {
+        copy := new(name, token)
+        cloneInto(copy)
+        copy
     }
 
     toString: func -> String { "=" + name }

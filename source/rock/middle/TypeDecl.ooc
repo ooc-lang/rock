@@ -352,44 +352,55 @@ TypeDecl: abstract class extends Declaration {
                 "[special] bestMatch for %s is %s from %s" printfln(name, bestMatch ? bestMatch toString() : "(nil)", cDecl toString())
                 "[special] we have %d specializations" printfln(cDecl specializations size)
 
-                if (bestMatch isStatic) {
+                if (bestMatch isStatic && call && call expr instanceOf?(TypeAccess)) {
                     "[special] bestMatch is static, call = %p" printfln(call)
-                    if (call) {
-                        "[special] call expr = %s" printfln(call expr toString())
-                        if (call expr instanceOf?(TypeAccess)) {
-                            ta := call expr as TypeAccess
-                            leftTypeArgs := ta inner getTypeArgs()
-                            bestScore := -1
-                            bestSpe: ClassDecl = null
+                    "[special] call expr = %s" printfln(call expr toString())
+                    ta := call expr as TypeAccess
+                    leftTypeArgs := ta inner getTypeArgs()
+                    bestScore := -1
+                    bestSpe: ClassDecl = null
 
-                            cDecl specializations each(|speType, spe|
-                                "[special] => confronting %s and %s" printfln(ta inner toString(), speType toString())
-                                rightTypeArgs := speType getTypeArgs()
-                                totalScore := -1
+                    cDecl specializations each(|speType, spe|
+                        "[special] => confronting %s and %s" printfln(ta inner toString(), speType toString())
+                        rightTypeArgs := speType getTypeArgs()
+                        totalScore := -1
 
-                                for (i in 0..leftTypeArgs size) {
-                                    lhs := leftTypeArgs[i]  getRef() as TypeDecl getInstanceType()
-                                    rhs := rightTypeArgs[i] getRef() as TypeDecl getInstanceType()
-                                    score := lhs getScore(rhs)
-                                    "[special] score of %s vs %s = %d" printfln(speType toString(), ta inner toString(), score)
-                                    if (score == -1) {
-                                        totalScore = Type NOLUCK_SCORE
-                                    } else {
-                                        totalScore += score
-                                    }
-                                }
+                        for (i in 0..leftTypeArgs size) {
+                            lRef := leftTypeArgs[i] getRef()
 
-                                if (totalScore > bestScore) {
-                                    bestScore = totalScore
-                                    bestSpe = spe
-                                }
-                            )
+                            lhs: Type =  match lRef {
+                                case tDecl: TypeDecl =>
+                                    tDecl getInstanceType()
+                                case vDecl: VariableDecl =>
+                                    cDecl typeArgMappings get(vDecl getName())
+                                case =>
+                                    null // silly transpiler doesn't recognize control flow properly :)
+                            }
+                            if (!lhs) {
+                                "[special] referring to a var, not a typedecl: we can't infer at compile time." println()
+                                "[special] ref = %s %s" printfln(lRef class name, lRef toString())
+                                break
+                            }
 
-                            if (bestScore > 0) {
-                                "[special] best spe is %s, resolving there instead" printfln(bestSpe toString())
-                                return bestSpe getMeta() getFunction(name, suffix, call, true, 0, null, finalScore&)
+                            rhs := rightTypeArgs[i] getRef() as TypeDecl getInstanceType()
+                            score := lhs getScore(rhs)
+                            "[special] score of %s vs %s = %d" printfln(speType toString(), ta inner toString(), score)
+                            if (score == -1) {
+                                totalScore = Type NOLUCK_SCORE
+                            } else {
+                                totalScore += score
                             }
                         }
+
+                        if (totalScore > bestScore) {
+                            bestScore = totalScore
+                            bestSpe = spe
+                        }
+                    )
+
+                    if (bestScore > 0) {
+                        "[special] best spe is %s, resolving there instead" printfln(bestSpe toString())
+                        return bestSpe getMeta() getFunction(name, suffix, call, true, 0, null, finalScore&)
                     }
                 }
             }
