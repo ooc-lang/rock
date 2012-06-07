@@ -74,10 +74,15 @@ CGenerator: class extends Skeleton {
 
     visitTypeAccess: func (typeAccess: TypeAccess) {
         ref := typeAccess getRef()
-        if(!ref instanceOf?(TypeDecl)) {
-            Exception new(This, "Ref of TypeAccess %s isn't a TypeDecl but a %s! wtf?" format(typeAccess toString(), ref class name)) throw()
+        match ref {
+            case td: TypeDecl =>
+                current app(td underName()). app("_class()")
+            case vd: VariableDecl =>
+                va := VariableAccess new(vd, vd token)
+                visitVariableAccess(va)
+            case =>
+                Exception new(This, "Invalid type of ref %s for TypeAccess %s! wtf?" format(ref class name, typeAccess toString())) throw()
         }
-        current app(ref as TypeDecl underName()). app("_class()")
     }
 
     /** Write a binary operation */

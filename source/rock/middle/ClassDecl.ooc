@@ -72,11 +72,11 @@ ClassDecl: class extends TypeDecl {
         typeArgs each(|ta| copy addTypeArg(ta clone()))
         prepare(copy)
 
-        variables each(|k, v| copy addVariable(v clone()))
+        variables each(|k, v|
+            copy addVariable(v clone())
+        )
         
-        "==============================" println()
         getMeta() functions each(|f|
-            "[special] Adding function %s to %s" printfln(f toString(), copy toString())
             copy getMeta() addFunction(f clone())
         )
         getMeta() getDefaultsFunc()
@@ -138,6 +138,20 @@ ClassDecl: class extends TypeDecl {
                 "[special] setting type of %s to %s's type" printfln(lhs toString(), rhs toString())
             }
         )
+
+        /*
+        spe getVariables() each(|va|
+            // TODO: we need to be smarter about that:
+            // X* should => Int*, not Int. etc.
+            mapped := spe typeArgMappings get(va getType() getName())
+            if (mapped) {
+                "[special] mapping %s to %s" printfln(va getType() toString(), mapped toString())
+                // FIXME unsafe..
+                va setType(mapped getRef() as TypeDecl getInstanceType())
+                va setExpr(null)
+            }
+        )
+        */
         specializations put(tts, spe)
     }
 
@@ -202,11 +216,13 @@ ClassDecl: class extends TypeDecl {
 
         finalResponse := Response OK
         specializations each(|k, specialized|
+            "===================== resolving specialization =============" println()
             response := specialized resolve(trail, res)
             if (!response ok()) finalResponse = response
 
             response  = specialized getMeta() resolve(trail, res)
             if (!response ok()) finalResponse = response
+            "===================== resolving done           =============" println()
         )
 
         return finalResponse

@@ -35,7 +35,7 @@ VariableDecl: class extends Declaration {
     }
 
     debugCondition: func -> Bool {
-        false
+        name == "cookie"
     }
 
     clone: func -> This {
