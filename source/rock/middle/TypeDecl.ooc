@@ -345,6 +345,7 @@ TypeDecl: abstract class extends Declaration {
 
         finalScore = bestScore
 
+        // TODO refactor this, obviously
         if (bestMatch && bestMatch owner && bestMatch owner instanceOf?(ClassDecl)) {
             cDecl := bestMatch owner as ClassDecl
             if(cDecl hasSpecializations()) {
@@ -355,6 +356,40 @@ TypeDecl: abstract class extends Declaration {
                     "[special] bestMatch is static, call = %p" printfln(call)
                     if (call) {
                         "[special] call expr = %s" printfln(call expr toString())
+                        if (call expr instanceOf?(TypeAccess)) {
+                            ta := call expr as TypeAccess
+                            leftTypeArgs := ta inner getTypeArgs()
+                            bestScore := -1
+                            bestSpe: ClassDecl = null
+
+                            cDecl specializations each(|speType, spe|
+                                "[special] => confronting %s and %s" printfln(ta inner toString(), speType toString())
+                                rightTypeArgs := speType getTypeArgs()
+                                totalScore := -1
+
+                                for (i in 0..leftTypeArgs size) {
+                                    lhs := leftTypeArgs[i]  getRef() as TypeDecl getInstanceType()
+                                    rhs := rightTypeArgs[i] getRef() as TypeDecl getInstanceType()
+                                    score := lhs getScore(rhs)
+                                    "[special] score of %s vs %s = %d" printfln(speType toString(), ta inner toString(), score)
+                                    if (score == -1) {
+                                        totalScore = Type NOLUCK_SCORE
+                                    } else {
+                                        totalScore += score
+                                    }
+                                }
+
+                                if (totalScore > bestScore) {
+                                    bestScore = totalScore
+                                    bestSpe = spe
+                                }
+                            )
+
+                            if (bestScore > 0) {
+                                "[special] best spe is %s, resolving there instead" printfln(bestSpe)
+                                return bestSpe getMeta() getFunction(name, suffix, call, true, 0, null, finalScore&)
+                            }
+                        }
                     }
                 }
             }
