@@ -156,14 +156,6 @@ ClassDeclWriter: abstract class extends Skeleton {
 
         }
 
-        if (cDecl getNonMeta() && cDecl getNonMeta() instanceOf?(ClassDecl)) {
-            meat := cDecl getNonMeta() as ClassDecl
-            meat specializations each(|tts, specialized|
-                "Writing member func prototypes for %s | %s" printfln(meat getName(), specialized toString())
-                writeMemberFuncPrototypes(this, specialized getMeta())
-            )
-        }
-
     }
 
     writeStaticFuncs: static func (this: Skeleton, cDecl: ClassDecl) {
@@ -203,14 +195,6 @@ ClassDeclWriter: abstract class extends Skeleton {
 
         }
 
-
-        if (cDecl getNonMeta() && cDecl getNonMeta() instanceOf?(ClassDecl)) {
-            meat := cDecl getNonMeta() as ClassDecl
-            meat specializations each(|tts, specialized|
-                "Writing static functions for %s | %s" printfln(meat getName(), specialized toString())
-                writeStaticFuncs(this, specialized getMeta())
-            )
-        }
     }
 
     writeInstanceVirtualFuncs: static func (this: Skeleton, cDecl: ClassDecl) {
@@ -241,14 +225,6 @@ ClassDeclWriter: abstract class extends Skeleton {
             FunctionDeclWriter writeFuncArgs(this, fDecl, ArgsWriteMode VALUES_ONLY, baseClass)
 
             current app("; }")
-        }
-
-        if (cDecl getNonMeta() && cDecl getNonMeta() instanceOf?(ClassDecl)) {
-            meat := cDecl getNonMeta() as ClassDecl
-            meat specializations each(|tts, specialized|
-                "Writing instance virtual funcs for %s | %s" printfln(meat getName(), specialized toString())
-                writeInstanceVirtualFuncs(this, specialized getMeta())
-            )
         }
 
     }
@@ -316,14 +292,6 @@ ClassDeclWriter: abstract class extends Skeleton {
             }
             current closeBlock()
         }
-
-        if (cDecl getNonMeta() && cDecl getNonMeta() instanceOf?(ClassDecl)) {
-            meat := cDecl getNonMeta() as ClassDecl
-            meat specializations each(|tts, specialized|
-                "Writing instance impl functions for %s | %s" printfln(meat getName(), specialized toString())
-                writeInstanceImplFuncs(this, specialized getMeta())
-            )
-        }
     }
 
     getClassType: static func (cDecl: ClassDecl) -> ClassDecl {
@@ -337,14 +305,6 @@ ClassDeclWriter: abstract class extends Skeleton {
     writeClassGettingPrototype: static func (this: Skeleton, cDecl: ClassDecl) {
         realDecl := getClassType(cDecl)
         current nl(). app(realDecl underName()). app(" *"). app(cDecl getNonMeta() getFullName()). app("_class();")
-
-        if (cDecl getNonMeta() && cDecl getNonMeta() instanceOf?(ClassDecl)) {
-            meat := cDecl getNonMeta() as ClassDecl
-            meat specializations each(|tts, specialized|
-                "Writing class-getting prototype for %s | %s" printfln(meat getName(), specialized toString())
-                writeClassGettingPrototype(this, specialized getMeta())
-            )
-        }
     }
 
     writeClassGettingFunction: static func (this: Skeleton, cDecl: ClassDecl) {
@@ -415,14 +375,6 @@ ClassDeclWriter: abstract class extends Skeleton {
 
             current closeBlock()
             current nl(). app("return &class;"). closeBlock()
-        }
-
-        if (cDecl getNonMeta() && cDecl getNonMeta() instanceOf?(ClassDecl)) {
-            meat := cDecl getNonMeta() as ClassDecl
-            meat specializations each(|tts, specialized|
-                "Writing class-getting function for %s | %s" printfln(meat getName(), specialized toString())
-                writeClassGettingFunction(this, specialized getMeta())
-            )
         }
     }
 
@@ -528,17 +480,6 @@ ClassDeclWriter: abstract class extends Skeleton {
         current nl(). app("struct _"). app(structName). app(";")
         current nl(). app("typedef struct _"). app(structName). app(" "). app(structName). app(";")
         if(cDecl getVersion()) VersionWriter writeEnd(this)
-
-        cDecl specializations each(|tts, specialized|
-            "Writing struct typedefs for %s | %s" printfln(cDecl getName(), specialized toString())
-            specializedStructName := specialized underName()
-
-            if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
-            current nl(). app("/* specialized stuff ahead! */")
-            current nl(). app("typedef struct _"). app(structName). app(" "). app(specializedStructName). app(";")
-            current nl(). app("/* done with specialized stuff */")
-            if(cDecl getVersion()) VersionWriter writeEnd(this)
-        )
     }
 
 }

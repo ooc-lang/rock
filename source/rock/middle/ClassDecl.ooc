@@ -27,7 +27,6 @@ ClassDecl: class extends TypeDecl {
         }
     }
     _typeArgMappings := HashMap<String, VariableAccess> new()
-    specializedSuffix := ""
 
     isAbstract := false
     isFinal := false
@@ -62,11 +61,11 @@ ClassDecl: class extends TypeDecl {
     }
     
     clone: func -> This {
-        cloneWith(|cd|)
+        cloneWith(name, |cd|)
     }
 
-    cloneWith: func (prepare: Func(ClassDecl)) -> This {
-        copy := This new(name, superType, isMeta, token)
+    cloneWith: func (speName: String, prepare: Func(ClassDecl)) -> This {
+        copy := This new(speName, superType, isMeta, token)
         copy module = module
 
         typeArgs each(|ta| copy addTypeArg(ta clone()))
@@ -92,11 +91,7 @@ ClassDecl: class extends TypeDecl {
     }
     
     underName: func -> String {
-        if (isSpecialized() && !isMeta) {
-            super() + "__" + specializedSuffix
-        } else {
-            super()
-        }
+        super()
     }
 
     hasSpecializations: func -> Bool {
@@ -123,9 +118,8 @@ ClassDecl: class extends TypeDecl {
             Exception new("[special] Wrong specialization (typeargs count don't match)") throw()
         }
 
-        spe := cloneWith(|copy|
-            copy specializedSuffix = generateTempName("specialized")
-
+        speName := name + "_" + generateTempName("specialized")
+        spe := cloneWith(speName, |copy|
             "-- Mappings --" println()
             for (i in 0..typeArgs size) {
                 lhs := typeArgs get(i)
@@ -139,20 +133,8 @@ ClassDecl: class extends TypeDecl {
             }
         )
 
-        /*
-        spe getVariables() each(|va|
-            // TODO: we need to be smarter about that:
-            // X* should => Int*, not Int. etc.
-            mapped := spe typeArgMappings get(va getType() getName())
-            if (mapped) {
-                "[special] mapping %s to %s" printfln(va getType() toString(), mapped toString())
-                // FIXME unsafe..
-                va setType(mapped getRef() as TypeDecl getInstanceType())
-                va setExpr(null)
-            }
-        )
-        */
         specializations put(tts, spe)
+        module addType(spe)
     }
 
     resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
