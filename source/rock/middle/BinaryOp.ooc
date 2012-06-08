@@ -332,8 +332,18 @@ BinaryOp: class extends Expression {
     }
 
     isGeneric: func -> Bool {
-        (left  getType() isGeneric() && left  getType() pointerLevel() == 0) ||
-        (right getType() isGeneric() && right getType() pointerLevel() == 0)
+        result := (left  getType() isGeneric() && left  getType() pointerLevel() == 0) ||
+                  (right getType() isGeneric() && right getType() pointerLevel() == 0)
+        // DEBUG
+        if (result && left getType() getName() == "Kaylos") {
+            "Wondering if generic. Left (%s) type = %s / %s (is %d), right (%s) type = %s / %s (is %d)" printfln(
+                left toString(), left  getType() toString(),
+                left getType() getRef() toString(), left  getType() isGeneric(),
+                right toString(), right  getType() toString(),
+                right getType() getRef() toString(), right  getType() isGeneric()
+            )
+        }
+        result
     }
 
     isLegal: func (res: Resolver) -> Bool {

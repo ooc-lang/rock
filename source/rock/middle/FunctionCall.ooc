@@ -145,7 +145,7 @@ FunctionCall: class extends Expression {
      * a return expression, when it's being used.
      */
     debugCondition: func -> Bool {
-        name == "falafel"
+        false
     }
 
     /**
@@ -233,12 +233,6 @@ FunctionCall: class extends Expression {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-
-        // DEBUG code
-        if (name == "bbtrap") {
-            "Trail from trap = " println()
-            trail toString() println()
-        }
 
         if(debugCondition() || res params veryVerbose) {
             "===============================================================" println()

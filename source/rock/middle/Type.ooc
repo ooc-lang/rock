@@ -56,7 +56,10 @@ Type: abstract class extends Expression {
 
     isGeneric: func -> Bool {
         if(getRef()) {
-            //printf("ref of %s is %s %s\n", toString(), getRef() class name, getRef() toString())
+            // DEBUG
+            if (getName() == "Kaylos") {
+                "ref of %s is %s %s" printfln(toString(), getRef() class name, getRef() toString())
+            }
             return getRef() instanceOf?(VariableDecl)
         }
         return false
@@ -319,7 +322,7 @@ PointerType: class extends SugarType {
 
     dereference: func -> Type { inner }
 
-    clone: func -> Type { new(inner, token) }
+    clone: func -> Type { new(inner clone(), token) }
 
 }
 
