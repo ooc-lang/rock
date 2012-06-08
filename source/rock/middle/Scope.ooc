@@ -6,11 +6,11 @@ import ../frontend/[BuildParams, Token]
 
 Scope: class extends Node {
 	
-	size: SSizeT {
-		get {
-			list getSize()
-		}
-	}
+    size: SSizeT {
+        get {
+            list getSize()
+        }
+    }
 
     list : ArrayList<Statement> { get set }
 
@@ -20,7 +20,7 @@ Scope: class extends Node {
 
     clone: func -> This {
         copy := new()
-        list each(|e| copy list add(e clone()))
+        list each(|stat| copy list add(stat clone()))
         copy
     }
 

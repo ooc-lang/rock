@@ -17,7 +17,7 @@ Foreach: class extends ControlStatement {
 
     clone: func -> This {
         copy := new(variable clone(), collection clone(), token)
-        body list each(|e| copy body add(e clone()))
+        body list each(|stat| copy body add(stat clone()))
         copy
     }
 

@@ -120,7 +120,7 @@ FunctionCall: class extends Expression {
     clone: func -> This {
         copy := new(expr, name, token)
         copy suffix = suffix
-        args each(|e| copy args add(e clone()))
+        args each(|arg| copy args add(arg clone()))
         copy
     }
 
@@ -145,7 +145,7 @@ FunctionCall: class extends Expression {
      * a return expression, when it's being used.
      */
     debugCondition: func -> Bool {
-        false
+        name == "falafel"
     }
 
     /**
@@ -233,6 +233,12 @@ FunctionCall: class extends Expression {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
+
+        // DEBUG code
+        if (name == "bbtrap") {
+            "Trail from trap = " println()
+            trail toString() println()
+        }
 
         if(debugCondition() || res params veryVerbose) {
             "===============================================================" println()
