@@ -539,7 +539,7 @@ FunctionDecl: class extends Declaration {
                 if (arg getType() == null || !arg getType() isResolved()) {
                     "Looping because of arg %s" format(arg toString()) println()
                     res wholeAgain(this, "need arg type for the ref")
-                    return Response OK
+                    return
                 }
             )
         }
@@ -926,7 +926,7 @@ FunctionDecl: class extends Declaration {
                         if (fScore == -1) {
                             res wholeAgain(this, "Can't figure out the actual type of generic")
                             trail pop(this)
-                            return Response OK
+                            return
                         }
                     } else {
                         t = arg getType()
