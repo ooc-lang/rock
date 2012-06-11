@@ -657,7 +657,7 @@ CommandLine: class {
             if(params verbose) println()
             // Oookay, we're done here.
             success()
-            return 0
+            return
         }
 
         if(params slave && !first) {
