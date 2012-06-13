@@ -1,7 +1,7 @@
 import structs/ArrayList
 import ../frontend/[Token, BuildParams]
 import Visitor, Expression, VariableDecl, Declaration, Type, Node,
-       OperatorDecl, FunctionCall, Import, Module, BinaryOp,
+       OperatorDecl, FunctionCall, Import, Module, BinaryOp, EnumDecl,
        VariableAccess, AddressOf, ArrayCreation, TypeDecl, Argument, Scope
 import tinker/[Resolver, Response, Trail, Errors]
 
@@ -77,10 +77,20 @@ ArrayAccess: class extends Expression {
         }
 
         {
-            response := resolveOverload(trail, res)
+            hasOverload := true
+            response := resolveOverload(trail, res, hasOverload&)
             if(!response ok()) {
                 res wholeAgain(this, "overload says some things aren't resolved yet")
                 return Response OK
+            }
+
+            if(!hasOverload) {
+                // If we do not find an overload, we must make sure the indices are valid (numeric or enum members) for raw arrays (C and ooc arrays)
+                for(index in indices) {
+                    if(!isValidIndex(index)) {
+                        res throwError(InvalidArrayIndex new(token, "Trying to access an array with an index of non numeric type %s without proper overload" format(index getType() ? index getType() toString() : "(nil)")))
+                    }
+                }
             }
         }
 
@@ -97,6 +107,23 @@ ArrayAccess: class extends Expression {
 
     }
 
+    isValidIndex: func(index: Expression, ignore := false) -> Bool {
+        if(!ignore) {
+            deepDown := this as Expression
+            while(deepDown instanceOf?(ArrayAccess)) {
+                deepDown = deepDown as ArrayAccess array
+            }
+
+            // If we are not dealing with an ooc array or a pointer and we care about type checking, we just return true because a non overloaded access on such a type will be detected elsewhere
+            if(deepDown getType() pointerLevel() <= 0 && !deepDown getType() instanceOf?(ArrayType)) {
+                return true
+            }
+        }
+
+        // Just check whether the index is of a numeric type or of an enum type that gets translated to an integer in C anyway
+        index getType() isNumericType() || (index getType() getRef() ? index getType() getRef() instanceOf?(EnumDecl) : false)
+    }
+
     handleArrayCreation: func (trail: Trail, res: Resolver) -> Response {
 
         deepDown := this as Expression
@@ -109,6 +136,12 @@ ArrayAccess: class extends Expression {
                 res throwError(InvalidArrayCreation new(token, "You can't call new on an ArrayAccess with several indices! Only one index is supported."))
             }
             index := indices[0]
+
+            // We should only pass numbers when creating an array
+            // We don't care about checking whether the type is an array/pointer in this case, as we know we are accessing a class.
+            if(!isValidIndex(index, true)) {
+                res throwError(InvalidArrayIndex new(token, "Trying to create an array with a size of non numeric type %s" format(index getType() ? index getType() toString() : "(nil)")))
+            }
 
             varAcc := deepDown as VariableAccess
             tDecl := varAcc getRef() as TypeDecl
@@ -173,7 +206,7 @@ ArrayAccess: class extends Expression {
 
     }
 
-    resolveOverload: func (trail: Trail, res: Resolver) -> Response {
+    resolveOverload: func (trail: Trail, res: Resolver, hasOne?: Bool* = null) -> Response {
 
         /*
         printf("Looking for an overload of %s[%s], %s\n",
@@ -219,6 +252,8 @@ ArrayAccess: class extends Expression {
         }
 
         if(candidate != null) {
+            if(hasOne?) hasOne?@ = true
+
             fDecl := candidate getFunctionDecl()
             fCall := FunctionCall new(fDecl getName(), token)
             fCall setRef(fDecl)
@@ -241,6 +276,7 @@ ArrayAccess: class extends Expression {
             res wholeAgain(this, "Just been replaced with an overload")
             return Response LOOP
         }
+        if(hasOne?) hasOne?@ = false
 
         return Response OK
 
@@ -339,6 +375,10 @@ InvalidArrayAccess: class extends Error {
 }
 
 InvalidArrayCreation: class extends Error {
+    init: super func ~tokenMessage
+}
+
+InvalidArrayIndex: class extends Error {
     init: super func ~tokenMessage
 }
 
