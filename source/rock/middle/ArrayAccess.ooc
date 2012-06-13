@@ -115,7 +115,7 @@ ArrayAccess: class extends Expression {
             }
 
             // If we are not dealing with an ooc array or a pointer and we care about type checking, we just return true because a non overloaded access on such a type will be detected elsewhere
-            if(!deepDown getType() isPointer() && !deepDown getType() instanceOf?(ArrayType)) {
+            if(deepDown getType() pointerLevel() <= 0 && !deepDown getType() instanceOf?(ArrayType)) {
                 return true
             }
         }
