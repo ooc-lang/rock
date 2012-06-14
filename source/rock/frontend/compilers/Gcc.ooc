@@ -54,7 +54,6 @@ Gcc: class extends BaseCompiler {
 
     reset: func() {
         super()
-        command add("-std=c89")
         command add("-Wall")
         command add("-pthread")
     }
