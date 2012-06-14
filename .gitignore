@@ -12,6 +12,7 @@ bin-linux
 callgrind.out.*
 snowflake
 *.o
+third-party/*
 
 # This is ugly, BUT IT WORKS.
 libs/sources/.deps/
