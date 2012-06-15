@@ -41,6 +41,8 @@ MakeDriver: class extends Driver {
 
         "Spawning bunnies in %s" printfln(makefile path)
 
+        useFlags := getFlagsFromUse(module)
+
         toCompile := module collectDeps()
         for(candidate in toCompile) {
             CGenerator new(params, candidate) write()
@@ -97,7 +99,11 @@ MakeDriver: class extends Driver {
         fW write("endif\n")
 
         fW write("CFLAGS+=-I .")
-        fW write(" -I ${ROCK_DIST}/libs/headers/ -L/usr/local/lib -I/usr/local/include")
+        fW write(" -I ${ROCK_DIST}/libs/headers/ -I/usr/local/include")
+
+        for(useFlag in useFlags filter(|f| flagType(f) == FlagType CFLAG)) {
+            fW write(" "). write(useFlag)
+        }
 
         if(params debug) {
             fW write(" -g")
@@ -121,6 +127,26 @@ MakeDriver: class extends Driver {
 
         for(incPath in params incPath getPaths()) {
             fW write(" -I "). write(incPath getPath())
+        }
+
+        fW write("\n")
+
+        fW write("LDFLAGS+= -L/usr/local/lib")
+
+        for(useFlag in useFlags filter(|f| flagType(f) == FlagType LDFLAG)) {
+            fW write(" "). write(useFlag)
+        }
+
+        for(dynamicLib in params dynamicLibs) {
+            fW write(" -l "). write(dynamicLib)
+        }
+
+        for(additional in params additionals) {
+            fW write(" "). write(additional)
+        }
+
+        for(libPath in params libPath getPaths()) {
+            fW write(" -L "). write(libPath getPath())
         }
 
         fW write("\n")
@@ -166,26 +192,7 @@ MakeDriver: class extends Driver {
 
         fW write("\t${CC} ${CFLAGS} ${OBJECT_FILES} ")
 
-        for(dynamicLib in params dynamicLibs) {
-            fW write(" -l "). write(dynamicLib)
-        }
-
-        for(additional in params additionals) {
-            fW write(" "). write(additional)
-        }
-
-        for(libPath in params libPath getPaths()) {
-            fW write(" -L "). write(libPath getPath())
-        }
-
-        fW write(" -o ${EXECUTABLE}")
-
-        libs := getFlagsFromUse(module)
-        for(lib in libs) {
-            fW write(" "). write(lib)
-        }
-
-        fW write(" ${GC_PATH}")
+        fW write("${LDFLAGS} -o ${EXECUTABLE} ${GC_PATH}")
 
         fW write("\n\n")
 
@@ -198,4 +205,20 @@ MakeDriver: class extends Driver {
 
     }
 
+    flagType: func (flag: String) -> FlagType {
+        if (flag startsWith?("-L") ||
+            flag startsWith?("-l") ||
+            flag endsWith?(".a")) {
+            FlagType LDFLAG
+        } else {
+            FlagType CFLAG
+        }
+    }
+
 }
+
+FlagType: enum {
+    CFLAG
+    LDFLAG
+}
+
