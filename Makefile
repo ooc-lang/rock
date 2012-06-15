@@ -36,8 +36,8 @@ grammar:
 
 snowflake/NagaQueen.o: source/rock/frontend/NagaQueen.c
 	mkdir -p snowflake
-	# ${CC} -std=c99 ${NQ_PATH} -O3 -fomit-frame-pointer -D__OOC_USE_GC__ -w -c -o snowflake/NagaQueen.o
-	${CC} -std=c99 ${NQ_PATH} -O0 -g -D__OOC_USE_GC__ -w -c -o snowflake/NagaQueen.o
+	${CC} -std=c99 ${NQ_PATH} -O3 -fomit-frame-pointer -D__OOC_USE_GC__ -w -c -o snowflake/NagaQueen.o
+	#${CC} -std=c99 ${NQ_PATH} -O0 -g -D__OOC_USE_GC__ -w -c -o snowflake/NagaQueen.o
 
 # Prepares the build/ directory, used for bootstrapping
 # The build/ directory contains all the C sources needed to build rock
@@ -88,7 +88,7 @@ man:
 # Compile rock with itself
 self: snowflake/NagaQueen.o
 	mkdir -p bin/
-	${OOC_CMD} rock/rock -o=bin/rock NagaQueen.o
+	${OOC_CMD} rock/rock -o=bin/rock snowflake/NagaQueen.o
 
 # Save your rock binary under bin/safe_rock
 backup:
