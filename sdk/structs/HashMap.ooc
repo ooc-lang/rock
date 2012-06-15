@@ -281,6 +281,23 @@ HashMap: class <K, V> extends BackIterable<V> {
         return false
     }
 
+    clone: func -> HashMap<K, V> {
+        copy := This<K, V> new()
+        each(|k, v| copy put(k, v))
+        copy
+    }
+
+    merge: func (other: HashMap<K, V>) -> HashMap<K, V> {
+        c := clone()
+        c merge!(other)
+        c
+    }
+
+    merge!: func (other: HashMap<K, V>) -> HashMap<K, V> {
+        other each(|k, v| put(k, v))
+        this
+    }
+
     /**
      * Puts a key/value pair in the hash table. If the pair already exists,
      * it is overwritten.
