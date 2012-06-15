@@ -156,6 +156,9 @@ UseDef: class {
             } else if(id == "Libs") {
                 for(lib in value split(','))
                     libs add(lib trim())
+            } else if(id == "Objects") {
+                for(obj in value split(','))
+                    libs add(absolutizePath(obj trim()))
             } else if(id == "Includes") {
                 for(inc in value split(','))
                     includes add(Include new(inc trim(), IncludeMode BRACKETED, params))
