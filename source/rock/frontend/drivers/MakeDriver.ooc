@@ -54,38 +54,8 @@ MakeDriver: class extends Driver {
 
         fW write("CC=%s\n" format(params compiler executablePath))
 
-        fW write("# try to determine the OS and architecture\n")
-        fW write("MYOS := $(shell uname -s)\n")
-        fW write("MACHINE := $(shell uname -m)\n")
-        fW write("ifeq ($(MYOS), Linux)\n")
-        fW write("    ARCH=linux\n")
-        fW write("else ifeq ($(MYOS), FreeBSD)\n")
-        fW write("    ARCH=freebsd\n")
-        fW write("else ifeq ($(MYOS), Darwin)\n")
-        fW write("    ARCH=osx\n")
-        fW write("else ifeq ($(MYOS), CYGWIN_NT-5.1)\n")
-        fW write("    ARCH=win\n")
-        fW write("else ifeq ($(MYOS), MINGW32_NT-5.1)\n")
-        fW write("    ARCH=win\n")
-        fW write("else ifeq ($(MYOS), MINGW32_NT-6.1)\n")
-        fW write("    ARCH=win\n")
-        fW write("else ifeq ($(MYOS),)\n")
-        fW write("  ifeq (${OS}, Windows_NT)\n")
-        fW write("    ARCH=win\n")
-        fW write("  else\n")
-        fW write("    $(error \"OS ${OS} doesn't have pre-built Boehm GC packages. Please compile and install your own and recompile with GC_PATH=-lgc\")\n")
-        fW write("  endif\n")
-        fW write("endif\n")
+        writePlatformDetection(fW)
 
-        fW write("ifneq ($(ARCH), osx)\n")
-        fW write("  ifeq ($(MACHINE), x86_64)\n")
-        fW write("    ARCH:=${ARCH}64\n")
-        fW write("  else ifeq (${PROCESSOR_ARCHITECTURE}, AMD64)\n")
-        fW write("    ARCH:=${ARCH}64\n")
-        fW write("  else\n")
-        fW write("    ARCH:=${ARCH}32\n")
-        fW write("  endif\n")
-        fW write("endif\n")
 
         fW write("# this folder must contains libs/\n")
         fW write("ROCK_DIST?=.\n")
@@ -127,6 +97,14 @@ MakeDriver: class extends Driver {
 
         for(incPath in params incPath getPaths()) {
             fW write(" -I "). write(incPath getPath())
+        }
+
+        fW write("\n")
+
+        fW write("ADDITIONAL_OBJECTS+=")
+
+        for(useFlag in useFlags filter(|f| flagType(f) == FlagType ADDITIONAL_OBJECT)) {
+            fW write(" "). write(useFlag)
         }
 
         fW write("\n")
@@ -192,7 +170,7 @@ MakeDriver: class extends Driver {
 
         fW write("\t${CC} ${CFLAGS} ${OBJECT_FILES} ")
 
-        fW write("${LDFLAGS} -o ${EXECUTABLE} ${GC_PATH}")
+        fW write("-o ${EXECUTABLE} ${GC_PATH} ${ADDITIONAL_OBJECTS} ${LDFLAGS}")
 
         fW write("\n\n")
 
@@ -205,11 +183,47 @@ MakeDriver: class extends Driver {
 
     }
 
+    writePlatformDetection: func (fW: FileWriter) {
+        fW write("# try to determine the OS and architecture\n")
+        fW write("MYOS := $(shell uname -s)\n")
+        fW write("MACHINE := $(shell uname -m)\n")
+        fW write("ifeq ($(MYOS), Linux)\n")
+        fW write("    ARCH=linux\n")
+        fW write("else ifeq ($(MYOS), FreeBSD)\n")
+        fW write("    ARCH=freebsd\n")
+        fW write("else ifeq ($(MYOS), Darwin)\n")
+        fW write("    ARCH=osx\n")
+        fW write("else ifeq ($(MYOS), CYGWIN_NT-5.1)\n")
+        fW write("    ARCH=win\n")
+        fW write("else ifeq ($(MYOS), MINGW32_NT-5.1)\n")
+        fW write("    ARCH=win\n")
+        fW write("else ifeq ($(MYOS), MINGW32_NT-6.1)\n")
+        fW write("    ARCH=win\n")
+        fW write("else ifeq ($(MYOS),)\n")
+        fW write("  ifeq (${OS}, Windows_NT)\n")
+        fW write("    ARCH=win\n")
+        fW write("  else\n")
+        fW write("    $(error \"OS ${OS} doesn't have pre-built Boehm GC packages. Please compile and install your own and recompile with GC_PATH=-lgc\")\n")
+        fW write("  endif\n")
+        fW write("endif\n")
+
+        fW write("ifneq ($(ARCH), osx)\n")
+        fW write("  ifeq ($(MACHINE), x86_64)\n")
+        fW write("    ARCH:=${ARCH}64\n")
+        fW write("  else ifeq (${PROCESSOR_ARCHITECTURE}, AMD64)\n")
+        fW write("    ARCH:=${ARCH}64\n")
+        fW write("  else\n")
+        fW write("    ARCH:=${ARCH}32\n")
+        fW write("  endif\n")
+        fW write("endif\n")
+    }
+
     flagType: func (flag: String) -> FlagType {
         if (flag startsWith?("-L") ||
-            flag startsWith?("-l") ||
-            flag endsWith?(".a")) {
+            flag startsWith?("-l")) {
             FlagType LDFLAG
+        } else if (flag endsWith?(".a")) {
+            FlagType ADDITIONAL_OBJECT
         } else {
             FlagType CFLAG
         }
@@ -220,5 +234,6 @@ MakeDriver: class extends Driver {
 FlagType: enum {
     CFLAG
     LDFLAG
+    ADDITIONAL_OBJECT
 }
 
