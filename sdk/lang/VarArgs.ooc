@@ -118,7 +118,7 @@ VarArgsIterator: cover {
     first: Bool
 
     hasNext?: func -> Bool {
-        countdown >= 0
+        countdown > 0
     }
 
     // convention: argsPtr points to type of next element when called.
