@@ -365,8 +365,10 @@ BaseType: class extends Type {
     }
 
     dig: func -> Type {
-        if(getRef() != null && getRef() instanceOf?(CoverDecl)) {
-            return ref as CoverDecl getFromType()
+        ref := getRef()
+        if(ref) match(ref) {
+            case cDecl: CoverDecl =>
+                return cDecl getFromType()
         }
         return null
     }

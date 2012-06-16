@@ -101,14 +101,14 @@ Cast: class extends Expression {
             // Following code checks whether a pointer is to be casted to a struct-type
             // which is bad, very, very, bad
             if (groundType isPointer()) {
-                if (type isPointer()) {
+                targetGroundType := type getGroundType()
+                if (targetGroundType pointerLevel() > 0) {
                     // we're fine
                 } else {
-                    typeName := type getGroundType() getName()
-                    // TODO: check whether the "struct " check really works
+                    typeName := targetGroundType getName()
                     // Closure is a special-case (built-in)
                     if (typeName == "Closure" || typeName startsWith?("struct ")) { 
-                        msg := "Casting a pointer [%s] of the type [%s] to a struct type[%s]!" format(inner toString(), innerType toString(), typeName)
+                        msg := "Casting a pointer [%s] of the type (%s) to a struct type (%s)!" format(inner toString(), innerType toString(), targetGroundType toString())
                         token module params errorHandler onError(InvalidCastOverload new(token, msg))
                     }
                 }
