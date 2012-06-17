@@ -73,11 +73,6 @@ FuncType: class extends BaseType {
         copy
     }
 
-
-    addTypeArg: func (v: VariableAccess) {
-        // FIXME: lol, what?
-    }
-
     addTypeArg: func ~decl (v: VariableDecl) {
         if (typeArgDecls == null) {
             typeArgDecls = ArrayList<VariableDecl> new()
@@ -151,10 +146,11 @@ FuncType: class extends BaseType {
         }
         trail pop(this)
 
-        if(!cached contains?(trail module())) {
-            cached add(trail module())
-            trail module() addFuncType(toMangledString(), this)
-            res wholeAgain(this, "Added funcType!")
+
+        if(trail module() addFuncType(toMangledString(), this)) {
+            // DEBUG
+            "Added func type %s to module %s" printfln(toMangledString(), trail module() _)
+            res wholeAgain(this, "Added funcType, need to resolve again in case, you know, stuff.")
         }
 
         return Response OK

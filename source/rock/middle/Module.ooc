@@ -92,9 +92,12 @@ Module: class extends Node {
         list
     }
 
-    addFuncType: func (hashName: String, funcType: FuncType) {
+    addFuncType: func (hashName: String, funcType: FuncType) -> Bool {
         if(!funcTypesMap contains?(hashName)) {
             funcTypesMap put(hashName, funcType)
+            true
+        } else {
+            false
         }
     }
 
