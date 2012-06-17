@@ -35,8 +35,6 @@ Module: class extends Node {
     namespaces := HashMap<String, NamespaceDecl> new()
     uses       := ArrayList<Use> new()
 
-    funcTypesMap := HashMap<String, FuncType> new()
-
     body       := Scope new()
 
     lastModified : Long
@@ -90,15 +88,6 @@ Module: class extends Node {
             }
         }
         list
-    }
-
-    addFuncType: func (hashName: String, funcType: FuncType) -> Bool {
-        if(!funcTypesMap contains?(hashName)) {
-            funcTypesMap put(hashName, funcType)
-            true
-        } else {
-            false
-        }
     }
 
     sanitize: func(str: String) -> String {

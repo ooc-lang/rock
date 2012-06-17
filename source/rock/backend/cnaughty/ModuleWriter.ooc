@@ -41,11 +41,6 @@ ModuleWriter: abstract class extends Skeleton {
             current nl(). app("#include <"). app(inc). app(">")
         }
 
-        // write all func types typedefs
-        for(funcType in module funcTypesMap) {
-            writeFuncType(this, funcType, null)
-        }
-
         /* write the .h file */
         current = hw
         current       app("#ifndef "). app(hName)

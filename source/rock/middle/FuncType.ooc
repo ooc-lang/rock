@@ -146,11 +146,6 @@ FuncType: class extends BaseType {
         }
         trail pop(this)
 
-
-        if(trail module() addFuncType(toMangledString(), this)) {
-            res wholeAgain(this, "Added funcType, need to resolve again in case, you know, stuff.")
-        }
-
         return Response OK
     }
 
