@@ -1,0 +1,4 @@
+export PATH=$PATH:~/Dev/ooc/rock/bin/
+export ROCK_DIST=~/Dev/ooc/rock-conspiracy/
+export OOC_LIBS=third-party
+
