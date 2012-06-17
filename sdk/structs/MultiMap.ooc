@@ -6,7 +6,7 @@ import HashMap, ArrayList, List
 MultiMap: class <K, V> extends HashMap<K, V> {
 
     init: func ~multiMap {
-        init(10)
+        init(100)
     }
 
     init: func ~multiMapWithCapa(.capacity) {
@@ -65,6 +65,20 @@ MultiMap: class <K, V> extends HashMap<K, V> {
 
     getAll: func (key: K) -> V {
         get~_super(key)
+    }
+
+    /** iterates over all values for a given key */
+    eachFor: func (key: K, f: Func(V)) {
+        result: Object = null
+        result = get(key)
+        match result {
+            case null =>
+                // nothing to do here
+            case list: List<V> =>
+                list each(|value| f(value))
+            case =>
+                f(result)
+        }
     }
 
     get: func (key: K) -> V {
