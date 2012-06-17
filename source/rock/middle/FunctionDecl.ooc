@@ -522,11 +522,12 @@ FunctionDecl: class extends Declaration {
             response := arg resolve(trail, res)
             if(response ok()) {
                 if (!arg instanceOf?(VarArg)) {
-                    if (t argTypes size > ix) {
+                    if (t argTypes size <= ix) {
+                        res throwError(Warning new(token, "Weird shit is going on here. Type has %d argTypes, we have %d args" format(t argTypes size, args size)))
+                        t argTypes add(arg getType())
+                    } else {
                         t argTypes set(ix, arg getType())
                         ix += 1
-                    } else {
-                        res throwError(InternalError new(token, "Weird shit is going on here. Type has %d argTypes, we have %d args" format(t argTypes size, args size)))
                     }
                 }
             } else {
