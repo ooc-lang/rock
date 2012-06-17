@@ -766,7 +766,18 @@ FunctionCall: class extends Expression {
             callArg := args get(i)
             if(declArg getType() == null || declArg getType() getRef() == null ||
                callArg getType() == null || callArg getType() getRef() == null) {
-                res wholeAgain(this, "To resolve interface-args, need to resolve declArg and callArg")
+                // DEBUG
+                debugString := "\ndeclArg = %s" format(declArg _)
+                debugString += "\ndeclArg type = %s" format(declArg getType() ? declArg getType() _ : null)
+                if (declArg getType()) {
+                debugString += "\ndeclArg type ref = %s" format(declArg getType() getRef() ? declArg getType() getRef() _ : null)
+                }
+                debugString += "\ncallArg = %s" format(callArg _)
+                debugString += "\ncallArg type = %s" format(callArg getType() ? callArg getType() _ : null)
+                if (callArg getType()) {
+                debugString += "\ncallArg type ref = %s" format(callArg getType() getRef() ? callArg getType() getRef() _ : null)
+                }
+                res wholeAgain(this, "To resolve interface-args, need to resolve declArg and callArg " + debugString)
                 return Response OK
             }
             if(declArg getType() getRef() instanceOf?(InterfaceDecl)) {

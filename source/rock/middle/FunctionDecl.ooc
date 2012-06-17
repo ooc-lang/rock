@@ -452,6 +452,12 @@ FunctionDecl: class extends Declaration {
 
         trail push(this)
 
+        {
+            t := getType()
+            response := t resolve(trail, res)
+            if (!response ok()) return response
+        }
+
         if(debugCondition()) "Handling the owner"
         
         // handle the case where we specialize a generic function
