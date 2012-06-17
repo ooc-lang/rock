@@ -67,6 +67,9 @@ FunctionDecl: class extends Declaration {
     externName : String = null
     unmangledName: String = null
 
+    /** a FuncType that corresponds to our signature */
+    type: FuncType
+
     /** if true, 'this' has byref semantics */
     isThisRef := false
 
@@ -307,17 +310,19 @@ FunctionDecl: class extends Declaration {
     }
 
     getType: func -> FuncType {
-        type := FuncType new(token)
-        for(arg in args) {
-            if(arg instanceOf?(VarArg)) break
-            type argTypes add(arg getType())
-        }
-        type returnType = returnType
-        for(typeArg in typeArgs) {
-            type addTypeArg(typeArg)
-        }
-        if (vDecl != null) {
-            type isClosure = true
+        if (!type) {
+            type = FuncType new(token)
+            for(arg in args) {
+                if(arg instanceOf?(VarArg)) break
+                type argTypes add(arg getType())
+            }
+            type returnType = returnType
+            for(typeArg in typeArgs) {
+                type addTypeArg(typeArg)
+            }
+            if (vDecl != null) {
+                type isClosure = true
+            }
         }
 
         return type
