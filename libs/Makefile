@@ -54,6 +54,10 @@ GC_PREFIX?=$(shell pkg-config --variable=libdir bdw-gc)
 LIBGC_PRESENT=$(wildcard ${GC_PREFIX}/libgc.a)
 LIBGC_SUPPORTS_THREADS=$(shell nm $(wildcard ${GC_PREFIX}/libgc.a) | grep GC_pthread_create)
 
+ifneq (${LIBGC_FORCE_COMPILE},)
+  LIBGC_PRESENT=
+endif
+
 all:
 	mkdir -p ${GC_PATH}
 ifneq (${LIBGC_PRESENT},)
