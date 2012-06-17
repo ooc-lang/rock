@@ -148,8 +148,6 @@ FuncType: class extends BaseType {
 
 
         if(trail module() addFuncType(toMangledString(), this)) {
-            // DEBUG
-            "Added func type %s to module %s" printfln(toMangledString(), trail module() _)
             res wholeAgain(this, "Added funcType, need to resolve again in case, you know, stuff.")
         }
 
