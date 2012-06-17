@@ -81,8 +81,6 @@ Scope: class extends Node {
     }
 
     resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
-        // FIXME: this is as wrong as resolveAccess, see the comments up there.
-
         for(stat in this) {
             if(stat instanceOf?(VariableDecl)) {
                 vDecl := stat as VariableDecl
