@@ -786,9 +786,9 @@ FunctionDecl: class extends Declaration {
             ix += 1
         }
 
-        // if(funcPointer typeArgs) for(typeArg in funcPointer typeArgs) {
-        //     addTypeArg(typeArg)
-        // }
+        if(funcPointer typeArgDecls) for(typeArg in funcPointer typeArgDecls) {
+            addTypeArg(typeArg)
+        }
 
         if (needTrampoline) {
 

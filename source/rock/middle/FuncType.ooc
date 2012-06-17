@@ -19,6 +19,7 @@ FuncType: class extends BaseType {
 
     argTypes := ArrayList<Type> new()
     varArg := VarArgType NONE
+    typeArgDecls: ArrayList<VariableDecl>
 
     _returnType: Type = null
     returnType: Type {
@@ -78,7 +79,10 @@ FuncType: class extends BaseType {
     }
 
     addTypeArg: func ~decl (v: VariableDecl) {
-        // FIXME: lol, what? (second edition)
+        if (typeArgDecls == null) {
+            typeArgDecls = ArrayList<VariableDecl> new()
+        }
+        typeArgDecls add(v)
     }
 
     getTypeArgs: func -> List<VariableDecl> {
@@ -188,12 +192,12 @@ FuncType: class extends BaseType {
 
     resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
 
-        //if(typeArgs) for(typeArg in typeArgs) {
-        //    if(typeArg name == type name) {
-        //        type suggest(typeArg)
-        //        return 0
-        //    }
-        //}
+        if(typeArgDecls) for(typeArg in typeArgDecls) {
+            if(typeArg name == type name) {
+                type suggest(typeArg)
+                return 0
+            }
+        }
 
         0
 
