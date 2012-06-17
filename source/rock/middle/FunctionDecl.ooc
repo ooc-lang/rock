@@ -209,8 +209,7 @@ FunctionDecl: class extends Declaration {
     isAnon: func -> Bool { isAnon }
 
     debugCondition: func -> Bool {
-        // DEBUG
-        isAnon()
+        false
     }
 
     markForPartialing: func(var: VariableDecl, mode: String) {
