@@ -15,7 +15,7 @@ VarArgType: enum {
     C
 }
 
-FuncType: class extends Type {
+FuncType: class extends BaseType {
 
     argTypes := ArrayList<Type> new()
     typeArgs: ArrayList<VariableDecl>
@@ -25,13 +25,8 @@ FuncType: class extends Type {
 
     isClosure := false
     init: func ~funcType (.token) {
-        super(token)
-        CoverDecl new("", token)
-    }
-
-    write: func (w: AwesomeWriter, name: String) {
-        w app("lang_core__Closure")
-        if(name) w app(' '). app(name)
+        // we rely on the Func type being defined in the sdk. One of the essentials!
+        super("Func", token)
     }
 
     pointerLevel: func -> Int { 0 }
@@ -223,7 +218,8 @@ FuncType: class extends Type {
         b toString()
     }
 
-    isPointer: func -> Bool { false }
+    isPointer: func -> Bool { true }
+    isCallable: func -> Bool { true }
 
     dig: func -> Type { null }
 

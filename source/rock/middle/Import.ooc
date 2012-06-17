@@ -17,6 +17,11 @@ Import: class {
     setModule: func(=module) {
         if(module != null) {
             module timesImported += 1
+       
+            // DEBUG
+            if (!path startsWith?("lang/")) {
+                "\"%s\" imports \"%s\"" printfln(token module fullName, module fullName)
+            }
         }
     }
 

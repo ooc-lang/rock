@@ -777,9 +777,8 @@ TypeDecl: abstract class extends Declaration {
 
         if(call getRef() == null) {
             vDecl := getVariable(call getName())
-            if(vDecl != null) {
-                // FIXME this is far from good.
-                if(vDecl getType() instanceOf?(FuncType)) {
+            if(vDecl != null && vDecl getType() != null) {
+                if(vDecl getType() isCallable()) {
                     if(call suggest(vDecl getFunctionDecl(), res, trail)) {
                         if(call getExpr() == null) {
                             call setExpr(VariableAccess new("this", call token))

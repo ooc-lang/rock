@@ -124,6 +124,7 @@ Type: abstract class extends Expression {
     }
 
     isPointer: func -> Bool { false }
+    isCallable: func -> Bool { false }
 
     getScoreImpl: abstract func (other: This, scoreSeed: Int) -> Int
 

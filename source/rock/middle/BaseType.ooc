@@ -35,6 +35,7 @@ BaseType: class extends Type {
     pointerLevel: func -> Int { 0 }
 
     isPointer: func -> Bool { name == "Pointer" }
+    isCallable: func -> Bool { name == "CFunc" }
 
     write: func (w: AwesomeWriter, name: String) {
         if(getRef() == null) {

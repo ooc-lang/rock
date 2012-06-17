@@ -108,11 +108,18 @@ Comparable: interface {
 }
 
 /**
- * Closures
+ * Function types
  */
-Closure: cover {
-    thunk  : Pointer
-    context: Pointer
+CFunc: cover from Pointer
+
+Func: class <Context, Return> {
+    thunk  : CFunc
+    context: Context
+
+    init: func (=thunk, =context)
+    call: func (args: ...) {
+        thunk(context, args)
+    }
 }
 
 /** An object storing a value and its class. */

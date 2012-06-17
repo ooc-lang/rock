@@ -354,7 +354,7 @@ FunctionDecl: class extends Declaration {
                 }
                 sb append(argType toString())
             } else {
-                sb append("...")
+                sb append("?")
             }
         }
         sb append(")")
@@ -368,7 +368,7 @@ FunctionDecl: class extends Declaration {
     toString: func ~withCallContext (call: FunctionCall) -> String {
         (isStatic ? " static" : "") +
         (owner ? owner getName() + " " : "") +
-        (suffix ? (name + "~" + suffix) : name) +
+        (suffix ? (name + "~" + suffix) : (name empty?() ? "<anonymous>" : name)) +
         getArgsRepr(call) +
         (hasReturn() ? " -> " + returnType toString() : "")
     }
@@ -522,7 +522,6 @@ FunctionDecl: class extends Declaration {
         isClosure := name empty?()
 
         if (isClosure) {
-            //if (!_unwrappedACS && !argumentsReady()) {
             if (!_unwrappedACS) {
                 if (!unwrapACS(trail, res)) {
                     trail pop(this)
@@ -754,10 +753,10 @@ FunctionDecl: class extends Declaration {
             res throwError(InternalError new(token, "[ACS]: Can't find `this` in the call's arguments.\ntrail = %s" format(trail toString())))
         }
 
-		if(ind >= parentFunc args size) {
-			res wholeAgain(this, "Invalid argument index - call candidate probably doesn't match")
-			return false
-		}
+        if(ind >= parentFunc args size) {
+                res wholeAgain(this, "Invalid argument index - call candidate probably doesn't match")
+                return false
+        }
         
         argType := parentFunc args[ind] getType()
         if (!argType || argType class != FuncType) {
@@ -775,6 +774,10 @@ FunctionDecl: class extends Declaration {
         if(funcPointer returnType) {
             returnType = funcPointer returnType
         }
+
+        // DEBUG
+        res throwError(Warning new(token, "Inferring arg types for %s from arg %s" format(_, parentFunc args[ind] _)))
+        res throwError(Warning new(parentFunc token, "The function we're matching is %s" format(parentFunc _)))
 
         // infer arg types
         for (fType in funcPointer argTypes) {
@@ -1161,8 +1164,9 @@ FunctionRedefinition: class extends Error {
     first, second: FunctionDecl
 
     init: func (=first, =second) {
-        message = second token formatMessage("Redefinition of '%s'%s" format(first getName(), first verzion ? (" in version " + first verzion toString()) : ""), "[INFO]") + '\n' +
-                  first  token formatMessage("\n...first definition was here: ", "[ERROR]")
+        message = second token formatMessage("Redefinition of '%s'%s" format(
+          first getName(), first verzion ? (" in version " + first verzion toString()) : ""), "[INFO]") + '\n' +
+          first  token formatMessage("\n...first definition was here: ", "[ERROR]")
     }
 
     format: func -> String {

@@ -13,6 +13,7 @@ Node: abstract class {
     accept: abstract func (visitor: Visitor)
 
     toString: func -> String { class name }
+    _: String { get { toString() } }
 
     isResolved: func -> Bool { true }
 
