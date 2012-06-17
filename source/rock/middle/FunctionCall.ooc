@@ -326,6 +326,23 @@ FunctionCall: class extends Expression {
                                 closure := trail get(closureIndex) as FunctionDecl
                                 // the ref may also be a closure's argument, in wich case we just ignore this
 
+                                // Find the closer Scope that is a function body upstream
+                                scopeDepth := closureIndex - 1
+                                while(scopeDepth > 0) {
+                                    maybeScope := trail get(scopeDepth, Node)
+                                    if(maybeScope instanceOf?(Scope)) {
+                                        maybeClosure := trail get(scopeDepth - 1, Node)
+                                        // Make sure the variable we will partial on the top level closure is not one of its arguments
+                                        if(maybeClosure instanceOf?(FunctionDecl) && maybeClosure as FunctionDecl isAnon \
+                                           && !maybeClosure as FunctionDecl args contains?(|arg| arg == ref vDecl || arg name == ref vDecl name + "_generic") \
+                                           && !maybeScope as Scope list contains?(|stmt| stmt instanceOf?(VariableDecl) && stmt as VariableDecl name == ref vDecl name)) {
+                                            // Mark the variable for partialing in the top level closure
+                                            maybeClosure as FunctionDecl markForPartialing(ref vDecl, "v")
+                                        }
+                                    }
+                                    scopeDepth -= 1
+                                }
+
                                 if(closure isAnon && !ref vDecl isGlobal &&
                                     !closure args contains?(|arg| arg == ref vDecl || arg name == ref vDecl name + "_generic")) {
                                     closure markForPartialing(ref vDecl, "v")
