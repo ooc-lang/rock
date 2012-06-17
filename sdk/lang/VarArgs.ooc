@@ -34,7 +34,7 @@ VarArgs: cover {
     /*
      * Iterate through the arguments
      */
-    each: func (f: Func <T> (T)) {
+    each: func (f: Func <Narwhal> (Narwhal)) {
         countdown := count
 
         argsPtr := args

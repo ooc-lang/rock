@@ -35,7 +35,7 @@ VariableDecl: class extends Declaration {
     }
 
     debugCondition: func -> Bool {
-        name == "equals__quest"
+        false
     }
 
     clone: func -> This {

@@ -460,8 +460,7 @@ FunctionCall: class extends Expression {
                         precisions += "\n\n(Hint: 'implicit as' isn't allowed on non-extern functions)"
                     }
                 } else {
-                    // DEBUG (false &&)
-                    if(false && res params helpful) {
+                    if(res params helpful) {
                         // Try to find such a function in other modules in the sourcepath
                         similar := findSimilar(res)
                         if(similar) message += similar

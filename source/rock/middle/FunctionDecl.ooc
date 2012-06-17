@@ -775,10 +775,6 @@ FunctionDecl: class extends Declaration {
             returnType = funcPointer _returnType // FIXME property should work here
         }
 
-        // DEBUG
-        res throwError(Warning new(token, "Inferring arg types for %s from arg %s" format(_, parentFunc args[ind] _)))
-        res throwError(Warning new(parentFunc token, "The function we're matching is %s" format(parentFunc _)))
-
         // infer arg types
         for (fType in funcPointer argTypes) {
             if (!fType isResolved()) {
