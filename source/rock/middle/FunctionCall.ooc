@@ -145,8 +145,7 @@ FunctionCall: class extends Expression {
      * a return expression, when it's being used.
      */
     debugCondition: func -> Bool {
-        // name == "equals__quest"
-        false
+        name == "times"
     }
 
     /**
@@ -240,7 +239,7 @@ FunctionCall: class extends Expression {
             i := 0
             for(arg in args) {
                 if(debugCondition() || res params veryVerbose) {
-                    "resolving arg %s" format(arg toString()) println()
+                    "resolving arg %s | %s" format(arg class name, arg _) println()
                 }
                 response := arg resolve(trail, res)
                 if(!response ok()) {
@@ -772,7 +771,7 @@ FunctionCall: class extends Expression {
                 if (declArg getType()) {
                 debugString += "\ndeclArg type ref = %s" format(declArg getType() getRef() ? declArg getType() getRef() _ : null)
                 }
-                debugString += "\ncallArg = %s" format(callArg _)
+                debugString += "\n\ncallArg = %s" format(callArg _)
                 debugString += "\ncallArg type = %s" format(callArg getType() ? callArg getType() _ : null)
                 if (callArg getType()) {
                 debugString += "\ncallArg type ref = %s" format(callArg getType() getRef() ? callArg getType() getRef() _ : null)

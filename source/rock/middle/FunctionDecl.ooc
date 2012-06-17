@@ -209,7 +209,8 @@ FunctionDecl: class extends Declaration {
     isAnon: func -> Bool { isAnon }
 
     debugCondition: func -> Bool {
-        false
+        // DEBUG
+        isAnon()
     }
 
     markForPartialing: func(var: VariableDecl, mode: String) {
@@ -451,13 +452,11 @@ FunctionDecl: class extends Declaration {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        if(debugCondition() || res params veryVerbose) "** Resolving function decl %s" printfln(name)
-
-        if(debugCondition()) ("isFatal ? " + res fatal toString()) println()
+        if(debugCondition() || res params veryVerbose) "** Resolving function decl %s%s" printfln(_, res fatal ? " (fatal)" : "")
 
         trail push(this)
 
-        if(debugCondition()) "Handling the owner"
+        if(debugCondition()) "Handling the owner" println()
         
         // handle the case where we specialize a generic function
         if(owner) {
@@ -465,6 +464,7 @@ FunctionDecl: class extends Declaration {
             comeBack: Bool
             base := meat getBaseClass(this, true, comeBack&)
             if (comeBack) { // ugly_
+                if(debugCondition()) "Resolving a missing interface declaration." println()
                 res wholeAgain(this, "Resolving a missing interface declaration.")
                 return Response OK
             }
@@ -473,6 +473,7 @@ FunctionDecl: class extends Declaration {
                 finalScore := 0
                 parent := base getFunction(name, suffix ? suffix : "", null, false, finalScore&)
                 if(finalScore == -1) {
+                    if(debugCondition()) "Something's not resolved, need base getFunction()" println()
                     res wholeAgain(this, "Something's not resolved, need base getFunction()")
                     if(debugCondition()) "Got -1 from finalScore!" println()
                     return Response OK
@@ -510,7 +511,7 @@ FunctionDecl: class extends Declaration {
             }
         }
 
-        if(debugCondition()) "Handling the args"
+        if(debugCondition()) "Handling the args" println()
 
         // call getType() once, to initialize our type
         t := getType()
@@ -539,7 +540,12 @@ FunctionDecl: class extends Declaration {
             }
         }
 
-        if(debugCondition()) "Handling isClosure"
+        {
+            response := t resolve(trail, res)
+            if (!response ok()) return response
+        }
+
+        if(debugCondition()) "Handling isClosure" println()
 
         isClosure := name empty?()
 
@@ -547,19 +553,20 @@ FunctionDecl: class extends Declaration {
             if (!_unwrappedACS) {
                 if (!unwrapACS(trail, res)) {
                     trail pop(this)
+                    if(debugCondition()) "Couldn't unwrap ACS" println()
                     return Response OK
                 }
             }
             args each(| arg |
                 if (arg getType() == null || !arg getType() isResolved()) {
-                    "Looping because of arg %s" format(arg toString()) println()
+                    "Looping because of arg %s" printfln(arg _)
                     res wholeAgain(this, "need arg type for the ref")
                     return
                 }
             )
         }
 
-        if(debugCondition()) "Handling typeArgs"
+        if(debugCondition()) "Handling typeArgs" println()
 
         for(typeArg in typeArgs) {
             response := typeArg resolve(trail, res)
@@ -570,12 +577,12 @@ FunctionDecl: class extends Declaration {
             }
         }
 
-        if(debugCondition()) "Handling the body."
+        if(debugCondition()) "Handling the body." println()
 
         {
             response := returnType resolve(trail, res)
             if(!response ok()) {
-                if(debugCondition() || res params veryVerbose) "))))))) For %s, response of return type %s = %s" printfln(toString(), returnType toString(), response toString())
+                if(debugCondition() || res params veryVerbose) "))))) For %s, response of return type %s = %s" printfln(toString(), returnType toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -606,7 +613,6 @@ FunctionDecl: class extends Declaration {
                 // Why aren't we relaying the response of the body? Because
                 // the trail is usually clean below the body and it would
                 // blow-up way too soon if we LOOP-ed on every foreach/evil thing
-                //return response
             }
         }
 
