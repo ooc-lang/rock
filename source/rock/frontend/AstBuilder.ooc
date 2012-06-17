@@ -758,8 +758,22 @@ AstBuilder: class {
         }
     }
 
-    onStringLiteral: unmangled(nq_onStringLiteral) func (text: CString) -> StringLiteral {
-        StringLiteral new(text toString() replaceAll("\n", "\\n") replaceAll("\t", "\\t"), token())
+    onStringLiteral: unmangled(nq_onStringLiteral) func -> StringLiteral {
+        lit := StringLiteral new() //text toString() replaceAll("\n", "\\n") replaceAll("\t", "\\t"), token())
+        stack push(lit)
+        lit
+    }
+
+    onStringLiteralText: unmangled(nq_onStringLiteralText) func(text: CString) -> StringLiteral {
+        lit := pop(StringLiteral)
+        lit value = text toString() replaceAll("\n", "\\n") replaceAll("\t", "\\t")
+        lit token = token()
+        lit
+    }
+
+    onInterpolatedStringExpression: unmangled(nq_onInterpolatedStringExpression) func(where: Int, what: Expression) {
+        "Interpolating expression %s at position %d" format(what toString(), where) println()
+        peek(StringLiteral) interpolatedExpressions[where] = what
     }
 
     onCharLiteral: unmangled(nq_onCharLiteral) func (value: CString) -> CharLiteral {
