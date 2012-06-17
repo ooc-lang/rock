@@ -75,16 +75,6 @@ FuncType: class extends BaseType {
 
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
 
-        if(other isPointer()) {
-            // close enough.
-            return scoreSeed / 2
-        }
-
-        if(other isGeneric() && other pointerLevel() == 0) {
-            // every type is always a match against a flat generic type
-            return scoreSeed / 2
-        }
-
         if(other instanceOf?(FuncType)) {
             fType := other as FuncType
 
@@ -94,9 +84,19 @@ FuncType: class extends BaseType {
             }
 
             // TODO: compare arg types (scores), return types, i otras cosas.
-
             return scoreSeed
         }
+
+        if(other isCallable()) {
+            // close enough.
+            return scoreSeed / 2
+        }
+
+        if(other isGeneric() && other pointerLevel() == 0) {
+            // every type is always a match against a flat generic type
+            return scoreSeed / 2
+        }
+
         return NOLUCK_SCORE
     }
 

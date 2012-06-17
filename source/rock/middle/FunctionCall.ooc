@@ -145,7 +145,7 @@ FunctionCall: class extends Expression {
      * a return expression, when it's being used.
      */
     debugCondition: func -> Bool {
-        name == "thunk"
+        name == "each"
     }
 
     /**
