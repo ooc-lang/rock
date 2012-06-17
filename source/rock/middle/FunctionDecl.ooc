@@ -772,7 +772,7 @@ FunctionDecl: class extends Declaration {
 
         // infer return type 
         if(funcPointer returnType) {
-            returnType = funcPointer returnType
+            returnType = funcPointer _returnType // FIXME property should work here
         }
 
         // DEBUG
@@ -790,9 +790,9 @@ FunctionDecl: class extends Declaration {
             ix += 1
         }
 
-        if(funcPointer typeArgs) for(typeArg in funcPointer typeArgs) {
-            addTypeArg(typeArg)
-        }
+        // if(funcPointer typeArgs) for(typeArg in funcPointer typeArgs) {
+        //     addTypeArg(typeArg)
+        // }
 
         if (needTrampoline) {
 

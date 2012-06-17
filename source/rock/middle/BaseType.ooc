@@ -162,8 +162,10 @@ BaseType: class extends Type {
                 }
 
                 msg := "Undefined type '%s'" format(getName())
-                similar := findSimilar(res)
-                if(similar) msg += similar
+                if (res params helpful) {
+                    similar := findSimilar(res)
+                    if(similar) msg += similar
+                }
                 res throwError(UnresolvedType new(token, this, msg))
             }
             if(res params veryVerbose) {
@@ -183,7 +185,7 @@ BaseType: class extends Type {
                             "Too many"
                     }
 
-                    res throwError(MismatchedTypeParams new(token, "%s type parameters for %s. It should match %s" format(message, toString(), tDecl getInstanceType() toString())))
+                    res throwError(MismatchedTypeParams new(token, "%s type parameters for %s. It should match %s" format(message, _, tDecl _)))
                 }
             }
         }

@@ -19,7 +19,7 @@ Type: abstract class extends Expression {
     void?: Bool { get { getName() == "void" } }
 
     voidType: static func -> Type {
-        type := BaseType new("void", nullToken)
+        type := BaseType new("Void", nullToken)
         type ref = BuiltinType new("void", nullToken)
         type
     }

@@ -28,7 +28,7 @@ version(unix || apple) {
         init: func ~unix (=_code) {}
 
         start: func -> Int {
-            return pthread_create(pthread&, null, _code as Closure thunk, _code as Closure context)
+            return pthread_create(pthread&, null, _code thunk, _code context)
         }
 
         wait: func -> Int {

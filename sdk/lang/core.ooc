@@ -122,6 +122,8 @@ Func: class <Context, Return> {
     }
 }
 
+EmptyContext: class {}
+
 /** An object storing a value and its class. */
 Cell: class <T> {
     val: T

@@ -145,7 +145,8 @@ FunctionCall: class extends Expression {
      * a return expression, when it's being used.
      */
     debugCondition: func -> Bool {
-        name == "each"
+        // name == "equals__quest"
+        false
     }
 
     /**
@@ -459,7 +460,8 @@ FunctionCall: class extends Expression {
                         precisions += "\n\n(Hint: 'implicit as' isn't allowed on non-extern functions)"
                     }
                 } else {
-                    if(res params helpful) {
+                    // DEBUG (false &&)
+                    if(false && res params helpful) {
                         // Try to find such a function in other modules in the sourcepath
                         similar := findSimilar(res)
                         if(similar) message += similar

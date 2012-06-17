@@ -736,7 +736,9 @@ TypeDecl: abstract class extends Declaration {
         if(call debugCondition()) {
             "\n====> Search %s in %s (which has %d functions)" printfln(call toString(), name, functions getSize())
             for(f in functions) {
-                "  - Got %s!" printfln(f toString())
+                if (f getName() == call getName()) {
+                    "  - Got %s!" printfln(f toString())
+                }
             }
         }
 
@@ -776,7 +778,11 @@ TypeDecl: abstract class extends Declaration {
         }
 
         if(call getRef() == null) {
+            if(call debugCondition()) "Now looking into variables of %s" printfln(_)
             vDecl := getVariable(call getName())
+            if (vDecl && call debugCondition()) {
+                res throwError(Warning new(vDecl token, "Found variable of the same name: %s" format(vDecl toString())))
+            }
             if(vDecl != null && vDecl getType() != null) {
                 if(vDecl getType() isCallable()) {
                     if(call suggest(vDecl getFunctionDecl(), res, trail)) {

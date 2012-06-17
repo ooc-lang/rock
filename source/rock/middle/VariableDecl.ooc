@@ -35,7 +35,7 @@ VariableDecl: class extends Declaration {
     }
 
     debugCondition: func -> Bool {
-        false
+        name == "equals__quest"
     }
 
     clone: func -> This {
@@ -158,6 +158,10 @@ VariableDecl: class extends Declaration {
         if(type == null && expr != null) {
             // infer the type
             type = expr getType()
+            if(debugCondition()) {
+                " >>> The expr's type is (%s) (%s)" printfln(expr getType() ? expr getType() class name : "", expr getType() ? expr getType() _ : "freaking nil")
+            }
+
             if(type == null) {
                 trail pop(this)
                 res wholeAgain(this, "must determine type of a VarDecl.")
@@ -337,12 +341,12 @@ VariableDecl: class extends Declaration {
                 match getType() {
                     case fType: FuncType =>
                         // actual func type, we might have type hints
-                        if(fType typeArgs != null && !fType typeArgs empty?()) {
-                            classType := BaseType new("Class", fType token)
-                            if(fType typeArgs) for(typeArg in fType typeArgs) {
-                                fDecl addTypeArg(typeArg)
-                            }
-                        }
+                        // if(fType typeArgs != null && !fType typeArgs empty?()) {
+                        //     classType := BaseType new("Class", fType token)
+                        //     if(fType typeArgs) for(typeArg in fType typeArgs) {
+                        //         fDecl addTypeArg(typeArg)
+                        //     }
+                        // }
                         for(argType in fType argTypes) {
                             fDecl args add(Argument new(argType, "", token))
                         }

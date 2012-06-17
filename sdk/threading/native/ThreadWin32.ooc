@@ -30,8 +30,8 @@ version(windows) {
             handle = CreateThread(
                 null,                    // default security attributes
                 0,                       // use default stack size
-                _code as Closure thunk,  // thread function name
-                _code as Closure context,// argument to thread function
+                _code thunk,             // thread function name
+                _code context,           // argument to thread function
                 0,                       // use default creation flags
                 threadID&)               // returns the thread identifier
             return (handle == INVALID_HANDLE_VALUE ? -1 : 0)

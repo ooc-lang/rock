@@ -18,18 +18,30 @@ VarArgType: enum {
 FuncType: class extends BaseType {
 
     argTypes := ArrayList<Type> new()
-    typeArgs: ArrayList<VariableDecl>
     varArg := VarArgType NONE
-    returnType : Type = null
+
+    _returnType: Type = null
+    returnType: Type {
+        get { _returnType }
+        set(x) {
+            _returnType = x
+            // Terribad.
+            typeArgs set(1, VariableAccess new(x getName(), token))
+        }
+    }
+
     cached := ArrayList<Module> new()
 
     isClosure := false
     init: func ~funcType (.token) {
         // we rely on the Func type being defined in the sdk. One of the essentials!
         super("Func", token)
-    }
 
-    pointerLevel: func -> Int { 0 }
+        // we also rely on it having <Context, Return>
+        typeArgs = ArrayList<VariableAccess> new()
+        typeArgs add(VariableAccess new("EmptyContext", token))
+        typeArgs add(VariableAccess new("Int", token))
+    }
 
     equals?: func (other: This) -> Bool {
         if(other class != this class) return false
@@ -37,40 +49,40 @@ FuncType: class extends BaseType {
         return true
     }
 
-    getName: func -> String { "Func" }
-
     getType: func -> Type { this }
-    getRef: func -> Declaration { this as Declaration /* hmm that's wrong. FuncType doesn't inherit from Declaration :x */ }
-    setRef: func (d: Declaration) {}
 
     // should we throw an error or something?
     dereference : func -> This { null }
 
     realTypize: func (call: FunctionCall) -> Type {
         copy := This new(token)
-        if(typeArgs) typeArgs each(|typeArg| copy addTypeArg(typeArg))
         for(argType in argTypes) {
             copy argTypes add(argType realTypize(call))
         }
-        copy returnType = returnType realTypize
+        copy returnType = returnType realTypize(call)
         copy varArg = varArg
         copy
     }
 
     clone: func -> This {
         copy := This new(token)
-        if(typeArgs) typeArgs each(|typeArg| copy addTypeArg(typeArg))
         copy argTypes addAll(argTypes)
         copy returnType = returnType
         copy varArg = varArg
         copy
     }
 
-    getTypeArgs: func -> List<VariableDecl> { typeArgs }
 
-    addTypeArg: func (typeArg: VariableDecl) -> Bool {
-        if(!typeArgs) typeArgs = ArrayList<VariableDecl> new()
-        typeArgs add(typeArg); true
+    addTypeArg: func (v: VariableAccess) {
+        // FIXME: lol, what?
+    }
+
+    addTypeArg: func ~decl (v: VariableDecl) {
+        // FIXME: lol, what? (second edition)
+    }
+
+    getTypeArgs: func -> List<VariableDecl> {
+        typeArgs
     }
 
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
@@ -101,6 +113,9 @@ FuncType: class extends BaseType {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
+        response := super(trail, res)
+        if (!response ok()) return response
+
         trail push(this)
 
         if(typeArgs) for(typeArg in typeArgs) {
@@ -173,12 +188,12 @@ FuncType: class extends BaseType {
 
     resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
 
-        if(typeArgs) for(typeArg in typeArgs) {
-            if(typeArg name == type name) {
-                type suggest(typeArg)
-                return 0
-            }
-        }
+        //if(typeArgs) for(typeArg in typeArgs) {
+        //    if(typeArg name == type name) {
+        //        type suggest(typeArg)
+        //        return 0
+        //    }
+        //}
 
         0
 
