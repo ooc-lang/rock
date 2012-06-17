@@ -311,29 +311,17 @@ FunctionDecl: class extends Declaration {
 
     getType: func -> FuncType {
         if (!type) {
-            ready := true
-
-            // only construct the type if all arg types are resolved
+            type = FuncType new(token)
             for(arg in args) {
                 if(arg instanceOf?(VarArg)) break
-                if(arg getType() == null) {
-                    ready = false
-                }
+                type argTypes add(arg getType())
             }
-
-            if (ready) {
-                type = FuncType new(token)
-                for(arg in args) {
-                    if(arg instanceOf?(VarArg)) break
-                    type argTypes add(arg getType())
-                }
-                type returnType = returnType
-                for(typeArg in typeArgs) {
-                    type addTypeArg(typeArg)
-                }
-                if (vDecl != null) {
-                    type isClosure = true
-                }
+            type returnType = returnType
+            for(typeArg in typeArgs) {
+                type addTypeArg(typeArg)
+            }
+            if (vDecl != null) {
+                type isClosure = true
             }
         }
 
@@ -524,12 +512,27 @@ FunctionDecl: class extends Declaration {
 
         if(debugCondition()) "Handling the args"
 
+        // call getType() once, to initialize our type
+        t := getType()
+        ix := 0
+
         for(arg in args) {
             if(debugCondition()) "Handling arg %s" format(arg toString()) println()
 
             response := arg resolve(trail, res)
-            if(!response ok()) {
-                if(debugCondition() || res params veryVerbose) "Response of arg %s = %s" printfln(arg toString(), response toString())
+            if(response ok()) {
+                if (!arg instanceOf?(VarArg)) {
+                    if (t argTypes size > ix) {
+                        t argTypes set(ix, arg getType())
+                        ix += 1
+                    } else {
+                        res throwError(InternalError new(token, "Weird shit is going on here. Type has %d argTypes, we have %d args" format(t argTypes size, args size)))
+                    }
+                }
+            } else {
+                if(debugCondition() || res params veryVerbose) {
+                    "Response of arg %s = %s" printfln(arg toString(), response toString())
+                }
                 trail pop(this)
                 return response
             }
@@ -563,14 +566,6 @@ FunctionDecl: class extends Declaration {
                 if(debugCondition() || res params veryVerbose) "Response of typeArg %s = %s" printfln(typeArg toString(), response toString())
                 trail pop(this)
                 return response
-            }
-        }
-
-        {
-            t := getType()
-            if (t) {
-                response := t resolve(trail, res)
-                if (!response ok()) return response
             }
         }
 
