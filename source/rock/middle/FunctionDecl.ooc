@@ -528,7 +528,7 @@ FunctionDecl: class extends Declaration {
             if(debugCondition()) "Handling arg %s" format(arg toString()) println()
 
             response := arg resolve(trail, res)
-            if(response ok()) {
+            if(!response ok()) {
                 if(debugCondition() || res params veryVerbose) "Response of arg %s = %s" printfln(arg toString(), response toString())
                 trail pop(this)
                 return response
