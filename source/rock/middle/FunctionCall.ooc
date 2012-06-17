@@ -324,7 +324,7 @@ FunctionCall: class extends Expression {
 
                             if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
                                 closure := trail get(closureIndex) as FunctionDecl
-                                // the ref may also be a closure's argument, in wich case we just ignore this
+                                // the ref may also be a closure's argument, in which case we just ignore this
 
                                 // Find the closer Scope that is a function body upstream
                                 scopeDepth := closureIndex - 1
