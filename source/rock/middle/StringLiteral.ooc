@@ -42,8 +42,8 @@ StringLiteral: class extends Literal {
                                     returned := value clone()
                                     accumulated := 0
                                     interpolatedExpressions each(|pos, expr|
-                                        returned = returned substring(0, accumulated + pos) + "#{ " \
-                                                   + expr toString() + " }" + returned substring(accumulated + pos + 1)
+                                        returned = returned substring(0, accumulated + pos) + "\#{ " \
+                                                   + expr toString() + " }" + returned substring(accumulated + pos)
                                         accumulated += 5 + expr toString() size
                                     )
                                     "\"" + returned + "\""
@@ -59,7 +59,7 @@ StringLiteral: class extends Literal {
         if (!raw) {
             parent := trail peek()
             if(isInterpolated()) {
-                "Resolving interpolated %s" format(toString()) println()
+                "Resolving interpolated %s (value %s)" format(toString(), value) println()
                 // Call [String] format
                 // We first must build a simple StringLiteral
                 // Then a call of format on it, with our interpolated arguments
@@ -78,7 +78,7 @@ StringLiteral: class extends Literal {
 
                     type := expr getType()
                     specifier := (type isFloatingPointType() ? "%f" : (type isIntegerType() ? "%d" : "%s"))
-                    literal = literal substring(0, pos + accumulated) + specifier + literal substring(pos + accumulated + 1)
+                    literal = literal substring(0, pos + accumulated) + specifier + literal substring(pos + accumulated)
                     accumulated += 2
                 }
                 trail pop(this)
