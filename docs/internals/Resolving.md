@@ -1,7 +1,7 @@
 resolving
 =========
 
-VariableAccess/FunctionCall/Type vs *Decl
+VariableAccess/FunctionCall/Type vs \*Decl
 -----------------------------------------
 
 Every VariableAccess, FunctionCall, and Type, has a 'ref' field
