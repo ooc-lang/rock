@@ -320,8 +320,8 @@ FunctionCall: class extends Expression {
                         }
 
                         if(ref && ref vDecl) {
+                            // if our ref is a closure, we might have to mark it for partialing
                             closureIndex := trail find(FunctionDecl)
-
                             if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
                                 closure := trail get(closureIndex) as FunctionDecl
                                 // the ref may also be a closure's argument, in which case we just ignore this
@@ -348,6 +348,13 @@ FunctionCall: class extends Expression {
                                     closure markForPartialing(ref vDecl, "v")
                                 }
                             }
+
+                            // if our ref is a closure we have to change 'expr closure(args)' to 'expr closure call(context, args)'
+                            actualCall := FunctionCall new(VariableAccess new(expr, ref vDecl getName(), token), "call", token)
+                            actualCall args addAll(args)
+
+                            // DEBUG
+                            res throwError(Warning new(token, "Should replace %s with %s" format(_, actualCall _)))
                         }
                         depth -= 1
                     }

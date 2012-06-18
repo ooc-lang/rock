@@ -24,7 +24,7 @@ CommaSequence: class extends Expression {
     getType: func -> Type { body empty?() ? null : body last() as Expression getType() }
 
     toString: func -> String {
-        return "(comma expr)"
+        "(" + body map(|x| x _) join(", ") + ")"
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {

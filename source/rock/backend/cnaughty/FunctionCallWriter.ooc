@@ -18,45 +18,20 @@ FunctionCallWriter: abstract class extends Skeleton {
         shouldCastThis := false
 
         // write the function name
-        if(fDecl vDecl != null) {
-            current app("((")
-            ModuleWriter writeFuncPointer(this, fDecl getType(), "")
-            current app(") ")
-
-            if(fCall expr != null) {
-                arrow := true
-                // Kick all dereference exprs for the analysis.
-                expr := fCall expr
-                while(expr instanceOf?(Dereference)) {
-                    expr = expr as Dereference expr
-                }
-                if(expr instanceOf?(VariableAccess)) {
-                    acc := expr as VariableAccess
-                    if(acc getRef() instanceOf?(VariableDecl)) {
-                        vDecl := acc getRef() as VariableDecl
-                        arrow = vDecl getType() getRef() instanceOf?(ClassDecl)
-                    }
-                }
-                current app(fCall expr). app(arrow ? "->" : ".")
-            }
-            current app(fDecl vDecl getFullName())
-            current app(".thunk)")
-        } else {
-            FunctionDeclWriter writeFullName(this, fDecl)
-            if(fDecl isFinal) {
-                if(fDecl owner instanceOf?(ClassDecl)) {
-                    shouldCastThis = true
-                }
-            } else if(fCall getName() == "super") {
-                // if super call to a non-final method, add _impl
-                // and still need casting
-                current app("_impl")
+        FunctionDeclWriter writeFullName(this, fDecl)
+        if(fDecl isFinal) {
+            if(fDecl owner instanceOf?(ClassDecl)) {
                 shouldCastThis = true
-            } else if(!fCall virtual) {
-                current app("_impl")
-                // and no need to cast this, it should already be of the good type
-                // (esp. for interfaces, since the struct-initialization is handled by the Cast node)
             }
+        } else if(fCall getName() == "super") {
+            // if super call to a non-final method, add _impl
+            // and still need casting
+            current app("_impl")
+            shouldCastThis = true
+        } else if(!fCall virtual) {
+            current app("_impl")
+            // and no need to cast this, it should already be of the good type
+            // (esp. for interfaces, since the struct-initialization is handled by the Cast node)
         }
 
         current app('(')

@@ -523,7 +523,8 @@ FunctionDecl: class extends Declaration {
             if(response ok()) {
                 if (!arg instanceOf?(VarArg)) {
                     if (t argTypes size <= ix) {
-                        res throwError(Warning new(token, "Weird shit is going on here. Type has %d argTypes, we have %d args" format(t argTypes size, args size)))
+                        // this is cause by VDFEs (VariableDecls From Exprs) who don't necessarily have
+                        // the fully qualified type signature, we just add argument types as we go here.
                         t argTypes add(arg getType())
                     } else {
                         t argTypes set(ix, arg getType())
