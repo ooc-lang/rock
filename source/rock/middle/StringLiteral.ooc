@@ -18,7 +18,7 @@ StringLiteral: class extends Literal {
         super(token)
     }
 
-    init: func ~emptyStringLiteral {}
+    init: func ~emptyStringLiteral { value = "" }
 
     clone: func -> This {
         clone := new(value clone(), token)
@@ -59,31 +59,35 @@ StringLiteral: class extends Literal {
         if (!raw) {
             parent := trail peek()
             if(isInterpolated()) {
-                "Resolving interpolated %s (value %s)" format(toString(), value) println()
                 // Call [String] format
                 // We first must build a simple StringLiteral
                 // Then a call of format on it, with our interpolated arguments
                 // And finally replace ourselves with it :)
                 trail push(this)
                 accumulated := 0
-                literal := value clone()
+                literalText := value clone()
                 for(pos in interpolatedExpressions getKeys()) {
                     expr := interpolatedExpressions get(pos)
 
                     response := expr resolve(trail, res)
                     if(!response ok()) {
-                        trail pop(this) // For some reason undefined variables make this segfault -_-'
+                        trail pop(this)
                         return response
                     }
 
                     type := expr getType()
+                    if(!type || !type getRef()) {
+                        trail pop(this)
+                        res wholeAgain(this, "expr type or type ref is null")
+                        return Response OK
+                    }
                     specifier := (type isFloatingPointType() ? "%f" : (type isIntegerType() ? "%d" : "%s"))
-                    literal = literal substring(0, pos + accumulated) + specifier + literal substring(pos + accumulated)
+                    literalText = literalText substring(0, pos + accumulated) + specifier + literalText substring(pos + accumulated)
                     accumulated += 2
                 }
                 trail pop(this)
                 // We now should have a version of our literal with format specifiers
-                litExpr := This new(literal, token)
+                literal := This new(literalText, token)
                 args := ArrayList<Expression> new()
                 interpolatedExpressions each(|pos, expr|
                     type := expr getType()
@@ -93,19 +97,21 @@ StringLiteral: class extends Literal {
                         // If this is not a number or a String, we look for a toString method
                         if(ref) {
                             if(!ref instanceOf?(TypeDecl)) fail = true
-                            if(!ref as TypeDecl isMeta) ref = ref as TypeDecl getMeta()
-                            fDecl := ref as TypeDecl lookupFunction("toString", null)
-                            if(!fDecl) fail = true
                             else {
-                                returnType := fDecl returnType
-                                if(!fDecl args empty?() || \
-                                   !(returnType instanceOf?(BaseType) && (returnType equals?(objectType) ||
-                                   returnType as BaseType subclassOf?(objectType)))) fail = true
+                                if(!ref as TypeDecl isMeta) ref = ref as TypeDecl getMeta()
+                                fDecl := ref as TypeDecl lookupFunction("toString", null)
+                                if(!fDecl) fail = true
                                 else {
-                                    // We have a toString method
-                                    toStringCall := FunctionCall new(expr, "toString", expr token)
-                                    args add(toStringCall)
-                                }
+                                    returnType := fDecl returnType
+                                    if(!fDecl args empty?() || \
+                                       !(returnType instanceOf?(BaseType) && (returnType equals?(objectType) ||
+                                       returnType as BaseType subclassOf?(objectType)))) fail = true
+                                    else {
+                                        // We have a toString method, so our argument is a call to it
+                                        toStringCall := FunctionCall new(expr, "toString", expr token)
+                                        args add(toStringCall)
+                                    }
+                               }
                             }
                         } else {
                             fail = true
@@ -115,15 +121,14 @@ StringLiteral: class extends Literal {
                         args add(expr)
                     }
                     if(fail) {
-                        res throwError(InvalidInterpolatedExpressionError new(token, "Expression %s of type %s cannot be interpolated as it is neither a number type nor has a valid toString method." format(expr toString(), type toString())))
+                        res throwError(InvalidInterpolatedExpressionError new(token, "Expression %s of type %s cannot be interpolated in this string as it is neither a number nor a String type and it has no valid toString method." format(expr toString(), type toString())))
                     }
                 )
-                formatCall := FunctionCall new(litExpr, "format", token)
+                formatCall := FunctionCall new(literal, "format", token)
                 formatCall args = args
                 if(!parent replace(this, formatCall)) {
                     res throwError(CouldntReplace new(token, this, formatCall, trail))
                 }
-                "Resolved! Resulted in: %s" format(formatCall toString()) println()
             } else {
                 if(parent class != VariableDecl) {
                     {
@@ -141,7 +146,7 @@ StringLiteral: class extends Literal {
                 }
             }
         } else if(isInterpolated()) {
-            res throwError(InvalidStringLiteral new(token, "String literal cannot be both raw and interpolated."))
+            res throwError(InvalidStringLiteral new(token, "String literal cannot be both raw and interpolated with values."))
         }
         return Response OK
 
