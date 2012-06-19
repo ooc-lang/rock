@@ -770,7 +770,7 @@ AstBuilder: class {
     }
 
     onStringLiteralTextChunk: unmangled(nq_onStringLiteralTextChunk) func(text: CString) {
-        peek(StringLiteral) value += text toString() replaceAll("\n", "\\n") replaceAll("\t", "\\t")
+        peek(StringLiteral) value += text toString() replaceAll("\n", "\\n") replaceAll("\t", "\\t") replaceAll("\\#{", "\#{")
     }
 
     onStringLiteralEnd: unmangled(nq_onStringLiteralEnd) func -> StringLiteral {
