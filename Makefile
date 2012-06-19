@@ -57,7 +57,7 @@ endif
 	@echo "Done!"
 
 boehmgc:
-	cd libs && $(MAKE)
+	cd libs && $(MAKE) LIBGC_FORCE_COMPILE=${LIBGC_FORCE_COMPILE}
 
 # For c-source based rock releases, 'make bootstrap' will compile a version
 # of rock from the C sources in build/, then use that version to re-compile itself
