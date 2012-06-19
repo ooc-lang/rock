@@ -123,6 +123,14 @@ Type: abstract class extends Expression {
         false
     }
 
+    isFloatingPointType: func -> Bool {
+        false
+    }
+
+    isIntegerType: func -> Bool {
+        false
+    }
+
     isPointer: func -> Bool { false }
 
     getScoreImpl: abstract func (other: This, scoreSeed: Int) -> Int
