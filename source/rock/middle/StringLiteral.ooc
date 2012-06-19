@@ -80,6 +80,18 @@ StringLiteral: class extends Literal {
                         trail pop(this)
                         res wholeAgain(this, "expr type or type ref is null")
                         return Response OK
+                    } else {
+                        // We need the type and its ref to be REALLY resolved, as we access stuff like subclassOf?
+                        response := type resolve(trail, res)
+                        if(!response ok()) {
+                            trail pop(this)
+                            return response
+                        }
+                        response = type getRef() resolve(trail, res)
+                        if(!response ok()) {
+                            trail pop(this)
+                            return response
+                        }
                     }
                     specifier := (type isFloatingPointType() ? "%f" : (type isIntegerType() ? "%d" : "%s"))
                     literalText = literalText substring(0, pos + accumulated) + specifier + literalText substring(pos + accumulated)
