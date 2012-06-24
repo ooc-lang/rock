@@ -16,7 +16,8 @@ BaseType: class extends Type {
     namespace: VariableAccess = null
     ref: Declaration = null
     name: String
-    _numeric : NumericState = NumericState UNKNOWN
+    _floatingPoint := NumericState UNKNOWN
+    _integer := NumericState UNKNOWN
 
     void? : Bool {
         get { super() || name == "void" || name == "Void" }
@@ -319,32 +320,67 @@ BaseType: class extends Type {
         return This NOLUCK_SCORE // no luck.
     }
 
-    _computeNumeric: func {
-        // FIXME: that's quite ugly - and what about custom types?
-        if ((
-           name == "Int"   || name == "UInt"  || name == "Short" ||
-           name == "UShort"|| name == "Long"  || name == "ULong" ||
-           name == "LLong" || name == "ULLong"|| name == "Int8"  ||
-           name == "Int16" || name == "Int32" || name == "Int64" ||
-           name == "UInt8" || name == "UInt16"|| name == "UInt32"||
-           name == "UInt64"|| name == "SizeT" || name == "Float" ||
-           name == "Double"|| name == "SSizeT"|| name == "Octet" )) {
-            _numeric = NumericState YES
+    _computeFloatingPoint: func {
+        ref := getRef()
+        if(ref && ref instanceOf?(CoverDecl) && ref as CoverDecl fromType) {
+            type := ref as CoverDecl fromType
+            if(type instanceOf?(This) && (type as This name == "double" || type as This name == "float" || type as This name == "long double")) {
+                _floatingPoint = NumericState YES
+                return
+            }
+        } else if(name == "double" || name == "float" || name == "long double") {
+            _floatingPoint = NumericState YES
             return
         }
 
         down := dig()
-        if(down && down isNumericType()) {
-            _numeric = NumericState YES
+        if(down && down isFloatingPointType()) {
+            _floatingPoint = NumericState YES
             return
         }
 
-        _numeric = NumericState NO
+        _floatingPoint = NumericState NO
+    }
+
+    _computeInteger: func {
+        ref := getRef()
+        if(ref && ref instanceOf?(CoverDecl) && ref as CoverDecl fromType) {
+            type := ref as CoverDecl fromType
+            if((type instanceOf?(This) && (type as This name endsWith?(" long") || type as This name == "long" || type as This name endsWith?(" int") ||
+                type as This name == "int" || type as This name endsWith?(" short") || type as This name == "short" ||
+                ((type as This name startsWith?("int") || type as This name startsWith?("uint")) && type as This name endsWith?("_t")) ||
+                type as This name == "size_t" || type as This name == "ssize_t"))) {
+
+                _integer = NumericState YES
+                return
+            }
+        } else if((name endsWith?(" long") || name == "long" || name endsWith?(" int") || name == "int" || name endsWith?(" short") || name == "short" ||
+                   ((name startsWith?("int") || name startsWith?("uint")) && name endsWith?("_t")) || name == "size_t" || name == "ssize_t")) {
+            _integer = NumericState YES
+            return
+        }
+
+        down := dig()
+        if(down && down isIntegerType()) {
+            _integer = NumericState YES
+            return
+        }
+
+        _integer = NumericState NO
     }
 
     isNumericType: func -> Bool {
-        if(_numeric == NumericState UNKNOWN) _computeNumeric()
-        (_numeric == NumericState YES)
+        isFloatingPointType() || isIntegerType()
+    }
+
+    isFloatingPointType: func -> Bool {
+        if(_floatingPoint == NumericState UNKNOWN) _computeFloatingPoint()
+        (_floatingPoint == NumericState YES)
+    }
+
+    isIntegerType: func -> Bool {
+        if(_integer == NumericState UNKNOWN) _computeInteger()
+        (_integer == NumericState YES)
     }
 
     dereference: func -> Type {
