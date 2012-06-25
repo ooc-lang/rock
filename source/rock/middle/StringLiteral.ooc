@@ -104,33 +104,36 @@ StringLiteral: class extends Literal {
                 interpolatedExpressions each(|pos, expr|
                     type := expr getType()
                     ref := type getRef()
-                    fail := false
+                    fail := true
                     if(!type isNumericType() && !(type instanceOf?(BaseType) && (type equals?(objectType) || type as BaseType subclassOf?(objectType)))) {
                         // If this is not a number or a String, we look for a toString method
-                        if(ref) {
-                            if(!ref instanceOf?(TypeDecl)) fail = true
-                            else {
+                        while(ref) {
+                            if(!ref instanceOf?(TypeDecl)) {
+                                ref = null
+                                break
+                            } else {
                                 if(!ref as TypeDecl isMeta) ref = ref as TypeDecl getMeta()
                                 fDecl := ref as TypeDecl lookupFunction("toString", null)
-                                if(!fDecl) fail = true
-                                else {
+                                if(fDecl) {
                                     returnType := fDecl returnType
-                                    if(!fDecl args empty?() || \
-                                       !(returnType instanceOf?(BaseType) && (returnType equals?(objectType) ||
-                                       returnType as BaseType subclassOf?(objectType)))) fail = true
-                                    else {
+                                    if(fDecl args empty?() && \
+                                       returnType instanceOf?(BaseType) && \
+                                       (returnType equals?(objectType) ||
+                                        returnType as BaseType subclassOf?(objectType))) {
                                         // We have a toString method, so our argument is a call to it
                                         toStringCall := FunctionCall new(expr, "toString", expr token)
                                         args add(toStringCall)
+                                        fail = false
+                                        break
                                     }
                                }
                             }
-                        } else {
-                            fail = true
+                            ref = ref as TypeDecl getSuperType() getRef()
                         }
                     } else {
                         // If the expression is a number or a String, add it as is to the arguments
                         args add(expr)
+                        fail = false
                     }
                     if(fail) {
                         res throwError(InvalidInterpolatedExpressionError new(token, "Expression %s of type %s cannot be interpolated in this string as it is neither a number nor a String type and it has no valid toString method." format(expr toString(), type toString())))
