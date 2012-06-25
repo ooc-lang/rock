@@ -101,7 +101,8 @@ StringLiteral: class extends Literal {
                 // We now should have a version of our literal with format specifiers
                 literal := This new(literalText, token)
                 args := ArrayList<Expression> new()
-                interpolatedExpressions each(|pos, expr|
+                for(pos in interpolatedExpressions getKeys()) {
+                    expr := interpolatedExpressions[pos]
                     type := expr getType()
                     ref := type getRef()
                     fail := true
@@ -128,7 +129,17 @@ StringLiteral: class extends Literal {
                                     }
                                }
                             }
-                            ref = ref as TypeDecl getSuperType() getRef()
+                            // We need the superType to be really resolved
+                            if(ref as TypeDecl getSuperType()) {
+                                trail push(this)
+                                response := ref as TypeDecl getSuperType() resolve(trail, res)
+                                trail pop(this)
+                                if(!response ok()) {
+                                    res wholeAgain(this, "need bases' type")
+                                    return Response OK
+                                }
+                                ref = ref as TypeDecl getSuperType() getRef()
+                            } else ref = null
                         }
                     } else {
                         // If the expression is a number or a String, add it as is to the arguments
@@ -138,7 +149,7 @@ StringLiteral: class extends Literal {
                     if(fail) {
                         res throwError(InvalidInterpolatedExpressionError new(token, "Expression %s of type %s cannot be interpolated in this string as it is neither a number nor a String type and it has no valid toString method." format(expr toString(), type toString())))
                     }
-                )
+                }
                 formatCall := FunctionCall new(literal, "format", token)
                 formatCall args = args
                 if(!parent replace(this, formatCall)) {
