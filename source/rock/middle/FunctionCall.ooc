@@ -841,11 +841,17 @@ FunctionCall: class extends Expression {
                         arg := args[i]
                         argType := arg getType()
                         if(!argType) return Response LOOP
-                        
-                        if(argType pointerLevel() > 0) {
-                            argType = NullLiteral type // 'T*' = 'Pointer', != 'T'
+
+                        if(argType isGeneric() && argType pointerLevel() == 0) {
+                            // If we have a flat generic type then the ooc class of our argument is the generic's ref
+                            // We blindly cast to VariableDecl because, well, generic types have a VariableDecl ref and we wouldnt have gotten here if they were set to something else
+                            elements add(VariableAccess new(argType getRef() clone() as VariableDecl, token))
+                        } else {
+                            if(argType pointerLevel() > 0) {
+                                argType = NullLiteral type // 'T*' = 'Pointer', != 'T'
+                            }
+                            elements add(TypeAccess new(argType, token))
                         }
-                        elements add(TypeAccess new(argType, token))
                         ast types add(NullLiteral type)
                         
                         elements add(arg)
