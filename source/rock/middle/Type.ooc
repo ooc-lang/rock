@@ -243,7 +243,7 @@ SugarType: abstract class extends Type {
             return scoreSeed / 2
         }
 
-        if(pointerLevel() == 1 && other isPointer()) {
+        if(pointerLevel() >= 1 && other isPointer()) {
             // void pointer, a half match!
             return scoreSeed / 2
         }
