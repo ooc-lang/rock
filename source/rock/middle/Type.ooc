@@ -244,8 +244,9 @@ SugarType: abstract class extends Type {
         }
 
         if(pointerLevel() >= 1 && other isPointer()) {
-            // void pointer, a half match!
-            return scoreSeed / 2
+            // void pointer, a partial match!
+            // The more levels our pointer is, the less of a match we found! :D
+            return scoreSeed / (2 * pointerLevel())
         }
 
         if(other getRef() instanceOf?(CoverDecl)) {

@@ -223,7 +223,7 @@ ArrayLiteral: class extends Literal {
         }
 
         vDecl setType(null)
-        vDecl setExpr(ArrayCreation new(type as ArrayType, token))
+        vDecl setExpr(ArrayCreation new(type as ArrayType, true, token))
         ptrDecl := VariableDecl new(null, generateTempName("ptrLit"), this, token)
 
         // add memcpy from C-pointer literal block

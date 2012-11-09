@@ -310,10 +310,10 @@ CGenerator: class extends Skeleton {
     }
 
     visitArrayCreation: func (node: ArrayCreation) {
-        writeArrayCreation(node arrayType, node expr, node generateTempName("arrayCrea"))
+        writeArrayCreation(node arrayType, node expr, node generateTempName("arrayCrea"), !node literal?)
     }
 
-    writeArrayCreation: func (arrayType: ArrayType, expr: Expression, name: String) {
+    writeArrayCreation: func (arrayType: ArrayType, expr: Expression, name: String, writeForLoop?: Bool) {
         current app("_lang_array__Array_new(")
         if(arrayType inner instanceOf?(ArrayType)) {
             // otherwise, something like _lang_types__Bool[rows] is written
@@ -326,14 +326,14 @@ CGenerator: class extends Skeleton {
         }
         current app(", "). app(arrayType expr). app(")")
 
-        if(arrayType inner instanceOf?(ArrayType)) {
+        if(writeForLoop? && arrayType inner instanceOf?(ArrayType)) {
             current app(';'). nl(). app("{"). tab(). nl(). app("int "). app(name). app("__i;"). nl().
                     app("for("). app(name). app("__i = 0; ").
                     app(name). app("__i < "). app(arrayType expr). app("; ").
                     app(name). app("__i++) { "). tab(). nl()
 
             current app("_lang_array__Array "). app(name). app("_sub = ")
-            writeArrayCreation(arrayType inner as ArrayType, null, name + "_sub")
+            writeArrayCreation(arrayType inner as ArrayType, null, name + "_sub", true)
 
             current app(";"). nl(). app("_lang_array__Array_set(")
             if(expr) {
