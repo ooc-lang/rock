@@ -1,6 +1,6 @@
 import structs/ArrayList
 import ../frontend/[Token, BuildParams]
-import Visitor, Expression, VariableDecl, Declaration, Type, Node,
+import Visitor, Expression, VariableDecl, Declaration, Type, Node, Parenthesis,
        OperatorDecl, FunctionCall, Import, Module, BinaryOp, EnumDecl,
        VariableAccess, AddressOf, ArrayCreation, TypeDecl, Argument, Scope
 import tinker/[Resolver, Response, Trail, Errors]
@@ -39,7 +39,7 @@ ArrayAccess: class extends Expression {
             // FIXME: wtf? we're modifying 'this' instead of making a copy of it?
             for(index in indices) {
                 // FIXME: that's fucked up if we have more than one index anyway
-                arrAcc indices add(BinaryOp new(index, sizeAcc, OpType mul, arrAcc token))
+                arrAcc indices add(BinaryOp new(Parenthesis new(index, arrAcc token), sizeAcc, OpType mul, arrAcc token))
             }
             return AddressOf new(arrAcc, arrAcc token)
         }
