@@ -302,15 +302,8 @@ CGenerator: class extends Skeleton {
 
         current app("(")
         if(type as PointerType inner instanceOf?(ArrayType)) {
-            nested? = true
-            // Trick to generate correct nested arrays
-            inner := type as PointerType inner as ArrayType
-            while(inner inner instanceOf?(ArrayType)) {
-                inner = inner inner as ArrayType
-            }
-            stars := ""
-            (type pointerLevel() - 1) times(|| stars = stars append('*'))
-            current app(inner inner) . app(stars)
+            //Nested array, sub-array is always of Array type
+            current app("_lang_array__Array")
         } else {
             current app(type as PointerType inner)
         }
@@ -320,7 +313,6 @@ CGenerator: class extends Skeleton {
         for(element in arrLit elements) {
             if(!isFirst) current app(", ")
             current app(element)
-            if(nested?) current app(".data") // Unpack the nested Array into data :D
             isFirst = false
         }
         current app(" }")
