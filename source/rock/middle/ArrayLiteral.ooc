@@ -223,8 +223,8 @@ ArrayLiteral: class extends Literal {
         }
 
         vDecl setType(null)
-        vDecl setExpr(ArrayCreation new(type as ArrayType, token))
-        ptrDecl := VariableDecl new(null, generateTempName("ptrLit"), this, token)
+        vDecl setExpr(ArrayCreation new(type as ArrayType, true, token))
+        ptrDecl := VariableDecl new(arrType inner instanceOf?(ArrayType) ? PointerType new(arrType exprLessClone(), token) : null, generateTempName("ptrLit"), this, token)
 
         // add memcpy from C-pointer literal block
         block := Block new(token)

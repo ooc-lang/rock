@@ -299,7 +299,15 @@ CGenerator: class extends Skeleton {
         type := arrLit getType()
         if(!type instanceOf?(PointerType)) Exception new(This, "Array literal type %s isn't a PointerType but a %s, wtf?" format(arrLit toString(), type toString())) throw()
 
-        current app("("). app(arrLit getType() as PointerType inner). app("[]) { ")
+        current app("(")
+        if(type as PointerType inner instanceOf?(ArrayType)) {
+            //Nested array, sub-array is always of Array type
+            current app("_lang_array__Array")
+        } else {
+            current app(type as PointerType inner)
+        }
+        current app("[]) { ")
+
         isFirst := true
         for(element in arrLit elements) {
             if(!isFirst) current app(", ")
@@ -310,10 +318,10 @@ CGenerator: class extends Skeleton {
     }
 
     visitArrayCreation: func (node: ArrayCreation) {
-        writeArrayCreation(node arrayType, node expr, node generateTempName("arrayCrea"))
+        writeArrayCreation(node arrayType, node expr, node generateTempName("arrayCrea"), !node literal?)
     }
 
-    writeArrayCreation: func (arrayType: ArrayType, expr: Expression, name: String) {
+    writeArrayCreation: func (arrayType: ArrayType, expr: Expression, name: String, writeForLoop?: Bool) {
         current app("_lang_array__Array_new(")
         if(arrayType inner instanceOf?(ArrayType)) {
             // otherwise, something like _lang_types__Bool[rows] is written
@@ -326,14 +334,14 @@ CGenerator: class extends Skeleton {
         }
         current app(", "). app(arrayType expr). app(")")
 
-        if(arrayType inner instanceOf?(ArrayType)) {
+        if(writeForLoop? && arrayType inner instanceOf?(ArrayType)) {
             current app(';'). nl(). app("{"). tab(). nl(). app("int "). app(name). app("__i;"). nl().
                     app("for("). app(name). app("__i = 0; ").
                     app(name). app("__i < "). app(arrayType expr). app("; ").
                     app(name). app("__i++) { "). tab(). nl()
 
             current app("_lang_array__Array "). app(name). app("_sub = ")
-            writeArrayCreation(arrayType inner as ArrayType, null, name + "_sub")
+            writeArrayCreation(arrayType inner as ArrayType, null, name + "_sub", true)
 
             current app(";"). nl(). app("_lang_array__Array_set(")
             if(expr) {
