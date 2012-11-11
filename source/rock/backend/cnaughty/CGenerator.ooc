@@ -303,7 +303,12 @@ CGenerator: class extends Skeleton {
         if(type as PointerType inner instanceOf?(ArrayType)) {
             // Trick to generate correct nested arrays
             inner := type as PointerType inner as ArrayType
-            current app(PointerType new(inner inner, inner token))
+            while(inner inner instanceOf?(ArrayType)) {
+                inner = inner inner as ArrayType
+            }
+            stars := ""
+            (type pointerLevel() - 1) times(|| stars = stars append('*'))
+            current app(inner inner) . app(stars)
         } else {
             current app(type as PointerType inner)
         }
