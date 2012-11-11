@@ -299,7 +299,16 @@ CGenerator: class extends Skeleton {
         type := arrLit getType()
         if(!type instanceOf?(PointerType)) Exception new(This, "Array literal type %s isn't a PointerType but a %s, wtf?" format(arrLit toString(), type toString())) throw()
 
-        current app("("). app(arrLit getType() as PointerType inner). app("[]) { ")
+        current app("(")
+        if(type as PointerType inner instanceOf?(ArrayType)) {
+            // Trick to generate correct nested arrays
+            inner := type as PointerType inner as ArrayType
+            current app(PointerType new(inner inner, inner token))
+        } else {
+            current app(type as PointerType inner)
+        }
+        current app("[]) { ")
+
         isFirst := true
         for(element in arrLit elements) {
             if(!isFirst) current app(", ")
