@@ -298,9 +298,11 @@ CGenerator: class extends Skeleton {
     visitArrayLiteral: func (arrLit: ArrayLiteral) {
         type := arrLit getType()
         if(!type instanceOf?(PointerType)) Exception new(This, "Array literal type %s isn't a PointerType but a %s, wtf?" format(arrLit toString(), type toString())) throw()
+        nested? := false
 
         current app("(")
         if(type as PointerType inner instanceOf?(ArrayType)) {
+            nested? = true
             // Trick to generate correct nested arrays
             inner := type as PointerType inner as ArrayType
             while(inner inner instanceOf?(ArrayType)) {
@@ -318,6 +320,7 @@ CGenerator: class extends Skeleton {
         for(element in arrLit elements) {
             if(!isFirst) current app(", ")
             current app(element)
+            if(nested?) current app(".data") // Unpack the nested Array into data :D
             isFirst = false
         }
         current app(" }")
