@@ -243,9 +243,10 @@ SugarType: abstract class extends Type {
             return scoreSeed / 2
         }
 
-        if(pointerLevel() == 1 && other isPointer()) {
-            // void pointer, a half match!
-            return scoreSeed / 2
+        if(pointerLevel() >= 1 && other isPointer()) {
+            // void pointer, a partial match!
+            // The more levels our pointer is, the less of a match we found! :D
+            return scoreSeed / (2 * pointerLevel())
         }
 
         if(other getRef() instanceOf?(CoverDecl)) {
@@ -293,7 +294,8 @@ PointerType: class extends SugarType {
     isPointer: func -> Bool { inner pointerLevel() == 0 && inner void? }
 
     write: func (w: AwesomeWriter, name: String) {
-        inner write(w, null)
+        if(inner instanceOf?(ArrayType)) inner as ArrayType write(w, null, true)
+        else inner write(w, null)
         if(!inner isGeneric()) w app('*')
         if(name != null) w app(' '). app(name)
     }
@@ -344,12 +346,23 @@ ArrayType: class extends PointerType {
         return This NOLUCK_SCORE
     }
 
-    write: func (w: AwesomeWriter, name: String) {
+    write: func~_true(w: AwesomeWriter, name: String, forceStars?: Bool) {
         if(expr == null) {
             w app("_lang_array__Array")
             if(name != null) {
                 w app(' '). app(name)
             }
+        } else if(forceStars?) {
+            //Nested array declaration
+            base := inner
+            while(base instanceOf?(This)) {
+                base = base as This inner
+            }
+            base write(w, null)
+            stars := ""
+            pointerLevel() times(|| stars = stars append('*'))
+            w app(stars)
+            if(name) w app(' ') . app(name)
         } else {
             inner write(w, null)
             w app(' ')
@@ -357,6 +370,10 @@ ArrayType: class extends PointerType {
             if(expr) w app('['). app(expr). app(']')
             else     w app('*')
         }
+    }
+
+    write: func (w: AwesomeWriter, name: String) {
+        write~_true(w, name, false)
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
