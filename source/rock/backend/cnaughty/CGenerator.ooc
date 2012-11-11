@@ -298,7 +298,6 @@ CGenerator: class extends Skeleton {
     visitArrayLiteral: func (arrLit: ArrayLiteral) {
         type := arrLit getType()
         if(!type instanceOf?(PointerType)) Exception new(This, "Array literal type %s isn't a PointerType but a %s, wtf?" format(arrLit toString(), type toString())) throw()
-        nested? := false
 
         current app("(")
         if(type as PointerType inner instanceOf?(ArrayType)) {
