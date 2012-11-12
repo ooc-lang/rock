@@ -3,7 +3,7 @@ import BinaryOp, Visitor, Expression, VariableDecl, FunctionDecl,
        TypeDecl, Declaration, Type, Node, ClassDecl, NamespaceDecl,
        EnumDecl, PropertyDecl, FunctionCall, Module, Import, FuncType,
        NullLiteral, AddressOf, BaseType, StructLiteral, Return,
-       Argument, InlineContext, Scope
+       Argument, InlineContext, Scope, CoverDecl
 
 import tinker/[Resolver, Response, Trail, Errors]
 import structs/ArrayList
@@ -180,6 +180,11 @@ VariableAccess: class extends Expression {
                     return Response OK
                 }
                 typeDecl resolveAccess(this, res, trail)
+
+                //If we did'nt get the ref, we try to get it from the cover's "from type"
+                if(!ref && typeDecl instanceOf?(CoverDecl)) {
+                    typeDecl as CoverDecl resolveAccessInFromType(this, res, trail)
+                }
             }
         }
 
