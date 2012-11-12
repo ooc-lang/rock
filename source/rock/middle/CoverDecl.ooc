@@ -52,6 +52,22 @@ CoverDecl: class extends TypeDecl {
         return Response OK
     }
 
+    resolveCallInFromType: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
+        if(fromType && fromType getRef() && fromType getRef() instanceOf?(TypeDecl)) {
+
+            tDecl := fromType getRef() as TypeDecl
+            meta := tDecl getMeta()
+            if(meta) {
+                meta resolveCall(call, res, trail)
+            } else {
+                tDecl resolveCall(call, res, trail)
+            }
+
+        } else {
+            -1
+        }
+    }
+
     writeSize: func (w: TabbedWriter, instance: Bool) {
         w app("sizeof("). app(underName()). app(")")
     }
