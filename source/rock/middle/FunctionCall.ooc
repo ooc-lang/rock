@@ -369,6 +369,11 @@ FunctionCall: class extends Expression {
                     } else {
                         tDecl resolveCall(this, res, trail)
                     }
+
+                    // If we still haven't got a match for the function and the expression is a cover, we try to look into the cover's "from type"
+                    if(!getRef() && tDecl instanceOf?(CoverDecl)) {
+                        tDecl as CoverDecl resolveCallInFromType(this, res, trail)
+                    }
                 }
             }
         }
