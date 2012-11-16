@@ -165,7 +165,7 @@ FunctionCall: class extends Expression {
         }
 
         score := getScore(candidate)
-        if(score == -1) {
+        if(score < 0) {
             if(debugCondition()) "** Score = -1! Aboort" println()
             if(res fatal) {
                 // trigger a resolve on the candidate so that it'll display a more helpful error

@@ -98,9 +98,46 @@ FuncType: class extends Type {
                 return NOLUCK_SCORE
             }
 
-            // TODO: compare arg types (scores), return types, i otras cosas.
+            // If one of our function types comes from a closure, we don't care about return types and typeArgs! :D
+            if(!isClosure && !fType isClosure) {
+                // Check that both function types have/dont have return types
+                if(returnType && !returnType void? && (!fType returnType || fType returnType void?) ||
+                   (!returnType || returnType void?) && fType returnType && !fType returnType void?) return NOLUCK_SCORE
 
-            return scoreSeed
+                // Also, lets make sure we have the same amount of generic types
+                if(typeArgs && !fType typeArgs || !typeArgs && fType typeArgs ||
+                   typeArgs && typeArgs getSize() != fType typeArgs getSize()) return NOLUCK_SCORE
+            }
+
+            parts := argTypes getSize() + (!isClosure && !fType isClosure && returnType && !returnType void? ? 1 : 0)
+            finalScore := 0
+
+            // Void functions match perfectly :)
+            if(parts == 0) finalScore = scoreSeed
+            // Compare argument types
+            for(i in 0 .. argTypes getSize()) {
+                // For closures, we just don't care about the argument types, as we do not have information on them
+                if(isClosure || fType isClosure) {
+                    finalScore += scoreSeed/parts
+                    continue
+                }
+
+                if(!argTypes[i] || !fType argTypes[i]) return -1
+                score := argTypes[i] getScoreImpl(fType argTypes[i], scoreSeed)
+                if(score == -1) return -1
+                else if(score == NOLUCK_SCORE) return score
+                finalScore += score/parts
+            }
+
+            // Compare return type
+            if(returnType && !returnType void?) {
+                score := returnType getScoreImpl(fType returnType, scoreSeed)
+                if(score == -1) return -1
+                else if(score == NOLUCK_SCORE) return score
+                finalScore += score/parts
+            }
+
+            return finalScore
         }
         return NOLUCK_SCORE
     }
