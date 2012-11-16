@@ -98,12 +98,16 @@ FuncType: class extends Type {
                 return NOLUCK_SCORE
             }
 
-            // Let's make sure both function types have return types or don't have them at all, except for closures
-            if((!isClosure && !fType isClosure) && (returnType && !returnType void? && (!fType returnType || fType returnType void?) ||
-               (!returnType || returnType void?) && fType returnType && !fType returnType void?)) return NOLUCK_SCORE
-            // Also, lets make sure we have the same amount of generic types
-            if(typeArgs && !fType typeArgs || !typeArgs && fType typeArgs ||
-               typeArgs && typeArgs getSize() != fType typeArgs getSize()) return NOLUCK_SCORE
+            // If one of our function types comes from a closure, we don't care about return types and typeArgs! :D
+            if(!isClosure && !fType isClosure) {
+                // Check that both function types have/dont have return types
+                if(returnType && !returnType void? && (!fType returnType || fType returnType void?) ||
+                   (!returnType || returnType void?) && fType returnType && !fType returnType void?) return NOLUCK_SCORE
+
+                // Also, lets make sure we have the same amount of generic types
+                if(typeArgs && !fType typeArgs || !typeArgs && fType typeArgs ||
+                   typeArgs && typeArgs getSize() != fType typeArgs getSize()) return NOLUCK_SCORE
+            }
 
             parts := argTypes getSize() + (!isClosure && !fType isClosure && returnType && !returnType void? ? 1 : 0)
             finalScore := 0
