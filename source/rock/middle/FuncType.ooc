@@ -98,9 +98,38 @@ FuncType: class extends Type {
                 return NOLUCK_SCORE
             }
 
-            // TODO: compare arg types (scores), return types, i otras cosas.
+            // Let's make sure both function types have return types or don't have them at all
+            if(returnType && !returnType void? && (!fType returnType || fType returnType void?) || (!returnType || returnType void?) && fType returnType && !fType returnType void?) return NOLUCK_SCORE
+            // Also, lets make sure we have the same amount of generic types
+            if(typeArgs && !fType typeArgs || !typeArgs && fType typeArgs ||
+               typeArgs && typeArgs getSize() != fType typeArgs getSize()) return NOLUCK_SCORE
 
-            return scoreSeed
+            parts := argTypes getSize() + (returnType && !returnType void? ? 1 : 0)
+            "(%s vs %s) Parts: %d" format(toString(), fType toString(), parts) println()
+            finalScore := 0
+
+            // Void functions match perfectly :)
+            if(parts == 0) finalScore = scoreSeed
+            // Compare argument types
+            for(i in 0 .. argTypes getSize()) {
+                if(!argTypes[i] || !fType argTypes[i]) return -1
+                score := argTypes[i] getScoreImpl(fType argTypes[i], scoreSeed)
+                "(%s vs %s) Type %s vs %s = %d" format(toString(), fType toString(), argTypes[i] toString(), fType argTypes[i] toString(), score toString()) println()
+                if(score == -1) return -1
+                else if(score == NOLUCK_SCORE) return score
+                finalScore += score/parts
+            }
+
+            // Compare return type
+            if(returnType && !returnType void?) {
+                score := returnType getScoreImpl(fType returnType, scoreSeed)
+                if(score == -1) return -1
+                else if(score == NOLUCK_SCORE) return score
+                finalScore += score/parts
+            }
+
+            "Finalscore for %s vs %s = %d" format(toString(), fType toString(), finalScore) println()
+            return finalScore
         }
         return NOLUCK_SCORE
     }
