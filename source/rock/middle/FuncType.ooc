@@ -98,8 +98,12 @@ FuncType: class extends Type {
                 return NOLUCK_SCORE
             }
 
+            // Find out whether a lambda is involved
+            closure? := isClosure || fType isClosure
+            lambda? := closure? && (!argTypes contains?(|arg| arg != null) || !fType argTypes contains?(|arg| arg != null))
+
             // If one of our function types comes from a closure, we don't care about return types and typeArgs! :D
-            if(!isClosure && !fType isClosure) {
+            if(!lambda?) {
                 // Check that both function types have/dont have return types
                 if(returnType && !returnType void? && (!fType returnType || fType returnType void?) ||
                    (!returnType || returnType void?) && fType returnType && !fType returnType void?) return NOLUCK_SCORE
@@ -109,7 +113,7 @@ FuncType: class extends Type {
                    typeArgs && typeArgs getSize() != fType typeArgs getSize()) return NOLUCK_SCORE
             }
 
-            parts := argTypes getSize() + (!isClosure && !fType isClosure && returnType && !returnType void? ? 1 : 0)
+            parts := argTypes getSize() + (!lambda? && returnType && !returnType void? ? 1 : 0)
             finalScore := 0
 
             // Void functions match perfectly :)
@@ -117,7 +121,7 @@ FuncType: class extends Type {
             // Compare argument types
             for(i in 0 .. argTypes getSize()) {
                 // For closures, we just don't care about the argument types, as we do not have information on them
-                if(isClosure || fType isClosure) {
+                if(lambda?) {
                     finalScore += scoreSeed/parts
                     continue
                 }
