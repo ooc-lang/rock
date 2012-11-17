@@ -14,7 +14,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Dereference, Foreach, OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess,
     Match, FlowControl, While, CharLiteral, InterfaceDecl, NamespaceDecl,
     Version, Use, Block, ArrayLiteral, EnumDecl, BaseType, FuncType,
-    Declaration, PropertyDecl, CallChain, Tuple, Addon, Try]
+    Declaration, PropertyDecl, CallChain, Tuple, Addon, Try, CommaSequence]
 
 nq_parse: extern proto func (AstBuilder, CString) -> Int
 
@@ -451,8 +451,14 @@ AstBuilder: class {
     onVarDeclEnd: unmangled(nq_onVarDeclEnd) func -> Object {
         stack := pop(Stack<VariableDecl>)
         if(stack getSize() == 1) return stack peek() as Object
-        // FIXME: Better detection to avoid 'stack' being passed as a Statement to, say, an If
-        return stack as Object
+
+        // Unroll a multi variable decl to a comma sequence
+        seq := CommaSequence new(stack peek() as VariableDecl token)
+        for(decl in stack) {
+            seq body add(decl)
+        }
+
+        return seq as Object
     }
 
     gotVarDecl: func (vd: VariableDecl) {
@@ -765,11 +771,9 @@ AstBuilder: class {
         match stmt {
             case vd: VariableDecl =>
                 gotVarDecl(vd)
-            case stack: Stack<VariableDecl> =>
-                if(stack T inheritsFrom?(VariableDecl)) {
-                    for(vd in stack) {
-                        gotVarDecl(vd)
-                    }
+            case seq: CommaSequence =>
+                for(vd: VariableDecl in seq body) {
+                    gotVarDecl(vd)
                 }
             case =>
                 gotStatement(stmt)
