@@ -315,6 +315,7 @@ FunctionDecl: class extends Declaration {
     getType: func -> FuncType {
         type := FuncType new(token)
         if(owner && !isStatic && !vDecl) {
+            type isClosure = true // Hack-ish way to prevent wrapping an access to a method into a closure structure
             type argTypes add(owner instanceType)
         }
         for(arg in args) {
