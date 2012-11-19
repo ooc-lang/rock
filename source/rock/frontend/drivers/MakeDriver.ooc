@@ -217,7 +217,6 @@ MakeDriver: class extends SequenceDriver {
         }
 
         if(params enableGC) {
-            fW write(" -lpthread ")
             if(params dynGC) {
                 fW write("-lgc")
             } else {
@@ -225,6 +224,7 @@ MakeDriver: class extends SequenceDriver {
                 Target toString(arch)
                 fW write(" ${GC_PATH}")
             }
+            fW write(" -lpthread")
         }
 
         fW write("\n\n")
