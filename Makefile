@@ -73,6 +73,16 @@ else
 	@cat BOOTSTRAP
 	@exit 1
 endif
+
+half-bootstrap: boehmgc
+	@echo "Creating bin/ in case it does not exist."
+	mkdir -p bin/
+	@echo "Compiling from C source"
+	cd build/ && ROCK_DIST=.. $(MAKE) -j4
+	@echo "Renaming c_rock to rock"
+	mv bin/c_rock bin/rock
+	@echo "Congrats! you have a half-boostrapped version of rock in bin/rock now. Have fun!"
+
 # Copy the manpage and create a symlink to the binary
 install:
 	if [ -e ${BIN_INSTALL_PATH}/rock ]; then echo "${BIN_INSTALL_PATH}/rock already exists, overwriting."; rm -f ${BIN_INSTALL_PATH}/rock ${BIN_INSTALL_PATH}/rock.exe; fi
@@ -97,12 +107,15 @@ download-bootstrap:
 	rm -rf build/
 	# Note: ./utils/downloader tries curl, ftp, and then wget.
 	#        GNU ftp will _not_ work: it does not accept a url as an argument.
-	./utils/downloader.sh http://fileville-duckinator.dotcloud.com/ooc/bootstrap.tar.bz2 | tar xjvmf - 1>/dev/null
+	./utils/downloader.sh http://fileville-duckinator.dotcloud.com/ooc/bootstrap.tar.bz2 | tar xjmf - 1>/dev/null
 	if [ ! -e build ]; then cp -rfv rock-*/build ./; fi
 
 # Attempt to grab a rock bootstrap from Alpaca and recompile
 rescue: download-bootstrap
 	$(MAKE) clean bootstrap
+
+quick-rescue: download-bootstrap
+	$(MAKE) clean half-bootstrap
 
 # Compile rock with the backup'd version of itself
 safe:
