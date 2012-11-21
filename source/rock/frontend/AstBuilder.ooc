@@ -28,6 +28,14 @@ ReservedKeywordError: class extends Error {
     init: super func ~tokenMessage
 }
 
+IllegalTypeArgError: class extends Error {
+    init: super func ~tokenMessage
+}
+
+IllegalDotOrAssArgError: class extends Error {
+    init: super func ~tokenMessage
+}
+
 computeReservedHashs: func (words: String[]) -> ArrayList<Int> {
     list := ArrayList<Int> new()
     words length times(|i|
@@ -915,18 +923,39 @@ AstBuilder: class {
     }
 
     onTypeArg: unmangled(nq_onTypeArg) func (type: Type) {
-        // TODO: add check for extern function (TypeArgs are illegal in non-extern functions.)
-        peek(List<Node>) add(Argument new(type, "", token()))
+        list := pop(List<Node>)
+        fDecl := peek(FunctionDecl)
+
+        if(!fDecl isExtern()) {
+            params errorHandler onError(IllegalTypeArgError new(token(), "Type-only arguments are only allowed in extern functions"))
+        }
+
+        list add(Argument new(type, "", token()))
+        stack push(list)
     }
 
     onDotArg: unmangled(nq_onDotArg) func (name: CString) {
-        // TODO: add check for member function
-        peek(List<Node>) add(DotArg new(name toString(), token()))
+        list := pop(List<Node>)
+        fDecl := peek(FunctionDecl)
+
+        if(!fDecl hasThis()) {
+            params errorHandler onError(IllegalDotOrAssArgError new(token(), "Dot arguments are only allowed in non-static methods"))
+        }
+
+        list add(DotArg new(name toString(), token()))
+        stack push(list)
     }
 
     onAssArg: unmangled(nq_onAssArg) func (name: CString) {
-        // TODO: add check for member function
-        peek(List<Node>) add(AssArg new(name toString(), token()))
+        list := pop(List<Node>)
+        fDecl := peek(FunctionDecl)
+
+        if(!fDecl hasThis()) {
+            params errorHandler onError(IllegalDotOrAssArgError new(token(), "Assign arguments are only allowed in non-static methods"))
+        }
+
+        list add(AssArg new(name toString(), token()))
+        stack push(list)
     }
 
     /*
