@@ -17,19 +17,6 @@ FunctionCallWriter: abstract class extends Skeleton {
 
         shouldCastThis := false
 
-        /*if(fCall inBinOrTern) {
-            current app("(")
-            if(fCall botRight instanceOf?(StructLiteral) && fCall botLeft != null && !fCall botLeft empty?()) {
-                ast := fCall botRight as StructLiteral realType
-                fCall botRight as StructLiteral elements each(|element,index| 
-                                current app(fCall botLeft). app("."). app("__f"+(index+1) toString()). app(" = ") \
-                                . app(element). app(", ")
-                            )
-            } else {
-                current app(fDecl vDecl getFullName()). app(" = "). app(fCall botRight). app(", ")
-            }
-        }*/
-
         // write the function name
         if(fDecl vDecl != null) {
             current app("((")
@@ -162,7 +149,6 @@ FunctionCallWriter: abstract class extends Skeleton {
             if(declArg != null && declArg instanceOf?(VarArg)) {
                 // Write the ooc VarArgs field declarations
                 if(declArg name != null) {
-                    //fCall toString() println()
                     first? := true
                     elements := fCall varArgs
                     if(elements) {
@@ -173,7 +159,6 @@ FunctionCallWriter: abstract class extends Skeleton {
                             else current app(", ")
 
                             current app(fCall vaStruct) . app('.') . app("__f%d" format(i + 1)) . app(" = ") . app(elements get(i))
-                            //"%s.__f%d = %s" printfln(fCall vaStruct, i + 1, elements get(i) toString())
                         }
                         current app(", ")
                     }
