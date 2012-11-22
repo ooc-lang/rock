@@ -5,6 +5,8 @@ version(unix || apple) {
 /* Constants */
 WEXITSTATUS: extern func (Int) -> Int
 WIFEXITED: extern func (Int) -> Int
+WIFSIGNALED: extern func (Int) -> Int
+WTERMSIG: extern func (Int) -> Int
 
 /* Functions */
 /* status: Int* */

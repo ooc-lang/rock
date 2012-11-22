@@ -9,6 +9,7 @@ include errno, signal
 errno : extern Int
 SIGTERM: extern Int
 SIGKILL: extern Int
+SIGSEGV: extern Int
 
 kill: extern func (Long, Int)
 
@@ -53,7 +54,11 @@ ProcessUnix: class extends Process {
             if (stdErr != null) {
                 stdErr close('w')
             }
+        } else if(WIFSIGNALED(status) && WTERMSIG(status) == SIGSEGV) {
+            if(stdErr) stdErr write("Segmentation fault\n")
+            else stderr write("Segmentation fault\n")
         }
+
         return result
     }
 
