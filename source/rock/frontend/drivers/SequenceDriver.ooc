@@ -206,6 +206,7 @@ SequenceDriver: class extends Driver {
         if(params verbose) "Re-generating modules..." println()
         reGenerated := ArrayList<Module> new()
         for(module in sourceFolder modules) {
+            ("Re-generating " + module fullName) println()
 			result := CGenerator new(params, module) write()
             
             if(result && params verbose) ("Re-generated " + module fullName) println()

@@ -17,7 +17,7 @@ FunctionCallWriter: abstract class extends Skeleton {
 
         shouldCastThis := false
 
-        if(fCall inBinOrTern) {
+        /*if(fCall inBinOrTern) {
             current app("(")
             if(fCall botRight instanceOf?(StructLiteral) && fCall botLeft != null && !fCall botLeft empty?()) {
                 ast := fCall botRight as StructLiteral realType
@@ -28,7 +28,7 @@ FunctionCallWriter: abstract class extends Skeleton {
             } else {
                 current app(fDecl vDecl getFullName()). app(" = "). app(fCall botRight). app(", ")
             }
-        }
+        }*/
 
         // write the function name
         if(fDecl vDecl != null) {
@@ -155,10 +155,31 @@ FunctionCallWriter: abstract class extends Skeleton {
             }
 
             writeCast := false
+            oocVarArgs? := false
 
             declArg : Argument = null
             if(i < fDecl args getSize())                         declArg = fDecl args get(i)
-            if(declArg != null && declArg instanceOf?(VarArg)) declArg = null
+            if(declArg != null && declArg instanceOf?(VarArg)) {
+                // Write the ooc VarArgs field declarations
+                if(declArg name != null) {
+                    //fCall toString() println()
+                    first? := true
+                    elements := fCall varArgs
+                    if(elements) {
+                        oocVarArgs? = true
+                        current app('(')
+                        for(i in 0 .. elements getSize()) {
+                            if(first?) first? = false
+                            else current app(", ")
+
+                            current app(fCall vaStruct) . app('.') . app("__f%d" format(i + 1)) . app(" = ") . app(elements get(i))
+                            //"%s.__f%d = %s" printfln(fCall vaStruct, i + 1, elements get(i) toString())
+                        }
+                        current app(", ")
+                    }
+                }
+                declArg = null
+            }
 
             writeRefAddrOf := true
             if(declArg != null) {
@@ -179,6 +200,7 @@ FunctionCallWriter: abstract class extends Skeleton {
                 case false => visitVariableAccess(arg as VariableAccess, false)
             }
             if(writeCast) current app(')')
+            if(oocVarArgs?) current app(')')
             i += 1
         }
 
@@ -207,7 +229,6 @@ FunctionCallWriter: abstract class extends Skeleton {
         }
 
         current app(')')
-        if(fCall inBinOrTern) current app(")")
 
     }
 
