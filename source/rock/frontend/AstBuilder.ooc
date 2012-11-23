@@ -710,13 +710,19 @@ AstBuilder: class {
         call expr = expr
     }
 
-    onFunctionCallCombo: unmangled(nq_onFunctionCallCombo) func (call: FunctionCall, expr: Expression) {
+    onFunctionCallCombo: unmangled(nq_onFunctionCallCombo) func (call: FunctionCall, expr: Expression) -> Object {
         name := call generateTempName("comboRoot")
         call setName(name)
 
-        vDecl := VariableDecl new(null, name, expr, expr token)
+        // We unroll a comboroot to variable declaration, then replace it with a comma expression of the assignement and the final call
+        vDecl := VariableDecl new(expr getType(), name, expr token)
         vDecl isGlobal = true // well, that's not true, but at least this way it won't be marked for partialing...
+
+        commaSeq := CommaSequence new(expr token)
+        commaSeq body add(BinaryOp new(VariableAccess new(name), expr, OpType ass, expr token), call)
+
         onStatement(vDecl)
+        return commaSeq
     }
 
     onFunctionCallChain: unmangled(nq_onFunctionCallChain) func (expr: Expression, call: FunctionCall) -> CallChain {
