@@ -1,7 +1,9 @@
 import BufferReader
 
 StringReader: class extends BufferReader {
-    init: func ~withString (string: String) {
+    string: String
+
+    init: func ~withString (=string) {
         super(string _buffer)
     }
 }

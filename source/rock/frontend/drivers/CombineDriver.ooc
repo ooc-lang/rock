@@ -73,7 +73,6 @@ CombineDriver: class extends Driver {
             }
 
             if(params enableGC) {
-                params compiler addDynamicLibrary("pthread")
                 if(params dynGC) {
                     params compiler addDynamicLibrary("gc")
                 } else {
@@ -81,6 +80,7 @@ CombineDriver: class extends Driver {
                     libPath := "libs/" + Target toString(arch) + "/libgc.a"
                     params compiler addObjectFile(File new(params distLocation, libPath) path)
                 }
+                params compiler addDynamicLibrary("pthread")
             }
         } else {
             params compiler setCompileOnly()

@@ -1,13 +1,19 @@
 include stdio
 include sys/types
-include sys/socket
-include sys/ioctl
-include sys/poll
 include unistd | (__USE_BSD)
-include sys/select
-include arpa/inet
-include netdb | (__USE_POSIX)
-include sys/fcntl
+
+version (windows) {
+    include winsock2
+    include ws2tcpip
+} else {
+    include sys/socket
+    include sys/ioctl
+    include sys/poll
+    include sys/select
+    include arpa/inet
+    include netdb | (__USE_POSIX)
+    include sys/fcntl
+}
 
 /**
     Low level binding to Berkeley sockets API.
@@ -61,10 +67,12 @@ HostEntry: cover from struct hostent {
   h_addr_list: extern Char** // list of addresses for the host
 }
 
-PollFd: cover from struct pollfd {
-    fd: extern Int
-    events: extern Short
-    revents: extern Short
+version (!windows) {
+    PollFd: cover from struct pollfd {
+	fd: extern Int
+	events: extern Short
+	revents: extern Short
+    }
 }
 
 FdSet: cover from fd_set {
@@ -96,6 +104,10 @@ SOL_SOCKET: extern Int
 
 SO_REUSEADDR: extern Int
 
+version (!windows) {
+    poll: extern func(ufds: PollFd*, nfds: UInt, timeout: Int) -> Int
+}
+
 socket: extern func(family, type, protocol: Int) -> Int
 accept: extern func(descriptor: Int, address: SockAddr*, addressLength: UInt*) -> Int
 bind: extern func(descriptor: Int, myAddress: SockAddr*, addressLength: UInt) -> Int
@@ -104,11 +116,10 @@ close: extern func(descriptor: Int) -> Int
 closesocket: extern func(descriptor: Int) -> Int // windows version of close()
 shutdown: extern func(descriptor: Int, how: Int) -> Int
 listen: extern func(descriptor: Int, numberOfBacklogConnections: Int) -> Int
-poll: extern func(ufds: PollFd*, nfds: UInt, timeout: Int) -> Int
 recv: extern func(descriptor: Int, buffer: Pointer, maxBufferLength: SizeT, flags: Int) -> Int
-recvFrom: extern(recvfrom) func(descriptor: Int, buffer: Pointer, maxBufferLength: SizeT, flags: Int, senderAddress: SockAddr*, senderAddressLength: UInt) -> Int
+recvFrom: extern(recvfrom) func(descriptor: Int, buffer: Pointer, maxBufferLength: SizeT, flags: Int, senderAddress: SockAddr*, senderAddressLength: UInt*) -> Int
 send: extern func(descriptor: Int, message: Pointer, messageLength: SizeT, flags: Int) -> Int
-sendTo: extern(sendto) func(descriptor: Int, message: Pointer, messageLength: SizeT, flags: Int, recieverAddress: SockAddr*, recieverAddressLength: UInt) -> Int
+sendTo: extern(sendto) func(descriptor: Int, message: Pointer, messageLength: SizeT, flags: Int, recieverAddress: SockAddr*, receiverAddressLength: UInt) -> Int
 select: extern func(numfds: Int, readfds: FdSet*, writefds: FdSet*, exceptfds: FdSet*, timeout: TimeVal*) -> Int
 getsockopt: extern func(s: Int, level: Int, optname: Int, optval: Pointer, optlen: UInt) -> Int
 setsockopt: extern func(s: Int, level: Int, optname: Int, optval: Pointer, optlen: UInt) -> Int

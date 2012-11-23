@@ -36,13 +36,6 @@ ArrayList: class <T> extends List<T> {
         capacity = _size
     }
 
-    init: func ~fromNullTerminated (.data) {
-        i := 0
-        while(data[i] != null)
-            i += 1
-        init(data, i)
-    }
-
     add: func (element: T) {
         ensureCapacity(_size + 1)
         data[_size] = element

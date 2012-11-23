@@ -5,10 +5,8 @@ include string
 
 version(!gc) {
     // GC_MALLOC zeroes the memory, so in the non-gc version, we prefer to use calloc
-    // to the expense of some performance. If you want to use malloc instead - do so
-    // at your own risks. Some sdk classes may not zero their every field.
-
-    //gc_malloc: extern(malloc) func (size: SizeT) -> Pointer
+    // to the expense of some performance. Don't use malloc instead - existing ooc code
+    // is written assuming that gc_malloc zeroes the memory.
     gc_malloc: func (size: SizeT) -> Pointer {
         gc_calloc(1, size)
     }
@@ -20,7 +18,13 @@ version(!gc) {
 }
 
 version(gc) {
-    include gc/gc | (GC_THREADS)
+    include gc/gc | (GC_THREADS) 
+    // to get the GC_pthread_* prototypes
+    include gc/gc_pthread_redirects | (GC_NO_THREAD_REDIRECTS)
+
+    gc_malloc_for_generics: func (size: SizeT) -> Pointer {
+        gc_malloc(size)
+    }
 
     gc_malloc: extern(GC_malloc) func (size: SizeT) -> Pointer
     gc_malloc_atomic: extern(GC_malloc_atomic) func (size: SizeT) -> Pointer

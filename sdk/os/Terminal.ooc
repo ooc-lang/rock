@@ -1,6 +1,9 @@
+import FileDescriptor
+
 /**
  * Set text colors and attributes for VT100 compatible terminals
  * @author eagle2com
+ * @autor shamanas (Windows port)
  */
 
 Attr: class {
@@ -21,6 +24,10 @@ Attr: class {
     hidden =  8 : static const Int
 }
 
+// this should be a constant but gcc cant find the symbol o0
+COLOR_FORMAT_STRING := "\033[%dm"
+
+version (unix || apple) {
 
 Color: class {
     /* Foreground color codes */
@@ -34,11 +41,6 @@ Color: class {
     grey =       37,
     white  =     38    : static const Int
 }
-
-// this should be a constant but gcc cant find the symbol o0
-COLOR_FORMAT_STRING := "\033[%dm"
-
-version (unix || apple) {
 
 import unistd
 
@@ -95,7 +97,73 @@ Terminal: class {
 }
 }
 
-version (!(unix || apple)) {
+version (windows) {
+import native/win32/types
+// TODO: Try to use GetConsoleScreenBufferInfo to keep bg/fg color when using SetFg/BgColor functions
+GetStdHandle: extern func(mode: ULong) -> Handle
+SetConsoleTextAttribute: extern func(console: Handle, attr: UShort) -> Bool
+
+STD_OUTPUT_HANDLE: extern ULong
+
+Color: class {
+    /* Color codes */
+    black = 0,
+    grey = 7,
+    blue = 9,
+    red = 12,
+    yellow = 14,
+    white = 31,
+    green  = 10,
+    magenta = 13,
+    cyan = 11 : static const Int
+}
+
+Terminal: class {
+	bg,fg: static Int
+	output: static func(fmt : String, ...) { // Kept only not to break programs
+    }
+
+    setColor: static func(f,b: Int) {
+		fg = f
+		bg = b
+		wColor: UShort = ((b & 0x0F) << 4) + (f & 0x0F)
+		hStdOut := GetStdHandle(STD_OUTPUT_HANDLE)
+		SetConsoleTextAttribute(hStdOut, wColor)
+    }
+
+    setFgColor: static func(c: Int) {
+		setColor(c,bg)
+    }
+
+    setBgColor: static func(c: Int) {
+		setColor(fg,c)
+    }
+
+    setAttr: static func(att: Int) {
+		if(att == Attr reset) {
+			reset()
+		}
+    }
+
+    reset: static func() {
+		setColor(Color grey, Color black)
+    }
+}
+}
+
+version (!(unix || apple || windows)) {
+Color: class {
+    /* Foreground color codes */
+    black =      30,
+    red =        31,
+    green =      32,
+    yellow =     33,
+    blue  =      34,
+    magenta =    35,
+    cyan =       36,
+    grey =       37,
+    white  =     38    : static const Int
+}
 Terminal: class {
 
     /* Background color codes are the same as Foreground + 10

@@ -314,6 +314,10 @@ FunctionDecl: class extends Declaration {
 
     getType: func -> FuncType {
         type := FuncType new(token)
+        if(owner && !isStatic && !vDecl) {
+            type isClosure = true // Hack-ish way to prevent wrapping an access to a method into a closure structure
+            type argTypes add(owner instanceType)
+        }
         for(arg in args) {
             if(arg instanceOf?(VarArg)) break
             type argTypes add(arg getType())
@@ -463,7 +467,12 @@ FunctionDecl: class extends Declaration {
         // handle the case where we specialize a generic function
         if(owner) {
             meat := owner isMeta ? owner as ClassDecl : owner getMeta()
-            base := meat getBaseClass(this, true)
+            comeBack: Bool
+            base := meat getBaseClass(this, true, comeBack&)
+            if (comeBack) { // ugly_
+                res wholeAgain(this, "Resolving a missing interface declaration.")
+                return Response OK
+            }
 
             if(base != null) {
                 finalScore := 0
@@ -534,7 +543,7 @@ FunctionDecl: class extends Declaration {
                 if (arg getType() == null || !arg getType() isResolved()) {
                     "Looping because of arg %s" format(arg toString()) println()
                     res wholeAgain(this, "need arg type for the ref")
-                    return Response OK
+                    return
                 }
             )
         }
@@ -685,8 +694,9 @@ FunctionDecl: class extends Declaration {
                         constructCall := FunctionCall new("strArrayListFromCString", arg token)
                         constructCall args add(VariableAccess new(argc, arg token)) \
                                           .add(VariableAccess new(argv, arg token))
-
-                        vdfe := VariableDecl new(null, arg getName(), constructCall, token)
+                        // Mangle the argument's name :D
+                        arg fullName = "%s__%s" format(arg token module getUnderName(), arg name)
+                        vdfe := VariableDecl new(null, arg getFullName(), constructCall, token)
                         body add(0, vdfe)
                     }
                 }
@@ -920,7 +930,7 @@ FunctionDecl: class extends Declaration {
                         if (fScore == -1) {
                             res wholeAgain(this, "Can't figure out the actual type of generic")
                             trail pop(this)
-                            return Response OK
+                            return
                         }
                     } else {
                         t = arg getType()

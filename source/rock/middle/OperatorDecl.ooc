@@ -90,6 +90,7 @@ OperatorDecl: class extends Expression {
             case "+"   =>  "ADD"
             case "-"   =>  "SUB"
             case "*"   =>  "MUL"
+            case "**"  =>  "EXP"
             case "/"   =>  "DIV"
             case "<<"  =>  "B_LSHIFT"
             case ">>"  =>  "B_RSHIFT"
@@ -101,6 +102,7 @@ OperatorDecl: class extends Expression {
             case "+="  =>  "ADD_ASS"
             case "-="  =>  "SUB_ASS"
             case "*="  =>  "MUL_ASS"
+            case "**=" =>  "EXP_ASS"
             case "/="  =>  "DIV_ASS"
             case "<<=" =>  "B_LSHIFT_ASS"
             case ">>=" =>  "B_RSHIFT_ASS"
@@ -108,6 +110,7 @@ OperatorDecl: class extends Expression {
             case "&="  =>  "B_AND_ASS"
             case "|="  =>  "B_OR_ASS"
 
+            case "=>"  =>  "DOUBLE_ARR"
             case "&&"  =>  "L_AND"
             case "||"  =>  "L_OR"
             case "%"   =>  "MOD"

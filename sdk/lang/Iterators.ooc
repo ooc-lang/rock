@@ -28,6 +28,13 @@ Iterable: abstract class <T> {
             f(elem)
         }
     }
+
+    // Return false to break
+    eachUntil: func (f: Func (T) -> Bool) {
+        for(elem in this) {
+            if(!f(elem)) break
+        }
+    }
     
     each: func ~withIndex (f: Func (T, Int)) {
         index := 0

@@ -255,47 +255,6 @@ LinkedList: class <T> extends List<T> {
     emptyClone: func <K> -> This<K> {
         This<K> new()
     }
-
-	print: func {
-		println()
-		printf("prev: ")
-		current := head next
-		while(current != head) {
-			if(current prev != head) {
-				Terminal setFgColor(Color red + current prev as SizeT % 7)
-				printf("|%p|", current prev)
-				Terminal reset()
-			}
-			else
-				printf("|         |")
-			current = current next
-		}
-		println()
-
-		printf("this: ")
-		current = head next
-		while(current != head) {
-			Terminal setFgColor(Color red + current as SizeT % 7)
-			printf("|%p|", current)
-			Terminal reset()
-			current = current next
-		}
-		println()
-
-		printf("next: ")
-		current = head next
-		while(current != head) {
-			if(current next != head) {
-				Terminal setFgColor(Color red + current next as SizeT % 7)
-				printf("|%p|", current next)
-				Terminal reset()
-			}
-			else
-				printf("|         |")
-			current = current next
-		}
-		println()
-	}
 }
 
 

@@ -1,12 +1,13 @@
-.PHONY: all clean mrproper prepare_bootstrap bootstrap install rescue backup
+.PHONY: all clean mrproper prepare_bootstrap bootstrap install download-bootstrap rescue backup
 PARSER_GEN=greg
 NQ_PATH=source/rock/frontend/NagaQueen.c
 DATE=$(shell date +%Y-%m-%d)
 TIME=$(shell date +%H:%M)
 OOC_WARN_FLAGS?=+-w
-OOC_OWN_FLAGS=-sourcepath=source -v +-O0 -g -ignoredefine=ROCK_BUILD_ ${OOC_WARN_FLAGS}
+OOC_OWN_FLAGS=--sourcepath=source -v +-O0 -g --ignoredefine=ROCK_BUILD_ ${OOC_WARN_FLAGS}
 
-CC?=gcc
+# used to be CC?=gcc, but that breaks on mingw where CC is set to 'cc' apparently
+CC=gcc
 PREFIX?=/usr
 MAN_INSTALL_PATH?=/usr/local/man/man1
 BIN_INSTALL_PATH?=${PREFIX}/bin
@@ -45,18 +46,17 @@ prepare_bootstrap:
 	@echo "Preparing boostrap (in build/ directory)"
 	rm -rf build/
 	${OOC} -driver=make -sourcepath=source -outpath=c-source rock/rock -o=../bin/c_rock c-source/${NQ_PATH} -v -g +-w
-ifeq ($(shell uname -s), FreeBSD)
+	
+	# Don't use `sed -i`. That breaks on FreeBSD, and likely other systems as well.
 	sed s/-w.*/-w\ -DROCK_BUILD_DATE=\\\"\\\\\"bootstrapped\\\\\"\\\"\ -DROCK_BUILD_TIME=\\\"\\\\\"\\\\\"\\\"/ build/Makefile > build/Makefile.tmp
 	rm build/Makefile
 	mv build/Makefile.tmp build/Makefile
-else
-	sed s/-w.*/-w\ -DROCK_BUILD_DATE=\\\"\\\\\"bootstrapped\\\\\"\\\"\ -DROCK_BUILD_TIME=\\\"\\\\\"\\\\\"\\\"/ -i build/Makefile
-endif
+	
 	cp ${NQ_PATH} build/c-source/${NQ_PATH}
 	@echo "Done!"
 
 boehmgc:
-	cd libs && make
+	cd libs && $(MAKE) LIBGC_FORCE_COMPILE=${LIBGC_FORCE_COMPILE}
 
 # For c-source based rock releases, 'make bootstrap' will compile a version
 # of rock from the C sources in build/, then use that version to re-compile itself
@@ -73,6 +73,16 @@ else
 	@cat BOOTSTRAP
 	@exit 1
 endif
+
+half-bootstrap: boehmgc
+	@echo "Creating bin/ in case it does not exist."
+	mkdir -p bin/
+	@echo "Compiling from C source"
+	cd build/ && ROCK_DIST=.. $(MAKE) -j4
+	@echo "Renaming c_rock to rock"
+	mv bin/c_rock bin/rock
+	@echo "Congrats! you have a half-boostrapped version of rock in bin/rock now. Have fun!"
+
 # Copy the manpage and create a symlink to the binary
 install:
 	if [ -e ${BIN_INSTALL_PATH}/rock ]; then echo "${BIN_INSTALL_PATH}/rock already exists, overwriting."; rm -f ${BIN_INSTALL_PATH}/rock ${BIN_INSTALL_PATH}/rock.exe; fi
@@ -93,18 +103,31 @@ self: .libs/NagaQueen.o
 backup:
 	cp bin/rock bin/safe_rock
 
-# Attempt to grab a rock bootstrap from Alpaca and recompile
-rescue:
-	git pull
+download-bootstrap:
 	rm -rf build/
-	# Note: don't use --no-check-certificate, OSX is retarded
-	# Note: someone make a curl fallback already
-	wget http://www.fileville.net/ooc/bootstrap.tar.bz2 -O - | tar xjvmp 1>/dev/null
+	# Note: ./utils/downloader tries curl, ftp, and then wget.
+	#        GNU ftp will _not_ work: it does not accept a url as an argument.
+	./utils/downloader.sh http://fileville-duckinator.dotcloud.com/ooc/bootstrap.tar.bz2 | tar xjmf - 1>/dev/null
+	if [ ! -e build ]; then cp -rfv rock-*/build ./; fi
+
+# Attempt to grab a rock bootstrap from Alpaca and recompile
+rescue: download-bootstrap
 	$(MAKE) clean bootstrap
+
+quick-rescue: download-bootstrap
+	$(MAKE) clean half-bootstrap
 
 # Compile rock with the backup'd version of itself
 safe:
 	OOC=bin/safe_rock $(MAKE) self
+
+bootstrap_tarball:
+ifeq ($(VERSION),)
+	@echo "You must specify VERSION. Generates rock-VERSION-bootstrap-only.tar.bz2"
+else
+	$(MAKE) prepare_bootstrap
+	tar cjvfm rock-${VERSION}-bootstrap-only.tar.bz2 build
+endif
 
 # Clean all temporary files that may make a build fail
 clean:

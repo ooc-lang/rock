@@ -14,7 +14,15 @@ strtoll: extern func (Char*, Pointer, Int) -> LLong
 strtoul: extern func (Char*, Pointer, Int) -> ULong
 strtof:  extern func (Char*, Pointer)      -> Float
 strtod:  extern func (Char*, Pointer)      -> Double
-strtold: extern func (Char*, Pointer)      -> LDouble
+// Cygwin doesn't handle long doubles (and doesn't have strtold defined)
+version(!__CYGWIN__) {
+    strtold: extern func (Char*, Pointer)      -> LDouble
+}
+version(__CYGWIN__) {
+    strtold: func (str: Char*, p: Pointer) -> LDouble {
+        strtod(str, p) as LDouble
+    }
+}
 
 /**
  * Character type
@@ -170,7 +178,7 @@ CString: cover from Char* {
 
     /** Create a new string exactly *length* characters long (without the nullbyte).
         The contents of the string are undefined. */
-    new: static func~withLength (length: Int) -> This {
+    new: static func ~withLength (length: Int) -> This {
         result := gc_malloc(length + 1) as Char*
         result[length] = '\0'
         result as This

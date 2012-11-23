@@ -3,6 +3,7 @@ include stdio
 import structs/ArrayList
 import FileReader, FileWriter, Reader, BufferWriter, BufferReader
 import native/[FileWin32, FileUnix]
+import text/StringTokenizer
 
 /**
    Represents a file/directory path, allows to retrieve informations like
@@ -31,10 +32,10 @@ File: abstract class {
     }
 
     /** Separator for path elements. Usually '/' on *nix and '\\' on Windows. */
-    separator : static Char
+    separator: static Char
 
     /** Delimiter for lists of paths. Usually ':' on *nix and ';' on Windows. */
-    pathDelimiter : static Char
+    pathDelimiter: static Char
 
     /**
      * Maximum path length used to retrieve the current working directory (cwd)
@@ -46,10 +47,10 @@ File: abstract class {
        Create a File object from the given path
      */
     new: static func (.path) -> This {
-        version(unix || apple) {
+        version (unix || apple) {
             return FileUnix new(path)
         }
-        version(windows) {
+        version (windows) {
             return FileWin32 new(path)
         }
         Exception new(This, "Unsupported platform!\n") throw()
@@ -59,7 +60,7 @@ File: abstract class {
     /**
        Create a File object, relative to the given parent file
      */
-    new: static func ~parentFile(parent: File, .path) -> This {
+    new: static func ~parentFile (parent: File, .path) -> This {
         assert(parent != null)
         assert(parent path != null)
         assert(!parent path empty?())
@@ -69,7 +70,7 @@ File: abstract class {
     /**
        Create a File object, relative to the given parent path
      */
-    new: static func ~parentPath(parent: String, .path) -> This {
+    new: static func ~parentPath (parent: String, .path) -> This {
         return new(parent + This separator + path)
     }
 
@@ -128,7 +129,7 @@ File: abstract class {
     name: func -> String {
         trimmed := path trim(This separator)
         idx := trimmed lastIndexOf(This separator)
-        if(idx == -1) return trimmed
+        if (idx == -1) return trimmed
         return trimmed substring(idx + 1)
     }
 
@@ -139,8 +140,8 @@ File: abstract class {
      */
     parent: func -> File {
         pName := parentName()
-        if(pName) return File new(pName)
-        if(path != "." && !path startsWith?(This separator)) return File new(".") // return the current directory
+        if (pName) return File new(pName)
+        if (path != "." && !path startsWith?(This separator)) return File new(".") // return the current directory
         return null
     }
 
@@ -151,9 +152,24 @@ File: abstract class {
      */
     parentName: func -> String {
         idx := path lastIndexOf(This separator)
-        if(idx == -1) return null
+        if (idx == -1) return null
         return path substring(0, idx)
     }
+
+    /**
+     * create a named pipe at the path specified by this file,
+     * with permissions 0c755 by default
+     */
+    mkfifo: func -> Int {
+        mkfifo(0c755)
+    }
+
+    /**
+     * create a directory at the path specified by this file
+     *
+     * :param mode: The permissions at the creation of the directory
+     */
+    mkfifo: abstract func ~withMode (mode: Int32) -> Int
 
     /**
      * create a directory at the path specified by this file,
@@ -186,7 +202,7 @@ File: abstract class {
      * :param mode: The permissions at the creation of the directory
      */
     mkdirs: func ~withMode (mode: Int32) -> Int {
-        if(parent := parent()) {
+        if (parent := parent()) {
             parent mkdirs()
         }
         mkdir()
@@ -232,6 +248,34 @@ File: abstract class {
     }
 
     /**
+     * Resolve redundancies, ie. ".." and "."
+     */
+    getReducedPath: func -> String {
+        elems := ArrayList<String> new()
+
+        for (elem in path split(File separator)) {
+            if (elem == "..") {
+                if (!elems empty?()) {
+                    elems removeAt(elems lastIndex())
+                } else {
+                    elems add(elem)
+                }
+            } else if (elem == ".") {
+                // do nothing
+            } else {
+                elems add(elem)
+            }
+        }
+
+        result := elems join(File separator)
+        if (path startsWith?(File separator)) {
+            result = File separator + result
+        }        
+
+        result
+    }
+
+    /**
      * List the name of the children of this path
      * Works only on directories, obviously
      */
@@ -263,7 +307,7 @@ File: abstract class {
 
         max := 8192
         buffer := Char[max] new()
-        while(src hasNext?()) {
+        while (src hasNext?()) {
             num := src read(buffer data, 0, max)
             dst write(buffer data, num)
         }
@@ -287,7 +331,7 @@ File: abstract class {
        @param str The string to write
      */
     write: func ~string (str: String) {
-        FileWriter new(this) write(BufferReader new(str _buffer)). close()
+        FileWriter new(this) write(BufferReader new(str _buffer)) .close()
     }
 
     /**
@@ -296,7 +340,7 @@ File: abstract class {
        @param reader What to write in the file
      */
     write: func ~reader (reader: Reader) {
-        FileWriter new(this) write(reader) .close()
+        FileWriter new(this) write(reader) . close()
     }
 
     /**
@@ -339,6 +383,7 @@ File: abstract class {
 
 }
 
-_isDirHardlink? : inline func (dir: CString) -> Bool {
+_isDirHardlink?: inline func (dir: CString) -> Bool {
     (dir[0] == '.') && (dir[1] == '\0' || ( dir[1] == '.' && dir[2] == '\0'))
 }
+

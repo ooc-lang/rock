@@ -214,11 +214,12 @@ Module: class extends Node {
 
         //printf("Looking for %s in %s\n", access toString(), toString())
 
-        // TODO: optimize by returning as soon as the access is resolved
         resolveAccessNonRecursive(access, res, trail)
+        if(access ref) return 0
 
         for(imp in getGlobalImports()) {
             imp getModule() resolveAccessNonRecursive(access, res, trail)
+            if(access ref) return 0
         }
 
         namespace := namespaces get(access getName())
@@ -237,7 +238,7 @@ Module: class extends Node {
 
         for(f in functions) {
             if(f name == access name) {
-                access suggest(f)
+                if(access suggest(f)) return 0
             }
         }
 

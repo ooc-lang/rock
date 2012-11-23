@@ -4,7 +4,7 @@ import Visitor, Expression, FunctionDecl, Argument, Type,
        TypeDecl, Node, VariableDecl, VariableAccess, AddressOf, CommaSequence, BinaryOp,
        InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType, Return,
        TypeList, Scope, Block, InlineContext, StructLiteral, NullLiteral,
-       IntLiteral, Ternary
+       IntLiteral, Ternary, ClassDecl, CoverDecl
 import tinker/[Response, Resolver, Trail, Errors]
 
 /**
@@ -328,15 +328,16 @@ FunctionCall: class extends Expression {
                             return Response OK
                         }
 
-                        if(ref) {
-                            if(ref vDecl) {
-                                closureIndex := trail find(FunctionDecl)
+                        if(ref && ref vDecl) {
+                            closureIndex := trail find(FunctionDecl)
 
-                                if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
-                                    closure := trail get(closureIndex) as FunctionDecl
-                                    if(closure isAnon && expr == null && !ref vDecl isGlobal) {
-                                        closure markForPartialing(ref vDecl, "v")
-                                    }
+                            if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
+                                closure := trail get(closureIndex) as FunctionDecl
+                                // the ref may also be a closure's argument, in wich case we just ignore this
+
+                                if(closure isAnon && !ref vDecl isGlobal &&
+                                    !closure args contains?(|arg| arg == ref vDecl || arg name == ref vDecl name + "_generic")) {
+                                    closure markForPartialing(ref vDecl, "v")
                                 }
                             }
                         }
@@ -359,6 +360,11 @@ FunctionCall: class extends Expression {
                         meta resolveCall(this, res, trail)
                     } else {
                         tDecl resolveCall(this, res, trail)
+                    }
+
+                    // If we still haven't got a match for the function and the expression is a cover, we try to look into the cover's "from type"
+                    if(!getRef() && tDecl instanceOf?(CoverDecl)) {
+                        tDecl as CoverDecl resolveCallInFromType(this, res, trail)
                     }
                 }
             }
@@ -518,6 +524,15 @@ FunctionCall: class extends Expression {
             trail addBeforeInScope(this, vDecl)
             expr = VariableAccess new(vDecl, expr token)
             return Response OK
+        }
+
+        // check we are not trying to call a non-static member function on the metaclass
+        if(expr instanceOf?(VariableAccess) && \
+        (expr as VariableAccess getRef() instanceOf?(ClassDecl) || expr as VariableAccess getRef() instanceOf?(CoverDecl)) && \
+        (expr as VariableAccess getRef() as TypeDecl inheritsFrom?(ref getOwner()) || \
+        expr as VariableAccess getRef() == ref getOwner()) && !ref isStatic) {
+            res throwError(UnresolvedCall new(this, "No such function %s%s for `%s` (%s)" format(name, getArgsTypesRepr(),
+                            expr getType() toString(), expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)"), ""))
         }
 
         /* check for String instances passed to C vararg functions if helpful.
@@ -825,6 +840,24 @@ FunctionCall: class extends Expression {
         Response OK
     }
 
+    /** print an appropriate warning if the user tries to use vararg functions in binary/ternary expressions.
+        See bug #311 for details. */
+    printVarargExpressionWarning: func (trail: Trail) {
+        i := trail getSize() - 1
+        while(i >= 0) {
+            node := trail data get(i) as Node
+            // boolean binary ops and ternary ops are the problem!
+            if((node instanceOf?(BinaryOp) && node as BinaryOp isBooleanOp()) \
+               || node instanceOf?(Ternary)) {
+                token formatMessage("Found a vararg function call inside a binary/ternary expression. Please unwrap this expression. See https://github.com/nddrylliog/rock/issues/311 for details", "WARNING") println()
+            } else if(node instanceOf?(Scope)) {
+                // we're not part of the same expression anymore!
+                break;
+            }
+            i -= 1
+        }
+    }
+
     /**
      * Resolve ooc variable arguments
      */
@@ -835,20 +868,7 @@ FunctionCall: class extends Expression {
         match (lastArg := ref args last()) {
             case vararg: VarArg =>
                 if(vararg name != null) {
-
-                    /*i := trail getSize() - 1
-                    while(i >= 0) {
-                        node := trail data get(i) as Node
-                        // boolean binary ops and ternary ops are the problem!
-                        if((node instanceOf?(BinaryOp) && node as BinaryOp isBooleanOp()) || node instanceOf?(Ternary)) {
-                            inBinOrTern = true
-                            break
-                        } else if(node instanceOf?(Scope)) {
-                            // we're not part of the same expression anymore!
-                            break
-                        }
-                        i -= 1
-                    }*/
+                    // ooc varargs have names!
                     numVarArgs := (args size - (ref args size - 1))
 
                     if(!args empty?()) {
@@ -886,8 +906,9 @@ FunctionCall: class extends Expression {
                     }
 
                     vaType := BaseType new("VarArgs", token)
+                    argsAddress := AddressOf new(VariableAccess new(argsDecl, token), token)
                     elements2 := [
-                        AddressOf new(VariableAccess new(argsDecl, token), token)
+                        argsAddress
                         NullLiteral new(token)
                         IntLiteral new(numVarArgs, token)
                     ] as ArrayList<Expression>
@@ -1198,7 +1219,11 @@ FunctionCall: class extends Expression {
             // even though an unsuffixed call could be a call
             // to any of the suffixed versions, if both the call
             // and the decl don't have a suffix, that's a good sign.
-            score += Type SCORE_SEED / 4
+            // a slight boost of 1 should be enough to make rock use
+            // the correct version of a function with multiple definitions
+            // that have the same argument types and use the one declared
+            // with no suffix.
+            score += 1
         }
 
         if(declArgs getSize() == 0) return score

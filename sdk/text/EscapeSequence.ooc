@@ -88,9 +88,9 @@ EscapeSequence: class {
                 /* escape sequence starting! */
                 i += 1
                 j := i
-                if(s[i] > '0' && s[i] < '8') {
+                if(s[i] == '0') {
                     /* octal. */
-                    while(s[j] >= '0' && s[j] < '8') {
+                    while(j < s length() && s[j] >= '0' && s[j] < '8') {
                         j += 1
                     }
                 } else if(s[i] == 'x') {

@@ -16,8 +16,8 @@ BufferReader: class extends Reader {
         // nothing to close.
     }
 
-    read: func(dest: Char*, destOffset: Int, maxRead: Int) -> SizeT {
-        if(marker >= buffer size) {
+    read: func (dest: Char*, destOffset: Int, maxRead: Int) -> SizeT {
+        if (marker >= buffer size) {
             Exception new(This, "Buffer overflow! Offset is larger than buffer size.") throw()
         }
 
@@ -26,6 +26,10 @@ BufferReader: class extends Reader {
         marker += copySize
         
         copySize
+    }
+
+    peek: func -> Char {
+        buffer get(marker)
     }
 
     read: func ~char -> Char {
@@ -38,9 +42,9 @@ BufferReader: class extends Reader {
         return marker < buffer size
     }
 
-    rewind: func(offset: Int) {
+    rewind: func (offset: Int) {
         marker -= offset
-        if(marker < 0) {
+        if (marker < 0) {
             marker = 0
         }
     }
@@ -49,6 +53,6 @@ BufferReader: class extends Reader {
         return marker
     }
 
-    reset: func(=marker) {}
+    reset: func (=marker) {}
 }
 

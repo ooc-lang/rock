@@ -120,7 +120,6 @@ SequenceDriver: class extends Driver {
             }
             
             if(params enableGC) {
-                params compiler addDynamicLibrary("pthread")
                 if(params dynamiclib != null) {
                     params dynGC = true
                 }
@@ -131,9 +130,8 @@ SequenceDriver: class extends Driver {
                     libPath := "libs/" + Target toString(arch) + "/libgc.a"
                     params compiler addObjectFile(File new(params distLocation, libPath) path)
                 }
+                params compiler addDynamicLibrary("pthread")
             }
-
-            if(params dce) params compiler addDCEFlags()
 
             if(params verbose) params compiler getCommandLine() println()
 
@@ -354,8 +352,6 @@ SequenceDriver: class extends Driver {
             for(lib in libs) {
                 params compiler addObjectFile(lib)
             }
-
-            if (params dce) params compiler addDCEFlags()
 
             if(params verbose) params compiler getCommandLine() println()
 

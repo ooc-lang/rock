@@ -117,7 +117,7 @@ raise: func(msg: String) {
     Exception new(msg) throw()
 }
 
-raise: func~withClass(clazz: Class, msg: String) {
+raise: func ~withClass(clazz: Class, msg: String) {
     Exception new(clazz, msg) throw()
 }
 
@@ -147,7 +147,7 @@ Exception: class {
     printBacktrace: func {
         version(linux) {
             if (!backtraces empty?()) {
-                fprintf(stderr, "[backtrace]\n")
+                stderr write("[backtrace]\n")
             }
 
             first := true
@@ -156,7 +156,7 @@ Exception: class {
                 if (first) {
                     first = false
                 } else {
-                    fprintf(stderr, "[rethrow]\n")
+                    stderr write("[backtrace]\n")
                 }
                 
                 if(backtrace buffer != null) {

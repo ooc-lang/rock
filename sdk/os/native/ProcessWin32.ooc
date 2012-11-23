@@ -88,10 +88,20 @@ ProcessWin32: class extends Process {
             Exception new(This, "CreateProcess failed (error %d).\n" format(GetLastError())) throw()
             return -1
         }
-
+        
+        this pid = pi pid
         return pi pid
     }
 
+    terminate: func {
+        // TODO!
+        "please implement me! ProcessWin32 terminate" println()
+    }
+
+    kill: func {
+        // TODO!
+        "please implement me! ProcessWin32 kill" println()
+    }
 }
 
 // extern functions

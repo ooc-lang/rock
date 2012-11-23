@@ -31,6 +31,9 @@ UseDef: class {
 
     identifier, name = "", description = "", version = "": String
 
+    main : String = null
+    file: File
+
     sourcePath : String = null
 
     requirements := ArrayList<Requirement> new()
@@ -91,7 +94,23 @@ UseDef: class {
         return null
     }
 
-    read: func (file: File, params: BuildParams) {
+    apply: func (params: BuildParams) {
+        if(!sourcePath) return
+
+        sourcePathFile := File new(sourcePath)
+        if(sourcePathFile relative?()) {
+            /* is relative. TODO: better check? */
+            sourcePathFile = file parent() getChild(sourcePath) getAbsoluteFile()
+        }
+        sourcePath = sourcePathFile path
+
+        if(params veryVerbose) {
+            "Adding %s to sourcepath ..." printfln(sourcePath)
+        }
+        params sourcePath add(sourcePath)
+    }
+
+    read: func (=file, params: BuildParams) {
         reader := FileReader new(file)
         if(params veryVerbose) ("Reading use file " + file path) println()
         
@@ -166,14 +185,7 @@ UseDef: class {
                     requirements add(Requirement new(req trim(), "0")) // TODO: Version support!
                 }
             } else if(id == "SourcePath") {
-                sourcePathFile := File new(value)
-                if(sourcePathFile relative?()) {
-                    /* is relative. TODO: better check? */
-                    sourcePathFile = file parent() getChild(value) getAbsoluteFile()
-                }
-                if(params veryVerbose) "Adding %s to sourcepath ..." format(sourcePathFile path) println()
-                sourcePath = sourcePathFile path
-                params sourcePath add(sourcePath)
+                sourcePath = value
             } else if(id == "Version") {
                 version = value
             } else if(id == "Imports") {
@@ -181,6 +193,8 @@ UseDef: class {
                     imports add(imp trim())
             } else if(id == "Origin" || id == "Variant") {
                 // known, but ignored ids
+            } else if(id == "Main") {
+                main = value 
             } else if(id startsWith?("_")) {
                 // unknown and ignored ids
             } else if(!id empty?()) {

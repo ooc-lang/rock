@@ -106,19 +106,19 @@ StringTokenizer: class extends Iterable<String> {
     splitted: ArrayList<String>
     index := 0
 
-    init: func~withCharWithoutmaxTokens(input: String, delim: Char) {
+    init: func ~withCharWithoutmaxTokens(input: String, delim: Char) {
         init~withChar(input, delim, -1)
     }
 
-    init: func~withStringWithoutmaxTokens(input: String, delim: String) {
+    init: func ~withStringWithoutmaxTokens(input: String, delim: String) {
         init~withString(input, delim, -1)
     }
 
-    init: func~withChar(input: String, delim: Char, maxTokens: SSizeT) {
+    init: func ~withChar(input: String, delim: Char, maxTokens: SSizeT) {
         init~withString(input, delim toString(), maxTokens)
     }
 
-    init: func~withString(input, delim: String, maxTokens: SSizeT) {
+    init: func ~withString(input, delim: String, maxTokens: SSizeT) {
         splitted = input split(delim, maxTokens)
     }
 

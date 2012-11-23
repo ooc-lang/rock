@@ -6,12 +6,14 @@ import io/Writer
 BufferWriter: class extends Writer {
 
     buffer: Buffer
+    pos: Long
 
     init: func {
         buffer = Buffer new(1024)
+        pos = 0
     }
 
-    init: func ~withBuffer (=buffer) {}
+    init: func ~withBuffer (=buffer)
 
     buffer: func -> Buffer {
         return buffer
@@ -21,27 +23,46 @@ BufferWriter: class extends Writer {
         /* do nothing. */
     }
 
+    _makeRoom: func (len: Long) {
+        if (buffer size < len) buffer setLength(len)
+    }
+
     write: func ~chr (chr: Char) {
-        buffer append(chr)
+        _makeRoom(pos + 1)
+        buffer[pos] = chr
+        pos += 1
+    }
+
+    mark: func -> Long {
+        pos
+    }
+
+    seek: func (p: Long) {
+        if(p < 0 || p > buffer size) {
+            Exception new("Seeking out of bounds! p = %d, size = %d" format(p, buffer size)) throw()
+        }
+        pos = p
     }
 
     write: func (chars: Char*, length: SizeT) -> SizeT {
-        buffer append(chars, length)
+        _makeRoom(pos + length)
+        memcpy(buffer data + pos, chars, length)
+        pos += length
         length
     }
 
     /* check out the Writer writef method for a simple varargs usage,
        this version here is mostly for internal usage (it is called by writef)
      */
-    vwritef: func(fmt: String, list: VaList) {
+    vwritef: func (fmt: String, list: VaList) {
         list2: VaList
         va_copy(list2, list)
         length := vsnprintf(null, 0, fmt, list2)
-        va_end (list2)
+        va_end(list2)
 
-        origSize := buffer size
-        buffer setLength(origSize + length)
-        vsnprintf(buffer data + origSize, length + 1, fmt, list)
+        _makeRoom(pos + length + 1)
+        vsnprintf(buffer data + pos, length + 1, fmt, list)
+        pos += length
     }
 
 }

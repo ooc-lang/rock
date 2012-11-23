@@ -1,4 +1,4 @@
-import structs/[ArrayList,List]
+import structs/[ArrayList,List,HashBag]
 
 Bag: class {
 
@@ -93,6 +93,34 @@ Bag: class {
             va _addValue(val)
         }
         va
+    }
+
+    /** Get a value out of nested bags/hashbags. See `structs/HashBag getPath`. */
+    getPath: func <T> (path: String, T: Class) -> T {
+        // the current position in our path string
+        index := 0
+        // the path element currently being constructed
+        currentKey := Buffer new()
+        // now, parse until we hit the first `/` or `#`. Then,
+        // just continue parsing recursively.
+        while(index < path length()) {
+            chr := path[index]
+            if(chr == '#') {
+                // a bag is requested. well, just do it recursively.
+                bag := get(currentKey toString() toInt(), Bag)
+                return bag getPath(path substring(index + 1), T)
+            } else if(chr == '/') {
+                // a hashbag.
+                hashBag := get(currentKey toString() toInt(), HashBag)
+                return hashBag getPath(path substring(index + 1), T)
+            } else {
+                // oh, nothing special, just add it
+                currentKey append(chr)
+            }
+            index += 1
+        }
+        // No subpaths, just return the value.
+        get(currentKey toString() toInt(), T)
     }
 }
 

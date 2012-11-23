@@ -14,7 +14,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Dereference, Foreach, OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess,
     Match, FlowControl, While, CharLiteral, InterfaceDecl, NamespaceDecl,
     Version, Use, Block, ArrayLiteral, EnumDecl, BaseType, FuncType,
-    Declaration, PropertyDecl, CallChain, Tuple, Addon, Try]
+    Declaration, PropertyDecl, CallChain, Tuple, Addon, Try, CommaSequence]
 
 nq_parse: extern proto func (AstBuilder, CString) -> Int
 
@@ -25,6 +25,10 @@ reservedWords := ["auto", "int", "long", "char", "register", "short", "do",
 reservedHashs := computeReservedHashs(reservedWords)
 
 ReservedKeywordError: class extends Error {
+    init: super func ~tokenMessage
+}
+
+IllegalTypeArgError: class extends Error {
     init: super func ~tokenMessage
 }
 
@@ -451,8 +455,14 @@ AstBuilder: class {
     onVarDeclEnd: unmangled(nq_onVarDeclEnd) func -> Object {
         stack := pop(Stack<VariableDecl>)
         if(stack getSize() == 1) return stack peek() as Object
-        // FIXME: Better detection to avoid 'stack' being passed as a Statement to, say, an If
-        return stack as Object
+
+        // Unroll a multi variable decl to a comma sequence
+        seq := CommaSequence new(stack peek() as VariableDecl token)
+        for(decl in stack) {
+            seq body add(decl)
+        }
+
+        return seq as Object
     }
 
     gotVarDecl: func (vd: VariableDecl) {
@@ -565,6 +575,10 @@ AstBuilder: class {
 
     onTypeListElement: unmangled(nq_onTypeListElement) func (list: TypeList, element: Type) {
         list types add(element)
+    }
+
+    onTypeNamespace: unmangled(nq_onTypeNamespace) func (type: BaseType, ident: CString) {
+        type setNamespace(VariableAccess new(ident toString(), token()))
     }
 
     /*
@@ -768,11 +782,9 @@ AstBuilder: class {
         match stmt {
             case vd: VariableDecl =>
                 gotVarDecl(vd)
-            case stack: Stack<VariableDecl> =>
-                if(stack T inheritsFrom?(VariableDecl)) {
-                    for(vd in stack) {
-                        gotVarDecl(vd)
-                    }
+            case seq: CommaSequence =>
+                for(vd: VariableDecl in seq body) {
+                    gotVarDecl(vd)
                 }
             case =>
                 gotStatement(stmt)
@@ -812,7 +824,7 @@ AstBuilder: class {
                 }
             case node instanceOf?(ClassDecl) =>
                 cDecl := node as ClassDecl
-                fDecl := cDecl lookupFunction(ClassDecl DEFAULTS_FUNC_NAME, "")
+                fDecl := (cDecl isMeta) ? cDecl lookupFunction(ClassDecl DEFAULTS_FUNC_NAME, null) : cDecl meta lookupFunction(ClassDecl DEFAULTS_FUNC_NAME, null)
                 if(fDecl == null) {
                     fDecl = FunctionDecl new(ClassDecl DEFAULTS_FUNC_NAME, cDecl token)
                     cDecl addFunction(fDecl)
@@ -914,17 +926,24 @@ AstBuilder: class {
     }
 
     onTypeArg: unmangled(nq_onTypeArg) func (type: Type) {
-        // TODO: add check for extern function (TypeArgs are illegal in non-extern functions.)
-        peek(List<Node>) add(Argument new(type, "", token()))
+        list := pop(List<Node>)
+        fDecl := peek(FunctionDecl)
+
+        if(!fDecl isExtern()) {
+            params errorHandler onError(IllegalTypeArgError new(token(), "Type-only arguments are only allowed in extern functions"))
+        }
+
+        list add(Argument new(type, "", token()))
+        stack push(list)
     }
 
     onDotArg: unmangled(nq_onDotArg) func (name: CString) {
-        // TODO: add check for member function
+        // TODO: only allow this on non-static methods
         peek(List<Node>) add(DotArg new(name toString(), token()))
     }
 
     onAssArg: unmangled(nq_onAssArg) func (name: CString) {
-        // TODO: add check for member function
+        // TODO: only allow this on non-static methods
         peek(List<Node>) add(AssArg new(name toString(), token()))
     }
 
@@ -1048,6 +1067,10 @@ AstBuilder: class {
         Ternary new(condition, ifTrue, ifFalse, token())
     }
 
+    onDoubleArrow: unmangled(nq_onDoubleArrow) func(left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpType doubleArr, token())
+    }
+
     onAssignAdd: unmangled(nq_onAssignAdd) func (left, right: Expression) -> BinaryOp {
         BinaryOp new(left, right, OpType addAss, token())
     }
@@ -1058,6 +1081,10 @@ AstBuilder: class {
 
     onAssignMul: unmangled(nq_onAssignMul) func (left, right: Expression) -> BinaryOp {
         BinaryOp new(left, right, OpType mulAss, token())
+    }
+
+    onAssignExp: unmangled(nq_onAssignExp) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpType expAss, token())
     }
 
     onAssignDiv: unmangled(nq_onAssignDiv) func (left, right: Expression) -> BinaryOp {
@@ -1102,6 +1129,10 @@ AstBuilder: class {
 
     onMul: unmangled(nq_onMul) func (left, right: Expression) -> BinaryOp {
         BinaryOp new(left, right, OpType mul, token())
+    }
+
+    onExp: unmangled(nq_onExp) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpType exp, token())
     }
 
     onDiv: unmangled(nq_onDiv) func (left, right: Expression) -> BinaryOp {

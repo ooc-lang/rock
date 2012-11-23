@@ -148,7 +148,7 @@ String: class extends Iterable<Char> {
 
     contains?: func ~string (s: This) -> Bool { _buffer contains?(s _buffer) }
 
-    trim: func~pointer(s: Char*, sLength: SizeT) -> This {
+    trim: func ~pointer(s: Char*, sLength: SizeT) -> This {
         result := _buffer clone()
         result trim~pointer(s, sLength)
         result toString()
@@ -361,7 +361,7 @@ strArrayListFromCString: func (argc: Int, argv: Char**) -> ArrayList<String> {
     result
 }
 
-strArrayListFromCString: func~hack (argc: Int, argv: String*) -> ArrayList<String> {
+strArrayListFromCString: func ~hack (argc: Int, argv: String*) -> ArrayList<String> {
     strArrayListFromCString(argc, argv as Char**)
 }
 

@@ -60,7 +60,7 @@ getToken: func (reader: Reader, token: Token*) {
                 return
             } else {
                 reader reset(marker)
-                LexingError new("Unknown token: %c" format(chr)) throw()
+                LexingError new("Unknown token at byte %d, (%d) '%c'" format(marker, chr as Int, chr)) throw()
             }
         }
         case 'f' => {
@@ -71,7 +71,7 @@ getToken: func (reader: Reader, token: Token*) {
                 return
             } else {
                 reader reset(marker)
-                LexingError new("Unknown token: %c" format(chr)) throw()
+                LexingError new("Unknown token at byte %d, (%d) '%c'" format(marker, chr as Int, chr)) throw()
             }
         }
         case 'n' => {
@@ -81,7 +81,7 @@ getToken: func (reader: Reader, token: Token*) {
                 return
             } else {
                 reader reset(marker)
-                LexingError new("Unknown token: %c" format(chr)) throw()
+                LexingError new("Unknown token at byte %d, (%d) '%c'" format(marker, chr as Int, chr)) throw()
             }
         }
         case '"' => {
@@ -182,9 +182,12 @@ getToken: func (reader: Reader, token: Token*) {
                 reader read(s data, 0, length)
                 token@ type = TokenType Number
                 token@ value = s toString()
+            } else if(chr == 0) {
+                // all good
+                return
             } else {
                 reader reset(marker)
-                LexingError new("Unknown token: %c" format(chr)) throw()
+                LexingError new("Unknown token at byte %d, (%d) '%c'" format(marker, chr as Int, chr)) throw()
             }
         }
     }

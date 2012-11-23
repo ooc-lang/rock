@@ -21,26 +21,26 @@ rewinddir: extern func (DIR*)
 seekdir: extern func (DIR*, Long)
 telldir: extern func (DIR*) -> Long
 
-realpath: extern func(path: CString, resolved: CString) -> CString
+realpath: extern func (path: CString, resolved: CString) -> CString
 
-version(linux) {
+version (linux) {
     include unistd | (__USE_BSD), sys/stat | (__USE_BSD), sys/types | (__USE_BSD), stdlib | (__USE_BSD), limits
 }
-version(!linux) {
+version (!linux) {
     include unistd, sys/stat, sys/types, stdlib
 }
 
-version(unix || apple) {
+version (unix || apple) {
 
     // separators
     File separator = '/'
     File pathDelimiter = ':'
 
-    _getcwd: extern(getcwd) func(buf: CString, size: SizeT) -> CString
+    _getcwd: extern(getcwd) func (buf: CString, size: SizeT) -> CString
 
     ooc_get_cwd: unmangled func -> String {
         result := Buffer new(File MAX_PATH_LENGTH)
-        if(!_getcwd(result data as CString, File MAX_PATH_LENGTH)) {
+        if (!_getcwd(result data as CString, File MAX_PATH_LENGTH)) {
             OSException new("error trying to getcwd! ") throw()
         }
         result sizeFromData()
@@ -56,15 +56,16 @@ version(unix || apple) {
         st_atime, st_mtime, st_ctime: extern TimeT
     }
 
-    S_ISDIR: extern func(...) -> Bool
-    S_ISREG: extern func(...) -> Bool
-    S_ISLNK: extern func(...) -> Bool
+    S_ISDIR: extern func (...) -> Bool
+    S_ISREG: extern func (...) -> Bool
+    S_ISLNK: extern func (...) -> Bool
     S_IRWXU, S_IRWXG, S_IRWXO: extern Int // constants
 
-    lstat: extern func(CString, FileStat*) -> Int
-    _mkdir: extern(mkdir) func(CString, ModeT) -> Int
-    remove: extern func(path: CString) -> Int
-    _remove: unmangled func(path: String) -> Int {
+    lstat: extern func (CString, FileStat*) -> Int
+    _mkdir: extern(mkdir) func (CString, ModeT) -> Int
+    _mkfifo: extern(mkfifo) func (CString, ModeT) -> Int
+    remove: extern func (path: CString) -> Int
+    _remove: unmangled func (path: String) -> Int {
         remove(path)
     }
 
@@ -73,7 +74,7 @@ version(unix || apple) {
      */
     FileUnix: class extends File {
 
-        init: func ~unix (=path) {}
+        init: func ~unix (=path)
 
         _getFileStat: func -> FileStat {
             result: FileStat
@@ -135,7 +136,7 @@ version(unix || apple) {
          */
         //FIXME maybe the exists call is redundant
         lastAccessed: func -> Long {
-            if(!exists?()) return -1
+            if (!exists?()) return -1
             return _getFileStat() st_atime as Long
         }
 
@@ -144,7 +145,7 @@ version(unix || apple) {
          */
         //FIXME maybe the exists call is redundant
         lastModified: func -> Long {
-            if(!exists?()) return -1
+            if (!exists?()) return -1
             return _getFileStat() st_mtime as Long
         }
 
@@ -153,7 +154,7 @@ version(unix || apple) {
          */
         //FIXME maybe the exists call is redundant
         created: func -> Long {
-            if(!exists?()) return -1
+            if (!exists?()) return -1
             return _getFileStat() st_ctime as Long
         }
 
@@ -183,28 +184,30 @@ version(unix || apple) {
          */
         getAbsoluteFile: func -> File {
             actualPath := getAbsolutePath()
-            if(path != actualPath) {
+            if (path != actualPath) {
                 return File new(actualPath)
             }
             return this
         }
 
         _getChildren: func <T> (T: Class) -> ArrayList<T> {
-            if(!dir?()) {
+            if (!dir?()) {
                 Exception new(This, "Trying to get the children of the non-directory '" + path + "'!") throw()
             }
             dir := opendir(path as CString)
-            if(!dir) {
+            if (!dir) {
                 Exception new(This, "Couldn't open directory '" + path + "' for reading!") throw()
             }
 
             result := ArrayList<T> new()
             entry := readdir(dir)
-            while(entry != null) {
-                if(!_isDirHardlink?(entry@ name)) {
+            while (entry != null) {
+                if (!_isDirHardlink?(entry@ name)) {
                     s := String new(entry@ name, entry@ name length()) clone()
-                    candidate: T = (T == String) ? s : File new(this, s)
-                    result add(candidate)
+                    match T {
+                        case String => result add(s)
+                        case        => result add(File new(this, s))
+                    }
                 }
                 entry = readdir(dir)
             }
@@ -225,6 +228,9 @@ version(unix || apple) {
             _mkdir(path as CString, mode as ModeT)
         }
 
+        mkfifo: func ~withMode (mode: Int32) -> Int {
+            _mkfifo(path as CString, mode as ModeT)
+        }
     }
 
 }

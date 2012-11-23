@@ -96,7 +96,7 @@ ServerSocket: class extends Socket {
     */
     accept: func -> TCPServerReaderWriterPair {
         addr: SockAddr
-        addrSize: UInt
+        addrSize: UInt = SockAddr size
         conn := accept(descriptor, addr&, addrSize&)
         if(conn == -1) {
             SocketError new() throw()

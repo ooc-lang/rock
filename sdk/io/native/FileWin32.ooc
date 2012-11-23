@@ -30,13 +30,13 @@ version(windows) {
      */
     FILE_ATTRIBUTE_DIRECTORY,
     FILE_ATTRIBUTE_REPARSE_POINT,
-    FILE_ATTRIBUTE_NORMAL : extern Long // DWORD
+    FILE_ATTRIBUTE_NORMAL: extern Long // DWORD
 
     /*
      * file-related functions from Win32
      */
     FindFirstFile: extern(FindFirstFileA) func (CString, FindData*) -> Handle
-    FindNextFile: extern func(Handle, FindData*) -> Bool
+    FindNextFile: extern func (Handle, FindData*) -> Bool
     FindClose: extern func (Handle)
     GetFileAttributes: extern func (CString) -> Long
     CreateDirectory: extern func (CString, Pointer) -> Bool
@@ -45,7 +45,7 @@ version(windows) {
     /*
      * remove implementation
      */
-    _remove: unmangled func(path: String) -> Int {
+    _remove: unmangled func (path: String) -> Int {
         printf("Win32: should remove file %s\n", path toCString())
     }
 
@@ -146,13 +146,17 @@ version(windows) {
         }
 
         mkdir: func ~withMode (mode: Int32) -> Int {
-            if(relative?()) {
+            if (relative?()) {
                 return getAbsoluteFile() mkdir()
             }
 
             parent := parent()
-            if(!parent exists?()) parent mkdir()
+            if (!parent exists?()) parent mkdir()
             CreateDirectory(path toCString(), null) ? 0 : -1
+        }
+
+        mkfifo: func ~withMode (mode: Int32) -> Int {
+            fprintf(stderr, "FileWin32:stub mkfifo")
         }
 
         /**
@@ -193,7 +197,7 @@ version(windows) {
          * The absolute path, e.g. "my/dir" => "/current/directory/my/dir"
          */
         getAbsolutePath: func -> String {
-            if(relative?()) {
+            if (relative?()) {
                 return getCwd() + This separator + path
             } else {
                 return path
@@ -205,8 +209,8 @@ version(windows) {
             ffd: FindData
             hFile := FindFirstFile((path + "\\*") toCString(), ffd&)
             running := (hFile != INVALID_HANDLE_VALUE)
-            while(running) {
-                if(!_isDirHardlink?(ffd fileName)) {
+            while (running) {
+                if (!_isDirHardlink?(ffd fileName)) {
                     l := ffd fileName length()
                     b := Buffer new (l + 1 + path size)
                     b append(path)

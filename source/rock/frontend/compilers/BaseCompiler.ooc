@@ -1,5 +1,5 @@
 import io/File
-import os/Process
+import os/[Process,Pipe]
 
 import AbstractCompiler
 import ../../utils/ShellUtils
@@ -36,6 +36,9 @@ BaseCompiler: abstract class extends AbstractCompiler {
 
     launch: func() -> Int {
         proc := Process new(command)
+        
+        if(silence) proc setStderr(Pipe new())
+        
         return proc execute()
     }
 

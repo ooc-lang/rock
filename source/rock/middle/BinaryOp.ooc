@@ -3,13 +3,14 @@ import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
        Import, Module, FunctionCall, ClassDecl, CoverDecl, AddressOf,
        ArrayAccess, VariableAccess, Cast, NullLiteral, PropertyDecl,
-       Tuple, VariableDecl
+       Tuple, VariableDecl, FuncType
 import tinker/[Trail, Resolver, Response, Errors]
 
 OpType: enum {
     add        /*  +  */
     sub        /*  -  */
     mul        /*  *  */
+    exp        /*..**.*/
     div        /*  /  */
     mod        /*  %  */
     rshift     /*  >> */
@@ -18,10 +19,12 @@ OpType: enum {
     bXor       /*  ^  */
     bAnd       /*  &  */
 
+    doubleArr  /*  => */
     ass        /*  =  */
     addAss     /*  += */
     subAss     /*  -= */
     mulAss     /*  *= */
+    expAss     /*.**=.*/
     divAss     /*  /= */
     rshiftAss  /* >>= */
     lshiftAss  /* <<= */
@@ -37,6 +40,7 @@ opTypeRepr := [
         "+",
         "-",
         "*",
+        "**",
         "/",
         "%",
         ">>",
@@ -45,10 +49,12 @@ opTypeRepr := [
         "^",
         "&",
 
+        "=>",
         "=",
         "+=",
         "-=",
         "*=",
+        "**=",
         "/=",
         ">>=",
         "<<=",
@@ -368,6 +374,28 @@ BinaryOp: class extends Expression {
             return (type == OpType ass)
         }
 
+        lCover := lRef instanceOf?(CoverDecl)
+        rCover := rRef instanceOf?(CoverDecl)
+        if((!lCompound || !rCompound) && (lCover || rCover)) {
+            // If a C struct is involved then we check whether the operator has a C "meaning" and thus can be translated to itself in C. If it does not, it is not valid without an overload
+            if(type == OpType exp || type == OpType expAss || type == OpType doubleArr) return false
+        }
+
+        if (lRef instanceOf?(FuncType) || rRef instanceOf?(FuncType)) {
+            // By default, only assignment should be allowed when a Func-type is involved.
+            // Exception, of course, is an overloaded operator.
+            if (!isAssign()) {
+                return false
+            }
+
+            // If the left side is an immutable function, fail immediately.
+            l := lRef as FuncType
+            if (!(l isClosure)) {
+            token module params errorHandler onError(InvalidBinaryOverload new(token,
+                "%s is an immutable function. You must not reassign it. (Perhaps you want to use a first-class function instead?)" format(left toString())))
+            }
+        }
+
         if(isAssign()) {
             score := lType getScore(rType)
             if(score == -1) {
@@ -472,10 +500,10 @@ BinaryOp: class extends Expression {
             return -1
         }
 
-        leftScore  := left  getType() getStrictScore(opLeft  getType())
+        leftScore  := left  getType() getScore(opLeft  getType())
         if(leftScore  == -1) return -1
 
-        rightScore := right getType() getStrictScore(opRight getType())
+        rightScore := right getType() getScore(opRight getType())
         if(rightScore == -1) return -1
 
         reqScore   := reqType ? fDecl getReturnType() getScore(reqType) : 0

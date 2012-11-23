@@ -50,7 +50,7 @@ Regexp: class {
         :return: new regular expression object if successful, null if error occured.
     */
     compile: static func ~withOptions(pattern: String, options: Int) -> This {
-        p := Pcre compile(pattern toCString(), options, (Regexp errorMsg&) as const Char**, Regexp errorOffset&, null)
+        p := Pcre compile(pattern toCString(), options, (Regexp errorMsg&) as Pointer, Regexp errorOffset&, null)
         if(!p) {
             //TODO: once true exceptions work, throw an exception instead
             return null
@@ -109,6 +109,25 @@ Match: class extends Iterable<String> {
         (ovector + (index * 2) + 1)@
     }
 
+    groupStart: func ~byIndex(index: Int) -> Int {
+        if(index >= groupCount) {
+            Exception new("Invalid group index: %d" format(index)) throw()
+        }
+
+        offset := index * 2
+        return ovector[offset]
+    }
+
+    groupLength: func ~byIndex(index: Int) -> Int {
+        if(index >= groupCount) {
+            Exception new("Invalid group index: %d" format(index)) throw()
+        }
+
+        offset := index * 2
+        return ovector[offset + 1] - ovector[offset]
+    }
+
+
     /**
         Returns a subgroup of the matched string by index.
     */
@@ -118,7 +137,7 @@ Match: class extends Iterable<String> {
         }
 
         offset := index * 2
-        return subject substring((ovector + offset)@, (ovector + offset + 1)@)
+        return subject substring(ovector[offset], ovector[offset + 1])
     }
 
     /**

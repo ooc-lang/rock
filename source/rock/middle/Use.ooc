@@ -20,8 +20,10 @@ which is the path ooc will scan for .use files (in this case, %s.use)
 For more informations, see http://docs.ooc-lang.org/libs.html
 -------------------" format(identifier, identifier))
             )
-        }
-        useDef = uDef
+        } else {
+	    useDef = uDef
+	    useDef apply(params)
+	}
     }
 
 }

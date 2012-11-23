@@ -7,17 +7,12 @@ import BaseCompiler
  */
 Gcc: class extends BaseCompiler {
 
-    init: func~withGcc {
+    init: func ~withGcc {
         super("gcc")
     }
 
-    init: func~withExecutableName (executableName: String) {
+    init: func ~withExecutableName (executableName: String) {
         super(executableName)
-    }
-
-    // sets the flags for dead code elimination
-    addDCEFlags: func {
-        command add("-ftree-dce") .add("-fdata-sections") .add("-ffunction-sections") .add("-Wl,--gc-sections")
     }
 
     addDynamicLibrary: func (library: String) {

@@ -1,0 +1,6 @@
+before_script: "sudo aptitude -y -q install curl make"
+script: make rescue
+
+notifications:
+  webhooks: http://rcmp.programble.co.cc/irc.freenode.net/ooc-lang
+

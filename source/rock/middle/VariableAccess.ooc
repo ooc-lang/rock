@@ -3,7 +3,7 @@ import BinaryOp, Visitor, Expression, VariableDecl, FunctionDecl,
        TypeDecl, Declaration, Type, Node, ClassDecl, NamespaceDecl,
        EnumDecl, PropertyDecl, FunctionCall, Module, Import, FuncType,
        NullLiteral, AddressOf, BaseType, StructLiteral, Return,
-       Argument, InlineContext, Scope
+       Argument, InlineContext, Scope, CoverDecl
 
 import tinker/[Resolver, Response, Trail, Errors]
 import structs/ArrayList
@@ -180,6 +180,11 @@ VariableAccess: class extends Expression {
                     return Response OK
                 }
                 typeDecl resolveAccess(this, res, trail)
+
+                //If we did'nt get the ref, we try to get it from the cover's "from type"
+                if(!ref && typeDecl instanceOf?(CoverDecl)) {
+                    typeDecl as CoverDecl resolveAccessInFromType(this, res, trail)
+                }
             }
         }
 
@@ -245,12 +250,14 @@ VariableAccess: class extends Expression {
             parent := trail peek()
 
             if (!fType isClosure) {
+
                 closureElements := [
                     this
                     NullLiteral new(token)
                 ] as ArrayList<VariableAccess>
 
                 closureType: FuncType = null
+
 
                 if (parent instanceOf?(FunctionCall)) {
                     /*
@@ -291,6 +298,24 @@ VariableAccess: class extends Expression {
                     fIndex := trail find(FunctionDecl)
                     if (fIndex != -1) {
                         closureType = trail get(fIndex, FunctionDecl) returnType clone()
+                    }
+                } elseif (parent instanceOf?(VariableDecl)) {
+                    /*
+                    Handle the assignment of a first-class function.
+                    Example:
+
+                    f: func() {}
+                    g := f
+
+                    The right side needs to be a Closure having f and null as context.
+                    */
+                    p := parent as VariableDecl
+                    if (p expr == this) {
+                        closureType = ref getType()
+                        if (!closureType) {
+                            res wholeAgain(this, "need type of FDecl")
+                            return Response OK
+                        }
                     }
                 }
 

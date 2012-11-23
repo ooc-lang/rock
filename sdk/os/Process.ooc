@@ -31,6 +31,9 @@ Process: abstract class {
     /** Current working directory of the launched process */
     cwd = null : String
 
+    /** PID of the child process */
+    pid = 0: Long
+
     /**
        Create a new process from an array of arguments
      */
@@ -76,6 +79,12 @@ Process: abstract class {
         p env = env
         p
     }
+
+    /** Terminate the child process with a SIGTERM signal */
+    terminate: abstract func
+
+    /** Terminate the child process with a SIGKILL signal. Like `terminate`, but more violent. */
+    kill: abstract func
 
     setStdout: func(=stdOut){}
     setStdin:  func(=stdIn) {}
@@ -156,7 +165,7 @@ Process: abstract class {
         /* send data to stdin */
         if(data != null) {
             written := 0
-            while(written <= data length())
+            while(written < data length())
                 written += stdIn write(data)
         }
 
