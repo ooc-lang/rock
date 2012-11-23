@@ -724,7 +724,7 @@ AstBuilder: class {
         call expr = expr
     }
 
-    onFunctionCallCombo: unmangled(nq_onFunctionCallCombo) func (call: FunctionCall, expr: Expression) -> Object {
+    onFunctionCallCombo: unmangled(nq_onFunctionCallCombo) func (call: FunctionCall, expr: Expression) /*-> Object*/ {
         name := call generateTempName("comboRoot")
         call setName(name)
 
@@ -733,10 +733,10 @@ AstBuilder: class {
         vDecl isGlobal = true // well, that's not true, but at least this way it won't be marked for partialing...
 
         commaSeq := CommaSequence new(expr token)
-        commaSeq body add(BinaryOp new(VariableAccess new(name), expr, OpType ass, expr token), call)
+        commaSeq body add(BinaryOp new(VariableAccess new(name, expr token), expr, OpType ass, expr token)) . add(call)
 
         onStatement(vDecl)
-        return commaSeq
+        //return commaSeq
     }
 
     onFunctionCallChain: unmangled(nq_onFunctionCallChain) func (expr: Expression, call: FunctionCall) -> CallChain {
