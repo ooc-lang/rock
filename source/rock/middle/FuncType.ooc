@@ -68,6 +68,7 @@ FuncType: class extends Type {
         copy argTypes addAll(argTypes)
         copy returnType = returnType
         copy varArg = varArg
+        copy isClosure = isClosure
         copy
     }
 
