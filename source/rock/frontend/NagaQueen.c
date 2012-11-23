@@ -243,7 +243,7 @@ void nq_onFunctionCallArg(void *this, void *expr);
 void *nq_onFunctionCallEnd(void *this);
 void nq_onFunctionCallExpr(void *this, void *call, void *expr);
 void *nq_onFunctionCallChain(void *this, void *expr, void *call);
-void nq_onFunctionCallCombo(void *this, void *call, void *expr);
+void *nq_onFunctionCallCombo(void *this, void *call, void *expr);
 
 void nq_onArrayLiteralStart(void *this);
 void *nq_onArrayLiteralEnd(void *this);
@@ -1422,7 +1422,7 @@ YY_ACTION(void) yy_13_Access(GREG *G, char *yytext, int yyleng, yythunk *thunk, 
 #define l G->val[-4]
 #define ident G->val[-5]
   yyprintf((stderr, "do yy_13_Access\n"));
-   nq_onFunctionCallCombo(core->this, call, l); yy=l=call; ;
+   yy=l=nq_onFunctionCallCombo(core->this, call, l); ;
 #undef r
 #undef call
 #undef index
