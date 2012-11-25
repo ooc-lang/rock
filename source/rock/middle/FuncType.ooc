@@ -135,7 +135,7 @@ FuncType: class extends Type {
             }
 
             // Compare return type
-            if(returnType && !returnType void?) {
+            if(returnType && !returnType void? && parts > 0) {
                 score := returnType getScoreImpl(fType returnType, scoreSeed)
                 if(score == -1) return -1
                 else if(score == NOLUCK_SCORE) return score
