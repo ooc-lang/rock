@@ -1,3 +1,4 @@
+#pragma once
 #ifndef ___lang_array___
 #define ___lang_array___
 
