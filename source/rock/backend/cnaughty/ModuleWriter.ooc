@@ -19,7 +19,7 @@ ModuleWriter: abstract class extends Skeleton {
         /* write the fwd-.h file */
         current = fw
         current nl(). app("#pragma once")
-        current nl(). app("#ifndef "). app(hFwdName). nl()
+        current nl(). app("#ifndef "). app(hFwdName)
         current nl(). app("#define "). app(hFwdName). nl()
 
         // write all includes
@@ -54,7 +54,7 @@ ModuleWriter: abstract class extends Skeleton {
         /* write the .h file */
         current = hw
         current nl(). app("#pragma once")
-        current nl(). app("#ifndef "). app(hName). nl()
+        current nl(). app("#ifndef "). app(hName)
         current nl(). app("#define "). app(hName). nl()
 
         current nl(). app("#include <"). app(module getPath("-fwd.h")). app(">")
