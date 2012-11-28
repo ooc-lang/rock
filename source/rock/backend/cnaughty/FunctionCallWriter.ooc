@@ -1,7 +1,7 @@
 
 import ../../middle/[FunctionDecl, FunctionCall, TypeDecl, Argument,
         Type, Expression, InterfaceDecl, VariableAccess, VariableDecl,
-        ClassDecl, Dereference]
+        ClassDecl, Dereference, StructLiteral]
 import Skeleton, FunctionDeclWriter, ModuleWriter
 
 FunctionCallWriter: abstract class extends Skeleton {
@@ -143,10 +143,27 @@ FunctionCallWriter: abstract class extends Skeleton {
             }
 
             writeCast := false
+            oocVarArgs? := false
 
             declArg : Argument = null
             if(i < fDecl args getSize())                         declArg = fDecl args get(i)
-            if(declArg != null && declArg instanceOf?(VarArg)) declArg = null
+            if(declArg != null && declArg instanceOf?(VarArg)) {
+                // Write the ooc VarArgs field declarations
+                if(declArg name != null && fCall varArgs) {
+                    first? := true
+                    elements := fCall varArgs
+                    oocVarArgs? = true
+                    current app('(')
+                    for(i in 0 .. elements getSize()) {
+                        if(first?) first? = false
+                        else current app(", ")
+
+                        current app(fCall vaStruct) . app('.') . app("__f%d" format(i + 1)) . app(" = ") . app(elements get(i))
+                    }
+                    current app(", ")
+                }
+                declArg = null
+            }
 
             writeRefAddrOf := true
             if(declArg != null) {
@@ -167,6 +184,7 @@ FunctionCallWriter: abstract class extends Skeleton {
                 case false => visitVariableAccess(arg as VariableAccess, false)
             }
             if(writeCast) current app(')')
+            if(oocVarArgs?) current app(')')
             i += 1
         }
 
