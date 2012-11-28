@@ -150,16 +150,8 @@ FunctionCallWriter: abstract class extends Skeleton {
             if(declArg != null && declArg instanceOf?(VarArg)) {
                 // Write the ooc VarArgs field declarations
                 if(declArg name != null && fCall varArgs) {
-                    first? := true
-                    elements := fCall varArgs
+                    writeVarArgsAssignments(this, fCall)
                     oocVarArgs? = true
-                    current app('(')
-                    for(i in 0 .. elements getSize()) {
-                        if(first?) first? = false
-                        else current app(", ")
-
-                        current app(fCall vaStruct) . app('.') . app("__f%d" format(i + 1)) . app(" = ") . app(elements get(i))
-                    }
                     current app(", ")
                 }
                 declArg = null
@@ -214,6 +206,18 @@ FunctionCallWriter: abstract class extends Skeleton {
 
         current app(')')
 
+    }
+
+    writeVarArgsAssignments: static func (this: Skeleton, fCall: FunctionCall) {
+        isFirst := true
+        elements := fCall varArgs
+        current app('(')
+        for(i in 0 .. elements getSize()) {
+            if(isFirst) isFirst = false
+            else current app(", ")
+
+            current app(fCall vaStruct) . app('.') . app("__f%d" format(i + 1)) . app(" = ") . app(elements get(i))
+        }
     }
 
 }
