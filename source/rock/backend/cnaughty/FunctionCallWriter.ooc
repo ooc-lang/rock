@@ -149,20 +149,18 @@ FunctionCallWriter: abstract class extends Skeleton {
             if(i < fDecl args getSize())                         declArg = fDecl args get(i)
             if(declArg != null && declArg instanceOf?(VarArg)) {
                 // Write the ooc VarArgs field declarations
-                if(declArg name != null) {
+                if(declArg name != null && fCall varArgs) {
                     first? := true
                     elements := fCall varArgs
-                    if(elements) {
-                        oocVarArgs? = true
-                        current app('(')
-                        for(i in 0 .. elements getSize()) {
-                            if(first?) first? = false
-                            else current app(", ")
+                    oocVarArgs? = true
+                    current app('(')
+                    for(i in 0 .. elements getSize()) {
+                        if(first?) first? = false
+                        else current app(", ")
 
-                            current app(fCall vaStruct) . app('.') . app("__f%d" format(i + 1)) . app(" = ") . app(elements get(i))
-                        }
-                        current app(", ")
+                        current app(fCall vaStruct) . app('.') . app("__f%d" format(i + 1)) . app(" = ") . app(elements get(i))
                     }
+                    current app(", ")
                 }
                 declArg = null
             }

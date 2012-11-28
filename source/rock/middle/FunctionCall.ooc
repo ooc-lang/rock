@@ -899,7 +899,6 @@ FunctionCall: class extends Expression {
 
                     argsDecl := VariableDecl new(ast, generateTempName("__va_args"),token)
                     vaStruct = argsDecl getFullName()
-                    //argsSl: StructLiteral
 
                     if(!trail addBeforeInScope(this, argsDecl)) {
                         res throwError(CouldntAddBeforeInScope new(token, this, argsDecl, trail))
