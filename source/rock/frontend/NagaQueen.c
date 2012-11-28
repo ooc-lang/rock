@@ -60,7 +60,11 @@ void GC_free(void *);
 
 //#define YY_DEBUG
 
-///////////////////// main struct, for the sake of being re-entrant ////////////////////////
+///////////////////// re-entrant data structures ////////////////////////
+
+struct _NagaQueenIoInterface {
+    int (*read)(void *, size_t, void *);
+};
 
 struct _NagaQueenCore {
     /* The user's data */
@@ -70,7 +74,13 @@ struct _NagaQueenCore {
     /* Path of the file we're parsing. */
     char* path;
     /* The stream we're reading from. */
-    FILE *stream;
+    void *stream;
+    /* Length of the stream (only used for memory streams) */
+    size_t streamlen;
+    /* Offset in the stream (only used for memory streams) */
+    size_t streamoffset;
+    /* our IO interface */
+    struct _NagaQueenIoInterface io;
     /* The begin position and length of the current token in the text */
     int token[2];
     /* type parsing buffer */
@@ -81,13 +91,33 @@ struct _NagaQueenCore {
 
 typedef struct _NagaQueenCore NagaQueenCore;
 
+///////////////////// IO interface: supports memory + files ////////////////////////
+
+static int _nq_memread(void *ptr, size_t size, NagaQueenCore *core) {
+    char *source = (char *) core->stream;
+    size_t tocopy = size;
+    size_t remaining = core->streamlen - core->streamoffset;
+    if (tocopy > remaining) {
+      tocopy = remaining;
+    }
+    memcpy(ptr, source + core->streamoffset, tocopy);
+    core->streamoffset += tocopy;
+    return (int) tocopy;
+}
+
+static int _nq_fread(void *ptr, size_t size, NagaQueenCore *core) {
+    FILE *stream = (FILE *) core->stream;
+    return fread(ptr, 1, size, (FILE*) stream);
+}
+
+
 #define YY_XTYPE NagaQueenCore *
 #define YY_XVAR core
 
 #define YY_INPUT(buf, result, max_size, core) yyInput(buf, &result, max_size, core)
 
 void yyInput(char *buf, int *result, int max_size, NagaQueenCore *core) {
-    (*result) = fread(buf, 1, max_size, core->stream);
+    (*result) = core->io.read(buf, max_size, core);
     static int doneNewlineHack = 0;
     if((*result) == 0 && doneNewlineHack == 0) {
         doneNewlineHack = 1;
@@ -8685,6 +8715,39 @@ YY_PARSE(void) YY_NAME(parse_free)(GREG *G)
 #endif
 
 
+int nq_memparse(void *this, char *buffer, size_t len) {
+
+    GREG *G = YY_ALLOC(sizeof(GREG), 0);
+    G->buflen = 0;
+
+    NagaQueenCore *core = YY_ALLOC(sizeof(NagaQueenCore), 0);
+    core->yylineno = 0;
+    core->this = this;
+    core->path = NULL;
+    core->stream = buffer;
+    core->streamoffset = 0;
+    core->streamlen = len;
+    if(!core->stream) {
+        printf("Null input buffer\n");
+        return -1;
+    }
+    if(len < 0) {
+        printf("Invalid input buffer length\n");
+        return -1;
+    }
+    nq_setTokenPositionPointer(this, core->token);
+    core->io = (struct _NagaQueenIoInterface) {
+      _nq_memread
+    };
+
+    G->data = core;
+
+    while (yyparse(G)) {}
+
+    return 0;
+
+}
+
 int nq_parse(void *this, char *path) {
 
     GREG *G = YY_ALLOC(sizeof(GREG), 0);
@@ -8695,11 +8758,16 @@ int nq_parse(void *this, char *path) {
     core->this = this;
     core->path = path;
     core->stream = fopen(path, "r");
-    nq_setTokenPositionPointer(this, core->token);
+    core->streamoffset = -1;
+    core->streamlen = -1;
     if(!core->stream) {
         printf("Not found: %s\n", path);
         return -1;
     }
+    nq_setTokenPositionPointer(this, core->token);
+    core->io = (struct _NagaQueenIoInterface) {
+      _nq_fread
+    };
 
     G->data = core;
 
