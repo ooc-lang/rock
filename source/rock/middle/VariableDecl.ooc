@@ -12,6 +12,7 @@ VariableDecl: class extends Declaration {
 
     type: Type
     expr: Expression
+    inferOnly? := false
     owner: TypeDecl
 
     isArg := false
@@ -31,6 +32,11 @@ VariableDecl: class extends Declaration {
     }
 
     init: func ~vDeclWithAtom (=type, =name, =expr, .token) {
+        super(token)
+    }
+
+    init: func ~inferTypeOnly (=type, =name, =expr, .token) {
+        inferOnly? = true
         super(token)
     }
 
@@ -312,7 +318,9 @@ VariableDecl: class extends Declaration {
                 type toString(), expr getType() toString())))
             return Response OK
         }
-        
+
+        if(inferOnly?) expr = null
+
         if(debugCondition()) "Done resolving!" println()
 
         return Response OK

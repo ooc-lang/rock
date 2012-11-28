@@ -1,7 +1,7 @@
 import structs/[ArrayList, List, HashMap]
 import ../frontend/[Token, BuildParams, CommandLine]
-import Visitor, Expression, FunctionDecl, Argument, Type, VariableAccess,
-       TypeDecl, Node, VariableDecl, AddressOf, CommaSequence, BinaryOp,
+import Visitor, Expression, FunctionDecl, Argument, Type,
+       TypeDecl, Node, VariableDecl, VariableAccess, AddressOf, CommaSequence, BinaryOp,
        InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType, Return,
        TypeList, Scope, Block, InlineContext, StructLiteral, NullLiteral,
        IntLiteral, Ternary, ClassDecl, CoverDecl
@@ -26,6 +26,15 @@ import tinker/[Response, Resolver, Trail, Errors]
 IMPLICIT_AS_EXTERNAL_ONLY: const Bool = true
 
 FunctionCall: class extends Expression {
+    /**
+     * Arguments passed to VarArgs, if those exist
+     */
+    varArgs: ArrayList<Expression>
+
+    /**
+     * VarArg arguments structure name, if any
+     */
+    vaStruct: String = null
 
     /**
      * Expression on which we call something, if any. Function calls
@@ -861,7 +870,7 @@ FunctionCall: class extends Expression {
                 if(vararg name != null) {
                     // ooc varargs have names!
                     numVarArgs := (args size - (ref args size - 1))
-                    
+
                     if(!args empty?()) {
                         lastType := args last() getType()
                         if(!lastType) return Response LOOP
@@ -886,8 +895,11 @@ FunctionCall: class extends Expression {
                         elements add(arg)
                         ast types add(arg getType())
                     }
-                    argsSl := StructLiteral new(ast, elements, token)
-                    argsDecl := VariableDecl new(null, generateTempName("__va_args"), argsSl, token)
+                    varArgs = elements
+
+                    argsDecl := VariableDecl new(ast, generateTempName("__va_args"),token)
+                    vaStruct = argsDecl getFullName()
+
                     if(!trail addBeforeInScope(this, argsDecl)) {
                         res throwError(CouldntAddBeforeInScope new(token, this, argsDecl, trail))
                     }
@@ -899,7 +911,7 @@ FunctionCall: class extends Expression {
                         NullLiteral new(token)
                         IntLiteral new(numVarArgs, token)
                     ] as ArrayList<Expression>
-                    
+
                     varargsSl := StructLiteral new(vaType, elements2, token)
                     vaDecl := VariableDecl new(null, generateTempName("__va"), varargsSl, token)
                     if(!trail addBeforeInScope(this, vaDecl)) {
@@ -909,8 +921,6 @@ FunctionCall: class extends Expression {
                         args removeAt(args lastIndex())
                     )
                     args add(VariableAccess new(vaDecl, token))
-                    // print a warning if needed
-                    printVarargExpressionWarning(trail)
                 }
         }
 
