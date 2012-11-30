@@ -41,7 +41,8 @@ BuildParams: class {
         defines add("GC_NO_THREAD_REDIRECTS")
 
         // use a simple error handler by default
-        errorHandler = DefaultErrorHandler new(this) as ErrorHandler // FIXME: why the workaround :(
+        // FIXME: why the workaround :(
+        errorHandler = DefaultErrorHandler new(this) as ErrorHandler
     }
 
     findDist: func (execName: String) {
