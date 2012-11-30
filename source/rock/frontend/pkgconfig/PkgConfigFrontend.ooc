@@ -25,7 +25,7 @@ PkgConfigFrontend: class {
 
         path   := getPkgConfigPath()
         if(path == null) {
-            Exception new("Error! the 'pkg-config' tool, necessary to resolve package '%s' couldn't be find in the $PATH, which is %s" format(pkgName, Env get("PATH"))) throw()
+            Exception new("Error! the 'pkg-config' tool, necessary to resolve package '%s' couldn't be found in the $PATH, which is %s" format(pkgName, Env get("PATH"))) throw()
         }
 
         libslist := ArrayList<String> new()
