@@ -57,10 +57,8 @@ AstBuilder: class {
 
     init: func (=modulePath, =module, =params) {
         first := static true
-        //clearline := "                                                   \r"
 
         if(params verbose) {
-            //if(!first) clearline print()
             "Parsing " print()
             modulePath println()
         }
