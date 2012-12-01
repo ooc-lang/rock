@@ -45,6 +45,8 @@ UseDef: class {
 
     sourcePath : String = null
 
+    linker : String = null
+
     requirements := ArrayList<Requirement> new()
     pkgs         := ArrayList<String> new()
     customPkgs   := ArrayList<CustomPkg> new()
@@ -119,6 +121,10 @@ UseDef: class {
             "Adding %s to sourcepath ..." printfln(sourcePath)
         }
         params sourcePath add(sourcePath)
+
+        if (linker) {
+            params linker = linker
+        }
     }
 
     parseCustomPkg: func (value: String) -> CustomPkg {
@@ -190,6 +196,8 @@ UseDef: class {
             } else if(id == "Includes") {
                 for(inc in value split(','))
                     includes add(inc trim())
+            } else if(id == "Linker") {
+                linker = value trim()
             } else if(id == "LibPaths") {
                 for(path in value split(',')) {
                     libFile := File new(path trim())
