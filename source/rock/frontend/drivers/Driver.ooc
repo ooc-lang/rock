@@ -93,7 +93,6 @@ Driver: abstract class {
         if(usesDone contains?(useDef)) return
         usesDone add(useDef)
 
-        //compileNasms(useDef getLibs(), flagsDone)
         flagsDone addAll(useDef getLibs())
 
         for(pkg in useDef getPkgs()) {
@@ -104,14 +103,15 @@ Driver: abstract class {
                 }
             }
             for(library in info libraries) {
-                // FIXME lazy
+                // In theory this is bad because different compiles might
+                // have diferent flags. We used to have a slew of fixmes
+                // here but now they're gone. Sad panda.
                 lpath := "-l"+library
                 if(!flagsDone contains?(lpath)) {
                     flagsDone add(lpath)
                 }
             }
             for(libPath in info libPaths) {
-                // FIXME just goin' with the flow
                 lpath := "-L"+libPath
                 if(!flagsDone contains?(lpath)) {
                     flagsDone add(lpath)
@@ -120,7 +120,6 @@ Driver: abstract class {
         }
 
         for(includePath in useDef getIncludePaths()) {
-            // FIXME lazy too
             ipath := "-I" + includePath
             if(!flagsDone contains?(ipath)) {
                 flagsDone add(ipath)
@@ -128,7 +127,6 @@ Driver: abstract class {
         }
 
         for(libPath in useDef getLibPaths()) {
-            // FIXME lazy too
             lpath := "-L" + libPath
             if(!flagsDone contains?(lpath)) {
                 flagsDone add(lpath)
