@@ -17,43 +17,46 @@ PkgConfigFrontend: class {
      * @return the information concerning a package managed by pkg-manager
      */
     getInfo: static func (pkgName: String) -> PkgInfo {
-
-        cached := This cache get(pkgName)
-        if(cached != null) {
-            return cached
+        // Note: we only cache the most common names: pkg-config packages
+        pkg: PkgInfo
+        pkg = cache get(pkgName)
+        if (!pkg) {
+            pkg = getCustomInfo(
+                "pkg-config", [pkgName] as ArrayList<String>,
+                ["--cflags"] as ArrayList<String>,
+                ["--libs"] as ArrayList<String>)
+            cache put(pkgName, pkg)
         }
-
-        path   := getPkgConfigPath()
-        if(path == null) {
-            Exception new("Error! the 'pkg-config' tool, necessary to resolve package '%s' couldn't be found in the $PATH, which is %s" format(pkgName, Env get("PATH"))) throw()
-        }
-
-        libslist := ArrayList<String> new()
-        libslist add(path getPath()) .add(pkgName) .add("--libs")
-        libs   := Process new(libslist) getOutput() trim(" \n")
-        cfllist := ArrayList<String> new()
-        cfllist add(path getPath()) .add(pkgName) .add("--cflags")
-
-        cflags := Process new(cfllist) getOutput() trim(" \n")
-        if(libs == null) {
-            Exception new("Can't find package '%s' in PKG_CONFIG_PATH. Have you configured pkg-config correctly?" format(pkgName)) throw()
-        }
-
-        pkgInfo := PkgInfo new(pkgName, libs, cflags)
-        This cache put(pkgName, pkgInfo)
-        pkgInfo
-
+        pkg
     }
 
-    getPkgConfigPath: static func -> File {
-        path : static File = null
-        if(!path) {
-            path = ShellUtils findExecutable("pkg-config", false)
+    getCustomInfo: static func (utilName: String, pkgs: ArrayList<String>,
+        cflagArgs: ArrayList<String>, libsArgs: ArrayList<String>) -> PkgInfo {
+        utilPath := ShellUtils findExecutable(utilName, true) getPath()
+
+        cflagslist := [utilPath] as ArrayList<String>
+        cflagslist addAll(pkgs)
+        cflagslist addAll(cflagArgs)
+        cflags := _shell(cflagslist)
+
+        if(cflags == null) {
+            Exception new("Error while running `%s`" format(cflagslist join(" "))) throw()
         }
-        if(!path) {
-            path = ShellUtils findExecutable("pkg-config.exe", false)
+
+        libslist := [utilPath] as ArrayList<String>
+        libslist addAll(pkgs)
+        libslist addAll(libsArgs)
+        libs := _shell(libslist)
+
+        if(libs == null) {
+            Exception new("Error while running `%s`" format(libslist join(" "))) throw()
         }
-        return path
+
+        PkgInfo new(pkgs join(" "), libs, cflags)
+    }
+
+    _shell: static func (command: ArrayList<String>) -> String {
+        Process new(command) getOutput() trim(" \n")
     }
 
 }
