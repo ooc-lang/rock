@@ -140,16 +140,7 @@ Driver: abstract class {
     }
 
     findExec: func (name: String) -> File {
-
-        execFile := ShellUtils findExecutable(name, false)
-        if(!execFile) {
-            execFile = ShellUtils findExecutable(name + ".exe", false)
-        }
-        if(!execFile) {
-            Exception new(This, "Executable " + name + " not found :/")  throw()
-        }
-        return execFile
-
+        ShellUtils findExecutable(name, true)
     }
 
     checkBinaryNameCollision: func (name: String) {
