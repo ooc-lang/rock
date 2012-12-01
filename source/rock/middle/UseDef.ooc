@@ -124,15 +124,16 @@ UseDef: class {
     parseCustomPkg: func (value: String) -> CustomPkg {
         vals := value split(',')
         pkg := CustomPkg new(vals[0])
-        pkg names addAll(vals[1] split(' '))
+        pkg names addAll(vals[1] trim() split(' '))
         if (vals size >= 4) {
-            pkg cflagArgs addAll(vals[2] split(' '))
-            pkg libsArgs addAll(vals[3] split(' '))
+            pkg cflagArgs addAll(vals[2] trim() split(' '))
+            pkg libsArgs addAll(vals[3] trim() split(' '))
         } else {
             // If 3rd and 4th argument aren't present, assume pkgconfig-like behavior
             pkg cflagArgs add("--cflags")
             pkg libsArgs add("--libs")
         }
+        pkg
     }
 
     read: func (=file, params: BuildParams) {

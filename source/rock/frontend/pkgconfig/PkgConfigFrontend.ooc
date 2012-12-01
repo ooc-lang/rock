@@ -34,22 +34,33 @@ PkgConfigFrontend: class {
         cflagArgs: ArrayList<String>, libsArgs: ArrayList<String>) -> PkgInfo {
         utilPath := ShellUtils findExecutable(utilName, true) getPath()
 
-        cflagslist := [utilPath] as ArrayList<String>
-        cflagslist addAll(pkgs)
-        cflagslist addAll(cflagArgs)
-        cflags := _shell(cflagslist)
+        cflags := ""
+        
+        for (cflagArg in cflagArgs) {
+            cflagslist := [utilPath] as ArrayList<String>
+            cflagslist addAll(pkgs)
+            cflagslist add(cflagArg)
+            result := _shell(cflagslist)
+            if(!cflags) {
+                Exception new("Error while running `%s`" format(cflagslist join(" "))) throw()
+            }
 
-        if(cflags == null) {
-            Exception new("Error while running `%s`" format(cflagslist join(" "))) throw()
+            cflags += result
+            cflags += " "
         }
 
-        libslist := [utilPath] as ArrayList<String>
-        libslist addAll(pkgs)
-        libslist addAll(libsArgs)
-        libs := _shell(libslist)
-
-        if(libs == null) {
-            Exception new("Error while running `%s`" format(libslist join(" "))) throw()
+        libs := ""
+        
+        for (libsArg in libsArgs) {
+            libslist := [utilPath] as ArrayList<String>
+            libslist addAll(pkgs)
+            libslist add(libsArg)
+            result := _shell(libslist)
+            if(result == null) {
+                Exception new("Error while running `%s`" format(libslist join(" "))) throw()
+            }
+            libs += result
+            libs += " "
         }
 
         PkgInfo new(pkgs join(" "), libs, cflags)

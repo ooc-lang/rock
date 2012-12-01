@@ -95,8 +95,7 @@ Driver: abstract class {
 
         flagsDone addAll(useDef getLibs())
 
-        for(pkg in useDef getPkgs()) {
-            info := PkgConfigFrontend getInfo(pkg)
+        applyInfo := func (info: PkgInfo) {
             for(cflag in info cflags) {
                 if(!flagsDone contains?(cflag)) {
                     flagsDone add(cflag)
@@ -117,6 +116,19 @@ Driver: abstract class {
                     flagsDone add(lpath)
                 }
             }
+        }
+
+        for(pkg in useDef getPkgs()) {
+            info := PkgConfigFrontend getInfo(pkg)
+            applyInfo(info)
+        }
+
+        for(pkg in useDef getCustomPkgs()) {
+            info := PkgConfigFrontend getCustomInfo(
+                pkg utilName, pkg names,
+                pkg cflagArgs, pkg libsArgs
+            )
+            applyInfo(info)
         }
 
         for(includePath in useDef getIncludePaths()) {
