@@ -181,7 +181,7 @@ UseDef: class {
             } else if(id == "Pkgs") {
                 for(pkg in value split(','))
                     pkgs add(pkg trim())
-            } else if(id == "CustomPkgs") {
+            } else if(id == "CustomPkg") {
                 customPkgs add(parseCustomPkg(value))
             } else if(id == "Libs") {
                 for(lib in value split(','))
