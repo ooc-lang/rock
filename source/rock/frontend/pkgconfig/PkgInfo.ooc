@@ -7,47 +7,48 @@ import text/StringTokenizer
  */
 PkgInfo: class {
 
-	/** The name of the package, e.g. gtk+-2.0, or imlib2 */
+    /** The name of the package, e.g. gtk+-2.0, or imlib2 */
     name: String
 	
-	/** The output of `pkg-config --libs name` */
-	libsString: String
+    /** The output of `pkg-config --libs name` */
+    libsString: String
 	
-	/** The output of `pkg-config --cflags name` */
-	cflagsString: String
+    /** The output of `pkg-config --cflags name` */
+    cflagsString: String
 	
-	/** The C flags (including the include paths) */
+    /** The C flags (including the include paths) */
     cflags := ArrayList<String> new()
 	
-	/** A list of all libraries needed */
+    /** A list of all libraries needed */
     libraries := ArrayList<String> new()
 	
-	/** A list of all include paths */
+    /** A list of all include paths */
     includePaths := ArrayList<String> new()
 
     /** A list of all library paths */
     libPaths := ArrayList<String> new()
 	
-	/**
-	 * Create a new Package info
-	 */
+    /**
+     * Create a new Package info
+     */
     init: func (=name, =libsString, =cflagsString) {
         extractTokens("-L", libsString, libPaths)
-		extractTokens("-l", libsString, libraries)
-		extractTokens("-I", cflagsString, includePaths)
-		extractTokens("", cflagsString, cflags)
-	}
+        extractTokens("-l", libsString, libraries)
+        "For %s, collected libraries: %s" printfln(name, libraries join(", "))
+        extractTokens("-I", cflagsString, includePaths)
+        extractTokens("", cflagsString, cflags)
+    }
 
-	extractTokens: func (prefix, string: String, list: List<String>) {
-		prefixLength := prefix length()
-		
+    extractTokens: func (prefix, string: String, list: List<String>) {
+        prefixLength := prefix length()
+            
         for(token in StringTokenizer new(string, ' ')) {
-			if(token startsWith?(prefix)) {
-				add := token substring(prefixLength) trim()
-				if(!add empty?()) list add(add)
-			}
-		}
-		
-	}
+            if(token startsWith?(prefix)) {
+                add := token substring(prefixLength) trim()
+                if(!add empty?()) list add(add)
+            }
+        }
+            
+    }
 	
 }

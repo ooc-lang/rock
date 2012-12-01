@@ -149,7 +149,7 @@ FunctionCallWriter: abstract class extends Skeleton {
             if(i < fDecl args getSize())                         declArg = fDecl args get(i)
             if(declArg != null && declArg instanceOf?(VarArg)) {
                 // Write the ooc VarArgs field declarations
-                if(declArg name != null && fCall varArgs) {
+                if(declArg name != null && fCall varArgs && !fCall varArgs empty?()) {
                     writeVarArgsAssignments(this, fCall)
                     oocVarArgs? = true
                     current app(", ")

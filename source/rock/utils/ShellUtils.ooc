@@ -15,7 +15,20 @@ ShellUtils: class {
      * environment variable.
      */
     findExecutable: static func (executableName: String, crucial: Bool) -> File {
+        file := _findInPath(executableName)
+        if (file) return file
 
+        file = _findInPath("%s.exe" format(executableName))
+        if (file) return file
+
+        if (crucial) {
+            Exception new("Command not found: " + executableName) throw()
+        }
+
+        null
+    }
+
+    _findInPath: static func (executableName: String) -> File {
         simple := File new(executableName)
         if(simple exists?() && simple file?()) {
             return simple
@@ -43,21 +56,7 @@ ShellUtils: class {
             }
         }
 
-        if(crucial) {
-            Exception new("Couldn't find " + executableName + " on your system. PATH = " + pathVar) throw()
-        }
-
-        return null;
-    }
-
-    /**
-     * Run a command to get its output
-     * @param command
-     * @return the output of the command specified, once it has exited
-     */
-    getOuput: static func(command: String) -> String {
-        // TODO fill in
-        return null
+        null
     }
 
 }
