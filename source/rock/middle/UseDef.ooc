@@ -17,7 +17,16 @@ Requirement: class {
     name, ver: String
     useDef: UseDef { get set }
 
-    init: func (=name, =ver) {}
+    init: func (=name, =ver)
+}
+
+CustomPkg: class {
+    utilName: String
+    names := ArrayList<String> new()
+    cflagArgs := ArrayList<String> new()
+    libsArgs := ArrayList<String> new()
+
+    init: func (=utilName)
 }
 
 /**
@@ -38,6 +47,7 @@ UseDef: class {
 
     requirements := ArrayList<Requirement> new()
     pkgs         := ArrayList<String> new()
+    customPkgs   := ArrayList<CustomPkg> new()
     libs         := ArrayList<String> new()
     includes     := ArrayList<String> new()
     imports      := ArrayList<String> new()
@@ -48,6 +58,7 @@ UseDef: class {
 
     getRequirements: func -> List<Requirement> { requirements }
     getPkgs:         func -> List<String>      { pkgs }
+    getCustomPkgs:   func -> List<CustomPkg>   { customPkgs }
     getLibs:         func -> List<String>      { libs }
     getIncludes:     func -> List<String>      { includes }
     getLibPaths:     func -> List<String>      { libPaths }
@@ -110,6 +121,20 @@ UseDef: class {
         params sourcePath add(sourcePath)
     }
 
+    parseCustomPkg: func (value: String) -> CustomPkg {
+        vals := value split(',')
+        pkg := CustomPkg new(vals[0])
+        pkg names addAll(vals[1] split(' '))
+        if (vals size >= 4) {
+            pkg cflagArgs addAll(vals[2] split(' '))
+            pkg libsArgs addAll(vals[3] split(' '))
+        } else {
+            // If 3rd and 4th argument aren't present, assume pkgconfig-like behavior
+            pkg cflagArgs add("--cflags")
+            pkg libsArgs add("--libs")
+        }
+    }
+
     read: func (=file, params: BuildParams) {
         reader := FileReader new(file)
         if(params veryVerbose) ("Reading use file " + file path) println()
@@ -156,6 +181,8 @@ UseDef: class {
             } else if(id == "Pkgs") {
                 for(pkg in value split(','))
                     pkgs add(pkg trim())
+            } else if(id == "CustomPkgs") {
+                customPkgs add(parseCustomPkg(value))
             } else if(id == "Libs") {
                 for(lib in value split(','))
                     libs add(lib trim())
@@ -182,7 +209,8 @@ UseDef: class {
                 }
             } else if(id == "Requires") {
                 for(req in value split(',')) {
-                    requirements add(Requirement new(req trim(), "0")) // TODO: Version support!
+                    // TODO: Version support!
+                    requirements add(Requirement new(req trim(), "0"))
                 }
             } else if(id == "SourcePath") {
                 sourcePath = value
@@ -198,7 +226,7 @@ UseDef: class {
             } else if(id startsWith?("_")) {
                 // unknown and ignored ids
             } else if(!id empty?()) {
-                "%s: Unknown id %s (length %d, first = %d) in usefile" format(file getPath(), id, id length(), id[0]) println()
+                "Unknown key in %s: %s" format(file getPath(), id) println()
             }
         }
     }
