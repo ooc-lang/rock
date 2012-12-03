@@ -115,7 +115,7 @@ CGenerator: class extends Skeleton {
 
         if(isFunc) {
             fDecl := op left as VariableAccess ref as FunctionDecl
-            current app(fDecl owner as TypeDecl name). app("_class()->"). app(fDecl name)
+            current app(fDecl owner as TypeDecl getFullName()). app("_class()->"). app(fDecl name)
         } else {
             current app(op left)
         }

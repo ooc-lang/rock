@@ -118,12 +118,12 @@ VarArgsIterator: cover {
     first: Bool
 
     hasNext?: func -> Bool {
-        countdown >= 0
+        countdown > 0
     }
 
     // convention: argsPtr points to type of next element when called.
     next: func@ <T> (T: Class) -> T {
-        if(countdown < 0) {
+        if(countdown <= 0) {
             Exception new(This, "Vararg underflow!") throw()
         }
 
