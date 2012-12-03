@@ -163,7 +163,7 @@ version (unix || apple) {
          */
         relative?: func -> Bool {
             // that's a bit rough, but should work most of the time
-            path startsWith?(".") || !path startsWith?("/")
+            !path startsWith?("/")
         }
 
         /**

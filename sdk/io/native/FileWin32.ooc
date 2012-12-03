@@ -183,14 +183,12 @@ version(windows) {
             return (ok) ? toTimestamp(ffd creationTime) : -1
         }
 
-        // FIXME the function is relative ? what should that mean ?
         /**
          * @return true if the function is relative to the current directory
          */
         relative?: func -> Bool {
             // that's a bit rough, but should work most of the time
-            // FIXME this looks very suspicious
-            path startsWith?(".") || (!path startsWith?("\\\\") && ( path length() > 1 && path[1] != ':') )
+            !path startsWith?("/") && (path length() <= 1 || path[1] != ':')
         }
 
         /**

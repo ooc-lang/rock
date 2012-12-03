@@ -201,18 +201,16 @@ UseDef: class {
             } else if(id == "LibPaths") {
                 for(path in value split(',')) {
                     libFile := File new(path trim())
-                    if(libFile getAbsoluteFile() != libFile) {
-                        /* is relative. TODO: better check? */
-                        libFile = file getChild(path) getAbsoluteFile()
+                    if(libFile relative?()) {
+                        libFile = file parent() getChild(path) getAbsoluteFile()
                     }
                     libPaths add(libFile path)
                 }
             } else if(id == "IncludePaths") {
                 for(path in value split(',')) {
                     incFile := File new(path trim())
-                    if(incFile getAbsoluteFile() != incFile) {
-                        /* is relative. TODO: better check? */
-                        incFile = file getChild(path) getAbsoluteFile()
+                    if(incFile relative?()) {
+                        incFile = file parent() getChild(path) getAbsoluteFile()
                     }
                     includePaths add(incFile path)
                 }
