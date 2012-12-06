@@ -6,11 +6,11 @@ import ../frontend/[BuildParams, Token]
 
 Scope: class extends Node {
 	
-	size: SSizeT {
-		get {
-			list getSize()
-		}
-	}
+    size: SSizeT {
+        get {
+            list getSize()
+        }
+    }
 
     list : ArrayList<Statement> { get set }
 
