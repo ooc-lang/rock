@@ -1,5 +1,5 @@
 import io/[File]
-import structs/[List, ArrayList]
+import structs/[List, ArrayList, HashMap]
 
 import ../[BuildParams,CommandLine], ../pkgconfig/[PkgInfo, PkgConfigFrontend]
 import ../../middle/[Import, Include, Module, Use, UseDef]
@@ -15,6 +15,8 @@ import ../../utils/[ShellUtils]
 Driver: abstract class {
 
     params: BuildParams
+
+    customPkgCache := HashMap<CustomPkg, PkgInfo> new()
 
     init: func(=params) {}
 
@@ -124,10 +126,16 @@ Driver: abstract class {
         }
 
         for(pkg in useDef getCustomPkgs()) {
-            info := PkgConfigFrontend getCustomInfo(
-                pkg utilName, pkg names,
-                pkg cflagArgs, pkg libsArgs
-            )
+            info: PkgInfo
+            if (customPkgCache contains?(pkg)) {
+                info = customPkgCache get(pkg)
+            } else {
+                info = PkgConfigFrontend getCustomInfo(
+                    pkg utilName, pkg names,
+                    pkg cflagArgs, pkg libsArgs
+                )
+                customPkgCache put(pkg, info)
+            }
             applyInfo(info)
         }
 
