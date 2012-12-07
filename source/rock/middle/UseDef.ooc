@@ -17,7 +17,8 @@ Requirement: class {
     name, ver: String
     useDef: UseDef { get set }
 
-    init: func (=name, =ver)
+    init: func (=name, =ver) {
+    }
 }
 
 CustomPkg: class {
@@ -74,6 +75,11 @@ UseDef: class {
             if(!file) return null
             cached read(file, params)
             This cache put(identifier, cached)
+
+            // parse requirements, if any
+            for (req in cached requirements) {
+                req useDef = This parse(req name, params)
+            }
         }
 
         cached
