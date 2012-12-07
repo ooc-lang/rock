@@ -10,7 +10,7 @@ OpType: enum {
     add        /*  +  */
     sub        /*  -  */
     mul        /*  *  */
-    exp        /*..**.*/
+    exp        /*  ** */
     div        /*  /  */
     mod        /*  %  */
     rshift     /*  >> */
