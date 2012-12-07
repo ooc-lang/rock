@@ -159,6 +159,11 @@ Driver: abstract class {
 
     }
 
+    isLinkerFlag: func (flag: String) -> Bool {
+        flag startsWith?("-L") || flag startsWith?("-l") || \
+        flag startsWith?("-Wl")
+    }
+
     findExec: func (name: String) -> File {
         ShellUtils findExecutable(name, true)
     }

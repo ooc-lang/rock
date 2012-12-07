@@ -96,9 +96,9 @@ SequenceDriver: class extends Driver {
                 params compiler addIncludePath(incPath getPath())
             }
             for(sourceFolder in sourceFolders) {
-				if(params libcache) {
-					params compiler addIncludePath(params libcachePath + File separator + sourceFolder name)
-				}
+                if(params libcache) {
+                    params compiler addIncludePath(params libcachePath + File separator + sourceFolder name)
+                }
             }
             for(additional in params additionals) {
                 params compiler addObjectFile(additional)
@@ -114,9 +114,9 @@ SequenceDriver: class extends Driver {
                 params compiler setOutputPath(module simpleName)
             }
 
-            libs := getFlagsFromUse(module)
-            for(lib in libs) {
-                params compiler addObjectFile(lib)
+            flags := getFlagsFromUse(module)
+            for(flag in flags) {
+                params compiler addObjectFile(flag)
             }
             
             if(params enableGC) {
@@ -204,7 +204,7 @@ SequenceDriver: class extends Driver {
         if(params verbose) "Re-generating modules..." println()
         reGenerated := ArrayList<Module> new()
         for(module in sourceFolder modules) {
-			result := CGenerator new(params, module) write()
+            result := CGenerator new(params, module) write()
             
             if(result && params verbose) ("Re-generated " + module fullName) println()
             
@@ -220,21 +220,22 @@ SequenceDriver: class extends Driver {
             }
             
             if(result) {
-				reGenerated add(module)
-			} else {
-				// already compiled, but still need to link with it
-				oPath := File new(params outPath, module path replaceAll(File separator, '_')) getPath() + ".o"
-				objectFiles add(oPath)
-			}
+                reGenerated add(module)
+            } else {
+                // already compiled, but still need to link with it
+                underPath := module path replaceAll(File separator, '_')
+                oPath := File new(params outPath, underPath) getPath() + ".o"
+                objectFiles add(oPath)
+            }
         }
         
         if(params verbose) {
-			if(reGenerated empty?()) {
-				"No files generated." println()
-			} else {
-				"%d files generated." printfln(reGenerated size)
-			}
-		}
+            if(reGenerated empty?()) {
+                "No files generated." println()
+            } else {
+                "%d files generated." printfln(reGenerated size)
+            }
+        }
 
         return reGenerated
 
@@ -303,7 +304,6 @@ SequenceDriver: class extends Driver {
         params compiler setCompileOnly()
 
         path := File new(params outPath, module getPath("")) getPath()
-        //printf("build individual called, outPath=%s module=%s path=%s\n", params outPath path, module getPath(""), path)
 
         oPath := File new(params outPath, module path replaceAll(File separator, '_')) getPath() + ".o"
         cPath := path + ".c"
@@ -348,9 +348,11 @@ SequenceDriver: class extends Driver {
                 params compiler addObjectFile(compilerArg)
             }
 
-            libs := getFlagsFromUse(sourceFolder)
-            for(lib in libs) {
-                params compiler addObjectFile(lib)
+            flags := getFlagsFromUse(sourceFolder)
+            for(flag in flags) {
+                if (!isLinkerFlag(flag)) {
+                    params compiler addObjectFile(flag)
+                }
             }
 
             if(params verbose) params compiler getCommandLine() println()
