@@ -63,7 +63,7 @@ all:
 ifneq (${LIBGC_PRESENT},)
 ifneq (${LIBGC_SUPPORTS_THREADS},)
 	@echo "Using system libgc"
-	cp ${GC_PREFIX}/libgc.a ${GC_PATH}
+	cp -f ${GC_PREFIX}/libgc.a ${GC_PATH}
 else
 	@echo "System libgc doesn't support threads, building our own"
 	$(MAKE) buildgc
