@@ -16,7 +16,7 @@ CompType: enum {
 
 
 compTypeRepr := [
-		"==",
+        "==",
         "!=",
         ">",
         "<",
