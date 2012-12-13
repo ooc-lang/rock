@@ -3,6 +3,7 @@ import structs/[List, ArrayList, HashMap]
 
 import ../[BuildParams,CommandLine], ../pkgconfig/[PkgInfo, PkgConfigFrontend]
 import ../../middle/[Import, Include, Module, Use, UseDef]
+import ../../frontend/Target
 
 import ../../utils/[ShellUtils]
 
@@ -94,6 +95,15 @@ Driver: abstract class {
 
         flagsDone addAll(useDef getLibs())
 
+        if (Target guessHost() == Target OSX) {
+            for(framework in useDef frameworks) {
+                lpath := "-Wl,-framework,"+framework
+                if(!flagsDone contains?(lpath)) {
+                    flagsDone add(lpath)
+                }
+            }
+        }
+
         applyInfo := func (info: PkgInfo) {
             for(cflag in info cflags) {
                 if(!flagsDone contains?(cflag)) {
@@ -101,8 +111,8 @@ Driver: abstract class {
                 }
             }
             for(library in info libraries) {
-                // In theory this is bad because different compiles might
-                // have diferent flags. We used to have a slew of fixmes
+                // In theory this is bad because different compilers might
+                // have different flags. We used to have a slew of fixmes
                 // here but now they're gone. Sad panda.
                 lpath := "-l"+library
                 if(!flagsDone contains?(lpath)) {

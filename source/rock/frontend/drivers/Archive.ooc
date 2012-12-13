@@ -129,9 +129,10 @@ Archive: class {
 
                 args := ArrayList<String> new()
                 args add("ar") .add((params veryVerbose || params debugLibcache) ? "dv" : "d"). add(outlib). add(name substring(0, name length() - 2))
+
                 output := Process new(args) getOutput()
 
-                if(params veryVerbose || params debugLibcache) {
+                if(params verbose || params debugLibcache) {
                     args join(" ") println()
                     output println()
                 }
@@ -329,7 +330,10 @@ Archive: class {
         toAdd clear()
 
         if(params veryVerbose || params debugLibcache) {
-            "%s archive %s"printfln((this exists? ? "Updating" : "Creating"), outlib)
+            "%s archive %s" printfln((this exists? ? "Updating" : "Creating"), outlib)
+        }
+        
+        if(params verbose || params debugLibcache) {
             args join(" ") println()
         }
 

@@ -52,6 +52,7 @@ UseDef: class {
     pkgs         := ArrayList<String> new()
     customPkgs   := ArrayList<CustomPkg> new()
     libs         := ArrayList<String> new()
+    frameworks   := ArrayList<String> new()
     includes     := ArrayList<String> new()
     imports      := ArrayList<String> new()
     libPaths     := ArrayList<String> new()
@@ -63,6 +64,7 @@ UseDef: class {
     getPkgs:         func -> List<String>      { pkgs }
     getCustomPkgs:   func -> List<CustomPkg>   { customPkgs }
     getLibs:         func -> List<String>      { libs }
+    getFramework:    func -> List<String>      { frameworks }
     getIncludes:     func -> List<String>      { includes }
     getLibPaths:     func -> List<String>      { libPaths }
     getIncludePaths: func -> List<String>      { includePaths }
@@ -199,6 +201,9 @@ UseDef: class {
             } else if(id == "Libs") {
                 for(lib in value split(','))
                     libs add(lib trim())
+            } else if(id == "Frameworks") {
+                for(framework in value split(','))
+                    frameworks add(framework trim())
             } else if(id == "Includes") {
                 for(inc in value split(','))
                     includes add(inc trim())
