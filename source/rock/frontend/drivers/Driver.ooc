@@ -89,6 +89,8 @@ Driver: abstract class {
     }
 
     getFlagsFromUse: func (useDef: UseDef, flagsDone : List<String>, usesDone: List<UseDef>) {
+        // this workaround sucks, but sometimes useDef is null on Windows. Go figure.
+        if (!useDef) return
 
         if(usesDone contains?(useDef)) return
         usesDone add(useDef)
