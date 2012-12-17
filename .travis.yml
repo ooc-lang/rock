@@ -1,4 +1,4 @@
-before_script: "sudo aptitude -y -q install curl make"
+before_script: "sudo apt-get -y -q install curl make"
 script: make rescue
 
 notifications:
