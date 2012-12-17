@@ -209,12 +209,7 @@ version(windows) {
             running := (hFile != INVALID_HANDLE_VALUE)
             while (running) {
                 if (!_isDirHardlink?(ffd fileName)) {
-                    l := ffd fileName length()
-                    b := Buffer new (l + 1 + path size)
-                    b append(path)
-                    b append('\\')
-                    b append(ffd fileName, l)
-                    s := String new(b)
+                    s := ffd fileName toString()
                     candidate : T = (T == String) ? s : File new(s)
                     result add(candidate)
                 }
