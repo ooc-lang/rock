@@ -63,7 +63,7 @@ version(!windows) {
 /* implementation */
 
 Time: class {
-    __time_millisec_base := static This runTime
+    __time_millisec_base := static This runTime()
 
     /**
         Returns the current date + time as a human-readable string without a trailing newline character.
@@ -110,34 +110,32 @@ Time: class {
     /**
         Gets the number of milliseconds elapsed since program start.
     */
-    runTime: static UInt {
-        get {
-            version(windows) {
-                // NOTE: this was previously using timeGetTime, but it's
-                // a winmm.lib function and we can't afford the extra dep
-                // I believe every computer that runs ooc programs on Win32
-                // has a hardware high-performance counter, so it shouldn't be an issue
-                counter, frequency: LargeInteger
-                QueryPerformanceCounter(counter&)
-                QueryPerformanceFrequency(frequency&)
-                return ((counter quadPart * 1000) / frequency quadPart) - __time_millisec_base
-            }
-            version(!windows) {
-                tv : TimeVal
-                gettimeofday(tv&, null)
-                return ((tv tv_usec / 1000 + tv tv_sec * 1000) - __time_millisec_base) as UInt
-            }
-            return -1
+    runTime: static func -> UInt {
+        version(windows) {
+            // NOTE: this was previously using timeGetTime, but it's
+            // a winmm.lib function and we can't afford the extra dep
+            // I believe every computer that runs ooc programs on Win32
+            // has a hardware high-performance counter, so it shouldn't be an issue
+            counter, frequency: LargeInteger
+            QueryPerformanceCounter(counter&)
+            QueryPerformanceFrequency(frequency&)
+            return ((counter quadPart * 1000) / frequency quadPart) - __time_millisec_base
         }
+        version(!windows) {
+            tv : TimeVal
+            gettimeofday(tv&, null)
+            return ((tv tv_usec / 1000 + tv tv_sec * 1000) - __time_millisec_base) as UInt
+        }
+        return -1
     }
 
     /**
      * @return the number of milliseconds spent executing 'action'
      */
     measure: static func (action: Func) -> UInt {
-        t1 := runTime
+        t1 := runTime()
         action()
-        t2 := runTime
+        t2 := runTime()
         t2 - t1
     }
 
