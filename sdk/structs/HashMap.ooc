@@ -135,7 +135,6 @@ ac_X31_hash: func <K> (key: K) -> SizeT {
 /* this function seem is called by List */
 getStandardEquals: func <T> (T: Class) -> Func <T> (T, T) -> Bool {
     // choose comparing function for key type
-    //"For %s, " printf(T name)
     if(T == String) {
         //"Choosing string comparing function" println()
         stringEquals
@@ -310,11 +309,9 @@ HashMap: class <K, V> extends BackIterable<V> {
         hash : SizeT = hashKey(key) % capacity
 
         entry : HashEntry
-        //printf("\nput(%s, value %p\n", key as String, value)
 
         if (getEntryForHash(key, hash, entry&)) {
             // replace value if the key is already existing
-            //" - Replacing! Address = %p, size = %d" printfln(entry value, V size)
             memcpy(entry value, value, V size)
         } else {
             keys add(key)
@@ -338,8 +335,6 @@ HashMap: class <K, V> extends BackIterable<V> {
 
                 currentPointer@ next = newEntry
             } else {
-                //" - Adding normally!! HashEntry size = %d, Address of buckets data = %p" printfln(HashEntry size, buckets data)
-
                 entry key   = gc_malloc(K size)
                 memcpy(entry key,   key, K size)
 
@@ -347,9 +342,6 @@ HashMap: class <K, V> extends BackIterable<V> {
                 memcpy(entry value, value, V size)
 
                 entry next = null
-
-                //"     - entry key   = %p, size = %d, hash = %u" printfln(entry key, K size, hash)
-                //"     - entry value = %p, size = %d, next = %p" printfln(entry value, V size, entry next)
 
                 buckets[hash] = entry
             }
@@ -407,19 +399,19 @@ HashMap: class <K, V> extends BackIterable<V> {
         hash : SizeT = hashKey(key) % capacity
 
         prev = null : HashEntry*
+        entry: HashEntry* = (buckets data as HashEntry*)[hash]&
 
-        entry := buckets[hash]
-        if(entry key == null) return false
+        if(entry@ key == null) return false
 
         while (true) {
-            if (keyEquals(entry key as K, key)) {
+            if (keyEquals(entry@ key as K, key)) {
                 if(prev) {
                     // re-connect the previous to the next one
-                    prev@ next = entry next
+                    prev@ next = entry@ next
                 } else {
                     // just put the next one instead of us
-                    if(entry next) {
-                        buckets[hash] = entry next@
+                    if(entry@ next) {
+                        buckets[hash] = entry@ next@
                     } else {
                         buckets[hash] = nullHashEntry
                     }
@@ -436,10 +428,10 @@ HashMap: class <K, V> extends BackIterable<V> {
             }
 
             // do we have a next element?
-            if(entry next) {
+            if(entry@ next) {
                 // save the previous just to know where to reconnect
-                prev = entry&
-                entry = entry next@
+                prev = entry
+                entry = entry@ next
             } else {
                 return false
             }
