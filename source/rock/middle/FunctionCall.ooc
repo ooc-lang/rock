@@ -840,24 +840,6 @@ FunctionCall: class extends Expression {
         Response OK
     }
 
-    /** print an appropriate warning if the user tries to use vararg functions in binary/ternary expressions.
-        See bug #311 for details. */
-    printVarargExpressionWarning: func (trail: Trail) {
-        i := trail getSize() - 1
-        while(i >= 0) {
-            node := trail data get(i) as Node
-            // boolean binary ops and ternary ops are the problem!
-            if((node instanceOf?(BinaryOp) && node as BinaryOp isBooleanOp()) \
-               || node instanceOf?(Ternary)) {
-                token formatMessage("Found a vararg function call inside a binary/ternary expression. Please unwrap this expression. See https://github.com/nddrylliog/rock/issues/311 for details", "WARNING") println()
-            } else if(node instanceOf?(Scope)) {
-                // we're not part of the same expression anymore!
-                break;
-            }
-            i -= 1
-        }
-    }
-
     /**
      * Resolve ooc variable arguments
      */
