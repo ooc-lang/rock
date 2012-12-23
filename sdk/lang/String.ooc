@@ -347,6 +347,22 @@ operator + (left: Char, right: String) -> String {
     right prepend(left)
 }
 
+operator + (left: LLong, right: String) -> String {
+    left toString() append(right)
+}
+
+operator + (left: String, right: LLong) -> String {
+    left append(right toString())
+}
+
+operator + (left: LDouble, right: String) -> String {
+    left toString() append(right)
+}
+
+operator + (left: String, right: LDouble) -> String {
+    left append(right toString())
+}
+
 // constructor to be called from string literal initializers
 makeStringLiteral: func (str: CString, strLen: SizeT) -> String {
     String new(Buffer new(str, strLen, true))
