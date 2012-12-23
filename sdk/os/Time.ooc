@@ -71,9 +71,9 @@ Time: class {
     dateTime: static func -> String {
 	version (windows) {
 	    length := GetTimeFormat(LOCALE_USER_DEFAULT, 0, null, null, null, 0)
-	    buffer := gc_malloc(length + 1) as Char*
+	    buffer := gc_malloc(length) as Char*
 	    GetTimeFormat(LOCALE_USER_DEFAULT, 0, null, null, buffer, length)
-	    return String new(buffer, length)
+	    return String new(buffer, length - 1)
 	}
 	version (!windows) {
 	    tm: TimeT
