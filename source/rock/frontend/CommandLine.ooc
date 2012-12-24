@@ -407,6 +407,11 @@ CommandLine: class {
 
                     params slave = true
 
+                } else if (option startsWith?("j")) {
+
+                    threads := arg substring(2) toInt()
+                    params sequenceThreads = threads
+    
                 } else if (option startsWith?("m")) {
 
                     arch := arg substring(2)

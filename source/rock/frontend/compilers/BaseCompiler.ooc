@@ -34,7 +34,7 @@ BaseCompiler: abstract class extends AbstractCompiler {
         }
     }
 
-    launch: func() -> Int {
+    launch: func -> Int {
         proc := Process new(command)
         
         if(silence) proc setStderr(Pipe new())
@@ -42,12 +42,22 @@ BaseCompiler: abstract class extends AbstractCompiler {
         return proc execute()
     }
 
-    reset: func() {
+    launchBackground: func -> Process {
+        proc := Process new(command)
+        
+        if(silence) proc setStderr(Pipe new())
+        
+        proc executeNoWait()
+
+        proc
+    }
+
+    reset: func {
         command clear()
         command add(executablePath)
     }
 
-    getCommandLine: func() -> String {
+    getCommandLine: func -> String {
         commandLine := Buffer new()
 
         for(arg: String in command) {

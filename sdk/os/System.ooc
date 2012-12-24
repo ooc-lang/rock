@@ -1,12 +1,4 @@
 
-// Linux
-version(linux) {
-    include unistd // for sysconf
-
-    sysconf: extern func (Int) -> Long
-    _SC_NPROCESSORS_ONLN: extern Int
-}
-
 // Windows
 version(windows) {
     include windows // for GetSystemInfo
@@ -17,18 +9,28 @@ version(windows) {
     GetSystemInfo: extern func (SystemInfo*)
 }
 
+// Linux, OSX 10.4+
+version(linux || osx) {
+    include unistd // for sysconf
+
+    sysconf: extern func (Int) -> Long
+    _SC_NPROCESSORS_ONLN: extern Int
+}
+
+
 numProcessors: func -> Int {
     // Source:
     // http://stackoverflow.com/questions/150355/programmatically-find-the-number-of-cores-on-a-machine
-    
-    version(linux) {
-        return sysconf(_SC_NPROCESSORS_ONLN)
-    }
     
     version(windows) {
         sysinfo: SystemInfo
         GetSystemInfo(sysinfo&)
         return sysinfo numberOfProcessors
+    }
+
+    version(linux || osx) {
+        // Linux, OSX 10.4+
+        return sysconf(_SC_NPROCESSORS_ONLN)
     }
     
     "Don't know how to retrieve the number of processors of your platform, assuming 1" println()

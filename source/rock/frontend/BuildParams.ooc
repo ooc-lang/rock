@@ -1,4 +1,4 @@
-import io/File, os/Env
+import io/File, os/[Env, System]
 import structs/ArrayList
 
 import compilers/AbstractCompiler
@@ -142,7 +142,7 @@ BuildParams: class {
     linker : String = null
 
     // threads used by the sequence driver
-    sequenceThreads := 1
+    sequenceThreads := numProcessors()
 
     // if true, only parse the given module
     onlyparse := false

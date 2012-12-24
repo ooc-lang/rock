@@ -37,11 +37,60 @@ import Driver, Archive
 
    :author: Amos Wenger (nddrylliog)
  */
+
+Job: class {
+
+    process: Process
+
+    module: Module
+    archive: Archive
+
+    init: func (=process, =module, =archive)
+
+    wait: func -> Int {
+        code := process wait()
+        if(code == 0) {
+            if(archive) archive add(module)
+        } else {
+            fprintf(stderr, "C compiler failed (got code %d), aborting compilation process\n", code)
+        }
+
+        code
+    }
+
+}
+
 SequenceDriver: class extends Driver {
 
     sourceFolders: HashMap<String, SourceFolder>
+    jobs := ArrayList<Job> new()
 
     init: func (.params) { super(params) }
+
+    maybeWait: func -> Int {
+        if (jobs size < params sequenceThreads) {
+            return 0 // all good, let's launch more!
+        }
+
+        waitOne()
+    }
+
+    waitOne: func -> Int {
+        if (jobs empty?()) return 0
+
+        jobs removeAt(0) wait()
+    }
+
+    waitAll: func -> Int {
+        while (!jobs empty?()) {
+            code := waitOne()
+            if (code != 0) {
+                return code
+            }
+        }
+
+        0
+    }
 
     compile: func (module: Module) -> Int {
 
@@ -74,6 +123,22 @@ SequenceDriver: class extends Driver {
             if(code != 0) return code
         }
         if(params verbose) println()
+
+        code := waitAll()
+        if (code != 0) {
+            // failed, can stop launching jobs now
+            return code
+        }
+
+        for(sourceFolder in sourceFolders) {
+            archive := sourceFolder archive
+
+            if(params libcache) {
+                // now build a static library
+                if(params veryVerbose || params debugLibcache) "Saving to library %s\n" printfln(sourceFolder outlib)
+                archive save(params)
+            }
+        }
 
         if(params link && (params staticlib == null || params dynamiclib != null)) {
 
@@ -136,9 +201,7 @@ SequenceDriver: class extends Driver {
             if(params verbose) params compiler getCommandLine() println()
 
             code := params compiler launch()
-
-            if(code != 0) {
-                fprintf(stderr, "C compiler failed (got code %d), aborting compilation process\n", code)
+            if (code != 0) {
                 return code
             }
 
@@ -271,24 +334,10 @@ SequenceDriver: class extends Driver {
             }
         }
 
-        oPaths := ArrayList<String> new()
-
         if(params verbose) printf("Compiling regenerated modules...\n")
-        //for(module in sourceFolder modules) {
-		for(module in reGenerated) {
-            code := buildIndividual(module, sourceFolder, oPaths, null, false)
-            archive add(module)
+        for(module in reGenerated) {
+            code := buildIndividual(module, sourceFolder, objectFiles, null, false)
             if(code != 0) return code
-        }
-
-        if(params libcache) {
-            // now build a static library
-            if(params veryVerbose || params debugLibcache) "Saving to library %s\n" printfln(sourceFolder outlib)
-            archive save(params)
-        } else {
-            if(params veryVerbose || params debugLibcache) "Lib caching disabled, building from .o files\n" println()
-         
-            objectFiles addAll(oPaths)
         }
 
         return 0
@@ -299,6 +348,12 @@ SequenceDriver: class extends Driver {
        Build an individual ooc files to its .o file, add it to oPaths
      */
     buildIndividual: func (module: Module, sourceFolder: SourceFolder, oPaths: List<String>, archive: Archive, force: Bool) -> Int {
+
+        code := maybeWait()
+        if (code != 0) {
+            // failed, can stop launching jobs now
+            return code
+        }
 
         initCompiler(params compiler)
         params compiler setCompileOnly()
@@ -357,14 +412,8 @@ SequenceDriver: class extends Driver {
 
             if(params verbose) params compiler getCommandLine() println()
 
-            code := params compiler launch()
-
-            if(code != 0) {
-                fprintf(stderr, "C compiler failed (with code %d), aborting compilation process\n", code)
-                return code
-            }
-
-            if(archive) archive add(module)
+            process := params compiler launchBackground()
+            jobs add(Job new(process, module, archive))
 
         } else {
             if(params veryVerbose || params debugLibcache) "Skipping %s, unchanged source.\n" printfln(cPath)

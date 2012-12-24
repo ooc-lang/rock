@@ -1,4 +1,5 @@
 import structs/ArrayList
+import os/Process
 
 AbstractCompiler: abstract class {
 
@@ -38,6 +39,8 @@ AbstractCompiler: abstract class {
 
     /** @return the exit code of the compiler */
     launch: abstract func -> Int
+
+    launchBackground: abstract func -> Process
 
     supportsDeclInFor: abstract func -> Bool
 
