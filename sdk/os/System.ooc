@@ -10,7 +10,7 @@ version(windows) {
 }
 
 // Linux, OSX 10.4+
-version(linux || osx) {
+version(linux || apple) {
     include unistd // for sysconf
 
     sysconf: extern func (Int) -> Long
@@ -28,7 +28,7 @@ numProcessors: func -> Int {
         return sysinfo numberOfProcessors
     }
 
-    version(linux || osx) {
+    version(linux || apple) {
         // Linux, OSX 10.4+
         return sysconf(_SC_NPROCESSORS_ONLN)
     }
