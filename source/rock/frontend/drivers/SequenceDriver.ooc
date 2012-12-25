@@ -46,12 +46,10 @@ Job: class {
     archive: Archive
 
     init: func (=process, =module, =archive) {
-        "Created new job, pid = %d, module = %s, outlib = %s" printfln(process pid, module fullName, archive ? archive outlib : "<none>")
     }
 
     wait: func -> Int {
         code := process wait()
-        "job code = %d, archive = %p" printfln(code, archive)
 
         if(code == 0) {
             if(archive) archive add(module)
@@ -80,14 +78,12 @@ SequenceDriver: class extends Driver {
     }
 
     waitOne: func -> Int {
-        "waitOne, jobs size = %d" printfln(jobs size)
         if (jobs empty?()) return 0
 
         jobs removeAt(0) wait()
     }
 
     waitAll: func -> Int {
-        "Waiting for all jobs, jobs size = %d" printfln(jobs size)
         while (!jobs empty?()) {
             code := waitOne()
             if (code != 0) {
@@ -119,7 +115,7 @@ SequenceDriver: class extends Driver {
             if(params verbose) {
                 // generate random colors for every source folder
                 hash := ac_X31_hash(sourceFolder name) + 42
-                Terminal setFgColor(Color fromHash(hash))
+                Terminal setFgColor((hash % (Color cyan - Color red)) + Color red)
                 if(hash & 0b01) Terminal setAttr(Attr bright)
                 "%s, " printf(sourceFolder name)
                 Terminal reset()
@@ -140,7 +136,7 @@ SequenceDriver: class extends Driver {
             archive := sourceFolder archive
 
             if(params libcache) {
-                // now build a static library
+                // now build static libraries for all source folders
                 if(params veryVerbose || params debugLibcache) "Saving to library %s\n" printfln(sourceFolder outlib)
                 archive save(params)
             }
@@ -332,8 +328,6 @@ SequenceDriver: class extends Driver {
                     code := buildIndividual(module, sourceFolder, null, archive, true)
                     if(code != 0) return code
                 }
-
-                archive save(params)
             }
         } else {
             if(params verbose) printf("Compiling regenerated modules...\n")
@@ -351,8 +345,6 @@ SequenceDriver: class extends Driver {
        Build an individual ooc files to its .o file, add it to oPaths
      */
     buildIndividual: func (module: Module, sourceFolder: SourceFolder, oPaths: List<String>, archive: Archive, force: Bool) -> Int {
-
-        "buildIndividual %s, archive = %p" printfln(module fullName, archive)
 
         code := maybeWait()
         if (code != 0) {

@@ -10,8 +10,6 @@ ClassDeclWriter: abstract class extends Skeleton {
 
     write: static func ~_class (this: Skeleton, cDecl: ClassDecl) {
 
-        //printf(" << Writing class decl %s with version %s\n", cDecl toString(), cDecl getVersion() ? cDecl getVersion() toString() : "(nil)")
-
         if(cDecl isMeta) {
 
             current = hw
@@ -95,7 +93,7 @@ ClassDeclWriter: abstract class extends Skeleton {
                 superDecl = cDecl getSuperRef() lookupFunction(fDecl name, fDecl suffix)
                 // don't write the function if it was declared in the parent
                 if(superDecl != null) {
-                    //printf("Already declared in super %s, skipping (superDecl = %s)\n", cDecl getSuperRef() toString(), superDecl toString())
+                    // Already declared in super, skipping
                     continue
                 }
             }

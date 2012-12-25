@@ -1,9 +1,9 @@
 import structs/List
 import ../../middle/[Module, Include, Import, TypeDecl, FunctionDecl,
-       CoverDecl, ClassDecl, OperatorDecl, InterfaceDecl, VariableDecl,
-       Type, FuncType, Argument, StructLiteral]
+       CoverDecl, ClassDecl, EnumDecl, OperatorDecl, InterfaceDecl,
+       VariableDecl, Type, FuncType, Argument, StructLiteral]
 import ../../frontend/BuildParams
-import CoverDeclWriter, ClassDeclWriter, VersionWriter, Skeleton
+import CoverDeclWriter, ClassDeclWriter, EnumDeclWriter, VersionWriter, Skeleton
 
 ModuleWriter: abstract class extends Skeleton {
 
@@ -428,6 +428,8 @@ ModuleWriter: abstract class extends Skeleton {
                     }
                 case tDecl instanceOf?(CoverDecl) =>
                     CoverDeclWriter writeTypedef(this, tDecl as CoverDecl)
+                case tDecl instanceOf?(EnumDecl) =>
+                    EnumDeclWriter writeTypedef(this, tDecl as EnumDecl)
             }
         }
 
