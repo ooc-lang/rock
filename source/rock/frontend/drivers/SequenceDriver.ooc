@@ -136,7 +136,7 @@ SequenceDriver: class extends Driver {
             archive := sourceFolder archive
 
             if(params libcache) {
-                // now build a static library
+                // now build static libraries for all source folders
                 if(params veryVerbose || params debugLibcache) "Saving to library %s\n" printfln(sourceFolder outlib)
                 archive save(params)
             }
@@ -328,8 +328,6 @@ SequenceDriver: class extends Driver {
                     code := buildIndividual(module, sourceFolder, null, archive, true)
                     if(code != 0) return code
                 }
-
-                archive save(params)
             }
         } else {
             if(params verbose) printf("Compiling regenerated modules...\n")
