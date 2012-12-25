@@ -46,12 +46,10 @@ Job: class {
     archive: Archive
 
     init: func (=process, =module, =archive) {
-        "Created new job, pid = %d, module = %s, outlib = %s" printfln(process pid, module fullName, archive ? archive outlib : "<none>")
     }
 
     wait: func -> Int {
         code := process wait()
-        "job code = %d, archive = %p" printfln(code, archive)
 
         if(code == 0) {
             if(archive) archive add(module)
@@ -80,14 +78,12 @@ SequenceDriver: class extends Driver {
     }
 
     waitOne: func -> Int {
-        "waitOne, jobs size = %d" printfln(jobs size)
         if (jobs empty?()) return 0
 
         jobs removeAt(0) wait()
     }
 
     waitAll: func -> Int {
-        "Waiting for all jobs, jobs size = %d" printfln(jobs size)
         while (!jobs empty?()) {
             code := waitOne()
             if (code != 0) {
@@ -351,8 +347,6 @@ SequenceDriver: class extends Driver {
        Build an individual ooc files to its .o file, add it to oPaths
      */
     buildIndividual: func (module: Module, sourceFolder: SourceFolder, oPaths: List<String>, archive: Archive, force: Bool) -> Int {
-
-        "buildIndividual %s, archive = %p" printfln(module fullName, archive)
 
         code := maybeWait()
         if (code != 0) {
