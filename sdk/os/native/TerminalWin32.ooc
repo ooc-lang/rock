@@ -24,23 +24,35 @@ version (windows) {
         /* Color codes */
         colors := [
             0 , // black
-            7 , // grey
-            9 , // blue
             12, // red
-            14, // yellow
-            31, // white
             10, // green
+            14, // yellow
+            9 , // blue
             13, // magenta
-            11  // cyan
+            11, // cyan
+            7 , // grey
+            31  // white
         ]
 
         _lookupColor: func (c: Color) -> Int {
-            colors[c as Int]
+            value := c as Int
+            if (value < 0 || value >= colors length) {
+                -1
+            } else {
+                colors[value]
+            }
         }
 
         setColor: func (=fg, =bg) {
             b := _lookupColor(bg)
             f := _lookupColor(fg)
+            if (b == -1) {
+                b = _lookupColor(Color black)
+            }
+            if (f == -1) {
+                f = _lookupColor(Color grey)
+            }
+
             wColor: UShort = ((b & 0x0F) << 4) + (f & 0x0F)
             hStdOut := GetStdHandle(STD_OUTPUT_HANDLE)
             SetConsoleTextAttribute(hStdOut, wColor)
@@ -54,7 +66,7 @@ version (windows) {
             setColor(fg, c)
         }
 
-        setAttr: func (attribute: Int) {
+        setAttr: func (attribute: Attr) {
             // only the reset attribute is supported on Win32
             match attribute {
                 case Attr reset =>

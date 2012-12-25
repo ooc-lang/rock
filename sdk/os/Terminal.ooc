@@ -134,8 +134,8 @@ Color: enum {
     white
 
     fromHash: static func (hash: Int) -> This {
-        min := cyan as Int
-        max := red as Int
+        min := red as Int
+        max := cyan as Int
         value := (hash % (max - min)) + min
         value as This
     }
