@@ -115,7 +115,7 @@ SequenceDriver: class extends Driver {
             if(params verbose) {
                 // generate random colors for every source folder
                 hash := ac_X31_hash(sourceFolder name) + 42
-                Terminal setFgColor((hash % (Color cyan - Color red)) + Color red)
+                Terminal setFgColor(Color fromHash(hash))
                 if(hash & 0b01) Terminal setAttr(Attr bright)
                 "%s, " printf(sourceFolder name)
                 Terminal reset()
