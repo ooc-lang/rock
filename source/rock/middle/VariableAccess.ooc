@@ -3,10 +3,13 @@ import BinaryOp, Visitor, Expression, VariableDecl, FunctionDecl,
        TypeDecl, Declaration, Type, Node, ClassDecl, NamespaceDecl,
        EnumDecl, PropertyDecl, FunctionCall, Module, Import, FuncType,
        NullLiteral, AddressOf, BaseType, StructLiteral, Return,
-       Argument, InlineContext, Scope, CoverDecl
+       Argument, InlineContext, Scope, CoverDecl, StringLiteral
 
 import tinker/[Resolver, Response, Trail, Errors]
 import structs/ArrayList
+
+// for built-ins
+import net/DNS, os/Time, rock/RockVersion, rock/frontend/Target
 
 VariableAccess: class extends Expression {
 
@@ -133,6 +136,16 @@ VariableAccess: class extends Expression {
 
         if(debugCondition()) {
             "%s is of type %s" printfln(name, getType() ? getType() toString() : "(nil)")
+        }
+
+        // resolve built-ins first
+        builtin := getBuiltin(name)
+        if (builtin) {
+            if(!trail peek() replace(this, builtin)) {
+                res throwError(CouldntReplace new(token, this, builtin, trail))
+            }
+            res wholeAgain(this, "builtin replaced")
+            return Response OK
         }
 
         trail onOuter(FunctionDecl, |fDecl|
@@ -408,6 +421,21 @@ VariableAccess: class extends Expression {
 
         buff toString()
 
+    }
+
+    getBuiltin: func (name: String) -> Expression {
+        match name {
+            case "__BUILD_DATETIME__" =>
+                StringLiteral new(Time dateTime(), token)
+            case "__BUILD_TARGET__" =>
+                StringLiteral new(Target toString(), token)
+            case "__BUILD_ROCK_VERSION__" =>
+                StringLiteral new(RockVersion getName(), token)
+            case "__BUILD_HOSTNAME__" =>
+                StringLiteral new(DNS hostname(), token)
+            case =>
+                null
+        }
     }
 
     getRef: func -> Declaration { ref }
