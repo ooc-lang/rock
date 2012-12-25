@@ -45,10 +45,14 @@ Job: class {
     module: Module
     archive: Archive
 
-    init: func (=process, =module, =archive)
+    init: func (=process, =module, =archive) {
+        "Created new job, pid = %d, module = %s, outlib = %s" printfln(process pid, module fullName, archive ? archive outlib : "<none>")
+    }
 
     wait: func -> Int {
         code := process wait()
+        "job code = %d, archive = %p" printfln(code, archive)
+
         if(code == 0) {
             if(archive) archive add(module)
         } else {
@@ -76,12 +80,14 @@ SequenceDriver: class extends Driver {
     }
 
     waitOne: func -> Int {
+        "waitOne, jobs size = %d" printfln(jobs size)
         if (jobs empty?()) return 0
 
         jobs removeAt(0) wait()
     }
 
     waitAll: func -> Int {
+        "Waiting for all jobs, jobs size = %d" printfln(jobs size)
         while (!jobs empty?()) {
             code := waitOne()
             if (code != 0) {
@@ -113,7 +119,7 @@ SequenceDriver: class extends Driver {
             if(params verbose) {
                 // generate random colors for every source folder
                 hash := ac_X31_hash(sourceFolder name) + 42
-                Terminal setFgColor((hash % (Color cyan - Color red)) + Color red)
+                Terminal setFgColor(Color fromHash(hash))
                 if(hash & 0b01) Terminal setAttr(Attr bright)
                 "%s, " printf(sourceFolder name)
                 Terminal reset()
@@ -320,27 +326,24 @@ SequenceDriver: class extends Driver {
         if(params libcache) {
             objectFiles add(sourceFolder outlib)
 
-            if(archive exists?) {
-                if(reGenerated getSize() > 0) {
-                    if(params verbose) printf("\n%d new/updated modules to compile\n", reGenerated getSize())
-                    for(module in reGenerated) {
-                        code := buildIndividual(module, sourceFolder, null, archive, true)
-                        if(code != 0) return code
-                    }
-
-                    archive save(params)
+            if(reGenerated getSize() > 0) {
+                if(params verbose) printf("\n%d new/updated modules to compile\n", reGenerated getSize())
+                for(module in reGenerated) {
+                    code := buildIndividual(module, sourceFolder, null, archive, true)
+                    if(code != 0) return code
                 }
-                return 0
+
+                archive save(params)
+            }
+        } else {
+            if(params verbose) printf("Compiling regenerated modules...\n")
+            for(module in reGenerated) {
+                code := buildIndividual(module, sourceFolder, objectFiles, null, false)
+                if(code != 0) return code
             }
         }
 
-        if(params verbose) printf("Compiling regenerated modules...\n")
-        for(module in reGenerated) {
-            code := buildIndividual(module, sourceFolder, objectFiles, null, false)
-            if(code != 0) return code
-        }
-
-        return 0
+        0
 
     }
 
@@ -348,6 +351,8 @@ SequenceDriver: class extends Driver {
        Build an individual ooc files to its .o file, add it to oPaths
      */
     buildIndividual: func (module: Module, sourceFolder: SourceFolder, oPaths: List<String>, archive: Archive, force: Bool) -> Int {
+
+        "buildIndividual %s, archive = %p" printfln(module fullName, archive)
 
         code := maybeWait()
         if (code != 0) {

@@ -306,6 +306,13 @@ Archive: class {
     save: func (params: BuildParams) {
         //"Saving %s" format(pathElement path) println()
 
+        if (toAdd empty?()) {
+            if(params veryVerbose || params debugLibcache) {
+                "No (new?) member in archives %s, skipping" printfln(pathElement path)
+            }
+            return
+        }
+
         args := ArrayList<String> new()
         args add("ar") // GNU ar tool, manages archives
 
