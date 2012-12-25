@@ -46,36 +46,41 @@ EnumDecl: class extends TypeDecl {
         } else {
             // If no value is provided for a non-extern element,
             // calculate it by incrementing the last used value.
-            if(!element valueSet) {
-                element setValue(lastElementValue)
-                lastElementValue = match lastElementValue {
-                        case intLit: IntLiteral =>
-                            IntLiteral new(match incrementOper {
-                                case '+' =>
-                                    intLit value + incrementStep
-                                case '*' =>
-                                    intLit value * incrementStep
-                            }, intLit token)
-                        case floatLit: FloatLiteral =>
-                            FloatLiteral new(match incrementOper {
-                                case '+' =>
-                                    (floatLit value + incrementStep as Float) toString()
-                                case '*' =>
-                                    (floatLit value * incrementStep as Float) toString()
-                            }, floatLit token)
-                        case =>
-                            token module params errorHandler onError(ImpossibleIncrement new(element token,
-                                "It's impossible to increment implicitly elements of type %s!" format(fromType toString())))
-                            return
-                            null
-                }
-            } else {
+            if(element valueSet) {
                 lastElementValue = element getValue()
+                updateLastElementValue()
+            } else {
+                element setValue(lastElementValue)
+                updateLastElementValue()
             }
         }
 
         element setType(fromType)
         getMeta() addVariable(element)
+    }
+
+    updateLastElementValue: func {
+        lastElementValue = match lastElementValue {
+                case intLit: IntLiteral =>
+                    IntLiteral new(match incrementOper {
+                        case '+' =>
+                            intLit value + incrementStep
+                        case '*' =>
+                            intLit value * incrementStep
+                    }, intLit token)
+                case floatLit: FloatLiteral =>
+                    FloatLiteral new(match incrementOper {
+                        case '+' =>
+                            (floatLit value + incrementStep as Float) toString()
+                        case '*' =>
+                            (floatLit value * incrementStep as Float) toString()
+                    }, floatLit token)
+                case =>
+                    token module params errorHandler onError(ImpossibleIncrement new(token,
+                        "It's impossible to increment implicitly elements of type %s!" format(fromType toString())))
+                    return
+                    null
+        }
     }
 
     setIncrement: func (=incrementOper, =incrementStep) {}
