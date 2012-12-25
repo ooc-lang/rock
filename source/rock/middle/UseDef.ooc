@@ -94,17 +94,38 @@ UseDef: class {
         }
         set add(params sdkLocation)
 
+        if (params veryVerbose) {
+            "ooc libs search path: " println()
+            for (f in set) {
+                " - %s" printfln(f getPath())
+            }
+        }
+
         for(path in set) {
             if(path getPath() == null) continue
 
-            for(subPath in path getChildren()) {
+            children := path getChildren()
+            if (params veryVerbose) {
+                "path %s has %d children" printfln(path getPath(), children size)
+            }
+
+            for(subPath in children) {
+                if (params veryVerbose) {
+                    "for subPath %s - dir %d - link %d file %d" printfln(subPath getPath(), subPath dir?(), subPath link?(), subPath file?())
+                }
                 if(subPath dir?() || subPath link?()) {
                     candidate := File new(subPath, fileName)
+                    if (params veryVerbose) {
+                        "testing candidate %s. exists? %d" printfln(candidate getPath(), candidate exists?())
+                    }
                     if(candidate exists?()) {
                         return candidate
                     }
                 }
                 if(subPath file?() || subPath link?()) {
+                    if (params veryVerbose) {
+                        candidate := File new(subPath, fileName)
+                    }
                     if(subPath getPath() endsWith?(fileName)) {
                         return subPath
                     }
@@ -157,7 +178,6 @@ UseDef: class {
         while(reader hasNext?()) {
             reader mark()
             c := reader read()
-            if(params veryVerbose) "Got character %c" printfln(c)
 
             if(c == '\t' || c == ' ' || c == '\r' || c == '\n' || c == '\v') {
                 continue
@@ -176,14 +196,10 @@ UseDef: class {
 
             reader rewind(1)
             id := reader readUntil(':')
-            if(params veryVerbose) ("at first, id = '" + id + "'") println()
-            
             id = id trim() trim(8 as Char /* backspace */) trim(0 as Char /* null-character */)
             
             value := reader readLine() trim()
             
-            if(params veryVerbose) ("id = '" + id + "', value = '" + value + "'") println()
-
             if(id startsWith?("_")) {
                 // reserved ids for external tools (packaging, etc.)
                 continue

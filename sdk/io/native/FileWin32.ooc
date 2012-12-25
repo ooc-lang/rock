@@ -1,5 +1,5 @@
 
-import native/win32/types
+import native/win32/[types, errors]
 import structs/ArrayList
 import ../File
 
@@ -10,6 +10,8 @@ version(windows) {
     // separators
     File separator = '\\'
     File pathDelimiter = ';'
+
+    PATHCCH_MAX_CCH: extern SizeT
 
     /*
      * apparently on windows, every stat operation is a find
@@ -41,6 +43,7 @@ version(windows) {
     GetFileAttributes: extern func (CString) -> Long
     CreateDirectory: extern func (CString, Pointer) -> Bool
     GetCurrentDirectory: extern func (Long, Pointer) -> Int
+    PathCchCanonicalizeEx: extern func (CString, SizeT, CString, ULong) -> Int
 
     /*
      * remove implementation
@@ -62,8 +65,8 @@ version(windows) {
      */
     FileWin32: class extends File {
 
-        init: func ~win32 (=path) {
-           //printf("Created FileWin32 %s, fixed path = %s, separator = %c\n", path, this path, File separator)
+        init: func ~win32 (.path) {
+            this path = _normalizePath(path)
         }
 
         /**
@@ -156,7 +159,7 @@ version(windows) {
         }
 
         mkfifo: func ~withMode (mode: Int32) -> Int {
-            fprintf(stderr, "FileWin32:stub mkfifo")
+            fprintf(stderr, "FileWin32: stub mkfifo")
         }
 
         /**
@@ -205,17 +208,35 @@ version(windows) {
         _getChildren: func <T> (T: Class) -> ArrayList<T> {
             result := ArrayList<T> new()
             ffd: FindData
-            hFile := FindFirstFile((path + "\\*") toCString(), ffd&)
-            running := (hFile != INVALID_HANDLE_VALUE)
+            searchPath := path + "\\*"
+            hFile := FindFirstFile(searchPath toCString(), ffd&)
+
+            if (hFile == INVALID_HANDLE_VALUE) {
+              return result
+            }
+
+            running := true
             while (running) {
                 if (!_isDirHardlink?(ffd fileName)) {
                     s := ffd fileName toString()
-                    candidate : T = (T == String) ? s : File new(s)
-                    result add(candidate)
+                    match T {
+                        case String => result add(s)
+                        case        => result add(File new(this, s))
+                    }
                 }
                 running = FindNextFile(hFile, ffd&)
             }
             FindClose(hFile)
+            result
+        }
+
+        _normalizePath: static func (in: String) -> String {
+            // normalize "c:/Dev" to "C:\Dev"
+            result := in replaceAll("/", "\\")
+            if (result size >= 2 && result[1] == ':') {
+                // normalize "c:\Dev" to "C:\Dev"
+                result = result[0..1] toUpper() + result[1..-1]
+            }
             result
         }
 
