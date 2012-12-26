@@ -142,7 +142,7 @@ BuildParams: class {
     linker : String = null
 
     // threads used by the sequence driver
-    sequenceThreads := (numProcessors() * 1.5) as Int
+    sequenceThreads := (System numProcessors() * 1.5) as Int
 
     // if true, only parse the given module
     onlyparse := false

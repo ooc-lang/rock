@@ -127,7 +127,6 @@ getaddrinfo: extern func(domain_name_or_ip: CString, service_name_or_port: CStri
 getnameinfo: extern func(serviceInformation: SockAddr*, serviceInformationLength: UInt32, hostName: CString, hostNameLength: SizeT, serviceName: CString, serviceNameLength: UInt32, flags: Int) -> Int
 freeaddrinfo: extern func(serviceInformation: AddrInfo*)
 gai_strerror: extern func(errorCode: Int) -> const Char*
-gethostname: extern func(localSystemName: CString, localSystemNameLength: SizeT) -> Int
 gethostbyname: extern func(domainName: CString) -> HostEntry*
 gethostbyaddr: extern func(pointerToAddress: CString, addressLength: Int, type: Int) -> HostEntry*
 getpeername: extern func(descriptor: Int, address: SockAddr*, len: UInt) -> Int

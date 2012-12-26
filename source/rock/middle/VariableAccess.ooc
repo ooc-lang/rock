@@ -9,7 +9,7 @@ import tinker/[Resolver, Response, Trail, Errors]
 import structs/ArrayList
 
 // for built-ins
-import net/DNS, os/Time, rock/RockVersion, rock/frontend/Target
+import os/[System, Time], rock/RockVersion, rock/frontend/Target
 
 VariableAccess: class extends Expression {
 
@@ -432,7 +432,7 @@ VariableAccess: class extends Expression {
             case "__BUILD_ROCK_VERSION__" =>
                 StringLiteral new(RockVersion getName(), token)
             case "__BUILD_HOSTNAME__" =>
-                StringLiteral new(DNS hostname(), token)
+                StringLiteral new(System hostname(), token)
             case =>
                 null
         }
