@@ -48,10 +48,9 @@ EnumDecl: class extends TypeDecl {
             // calculate it by incrementing the last used value.
             if(element valueSet) {
                 lastElementValue = element getValue()
-                updateLastElementValue()
             } else {
-                element setValue(lastElementValue)
                 updateLastElementValue()
+                element setValue(lastElementValue)
             }
         }
 
