@@ -30,6 +30,7 @@ version(windows) {
     LocaleId: cover from LCID
     LOCALE_USER_DEFAULT: extern LocaleId
     GetTimeFormat: extern func (LocaleId, Long, SystemTime*, CString, CString, Int) -> Int
+    GetDateFormat: extern func (LocaleId, Long, SystemTime*, CString, CString, Int) -> Int
 }
 
 version(!windows) {
@@ -70,17 +71,24 @@ Time: class {
     */
     dateTime: static func -> String {
 	version (windows) {
-	    length := GetTimeFormat(LOCALE_USER_DEFAULT, 0, null, null, null, 0)
-	    buffer := gc_malloc(length) as Char*
-	    GetTimeFormat(LOCALE_USER_DEFAULT, 0, null, null, buffer, length)
-	    return String new(buffer, length - 1)
+	    dateLength := GetDateFormat(LOCALE_USER_DEFAULT, 0, null, null, null, 0)
+	    dateBuffer := gc_malloc(dateLength) as Char*
+	    GetDateFormat(LOCALE_USER_DEFAULT, 0, null, null, dateBuffer, dateLength)
+	    date := String new(dateBuffer, dateLength - 1)
+
+	    timeLength := GetTimeFormat(LOCALE_USER_DEFAULT, 0, null, null, null, 0)
+	    timeBuffer := gc_malloc(timeLength) as Char*
+	    GetTimeFormat(LOCALE_USER_DEFAULT, 0, null, null, timeBuffer, timeLength)
+	    time := String new(timeBuffer, timeLength - 1)
+
+            return "%s %s" format(date, time)
 	}
 	version (!windows) {
 	    tm: TimeT
 	    time(tm&)
 	    return asctime(localtime(tm&))
 	}
-	return "<unsupported platform>"
+	"<unsupported platform>"
     }
 
     /**
