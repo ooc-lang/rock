@@ -1,24 +1,14 @@
 .PHONY: all clean mrproper prepare_bootstrap bootstrap install download-bootstrap rescue backup
 PARSER_GEN=greg
 NQ_PATH=source/rock/frontend/NagaQueen.c
-DATE=$(shell date +%Y-%m-%d)
-TIME=$(shell date +%H:%M)
 OOC_WARN_FLAGS?=+-w
-OOC_OWN_FLAGS=--sourcepath=source -v +-O2 -g --ignoredefine=ROCK_BUILD_ ${OOC_WARN_FLAGS}
+OOC_OWN_FLAGS=--sourcepath=source -v +-O2 -g ${OOC_WARN_FLAGS}
 
 # used to be CC?=gcc, but that breaks on mingw where CC is set to 'cc' apparently
 CC=gcc
 PREFIX?=/usr
 MAN_INSTALL_PATH?=/usr/local/man/man1
 BIN_INSTALL_PATH?=${PREFIX}/bin
-
-ifdef WINDIR
-	#OOC_OWN_FLAGS+='+-DROCK_BUILD_DATE=\\"${DATE}\\"'
-	#OOC_OWN_FLAGS+='+-DROCK_BUILD_TIME=\\"${TIME}\\"'
-	OOC_OWN_FLAGS+=+-DROCK_BUILD_DATE=\\\"${DATE}\\\" +-DROCK_BUILD_TIME=\\\"${TIME}\\\"
-else
-	OOC_OWN_FLAGS+=+-DROCK_BUILD_DATE=\"${DATE}\" +-DROCK_BUILD_TIME=\"${TIME}\" +-rdynamic
-endif
 
 OOC?=rock
 OOC_CMD=${OOC} ${OOC_OWN_FLAGS} ${OOC_FLAGS}
@@ -48,11 +38,6 @@ prepare_bootstrap:
 	@echo "Preparing boostrap (in build/ directory)"
 	rm -rf build/
 	${OOC} -driver=make -sourcepath=source -outpath=c-source rock/rock -o=../bin/c_rock c-source/${NQ_PATH} -v -g +-w
-	
-	# Don't use `sed -i`. That breaks on FreeBSD, and likely other systems as well.
-	sed s/-w.*/-w\ -DROCK_BUILD_DATE=\\\"\\\\\"bootstrapped\\\\\"\\\"\ -DROCK_BUILD_TIME=\\\"\\\\\"\\\\\"\\\"/ build/Makefile > build/Makefile.tmp
-	rm build/Makefile
-	mv build/Makefile.tmp build/Makefile
 	
 	cp ${NQ_PATH} build/c-source/${NQ_PATH}
 	@echo "Done!"

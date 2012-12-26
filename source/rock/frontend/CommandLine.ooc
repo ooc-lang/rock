@@ -11,9 +11,7 @@ import ../backend/explain/ExplanationGenerator
 import ../middle/[Module, Import, UseDef]
 import ../middle/tinker/Tinkerer
 
-ROCK_BUILD_DATE, ROCK_BUILD_TIME: extern CString
 system: extern func (command: CString)
-
 
 CommandLine: class {
     params: BuildParams
@@ -343,7 +341,7 @@ CommandLine: class {
                 } else if (option == "V" || option == "version") {
 
                     if(!longOption && option != "V") warnUseLong("version")
-                    "rock %s, built on %s at %s" printfln(RockVersion getName(), ROCK_BUILD_DATE, ROCK_BUILD_TIME)
+                    "rock %s, built on %s" printfln(RockVersion getName(), __BUILD_DATETIME__)
                     exit(0)
 
                 } else if (option == "h" || option == "help") {
