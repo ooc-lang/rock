@@ -153,6 +153,10 @@ Module: class extends Node {
     }
 
     addImport: func (imp: Import) {
+        if (imp getModule() == this) {
+            // don't add imports to ourselves (that can happen in the SDK's lang/ modules)
+            return
+        }
         imports add(imp)
     }
 

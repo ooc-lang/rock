@@ -45,8 +45,6 @@ AstBuilder: class {
 
     cache := static HashMap<String, Module> new()
 
-    langImports : List<String>
-
     params: BuildParams
     modulePath: String
     module: Module
@@ -68,35 +66,13 @@ AstBuilder: class {
         stack push(module)
         versionStack = Stack<VersionSpec> new()
 
-        if(params includeLang && !module fullName startsWith?("/")) {
-            addLangImports()
-        }
+        module addUse(Use new("sdk", params, module token))
 
         first = false
         result := nq_parse(this, modulePath)
         if(result == -1) {
             Exception new(This, "File " +modulePath + " not found") throw()
         }
-
-    }
-
-    addLangImports: func {
-
-        langImports : static List<String> = null
-
-        if(!langImports) {
-            langImports = ArrayList<String> new()
-            paths := params sourcePath getRelativePaths("lang")
-            paths filterEach(|p| p endsWith?(".ooc"),
-                    |p|
-                    impName := p substring(0, p length() - 4) replaceAll(File separator, '/')
-                    langImports add(impName)
-            )
-        }
-
-        langImports filterEach(|impName| impName != module fullName,
-                    |impName| module addImport(Import new(impName, module token))
-        )
 
     }
 

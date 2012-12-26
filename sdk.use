@@ -1,0 +1,4 @@
+Name: sdk
+Description: ooc standard library
+SourcePath: sdk
+Imports: lang/Abstractions, lang/Buffer, lang/BufferIterator, lang/Character, lang/Exception, lang/Format, lang/IO, lang/Iterators, lang/Memory, lang/Numbers, lang/String, lang/System, lang/types, lang/VarArgs

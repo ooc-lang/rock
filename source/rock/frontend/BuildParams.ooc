@@ -243,9 +243,6 @@ BuildParams: class {
     // maximum number of rounds the {@link Tinkerer} will do before blowing up.
     blowup := 32
 
-    // include or not lang/ packages (for testing)
-    includeLang := true
-
     // dynamic libraries to be linked into the executable
     dynamicLibs := ArrayList<String> new()
 

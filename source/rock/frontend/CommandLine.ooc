@@ -215,10 +215,9 @@ CommandLine: class {
 
                     params dynamicLibs add(option substring(1))
 
-                } else if (option == "nolang") { // FIXME debug option.
+                } else if (option == "nolang") {
 
-                    if(!longOption) warnUseLong("nolang")
-                    params includeLang = false
+                    "--nolang is not supported anymore. If you want to fiddle with the SDK, make your own sdk.use" println()
 
                 } else if (option == "nomain") {
 
