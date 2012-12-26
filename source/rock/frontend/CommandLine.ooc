@@ -194,8 +194,9 @@ CommandLine: class {
 
                 } else if(option startsWith?("sdk=")) {
 
-                    if(!longOption) warnUseLong("sdk")
-                    params sdkLocation = File new(option substring(4))
+                    "The --sdk=PATH option is deprecated." println()
+                    "If you want to use your own SDK, create your own sdk.use" println()
+                    "and adjust the OOC_LIBS environment variable" println()
 
                 } else if(option startsWith?("libs=")) {
 
@@ -560,7 +561,6 @@ CommandLine: class {
         if(params sourcePath empty?()) {
             params sourcePath add(".")
         }
-        params sourcePath add(params sdkLocation path)
 
         errorCode := 0
 

@@ -88,11 +88,7 @@ UseDef: class {
     }
 
     findUse: static func (fileName: String, params: BuildParams) -> File {
-        set := ArrayList<File> new()
-        if(params libsPath exists?()) {
-            set add(params libsPath)
-        }
-        set add(params sdkLocation)
+        set := params libsPaths
 
         if (params veryVerbose) {
             "ooc libs search path: " println()

@@ -1,5 +1,6 @@
 import io/File, os/[Env, System]
 import structs/ArrayList
+import text/StringTokenizer
 
 import compilers/AbstractCompiler
 import PathList, rock/utils/ShellUtils
@@ -28,8 +29,6 @@ BuildParams: class {
 
     init: func (execName: String) {
         findDist(execName)
-        findSdk()
-        sdkLocation = sdkLocation getAbsoluteFile()
         findLibsPath()
 
         // use the GC by default =)
@@ -75,53 +74,34 @@ BuildParams: class {
         if (distLocation path empty?() || !distLocation exists?()) Exception new (This, "can not find the distribution. did you set ROCK_DIST environment variable?")
     }
 
-    findSdk: func {
-        // specified by command-line?
-        if(sdkLocation) return
-
-        env := Env get("ROCK_SDK")
-        if(!env) {
-            env = Env get("OOC_SDK")
-        }
-
-        if (env) {
-            sdkLocation = File new(env trimRight(File separator))
-            return
-        }
-
-        // fall back to dist + sdk/
-        sdkLocation = File new(distLocation, "sdk")
-        if (sdkLocation path == null || sdkLocation path empty?() || !sdkLocation exists?()) Exception new (This, "can not find the sdk. did you set ROCK_SDK environment variable?")
-    }
-
     findLibsPath: func {
-        // specified by command-line?
-        if(libsPath) return
-
-        // find libsPath
+        // add from environment variable
         path := Env get("OOC_LIBS")
-        if(path == null) {
-            // TODO: find other standard paths for other OSes
-            path = "/usr/lib/ooc/"
+        if(path) {
+            path split(File pathDelimiter, false) each(|path|
+                libsPaths add(File new(path))
+            )
+        } else {
+            libsPaths add(File new("/usr/lib/ooc"))
+            libsPaths add(File new("/usr/local/lib/ooc"))
         }
-        libsPath = File new(path)
+
+        // add rock dist location as last element
+        libsPaths add(distLocation)
     }
 
     // Changes the way string literals are written, among other things
     // see http://github.com/nddrylliog/newsdk for more bunnies.
     newsdk := false
 
-    // If it's true, will use String makeLiteral() to make string literals instaed of just C string literals
+    // If it's true, will use String makeLiteral() to make string literals instead of just C string literals
     newstr := true
 
     // location of the compiler's distribution, with a libs/ folder for the gc, etc.
     distLocation: File
 
-    // location of the ooc SDK, with the basic classes, lang/, structs/, io/
-    sdkLocation: File
-
     // where ooc libraries live (.use)
-    libsPath: File
+    libsPaths := ArrayList<File> new()
 
     // compiler used for producing an executable from the C sources
     compiler: AbstractCompiler = null
