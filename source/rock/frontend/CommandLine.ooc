@@ -608,7 +608,9 @@ CommandLine: class {
     }
 
     prepareCompilationFromUse: func (uzeFile: File, modulePaths: ArrayList<String>) {
-        uze := UseDef new(uzeFile name())
+        // extract '.use' from use file
+        identifier := uzeFile name()[0..-5]
+        uze := UseDef new(identifier)
         uze read(uzeFile, params)
         if(uze main) {
             // compile as a program

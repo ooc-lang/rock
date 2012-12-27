@@ -114,10 +114,10 @@ SequenceDriver: class extends Driver {
         for(sourceFolder in sourceFolders) {
             if(params verbose) {
                 // generate random colors for every source folder
-                hash := ac_X31_hash(sourceFolder name) + 42
+                hash := ac_X31_hash(sourceFolder identifier) + 42
                 Terminal setFgColor(Color fromHash(hash))
                 if(hash & 0b01) Terminal setAttr(Attr bright)
-                "%s, " printf(sourceFolder name)
+                "%s, " printf(sourceFolder identifier)
                 Terminal reset()
                 fflush(stdout)
             }
@@ -164,7 +164,7 @@ SequenceDriver: class extends Driver {
             }
             for(sourceFolder in sourceFolders) {
                 if(params libcache) {
-                    params compiler addIncludePath(params libcachePath + File separator + sourceFolder name)
+                    params compiler addIncludePath(params libcachePath + File separator + sourceFolder identifier)
                 }
             }
             for(additional in params additionals) {
@@ -394,7 +394,7 @@ SequenceDriver: class extends Driver {
                 params compiler addIncludePath(incPath getPath())
             }
             for(sourceFolder in sourceFolders) {
-                params compiler addIncludePath(params libcachePath + File separator + sourceFolder name)
+                params compiler addIncludePath(params libcachePath + File separator + sourceFolder identifier)
             }
             for(compilerArg in params compilerArgs) {
                 params compiler addObjectFile(compilerArg)
@@ -457,13 +457,18 @@ SequenceDriver: class extends Driver {
     collectDeps: func (module: Module, toCompile: HashMap<String, SourceFolder>, done: ArrayList<Module>) -> HashMap<String, SourceFolder> {
 
         if(!module dummy) {
-            absolutePath := File new(module getPathElement()) getAbsolutePath()
+            pathElement := module getPathElement()
+            absolutePath := File new(pathElement) getAbsolutePath()
             name := File new(absolutePath) name()
+            identifier := params sourcePathTable get(pathElement)
+            if (!identifier) {
+                identifier = name
+            }
 
-            sourceFolder := toCompile get(name)
+            sourceFolder := toCompile get(identifier)
             if(sourceFolder == null) {
-                sourceFolder = SourceFolder new(name, absolutePath, params)
-                toCompile put(name, sourceFolder)
+                sourceFolder = SourceFolder new(name, module getPathElement(), identifier, params)
+                toCompile put(sourceFolder identifier, sourceFolder)
             }
             sourceFolder modules add(module)
         }
@@ -481,15 +486,16 @@ SequenceDriver: class extends Driver {
 }
 
 SourceFolder: class {
-    name, absolutePath: String
+    identifier, name, pathElement, absolutePath: String
     params: BuildParams
     outlib: String
 
     modules := ArrayList<Module> new()
     archive : Archive
 
-    init: func (=name, =absolutePath, =params) {
-        outlib = "%s%c%s-%s.a" format(params libcachePath, File separator, name, Target toString())
-        archive = Archive new(name, outlib, params)
+    init: func (=name, =pathElement, =identifier, =params) {
+        absolutePath = File new(pathElement) getAbsolutePath()
+        outlib = "%s%c%s-%s.a" format(params libcachePath, File separator, identifier, Target toString())
+        archive = Archive new(identifier, outlib, params)
     }
 }

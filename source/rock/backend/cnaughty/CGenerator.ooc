@@ -34,7 +34,8 @@ CGenerator: class extends Skeleton {
     init: func ~cgenerator (=params, =module) {
 
         if (params libcache) {
-            hOutPath := File new(params libcachePath + File separator + module getSourceFolderName(), module getPath(""))
+            hOutPath := File new(File new(params libcachePath, module getSourceFolderName()), module getPath(""))
+            "Outputting to %s" printfln(hOutPath getPath())
             hOutPath parent() mkdirs()
             hw = AwesomeWriter new(this, CachedFileWriter new(hOutPath path + ".h"))
             fw = AwesomeWriter new(this, CachedFileWriter new(hOutPath path + "-fwd.h"))

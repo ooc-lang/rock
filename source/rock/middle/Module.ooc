@@ -75,7 +75,11 @@ Module: class extends Node {
     getUnderName:    func -> String { underName }
     getPathElement:  func -> String { pathElement }
     getSourceFolderName: func -> String {
-        File new(File new(getPathElement()) getAbsolutePath()) name()
+        identifier := params sourcePathTable get(pathElement)
+        if (!identifier) {
+            File new(pathElement) getAbsoluteFile() name()
+        }
+        identifier
     }
 
     collectDeps: func -> List<Module> {

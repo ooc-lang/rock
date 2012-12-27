@@ -1,5 +1,5 @@
 import io/File, os/[Env, System]
-import structs/ArrayList
+import structs/[ArrayList, HashMap]
 import text/StringTokenizer
 
 import compilers/AbstractCompiler
@@ -108,6 +108,9 @@ BuildParams: class {
 
     // ooc sourcepath (.ooc)
     sourcePath := PathList new()
+
+    // map of sourcepath elements => .use name
+    sourcePathTable := HashMap<String, String> new()
 
     // C libraries path (.so)
     libPath := PathList new()

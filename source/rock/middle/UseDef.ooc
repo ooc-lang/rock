@@ -145,6 +145,7 @@ UseDef: class {
         if(params veryVerbose) {
             "Adding %s to sourcepath ..." printfln(sourcePath)
         }
+        params sourcePathTable add(sourcePath, identifier)
         params sourcePath add(sourcePath)
 
         if (linker) {
