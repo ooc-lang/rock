@@ -87,8 +87,6 @@ ControlStatementWriter: abstract class extends Skeleton {
             if(!isFirst) current app(" else ")
 
             if(!caze getExpr()) {
-                if(isFirst) current app(" else ");
-
                 if(firstCatchAll?) current app("if (true) ")
                 else firstCatchAll? = false
             } else {
