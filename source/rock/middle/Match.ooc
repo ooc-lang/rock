@@ -76,20 +76,23 @@ Match: class extends Expression {
         if(casesSize == -1) {
             casesSize = cases getSize()
         }
-        
+
+        catchAll? := false
+
         if(casesResolved < casesSize) {
             for (idx in casesResolved..casesSize) {
                 caze := cases[idx]
-                if(expr && caze getExpr()) {
+                caseExpr := caze getExpr()
+                if(expr && caseExpr) {
                     // When the expr of match is `true` we generate
                     // if(caseExpr) instead of if(true == caseExpr)
-                    caseToken := caze getExpr() token
+                    caseToken := caseExpr token
                     if(!(expr instanceOf?(BoolLiteral) && expr as BoolLiteral getValue() == true)) {
                         if(expr getType() ==  null) {
                             res wholeAgain(this, "need expr type")
                             break
                         }
-                        caseExpr := caze getExpr()
+
                         while(caseExpr instanceOf?(Parenthesis))
                             caseExpr = caseExpr as Parenthesis inner
                         if(caseExpr instanceOf?(VariableDecl)) {
@@ -145,6 +148,11 @@ Match: class extends Expression {
                             }
                         }
                     }
+                } else if(!caseExpr) {
+                    // This is a catch-all!
+                    if(catchAll?) {
+                        res throwError(MultipleCatchAll new(caze token, "Multiple catch-all cases detected, only the first one has any effect"))
+                    } else catchAll? = true
                 }
                 casesResolved += 1
             }
@@ -314,5 +322,9 @@ WrongMatchesSignature: class extends Error {
 }
 
 CantUseMatch: class extends Error {
+    init: super func ~tokenMessage
+}
+
+MultipleCatchAll: class extends Warning {
     init: super func ~tokenMessage
 }

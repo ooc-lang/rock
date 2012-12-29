@@ -77,15 +77,20 @@ ControlStatementWriter: abstract class extends Skeleton {
          
         // sort is the wrong term, it basically puts the `case =>` at the end
         cazes sort(|x, y| 
-            if (!x expr) return true
+            if (!x expr && y expr) return true
                 return false
         )
-                        
+
+        firstCatchAll? := true
+
         for(caze in mat getCases()) {
 			if(!isFirst) current app(" else ")
 
 			if(!caze getExpr()) {
-				if(isFirst) current.app(" else ");
+				if(isFirst) current app(" else ");
+
+                if(firstCatchAll?) current app("if (true) ")
+                else firstCatchAll? = false
 			} else {
                 // FIXME: wtf? (from the j/ooc codebase)
 				//if(case1 isFallthrough()) current app(' ')
