@@ -59,7 +59,7 @@ ControlStatementWriter: abstract class extends Skeleton {
 
     write: static func ~_match (this: Skeleton, mat: Match) {
         isFirst := true
-		cazes := mat cases
+        cazes := mat cases
         writeBody := func(caze: Case) {
             current app("{"). tab()
             for (stat in caze getBody()) writeLine(stat)
@@ -84,22 +84,22 @@ ControlStatementWriter: abstract class extends Skeleton {
         firstCatchAll? := true
 
         for(caze in mat getCases()) {
-			if(!isFirst) current app(" else ")
+            if(!isFirst) current app(" else ")
 
-			if(!caze getExpr()) {
-				if(isFirst) current app(" else ");
+            if(!caze getExpr()) {
+                if(isFirst) current app(" else ");
 
                 if(firstCatchAll?) current app("if (true) ")
                 else firstCatchAll? = false
-			} else {
+            } else {
                 // FIXME: wtf? (from the j/ooc codebase)
-				//if(case1 isFallthrough()) current app(' ')
-				current app("if ("). app(caze getExpr()). app(")")
-			}
-			
-			writeBody(caze)
+                //if(case1 isFallthrough()) current app(' ')
+                current app("if ("). app(caze getExpr()). app(")")
+            }
+
+            writeBody(caze)
             if(isFirst) isFirst = false;
-		}
+        }
     }
 
 }
