@@ -45,16 +45,15 @@ VarArgs: cover {
             // retrieve the type
             type := (argsPtr as Class*)@ as Class
 
-            version(!windows) {
-                // advance of one class size
-                argsPtr += Class size
-            }
-            version(windows) {
+            version (windows) {
                 if(type size < Class size) {
                     argsPtr += Class size
                 } else {
                     argsPtr += type size
                 }
+            } else {
+                // advance of one class size
+                argsPtr += Class size
             }
 
             // retrieve the arg and use it
@@ -132,17 +131,27 @@ VarArgsIterator: cover {
 
         nextType := (argsPtr as Class*)@ as Class
         result : T*
-        version(!windows) {
-            result = (argsPtr + Class size) as T*
-            argsPtr += Class size + __pointer_align(nextType size)
-        }
-        version(windows) {
+
+        version (windows) {
             if(nextType size > Class size) {
                 result = (argsPtr + nextType size) as T*
                 argsPtr += nextType size + __pointer_align(nextType size)
             } else {
                 result = (argsPtr + Class size) as T*
                 argsPtr += Class size + __pointer_align(nextType size)
+            }
+        } else {
+            version (arm) {
+              offset := Class size
+              if (offset < nextType size) {
+                offset = nextType size
+              }
+
+              result = (argsPtr + offset) as T*
+              argsPtr += offset + __pointer_align(nextType size)
+            } else {
+              result = (argsPtr + Class size) as T*
+              argsPtr += Class size + __pointer_align(nextType size)
             }
         }
 
