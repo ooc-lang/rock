@@ -120,7 +120,7 @@ CGenerator: class extends Skeleton {
             current app(op left)
         }
 
-        current app(" "). app(opTypeRepr[op type]). app(" ")
+        current app(" "). app(op repr()). app(" ")
 
 
         if(!isFunc && op type == OpType ass) {
@@ -143,7 +143,7 @@ CGenerator: class extends Skeleton {
 
     /** Write a unary operation */
     visitUnaryOp: func (op: UnaryOp) {
-        current app(unaryOpRepr[op type]). app(op inner)
+        current app(op repr()). app(op inner)
     }
 
     /** Write an int literal */
@@ -425,7 +425,7 @@ CGenerator: class extends Skeleton {
     }
 
     visitComparison: func (comp: Comparison) {
-        current app(comp left). app(" "). app(compTypeRepr[comp compType]). app(" ")
+        current app(comp left). app(" "). app(comp repr()). app(" ")
 
         leftType  := comp left  getType()
         while(leftType  instanceOf?(ReferenceType)) { leftType  = leftType  as ReferenceType inner }
