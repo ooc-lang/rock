@@ -46,7 +46,7 @@ Comparison: class extends Expression {
     getType: func -> Type { This type }
 
     repr: func -> String {
-        opTypeRepr[type as Int - CompType equal]
+        compTypeRepr[compType as Int - CompType equal]
     }
 
     toString: func -> String {
