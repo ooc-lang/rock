@@ -55,7 +55,7 @@ builtinNames := HashMap<String, String> new()
 
 {
     // ooc's excuse for a map literal (so far ^^)
-    builtinNames put("windows", 	"__WIN32__) || defined(__WIN64__") // FIXME: is that right?
+    builtinNames put("windows", 	"__WIN32__) || defined(__WIN64__")
     builtinNames put("linux", 	"__linux__")
     builtinNames put("solaris", 	"__sun")
     builtinNames put("unix", 	"__unix__")
@@ -67,6 +67,7 @@ builtinNames := HashMap<String, String> new()
     builtinNames put("netbsd",		"__NetBSD__")
     builtinNames put("dragonfly",	"__DragonFly__")
     builtinNames put("gnuc", 	"__GNUC__")
+    builtinNames put("arm", 	"__arm__")
     builtinNames put("i386", 	"__i386__")
     builtinNames put("x86", 		"__X86__")
     builtinNames put("x86_64", 	"__x86_64__")
