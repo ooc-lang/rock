@@ -51,7 +51,9 @@ VarArgs: cover {
                 } else {
                     argsPtr += type size
                 }
-            } else {
+            }
+            
+            version (!windows) {
                 // advance of one class size
                 argsPtr += Class size
             }
@@ -140,7 +142,9 @@ VarArgsIterator: cover {
                 result = (argsPtr + Class size) as T*
                 argsPtr += Class size + __pointer_align(nextType size)
             }
-        } else {
+        }
+        
+        version (!windows) {
             version (arm) {
               offset := Class size
               if (offset < nextType size) {
@@ -149,7 +153,8 @@ VarArgsIterator: cover {
 
               result = (argsPtr + offset) as T*
               argsPtr += offset + __pointer_align(nextType size)
-            } else {
+            }
+            version (!arm) {
               result = (argsPtr + Class size) as T*
               argsPtr += Class size + __pointer_align(nextType size)
             }
