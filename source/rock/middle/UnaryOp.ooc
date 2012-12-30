@@ -10,7 +10,7 @@ UnaryOpType: enum {
 }
 
 unaryOpRepr := [
-		"~",
+	"~",
         "!",
         "-"]
 
@@ -38,8 +38,12 @@ UnaryOp: class extends Expression {
         inner getType()
     }
 
+    repr: func -> String {
+        unaryOpRepr[type as Int - UnaryOpType binaryNot]
+    }
+
     toString: func -> String {
-        return unaryOpRepr[type] + inner toString()
+        return repr() + inner toString()
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
@@ -116,7 +120,7 @@ UnaryOp: class extends Expression {
 
     getScore: func (op: OperatorDecl, reqType: Type) -> Int {
 
-        symbol := unaryOpRepr[type]
+        symbol := repr()
 
         if(!(op getSymbol() equals?(symbol))) {
             return 0 // not the right overload type - skip
