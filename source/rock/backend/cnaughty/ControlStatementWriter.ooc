@@ -81,14 +81,15 @@ ControlStatementWriter: abstract class extends Skeleton {
                 return false
         )
 
-        firstCatchAll? := true
+        catchAlls := cazes filter(|x| !x expr) getSize()
+        currentCatchAll := 1
 
         for(caze in mat getCases()) {
             if(!isFirst) current app(" else ")
 
             if(!caze getExpr()) {
-                if(firstCatchAll?) current app("if (true) ")
-                else firstCatchAll? = false
+                if(currentCatchAll < catchAlls) current app("if (true) ")
+                currentCatchAll += 1
             } else {
                 // FIXME: wtf? (from the j/ooc codebase)
                 //if(case1 isFallthrough()) current app(' ')
