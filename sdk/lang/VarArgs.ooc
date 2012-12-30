@@ -45,17 +45,16 @@ VarArgs: cover {
             // retrieve the type
             type := (argsPtr as Class*)@ as Class
 
-            version (windows) {
+            version(!windows) {
+                // advance of one class size
+                argsPtr += Class size
+            }
+            version(windows) {
                 if(type size < Class size) {
                     argsPtr += Class size
                 } else {
                     argsPtr += type size
                 }
-            }
-            
-            version (!windows) {
-                // advance of one class size
-                argsPtr += Class size
             }
 
             // retrieve the arg and use it
@@ -133,18 +132,12 @@ VarArgsIterator: cover {
 
         nextType := (argsPtr as Class*)@ as Class
         result : T*
-
-        version (windows) {
-            if(nextType size > Class size) {
-                result = (argsPtr + nextType size) as T*
-                argsPtr += nextType size + __pointer_align(nextType size)
-            } else {
-                result = (argsPtr + Class size) as T*
-                argsPtr += Class size + __pointer_align(nextType size)
+        version(!windows) {
+            version (!arm) {
+              result = (argsPtr + Class size) as T*
+              argsPtr += Class size + __pointer_align(nextType size)
             }
-        }
-        
-        version (!windows) {
+
             version (arm) {
               offset := Class size
               if (offset < nextType size) {
@@ -154,9 +147,14 @@ VarArgsIterator: cover {
               result = (argsPtr + offset) as T*
               argsPtr += offset + __pointer_align(nextType size)
             }
-            version (!arm) {
-              result = (argsPtr + Class size) as T*
-              argsPtr += Class size + __pointer_align(nextType size)
+        }
+        version(windows) {
+            if(nextType size > Class size) {
+                result = (argsPtr + nextType size) as T*
+                argsPtr += nextType size + __pointer_align(nextType size)
+            } else {
+                result = (argsPtr + Class size) as T*
+                argsPtr += Class size + __pointer_align(nextType size)
             }
         }
 
