@@ -427,11 +427,10 @@ SequenceDriver: class extends Driver {
 
         flagsDone := ArrayList<String> new()
         usesDone := ArrayList<UseDef> new()
+        modulesDone := ArrayList<Module> new()
 
         for(module in sourceFolder modules) {
-            for(use1 in module uses) {
-                getFlagsFromUse(use1 useDef, flagsDone, usesDone)
-            }
+            getFlagsFromUse(module, flagsDone, modulesDone, usesDone)
         }
 
 
