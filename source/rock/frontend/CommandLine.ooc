@@ -560,6 +560,16 @@ CommandLine: class {
 
         if(params sourcePath empty?()) {
             params sourcePath add(".")
+
+            moduleName := "program"
+            if (!modulePaths empty?()) {
+              moduleName = modulePaths get(0)
+            }
+
+            if (moduleName endsWith?(".ooc")) {
+              moduleName = moduleName[0..-5]
+            }
+            params sourcePathTable put(".", moduleName)
         }
 
         errorCode := 0
