@@ -34,7 +34,6 @@ PkgInfo: class {
     init: func (=name, =libsString, =cflagsString) {
         extractTokens("-L", libsString, libPaths)
         extractTokens("-l", libsString, libraries)
-        "For %s, collected libraries: %s" printfln(name, libraries join(", "))
         extractTokens("-I", cflagsString, includePaths)
         extractTokens("", cflagsString, cflags)
     }
