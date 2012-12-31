@@ -45,8 +45,12 @@ Comparison: class extends Expression {
 
     getType: func -> Type { This type }
 
+    repr: func -> String {
+        compTypeRepr[compType as Int - CompType equal]
+    }
+
     toString: func -> String {
-        return left toString() + " " + compTypeRepr[compType] + " " + right toString()
+        return left toString() + " " + repr() + " " + right toString()
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
@@ -192,7 +196,7 @@ Comparison: class extends Expression {
 
     getScore: func (op: OperatorDecl, reqType: Type) -> Int {
 
-        symbol := compTypeRepr[compType]
+        symbol := repr()
 
         half := false
 

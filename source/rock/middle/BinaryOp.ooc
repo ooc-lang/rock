@@ -98,7 +98,11 @@ BinaryOp: class extends Expression {
     getRight: func -> Expression { right }
 
     toString: func -> String {
-        return left toString() + " " + opTypeRepr[type] + " " + right toString()
+        return left toString() + " " + repr() + " " + right toString()
+    }
+
+    repr: func -> String {
+      opTypeRepr[type as Int - OpType add]
     }
 
     unwrapAssign: func (trail: Trail, res: Resolver) -> Bool {
@@ -321,7 +325,7 @@ BinaryOp: class extends Expression {
         if(!isLegal(res)) {
             if(res fatal) {
                 res throwError(InvalidOperatorUse new(token, "Invalid use of operator %s between operands of type %s and %s\n" format(
-                    opTypeRepr[type], left getType() toString(), right getType() toString())))
+                    repr(), left getType() toString(), right getType() toString())))
                 return Response OK
             }
             res wholeAgain(this, "Illegal use, looping in hope.")
@@ -472,7 +476,7 @@ BinaryOp: class extends Expression {
 
     getScore: func (op: OperatorDecl, reqType: Type) -> Int {
 
-        symbol := opTypeRepr[type]
+        symbol := repr()
 
         half := false
 

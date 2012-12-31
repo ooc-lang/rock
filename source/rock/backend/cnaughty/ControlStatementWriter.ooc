@@ -59,7 +59,7 @@ ControlStatementWriter: abstract class extends Skeleton {
 
     write: static func ~_match (this: Skeleton, mat: Match) {
         isFirst := true
-		cazes := mat cases
+        cazes := mat cases
         writeBody := func(caze: Case) {
             current app("{"). tab()
             for (stat in caze getBody()) writeLine(stat)
@@ -77,24 +77,28 @@ ControlStatementWriter: abstract class extends Skeleton {
          
         // sort is the wrong term, it basically puts the `case =>` at the end
         cazes sort(|x, y| 
-            if (!x expr) return true
+            if (!x expr && y expr) return true
                 return false
         )
-                        
-        for(caze in mat getCases()) {
-			if(!isFirst) current app(" else ")
 
-			if(!caze getExpr()) {
-				if(isFirst) current.app(" else ");
-			} else {
+        catchAlls := cazes filter(|x| !x expr) getSize()
+        currentCatchAll := 1
+
+        for(caze in mat getCases()) {
+            if(!isFirst) current app(" else ")
+
+            if(!caze getExpr()) {
+                if(currentCatchAll < catchAlls) current app("if (true) ")
+                currentCatchAll += 1
+            } else {
                 // FIXME: wtf? (from the j/ooc codebase)
-				//if(case1 isFallthrough()) current app(' ')
-				current app("if ("). app(caze getExpr()). app(")")
-			}
-			
-			writeBody(caze)
+                //if(case1 isFallthrough()) current app(' ')
+                current app("if ("). app(caze getExpr()). app(")")
+            }
+
+            writeBody(caze)
             if(isFirst) isFirst = false;
-		}
+        }
     }
 
 }
