@@ -15,12 +15,14 @@ ShellUtils: class {
      * environment variable.
      */
     findExecutable: static func (executableName: String, crucial: Bool) -> File {
+        file: File
+
         version (windows) {
             file = _findInPath("%s.exe" format(executableName))
             if (file) return file
         }
 
-        file := _findInPath(executableName)
+        file = _findInPath(executableName)
         if (file) return file
 
         if (crucial) {
