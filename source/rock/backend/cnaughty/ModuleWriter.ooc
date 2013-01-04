@@ -59,7 +59,7 @@ ModuleWriter: abstract class extends Skeleton {
 
         current nl(). app("#include <"). app(module getPath("-fwd.h")). app(">")
 
-		// include .h-level imports (which contains types we extend)
+        // include .h-level imports (which contains types we extend)
         for(imp in imports) {
             if(!imp isTight) continue
             inc := imp getModule() getPath(".h")
@@ -128,10 +128,10 @@ ModuleWriter: abstract class extends Skeleton {
         current = cw
         current nl(). app("void "). app(module getLoadFuncName()). app("() {"). tab()
         current nl(). app("static "). app("bool __done__ = false;"). nl(). app("if (!__done__)"). app("{"). tab()
-		current nl(). app("__done__ = true;")
+        current nl(). app("__done__ = true;")
         for (imp in module getAllImports()) {
-			current nl(). app(imp getModule() getLoadFuncName()). app("();")
-		}
+            current nl(). app(imp getModule() getLoadFuncName()). app("();")
+        }
 
         for (type in module types) {
             if(type instanceOf?(ClassDecl)) {
