@@ -63,7 +63,7 @@ charHash: func <K> (key: K) -> SizeT {
 
 /**
    Port of Austin Appleby's Murmur Hash implementation
-   http://murmurhash.googlepages.com/
+   http://code.google.com/p/smhasher/
 
    :param: key The key to hash
    :param: seed The seed value
