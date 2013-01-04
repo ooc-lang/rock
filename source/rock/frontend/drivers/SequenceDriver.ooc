@@ -382,7 +382,12 @@ SequenceDriver: class extends Driver {
             params compiler setOutputPath(oPath)
 
             params compiler addIncludePath(File new(params distLocation, "libs/headers/") getPath())
-            params compiler addIncludePath(params outPath getPath())
+
+            if (params libcache) {
+                params compiler addIncludePath(params libcachePath)
+            } else {
+                params compiler addIncludePath(params outPath getPath())
+            }
 
             for(define in params defines) {
                 params compiler defineSymbol(define)
