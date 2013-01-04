@@ -3,7 +3,7 @@ import structs/[ArrayList, HashMap]
 import text/StringTokenizer
 
 import compilers/AbstractCompiler
-import PathList, rock/utils/ShellUtils
+import PathList, os/ShellUtils
 import ../middle/Module, ../middle/tinker/Errors
 
 /**
@@ -82,8 +82,15 @@ BuildParams: class {
                 libsPaths add(File new(path))
             )
         } else {
-            libsPaths add(File new("/usr/lib/ooc"))
-            libsPaths add(File new("/usr/local/lib/ooc"))
+            addIfExists := func (path: String) {
+              f := File new(path)
+              if (f exists?()) {
+                libsPaths add(f)
+              }
+            }
+
+            addIfExists("/usr/lib/ooc")
+            addIfExists("/usr/local/lib/ooc")
         }
 
         // add rock dist location as last element

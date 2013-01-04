@@ -1,5 +1,5 @@
 import io/File, structs/[ArrayList, HashMap], os/[Process, Env]
-import ../../utils/ShellUtils
+import os/ShellUtils
 import PkgInfo
 
 /**
@@ -49,6 +49,8 @@ PkgConfigFrontend: class {
             cflags += " "
         }
 
+        "Got cflags %s for %s" printfln(cflags, utilName)
+
         libs := ""
         
         for (libsArg in libsArgs) {
@@ -63,11 +65,35 @@ PkgConfigFrontend: class {
             libs += " "
         }
 
+        "Got libs %s for %s" printfln(libs, utilName)
+
         PkgInfo new(pkgs join(" "), libs, cflags)
     }
 
     _shell: static func (command: ArrayList<String>) -> String {
-        Process new(command) getOutput() trim(" \n")
+        try {
+            (output, exitCode) := Process new(command) getOutput()
+        
+            if (exitCode != 0) {
+                ProcessException new(This, "Couldn't execute a pkg-config like utility")
+            }
+
+            return output trim(" \n")
+        } catch (pe: ProcessException) {
+            // Failed to execute, maybe it's a shell script?
+            // Note that this has only been witnessed on MSYS/MinGW
+
+            shellCommand := ArrayList<String> new()
+            shellCommand add("sh")
+            shellCommand addAll(command)
+            (output, exitCode) := Process new(shellCommand) getOutput()
+
+            if (exitCode == 0) {
+                return output trim(" \n")
+            }
+        }
+
+        return null
     }
 
 }

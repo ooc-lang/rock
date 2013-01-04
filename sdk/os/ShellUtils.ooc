@@ -14,11 +14,15 @@ ShellUtils: class {
      * @return the path of an executable, if it can be found. It looks in the PATH
      * environment variable.
      */
-    findExecutable: static func (executableName: String, crucial: Bool) -> File {
-        file := _findInPath(executableName)
-        if (file) return file
+    findExecutable: static func (executableName: String, crucial := false) -> File {
+        file: File
 
-        file = _findInPath("%s.exe" format(executableName))
+        version (windows) {
+            file = _findInPath("%s.exe" format(executableName))
+            if (file) return file
+        }
+
+        file = _findInPath(executableName)
         if (file) return file
 
         if (crucial) {
