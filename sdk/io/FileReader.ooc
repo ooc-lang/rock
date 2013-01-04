@@ -26,9 +26,9 @@ FileReader: class extends Reader {
      * Open a file for reading in binary mode, given its name.
      */
     init: func ~withName (fileName: String) {
-		// mingw fseek/ftell are *really* unreliable with text mode
-		// if for some weird reason you need to open in text mode, use
-		// FileReader new(fileName, "rt")
+	// mingw fseek/ftell are *really* unreliable with text mode
+	// if for some weird reason you need to open in text mode, use
+	// FileReader new(fileName, "rt")
         init(fileName, "rb")
     }
 

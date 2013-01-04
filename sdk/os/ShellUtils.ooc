@@ -14,7 +14,7 @@ ShellUtils: class {
      * @return the path of an executable, if it can be found. It looks in the PATH
      * environment variable.
      */
-    findExecutable: static func (executableName: String, crucial: Bool) -> File {
+    findExecutable: static func (executableName: String, crucial := false) -> File {
         file: File
 
         version (windows) {

@@ -40,8 +40,8 @@ Process: abstract class {
     new: static func ~fromArray (args: String[]) -> This {
         p := ArrayList<String> new()
         for (i in 0..args length) {
-            s := args[i]
-            p add(s)
+            arg := args[i]
+            p add(arg)
         }
         new(p)
     }
@@ -56,7 +56,7 @@ Process: abstract class {
         version(windows) {
             return ProcessWin32 new(args) as This
         }
-        Exception new(This, "Unsupported platform!\n") throw()
+        Exception new(This, "os/Process is unsupported on your platform!") throw()
         null
     }
 
@@ -145,7 +145,6 @@ Process: abstract class {
 
         result := PipeReader new(stdErr) toString()
 
-
         stdErr close('r'). close('w')
         stdErr = null
 
@@ -182,3 +181,16 @@ Process: abstract class {
 
     }
 }
+
+ProcessException: class extends Exception {
+
+    init: super func
+
+}
+
+BadExecutableException: class extends ProcessException {
+
+    init: super func
+
+}
+

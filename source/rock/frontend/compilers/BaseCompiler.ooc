@@ -2,7 +2,7 @@ import io/File
 import os/[Process,Pipe]
 
 import AbstractCompiler
-import ../../utils/ShellUtils
+import os/ShellUtils
 
 BaseCompiler: abstract class extends AbstractCompiler {
 

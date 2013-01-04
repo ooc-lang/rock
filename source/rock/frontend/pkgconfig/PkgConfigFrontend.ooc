@@ -1,5 +1,5 @@
 import io/File, structs/[ArrayList, HashMap], os/[Process, Env]
-import ../../utils/ShellUtils
+import os/ShellUtils
 import PkgInfo
 
 /**
@@ -49,6 +49,8 @@ PkgConfigFrontend: class {
             cflags += " "
         }
 
+        "Got cflags %s for %s" printfln(cflags, utilName)
+
         libs := ""
         
         for (libsArg in libsArgs) {
@@ -63,11 +65,15 @@ PkgConfigFrontend: class {
             libs += " "
         }
 
+        "Got libs %s for %s" printfln(libs, utilName)
+
         PkgInfo new(pkgs join(" "), libs, cflags)
     }
 
     _shell: static func (command: ArrayList<String>) -> String {
-        Process new(command) getOutput() trim(" \n")
+        args := ["sh", "-c", command join(" ")]
+        "Shelling: %s" printfln(command join(" "))
+        Process new(args) getOutput() trim(" \n")
     }
 
 }

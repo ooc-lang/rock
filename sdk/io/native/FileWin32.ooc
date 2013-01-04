@@ -44,6 +44,7 @@ version(windows) {
     CreateDirectory: extern func (CString, Pointer) -> Bool
     GetCurrentDirectory: extern func (Long, Pointer) -> Int
     PathCchCanonicalizeEx: extern func (CString, SizeT, CString, ULong) -> Int
+    GetFullPathName: extern func (CString, Long, CString, CString) -> Long
 
     /*
      * remove implementation
@@ -198,11 +199,10 @@ version(windows) {
          * The absolute path, e.g. "my/dir" => "/current/directory/my/dir"
          */
         getAbsolutePath: func -> String {
-            if (relative?()) {
-                return getCwd() + This separator + path
-            } else {
-                return path
-            }
+            fullPath := Buffer new(File MAX_PATH_LENGTH)
+            GetFullPathName(path toCString(), File MAX_PATH_LENGTH, fullPath data, null)
+            fullPath sizeFromData()
+            fullPath toString()
         }
 
         _getChildren: func <T> (T: Class) -> ArrayList<T> {

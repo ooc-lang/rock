@@ -5,7 +5,7 @@ import ../[BuildParams,CommandLine], ../pkgconfig/[PkgInfo, PkgConfigFrontend]
 import ../../middle/[Import, Include, Module, Use, UseDef]
 import ../../frontend/Target
 
-import ../../utils/[ShellUtils]
+import os/ShellUtils
 
 /**
    Drives the compilation process, e.g. chooses in which order

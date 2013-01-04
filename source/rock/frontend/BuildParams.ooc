@@ -3,7 +3,7 @@ import structs/ArrayList
 import text/StringTokenizer
 
 import compilers/AbstractCompiler
-import PathList, rock/utils/ShellUtils
+import PathList, os/ShellUtils
 import ../middle/Module, ../middle/tinker/Errors
 
 /**
