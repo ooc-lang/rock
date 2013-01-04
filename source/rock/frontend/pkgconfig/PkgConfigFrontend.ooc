@@ -71,9 +71,29 @@ PkgConfigFrontend: class {
     }
 
     _shell: static func (command: ArrayList<String>) -> String {
-        args := ["sh", "-c", command join(" ")]
-        "Shelling: %s" printfln(command join(" "))
-        Process new(args) getOutput() trim(" \n")
+        try {
+            (output, exitCode) := Process new(command) getOutput()
+        
+            if (exitCode != 0) {
+                ProcessException new(This, "Couldn't execute a pkg-config like utility")
+            }
+
+            return output trim(" \n")
+        } catch (pe: ProcessException) {
+            // Failed to execute, maybe it's a shell script?
+            // Note that this has only been witnessed on MSYS/MinGW
+
+            shellCommand := ArrayList<String> new()
+            shellCommand add("sh")
+            shellCommand addAll(command)
+            (output, exitCode) := Process new(shellCommand) getOutput()
+
+            if (exitCode == 0) {
+                return output trim(" \n")
+            }
+        }
+
+        return null
     }
 
 }
