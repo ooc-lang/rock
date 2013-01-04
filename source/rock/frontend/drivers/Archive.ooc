@@ -46,14 +46,11 @@ Archive: class {
     doCacheinfo := true
 
     /** Create a new Archive */
-    init: func ~archive (.sourceFolder, .outlib, .params) {
-        init(sourceFolder, outlib, params, true)
-    }
-
-    init: func ~archiveCacheinfo (=sourceFolder, =outlib, =params, =doCacheinfo) {
+    init: func ~archiveCacheinfo (=sourceFolder, =outlib, =params, =doCacheinfo, =pathElement) {
+        "Archive new ~archiveCacheinfo, sourceFolder = %s, outlib = %s, doCacheinfo = %d" printfln(sourceFolder, outlib, doCacheinfo)
         compilerArgs = params getArgsRepr()
         if(doCacheinfo) {
-            pathElement = params sourcePath get(sourceFolder)
+            "pathElement = %s" printfln(pathElement ? pathElement getPath() : "(nil)")
             if(File new(outlib) exists?() && File new(outlib + ".cacheinfo") exists?()) {
                 _read()
             }
@@ -308,7 +305,7 @@ Archive: class {
 
         if (toAdd empty?()) {
             if(params veryVerbose || params debugLibcache) {
-                "No (new?) member in archives %s, skipping" printfln(pathElement path)
+                "No (new?) member in archive %s, skipping" printfln(pathElement path)
             }
             return
         }
@@ -483,13 +480,10 @@ ArchiveModule: class {
        an exception if it's not found
      */
     _getModule: func {
-        for (path in archive params sourcePath paths) {
-            if (path getAbsoluteFile() name() == archive sourceFolder) {
-                oocFile := File new(path getAbsolutePath(), oocPath)
-                if(oocFile exists?()) {
-                    module = AstBuilder cache get(oocFile getAbsolutePath())
-                }
-            }
+        oocFile := File new(archive pathElement, oocPath)
+        "Trying oocFile %s" printfln(oocFile getPath())
+        if(oocFile exists?()) {
+            module = AstBuilder cache get(oocFile getAbsolutePath())
         }
     }
 

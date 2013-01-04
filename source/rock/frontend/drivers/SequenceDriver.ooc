@@ -213,7 +213,7 @@ SequenceDriver: class extends Driver {
 
             count := 0
 
-            archive := Archive new("<staticlib>", params staticlib, params, false)
+            archive := Archive new("<staticlib>", params staticlib, params, false, null)
             if(params libfolder) {
                 for(imp in module getGlobalImports()) {
                     archive add(imp getModule())
@@ -495,6 +495,6 @@ SourceFolder: class {
     init: func (=name, =pathElement, =identifier, =params) {
         absolutePath = File new(pathElement) getAbsolutePath()
         outlib = "%s%c%s-%s.a" format(params libcachePath, File separator, identifier, Target toString())
-        archive = Archive new(identifier, outlib, params)
+        archive = Archive new(identifier, outlib, params, true, File new(absolutePath))
     }
 }
