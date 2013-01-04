@@ -49,8 +49,6 @@ PkgConfigFrontend: class {
             cflags += " "
         }
 
-        "Got cflags %s for %s" printfln(cflags, utilName)
-
         libs := ""
         
         for (libsArg in libsArgs) {
@@ -64,8 +62,6 @@ PkgConfigFrontend: class {
             libs += result
             libs += " "
         }
-
-        "Got libs %s for %s" printfln(libs, utilName)
 
         PkgInfo new(pkgs join(" "), libs, cflags)
     }

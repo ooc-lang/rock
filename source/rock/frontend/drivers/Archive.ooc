@@ -47,10 +47,8 @@ Archive: class {
 
     /** Create a new Archive */
     init: func ~archiveCacheinfo (=sourceFolder, =outlib, =params, =doCacheinfo, =pathElement) {
-        "Archive new ~archiveCacheinfo, sourceFolder = %s, outlib = %s, doCacheinfo = %d" printfln(sourceFolder, outlib, doCacheinfo)
         compilerArgs = params getArgsRepr()
         if(doCacheinfo) {
-            "pathElement = %s" printfln(pathElement ? pathElement getPath() : "(nil)")
             if(File new(outlib) exists?() && File new(outlib + ".cacheinfo") exists?()) {
                 _read()
             }
@@ -481,7 +479,6 @@ ArchiveModule: class {
      */
     _getModule: func {
         oocFile := File new(archive pathElement, oocPath)
-        "Trying oocFile %s" printfln(oocFile getPath())
         if(oocFile exists?()) {
             module = AstBuilder cache get(oocFile getAbsolutePath())
         }
