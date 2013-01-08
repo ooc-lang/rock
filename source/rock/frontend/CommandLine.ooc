@@ -208,6 +208,21 @@ CommandLine: class {
                     if(!longOption) warnUseLong("linker")
                     params linker = option substring(7)
 
+                } else if (option == "nolibcache") {
+
+                    if(!longOption) warnUseLong("nolibcache")
+                    params libcache = false
+
+                } else if (option == "libcache") {
+
+                    if(!longOption) warnUseLong("libcache")
+                    params libcache = true
+                    
+                } else if (option == "libcachepath") {
+
+                    if(!longOption) warnUseLong("libcachepath")
+                    params libcachePath = option substring(option indexOf('=') + 1)
+
                 } else if (option startsWith?("L")) {
 
                     params libPath add(option substring(1))
@@ -252,16 +267,6 @@ CommandLine: class {
 
                     if(!longOption) warnUseLong("nohints")
                     params helpful = false
-
-                } else if (option == "nolibcache") {
-
-                    if(!longOption) warnUseLong("nolibcache")
-                    params libcache = false
-
-                } else if (option == "libcachepath") {
-
-                    if(!longOption) warnUseLong("libcachepath")
-                    params libcachePath = option substring(option indexOf('=') + 1)
 
                 } else if (option == "nolines") {
 
