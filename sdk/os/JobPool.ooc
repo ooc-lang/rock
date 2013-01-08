@@ -1,8 +1,32 @@
 
 import os/System
 import structs/ArrayList
+import os/Process
 
-import Job
+/**
+ * A job, ie. us waiting on an external process to finish.
+ *
+ * :author: Amos Wenger (nddrylliog)
+ */
+
+Job: class {
+
+    process: Process
+
+    init: func (=process) {
+    }
+
+    wait: func -> Int {
+        code := process wait()
+        onExit(code)
+        code
+    }
+
+    onExit: func (code: Int) {
+      // override at will
+    }
+
+}
 
 /**
  * A pool of jobs, quite simply.

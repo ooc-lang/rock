@@ -1,22 +1,33 @@
-import io/[File, FileWriter]
 
+// sdk stuff
+import io/[File, FileWriter]
 import structs/[List, ArrayList, HashMap]
-import ../[BuildParams, Target]
-import ../compilers/AbstractCompiler
-import ../../middle/Module
-import ../../backend/cnaughty/CGenerator
+
+// our stuff
 import Driver, SequenceDriver
 
-/**
-   Generate the .c source files in a build/ directory, along with a
-   Makefile that allows to build a version of your program without any
-   ooc-related dependency.
+import rock/frontend/[BuildParams, Target]
+import rock/frontend/compilers/AbstractCompiler
+import rock/middle/Module
+import rock/backend/cnaughty/CGenerator
 
-   :author: Amos Wenger (nddrylliog)
+/**
+ * Generate the .c source files in a build/ directory, along with a
+ * Makefile that allows to build a version of your program without any
+ * ooc-related dependency.
+ *
+ * :author: Amos Wenger (nddrylliog)
  */
 MakeDriver: class extends SequenceDriver {
 
-    builddir, makefile, originalOutPath: File
+    // the self-containing directory containing buildable C sources
+    builddir: File
+
+    // build/Makefile
+    makefile: File
+    
+    // Original output path (e.g. "rock_tmp")
+    originalOutPath: File
 
     init: func (.params) { super(params) }
 

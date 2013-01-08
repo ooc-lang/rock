@@ -1,10 +1,11 @@
 
 // sdk stuff
-import io/File, os/[Terminal, Process]
+import io/File
+import os/[Terminal, Process, JobPool]
 import structs/[List, ArrayList, HashMap]
 
 // our stuff
-import Driver, Archive, SourceFolder, Flags, Job, JobPool
+import Driver, Archive, SourceFolder, Flags
 
 import rock/frontend/[BuildParams, Target]
 import rock/frontend/compilers/AbstractCompiler
@@ -309,7 +310,6 @@ SequenceDriver: class extends Driver {
 
             params compiler addObjectFile(cPath)
             params compiler setOutputPath(oPath)
-
             params compiler addIncludePath(File new(params distLocation, "libs/headers/") getPath())
 
             if (params libcache) {
