@@ -1,103 +1,38 @@
-import io/[File], os/[Terminal, Process]
+
+// sdk stuff
+import io/File, os/[Terminal, Process]
 import structs/[List, ArrayList, HashMap]
-import ../[BuildParams, Target]
-import ../compilers/AbstractCompiler
-import ../../middle/[Module, UseDef]
-import ../../backend/cnaughty/CGenerator
-import Driver, Archive
+
+// our stuff
+import Driver, Archive, SourceFolder, Flags, Job, JobPool
+
+import rock/frontend/[BuildParams, Target]
+import rock/frontend/compilers/AbstractCompiler
+import rock/middle/[Module, UseDef]
+import rock/backend/cnaughty/CGenerator
 
 /**
-   Sequence driver, which compiles .c files one by one as needed.
-
-   With -noclean, the rock_tmp/ folder (or whatever your -outpath is set to)
-   will not be deleted and the sequence driver will take advantage of that.
-
-   But sequence driver allows partial recompilation even without the rock_tmp
-   folder, thanks to lib-caching. By default, the result of the compilation is
-   put into a .libs/ folder, cached by source-folder name, for example after
-   a simple compilation you may end up with:
-
-     - .libs/sdk-linux32.a
-     - .libs/sdk-linux32.a.cacheinfo
-     - .libs/helloworld-linux32.a
-     - .libs/helloworld-linux32.a.cacheinfo
-
-   The .a files are archives that contain the object files (.o) that result
-   of the compilation of your program.
-
-   When you recompile a program with an existing .libs/ directory,
-   the SequenceDriver will use the .cacheinfo files to determine
-   what needs to be re-compile, update the .a files with the new object
-   files, and link again.
-
-   However, there are times (for example, when you upgrade rock) where
-   .libs/ can be harmful and prevent a program from compiling/running
-   normally. If you experience any weird behavior, be sure to *remove it
-   completely* and re-try with a clean compile before reporting issues.
-
-   :author: Amos Wenger (nddrylliog)
+ * Default compilation driver: handles launching C compiler
+ * jobs, knows what's up-to-date and what needs to be recompiled,
+ * in short, as far as you're concerned, God itself.
+ * 
+ * :author: Amos Wenger (nddrylliog)
  */
-
-Job: class {
-
-    process: Process
-
-    module: Module
-    archive: Archive
-
-    init: func (=process, =module, =archive) {
-    }
-
-    wait: func -> Int {
-        code := process wait()
-
-        if(code == 0) {
-            if(archive) archive add(module)
-        } else {
-            fprintf(stderr, "C compiler failed (got code %d), aborting compilation process\n", code)
-        }
-
-        code
-    }
-
-}
 
 SequenceDriver: class extends Driver {
 
     sourceFolders: HashMap<String, SourceFolder>
-    jobs := ArrayList<Job> new()
+    pool := JobPool new()
 
-    init: func (.params) { super(params) }
-
-    maybeWait: func -> Int {
-        if (jobs size < params sequenceThreads) {
-            return 0 // all good, let's launch more!
-        }
-
-        waitOne()
-    }
-
-    waitOne: func -> Int {
-        if (jobs empty?()) return 0
-
-        jobs removeAt(0) wait()
-    }
-
-    waitAll: func -> Int {
-        while (!jobs empty?()) {
-            code := waitOne()
-            if (code != 0) {
-                return code
-            }
-        }
-
-        0
+    init: func (.params) {
+        super(params)
+        pool parallelism = params parallelism
     }
 
     compile: func (module: Module) -> Int {
 
-        if(params verbose) {
-            ("Sequence driver, using " + params sequenceThreads toString() + " thread" + (params sequenceThreads > 1 ? "s" : "")) println()
+        if (params verbose) {
+            "Sequence driver, parallelism = %d" printfln(pool parallelism)
         }
 
         copyLocalHeaders(module, params, ArrayList<Module> new())
@@ -107,11 +42,11 @@ SequenceDriver: class extends Driver {
         oPaths := ArrayList<String> new()
         reGenerated := HashMap<SourceFolder, List<Module>> new()
 
-        for(sourceFolder in sourceFolders) {
+        for (sourceFolder in sourceFolders) {
             reGenerated put(sourceFolder, prepareSourceFolder(sourceFolder, oPaths))
         }
 
-        for(sourceFolder in sourceFolders) {
+        for (sourceFolder in sourceFolders) {
             if(params verbose) {
                 // generate random colors for every source folder
                 hash := ac_X31_hash(sourceFolder identifier) + 42
@@ -126,7 +61,7 @@ SequenceDriver: class extends Driver {
         }
         if(params verbose) println()
 
-        code := waitAll()
+        code := pool waitAll()
         if (code != 0) {
             // failed, can stop launching jobs now
             return code
@@ -346,12 +281,6 @@ SequenceDriver: class extends Driver {
      */
     buildIndividual: func (module: Module, sourceFolder: SourceFolder, oPaths: List<String>, archive: Archive, force: Bool) -> Int {
 
-        code := maybeWait()
-        if (code != 0) {
-            // failed, can stop launching jobs now
-            return code
-        }
-
         initCompiler(params compiler)
         params compiler setCompileOnly()
 
@@ -415,7 +344,12 @@ SequenceDriver: class extends Driver {
             if(params verbose) params compiler getCommandLine() println()
 
             process := params compiler launchBackground()
-            jobs add(Job new(process, module, archive))
+            code := pool add(ModuleJob new(process, module, archive))
+            if (code != 0) {
+                // a process failed, can stop launching jobs now
+                return code
+            }
+
 
         } else {
             if(params veryVerbose || params debugLibcache) "Skipping %s, unchanged source.\n" printfln(cPath)
@@ -489,17 +423,33 @@ SequenceDriver: class extends Driver {
 
 }
 
-SourceFolder: class {
-    identifier, name, pathElement, absolutePath: String
-    params: BuildParams
-    outlib: String
+/**
+ * The sequence driver uses special jobs: module jobs. They
+ * remember which module and archive they belong to, so that they
+ * can add themselves to a .a file when needed.
+ *
+ * :author: Amos Wenger (nddrylliog)
+ */
 
-    modules := ArrayList<Module> new()
-    archive : Archive
+ModuleJob: class extends Job {
 
-    init: func (=name, =pathElement, =identifier, =params) {
-        absolutePath = File new(pathElement) getAbsolutePath()
-        outlib = "%s%c%s-%s.a" format(params libcachePath, File separator, identifier, Target toString())
-        archive = Archive new(identifier, outlib, params, true, File new(absolutePath))
+    module: Module
+    archive: Archive
+
+    init: func (.process, =module, =archive) {
+      super(process)
     }
+
+    onExit: func (code: Int) {
+        if (code != 0) {
+          "C compiler failed (got code %d), aborting compilation process" printfln(code)
+          return
+        }
+
+        if (archive) {
+          archive add(module)
+        }
+    }
+
 }
+

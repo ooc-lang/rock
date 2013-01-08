@@ -132,7 +132,7 @@ BuildParams: class {
     linker : String = null
 
     // threads used by the sequence driver
-    sequenceThreads := (System numProcessors() * 1.5) as Int
+    parallelism := System numProcessors()
 
     // if true, only parse the given module
     onlyparse := false
@@ -177,16 +177,14 @@ BuildParams: class {
     debugLoop := false
     debugLibcache := false
 
-    // Ignore these defines when trying to determie if a cached lib is up-to-date or not
-    // used for BUILD_DATE or BUILD_TIME stuff
+    // Ignore these defines when trying to determine if a cached lib is up-to-date or not
     ignoredDefines := ArrayList<String> new()
 
     // Tries to find types/functions in not-imported nodules, etc. Disable with -noshit
     helpful := true
 
     // Displays [ OK ] or [FAIL] at the end of the compilation
-    //shout := false
-    shout := true // true as long as we're debugging
+    shout := true
 
     // If false, output .o files. Otherwise output executables
     link := true
@@ -271,8 +269,8 @@ BuildParams: class {
     getArgsRepr: func -> String {
         b := Buffer new()
         b append(arch)
-        if(!defaultMain)    b append(" -nolines")
-        if(!lineDirectives) b append(" -nomain")
+        if(!defaultMain)    b append(" -nomain")
+        if(!lineDirectives) b append(" -nolines")
         if(debug)           b append(" -g")
         b append(" -gc=")
         if(enableGC) {

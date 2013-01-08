@@ -5,9 +5,8 @@ import text/StringTokenizer
 import rock/RockVersion
 import Help, Token, BuildParams, AstBuilder, PathList
 import compilers/[Gcc, Clang, Icc, Tcc]
-import drivers/[Driver, CombineDriver, SequenceDriver, MakeDriver, DummyDriver]
+import drivers/[Driver, SequenceDriver, MakeDriver, DummyDriver]
 import ../backend/json/JSONGenerator
-import ../backend/explain/ExplanationGenerator
 import ../middle/[Module, Import, UseDef]
 import ../middle/tinker/Tinkerer
 
@@ -23,7 +22,7 @@ CommandLine: class {
     }
 
     warnUseLong: func (option: String) {
-        "[WARNING] Option -%s is deprecated, use --%s instead. It will completely disappear in later releases." printfln(option, option)
+        "[WARNING] Option -%s is deprecated, use --%s instead." printfln(option, option)
     }
 
     init: func(args : ArrayList<String>) {
@@ -69,43 +68,30 @@ CommandLine: class {
 
                 } else if (option startsWith?("staticlib")) {
 
-                    if(!longOption) warnUseLong("staticlib")
-                    idx := arg indexOf('=')
-                    if(idx == -1) {
-                        params staticlib = ""
-                    } else {
-                        params staticlib = arg substring(idx + 1)
-                    }
-                    params libcache = false
+                    "[ERROR] staticlib parameter is deprecated" println()
+                    failure(params)
 
                 } else if (option startsWith?("dynamiclib")) {
 
-                    if(!longOption) warnUseLong("dynamiclib")
-                    idx := arg indexOf('=')
-                    if(idx == -1) {
-                        params dynamiclib = ""
-                    } else {
-                        params dynamiclib = arg substring(idx + 1)
-                    }
+                    "[ERROR] dynamiclib parameter is deprecated" println()
+                    failure(params)
 
                 } else if (option startsWith?("packagefilter=")) {
 
-                    if(!longOption) warnUseLong("packagefilter")
-                    idx := arg indexOf('=')
-                    params packageFilter = arg substring(idx + 1)
+                    "[ERROR] packagefilter parameter is deprecated" println()
+                    failure(params)
 
                 } else if (option startsWith?("libfolder=")) {
 
-                    if(!longOption) warnUseLong("libfolder")
-                    idx := arg indexOf('=')
-                    params libfolder = arg substring(idx + 1)
+                    "[ERROR] libfolder parameter is deprecated" println()
+                    failure(params)
 
                 } else if(option startsWith?("backend")) {
 
                     if(!longOption) warnUseLong("backend")
                     params backend = arg substring(arg indexOf('=') + 1)
 
-                    if(params backend != "c" && params backend != "json" && params backend != "explain") {
+                    if(params backend != "c" && params backend != "json") {
                         "Unknown backend: %s." format(params backend) println()
                         params backend = "c"
                     }
@@ -233,7 +219,8 @@ CommandLine: class {
 
                 } else if (option == "nolang") {
 
-                    "--nolang is not supported anymore. If you want to fiddle with the SDK, make your own sdk.use" println()
+                    "--nolang is not supported anymore. \
+                    If you want to fiddle with the SDK, make your own sdk.use" println()
 
                 } else if (option == "nomain") {
 
@@ -243,19 +230,21 @@ CommandLine: class {
                 } else if (option startsWith?("gc=")) {
 
                     suboption := option substring(3)
-                    if (suboption == "off") {
-                        params enableGC = false
-                        params undefineSymbol(BuildParams GC_DEFINE)
-                    } else if (suboption == "dynamic") {
-                        params enableGC = true
-                        params dynGC = true
-                        params defineSymbol(BuildParams GC_DEFINE)
-                    } else if (suboption == "static") {
-                        params enableGC = true
-                        params dynGC = false
-                        params defineSymbol(BuildParams GC_DEFINE)
-                    } else {
-                        ("Unrecognized option " + option + ". Valid values are gc=off, gc=dynamic, gc=static") println()
+                    match suboption {
+                        case "off" =>
+                            params enableGC = false
+                            params undefineSymbol(BuildParams GC_DEFINE)
+                        case "dynamic" =>
+                            params enableGC = true
+                            params dynGC = true
+                            params defineSymbol(BuildParams GC_DEFINE)
+                        case "static" =>
+                            params enableGC = true
+                            params dynGC = false
+                            params defineSymbol(BuildParams GC_DEFINE)
+                        case =>
+                            "Unrecognized option %s." printfln(option)
+                            "Valid values are gc=off, gc=dynamic, gc=static" printfln()
                     }
 
                 } else if (option == "noclean") {
@@ -280,7 +269,6 @@ CommandLine: class {
 
                 } else if (option == "q" || option == "quiet") {
 
-                    // quiet mode
                     if(!longOption && option != "q") warnUseLong("quiet")
                     params shout = false
                     params verbose = false
@@ -325,8 +313,9 @@ CommandLine: class {
                     driverName := option substring("driver=" length())
                     driver = match (driverName) {
                         case "combine" =>
-                            params libcache = false
-                            CombineDriver new(params)
+                            "[ERROR] The combine driver is deprecated." println()
+                            failure(params)
+                            driver
                         case "sequence" =>
                             SequenceDriver new(params)
                         case "make" =>
@@ -334,7 +323,7 @@ CommandLine: class {
                         case "dummy" =>
                             DummyDriver new(params)
                         case =>
-                            "Unknown driver: %s" printfln(driverName)
+                            "[WARNING] Unknown driver: %s" printfln(driverName)
                             null
                     }
 
@@ -413,7 +402,7 @@ CommandLine: class {
                 } else if (option startsWith?("j")) {
 
                     threads := arg substring(2) toInt()
-                    params sequenceThreads = threads
+                    params parallelism = threads
     
                 } else if (option startsWith?("m")) {
 
@@ -421,7 +410,7 @@ CommandLine: class {
                     if (arch == "32" || arch == "64")
                         params arch = arg substring(2)
                     else
-                        ("Unrecognized architecture: " + arch) println()
+                        "Unrecognized architecture: %s" printfln(arch)
 
                 } else if (option == "x") {
                    
@@ -455,7 +444,7 @@ CommandLine: class {
             }
         }
 
-        if(modulePaths empty?() && !params libfolder) {
+        if(modulePaths empty?()) {
             uzeFile : File = null
 
             // try to find a .use file
@@ -511,56 +500,6 @@ CommandLine: class {
                 dummyModule addImport(Import new(fullName, nullToken))
                 true
             )
-        }
-
-        if(params staticlib != null || params dynamiclib != null) {
-            if(modulePaths getSize() != 1 && !params libfolder) {
-                "Error: you can use -staticlib or -dynamiclib only when specifying a unique .ooc file, not %d of them." printfln(modulePaths getSize())
-                exit(1)
-            }
-            moduleName := File new(dummyModule ? dummyModule path : modulePaths[0]) name()
-            moduleName = moduleName[0..moduleName length() - 4]
-            basePath := File new("build", moduleName) getPath()
-            if(params staticlib) {
-                params clean = false
-                params defaultMain = false
-                params outPath = File new(basePath, "include")
-                
-                if(params staticlib == "") {
-                    staticExt := ".a"
-                    params staticlib = File new(File new(basePath, "lib"), moduleName + staticExt) getPath()
-                }
-            }
-            
-            if(params dynamiclib) {
-                params clean = false
-                params defaultMain = false
-                params outPath = File new(basePath, "include")
-                
-                if(params dynamiclib == "") {
-                    prefix := "lib"
-                    dynamicExt := ".so"
-                    // TODO: version blocks for this is evil. What if we want to cross-compile?
-                    // besides, it's missing some platforms.
-                    version(windows) {
-                        dynamicExt = ".dll"
-                        prefix = ""
-                    }
-                    version(apple) {
-                        dynamicExt = ".dylib"
-                    }
-                    params dynamiclib = File new(File new(basePath, "lib"), prefix + moduleName + dynamicExt) getPath()
-                }
-
-                // TODO: this is too gcc/Linux-specific: there should be a good way
-                // to abstract that away
-                params compilerArgs add("-fpic")
-                params compilerArgs add("-shared")
-                params compilerArgs add("-Wl,-soname," + params dynamiclib)
-                params binaryPath = params dynamiclib
-                params libcache = false // libcache is incompatible with combine driver
-                File new(basePath, "lib") mkdirs()
-            }
         }
 
         if(params sourcePath empty?()) {
@@ -696,10 +635,14 @@ CommandLine: class {
             )
         }
         module parseImports(null)
-        if(params verbose) "\rFinished parsing, now tinkering...                                                   " println()
+        if(params verbose) {
+            "\rFinished parsing, now tinkering...                                                   " println()
+        }
 
         // phase 2: tinker
-        if(!Tinkerer new(params) process(module collectDeps())) failure(params)
+        if(!Tinkerer new(params) process(module collectDeps())) {
+            failure(params)
+        }
 
         if(params backend == "c") {
             // c phase 3: launch the driver
@@ -709,9 +652,7 @@ CommandLine: class {
                 if(result == 0) {
                     if(params shout) success()
                     if(params run) {
-                        foo := ArrayList<String> new()
-                        foo add("./" + module simpleName)
-                        Process new(foo) execute()
+                        Process new(["./" + module simpleName]) execute()
                     }
                 } else {
                     if(params shout) failure(params)
@@ -723,56 +664,6 @@ CommandLine: class {
             for(candidate in module collectDeps()) {
                 JSONGenerator new(params, candidate) write() .close()
             }
-        } else if(params backend == "explain") {
-            params clean = false
-            for(candidate in module collectDeps()) {
-                ExplanationGenerator new(params, candidate) write() .close()
-            }
-            Terminal setAttr(Attr bright)
-            Terminal setFgColor(Color blue)
-            "[ Produced documentation in rock_tmp/ ]" println()
-
-            Terminal setFgColor(Color red)
-
-            old := File new(params outPath getPath() + File separator + module getSourceFolderName(), module getPath(".markdown"))
-
-            out: String
-
-            markdown := Process new(["markdown", old getPath()])
-            markdown setStdout(Pipe new()) .executeNoWait()
-            markdown communicate(null, out&, null)
-
-            new := File new(module simpleName+".html")
-            new write("<html>
-            <head>
-                <script type=\"text/javascript\" charset=\"utf-8\" src=\"http://code.jquery.com/jquery-1.4.2.min.js\"></script>
-                <link href='http://fonts.googleapis.com/css?family=Josefin+Sans+Std+Light' rel='stylesheet' type='text/css'>
-                <link href='http://fonts.googleapis.com/css?family=Molengo' rel='stylesheet' type='text/css'>
-                <link href='http://fonts.googleapis.com/css?family=IM+Fell+DW+Pica' rel='stylesheet' type='text/css'>
-                <title>ooc Explanations: doc_test</title>
-            </head>
-                <body onload=\"bootstrap()\">
-                <script type=\"text/javascript\" charset=\"utf-8\">
-                function bootstrap() {
-                    $('body').attr('style',\"padding: 0;margin:  0;border:  0;background: #EEEEFF;\");
-                    $('h1').attr('style',\"font-family: 'IM Fell DW Pica', arial, serif;padding-left: 1em;background: black;color: yellow;font-size: 2em;\");
-                    $('h2').attr('style',\"font-family:'Josefin Sans Std Light',arial,serif;background:black;color:white;padding-top:5px;padding-left: 1em;border-top-left-radius: 50px;\");
-                    $('p').attr('style',\"font-family: 'Molengo', arial, serif;\");
-                    $('li').attr('style',\"font-family: 'Molengo', arial, serif;\");
-                    $('h1').before('<div id=\"file_head\">');
-                    $('body').children().each(function (i) { if (this.tagName == \"H2\") { return false } else if (this.tagName != \"DIV\") { $('#file_head').append(this)}});
-                    $('#file_head').append('<div id=\"text\">');
-                    $('#file_head').children().each(function (i) { if (this.tagName != \"DIV\" && this.tagName != \"H1\") { $('#text').append(this) }});
-                    $(\"h2\").each(function() { var $h2 = $(this);$(\"<div class='text'/>\").append($h2.nextUntil(\"h2\")).insertAfter($h2).add($h2).wrapAll(\"<div class='box'/>\");});
-                    $('.box').attr('style','width: 80%;margin: auto;border-top-left-radius: 25px;border-bottom-right-radius: 50px;background: rgba(56%, 91%, 100%, 0.5);')
-                    $('.text').attr('style','padding: 0 1em 1em 1em;')
-                    $('#text').attr('style','width: 70%;margin: auto;padding: 0.1em;');
-                }
-            </script>\n" + out + "\n</body></html>")
-
-            Terminal setFgColor(Color yellow)
-            ("Attempted to generate "+new getPath()+" [ markdown script needs to be in $PATH ]") println()
-            Terminal reset()
         }
 
         first = false
@@ -810,3 +701,4 @@ CompilationFailedException: class extends Exception {
         super("Compilation failed!")
     }
 }
+
