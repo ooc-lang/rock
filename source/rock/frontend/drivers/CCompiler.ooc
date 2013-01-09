@@ -20,7 +20,7 @@ CCompiler: class {
     setExecutable: func (=executableName) {
     }
 
-    findExecutable: func -> String {
+    findExecutable: func (executableName: String) -> String {
         executablePath: String
         execFile := File new(executableName)
 
@@ -41,11 +41,25 @@ CCompiler: class {
         executablePath
     }
 
-    launch: func (flags: Flags) -> Process {
+    launchCompiler: func (flags: Flags) -> Process {
+        _launch(flags, executableName, false)
+    }
+
+    launchLinker: func (flags: Flags, linker: String) -> Process {
+        if (!linker) {
+            linker = executableName
+        }
+        _launch(flags, linker, true)
+    }
+
+
+    _launch: func (flags: Flags, executable: String, link: Bool) -> Process {
         // build the command line
         command := ArrayList<String> new()
-        command add(findExecutable())
-        flags apply(command)
+        command add(findExecutable(executable))
+        flags apply(command, link)
+        command = command map(|a| a trim("\t ")) \
+                          filter(|a| a != "")
 
         // create the necessary directories
         parent := File new(flags outPath) parent()
@@ -56,7 +70,7 @@ CCompiler: class {
 
         // display the command line if needed
         if (params verbose) {
-            command join(" ") println()
+            command map(|arg| arg replaceAll("\\", "\\\\")) join(" ") println()
         }
 
         // actually launch the command

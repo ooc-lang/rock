@@ -115,7 +115,7 @@ Flags: class {
 
         // handle pkg-config packages
         for(pkg in useDef getPkgs()) {
-            absorb(PkgConfigFrontend getInfo(pkg))
+            absorb(PkgConfigFrontend getInfo(pkg), useDef)
         }
 
         // handle pkg-config-like packages (sdl2-config, etc.)
@@ -130,7 +130,7 @@ Flags: class {
                 )
                 customPkgCache put(pkg, info)
             }
-            absorb(info)
+            absorb(info, useDef)
         }
 
         // include paths
@@ -150,17 +150,17 @@ Flags: class {
 
     }
 
-    absorb: func ~pkginfo (info: PkgInfo) {
-        for(cflag in info cflags) {
+    absorb: func ~pkginfo (info: PkgInfo, useDef: UseDef) {
+        for(cflag in info compilerFlags) {
             addCompilerFlag(cflag)
         }
 
-        for(library in info libraries) {
-            addLinkerFlag("-l" + library)
-        }
-
-        for(libPath in info libPaths) {
-            addLinkerFlag("-L" + libPath)
+        for(lflag in info linkerFlags) {
+            if (useDef getPreMains() contains?(lflag)) {
+                addPreMainFlag(lflag)
+            } else {
+                addLinkerFlag(lflag)
+            }
         }
     }
 
@@ -209,6 +209,10 @@ Flags: class {
 
     addCompilerFlag: func (flag: String) {
         flag = flag trim("\t ")
+        if (flag == "") {
+            return
+        }
+
         if (!compilerFlags contains?(flag)) {
             compilerFlags add(flag)
         }
@@ -216,28 +220,55 @@ Flags: class {
 
     addLinkerFlag: func (flag: String) {
         flag = flag trim("\t ")
+        if (flag == "") {
+            return
+        }
+
         if (!linkerFlags contains?(flag)) {
             linkerFlags add(flag)
         }
     }
 
+    addPreMainFlag: func (flag: String) {
+        flag = flag trim("\t ")
+        if (flag == "") {
+            return
+        }
+
+        if (!premainFlags contains?(flag)) {
+            premainFlags add(flag)
+        }
+    }
+
     addObject: func (object: String) {
         object = object trim("\t ")
+        if (object == "") {
+            return
+        }
+
         if (!objects contains?(object)) {
             objects add(object)
         }
     }
 
-    apply: func (command: List<String>) {
+    apply: func (command: List<String>, link: Bool) {
         if (objects empty?()) {
             Exception new(This, "No objects to compile!") throw()
         }
 
         command addAll(compilerFlags)
-        command addAll(premainFlags)
+        if (link) {
+            command addAll(premainFlags)
+        } else {
+            command add("-c")
+        }
+
         command addAll(objects)
         command add("-o" + outPath)
-        command addAll(linkerFlags)
+
+        if (link) {
+            command addAll(linkerFlags)
+        }
     }
   
 }

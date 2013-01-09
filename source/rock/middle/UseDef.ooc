@@ -57,6 +57,7 @@ UseDef: class {
     imports      := ArrayList<String> new()
     libPaths     := ArrayList<String> new()
     includePaths := ArrayList<String> new()
+    preMains     := ArrayList<String> new()
 
     init: func (=identifier) {}
 
@@ -68,6 +69,7 @@ UseDef: class {
     getIncludes:     func -> List<String>      { includes }
     getLibPaths:     func -> List<String>      { libPaths }
     getIncludePaths: func -> List<String>      { includePaths }
+    getPreMains:     func -> List<String>      { preMains }
 
     parse: static func (identifier: String, params: BuildParams) -> UseDef {
         cached := This cache get(identifier)
@@ -225,6 +227,9 @@ UseDef: class {
             } else if(id == "Includes") {
                 for(inc in value split(','))
                     includes add(inc trim())
+            } else if(id == "PreMains") {
+                for(pm in value split(','))
+                    preMains add(pm trim())
             } else if(id == "Linker") {
                 linker = value trim()
             } else if(id == "LibPaths") {

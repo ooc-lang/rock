@@ -26,10 +26,11 @@ SequenceDriver: class extends Driver {
 
     init: func (.params) {
         super(params)
-        pool parallelism = params parallelism
     }
 
     compile: func (module: Module) -> Int {
+        pool parallelism = params parallelism
+
         if (params verbose) {
             "Sequence driver, parallelism = %d" printfln(pool parallelism)
         }
@@ -93,11 +94,7 @@ SequenceDriver: class extends Driver {
                 flags addObject(oPath)
             }
 
-            if(params linker != null) {
-                Exception new("[stub] Custom linker in BuildParams") throw()
-            }
-
-            code := params compiler launch(flags) wait()
+            code := params compiler launchLinker(flags, params linker) wait()
             if (code != 0) {
                 return code
             }
@@ -210,13 +207,12 @@ SequenceDriver: class extends Driver {
             }
 
             flags := Flags new(oPath, params)
-            flags addCompilerFlag("-c")
             flags addObject(cPath)
             flags absorb(params)
             flags absorb(sourceFolder)
             flags absorb(module)
 
-            process := params compiler launch(flags)
+            process := params compiler launchCompiler(flags)
             code := pool add(ModuleJob new(process, module, archive))
             if (code != 0) {
                 // a process failed, can stop launching jobs now
