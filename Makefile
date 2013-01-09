@@ -106,7 +106,7 @@ quick-rescue: download-bootstrap
 
 # Compile rock with the backup'd version of itself
 safe:
-	OOC=bin/safe_rock $(MAKE) self
+	OOC='bin/safe_rock --allerrors' $(MAKE) self
 
 bootstrap_tarball:
 ifeq ($(VERSION),)

@@ -5,10 +5,9 @@ import os/[Terminal, Process, JobPool]
 import structs/[List, ArrayList, HashMap]
 
 // our stuff
-import Driver, Archive, SourceFolder, Flags
+import Driver, Archive, SourceFolder, Flags, CCompiler
 
 import rock/frontend/[BuildParams, Target]
-import rock/frontend/compilers/AbstractCompiler
 import rock/middle/[Module, UseDef]
 import rock/backend/cnaughty/CGenerator
 
@@ -31,7 +30,6 @@ SequenceDriver: class extends Driver {
     }
 
     compile: func (module: Module) -> Int {
-
         if (params verbose) {
             "Sequence driver, parallelism = %d" printfln(pool parallelism)
         }
@@ -68,7 +66,7 @@ SequenceDriver: class extends Driver {
             return code
         }
 
-        for(sourceFolder in sourceFolders) {
+        for (sourceFolder in sourceFolders) {
             archive := sourceFolder archive
 
             if(params libcache) {
@@ -78,101 +76,34 @@ SequenceDriver: class extends Driver {
             }
         }
 
-        if(params link && (params staticlib == null || params dynamiclib != null)) {
-
-            initCompiler(params compiler)
-
-            if(params linker != null) params compiler setExecutable(params linker)
-
-            for(oPath in oPaths) {
-                params compiler addObjectFile(oPath)
-            }
-
-            for(define in params defines) {
-                params compiler defineSymbol(define)
-            }
-
-            for(dynamicLib in params dynamicLibs) {
-                params compiler addDynamicLibrary(dynamicLib)
-            }
-            for(incPath in params incPath getPaths()) {
-                params compiler addIncludePath(incPath getPath())
-            }
-            for(sourceFolder in sourceFolders) {
-                if(params libcache) {
-                    params compiler addIncludePath(params libcachePath + File separator + sourceFolder identifier)
-                }
-            }
-            for(additional in params additionals) {
-                params compiler addObjectFile(additional)
-            }
-            for(libPath in params libPath getPaths()) {
-                params compiler addLibraryPath(libPath getAbsolutePath())
-            }
-
-            if(params binaryPath != "") {
-                params compiler setOutputPath(params binaryPath)
-            } else {
+        if (params link) {
+            binaryPath := params binaryPath
+            if (binaryPath == "") {
                 checkBinaryNameCollision(module simpleName)
-                params compiler setOutputPath(module simpleName)
+                binaryPath = module simpleName
             }
 
-            flags := getFlagsFromUse(module)
-            for(flag in flags) {
-                params compiler addObjectFile(flag)
+            flags := Flags new(binaryPath)
+
+            flags absorb(params)
+            for (sourceFolder in sourceFolders) {
+                flags absorb(sourceFolder)
             }
-            
-            if(params enableGC) {
-                if(params dynamiclib != null) {
-                    params dynGC = true
-                }
-                if(params dynGC) {
-                    params compiler addDynamicLibrary("gc")
-                } else {
-                    arch := params arch equals?("") ? Target getArch() : params arch
-                    libPath := "libs/" + Target toString(arch) + "/libgc.a"
-                    params compiler addObjectFile(File new(params distLocation, libPath) path)
-                }
-                params compiler addDynamicLibrary("pthread")
+            for(oPath in oPaths) {
+                flags addObject(oPath)
             }
 
-            if(params verbose) params compiler getCommandLine() println()
+            if(params linker != null) {
+                Exception new("[stub] Custom linker in BuildParams") throw()
+            }
 
-            code := params compiler launch()
+            code := params compiler launch(flags) wait()
             if (code != 0) {
                 return code
             }
-
-        }
-
-        if(params staticlib != null) {
-
-            count := 0
-
-            archive := Archive new("<staticlib>", params staticlib, params, false, null)
-            if(params libfolder) {
-                for(imp in module getGlobalImports()) {
-                    archive add(imp getModule())
-                    count += 1
-                }
-            } else {
-                for(dep in module collectDeps()) {
-                    archive add(dep)
-                    count += 1
-                }
-            }
-
-            if(params verbose) {
-                "Building archive %s with %s (%d modules total)" printfln(
-                    params staticlib,
-                    params libfolder ? "modules belonging to %s" format(params libfolder) : "all object files",
-                    count)
-            }
-            archive save(params)
         }
 
         return 0
-
     }
 
     /**
@@ -191,12 +122,6 @@ SequenceDriver: class extends Driver {
                 for(module in dirtyModules) {
                     CGenerator new(params, module) write()
                 }
-                
-                if(params packageFilter) {
-                    dirtyModules = dirtyModules filter(|m|
-                        m fullName startsWith?(params packageFilter)
-                    )
-                }
                 return dirtyModules
             }
         }
@@ -208,17 +133,6 @@ SequenceDriver: class extends Driver {
             result := CGenerator new(params, module) write()
             
             if(result && params verbose) ("Re-generated " + module fullName) println()
-            
-            // apply libfolder and package filter to see if it belongs here
-            if(params libfolder) {
-                path1 := File new(params libfolder) getAbsolutePath()
-                path2 := File new(module oocPath) getAbsolutePath()
-                if(!path2 startsWith?(path1)) continue
-            }
-            if(params packageFilter && !module fullName startsWith?(params packageFilter)) {
-                if(params verbose) "Filtering %s out" printfln(module fullName)
-                continue
-            }
             
             if(result) {
                 reGenerated add(module)
@@ -245,12 +159,8 @@ SequenceDriver: class extends Driver {
     /**
        Build a source folder into object files or a static library
      */
-    buildSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>, reGenerated: List<Module>) -> Int {
-
-        if(params libfolder != null && sourceFolder absolutePath != File new(params libfolder) getAbsolutePath()) {
-            if(params verbose) "Skipping (not needed for build of libfolder %s)" format(params libfolder) println()
-            return 0
-        }
+    buildSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>,
+      reGenerated: List<Module>) -> Int {
 
         archive := sourceFolder archive
 
@@ -280,13 +190,10 @@ SequenceDriver: class extends Driver {
     /**
        Build an individual ooc files to its .o file, add it to oPaths
      */
-    buildIndividual: func (module: Module, sourceFolder: SourceFolder, oPaths: List<String>, archive: Archive, force: Bool) -> Int {
-
-        initCompiler(params compiler)
-        params compiler setCompileOnly()
+    buildIndividual: func (module: Module, sourceFolder: SourceFolder,
+        oPaths: List<String>, archive: Archive, force: Bool) -> Int {
 
         path := File new(params outPath, module getPath("")) getPath()
-
         oPath := File new(params outPath, module path replaceAll(File separator, '_')) getPath() + ".o"
         cPath := path + ".c"
         if(oPaths) {
@@ -296,63 +203,27 @@ SequenceDriver: class extends Driver {
         cFile := File new(cPath)
         oFile := File new(oPath)
 
-        comparison := (archive ? File new(archive outlib) lastModified() : oFile lastModified())
-
-        if(force || cFile lastModified() > comparison) {
-
-            if(params veryVerbose || params debugLibcache) "%s not in cache or out of date, (re)compiling" printfln(module getFullName())
-
-            parent := File new(oPath) parent()
-            if(!parent exists?()) {
-                if(params verbose) "Creating path %s" format(parent getPath()) println()
-                parent mkdirs()
+        archiveDate := (archive ? File new(archive outlib) lastModified() : oFile lastModified())
+        if(force || cFile lastModified() > archiveDate) {
+            if(params veryVerbose || params debugLibcache) {
+              "%s not in cache or out of date, (re)compiling" printfln(module getFullName())
             }
 
-            params compiler addObjectFile(cPath)
-            params compiler setOutputPath(oPath)
-            params compiler addIncludePath(File new(params distLocation, "libs/headers/") getPath())
+            flags := Flags new(cPath)
+            flags addObject(oPath)
+            flags absorb(params)
+            flags absorb(sourceFolder)
 
-            if (params libcache) {
-                params compiler addIncludePath(params libcachePath)
-            } else {
-                params compiler addIncludePath(params outPath getPath())
-            }
-
-            for(define in params defines) {
-                params compiler defineSymbol(define)
-            }
-            for(dynamicLib in params dynamicLibs) {
-                params compiler addDynamicLibrary(dynamicLib)
-            }
-            for(incPath in params incPath getPaths()) {
-                params compiler addIncludePath(incPath getPath())
-            }
-            for(sourceFolder in sourceFolders) {
-                params compiler addIncludePath(params libcachePath + File separator + sourceFolder identifier)
-            }
-            for(compilerArg in params compilerArgs) {
-                params compiler addObjectFile(compilerArg)
-            }
-
-            flags := getFlagsFromUse(sourceFolder)
-            for(flag in flags) {
-                if (!isLinkerFlag(flag)) {
-                    params compiler addObjectFile(flag)
-                }
-            }
-
-            if(params verbose) params compiler getCommandLine() println()
-
-            process := params compiler launchBackground()
+            process := params compiler launch(flags)
             code := pool add(ModuleJob new(process, module, archive))
             if (code != 0) {
                 // a process failed, can stop launching jobs now
                 return code
             }
-
-
         } else {
-            if(params veryVerbose || params debugLibcache) "Skipping %s, unchanged source.\n" printfln(cPath)
+            if(params veryVerbose || params debugLibcache) {
+              "Skipping %s, unchanged source.\n" printfln(cPath)
+            }
         }
 
         return 0
@@ -360,39 +231,11 @@ SequenceDriver: class extends Driver {
     }
 
     /**
-       Get all the flags from uses in a source folder
-     */
-    getFlagsFromUse: func ~sourceFolder (sourceFolder: SourceFolder) -> List<String> {
-
-        flagsDone := ArrayList<String> new()
-        usesDone := ArrayList<UseDef> new()
-        modulesDone := ArrayList<Module> new()
-
-        for(module in sourceFolder modules) {
-            getFlagsFromUse(module, flagsDone, modulesDone, usesDone)
-        }
-
-
-        flagsDone
-    }
-
-    initCompiler: func (compiler: AbstractCompiler) {
-        compiler reset()
-
-        if(params debug) params compiler setDebugEnabled()
-        params compiler addIncludePath(File new(params distLocation, "libs/headers/") getPath())
-        params compiler addIncludePath(params outPath getPath())
-
-        for(compilerArg in params compilerArgs) {
-            params compiler addObjectFile(compilerArg)
-        }
-    }
-
-    /**
        Collect all modules imported from `module`, sort them by SourceFolder,
        put them in `toCompile`, and return it.
      */
-    collectDeps: func (module: Module, toCompile: HashMap<String, SourceFolder>, done: ArrayList<Module>) -> HashMap<String, SourceFolder> {
+    collectDeps: func (module: Module, toCompile: HashMap<String, SourceFolder>,
+        done: ArrayList<Module>) -> HashMap<String, SourceFolder> {
 
         if(!module dummy) {
             pathElement := module getPathElement()

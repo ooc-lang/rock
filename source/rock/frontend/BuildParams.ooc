@@ -1,27 +1,28 @@
-import io/File, os/[Env, System]
+
+// sdk stuff
+import io/File, os/[Env, System, ShellUtils]
 import structs/[ArrayList, HashMap]
 import text/StringTokenizer
 
-import compilers/AbstractCompiler
-import PathList, os/ShellUtils
-import ../middle/Module, ../middle/tinker/Errors
+// out stuff
+import PathList
+import drivers/CCompiler
+import rock/middle/Module
+import rock/middle/tinker/Errors
 
 /**
  * All the parameters for a build are stored there.
  *
  * All sorts of paths and options that influence compilation.
+ * This class is also responsible for finding the sdk and rock's home directory.
  *
- * This class is also responsible for finding the sdk and the dist.
- *
- * @author Amos Wenger (nddrylliog)
+ * :author: Amos Wenger (nddrylliog)
  */
 BuildParams: class {
 
-    // use a dumb error handler by default
     errorHandler: ErrorHandler { get set }
     fatalError := true
 
-    additionals  := ArrayList<String> new()
     compilerArgs := ArrayList<String> new()
 
     /* Builtin defines */
@@ -97,21 +98,14 @@ BuildParams: class {
         libsPaths add(distLocation)
     }
 
-    // Changes the way string literals are written, among other things
-    // see http://github.com/nddrylliog/newsdk for more bunnies.
-    newsdk := false
-
-    // If it's true, will use String makeLiteral() to make string literals instead of just C string literals
-    newstr := true
-
-    // location of the compiler's distribution, with a libs/ folder for the gc, etc.
+    // location of rock's distribution, with a libs/ folder for the gc, etc.
     distLocation: File
 
     // where ooc libraries live (.use)
     libsPaths := ArrayList<File> new()
 
     // compiler used for producing an executable from the C sources
-    compiler: AbstractCompiler = null
+    compiler := CCompiler new(this)
 
     // ooc sourcepath (.ooc)
     sourcePath := PathList new()
@@ -195,9 +189,6 @@ BuildParams: class {
     // Display compilation times for all .ooc files passed to the compiler
     timing := false
 
-    // Compile once, then wait for the user to press enter, then compile again, etc.
-    slave := false
-
     // Should link with libgc at all.
     enableGC := true
 
@@ -214,30 +205,16 @@ BuildParams: class {
     // name of the entryPoint to the program
     entryPoint := "main"
 
-    // if non-null, will create a static library with 'ar rcs <outlib> <all .o files>'
-    staticlib : String = null
-
-    // if non-null, will create a dynamic library
-    dynamiclib : String = null
-
-    // name of the package we should only be packaging
-    // modules in any other package will be ignored
-    // when building static/dynamic libraries
-    packageFilter : String = null
-
     // add a main method if there's none in the specified ooc file
     defaultMain := true
 
-    // maximum number of rounds the {@link Tinkerer} will do before blowing up.
+    // maximum number of rounds the tinkerer will do before blowing up.
     blowup := 32
 
     // dynamic libraries to be linked into the executable
     dynamicLibs := ArrayList<String> new()
 
-    // if non-null, rock will create a virtual module containing all ooc modules in the given path
-    libfolder: String = null
-
-    // backend; can be "c" or "json".
+    // backend
     backend: String = "c"
 
     _indexOfSymbol: func (symbol: String) -> Int {

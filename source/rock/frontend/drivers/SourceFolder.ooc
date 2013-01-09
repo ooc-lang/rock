@@ -48,4 +48,8 @@ SourceFolder: class {
         archive = Archive new(identifier, outlib, params, true, File new(absolutePath))
     }
 
+    includePath: func {
+        params libcachePath + File separator + identifier
+    }
+
 }

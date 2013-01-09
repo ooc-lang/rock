@@ -1,29 +1,30 @@
+
+// sdk stuff
 import io/File, os/[Terminal, Process, Pipe]
 import structs/[ArrayList, List, Stack]
 import text/StringTokenizer
 
-import rock/RockVersion
+// our stuff
 import Help, Token, BuildParams, AstBuilder, PathList
-import compilers/[Gcc, Clang, Icc, Tcc]
-import drivers/[Driver, SequenceDriver, MakeDriver, DummyDriver]
-import ../backend/json/JSONGenerator
-import ../middle/[Module, Import, UseDef]
-import ../middle/tinker/Tinkerer
+import rock/frontend/drivers/[Driver, SequenceDriver, MakeDriver, DummyDriver, CCompiler]
+import rock/backend/json/JSONGenerator
+import rock/middle/[Module, Import, UseDef]
+import rock/middle/tinker/Tinkerer
+import rock/RockVersion
 
 system: extern func (command: CString)
 
+/**
+ * Handles command-line arguments parsing, launches the appropritae
+ * driver.
+ * 
+ * :author: Amos Wenger (nddrylliog)
+ */
+
 CommandLine: class {
+
     params: BuildParams
     driver: Driver
-    cCPath := ""
-
-    setCompilerPath: func {
-        if (params compiler != null && cCPath != "") params compiler setExecutable(cCPath)
-    }
-
-    warnUseLong: func (option: String) {
-        "[WARNING] Option -%s is deprecated, use --%s instead." printfln(option, option)
-    }
 
     init: func(args : ArrayList<String>) {
 
@@ -31,8 +32,6 @@ CommandLine: class {
         driver = SequenceDriver new(params)
 
         modulePaths := ArrayList<String> new()
-        params compiler = Gcc new()
-
         isFirst := true
 
         for (arg in args) {
@@ -54,9 +53,9 @@ CommandLine: class {
 
                     if(!longOption) warnUseLong("sourcepath")
                     sourcePathOption := arg substring(arg indexOf('=') + 1)
-                    tokenizer := StringTokenizer new(sourcePathOption, File pathDelimiter)
-                    for (token: String in tokenizer) {
-						// rock allows '/' instead of '\' on Win32
+                    tokens := sourcePathOption split(File pathDelimiter, false)
+                    for (token in tokens) {
+                        // rock allows '/' instead of '\' on Win32
                         params sourcePath add(token replaceAll('/', File separator))
                     }
 
@@ -67,25 +66,13 @@ CommandLine: class {
                     params clean = false
 
                 } else if (option startsWith?("staticlib")) {
-
-                    "[ERROR] staticlib parameter is deprecated" println()
-                    failure(params)
-
+                    hardDeprecation("staticlib", params)
                 } else if (option startsWith?("dynamiclib")) {
-
-                    "[ERROR] dynamiclib parameter is deprecated" println()
-                    failure(params)
-
+                    hardDeprecation("dynamiclib", params)
                 } else if (option startsWith?("packagefilter=")) {
-
-                    "[ERROR] packagefilter parameter is deprecated" println()
-                    failure(params)
-
+                    hardDeprecation("packagefilter", params)
                 } else if (option startsWith?("libfolder=")) {
-
-                    "[ERROR] libfolder parameter is deprecated" println()
-                    failure(params)
-
+                    hardDeprecation("libfolder", params)
                 } else if(option startsWith?("backend")) {
 
                     if(!longOption) warnUseLong("backend")
@@ -125,20 +112,11 @@ CommandLine: class {
                     params entryPoint = arg substring(arg indexOf('=') + 1)
 
                 } else if (option == "newsdk") {
-
-                    if(!longOption) warnUseLong("newsdk")
-                    params newsdk = true
-
+                    hardDeprecation("newsdk", params)
                 } else if (option == "newstr") {
-
-                    if(!longOption) warnUseLong("newstr")
-                    params newstr = true
-
+                    hardDeprecation("newstr", params)
                 } else if(option == "cstrings") {
-
-                    if(!longOption) warnUseLong("cstrings")
-                    params newstr = false
-
+                    hardDeprecation("cstrings", params)
                 } else if (option == "inline") {
 
                     if(!longOption) warnUseLong("inline")
@@ -347,33 +325,23 @@ CommandLine: class {
                 } else if(option startsWith?("cc=")) {
 
                     if(!longOption) warnUseLong("cc")
-                    cCPath = option substring(3)
-                    setCompilerPath()
+                    params compiler setExecutable(option substring(3))
 
                 } else if (option startsWith?("gcc")) {
 
-                    if(!longOption) warnUseLong("gcc")
-                    params compiler = Gcc new()
-                    setCompilerPath()
+                    hardDeprecation("gcc", params)
 
                 } else if (option startsWith?("icc")) {
 
-                    if(!longOption) warnUseLong("icc")
-                    params compiler = Icc new()
-                    setCompilerPath()
+                    hardDeprecation("icc", params)
 
                 } else if (option startsWith?("tcc")) {
 
-                    if(!longOption) warnUseLong("tcc")
-                    params compiler = Tcc new()
-                    params dynGC = true
-                    setCompilerPath()
+                    hardDeprecation("tcc", params)
 
                 } else if (option startsWith?("clang")) {
 
-                    if(!longOption) warnUseLong("clang")
-                    params compiler = Clang new()
-                    setCompilerPath()
+                    hardDeprecation("clang", params)
 
                 } else if (option == "onlyparse") {
 
@@ -397,7 +365,7 @@ CommandLine: class {
 
                 } else if (option == "slave") {
 
-                    params slave = true
+                    hardDeprecation("slave", params)
 
                 } else if (option startsWith?("j")) {
 
@@ -435,11 +403,12 @@ CommandLine: class {
                     case lowerArg endsWith?(".use") =>
                         prepareCompilationFromUse(File new(arg), modulePaths)
                     case lowerArg contains?(".") =>
-                        // used for example if you want to pass .s assembly files to gcc
-                        params additionals add(arg)
+                        // unknown file, complain
+                        "[ERROR] Don't know what to do with argument %s, bailing out" printfln(arg)
+                        failure(params)
                     case =>
                         // probably an ooc file without the extension
-                        modulePaths add(arg+".ooc")
+                        modulePaths add(arg + ".ooc")
                 }
             }
         }
@@ -463,45 +432,6 @@ CommandLine: class {
             prepareCompilationFromUse(uzeFile, modulePaths)
         }
 
-        dummyModule: Module
-
-        if(params libfolder) {
-            if(params staticlib == null && params dynamiclib == null) {
-                // by default, build both
-                params staticlib = ""
-                params dynamiclib = ""
-            }
-
-            idx := params libfolder indexOf(File pathDelimiter)
-            libfolder := File new(match idx {
-                case -1 => params libfolder
-                case    => params libfolder substring(0, idx)
-            })
-
-            name := (idx == -1 ? libfolder getAbsoluteFile() name() : params libfolder substring(idx + 1))
-            params libfolder = libfolder getPath()
-            params sourcePath add(params libfolder)
-
-            if(params verbose) "Building lib for folder %s to name %s" printfln(params libfolder, name)
-
-            dummyModule = Module new("__lib__/%s.ooc" format(name), ".", params, nullToken)
-            dummyModule dummy = true
-            libfolder walk(|f|
-                // sort out links to non-existent destinations.
-                if(!f exists?())
-                    return true // = continue
-
-                path := f getPath()
-                if (!path endsWith?(".ooc")) return true
-
-                fullName := f getAbsolutePath()
-                fullName = fullName substring(libfolder getAbsolutePath() length() + 1, fullName length() - 4)
-
-                dummyModule addImport(Import new(fullName, nullToken))
-                true
-            )
-        }
-
         if(params sourcePath empty?()) {
             params sourcePath add(".")
 
@@ -518,39 +448,11 @@ CommandLine: class {
 
         errorCode := 0
 
-        while(true) {
-            try {
-                if(dummyModule) {
-                    postParsing(dummyModule)
-                } else for(modulePath in modulePaths) {
-                    code := parse(modulePath replaceAll('/', File separator))
-                    if(code != 0) {
-                        errorCode = 2 // C compiler failure.
-                        break
-                    }
-                }
-            } catch e: CompilationFailedException {
-                if(!params slave) e rethrow()
-            }
-
-            if(!params slave) break
-
-            Terminal setFgColor(Color yellow). setAttr(Attr bright)
-            "-- press [Enter] to re-compile, [c] to clean, [q] to quit. --" println()
-            Terminal reset()
-
-            line := stdin readLine()
-            if(line == "c") {
-                Terminal setFgColor(Color yellow). setAttr(Attr bright)
-                "-- Pressed 'c', cleaning... and recompiling everything! --" println()
-                Terminal reset()
-                cleanHardcore()
-            }
-            if(line == "q") {
-                Terminal setFgColor(Color yellow). setAttr(Attr bright)
-                "-- Pressed 'q', exiting... seeya! --" println()
-                Terminal reset()
-                exit(0)
+        for(modulePath in modulePaths) {
+            code := parse(modulePath replaceAll('/', File separator))
+            if(code != 0) {
+                errorCode = 2 // C compiler failure.
+                break
             }
         }
 
@@ -571,8 +473,7 @@ CommandLine: class {
             uze apply(params)
             modulePaths add(uze main)
         } else {
-            // compile as a library
-            params libfolder = uze sourcePath ? uze sourcePath : "."
+            Exception new("[stub] libfolder compilation.") throw()
         }
     }
 
@@ -618,22 +519,6 @@ CommandLine: class {
             return
         }
 
-        if(params slave && !first) {
-            // slave and non-first = cache is filled, we must re-check every import.
-            deadModules := ArrayList<Module> new()
-            AstBuilder cache each(|mod|
-                if(File new(mod oocPath) lastModified() > mod lastModified) {
-                    deadModules add(mod)
-                }
-                mod getAllImports() each(|imp|
-                    imp setModule(null)
-                )
-            )
-            deadModules each(|mod|
-                mod dead = true
-                AstBuilder cache remove(File new(mod oocPath) getAbsolutePath())
-            )
-        }
         module parseImports(null)
         if(params verbose) {
             "\rFinished parsing, now tinkering...                                                   " println()
@@ -646,16 +531,18 @@ CommandLine: class {
 
         if(params backend == "c") {
             // c phase 3: launch the driver
-            if(params compiler != null && driver != null) {
-                if(!params verbose) params compiler silence = true
-                result := driver compile(module)
-                if(result == 0) {
+            if(driver != null) {
+                code := driver compile(module)
+                if(code == 0) {
                     if(params shout) success()
                     if(params run) {
+                        // FIXME: that's the driver's job
                         Process new(["./" + module simpleName]) execute()
                     }
                 } else {
-                    if(params shout) failure(params)
+                    if(params shout) {
+                        failure(params)
+                    }
                 }
             }
         } else if(params backend == "json") {
@@ -667,6 +554,15 @@ CommandLine: class {
         }
 
         first = false
+    }
+
+    warnUseLong: func (option: String) {
+        "[WARNING] Option -%s is deprecated, use --%s instead." printfln(option, option)
+    }
+
+    hardDeprecation: func (parameter: String, params: BuildParams) {
+        "[ERROR] %s parameter is deprecated" printfln(parameter)
+        failure(params)
     }
 
     success: static func {
@@ -687,10 +583,7 @@ CommandLine: class {
             raise("Debugging a CommandLine failure") // for backtrace
         }
 
-        // in slave-mode, we raise a specific exception so we have a chance to loop
-        if(params slave) {
-            CompilationFailedException new() throw()
-        }
+        // FIXME: should we *ever* exit(1) ?
         exit(1)
     }
 
