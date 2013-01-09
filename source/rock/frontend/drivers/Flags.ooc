@@ -51,18 +51,21 @@ Flags: class {
     objects := ArrayList<String> new()
     linkerFlags := ArrayList<String> new()
 
-    object, outPath: String
+    outPath: String
+    params: BuildParams
   
     modulesDone := ArrayList<Module> new()
     modulesDone := ArrayList<Module> new()
     usesDone := ArrayList<UseDef> new()
   
-    init: func (=outPath) {
+    init: func (=outPath, =params) {
         addCompilerFlag("-std=gnu99")
         addCompilerFlag("-Wall")
     }
   
     absorb: func ~sourceFolder (sourceFolder: SourceFolder) {
+        addCompilerFlag("-I" + sourceFolder includePath())
+
         for(module in sourceFolder modules) {
             absorb(module)
         }
@@ -93,6 +96,11 @@ Flags: class {
             return
         }
         usesDone add(useDef)
+
+        // TODO: there needs a better way to do that. .use files
+        // are usually linked to SourceFolders, there needs to be a way
+        // to make that connection.
+        addCompilerFlag("-I" + params libcachePath + File separator + useDef identifier)
 
         for (lib in useDef getLibs()) {
             addLinkerFlag(lib)

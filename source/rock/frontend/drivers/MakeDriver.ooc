@@ -210,7 +210,7 @@ MakeDriver: class extends SequenceDriver {
 
         fW write(" -o ${EXECUTABLE}")
 
-        flags := Flags new(null)
+        flags := Flags new(null, params)
         flags absorb(module)
 
         // FIXME: this doesn't use Flags the right way.

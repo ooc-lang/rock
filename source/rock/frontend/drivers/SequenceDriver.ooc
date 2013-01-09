@@ -83,7 +83,7 @@ SequenceDriver: class extends Driver {
                 binaryPath = module simpleName
             }
 
-            flags := Flags new(binaryPath)
+            flags := Flags new(binaryPath, params)
 
             flags absorb(params)
             for (sourceFolder in sourceFolders) {
@@ -209,10 +209,12 @@ SequenceDriver: class extends Driver {
               "%s not in cache or out of date, (re)compiling" printfln(module getFullName())
             }
 
-            flags := Flags new(cPath)
-            flags addObject(oPath)
+            flags := Flags new(oPath, params)
+            flags addCompilerFlag("-c")
+            flags addObject(cPath)
             flags absorb(params)
             flags absorb(sourceFolder)
+            flags absorb(module)
 
             process := params compiler launch(flags)
             code := pool add(ModuleJob new(process, module, archive))
