@@ -35,7 +35,7 @@ CGenerator: class extends Skeleton {
 
         if (params libcache) {
             hOutPath := File new(File new(params libcachePath, module getSourceFolderName()), module getPath(""))
-            hOutPath parent() mkdirs()
+            hOutPath parent mkdirs()
             hw = AwesomeWriter new(this, CachedFileWriter new(hOutPath path + ".h"))
             fw = AwesomeWriter new(this, CachedFileWriter new(hOutPath path + "-fwd.h"))
         } else {
@@ -44,7 +44,7 @@ CGenerator: class extends Skeleton {
         }
 
         cOutPath := File new(params outPath path, module getPath(".c"))
-        cOutPath parent() mkdirs()
+        cOutPath parent mkdirs()
         cw = AwesomeWriter new(this, CachedFileWriter new(cOutPath path))
 
     }

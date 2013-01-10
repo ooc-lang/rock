@@ -5,7 +5,7 @@ import structs/[ArrayList, HashMap]
 import text/StringTokenizer
 
 // out stuff
-import PathList
+import PathList, CommandLine
 import drivers/CCompiler
 import rock/middle/Module
 import rock/middle/tinker/Errors
@@ -65,13 +65,13 @@ BuildParams: class {
         exec := ShellUtils findExecutable(execName, false)
         if(exec && exec path != null && !exec path empty?()) {
             realpath := exec getAbsolutePath()
-            distLocation = File new(realpath) parent() parent()
+            distLocation = File new(realpath) getParent() getParent()
             return
         }
 
         // fall back on the current working directory
         file := File new(File getCwd())
-        distLocation = file parent()
+        distLocation = file getParent()
         if (distLocation path empty?() || !distLocation exists?()) Exception new (This, "can not find the distribution. did you set ROCK_DIST environment variable?")
     }
 
@@ -145,9 +145,6 @@ BuildParams: class {
 
     // Cache libs in `libcachePath` directory
     libcache := true
-    version(windows) {
-        libcache = false
-    }
 
     // Path to store cache-libs
     libcachePath := ".libs"
@@ -216,6 +213,25 @@ BuildParams: class {
 
     // backend
     backend: String = "c"
+
+    checkBinaryNameCollision: func (name: String) {
+        if (File new(name) dir?()) {
+            stderr write("Naming conflict (output binary) : There is already a directory called %s.\nTry a different name, e.g. '-o=%s2'\n" format(name, name))
+            CommandLine failure(this)
+        }
+    } 
+
+    /**
+     * :return: the path of the executable that should be produced by rock
+     */
+    getBinaryPath: func (defaultPath: String) -> String {
+        if (binaryPath == "") {
+            checkBinaryNameCollision(defaultPath)
+            defaultPath
+        } else {
+            binaryPath
+        }
+    }
 
     _indexOfSymbol: func (symbol: String) -> Int {
         for(i in 0..defines getSize()) {

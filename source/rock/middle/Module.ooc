@@ -77,7 +77,7 @@ Module: class extends Node {
     getSourceFolderName: func -> String {
         identifier := params sourcePathTable get(pathElement)
         if (!identifier) {
-            File new(pathElement) getAbsoluteFile() name()
+            File new(pathElement) getAbsoluteFile() name
         }
         identifier
     }
@@ -196,7 +196,7 @@ Module: class extends Node {
     accept: func (visitor: Visitor) { visitor visitModule(this) }
 
     getPath: func (suffix: String) -> String {
-        last := (File new(pathElement) name())
+        last := (File new(pathElement) name)
         return (last + File separator) + fullName replaceAll('/', File separator) + suffix
     }
 

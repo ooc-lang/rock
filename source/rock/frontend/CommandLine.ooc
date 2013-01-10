@@ -174,8 +174,7 @@ CommandLine: class {
 
                 } else if (option == "nolibcache") {
 
-                    if(!longOption) warnUseLong("nolibcache")
-                    params libcache = false
+                    hardDeprecation("nolibcache", params)
 
                 } else if (option == "libcache") {
 
@@ -465,7 +464,7 @@ CommandLine: class {
 
     prepareCompilationFromUse: func (uzeFile: File, modulePaths: ArrayList<String>) {
         // extract '.use' from use file
-        identifier := uzeFile name()[0..-5]
+        identifier := uzeFile name[0..-5]
         uze := UseDef new(identifier)
         uze read(uzeFile, params)
         if(uze main) {

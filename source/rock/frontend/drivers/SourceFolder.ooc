@@ -42,7 +42,7 @@ SourceFolder: class {
 
         // example: .libs/foo-win32.a
         archivePath := "%s-%s.a" format(identifier, Target toString())
-        outlib = File new(params libcachePath, archivePath) getPath()
+        outlib = File new(params libcachePath, archivePath) path
 
         // archive will cache info as .libs/foo-win32.a.cacheinfo
         archive = Archive new(identifier, outlib, params, true, File new(absolutePath))

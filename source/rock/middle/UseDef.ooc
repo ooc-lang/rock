@@ -140,7 +140,7 @@ UseDef: class {
         sourcePathFile := File new(sourcePath)
         if(sourcePathFile relative?()) {
             /* is relative. TODO: better check? */
-            sourcePathFile = file parent() getChild(sourcePath) getAbsoluteFile()
+            sourcePathFile = file parent getChild(sourcePath) getAbsoluteFile()
         }
         sourcePath = sourcePathFile path
 
@@ -236,7 +236,7 @@ UseDef: class {
                 for(path in value split(',')) {
                     libFile := File new(path trim())
                     if(libFile relative?()) {
-                        libFile = file parent() getChild(path) getAbsoluteFile()
+                        libFile = file parent getChild(path) getAbsoluteFile()
                     }
                     libPaths add(libFile path)
                 }
@@ -244,7 +244,7 @@ UseDef: class {
                 for(path in value split(',')) {
                     incFile := File new(path trim())
                     if(incFile relative?()) {
-                        incFile = file parent() getChild(path) getAbsoluteFile()
+                        incFile = file parent getChild(path) getAbsoluteFile()
                     }
                     includePaths add(incFile path)
                 }

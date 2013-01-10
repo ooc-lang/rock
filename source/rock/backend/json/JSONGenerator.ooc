@@ -24,7 +24,7 @@ JSONGenerator: class extends Visitor {
 
     init: func (=params, =module) {
         outFile = File new(params outPath getPath(), module getPath(".json"))
-        outFile parent() mkdirs()
+        outFile parent mkdirs()
         root = HashBag new()
         objects = MultiMap<String, HashBag> new()
 

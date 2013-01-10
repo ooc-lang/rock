@@ -33,7 +33,7 @@ Driver: abstract class {
                     params outPath path
 
                 path := module path + ".ooc"
-                pathElement := params sourcePath getFile(path) parent()
+                pathElement := params sourcePath getFile(path) parent
 
                 File new(pathElement, inc path + ".h") copyTo(
                 File new(destPath,    inc path + ".h"))
@@ -49,12 +49,4 @@ Driver: abstract class {
     findExec: func (name: String) -> File {
         ShellUtils findExecutable(name, true)
     }
-
-    checkBinaryNameCollision: func (name: String) {
-        if (File new(name) dir?()) {
-            stderr write("Naming conflict (output binary) : There is already a directory called %s.\nTry a different name, e.g. '-o=%s2'\n" format(name, name))
-            CommandLine failure(params)
-            exit(1)
-        }
-    } 
 }

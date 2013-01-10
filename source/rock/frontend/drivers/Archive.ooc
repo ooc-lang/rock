@@ -1,19 +1,19 @@
-import rock/RockVersion
 
+// sdk stuff
 import structs/[List, ArrayList, HashMap]
-
 import io/[File, FileReader, FileWriter], os/[Process, Env]
 
-import ../[AstBuilder, BuildParams, PathList]
-
-import ../../middle/[Module, TypeDecl, VariableDecl, FunctionDecl]
-import ../../backend/cnaughty/ModuleWriter
+// our stuff
+import rock/RockVersion
+import rock/frontend/[AstBuilder, BuildParams, PathList]
+import rock/middle/[Module, TypeDecl, VariableDecl, FunctionDecl]
+import rock/backend/cnaughty/ModuleWriter
 
 /**
-   Manage .a files stored in .libs/, with their .a.cacheinfo
-   files, can check up-to-dateness, add files, etc.
-
-   :author: Amos Wenger (nddrylliog)
+ * Manage .a files stored in .libs/, with their .a.cacheinfo
+ * files, can check up-to-dateness, add files, etc.
+ *
+ * :author: Amos Wenger (nddrylliog)
  */
 Archive: class {
 
@@ -36,11 +36,14 @@ Archive: class {
     /** A string representation of compiler options */
     compilerArgs: String
 
-    /** List of elements contained in the archive */
+    /** Map of elements contained in the archive */
     elements := HashMap<String, ArchiveModule> new()
 
-    /** List of elements to add to the archive when save() is called */
-    toAdd := ArrayList<Module> new()
+    /** List of modules contained in this archive */
+    modules := ArrayList<Module> new()
+
+    /** List of sub-archives contained in this archive */
+    archives := ArrayList<Archive> new()
 
     /** Write .cacheinfo files or not */
     doCacheinfo := true
@@ -158,8 +161,12 @@ Archive: class {
        modules can be added all at once.
      */
     add: func (module: Module) {
-        toAdd add(module)
+        modules add(module)
         map put(module, this)
+    }
+
+    add: func ~archive (archive: Archive) {
+        archives add(archive)
     }
 
     /**
@@ -170,6 +177,7 @@ Archive: class {
         get {
             if(!File new(outlib) exists?()) return false
             if(!doCacheinfo) return false
+
             fR := FileReader new(outlib + ".cacheinfo")
             result := _readHeader(fR)
             fR close()
@@ -197,14 +205,14 @@ Archive: class {
         running := true
         while(running) {
             if(params veryVerbose || params debugLibcache) {
-                "Analyzing %s, %d cleanModules, %d dirtyModules" format(pathElement path, cleanModules getSize(), dirtyModules getSize()) println()
+                "Analyzing %s, %d cleanModules, %d dirtyModules" printfln(pathElement path, cleanModules getSize(), dirtyModules getSize())
             }
 
             for(module in cleanModules) {
                 subArchive := map get(module)
                 if(!subArchive) {
                     if(params veryVerbose || params debugLibcache) {
-                        "%s is dirty because we can't find the archive" format(module getFullName()) println()
+                        "%s is dirty because we can't find the archive" printfln(module getFullName())
                         if(dotOutput) {
                             dotFile write("\""). write(module simpleName). write("\""). write(" -> "). write("ArchiveNotFound;\n")
                         }
@@ -239,7 +247,7 @@ Archive: class {
                 lastModified := oocFile lastModified()
                 if(lastModified != element lastModified) {
                     if(params veryVerbose || params debugLibcache) {
-                        "%s out-of-date, recompiling... (%d vs %d, oocPath = %s)" format (module getFullName(), lastModified, element lastModified, oocPath) println()
+                        "%s out-of-date, recompiling... (%d vs %d, oocPath = %s)" printfln(module getFullName(), lastModified, element lastModified, oocPath)
                     }
                     if(dotOutput) {
                         dotFile write("\""). write(module simpleName). write("\""). write(" -> "). write("\"OutOfDate\";\n")
@@ -298,10 +306,13 @@ Archive: class {
        Must be called after add calls to apply the changes
        to the archives.
      */
-    save: func (params: BuildParams) {
-        //"Saving %s" format(pathElement path) println()
+    save: func (params: BuildParams, symbolTable, thin: Bool) {
+        // now build static libraries for all source folders
+        if(params veryVerbose || params debugLibcache) {
+            "Creating/updating archive %s\n" printfln(outlib)
+        }
 
-        if (toAdd empty?()) {
+        if (modules empty?() && archives empty?()) {
             if(params veryVerbose || params debugLibcache) {
                 "No (new?) member in archive %s, skipping" printfln(pathElement path)
             }
@@ -311,36 +322,53 @@ Archive: class {
         args := ArrayList<String> new()
         args add("ar") // GNU ar tool, manages archives
 
+        flags := ArrayList<String> new()
+
         if(!this exists?) {
-            // if the archive doesn't exist, c = create it
-            args add((params veryVerbose || params debugLibcache) ? "crs" : "crsv") // c = create, r = add with replacement, s = create/update index
-        } else {
-            args add((params veryVerbose || params debugLibcache) ? "rs" : "rsv") // r = add with replacement, s = create/update index
+            flags add("c") // create
         }
+
+        flags add("r") // insert with replacement
+
+        if (symbolTable) {
+            flags add("s")
+        }
+
+        if (thin) {
+            flags add("T")
+        }
+
+        if (params veryVerbose || params debugLibcache) {
+            flags add("v") // verbose
+        }
+
+        args add(flags join(""))
 
         // output path
         args add(outlib)
 
-        for(module in toAdd) {
+        for (module in modules) {
             // we add .o (object files) to the archive
-            oPath := "%s%c%s.o" format(params outPath path, File separator, module path replaceAll(File separator, '_'))
+            oName := "%s.o" format(module path replaceAll(File separator, '_'))
+            oPath := File new(params outPath, oName) getPath()
             args add(oPath)
 
             element := ArchiveModule new(module, this)
             elements put(element oocPath, element) // replace
         }
-        toAdd clear()
 
-        if(params veryVerbose || params debugLibcache) {
-            "%s archive %s" printfln((this exists? ? "Updating" : "Creating"), outlib)
+        for (archive in archives) {
+            args add(archive outlib)
         }
-        
+
+        File new(outlib) parent mkdirs()
+        process := Process new(args)
+
         if(params verbose || params debugLibcache) {
-            args join(" ") println()
+            process getCommandLine() println()
         }
 
-        File new(outlib) parent() mkdirs()
-        output := Process new(args) getOutput()
+        output := process getOutput()
 
         if(params veryVerbose || params debugLibcache) {
             output print()

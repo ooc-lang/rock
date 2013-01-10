@@ -8,6 +8,14 @@ import structs/[List, ArrayList]
 import Flags
 import rock/frontend/BuildParams
 
+/**
+ * This classes handles the launch of our C compiler and linker.
+ * Usually that'll be 'gcc' and 'gcc', or 'clang' and 'clang',
+ * but it could well be 'gcc' and 'g++', if you're linking with C++
+ * code (god forbid).
+ *
+ * :author: Amos Wenger (nddrylliog)
+ */
 CCompiler: class {
 
     executableName: String
@@ -32,10 +40,10 @@ CCompiler: class {
                     execFile = ShellUtils findExecutable(executableName, true)
                 }
             }
-            executablePath = execFile name()
+            executablePath = execFile getName()
         } else {
             // If we initially got an existing compiler path, just use this one.
-            executablePath = execFile getAbsoluteFile() getPath()
+            executablePath = execFile getAbsolutePath()
         }
 
         executablePath
@@ -62,23 +70,23 @@ CCompiler: class {
                           filter(|a| a != "")
 
         // create the necessary directories
-        parent := File new(flags outPath) parent()
+        parent := File new(flags outPath) parent
         if(!parent exists?()) {
             if(params verbose) "Creating path %s" format(parent getPath()) println()
             parent mkdirs()
         }
 
+        process := Process new(command)
+
         // display the command line if needed
         if (params verbose) {
-            command map(|arg| arg replaceAll("\\", "\\\\")) join(" ") println()
+            process getCommandLine() println()
+        } else {
+            process setStderr(Pipe new())
         }
 
         // actually launch the command
-        proc := Process new(command)
-        if (!params verbose) {
-            proc setStderr(Pipe new())
-        }
-        proc executeNoWait()
-        proc
+        process executeNoWait()
+        process
     }
 }

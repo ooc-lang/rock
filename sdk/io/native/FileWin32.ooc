@@ -154,8 +154,8 @@ version(windows) {
                 return getAbsoluteFile() mkdir()
             }
 
-            parent := parent()
-            if (!parent exists?()) parent mkdir()
+            p := parent
+            if (!p exists?()) parent mkdir()
             CreateDirectory(path toCString(), null) ? 0 : -1
         }
 
