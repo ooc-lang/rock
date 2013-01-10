@@ -22,18 +22,6 @@ PkgInfo: class {
     init: func (=name, libsString, cflagsString: String) {
         compilerFlags addAll(split(cflagsString)) 
         linkerFlags   addAll(split(libsString)) 
-
-        printEach := func (list: ArrayList<String>) {
-            list each(|f|
-                "size %d, first char %d, '%s'" printfln(f size, f[0], f)
-            )
-        }
-
-        "For %s, got compiler flags:" printfln(name)
-        printEach(compilerFlags)
-
-        "For %s, got linker flags:" printfln(name)
-        printEach(linkerFlags)
     }
 
     split: func (line: String) -> List<String> {
