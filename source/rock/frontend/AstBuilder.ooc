@@ -56,10 +56,6 @@ AstBuilder: class {
     init: func (=modulePath, =module, =params) {
         first := static true
 
-        if(params verbose) {
-            "Parsing " print()
-            modulePath println()
-        }
         cache put(File new(modulePath) getAbsolutePath(), module)
 
         stack = Stack<Object> new()

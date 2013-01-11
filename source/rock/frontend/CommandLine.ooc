@@ -502,6 +502,9 @@ CommandLine: class {
         module lastModified = moduleFile lastModified()
 
         // phase 1: parse
+        if (params verbose) {
+            "Parsing..." println()
+        }
         AstBuilder new(modulePath, module, params)
         postParsing(module)
 
@@ -520,7 +523,7 @@ CommandLine: class {
 
         module parseImports(null)
         if(params verbose) {
-            "\rFinished parsing, now tinkering...                                                   " println()
+            "Resolving..." println()
         }
 
         // phase 2: tinker

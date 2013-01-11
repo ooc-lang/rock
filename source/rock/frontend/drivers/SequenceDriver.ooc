@@ -31,10 +31,6 @@ SequenceDriver: class extends Driver {
     compile: func (module: Module) -> Int {
         pool parallelism = params parallelism
 
-        if (params verbose) {
-            "Sequence driver, parallelism = %d" printfln(pool parallelism)
-        }
-
         copyLocalHeaders(module, params, ArrayList<Module> new())
 
         sourceFolders = collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<Module> new())
@@ -42,13 +38,16 @@ SequenceDriver: class extends Driver {
 
         // step 1: generate C sources
         if (params verbose) {
-            "Generating C sources" println()
+            "Generating C sources..." println()
         }
         for (sourceFolder in sourceFolders) {
             reGenerated put(sourceFolder, prepareSourceFolder(sourceFolder))
         }
 
         // step 2: compile
+        if (params verbose) {
+            "Compiling (-j %d)..." printfln(pool parallelism)
+        }
         for (sourceFolder in sourceFolders) {
             if(params verbose) {
                 // generate random colors for every source folder
@@ -77,6 +76,10 @@ SequenceDriver: class extends Driver {
         }
 
         // step 4: link
+        if (params verbose) {
+            "Linking..." println()
+        }
+
         if (params link) {
             binaryPath := params getBinaryPath(module simpleName)
             binaryName := File new(binaryPath) name
