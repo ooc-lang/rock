@@ -264,7 +264,7 @@ Flags: class {
         }
 
         command addAll(objects)
-        command add("-o" + outPath)
+        command add("-o"). add(outPath)
 
         if (link) {
             command addAll(linkerFlags)
