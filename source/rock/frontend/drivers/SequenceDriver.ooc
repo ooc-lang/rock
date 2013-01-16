@@ -34,14 +34,14 @@ SequenceDriver: class extends Driver {
         copyLocalHeaders(module, params, ArrayList<Module> new())
 
         sourceFolders = collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<Module> new())
-        reGenerated := HashMap<SourceFolder, List<Module>> new()
+        dirtyModules := HashMap<SourceFolder, List<Module>> new()
 
         // step 1: generate C sources
         if (params verbose) {
             "Generating C sources..." println()
         }
         for (sourceFolder in sourceFolders) {
-            reGenerated put(sourceFolder, prepareSourceFolder(sourceFolder))
+            dirtyModules put(sourceFolder, generateSources(sourceFolder))
         }
 
         // step 2: compile
@@ -58,7 +58,7 @@ SequenceDriver: class extends Driver {
                 Terminal reset()
                 fflush(stdout)
             }
-            code := buildSourceFolder(sourceFolder, reGenerated get(sourceFolder))
+            code := buildSourceFolder(sourceFolder, dirtyModules get(sourceFolder))
             if(code != 0) return code
         }
         if(params verbose) println()
@@ -131,45 +131,38 @@ SequenceDriver: class extends Driver {
     /**
        Build a source folder into object files or a static library
      */
-    prepareSourceFolder: func (sourceFolder: SourceFolder) -> List<Module> {
+    generateSources: func (sourceFolder: SourceFolder) -> List<Module> {
+
+        dirtyModules := ArrayList<Module> new()
 
         archive := sourceFolder archive
         if(archive exists?) {
-            // only regenerate dirty modules
-            dirtyModules := archive dirtyModules(sourceFolder modules)
-            for(module in dirtyModules) {
-                CGenerator new(params, module) write()
-            }
-            return dirtyModules
+            dirtyModules addAll(archive dirtyModules())
+        } else {
+            // on first compile, we have no archive info
+            dirtyModules addAll(sourceFolder modules)
         }
 
-        // generate all dirty modules
-        reGenerated := ArrayList<Module> new()
-
-        for(module in sourceFolder modules) {
+        for(module in dirtyModules) {
             CGenerator new(params, module) write()
-            if(params veryVerbose) {
-                ("Re-generated " + module fullName) println()
-            }
-            reGenerated add(module)
         }
-        return reGenerated
+        dirtyModules
 
     }
 
     /**
        Build a source folder into object files or a static library
      */
-    buildSourceFolder: func (sourceFolder: SourceFolder, reGenerated: List<Module>) -> Int {
-        if (reGenerated empty?()) {
+    buildSourceFolder: func (sourceFolder: SourceFolder, dirtyModules: List<Module>) -> Int {
+        if (dirtyModules empty?()) {
             return 0
         }
 
         if(params verbose) {
-            "\n%d new/updated modules to compile" printfln(reGenerated size)
+            "\n%d new/updated modules to compile" printfln(dirtyModules size)
         }
 
-        for(module in reGenerated) {
+        for(module in dirtyModules) {
             code := buildIndividual(module, sourceFolder, true)
             if(code != 0) {
                 return code

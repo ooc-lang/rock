@@ -70,7 +70,7 @@ Archive: class {
             return
         }
 
-        "[Archive]: for %s, %s" printfln(cacheInfoPath, msg)
+        "[%s], %s" printfln(cacheInfoPath, msg)
     }
 
     debug: func ~var (msg: String, args: ...) {
@@ -141,7 +141,6 @@ Archive: class {
                     output println()
                 }
             } else {
-                debug("Module found, putting %s in map", element module path)
                 map put(element module, this)
                 elements put(element oocPath, element)
             }
@@ -178,23 +177,23 @@ Archive: class {
     }
 
     /**
-       true if the .a file storing this archive has already been
-       written to disk once.
+     * :return: true if the archive has already been stored to disk once
      */
     exists?: Bool {
         get {
             if(!File new(outlib) exists?()) return false
             if(!doCacheinfo) return false
 
-            fR := FileReader new(outlib + ".cacheinfo")
+            fR := FileReader new(cacheInfoPath)
             result := _readHeader(fR)
             fR close()
             return result
         }
     }
 
-    dirtyModules: func (modules: List<Module>) -> List<Module> {
+    dirtyModules: func -> List<Module> {
 
+        modules := sourceFolder modules
         dirtyModules := ArrayList<Module> new()
         structuralDirties := ArrayList<Module> new()
         transModules := ArrayList<Module> new()
@@ -203,30 +202,24 @@ Archive: class {
 
         running := true
         while(running) {
-            if(params debugLibcache) {
-                "Analyzing %s, %d cleanModules, %d dirtyModules" printfln(pathElement path, cleanModules getSize(), dirtyModules getSize())
-            }
+            debug("Analyzing %s, %d cleanModules, %d dirtyModules",
+                pathElement path, cleanModules getSize(), dirtyModules getSize())
 
             for(module in cleanModules) {
                 subArchive := map get(module)
                 if(!subArchive) {
-                    if(params debugLibcache) {
-                        "%s is dirty because we can't find the archive" printfln(module getFullName())
-                    }
+                    debug("%s is dirty because we can't find the archive")
                     transModules add(module); continue
                 }
                 oocPath := module path + ".ooc"
                 element := subArchive elements get(oocPath)
                 if(!element) {
-                    if(params debugLibcache) {
-                        "%s is dirty because we can't find the element in archive %s" format(module getFullName(), subArchive pathElement path) println()
-                    }
+                    debug("%s is dirty because we can't find the element in archive %s",
+                        module getFullName(), subArchive pathElement path)
                     transModules add(module); continue
                 }
                 if(!element upToDate?) {
-                    if(params debugLibcache) {
-                        "%s is dirty because of element %s" printfln(module getFullName(), element oocPath)
-                    }
+                    debug("%s is dirty because of element %s", module getFullName(), element oocPath)
                     subArchive elements put(oocPath, ArchiveModule new(module, subArchive))
                     structuralDirties add(module)
                     transModules add(module)
@@ -236,9 +229,8 @@ Archive: class {
                 oocFile := File new(subArchive pathElement, oocPath)
                 lastModified := oocFile lastModified()
                 if(lastModified != element lastModified) {
-                    if(params debugLibcache) {
-                        "%s out-of-date, recompiling... (%d vs %d, oocPath = %s)" printfln(module getFullName(), lastModified, element lastModified, oocPath)
-                    }
+                    debug("%s out-of-date, recompiling... (%d vs %d, oocPath = %s)",
+                        module getFullName(), lastModified, element lastModified, oocPath)
                     transModules add(module); continue
                 }
 
@@ -246,9 +238,8 @@ Archive: class {
                 for(imp in ModuleWriter classifyImports(null, module)) {
                     candidate := imp getModule()
                     if(structuralDirties contains?(candidate)) {
-                        if(params debugLibcache) {
-                            "%s is dirty because of import %s" format(module getFullName(), candidate getFullName()) println()
-                        }
+                        debug("%s is dirty because of import %s", module getFullName(),
+                            candidate getFullName())
                         if(!trans) {
                             transModules add(module)
                             trans = true
@@ -264,13 +255,9 @@ Archive: class {
             if(transModules empty?()) {
                 running = false
             } else {
-                if(params debugLibcache) {
-                    "[%s] We have %d transmodules to handle" format(pathElement path, transModules getSize()) println()
-                }
+                debug("[%s] We have %d transmodules to handle", pathElement path, transModules size)
                 for (module in transModules) {
-                    if(params debugLibcache) {
-                        " - %s" format(module getFullName()) println()
-                    }
+                    debug(" - %s", module getFullName())
                     dirtyModules add(module)
                     cleanModules remove(module)
                 }
@@ -288,21 +275,17 @@ Archive: class {
      */
     save: func (params: BuildParams, symbolTable, thin: Bool) {
         // now build static libraries for all source folders
-        if(params debugLibcache) {
-            "Creating/updating archive %s\n" printfln(outlib)
-        }
+        debug("Saving...")
 
         if (modules empty?() && objectFiles empty?()) {
-            if(params debugLibcache) {
-                "No (new?) member in archive %s, skipping" printfln(pathElement path)
-            }
+            debug("Up-to-date, skipping.")
             return
         }
 
         // update .cacheinfo
         for (module in modules) {
             element := ArchiveModule new(module, this)
-            elements put(element oocPath, element) // replace
+            elements put(element oocPath, element)
         }
 
         // update .a using GNU ar
@@ -325,8 +308,8 @@ Archive: class {
             flags add("T")
         }
 
-        if (params veryVerbose || params debugLibcache) {
-            flags add("v") // verbose
+        if (params debugLibcache) {
+            flags add("v")
         }
 
         args add(flags join(""))
@@ -485,7 +468,6 @@ ArchiveModule: class {
      */
     _getModule: func {
         oocFile := File new(archive pathElement, oocPath)
-        "Looking for module %s in cache" printfln(oocFile path)
         if(oocFile exists?()) {
             module = AstBuilder cache get(oocFile getAbsolutePath())
         }
