@@ -45,11 +45,15 @@ SourceFolder: class {
         outlib = File new(params libcachePath, archivePath) path
 
         // archive will cache info as .libs/foo-win32.a.cacheinfo
-        archive = Archive new(identifier, outlib, params, true, File new(absolutePath))
+        archive = Archive new(this, outlib, params, true, File new(absolutePath))
     }
 
     includePath: func -> String {
         params libcachePath + File separator + identifier
+    }
+
+    relativeObjectPath: func (module: Module) -> String {
+        File new(identifier, module path + ".o") getPath()
     }
 
 }

@@ -4,31 +4,35 @@ import structs/[List, ArrayList, HashMap]
 import io/[File, FileReader, FileWriter], os/[Process, Env]
 
 // our stuff
+import SourceFolder
 import rock/RockVersion
 import rock/frontend/[AstBuilder, BuildParams, PathList]
 import rock/middle/[Module, TypeDecl, VariableDecl, FunctionDecl]
 import rock/backend/cnaughty/ModuleWriter
 
 /**
- * Manage .a files stored in .libs/, with their .a.cacheinfo
+ * Manage .a files stored in .libs/, with their .cacheinfo
  * files, can check up-to-dateness, add files, etc.
  *
  * :author: Amos Wenger (nddrylliog)
  */
 Archive: class {
 
-    version := static "0.3"
+    supportedVersion := static "0.4"
 
     map := static HashMap<Module, Archive> new()
 
     /** Source folder that this archive is for */
-    sourceFolder: String
+    sourceFolder: SourceFolder
 
     /** Location of the source-folder in the file system. */
     pathElement: File
 
     /** Path of the file where the archive is stored */
     outlib: String
+
+    /** Path of the .cacheinfo file */
+    cacheInfoPath: String
 
     /** The build parameters */
     params: BuildParams
@@ -42,8 +46,8 @@ Archive: class {
     /** List of modules contained in this archive */
     modules := ArrayList<Module> new()
 
-    /** List of sub-archives contained in this archive */
-    archives := ArrayList<Archive> new()
+    /** List of object files to add to this archive */
+    objectFiles := ArrayList<String> new()
 
     /** Write .cacheinfo files or not */
     doCacheinfo := true
@@ -51,8 +55,9 @@ Archive: class {
     /** Create a new Archive */
     init: func ~archiveCacheinfo (=sourceFolder, =outlib, =params, =doCacheinfo, =pathElement) {
         compilerArgs = params getArgsRepr()
+        cacheInfoPath = outlib[0..-3] + ".cacheinfo"
         if(doCacheinfo) {
-            if(File new(outlib) exists?() && File new(outlib + ".cacheinfo") exists?()) {
+            if(File new(outlib) exists?() && File new(cacheInfoPath) exists?()) {
                 _read()
             }
         }
@@ -68,7 +73,7 @@ Archive: class {
         }
 
         readVersion := fR readLine()
-        if(readVersion != version) {
+        if(readVersion != supportedVersion) {
             if(params veryVerbose || params debugLibcache) {
                 "Wrong version %s for %s.cacheinfo. We only read version %s. Ignoring" format(readVersion, outlib, version) println()
             }
@@ -95,7 +100,7 @@ Archive: class {
     }
 
     _read: func {
-        fR := FileReader new(outlib + ".cacheinfo")
+        fR := FileReader new(cacheInfoPath)
 
         if(!_readHeader(fR)) {
             fR close()
@@ -107,26 +112,20 @@ Archive: class {
         for(i in 0..cacheSize) {
             element := ArchiveModule new(fR, this)
             if(element module == null) {
-                // If the element' module is null, it means that there are files
-                // in the cache that we don't need to compile for this run.
-                // Typically, the compiler has been launched several times
-                // in the same folder for different .ooc files
-
-                // If it contains a main, then it *needs* to be removed
-                // from the archive file, otherwise there would be two mains
-                // and the resulting app would probably launch the wrong main..
-
-                // For now, we remove it anyway - later, we might want to check
-                // if it does really contain a main
+                // If we didn't find the module, it should be removed from the archive.
                 if(params veryVerbose || params debugLibcache) {
                     "Removing %s from archive %s" printfln(element oocPath, outlib)
                 }
 
-                // turn "blah/file.ooc" into "blah_file.o"
-                name := element oocPath replaceAll(File separator, '_')
-
                 args := ArrayList<String> new()
-                args add("ar") .add((params veryVerbose || params debugLibcache) ? "dv" : "d"). add(outlib). add(name substring(0, name length() - 2))
+                args add("ar")
+
+                args add("d")
+                if (params veryVerbose || params debugLibcache) {
+                    args add("v")
+                }
+                args add(outlib)
+                args add(element objectPath)
 
                 output := Process new(args) getOutput()
 
@@ -160,13 +159,14 @@ Archive: class {
        save() must be called afterwards so that bunches of
        modules can be added all at once.
      */
-    add: func (module: Module) {
+    add: func (module: Module, objectPath: String) {
         modules add(module)
         map put(module, this)
+        objectFiles add(objectPath)
     }
 
     add: func ~archive (archive: Archive) {
-        archives add(archive)
+        objectFiles add(archive outlib)
     }
 
     /**
@@ -193,15 +193,6 @@ Archive: class {
         cleanModules := ArrayList<Module> new()
         cleanModules addAll(modules)
 
-        dotOutput := (Env get("ROCK_DOT_OUTPUT") == "1")
-        dotFile: FileWriter
-        if(dotOutput) {
-            params debugLibcache = true
-            dotFile = FileWriter new("deps-" + sourceFolder + ".dot")
-            dotFile write("digraph deps {\n")
-            dotFile write("rankdir = LR;\n")
-        }
-        
         running := true
         while(running) {
             if(params veryVerbose || params debugLibcache) {
@@ -213,9 +204,6 @@ Archive: class {
                 if(!subArchive) {
                     if(params veryVerbose || params debugLibcache) {
                         "%s is dirty because we can't find the archive" printfln(module getFullName())
-                        if(dotOutput) {
-                            dotFile write("\""). write(module simpleName). write("\""). write(" -> "). write("ArchiveNotFound;\n")
-                        }
                     }
                     transModules add(module); continue
                 }
@@ -225,17 +213,11 @@ Archive: class {
                     if(params veryVerbose || params debugLibcache) {
                         "%s is dirty because we can't find the element in archive %s" format(module getFullName(), subArchive pathElement path) println()
                     }
-                    if(dotOutput) {
-                        dotFile write("\""). write(module simpleName). write("\""). write(" -> "). write("\"ElementNotInArchive\";\n")
-                    }
                     transModules add(module); continue
                 }
                 if(!element upToDate?) {
                     if(params veryVerbose || params debugLibcache) {
                         "%s is dirty because of element %s" printfln(module getFullName(), element oocPath)
-                    }
-                    if(dotOutput) {
-                        dotFile write("\""). write(module simpleName). write("\""). write(" -> "). write("\"StructuralDirty\";\n")
                     }
                     subArchive elements put(oocPath, ArchiveModule new(module, subArchive))
                     structuralDirties add(module)
@@ -249,9 +231,6 @@ Archive: class {
                     if(params veryVerbose || params debugLibcache) {
                         "%s out-of-date, recompiling... (%d vs %d, oocPath = %s)" printfln(module getFullName(), lastModified, element lastModified, oocPath)
                     }
-                    if(dotOutput) {
-                        dotFile write("\""). write(module simpleName). write("\""). write(" -> "). write("\"OutOfDate\";\n")
-                    }
                     transModules add(module); continue
                 }
 
@@ -263,9 +242,6 @@ Archive: class {
                             "%s is dirty because of import %s" format(module getFullName(), candidate getFullName()) println()
                         }
                         if(!trans) {
-                            if(dotOutput) {
-                                dotFile write("\""). write(module simpleName). write("\""). write(" -> "). write("\""). write(candidate simpleName). write("\";\n")
-                            }
                             transModules add(module)
                             trans = true
                         }
@@ -294,10 +270,6 @@ Archive: class {
             }
         }
 
-        if(dotOutput) {
-            dotFile write("}\n"). close()
-        }
-
         dirtyModules
 
     }
@@ -312,15 +284,22 @@ Archive: class {
             "Creating/updating archive %s\n" printfln(outlib)
         }
 
-        if (modules empty?() && archives empty?()) {
+        if (modules empty?() && objectFiles empty?()) {
             if(params veryVerbose || params debugLibcache) {
                 "No (new?) member in archive %s, skipping" printfln(pathElement path)
             }
             return
         }
 
+        // update .cacheinfo
+        for (module in modules) {
+            element := ArchiveModule new(module, this)
+            elements put(element oocPath, element) // replace
+        }
+
+        // update .a using GNU ar
         args := ArrayList<String> new()
-        args add("ar") // GNU ar tool, manages archives
+        args add("ar")
 
         flags := ArrayList<String> new()
 
@@ -347,18 +326,8 @@ Archive: class {
         // output path
         args add(outlib)
 
-        for (module in modules) {
-            // we add .o (object files) to the archive
-            oName := "%s.o" format(module path replaceAll(File separator, '_'))
-            oPath := File new(params outPath, oName) getPath()
-            args add(oPath)
-
-            element := ArchiveModule new(module, this)
-            elements put(element oocPath, element) // replace
-        }
-
-        for (archive in archives) {
-            args add(archive outlib)
+        for (objectFile in objectFiles) {
+            args add(objectFile)
         }
 
         File new(outlib) parent mkdirs()
@@ -386,7 +355,7 @@ Archive: class {
  */
 ArchiveModule: class {
 
-    oocPath: String
+    oocPath, objectPath: String
     lastModified: Long
     module: Module
     archive: Archive
@@ -398,6 +367,8 @@ ArchiveModule: class {
      */
     init: func ~fromModule (=module, =archive) {
         oocPath = module path + ".ooc"
+        objectPath = archive sourceFolder relativeObjectPath(module)
+
         if(archive pathElement) {
             lastModified = File new(archive pathElement, oocPath) lastModified()
         } else {
@@ -415,6 +386,7 @@ ArchiveModule: class {
      */
     init: func ~fromFileReader(fR: FileReader, =archive) {
         oocPath = fR readLine()
+        objectPath = fR readLine()
         lastModified = fR readLine() toLong()
 
         typesSize := fR readLine() toInt()
@@ -469,11 +441,11 @@ ArchiveModule: class {
                     }
                 }
                 if(statVarIter hasNext?()) {
-                    if(archive params debugLibcache) "Less static vars, %s not up-to-date\n" printfln(oocPath)
+                    if(archive params debugLibcache) "Fewer static vars, %s not up-to-date\n" printfln(oocPath)
                     return false
                 }
                 if(instanceVarIter hasNext?()) {
-                    if(archive params debugLibcache) "Less instance vars, %s not up-to-date\n" printfln(oocPath)
+                    if(archive params debugLibcache) "Fewer instance vars, %s not up-to-date\n" printfln(oocPath)
                     return false
                 }
 
@@ -492,7 +464,7 @@ ArchiveModule: class {
                 }
 
                 if(functionIter hasNext?()) {
-                    if(archive params debugLibcache) "Less methods, %s not up-to-date\n" printfln(oocPath)
+                    if(archive params debugLibcache) "Fewer methods, %s not up-to-date\n" printfln(oocPath)
                     return false
                 }
             }
@@ -517,9 +489,10 @@ ArchiveModule: class {
      */
     write: func (fW: FileWriter) {
         // ooc path
+        // object path
         // lastModified
         // number of types
-        fW writef("%s\n%ld\n%d\n", oocPath, lastModified, types getSize())
+        fW writef("%s\n%s\n%ld\n%d\n", oocPath, objectPath, lastModified, types getSize())
 
         // write each type
         i := 0

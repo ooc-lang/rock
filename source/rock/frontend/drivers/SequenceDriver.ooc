@@ -111,7 +111,7 @@ SequenceDriver: class extends Driver {
             // create a thin archive with a symbol table - MinGW's linker
             // will complain otherwise.
             outlib := File new(params libcachePath, binaryName + ".a") getPath()
-            archive := Archive new(binaryName, outlib, params, false, null)
+            archive := Archive new(null, outlib, params, false, null)
             for(sourceFolder in sourceFolders) {
                 archive add(sourceFolder archive)
             }
@@ -187,7 +187,7 @@ SequenceDriver: class extends Driver {
 
         path := File new(params outPath, module getPath("")) getPath()
         cFile := File new(path + ".c")
-        oFile := File new(params outPath, module path replaceAll(File separator, '_') + ".o")
+        oFile := File new(params libcachePath, sourceFolder relativeObjectPath(module))
 
         archive := sourceFolder archive
         archiveDate := (archive ? File new(archive outlib) lastModified() : oFile lastModified())
@@ -203,7 +203,7 @@ SequenceDriver: class extends Driver {
             flags absorb(module)
 
             process := params compiler launchCompiler(flags)
-            code := pool add(ModuleJob new(process, module, archive))
+            code := pool add(ModuleJob new(process, module, archive, oFile path))
             if (code != 0) {
                 // a process failed, can stop launching jobs now
                 return code
@@ -266,8 +266,9 @@ ModuleJob: class extends Job {
 
     module: Module
     archive: Archive
+    objectPath: String
 
-    init: func (.process, =module, =archive) {
+    init: func (.process, =module, =archive, =objectPath) {
       super(process)
     }
 
@@ -278,7 +279,7 @@ ModuleJob: class extends Job {
         }
 
         if (archive) {
-          archive add(module)
+          archive add(module, objectPath)
         }
     }
 
