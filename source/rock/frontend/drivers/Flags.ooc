@@ -5,7 +5,7 @@ import structs/[List, ArrayList, HashMap]
 
 // our stuff
 import rock/frontend/[BuildParams, Target]
-import rock/frontend/drivers/SourceFolder
+import rock/frontend/drivers/[Archive, SourceFolder]
 import rock/frontend/pkgconfig/[PkgInfo, PkgConfigFrontend]
 import rock/middle/[Module, UseDef]
 
@@ -238,6 +238,10 @@ Flags: class {
         if (!premainFlags contains?(flag)) {
             premainFlags add(flag)
         }
+    }
+
+    addObject: func ~archive (archive: Archive) {
+        addObject(archive outlib)
     }
 
     addObject: func (object: String) {

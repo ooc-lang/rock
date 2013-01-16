@@ -76,38 +76,56 @@ SequenceDriver: class extends Driver {
         }
 
         // step 4: link
-        if (params verbose) {
-            "Linking..." println()
-        }
-
         if (params link) {
-            binaryPath := params getBinaryPath(module simpleName)
-            binaryName := File new(binaryPath) name
-
-            // step 4 a: create a thin archive with a symbol table
-            outlib := File new(params libcachePath, binaryName + ".a") getPath()
-            archive := Archive new(binaryName, outlib, params, false, null)
-            for(sourceFolder in sourceFolders) {
-                archive add(sourceFolder archive)
+            if (params verbose) {
+                "Linking..." println()
             }
-            archive save(params, true, true)
 
-            // step 4 b: link that big thin archive
-            flags := Flags new(binaryPath, params)
-
-            flags absorb(params)
-            for (sourceFolder in sourceFolders) {
-                flags absorb(sourceFolder)
-            }
-            flags addObject(archive outlib)
-
-            code := params compiler launchLinker(flags, params linker) wait()
+            code := link(module)
             if (code != 0) {
                 return code
             }
         }
 
         return 0
+    }
+
+    link: func (module: Module) -> Int {
+        binaryPath := params getBinaryPath(module simpleName)
+        binaryName := File new(binaryPath) name
+
+        // step 4 b: link that big thin archive
+        flags := Flags new(binaryPath, params)
+
+        flags absorb(params)
+        for (sourceFolder in sourceFolders) {
+            flags absorb(sourceFolder)
+        }
+
+        intermediateArchive := false
+        version (windows) {
+            intermediateArchive = true
+        }
+
+        if (intermediateArchive) {
+            // create a thin archive with a symbol table - MinGW's linker
+            // will complain otherwise.
+            outlib := File new(params libcachePath, binaryName + ".a") getPath()
+            archive := Archive new(binaryName, outlib, params, false, null)
+            for(sourceFolder in sourceFolders) {
+                archive add(sourceFolder archive)
+            }
+            archive save(params, true, true)
+            flags addObject(archive outlib)
+        } else {
+            // not on Windows? Modern Linux/OSX linkers will accept static
+            // libraries in any order, let's blissfully go ahead.
+            for(sourceFolder in sourceFolders) {
+                flags addObject(sourceFolder archive)
+            }
+        }
+
+        params compiler launchLinker(flags, params linker) wait()
     }
 
     /**
