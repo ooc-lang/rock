@@ -181,8 +181,9 @@ Archive: class {
      */
     exists?: Bool {
         get {
-            if(!File new(outlib) exists?()) return false
             if(!doCacheinfo) return false
+            if(!File new(outlib) exists?()) return false
+            if(!File new(cacheInfoPath) exists?()) return false
 
             fR := FileReader new(cacheInfoPath)
             result := _readHeader(fR)
