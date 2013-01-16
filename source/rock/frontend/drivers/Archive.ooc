@@ -305,7 +305,9 @@ Archive: class {
         }
 
         if (thin) {
-            flags add("T")
+            version (windows) {
+                flags add("T")
+            }
         }
 
         if (params debugLibcache) {
