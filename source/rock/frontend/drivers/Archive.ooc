@@ -70,7 +70,7 @@ Archive: class {
             return
         }
 
-        "[%s], %s" printfln(cacheInfoPath, msg)
+        "[%s] %s" printfln(cacheInfoPath, msg)
     }
 
     debug: func ~var (msg: String, args: ...) {
@@ -208,7 +208,7 @@ Archive: class {
             for(module in cleanModules) {
                 subArchive := map get(module)
                 if(!subArchive) {
-                    debug("%s is dirty because we can't find the archive")
+                    debug("%s is dirty because we can't find the archive", module getFullName())
                     transModules add(module); continue
                 }
                 oocPath := module path + ".ooc"
@@ -470,6 +470,11 @@ ArchiveModule: class {
         oocFile := File new(archive pathElement, oocPath)
         if(oocFile exists?()) {
             module = AstBuilder cache get(oocFile getAbsolutePath())
+            if (!module) {
+                archive debug("Not found in AstBuilder cache: %s", oocFile path)
+            }
+        } else {
+            archive debug("Couldn't find ooc file %s", oocFile path)
         }
     }
 

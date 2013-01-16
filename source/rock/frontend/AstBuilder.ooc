@@ -56,7 +56,8 @@ AstBuilder: class {
     init: func (=modulePath, =module, =params) {
         first := static true
 
-        cache put(File new(modulePath) getAbsolutePath(), module)
+        absolutePath := File new(modulePath) getAbsolutePath()
+        cache put(absolutePath, module)
 
         stack = Stack<Object> new()
         stack push(module)
