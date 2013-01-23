@@ -102,9 +102,12 @@ SequenceDriver: class extends Driver {
             flags absorb(sourceFolder)
         }
 
-        intermediateArchive := false
-        version (windows) {
-            intermediateArchive = true
+        intermediateArchive := true
+        version (apple) {
+            // Apple's BSD-like toolchain doesn't give a shit
+            // about library order, but god forbid you should try
+            // to do nested/thin archives. Oh, no.
+            intermediateArchive = false
         }
 
         if (intermediateArchive) {

@@ -306,7 +306,9 @@ Archive: class {
         }
 
         if (thin) {
-            version (windows) {
+            // Apple's linker thinks -T means truncate. Who's living
+            // in the 18th century? It's OpenStep's bastard child!
+            version (!apple) {
                 flags add("T")
             }
         }
