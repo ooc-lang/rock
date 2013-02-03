@@ -58,6 +58,7 @@ UseDef: class {
     libPaths     := ArrayList<String> new()
     includePaths := ArrayList<String> new()
     preMains     := ArrayList<String> new()
+    additionals  := ArrayList<String> new()
 
     init: func (=identifier) {}
 
@@ -70,6 +71,7 @@ UseDef: class {
     getLibPaths:     func -> List<String>      { libPaths }
     getIncludePaths: func -> List<String>      { includePaths }
     getPreMains:     func -> List<String>      { preMains }
+    getAdditionals:  func -> List<String>      { additionals }
 
     parse: static func (identifier: String, params: BuildParams) -> UseDef {
         cached := This cache get(identifier)
@@ -247,6 +249,14 @@ UseDef: class {
                         incFile = file parent getChild(path) getAbsoluteFile()
                     }
                     includePaths add(incFile path)
+                }
+            } else if(id == "Additionals") {
+                for(path in value split(',')) {
+                    additional := File new(path trim())
+                    if(additional relative?()) {
+                        additional = file parent getChild(path) getAbsoluteFile()
+                    }
+                    additionals add(additional path)
                 }
             } else if(id == "Requires") {
                 for(req in value split(',')) {
