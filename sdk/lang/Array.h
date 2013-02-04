@@ -19,19 +19,19 @@
     (index < 0 || index >= array.length) ? \
     lang_Exception__Exception_throw((lang_Exception__Exception *) lang_Exception__OutOfBoundsException_new_noOrigin(index, array.length)), \
     *((type*) NULL) : \
-    ((type* restrict) array.data)[index])
+    ((type*) array.data)[index])
 
 #define _lang_array__Array_set(array, index, type, value) \
     (index < 0 || index >= array.length) ? \
     lang_Exception__Exception_throw((lang_Exception__Exception *) lang_Exception__OutOfBoundsException_new_noOrigin(index, array.length)), \
     *((type*) NULL) : \
-    (((type* restrict) array.data)[index] = value)
+    (((type*) array.data)[index] = value)
 
 #define _lang_array__Array_free(array) { array_free(array.data) }
 
 typedef struct {
     size_t length;
-    void* restrict data;
+    void* data;
 } _lang_array__Array;
 
 #endif // ___lang_array___
