@@ -300,7 +300,8 @@ CommandLine: class {
                         case "dummy" =>
                             DummyDriver new(params)
                         case =>
-                            "[WARNING] Unknown driver: %s" printfln(driverName)
+                            "[ERROR] Unknown driver: %s" printfln(driverName)
+                            failure(params)
                             null
                     }
 
