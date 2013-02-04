@@ -35,9 +35,14 @@ AndroidDriver: class extends Driver {
 
         sourceFolders = collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<Module> new())
 
+        // step 1: copy local headers
+        params libcachePath = params outPath path
+        copyLocalHeaders(module, params, ArrayList<Module> new())
+
+        // from the on, we handle the show - adjusting outPath as we go
         params libcache = false
 
-        // step 1: generate C sources
+        // step 2: generate C sources
         for (sourceFolder in sourceFolders) {
             generateSources(sourceFolder)
         }
