@@ -15,7 +15,7 @@ import native/win32/errors
 
 include setjmp, assert, errno
 
-version(linux) {
+version(linux && !android) {
     include execinfo
 
     backtrace: extern func (array: Void**, size: Int) -> Int
@@ -136,16 +136,15 @@ Exception: class {
     backtraces: LinkedList<Backtrace> = LinkedList<Backtrace> new()
 
     addBacktrace: func {
-        version(linux) {
+        version(linux && !android) {
             backtraceBuffer := gc_malloc(Pointer size * BACKTRACE_LENGTH)
             backtraceLength := backtrace(backtraceBuffer, BACKTRACE_LENGTH)
             backtraces add(Backtrace new(backtraceLength, backtraceBuffer))
         }
-        // TODO: other platforms
     }
 
     printBacktrace: func {
-        version(linux) {
+        version(linux && !android) {
             if (!backtraces empty?()) {
                 stderr write("[backtrace]\n")
             }
@@ -164,7 +163,6 @@ Exception: class {
                 }
             }
         }
-        // TODO: other platforms
     }
 
     /** Class which threw the exception. May be null */
