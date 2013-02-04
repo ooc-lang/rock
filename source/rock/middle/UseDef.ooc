@@ -83,6 +83,9 @@ UseDef: class {
             cached = UseDef new(identifier)
             file := findUse(identifier + ".use", params)
             if(!file) return null
+
+            "Use %s sourced from %s" printfln(identifier, file path)
+
             cached read(file, params)
             This cache put(identifier, cached)
 
@@ -115,7 +118,8 @@ UseDef: class {
 
             for(subPath in children) {
                 if (params veryVerbose) {
-                    "for subPath %s - dir %d - link %d file %d" printfln(subPath getPath(), subPath dir?(), subPath link?(), subPath file?())
+                    "for subPath %s - dir %d - link %d file %d" printfln(subPath getPath(), \
+                        subPath dir?(), subPath link?(), subPath file?())
                 }
                 if(subPath dir?() || subPath link?()) {
                     candidate := File new(subPath, fileName)

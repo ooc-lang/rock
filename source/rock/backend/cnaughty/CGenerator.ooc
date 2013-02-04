@@ -39,8 +39,8 @@ CGenerator: class extends Skeleton {
             hw = AwesomeWriter new(this, CachedFileWriter new(hOutPath path + ".h"))
             fw = AwesomeWriter new(this, CachedFileWriter new(hOutPath path + "-fwd.h"))
         } else {
-            hw = AwesomeWriter new(this, CachedFileWriter new(File new(params outPath path, module getPath(".h")) path))
-            fw = AwesomeWriter new(this, CachedFileWriter new(File new(params outPath path, module getPath("-fwd.h")) path))
+            hw = AwesomeWriter new(this, CachedFileWriter new(File new(params outPath, module getPath(".h"))))
+            fw = AwesomeWriter new(this, CachedFileWriter new(File new(params outPath, module getPath("-fwd.h"))))
         }
 
         cOutPath := File new(params outPath path, module getPath(".c"))

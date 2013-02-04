@@ -36,7 +36,7 @@ DummyDriver: class extends Driver {
             CGenerator new(params, candidate) write()
         }
 
-        copyLocalHeaders(module, params, ArrayList<Module> new())
+        copyLocals(module, params)
 
         if (params verbose) {
             "Generated sources in %s, enjoy!" format(params outPath path) println()

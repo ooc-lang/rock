@@ -31,7 +31,7 @@ SequenceDriver: class extends Driver {
     compile: func (module: Module) -> Int {
         pool parallelism = params parallelism
 
-        copyLocalHeaders(module, params, ArrayList<Module> new())
+        copyLocals(module, params)
 
         sourceFolders = collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<Module> new())
         dirtyModules := HashMap<SourceFolder, List<Module>> new()

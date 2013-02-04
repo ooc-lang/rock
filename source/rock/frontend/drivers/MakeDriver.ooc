@@ -69,7 +69,7 @@ MakeDriver: class extends SequenceDriver {
             CGenerator new(params, candidate) write()
         }
 
-        copyLocalHeaders(module, params, ArrayList<Module> new())
+        copyLocals(module, params)
 
         "Writing to %s" printfln(makefile path)
         fW := FileWriter new(makefile)

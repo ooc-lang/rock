@@ -79,8 +79,8 @@ BuildParams: class {
         // add from environment variable
         path := Env get("OOC_LIBS")
         if(path) {
-            path split(File pathDelimiter, false) each(|path|
-                libsPaths add(File new(path))
+            path split(File pathDelimiter, false) each(|libPath|
+                libsPaths add(File new(libPath))
             )
         } else {
             addIfExists := func (path: String) {

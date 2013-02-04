@@ -24,27 +24,43 @@ Driver: abstract class {
 
     compile: abstract func (module: Module) -> Int
 
-    copyLocalHeaders: func (module: Module, params: BuildParams, done: List<Module>) {
+    copyLocals: func (module: Module, params: BuildParams, done := ArrayList<Module> new(), usesDone := ArrayList<UseDef> new()) {
 
         if(done contains?(module)) return
         done add(module)
 
+        path := module path + ".ooc"
+        pathElement := params sourcePath getFile(path) parent
+
         for(inc: Include in module includes) {
             if(inc mode == IncludeModes LOCAL) {
-                destPath := (params libcache) ? \
-                    params libcachePath + File separator + module getSourceFolderName() : \
-                    params outPath path
-
-                path := module path + ".ooc"
-                pathElement := params sourcePath getFile(path) parent
+                dest := (params libcache) ? \
+                    File new(params libcachePath, module getSourceFolderName()) : \
+                    params outPath
 
                 File new(pathElement, inc path + ".h") copyTo(
-                File new(destPath,    inc path + ".h"))
+                File new(dest,        inc path + ".h"))
             }
         }
 
         for(imp: Import in module getAllImports()) {
-            copyLocalHeaders(imp getModule(), params, done)
+            copyLocals(imp getModule(), params, done, usesDone)
+        }
+        
+        for(uze: Use in module getUses()) {
+            useDef := uze useDef
+            if (usesDone contains?(useDef)) {
+                continue
+            }
+            usesDone add(useDef)
+
+            for (additional in useDef getAdditionals()) {
+                src := File new(additional)
+                dest := File new(params libcachePath, src getName())
+
+                "Copying %s to %s" printfln(src path, dest path)
+                src copyTo(dest)
+            }
         }
 
     }

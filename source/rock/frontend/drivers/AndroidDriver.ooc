@@ -1,6 +1,6 @@
 
 // sdk stuff
-import io/File
+import io/[File, FileWriter]
 import structs/[List, ArrayList, HashMap]
 
 // our stuff
@@ -37,7 +37,7 @@ AndroidDriver: class extends Driver {
 
         // step 1: copy local headers
         params libcachePath = params outPath path
-        copyLocalHeaders(module, params, ArrayList<Module> new())
+        copyLocals(module, params)
 
         // from the on, we handle the show - adjusting outPath as we go
         params libcache = false
@@ -45,6 +45,11 @@ AndroidDriver: class extends Driver {
         // step 2: generate C sources
         for (sourceFolder in sourceFolders) {
             generateSources(sourceFolder)
+        }
+
+        // step 3: generate Android.mk files
+        for (sourceFolder in sourceFolders) {
+            generateMakefile(sourceFolder)
         }
 
         1
@@ -66,6 +71,111 @@ AndroidDriver: class extends Driver {
 
         params outPath = originalOutPath
 
+    }
+
+    generateMakefile: func (sourceFolder: SourceFolder) {
+        deps := collectSourceFolderDeps(sourceFolder)
+        uses := collectUses(sourceFolder)
+
+        dest := File new(File new(params outPath, sourceFolder identifier), "Android.mk")
+        fw := FileWriter new(dest)
+
+        fw write("LOCAL_PATH := $(call my-dir)\n")
+        fw write("\n")
+        fw write("include $(CLEAR_VARS)\n")
+        fw write("\n")
+        fw write("LOCAL_MODULE := "). write(sourceFolder identifier). write("\n")
+        fw write("LOCAL_C_INCLUDES := ")
+
+        for (dep in deps) {
+            fw write("$(LOCAL_PATH)/../"). write(dep identifier). write(" ")
+        }
+
+        for (uze in uses) {
+            for (path in uze getAndroidIncludePaths()) {
+                fw write("$(LOCAL_PATH)/"). write(path). write(" ")
+            }
+        }
+
+        fw write("\n")
+        fw write("\n")
+
+        fw write("LOCAL_SRC_FILES := ")
+        for (module in sourceFolder modules) {
+            path := module getPath(".c")
+            fw write(path). write(" ")
+        }
+        fw write("\n")
+
+        localDynamicLibraries := ArrayList<String> new() 
+        if (params enableGC) {
+            localDynamicLibraries add("gc")
+        }
+
+        for (uze in uses) {
+            localDynamicLibraries addAll(uze getAndroidLibs())
+        }
+
+        if (!localDynamicLibraries empty?()) {
+            fw write("LOCAL_DYNAMIC_LIBRARIES := ")
+            for (lib in localDynamicLibraries) {
+                fw write(lib). write(" ")
+            }
+            fw write("\n\n")
+        }
+
+        fw write("LOCAL_STATIC_LIBRARIES := ")
+        for (dep in deps) {
+            if (dep == sourceFolder) {
+                continue
+            }
+            fw write(dep identifier). write(" ")
+        }
+        fw write("\n")
+
+        fw write("include $(BUILD_STATIC_LIBRARY)")
+
+        fw close()
+    }
+
+    collectSourceFolderDeps: func (sourceFolder: SourceFolder) -> List<SourceFolder> {
+        // TODO: stub
+        list := ArrayList<SourceFolder> new()
+
+        sourceFolders each(|k, v|
+            list add(v)
+        )
+        list
+    }
+
+    collectUses: func ~sourceFolders (sourceFolder: SourceFolder, \
+            modulesDone := ArrayList<Module> new(), usesDone := ArrayList<UseDef> new()) -> List<UseDef> {
+        for (module in sourceFolder modules) {
+            collectUses(module, modulesDone, usesDone)
+        }
+
+        usesDone
+    }
+
+    collectUses: func ~modules (module: Module, \
+            modulesDone := ArrayList<Module> new(), usesDone := ArrayList<UseDef> new()) -> List<UseDef> {
+        if (modulesDone contains?(module)) {
+            return usesDone
+        }
+        modulesDone add(module)
+        
+        for (uze in module getUses()) {
+            useDef := uze useDef
+            if (!usesDone contains?(useDef)) {
+                usesDone add(useDef)
+            }
+        }
+
+        for (imp in module getAllImports()) {
+            collectUses(imp getModule(), modulesDone, usesDone)
+        }
+
+        usesDone
     }
 
 }
