@@ -59,6 +59,8 @@ UseDef: class {
     includePaths := ArrayList<String> new()
     preMains     := ArrayList<String> new()
     additionals  := ArrayList<String> new()
+    androidLibs         := ArrayList<String> new()
+    androidIncludePaths := ArrayList<String> new()
 
     init: func (=identifier) {}
 
@@ -72,6 +74,8 @@ UseDef: class {
     getIncludePaths: func -> List<String>      { includePaths }
     getPreMains:     func -> List<String>      { preMains }
     getAdditionals:  func -> List<String>      { additionals }
+    getAndroidLibs:  func -> List<String>      { androidLibs }
+    getAndroidIncludePaths:  func -> List<String>      { androidIncludePaths }
 
     parse: static func (identifier: String, params: BuildParams) -> UseDef {
         cached := This cache get(identifier)
@@ -249,6 +253,14 @@ UseDef: class {
                         incFile = file parent getChild(path) getAbsoluteFile()
                     }
                     includePaths add(incFile path)
+                }
+            } else if(id == "AndroidLibs") {
+                for(path in value split(',')) {
+                    androidLibs add(path trim())
+                }
+            } else if(id == "AndroidIncludePaths") {
+                for(path in value split(',')) {
+                    androidIncludePaths add(path trim())
                 }
             } else if(id == "Additionals") {
                 for(path in value split(',')) {
