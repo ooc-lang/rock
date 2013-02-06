@@ -74,7 +74,7 @@ AndroidDriver: class extends Driver {
     }
 
     generateMakefile: func (sourceFolder: SourceFolder) {
-        deps := collectSourceFolderDeps(sourceFolder)
+        deps := collectSourceFolders(sourceFolder)
         uses := collectUses(sourceFolder)
 
         dest := File new(File new(params outPath, sourceFolder identifier), "Android.mk")
@@ -90,6 +90,7 @@ AndroidDriver: class extends Driver {
         for (dep in deps) {
             fw write("$(LOCAL_PATH)/../"). write(dep identifier). write(" ")
         }
+        fw write("$(LOCAL_PATH)/../"). write(sourceFolder identifier). write(" ")
 
         for (uze in uses) {
             for (path in uze getAndroidIncludePaths()) {
@@ -126,9 +127,6 @@ AndroidDriver: class extends Driver {
 
         fw write("LOCAL_STATIC_LIBRARIES := ")
         for (dep in deps) {
-            if (dep == sourceFolder) {
-                continue
-            }
             fw write(dep identifier). write(" ")
         }
         fw write("\n")
@@ -138,14 +136,37 @@ AndroidDriver: class extends Driver {
         fw close()
     }
 
-    collectSourceFolderDeps: func (sourceFolder: SourceFolder) -> List<SourceFolder> {
-        // TODO: stub
-        list := ArrayList<SourceFolder> new()
+    collectSourceFolders: func ~sourceFolders (sourceFolder: SourceFolder, \
+            modulesDone := ArrayList<Module> new(), sourceFoldersDone := ArrayList<SourceFolder> new()) -> List<SourceFolder> {
 
-        sourceFolders each(|k, v|
-            list add(v)
-        )
-        list
+        for (module in sourceFolder modules) {
+            collectSourceFolders(module, modulesDone, sourceFoldersDone)
+        }
+
+        sourceFoldersDone
+    }
+
+    collectSourceFolders: func ~modules (module: Module, \
+            modulesDone := ArrayList<Module> new(), sourceFoldersDone := ArrayList<SourceFolder> new()) -> List<SourceFolder> {
+
+        if (modulesDone contains?(module)) {
+            return sourceFoldersDone
+        }
+        modulesDone add(module)
+        
+        for (uze in module getUses()) {
+            useDef := uze useDef
+            dep := sourceFolders get(useDef identifier)
+            if (dep && !sourceFoldersDone contains?(dep)) {
+                sourceFoldersDone add(dep)
+            }
+        }
+
+        for (imp in module getAllImports()) {
+            collectSourceFolders(imp getModule(), modulesDone, sourceFoldersDone)
+        }
+
+        sourceFoldersDone
     }
 
     collectUses: func ~sourceFolders (sourceFolder: SourceFolder, \
