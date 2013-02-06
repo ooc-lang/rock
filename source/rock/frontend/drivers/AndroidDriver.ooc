@@ -52,7 +52,7 @@ AndroidDriver: class extends Driver {
             generateMakefile(sourceFolder)
         }
 
-        1
+        0 
     }
     
     /**
