@@ -27,4 +27,12 @@ Skeleton: abstract class extends Visitor {
         current app(STRING_CONSTRUCTOR format(value, EscapeSequence unescape(value) length()))
     }
 
+    writeGcInit: func { 
+        current nl(). app("#ifdef __ANDROID__");
+        current nl(). app("GC_init();")
+        current nl(). app("#else");
+        current nl(). app("GC_INIT();")
+        current nl(). app("#endif")
+    }
+
 }
