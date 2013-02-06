@@ -586,7 +586,15 @@ Buffer: class extends Iterable<Char> {
     toDouble: func -> Double                       { strtod(this data, null)   }
 
     /** convert the string's contents to Long Double. */
-    toLDouble: func -> LDouble                     { strtold(this data, null)   }
+    toLDouble: func -> LDouble                     {
+        version (android) {
+            return strtod(this data, null)
+        }
+        version (!android) {
+            return strtold(this data, null)
+        }
+        0.0
+    }
 
 
     iterator: func -> BufferIterator<Char> {
