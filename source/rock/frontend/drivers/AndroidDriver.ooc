@@ -108,30 +108,28 @@ AndroidDriver: class extends Driver {
         }
         fw write("\n")
 
-        localDynamicLibraries := ArrayList<String> new() 
+        localSharedLibraries := ArrayList<String> new() 
         if (params enableGC) {
-            localDynamicLibraries add("gc")
+            localSharedLibraries add("gc")
         }
 
         for (uze in uses) {
-            localDynamicLibraries addAll(uze getAndroidLibs())
+            localSharedLibraries addAll(uze getAndroidLibs())
         }
 
-        if (!localDynamicLibraries empty?()) {
-            fw write("LOCAL_DYNAMIC_LIBRARIES := ")
-            for (lib in localDynamicLibraries) {
+        for (dep in deps) {
+            localSharedLibraries add(dep identifier)
+        }
+
+        if (!localSharedLibraries empty?()) {
+            fw write("LOCAL_SHARED_LIBRARIES := ")
+            for (lib in localSharedLibraries) {
                 fw write(lib). write(" ")
             }
             fw write("\n\n")
         }
 
-        fw write("LOCAL_STATIC_LIBRARIES := ")
-        for (dep in deps) {
-            fw write(dep identifier). write(" ")
-        }
-        fw write("\n")
-
-        fw write("include $(BUILD_STATIC_LIBRARY)")
+        fw write("include $(BUILD_SHARED_LIBRARY)")
 
         fw close()
     }
