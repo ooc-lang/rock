@@ -266,7 +266,7 @@ File: abstract class {
                 } else {
                     elems add(elem)
                 }
-            } else if (elem == ".") {
+            } else if (elem == "." || elem == "") {
                 // do nothing
             } else {
                 elems add(elem)
