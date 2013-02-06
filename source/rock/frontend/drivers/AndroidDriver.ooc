@@ -106,6 +106,17 @@ AndroidDriver: class extends Driver {
             path := module getPath(".c")
             fw write(path). write(" ")
         }
+
+        uze := UseDef parse(sourceFolder identifier, params)
+        if (uze) {
+            ".use %s has %d additionals" printfln(uze identifier, uze getAdditionals() size)
+            
+            for (additional in uze getAdditionals()) {
+                stripped := File new(additional) getName()
+                "stripped = %d / %s" printfln(stripped size, stripped)
+                fw write(stripped). write(" ")
+            }
+        }
         fw write("\n")
 
         localSharedLibraries := ArrayList<String> new() 
