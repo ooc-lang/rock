@@ -129,6 +129,19 @@ AndroidDriver: class extends Driver {
             fw write("\n\n")
         }
 
+        localLdLibs := ArrayList<String> new()
+        for (uze in uses) {
+            localLdLibs addAll(uze getLibs())
+        }
+
+        if (!localLdLibs empty?()) {
+            fw write("LOCAL_LDLIBS := ")
+            for (lib in localLdLibs) {
+                fw write(lib). write(" ")
+            }
+            fw write("\n\n")
+        }
+
         fw write("include $(BUILD_SHARED_LIBRARY)")
 
         fw close()
