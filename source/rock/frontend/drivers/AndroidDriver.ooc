@@ -143,7 +143,7 @@ AndroidDriver: class extends Driver {
             collectSourceFolders(module, modulesDone, sourceFoldersDone)
         }
 
-        sourceFoldersDone
+        sourceFoldersDone filter(|sf| sf != sourceFolder)
     }
 
     collectSourceFolders: func ~modules (module: Module, \
