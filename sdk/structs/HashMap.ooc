@@ -136,41 +136,30 @@ ac_X31_hash: func <K> (key: K) -> SizeT {
 getStandardEquals: func <T> (T: Class) -> Func <T> (T, T) -> Bool {
     // choose comparing function for key type
     if(T == String) {
-        //"Choosing string comparing function" println()
         stringEquals
     } else if(T == CString) {
-        //"Choosing int comparing function" println()
         cstringEquals
     } else if(T size == Pointer size) {
-        //"Choosing int comparing function" println()
         pointerEquals
     } else if(T size == UInt size) {
-        //"Choosing int comparing function" println()
         intEquals
     } else if(T size == Char size) {
-        //"Choosing char comparing function" println()
         charEquals
     } else {
-        //"Choosing generic comparing function" println()
         genericEquals
     }
 }
 
 getStandardHashFunc: func <T> (T: Class) -> Func <T> (T) -> SizeT {
     if(T == String || T == CString) {
-        //"Choosing string hashing function" println()
         ac_X31_hash
     } else if(T size == Pointer size) {
-        //"Choosing pointer hashing function" println()
         pointerHash
     } else if(T size == UInt size) {
-        //"Choosing int hashing function" println()
         intHash
     } else if(T size == Char size) {
-        //"Choosing char hashing function" println()
         charHash
     } else {
-        //"Choosing generic hashing function" println()
         murmurHash
     }
 }
@@ -190,8 +179,8 @@ HashMap: class <K, V> extends BackIterable<V> {
     
     size : SizeT {
     	get {
-    		_size
-    	}
+            _size
+ 	}
     }
 
     /**
