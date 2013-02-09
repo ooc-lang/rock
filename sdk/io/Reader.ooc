@@ -187,31 +187,40 @@ Reader: abstract class {
     hasNext?: abstract func -> Bool
 
     /**
-       Attempt to rewind this stream by the given offset.
-     */
-    rewind: abstract func (offset: Int) -> Bool
-
-    /**
        Set the mark of this stream to the current position,
        and return it as a long.
      */
     mark: abstract func -> Long
 
     /**
+       Attempt to rewind this stream by the given offset.
+     */
+    rewind: func (offset: Int) -> Bool {
+        seek(-offset, SeekMode CUR)
+    }
+
+    /**
+     * Seeks to offset relative to whence
+     *
+     * Might throw an exception if the stream is not seekable
+     *
+     * :return: true on success
+     */
+    seek: abstract func (offset: Long, mode: SeekMode) ->  Bool
+
+    /**
        Attempt to reset the stream to the given mark
      */
-    reset: abstract func (marker: Long)
+    reset: func (marker: Long) {
+        seek(marker, SeekMode SET)
+    }
 
     /**
        Skip the given number of bytes.
        If `offset` is negative, we will attempt to rewind the stream
      */
     skip: func(offset: Int) {
-        if (offset < 0) {
-            rewind(-offset)
-        } else {
-            for (i: Int in 0..offset) read()
-        }
+        seek(offset, SeekMode CUR)
     }
 
     /**
@@ -220,3 +229,15 @@ Reader: abstract class {
     close: abstract func
 
 }
+
+SeekMode: enum {
+    /** seek to position `offset` in the file */
+    SET
+
+    /** seek relative to the current read point */
+    CUR
+
+    /** seek relative to the end of data */
+    END
+}
+
