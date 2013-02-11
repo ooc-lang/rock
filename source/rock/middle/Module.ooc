@@ -82,6 +82,9 @@ Module: class extends Node {
         identifier
     }
 
+    /**
+     * TODO: this is redundant with some stuff in Driver, merge those
+     */
     collectDeps: func -> List<Module> {
         _collectDeps(ArrayList<Module> new())
     }

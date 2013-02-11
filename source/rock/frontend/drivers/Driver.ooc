@@ -103,4 +103,34 @@ Driver: abstract class {
 
     }
 
+    collectUses: func ~sourceFolders (sourceFolder: SourceFolder, \
+            modulesDone := ArrayList<Module> new(), usesDone := ArrayList<UseDef> new()) -> List<UseDef> {
+        for (module in sourceFolder modules) {
+            collectUses(module, modulesDone, usesDone)
+        }
+
+        usesDone
+    }
+
+    collectUses: func ~modules (module: Module, \
+            modulesDone := ArrayList<Module> new(), usesDone := ArrayList<UseDef> new()) -> List<UseDef> {
+        if (modulesDone contains?(module)) {
+            return usesDone
+        }
+        modulesDone add(module)
+        
+        for (uze in module getUses()) {
+            useDef := uze useDef
+            if (!usesDone contains?(useDef)) {
+                usesDone add(useDef)
+            }
+        }
+
+        for (imp in module getAllImports()) {
+            collectUses(imp getModule(), modulesDone, usesDone)
+        }
+
+        usesDone
+    }
+
 }

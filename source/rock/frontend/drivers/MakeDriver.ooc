@@ -4,7 +4,7 @@ import io/[File, FileWriter]
 import structs/[List, ArrayList, HashMap]
 
 // our stuff
-import Driver, SequenceDriver, CCompiler, Flags
+import Driver, SequenceDriver, CCompiler, Flags, SourceFolder
 
 import rock/frontend/[BuildParams, Target]
 import rock/middle/Module
@@ -64,7 +64,10 @@ MakeDriver: class extends SequenceDriver {
 
         params outPath mkdirs()
 
-        toCompile := module collectDeps()
+        toCompile := ArrayList<Module> new()
+        sourceFolders := collectDeps(module, HashMap<String, SourceFolder> new(), toCompile)
+        uses := collectUses(module)
+
         for(candidate in toCompile) {
             CGenerator new(params, candidate) write()
         }
@@ -164,10 +167,17 @@ MakeDriver: class extends SequenceDriver {
 
         fW write("OBJECT_FILES:=")
 
-        for(currentModule in toCompile) {
-            "%p, %s" printfln(currentModule, currentModule fullName)
+        for (currentModule in toCompile) {
             path := File new(originalOutPath, currentModule getPath("")) getPath()
             fW write(path). write(".o ")
+        }
+
+        for (uze in uses) {
+            for (additional in uze getAdditionals()) {
+                cPath := File new(additional) getName()
+                oPath := "%s.o" format(cPath[0..-3])
+                fW write(oPath). write(" ")
+            }
         }
 
         fW write("\n\n.PHONY: compile link\n\n")
@@ -194,6 +204,14 @@ MakeDriver: class extends SequenceDriver {
                write(path). write("-fwd.h\n")
 
             fW write("\t${CC} ${CFLAGS} -c %s -o %s\n" format(cPath, oPath))
+        }
+
+        for (uze in uses) {
+            for (additional in uze getAdditionals()) {
+                cPath := File new(additional) getName()
+                oPath := "%s.o" format(cPath[0..-3])
+                fW write("\t${CC} ${CFLAGS} -c %s -o %s\n" format(cPath, oPath))
+            }
         }
 
         fW write("\nlink: ${OBJECT_FILES}\n")

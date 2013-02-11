@@ -109,11 +109,8 @@ AndroidDriver: class extends Driver {
 
         uze := UseDef parse(sourceFolder identifier, params)
         if (uze) {
-            ".use %s has %d additionals" printfln(uze identifier, uze getAdditionals() size)
-            
             for (additional in uze getAdditionals()) {
                 stripped := File new(additional) getName()
-                "stripped = %d / %s" printfln(stripped size, stripped)
                 fw write(stripped). write(" ")
             }
         }
@@ -158,6 +155,7 @@ AndroidDriver: class extends Driver {
         fw close()
     }
 
+    /** TODO: This is redundant with collectDeps, merge those */
     collectSourceFolders: func ~sourceFolders (sourceFolder: SourceFolder, \
             modulesDone := ArrayList<Module> new(), sourceFoldersDone := ArrayList<SourceFolder> new()) -> List<SourceFolder> {
 
@@ -189,36 +187,6 @@ AndroidDriver: class extends Driver {
         }
 
         sourceFoldersDone
-    }
-
-    collectUses: func ~sourceFolders (sourceFolder: SourceFolder, \
-            modulesDone := ArrayList<Module> new(), usesDone := ArrayList<UseDef> new()) -> List<UseDef> {
-        for (module in sourceFolder modules) {
-            collectUses(module, modulesDone, usesDone)
-        }
-
-        usesDone
-    }
-
-    collectUses: func ~modules (module: Module, \
-            modulesDone := ArrayList<Module> new(), usesDone := ArrayList<UseDef> new()) -> List<UseDef> {
-        if (modulesDone contains?(module)) {
-            return usesDone
-        }
-        modulesDone add(module)
-        
-        for (uze in module getUses()) {
-            useDef := uze useDef
-            if (!usesDone contains?(useDef)) {
-                usesDone add(useDef)
-            }
-        }
-
-        for (imp in module getAllImports()) {
-            collectUses(imp getModule(), modulesDone, usesDone)
-        }
-
-        usesDone
     }
 
 }

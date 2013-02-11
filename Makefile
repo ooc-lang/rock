@@ -31,9 +31,7 @@ grammar:
 prepare_bootstrap:
 	@echo "Preparing boostrap (in build/ directory)"
 	rm -rf build/
-	${OOC} -driver=make -sourcepath=source -outpath=c-source rock/rock -o=../bin/c_rock c-source/${NQ_PATH} -v -g +-w
-	
-	cp ${NQ_PATH} build/c-source/${NQ_PATH}
+	${OOC} -driver=make --sourcepath=source --outpath=c-source rock/rock -o=../bin/c_rock -v -g +-w
 	@echo "Done!"
 
 boehmgc:
