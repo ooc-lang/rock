@@ -261,6 +261,10 @@ TCPSocketReader: class extends Reader {
         SocketError new("Sockets do not support rewind") throw()
     }
 
+    seek: func(offset: Long, mode: SeekMode) {
+        SocketError new("Sockets do not support seek") throw()
+    }
+
     mark: func -> Long { marker }
 
     reset: func(marker: Long) {
