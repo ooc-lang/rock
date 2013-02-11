@@ -205,8 +205,6 @@ Flags: class {
         }
             
         if(params enableGC) {
-            addLinkerFlag("-lpthread")
-
             if(params dynGC) {
                 addLinkerFlag("-lgc")
             } else {
@@ -214,6 +212,8 @@ Flags: class {
                 libPath := "libs/" + Target toString(arch) + "/libgc.a"
                 addLinkerFlag(File new(params distLocation, libPath) path)
             }
+
+            addLinkerFlag("-lpthread")
         }
     }
 
