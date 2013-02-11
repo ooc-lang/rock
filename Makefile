@@ -24,12 +24,6 @@ all: bootstrap
 # http://github.com/nddrylliog/greg
 grammar:
 	${PARSER_GEN} ../nagaqueen/grammar/nagaqueen.leg > ${NQ_PATH}
-	$(MAKE) .libs/NagaQueen.o
-
-.libs/NagaQueen.o: source/rock/frontend/NagaQueen.c
-	mkdir -p .libs
-	${CC} -std=c99 ${NQ_PATH} -O3 -fomit-frame-pointer -D__OOC_USE_GC__ -w -c -o .libs/NagaQueen.o
-#	gcc -std=c99 ${NQ_PATH} -O0 -g -D__OOC_USE_GC__ -w -c -o .libs/NagaQueen.o
 
 # Prepares the build/ directory, used for bootstrapping
 # The build/ directory contains all the C sources needed to build rock
@@ -82,9 +76,9 @@ man:
 	cd docs/ && a2x -f manpage rock.1.txt
 
 # Compile rock with itself
-self: .libs/NagaQueen.o
+self:
 	mkdir -p bin/
-	${OOC_CMD} rock/rock -o=bin/rock .libs/NagaQueen.o
+	${OOC_CMD} rock/rock -o=bin/rock
 
 # Save your rock binary under bin/safe_rock
 backup:

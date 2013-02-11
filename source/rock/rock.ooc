@@ -1,3 +1,5 @@
+use rock
+
 import structs/ArrayList
 import frontend/CommandLine
 
