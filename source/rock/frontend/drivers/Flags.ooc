@@ -54,9 +54,12 @@ Flags: class {
     outPath: String
     params: BuildParams
   
-    modulesDone := ArrayList<Module> new()
-    modulesDone := ArrayList<Module> new()
-    usesDone := ArrayList<UseDef> new()
+    modules := ArrayList<Module> new()
+
+    /* identifier => UseDef */
+    uses := ArrayList<UseDef> new()
+
+    sourceFolders := ArrayList<SourceFolder> new()
   
     init: func (=outPath, =params) {
         addCompilerFlag("-std=gnu99")
@@ -64,6 +67,11 @@ Flags: class {
     }
   
     absorb: func ~sourceFolder (sourceFolder: SourceFolder) {
+        if (sourceFolders contains?(sourceFolder)) {
+            return
+        }
+        sourceFolders add(sourceFolder)
+
         addCompilerFlag("-I" + sourceFolder includePath())
 
         for(module in sourceFolder modules) {
@@ -72,10 +80,10 @@ Flags: class {
     }
   
     absorb: func ~module (module: Module) {
-        if(modulesDone contains?(module)) {
+        if(modules contains?(module)) {
            return
         }
-        modulesDone add(module)
+        modules add(module)
 
         for(uze in module getUses()) {
             absorb(uze useDef)
@@ -92,10 +100,10 @@ Flags: class {
             return
         }
 
-        if (usesDone contains?(useDef)) {
+        if (uses contains?(useDef)) {
             return
         }
-        usesDone add(useDef)
+        uses add(useDef)
 
         // TODO: there needs a better way to do that. .use files
         // are usually linked to SourceFolders, there needs to be a way
@@ -149,9 +157,9 @@ Flags: class {
         // necessarily the same place we're going to run rock.
         // additionals should actually be copied to the output
         // folder and that copy should be compiled separately.
-        for(additional in useDef getAdditionals()) {
-            addLinkerFlag(additional)
-        }
+        //for(additional in useDef getAdditionals()) {
+        //    addLinkerFlag(additional)
+        //}
 
         // .use file dependenceis
         for(req in useDef getRequirements()) {

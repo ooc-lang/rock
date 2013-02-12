@@ -172,6 +172,14 @@ Archive: class {
         objectFiles add(objectPath)
     }
 
+    /**
+       Schedule the addition of an object file to this
+       archive.
+     */
+    add: func ~additional (objectPath: String) {
+        objectFiles add(objectPath)
+    }
+
     add: func ~archive (archive: Archive) {
         objectFiles add(archive outlib)
     }

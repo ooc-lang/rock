@@ -165,10 +165,23 @@ SequenceDriver: class extends Driver {
             "\n%d new/updated modules to compile" printfln(dirtyModules size)
         }
 
-        for(module in dirtyModules) {
-            code := buildIndividual(module, sourceFolder, true)
+        // step 1: compile ooc modules
+        for (module in dirtyModules) {
+            code := buildModule(module, sourceFolder, true)
             if(code != 0) {
                 return code
+            }
+        }
+
+        // step 2: compile additionals, if any
+        flags := Flags new("", params)
+        flags absorb(sourceFolder)
+
+        for (uze in flags uses) {
+            if (uze sourcePath && uze sourcePath == sourceFolder absolutePath) {
+                for (additional in uze getAdditionals()) {
+                    buildAdditional(sourceFolder, additional)
+                }
             }
         }
 
@@ -179,7 +192,7 @@ SequenceDriver: class extends Driver {
     /**
      * Build an individual ooc module to its .o file
      */
-    buildIndividual: func (module: Module, sourceFolder: SourceFolder, force: Bool) -> Int {
+    buildModule: func (module: Module, sourceFolder: SourceFolder, force: Bool) -> Int {
 
         path := File new(params outPath, module getPath("")) getPath()
         cFile := File new(path + ".c")
@@ -213,6 +226,32 @@ SequenceDriver: class extends Driver {
         return 0
 
     }
+
+    /**
+     * Build an additional (.c/.s file) to a .o
+     */
+    buildAdditional: func (sourceFolder: SourceFolder, additional: String) -> Int {
+
+        name := File new(additional) getName()
+        cPath := File new(params libcachePath, name) getPath()
+        oPath := "%s.o" format(cPath[0..-3])
+
+        archive := sourceFolder archive
+
+        flags := Flags new(oPath, params)
+        flags absorb(params)
+        flags addObject(cPath)
+
+        process := params compiler launchCompiler(flags)
+        code := pool add(AdditionalJob new(process, archive, oPath))
+        if (code != 0) {
+            // a process failed, can stop launching jobs now
+            return code
+        }
+
+        return 0
+
+    }
 }
 
 /**
@@ -241,6 +280,36 @@ ModuleJob: class extends Job {
 
         if (archive) {
           archive add(module, objectPath)
+        }
+    }
+
+}
+
+/**
+ * Additionals are source files (.c, .s) that have
+ * to be compiled separately as part of rock's regular
+ * compile process and added to the sourcefolder archives.
+ *
+ * :author: Amos Wenger (nddrylliog)
+ */
+
+AdditionalJob: class extends Job {
+
+    archive: Archive
+    objectPath: String
+
+    init: func (.process, =archive, =objectPath) {
+      super(process)
+    }
+
+    onExit: func (code: Int) {
+        if (code != 0) {
+          "C compiler failed (got code %d), aborting compilation process" printfln(code)
+          return
+        }
+
+        if (archive) {
+          archive add(objectPath)
         }
     }
 

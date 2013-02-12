@@ -24,7 +24,8 @@ Driver: abstract class {
 
     compile: abstract func (module: Module) -> Int
 
-    copyLocals: func (module: Module, params: BuildParams, done := ArrayList<Module> new(), usesDone := ArrayList<UseDef> new()) {
+    copyLocals: func (module: Module, params: BuildParams,
+        done := ArrayList<Module> new(), usesDone := ArrayList<UseDef> new()) {
 
         if(done contains?(module)) return
         done add(module)

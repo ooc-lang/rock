@@ -44,7 +44,7 @@ ifneq ($(IS_BOOTSTRAP),)
 	@echo "Creating bin/ in case it does not exist."
 	mkdir -p bin/
 	@echo "Compiling from C source"
-	cd build/ && ROCK_DIST=.. $(MAKE)
+	cd build/ && ROCK_DIST=.. $(MAKE) -j4
 	@echo "Now re-compiling ourself"
 	OOC=bin/c_rock ROCK_DIST=. $(MAKE) self
 	@echo "Congrats! you have a boostrapped version of rock in bin/rock now. Have fun!"

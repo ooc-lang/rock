@@ -72,6 +72,7 @@ MakeDriver: class extends SequenceDriver {
             CGenerator new(params, candidate) write()
         }
 
+        params libcachePath = params outPath path
         copyLocals(module, params)
 
         "Writing to %s" printfln(makefile path)
@@ -137,21 +138,21 @@ MakeDriver: class extends SequenceDriver {
         fW write("endif\n")
 
         fW write("CFLAGS+=-I %s" format(originalOutPath getPath()))
-        fW write(" -I ${ROCK_DIST}/libs/headers/ -L/usr/local/lib -L/usr/pkg/lib -I/usr/local/include -I/usr/pkg/include")
+        fW write(" -I ${ROCK_DIST}/libs/headers/ -L/usr/local/lib -L/usr/pkg/lib -I/usr/local/include -I/usr/pkg/include -std=gnu99 -Wall")
 
-        if(params debug) {
+        if (params debug) {
             fW write(" -g")
         }
 
-        for(define in params defines) {
+        for (define in params defines) {
             fW write(" -D"). write(define)
         }
 
-        for(compilerArg in params compilerArgs) {
+        for (compilerArg in params compilerArgs) {
             fW write(" "). write(compilerArg)
         }
 
-        for(incPath in params incPath getPaths()) {
+        for (incPath in params incPath getPaths()) {
             fW write(" -I "). write(incPath getPath())
         }
 
@@ -174,7 +175,8 @@ MakeDriver: class extends SequenceDriver {
 
         for (uze in uses) {
             for (additional in uze getAdditionals()) {
-                cPath := File new(additional) getName()
+                name := File new(additional) getName()
+                cPath := File new(originalOutPath, name) getPath()
                 oPath := "%s.o" format(cPath[0..-3])
                 fW write(oPath). write(" ")
             }
@@ -208,8 +210,11 @@ MakeDriver: class extends SequenceDriver {
 
         for (uze in uses) {
             for (additional in uze getAdditionals()) {
-                cPath := File new(additional) getName()
+                name := File new(additional) getName()
+                cPath := File new(originalOutPath, name) getPath()
                 oPath := "%s.o" format(cPath[0..-3])
+                fW write(oPath). write(": ").
+                   write(cPath). write("\n")
                 fW write("\t${CC} ${CFLAGS} -c %s -o %s\n" format(cPath, oPath))
             }
         }
