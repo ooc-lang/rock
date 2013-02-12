@@ -113,7 +113,13 @@ SequenceDriver: class extends Driver {
         if (intermediateArchive) {
             // create a thin archive with a symbol table - MinGW's linker
             // will complain otherwise.
-            outlib := File new(params libcachePath, binaryName + ".a") getPath()
+            outfile := File new(params libcachePath, binaryName + ".a")
+
+            // this kills the bug. GNU ar is a fickle beast, just.. just
+            // be a good chap and don't ask me about it, okay?
+            outfile remove()
+
+            outlib := outfile getPath()
             archive := Archive new(null, outlib, params, false, null)
             for(sourceFolder in sourceFolders) {
                 archive add(sourceFolder archive)
