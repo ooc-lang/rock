@@ -84,7 +84,9 @@ UseDef: class {
             file := findUse(identifier + ".use", params)
             if(!file) return null
 
-            "Use %s sourced from %s" printfln(identifier, file path)
+            if (params verbose) {
+                "Use %s sourced from %s" printfln(identifier, file path)
+            }
 
             cached read(file, params)
             This cache put(identifier, cached)

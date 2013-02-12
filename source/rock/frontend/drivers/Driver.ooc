@@ -59,7 +59,9 @@ Driver: abstract class {
                 src := File new(additional)
                 dest := File new(params libcachePath, src getName())
 
-                "Copying %s to %s" printfln(src path, dest path)
+                if (params verbose) {
+                    "Copying %s to %s" printfln(src path, dest path)
+                }
                 src copyTo(dest)
             }
         }
