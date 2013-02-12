@@ -1,4 +1,82 @@
-0.9.4 release (2012-11-21)
+
+## 0.9.5 release (2013-02-12)
+
+  - Fixed a long-standing issue with varargs usage in ternary expressions
+    (#311) by @shamanas
+  - Processes launched in Unix systems now check for segfault (@shamanas)
+  - nagaqueen (and thus rock) are now able to parse .ooc files from memory, not
+    only from files. This allows nice things such as
+    https://github.com/nddrylliog/scissors (@nddrylliog)
+  - Add '#pragma once' in generated headers, this makes compilation faster for
+    some (gcc/clang), and header guards are still here as a fallback for old
+    compilers (@shamanas)
+  - 'CustomPkg' support in .use files, see
+    https://github.com/nddrylliog/rock/issues/492 - used in scissors for
+    llvm-config, but also in ooc-sdl2 for sdl2-config, for example
+    (@nddrylliog)
+  - 'Linker' support in .use files, great when using ooc-llvm because it
+    requires the final linking step to be done with g++ (@nddrylliog)
+  - Fixed a strange varargs but that was basically an off-by-one error  
+  - Make relative 'IncludePaths'/'LibsPaths' work in .use files (@nddrylliog)
+  - Display command line in case rock fails to execute a process on Win32
+  - 'Frameworks' support for .use files, useful when building on OSX
+    (@nddrylliog)
+  - String + Number now does concatenation again (@shamanas)
+  - Fix GetTimeFormat usage on Win32, had a null byte before (@nddrylliog)
+  - Sequence driver now uses multiple threads - 1.5x your number of processors
+    by default. You can control the number of parallel jobs with '-j'
+    (@nddrylliog)
+  - Cleanup os/Terminal implementation, make it cross-platform again in a
+    cleaner way (@nddrylliog)
+  - Enum decls were buggy, sometimes they couldn't be used because of undefind
+    symbols, as caused by invalid generated C code - that's now fixed.
+    (@nddrylliog)
+  - Lots of cachelib fixes, recompilation now almost always works (#541 is
+    still an issue), SequenceDriver is a lot cleaner, CombineDriver is gone,
+    and cachelib is now the one true way - and never hangs anymore on Win32.
+    (@nddrylliog)
+  - rock releases have codenames again! This one is panda.
+  - Add built-ins - symbols in ooc code that will get replaced while resolving.
+    At the time of this release, those are: __BUILD_DATETIME__,
+    __BUILD_TARGET__, __BUILD_ROCK_VERSION__, __BUILD_ROCK_CODENAME__,
+    __BUILD_HOSTNAME__
+  - Fix match-related bugs with catch-all clauses being the only ones / first
+    ones (@shamanas)
+  - Varargs were broken on ARM - that's now all fixed, and ooc code runs
+    beautifully on both the Raspberry PI (rock bootstraps) and ARM Android
+    phones (game projects) (@nddrylliog, @duckinator, @geckojsc)
+  - The sdk is now a proper library with a .use file and default imports -
+    instead of having ugly hardcoded hacks in the compiler instead. That makes
+    swapping the default sdk with your own real easy (@nddrylliog)
+  - $OOC_LIBS now accepts multiple paths, separated by the File separator (: on
+    *nix, ; on Windows) - that's useful when swapping SDKs, or when having to
+    use different usefiles depending on the platform, to work around #561
+    (@nddrylliog)
+  - Make process launching more solid on all platforms, introducing
+    os/ShellUtils that's been imported from rock's codebase. (@nddrylliog)
+  - Process launching on Win32 now supports cwd (current working directory)
+    (@nddrylliog)
+  - The explain backend has been removed for a slimmer codebase. It may find a
+    second life as a separate tool (@nddrylliog)
+  - dot output (to graph dependencies between modules) has been removed, for a
+    slimmer codebase. I'm afraid it's dead for good, but it was fun while it
+    lasted! (@nddrylliog)
+  - Fix an annoying bug with properties: when we had a property access on the
+    right hand side of an assignment, it assumed it was a real member. Now
+    handled correctly (@nddrylliog)
+  - 'Additionals' support in .use files - to use .c code bases directly in your
+    .ooc bindings, example: nagaqueen-generated grammar in rock.use, and
+    stb_image.c in https://github.com/nddrylliog/ooc-stbi
+  - Add 'seek' to the Reader interface - it's actually handy to subclass this
+    for alternative I/O, see this example with SDL_rwops:
+        https://github.com/nddrylliog/dye/blob/gles/source/dye/gritty/io.ooc
+        (@nddrylliog)
+  - Android driver added, generate files in your jni/ directory (specify with
+    -outpath), and generate Android.mk files to be used with ndk-build.
+    (@nddrylliog)
+
+## 0.9.4 release (2012-11-21)
+
   - BSD support added by @duckinator
   - Fixed compilation on ArchLinux x64
   - Fixed and ported parts of the SDK for win32 support, thanks to @nddrylliog
@@ -16,7 +94,7 @@
   - Better errors for dot-args and ass-args outside of non-static methods
   - Lots of bugfixes by @shamanas, @nddrylliog, @duckinator, @showstopper, @fredreichbier
 
-0.9.3 release (2011-12-13)
+## 0.9.3 release (2011-12-13)
 
   - OSX support is back! Thanks @nilium for upgrading us to the latest
     libatomic_ops (yup, it was that simple).
@@ -36,7 +114,7 @@
     has migrated to 0.9.3, we'll include that in 0.9.4
   - Again, lots of bugfixes and cleanups, lookup the commits
 
-0.9.2 release (2011-09-05)
+## 0.9.2 release (2011-09-05)
 
   - Lots of bugfixes, refactorings (see GitHub milestone), thanks to
     @shamanas, @duckinator, @fredreichbier, @showstopper, @tsion, @rofl0r, @nddrylliog
@@ -60,7 +138,7 @@
     is now the cover of char*. It's handled smoothly in many cases, thanks
     to implicit cases and related trickery but it's a scar rock will always bear.
 
-0.9.1 release (2010-06-02)
+## 0.9.1 release (2010-06-02)
 
   - 2010-05 reverse iterators / backIterator() added to collection classes
     by Noel Cower (nilium)
@@ -75,12 +153,12 @@
   - 2010-04 Added support for ooc arrays, early implementation of this
     proposal: https://lists.launchpad.net/ooc-dev/msg00146.html
 
-0.9.0 release (2010-04-23 - 600+ downloads)
+## 0.9.0 release (2010-04-23 - 600+ downloads)
 
   - 2010-04 : rock bootstraps under Gentoo, Ubuntu, Win32, OSX,
     the first release of the 0.9.x branch is out!
 
-pre-history
+## pre-history
 
   - 2010-02 : rock compiles most, if not all, generic collection classes, produces correct code.
     we're going toward self-hosting, fixing bugs as we encounter them.
