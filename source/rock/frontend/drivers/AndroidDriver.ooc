@@ -117,10 +117,6 @@ AndroidDriver: class extends Driver {
         fw write("\n")
 
         localSharedLibraries := ArrayList<String> new() 
-        if (params enableGC) {
-            localSharedLibraries add("gc")
-        }
-
         for (uze in uses) {
             localSharedLibraries addAll(uze getAndroidLibs())
         }
