@@ -438,6 +438,8 @@ VariableAccess: class extends Expression {
                 StringLiteral new(Target toString(), token)
             case "__BUILD_ROCK_VERSION__" =>
                 StringLiteral new(RockVersion getName(), token)
+            case "__BUILD_ROCK_CODENAME__" =>
+                StringLiteral new(RockVersion getCodename(), token)
             case "__BUILD_HOSTNAME__" =>
                 StringLiteral new(System hostname(), token)
             case =>
