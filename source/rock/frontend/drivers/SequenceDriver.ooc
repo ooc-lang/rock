@@ -1,339 +1,193 @@
-import io/[File], os/[Terminal, Process]
+
+// sdk stuff
+import io/File
+import os/[Terminal, Process, JobPool]
 import structs/[List, ArrayList, HashMap]
-import ../[BuildParams, Target]
-import ../compilers/AbstractCompiler
-import ../../middle/[Module, UseDef]
-import ../../backend/cnaughty/CGenerator
-import Driver, Archive
+
+// our stuff
+import Driver, Archive, SourceFolder, Flags, CCompiler
+
+import rock/frontend/[BuildParams, Target]
+import rock/middle/[Module, UseDef]
+import rock/backend/cnaughty/CGenerator
 
 /**
-   Sequence driver, which compiles .c files one by one as needed.
-
-   With -noclean, the rock_tmp/ folder (or whatever your -outpath is set to)
-   will not be deleted and the sequence driver will take advantage of that.
-
-   But sequence driver allows partial recompilation even without the rock_tmp
-   folder, thanks to lib-caching. By default, the result of the compilation is
-   put into a .libs/ folder, cached by source-folder name, for example after
-   a simple compilation you may end up with:
-
-     - .libs/sdk-linux32.a
-     - .libs/sdk-linux32.a.cacheinfo
-     - .libs/helloworld-linux32.a
-     - .libs/helloworld-linux32.a.cacheinfo
-
-   The .a files are archives that contain the object files (.o) that result
-   of the compilation of your program.
-
-   When you recompile a program with an existing .libs/ directory,
-   the SequenceDriver will use the .cacheinfo files to determine
-   what needs to be re-compile, update the .a files with the new object
-   files, and link again.
-
-   However, there are times (for example, when you upgrade rock) where
-   .libs/ can be harmful and prevent a program from compiling/running
-   normally. If you experience any weird behavior, be sure to *remove it
-   completely* and re-try with a clean compile before reporting issues.
-
-   :author: Amos Wenger (nddrylliog)
+ * Default compilation driver: handles launching C compiler
+ * jobs, knows what's up-to-date and what needs to be recompiled,
+ * in short, as far as you're concerned, God itself.
+ * 
+ * :author: Amos Wenger (nddrylliog)
  */
-
-Job: class {
-
-    process: Process
-
-    module: Module
-    archive: Archive
-
-    init: func (=process, =module, =archive) {
-    }
-
-    wait: func -> Int {
-        code := process wait()
-
-        if(code == 0) {
-            if(archive) archive add(module)
-        } else {
-            fprintf(stderr, "C compiler failed (got code %d), aborting compilation process\n", code)
-        }
-
-        code
-    }
-
-}
 
 SequenceDriver: class extends Driver {
 
     sourceFolders: HashMap<String, SourceFolder>
-    jobs := ArrayList<Job> new()
+    pool := JobPool new()
 
-    init: func (.params) { super(params) }
-
-    maybeWait: func -> Int {
-        if (jobs size < params sequenceThreads) {
-            return 0 // all good, let's launch more!
-        }
-
-        waitOne()
-    }
-
-    waitOne: func -> Int {
-        if (jobs empty?()) return 0
-
-        jobs removeAt(0) wait()
-    }
-
-    waitAll: func -> Int {
-        while (!jobs empty?()) {
-            code := waitOne()
-            if (code != 0) {
-                return code
-            }
-        }
-
-        0
+    init: func (.params) {
+        super(params)
     }
 
     compile: func (module: Module) -> Int {
+        pool parallelism = params parallelism
 
-        if(params verbose) {
-            ("Sequence driver, using " + params sequenceThreads toString() + " thread" + (params sequenceThreads > 1 ? "s" : "")) println()
-        }
-
-        copyLocalHeaders(module, params, ArrayList<Module> new())
+        copyLocals(module, params)
 
         sourceFolders = collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<Module> new())
+        dirtyModules := HashMap<SourceFolder, List<Module>> new()
 
-        oPaths := ArrayList<String> new()
-        reGenerated := HashMap<SourceFolder, List<Module>> new()
-
-        for(sourceFolder in sourceFolders) {
-            reGenerated put(sourceFolder, prepareSourceFolder(sourceFolder, oPaths))
+        // step 1: generate C sources
+        if (params verbose) {
+            "Generating C sources..." println()
+        }
+        for (sourceFolder in sourceFolders) {
+            dirtyModules put(sourceFolder, generateSources(sourceFolder))
         }
 
-        for(sourceFolder in sourceFolders) {
+        // step 2: compile
+        if (params verbose) {
+            "Compiling (-j %d)..." printfln(pool parallelism)
+        }
+        for (sourceFolder in sourceFolders) {
             if(params verbose) {
                 // generate random colors for every source folder
-                hash := ac_X31_hash(sourceFolder name) + 42
+                hash := ac_X31_hash(sourceFolder identifier) + 42
                 Terminal setFgColor(Color fromHash(hash))
                 if(hash & 0b01) Terminal setAttr(Attr bright)
-                "%s, " printf(sourceFolder name)
+                "%s, " printf(sourceFolder identifier)
                 Terminal reset()
                 fflush(stdout)
             }
-            code := buildSourceFolder(sourceFolder, oPaths, reGenerated get(sourceFolder))
+            code := buildSourceFolder(sourceFolder, dirtyModules get(sourceFolder))
             if(code != 0) return code
         }
         if(params verbose) println()
 
-        code := waitAll()
+        code := pool waitAll()
         if (code != 0) {
             // failed, can stop launching jobs now
             return code
         }
 
-        for(sourceFolder in sourceFolders) {
+        // step 3: archive
+        for (sourceFolder in sourceFolders) {
             archive := sourceFolder archive
-
-            if(params libcache) {
-                // now build static libraries for all source folders
-                if(params veryVerbose || params debugLibcache) "Saving to library %s\n" printfln(sourceFolder outlib)
-                archive save(params)
-            }
+            archive save(params, false, true)
         }
 
-        if(params link && (params staticlib == null || params dynamiclib != null)) {
-
-            initCompiler(params compiler)
-
-            if(params linker != null) params compiler setExecutable(params linker)
-
-            for(oPath in oPaths) {
-                params compiler addObjectFile(oPath)
+        // step 4: link
+        if (params link) {
+            if (params verbose) {
+                "Linking..." println()
             }
 
-            for(define in params defines) {
-                params compiler defineSymbol(define)
-            }
-
-            for(dynamicLib in params dynamicLibs) {
-                params compiler addDynamicLibrary(dynamicLib)
-            }
-            for(incPath in params incPath getPaths()) {
-                params compiler addIncludePath(incPath getPath())
-            }
-            for(sourceFolder in sourceFolders) {
-                if(params libcache) {
-                    params compiler addIncludePath(params libcachePath + File separator + sourceFolder name)
-                }
-            }
-            for(additional in params additionals) {
-                params compiler addObjectFile(additional)
-            }
-            for(libPath in params libPath getPaths()) {
-                params compiler addLibraryPath(libPath getAbsolutePath())
-            }
-
-            if(params binaryPath != "") {
-                params compiler setOutputPath(params binaryPath)
-            } else {
-                checkBinaryNameCollision(module simpleName)
-                params compiler setOutputPath(module simpleName)
-            }
-
-            flags := getFlagsFromUse(module)
-            for(flag in flags) {
-                params compiler addObjectFile(flag)
-            }
-            
-            if(params enableGC) {
-                if(params dynamiclib != null) {
-                    params dynGC = true
-                }
-                if(params dynGC) {
-                    params compiler addDynamicLibrary("gc")
-                } else {
-                    arch := params arch equals?("") ? Target getArch() : params arch
-                    libPath := "libs/" + Target toString(arch) + "/libgc.a"
-                    params compiler addObjectFile(File new(params distLocation, libPath) path)
-                }
-                params compiler addDynamicLibrary("pthread")
-            }
-
-            if(params verbose) params compiler getCommandLine() println()
-
-            code := params compiler launch()
+            code := link(module)
             if (code != 0) {
                 return code
             }
-
-        }
-
-        if(params staticlib != null) {
-
-            count := 0
-
-            archive := Archive new("<staticlib>", params staticlib, params, false)
-            if(params libfolder) {
-                for(imp in module getGlobalImports()) {
-                    archive add(imp getModule())
-                    count += 1
-                }
-            } else {
-                for(dep in module collectDeps()) {
-                    archive add(dep)
-                    count += 1
-                }
-            }
-
-            if(params verbose) {
-                "Building archive %s with %s (%d modules total)" printfln(
-                    params staticlib,
-                    params libfolder ? "modules belonging to %s" format(params libfolder) : "all object files",
-                    count)
-            }
-            archive save(params)
         }
 
         return 0
+    }
 
+    link: func (module: Module) -> Int {
+        binaryPath := params getBinaryPath(module simpleName)
+        binaryName := File new(binaryPath) name
+
+        // step 4 b: link that big thin archive
+        flags := Flags new(binaryPath, params)
+
+        flags absorb(params)
+        for (sourceFolder in sourceFolders) {
+            flags absorb(sourceFolder)
+        }
+
+        intermediateArchive := true
+        version (apple) {
+            // Apple's BSD-like toolchain doesn't give a shit
+            // about library order, but god forbid you should try
+            // to do nested/thin archives. Oh, no.
+            intermediateArchive = false
+        }
+
+        if (intermediateArchive) {
+            // create a thin archive with a symbol table - MinGW's linker
+            // will complain otherwise.
+            outfile := File new(params libcachePath, binaryName + ".a")
+
+            // this kills the bug. GNU ar is a fickle beast, just.. just
+            // be a good chap and don't ask me about it, okay?
+            outfile remove()
+
+            outlib := outfile getPath()
+            archive := Archive new(null, outlib, params, false, null)
+            for(sourceFolder in sourceFolders) {
+                archive add(sourceFolder archive)
+            }
+            archive save(params, true, true)
+            flags addObject(archive outlib)
+        } else {
+            // not on Windows? Modern Linux/OSX linkers will accept static
+            // libraries in any order, let's blissfully go ahead.
+            for(sourceFolder in sourceFolders) {
+                flags addObject(sourceFolder archive)
+            }
+        }
+
+        params compiler launchLinker(flags, params linker) wait()
     }
 
     /**
        Build a source folder into object files or a static library
      */
-    prepareSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>) -> List<Module> {
+    generateSources: func (sourceFolder: SourceFolder) -> List<Module> {
+
+        dirtyModules := ArrayList<Module> new()
 
         archive := sourceFolder archive
-
-        // if lib-caching, we compile every object file to a .a static lib
-        if(params libcache) {
-            objectFiles add(sourceFolder outlib)
-
-            if(archive exists?) {
-                dirtyModules := archive dirtyModules(sourceFolder modules)
-                for(module in dirtyModules) {
-                    CGenerator new(params, module) write()
-                }
-                
-                if(params packageFilter) {
-                    dirtyModules = dirtyModules filter(|m|
-                        m fullName startsWith?(params packageFilter)
-                    )
-                }
-                return dirtyModules
-            }
+        if(archive exists?) {
+            dirtyModules addAll(archive dirtyModules())
+        } else {
+            // on first compile, we have no archive info
+            dirtyModules addAll(sourceFolder modules)
         }
 
-        oPaths := ArrayList<String> new()
-        if(params verbose) "Re-generating modules..." println()
-        reGenerated := ArrayList<Module> new()
-        for(module in sourceFolder modules) {
-            result := CGenerator new(params, module) write()
-            
-            if(result && params verbose) ("Re-generated " + module fullName) println()
-            
-            // apply libfolder and package filter to see if it belongs here
-            if(params libfolder) {
-                path1 := File new(params libfolder) getAbsolutePath()
-                path2 := File new(module oocPath) getAbsolutePath()
-                if(!path2 startsWith?(path1)) continue
-            }
-            if(params packageFilter && !module fullName startsWith?(params packageFilter)) {
-                if(params verbose) "Filtering %s out" printfln(module fullName)
-                continue
-            }
-            
-            if(result) {
-                reGenerated add(module)
-            } else {
-                // already compiled, but still need to link with it
-                underPath := module path replaceAll(File separator, '_')
-                oPath := File new(params outPath, underPath) getPath() + ".o"
-                objectFiles add(oPath)
-            }
+        for(module in dirtyModules) {
+            CGenerator new(params, module) write()
         }
-        
-        if(params verbose) {
-            if(reGenerated empty?()) {
-                "No files generated." println()
-            } else {
-                "%d files generated." printfln(reGenerated size)
-            }
-        }
-
-        return reGenerated
+        dirtyModules
 
     }
 
     /**
        Build a source folder into object files or a static library
      */
-    buildSourceFolder: func (sourceFolder: SourceFolder, objectFiles: List<String>, reGenerated: List<Module>) -> Int {
-
-        if(params libfolder != null && sourceFolder absolutePath != File new(params libfolder) getAbsolutePath()) {
-            if(params verbose) "Skipping (not needed for build of libfolder %s)" format(params libfolder) println()
+    buildSourceFolder: func (sourceFolder: SourceFolder, dirtyModules: List<Module>) -> Int {
+        if (dirtyModules empty?()) {
             return 0
         }
 
-        archive := sourceFolder archive
+        if(params verbose) {
+            "\n%d new/updated modules to compile" printfln(dirtyModules size)
+        }
 
-        // if lib-caching, we compile every object file to a .a static lib
-        if(params libcache) {
-            objectFiles add(sourceFolder outlib)
-
-            if(reGenerated getSize() > 0) {
-                if(params verbose) printf("\n%d new/updated modules to compile\n", reGenerated getSize())
-                for(module in reGenerated) {
-                    code := buildIndividual(module, sourceFolder, null, archive, true)
-                    if(code != 0) return code
-                }
+        // step 1: compile ooc modules
+        for (module in dirtyModules) {
+            code := buildModule(module, sourceFolder, true)
+            if(code != 0) {
+                return code
             }
-        } else {
-            if(params verbose) printf("Compiling regenerated modules...\n")
-            for(module in reGenerated) {
-                code := buildIndividual(module, sourceFolder, objectFiles, null, false)
-                if(code != 0) return code
+        }
+
+        // step 2: compile additionals, if any
+        flags := Flags new("", params)
+        flags absorb(sourceFolder)
+
+        for (uze in flags uses) {
+            if (uze sourcePath && uze sourcePath == sourceFolder absolutePath) {
+                for (additional in uze getAdditionals()) {
+                    buildAdditional(sourceFolder, additional)
+                }
             }
         }
 
@@ -342,78 +196,37 @@ SequenceDriver: class extends Driver {
     }
 
     /**
-       Build an individual ooc files to its .o file, add it to oPaths
+     * Build an individual ooc module to its .o file
      */
-    buildIndividual: func (module: Module, sourceFolder: SourceFolder, oPaths: List<String>, archive: Archive, force: Bool) -> Int {
-
-        code := maybeWait()
-        if (code != 0) {
-            // failed, can stop launching jobs now
-            return code
-        }
-
-        initCompiler(params compiler)
-        params compiler setCompileOnly()
+    buildModule: func (module: Module, sourceFolder: SourceFolder, force: Bool) -> Int {
 
         path := File new(params outPath, module getPath("")) getPath()
+        cFile := File new(path + ".c")
+        oFile := File new(params libcachePath, sourceFolder relativeObjectPath(module))
 
-        oPath := File new(params outPath, module path replaceAll(File separator, '_')) getPath() + ".o"
-        cPath := path + ".c"
-        if(oPaths) {
-            oPaths add(oPath)
-        }
-
-        cFile := File new(cPath)
-        oFile := File new(oPath)
-
-        comparison := (archive ? File new(archive outlib) lastModified() : oFile lastModified())
-
-        if(force || cFile lastModified() > comparison) {
-
-            if(params veryVerbose || params debugLibcache) "%s not in cache or out of date, (re)compiling" printfln(module getFullName())
-
-            parent := File new(oPath) parent()
-            if(!parent exists?()) {
-                if(params verbose) "Creating path %s" format(parent getPath()) println()
-                parent mkdirs()
+        archive := sourceFolder archive
+        archiveDate := (archive ? File new(archive outlib) lastModified() : oFile lastModified())
+        if(force || cFile lastModified() > archiveDate) {
+            if(params veryVerbose || params debugLibcache) {
+              "%s not in cache or out of date, (re)compiling" printfln(module getFullName())
             }
 
-            params compiler addObjectFile(cPath)
-            params compiler setOutputPath(oPath)
+            flags := Flags new(oFile path, params)
+            flags addObject(cFile path)
+            flags absorb(params)
+            flags absorb(sourceFolder)
+            flags absorb(module)
 
-            params compiler addIncludePath(File new(params distLocation, "libs/headers/") getPath())
-            params compiler addIncludePath(params outPath getPath())
-
-            for(define in params defines) {
-                params compiler defineSymbol(define)
+            process := params compiler launchCompiler(flags)
+            code := pool add(ModuleJob new(process, module, archive, oFile path))
+            if (code != 0) {
+                // a process failed, can stop launching jobs now
+                return code
             }
-            for(dynamicLib in params dynamicLibs) {
-                params compiler addDynamicLibrary(dynamicLib)
-            }
-            for(incPath in params incPath getPaths()) {
-                params compiler addIncludePath(incPath getPath())
-            }
-            for(sourceFolder in sourceFolders) {
-                params compiler addIncludePath(params libcachePath + File separator + sourceFolder name)
-            }
-            for(compilerArg in params compilerArgs) {
-                params compiler addObjectFile(compilerArg)
-            }
-
-            flags := getFlagsFromUse(sourceFolder)
-            for(flag in flags) {
-                if (!isLinkerFlag(flag)) {
-                    params compiler addObjectFile(flag)
-                }
-            }
-
-            if(params verbose) params compiler getCommandLine() println()
-
-            process := params compiler launchBackground()
-            jobs add(Job new(process, module, archive))
-
         } else {
-            if(params veryVerbose || params debugLibcache) "Skipping %s, unchanged source.\n" printfln(cPath)
+            if(params veryVerbose || params debugLibcache) {
+              "Skipping %s, unchanged source.\n" printfln(module getFullName())
+            }
         }
 
         return 0
@@ -421,75 +234,90 @@ SequenceDriver: class extends Driver {
     }
 
     /**
-       Get all the flags from uses in a source folder
+     * Build an additional (.c/.s file) to a .o
      */
-    getFlagsFromUse: func ~sourceFolder (sourceFolder: SourceFolder) -> List<String> {
+    buildAdditional: func (sourceFolder: SourceFolder, additional: String) -> Int {
 
-        flagsDone := ArrayList<String> new()
-        usesDone := ArrayList<UseDef> new()
+        name := File new(additional) getName()
+        cPath := File new(params libcachePath, name) getPath()
+        oPath := "%s.o" format(cPath[0..-3])
 
-        for(module in sourceFolder modules) {
-            for(use1 in module uses) {
-                getFlagsFromUse(use1 useDef, flagsDone, usesDone)
-            }
+        archive := sourceFolder archive
+
+        flags := Flags new(oPath, params)
+        flags absorb(params)
+        flags addObject(cPath)
+
+        process := params compiler launchCompiler(flags)
+        code := pool add(AdditionalJob new(process, archive, oPath))
+        if (code != 0) {
+            // a process failed, can stop launching jobs now
+            return code
         }
 
+        return 0
 
-        flagsDone
+    }
+}
+
+/**
+ * The sequence driver uses special jobs: module jobs. They
+ * remember which module and archive they belong to, so that they
+ * can add themselves to a .a file when needed.
+ *
+ * :author: Amos Wenger (nddrylliog)
+ */
+
+ModuleJob: class extends Job {
+
+    module: Module
+    archive: Archive
+    objectPath: String
+
+    init: func (.process, =module, =archive, =objectPath) {
+      super(process)
     }
 
-    initCompiler: func (compiler: AbstractCompiler) {
-        compiler reset()
-
-        if(params debug) params compiler setDebugEnabled()
-        params compiler addIncludePath(File new(params distLocation, "libs/headers/") getPath())
-        params compiler addIncludePath(params outPath getPath())
-
-        for(compilerArg in params compilerArgs) {
-            params compiler addObjectFile(compilerArg)
-        }
-    }
-
-    /**
-       Collect all modules imported from `module`, sort them by SourceFolder,
-       put them in `toCompile`, and return it.
-     */
-    collectDeps: func (module: Module, toCompile: HashMap<String, SourceFolder>, done: ArrayList<Module>) -> HashMap<String, SourceFolder> {
-
-        if(!module dummy) {
-            absolutePath := File new(module getPathElement()) getAbsolutePath()
-            name := File new(absolutePath) name()
-
-            sourceFolder := toCompile get(name)
-            if(sourceFolder == null) {
-                sourceFolder = SourceFolder new(name, absolutePath, params)
-                toCompile put(name, sourceFolder)
-            }
-            sourceFolder modules add(module)
-        }
-        done add(module)
-
-        for(import1 in module getAllImports()) {
-            if(done contains?(import1 getModule())) continue
-            collectDeps(import1 getModule(), toCompile, done)
+    onExit: func (code: Int) {
+        if (code != 0) {
+          "C compiler failed (got code %d), aborting compilation process" printfln(code)
+          return
         }
 
-        return toCompile
-
+        if (archive) {
+          archive add(module, objectPath)
+        }
     }
 
 }
 
-SourceFolder: class {
-    name, absolutePath: String
-    params: BuildParams
-    outlib: String
+/**
+ * Additionals are source files (.c, .s) that have
+ * to be compiled separately as part of rock's regular
+ * compile process and added to the sourcefolder archives.
+ *
+ * :author: Amos Wenger (nddrylliog)
+ */
 
-    modules := ArrayList<Module> new()
-    archive : Archive
+AdditionalJob: class extends Job {
 
-    init: func (=name, =absolutePath, =params) {
-        outlib = "%s%c%s-%s.a" format(params libcachePath, File separator, name, Target toString())
-        archive = Archive new(name, outlib, params)
+    archive: Archive
+    objectPath: String
+
+    init: func (.process, =archive, =objectPath) {
+      super(process)
     }
+
+    onExit: func (code: Int) {
+        if (code != 0) {
+          "C compiler failed (got code %d), aborting compilation process" printfln(code)
+          return
+        }
+
+        if (archive) {
+          archive add(objectPath)
+        }
+    }
+
 }
+

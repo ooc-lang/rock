@@ -49,8 +49,6 @@ PkgConfigFrontend: class {
             cflags += " "
         }
 
-        "Got cflags %s for %s" printfln(cflags, utilName)
-
         libs := ""
         
         for (libsArg in libsArgs) {
@@ -65,8 +63,6 @@ PkgConfigFrontend: class {
             libs += " "
         }
 
-        "Got libs %s for %s" printfln(libs, utilName)
-
         PkgInfo new(pkgs join(" "), libs, cflags)
     }
 
@@ -78,7 +74,7 @@ PkgConfigFrontend: class {
                 ProcessException new(This, "Couldn't execute a pkg-config like utility")
             }
 
-            return output trim(" \n")
+            return output trim(" \r\n")
         } catch (pe: ProcessException) {
             // Failed to execute, maybe it's a shell script?
             // Note that this has only been witnessed on MSYS/MinGW
@@ -89,7 +85,7 @@ PkgConfigFrontend: class {
             (output, exitCode) := Process new(shellCommand) getOutput()
 
             if (exitCode == 0) {
-                return output trim(" \n")
+                return output trim(" \r\n")
             }
         }
 

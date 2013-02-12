@@ -38,7 +38,7 @@ PathList: class {
      */
     get: func (folderName: String) -> File {
         for (path in paths) {
-            if (path getAbsoluteFile() name() == folderName) return path
+            if (path getAbsoluteFile() name == folderName) return path
         }
         null
     }
@@ -89,9 +89,9 @@ PathList: class {
     addChildren: func(basePath: String, list: List<String>, parent: File) {
         for (child in parent getChildren()) {
             if (child file?()) {
-                list add(basePath + File separator + child name())
+                list add(basePath + File separator + child name)
             } else if (child dir?()) {
-                addChildren(basePath + File separator + child name(), list, child)
+                addChildren(basePath + File separator + child name, list, child)
             }
         }
     }

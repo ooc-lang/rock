@@ -1,16 +1,21 @@
+
+// sdk stuff
 import io/File
 import structs/[List, ArrayList]
-import ../[BuildParams, Target]
-import ../../middle/Module
-import ../../backend/cnaughty/CGenerator
+
+// our stuff
 import Driver
 
+import rock/frontend/[BuildParams, Target]
+import rock/middle/Module
+import rock/backend/cnaughty/CGenerator
+
 /**
-   Dummy driver, which only generates the .c source code
-
-   Use it with -onlygen or -driver=dummy
-
-   :author: Amos Wenger (nddrylliog)
+ * Dummy driver, which only generates the .c source code
+ *
+ * Use it with -onlygen or -driver=dummy
+ *
+ * :author: Amos Wenger (nddrylliog)
  */
 DummyDriver: class extends Driver {
 
@@ -31,9 +36,7 @@ DummyDriver: class extends Driver {
             CGenerator new(params, candidate) write()
         }
 
-        params compiler reset()
-
-        copyLocalHeaders(module, params, ArrayList<Module> new())
+        copyLocals(module, params)
 
         if (params verbose) {
             "Generated sources in %s, enjoy!" format(params outPath path) println()

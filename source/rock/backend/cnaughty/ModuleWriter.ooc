@@ -59,7 +59,7 @@ ModuleWriter: abstract class extends Skeleton {
 
         current nl(). app("#include <"). app(module getPath("-fwd.h")). app(">")
 
-		// include .h-level imports (which contains types we extend)
+        // include .h-level imports (which contains types we extend)
         for(imp in imports) {
             if(!imp isTight) continue
             inc := imp getModule() getPath(".h")
@@ -128,10 +128,10 @@ ModuleWriter: abstract class extends Skeleton {
         current = cw
         current nl(). app("void "). app(module getLoadFuncName()). app("() {"). tab()
         current nl(). app("static "). app("bool __done__ = false;"). nl(). app("if (!__done__)"). app("{"). tab()
-		current nl(). app("__done__ = true;")
+        current nl(). app("__done__ = true;")
         for (imp in module getAllImports()) {
-			current nl(). app(imp getModule() getLoadFuncName()). app("();")
-		}
+            current nl(). app(imp getModule() getLoadFuncName()). app("();")
+        }
 
         for (type in module types) {
             if(type instanceOf?(ClassDecl)) {
@@ -173,24 +173,6 @@ ModuleWriter: abstract class extends Skeleton {
             oDecl accept(this)
         }
 
-        // write for-C aliases
-        hw nl(). app("#ifdef OOC_FROM_C")
-        for(fDecl in module functions) {
-            writeFunctionAlias(this, fDecl, null)
-        }
-
-        for(tDecl in module types) {
-            fullName := tDecl getFullName()
-            if(tDecl getName() != fullName) {
-                hw nl(). app("#define "). app(tDecl getName()). app(' '). app(fullName)
-                hw nl(). app("#define "). app(tDecl getName()). app("_class() "). app(fullName). app("_class()")
-                for(fDecl in tDecl getFunctions()) {
-                    writeFunctionAlias(this, fDecl, tDecl)
-                }
-            }
-        }
-        hw nl(). app("#endif")
-
         // header end
         current = hw
         current nl(). nl(). app("#endif // "). app(hName)
@@ -206,109 +188,15 @@ ModuleWriter: abstract class extends Skeleton {
 
     }
 
-    writeFunctionAlias: static func (this: Skeleton, fDecl: FunctionDecl, tDecl: TypeDecl) {
-        fullName := fDecl getFullName()
-        if(fDecl getName() != fullName) {
-            hw nl(). app("#define ")
-            if(tDecl) {
-                hw app(tDecl getNonMeta() getName()) .app('_')
-            }
-            hw app(fDecl getName())
-            if(fDecl getSuffix()) hw app('_'). app(fDecl getSuffix())
-
-            // write macro definition args
-            hw app("(")
-            isFirst := true
-
-            /* Step 1 : write this, if any */
-            if(fDecl isMember() && !fDecl isStatic()) {
-                if(isFirst) isFirst = false
-                else        hw app(", ")
-                hw app("_this_")
-            }
-
-            /* Step 2: write the return arguments, if any */
-            for(retArg in fDecl getReturnArgs()) {
-                if(isFirst) isFirst = false
-                else        hw app(", ")
-                hw app(retArg getName())
-            }
-            
-            // We eliminate any generic variable that is passed as a "true" function argument
-            // E.g. in __va_call: inline func <T> (f: Func <T> (T), T: Class, arg: T)
-            // T is passed as a first param while it shouldnt as it is passed later :D
-            typeArgs := fDecl typeArgs filter(|arg| ret := false; fDecl args each(|rarg| if(arg getName() == rarg getName()) ret = true); ret)
-            /* Step 3 : write generic type args */
-            for(typeArg in typeArgs) {
-                if(isFirst) isFirst = false
-                else hw app(", ")
-                hw app(typeArg getName())
-            }
-
-
-            /* Step 4 : write real args */
-            for(arg in fDecl args) {
-                if(isFirst) isFirst = false
-                else hw app(", ")
-                if(arg instanceOf?(VarArg)) hw app("...")
-                else hw app(arg getName())
-            }
-
-            hw app(") ")
-
-            // cast the return type if necessary (to avoid C warnings)
-            if(fDecl getReturnType() isPointer() || fDecl getReturnType() getRef() instanceOf?(ClassDecl)) {
-                hw app("(void*) ")
-            }
-            hw app(fullName). app("(")
-
-            /* Step 1 : write this, if any */
-            isFirst = true
-            if(fDecl isMember() && !fDecl isStatic()) {
-                if(isFirst) isFirst = false
-                else        hw app(", ")
-                hw app("(void*) (_this_)")
-            }
-
-            /* Step 2: write the return arguments, if any */
-            for(retArg in fDecl getReturnArgs()) {
-                if(isFirst) isFirst = false
-                else        hw app(", ")
-                hw app('('). app(retArg getName()). app(')')
-            }
-
-            /* Step 3 : write generic type args */
-            for(typeArg in typeArgs) {
-                if(isFirst) isFirst = false
-                else        hw app(", ")
-                hw app('('). app(typeArg getName()). app(')')
-            }
-
-            // write function call args, casted if necessary (to avoid C warnings)
-            for(arg in fDecl args) {
-                if(isFirst) isFirst = false
-                else        hw app(", ")
-                if(arg instanceOf?(VarArg)) {
-                    hw app("__VA_ARGS__")
-                } else {
-                    if(arg getType() isPointer() || arg getType() getRef() instanceOf?(ClassDecl)) {
-                        hw app("(void*) ")
-                    }
-                    hw app("("). app(arg getName()). app(")")
-                }
-            }
-            hw app(")")
-        }
-    }
-
     /** Write default main function */
     writeDefaultMain: static func (this: Skeleton) {
         // If just outputing .o files, do not add a default main
         if(!params link || !params defaultMain) return
 
-        cw nl(). nl(). app("int main() "). openBlock()
+        cw nl(). nl(). app("int main(int ___argc, char **___argv) "). openBlock()
         if(params enableGC) {
-            cw nl(). app("GC_INIT();")
+            current = cw
+            writeGcInit()
         }
         cw nl(). app(module getLoadFuncName()). app("();")
         cw nl(). app("return 0;")

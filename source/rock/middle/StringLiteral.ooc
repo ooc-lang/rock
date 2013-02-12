@@ -24,23 +24,21 @@ StringLiteral: class extends Literal {
 
         if(!super(trail, res) ok()) return Response LOOP
 
-        if(res params newstr) {
-            parent := trail peek()
-            if(parent class != VariableDecl) {
-                //"Unwrapping string literal %s" printfln(value)
-                {
-                    idx := trail find(FunctionDecl)
-                    if(idx == -1) return Response OK
-                }
-                
-                vDecl := VariableDecl new(null, generateTempName("strLit"), this, token)
-                vDecl isStatic = true
-                vAcc := VariableAccess new(vDecl, token)
-                
-                trail module() body add(0, vDecl)
-                if(!parent replace(this, vAcc)) {
-                    res throwError(CouldntReplace new(token, this, vAcc, trail))
-                }
+        // String object handling
+        parent := trail peek()
+        if(parent class != VariableDecl) {
+            {
+                idx := trail find(FunctionDecl)
+                if(idx == -1) return Response OK
+            }
+            
+            vDecl := VariableDecl new(null, generateTempName("strLit"), this, token)
+            vDecl isStatic = true
+            vAcc := VariableAccess new(vDecl, token)
+            
+            trail module() body add(0, vDecl)
+            if(!parent replace(this, vAcc)) {
+                res throwError(CouldntReplace new(token, this, vAcc, trail))
             }
         }
 

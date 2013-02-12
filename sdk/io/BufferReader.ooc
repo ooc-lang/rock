@@ -42,17 +42,31 @@ BufferReader: class extends Reader {
         return marker < buffer size
     }
 
-    rewind: func (offset: Int) {
-        marker -= offset
+    seek: func (offset: Long, mode: SeekMode) -> Bool {
+        match mode {
+            case SeekMode SET =>
+                marker = offset
+            case SeekMode CUR =>
+                marker += offset
+            case SeekMode END =>
+                marker = buffer size + offset
+        }
+        _clampMarker()
+        true
+    }
+
+    _clampMarker: func {
         if (marker < 0) {
             marker = 0
+        }
+
+        if (marker >= buffer size) {
+            marker = buffer size - 1
         }
     }
 
     mark: func -> Long {
         return marker
     }
-
-    reset: func (=marker) {}
 }
 

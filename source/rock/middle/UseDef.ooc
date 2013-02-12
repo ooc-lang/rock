@@ -57,6 +57,10 @@ UseDef: class {
     imports      := ArrayList<String> new()
     libPaths     := ArrayList<String> new()
     includePaths := ArrayList<String> new()
+    preMains     := ArrayList<String> new()
+    additionals  := ArrayList<String> new()
+    androidLibs         := ArrayList<String> new()
+    androidIncludePaths := ArrayList<String> new()
 
     init: func (=identifier) {}
 
@@ -68,6 +72,10 @@ UseDef: class {
     getIncludes:     func -> List<String>      { includes }
     getLibPaths:     func -> List<String>      { libPaths }
     getIncludePaths: func -> List<String>      { includePaths }
+    getPreMains:     func -> List<String>      { preMains }
+    getAdditionals:  func -> List<String>      { additionals }
+    getAndroidLibs:  func -> List<String>      { androidLibs }
+    getAndroidIncludePaths:  func -> List<String>      { androidIncludePaths }
 
     parse: static func (identifier: String, params: BuildParams) -> UseDef {
         cached := This cache get(identifier)
@@ -75,6 +83,11 @@ UseDef: class {
             cached = UseDef new(identifier)
             file := findUse(identifier + ".use", params)
             if(!file) return null
+
+            if (params verbose) {
+                "Use %s sourced from %s" printfln(identifier, file path)
+            }
+
             cached read(file, params)
             This cache put(identifier, cached)
 
@@ -107,7 +120,8 @@ UseDef: class {
 
             for(subPath in children) {
                 if (params veryVerbose) {
-                    "for subPath %s - dir %d - link %d file %d" printfln(subPath getPath(), subPath dir?(), subPath link?(), subPath file?())
+                    "for subPath %s - dir %d - link %d file %d" printfln(subPath getPath(), \
+                        subPath dir?(), subPath link?(), subPath file?())
                 }
                 if(subPath dir?() || subPath link?()) {
                     candidate := File new(subPath, fileName)
@@ -138,13 +152,14 @@ UseDef: class {
         sourcePathFile := File new(sourcePath)
         if(sourcePathFile relative?()) {
             /* is relative. TODO: better check? */
-            sourcePathFile = file parent() getChild(sourcePath) getAbsoluteFile()
+            sourcePathFile = file parent getChild(sourcePath) getAbsoluteFile()
         }
         sourcePath = sourcePathFile path
 
         if(params veryVerbose) {
             "Adding %s to sourcepath ..." printfln(sourcePath)
         }
+        params sourcePathTable add(sourcePath, identifier)
         params sourcePath add(sourcePath)
 
         if (linker) {
@@ -224,13 +239,16 @@ UseDef: class {
             } else if(id == "Includes") {
                 for(inc in value split(','))
                     includes add(inc trim())
+            } else if(id == "PreMains") {
+                for(pm in value split(','))
+                    preMains add(pm trim())
             } else if(id == "Linker") {
                 linker = value trim()
             } else if(id == "LibPaths") {
                 for(path in value split(',')) {
                     libFile := File new(path trim())
                     if(libFile relative?()) {
-                        libFile = file parent() getChild(path) getAbsoluteFile()
+                        libFile = file parent getChild(path) getAbsoluteFile()
                     }
                     libPaths add(libFile path)
                 }
@@ -238,9 +256,25 @@ UseDef: class {
                 for(path in value split(',')) {
                     incFile := File new(path trim())
                     if(incFile relative?()) {
-                        incFile = file parent() getChild(path) getAbsoluteFile()
+                        incFile = file parent getChild(path) getAbsoluteFile()
                     }
                     includePaths add(incFile path)
+                }
+            } else if(id == "AndroidLibs") {
+                for(path in value split(',')) {
+                    androidLibs add(path trim())
+                }
+            } else if(id == "AndroidIncludePaths") {
+                for(path in value split(',')) {
+                    androidIncludePaths add(path trim())
+                }
+            } else if(id == "Additionals") {
+                for(path in value split(',')) {
+                    additional := File new(path trim())
+                    if(additional relative?()) {
+                        additional = file parent getChild(path) getAbsoluteFile()
+                    }
+                    additionals add(additional path)
                 }
             } else if(id == "Requires") {
                 for(req in value split(',')) {

@@ -1,11 +1,14 @@
+
+// sdk stuff
 import io/[File]
 import structs/[List, ArrayList, HashMap]
-
-import ../[BuildParams,CommandLine], ../pkgconfig/[PkgInfo, PkgConfigFrontend]
-import ../../middle/[Import, Include, Module, Use, UseDef]
-import ../../frontend/Target
-
 import os/ShellUtils
+
+// our stuff
+import rock/frontend/[BuildParams, Target, CommandLine]
+import rock/frontend/pkgconfig/[PkgInfo, PkgConfigFrontend]
+import rock/middle/[Import, Include, Module, Use, UseDef]
+import SourceFolder
 
 /**
    Drives the compilation process, e.g. chooses in which order
@@ -17,171 +20,120 @@ Driver: abstract class {
 
     params: BuildParams
 
-    customPkgCache := HashMap<CustomPkg, PkgInfo> new()
-
     init: func(=params) {}
 
     compile: abstract func (module: Module) -> Int
 
-    copyLocalHeaders: func (module: Module, params: BuildParams, done: List<Module>) {
+    copyLocals: func (module: Module, params: BuildParams,
+        done := ArrayList<Module> new(), usesDone := ArrayList<UseDef> new()) {
 
         if(done contains?(module)) return
         done add(module)
 
+        path := module path + ".ooc"
+        pathElement := params sourcePath getFile(path) parent
+
         for(inc: Include in module includes) {
             if(inc mode == IncludeModes LOCAL) {
-                destPath := (params libcache) ? \
-                    params libcachePath + File separator + module getSourceFolderName() : \
-                    params outPath path
-
-                path := module path + ".ooc"
-                pathElement := params sourcePath getFile(path) parent()
+                dest := (params libcache) ? \
+                    File new(params libcachePath, module getSourceFolderName()) : \
+                    params outPath
 
                 File new(pathElement, inc path + ".h") copyTo(
-                File new(destPath,    inc path + ".h"))
+                File new(dest,        inc path + ".h"))
             }
         }
 
         for(imp: Import in module getAllImports()) {
-            copyLocalHeaders(imp getModule(), params, done)
+            copyLocals(imp getModule(), params, done, usesDone)
         }
-
-    }
-
-    addDeps: func (module: Module, toCompile: List<Module>, done: List<String>) {
-
-        toCompile add(module)
-        done add(module fullName)
-
-        objFile := params outPath path + File separator + module getPath(".c")
-        params compiler addObjectFile(objFile)
-
-        for(imp: Import in module getAllImports()) {
-            if(!done contains?(imp getModule() fullName)) {
-                addDeps(imp getModule(), toCompile, done)
+        
+        for(uze: Use in module getUses()) {
+            useDef := uze useDef
+            if (usesDone contains?(useDef)) {
+                continue
             }
-        }
+            usesDone add(useDef)
 
-    }
+            for (additional in useDef getAdditionals()) {
+                src := File new(additional)
+                dest := File new(params libcachePath, src getName())
 
-    getFlagsFromUse: func ~defaults (module: Module) -> List<String> {
-
-        flagsDone := ArrayList<String> new()
-        modulesDone := ArrayList<Module> new()
-        getFlagsFromUse(module, flagsDone, modulesDone, ArrayList<UseDef> new())
-        return flagsDone
-
-    }
-
-    getFlagsFromUse: func ~allModules (module: Module, flagsDone: List<String>, modulesDone: List<Module>, usesDone: List<UseDef>) {
-
-        if(modulesDone contains?(module)) return
-        modulesDone add(module)
-
-        for(use1: Use in module getUses()) {
-            getFlagsFromUse(use1 useDef, flagsDone, usesDone)
-        }
-
-        for(imp: Import in module getAllImports()) {
-            getFlagsFromUse(imp module, flagsDone, modulesDone, usesDone)
-        }
-
-    }
-
-    getFlagsFromUse: func (useDef: UseDef, flagsDone : List<String>, usesDone: List<UseDef>) {
-        // this workaround sucks, but sometimes useDef is null on Windows. Go figure.
-        if (!useDef) return
-
-        if(usesDone contains?(useDef)) return
-        usesDone add(useDef)
-
-        flagsDone addAll(useDef getLibs())
-
-        if (Target guessHost() == Target OSX) {
-            for(framework in useDef frameworks) {
-                lpath := "-Wl,-framework,"+framework
-                if(!flagsDone contains?(lpath)) {
-                    flagsDone add(lpath)
+                if (params verbose) {
+                    "Copying %s to %s" printfln(src path, dest path)
                 }
+                src copyTo(dest)
             }
         }
 
-        applyInfo := func (info: PkgInfo) {
-            for(cflag in info cflags) {
-                if(!flagsDone contains?(cflag)) {
-                    flagsDone add(cflag)
-                }
-            }
-            for(library in info libraries) {
-                // In theory this is bad because different compilers might
-                // have different flags. We used to have a slew of fixmes
-                // here but now they're gone. Sad panda.
-                lpath := "-l"+library
-                if(!flagsDone contains?(lpath)) {
-                    flagsDone add(lpath)
-                }
-            }
-            for(libPath in info libPaths) {
-                lpath := "-L"+libPath
-                if(!flagsDone contains?(lpath)) {
-                    flagsDone add(lpath)
-                }
-            }
-        }
-
-        for(pkg in useDef getPkgs()) {
-            info := PkgConfigFrontend getInfo(pkg)
-            applyInfo(info)
-        }
-
-        for(pkg in useDef getCustomPkgs()) {
-            info: PkgInfo
-            if (customPkgCache contains?(pkg)) {
-                info = customPkgCache get(pkg)
-            } else {
-                info = PkgConfigFrontend getCustomInfo(
-                    pkg utilName, pkg names,
-                    pkg cflagArgs, pkg libsArgs
-                )
-                customPkgCache put(pkg, info)
-            }
-            applyInfo(info)
-        }
-
-        for(includePath in useDef getIncludePaths()) {
-            ipath := "-I" + includePath
-            if(!flagsDone contains?(ipath)) {
-                flagsDone add(ipath)
-            }
-        }
-
-        for(libPath in useDef getLibPaths()) {
-            lpath := "-L" + libPath
-            if(!flagsDone contains?(lpath)) {
-                flagsDone add(lpath)
-            }
-        }
-
-        for(req in useDef getRequirements()) {
-            getFlagsFromUse(req useDef, flagsDone, usesDone)
-        }
-
-    }
-
-    isLinkerFlag: func (flag: String) -> Bool {
-        flag startsWith?("-L") || flag startsWith?("-l") || \
-        flag startsWith?("-Wl")
     }
 
     findExec: func (name: String) -> File {
         ShellUtils findExecutable(name, true)
     }
 
-    checkBinaryNameCollision: func (name: String) {
-        if (File new(name) dir?()) {
-            stderr write("Naming conflict (output binary) : There is already a directory called %s.\nTry a different name, e.g. '-o=%s2'\n" format(name, name))
-            CommandLine failure(params)
-            exit(1)
+    /**
+       Collect all modules imported from `module`, sort them by SourceFolder,
+       put them in `toCompile`, and return it.
+     */
+    collectDeps: func (module: Module, toCompile: HashMap<String, SourceFolder>,
+        done: ArrayList<Module>) -> HashMap<String, SourceFolder> {
+
+        if(!module dummy) {
+            pathElement := module getPathElement()
+            absolutePath := File new(pathElement) getAbsolutePath()
+            name := File new(absolutePath) name
+            identifier := params sourcePathTable get(pathElement)
+            if (!identifier) {
+                identifier = name
+            }
+
+            sourceFolder := toCompile get(identifier)
+            if(sourceFolder == null) {
+                sourceFolder = SourceFolder new(name, module getPathElement(), identifier, params)
+                toCompile put(sourceFolder identifier, sourceFolder)
+            }
+            sourceFolder modules add(module)
         }
-    } 
+        done add(module)
+
+        for(import1 in module getAllImports()) {
+            if(done contains?(import1 getModule())) continue
+            collectDeps(import1 getModule(), toCompile, done)
+        }
+
+        return toCompile
+
+    }
+
+    collectUses: func ~sourceFolders (sourceFolder: SourceFolder, \
+            modulesDone := ArrayList<Module> new(), usesDone := ArrayList<UseDef> new()) -> List<UseDef> {
+        for (module in sourceFolder modules) {
+            collectUses(module, modulesDone, usesDone)
+        }
+
+        usesDone
+    }
+
+    collectUses: func ~modules (module: Module, \
+            modulesDone := ArrayList<Module> new(), usesDone := ArrayList<UseDef> new()) -> List<UseDef> {
+        if (modulesDone contains?(module)) {
+            return usesDone
+        }
+        modulesDone add(module)
+        
+        for (uze in module getUses()) {
+            useDef := uze useDef
+            if (!usesDone contains?(useDef)) {
+                usesDone add(useDef)
+            }
+        }
+
+        for (imp in module getAllImports()) {
+            collectUses(imp getModule(), modulesDone, usesDone)
+        }
+
+        usesDone
+    }
+
 }

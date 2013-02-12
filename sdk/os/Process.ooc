@@ -3,12 +3,12 @@ import structs/[List, ArrayList, HashMap]
 import native/[ProcessUnix, ProcessWin32]
 
 /**
-   Allows to launch processes with arbitrary arguments, redirect
-   standard input, output, and error, get the error code, and wait
-   for the end of the execution
-
-   @author Yannic Ahrens (showstopper)
-   @author Amos Wenger (nddrylliog)
+ * Allows to launch processes with arbitrary arguments, redirect
+ * standard input, output, and error, get the error code, and wait
+ * for the end of the execution
+ *
+ * :author: Yannic Ahrens (showstopper)
+ * :author: Amos Wenger (nddrylliog)
  */
 Process: abstract class {
 
@@ -168,10 +168,8 @@ Process: abstract class {
                 written += stdIn write(data)
         }
 
-        /* Wait for the process */
         result := wait()
 
-        /* get the data */
         if(stdoutData != null)
             stdoutData@ = PipeReader new(stdOut) toString()
         if(stderrData != null)
@@ -180,6 +178,15 @@ Process: abstract class {
         result
 
     }
+
+    /**
+     * :return: a representation of the command, escaped to some
+     * point.
+     */
+    getCommandLine: func -> String {
+        args join(" ") replaceAll("\\", "\\\\")
+    }
+
 }
 
 ProcessException: class extends Exception {

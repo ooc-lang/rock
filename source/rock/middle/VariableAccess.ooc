@@ -157,7 +157,6 @@ VariableAccess: class extends Expression {
             response := expr resolve(trail, res)
             trail pop(this)
             if(!response ok()) return response
-            //printf("Resolved expr, type = %s\n", expr getType() ? expr getType() toString() : "(nil)")
         }
 
         if(expr && name == "class") {
@@ -185,7 +184,6 @@ VariableAccess: class extends Expression {
                     res wholeAgain(this, "expr's type isn't resolved yet, and it's needed to resolve the access")
                     return Response OK
                 }
-                //printf("Null ref and non-null expr (%s), looking in type %s\n", expr toString(), exprType toString())
                 typeDecl := exprType getRef()
                 if(!typeDecl) {
                     if(res fatal) res throwError(UnresolvedType new(expr token, expr getType(), "Can't resolve type %s" format(expr getType() toString())))
@@ -289,7 +287,8 @@ VariableAccess: class extends Expression {
                         return Response OK
                     }
                     // 1.) extern C functions don't accept a Closure_struct
-                    // 2.) If ref is not a FDecl, it's probably already "closured" and doesn't need to be wrapped a second time
+                    // 2.) If ref is not a FDecl, it's probably
+                    // already "closured" and doesn't need to be wrapped a second time
                     if (!fDecl isExtern() && ref instanceOf?(FunctionDecl)) {
 			if(fDecl args size <= ourIndex) {
 			    res wholeAgain(this, "bad index for ref")
@@ -344,13 +343,21 @@ VariableAccess: class extends Expression {
 
         // Simple property access? Replace myself with a getter call.
         if(ref && ref instanceOf?(PropertyDecl)) {
-            // Make sure we're not in a getter/setter yet (the trail would
-            // contain `ref` then)
+            // Make sure we're not in a getter/setter yet (the trail would contain `ref` then)
             if(ref as PropertyDecl inOuterSpace(trail)) {
                 // Test that we're not part of an assignment (which will be replaced by a setter call)
                 // That's also the case for operators like +=, *=, /= ...
-                // TODO: This should be nicer.
-                if(!(trail peek() instanceOf?(BinaryOp) && trail peek() as BinaryOp isAssign())) {
+                parent := trail peek()
+                shouldReplace := match parent {
+                    case op: BinaryOp =>
+                        // writing a property should not call its getter
+                        !(op isAssign() && op left == this)
+                    case =>
+                        // everything that's not binary op is a property read
+                        true
+                }
+
+                if(shouldReplace) {
                     property := ref as PropertyDecl
                     fCall := FunctionCall new(expr, property getGetterName(), token)
                     trail peek() replace(this, fCall)
@@ -431,6 +438,8 @@ VariableAccess: class extends Expression {
                 StringLiteral new(Target toString(), token)
             case "__BUILD_ROCK_VERSION__" =>
                 StringLiteral new(RockVersion getName(), token)
+            case "__BUILD_ROCK_CODENAME__" =>
+                StringLiteral new(RockVersion getCodename(), token)
             case "__BUILD_HOSTNAME__" =>
                 StringLiteral new(System hostname(), token)
             case =>

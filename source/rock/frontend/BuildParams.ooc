@@ -1,27 +1,28 @@
-import io/File, os/[Env, System]
-import structs/ArrayList
+
+// sdk stuff
+import io/File, os/[Env, System, ShellUtils]
+import structs/[ArrayList, HashMap]
 import text/StringTokenizer
 
-import compilers/AbstractCompiler
-import PathList, os/ShellUtils
-import ../middle/Module, ../middle/tinker/Errors
+// out stuff
+import PathList, CommandLine
+import drivers/CCompiler
+import rock/middle/Module
+import rock/middle/tinker/Errors
 
 /**
  * All the parameters for a build are stored there.
  *
  * All sorts of paths and options that influence compilation.
+ * This class is also responsible for finding the sdk and rock's home directory.
  *
- * This class is also responsible for finding the sdk and the dist.
- *
- * @author Amos Wenger (nddrylliog)
+ * :author: Amos Wenger (nddrylliog)
  */
 BuildParams: class {
 
-    // use a dumb error handler by default
     errorHandler: ErrorHandler { get set }
     fatalError := true
 
-    additionals  := ArrayList<String> new()
     compilerArgs := ArrayList<String> new()
 
     /* Builtin defines */
@@ -64,13 +65,13 @@ BuildParams: class {
         exec := ShellUtils findExecutable(execName, false)
         if(exec && exec path != null && !exec path empty?()) {
             realpath := exec getAbsolutePath()
-            distLocation = File new(realpath) parent() parent()
+            distLocation = File new(realpath) getParent() getParent()
             return
         }
 
         // fall back on the current working directory
         file := File new(File getCwd())
-        distLocation = file parent()
+        distLocation = file getParent()
         if (distLocation path empty?() || !distLocation exists?()) Exception new (This, "can not find the distribution. did you set ROCK_DIST environment variable?")
     }
 
@@ -78,8 +79,8 @@ BuildParams: class {
         // add from environment variable
         path := Env get("OOC_LIBS")
         if(path) {
-            path split(File pathDelimiter, false) each(|path|
-                libsPaths add(File new(path))
+            path split(File pathDelimiter, false) each(|libPath|
+                libsPaths add(File new(libPath))
             )
         } else {
             addIfExists := func (path: String) {
@@ -97,24 +98,20 @@ BuildParams: class {
         libsPaths add(distLocation)
     }
 
-    // Changes the way string literals are written, among other things
-    // see http://github.com/nddrylliog/newsdk for more bunnies.
-    newsdk := false
-
-    // If it's true, will use String makeLiteral() to make string literals instead of just C string literals
-    newstr := true
-
-    // location of the compiler's distribution, with a libs/ folder for the gc, etc.
+    // location of rock's distribution, with a libs/ folder for the gc, etc.
     distLocation: File
 
     // where ooc libraries live (.use)
     libsPaths := ArrayList<File> new()
 
     // compiler used for producing an executable from the C sources
-    compiler: AbstractCompiler = null
+    compiler := CCompiler new(this)
 
     // ooc sourcepath (.ooc)
     sourcePath := PathList new()
+
+    // map of sourcepath elements => .use name
+    sourcePathTable := HashMap<String, String> new()
 
     // C libraries path (.so)
     libPath := PathList new()
@@ -129,7 +126,7 @@ BuildParams: class {
     linker : String = null
 
     // threads used by the sequence driver
-    sequenceThreads := (System numProcessors() * 1.5) as Int
+    parallelism := System numProcessors()
 
     // if true, only parse the given module
     onlyparse := false
@@ -148,9 +145,6 @@ BuildParams: class {
 
     // Cache libs in `libcachePath` directory
     libcache := true
-    version(windows) {
-        libcache = false
-    }
 
     // Path to store cache-libs
     libcachePath := ".libs"
@@ -174,16 +168,14 @@ BuildParams: class {
     debugLoop := false
     debugLibcache := false
 
-    // Ignore these defines when trying to determie if a cached lib is up-to-date or not
-    // used for BUILD_DATE or BUILD_TIME stuff
+    // Ignore these defines when trying to determine if a cached lib is up-to-date or not
     ignoredDefines := ArrayList<String> new()
 
     // Tries to find types/functions in not-imported nodules, etc. Disable with -noshit
     helpful := true
 
     // Displays [ OK ] or [FAIL] at the end of the compilation
-    //shout := false
-    shout := true // true as long as we're debugging
+    shout := true
 
     // If false, output .o files. Otherwise output executables
     link := true
@@ -193,9 +185,6 @@ BuildParams: class {
 
     // Display compilation times for all .ooc files passed to the compiler
     timing := false
-
-    // Compile once, then wait for the user to press enter, then compile again, etc.
-    slave := false
 
     // Should link with libgc at all.
     enableGC := true
@@ -213,31 +202,36 @@ BuildParams: class {
     // name of the entryPoint to the program
     entryPoint := "main"
 
-    // if non-null, will create a static library with 'ar rcs <outlib> <all .o files>'
-    staticlib : String = null
-
-    // if non-null, will create a dynamic library
-    dynamiclib : String = null
-
-    // name of the package we should only be packaging
-    // modules in any other package will be ignored
-    // when building static/dynamic libraries
-    packageFilter : String = null
-
     // add a main method if there's none in the specified ooc file
     defaultMain := true
 
-    // maximum number of rounds the {@link Tinkerer} will do before blowing up.
+    // maximum number of rounds the tinkerer will do before blowing up.
     blowup := 32
 
     // dynamic libraries to be linked into the executable
     dynamicLibs := ArrayList<String> new()
 
-    // if non-null, rock will create a virtual module containing all ooc modules in the given path
-    libfolder: String = null
-
-    // backend; can be "c" or "json".
+    // backend
     backend: String = "c"
+
+    checkBinaryNameCollision: func (name: String) {
+        if (File new(name) dir?()) {
+            stderr write("Naming conflict (output binary) : There is already a directory called %s.\nTry a different name, e.g. '-o=%s2'\n" format(name, name))
+            CommandLine failure(this)
+        }
+    } 
+
+    /**
+     * :return: the path of the executable that should be produced by rock
+     */
+    getBinaryPath: func (defaultPath: String) -> String {
+        if (binaryPath == "") {
+            checkBinaryNameCollision(defaultPath)
+            defaultPath
+        } else {
+            binaryPath
+        }
+    }
 
     _indexOfSymbol: func (symbol: String) -> Int {
         for(i in 0..defines getSize()) {
@@ -268,8 +262,8 @@ BuildParams: class {
     getArgsRepr: func -> String {
         b := Buffer new()
         b append(arch)
-        if(!defaultMain)    b append(" -nolines")
-        if(!lineDirectives) b append(" -nomain")
+        if(!defaultMain)    b append(" -nomain")
+        if(!lineDirectives) b append(" -nolines")
         if(debug)           b append(" -g")
         b append(" -gc=")
         if(enableGC) {

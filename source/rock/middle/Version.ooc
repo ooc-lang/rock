@@ -75,6 +75,7 @@ builtinNames := HashMap<String, String> new()
     builtinNames put("ppc64",	"__ppc64__")
     builtinNames put("64", 		"__x86_64__) || defined(__ppc64__")
     builtinNames put("gc",		"__OOC_USE_GC__")
+    builtinNames put("android", "__ANDROID__")
 }
 
 VersionName: class extends VersionSpec {

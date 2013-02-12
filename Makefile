@@ -24,12 +24,6 @@ all: bootstrap
 # http://github.com/nddrylliog/greg
 grammar:
 	${PARSER_GEN} ../nagaqueen/grammar/nagaqueen.leg > ${NQ_PATH}
-	$(MAKE) .libs/NagaQueen.o
-
-.libs/NagaQueen.o: source/rock/frontend/NagaQueen.c
-	mkdir -p .libs
-	${CC} -std=c99 ${NQ_PATH} -O3 -fomit-frame-pointer -D__OOC_USE_GC__ -w -c -o .libs/NagaQueen.o
-#	gcc -std=c99 ${NQ_PATH} -O0 -g -D__OOC_USE_GC__ -w -c -o .libs/NagaQueen.o
 
 # Prepares the build/ directory, used for bootstrapping
 # The build/ directory contains all the C sources needed to build rock
@@ -37,9 +31,7 @@ grammar:
 prepare_bootstrap:
 	@echo "Preparing boostrap (in build/ directory)"
 	rm -rf build/
-	${OOC} -driver=make -sourcepath=source -outpath=c-source rock/rock -o=../bin/c_rock c-source/${NQ_PATH} -v -g +-w
-	
-	cp ${NQ_PATH} build/c-source/${NQ_PATH}
+	${OOC} -driver=make --sourcepath=source --outpath=c-source rock/rock -o=../bin/c_rock -v -g +-w
 	@echo "Done!"
 
 boehmgc:
@@ -52,7 +44,7 @@ ifneq ($(IS_BOOTSTRAP),)
 	@echo "Creating bin/ in case it does not exist."
 	mkdir -p bin/
 	@echo "Compiling from C source"
-	cd build/ && ROCK_DIST=.. $(MAKE)
+	cd build/ && ROCK_DIST=.. $(MAKE) -j4
 	@echo "Now re-compiling ourself"
 	OOC=bin/c_rock ROCK_DIST=. $(MAKE) self
 	@echo "Congrats! you have a boostrapped version of rock in bin/rock now. Have fun!"
@@ -82,9 +74,9 @@ man:
 	cd docs/ && a2x -f manpage rock.1.txt
 
 # Compile rock with itself
-self: .libs/NagaQueen.o
+self:
 	mkdir -p bin/
-	${OOC_CMD} rock/rock -o=bin/rock .libs/NagaQueen.o
+	${OOC_CMD} rock/rock -o=bin/rock
 
 # Save your rock binary under bin/safe_rock
 backup:
@@ -106,7 +98,7 @@ quick-rescue: download-bootstrap
 
 # Compile rock with the backup'd version of itself
 safe:
-	OOC=bin/safe_rock $(MAKE) self
+	OOC='bin/safe_rock' $(MAKE) self
 
 bootstrap_tarball:
 ifeq ($(VERSION),)

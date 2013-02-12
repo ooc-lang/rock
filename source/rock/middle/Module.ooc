@@ -75,9 +75,16 @@ Module: class extends Node {
     getUnderName:    func -> String { underName }
     getPathElement:  func -> String { pathElement }
     getSourceFolderName: func -> String {
-        File new(File new(getPathElement()) getAbsolutePath()) name()
+        identifier := params sourcePathTable get(pathElement)
+        if (!identifier) {
+            File new(pathElement) getAbsoluteFile() name
+        }
+        identifier
     }
 
+    /**
+     * TODO: this is redundant with some stuff in Driver, merge those
+     */
     collectDeps: func -> List<Module> {
         _collectDeps(ArrayList<Module> new())
     }
@@ -192,7 +199,7 @@ Module: class extends Node {
     accept: func (visitor: Visitor) { visitor visitModule(this) }
 
     getPath: func (suffix: String) -> String {
-        last := (File new(pathElement) name())
+        last := (File new(pathElement) name)
         return (last + File separator) + fullName replaceAll('/', File separator) + suffix
     }
 

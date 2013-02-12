@@ -1,4 +1,4 @@
-import io/Reader, io/File
+import io/[Reader, File]
 
 /**
  * Implement the Reader interface for file input
@@ -43,11 +43,11 @@ FileReader: class extends Reader {
      * suffix "b" = binary mode
      * suffix "t" = text mode (warning: rewind/mark are unreliable in text mode under mingw32)
      */
-    init: func ~withMode (fileName, mode: String) {
-        this fileName = fileName
+    init: func ~withMode (=fileName, mode: String) {
         file = FStream open(fileName, mode)
-        if (!file)
+        if (!file) {
             Exception new(This, "Couldn't open " + fileName + " for reading.") throw()
+        }
     }
 
     /**
@@ -66,8 +66,8 @@ FileReader: class extends Reader {
      * 
      * @return The number of bytes read.
      */
-    read: func (buffer: Pointer, offset: Int, count: SizeT) -> SizeT {
-        file read((buffer as Char*) + offset, count)
+    read: func (buffer: Char*, offset: Int, count: SizeT) -> SizeT {
+        file read(buffer + offset, count)
     }
 
     read: func ~fullBuffer (buffer: Buffer) {
@@ -89,25 +89,20 @@ FileReader: class extends Reader {
         feof(file) == 0
     }
 
-    /**
-     * Rewind this stream of `offset` bytes.
-     * 
-     * @return true if successful
-     */
-    rewind: func(offset: Int) -> Bool {
-		file seek(-offset, SEEK_CUR) == 0
+    seek: func (offset: Long, mode: SeekMode) -> Bool {
+        file seek(offset, match mode {
+            case SeekMode SET => SEEK_SET
+            case SeekMode CUR => SEEK_CUR
+            case SeekMode END => SEEK_END
+            case =>
+                Exception new("Invalid seek mode: %d" format(mode)) throw()
+                SEEK_SET
+        }) == 0
     }
 
-    /**
-     * 
-     */
     mark: func -> Long {
         marker = file tell()
         marker
-    }
-
-    reset: func(marker: Long) {
-        fseek(file, marker, SEEK_SET)
     }
 
     close: func {

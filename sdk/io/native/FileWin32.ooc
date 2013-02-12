@@ -154,8 +154,8 @@ version(windows) {
                 return getAbsoluteFile() mkdir()
             }
 
-            parent := parent()
-            if (!parent exists?()) parent mkdir()
+            p := parent
+            if (!p exists?()) parent mkdir()
             CreateDirectory(path toCString(), null) ? 0 : -1
         }
 
@@ -202,7 +202,7 @@ version(windows) {
             fullPath := Buffer new(File MAX_PATH_LENGTH)
             GetFullPathName(path toCString(), File MAX_PATH_LENGTH, fullPath data, null)
             fullPath sizeFromData()
-            fullPath toString()
+            _normalizePath(fullPath toString())
         }
 
         _getChildren: func <T> (T: Class) -> ArrayList<T> {

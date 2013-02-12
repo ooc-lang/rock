@@ -172,10 +172,10 @@ version (unix || apple) {
         getAbsolutePath: func -> String {
             assert(path != null)
             assert(!path empty?())
-            actualPath := Buffer new(MAX_PATH_LENGTH)
-            ret := realpath(path toCString(), actualPath toCString())
+            actualPath := gc_malloc(MAX_PATH_LENGTH) as CString
+            ret := realpath(path, actualPath)
             if (ret == null) OSException new("failed to get absolute path for " + path) throw()
-            String new(ret, ret length())
+            String new(actualPath)
         }
 
         /**
