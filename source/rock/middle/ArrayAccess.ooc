@@ -242,7 +242,7 @@ ArrayAccess: class extends Expression {
                     }
 
                     for (opDecl in tDecl operators) {
-                        "Matching %s against %s" printfln(opDecl toString(), toString())
+                        //"Matching %s against %s" printfln(opDecl toString(), toString())
                         score := getScore(opDecl, reqType, inAssign ? parent as BinaryOp : null, res)
                         if(score == -1) {
                             return Response LOOP
@@ -319,8 +319,6 @@ ArrayAccess: class extends Expression {
 
     isResolved: func -> Bool { array isResolved() && type != null }
     getScore: func (op: OperatorDecl, reqType: Type, assign: BinaryOp, res: Resolver) -> Int {
-        "op symbol = %s" printfln(op getSymbol())
-
         if(!(op getSymbol() equals?(assign != null ? "[]=" : "[]"))) {
             return 0 // not the right overload type - skip
         }
@@ -328,8 +326,6 @@ ArrayAccess: class extends Expression {
         requiredArgs := indices getSize() + diff
 
         fDecl := op getFunctionDecl()
-        "fDecl = %s" printfln(fDecl toString())
-
         args := ArrayList<VariableDecl> new()
         args addAll(fDecl getArguments())
 
@@ -337,26 +333,22 @@ ArrayAccess: class extends Expression {
             args add(0, fDecl owner getThisDecl())
         }
 
-        "args size = %d, required = %d" printfln(args size, requiredArgs)
-
         if(!args last() instanceOf?(VarArg) && (args getSize() != requiredArgs)) {
             // not a match!
-            //if(res params veryVerbose) {
+            if(res params veryVerbose) {
                 "For %s vs %s, got %d args, %d indices, diff is %d - no luck!" format(op toString(), toString(), args getSize(), indices getSize(), diff) println()
-            //}
+            }
             return 0
         }
 
         // Handle the array expression first, e.g. array[indices...]
         opArray := args get(0)
         if(opArray getType() == null || array getType() == null) {
-            "Null opArray" println()
             return -1
         }
 
         arrayScore := array getType() getScore(opArray getType())
         if(arrayScore == -1) {
-            "-1 arrayScore" println()
             return -1
         }
 
@@ -364,7 +356,7 @@ ArrayAccess: class extends Expression {
         for(i in 0..(args getSize() - diff)) {
             opIndex := args[i + 1]
             index := indices[i]
-            "opIndex = %s, index = %s (diff = %d)" printfln(opIndex toString(), index toString(), diff)
+            //"opIndex = %s, index = %s (diff = %d)" printfln(opIndex toString(), index toString(), diff)
             match {
                 case opIndex instanceOf?(VarArg) =>
                     indexScore += Type SCORE_SEED
@@ -388,7 +380,7 @@ ArrayAccess: class extends Expression {
         reqScore   := reqType ? fDecl getReturnType() getScore(reqType) : 0
         if(reqScore   == -1) return -1
 
-        "Score of %s for %s = %d (array %d, index %d, req %d)" printfln(op toString(), toString(), arrayScore + indexScore + reqScore, arrayScore, indexScore, reqScore)
+        //"Score of %s for %s = %d (array %d, index %d, req %d)" printfln(op toString(), toString(), arrayScore + indexScore + reqScore, arrayScore, indexScore, reqScore)
 
         return arrayScore + indexScore + reqScore
 
