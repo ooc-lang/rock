@@ -4,7 +4,7 @@ import Visitor, Expression, FunctionDecl, Argument, Type,
        TypeDecl, Node, VariableDecl, VariableAccess, AddressOf, CommaSequence, BinaryOp,
        InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType, Return,
        TypeList, Scope, Block, InlineContext, StructLiteral, NullLiteral,
-       IntLiteral, Ternary, ClassDecl, CoverDecl
+       IntLiteral, Ternary, ClassDecl, CoverDecl, ArrayLiteral
 import tinker/[Response, Resolver, Trail, Errors]
 
 /**
@@ -177,6 +177,8 @@ FunctionCall: class extends Expression {
         if(score == -1) {
             if(debugCondition()) "** Score = -1! Aboort" println()
             if(res fatal) {
+                // check our arguments are all right
+                checkArgumentValidity(res)
                 // trigger a resolve on the candidate so that it'll display a more helpful error
                 candidate resolve(trail, res)
             }
@@ -1316,6 +1318,17 @@ FunctionCall: class extends Expression {
         true
     }
 
+    /**
+     * Prints an error if any of our arguments is invalid (aka an empty array literal)
+     */
+    checkArgumentValidity: func(res: Resolver) {
+        for(arg in args) {
+            if(arg instanceOf?(ArrayLiteral) && arg as ArrayLiteral elements empty?()) {
+                res throwError(InvalidArgument new(token, "You cannot pass an empty array literal as an argument to a function"))
+            }
+        }
+    }
+
     getType: func -> Type { returnType }
 
     isMember: func -> Bool {
@@ -1400,6 +1413,10 @@ UnresolvedCall: class extends Error {
         token formatMessage(message, "ERROR") + precisions
     }
 
+}
+
+InvalidArgument: class extends Error {
+    init: super func ~tokenMessage
 }
 
 UseOfVoidExpression: class extends Error {

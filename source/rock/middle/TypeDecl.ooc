@@ -739,7 +739,11 @@ TypeDecl: abstract class extends Declaration {
         fDecl := getFunction(call name, call suffix, call, true, finalScore&)
         if(finalScore == -1) {
             if(res fatal) {
-                // if fatal and because of us, resolve ourselves to get a meaningful error message
+                // if fatal and because of us, there could be two reasons
+                // the first one is that we have invalid arguments (like the empty array lit), so we check that
+                call checkArgumentValidity(res)
+                // if the arguments are all valid, then it means that the error is somewhere in the definition
+                // so we resolve ourselves to get a meaningful error message
                 // instead of getting a cryptic error on the call-side (like, 'No such function blah'
                 // where clearly such a function exists)
                 resolve(Trail new(token module), res)
