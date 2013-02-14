@@ -236,6 +236,9 @@ Match: class extends Expression {
             // check that all types are compatible and find a common denominator
             if(cases empty?()) {
                 return Response OK
+            } else if(cases getSize() == 1) {
+                type = cases first() getType()
+                return Response OK
             }
 
             baseType := cases first() getType()
