@@ -142,10 +142,6 @@ Module: class extends Node {
     }
 
     addType: func (tDecl: TypeDecl) {
-        if (tDecl debugCondition()) {
-            "Adding type %s" printfln(tDecl toString())
-        }
-
         old := types get(tDecl name) as TypeDecl
         if (old != null) {
             if ((old verzion == tDecl verzion) ||

@@ -99,11 +99,23 @@ BaseType: class extends Type {
 
     suggest: func (decl: Declaration) -> Bool {
 
-        if(decl instanceOf?(TypeDecl) && decl as TypeDecl isAddon()) {
-            // The second rule of resolve club is: you do *NOT* resolve to an addon.
-            // Always resolve to the base instead.
-            return suggest(decl as TypeDecl getBase() getNonMeta())
+        match decl {
+            case tDecl: TypeDecl =>
+                if (tDecl isAddon()) {
+                    // The second rule of resolve club is: you do *NOT* resolve to an addon.
+                    // Always resolve to the base instead.
+                    return suggest(tDecl getBase() getNonMeta())
+                }
+
+                match decl {
+                    case cDecl: CoverDecl =>
+                        if (cDecl template) {
+                            "Resolving %s to a cover template!" printfln(toString())
+                            return suggest(cDecl getTemplateInstance(this))
+                        }
+                }
         }
+
         ref = decl
 
         if(name == "This" && getRef() instanceOf?(TypeDecl)) {

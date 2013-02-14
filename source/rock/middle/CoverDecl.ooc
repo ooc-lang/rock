@@ -6,7 +6,7 @@ import ../io/TabbedWriter
 // our stuff
 import ../frontend/[Token, BuildParams]
 import Expression, Type, Visitor, TypeDecl, Node, FunctionDecl,
-       FunctionCall, VariableAccess, TemplateDef
+       FunctionCall, VariableAccess, TemplateDef, BaseType
 import tinker/[Response, Resolver, Trail, Errors]
 
 CoverDecl: class extends TypeDecl {
@@ -14,6 +14,9 @@ CoverDecl: class extends TypeDecl {
     fromType: Type
 
     template: TemplateDef { get set }
+    templateParent: CoverDecl { get set }
+
+    instances := HashMap<String, CoverDecl> new()
 
     init: func ~coverDeclNoSuper(.name, .token) {
         super(name, token)
@@ -41,7 +44,17 @@ CoverDecl: class extends TypeDecl {
             )
         }
 
-        if (!template) {
+        if (template) {
+            response := Response OK
+
+            for (instance in instances) {
+                response = instance resolve(trail, res)
+
+                if (!response ok()) {
+                    return response
+                }
+            }
+        } else {
             // resolve the body, methods, arguments
             response := super(trail, res)
             if(!response ok()) return response
@@ -94,6 +107,27 @@ CoverDecl: class extends TypeDecl {
 
         // templates have no meta-class. Like, none at all.
         !template
+    }
+
+    getTemplateInstance: func (spec: BaseType) -> CoverDecl {
+        "Should get a template instance of %s as per %s" printfln(toString(), spec toString())
+
+        fingerprint := "__" + name + "__" + spec typeArgs map(|vAcc| vAcc getName()) join("__")
+
+        if (instances contains?(fingerprint)) {
+            return instances get(fingerprint)
+        }
+
+        "Creating instance with fingerprint: %s" printfln(fingerprint)
+
+        instance := This new(fingerprint, token)
+        instance templateParent = this
+        instance module = module
+        instance setVersion(instance getVersion())
+
+        instances put(fingerprint, instance)
+
+        instance
     }
 
     writeSize: func (w: TabbedWriter, instance: Bool) {

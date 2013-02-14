@@ -26,6 +26,12 @@ TypeDecl: abstract class extends Declaration {
     // generic type args, e.g. the T in List: class <T>
     typeArgs := ArrayList<VariableDecl> new()
 
+    // type arg instances - this is used for cover templates,
+    // when instanciating for example Array: cover template <T> to
+    // Array<Int>, we have "T" => BaseType("Int") and we can
+    // directly suggest the Int type instead of T
+    templateArgs := HashMap<String, Type> new()
+
     // internal state variables
     hasCheckedInheritance := false
     hasCheckedAbstract := false
@@ -398,6 +404,10 @@ TypeDecl: abstract class extends Declaration {
         trail push(this)
 
         if(debugCondition() || res params veryVerbose) "====== Resolving type decl %s" printfln(toString())
+
+        if(debugCondition()) {
+            [0][1]
+        }
 
         if (!type isResolved()) {
             response := type resolve(trail, res)
