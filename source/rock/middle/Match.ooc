@@ -236,17 +236,14 @@ Match: class extends Expression {
             // check that all types are compatible and find a common denominator
             if(cases empty?()) {
                 return Response OK
-            } else if(cases getSize() == 1) {
-                type = cases first() getType()
-                return Response OK
             }
 
             baseType := cases first() getType()
             if(!baseType) return Response OK
 
-            // We find the common roots between our "base" type and the rest of the types
-            // Then, we will go through the roots and get their common roots, until we only have a single root
-            roots := ArrayList<Type> new(cases getSize())
+            // We find the common roots between our base type and next type
+            // This root becomes our new base type
+            // If there is no root, this means we have an incompatible type
             for(i in 1 .. cases getSize()) {
                 currType := cases get(i) getType()
                 if(!currType) return Response OK
@@ -254,27 +251,10 @@ Match: class extends Expression {
                 root := findCommonRoot(baseType, currType)
                 if(!root) return Response OK // TODO: add a good error here
 
-                roots add(root)
+                baseType = root
             }
 
-            singleRoot? := func -> Bool {
-                first := roots first()
-                ret := true
-                roots each(|root| if(root != first) ret = false)
-                ret
-            }
-
-            while(!singleRoot?()) {
-                first := roots first()
-                for(i in 1 .. roots getSize()) {
-                    root := findCommonRoot(first, roots get(i))
-                    if(!root) return Response OK // TODO: add a good error here
-                    roots[i] = root
-                }
-                roots = roots shuffle()
-            }
-
-            type = roots[0]
+            type = baseType
         }
 
         return Response OK
