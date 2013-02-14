@@ -249,7 +249,11 @@ Match: class extends Expression {
                 if(!currType) return Response OK
 
                 root := findCommonRoot(baseType, currType)
-                if(!root) return Response OK // TODO: add a good error here
+                if(!root) {
+                    res throwError(IncompatibleType new(cases get(i) token,\
+                        "Type %s is incompatible with the inferred type of match %s" format(currType toString(), baseType toString())))
+                    return Response OK
+                }
 
                 baseType = root
             }
@@ -340,6 +344,10 @@ WrongMatchesSignature: class extends Error {
 }
 
 CantUseMatch: class extends Error {
+    init: super func ~tokenMessage
+}
+
+IncompatibleType: class extends Error {
     init: super func ~tokenMessage
 }
 
