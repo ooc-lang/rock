@@ -14,7 +14,8 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Dereference, Foreach, OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess,
     Match, FlowControl, While, CharLiteral, InterfaceDecl, NamespaceDecl,
     Version, Use, Block, ArrayLiteral, EnumDecl, BaseType, FuncType,
-    Declaration, PropertyDecl, CallChain, Tuple, Addon, Try, CommaSequence]
+    Declaration, PropertyDecl, CallChain, Tuple, Addon, Try, CommaSequence,
+    TemplateDef]
 
 nq_parse: extern proto func (AstBuilder, CString) -> Int
 
@@ -166,6 +167,18 @@ AstBuilder: class {
 
     onExtendEnd: unmangled(nq_onExtendEnd) func -> Addon {
         module addAddon(pop(Addon))
+    }
+
+    /*
+     * Templates
+     */
+    onTemplateStart: unmangled(nq_onTemplateStart) func {
+        stack push(TemplateDef new(token()))
+    }
+
+    onTemplateEnd: unmangled(nq_onTemplateEnd) func {
+        "Got a template def!" println()
+        pop(TemplateDef)
     }
 
     /*
@@ -1162,7 +1175,6 @@ AstBuilder: class {
         type addTypeArg(VariableAccess new(typeInner, token()))
     }
 
-
     onFuncTypeGenericArgument: unmangled(nq_onFuncTypeGenericArgument) func (type: FuncType, cname: CString) {
         name := cname toString()
 
@@ -1176,12 +1188,14 @@ AstBuilder: class {
 
         vDecl := VariableDecl new(BaseType new("Class", token()), name, token())
 
-        done := false
-        if(node instanceOf?(Declaration)) {
-            done = node as Declaration addTypeArg(vDecl)
+        match node {
+            case d: Declaration =>
+                node as Declaration addTypeArg(vDecl)
+            case =>
+                message := "Unexpected type argument in a %s declaration!" format(node class name)
+                error := InternalError new(token(), message)
+                params errorHandler onError(error)
         }
-
-        if(!done) params errorHandler onError(InternalError new(token(), "Unexpected type argument in a %s declaration!" format(node class name)))
 
     }
 
