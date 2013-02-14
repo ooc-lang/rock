@@ -1,11 +1,13 @@
 
 // sdk stuff
-import structs/HashMap
+import structs/[ArrayList, HashMap]
 
 // our stuff
-import Declaration, Type, Node, Visitor
+import Declaration, Type, Node, Visitor, VariableDecl
 
 TemplateDef: class extends Declaration {
+
+    typeArgs := ArrayList<VariableDecl> new()
     
     init: func (.token) {
         super(token)
@@ -28,6 +30,11 @@ TemplateDef: class extends Declaration {
     getType: func -> Type {
         Exception new("Template defs don't have types") throw()
         null
+    }
+
+    addTypeArg: func (typeArg: VariableDecl) -> Bool {
+        typeArgs add(typeArg)
+        true
     }
 
 }

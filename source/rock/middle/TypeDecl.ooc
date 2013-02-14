@@ -30,7 +30,7 @@ TypeDecl: abstract class extends Declaration {
     // when instanciating for example Array: cover template <T> to
     // Array<Int>, we have "T" => BaseType("Int") and we can
     // directly suggest the Int type instead of T
-    templateArgs := HashMap<String, Type> new()
+    templateArgs := HashMap<String, Declaration> new()
 
     // internal state variables
     hasCheckedInheritance := false
@@ -638,7 +638,15 @@ TypeDecl: abstract class extends Declaration {
             if(type suggest(getNonMeta() ? getNonMeta() : this)) return 0
         }
 
-        for(typeArg: VariableDecl in getTypeArgs()) {
+        { 
+            ref := templateArgs get(type name)
+            if (ref) {
+                "Got corresponding templateArg for %s : %s" printfln(type name, ref toString())
+                if(type suggest(ref)) return 0
+            }
+        }
+
+        for(typeArg in getTypeArgs()) {
             if(typeArg name == type name) {
                 if(type suggest(typeArg)) return 0
             }
@@ -668,6 +676,14 @@ TypeDecl: abstract class extends Declaration {
         if(access getName() == "This") {
             //printf("Asking for 'This' in %s (non-meta %s)\n", toString(), getNonMeta() ? getNonMeta() toString() : "(nil)")
             if(access suggest(getNonMeta() ? getNonMeta() : this)) return 0
+        }
+
+        { 
+            ref := templateArgs get(access getName())
+            if (ref) {
+                "Got corresponding templateArg for var access %s : %s" printfln(access getName(), ref toString())
+                if(access suggest(ref)) return 0
+            }
         }
 
         if(access debugCondition()) {

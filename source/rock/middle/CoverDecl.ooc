@@ -125,6 +125,28 @@ CoverDecl: class extends TypeDecl {
         instance module = module
         instance setVersion(instance getVersion())
 
+        for (variable in variables) {
+            instance addVariable(variable clone())
+        }
+
+        for (fDecl in getMeta() functions) {
+            instance addFunction(fDecl)
+        }
+
+        i := 0
+        for (typeArg in spec typeArgs) {
+            if (i >= template typeArgs size) {
+                Exception new("Too many template args for %s" format(toString())) throw()
+            }
+
+            name := template typeArgs get(i) getName()
+            ref := typeArg getRef()
+            "name %s, ref %s" printfln(name, ref ? ref toString() : "(nil)")
+
+            instance templateArgs put(name, ref)
+            i += 1
+        }
+
         instances put(fingerprint, instance)
 
         instance

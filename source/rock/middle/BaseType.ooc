@@ -154,6 +154,18 @@ BaseType: class extends Type {
             }
         }
 
+        if(typeArgs) {
+            trail push(this)
+            for(typeArg in typeArgs) {
+                response := typeArg resolve(trail, res)
+                if(!response ok()) {
+                    trail pop(this)
+                    return response
+                }
+            }
+            trail pop(this)
+        }
+
         if(!ref) {
             depth := trail getSize() - 1
             while(depth >= 0) {
@@ -197,18 +209,6 @@ BaseType: class extends Type {
                     res throwError(MismatchedTypeParams new(token, "%s type parameters for %s. It should match %s" format(message, toString(), tDecl getInstanceType() toString())))
                 }
             }
-        }
-
-        if(typeArgs) {
-            trail push(this)
-            for(typeArg in typeArgs) {
-                response := typeArg resolve(trail, res)
-                if(!response ok()) {
-                    trail pop(this)
-                    return response
-                }
-            }
-            trail pop(this)
         }
 
         return Response OK
