@@ -36,6 +36,7 @@ _createSugarWith: func(inner, levels: Type) -> Type {
             case ReferenceType => construct = ReferenceType new(construct, construct token)
             case => // Comon, how did you even get here?!
         }
+        levels = levels as SugarType inner
     }
     construct
 }
