@@ -1,13 +1,19 @@
+
+// sdk stuff
 import structs/[HashMap, ArrayList]
 import ../io/TabbedWriter
+
+// our stuff
 import ../frontend/[Token, BuildParams]
 import Expression, Type, Visitor, TypeDecl, Node, FunctionDecl,
-       FunctionCall, VariableAccess
+       FunctionCall, VariableAccess, TemplateDef
 import tinker/[Response, Resolver, Trail, Errors]
 
 CoverDecl: class extends TypeDecl {
 
     fromType: Type
+
+    template: TemplateDef { get set }
 
     init: func ~coverDeclNoSuper(.name, .token) {
         super(name, token)
@@ -29,25 +35,30 @@ CoverDecl: class extends TypeDecl {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        {
+        if (debugCondition()) {
+            "Resolving CoverDecl %s, template = %p" printfln(
+                toString(), template
+            )
+        }
+
+        if (!template) {
+            // resolve the body, methods, arguments
             response := super(trail, res)
             if(!response ok()) return response
-        }
 
-        trail push(this)
+            if(fromType) {
+                trail push(this)
+                response := fromType resolve(trail, res)
+                if(!response ok()) {
+                    fromType setRef(BuiltinType new(fromType getName(), nullToken))
+                }
 
-        if(fromType) {
-            response := fromType resolve(trail, res)
-            if(!response ok()) {
-                fromType setRef(BuiltinType new(fromType getName(), nullToken))
+                if(fromType getRef() != null) {
+                    fromType checkedDig(res)
+                }
+                trail pop(this)
             }
-
-            if(fromType getRef() != null) {
-                fromType checkedDig(res)
-            }
         }
-
-        trail pop(this)
 
         return Response OK
     }
@@ -74,6 +85,15 @@ CoverDecl: class extends TypeDecl {
         } else {
             -1
         }
+    }
+
+    hasMeta?: func -> Bool {
+        if (debugCondition()) {
+            "hasMeta called, they want %s / %p back" printfln(toString(), template)
+        }
+
+        // templates have no meta-class. Like, none at all.
+        !template
     }
 
     writeSize: func (w: TabbedWriter, instance: Bool) {

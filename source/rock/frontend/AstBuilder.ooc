@@ -177,8 +177,9 @@ AstBuilder: class {
     }
 
     onTemplateEnd: unmangled(nq_onTemplateEnd) func {
-        "Got a template def!" println()
-        pop(TemplateDef)
+        tDef := pop(TemplateDef)
+        cDecl := peek(CoverDecl)
+        cDecl template = tDef
     }
 
     /*
@@ -190,7 +191,6 @@ AstBuilder: class {
         cDecl setVersion(getVersion())
         cDecl doc = doc toString()
         cDecl module = module
-        module addType(cDecl)
         stack push(cDecl)
     }
 
@@ -211,7 +211,7 @@ AstBuilder: class {
     }
 
     onCoverEnd: unmangled(nq_onCoverEnd) func {
-        pop(CoverDecl)
+        module addType(pop(CoverDecl))
     }
 
     /*
@@ -271,7 +271,6 @@ AstBuilder: class {
         cDecl setVersion(getVersion())
         cDecl doc = doc toString()
         cDecl module = module
-        module addType(cDecl)
         stack push(cDecl)
     }
 
@@ -295,7 +294,7 @@ AstBuilder: class {
         peek(ClassDecl) addDefaultInit()    }
 
     onClassEnd: unmangled(nq_onClassEnd) func {
-        pop(ClassDecl)
+        module addType(pop(ClassDecl))
     }
 
     /*

@@ -65,8 +65,8 @@ ClassDecl: class extends TypeDecl {
                     }
                     
                     if (fDecl == null || fDecl getArguments() size > 0) {
-                        res throwError(NoDefaultConstructorError new(token, "No default no-arg constructor in super-class %s. You need to define a constructor yourself." format(
-                            superType getName())))
+                        message := "No default no-arg constructor in super-class %s. You need to define a constructor yourself." format(superType getName())
+                        res throwError(NoDefaultConstructorError new(token, message))
                     }
                 }
             }

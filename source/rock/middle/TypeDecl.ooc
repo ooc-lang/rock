@@ -4,7 +4,7 @@ import ../io/TabbedWriter
 import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
     FunctionDecl, FunctionCall, Module, VariableAccess, Node,
     InterfaceImpl, Version, EnumDecl, BaseType, FuncType, OperatorDecl,
-    Addon, Cast
+    Addon, Cast, CoverDecl
 import tinker/[Resolver, Response, Trail, Errors]
 
 /**
@@ -97,7 +97,8 @@ TypeDecl: abstract class extends Declaration {
     }
 
     debugCondition: inline func -> Bool {
-        false
+        //false
+        name == "MyArrayClass" || name == "MyArray"
     }
 
     isAbstract: func -> Bool { false }
@@ -179,6 +180,10 @@ TypeDecl: abstract class extends Declaration {
 
     hashName: static func ~fromFuncDecl (fDecl: FunctionDecl) -> String {
         This hashName(fDecl getName(), fDecl getSuffix())
+    }
+
+    hasMeta?: func -> Bool {
+        !isMeta
     }
 
     addFunction: func (fDecl: FunctionDecl) {

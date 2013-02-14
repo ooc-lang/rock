@@ -216,7 +216,8 @@ FunctionDecl: class extends Declaration {
     isAnon: func -> Bool { isAnon }
 
     debugCondition: inline func -> Bool {
-        false
+        //false
+        name == "kalamazoo"
     }
 
     markForPartialing: func(var: VariableDecl, mode: String) {
@@ -462,7 +463,7 @@ FunctionDecl: class extends Declaration {
 
         trail push(this)
 
-        if(debugCondition()) "Handling the owner"
+        if(debugCondition()) "Handling the owner" println()
         
         // handle the case where we specialize a generic function
         if(owner) {
