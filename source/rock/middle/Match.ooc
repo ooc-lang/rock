@@ -1,5 +1,6 @@
 import structs/[ArrayList, List]
 import ../frontend/Token
+import algo/typeAnalysys
 import ControlStatement, Statement, Expression, Visitor, VariableDecl,
        Node, VariableAccess, Scope, BoolLiteral, Comparison, Type,
        FunctionDecl, Return, BinaryOp, FunctionCall, Cast, Parenthesis
@@ -237,17 +238,40 @@ Match: class extends Expression {
                 return Response OK
             }
 
-            first := cases first()
-            if(first getBody() empty?()) {
-                return Response OK
+            baseType := cases first() getType()
+            if(!baseType) return Response OK
+
+            // We find the common roots between our "base" type and the rest of the types
+            // Then, we will go through the roots and get their common roots, until we only have a single root
+            roots := ArrayList<Type> new(cases getSize())
+            for(i in 1 .. cases getSize()) {
+                currType := cases get(i) getType()
+                if(!currType) return Response OK
+
+                root := findCommonRoot(baseType, currType)
+                if(!root) return Response OK // TODO: add a good error here
+
+                roots add(root)
             }
 
-            statement := first getBody() last()
-            if(!statement instanceOf?(Expression)) {
-                return Response OK
+            singleRoot? := func -> Bool {
+                first := roots first()
+                ret := true
+                roots each(|root| if(root != first) ret = false)
+                ret
             }
 
-            type = statement as Expression getType()
+            while(!singleRoot?()) {
+                first := roots first()
+                for(i in 1 .. roots getSize()) {
+                    root := findCommonRoot(first, roots get(i))
+                    if(!root) return Response OK // TODO: add a good error here
+                    roots[i] = root
+                }
+                roots = roots shuffle()
+            }
+
+            type = roots[0]
         }
 
         return Response OK
@@ -311,6 +335,17 @@ Case: class extends ControlStatement {
         false
     }
 
+    getType: func -> Type {
+        body := getBody()
+        if(body empty?()) return null
+
+        statement := body last()
+        if(!statement instanceOf?(Expression)) {
+            return null
+        }
+
+        return statement as Expression getType()
+    }
 }
 
 ExpectedExpression: class extends Error {
