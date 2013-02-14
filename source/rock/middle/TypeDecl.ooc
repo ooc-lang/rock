@@ -36,11 +36,10 @@ TypeDecl: abstract class extends Declaration {
     hasCheckedInheritance := false
     hasCheckedAbstract := false
 
+    // the crux of the matter
     variables := HashMap<String, VariableDecl> new()
-
-    // for classes, functions are contained in the meta-class.
-    // for covers, they are directly in the cover decl.
     functions := HashMap<String, FunctionDecl> new()
+    operators := ArrayList<OperatorDecl> new()
 
     // interface types that this type implements
     interfaceTypes := ArrayList<Type> new()
@@ -207,6 +206,11 @@ TypeDecl: abstract class extends Declaration {
         } else {
             meta addFunction(fDecl)
         }
+    }
+
+    addOperator: func (oDecl: OperatorDecl) {
+        operators add(oDecl)
+        addFunction(oDecl fDecl)
     }
 
     removeFunction: func(fDecl: FunctionDecl) {

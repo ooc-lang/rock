@@ -600,7 +600,18 @@ AstBuilder: class {
 
     onOperatorEnd: unmangled(nq_onOperatorEnd) func {
         oDecl := pop(OperatorDecl)
-        peek(Module) addOperator(oDecl)
+        oDecl computeName()
+
+        match (peek(Node)) {
+            case m: Module =>
+                m addOperator(oDecl)
+            case tDecl: TypeDecl =>
+                tDecl addOperator(oDecl)
+            case =>
+                message := "Now where are you putting OperatorDecl(s) ?"
+                error := InternalError new(token(), message)
+                params errorHandler onError(error)
+        }
     }
 
     /*
