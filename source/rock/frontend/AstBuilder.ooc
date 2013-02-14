@@ -594,10 +594,8 @@ AstBuilder: class {
 
     onOperatorStart: unmangled(nq_onOperatorStart) func (symbol: CString) {
         oDecl := OperatorDecl new(symbol toString() trim(), token())
-        fDecl := FunctionDecl new("", token())
-        oDecl setFunctionDecl(fDecl)
         stack push(oDecl)
-        stack push(fDecl)
+        stack push(oDecl fDecl)
     }
 
     onOperatorEnd: unmangled(nq_onOperatorEnd) func {

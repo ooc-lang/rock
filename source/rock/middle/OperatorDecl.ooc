@@ -12,10 +12,13 @@ OperatorDecl: class extends Expression {
 
     init: func ~opDecl (=symbol, .token) {
         super(token)
+
         if(symbol == "implicit as") {
             implicit = true
             this symbol = "as"
         }
+
+        setFunctionDecl(FunctionDecl new("", token))
     }
 
     clone: func -> This {
