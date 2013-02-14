@@ -231,9 +231,7 @@ Match: class extends Expression {
             }
         }
 
-        if(type == null) {
-            // TODO make it more intelligent e.g. cycle through all cases and
-            // check that all types are compatible and find a common denominator
+        if(!type) {
             if(cases empty?()) {
                 return Response OK
             }
