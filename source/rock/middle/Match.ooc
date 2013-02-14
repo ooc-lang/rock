@@ -255,7 +255,6 @@ Match: class extends Expression {
 
                 baseType = root
             }
-
             type = baseType
         }
 

@@ -47,14 +47,18 @@ getInnermostType: func(type: Type) -> Type {
     type
 }
 
+// Returns the clsoer common root of two types
+// A common root is a type that represents both of the types it comes from
+// For example, if Bar extends Foo and Baz extends Foo, Foo is the closer common root of Foo and Bar
 findCommonRoot: func(type1, type2: Type, trail: Trail, res: Resolver) -> Type {
     basic := func(t1, t2: Type) -> Type {
         if(t1 equals?(type2)) return t1
 
-        if(t1 getScore(t2) > 0) {
+        if(t1 getScore(t2) > 0 || t2 getScore(t1) > 0) {
             score1 := t1 getScore(t2)
             score2 := t2 getScore(t1)
-            return score1 > score2 ? t1 : t2
+            // note the reverse order: this happens because the more general type is t2 when t1 vs t2 > 0
+            return score1 > score2 ? t2 : t1
         }
 
         if(t1 void? || t2 void?) {
@@ -95,7 +99,5 @@ findCommonRoot: func(type1, type2: Type, trail: Trail, res: Resolver) -> Type {
         biggerDistance -= 1
     }
 
-    //"Distance of %s from Object: %d" printfln(btype1 toString(), distanceFromObject(btype1, trail, res))
-    //"Distance of %s from Object: %d" printfln(btype2 toString(), distanceFromObject(btype2, trail, res))
     null
 }
