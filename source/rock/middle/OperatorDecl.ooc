@@ -29,6 +29,7 @@ OperatorDecl: class extends Expression {
 
     setFunctionDecl: func (=fDecl) {
         fDecl setInline(true)
+        fDecl oDecl = this
     }
     getFunctionDecl: func -> FunctionDecl { fDecl }
 

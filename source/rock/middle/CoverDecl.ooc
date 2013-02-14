@@ -129,7 +129,15 @@ CoverDecl: class extends TypeDecl {
             instance addVariable(variable clone())
         }
 
+        for (oDecl in operators) {
+            instance addOperator(oDecl)
+        }
+
         for (fDecl in getMeta() functions) {
+            if (fDecl oDecl) {
+                // already been added at last step
+                continue
+            }
             instance addFunction(fDecl)
         }
 

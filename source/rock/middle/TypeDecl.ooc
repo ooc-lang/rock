@@ -102,8 +102,7 @@ TypeDecl: abstract class extends Declaration {
     }
 
     debugCondition: inline func -> Bool {
-        //false
-        name == "MyArrayClass" || name == "MyArray"
+        false
     }
 
     isAbstract: func -> Bool { false }
@@ -409,10 +408,6 @@ TypeDecl: abstract class extends Declaration {
 
         if(debugCondition() || res params veryVerbose) "====== Resolving type decl %s" printfln(toString())
 
-        if(debugCondition()) {
-            [0][1]
-        }
-
         if (!type isResolved()) {
             response := type resolve(trail, res)
             if(!response ok()) {
@@ -426,18 +421,15 @@ TypeDecl: abstract class extends Declaration {
             if(!superType isResolved()) {
                 response := superType resolve(trail, res)
                 if(!response ok()) {
-                    //if(debugCondition() || res params veryVerbose) printf("====== Response of superType of %s == %s\n", toString(), response toString())
                     trail pop(this)
                     return response
                 }
             }
 
-            //hasCheckedInheritance := static false
             if(!hasCheckedInheritance && superType getRef() != null) {
                 if(checkInheritanceLoop(res)) hasCheckedInheritance = true
             }
 
-            //hasCheckedAbstract := static false
             if(!hasCheckedAbstract && superType getRef() != null && isMeta) {
                 if(checkAbstractFuncs(res)) hasCheckedAbstract = true
             }
@@ -446,7 +438,6 @@ TypeDecl: abstract class extends Declaration {
         if(!_finishedGhosting) {
             response := ghostTypeParams(trail, res)
             if(!response ok()) {
-                //if(debugCondition() || res params veryVerbose) printf("====== Response of type-param ghosting of %s == %s\n", toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -526,6 +517,14 @@ TypeDecl: abstract class extends Declaration {
             response := fDecl resolve(trail, res)
             if(!response ok()) {
                 //if(debugCondition() || res params veryVerbose) printf("====== Response of fDecl %s of %s == %s\n", fDecl toString(), toString(), response toString())
+                trail pop(this)
+                return response
+            }
+        }
+
+        for(oDecl in operators) {
+            response := oDecl resolve(trail, res)
+            if(!response ok()) {
                 trail pop(this)
                 return response
             }

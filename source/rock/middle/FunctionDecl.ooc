@@ -5,7 +5,7 @@ import Cast, Expression, Type, Visitor, Argument, TypeDecl, Scope,
        VariableDecl, Node, Statement, Module, FunctionCall, Declaration,
        Version, StringLiteral, Conditional, Import, ClassDecl, StringLiteral,
        IntLiteral, NullLiteral, BaseType, FuncType, AddressOf, BinaryOp,
-       TypeList, CoverDecl, StructLiteral, Dereference
+       TypeList, CoverDecl, StructLiteral, Dereference, OperatorDecl
 
 import tinker/[Resolver, Response, Trail, Errors]
 
@@ -42,6 +42,9 @@ import algo/autoReturn
 
 */
 FunctionDecl: class extends Declaration {
+
+    /** The operator declaration this FunctionDecl corresponds to */
+    oDecl: OperatorDecl
 
     /** name: func ~suffix - suffix is null if there's no suffix in the grammar */
     name = "", suffix = null, fullName = null, doc = "" : String
@@ -124,7 +127,7 @@ FunctionDecl: class extends Declaration {
      * If we are a method (member function), 'owner' is non-null, and is a reference
      * to the TypeDecl to which we belong
      */
-    owner : TypeDecl = null
+    owner : TypeDecl { get set }
 
     /** If we're a method, staticVariant is the variant where 'this' is an actual explicit argument */
     staticVariant : This = null
