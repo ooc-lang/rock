@@ -1,5 +1,6 @@
 import structs/[ArrayList, List]
 import ../frontend/Token
+import algo/typeAnalysys
 import ControlStatement, Statement, Expression, Visitor, VariableDecl,
        Node, VariableAccess, Scope, BoolLiteral, Comparison, Type,
        FunctionDecl, Return, BinaryOp, FunctionCall, Cast, Parenthesis
@@ -230,24 +231,31 @@ Match: class extends Expression {
             }
         }
 
-        if(type == null) {
-            // TODO make it more intelligent e.g. cycle through all cases and
-            // check that all types are compatible and find a common denominator
+        if(!type) {
             if(cases empty?()) {
                 return Response OK
             }
 
-            first := cases first()
-            if(first getBody() empty?()) {
-                return Response OK
-            }
+            baseType := cases first() getType()
+            if(!baseType) return Response OK
 
-            statement := first getBody() last()
-            if(!statement instanceOf?(Expression)) {
-                return Response OK
-            }
+            // We find the common roots between our base type and next type
+            // This root becomes our new base type
+            // If there is no root, this means we have an incompatible type
+            for(i in 1 .. cases getSize()) {
+                currType := cases get(i) getType()
+                if(!currType) return Response OK
 
-            type = statement as Expression getType()
+                root := findCommonRoot(baseType, currType, trail, res)
+                if(!root) {
+                    res throwError(IncompatibleType new(cases get(i) token,\
+                        "Type %s is incompatible with the inferred type of match %s" format(currType toString(), baseType toString())))
+                    return Response OK
+                }
+
+                baseType = root
+            }
+            type = baseType
         }
 
         return Response OK
@@ -311,6 +319,17 @@ Case: class extends ControlStatement {
         false
     }
 
+    getType: func -> Type {
+        body := getBody()
+        if(body empty?()) return null
+
+        statement := body last()
+        if(!statement instanceOf?(Expression)) {
+            return null
+        }
+
+        return statement as Expression getType()
+    }
 }
 
 ExpectedExpression: class extends Error {
@@ -322,6 +341,10 @@ WrongMatchesSignature: class extends Error {
 }
 
 CantUseMatch: class extends Error {
+    init: super func ~tokenMessage
+}
+
+IncompatibleType: class extends Error {
     init: super func ~tokenMessage
 }
 
