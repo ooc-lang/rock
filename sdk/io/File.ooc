@@ -26,7 +26,7 @@ File: abstract class {
     path: String { get set }
 
     name: String { get { getName() } }
-    parent: File { get { getParent() } }
+    parent: This { get { getParent() } }
     
     children: ArrayList<This> {
         get {
@@ -63,11 +63,34 @@ File: abstract class {
     /**
        Create a File object, relative to the given parent file
      */
-    new: static func ~parentFile (parent: File, .path) -> This {
+    new: static func ~parentFile (parent: This, .path) -> This {
         assert(parent != null)
         assert(parent path != null)
         assert(!parent path empty?())
         new(parent path + This separator + path)
+    }
+
+    /**
+       Create a File object, relative to the given parent file
+     */
+    new: static func ~parentFileChildFile (parent, child: This) -> This {
+        assert(parent != null)
+        assert(parent path != null)
+        assert(!parent path empty?())
+        assert(child != null)
+        assert(child path != null)
+        assert(!child path empty?())
+        new(parent path + This separator + child path)
+    }
+
+    /**
+       Create a File object, relative to the given parent file
+     */
+    new: static func ~parentPathChildFile (parent: String, child: This) -> This {
+        assert(child != null)
+        assert(child path != null)
+        assert(!child path empty?())
+        new(parent + This separator + child path)
     }
 
     /**
@@ -150,8 +173,8 @@ File: abstract class {
      */
     getParent: func -> This {
         pName := parentName()
-        if (pName) return File new(pName)
-        if (path != "." && !path startsWith?(This separator)) return File new(".") // return the current directory
+        if (pName) return new(pName)
+        if (path != "." && !path startsWith?(This separator)) return new(".") // return the current directory
         return null
     }
 
@@ -250,7 +273,7 @@ File: abstract class {
      * :see: getAbsolutePath
      */
     getAbsoluteFile: func -> This {
-        return File new(getAbsolutePath())
+        new(getAbsolutePath())
     }
 
     /**
@@ -259,7 +282,7 @@ File: abstract class {
     getReducedPath: func -> String {
         elems := ArrayList<String> new()
 
-        for (elem in path split(File separator)) {
+        for (elem in path split(This separator)) {
             if (elem == "..") {
                 if (!elems empty?()) {
                     elems removeAt(elems lastIndex())
@@ -273,12 +296,19 @@ File: abstract class {
             }
         }
 
-        result := elems join(File separator)
-        if (path startsWith?(File separator)) {
-            result = File separator + result
+        result := elems join(This separator)
+        if (path startsWith?(This separator)) {
+            result = This separator + result
         }        
 
         result
+    }
+
+    /**
+     * :return: a new File with resolved redundancies
+     */
+    getReducedFile: func -> This {
+        new(getReducedPath())
     }
 
     /**
@@ -359,7 +389,7 @@ File: abstract class {
        :return: true if we finished walking normally, false if we
        got cancelled by `f` returning false.
      */
-    walk: func (f: Func(File) -> Bool) -> Bool {
+    walk: func (f: Func(This) -> Bool) -> Bool {
         if (file?()) {
             if (!f(this)) return false
         } else if (dir?()) {
@@ -374,10 +404,19 @@ File: abstract class {
     /**
        Get a child of this path
 
-       :param: name The name of the child, relatively to this path
+       :param: childPath The name of the child, relatively to this path
      */
-    getChild: func (name: String) -> This {
-        new(this path + This separator + name)
+    getChild: func (childPath: String) -> This {
+        new(this path, childPath)
+    }
+
+    /**
+       Get a child of this path
+
+       :param: file A child file - with a path relative to our own path
+     */
+    getChild: func ~file (file: This) -> This {
+        getChild(file path)
     }
 
     /**
