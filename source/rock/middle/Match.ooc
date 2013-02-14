@@ -246,7 +246,7 @@ Match: class extends Expression {
                 currType := cases get(i) getType()
                 if(!currType) return Response OK
 
-                root := findCommonRoot(baseType, currType)
+                root := findCommonRoot(baseType, currType, trail, res)
                 if(!root) {
                     res throwError(IncompatibleType new(cases get(i) token,\
                         "Type %s is incompatible with the inferred type of match %s" format(currType toString(), baseType toString())))
