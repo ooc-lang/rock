@@ -244,6 +244,27 @@ VariableAccess: class extends Expression {
                                     bOp := trail get(bOpIDX, BinaryOp)
                                     if (bOp getLeft() == this && bOp isAssign()) mode = "r"
                                 }
+
+                                // Find the first Scope that is the body of a function declaration in the top of the trail
+                                scopeDepth := closureIndex - 1
+                                while(scopeDepth > 0) {
+                                    maybeScope := trail get(scopeDepth, Node)
+                                    if(maybeScope instanceOf?(Scope)) {
+                                        maybeClosure := trail get(scopeDepth - 1, Node)
+                                        // Only partial the variable in the top function if it has not be defined by it and it is not one of its arguments
+                                        if(maybeClosure instanceOf?(FunctionDecl) && maybeClosure as FunctionDecl isAnon \
+                                           && !maybeClosure as FunctionDecl args contains?(|arg| arg name == name || arg name == name + "_generic") \
+                                           && !maybeScope as Scope list contains?(|stmt| stmt instanceOf?(VariableDecl) && stmt as VariableDecl name == name)) {
+                                            // Mark the variable for partialing to top level closure
+                                            maybeClosure as FunctionDecl markForPartialing(ref as VariableDecl, mode)
+                                            if(!maybeClosure as FunctionDecl clsAccesses contains?(this)) {
+                                                maybeClosure as FunctionDecl clsAccesses add(this)
+                                            }
+                                        }
+                                    }
+                                    scopeDepth -= 1
+                                }
+
                                 closure markForPartialing(ref as VariableDecl, mode)
                                 closure clsAccesses add(this)
                             }
