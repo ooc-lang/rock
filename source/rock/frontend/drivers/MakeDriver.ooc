@@ -174,10 +174,15 @@ MakeDriver: class extends SequenceDriver {
         }
 
         for (uze in uses) {
-            for (additional in uze getAdditionals()) {
-                name := File new(additional) getName()
-                cPath := File new(originalOutPath, name) getPath()
+            for (additional in uze additionals) {
+                cPath := File new(File new(originalOutPath, uze identifier), additional relative) path
                 oPath := "%s.o" format(cPath[0..-3])
+                
+                if (params verbose) {
+                    "cPath = %s" printfln(cPath)
+                    "oPath = %s" printfln(oPath)
+                }
+
                 fW write(oPath). write(" ")
             }
         }
@@ -209,10 +214,15 @@ MakeDriver: class extends SequenceDriver {
         }
 
         for (uze in uses) {
-            for (additional in uze getAdditionals()) {
-                name := File new(additional) getName()
-                cPath := File new(originalOutPath, name) getPath()
+            for (additional in uze additionals) {
+                cPath := File new(File new(originalOutPath, uze identifier), additional relative) path
                 oPath := "%s.o" format(cPath[0..-3])
+
+                if (params verbose) {
+                    "cPath = %s" printfln(cPath)
+                    "oPath = %s" printfln(oPath)
+                }
+
                 fW write(oPath). write(": ").
                    write(cPath). write("\n")
                 fW write("\t${CC} ${CFLAGS} -c %s -o %s\n" format(cPath, oPath))

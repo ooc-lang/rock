@@ -110,7 +110,7 @@ Flags: class {
         // to make that connection.
         addCompilerFlag("-I" + params libcachePath + File separator + useDef identifier)
 
-        for (lib in useDef getLibs()) {
+        for (lib in useDef libs) {
             addLinkerFlag(lib)
         }
 
@@ -122,12 +122,12 @@ Flags: class {
         }
 
         // handle pkg-config packages
-        for(pkg in useDef getPkgs()) {
+        for(pkg in useDef pkgs) {
             absorb(PkgConfigFrontend getInfo(pkg), useDef)
         }
 
         // handle pkg-config-like packages (sdl2-config, etc.)
-        for(pkg in useDef getCustomPkgs()) {
+        for(pkg in useDef customPkgs) {
             info: PkgInfo
             if (customPkgCache contains?(pkg)) {
                 info = customPkgCache get(pkg)
@@ -142,12 +142,12 @@ Flags: class {
         }
 
         // include paths
-        for(includePath in useDef getIncludePaths()) {
+        for(includePath in useDef includePaths) {
             addCompilerFlag("-I" + includePath)
         }
 
         // library paths
-        for(libPath in useDef getLibPaths()) {
+        for(libPath in useDef libPaths) {
             addLinkerFlag("-L" + libPath)
         }
 
@@ -162,7 +162,7 @@ Flags: class {
         //}
 
         // .use file dependenceis
-        for(req in useDef getRequirements()) {
+        for(req in useDef requirements) {
             absorb(req useDef)
         }
 
@@ -174,7 +174,7 @@ Flags: class {
         }
 
         for(lflag in info linkerFlags) {
-            if (useDef getPreMains() contains?(lflag)) {
+            if (useDef preMains contains?(lflag)) {
                 addPreMainFlag(lflag)
             } else {
                 addLinkerFlag(lflag)

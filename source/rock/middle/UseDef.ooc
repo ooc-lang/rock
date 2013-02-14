@@ -31,6 +31,18 @@ CustomPkg: class {
 }
 
 /**
+ * An additional is a .c / .s file that you want to add
+ * to your ooc project to be compiled in.
+ */
+Additional: class {
+    relative: File { get set }
+    absolute: File { get set }
+
+    init: func (=relative, =absolute) {
+    }
+}
+
+/**
    Represents the data in a .use file, such as includes, include paths,
    libraries, packages (from pkg-config), requirements, etc.
 
@@ -39,43 +51,45 @@ CustomPkg: class {
 UseDef: class {
     cache := static HashMap<String, UseDef> new()
 
-    identifier, name = "", description = "", version = "": String
-
-    main : String = null
     file: File
 
-    sourcePath : String = null
+    identifier:    String { get set }
+    name:          String { get set }
+    description:   String { get set }
+    versionNumber: String { get set }
+    sourcePath:    String { get set }
+    linker:        String { get set }
+    main:          String { get set }
 
-    linker : String = null
+    requirements        : ArrayList<Requirement> { get set }
+    pkgs                : ArrayList<String> { get set }
+    customPkgs          : ArrayList<CustomPkg> { get set }
+    libs                : ArrayList<String> { get set }
+    frameworks          : ArrayList<String> { get set }
+    includes            : ArrayList<String> { get set }
+    imports             : ArrayList<String> { get set }
+    libPaths            : ArrayList<String> { get set }
+    includePaths        : ArrayList<String> { get set }
+    preMains            : ArrayList<String> { get set }
+    additionals         : ArrayList<Additional> { get set }
+    androidLibs         : ArrayList<String> { get set }
+    androidIncludePaths : ArrayList<String> { get set }
 
-    requirements := ArrayList<Requirement> new()
-    pkgs         := ArrayList<String> new()
-    customPkgs   := ArrayList<CustomPkg> new()
-    libs         := ArrayList<String> new()
-    frameworks   := ArrayList<String> new()
-    includes     := ArrayList<String> new()
-    imports      := ArrayList<String> new()
-    libPaths     := ArrayList<String> new()
-    includePaths := ArrayList<String> new()
-    preMains     := ArrayList<String> new()
-    additionals  := ArrayList<String> new()
-    androidLibs         := ArrayList<String> new()
-    androidIncludePaths := ArrayList<String> new()
-
-    init: func (=identifier) {}
-
-    getRequirements: func -> List<Requirement> { requirements }
-    getPkgs:         func -> List<String>      { pkgs }
-    getCustomPkgs:   func -> List<CustomPkg>   { customPkgs }
-    getLibs:         func -> List<String>      { libs }
-    getFramework:    func -> List<String>      { frameworks }
-    getIncludes:     func -> List<String>      { includes }
-    getLibPaths:     func -> List<String>      { libPaths }
-    getIncludePaths: func -> List<String>      { includePaths }
-    getPreMains:     func -> List<String>      { preMains }
-    getAdditionals:  func -> List<String>      { additionals }
-    getAndroidLibs:  func -> List<String>      { androidLibs }
-    getAndroidIncludePaths:  func -> List<String>      { androidIncludePaths }
+    init: func (=identifier) {
+        requirements        = ArrayList<Requirement> new()
+        pkgs                = ArrayList<String> new()
+        customPkgs          = ArrayList<CustomPkg> new()
+        libs                = ArrayList<String> new()
+        frameworks          = ArrayList<String> new()
+        includes            = ArrayList<String> new()
+        imports             = ArrayList<String> new()
+        libPaths            = ArrayList<String> new()
+        includePaths        = ArrayList<String> new()
+        preMains            = ArrayList<String> new()
+        additionals         = ArrayList<Additional> new()
+        androidLibs         = ArrayList<String> new()
+        androidIncludePaths = ArrayList<String> new()
+    }
 
     parse: static func (identifier: String, params: BuildParams) -> UseDef {
         cached := This cache get(identifier)
@@ -270,11 +284,19 @@ UseDef: class {
                 }
             } else if(id == "Additionals") {
                 for(path in value split(',')) {
-                    additional := File new(path trim())
-                    if(additional relative?()) {
-                        additional = file parent getChild(path) getAbsoluteFile()
+                    relative := File new(path trim()) getReducedFile()
+                    absolute := file parent getChild(relative path) getAbsoluteFile()
+
+                    if (!relative relative?()) {
+                        "[WARNING]: Additional path %s is absolute - it's been ignored" printfln(relative path)
+                        continue
                     }
-                    additionals add(additional path)
+
+                    if (params verbose) {
+                        "relative path: %s / %d" printfln(relative path, relative exists?())
+                        "absolute path: %s / %d" printfln(absolute path, absolute exists?())
+                    }
+                    additionals add(Additional new(relative, absolute))
                 }
             } else if(id == "Requires") {
                 for(req in value split(',')) {
@@ -284,7 +306,7 @@ UseDef: class {
             } else if(id == "SourcePath") {
                 sourcePath = value
             } else if(id == "Version") {
-                version = value
+                versionNumber = value
             } else if(id == "Imports") {
                 for(imp in value split(','))
                     imports add(imp trim())

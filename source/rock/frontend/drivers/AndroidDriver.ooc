@@ -7,7 +7,7 @@ import structs/[List, ArrayList, HashMap]
 import Driver, Archive, SourceFolder, Flags, CCompiler
 
 import rock/frontend/[BuildParams, Target]
-import rock/middle/[Module, UseDef]
+import rock/middle/[Module, Use, UseDef]
 import rock/backend/cnaughty/CGenerator
 
 /**
@@ -93,7 +93,7 @@ AndroidDriver: class extends Driver {
         fw write("$(LOCAL_PATH)/../"). write(sourceFolder identifier). write(" ")
 
         for (uze in uses) {
-            for (path in uze getAndroidIncludePaths()) {
+            for (path in uze androidIncludePaths) {
                 fw write("$(LOCAL_PATH)/"). write(path). write(" ")
             }
         }
@@ -109,16 +109,21 @@ AndroidDriver: class extends Driver {
 
         uze := UseDef parse(sourceFolder identifier, params)
         if (uze) {
-            for (additional in uze getAdditionals()) {
-                stripped := File new(additional) getName()
-                fw write(stripped). write(" ")
+            for (additional in uze additionals) {
+                cPath := additional relative path
+
+                if (params verbose) {
+                    "cPath: %s" printfln(cPath)
+                }
+
+                fw write(cPath). write(" ")
             }
         }
         fw write("\n")
 
         localSharedLibraries := ArrayList<String> new() 
         for (uze in uses) {
-            localSharedLibraries addAll(uze getAndroidLibs())
+            localSharedLibraries addAll(uze androidLibs)
         }
 
         for (dep in deps) {
@@ -135,7 +140,7 @@ AndroidDriver: class extends Driver {
 
         localLdLibs := ArrayList<String> new()
         for (uze in uses) {
-            localLdLibs addAll(uze getLibs())
+            localLdLibs addAll(uze libs)
         }
 
         if (!localLdLibs empty?()) {

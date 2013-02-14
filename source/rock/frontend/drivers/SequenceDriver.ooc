@@ -185,8 +185,8 @@ SequenceDriver: class extends Driver {
 
         for (uze in flags uses) {
             if (uze sourcePath && uze sourcePath == sourceFolder absolutePath) {
-                for (additional in uze getAdditionals()) {
-                    buildAdditional(sourceFolder, additional)
+                for (additional in uze additionals) {
+                    buildAdditional(sourceFolder, uze, additional)
                 }
             }
         }
@@ -236,11 +236,15 @@ SequenceDriver: class extends Driver {
     /**
      * Build an additional (.c/.s file) to a .o
      */
-    buildAdditional: func (sourceFolder: SourceFolder, additional: String) -> Int {
+    buildAdditional: func (sourceFolder: SourceFolder, uze: UseDef, additional: Additional) -> Int {
 
-        name := File new(additional) getName()
-        cPath := File new(params libcachePath, name) getPath()
+        cPath := File new(File new(params libcachePath, uze identifier), additional relative) getPath()
         oPath := "%s.o" format(cPath[0..-3])
+
+        if (params verbose) {
+            "cPath = %s" printfln(cPath)
+            "oPath = %s" printfln(oPath)
+        }
 
         archive := sourceFolder archive
 

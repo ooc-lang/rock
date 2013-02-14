@@ -55,9 +55,9 @@ Driver: abstract class {
             }
             usesDone add(useDef)
 
-            for (additional in useDef getAdditionals()) {
-                src := File new(additional)
-                dest := File new(params libcachePath, src getName())
+            for (additional in useDef additionals) {
+                src := additional absolute
+                dest := File new(File new(params libcachePath, useDef identifier), additional relative)
 
                 if (params verbose) {
                     "Copying %s to %s" printfln(src path, dest path)
