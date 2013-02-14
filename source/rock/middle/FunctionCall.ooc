@@ -354,7 +354,9 @@ FunctionCall: class extends Expression {
                                     scopeDepth -= 1
                                 }
 
-                                if(closure isAnon && !ref vDecl isGlobal &&
+                                // if our function was defined in the closure's body or arguments, we need not mark it for partialing
+                                definedInClosure? := closure getBody() list ? closure getBody() list contains?(ref vDecl) : false
+                                if(closure isAnon && !ref vDecl isGlobal && !definedInClosure? &&
                                     !closure args contains?(|arg| arg == ref vDecl || arg name == ref vDecl name + "_generic")) {
                                     closure markForPartialing(ref vDecl, "v")
                                 }
