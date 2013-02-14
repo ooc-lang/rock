@@ -6,6 +6,11 @@ CoverDeclWriter: abstract class extends Skeleton {
 
     write: static func ~_cover (this: Skeleton, cDecl: CoverDecl) {
 
+        if (cDecl template) {
+            // cover templates are not written down, silly
+            return
+        }
+
         current = hw
 
         // addons only add functions to an already imported cover, so
