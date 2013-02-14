@@ -53,6 +53,7 @@ getInnermostType: func(type: Type) -> Type {
 findCommonRoot: func(type1, type2: Type, trail: Trail, res: Resolver) -> Type {
     basic := func(t1, t2: Type) -> Type {
         if(t1 equals?(type2)) return t1
+        if(t1 isNumericType() && t2 isNumericType()) return t1
 
         if(t1 getScore(t2) > 0 || t2 getScore(t1) > 0) {
             score1 := t1 getScore(t2)
