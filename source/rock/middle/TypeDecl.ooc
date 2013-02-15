@@ -4,7 +4,7 @@ import ../io/TabbedWriter
 import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
     FunctionDecl, FunctionCall, Module, VariableAccess, Node,
     InterfaceImpl, Version, EnumDecl, BaseType, FuncType, OperatorDecl,
-    Addon, Cast
+    Addon, Cast, PropertyDecl
 import tinker/[Resolver, Response, Trail, Errors]
 
 /**
@@ -158,11 +158,17 @@ TypeDecl: abstract class extends Declaration {
     }
 
     addVariable: func (vDecl: VariableDecl) {
-        if(vDecl isStatic() && !isMeta) {
-            meta addVariable(vDecl)
+        old := getVariable(vDecl name)
+
+        if(!old || old == vDecl) {
+            if(vDecl isStatic() && !isMeta) {
+                meta addVariable(vDecl)
+            } else {
+                variables put(vDecl name, vDecl)
+                vDecl setOwner(this)
+            }
         } else {
-            variables put(vDecl name, vDecl)
-            vDecl setOwner(this)
+            token module params errorHandler onError(FieldRedifinition new(vDecl, old))
         }
     }
 
@@ -421,6 +427,20 @@ TypeDecl: abstract class extends Declaration {
             //hasCheckedAbstract := static false
             if(!hasCheckedAbstract && superType getRef() != null && isMeta) {
                 if(checkAbstractFuncs(res)) hasCheckedAbstract = true
+            }
+
+            // So we resolved the super type, we got to make sure we have no field redifinitions
+            // We do want generic variable fields to be redefined though, so we ignore those
+            // Also, properties can be redefined as the getter and setter are overloaded, which is fine
+            if(superType getRef()) {
+                variables each(|var|
+                    if(!typeArgs contains?(var) && !var instanceOf?(PropertyDecl)) {
+                        superVar := superType getRef() as TypeDecl getVariable(var name)
+                        if(superVar && superVar != var) {
+                            res throwError(FieldRedifinition new(var, superVar))
+                        }
+                    }
+                )
             }
         }
 
@@ -906,6 +926,20 @@ TypeRedefinition: class extends Error {
         message
     }
 
+}
+
+FieldRedifinition: class extends Error {
+
+    first, second: VariableDecl
+
+    init: func(=first, =second) {
+        message = first  token formatMessage("Redifinition of '%s'" format(first getName()), "[INFO]") + '\n' +
+                  second token formatMessage("\n...first definition was here: ", "[ERROR]")
+    }
+
+    format: func -> String {
+        message
+    }
 }
 
 AbstractContractNotSatisfied: class extends Error {

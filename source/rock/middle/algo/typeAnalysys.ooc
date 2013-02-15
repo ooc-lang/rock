@@ -2,14 +2,14 @@ import ../[Type, BaseType, TypeDecl]
 import ../tinker/[Resolver, Trail]
 
 
-distanceFromObject: func(type: BaseType, trail: Trail, res: Resolver) -> Int {
+distanceFromObject: func(type: BaseType) -> Int {
     ref := type ref as TypeDecl
-    ref resolve(trail, res)
+    if(!ref) return -1
 
     distance := 0
     while(ref && ref instanceOf?(TypeDecl) && !ref as TypeDecl isObjectClass()) {
+        if(ref superType && !ref superType as BaseType ref) return -1
         ref = ref superType as BaseType ref
-        ref resolve(trail, res)
         distance += 1
     }
 
@@ -51,7 +51,7 @@ getInnermostType: func(type: Type) -> Type {
 // Returns the clsoer common root of two types
 // A common root is a type that represents both of the types it comes from
 // For example, if Bar extends Foo and Baz extends Foo, Foo is the closer common root of Foo and Bar
-findCommonRoot: func(type1, type2: Type, trail: Trail, res: Resolver) -> Type {
+findCommonRoot: func(type1, type2: Type) -> Type {
     basic := func(t1, t2: Type) -> Type {
         if(t1 equals?(type2)) return t1
         if(t1 isNumericType() && t2 isNumericType()) return t1
@@ -84,8 +84,8 @@ findCommonRoot: func(type1, type2: Type, trail: Trail, res: Resolver) -> Type {
     btype1 := unwrapped1 as BaseType
     btype2 := unwrapped2 as BaseType
     // Get the "distance" of our base types from Object
-    distance1 := distanceFromObject(btype1, trail, res)
-    distance2 := distanceFromObject(btype2, trail, res)
+    distance1 := distanceFromObject(btype1)
+    distance2 := distanceFromObject(btype2)
 
     if(distance1 == -1 || distance2 == -1) return null
 
