@@ -284,7 +284,7 @@ ClassDecl: class extends TypeDecl {
         constructor getBody() add(vdfe)
 
         for (typeArg in getTypeArgs()) {
-            e := VariableAccess new(typeArg, constructor token)
+            e := TypeAccess new(typeArg, constructor token)
             retType addTypeArg(e)
 
             thisAccess    := VariableAccess new("this",                   constructor token)

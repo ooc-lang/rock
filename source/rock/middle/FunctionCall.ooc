@@ -790,7 +790,7 @@ FunctionCall: class extends Expression {
                     result := resolveTypeArg(typeArgName, trail, finalScore&)
                     if(finalScore == -1) return false
                     if(debugCondition()) "[realTypize] result = %s\n" printfln(result ? result toString() : "(nil)")
-                    if(result) baseType typeArgs set(j, VariableAccess new(result, typeArg token))
+                    if(result) baseType typeArgs set(j, TypeAccess new(result, typeArg token))
                 }
                 j += 1
             }

@@ -22,7 +22,7 @@ BaseType: class extends Type {
         get { super() || name == "void" || name == "Void" }
     }
 
-    typeArgs: List<VariableAccess> = null
+    typeArgs: List<TypeAccess> = null
 
     init: func ~baseType (=name, .token) {
         super(token)
@@ -30,6 +30,10 @@ BaseType: class extends Type {
 
     init: func ~withNamespace (=name, =namespace, .token) {
         super(token)
+    }
+
+    debugCondition: func -> Bool {
+        name startsWith?("MyArray")
     }
 
     pointerLevel: func -> Int { 0 }
@@ -90,14 +94,18 @@ BaseType: class extends Type {
         return (other as BaseType name equals?(name))
     }
 
-    addTypeArg: func (typeArg: VariableAccess) -> Bool {
-        if(!typeArgs) typeArgs = ArrayList<VariableAccess> new()
+    addTypeArg: func (typeArg: TypeAccess) -> Bool {
+        if(!typeArgs) typeArgs = ArrayList<TypeAccess> new()
         typeArgs add(typeArg); true
     }
 
     getName: func -> String { name }
 
     suggest: func (decl: Declaration) -> Bool {
+
+        if (debugCondition()) {
+            "Suggested %s for %s" printfln(decl toString(), toString())
+        }
 
         match decl {
             case tDecl: TypeDecl =>
@@ -245,7 +253,7 @@ BaseType: class extends Type {
     getRef: func -> Declaration { ref }
     setRef: func (=ref) {}
 
-    getTypeArgs: func -> List<VariableAccess> { typeArgs }
+    getTypeArgs: func -> List<TypeAccess> { typeArgs }
 
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
         //printf("%s vs %s, other isGeneric ? %s pointerLevel ? %d isPointer() ? %d, other isPointer() ? %d\n", toString(), other toString(), other isGeneric() toString(), other pointerLevel(), isPointer(), other getGroundType() isPointer())
@@ -419,7 +427,7 @@ BaseType: class extends Type {
     }
 
     replace: func (oldie, kiddo: Node) -> Bool {
-        if(typeArgs) return typeArgs replace(oldie as VariableAccess, kiddo as VariableAccess)
+        if(typeArgs) return typeArgs replace(oldie as TypeAccess, kiddo as TypeAccess)
         false
     }
 

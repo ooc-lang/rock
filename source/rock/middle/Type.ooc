@@ -75,9 +75,9 @@ Type: abstract class extends Expression {
      * :return: true if the node supports type arguments and it's been
      * successfully added, false if not
      */
-    addTypeArg: func (typeArg: VariableAccess) -> Bool { false }
+    addTypeArg: func (typeArg: TypeAccess) -> Bool { false }
 
-    getTypeArgs: abstract func -> List<VariableAccess>
+    getTypeArgs: abstract func -> List<TypeAccess>
 
     getType: func -> This {
         getRef() ? getRef() getType() : null
@@ -171,6 +171,12 @@ TypeAccess: class extends Type {
         super(token)
     }
 
+    init: func ~fromVarDecl (vDecl: VariableDecl, .token) {
+        super(token)
+        inner = BaseType new(vDecl getName(), token)
+        inner setRef(vDecl)
+    }
+
     accept: func (visitor: Visitor) {
         visitor visitTypeAccess(this)
     }
@@ -181,7 +187,7 @@ TypeAccess: class extends Type {
 
     getName: func -> String { inner getName() }
 
-    getTypeArgs: func -> List<VariableAccess> { inner getTypeArgs() }
+    getTypeArgs: func -> List<TypeAccess> { inner getTypeArgs() }
 
     pointerLevel: func -> Int { inner pointerLevel() }
 
@@ -230,7 +236,7 @@ SugarType: abstract class extends Type {
     getRef: func -> Declaration   { inner getRef()  }
     setRef: func (d: Declaration) { inner setRef(d) }
 
-    getTypeArgs: func -> List<VariableAccess> { inner getTypeArgs() }
+    getTypeArgs: func -> List<TypeAccess> { inner getTypeArgs() }
 
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
         if(other instanceOf?(class)) {

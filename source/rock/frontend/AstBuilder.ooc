@@ -1180,7 +1180,7 @@ AstBuilder: class {
     }
 
     onTypeGenericArgument: unmangled(nq_onTypeGenericArgument) func (type: Type, typeInner: Type) {
-        type addTypeArg(VariableAccess new(typeInner, token()))
+        type addTypeArg(TypeAccess new(typeInner, token()))
     }
 
     onFuncTypeGenericArgument: unmangled(nq_onFuncTypeGenericArgument) func (type: FuncType, cname: CString) {
