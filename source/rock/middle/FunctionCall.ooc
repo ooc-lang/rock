@@ -154,7 +154,8 @@ FunctionCall: class extends Expression {
      * a return expression, when it's being used.
      */
     debugCondition: inline func -> Bool {
-        false
+        //false
+        name == "new"
     }
 
     /**

@@ -130,7 +130,7 @@ CoverDecl: class extends TypeDecl {
         }
 
         for (oDecl in operators) {
-            instance addOperator(oDecl)
+            instance addOperator(oDecl clone())
         }
 
         for (fDecl in getMeta() functions) {
@@ -138,7 +138,11 @@ CoverDecl: class extends TypeDecl {
                 // already been added at last step
                 continue
             }
-            instance addFunction(fDecl)
+
+            fDeclClone := fDecl clone()
+            fDeclClone owner = null
+
+            instance addFunction(fDeclClone)
         }
 
         i := 0

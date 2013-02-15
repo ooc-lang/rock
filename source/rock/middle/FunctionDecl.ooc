@@ -175,10 +175,15 @@ FunctionDecl: class extends Declaration {
         copy owner = owner
         copy verzion = verzion
 
-        args each(|e| copy args add(e clone()))
+        args each(|e|
+            copy args add(e clone())
+        )
         copy returnType = returnType clone()
 
-        body list each(|e| copy body add(e clone()); "Adding clone of %s to %s" format(e toString(), copy toString()) println())
+        body list each(|e|
+            //"Adding clone of %s to %s" format(e toString(), copy toString()) println()
+            copy body add(e clone())
+        )
 
         copy vDecl = vDecl
 
