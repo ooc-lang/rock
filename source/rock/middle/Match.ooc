@@ -246,10 +246,14 @@ Match: class extends Expression {
                 currType := cases get(i) getType()
                 if(!currType) return Response OK
 
-                root := findCommonRoot(baseType, currType, trail, res)
+                root := findCommonRoot(baseType, currType)
                 if(!root) {
-                    res throwError(IncompatibleType new(cases get(i) token,\
-                        "Type %s is incompatible with the inferred type of match %s" format(currType toString(), baseType toString())))
+                    if(res fatal) {
+                        res throwError(IncompatibleType new(cases get(i) token,\
+                            "Type %s is incompatible with the inferred type of match %s" format(currType toString(), baseType toString())))
+                    } else {
+                        res wholeAgain(this, "needs resolved ref for all types")
+                    }
                     return Response OK
                 }
 

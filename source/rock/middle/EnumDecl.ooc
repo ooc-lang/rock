@@ -106,8 +106,6 @@ EnumDecl: class extends TypeDecl {
 }
 
 EnumElement: class extends VariableDecl {
-    doc: String
-    type: Type
     value: Expression
     valueSet := false
 
