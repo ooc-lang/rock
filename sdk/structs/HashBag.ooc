@@ -2,7 +2,7 @@ import structs/[ArrayList, HashMap, Bag]
 
 HashBag: class {
 
-    myMap: HashMap<String, Cell>
+    myMap: HashMap<String, Cell<Pointer>>
 
     init: func {
         init ~withCapacity(10)
