@@ -3,7 +3,7 @@ import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
        Import, Module, FunctionCall, ClassDecl, CoverDecl, AddressOf,
        ArrayAccess, VariableAccess, Cast, NullLiteral, PropertyDecl,
-       Tuple, VariableDecl, FuncType
+       Tuple, VariableDecl, FuncType, TypeDecl
 import tinker/[Trail, Resolver, Response, Errors]
 
 OpType: enum {
@@ -423,6 +423,33 @@ BinaryOp: class extends Expression {
 
         reqType := trail peek() getRequiredType()
 
+        // first we check the lhs's type
+        lhsType := left getType()
+
+        if (lhsType) {
+            lhsTypeRef := lhsType getRef()
+
+            match lhsTypeRef {
+                case tDecl: TypeDecl =>
+                    if (tDecl isMeta) {
+                        tDecl = tDecl getNonMeta()
+                    }
+
+                    for (opDecl in tDecl operators) {
+                        "Matching %s against %s" printfln(opDecl toString(), toString())
+                        score := getScore(opDecl, reqType)
+                        if(score == -1) {
+                            return Response LOOP
+                        }
+                        if(score > bestScore) {
+                            bestScore = score
+                            candidate = opDecl
+                        }
+                    }
+            }
+        }
+
+        // then we check the current module
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType)
             //if(score > 0) ("Considering " + opDecl toString() + " for " + toString() + ", score = %d\n") format(score) println()
@@ -433,6 +460,7 @@ BinaryOp: class extends Expression {
             }
         }
 
+        // and then the imports
         for(imp in trail module() getAllImports()) {
             module := imp getModule()
             for(opDecl in module getOperators()) {
@@ -458,7 +486,13 @@ BinaryOp: class extends Expression {
 
             fDecl := candidate getFunctionDecl()
             fCall := FunctionCall new(fDecl getName(), token)
-            fCall getArguments() add(left)
+
+            if (fDecl owner) {
+                fCall expr = left
+            } else {
+                fCall getArguments() add(left)
+            }
+
             fCall getArguments() add(right)
             fCall setRef(fDecl)
             if(!trail peek() replace(this, fCall)) {
@@ -490,8 +524,13 @@ BinaryOp: class extends Expression {
         }
 
         fDecl := op getFunctionDecl()
+        args := ArrayList<VariableDecl> new()
+        args addAll(fDecl getArguments())
 
-        args := fDecl getArguments()
+        if (fDecl owner) {
+            args add(0, fDecl owner getThisDecl())
+        }
+
         if(args getSize() != 2) {
             token module params errorHandler onError(InvalidBinaryOverload new(op token,
                 "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol, args getSize())))

@@ -209,10 +209,11 @@ ArrayAccess: class extends Expression {
     resolveOverload: func (trail: Trail, res: Resolver, hasOne?: Bool* = null) -> Response {
 
         /*
-        printf("Looking for an overload of %s[%s], %s\n",
+        "Looking for an overload of %s[%s], %s" printfln(
             array getType() ? array getType() toString() : "(nil)",
             indices[0] getType() ? indices[0] getType() toString() : "(nil)",
-            array getType() && array getType() getRef() ? array getType() getRef() toString() : "(nil)")
+            array getType() && array getType() getRef() ? array getType() getRef() toString() : "(nil)"
+        )
         */
 
         // so here's the plan: we give each operator overload a score
@@ -228,6 +229,33 @@ ArrayAccess: class extends Expression {
                     (parent as BinaryOp isAssign()) &&
                     (parent as BinaryOp getLeft() == this)
 
+        // first we check the lhs's type
+        lhsType := array getType()
+
+        if (lhsType) {
+            lhsTypeRef := lhsType getRef()
+
+            match lhsTypeRef {
+                case tDecl: TypeDecl =>
+                    if (tDecl isMeta) {
+                        tDecl = tDecl getNonMeta()
+                    }
+
+                    for (opDecl in tDecl operators) {
+                        //"Matching %s against %s" printfln(opDecl toString(), toString())
+                        score := getScore(opDecl, reqType, inAssign ? parent as BinaryOp : null, res)
+                        if(score == -1) {
+                            return Response LOOP
+                        }
+                        if(score > bestScore) {
+                            bestScore = score
+                            candidate = opDecl
+                        }
+                    }
+            }
+        }
+
+        // then we check the current module
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType, inAssign ? parent as BinaryOp : null, res)
             if(score == -1) {
@@ -239,6 +267,7 @@ ArrayAccess: class extends Expression {
             }
         }
 
+        // and then the imports
         for(imp in trail module() getAllImports()) {
             module := imp getModule()
             for(opDecl in module getOperators()) {
@@ -257,7 +286,13 @@ ArrayAccess: class extends Expression {
             fDecl := candidate getFunctionDecl()
             fCall := FunctionCall new(fDecl getName(), token)
             fCall setRef(fDecl)
-            fCall getArguments() add(array)
+
+            if (fDecl owner) {
+                fCall expr = array
+            } else {
+                fCall getArguments() add(array)
+            }
+
             fCall getArguments() addAll(indices)
 
             if(inAssign) {
@@ -284,16 +319,21 @@ ArrayAccess: class extends Expression {
 
     isResolved: func -> Bool { array isResolved() && type != null }
     getScore: func (op: OperatorDecl, reqType: Type, assign: BinaryOp, res: Resolver) -> Int {
-
         if(!(op getSymbol() equals?(assign != null ? "[]=" : "[]"))) {
             return 0 // not the right overload type - skip
         }
         diff := op getSymbol() endsWith?("=") ? 2 : 1
+        requiredArgs := indices getSize() + diff
 
         fDecl := op getFunctionDecl()
+        args := ArrayList<VariableDecl> new()
+        args addAll(fDecl getArguments())
 
-        args := fDecl getArguments()
-        if(!args last() instanceOf?(VarArg) && (args getSize() != indices getSize() + diff)) {
+        if (fDecl owner) {
+            args add(0, fDecl owner getThisDecl())
+        }
+
+        if(!args last() instanceOf?(VarArg) && (args getSize() != requiredArgs)) {
             // not a match!
             if(res params veryVerbose) {
                 "For %s vs %s, got %d args, %d indices, diff is %d - no luck!" format(op toString(), toString(), args getSize(), indices getSize(), diff) println()
@@ -303,10 +343,14 @@ ArrayAccess: class extends Expression {
 
         // Handle the array expression first, e.g. array[indices...]
         opArray := args get(0)
-        if(opArray getType() == null || array getType() == null) return -1
+        if(opArray getType() == null || array getType() == null) {
+            return -1
+        }
 
         arrayScore := array getType() getScore(opArray getType())
-        if(arrayScore == -1) return -1
+        if(arrayScore == -1) {
+            return -1
+        }
 
         indexScore := 0
         for(i in 0..(args getSize() - diff)) {

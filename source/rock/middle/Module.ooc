@@ -152,7 +152,9 @@ Module: class extends Node {
         }
 
         types put(tDecl name, tDecl)
-        if(tDecl getMeta()) addType(tDecl getMeta())
+        if(tDecl hasMeta?() && tDecl getMeta()) {
+            addType(tDecl getMeta())
+        }
     }
 
     addOperator: func (oDecl: OperatorDecl) {

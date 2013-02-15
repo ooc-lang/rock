@@ -15,8 +15,10 @@ Tuple: class extends Expression {
 
     clone: func -> This {
         copy := new(token)
-        copy type = type
-        elements each(|e| copy elements add(e clone()))
+        copy type = type clone()
+        elements each(|e|
+            copy elements add(e clone())
+        )
         copy
     }
 

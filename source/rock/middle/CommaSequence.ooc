@@ -13,7 +13,7 @@ CommaSequence: class extends Expression {
 
     clone: func -> This {
         copy := new(token)
-        body each(|e| copy body add(e clone()))
+        body each(|stat| copy body add(stat clone()))
         copy
     }
 

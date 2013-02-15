@@ -7,8 +7,7 @@ import Node, Visitor, Declaration, TypeDecl, ClassDecl, VariableDecl,
 import BaseType
 import tinker/[Response, Resolver, Trail]
 
-voidType := BaseType new("void", nullToken)
-voidType ref = BuiltinType new("void", nullToken)
+voidType := VoidType new()
 
 Type: abstract class extends Expression {
 
@@ -65,6 +64,12 @@ Type: abstract class extends Expression {
 
     clone: abstract func -> This
 
+    cloneWithRef: func -> This {
+        copy := clone()
+        copy setRef(getRef())
+        copy
+    }
+
     reference:   func          -> This {
         p := PointerType new(this, token)
         p
@@ -75,9 +80,9 @@ Type: abstract class extends Expression {
      * :return: true if the node supports type arguments and it's been
      * successfully added, false if not
      */
-    addTypeArg: func (typeArg: VariableAccess) -> Bool { false }
+    addTypeArg: func (typeArg: TypeAccess) -> Bool { false }
 
-    getTypeArgs: abstract func -> List<VariableAccess>
+    getTypeArgs: abstract func -> List<TypeAccess>
 
     getType: func -> This {
         getRef() ? getRef() getType() : null
@@ -171,6 +176,12 @@ TypeAccess: class extends Type {
         super(token)
     }
 
+    init: func ~fromVarDecl (vDecl: VariableDecl, .token) {
+        super(token)
+        inner = BaseType new(vDecl getName(), token)
+        inner setRef(vDecl)
+    }
+
     accept: func (visitor: Visitor) {
         visitor visitTypeAccess(this)
     }
@@ -181,7 +192,7 @@ TypeAccess: class extends Type {
 
     getName: func -> String { inner getName() }
 
-    getTypeArgs: func -> List<VariableAccess> { inner getTypeArgs() }
+    getTypeArgs: func -> List<TypeAccess> { inner getTypeArgs() }
 
     pointerLevel: func -> Int { inner pointerLevel() }
 
@@ -190,7 +201,7 @@ TypeAccess: class extends Type {
     getRef: func -> Declaration { inner getRef() }
     setRef: func (d: Declaration) { inner setRef(d) }
 
-    clone: func -> Type {
+    clone: func -> This {
         new(inner clone(), token)
     }
 
@@ -230,7 +241,7 @@ SugarType: abstract class extends Type {
     getRef: func -> Declaration   { inner getRef()  }
     setRef: func (d: Declaration) { inner setRef(d) }
 
-    getTypeArgs: func -> List<VariableAccess> { inner getTypeArgs() }
+    getTypeArgs: func -> List<TypeAccess> { inner getTypeArgs() }
 
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
         if(other instanceOf?(class)) {
@@ -315,7 +326,9 @@ PointerType: class extends SugarType {
 
     dereference: func -> Type { inner }
 
-    clone: func -> Type { new(inner, token) }
+    clone: func -> Type {
+       new(inner clone(), token)
+    }
 
 }
 
@@ -390,7 +403,9 @@ ArrayType: class extends PointerType {
 
     }
 
-    clone: func -> This { new(inner clone(), expr, token) }
+    clone: func -> This {
+        new(inner clone(), expr ? expr clone() : null, token)
+    }
 
     exprLessClone: func -> This {
         copy := clone()
@@ -439,7 +454,9 @@ ReferenceType: class extends SugarType {
 
     dereference : func -> Type { inner dereference() }
 
-    clone: func -> Type { new(inner, token) }
+    clone: func -> Type {
+        new(inner clone(), token)
+    }
 
     refToPointer: func -> Type {
         PointerType new(inner refToPointer(), token)

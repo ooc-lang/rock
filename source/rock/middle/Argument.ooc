@@ -35,6 +35,11 @@ Argument: abstract class extends VariableDecl {
 
     }
 
+    clone: func -> This {
+        copy := new(type ? type clone() : null, name, token)
+        cloneInto(copy) as This
+    }
+
 }
 
 VarArg: class extends Argument {
@@ -62,6 +67,11 @@ VarArg: class extends Argument {
     }
 
     toString: func -> String { "..." }
+
+    clone: func -> This {
+        copy := new(token, name)
+        cloneInto(copy) as This
+    }
 
 }
 
@@ -113,6 +123,11 @@ DotArg: class extends Argument {
 
     toString: func -> String { "." + name }
 
+    clone: func -> This {
+        copy := new(name, token)
+        cloneInto(copy) as This
+    }
+
 }
 
 AssArg: class extends DotArg {
@@ -149,6 +164,11 @@ AssArg: class extends DotArg {
     }
 
     toString: func -> String { "=" + name }
+
+    clone: func -> This {
+        copy := new(name, token)
+        cloneInto(copy) as This
+    }
 
 }
 

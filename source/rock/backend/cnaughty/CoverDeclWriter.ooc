@@ -6,6 +6,21 @@ CoverDeclWriter: abstract class extends Skeleton {
 
     write: static func ~_cover (this: Skeleton, cDecl: CoverDecl) {
 
+        if (cDecl template) {
+            for (instance in cDecl instances) {
+                "Writing %s, it's a template instance" printfln(instance toString())
+                This write(this, instance)
+
+                meta := instance getMeta()
+                "Writing %s, it's a template instance's meta" printfln(meta toString())
+                ClassDeclWriter write(this, meta)
+            }
+
+            // cover templates themselves are not written down, silly compilerbro
+            "Not writing %s, it's a cover template" printfln(cDecl toString())
+            return
+        }
+
         current = hw
 
         // addons only add functions to an already imported cover, so
@@ -44,6 +59,21 @@ CoverDeclWriter: abstract class extends Skeleton {
     }
 
     writeTypedef: static func (this: Skeleton, cDecl: CoverDecl) {
+
+        if (cDecl template) {
+            for (instance in cDecl instances) {
+                "Writing-typedef %s, it's a template instance" printfln(instance toString())
+                This writeTypedef(this, instance)
+
+                meta := instance getMeta()
+                "Writing-typedef %s, it's a template instance's meta" printfln(meta toString())
+                ClassDeclWriter writeStructTypedef(this, meta)
+            }
+
+            // cover templates themselves are not written down, silly compilerbro
+            "Not writing-typedef %s, it's a cover template" printfln(cDecl toString())
+            return
+        }
 
         if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
 

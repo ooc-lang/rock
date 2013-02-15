@@ -22,7 +22,7 @@ BaseType: class extends Type {
         get { super() || name == "void" || name == "Void" }
     }
 
-    typeArgs: List<VariableAccess> = null
+    typeArgs: List<TypeAccess> = null
 
     init: func ~baseType (=name, .token) {
         super(token)
@@ -30,6 +30,10 @@ BaseType: class extends Type {
 
     init: func ~withNamespace (=name, =namespace, .token) {
         super(token)
+    }
+
+    debugCondition: func -> Bool {
+        name startsWith?("MyArray")
     }
 
     pointerLevel: func -> Int { 0 }
@@ -90,8 +94,8 @@ BaseType: class extends Type {
         return (other as BaseType name equals?(name))
     }
 
-    addTypeArg: func (typeArg: VariableAccess) -> Bool {
-        if(!typeArgs) typeArgs = ArrayList<VariableAccess> new()
+    addTypeArg: func (typeArg: TypeAccess) -> Bool {
+        if(!typeArgs) typeArgs = ArrayList<TypeAccess> new()
         typeArgs add(typeArg); true
     }
 
@@ -99,11 +103,27 @@ BaseType: class extends Type {
 
     suggest: func (decl: Declaration) -> Bool {
 
-        if(decl instanceOf?(TypeDecl) && decl as TypeDecl isAddon()) {
-            // The second rule of resolve club is: you do *NOT* resolve to an addon.
-            // Always resolve to the base instead.
-            return suggest(decl as TypeDecl getBase() getNonMeta())
+        if (debugCondition()) {
+            "Suggested %s for %s" printfln(decl toString(), toString())
         }
+
+        match decl {
+            case tDecl: TypeDecl =>
+                if (tDecl isAddon()) {
+                    // The second rule of resolve club is: you do *NOT* resolve to an addon.
+                    // Always resolve to the base instead.
+                    return suggest(tDecl getBase() getNonMeta())
+                }
+
+                match decl {
+                    case cDecl: CoverDecl =>
+                        if (cDecl template) {
+                            "Resolving %s to a cover template!" printfln(toString())
+                            return suggest(cDecl getTemplateInstance(this))
+                        }
+                }
+        }
+
         ref = decl
 
         if(name == "This" && getRef() instanceOf?(TypeDecl)) {
@@ -140,6 +160,18 @@ BaseType: class extends Type {
             } else {
                 res throwError(InvalidNamespaceAccess new(token, this, "Trying to access a type from %s, which is not a namespace" format(namespace toString())))
             }
+        }
+
+        if(typeArgs) {
+            trail push(this)
+            for(typeArg in typeArgs) {
+                response := typeArg resolve(trail, res)
+                if(!response ok()) {
+                    trail pop(this)
+                    return response
+                }
+            }
+            trail pop(this)
         }
 
         if(!ref) {
@@ -187,18 +219,6 @@ BaseType: class extends Type {
             }
         }
 
-        if(typeArgs) {
-            trail push(this)
-            for(typeArg in typeArgs) {
-                response := typeArg resolve(trail, res)
-                if(!response ok()) {
-                    trail pop(this)
-                    return response
-                }
-            }
-            trail pop(this)
-        }
-
         return Response OK
 
     }
@@ -233,7 +253,7 @@ BaseType: class extends Type {
     getRef: func -> Declaration { ref }
     setRef: func (=ref) {}
 
-    getTypeArgs: func -> List<VariableAccess> { typeArgs }
+    getTypeArgs: func -> List<TypeAccess> { typeArgs }
 
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
         //printf("%s vs %s, other isGeneric ? %s pointerLevel ? %d isPointer() ? %d, other isPointer() ? %d\n", toString(), other toString(), other isGeneric() toString(), other pointerLevel(), isPointer(), other getGroundType() isPointer())
@@ -358,8 +378,9 @@ BaseType: class extends Type {
     clone: func -> This {
         copy := new(name, token)
         if(getTypeArgs()) for(typeArg in getTypeArgs()) {
-            copy addTypeArg(typeArg)
+            copy addTypeArg(typeArg clone())
         }
+
         copy setRef(getRef())
         copy
     }
@@ -407,7 +428,7 @@ BaseType: class extends Type {
     }
 
     replace: func (oldie, kiddo: Node) -> Bool {
-        if(typeArgs) return typeArgs replace(oldie as VariableAccess, kiddo as VariableAccess)
+        if(typeArgs) return typeArgs replace(oldie as TypeAccess, kiddo as TypeAccess)
         false
     }
 
@@ -547,6 +568,19 @@ BaseType: class extends Type {
     }
 
     setNamespace: func (=namespace) {}
+
+}
+
+VoidType: class extends BaseType {
+
+    init: func {
+        super("void", nullToken)
+        ref = BuiltinType new("void", nullToken)
+    }
+
+    clone: func -> This {
+        this
+    }
 
 }
 

@@ -14,7 +14,8 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Dereference, Foreach, OperatorDecl, RangeLiteral, UnaryOp, ArrayAccess,
     Match, FlowControl, While, CharLiteral, InterfaceDecl, NamespaceDecl,
     Version, Use, Block, ArrayLiteral, EnumDecl, BaseType, FuncType,
-    Declaration, PropertyDecl, CallChain, Tuple, Addon, Try, CommaSequence]
+    Declaration, PropertyDecl, CallChain, Tuple, Addon, Try, CommaSequence,
+    TemplateDef]
 
 nq_parse: extern proto func (AstBuilder, CString) -> Int
 
@@ -169,6 +170,19 @@ AstBuilder: class {
     }
 
     /*
+     * Templates
+     */
+    onTemplateStart: unmangled(nq_onTemplateStart) func {
+        stack push(TemplateDef new(token()))
+    }
+
+    onTemplateEnd: unmangled(nq_onTemplateEnd) func {
+        tDef := pop(TemplateDef)
+        cDecl := peek(CoverDecl)
+        cDecl template = tDef
+    }
+
+    /*
      * Covers
      */
 
@@ -177,7 +191,6 @@ AstBuilder: class {
         cDecl setVersion(getVersion())
         cDecl doc = doc toString()
         cDecl module = module
-        module addType(cDecl)
         stack push(cDecl)
     }
 
@@ -198,7 +211,7 @@ AstBuilder: class {
     }
 
     onCoverEnd: unmangled(nq_onCoverEnd) func {
-        pop(CoverDecl)
+        module addType(pop(CoverDecl))
     }
 
     /*
@@ -258,7 +271,6 @@ AstBuilder: class {
         cDecl setVersion(getVersion())
         cDecl doc = doc toString()
         cDecl module = module
-        module addType(cDecl)
         stack push(cDecl)
     }
 
@@ -282,7 +294,7 @@ AstBuilder: class {
         peek(ClassDecl) addDefaultInit()    }
 
     onClassEnd: unmangled(nq_onClassEnd) func {
-        pop(ClassDecl)
+        module addType(pop(ClassDecl))
     }
 
     /*
@@ -582,15 +594,24 @@ AstBuilder: class {
 
     onOperatorStart: unmangled(nq_onOperatorStart) func (symbol: CString) {
         oDecl := OperatorDecl new(symbol toString() trim(), token())
-        fDecl := FunctionDecl new("", token())
-        oDecl setFunctionDecl(fDecl)
         stack push(oDecl)
-        stack push(fDecl)
+        stack push(oDecl fDecl)
     }
 
     onOperatorEnd: unmangled(nq_onOperatorEnd) func {
         oDecl := pop(OperatorDecl)
-        peek(Module) addOperator(oDecl)
+        oDecl computeName()
+
+        match (peek(Node)) {
+            case m: Module =>
+                m addOperator(oDecl)
+            case tDecl: TypeDecl =>
+                tDecl addOperator(oDecl)
+            case =>
+                message := "Now where are you putting OperatorDecl(s) ?"
+                error := InternalError new(token(), message)
+                params errorHandler onError(error)
+        }
     }
 
     /*
@@ -1159,9 +1180,8 @@ AstBuilder: class {
     }
 
     onTypeGenericArgument: unmangled(nq_onTypeGenericArgument) func (type: Type, typeInner: Type) {
-        type addTypeArg(VariableAccess new(typeInner, token()))
+        type addTypeArg(TypeAccess new(typeInner, token()))
     }
-
 
     onFuncTypeGenericArgument: unmangled(nq_onFuncTypeGenericArgument) func (type: FuncType, cname: CString) {
         name := cname toString()
@@ -1176,12 +1196,14 @@ AstBuilder: class {
 
         vDecl := VariableDecl new(BaseType new("Class", token()), name, token())
 
-        done := false
-        if(node instanceOf?(Declaration)) {
-            done = node as Declaration addTypeArg(vDecl)
+        match node {
+            case d: Declaration =>
+                node as Declaration addTypeArg(vDecl)
+            case =>
+                message := "Unexpected type argument in a %s declaration!" format(node class name)
+                error := InternalError new(token(), message)
+                params errorHandler onError(error)
         }
-
-        if(!done) params errorHandler onError(InternalError new(token(), "Unexpected type argument in a %s declaration!" format(node class name)))
 
     }
 

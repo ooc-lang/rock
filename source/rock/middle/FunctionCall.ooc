@@ -3,7 +3,7 @@ import ../frontend/[Token, BuildParams, CommandLine]
 import Visitor, Expression, FunctionDecl, Argument, Type,
        TypeDecl, Node, VariableDecl, VariableAccess, AddressOf, CommaSequence, BinaryOp,
        InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType, Return,
-       TypeList, Scope, Block, InlineContext, StructLiteral, NullLiteral,
+       TypeList, Scope, Block, StructLiteral, NullLiteral,
        IntLiteral, Ternary, ClassDecl, CoverDecl, ArrayLiteral
 import tinker/[Response, Resolver, Trail, Errors]
 
@@ -127,9 +127,11 @@ FunctionCall: class extends Expression {
     }
 
     clone: func -> This {
-        copy := new(expr, name, token)
+        copy := new(expr ? expr clone() : expr, name, token)
         copy suffix = suffix
-        args each(|e| copy args add(e clone()))
+        args each(|arg|
+            copy args add(arg clone())
+        )
         copy
     }
 
@@ -398,53 +400,6 @@ FunctionCall: class extends Expression {
 
             if(!resolveReturnType(trail, res) ok()) {
                 res wholeAgain(this, "looping because of return type!")
-                return Response OK
-            }
-
-            // resolved. if we're inlining, do it now!
-            // FIXME: this is oh-so-primitive.
-            if(res params inlining && ref doInline) {
-                if(expr && (expr getType() == null || !expr getType() isResolved())) {
-                    res wholeAgain(this, "need expr type!")
-                    return Response OK
-                }
-
-                "Inlining %s! type = %s" format(toString(), getType() ? getType() toString() : "<unknown>") println()
-
-                retDecl := VariableDecl new(getType(), generateTempName("retval"), token)
-                retAcc := VariableAccess new(retDecl, token)
-                trail addBeforeInScope(this, retDecl)
-
-                block := InlineContext new(this, token)
-                block returnArgs add(retDecl) // Note: this isn't sufficient. What with TypeList return types?
-
-                reservedNames := ref args map(|arg| arg name)
-
-                for(i in 0..args getSize()) {
-                    callArg := args get(i)
-
-                    name := ref args get(i) getName()
-
-                    if(callArg instanceOf?(VariableAccess)) {
-                        vAcc := callArg as VariableAccess
-                        if(reservedNames contains?(vAcc getName())) {
-                            tempDecl := VariableDecl new(null, generateTempName(name), callArg, callArg token)
-                            block body add(0, tempDecl)
-                            callArg = VariableAccess new(tempDecl, tempDecl token)
-                        }
-                    }
-
-                    block body add(VariableDecl new(null, name, callArg, callArg token))
-                }
-
-                ref inlineCopy getBody() list each(|x|
-                    block body add(x clone())
-                )
-
-                trail addBeforeInScope(this, block)
-                trail peek() replace(this, retAcc)
-
-                res wholeAgain(this, "finished inlining")
                 return Response OK
             }
 
@@ -808,7 +763,7 @@ FunctionCall: class extends Expression {
                     result := resolveTypeArg(typeArgName, trail, finalScore&)
                     if(finalScore == -1) return false
                     if(debugCondition()) "[realTypize] result = %s\n" printfln(result ? result toString() : "(nil)")
-                    if(result) baseType typeArgs set(j, VariableAccess new(result, typeArg token))
+                    if(result) baseType typeArgs set(j, TypeAccess new(result, typeArg token))
                 }
                 j += 1
             }

@@ -4,7 +4,7 @@ import ../../middle/Visitor
 import ../../middle/tinker/Errors
 import ../../io/[CachedFileWriter, TabbedWriter], io/[File, FileWriter, Writer], AwesomeWriter
 
-import ../../frontend/BuildParams
+import ../../frontend/[BuildParams, Token]
 
 import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     BinaryOp, IntLiteral, FloatLiteral, CharLiteral, StringLiteral,
@@ -14,11 +14,11 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     Cast, Comparison, Ternary, BoolLiteral, Argument, Statement,
     AddressOf, Dereference, CommaSequence, UnaryOp, ArrayAccess, Match,
     FlowControl, InterfaceDecl, Version, Block, EnumDecl, ArrayLiteral,
-    ArrayCreation, StructLiteral, InlineContext, FuncType]
+    ArrayCreation, StructLiteral, FuncType]
 
 import Skeleton, FunctionDeclWriter, ControlStatementWriter,
     ClassDeclWriter, ModuleWriter, CoverDeclWriter, FunctionCallWriter,
-    CastWriter, InterfaceDeclWriter, VersionWriter
+    CastWriter, InterfaceDeclWriter, VersionWriter, AccessWriter
 
 /**
    Generate .c/.h/-fwd.h files from the AST of an ooc module
@@ -81,10 +81,20 @@ CGenerator: class extends Skeleton {
 
     visitTypeAccess: func (typeAccess: TypeAccess) {
         ref := typeAccess getRef()
-        if(!ref instanceOf?(TypeDecl)) {
-            Exception new(This, "Ref of TypeAccess %s isn't a TypeDecl but a %s! wtf?" format(typeAccess toString(), ref class name)) throw()
+
+        match ref {
+            case tDecl: TypeDecl =>
+                current app(tDecl underName()). app("_class()")
+            case vDecl: VariableDecl =>
+                // TODO: fix namespaced type accesses?
+                // TODO: figure out if last parameter needs to be adjusted sometimes
+                AccessWriter writeVariableDeclAccess(this, vDecl, false,
+                    null, typeAccess token, true)
+            case =>
+                message := "Unsupported TypeAccess ref type for %s: %s" \
+                format(typeAccess toString(), ref class name)
+                params errorHandler onError(InternalError new(typeAccess token, message))
         }
-        current app(ref as TypeDecl underName()). app("_class()")
     }
 
     /** Write a binary operation */
@@ -197,67 +207,30 @@ CGenerator: class extends Skeleton {
             Exception new(This, "Trying to write unresolved variable access %s" format(varAcc getName())) throw()
         }
 
-        if(varAcc ref instanceOf?(EnumElement)) {
-            element := varAcc ref as EnumElement
-
-            if(element isExtern()) {
-                current app(element getExternName())
-            } else {
-                current app(element getValue() toString())
-            }
-        } else if(varAcc ref instanceOf?(VariableDecl)) {
-            vDecl := varAcc ref as VariableDecl
-            if(varAcc isMember() && !(vDecl isExtern() && vDecl isStatic())) {
-                casted := false
-                if(vDecl owner != varAcc expr getType() getRef()) {
-                    casted = true
-                    current app("(("). app(vDecl owner getInstanceType()) .app(')')
+        match (varAcc ref) {
+            case element: EnumElement =>
+                if(element isExtern()) {
+                    current app(element getExternName())
+                } else {
+                    current app(element getValue() toString())
                 }
 
-                current app(varAcc expr)
+            case vDecl: VariableDecl =>
+                AccessWriter writeVariableDeclAccess(this, vDecl, varAcc isMember(),
+                    varAcc expr, varAcc token, writeReferenceAddrOf)
 
-                if(casted) current app(")")
-
-                refLevel := 0
-
-
-                if(varAcc expr getType() getRef() instanceOf?(ClassDecl)) {
-                    refLevel += 1
+            case tDecl: TypeDecl =>
+                while(tDecl instanceOf?(CoverDecl) && tDecl as CoverDecl isAddon()) {
+                    tDecl = tDecl as CoverDecl getBase() getNonMeta()
                 }
+                current app(tDecl getFullName()). app("_class()")
 
-                current app(match (refLevel) {
-                    case 0 => "."
-                    case 1 => "->"
-                    case   => params errorHandler onError(InternalError new(varAcc token, "This is too much reference %d! Can't write it." format(refLevel))); ""
-                })
-            }
-            paren := false
-            if(varAcc getRef() getType() instanceOf?(ReferenceType)) {
-                if (writeReferenceAddrOf) {
-                    current app("(*")
-                    paren = true
-                }
-            }
+            case fDecl: FunctionDecl =>
+                FunctionDeclWriter writeFullName(this, fDecl)
 
-            if(vDecl isExternWithName()) {
-                current app(vDecl getExternName())
-            } else {
-                current app(vDecl getFullName())
-            }
-
-            if(paren) current app(')')
-        } else if(varAcc ref instanceOf?(TypeDecl)) {
-            tDecl := varAcc ref as TypeDecl
-            while(tDecl instanceOf?(CoverDecl) && tDecl as CoverDecl isAddon()) {
-                tDecl = tDecl as CoverDecl getBase() getNonMeta()
-            }
-            current app(tDecl getFullName()). app("_class()")
-        } else if(varAcc ref instanceOf?(FunctionDecl)) {
-            fDecl := varAcc ref as FunctionDecl
-            FunctionDeclWriter writeFullName(this, fDecl)
-        } else if(varAcc ref instanceOf?(FuncType)) {
-            // Yes, we need to write function types too ;D
-            current app("lang_types__Closure_class()")
+            case fType: FuncType =>
+                // Yes, we need to write function types too ;D
+                current app("lang_types__Closure_class()")
         }
     }
 
@@ -376,10 +349,6 @@ CGenerator: class extends Skeleton {
             writeLine(stmt)
         }
         current untab(). nl(). app('}')
-        // ifs are evil. fix that.
-        if(b instanceOf?(InlineContext)) {
-            current nl(). app(b as InlineContext label). app(":;")
-        }
     }
 
     /** Write a range literal */

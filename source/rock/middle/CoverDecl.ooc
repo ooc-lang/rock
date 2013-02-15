@@ -1,13 +1,22 @@
+
+// sdk stuff
 import structs/[HashMap, ArrayList]
 import ../io/TabbedWriter
+
+// our stuff
 import ../frontend/[Token, BuildParams]
 import Expression, Type, Visitor, TypeDecl, Node, FunctionDecl,
-       FunctionCall, VariableAccess
+       FunctionCall, VariableAccess, TemplateDef, BaseType
 import tinker/[Response, Resolver, Trail, Errors]
 
 CoverDecl: class extends TypeDecl {
 
     fromType: Type
+
+    template: TemplateDef { get set }
+    templateParent: CoverDecl { get set }
+
+    instances := HashMap<String, CoverDecl> new()
 
     init: func ~coverDeclNoSuper(.name, .token) {
         super(name, token)
@@ -29,25 +38,40 @@ CoverDecl: class extends TypeDecl {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        {
+        if (debugCondition()) {
+            "Resolving CoverDecl %s, template = %p" printfln(
+                toString(), template
+            )
+        }
+
+        if (template) {
+            response := Response OK
+
+            for (instance in instances) {
+                response = instance resolve(trail, res)
+
+                if (!response ok()) {
+                    return response
+                }
+            }
+        } else {
+            // resolve the body, methods, arguments
             response := super(trail, res)
             if(!response ok()) return response
-        }
 
-        trail push(this)
+            if(fromType) {
+                trail push(this)
+                response := fromType resolve(trail, res)
+                if(!response ok()) {
+                    fromType setRef(BuiltinType new(fromType getName(), nullToken))
+                }
 
-        if(fromType) {
-            response := fromType resolve(trail, res)
-            if(!response ok()) {
-                fromType setRef(BuiltinType new(fromType getName(), nullToken))
+                if(fromType getRef() != null) {
+                    fromType checkedDig(res)
+                }
+                trail pop(this)
             }
-
-            if(fromType getRef() != null) {
-                fromType checkedDig(res)
-            }
         }
-
-        trail pop(this)
 
         return Response OK
     }
@@ -74,6 +98,70 @@ CoverDecl: class extends TypeDecl {
         } else {
             -1
         }
+    }
+
+    hasMeta?: func -> Bool {
+        if (debugCondition()) {
+            "hasMeta called, they want %s / %p back" printfln(toString(), template)
+        }
+
+        // templates have no meta-class. Like, none at all.
+        !template
+    }
+
+    getTemplateInstance: func (spec: BaseType) -> CoverDecl {
+        "Should get a template instance of %s as per %s" printfln(toString(), spec toString())
+
+        fingerprint := "__" + name + "__" + spec typeArgs map(|vAcc| vAcc getName()) join("__")
+
+        if (instances contains?(fingerprint)) {
+            return instances get(fingerprint)
+        }
+
+        "Creating instance with fingerprint: %s" printfln(fingerprint)
+
+        instance := This new(fingerprint, token)
+        instance templateParent = this
+        instance module = module
+        instance setVersion(instance getVersion())
+
+        for (variable in variables) {
+            instance addVariable(variable clone())
+        }
+
+        for (oDecl in operators) {
+            instance addOperator(oDecl clone())
+        }
+
+        for (fDecl in getMeta() functions) {
+            if (fDecl oDecl) {
+                // already been added at last step
+                continue
+            }
+
+            fDeclClone := fDecl clone()
+            fDeclClone owner = null
+
+            instance addFunction(fDeclClone)
+        }
+
+        i := 0
+        for (typeArg in spec typeArgs) {
+            if (i >= template typeArgs size) {
+                Exception new("Too many template args for %s" format(toString())) throw()
+            }
+
+            name := template typeArgs get(i) getName()
+            ref := typeArg getRef()
+            "name %s, ref %s" printfln(name, ref ? ref toString() : "(nil)")
+
+            instance templateArgs put(name, ref)
+            i += 1
+        }
+
+        instances put(fingerprint, instance)
+
+        instance
     }
 
     writeSize: func (w: TabbedWriter, instance: Bool) {

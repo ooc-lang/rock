@@ -4,7 +4,7 @@ import ../io/TabbedWriter
 import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
     FunctionDecl, FunctionCall, Module, VariableAccess, Node,
     InterfaceImpl, Version, EnumDecl, BaseType, FuncType, OperatorDecl,
-    Addon, Cast, PropertyDecl
+    Addon, Cast, PropertyDecl, CoverDecl
 import tinker/[Resolver, Response, Trail, Errors]
 
 /**
@@ -26,15 +26,20 @@ TypeDecl: abstract class extends Declaration {
     // generic type args, e.g. the T in List: class <T>
     typeArgs := ArrayList<VariableDecl> new()
 
+    // type arg instances - this is used for cover templates,
+    // when instanciating for example Array: cover template <T> to
+    // Array<Int>, we have "T" => BaseType("Int") and we can
+    // directly suggest the Int type instead of T
+    templateArgs := HashMap<String, Declaration> new()
+
     // internal state variables
     hasCheckedInheritance := false
     hasCheckedAbstract := false
 
+    // the crux of the matter
     variables := HashMap<String, VariableDecl> new()
-
-    // for classes, functions are contained in the meta-class.
-    // for covers, they are directly in the cover decl.
     functions := HashMap<String, FunctionDecl> new()
+    operators := ArrayList<OperatorDecl> new()
 
     // interface types that this type implements
     interfaceTypes := ArrayList<Type> new()
@@ -187,6 +192,10 @@ TypeDecl: abstract class extends Declaration {
         This hashName(fDecl getName(), fDecl getSuffix())
     }
 
+    hasMeta?: func -> Bool {
+        !isMeta
+    }
+
     addFunction: func (fDecl: FunctionDecl) {
         if(isMeta) {
             hash := hashName(fDecl)
@@ -202,6 +211,11 @@ TypeDecl: abstract class extends Declaration {
         } else {
             meta addFunction(fDecl)
         }
+    }
+
+    addOperator: func (oDecl: OperatorDecl) {
+        operators add(oDecl)
+        addFunction(oDecl fDecl)
     }
 
     removeFunction: func(fDecl: FunctionDecl) {
@@ -413,18 +427,15 @@ TypeDecl: abstract class extends Declaration {
             if(!superType isResolved()) {
                 response := superType resolve(trail, res)
                 if(!response ok()) {
-                    //if(debugCondition() || res params veryVerbose) printf("====== Response of superType of %s == %s\n", toString(), response toString())
                     trail pop(this)
                     return response
                 }
             }
 
-            //hasCheckedInheritance := static false
             if(!hasCheckedInheritance && superType getRef() != null) {
                 if(checkInheritanceLoop(res)) hasCheckedInheritance = true
             }
 
-            //hasCheckedAbstract := static false
             if(!hasCheckedAbstract && superType getRef() != null && isMeta) {
                 if(checkAbstractFuncs(res)) hasCheckedAbstract = true
             }
@@ -447,7 +458,6 @@ TypeDecl: abstract class extends Declaration {
         if(!_finishedGhosting) {
             response := ghostTypeParams(trail, res)
             if(!response ok()) {
-                //if(debugCondition() || res params veryVerbose) printf("====== Response of type-param ghosting of %s == %s\n", toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -527,6 +537,14 @@ TypeDecl: abstract class extends Declaration {
             response := fDecl resolve(trail, res)
             if(!response ok()) {
                 //if(debugCondition() || res params veryVerbose) printf("====== Response of fDecl %s of %s == %s\n", fDecl toString(), toString(), response toString())
+                trail pop(this)
+                return response
+            }
+        }
+
+        for(oDecl in operators) {
+            response := oDecl resolve(trail, res)
+            if(!response ok()) {
                 trail pop(this)
                 return response
             }
@@ -643,7 +661,15 @@ TypeDecl: abstract class extends Declaration {
             if(type suggest(getNonMeta() ? getNonMeta() : this)) return 0
         }
 
-        for(typeArg: VariableDecl in getTypeArgs()) {
+        { 
+            ref := templateArgs get(type name)
+            if (ref) {
+                "Got corresponding templateArg for %s : %s" printfln(type name, ref toString())
+                if(type suggest(ref)) return 0
+            }
+        }
+
+        for(typeArg in getTypeArgs()) {
             if(typeArg name == type name) {
                 if(type suggest(typeArg)) return 0
             }
@@ -673,6 +699,14 @@ TypeDecl: abstract class extends Declaration {
         if(access getName() == "This") {
             //printf("Asking for 'This' in %s (non-meta %s)\n", toString(), getNonMeta() ? getNonMeta() toString() : "(nil)")
             if(access suggest(getNonMeta() ? getNonMeta() : this)) return 0
+        }
+
+        { 
+            ref := templateArgs get(access getName())
+            if (ref) {
+                "Got corresponding templateArg for var access %s : %s" printfln(access getName(), ref toString())
+                if(access suggest(ref)) return 0
+            }
         }
 
         if(access debugCondition()) {

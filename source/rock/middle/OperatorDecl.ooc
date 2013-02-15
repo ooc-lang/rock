@@ -12,10 +12,13 @@ OperatorDecl: class extends Expression {
 
     init: func ~opDecl (=symbol, .token) {
         super(token)
+
         if(symbol == "implicit as") {
             implicit = true
             this symbol = "as"
         }
+
+        setFunctionDecl(FunctionDecl new("", token))
     }
 
     clone: func -> This {
@@ -26,6 +29,7 @@ OperatorDecl: class extends Expression {
 
     setFunctionDecl: func (=fDecl) {
         fDecl setInline(true)
+        fDecl oDecl = this
     }
     getFunctionDecl: func -> FunctionDecl { fDecl }
 
@@ -41,23 +45,24 @@ OperatorDecl: class extends Expression {
 
     isResolved: func -> Bool { false }
 
-    resolve: func (trail: Trail, res: Resolver) -> Response {
+    computeName: func {
+        assert(fDecl != null)
 
-        if(fDecl getName() empty?()) {
-            sb := Buffer new()
-            sb append("__OP_"). append(getName())
+        sb := Buffer new()
+        sb append("__OP_"). append(getName())
 
-            for(arg in fDecl args) {
-                sb append("_"). append(arg instanceOf?(VarArg) ? "__VA_ARG__" : arg getType() toMangledString())
-            }
-
-            if(!fDecl isVoid()) {
-                sb append("__"). append(fDecl getReturnType() toMangledString())
-            }
-
-            fDecl setName(sb toString())
+        for(arg in fDecl args) {
+            sb append("_"). append(arg instanceOf?(VarArg) ? "__VA_ARG__" : arg getType() toMangledString())
         }
 
+        if(!fDecl isVoid()) {
+            sb append("__"). append(fDecl getReturnType() toMangledString())
+        }
+
+        fDecl setName(sb toString())
+    }
+
+    resolve: func (trail: Trail, res: Resolver) -> Response {
         fDecl resolve(trail, res)
 
         if (implicit && !_doneImplicit) {

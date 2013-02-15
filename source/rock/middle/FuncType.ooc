@@ -53,20 +53,36 @@ FuncType: class extends Type {
 
     realTypize: func (call: FunctionCall) -> Type {
         copy := This new(token)
-        if(typeArgs) typeArgs each(|typeArg| copy addTypeArg(typeArg))
-        for(argType in argTypes) {
-            copy argTypes add(argType realTypize(call))
+        if(typeArgs) {
+            typeArgs each(|typeArg|
+                copy addTypeArg(typeArg)
+            )
         }
-        copy returnType = returnType realTypize
+
+        argTypes each(|argType|
+            copy argTypes add(argType realTypize(call))
+        )
+
+        copy returnType = returnType ? returnType realTypize(call) : null
         copy varArg = varArg
+        copy isClosure = isClosure
         copy
     }
 
     clone: func -> This {
         copy := This new(token)
-        if(typeArgs) typeArgs each(|typeArg| copy addTypeArg(typeArg))
-        copy argTypes addAll(argTypes)
-        copy returnType = returnType
+
+        if(typeArgs) {
+            typeArgs each(|typeArg|
+                copy addTypeArg(typeArg clone())
+            )
+        }
+
+        argTypes each(|argType|
+            copy argTypes add(argType clone())
+        )
+
+        copy returnType = returnType ? returnType clone() : null
         copy varArg = varArg
         copy isClosure = isClosure
         copy

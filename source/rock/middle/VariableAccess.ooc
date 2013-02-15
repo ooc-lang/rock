@@ -3,7 +3,7 @@ import BinaryOp, Visitor, Expression, VariableDecl, FunctionDecl,
        TypeDecl, Declaration, Type, Node, ClassDecl, NamespaceDecl,
        EnumDecl, PropertyDecl, FunctionCall, Module, Import, FuncType,
        NullLiteral, AddressOf, BaseType, StructLiteral, Return,
-       Argument, InlineContext, Scope, CoverDecl, StringLiteral
+       Argument, Scope, CoverDecl, StringLiteral
 
 import tinker/[Resolver, Response, Trail, Errors]
 import structs/ArrayList
