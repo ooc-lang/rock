@@ -581,6 +581,19 @@ BaseType: class extends Type {
 
 }
 
+VoidType: class extends BaseType {
+
+    init: func {
+        super("void", nullToken)
+        ref = BuiltinType new("void", nullToken)
+    }
+
+    clone: func -> This {
+        this
+    }
+
+}
+
 UnresolvedType: class extends Error {
     type: Type
 

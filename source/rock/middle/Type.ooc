@@ -7,8 +7,7 @@ import Node, Visitor, Declaration, TypeDecl, ClassDecl, VariableDecl,
 import BaseType
 import tinker/[Response, Resolver, Trail]
 
-voidType := BaseType new("void", nullToken)
-voidType ref = BuiltinType new("void", nullToken)
+voidType := VoidType new()
 
 Type: abstract class extends Expression {
 
@@ -64,6 +63,12 @@ Type: abstract class extends Expression {
     replace: func (oldie, kiddo: Node) -> Bool { false }
 
     clone: abstract func -> This
+
+    cloneWithRef: func -> This {
+        copy := clone()
+        copy setRef(getRef())
+        copy
+    }
 
     reference:   func          -> This {
         p := PointerType new(this, token)
