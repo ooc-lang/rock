@@ -18,7 +18,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
 
 import Skeleton, FunctionDeclWriter, ControlStatementWriter,
     ClassDeclWriter, ModuleWriter, CoverDeclWriter, FunctionCallWriter,
-    CastWriter, InterfaceDeclWriter, VersionWriter
+    CastWriter, InterfaceDeclWriter, VersionWriter, AccessWriter
 
 /**
    Generate .c/.h/-fwd.h files from the AST of an ooc module
@@ -197,77 +197,31 @@ CGenerator: class extends Skeleton {
             Exception new(This, "Trying to write unresolved variable access %s" format(varAcc getName())) throw()
         }
 
-        if(varAcc ref instanceOf?(EnumElement)) {
-            element := varAcc ref as EnumElement
+        match (varAcc ref) {
+            case element: EnumElement =>
+                if(element isExtern()) {
+                    current app(element getExternName())
+                } else {
+                    current app(element getValue() toString())
+                }
 
-            if(element isExtern()) {
-                current app(element getExternName())
-            } else {
-                current app(element getValue() toString())
-            }
-        } else if(varAcc ref instanceOf?(VariableDecl)) {
-            vDecl := varAcc ref as VariableDecl
-            writeVariableDeclAccess(vDecl, varAcc isMember(), varAcc expr, varAcc token, writeReferenceAddrOf)
-        } else if(varAcc ref instanceOf?(TypeDecl)) {
-            tDecl := varAcc ref as TypeDecl
-            while(tDecl instanceOf?(CoverDecl) && tDecl as CoverDecl isAddon()) {
-                tDecl = tDecl as CoverDecl getBase() getNonMeta()
-            }
-            current app(tDecl getFullName()). app("_class()")
-        } else if(varAcc ref instanceOf?(FunctionDecl)) {
-            fDecl := varAcc ref as FunctionDecl
-            FunctionDeclWriter writeFullName(this, fDecl)
-        } else if(varAcc ref instanceOf?(FuncType)) {
-            // Yes, we need to write function types too ;D
-            current app("lang_types__Closure_class()")
+            case vDecl: VariableDecl =>
+                AccessWriter writeVariableDeclAccess(this, vDecl, varAcc isMember(),
+                    varAcc expr, varAcc token, writeReferenceAddrOf)
+
+            case tDecl: TypeDecl =>
+                while(tDecl instanceOf?(CoverDecl) && tDecl as CoverDecl isAddon()) {
+                    tDecl = tDecl as CoverDecl getBase() getNonMeta()
+                }
+                current app(tDecl getFullName()). app("_class()")
+
+            case fDecl: FunctionDecl =>
+                FunctionDeclWriter writeFullName(this, fDecl)
+
+            case fType: FuncType =>
+                // Yes, we need to write function types too ;D
+                current app("lang_types__Closure_class()")
         }
-    }
-
-    writeVariableDeclAccess: func (vDecl: VariableDecl, isMember: Bool, expr: Expression, token: Token,
-        writeReferenceAddrOf: Bool) {
-        if(isMember && !(vDecl isExtern() && vDecl isStatic())) {
-            casted := false
-            if(vDecl owner != expr getType() getRef()) {
-                casted = true
-                current app("(("). app(vDecl owner getInstanceType()) .app(')')
-            }
-
-            current app(expr)
-
-            if(casted) current app(")")
-
-            refLevel := 0
-
-
-            if(expr getType() getRef() instanceOf?(ClassDecl)) {
-                refLevel += 1
-            }
-
-            current app(match (refLevel) {
-                case 0 => "."
-                case 1 => "->"
-                case   =>
-                    message := "This is too much reference %d! Can't write it." format(refLevel)
-                    params errorHandler onError(InternalError new(token, message))
-                    ""
-            })
-        }
-
-        paren := false
-        if(vDecl getType() instanceOf?(ReferenceType)) {
-            if (writeReferenceAddrOf) {
-                current app("(*")
-                paren = true
-            }
-        }
-
-        if(vDecl isExternWithName()) {
-            current app(vDecl getExternName())
-        } else {
-            current app(vDecl getFullName())
-        }
-
-        if(paren) current app(')')
     }
 
     /** Write an array access */

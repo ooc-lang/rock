@@ -1,4 +1,4 @@
-import ../../middle/[ControlStatement, Conditional, If, Else, While,
+import rock/middle/[ControlStatement, Conditional, If, Else, While,
     Foreach, RangeLiteral, VariableDecl, VariableAccess, Match]
 import Skeleton
 
