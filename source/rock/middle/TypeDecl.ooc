@@ -168,7 +168,7 @@ TypeDecl: abstract class extends Declaration {
                 vDecl setOwner(this)
             }
         } else {
-            token module params errorHandler onError(FieldRedifinition new(vDecl, old))
+            token module params errorHandler onError(DuplicateField new(vDecl, old))
         }
     }
 
@@ -437,7 +437,7 @@ TypeDecl: abstract class extends Declaration {
                     if(!typeArgs contains?(var) && !var instanceOf?(PropertyDecl)) {
                         superVar := superType getRef() as TypeDecl getVariable(var name)
                         if(superVar && superVar != var) {
-                            res throwError(FieldRedifinition new(var, superVar))
+                            res throwError(DuplicateField new(var, superVar))
                         }
                     }
                 )
@@ -928,12 +928,12 @@ TypeRedefinition: class extends Error {
 
 }
 
-FieldRedifinition: class extends Error {
+DuplicateField: class extends Error {
 
     first, second: VariableDecl
 
     init: func(=first, =second) {
-        message = first  token formatMessage("Redifinition of '%s'" format(first getName()), "[INFO]") + '\n' +
+        message = first  token formatMessage("Redefinition of '%s'" format(first getName()), "[INFO]") + '\n' +
                   second token formatMessage("\n...first definition was here: ", "[ERROR]")
     }
 
