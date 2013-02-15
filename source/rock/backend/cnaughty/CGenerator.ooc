@@ -4,7 +4,7 @@ import ../../middle/Visitor
 import ../../middle/tinker/Errors
 import ../../io/[CachedFileWriter, TabbedWriter], io/[File, FileWriter, Writer], AwesomeWriter
 
-import ../../frontend/BuildParams
+import ../../frontend/[BuildParams, Token]
 
 import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     BinaryOp, IntLiteral, FloatLiteral, CharLiteral, StringLiteral,
@@ -207,45 +207,7 @@ CGenerator: class extends Skeleton {
             }
         } else if(varAcc ref instanceOf?(VariableDecl)) {
             vDecl := varAcc ref as VariableDecl
-            if(varAcc isMember() && !(vDecl isExtern() && vDecl isStatic())) {
-                casted := false
-                if(vDecl owner != varAcc expr getType() getRef()) {
-                    casted = true
-                    current app("(("). app(vDecl owner getInstanceType()) .app(')')
-                }
-
-                current app(varAcc expr)
-
-                if(casted) current app(")")
-
-                refLevel := 0
-
-
-                if(varAcc expr getType() getRef() instanceOf?(ClassDecl)) {
-                    refLevel += 1
-                }
-
-                current app(match (refLevel) {
-                    case 0 => "."
-                    case 1 => "->"
-                    case   => params errorHandler onError(InternalError new(varAcc token, "This is too much reference %d! Can't write it." format(refLevel))); ""
-                })
-            }
-            paren := false
-            if(varAcc getRef() getType() instanceOf?(ReferenceType)) {
-                if (writeReferenceAddrOf) {
-                    current app("(*")
-                    paren = true
-                }
-            }
-
-            if(vDecl isExternWithName()) {
-                current app(vDecl getExternName())
-            } else {
-                current app(vDecl getFullName())
-            }
-
-            if(paren) current app(')')
+            writeVariableDeclAccess(vDecl, varAcc isMember(), varAcc expr, varAcc token, writeReferenceAddrOf)
         } else if(varAcc ref instanceOf?(TypeDecl)) {
             tDecl := varAcc ref as TypeDecl
             while(tDecl instanceOf?(CoverDecl) && tDecl as CoverDecl isAddon()) {
@@ -259,6 +221,53 @@ CGenerator: class extends Skeleton {
             // Yes, we need to write function types too ;D
             current app("lang_types__Closure_class()")
         }
+    }
+
+    writeVariableDeclAccess: func (vDecl: VariableDecl, isMember: Bool, expr: Expression, token: Token,
+        writeReferenceAddrOf: Bool) {
+        if(isMember && !(vDecl isExtern() && vDecl isStatic())) {
+            casted := false
+            if(vDecl owner != expr getType() getRef()) {
+                casted = true
+                current app("(("). app(vDecl owner getInstanceType()) .app(')')
+            }
+
+            current app(expr)
+
+            if(casted) current app(")")
+
+            refLevel := 0
+
+
+            if(expr getType() getRef() instanceOf?(ClassDecl)) {
+                refLevel += 1
+            }
+
+            current app(match (refLevel) {
+                case 0 => "."
+                case 1 => "->"
+                case   =>
+                    message := "This is too much reference %d! Can't write it." format(refLevel)
+                    params errorHandler onError(InternalError new(token, message))
+                    ""
+            })
+        }
+
+        paren := false
+        if(vDecl getType() instanceOf?(ReferenceType)) {
+            if (writeReferenceAddrOf) {
+                current app("(*")
+                paren = true
+            }
+        }
+
+        if(vDecl isExternWithName()) {
+            current app(vDecl getExternName())
+        } else {
+            current app(vDecl getFullName())
+        }
+
+        if(paren) current app(')')
     }
 
     /** Write an array access */
