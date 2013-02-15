@@ -375,19 +375,10 @@ BaseType: class extends Type {
         null
     }
 
-    breakPoint: func {
-        // ohyeah
-    }
-
     clone: func -> This {
         copy := new(name, token)
         if(getTypeArgs()) for(typeArg in getTypeArgs()) {
             copy addTypeArg(typeArg clone())
-        }
-
-        if (name == "HashMap") {
-            "Cloning type HashMap!" println()
-            breakPoint()
         }
 
         copy setRef(getRef())
