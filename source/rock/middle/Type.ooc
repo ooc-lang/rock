@@ -196,7 +196,7 @@ TypeAccess: class extends Type {
     getRef: func -> Declaration { inner getRef() }
     setRef: func (d: Declaration) { inner setRef(d) }
 
-    clone: func -> Type {
+    clone: func -> This {
         new(inner clone(), token)
     }
 
@@ -321,7 +321,9 @@ PointerType: class extends SugarType {
 
     dereference: func -> Type { inner }
 
-    clone: func -> Type { new(inner, token) }
+    clone: func -> Type {
+       new(inner clone(), token)
+    }
 
 }
 
@@ -396,7 +398,9 @@ ArrayType: class extends PointerType {
 
     }
 
-    clone: func -> This { new(inner clone(), expr, token) }
+    clone: func -> This {
+        new(inner clone(), expr ? expr clone() : null, token)
+    }
 
     exprLessClone: func -> This {
         copy := clone()
@@ -445,7 +449,9 @@ ReferenceType: class extends SugarType {
 
     dereference : func -> Type { inner dereference() }
 
-    clone: func -> Type { new(inner, token) }
+    clone: func -> Type {
+        new(inner clone(), token)
+    }
 
     refToPointer: func -> Type {
         PointerType new(inner refToPointer(), token)

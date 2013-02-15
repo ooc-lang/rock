@@ -257,12 +257,16 @@ ClassDecl: class extends TypeDecl {
             return
         }
 
-        newType := isMeta ? getNonMeta() getInstanceType() as BaseType : getInstanceType() as BaseType
+        newType := (isMeta ? getNonMeta() getInstanceType() : getInstanceType()) as BaseType
 
         constructor := FunctionDecl new("new", fDecl token)
         constructor setStatic(true)
         constructor setSuffix(fDecl getSuffix())
-        retType := newType clone() as BaseType
+        retType := newType clone()
+
+        // FIXME: Why is that needed?
+        retType setRef(newType getRef())
+
         if(retType getTypeArgs()) retType getTypeArgs() clear()
 
         constructor getArguments() addAll(fDecl getArguments())
@@ -279,7 +283,7 @@ ClassDecl: class extends TypeDecl {
             expr := Cast new(allocCall, newType, fDecl token)
             vdfe = VariableDecl new(null, "this", expr, fDecl token)
         } else {
-            vdfe = VariableDecl new(newType clone(), "this", fDecl token)
+            vdfe = VariableDecl new(retType, "this", fDecl token)
         }
         constructor getBody() add(vdfe)
 

@@ -112,20 +112,24 @@ CommandLine: class {
                     params entryPoint = arg substring(arg indexOf('=') + 1)
 
                 } else if (option == "newsdk") {
+
                     hardDeprecation("newsdk", params)
+
                 } else if (option == "newstr") {
+
                     hardDeprecation("newstr", params)
+
                 } else if(option == "cstrings") {
+
                     hardDeprecation("cstrings", params)
+
                 } else if (option == "inline") {
 
-                    if(!longOption) warnUseLong("inline")
-                    params inlining = true
+                    hardDeprecation("inline", params)
 
                 } else if (option == "no-inline") {
 
-                    if(!longOption) warnUseLong("no-inline")
-                    params inlining = false
+                    hardDeprecation("inline", params)
 
                 } else if (option == "c") {
 
