@@ -542,7 +542,8 @@ CommandLine: class {
                     if(params shout) success()
                     if(params run) {
                         // FIXME: that's the driver's job
-                        Process new(["./" + module simpleName]) execute()
+                        if(params binaryPath && !params binaryPath empty?()) Process new(["./" + params binaryPath]) execute()
+                        else Process new(["./" + module simpleName]) execute()
                     }
                 } else {
                     if(params shout) {
