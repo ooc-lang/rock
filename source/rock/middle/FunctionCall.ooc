@@ -127,9 +127,11 @@ FunctionCall: class extends Expression {
     }
 
     clone: func -> This {
-        copy := new(expr, name, token)
+        copy := new(expr ? expr clone() : expr, name, token)
         copy suffix = suffix
-        args each(|e| copy args add(e clone()))
+        args each(|arg|
+            copy args add(arg clone())
+        )
         copy
     }
 

@@ -390,7 +390,6 @@ BaseType: class extends Type {
             breakPoint()
         }
 
-        // Why does HashMap need this?
         copy setRef(getRef())
         copy
     }
