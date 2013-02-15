@@ -81,10 +81,20 @@ CGenerator: class extends Skeleton {
 
     visitTypeAccess: func (typeAccess: TypeAccess) {
         ref := typeAccess getRef()
-        if(!ref instanceOf?(TypeDecl)) {
-            Exception new(This, "Ref of TypeAccess %s isn't a TypeDecl but a %s! wtf?" format(typeAccess toString(), ref class name)) throw()
+
+        match ref {
+            case tDecl: TypeDecl =>
+                current app(tDecl underName()). app("_class()")
+            case vDecl: VariableDecl =>
+                // TODO: fix namespaced type accesses?
+                // TODO: figure out if last parameter needs to be adjusted sometimes
+                AccessWriter writeVariableDeclAccess(this, vDecl, false,
+                    null, typeAccess token, true)
+            case =>
+                message := "Unsupported TypeAccess ref type for %s: %s" \
+                format(typeAccess toString(), ref class name)
+                params errorHandler onError(InternalError new(typeAccess token, message))
         }
-        current app(ref as TypeDecl underName()). app("_class()")
     }
 
     /** Write a binary operation */
