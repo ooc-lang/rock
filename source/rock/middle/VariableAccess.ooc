@@ -215,7 +215,11 @@ VariableAccess: class extends Expression {
 
                     // in initialization of a member object!
                     if(!ref && name == "this" && trail find(Scope) == -1) {
-                        suggest(node as TypeDecl thisDecl)
+                        // nowadays, covers have __cover_defaults__ but they have
+                        // by-ref this, for obvious reasons.
+                        isThisRef := trail find(CoverDecl) != -1
+
+                        suggest(isThisRef ? tDecl thisRefDecl : tDecl thisDecl)
                     }
                 }
                 node resolveAccess(this, res, trail)
@@ -407,7 +411,8 @@ VariableAccess: class extends Expression {
                 subject := this
                 if(reverseExpr && _staticFunc && name == "this") {
                     res throwError(InvalidAccess new(this,
-                        "Can't access instance variable '%s' from static function '%s'!" format(reverseExpr getName(), _staticFunc getName())
+                        "Can't access instance variable '%s' from static function '%s'!" \
+                            format(reverseExpr getName(), _staticFunc getName())
                     ))
                 }
                 

@@ -409,8 +409,15 @@ FunctionDecl: class extends Declaration {
 
         if(owner != null && access name == "this") {
             meat := owner
-            if(meat isAddon()) meat = meat getBase() getNonMeta()
-            if(access suggest(isThisRef ? meat thisRefDecl : meat thisDecl)) return 0
+            if(meat isAddon()) {
+                // rule of resolve club: never resolve to the adddon, resolve to the
+                // base instead
+                meat = meat getBase() getNonMeta()
+            }
+
+            if(access suggest(isThisRef ? meat thisRefDecl : meat thisDecl)) {
+                return 0
+            }
         }
 
         if(access debugCondition()) {

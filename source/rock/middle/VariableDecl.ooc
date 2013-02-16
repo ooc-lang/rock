@@ -2,7 +2,7 @@ import structs/[ArrayList]
 import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
        Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast, Module,
        Block, Scope, FunctionDecl, Argument, BaseType, FuncType, Statement,
-       NullLiteral, Tuple, TypeList, VariableDecl
+       NullLiteral, Tuple, TypeList
 import tinker/[Response, Resolver, Trail, Errors]
 import ../frontend/BuildParams
 
