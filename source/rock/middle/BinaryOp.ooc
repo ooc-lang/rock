@@ -207,10 +207,11 @@ BinaryOp: class extends Expression {
             if(isGeneric()) {
                 sizeAcc: VariableAccess
                 if(!right getType() isGeneric()) {
-                    sizeAcc = VariableAccess new(VariableAccess new(right getType(), token), "size", token)
+                    sizeAcc = VariableAccess new(right getType() getName(), token)
                 } else {
-                    sizeAcc = VariableAccess new(VariableAccess new(left getType(), token), "size", token)
+                    sizeAcc = VariableAccess new(left getType() getName(), token)
                 }
+                sizeAcc = VariableAccess new(sizeAcc, "size", token)
 
 
                 fCall := FunctionCall new("memcpy", token)

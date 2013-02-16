@@ -34,9 +34,9 @@ ArrayAccess: class extends Expression {
 
     getGenericOperand: func -> Expression {
         if(getType() isGeneric() && getType() pointerLevel() == 0) {
-            sizeAcc := VariableAccess new(VariableAccess new(getType() getName(), token), "size", token)
+            typeAcc := VariableAccess new(getType() getName(), token)
+            sizeAcc := VariableAccess new(typeAcc, "size", token)
             arrAcc := ArrayAccess new(array, token)
-            // FIXME: wtf? we're modifying 'this' instead of making a copy of it?
             for(index in indices) {
                 // FIXME: that's fucked up if we have more than one index anyway
                 arrAcc indices add(BinaryOp new(Parenthesis new(index, arrAcc token), sizeAcc, OpType mul, arrAcc token))
