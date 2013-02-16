@@ -282,8 +282,10 @@ Case: class extends ControlStatement {
 
     clone: func -> This {
         copy := new(token)
-        copy expr = expr clone()
-        body list each(|c| copy body add(c clone()))
+        copy expr = expr ? expr clone() : null
+        body list each(|c|
+            copy body add(c clone())
+        )
         copy
     }
 
