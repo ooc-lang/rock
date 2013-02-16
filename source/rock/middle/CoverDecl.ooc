@@ -6,7 +6,7 @@ import ../io/TabbedWriter
 // our stuff
 import ../frontend/[Token, BuildParams]
 import Expression, Type, Visitor, TypeDecl, Node, FunctionDecl,
-       FunctionCall, VariableAccess, TemplateDef, BaseType
+       FunctionCall, VariableAccess, TemplateDef, BaseType, VariableDecl
 import tinker/[Response, Resolver, Trail, Errors]
 
 CoverDecl: class extends TypeDecl {
@@ -154,6 +154,12 @@ CoverDecl: class extends TypeDecl {
             name := template typeArgs get(i) getName()
             ref := typeArg getRef()
             "name %s, ref %s" printfln(name, ref ? ref toString() : "(nil)")
+
+            if (typeArg inner isGeneric()) {
+                "is generic!" println()
+                instance addTypeArg(VariableDecl new(typeArg inner getRef() getType(),
+                    typeArg inner getName(), spec token))
+            }
 
             instance templateArgs put(name, ref)
             i += 1
