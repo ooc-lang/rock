@@ -4,7 +4,7 @@ import ../io/TabbedWriter
 import ../frontend/Token
 import Expression, Type, Visitor, TypeDecl, Cast, FunctionCall, FunctionDecl,
        Module, Node, VariableDecl, VariableAccess, BinaryOp, Argument,
-       Return, CoverDecl, BaseType
+       Return, CoverDecl, BaseType, AddressOf
 import tinker/[Response, Resolver, Trail, Errors]
 
 ClassDecl: class extends TypeDecl {
@@ -12,6 +12,7 @@ ClassDecl: class extends TypeDecl {
     DESTROY_FUNC_NAME   := static const "__destroy__"
     LOAD_FUNC_NAME      := static const "__load__"
     DEFAULTS_FUNC_NAME  := static const "__defaults__"
+    COVER_DEFAULTS_FUNC_NAME  := static const "__cover_defaults__"
 
     isAbstract := false
     isFinal := false
@@ -73,12 +74,25 @@ ClassDecl: class extends TypeDecl {
         }
 
         if(isMeta) {
-            if(getNonMeta() class == ClassDecl) {
+            meat := getNonMeta()
+            isClass := meat class == ClassDecl
+            isCover := meat class == CoverDecl
+            isCompoundCover := isCover && meat as CoverDecl fromType == null
+
+            if(isClass) {
                 if(!functions contains?(This DEFAULTS_FUNC_NAME)) {
                     addFunction(FunctionDecl new(This DEFAULTS_FUNC_NAME, token))
                 }
+            } else if (isCompoundCover) {
+                if(!functions contains?(This COVER_DEFAULTS_FUNC_NAME)) {
+                    fDecl := FunctionDecl new(This COVER_DEFAULTS_FUNC_NAME, token)
+                    fDecl isThisRef = true
+                    fDecl isFinal = true
+                    addFunction(fDecl)
+                }
             }
-            if(getNonMeta() class == ClassDecl || getNonMeta() class == CoverDecl) {
+
+            if(isClass || isCover) {
                 if(!functions contains?(This LOAD_FUNC_NAME)) {
                     fDecl := FunctionDecl new(This LOAD_FUNC_NAME, token)
                     fDecl setStatic(true)
@@ -303,7 +317,11 @@ ClassDecl: class extends TypeDecl {
         thisAccess setRef(vdfe)
 
         if(!isCover) {
-            defaultsCall := FunctionCall new("__defaults__", fDecl token)
+            defaultsCall := FunctionCall new(DEFAULTS_FUNC_NAME, fDecl token)
+            constructor getBody() add(defaultsCall)
+        } else {
+            defaultsCall := FunctionCall new(COVER_DEFAULTS_FUNC_NAME, fDecl token)
+            defaultsCall expr = VariableAccess new(vdfe, fDecl token)
             constructor getBody() add(defaultsCall)
         }
 

@@ -228,48 +228,9 @@ ClassDeclWriter: abstract class extends Skeleton {
             FunctionDeclWriter writeFuncPrototype(this, decl, (decl isFinal()) ? null : "_impl")
             current app(' '). openBlock()
             
-            if(decl getName() == ClassDecl DEFAULTS_FUNC_NAME) {
-                nonMeta := cDecl getNonMeta()
-                superType := nonMeta getSuperType()
-                superRef  := nonMeta getSuperRef()
-
-                if(superType != null && superType getTypeArgs() != null) {
-                    j := 0
-                    for(typeArg in superType getTypeArgs()) {
-                        refTypeArg := superRef getTypeArgs() get(j)
-
-                        shouldAssign := true
-                        for(candidate in nonMeta getTypeArgs()) {
-                            if(candidate getName() == typeArg getName()) {
-                                // no need to assign it, it just makes the type arguments transitive
-                                shouldAssign = false
-                                break
-                            }
-                        }
-
-                        if(!shouldAssign) continue
-
-                        realOwner := cDecl getVariable(refTypeArg getName()) getOwner()
-                        current nl(). app("(("). app(realOwner getInstanceType()). app(") this)->"). app(refTypeArg getName()). app(" = (void*) "). app(typeArg). app(';')
-
-                        j += 1
-                    }
-                }
-
-                if(cDecl getSuperRef()) {
-                    finalScore: Int
-                    superDefaults := cDecl getSuperRef() getFunction(ClassDecl DEFAULTS_FUNC_NAME, null, null, finalScore&)
-                    if(superDefaults) {
-                        current nl()
-                        FunctionDeclWriter writeFullName(this, superDefaults)
-                        current app("_impl(("). app(superDefaults owner getInstanceType()). app(") this);")
-                    }
-                }
-
-                for(vDecl in nonMeta variables) {
-                    if(vDecl getExpr() == null) continue
-                    current nl(). app("this->"). app(vDecl getName()). app(" = "). app(vDecl getExpr()). app(';')
-                }
+            match (decl getName()) {
+                case ClassDecl DEFAULTS_FUNC_NAME || ClassDecl COVER_DEFAULTS_FUNC_NAME =>
+                    writeDefaults(this, cDecl)
             }
 
             for(stat in decl body) {
@@ -278,6 +239,53 @@ ClassDeclWriter: abstract class extends Skeleton {
             current closeBlock()
         }
 
+    }
+
+    writeDefaults: static func (this: Skeleton, cDecl: ClassDecl) {
+        meat := cDecl getNonMeta()
+        superType := meat getSuperType()
+        superRef  := meat getSuperRef()
+
+        // assign super's type args
+        if(superType != null && superType getTypeArgs() != null) {
+            j := 0
+            for(typeArg in superType getTypeArgs()) {
+                refTypeArg := superRef getTypeArgs() get(j)
+
+                shouldAssign := true
+                for(candidate in meat getTypeArgs()) {
+                    if(candidate getName() == typeArg getName()) {
+                        // no need to assign it, it just makes the type arguments transitive
+                        shouldAssign = false
+                        break
+                    }
+                }
+
+                if(!shouldAssign) continue
+
+                realOwner := cDecl getVariable(refTypeArg getName()) getOwner()
+                current nl(). app("(("). app(realOwner getInstanceType()). app(") this)->"). app(refTypeArg getName()). app(" = (void*) "). app(typeArg). app(';')
+
+                j += 1
+            }
+        }
+
+        // call the super's defaults func, but only for classes, not for covers
+        if(cDecl getSuperRef() && meat instanceOf?(ClassDecl)) {
+            finalScore: Int
+            superDefaults := cDecl getSuperRef() getFunction(
+                ClassDecl DEFAULTS_FUNC_NAME, null, null, finalScore&)
+            if(superDefaults) {
+                current nl()
+                FunctionDeclWriter writeFullName(this, superDefaults)
+                current app("_impl(("). app(superDefaults owner getInstanceType()). app(") this);")
+            }
+        }
+
+        for(vDecl in meat variables) {
+            if(vDecl getExpr() == null) continue
+            current nl(). app("this->"). app(vDecl getName()). app(" = "). app(vDecl getExpr()). app(';')
+        }
     }
 
     getClassType: static func (cDecl: ClassDecl) -> ClassDecl {
