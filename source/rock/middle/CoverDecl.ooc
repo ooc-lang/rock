@@ -109,10 +109,30 @@ CoverDecl: class extends TypeDecl {
         !template
     }
 
+    _getFingerprint: func (spec: BaseType) -> String {
+        buffer := Buffer new()
+        buffer append("__"). append(name)
+
+        for (i in 0..spec typeArgs size) {
+            theirs := spec typeArgs get(i)
+            ours   := template typeArgs get(i)
+
+            buffer append("__")
+
+            if (theirs inner isGeneric()) {
+                buffer append(ours getName())
+            } else {
+                buffer append(theirs getName())
+            }
+        }
+
+        buffer toString()
+    }
+
     getTemplateInstance: func (spec: BaseType) -> CoverDecl {
         "Should get a template instance of %s as per %s" printfln(toString(), spec toString())
 
-        fingerprint := "__" + name + "__" + spec typeArgs map(|vAcc| vAcc getName()) join("__")
+        fingerprint := _getFingerprint(spec)
 
         if (instances contains?(fingerprint)) {
             return instances get(fingerprint)
