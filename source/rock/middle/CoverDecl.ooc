@@ -125,26 +125,6 @@ CoverDecl: class extends TypeDecl {
         instance module = module
         instance setVersion(instance getVersion())
 
-        for (variable in variables) {
-            instance addVariable(variable clone())
-        }
-
-        for (oDecl in operators) {
-            instance addOperator(oDecl clone())
-        }
-
-        for (fDecl in getMeta() functions) {
-            if (fDecl oDecl) {
-                // already been added at last step
-                continue
-            }
-
-            fDeclClone := fDecl clone()
-            fDeclClone owner = null
-
-            instance addFunction(fDeclClone)
-        }
-
         i := 0
         for (typeArg in spec typeArgs) {
             if (i >= template typeArgs size) {
@@ -163,6 +143,26 @@ CoverDecl: class extends TypeDecl {
 
             instance templateArgs put(name, ref)
             i += 1
+        }
+
+        for (variable in variables) {
+            instance addVariable(variable clone())
+        }
+
+        for (oDecl in operators) {
+            instance addOperator(oDecl clone())
+        }
+
+        for (fDecl in getMeta() functions) {
+            if (fDecl oDecl) {
+                // already been added at last step
+                continue
+            }
+
+            fDeclClone := fDecl clone()
+            fDeclClone owner = null
+
+            instance addFunction(fDeclClone)
         }
 
         instances put(fingerprint, instance)
