@@ -137,11 +137,13 @@ CoverDecl: class extends TypeDecl {
 
             if (typeArg inner isGeneric()) {
                 "is generic!" println()
-                instance addTypeArg(VariableDecl new(typeArg inner getRef() getType(),
-                    typeArg inner getName(), spec token))
+
+                thisRef := VariableDecl new(typeArg inner getRef() getType(), name, spec token)
+                instance addTypeArg(thisRef)
+            } else {
+                instance templateArgs put(name, ref)
             }
 
-            instance templateArgs put(name, ref)
             i += 1
         }
 
