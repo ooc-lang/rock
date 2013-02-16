@@ -161,8 +161,11 @@ FunctionDecl: class extends Declaration {
         copy returnType = returnType clone()
 
         body list each(|e|
-            "Adding clone of %s to %s" format(e toString(), copy toString()) println()
             copy body add(e clone())
+        )
+
+        typeArgs each(|ta|
+            copy typeArgs add(ta clone())
         )
 
         copy vDecl = vDecl
