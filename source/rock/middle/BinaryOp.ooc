@@ -402,6 +402,9 @@ BinaryOp: class extends Expression {
         }
 
         if(isAssign()) {
+            // You can assign expressions of equal types
+            if(lType equals?(rType)) return true
+
             score := lType getScore(rType)
             if(score == -1) {
                 // must resolve first
