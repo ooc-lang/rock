@@ -207,9 +207,9 @@ BinaryOp: class extends Expression {
             if(isGeneric()) {
                 sizeAcc: VariableAccess
                 if(!right getType() isGeneric()) {
-                    sizeAcc = VariableAccess new(right getType() getName(), token)
+                    sizeAcc = VariableAccess new(right getType(), token)
                 } else {
-                    sizeAcc = VariableAccess new(left getType() getName(), token)
+                    sizeAcc = VariableAccess new(left getType(), token)
                 }
                 sizeAcc = VariableAccess new(sizeAcc, "size", token)
 
