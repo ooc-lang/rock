@@ -21,14 +21,14 @@ version (windows) {
 
 SockAddr: cover from struct sockaddr {
     sa_family: extern UShort    // address family, AF_xxx
-    sa_data: extern Char[14]  // 14 bytes of protocol address
+    sa_data: extern Char*  // 14 bytes of protocol address
 }
 
 SockAddrIn: cover from struct sockaddr_in {
     sin_family: extern Short   // e.g. AF_INET
     sin_port: extern UShort     // e.g. htons(3490)
     sin_addr: extern InAddr     // see struct in_addr, below
-    sin_zero: extern Char[8]  // zero this if you want to
+    sin_zero: extern Char* // 8 bytes, zero this if you want to
 }
 
 InAddr: cover from struct in_addr {
@@ -44,7 +44,7 @@ SockAddrIn6: cover from struct sockaddr_in6 {
 }
 
 In6Addr: cover from struct in6_addr {
-    s6_addr: extern UChar[16]
+    s6_addr: extern UChar* // 16 bytes
 }
 
 AddrInfo: cover from struct addrinfo {
