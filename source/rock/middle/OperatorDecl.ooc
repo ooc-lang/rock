@@ -4,20 +4,29 @@ import tinker/[Resolver, Response, Trail, Errors]
 
 OperatorDecl: class extends Expression {
 
-    symbol: String
+    symbol: String {
+        get { symbol }
+        set (s) {
+            if (s == "implicit as") {
+                symbol = "as"
+                implicit = true
+            } else {
+                symbol = s
+            }
+        }
+    }
+
     implicit := false // for implicit as
     _doneImplicit := false
 
     fDecl : FunctionDecl { get set }
 
     init: func ~opDecl (=symbol, .token) {
+        init(token)
+    }
+
+    init: func ~noSymbol (.token) {
         super(token)
-
-        if(symbol == "implicit as") {
-            implicit = true
-            this symbol = "as"
-        }
-
         setFunctionDecl(FunctionDecl new("", token))
     }
 
@@ -44,6 +53,10 @@ OperatorDecl: class extends Expression {
     }
 
     isResolved: func -> Bool { false }
+
+    setByRef: func (byref: Bool) {
+        fDecl isThisRef = byref
+    }
 
     computeName: func {
         assert(fDecl != null)

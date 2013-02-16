@@ -592,13 +592,25 @@ AstBuilder: class {
      * Operator overloads
      */
 
-    onOperatorStart: unmangled(nq_onOperatorStart) func (symbol: CString) {
-        oDecl := OperatorDecl new(symbol toString() trim(), token())
+    onOperatorStart: unmangled(nq_onOperatorStart) func {
+        oDecl := OperatorDecl new(token())
         stack push(oDecl)
-        stack push(oDecl fDecl)
+    }
+
+    onOperatorByref: unmangled(nq_onOperatorByref) func {
+        peek(OperatorDecl) setByRef(true)
+    }
+
+    onOperatorSymbol: unmangled(nq_onOperatorSymbol) func (symbol: CString) {
+        peek(OperatorDecl) symbol = symbol toString() trim()
+    }
+
+    onOperatorBodyStart: unmangled(nq_onOperatorBodyStart) func {
+        stack push(peek(OperatorDecl) fDecl)
     }
 
     onOperatorEnd: unmangled(nq_onOperatorEnd) func {
+        // nq_onFunctionEnd is called at the end of FunctionDeclBody - so we're good
         oDecl := pop(OperatorDecl)
         oDecl computeName()
 
