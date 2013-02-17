@@ -207,8 +207,7 @@ FunctionDecl: class extends Declaration {
     isAnon: func -> Bool { isAnon }
 
     debugCondition: inline func -> Bool {
-        //false
-        name == "kalamazoo"
+        false
     }
 
     markForPartialing: func(var: VariableDecl, mode: String) {
@@ -514,7 +513,7 @@ FunctionDecl: class extends Declaration {
             }
         }
 
-        if(debugCondition()) "Handling the args"
+        if(debugCondition()) "Handling the args" println()
 
         for(arg in args) {
             if(debugCondition()) "Handling arg %s" format(arg toString()) println()
@@ -526,7 +525,7 @@ FunctionDecl: class extends Declaration {
             }
         }
 
-        if(debugCondition()) "Handling isClosure"
+        if(debugCondition()) "Handling isClosure" println()
 
         isClosure := name empty?()
 
@@ -547,7 +546,7 @@ FunctionDecl: class extends Declaration {
             )
         }
 
-        if(debugCondition()) "Handling typeArgs"
+        if(debugCondition()) "Handling typeArgs" println()
 
         for(typeArg in typeArgs) {
             response := typeArg resolve(trail, res)
@@ -558,7 +557,7 @@ FunctionDecl: class extends Declaration {
             }
         }
 
-        if(debugCondition()) "Handling the body."
+        if(debugCondition()) "Handling the body." println()
 
         {
             response := returnType resolve(trail, res)
