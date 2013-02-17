@@ -83,10 +83,9 @@ Driver: abstract class {
             pathElement := module getPathElement()
             absolutePath := File new(pathElement) getAbsolutePath()
             name := File new(absolutePath) name
-            identifier := params sourcePathTable get(pathElement)
-            if (!identifier) {
-                identifier = name
-            }
+
+            uze := params sourcePathTable get(pathElement)
+            identifier := uze ? uze identifier : name
 
             sourceFolder := toCompile get(identifier)
             if(sourceFolder == null) {

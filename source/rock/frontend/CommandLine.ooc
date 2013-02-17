@@ -439,8 +439,6 @@ CommandLine: class {
         }
 
         if(params sourcePath empty?()) {
-            params sourcePath add(".")
-
             moduleName := "program"
             if (!modulePaths empty?()) {
               moduleName = modulePaths get(0)
@@ -449,7 +447,10 @@ CommandLine: class {
             if (moduleName endsWith?(".ooc")) {
               moduleName = moduleName[0..-5]
             }
-            params sourcePathTable put(".", moduleName)
+
+            virtualUse := UseDef new(moduleName)
+            virtualUse sourcePath = File new(".") getAbsolutePath()
+            virtualUse apply(params)
         }
 
         errorCode := 0

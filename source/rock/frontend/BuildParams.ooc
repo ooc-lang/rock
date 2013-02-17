@@ -7,7 +7,7 @@ import text/StringTokenizer
 // out stuff
 import PathList, CommandLine
 import drivers/CCompiler
-import rock/middle/Module
+import rock/middle/[Module, UseDef]
 import rock/middle/tinker/Errors
 
 /**
@@ -110,8 +110,8 @@ BuildParams: class {
     // ooc sourcepath (.ooc)
     sourcePath := PathList new()
 
-    // map of sourcepath elements => .use name
-    sourcePathTable := HashMap<String, String> new()
+    // map of sourcepath elements => UseDef(s)
+    sourcePathTable := HashMap<String, UseDef> new()
 
     // C libraries path (.so)
     libPath := PathList new()
