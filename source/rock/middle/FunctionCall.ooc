@@ -260,7 +260,7 @@ FunctionCall: class extends Expression {
 
             resolveArg := func(arg: Expression, replaced?: Bool) -> Response {
                 if(debugCondition() || res params veryVerbose) {
-                    "resolving %s arg %s" printfln(replaced? ? "replaced" : "", arg toString())
+                    "resolving%s arg %s" printfln(replaced? ? " replaced" : "", arg toString())
                 }
                 response := arg resolve(trail, res)
                 if(!response ok()) {

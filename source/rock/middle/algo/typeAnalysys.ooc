@@ -1,4 +1,5 @@
-import ../[Type, BaseType, TypeDecl]
+import structs/ArrayList
+import ../[Type, BaseType, TypeDecl, Expression]
 import ../tinker/[Resolver, Trail]
 
 
@@ -27,16 +28,33 @@ _sugarLevelsEqual?: func(type1, type2: Type) -> Bool {
     true
 }
 
-_createSugarWith: func(inner, levels: Type) -> Type {
+_createSugarWith: func(inner, sugar: Type) -> Type {
     construct := inner
-    while(levels instanceOf?(SugarType)) {
-        match (levels class) {
+    steps := ArrayList<Class> new()
+    arrayExprs := ArrayList<Expression> new()
+
+    while(sugar instanceOf?(SugarType)) {
+        steps add(sugar class)
+        if(sugar class == ArrayType) arrayExprs add(sugar as ArrayType expr)
+
+        sugar = sugar as SugarType inner
+    }
+
+    /* Let's say our sugar was PointerType(ArrayType(Foo))
+       We want to construct our inner (lets say Int) to this sugar like that:
+       Int => ArrayType(Int) => PointerType(ArrayType(Int))
+       So we have to reverse the array of the steps we will take */
+    if(!steps empty?()) steps reverse!()
+
+    arrayTypes := 0
+    for(step in steps) {
+        match step {
             case PointerType => construct = PointerType new(construct, construct token)
-            case ArrayType => construct = ArrayType new(construct, levels as ArrayType expr, construct token)
+            case ArrayType => construct = ArrayType new(construct, arrayExprs get(arrayTypes), construct token)
+                              arrayTypes += 1
             case ReferenceType => construct = ReferenceType new(construct, construct token)
             case => // Comon, how did you even get here?!
         }
-        levels = levels as SugarType inner
     }
     construct
 }
