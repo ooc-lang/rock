@@ -33,18 +33,16 @@ _createSugarWith: func(inner, sugar: Type) -> Type {
     steps := ArrayList<Class> new()
     arrayExprs := ArrayList<Expression> new()
 
+    /* Let's say our sugar was PointerType(ArrayType(Foo))
+       We want to construct our inner (lets say Int) to this sugar like that:
+       Int => ArrayType(Int) => PointerType(ArrayType(Int))
+       So we add the steps we will take in reverse */
     while(sugar instanceOf?(SugarType)) {
-        steps add(sugar class)
+        steps add(0, sugar class)
         if(sugar class == ArrayType) arrayExprs add(sugar as ArrayType expr)
 
         sugar = sugar as SugarType inner
     }
-
-    /* Let's say our sugar was PointerType(ArrayType(Foo))
-       We want to construct our inner (lets say Int) to this sugar like that:
-       Int => ArrayType(Int) => PointerType(ArrayType(Int))
-       So we have to reverse the array of the steps we will take */
-    if(!steps empty?()) steps reverse!()
 
     arrayTypes := 0
     for(step in steps) {

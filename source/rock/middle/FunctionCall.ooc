@@ -900,7 +900,8 @@ FunctionCall: class extends Expression {
 
                     replacedArgs = ArrayList<Expression> new(numVarArgs)
                     numVarArgs times(||
-                        replacedArgs add(args removeAt(args lastIndex()))
+                        removedArg := args removeAt(args lastIndex())
+                        replacedArgs add(removedArg)
                     )
                     args add(VariableAccess new(vaDecl, token))
                 }
