@@ -1,10 +1,12 @@
 
 // sdk stuff
+
+// List is missing here, and that makes rock go into an infinite loop.
 import structs/[ArrayList, HashMap]
 import io/[File]
 
 // our stuff
-import rock/frontend/[BuildParams]
+import rock/frontend/[BuildParams, Token]
 import rock/frontend/drivers/[SourceFolder]
 import rock/middle/[Module, UseDef]
 import rock/middle/tinker/[Errors]
@@ -36,6 +38,10 @@ DependencyGraph: class {
         _computeList()
     }
 
+    _throwError: func (token: Token, message: String) {
+        params errorHandler onError(DependencyError new(token, message))
+    }
+
     _walk: func (parent: SourceFolder) {
         done := ArrayList<Module> new()
 
@@ -57,8 +63,7 @@ DependencyGraph: class {
 
         dep := sourceFolders get(identifier)
         if (!dep) {
-            message := "Orphan module: %s" format(module fullName)
-            params errorHandler onError(InternalError new(module token, message))
+            _throwError(module token, "Orphan module: %s" format(module fullName))
             return
         }
 
@@ -82,31 +87,63 @@ DependencyGraph: class {
         }
     }
 
+    _numDependencies: func (sf: SourceFolder) -> Int {
+        count := 0
+
+        for (dep in deps) {
+            if (!dep satisfied && dep lhs == sf) {
+                count += 1
+            }
+        }
+
+        count
+    }
+
+    _satisfyDependents: func (sf: SourceFolder) {
+        for (dep in deps) {
+            if (dep rhs == sf) {
+                dep satisfy()
+            }
+        }
+    }
+
     _computeList: func {
-        // TODO: non-dumb algorithm
         "List of all dependencies: " println()
         deps each(|dep|
             dep _ println()
         )
 
-        list = ArrayList<SourceFolder> new()
-        sourceFolders each(|k, sf|
-            list add(sf)
+        pool := ArrayList<SourceFolder> new()
+
+        while (!pool empty?()) {
+            candidate: SourceFolder
+
+            for (sf in pool) {
+                if (_numDependencies(sf) == 0) {
+                    candidate = sf
+                    break
+                }
+            }
+
+            if (candidate) {
+                _satisfyDependents(candidate)
+                pool remove(candidate)
+                list add(candidate)
+            } else {
+                message := "Circular dependencies among remaining modules: [%s]" \
+                    format(_listRepresentation(pool))
+                _throwError(nullToken, message)
+            }
+        }
+
+        "List of candidates, in order: " println()
+        list each(|sf|
+            sf identifier println()
         )
     }
 
-    _computeListExp: func {
-        // start with all dependencies
-        remaining := HashMap<String, Dependency> new()
-        deps each(|k, v| remaining put(k, v))
-
-        while (!remaining empty?()) {
-            candidate: SourceFolder
-
-            remaining each(|k, v|
-                 
-            )
-        }
+    _listRepresentation: func (sourceFolders: List<SourceFolder>) -> String {
+        sourceFolders map(|sf| sf identifier) join(", ")
     }
 
 }
@@ -119,6 +156,7 @@ DependencyGraph: class {
 Dependency: class {
 
     lhs, rhs: SourceFolder
+    satisfied := false
 
     init: func (=lhs, =rhs) {
     }
@@ -131,5 +169,15 @@ Dependency: class {
         get { toString() }
     }
 
+    satisfy: func {
+        satisfied = true
+        "%s is satisfied." printfln(_)
+    }
+
 }
 
+DependencyError: class extends Error {
+
+    init: super func ~tokenMessage
+
+}
