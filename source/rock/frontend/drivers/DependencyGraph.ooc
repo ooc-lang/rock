@@ -1,7 +1,5 @@
 
 // sdk stuff
-
-// List is missing here, and that makes rock go into an infinite loop.
 import structs/[ArrayList, HashMap]
 import io/[File]
 
@@ -114,6 +112,9 @@ DependencyGraph: class {
         )
 
         pool := ArrayList<SourceFolder> new()
+        sourceFolders each(|k, sf| pool add(sf)) 
+
+        list = ArrayList<SourceFolder> new()
 
         while (!pool empty?()) {
             candidate: SourceFolder
@@ -128,22 +129,16 @@ DependencyGraph: class {
             if (candidate) {
                 _satisfyDependents(candidate)
                 pool remove(candidate)
-                list add(candidate)
+                list add(0, candidate)
             } else {
-                message := "Circular dependencies among remaining modules: [%s]" \
-                    format(_listRepresentation(pool))
+                repr := pool map(|sf| sf identifier) join(", ")
+                message := "Circular dependencies among remaining modules: [%s]" format(repr)
                 _throwError(nullToken, message)
             }
         }
 
-        "List of candidates, in order: " println()
-        list each(|sf|
-            sf identifier println()
-        )
-    }
-
-    _listRepresentation: func (sourceFolders: List<SourceFolder>) -> String {
-        sourceFolders map(|sf| sf identifier) join(", ")
+        repr := list map(|sf| sf identifier) join(", ")
+        "List of candidates, in order: [%s]" printfln(repr)
     }
 
 }
