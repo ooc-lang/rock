@@ -186,6 +186,10 @@ Flags: class {
         libsHeaders := File new(params distLocation, "libs/headers/") getPath()
         addCompilerFlag("-I" + libsHeaders)
 
+        if (params debug) {
+            addCompilerFlag("-g")
+        }
+
         if (params libcache) {
             addCompilerFlag("-I" + params libcachePath)
         } else {
