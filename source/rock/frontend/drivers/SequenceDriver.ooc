@@ -176,9 +176,9 @@ SequenceDriver: class extends Driver {
      */
     buildModule: func (module: Module, sourceFolder: SourceFolder, force: Bool) -> Int {
 
-        path := File new(params outPath, module getPath("")) getPath()
-        cFile := File new(path + ".c")
-        oFile := File new(params libcachePath, sourceFolder relativeObjectPath(module))
+        path := module getPath()
+        cFile := File new(params outPath, path + ".c")
+        oFile := File new(params libcachePath, path + ".o")
 
         archive := sourceFolder archive
         archiveDate := (archive ? File new(archive outlib) lastModified() : oFile lastModified())

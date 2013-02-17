@@ -49,7 +49,7 @@ Module: class extends Node {
         this path = (File separator == '/') ? fullName : fullName replaceAll('/', File separator)
         this oocPath = pathElement + File separator + path + ".ooc"
 
-        // that's a Win32 fix - but I think it's due to an issue in 
+        // win32 fix - sometimes we get fullName(s) with '\' in the input
         this fullName = fullName replaceAll(File separator, '/')
         idx := this fullName lastIndexOf('/')
 
@@ -81,6 +81,15 @@ Module: class extends Node {
         } else {
             File new(pathElement) getAbsoluteFile() name
         }
+    }
+
+    getPath: func (suffix := "") -> String {
+        base := getSourceFolderName()
+        File new(base, path) path + suffix
+    }
+
+    getOocPath: func -> String {
+        oocPath
     }
 
     /**
@@ -200,15 +209,6 @@ Module: class extends Node {
     getUses:      func -> List<Use>          { uses }
 
     accept: func (visitor: Visitor) { visitor visitModule(this) }
-
-    getPath: func (suffix: String) -> String {
-        last := (File new(pathElement) name)
-        return (last + File separator) + fullName replaceAll('/', File separator) + suffix
-    }
-
-    getOocPath: func -> String {
-        oocPath
-    }
 
     /** return global (e.g. non-namespaced) imports */
     getGlobalImports: func -> List<Import> { imports }

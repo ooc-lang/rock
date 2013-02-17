@@ -33,20 +33,24 @@ CGenerator: class extends Skeleton {
 
     init: func ~cgenerator (=params, =module) {
 
-        if (params libcache) {
-            hOutPath := File new(File new(params libcachePath, module getSourceFolderName()), module getPath(""))
-            hOutPath parent mkdirs()
-            hw = AwesomeWriter new(this, CachedFileWriter new(hOutPath path + ".h"))
-            fw = AwesomeWriter new(this, CachedFileWriter new(hOutPath path + "-fwd.h"))
-        } else {
-            hw = AwesomeWriter new(this, CachedFileWriter new(File new(params outPath, module getPath(".h"))))
-            fw = AwesomeWriter new(this, CachedFileWriter new(File new(params outPath, module getPath("-fwd.h"))))
+        hOutPath := match (params libcache) {
+            case true =>
+                File new(params libcachePath, module getPath(""))
+            case false =>
+                File new(params outPath, module getPath(""))
         }
+        hOutPath parent mkdirs()
 
-        cOutPath := File new(params outPath path, module getPath(".c"))
+        hw = _makeWriter(hOutPath path + ".h")
+        fw = _makeWriter(hOutPath path + "-fwd.h")
+
+        cOutPath := File new(params outPath, module getPath(".c"))
         cOutPath parent mkdirs()
-        cw = AwesomeWriter new(this, CachedFileWriter new(cOutPath path))
+        cw = _makeWriter(cOutPath path)
+    }
 
+    _makeWriter: func (path: String) -> AwesomeWriter {
+        AwesomeWriter new(this, CachedFileWriter new(path))
     }
 
     /** Write the whole module, return true if files were modified on-disk */
