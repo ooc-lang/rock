@@ -89,7 +89,7 @@ Driver: abstract class {
 
             sourceFolder := toCompile get(identifier)
             if(sourceFolder == null) {
-                sourceFolder = SourceFolder new(name, module getPathElement(), identifier, params)
+                sourceFolder = SourceFolder new(name, module getPathElement(), identifier, params, uze)
                 toCompile put(sourceFolder identifier, sourceFolder)
             }
             sourceFolder modules add(module)

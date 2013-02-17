@@ -3,7 +3,7 @@
 import structs/ArrayList, io/File
 
 // our stuff
-import rock/middle/Module
+import rock/middle/[Module, UseDef]
 import rock/frontend/[BuildParams, Target]
 import rock/frontend/drivers/Archive
 
@@ -36,8 +36,11 @@ SourceFolder: class {
     params: BuildParams
     archive: Archive
     modules := ArrayList<Module> new()
+    
+    // the UseDef that specified this SourceFolder
+    uze: UseDef
 
-    init: func (=name, =pathElement, =identifier, =params) {
+    init: func (=name, =pathElement, =identifier, =params, =uze) {
         absolutePath = File new(pathElement) getAbsolutePath()
 
         // example: .libs/foo-win32.a

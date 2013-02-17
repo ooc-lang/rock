@@ -5,7 +5,7 @@ import os/[Terminal, Process, JobPool]
 import structs/[List, ArrayList, HashMap]
 
 // our stuff
-import Driver, Archive, SourceFolder, Flags, CCompiler
+import Driver, Archive, SourceFolder, Flags, CCompiler, DependencyGraph
 
 import rock/frontend/[BuildParams, Target]
 import rock/middle/[Module, UseDef]
@@ -22,6 +22,8 @@ import rock/backend/cnaughty/CGenerator
 SequenceDriver: class extends Driver {
 
     sourceFolders: HashMap<String, SourceFolder>
+    graph: DependencyGraph
+
     pool := JobPool new()
 
     init: func (.params) {
@@ -35,6 +37,9 @@ SequenceDriver: class extends Driver {
 
         sourceFolders = collectDeps(module, HashMap<String, SourceFolder> new(), ArrayList<Module> new())
         dirtyModules := HashMap<SourceFolder, List<Module>> new()
+
+        graph = DependencyGraph new(params, sourceFolders)
+        exit(0) // we're debuggin'
 
         // step 1: generate C sources
         if (params verbose) {
@@ -102,8 +107,7 @@ SequenceDriver: class extends Driver {
             flags absorb(sourceFolder)
         }
 
-        // TODO: graph analysis => do it in the right order
-        for(sourceFolder in sourceFolders) {
+        for(sourceFolder in graph list) {
             flags addObject(sourceFolder archive)
         }
 
