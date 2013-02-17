@@ -102,36 +102,9 @@ SequenceDriver: class extends Driver {
             flags absorb(sourceFolder)
         }
 
-        intermediateArchive := true
-        version (apple) {
-            // Apple's BSD-like toolchain doesn't give a shit
-            // about library order, but god forbid you should try
-            // to do nested/thin archives. Oh, no.
-            intermediateArchive = false
-        }
-
-        if (intermediateArchive) {
-            // create a thin archive with a symbol table - MinGW's linker
-            // will complain otherwise.
-            outfile := File new(params libcachePath, binaryName + ".a")
-
-            // this kills the bug. GNU ar is a fickle beast, just.. just
-            // be a good chap and don't ask me about it, okay?
-            outfile remove()
-
-            outlib := outfile getPath()
-            archive := Archive new(null, outlib, params, false, null)
-            for(sourceFolder in sourceFolders) {
-                archive add(sourceFolder archive)
-            }
-            archive save(params, true, true)
-            flags addObject(archive outlib)
-        } else {
-            // not on Windows? Modern Linux/OSX linkers will accept static
-            // libraries in any order, let's blissfully go ahead.
-            for(sourceFolder in sourceFolders) {
-                flags addObject(sourceFolder archive)
-            }
+        // TODO: graph analysis => do it in the right order
+        for(sourceFolder in sourceFolders) {
+            flags addObject(sourceFolder archive)
         }
 
         params compiler launchLinker(flags, params linker) wait()
