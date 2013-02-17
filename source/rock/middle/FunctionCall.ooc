@@ -77,6 +77,13 @@ FunctionCall: class extends Expression {
     args := ArrayList<Expression> new()
 
     /**
+     * Arguments of the call before they are replaced by the VarArg structure access.
+     * Stored to be resolved if the function call needs to be resolved again, as those
+     * arguments could need more resolving rounds too.
+     */
+    replacedArgs: ArrayList<Expression>
+
+    /**
      * The actual function declaration this call is calling.
      * Note that this makes rock almost a linker too - it effectively
      * knows the ins and outs of all your calls before it dares
@@ -250,16 +257,31 @@ FunctionCall: class extends Expression {
         if(args getSize() > 0) {
             trail push(this)
             i := 0
-            for(arg in args) {
+
+            resolveArg := func(arg: Expression, replaced?: Bool) -> Response {
                 if(debugCondition() || res params veryVerbose) {
-                    "resolving arg %s" format(arg toString()) println()
+                    "resolving %s arg %s" printfln(replaced? ? "replaced" : "", arg toString())
                 }
                 response := arg resolve(trail, res)
                 if(!response ok()) {
                     trail pop(this)
                     return response
                 }
-                i += 1
+                if(!replaced?) i += 1
+                return Response OK
+            }
+
+            for(arg in args) {
+                response := resolveArg(arg, false)
+                if(!response ok()) return response
+            }
+
+            // resolve the arguments we replaced with the varArg structure access
+            if(replacedArgs) {
+                for(arg in replacedArgs) {
+                    response := resolveArg(arg, true)
+                    if(!response ok()) return response
+                }
             }
             trail pop(this)
         }
@@ -875,8 +897,10 @@ FunctionCall: class extends Expression {
                     if(!trail addBeforeInScope(this, vaDecl)) {
                         res throwError(CouldntAddBeforeInScope new(token, this, vaDecl, trail))
                     }
+
+                    replacedArgs = ArrayList<Expression> new(numVarArgs)
                     numVarArgs times(||
-                        args removeAt(args lastIndex())
+                        replacedArgs add(args removeAt(args lastIndex()))
                     )
                     args add(VariableAccess new(vaDecl, token))
                 }
