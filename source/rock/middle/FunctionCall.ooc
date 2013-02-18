@@ -77,13 +77,6 @@ FunctionCall: class extends Expression {
     args := ArrayList<Expression> new()
 
     /**
-     * Arguments of the call before they are replaced by the VarArg structure access.
-     * Stored to be resolved if the function call needs to be resolved again, as those
-     * arguments could need more resolving rounds too.
-     */
-    replacedArgs: ArrayList<Expression>
-
-    /**
      * The actual function declaration this call is calling.
      * Note that this makes rock almost a linker too - it effectively
      * knows the ins and outs of all your calls before it dares
@@ -277,12 +270,13 @@ FunctionCall: class extends Expression {
             }
 
             // resolve the arguments we replaced with the varArg structure access
-            if(replacedArgs) {
-                for(arg in replacedArgs) {
+            if(varArgs) {
+                for(arg in varArgs) {
                     response := resolveArg(arg, true)
                     if(!response ok()) return response
                 }
             }
+
             trail pop(this)
         }
 
@@ -898,10 +892,8 @@ FunctionCall: class extends Expression {
                         res throwError(CouldntAddBeforeInScope new(token, this, vaDecl, trail))
                     }
 
-                    replacedArgs = ArrayList<Expression> new(numVarArgs)
                     numVarArgs times(||
-                        removedArg := args removeAt(args lastIndex())
-                        replacedArgs add(removedArg)
+                        args removeAt(args lastIndex())
                     )
                     args add(VariableAccess new(vaDecl, token))
                 }
