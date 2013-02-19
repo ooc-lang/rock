@@ -57,7 +57,9 @@ Error: abstract class {
 
 InternalError: class extends Error {
 
-    init: super func ~tokenMessage
+    init: func (.token, .message) {
+        super(token, message + "\nThis is a serious error, please report it at https://github.com/nddrylliog/rock/issues")
+    }
 
 }
 
