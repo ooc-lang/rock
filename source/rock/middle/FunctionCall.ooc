@@ -360,13 +360,29 @@ FunctionCall: class extends Expression {
                                 while(scopeDepth > 0) {
                                     maybeScope := trail get(scopeDepth, Node)
                                     if(maybeScope instanceOf?(Scope)) {
+                                        scope := maybeScope as Scope
                                         maybeClosure := trail get(scopeDepth - 1, Node)
-                                        // Make sure the variable we will partial on the top level closure is not one of its arguments
-                                        if(maybeClosure instanceOf?(FunctionDecl) && maybeClosure as FunctionDecl isAnon \
-                                           && !maybeClosure as FunctionDecl args contains?(|arg| arg == ref vDecl || arg name == ref vDecl name + "_generic") \
-                                           && !maybeScope as Scope list contains?(|stmt| stmt instanceOf?(VariableDecl) && stmt as VariableDecl name == ref vDecl name)) {
-                                            // Mark the variable for partialing in the top level closure
-                                            maybeClosure as FunctionDecl markForPartialing(ref vDecl, "v")
+                                        if(maybeClosure instanceOf?(FunctionDecl)) {
+                                            closure := maybeClosure as FunctionDecl
+                                            // Find out if our access is between the kid closure and the parent closure
+                                            isDefined? := false
+                                            intermediateScopeIndex := closureIndex - 1
+                                            while(intermediateScopeIndex > scopeDepth) {
+                                                interScope? := trail get(intermediateScopeIndex, Node)
+                                                if(interScope? instanceOf?(Scope)) {
+                                                    interScope := interScope? as Scope
+                                                    if(interScope list contains?(|stmt| stmt instanceOf?(VariableDecl) && stmt as VariableDecl name == name)) {
+                                                        isDefined? = true
+                                                    }
+                                                }
+                                                intermediateScopeIndex -= 1
+                                            }
+                                            // Only partial the variable in the top function if it has not be defined by it and it is not one of its arguments
+                                            if(closure isAnon && !closure args contains?(|arg| arg name == ref vDecl name || arg name == ref vDecl name + "_generic") \
+                                                && !isDefined?) {
+                                                // Mark the variable for partialing to top level closure
+                                                closure markForPartialing(ref vDecl, "v")
+                                            }
                                         }
                                     }
                                     scopeDepth -= 1
