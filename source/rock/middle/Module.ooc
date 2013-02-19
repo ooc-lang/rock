@@ -75,12 +75,13 @@ Module: class extends Node {
     getUnderName:    func -> String { underName }
     getPathElement:  func -> String { pathElement }
     getSourceFolderName: func -> String {
+        path := File new(pathElement) getAbsoluteFile() name
+
         uze := params sourcePathTable get(pathElement)
         if (uze) {
-            uze identifier
-        } else {
-            File new(pathElement) getAbsoluteFile() name
+            path = "%s/%s" format(uze identifier, path)
         }
+        path
     }
 
     getPath: func (suffix := "") -> String {
