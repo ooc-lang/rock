@@ -21,6 +21,11 @@ Module: class extends Node {
 
     // all variants of useful paths
     path, fullName, simpleName, underName, pathElement, oocPath: String
+
+    // the use def that imported us - at this point, every ooc
+    // file comes from a use def somewhere - the main program might
+    // be a 'virtual' use def, but still one.
+    useDef: UseDef
     
     // mostly controls the generation of an implicit main
     main := false
