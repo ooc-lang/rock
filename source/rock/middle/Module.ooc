@@ -75,13 +75,16 @@ Module: class extends Node {
     getUnderName:    func -> String { underName }
     getPathElement:  func -> String { pathElement }
     getSourceFolderName: func -> String {
+        "ooc/%s" format(getUseDef() identifier)
+    }
+
+    getUseDef: func -> UseDef {
         uze := params sourcePathTable get(pathElement)
         if (!uze) {
             message :=  "Module that has no corresponding use! pathElement = %s" format(pathElement)
             params errorHandler onError(InternalError new(token, message))
         }
-
-        "ooc/%s" format(uze identifier)
+        uze
     }
 
     getPath: func (suffix := "") -> String {

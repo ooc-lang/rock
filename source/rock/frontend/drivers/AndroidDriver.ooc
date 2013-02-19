@@ -110,10 +110,10 @@ AndroidDriver: class extends Driver {
         uze := UseDef parse(sourceFolder identifier, params)
         if (uze) {
             for (additional in uze additionals) {
-                cPath := additional relative path
+                cPath := File new(uze identifier, additional relative path) path
 
                 if (params verbose) {
-                    "cPath: %s" printfln(cPath)
+                    "cPath for additional: %s" printfln(cPath)
                 }
 
                 fw write(cPath). write(" ")
@@ -188,6 +188,10 @@ AndroidDriver: class extends Driver {
         }
 
         sourceFoldersDone
+    }
+
+    doublePrefix: func -> Bool {
+        true
     }
 
 }
