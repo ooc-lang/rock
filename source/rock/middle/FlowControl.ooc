@@ -1,6 +1,6 @@
 import ../frontend/Token
-import Statement, Visitor, Node
-import tinker/[Trail, Resolver, Response]
+import Statement, While, Foreach, Visitor, Node
+import tinker/[Trail, Resolver, Response, Errors]
 
 FlowAction: enum {
     _break
@@ -37,6 +37,15 @@ FlowControl: class extends Statement {
     replace: func (oldie, kiddo: Node) -> Bool { false }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
+        // Make sure we are either in a while of foreach statement
+        if(trail find(While) == -1 && trail find(Foreach) == -1) {
+            res throwError(InvalidFlowControl new(token, "Invalid use of %s outside of a loop" format(action toString())))
+        }
+
         Response OK
     }
+}
+
+InvalidFlowControl: class extends Error {
+    init: super func ~tokenMessage
 }
