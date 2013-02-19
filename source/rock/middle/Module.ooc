@@ -21,11 +21,6 @@ Module: class extends Node {
 
     // all variants of useful paths
     path, fullName, simpleName, underName, pathElement, oocPath: String
-
-    // the use def that imported us - at this point, every ooc
-    // file comes from a use def somewhere - the main program might
-    // be a 'virtual' use def, but still one.
-    useDef: UseDef
     
     // mostly controls the generation of an implicit main
     main := false
@@ -80,13 +75,13 @@ Module: class extends Node {
     getUnderName:    func -> String { underName }
     getPathElement:  func -> String { pathElement }
     getSourceFolderName: func -> String {
-        path := File new(pathElement) getAbsoluteFile() name
-
         uze := params sourcePathTable get(pathElement)
-        if (uze) {
-            path = "%s/%s" format(uze identifier, path)
+        if (!uze) {
+            message :=  "Module that has no corresponding use! pathElement = %s" format(pathElement)
+            params errorHandler onError(InternalError new(token, message))
         }
-        path
+
+        "ooc/%s" format(uze identifier)
     }
 
     getPath: func (suffix := "") -> String {
