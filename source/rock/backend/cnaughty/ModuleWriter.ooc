@@ -338,10 +338,13 @@ ModuleWriter: abstract class extends Skeleton {
 			current nl(). app("#endif")
 		}
 
-        chevron := (inc mode == IncludeModes PATHY)
-        current nl(). app("#include "). app(chevron ? '<' : '"').
-            app(inc path). app(".h").
-        app(chevron ? '>' : '"')
+        current nl(). app("#include <")
+
+        if (inc mode == IncludeMode LOCAL) {
+            current app(inc token module getSourceFolderName()). app('/')
+        }
+
+        current app(inc path). app(".h>")
 
         for(define in inc getDefines()) {
             current nl(). app("#ifdef "). app(define name). app("___defined")

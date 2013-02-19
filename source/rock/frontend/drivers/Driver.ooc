@@ -34,10 +34,9 @@ Driver: abstract class {
         pathElement := params sourcePath getFile(path) parent
 
         for(inc: Include in module includes) {
-            if(inc mode == IncludeModes LOCAL) {
-                dest := (params libcache) ? \
-                    File new(params libcachePath, module getSourceFolderName()) : \
-                    params outPath
+            if(inc mode == IncludeMode LOCAL) {
+                base := params libcache ? params libcachePath : params outPath path
+                dest := File new(base, module getSourceFolderName())
 
                 File new(pathElement, inc path + ".h") copyTo(
                 File new(dest,        inc path + ".h"))

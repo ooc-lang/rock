@@ -117,14 +117,14 @@ AstBuilder: class {
         path := cpath toString()
         mode: IncludeMode
         if(path startsWith?("./")) {
-            mode = IncludeModes LOCAL
+            mode = IncludeMode LOCAL
             path = path substring(2) // remove ./ from path
         }
         else {
-            mode = IncludeModes PATHY
+            mode = IncludeMode PATHY
         }
 
-        inc := Include new(path, mode)
+        inc := Include new(token(), path, mode)
         module addInclude(inc)
         inc setVersion(getVersion())
     }
