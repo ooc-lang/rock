@@ -55,8 +55,6 @@ AstBuilder: class {
     tokenPos : Int*
 
     init: func (=modulePath, =module, =params) {
-        first := static true
-
         absolutePath := File new(modulePath) getAbsolutePath()
         cache put(absolutePath, module)
 
@@ -66,7 +64,6 @@ AstBuilder: class {
 
         module addUse(Use new("sdk", params, module token))
 
-        first = false
         result := nq_parse(this, modulePath)
         if(result == -1) {
             Exception new(This, "File " +modulePath + " not found") throw()
@@ -117,14 +114,14 @@ AstBuilder: class {
         path := cpath toString()
         mode: IncludeMode
         if(path startsWith?("./")) {
-            mode = IncludeModes LOCAL
+            mode = IncludeMode LOCAL
             path = path substring(2) // remove ./ from path
         }
         else {
-            mode = IncludeModes PATHY
+            mode = IncludeMode PATHY
         }
 
-        inc := Include new(path, mode)
+        inc := Include new(token(), path, mode)
         module addInclude(inc)
         inc setVersion(getVersion())
     }
@@ -136,7 +133,7 @@ AstBuilder: class {
     onImport: unmangled(nq_onImport) func (path, name: CString) {
         namestr := name toString()
         output : String = ((path == null) || (path@ == '\0')) ? namestr : path toString() + namestr
-        module addImport(Import new( output , token()))
+        module addImport(Import new(output , token()))
     }
 
     onImportNamespace: unmangled(nq_onImportNamespace) func (cnamespace: CString, quantity: Int) {

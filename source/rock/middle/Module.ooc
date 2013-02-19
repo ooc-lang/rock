@@ -49,7 +49,7 @@ Module: class extends Node {
         this path = (File separator == '/') ? fullName : fullName replaceAll('/', File separator)
         this oocPath = pathElement + File separator + path + ".ooc"
 
-        // that's a Win32 fix - but I think it's due to an issue in 
+        // win32 fix - sometimes we get fullName(s) with '\' in the input
         this fullName = fullName replaceAll(File separator, '/')
         idx := this fullName lastIndexOf('/')
 
@@ -75,12 +75,25 @@ Module: class extends Node {
     getUnderName:    func -> String { underName }
     getPathElement:  func -> String { pathElement }
     getSourceFolderName: func -> String {
+        "ooc/%s" format(getUseDef() identifier)
+    }
+
+    getUseDef: func -> UseDef {
         uze := params sourcePathTable get(pathElement)
-        if (uze) {
-            uze identifier
-        } else {
-            File new(pathElement) getAbsoluteFile() name
+        if (!uze) {
+            message :=  "Module that has no corresponding use! pathElement = %s" format(pathElement)
+            params errorHandler onError(InternalError new(token, message))
         }
+        uze
+    }
+
+    getPath: func (suffix := "") -> String {
+        base := getSourceFolderName()
+        File new(base, path) path + suffix
+    }
+
+    getOocPath: func -> String {
+        oocPath
     }
 
     /**
@@ -200,15 +213,6 @@ Module: class extends Node {
     getUses:      func -> List<Use>          { uses }
 
     accept: func (visitor: Visitor) { visitor visitModule(this) }
-
-    getPath: func (suffix: String) -> String {
-        last := (File new(pathElement) name)
-        return (last + File separator) + fullName replaceAll('/', File separator) + suffix
-    }
-
-    getOocPath: func -> String {
-        oocPath
-    }
 
     /** return global (e.g. non-namespaced) imports */
     getGlobalImports: func -> List<Import> { imports }

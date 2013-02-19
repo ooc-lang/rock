@@ -75,6 +75,16 @@ MakeDriver: class extends SequenceDriver {
         params libcachePath = params outPath path
         copyLocals(module, params)
 
+        params libcachePath = originalOutPath path
+        params libcache = true
+        flags := Flags new(null, params)
+        flags absorb(params)
+
+        for (sourceFolder in sourceFolders) {
+            flags absorb(sourceFolder)
+        }
+        params libcache = false
+
         "Writing to %s" printfln(makefile path)
         fW := FileWriter new(makefile)
 
@@ -121,7 +131,7 @@ MakeDriver: class extends SequenceDriver {
         fW write("endif\n")
 
         fW write("# this folder must contains libs/\n")
-        fW write("ROCK_DIST?=.\n")
+        fW write("ROCK_DIST?=$(shell dirname $(shell dirname $(shell which rock)))\n")
 
         fW write("ifeq ($(MYOS), FreeBSD)\n")
         fW write("    GC_PATH?=-lgc\n")
@@ -132,30 +142,20 @@ MakeDriver: class extends SequenceDriver {
         fW write("else ifeq ($(MYOS), DragonFly)\n")
         fW write("    GC_PATH?=-lgc\n")
         fW write("else\n")
-        fW write("    # uncomment to link dynamically with the gc instead (e.g. -lgc)\n")
-        fW write("    #GC_PATH?=-lgc\n")
+        fW write("ifeq (${DYN_GC},)\n")
         fW write("    GC_PATH?=${ROCK_DIST}/libs/${ARCH}/libgc.a\n")
+        fW write("else\n")
+        fW write("    GC_PATH?=-lgc\n")
+        fW write("endif\n")
         fW write("endif\n")
 
-        fW write("CFLAGS+=-I %s" format(originalOutPath getPath()))
+        fW write("CFLAGS+=")
+
         fW write(" -I ${ROCK_DIST}/libs/headers/ -L/usr/local/lib -L/usr/pkg/lib -I/usr/local/include -I/usr/pkg/include -std=gnu99 -Wall")
 
-        if (params debug) {
-            fW write(" -g")
+        for (flag in flags compilerFlags) {
+            fW write(" "). write(flag)
         }
-
-        for (define in params defines) {
-            fW write(" -D"). write(define)
-        }
-
-        for (compilerArg in params compilerArgs) {
-            fW write(" "). write(compilerArg)
-        }
-
-        for (incPath in params incPath getPaths()) {
-            fW write(" -I "). write(incPath getPath())
-        }
-
         fW write("\n")
 
         fW write("EXECUTABLE=")
@@ -243,10 +243,6 @@ MakeDriver: class extends SequenceDriver {
 
         fW write(" -o ${EXECUTABLE}")
 
-        flags := Flags new(null, params)
-        flags absorb(module)
-
-        // FIXME: this doesn't use Flags the right way.
         for(linkerFlag in flags linkerFlags) {
             fW write(" "). write(linkerFlag)
         }
@@ -262,6 +258,14 @@ MakeDriver: class extends SequenceDriver {
             fW write(" -lpthread")
         }
 
+        fW write("\n\n")
+
+        fW write("\nclean:\n")
+
+        fW write("\trm -rf ${OBJECT_FILES}\n")
+        fW write("\n\n")
+
+        fW write("\n.PHONY: clean")
         fW write("\n\n")
 
         fW close()

@@ -72,8 +72,6 @@ Flags: class {
         }
         sourceFolders add(sourceFolder)
 
-        addCompilerFlag("-I" + sourceFolder includePath())
-
         for(module in sourceFolder modules) {
             absorb(module)
         }
@@ -104,11 +102,6 @@ Flags: class {
             return
         }
         uses add(useDef)
-
-        // TODO: there needs a better way to do that. .use files
-        // are usually linked to SourceFolders, there needs to be a way
-        // to make that connection.
-        addCompilerFlag("-I" + params libcachePath + File separator + useDef identifier)
 
         for (lib in useDef libs) {
             addLinkerFlag(lib)

@@ -1,11 +1,14 @@
+
+// sdk stuff
 import structs/[ArrayList, List]
+
+// our stuff
 import Version
+import rock/frontend/Token
 
-IncludeMode: cover from Int
-
-IncludeModes: class {
-    LOCAL = 1,
-    PATHY = 2 : static const IncludeMode
+IncludeMode: enum {
+    LOCAL
+    PATHY
 }
 
 Define: class {
@@ -16,12 +19,13 @@ Define: class {
 
 Include: class {
 
+    token: Token
     path: String
     mode: IncludeMode
     verzion: VersionSpec
     defines := ArrayList<Define> new()
 
-    init: func (=path, =mode) {}
+    init: func (=token, =path, =mode) {}
 
     setVersion: func(=verzion) {}
     getVersion: func -> VersionSpec { verzion }

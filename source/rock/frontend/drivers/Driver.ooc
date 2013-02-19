@@ -34,13 +34,21 @@ Driver: abstract class {
         pathElement := params sourcePath getFile(path) parent
 
         for(inc: Include in module includes) {
-            if(inc mode == IncludeModes LOCAL) {
-                dest := (params libcache) ? \
-                    File new(params libcachePath, module getSourceFolderName()) : \
-                    params outPath
+            if(inc mode == IncludeMode LOCAL) {
+                base := params libcache ? params libcachePath : params outPath path
+                if (doublePrefix()) {
+                    base = File new(base, module getUseDef() identifier) path
+                }
 
-                File new(pathElement, inc path + ".h") copyTo(
-                File new(dest,        inc path + ".h"))
+                destDir := File new(base, module getSourceFolderName())
+
+                src  := File new(pathElement, inc path + ".h") 
+                dest := File new(destDir,        inc path + ".h")
+                
+                if (params verbose) {
+                    "Copying %s to %s" printfln(src path, dest path)
+                }
+                src copyTo(dest)
             }
         }
 
@@ -57,7 +65,14 @@ Driver: abstract class {
 
             for (additional in useDef additionals) {
                 src := additional absolute
-                dest := File new(File new(params libcachePath, useDef identifier), additional relative)
+
+                base := params libcachePath
+                if (doublePrefix()) {
+                    base = File new(base, useDef identifier) path
+                }
+
+                destDir := File new(base, useDef identifier)
+                dest := File new(destDir, additional relative)
 
                 if (params verbose) {
                     "Copying %s to %s" printfln(src path, dest path)
@@ -133,6 +148,10 @@ Driver: abstract class {
         }
 
         usesDone
+    }
+
+    doublePrefix: func -> Bool {
+        false
     }
 
 }
