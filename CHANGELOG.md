@@ -18,6 +18,7 @@
   - For the rest, this is mostly a bugfix and internal clean-ups release -
     bugs related to generics, closures, type inference in match (@shamanas & @nddrylliog)
   - The --sourcepath has been deprecated, everything goes through .use files now (@nddrylliog)
+  - The make driver produces a 'clean' target to remove all binary objects now. (@nddrylliog)
 
 ## 0.9.5 release (2013-02-12)
 
