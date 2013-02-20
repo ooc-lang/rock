@@ -106,11 +106,6 @@ DependencyGraph: class {
     }
 
     _computeList: func {
-        "List of all dependencies: " println()
-        deps each(|dep|
-            dep _ println()
-        )
-
         pool := ArrayList<SourceFolder> new()
         sourceFolders each(|k, sf| pool add(sf)) 
 
@@ -136,9 +131,11 @@ DependencyGraph: class {
                 _throwError(nullToken, message)
             }
         }
-
-        repr := list map(|sf| sf identifier) join(", ")
-        "List of candidates, in order: [%s]" printfln(repr)
+        
+        if (params) {
+            repr := list map(|sf| sf identifier) join(", ")
+            "Build order: [%s]" printfln(repr)
+        }
     }
 
 }
@@ -166,7 +163,6 @@ Dependency: class {
 
     satisfy: func {
         satisfied = true
-        "%s is satisfied." printfln(_)
     }
 
 }

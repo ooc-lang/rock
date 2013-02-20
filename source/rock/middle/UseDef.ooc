@@ -425,7 +425,6 @@ UseDef: class {
             _relevantProperties = UseProperties new(this, UseVersion new(this))
 
             properties filter(|p| p useVersion satisfied?(params)) each(|p|
-                "%s is satisfied" printfln(p useVersion toString())
                 _relevantProperties merge!(p)
             )
         }
@@ -516,7 +515,7 @@ UseVersionValue: class extends UseVersion {
             case "android" =>
                 params driver instanceOf?(AndroidDriver)
             case "ios" =>
-                "Warning: ios version not supported yet, false by default" println()
+                // ios version not supported yet, false by default
                 false
             case =>
                 message := "Unknown version %s" format(value)
