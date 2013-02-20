@@ -208,7 +208,7 @@ UseDef: class {
     }
 
     parseVersionExpr: func (expr: String, params: BuildParams) -> UseVersion {
-        "Parsing version: %s" printfln(expr)
+        "Parsing version: '%s'" printfln(expr)
 
         reader := StringReader new(expr)
         not := false
@@ -218,18 +218,46 @@ UseDef: class {
             not = true
         }
 
-        // read an identifier
-        value := reader readWhile(|c| c alphaNumeric?())
-        result := UseVersionValue new(value)
+        result: UseVersion
+
+        if (reader peek() == '(') {
+            reader read()
+            level := 1
+
+            buff := Buffer new()
+            while (reader hasNext?()) {
+                c := reader read()
+                match c {
+                    case '(' =>
+                        level += 1
+                        buff append(c)
+                    case ')' =>
+                        level -= 1
+                        if (level == 0) {
+                            break
+                        }
+                        buff append(c)
+                    case =>
+                        buff append(c)
+                }
+            }
+
+            inner := buff toString()
+            result = parseVersionExpr(inner, params)
+        } else {
+            // read an identifier
+            value := reader readWhile(|c| c alphaNumeric?())
+            result = UseVersionValue new(value)
+        }
 
         if (not) {
             result = UseVersionNot new(result)
         }
 
-        if (reader hasNext?()) {
-            // skip whitespace
-            reader skipWhile(|c| c whitespace?())
+        // skip whitespace
+        reader skipWhile(|c| c whitespace?())
 
+        if (reader hasNext?()) {
             c := reader read()
             match c {
                 case '&' =>
@@ -247,7 +275,7 @@ UseDef: class {
                     inner := parseVersionExpr(reader readAll(), params)
                     result = UseVersionOr new(result, inner)
                 case =>
-                    message := "Malformed version expression: %s" format(expr)
+                    message := "Malformed version expression: %s. Unexpected char %c" format(expr, c)
                     params errorHandler onError(UseFormatError new(this, message))
             }
         }
@@ -275,7 +303,8 @@ UseDef: class {
             lineReader := StringReader new(line)
             if (line startsWith?("version")) {
                 lineReader readUntil('(')
-                versionExpr := lineReader readUntil(')')
+                lineReader rewind(1)
+                versionExpr := lineReader readAll()[0..-2] trim()
 
                 vb := parseVersionExpr(versionExpr, params)
                 "Got vb %s, of type %s, isSatisfied? %d" printfln(vb toString(), vb class name, vb satisfied?(params))
@@ -528,15 +557,15 @@ UseVersionNot: class extends UseVersion {
     }
 
     toString: func -> String {
-        "!%s" format(inner _)
+        "!(%s)" format(inner _)
     }
 }
 
-UseFormatError: class extends InternalError {
+UseFormatError: class extends Error {
     useDef: UseDef
 
     init: func (=useDef, .message) {
-        super(nullToken, "Error while parsing %s: " format(useDef file path, message))
+        super(nullToken, "Error while parsing %s: %s" format(useDef file path, message))
     }
 }
 
