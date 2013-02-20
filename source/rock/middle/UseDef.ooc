@@ -1,7 +1,10 @@
-import io/[File, FileReader]
+
+// sdk stuff
+import io/[File, FileReader, StringReader]
 import structs/[List, ArrayList, HashMap]
 import text/StringTokenizer
 
+// our stuff
 import ../frontend/BuildParams
 
 /**
@@ -206,29 +209,18 @@ UseDef: class {
         if(params veryVerbose) ("Reading use file " + file path) println()
         
         while(reader hasNext?()) {
-            reader mark()
-            c := reader read()
+            line := reader readLine() trim(8 as Char /* backspace */) trim(0 as Char /* null byte */)
 
-            if(c == '\t' || c == ' ' || c == '\r' || c == '\n' || c == '\v') {
+            if(line empty?() || line startsWith?('#')) {
+                // skip comments
                 continue
             }
 
-            if(c == '#') {
-                reader readUntil('\n')
-                continue
-            }
+            lineReader := StringReader new(line)
+            id := lineReader readUntil(':')
+            value := lineReader readAll() trim()
 
-            if(c == '=') {
-                // TODO: wasn't that used for platform-specific usefiles?
-                reader skipLine()
-                continue
-            }
-
-            reader rewind(1)
-            id := reader readUntil(':')
-            id = id trim() trim(8 as Char /* backspace */) trim(0 as Char /* null-character */)
-            
-            value := reader readLine() trim()
+            "%s: %s" printfln(id, value)
             
             if(id startsWith?("_")) {
                 // reserved ids for external tools (packaging, etc.)
