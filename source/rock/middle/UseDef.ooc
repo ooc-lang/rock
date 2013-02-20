@@ -502,6 +502,9 @@ UseVersionValue: class extends UseVersion {
                 params target == Target DRAGONFLY
             case "android" =>
                 params driver instanceOf?(AndroidDriver)
+            case "ios" =>
+                "Warning: ios version not supported yet, false by default" println()
+                false
             case =>
                 "Warning: unknown value %s, true by default" printfln(value)
                 true
