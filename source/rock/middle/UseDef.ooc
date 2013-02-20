@@ -5,8 +5,9 @@ import structs/[List, ArrayList, HashMap, Stack]
 import text/StringTokenizer
 
 // our stuff
-import rock/frontend/[BuildParams, Target]
+import rock/frontend/[BuildParams, Target, Token]
 import rock/frontend/drivers/AndroidDriver
+import rock/middle/tinker/Errors
 
 /**
    Represents the requirement for a .use file, ie. a dependency
@@ -206,18 +207,24 @@ UseDef: class {
         pkg
     }
 
-    parseVersionExpr: func (expr: String) -> UseVersion {
+    parseVersionExpr: func (expr: String, params: BuildParams, readFurther := true) -> UseVersion {
         "Parsing version: %s" printfln(expr)
 
         reader := StringReader new(expr)
 
+        if (reader peek() == '!') {
+            reader read()
+
+            rest := reader readAll()
+            return UseVersionNot new(parseVersionExpr(rest, params, false))
+        }
+
         // read an identifier
         value := reader readWhile(|c| c alphaNumeric?())
 
-        // TODO: support other expression types, obvsly.
         result := UseVersionValue new(value)
 
-        if (reader hasNext?()) {
+        if (readFurther && reader hasNext?()) {
             // skip whitespace
             reader skipWhile(|c| c whitespace?())
 
@@ -228,17 +235,18 @@ UseDef: class {
                     reader read()
                     reader skipWhile(|c| c whitespace?())
 
-                    inner := parseVersionExpr(reader readAll())
+                    inner := parseVersionExpr(reader readAll(), params)
                     result = UseVersionAnd new(result, inner)
                 case '|' =>
                     // skip the second one
                     reader read()
                     reader skipWhile(|c| c whitespace?())
 
-                    inner := parseVersionExpr(reader readAll())
+                    inner := parseVersionExpr(reader readAll(), params)
                     result = UseVersionOr new(result, inner)
                 case =>
-                    Exception new("Malformed version expression: %s" format(expr)) throw()
+                    message := "Malformed version expression: %s" format(expr)
+                    params errorHandler onError(UseFormatError new(this, message))
             }
         }
 
@@ -267,7 +275,7 @@ UseDef: class {
                 lineReader readUntil('(')
                 versionExpr := lineReader readUntil(')')
 
-                vb := parseVersionExpr(versionExpr)
+                vb := parseVersionExpr(versionExpr, params)
                 "Got vb %s, of type %s, isSatisfied? %d" printfln(vb toString(), vb class name, vb satisfied?(params))
                 stack push(vb)
                 continue
@@ -506,6 +514,28 @@ UseVersionOr: class extends UseVersion {
     }
 }
 
+UseVersionNot: class extends UseVersion {
+    inner: UseVersion
 
+    init: func (=inner) {
+        super()
+    }
+
+    satisfied?: func (params: BuildParams) -> Bool {
+        !inner satisfied?(params)
+    }
+
+    toString: func -> String {
+        "version(!(%s))" format(inner _)
+    }
+}
+
+UseFormatError: class extends InternalError {
+    useDef: UseDef
+
+    init: func (=useDef, .message) {
+        super(nullToken, "Error while parsing %s: " format(useDef file path, message))
+    }
+}
 
 
