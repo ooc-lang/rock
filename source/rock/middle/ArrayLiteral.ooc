@@ -124,7 +124,7 @@ ArrayLiteral: class extends Literal {
                 return Response OK
             }
 
-            for(i in 0 .. elements getSize()) {
+            for(i in 1 .. elements getSize()) {
                 currType := elements get(i) getType()
                 if(!currType || !currType isResolved()) {
                     res wholeAgain(this, "need element type")
