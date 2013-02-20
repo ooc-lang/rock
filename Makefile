@@ -2,7 +2,7 @@
 PARSER_GEN=greg
 NQ_PATH=source/rock/frontend/NagaQueen.c
 OOC_WARN_FLAGS?=+-w
-OOC_OWN_FLAGS=--sourcepath=source -v +-O2 -g ${OOC_WARN_FLAGS}
+OOC_OWN_FLAGS=-v +-O2 -g ${OOC_WARN_FLAGS}
 
 # used to be CC?=gcc, but that breaks on mingw where CC is set to 'cc' apparently
 CC=gcc
@@ -31,7 +31,7 @@ grammar:
 prepare_bootstrap:
 	@echo "Preparing boostrap (in build/ directory)"
 	rm -rf build/
-	${OOC} -driver=make --sourcepath=source --outpath=c-source rock/rock -o=../bin/c_rock -v -g +-w
+	${OOC} -driver=make rock.use --outpath=c-source -o=../bin/c_rock -v -g +-w
 	@echo "Done!"
 
 boehmgc:
@@ -76,7 +76,7 @@ man:
 # Compile rock with itself
 self:
 	mkdir -p bin/
-	${OOC_CMD} rock/rock -o=bin/rock
+	${OOC_CMD} rock.use -o=bin/rock
 
 # Save your rock binary under bin/safe_rock
 backup:

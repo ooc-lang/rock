@@ -48,15 +48,8 @@ CommandLine: class {
                 }
 
                 if (option startsWith?("sourcepath=")) {
-
-                    if(!longOption) warnUseLong("sourcepath")
-                    sourcePathOption := arg substring(arg indexOf('=') + 1)
-                    tokens := sourcePathOption split(File pathDelimiter, false)
-                    for (token in tokens) {
-                        // rock allows '/' instead of '\' on Win32
-                        params sourcePath add(token replaceAll('/', File separator))
-                    }
-
+                    "[ERROR] Specifying sourcepath by hand is deprecated.\nInstead, create a .use file and specify the sourcepath from there." println()
+                    hardDeprecation("staticlib", params)
                 } else if (option startsWith?("outpath=")) {
 
                     if(!longOption) warnUseLong("outpath")

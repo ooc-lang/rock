@@ -4,5 +4,7 @@ Origin: git://github.com/nddrylliog/rock.git
 Description: ooc compiler written in ooc
 SourcePath: source
 
+Main: rock/rock.ooc
+
 # greg-generated grammar
 Additionals: ./source/rock/frontend/NagaQueen.c

@@ -81,8 +81,8 @@ Module: class extends Node {
     getUseDef: func -> UseDef {
         uze := params sourcePathTable get(pathElement)
         if (!uze) {
-            message :=  "Module that has no corresponding use! pathElement = %s" format(pathElement)
-            params errorHandler onError(InternalError new(token, message))
+            message :=  "Module %s has no corresponding use! pathElement = %s" format(fullName, pathElement)
+            Exception new(message) throw()
         }
         uze
     }
