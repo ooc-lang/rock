@@ -69,12 +69,7 @@ UseDef: class {
     requirements        : ArrayList<Requirement> { get set }
     pkgs                : ArrayList<String> { get set }
     customPkgs          : ArrayList<CustomPkg> { get set }
-    libs                : ArrayList<String> { get set }
-    frameworks          : ArrayList<String> { get set }
-    includes            : ArrayList<String> { get set }
     imports             : ArrayList<String> { get set }
-    libPaths            : ArrayList<String> { get set }
-    includePaths        : ArrayList<String> { get set }
     preMains            : ArrayList<String> { get set }
     androidLibs         : ArrayList<String> { get set }
     androidIncludePaths : ArrayList<String> { get set }
@@ -86,12 +81,7 @@ UseDef: class {
         requirements        = ArrayList<Requirement> new()
         pkgs                = ArrayList<String> new()
         customPkgs          = ArrayList<CustomPkg> new()
-        libs                = ArrayList<String> new()
-        frameworks          = ArrayList<String> new()
-        includes            = ArrayList<String> new()
         imports             = ArrayList<String> new()
-        libPaths            = ArrayList<String> new()
-        includePaths        = ArrayList<String> new()
         preMains            = ArrayList<String> new()
         androidLibs         = ArrayList<String> new()
         androidIncludePaths = ArrayList<String> new()
@@ -339,13 +329,13 @@ UseDef: class {
                 customPkgs add(parseCustomPkg(value))
             } else if (id == "Libs") {
                 for (lib in value split(','))
-                    libs add(lib trim())
+                    stack peek() properties libs add(lib trim())
             } else if (id == "Frameworks") {
                 for (framework in value split(','))
-                    frameworks add(framework trim())
+                    stack peek() properties frameworks add(framework trim())
             } else if (id == "Includes") {
                 for (inc in value split(','))
-                    includes add(inc trim())
+                    stack peek() properties includes add(inc trim())
             } else if (id == "PreMains") {
                 for (pm in value split(','))
                     preMains add(pm trim())
@@ -357,7 +347,7 @@ UseDef: class {
                     if (libFile relative?()) {
                         libFile = file parent getChild(path) getAbsoluteFile()
                     }
-                    libPaths add(libFile path)
+                    stack peek() properties libPaths add(libFile path)
                 }
             } else if (id == "IncludePaths") {
                 for (path in value split(',')) {
@@ -365,7 +355,7 @@ UseDef: class {
                     if (incFile relative?()) {
                         incFile = file parent getChild(path) getAbsoluteFile()
                     }
-                    includePaths add(incFile path)
+                    stack peek() properties includePaths add(incFile path)
                 }
             } else if (id == "AndroidLibs") {
                 for (path in value split(',')) {
@@ -439,13 +429,28 @@ UseDef: class {
 
 UseProperties: class {
     additionals         : ArrayList<Additional> { get set }
+    frameworks          : ArrayList<String> { get set }
+    includePaths        : ArrayList<String> { get set }
+    includes            : ArrayList<String> { get set }
+    libPaths            : ArrayList<String> { get set }
+    libs                : ArrayList<String> { get set }
 
     init: func {
         additionals         = ArrayList<Additional> new()
+        frameworks          = ArrayList<String> new()
+        includePaths        = ArrayList<String> new()
+        includes            = ArrayList<String> new()
+        libPaths            = ArrayList<String> new()
+        libs                = ArrayList<String> new()
     }
 
     merge!: func (other: This) -> This {
-        additionals addAll(other additionals)
+        additionals               addAll(other additionals)
+        frameworks                addAll(other frameworks)
+        includePaths              addAll(other includePaths)
+        includes                  addAll(other includes)
+        libPaths                  addAll(other libPaths)
+        libs                      addAll(other libs)
     }
 }
 

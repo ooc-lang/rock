@@ -92,8 +92,8 @@ AndroidDriver: class extends Driver {
         }
         fw write("$(LOCAL_PATH)/../"). write(sourceFolder identifier). write(" ")
 
-        for (uze in uses) {
-            for (path in uze androidIncludePaths) {
+        for (useDef in uses) {
+            for (path in useDef androidIncludePaths) {
                 fw write("$(LOCAL_PATH)/"). write(path). write(" ")
             }
         }
@@ -107,12 +107,12 @@ AndroidDriver: class extends Driver {
             fw write(path). write(" ")
         }
 
-        uze := UseDef parse(sourceFolder identifier, params)
-        if (uze) {
-            props := uze getRelevantProperties(params)
+        useDef := UseDef parse(sourceFolder identifier, params)
+        if (useDef) {
+            props := useDef getRelevantProperties(params)
 
             for (additional in props additionals) {
-                cPath := File new(uze identifier, additional relative path) path
+                cPath := File new(useDef identifier, additional relative path) path
 
                 if (params verbose) {
                     "cPath for additional: %s" printfln(cPath)
@@ -124,8 +124,8 @@ AndroidDriver: class extends Driver {
         fw write("\n")
 
         localSharedLibraries := ArrayList<String> new() 
-        for (uze in uses) {
-            localSharedLibraries addAll(uze androidLibs)
+        for (useDef in uses) {
+            localSharedLibraries addAll(useDef androidLibs)
         }
 
         for (dep in deps) {
@@ -141,8 +141,9 @@ AndroidDriver: class extends Driver {
         }
 
         localLdLibs := ArrayList<String> new()
-        for (uze in uses) {
-            localLdLibs addAll(uze libs)
+        for (useDef in uses) {
+            props := useDef getRelevantProperties(params)
+            localLdLibs addAll(props libs)
         }
 
         if (!localLdLibs empty?()) {

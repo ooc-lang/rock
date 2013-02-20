@@ -103,13 +103,15 @@ Flags: class {
         }
         uses add(useDef)
 
-        for (lib in useDef libs) {
+        props := useDef getRelevantProperties(params)
+
+        for (lib in props libs) {
             addLinkerFlag(lib)
         }
 
         // OSX-only feature: frameworks
         if (Target guessHost() == Target OSX) {
-            for(framework in useDef frameworks) {
+            for(framework in props frameworks) {
                 addLinkerFlag("-Wl,-framework," + framework)
             }
         }
@@ -135,12 +137,12 @@ Flags: class {
         }
 
         // include paths
-        for(includePath in useDef includePaths) {
+        for(includePath in props includePaths) {
             addCompilerFlag("-I" + includePath)
         }
 
         // library paths
-        for(libPath in useDef libPaths) {
+        for(libPath in props libPaths) {
             addLinkerFlag("-L" + libPath)
         }
 

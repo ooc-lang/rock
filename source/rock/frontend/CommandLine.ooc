@@ -5,7 +5,7 @@ import structs/[ArrayList, List, Stack]
 import text/StringTokenizer
 
 // our stuff
-import Help, Token, BuildParams, AstBuilder, PathList
+import Help, Token, BuildParams, AstBuilder, PathList, Target
 import rock/frontend/drivers/[Driver, SequenceDriver, MakeDriver, DummyDriver, CCompiler, AndroidDriver]
 import rock/backend/json/JSONGenerator
 import rock/middle/[Module, Import, UseDef]
@@ -298,6 +298,7 @@ CommandLine: class {
                         case "sequence" =>
                             SequenceDriver new(params)
                         case "android" =>
+                            params target = Target ANDROID
                             AndroidDriver new(params)
                         case "make" =>
                             MakeDriver new(params)
