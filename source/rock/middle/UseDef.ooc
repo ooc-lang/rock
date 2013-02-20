@@ -207,8 +207,42 @@ UseDef: class {
     }
 
     parseVersionExpr: func (expr: String) -> UseVersion {
+        "Parsing version: %s" printfln(expr)
+
+        reader := StringReader new(expr)
+
+        // read an identifier
+        value := reader readWhile(|c| c alphaNumeric?())
+
         // TODO: support other expression types, obvsly.
-        UseVersionValue new(expr)
+        result := UseVersionValue new(value)
+
+        if (reader hasNext?()) {
+            // skip whitespace
+            reader skipWhile(|c| c whitespace?())
+
+            c := reader read()
+            match c {
+                case '&' =>
+                    // skip the second one
+                    reader read()
+                    reader skipWhile(|c| c whitespace?())
+
+                    inner := parseVersionExpr(reader readAll())
+                    result = UseVersionAnd new(result, inner)
+                case '|' =>
+                    // skip the second one
+                    reader read()
+                    reader skipWhile(|c| c whitespace?())
+
+                    inner := parseVersionExpr(reader readAll())
+                    result = UseVersionOr new(result, inner)
+                case =>
+                    Exception new("Malformed version expression: %s" format(expr)) throw()
+            }
+        }
+
+        result
     }
 
     read: func (=file, params: BuildParams) {
@@ -232,7 +266,6 @@ UseDef: class {
             if (line startsWith?("version")) {
                 lineReader readUntil('(')
                 versionExpr := lineReader readUntil(')')
-                "Got version expression: %s" printfln(versionExpr)
 
                 vb := parseVersionExpr(versionExpr)
                 "Got vb %s, of type %s, isSatisfied? %d" printfln(vb toString(), vb class name, vb satisfied?(params))
@@ -306,11 +339,19 @@ UseDef: class {
             } else if (id == "Additionals") {
                 for (path in value split(',')) {
                     relative := File new(path trim()) getReducedFile()
-                    absolute := file parent getChild(relative path) getAbsoluteFile()
 
                     if (!relative relative?()) {
                         "[WARNING]: Additional path %s is absolute - it's been ignored" printfln(relative path)
                         continue
+                    }
+
+                    candidate := file parent getChild(relative path)
+
+                    absolute := match (candidate exists?()) {
+                        case true =>
+                            candidate getAbsoluteFile()
+                        case =>
+                            relative
                     }
 
                     if (params verbose) {
@@ -388,6 +429,8 @@ UseVersion: class {
     toString: func -> String {
         "version(true)"
     }
+
+    _: String { get { toString() } }
 }
 
 UseVersionValue: class extends UseVersion {
@@ -430,4 +473,39 @@ UseVersionValue: class extends UseVersion {
         "version(%s)" format(value)
     }
 }
+
+UseVersionAnd: class extends UseVersion {
+    lhs, rhs: UseVersion
+
+    init: func (=lhs, =rhs) {
+        super()
+    }
+
+    satisfied?: func (params: BuildParams) -> Bool {
+        lhs satisfied?(params) && rhs satisfied?(params) 
+    }
+
+    toString: func -> String {
+        "version(%s && %s)" format(lhs _, rhs _)
+    }
+}
+
+UseVersionOr: class extends UseVersion {
+    lhs, rhs: UseVersion
+
+    init: func (=lhs, =rhs) {
+        super()
+    }
+
+    satisfied?: func (params: BuildParams) -> Bool {
+        lhs satisfied?(params) || rhs satisfied?(params) 
+    }
+
+    toString: func -> String {
+        "version(%s || %s)" format(lhs _, rhs _)
+    }
+}
+
+
+
 
