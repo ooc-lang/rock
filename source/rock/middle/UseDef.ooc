@@ -386,11 +386,6 @@ UseDef: class {
                         case =>
                             relative
                     }
-
-                    if (params verbose) {
-                        "relative path: %s / %d" printfln(relative path, relative exists?())
-                        "absolute path: %s / %d" printfln(absolute path, absolute exists?())
-                    }
                     versionStack peek() additionals add(Additional new(relative, absolute))
                 }
             } else if (id == "Requires") {

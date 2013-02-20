@@ -218,11 +218,6 @@ SequenceDriver: class extends Driver {
         cPath := File new(File new(params libcachePath, uze identifier), additional relative) getPath()
         oPath := "%s.o" format(cPath[0..-3])
 
-        if (params verbose) {
-            "cPath = %s" printfln(cPath)
-            "oPath = %s" printfln(oPath)
-        }
-
         archive := sourceFolder archive
 
         flags := Flags new(oPath, params)
