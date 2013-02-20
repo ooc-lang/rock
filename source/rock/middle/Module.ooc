@@ -92,6 +92,10 @@ Module: class extends Node {
         File new(base, path) path + suffix
     }
 
+    getLocalPath: func (suffix := "") -> String {
+        File new(File new(pathElement) name, path) path + suffix
+    }
+
     getOocPath: func -> String {
         oocPath
     }
