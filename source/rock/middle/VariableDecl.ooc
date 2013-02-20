@@ -393,7 +393,73 @@ VariableDecl: class extends Declaration {
         
         return true
     }
-        
+
+    /**
+     * Given a trail and our depth into it, marks the variable declaration for partialing in upstream closures
+     * If clsAccess is not null, it will also be added to the closure's CLS accesses
+     */
+    captureInUpstreamClosures: func (trail: Trail, depth: Int, clsAccess: VariableAccess = null) {
+        closureIndex := trail find(FunctionDecl)
+
+        if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
+            closure := trail get(closureIndex, FunctionDecl)
+            mode := "v"
+            if(closure isAnon()) {
+                if(clsAccess) {
+                    bOpIDX := trail find(BinaryOp)
+                    if (trail find(BinaryOp) != -1) {
+                        bOp := trail get(bOpIDX, BinaryOp)
+                        if (bOp getLeft() == clsAccess && bOp isAssign()) mode = "r"
+                    }
+                }
+
+                // Find the first Scope that is the body of a function declaration in the top of the trail
+                scopeDepth := closureIndex - 1
+                while(scopeDepth > 0) {
+                    maybeScope := trail get(scopeDepth, Node)
+                    if(maybeScope instanceOf?(Scope)) {
+                        scope := maybeScope as Scope
+                        maybeClosure := trail get(scopeDepth - 1, Node)
+                        if(maybeClosure instanceOf?(FunctionDecl)) {
+                            closure := maybeClosure as FunctionDecl
+                            // Find out if our access is between the kid closure and the parent closure
+                            isDefined? := false
+                            intermediateScopeIndex := closureIndex - 1
+                            while(intermediateScopeIndex > scopeDepth) {
+                                interScope? := trail get(intermediateScopeIndex, Node)
+                                if(interScope? instanceOf?(Scope)) {
+                                    interScope := interScope? as Scope
+                                    if(interScope list contains?(|stmt| stmt instanceOf?(VariableDecl) && stmt as VariableDecl name == name)) {
+                                        isDefined? = true
+                                    }
+                                }
+                                intermediateScopeIndex -= 1
+                            }
+                            // Only partial the variable in the top function if it has not be defined by it and it is not one of its arguments
+                            if(closure isAnon && !closure args contains?(|arg| arg name == name || arg name == name + "_generic") \
+                                && !isDefined?) {
+                                // Mark the variable for partialing to top level closure
+                                closure markForPartialing(this, mode)
+                                if(clsAccess && !closure clsAccesses contains?(clsAccess)) {
+                                    closure clsAccesses add(clsAccess)
+                                }
+                            }
+                        }
+                    }
+                    scopeDepth -= 1
+                }
+
+                // If the variable has been defined in the closure body, we don't need to mark it for partialing
+                definedInClosure? := closure getBody() list ? closure getBody() list contains?(this) : false
+                if(closure isAnon && !isGlobal && !definedInClosure? &&
+                    !closure args contains?(|arg| arg == this || arg name == this name + "_generic")) {
+                    closure markForPartialing(this, mode)
+                    if(clsAccess) closure clsAccesses add(clsAccess)
+                }
+            }
+        }
+    }
+
 }
 
 VariableDeclTuple: class extends VariableDecl {
