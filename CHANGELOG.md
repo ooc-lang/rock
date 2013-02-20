@@ -1,4 +1,24 @@
 
+## 0.9.6 release (2013-02-20)
+
+  - Cover templates are in! Planning for cleaner arrays in 0.9.7 - in the meantime,
+    fun example here: https://gist.github.com/nddrylliog/4967552 (@nddrylliog)
+  - Version blocks in .use files - not entirely friendly to the make driver yet,
+    but SequenceDriver and AndroidDriver handle those beautifully. (@nddrylliog)
+    Full documentation about use files here: http://docs.ooc-lang.org/
+  - operator@ variant (same as func@ but for operator overloads) - @nddrylliog
+  - Operator overloads declaration within types, which fix some import issues.
+    See #583 for details: https://github.com/nddrylliog/rock/issues/583 (@nddrylliog)
+  - Stricter warnings for field redefinition in classes (@shamanas)
+  - Nested closures are more reliable (@shamanas)
+  - Instead of going through an intermediate archive, rock now computes the
+    dependency graph of your project to pass linker arguments in the right order (@nddrylliog)
+  - SequenceDriver was omitting -g, which made debugging significantly harder (@nddrylliog)
+  - Invalid uses of break and continue inside of loops are now rock errors (@shamanas)
+  - For the rest, this is mostly a bugfix and internal clean-ups release -
+    bugs related to generics, closures, type inference in match (@shamanas & @nddrylliog)
+  - The --sourcepath has been deprecated, everything goes through .use files now (@nddrylliog)
+
 ## 0.9.5 release (2013-02-12)
 
   - Fixed a long-standing issue with varargs usage in ternary expressions
