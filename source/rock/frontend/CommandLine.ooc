@@ -490,7 +490,9 @@ CommandLine: class {
     parse: func (moduleName: String) -> Int {
         (moduleFile, pathElement) := params sourcePath getFile(moduleName)
         if(!moduleFile) {
-            "File not found: %s" printfln(moduleName)
+            "[ERROR] Could not find main .ooc file: %s" printfln(moduleName)
+            "[INFO] SourcePath = %s" printfln(params sourcePath toString())
+            failure(params)
             exit(1)
         }
 

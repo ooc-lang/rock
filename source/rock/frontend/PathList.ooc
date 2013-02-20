@@ -105,7 +105,7 @@ PathList: class {
         for(element in paths) {
             candidate := File new(element path, path)
             if(debug) ("Trying path " + candidate getPath()) println()
-            if (candidate exists?()) {
+            if (candidate exists?() && candidate file?()) {
                 return (candidate, element)
             }
         }
@@ -117,6 +117,18 @@ PathList: class {
      */
     empty?: func -> Bool {
         return paths empty?()
+    }
+
+    toString: func -> String {
+        buffer := Buffer new()
+
+        first := true
+        for (element in paths) {
+            if (first) { first = false } else { buffer append(", ") }
+            buffer append(element path)
+        }
+
+        buffer toString()
     }
 
 }
