@@ -207,24 +207,26 @@ UseDef: class {
         pkg
     }
 
-    parseVersionExpr: func (expr: String, params: BuildParams, readFurther := true) -> UseVersion {
+    parseVersionExpr: func (expr: String, params: BuildParams) -> UseVersion {
         "Parsing version: %s" printfln(expr)
 
         reader := StringReader new(expr)
+        not := false
 
         if (reader peek() == '!') {
             reader read()
-
-            rest := reader readAll()
-            return UseVersionNot new(parseVersionExpr(rest, params, false))
+            not = true
         }
 
         // read an identifier
         value := reader readWhile(|c| c alphaNumeric?())
-
         result := UseVersionValue new(value)
 
-        if (readFurther && reader hasNext?()) {
+        if (not) {
+            result = UseVersionNot new(result)
+        }
+
+        if (reader hasNext?()) {
             // skip whitespace
             reader skipWhile(|c| c whitespace?())
 
@@ -435,7 +437,7 @@ UseVersion: class {
     }
 
     toString: func -> String {
-        "version(true)"
+        "true"
     }
 
     _: String { get { toString() } }
@@ -478,7 +480,7 @@ UseVersionValue: class extends UseVersion {
     }
 
     toString: func -> String {
-        "version(%s)" format(value)
+        "%s" format(value)
     }
 }
 
@@ -494,7 +496,7 @@ UseVersionAnd: class extends UseVersion {
     }
 
     toString: func -> String {
-        "version(%s && %s)" format(lhs _, rhs _)
+        "(%s && %s)" format(lhs _, rhs _)
     }
 }
 
@@ -510,7 +512,7 @@ UseVersionOr: class extends UseVersion {
     }
 
     toString: func -> String {
-        "version(%s || %s)" format(lhs _, rhs _)
+        "(%s || %s)" format(lhs _, rhs _)
     }
 }
 
@@ -526,7 +528,7 @@ UseVersionNot: class extends UseVersion {
     }
 
     toString: func -> String {
-        "version(!(%s))" format(inner _)
+        "!%s" format(inner _)
     }
 }
 
