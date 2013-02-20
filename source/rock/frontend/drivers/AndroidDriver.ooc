@@ -109,7 +109,9 @@ AndroidDriver: class extends Driver {
 
         uze := UseDef parse(sourceFolder identifier, params)
         if (uze) {
-            for (additional in uze additionals) {
+            props := uze getRelevantProperties(params)
+
+            for (additional in props additionals) {
                 cPath := File new(uze identifier, additional relative path) path
 
                 if (params verbose) {

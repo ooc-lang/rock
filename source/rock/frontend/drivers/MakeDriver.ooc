@@ -174,7 +174,10 @@ MakeDriver: class extends SequenceDriver {
         }
 
         for (uze in uses) {
-            for (additional in uze additionals) {
+            // FIXME: that's no good for MakeDriver - we should write conditions instead
+            props := uze getRelevantProperties(params)
+
+            for (additional in props additionals) {
                 cPath := File new(File new(originalOutPath, uze identifier), additional relative) path
                 oPath := "%s.o" format(cPath[0..-3])
                 
@@ -214,7 +217,10 @@ MakeDriver: class extends SequenceDriver {
         }
 
         for (uze in uses) {
-            for (additional in uze additionals) {
+            // FIXME: that's no good for MakeDriver - we should write conditions instead
+            props := uze getRelevantProperties(params)
+
+            for (additional in props additionals) {
                 cPath := File new(File new(originalOutPath, uze identifier), additional relative) path
                 oPath := "%s.o" format(cPath[0..-3])
 

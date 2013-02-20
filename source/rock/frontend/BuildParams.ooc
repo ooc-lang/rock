@@ -5,7 +5,7 @@ import structs/[ArrayList, HashMap]
 import text/StringTokenizer
 
 // out stuff
-import PathList, CommandLine
+import PathList, CommandLine, Target
 import drivers/CCompiler
 import rock/middle/[Module, UseDef]
 import rock/middle/tinker/Errors
@@ -213,6 +213,9 @@ BuildParams: class {
 
     // backend
     backend: String = "c"
+
+    // target
+    target := Target guessHost()
 
     checkBinaryNameCollision: func (name: String) {
         if (File new(name) dir?()) {

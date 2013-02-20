@@ -1,7 +1,7 @@
 
 // sdk stuff
 import io/[File, FileReader, StringReader]
-import structs/[List, ArrayList, HashMap]
+import structs/[List, ArrayList, HashMap, Stack]
 import text/StringTokenizer
 
 // our stuff
@@ -74,9 +74,11 @@ UseDef: class {
     libPaths            : ArrayList<String> { get set }
     includePaths        : ArrayList<String> { get set }
     preMains            : ArrayList<String> { get set }
-    additionals         : ArrayList<Additional> { get set }
     androidLibs         : ArrayList<String> { get set }
     androidIncludePaths : ArrayList<String> { get set }
+
+    versionBlocks := ArrayList<UseVersion> new()
+    stack := Stack<UseVersion> new()
 
     init: func (=identifier) {
         requirements        = ArrayList<Requirement> new()
@@ -89,7 +91,6 @@ UseDef: class {
         libPaths            = ArrayList<String> new()
         includePaths        = ArrayList<String> new()
         preMains            = ArrayList<String> new()
-        additionals         = ArrayList<Additional> new()
         androidLibs         = ArrayList<String> new()
         androidIncludePaths = ArrayList<String> new()
     }
@@ -207,75 +208,90 @@ UseDef: class {
     read: func (=file, params: BuildParams) {
         reader := FileReader new(file)
         if(params veryVerbose) ("Reading use file " + file path) println()
+
+        stack push(UseVersion new())
         
         while(reader hasNext?()) {
-            line := reader readLine() trim(8 as Char /* backspace */) trim(0 as Char /* null byte */)
+            line := reader readLine() \
+                           trim() /* general whitespace */ \
+                           trim(8 as Char /* backspace */) \
+                           trim(0 as Char /* null byte */)
 
-            if(line empty?() || line startsWith?('#')) {
+            if (line empty?() || line startsWith?('#')) {
                 // skip comments
                 continue
             }
 
             lineReader := StringReader new(line)
+            if (line startsWith?("version")) {
+                lineReader readUntil('(')
+                versionExpr := lineReader readUntil(')')
+                "Got version expression: %s" printfln(versionExpr)
+                continue
+            }
+
+            if (line startsWith?("}")) {
+                "Version expression closed" println()
+                continue
+            }
+
             id := lineReader readUntil(':')
             value := lineReader readAll() trim()
-
-            "%s: %s" printfln(id, value)
             
-            if(id startsWith?("_")) {
+            if (id startsWith?("_")) {
                 // reserved ids for external tools (packaging, etc.)
                 continue
             }
 
-            if(id == "Name") {
+            if (id == "Name") {
                 name = value
-            } else if(id == "Description") {
+            } else if (id == "Description") {
                 description = value
-            } else if(id == "Pkgs") {
-                for(pkg in value split(','))
+            } else if (id == "Pkgs") {
+                for (pkg in value split(','))
                     pkgs add(pkg trim())
-            } else if(id == "CustomPkg") {
+            } else if (id == "CustomPkg") {
                 customPkgs add(parseCustomPkg(value))
-            } else if(id == "Libs") {
-                for(lib in value split(','))
+            } else if (id == "Libs") {
+                for (lib in value split(','))
                     libs add(lib trim())
-            } else if(id == "Frameworks") {
-                for(framework in value split(','))
+            } else if (id == "Frameworks") {
+                for (framework in value split(','))
                     frameworks add(framework trim())
-            } else if(id == "Includes") {
-                for(inc in value split(','))
+            } else if (id == "Includes") {
+                for (inc in value split(','))
                     includes add(inc trim())
-            } else if(id == "PreMains") {
-                for(pm in value split(','))
+            } else if (id == "PreMains") {
+                for (pm in value split(','))
                     preMains add(pm trim())
-            } else if(id == "Linker") {
+            } else if (id == "Linker") {
                 linker = value trim()
-            } else if(id == "LibPaths") {
-                for(path in value split(',')) {
+            } else if (id == "LibPaths") {
+                for (path in value split(',')) {
                     libFile := File new(path trim())
-                    if(libFile relative?()) {
+                    if (libFile relative?()) {
                         libFile = file parent getChild(path) getAbsoluteFile()
                     }
                     libPaths add(libFile path)
                 }
-            } else if(id == "IncludePaths") {
-                for(path in value split(',')) {
+            } else if (id == "IncludePaths") {
+                for (path in value split(',')) {
                     incFile := File new(path trim())
-                    if(incFile relative?()) {
+                    if (incFile relative?()) {
                         incFile = file parent getChild(path) getAbsoluteFile()
                     }
                     includePaths add(incFile path)
                 }
-            } else if(id == "AndroidLibs") {
-                for(path in value split(',')) {
+            } else if (id == "AndroidLibs") {
+                for (path in value split(',')) {
                     androidLibs add(path trim())
                 }
-            } else if(id == "AndroidIncludePaths") {
-                for(path in value split(',')) {
+            } else if (id == "AndroidIncludePaths") {
+                for (path in value split(',')) {
                     androidIncludePaths add(path trim())
                 }
-            } else if(id == "Additionals") {
-                for(path in value split(',')) {
+            } else if (id == "Additionals") {
+                for (path in value split(',')) {
                     relative := File new(path trim()) getReducedFile()
                     absolute := file parent getChild(relative path) getAbsoluteFile()
 
@@ -288,29 +304,71 @@ UseDef: class {
                         "relative path: %s / %d" printfln(relative path, relative exists?())
                         "absolute path: %s / %d" printfln(absolute path, absolute exists?())
                     }
-                    additionals add(Additional new(relative, absolute))
+                    stack peek() properties additionals add(Additional new(relative, absolute))
                 }
-            } else if(id == "Requires") {
-                for(req in value split(',')) {
+            } else if (id == "Requires") {
+                for (req in value split(',')) {
                     // TODO: Version support!
                     requirements add(Requirement new(req trim(), "0"))
                 }
-            } else if(id == "SourcePath") {
+            } else if (id == "SourcePath") {
                 sourcePath = value
-            } else if(id == "Version") {
+            } else if (id == "Version") {
                 versionNumber = value
-            } else if(id == "Imports") {
-                for(imp in value split(','))
+            } else if (id == "Imports") {
+                for (imp in value split(','))
                     imports add(imp trim())
-            } else if(id == "Origin" || id == "Variant") {
+            } else if (id == "Origin" || id == "Variant") {
                 // known, but ignored ids
-            } else if(id == "Main") {
+            } else if (id == "Main") {
                 main = value 
-            } else if(id startsWith?("_")) {
+            } else if (id startsWith?("_")) {
                 // unknown and ignored ids
-            } else if(!id empty?()) {
+            } else if (!id empty?()) {
                 "Unknown key in %s: %s" format(file getPath(), id) println()
             }
         }
+
+        reader close()
+        versionBlocks add(stack pop())
+    }
+
+    getRelevantProperties: func (params: BuildParams) -> UseProperties {
+        result := UseProperties new()
+
+        versionBlocks filter(|vb| vb satisfied?(params)) each(|vb|
+            result merge!(vb properties)
+        )
+        result
     }
 }
+
+UseProperties: class {
+    additionals         : ArrayList<Additional> { get set }
+
+    init: func {
+        additionals         = ArrayList<Additional> new()
+    }
+
+    merge!: func (other: This) -> This {
+        additionals addAll(other additionals)
+    }
+}
+
+/**
+ * Versioned block in a use def file
+ *
+ * This one is always satisfied
+ */
+UseVersion: class {
+    properties: UseProperties { get set }
+
+    init: func {
+        properties = UseProperties new()
+    }
+
+    satisfied?: func (params: BuildParams) -> Bool {
+        true
+    }
+}
+

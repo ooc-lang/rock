@@ -63,7 +63,8 @@ Driver: abstract class {
             }
             usesDone add(useDef)
 
-            for (additional in useDef additionals) {
+            props := useDef getRelevantProperties(params)
+            for (additional in props additionals) {
                 src := additional absolute
 
                 base := params libcachePath
