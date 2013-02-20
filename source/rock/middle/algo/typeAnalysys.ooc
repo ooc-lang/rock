@@ -25,7 +25,8 @@ _sugarLevelsEqual?: func(type1, type2: Type) -> Bool {
         }
         (type1, type2) = (type1 as SugarType inner, type2 as SugarType inner)
     }
-    true
+    // If our first type was not sugarized and our second is, we must return false
+    return !type2 instanceOf?(SugarType)
 }
 
 _createSugarWith: func(inner, sugar: Type) -> Type {
