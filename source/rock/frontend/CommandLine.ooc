@@ -24,12 +24,10 @@ system: extern func (command: CString)
 CommandLine: class {
 
     params: BuildParams
-    driver: Driver
 
     init: func(args : ArrayList<String>) {
 
         params = BuildParams new(args[0])
-        driver = SequenceDriver new(params)
 
         modulePaths := ArrayList<String> new()
         isFirst := true
@@ -292,11 +290,11 @@ CommandLine: class {
                 } else if (option startsWith?("driver=")) {
 
                     driverName := option substring("driver=" length())
-                    driver = match (driverName) {
+                    params driver = match (driverName) {
                         case "combine" =>
                             "[ERROR] The combine driver is deprecated." println()
                             failure(params)
-                            driver
+                            params driver
                         case "sequence" =>
                             SequenceDriver new(params)
                         case "android" =>
@@ -352,18 +350,18 @@ CommandLine: class {
                 } else if (option == "onlyparse") {
 
                     if(!longOption) warnUseLong("onlyparse")
-                    driver = null
+                    params driver = null
                     params onlyparse = true
 
                 } else if (option == "onlycheck") {
 
                     if(!longOption) warnUseLong("onlycheck")
-                    driver = null
+                    params driver = null
 
                 } else if (option == "onlygen") {
 
                     if(!longOption) warnUseLong("onlygen")
-                    driver = DummyDriver new(params)
+                    params driver = DummyDriver new(params)
 
                 } else if (option startsWith?("o=")) {
 
@@ -541,8 +539,8 @@ CommandLine: class {
 
         if(params backend == "c") {
             // c phase 3: launch the driver
-            if(driver != null) {
-                code := driver compile(module)
+            if(params driver != null) {
+                code := params driver compile(module)
                 if(code == 0) {
                     if(params shout) success()
                     if(params run) {

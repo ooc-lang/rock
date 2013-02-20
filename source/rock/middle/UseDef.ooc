@@ -5,7 +5,8 @@ import structs/[List, ArrayList, HashMap, Stack]
 import text/StringTokenizer
 
 // our stuff
-import ../frontend/BuildParams
+import rock/frontend/[BuildParams, Target]
+import rock/frontend/drivers/AndroidDriver
 
 /**
    Represents the requirement for a .use file, ie. a dependency
@@ -205,6 +206,11 @@ UseDef: class {
         pkg
     }
 
+    parseVersionExpr: func (expr: String) -> UseVersion {
+        // TODO: support other expression types, obvsly.
+        UseVersionValue new(expr)
+    }
+
     read: func (=file, params: BuildParams) {
         reader := FileReader new(file)
         if(params veryVerbose) ("Reading use file " + file path) println()
@@ -227,11 +233,18 @@ UseDef: class {
                 lineReader readUntil('(')
                 versionExpr := lineReader readUntil(')')
                 "Got version expression: %s" printfln(versionExpr)
+
+                vb := parseVersionExpr(versionExpr)
+                "Got vb %s, of type %s, isSatisfied? %d" printfln(vb toString(), vb class name, vb satisfied?(params))
+                stack push(vb)
                 continue
             }
 
             if (line startsWith?("}")) {
                 "Version expression closed" println()
+
+                vb := stack pop()
+                versionBlocks add(vb)
                 continue
             }
 
@@ -337,6 +350,7 @@ UseDef: class {
         result := UseProperties new()
 
         versionBlocks filter(|vb| vb satisfied?(params)) each(|vb|
+            "%s is satisfied" printfln(vb toString())
             result merge!(vb properties)
         )
         result
@@ -369,6 +383,51 @@ UseVersion: class {
 
     satisfied?: func (params: BuildParams) -> Bool {
         true
+    }
+
+    toString: func -> String {
+        "version(true)"
+    }
+}
+
+UseVersionValue: class extends UseVersion {
+    value: String
+
+    init: func (=value) {
+        super()        
+    }
+
+    satisfied?: func (params: BuildParams) -> Bool {
+        match value {
+            case "linux" =>
+                "Got linux. Testing %d against %d" printfln(params target, Target LINUX)
+                params target == Target LINUX
+            case "windows" =>
+                params target == Target WIN
+            case "solaris" =>
+                params target == Target SOLARIS
+            case "haiku" =>
+                params target == Target HAIKU
+            case "apple" =>
+                params target == Target OSX
+            case "freebsd" =>
+                params target == Target FREEBSD
+            case "openbsd" =>
+                params target == Target OPENBSD
+            case "netbsd" =>
+                params target == Target NETBSD
+            case "dragonfly" =>
+                params target == Target DRAGONFLY
+            case "android" =>
+                params driver instanceOf?(AndroidDriver)
+            case =>
+                "Warning: unknown value %s, true by default" printfln(value)
+                true
+        }
+    }
+
+    toString: func -> String {
+        "version(%s)" format(value)
     }
 }
 

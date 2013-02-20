@@ -9,6 +9,7 @@ import PathList, CommandLine, Target
 import drivers/CCompiler
 import rock/middle/[Module, UseDef]
 import rock/middle/tinker/Errors
+import rock/frontend/drivers/[Driver, SequenceDriver]
 
 /**
  * All the parameters for a build are stored there.
@@ -216,6 +217,9 @@ BuildParams: class {
 
     // target
     target := Target guessHost()
+
+    // compilation driver
+    driver := SequenceDriver new(this)
 
     checkBinaryNameCollision: func (name: String) {
         if (File new(name) dir?()) {
