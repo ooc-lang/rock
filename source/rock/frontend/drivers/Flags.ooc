@@ -178,9 +178,6 @@ Flags: class {
     }
 
     absorb: func ~params (params: BuildParams) {
-        libsHeaders := File new(params distLocation, "libs/headers/") getPath()
-        addCompilerFlag("-I" + libsHeaders)
-
         if (params debug) {
             addCompilerFlag("-g")
         }
@@ -212,6 +209,9 @@ Flags: class {
         }
             
         if(params enableGC) {
+            libsHeaders := File new(params distLocation, "libs/headers/") getPath()
+            addCompilerFlag("-I" + libsHeaders)
+
             if(params dynGC) {
                 addLinkerFlag("-lgc")
             } else {
