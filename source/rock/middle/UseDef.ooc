@@ -404,6 +404,9 @@ UseDef: class {
                 // known, but ignored ids
             } else if (id == "Main") {
                 main = value 
+                if (!main endsWith?(".ooc")) {
+                    main = "%s.ooc" format(main)
+                }
             } else if (id startsWith?("_")) {
                 // unknown and ignored ids
             } else if (!id empty?()) {
