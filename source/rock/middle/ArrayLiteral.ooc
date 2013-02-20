@@ -4,6 +4,7 @@ import Literal, Visitor, Type, Expression, FunctionCall, Block,
        Statement, IntLiteral, BinaryOp, Block, ArrayCreation, FunctionCall,
        FunctionDecl
 import tinker/[Response, Resolver, Trail, Errors]
+import algo/typeAnalysys
 import structs/[List, ArrayList]
 
 ArrayLiteral: class extends Literal {
@@ -117,13 +118,33 @@ ArrayLiteral: class extends Literal {
 
         // if we still don't know our type, resolve from elements' innerTypes
         if(type == null && !elements empty?()) {
-            innerType := elements first() getType()
-            if(innerType == null || !innerType isResolved()) {
-                res wholeAgain(this, "need innerType")
+            baseType := elements first() getType()
+            if(!baseType || !baseType isResolved()) {
+                res wholeAgain(this, "need base type")
                 return Response OK
             }
 
-            type = ArrayType new(innerType, IntLiteral new(elements getSize(), token), token)
+            for(i in 0 .. elements getSize()) {
+                currType := elements get(i) getType()
+                if(!currType || !currType isResolved()) {
+                    res wholeAgain(this, "need element type")
+                    return Response OK
+                }
+
+                root := findCommonRoot(baseType, currType)
+                if(!root) {
+                    if(res fatal) {
+                        res throwError(IncompatibleType new(elements get(i) token,\
+                            "Type %s is incompatible with the inferred type of the array literal %s" format(currType toString(), baseType toString())))
+                    } else {
+                        res wholeAgain(this, "need resolved refs for all types")
+                    }
+                    return Response OK
+                }
+                baseType = root
+            }
+
+            type = ArrayType new(baseType, IntLiteral new(elements getSize(), token), token)
             //if(res params veryVerbose) printf("Inferred type %s for %s\n", type toString(), toString())
         }
 
@@ -290,4 +311,8 @@ ArrayLiteral: class extends Literal {
         elements replace(oldie as Expression, kiddo as Expression)
     }
 
+}
+
+IncompatibleType: class extends Error {
+    init: super func ~tokenMessage
 }
