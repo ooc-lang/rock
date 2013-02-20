@@ -237,60 +237,7 @@ VariableAccess: class extends Expression {
 
                     // only accesses to variable decls need to be partialed (not type decls)
                     if(ref instanceOf?(VariableDecl) && !ref as VariableDecl isGlobal() && expr == null) {
-                        closureIndex := trail find(FunctionDecl)
-
-                        if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
-                            closure := trail get(closureIndex, FunctionDecl)
-                            mode := "v"
-                            if(closure isAnon()) {
-                                bOpIDX := trail find(BinaryOp)
-                                if (trail find(BinaryOp) != -1) {
-                                    bOp := trail get(bOpIDX, BinaryOp)
-                                    if (bOp getLeft() == this && bOp isAssign()) mode = "r"
-                                }
-
-                                // TODO: Abstract this out and use it from FunctionCall.ooc
-                                // Also, try to find some better way to do things, maybe from resolveAccess
-                                // Find the first Scope that is the body of a function declaration in the top of the trail
-                                scopeDepth := closureIndex - 1
-                                while(scopeDepth > 0) {
-                                    maybeScope := trail get(scopeDepth, Node)
-                                    if(maybeScope instanceOf?(Scope)) {
-                                        scope := maybeScope as Scope
-                                        maybeClosure := trail get(scopeDepth - 1, Node)
-                                        if(maybeClosure instanceOf?(FunctionDecl)) {
-                                            closure := maybeClosure as FunctionDecl
-                                            // Find out if our access is between the kid closure and the parent closure
-                                            isDefined? := false
-                                            intermediateScopeIndex := closureIndex - 1
-                                            while(intermediateScopeIndex > scopeDepth) {
-                                                interScope? := trail get(intermediateScopeIndex, Node)
-                                                if(interScope? instanceOf?(Scope)) {
-                                                    interScope := interScope? as Scope
-                                                    if(interScope list contains?(|stmt| stmt instanceOf?(VariableDecl) && stmt as VariableDecl name == name)) {
-                                                        isDefined? = true
-                                                    }
-                                                }
-                                                intermediateScopeIndex -= 1
-                                            }
-                                            // Only partial the variable in the top function if it has not be defined by it and it is not one of its arguments
-                                            if(closure isAnon && !closure args contains?(|arg| arg name == name || arg name == name + "_generic") \
-                                                && !isDefined?) {
-                                                // Mark the variable for partialing to top level closure
-                                                closure markForPartialing(ref as VariableDecl, mode)
-                                                if(!closure clsAccesses contains?(this)) {
-                                                    closure clsAccesses add(this)
-                                                }
-                                            }
-                                        }
-                                    }
-                                    scopeDepth -= 1
-                                }
-
-                                closure markForPartialing(ref as VariableDecl, mode)
-                                closure clsAccesses add(this)
-                            }
-                        }
+                        ref as VariableDecl captureInUpstreamClosures(trail, depth, this)
                     }
 
                     break // break on first match
