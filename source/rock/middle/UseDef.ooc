@@ -74,8 +74,8 @@ UseDef: class {
     androidLibs         : ArrayList<String> { get set }
     androidIncludePaths : ArrayList<String> { get set }
 
-    versionBlocks := ArrayList<UseVersion> new()
-    stack := Stack<UseVersion> new()
+    properties := ArrayList<UseProperties> new()
+    versionStack := Stack<UseProperties> new()
 
     init: func (=identifier) {
         requirements        = ArrayList<Requirement> new()
@@ -161,7 +161,6 @@ UseDef: class {
 
         sourcePathFile := File new(sourcePath)
         if(sourcePathFile relative?()) {
-            /* is relative. TODO: better check? */
             sourcePathFile = file parent getChild(sourcePath) getAbsoluteFile()
         }
         sourcePath = sourcePathFile path
@@ -198,8 +197,6 @@ UseDef: class {
     }
 
     parseVersionExpr: func (expr: String, params: BuildParams) -> UseVersion {
-        "Parsing version: '%s'" printfln(expr)
-
         reader := StringReader new(expr)
         not := false
 
@@ -237,11 +234,11 @@ UseDef: class {
         } else {
             // read an identifier
             value := reader readWhile(|c| c alphaNumeric?())
-            result = UseVersionValue new(value)
+            result = UseVersionValue new(this, value)
         }
 
         if (not) {
-            result = UseVersionNot new(result)
+            result = UseVersionNot new(this, result)
         }
 
         // skip whitespace
@@ -256,14 +253,14 @@ UseDef: class {
                     reader skipWhile(|c| c whitespace?())
 
                     inner := parseVersionExpr(reader readAll(), params)
-                    result = UseVersionAnd new(result, inner)
+                    result = UseVersionAnd new(this, result, inner)
                 case '|' =>
                     // skip the second one
                     reader read()
                     reader skipWhile(|c| c whitespace?())
 
                     inner := parseVersionExpr(reader readAll(), params)
-                    result = UseVersionOr new(result, inner)
+                    result = UseVersionOr new(this, result, inner)
                 case =>
                     message := "Malformed version expression: %s. Unexpected char %c" format(expr, c)
                     params errorHandler onError(UseFormatError new(this, message))
@@ -277,7 +274,7 @@ UseDef: class {
         reader := FileReader new(file)
         if(params veryVerbose) ("Reading use file " + file path) println()
 
-        stack push(UseVersion new())
+        versionStack push(UseProperties new(this, UseVersionOr new(this)))
         
         while(reader hasNext?()) {
             line := reader readLine() \
@@ -296,17 +293,17 @@ UseDef: class {
                 lineReader rewind(1)
                 versionExpr := lineReader readAll()[0..-2] trim()
 
-                vb := parseVersionExpr(versionExpr, params)
-                "Got vb %s, of type %s, isSatisfied? %d" printfln(vb toString(), vb class name, vb satisfied?(params))
-                stack push(vb)
+                useVersion := parseVersionExpr(versionExpr, params)
+                versionStack push(UseProperties new(this, useVersion))
                 continue
             }
 
             if (line startsWith?("}")) {
-                "Version expression closed" println()
+                child := versionStack pop()
+                parent := versionStack peek()
 
-                vb := stack pop()
-                versionBlocks add(vb)
+                child useVersion = UseVersionAnd new(this, parent useVersion, child useVersion)
+                properties add(child)
                 continue
             }
 
@@ -328,17 +325,21 @@ UseDef: class {
             } else if (id == "CustomPkg") {
                 customPkgs add(parseCustomPkg(value))
             } else if (id == "Libs") {
-                for (lib in value split(','))
-                    stack peek() properties libs add(lib trim())
+                for (lib in value split(',')) {
+                    versionStack peek() libs add(lib trim())
+                }
             } else if (id == "Frameworks") {
-                for (framework in value split(','))
-                    stack peek() properties frameworks add(framework trim())
+                for (framework in value split(',')) {
+                    versionStack peek() frameworks add(framework trim())
+                }
             } else if (id == "Includes") {
-                for (inc in value split(','))
-                    stack peek() properties includes add(inc trim())
+                for (inc in value split(',')) {
+                    versionStack peek() includes add(inc trim())
+                }
             } else if (id == "PreMains") {
-                for (pm in value split(','))
+                for (pm in value split(',')) {
                     preMains add(pm trim())
+                }
             } else if (id == "Linker") {
                 linker = value trim()
             } else if (id == "LibPaths") {
@@ -347,7 +348,7 @@ UseDef: class {
                     if (libFile relative?()) {
                         libFile = file parent getChild(path) getAbsoluteFile()
                     }
-                    stack peek() properties libPaths add(libFile path)
+                    versionStack peek() libPaths add(libFile path)
                 }
             } else if (id == "IncludePaths") {
                 for (path in value split(',')) {
@@ -355,7 +356,7 @@ UseDef: class {
                     if (incFile relative?()) {
                         incFile = file parent getChild(path) getAbsoluteFile()
                     }
-                    stack peek() properties includePaths add(incFile path)
+                    versionStack peek() includePaths add(incFile path)
                 }
             } else if (id == "AndroidLibs") {
                 for (path in value split(',')) {
@@ -387,7 +388,7 @@ UseDef: class {
                         "relative path: %s / %d" printfln(relative path, relative exists?())
                         "absolute path: %s / %d" printfln(absolute path, absolute exists?())
                     }
-                    stack peek() properties additionals add(Additional new(relative, absolute))
+                    versionStack peek() additionals add(Additional new(relative, absolute))
                 }
             } else if (id == "Requires") {
                 for (req in value split(',')) {
@@ -413,21 +414,24 @@ UseDef: class {
         }
 
         reader close()
-        versionBlocks add(stack pop())
+        properties add(versionStack pop())
     }
 
     getRelevantProperties: func (params: BuildParams) -> UseProperties {
-        result := UseProperties new()
+        result := UseProperties new(this, UseVersion new(this))
 
-        versionBlocks filter(|vb| vb satisfied?(params)) each(|vb|
-            "%s is satisfied" printfln(vb toString())
-            result merge!(vb properties)
+        properties filter(|p| p useVersion satisfied?(params)) each(|p|
+            "%s is satisfied" printfln(p useVersion toString())
+            result merge!(p)
         )
         result
     }
 }
 
 UseProperties: class {
+    useDef: UseDef
+    useVersion: UseVersion { get set }
+
     additionals         : ArrayList<Additional> { get set }
     frameworks          : ArrayList<String> { get set }
     includePaths        : ArrayList<String> { get set }
@@ -435,7 +439,7 @@ UseProperties: class {
     libPaths            : ArrayList<String> { get set }
     libs                : ArrayList<String> { get set }
 
-    init: func {
+    init: func (=useDef, =useVersion) {
         additionals         = ArrayList<Additional> new()
         frameworks          = ArrayList<String> new()
         includePaths        = ArrayList<String> new()
@@ -460,10 +464,9 @@ UseProperties: class {
  * This one is always satisfied
  */
 UseVersion: class {
-    properties: UseProperties { get set }
+    useDef: UseDef
 
-    init: func {
-        properties = UseProperties new()
+    init: func (=useDef) {
     }
 
     satisfied?: func (params: BuildParams) -> Bool {
@@ -480,14 +483,13 @@ UseVersion: class {
 UseVersionValue: class extends UseVersion {
     value: String
 
-    init: func (=value) {
-        super()        
+    init: func (.useDef, =value) {
+        super(useDef)
     }
 
     satisfied?: func (params: BuildParams) -> Bool {
         match value {
             case "linux" =>
-                "Got linux. Testing %d against %d" printfln(params target, Target LINUX)
                 params target == Target LINUX
             case "windows" =>
                 params target == Target WIN
@@ -511,8 +513,9 @@ UseVersionValue: class extends UseVersion {
                 "Warning: ios version not supported yet, false by default" println()
                 false
             case =>
-                "Warning: unknown value %s, true by default" printfln(value)
-                true
+                message := "Unknown version %s" format(value)
+                params errorHandler onError(UseFormatError new(useDef, message))
+                false
         }
     }
 
@@ -524,8 +527,8 @@ UseVersionValue: class extends UseVersion {
 UseVersionAnd: class extends UseVersion {
     lhs, rhs: UseVersion
 
-    init: func (=lhs, =rhs) {
-        super()
+    init: func (.useDef, =lhs, =rhs) {
+        super(useDef)
     }
 
     satisfied?: func (params: BuildParams) -> Bool {
@@ -540,8 +543,8 @@ UseVersionAnd: class extends UseVersion {
 UseVersionOr: class extends UseVersion {
     lhs, rhs: UseVersion
 
-    init: func (=lhs, =rhs) {
-        super()
+    init: func (.useDef, =lhs, =rhs) {
+        super(useDef)
     }
 
     satisfied?: func (params: BuildParams) -> Bool {
@@ -556,8 +559,8 @@ UseVersionOr: class extends UseVersion {
 UseVersionNot: class extends UseVersion {
     inner: UseVersion
 
-    init: func (=inner) {
-        super()
+    init: func (.useDef, =inner) {
+        super(useDef)
     }
 
     satisfied?: func (params: BuildParams) -> Bool {
