@@ -78,7 +78,12 @@ MakeDriver: class extends SequenceDriver {
         params libcachePath = originalOutPath path
         params libcache = true
         flags := Flags new(null, params)
+
+        // we'll handle the GC flags ourselves, thanks
+        enableGC := params enableGC
+        params enableGC = false
         flags absorb(params)
+        params enableGC = enableGC
 
         for (sourceFolder in sourceFolders) {
             flags absorb(sourceFolder)
