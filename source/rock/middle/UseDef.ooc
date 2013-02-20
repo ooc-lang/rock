@@ -77,6 +77,9 @@ UseDef: class {
     properties := ArrayList<UseProperties> new()
     versionStack := Stack<UseProperties> new()
 
+    // cache relevant properties
+    _relevantProperties: UseProperties
+
     init: func (=identifier) {
         requirements        = ArrayList<Requirement> new()
         pkgs                = ArrayList<String> new()
@@ -418,13 +421,16 @@ UseDef: class {
     }
 
     getRelevantProperties: func (params: BuildParams) -> UseProperties {
-        result := UseProperties new(this, UseVersion new(this))
+        if (!_relevantProperties) {
+            _relevantProperties = UseProperties new(this, UseVersion new(this))
 
-        properties filter(|p| p useVersion satisfied?(params)) each(|p|
-            "%s is satisfied" printfln(p useVersion toString())
-            result merge!(p)
-        )
-        result
+            properties filter(|p| p useVersion satisfied?(params)) each(|p|
+                "%s is satisfied" printfln(p useVersion toString())
+                _relevantProperties merge!(p)
+            )
+        }
+
+        _relevantProperties
     }
 }
 

@@ -29,8 +29,6 @@ ModuleWriter: abstract class extends Skeleton {
         if(!module includes empty?()) current nl()
 
         for(uze in module uses) {
-            "Writing includes" println()
-
             // FIXME: have ifdef barriers instead
             props := uze useDef getRelevantProperties(module params)
             for(ynclude in props includes) {
