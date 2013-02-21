@@ -4,7 +4,7 @@ import Literal, Visitor, Type, Expression, FunctionCall, Block,
        Statement, IntLiteral, BinaryOp, Block, ArrayCreation, FunctionCall,
        FunctionDecl
 import tinker/[Response, Resolver, Trail, Errors]
-import algo/typeAnalysys
+import algo/typeAnalysis
 import structs/[List, ArrayList]
 
 ArrayLiteral: class extends Literal {
