@@ -146,18 +146,8 @@ Flags: class {
             addLinkerFlag("-L" + libPath)
         }
 
-        // additionals
-        // TODO: there needs to be a better way to handle that:
-        // the place where we're going to compile C code isn't
-        // necessarily the same place we're going to run rock.
-        // additionals should actually be copied to the output
-        // folder and that copy should be compiled separately.
-        //for(additional in useDef getAdditionals()) {
-        //    addLinkerFlag(additional)
-        //}
-
         // .use file dependenceis
-        for(req in useDef requirements) {
+        for(req in props requirements) {
             absorb(req useDef)
         }
 

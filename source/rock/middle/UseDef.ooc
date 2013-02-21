@@ -66,7 +66,6 @@ UseDef: class {
     linker:        String { get set }
     main:          String { get set }
 
-    requirements        : ArrayList<Requirement> { get set }
     pkgs                : ArrayList<String> { get set }
     customPkgs          : ArrayList<CustomPkg> { get set }
     imports             : ArrayList<String> { get set }
@@ -81,7 +80,6 @@ UseDef: class {
     _relevantProperties: UseProperties
 
     init: func (=identifier) {
-        requirements        = ArrayList<Requirement> new()
         pkgs                = ArrayList<String> new()
         customPkgs          = ArrayList<CustomPkg> new()
         imports             = ArrayList<String> new()
@@ -105,7 +103,8 @@ UseDef: class {
             This cache put(identifier, cached)
 
             // parse requirements, if any
-            for (req in cached requirements) {
+            props := cached getRelevantProperties(params)
+            for (req in props requirements) {
                 req useDef = This parse(req name, params)
             }
         }
@@ -390,8 +389,7 @@ UseDef: class {
                 }
             } else if (id == "Requires") {
                 for (req in value split(',')) {
-                    // TODO: Version support!
-                    requirements add(Requirement new(req trim(), "0"))
+                    versionStack peek() requirements add(Requirement new(req trim(), "0"))
                 }
             } else if (id == "SourcePath") {
                 sourcePath = value
@@ -442,6 +440,8 @@ UseProperties: class {
     libPaths            : ArrayList<String> { get set }
     libs                : ArrayList<String> { get set }
 
+    requirements        : ArrayList<Requirement> { get set }
+
     init: func (=useDef, =useVersion) {
         additionals         = ArrayList<Additional> new()
         frameworks          = ArrayList<String> new()
@@ -449,6 +449,8 @@ UseProperties: class {
         includes            = ArrayList<String> new()
         libPaths            = ArrayList<String> new()
         libs                = ArrayList<String> new()
+
+        requirements        = ArrayList<Requirement> new()
     }
 
     merge!: func (other: This) -> This {
