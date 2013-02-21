@@ -1,6 +1,6 @@
 import structs/[ArrayList, List]
 import ../frontend/Token
-import algo/typeAnalysys
+import algo/typeAnalysis
 import ControlStatement, Statement, Expression, Visitor, VariableDecl,
        Node, VariableAccess, Scope, BoolLiteral, Comparison, Type,
        FunctionDecl, Return, BinaryOp, FunctionCall, Cast, Parenthesis
