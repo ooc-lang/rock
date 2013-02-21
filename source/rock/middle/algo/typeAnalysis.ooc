@@ -71,7 +71,11 @@ getInnermostType: func(type: Type) -> Type {
 findCommonRoot: func(type1, type2: Type) -> Type {
     basic := func(t1, t2: Type) -> Type {
         if(t1 equals?(type2)) return t1
-        if(t1 isNumericType() && t2 isNumericType()) return t1
+        if(t1 isNumericType() && t2 isNumericType()) {
+            // The root of an integer and a floating point type is the floating point type
+            if(t2 isFloatingPointType()) return t2
+            return t1
+        }
 
         if(t1 getScore(t2) > 0 || t2 getScore(t1) > 0) {
             score1 := t1 getScore(t2)
