@@ -22,7 +22,7 @@ nq_parse: extern proto func (AstBuilder, CString) -> Int
 // reserved C99 keywords
 reservedWords := ["auto", "int", "long", "char", "register", "short", "do",
                   "sizeof", "double", "struct", "switch", "typedef", "union",
-                  "unsigned", "signed", "goto", "enum", "const"]
+                  "unsigned", "signed", "goto", "enum", "const", "near", "far"]
 reservedHashs := computeReservedHashs(reservedWords)
 
 ReservedKeywordError: class extends Error {
@@ -452,7 +452,7 @@ AstBuilder: class {
             // same hash? compare length and then full-string comparison
             word := reservedWords[idx]
             if(word length() == vd getName() length() && word == vd getName()) {
-                params errorHandler onError(ReservedKeywordError new(vd token, "%s is a reserved C99 keyword, you can't use it in a variable declaration" format(vd getName())))
+                params errorHandler onError(ReservedKeywordError new(vd token, "%s is a reserved C keyword, give your variable another name." format(vd getName())))
             }
         }
 
