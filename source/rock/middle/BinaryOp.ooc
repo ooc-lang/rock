@@ -440,7 +440,7 @@ BinaryOp: class extends Expression {
                     }
 
                     for (opDecl in tDecl operators) {
-                        "Matching %s against %s" printfln(opDecl toString(), toString())
+                        //"Matching %s against %s" printfln(opDecl toString(), toString())
                         score := getScore(opDecl, reqType)
                         if(score == -1) {
                             return Response LOOP
