@@ -341,14 +341,7 @@ BaseType: class extends Type {
     }
 
     _computeFloatingPoint: func {
-        ref := getRef()
-        if(ref && ref instanceOf?(CoverDecl) && ref as CoverDecl fromType) {
-            type := ref as CoverDecl fromType
-            if(type instanceOf?(This) && (type as This name == "double" || type as This name == "float" || type as This name == "long double")) {
-                _floatingPoint = NumericState YES
-                return
-            }
-        } else if(name == "double" || name == "float" || name == "long double") {
+        if(name == "double" || name == "float" || name == "long double") {
             _floatingPoint = NumericState YES
             return
         }
@@ -363,19 +356,8 @@ BaseType: class extends Type {
     }
 
     _computeInteger: func {
-        ref := getRef()
-        if(ref && ref instanceOf?(CoverDecl) && ref as CoverDecl fromType) {
-            type := ref as CoverDecl fromType
-            if((type instanceOf?(This) && (type as This name endsWith?(" long") || type as This name == "long" || type as This name endsWith?(" int") ||
-                type as This name == "int" || type as This name endsWith?(" short") || type as This name == "short" ||
-                ((type as This name startsWith?("int") || type as This name startsWith?("uint")) && type as This name endsWith?("_t")) ||
-                type as This name == "size_t" || type as This name == "ssize_t"))) {
-
-                _integer = NumericState YES
-                return
-            }
-        } else if((name endsWith?(" long") || name == "long" || name endsWith?(" int") || name == "int" || name endsWith?(" short") || name == "short" ||
-                   ((name startsWith?("int") || name startsWith?("uint")) && name endsWith?("_t")) || name == "size_t" || name == "ssize_t")) {
+        if((name endsWith?(" long") || name == "long" || name endsWith?(" int") || name == "int" || name endsWith?(" short") || name == "short" ||
+          ((name startsWith?("int") || name startsWith?("uint")) && name endsWith?("_t")) || name == "size_t" || name == "ssize_t")) {
             _integer = NumericState YES
             return
         }
