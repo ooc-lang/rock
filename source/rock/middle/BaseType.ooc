@@ -331,7 +331,14 @@ BaseType: class extends Type {
                 }
             }
 
-            if(isNumericType() && other isNumericType()) {
+            thisNumber? := isNumericType()
+            otherNumber? := other isNumericType()
+            // We tried to calculate the numeric state of the type but couldn't, something needs resolving
+            if(_floatingPoint == NumericState UNKNOWN || (other instanceOf?(This) && other as This _floatingPoint == NumericState UNKNOWN)) {
+                return -1
+            }
+
+            if(thisNumber? && otherNumber?) {
                 // a mild match - it's not too good to mix integer types. Maybe we need more safety here?
                 return scoreSeed / 4
             }
@@ -352,7 +359,7 @@ BaseType: class extends Type {
             return
         }
 
-        _floatingPoint = NumericState NO
+        if(down) _floatingPoint = NumericState NO
     }
 
     _computeInteger: func {
@@ -368,7 +375,7 @@ BaseType: class extends Type {
             return
         }
 
-        _integer = NumericState NO
+        if(!down) _integer = NumericState NO
     }
 
     isNumericType: func -> Bool {
