@@ -381,9 +381,12 @@ BaseType: class extends Type {
         }
 
         down := dig()
-        if(down && down isIntegerType()) {
-            _integer = NumericState YES
-            return
+        while (down) {
+            if (down isIntegerType()) {
+                _integer = NumericState YES
+                return
+            }
+            down = down dig()
         }
 
         _integer = NumericState NO
