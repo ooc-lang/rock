@@ -76,9 +76,8 @@ CoverDecl: class extends TypeDecl {
         return Response OK
     }
 
-    resolveCallInFromType: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
+    resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
         if(fromType && fromType getRef() && fromType getRef() instanceOf?(TypeDecl)) {
-
             tDecl := fromType getRef() as TypeDecl
             meta := tDecl getMeta()
             if(meta) {
@@ -86,18 +85,23 @@ CoverDecl: class extends TypeDecl {
             } else {
                 tDecl resolveCall(call, res, trail)
             }
-
-        } else {
-            -1
         }
+
+        if(!call ref) {
+            return super(call, res, trail)
+        }
+        0
     }
 
-    resolveAccessInFromType: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
+    resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
         if(fromType && fromType getRef() && fromType getRef() instanceOf?(TypeDecl)) {
             fromType getRef() as TypeDecl resolveAccess(access, res, trail)
-        } else {
-            -1
         }
+
+        if(!access ref) {
+            return super(access, res, trail)
+        }
+        0
     }
 
     hasMeta?: func -> Bool {

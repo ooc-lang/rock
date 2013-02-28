@@ -198,11 +198,6 @@ VariableAccess: class extends Expression {
                                                            format(name, exprType toString())))
                     return Response OK
                 }
-
-                //If we did'nt get the ref, we try to get it from the cover's "from type"
-                if(!ref && typeDecl instanceOf?(CoverDecl)) {
-                    typeDecl as CoverDecl resolveAccessInFromType(this, res, trail)
-                }
             }
         }
 

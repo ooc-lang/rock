@@ -372,9 +372,9 @@ FunctionCall: class extends Expression {
                         tDecl resolveCall(this, res, trail)
                     }
 
-                    // If we still haven't got a match for the function and the expression is a cover, we try to look into the cover's "from type"
-                    if(!getRef() && tDecl instanceOf?(CoverDecl)) {
-                        tDecl as CoverDecl resolveCallInFromType(this, res, trail)
+                    // Last resort - If we haven't found our call and we do have a meta, try to resolve it in the non-meta anyway
+                    if(!ref && meta) {
+                        tDecl resolveCall(this, res, trail)
                     }
                 }
             }
