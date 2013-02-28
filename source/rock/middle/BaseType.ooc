@@ -331,14 +331,7 @@ BaseType: class extends Type {
                 }
             }
 
-            thisNumber? := isNumericType()
-            otherNumber? := other isNumericType()
-            // We tried to calculate the numeric state of the type but couldn't, something needs resolving
-            if(_floatingPoint == NumericState UNKNOWN || (other instanceOf?(This) && other as This _floatingPoint == NumericState UNKNOWN)) {
-                return -1
-            }
-
-            if(thisNumber? && otherNumber?) {
+            if(isNumericType() && other isNumericType()) {
                 // a mild match - it's not too good to mix integer types. Maybe we need more safety here?
                 return scoreSeed / 4
             }
