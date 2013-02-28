@@ -362,7 +362,7 @@ BaseType: class extends Type {
             down = down dig()
         }
 
-        if(!down) _floatingPoint = NumericState NO
+        _floatingPoint = NumericState NO
     }
 
     _computeInteger: func {
@@ -381,7 +381,7 @@ BaseType: class extends Type {
             down = down dig()
         }
 
-        if(!down) _integer = NumericState NO
+        _integer = NumericState NO
     }
 
     isNumericType: func -> Bool {
