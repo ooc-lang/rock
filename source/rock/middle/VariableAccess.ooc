@@ -190,7 +190,13 @@ VariableAccess: class extends Expression {
                     res wholeAgain(this, "unresolved access, looping")
                     return Response OK
                 }
+
                 typeDecl resolveAccess(this, res, trail)
+                if(exprType instanceOf?(PointerType)) {
+                    res throwError(InvalidAccess new(this, "Can't access field '%s' in expression of pointer type '%s' without dereferencing it first" \
+                                                           format(name, exprType toString())))
+                    return Response OK
+                }
 
                 //If we did'nt get the ref, we try to get it from the cover's "from type"
                 if(!ref && typeDecl instanceOf?(CoverDecl)) {
