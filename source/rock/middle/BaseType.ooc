@@ -354,12 +354,15 @@ BaseType: class extends Type {
         }
 
         down := dig()
-        if(down && down isFloatingPointType()) {
-            _floatingPoint = NumericState YES
-            return
+        while (down) {
+            if(down isFloatingPointType()) {
+                _floatingPoint = NumericState YES
+                return
+            }
+            down = down dig()
         }
 
-        if(down) _floatingPoint = NumericState NO
+        if(!down) _floatingPoint = NumericState NO
     }
 
     _computeInteger: func {
