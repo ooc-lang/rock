@@ -192,8 +192,9 @@ VariableAccess: class extends Expression {
                 }
 
                 typeDecl resolveAccess(this, res, trail)
-                if(exprType instanceOf?(PointerType)) {
-                    res throwError(InvalidAccess new(this, "Can't access field '%s' in expression of pointer type '%s' without dereferencing it first" \
+                // We dont use pointerLevel or instanceOf? because we want accesses of an ArrayType to be legal
+                if(exprType class == PointerType) {
+                    res throwError(NeedsDeref new(this, "Can't access field '%s' in expression of pointer type '%s' without dereferencing it first" \
                                                            format(name, exprType toString())))
                     return Response OK
                 }
@@ -498,5 +499,10 @@ InvalidAccess: class extends Error {
     }
 }
 
+NeedsDeref: class extends Error {
+    access: VariableAccess
 
-
+    init: func (=access, .message) {
+        super(access token, message)
+    }
+}
