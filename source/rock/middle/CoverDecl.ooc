@@ -95,6 +95,20 @@ CoverDecl: class extends TypeDecl {
 
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
         if(fromType && fromType getRef() && fromType getRef() instanceOf?(TypeDecl)) {
+            // Try to find out if we are covering a pointer so we can throw a "need dereferencing" error
+            burrowedFrom := fromType
+            while(burrowedFrom) {
+                if(!burrowedFrom getRef()) return -1
+
+                if(burrowedFrom class == PointerType) {
+                    res throwError(NeedsDeref new(access, "Can't access field '%s' in expression of pointer type '%s' without dereferencing it first" \
+                                                          format(access name, instanceType toString())))
+                }
+
+                if(!burrowedFrom getRef() instanceOf?(This)) break
+                burrowedFrom = burrowedFrom getRef() as This fromType
+            }
+
             fromType getRef() as TypeDecl resolveAccess(access, res, trail)
         }
 
