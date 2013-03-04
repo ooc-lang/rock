@@ -190,11 +190,13 @@ VariableAccess: class extends Expression {
                     res wholeAgain(this, "unresolved access, looping")
                     return Response OK
                 }
-                typeDecl resolveAccess(this, res, trail)
 
-                //If we did'nt get the ref, we try to get it from the cover's "from type"
-                if(!ref && typeDecl instanceOf?(CoverDecl)) {
-                    typeDecl as CoverDecl resolveAccessInFromType(this, res, trail)
+                typeDecl resolveAccess(this, res, trail)
+                // We dont use pointerLevel or instanceOf? because we want accesses of an ArrayType to be legal
+                if(exprType class == PointerType) {
+                    res throwError(NeedsDeref new(this, "Can't access field '%s' in expression of pointer type '%s' without dereferencing it first" \
+                                                           format(name, exprType toString())))
+                    return Response OK
                 }
             }
         }
@@ -492,5 +494,10 @@ InvalidAccess: class extends Error {
     }
 }
 
+NeedsDeref: class extends Error {
+    access: VariableAccess
 
-
+    init: func (=access, .message) {
+        super(access token, message)
+    }
+}
