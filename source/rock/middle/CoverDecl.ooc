@@ -76,9 +76,8 @@ CoverDecl: class extends TypeDecl {
         return Response OK
     }
 
-    resolveCallInFromType: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
+    resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
         if(fromType && fromType getRef() && fromType getRef() instanceOf?(TypeDecl)) {
-
             tDecl := fromType getRef() as TypeDecl
             meta := tDecl getMeta()
             if(meta) {
@@ -86,18 +85,37 @@ CoverDecl: class extends TypeDecl {
             } else {
                 tDecl resolveCall(call, res, trail)
             }
-
-        } else {
-            -1
         }
+
+        if(!call ref) {
+            return super(call, res, trail)
+        }
+        0
     }
 
-    resolveAccessInFromType: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
+    resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
         if(fromType && fromType getRef() && fromType getRef() instanceOf?(TypeDecl)) {
+            // Try to find out if we are covering a pointer so we can throw a "need dereferencing" error
+            burrowedFrom := fromType
+            while(burrowedFrom) {
+                if(!burrowedFrom getRef()) return -1
+
+                if(burrowedFrom class == PointerType) {
+                    res throwError(NeedsDeref new(access, "Can't access field '%s' in expression of pointer type '%s' without dereferencing it first" \
+                                                          format(access name, instanceType toString())))
+                }
+
+                if(!burrowedFrom getRef() instanceOf?(This)) break
+                burrowedFrom = burrowedFrom getRef() as This fromType
+            }
+
             fromType getRef() as TypeDecl resolveAccess(access, res, trail)
-        } else {
-            -1
         }
+
+        if(!access ref) {
+            return super(access, res, trail)
+        }
+        0
     }
 
     hasMeta?: func -> Bool {
