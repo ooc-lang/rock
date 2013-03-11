@@ -800,7 +800,13 @@ TypeDecl: abstract class extends Declaration {
                 // so we resolve ourselves to get a meaningful error message
                 // instead of getting a cryptic error on the call-side (like, 'No such function blah'
                 // where clearly such a function exists)
-                resolve(Trail new(token module), res)
+
+                if (trail indexOf(this) == -1) {
+                    // we're not in the trail yet, all good
+                    resolve(trail, res)
+                } else {
+                    return -1 // we don't want to enter a loop
+                }
             }
             return -1 // something's not resolved
         }
