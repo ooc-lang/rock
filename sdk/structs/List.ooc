@@ -192,12 +192,12 @@ List: abstract class <T> extends BackIterable<T> {
     shuffle: func -> This<T> {
         shuffled := emptyClone()
 
-        indexes := ArrayList<SSizeT> new()
+        indexes := ArrayList<Int> new()
         for(i in 0..getSize()) indexes add(i)
 
         while(!indexes empty?()) {
             i := Random randRange(0, indexes getSize())
-            shuffled add(this[indexes removeAt(i) as SSizeT])
+            shuffled add(this[indexes removeAt(i)])
         }
         shuffled
     }
