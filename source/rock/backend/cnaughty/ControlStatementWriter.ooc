@@ -69,7 +69,7 @@ ControlStatementWriter: abstract class extends Skeleton {
         // `case =>` as only match-case
         if (cazes getSize() == 1) {
             caze := cazes get(0)
-            if (!caze  getExpr()) {                 
+            if (!caze getExpr()) {                 
                 writeBody(caze)
                 return
             }
@@ -91,8 +91,6 @@ ControlStatementWriter: abstract class extends Skeleton {
                 if(currentCatchAll < catchAlls) current app("if (true) ")
                 currentCatchAll += 1
             } else {
-                // FIXME: wtf? (from the j/ooc codebase)
-                //if(case1 isFallthrough()) current app(' ')
                 current app("if ("). app(caze getExpr()). app(")")
             }
 
