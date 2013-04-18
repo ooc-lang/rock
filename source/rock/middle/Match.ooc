@@ -90,7 +90,7 @@ Match: class extends Expression {
                 unwrappedExpr = true
             } else {
                 if (res fatal) {
-                    res throwError(CouldntAddBeforeInScope new(token, parent, vdfe, trail))
+                    res throwError(CouldntAddBeforeInScope new(token, this, vdfe, trail))
                 }
                 res wholeAgain(this, "need to unwrap expr")
                 return Response OK
@@ -190,7 +190,7 @@ Match: class extends Expression {
             response := caze resolve(trail, res)
             if(!response ok()) {
                 trail pop(this)
-                rvDecleturn response
+                return response
             }
         }
         trail pop(this)
