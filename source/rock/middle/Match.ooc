@@ -51,8 +51,11 @@ Match: class extends Expression {
         current := head // our pointer
         caseToken := caze getExpr() token
         while (current instanceOf?(BinaryOp) && (current type == OpType and || current type == OpType or)) {
-            current right = Comparison new(expr, current right clone(), CompType equal, caseToken) //replace right node with a com 'expr == right'
-            if (!current left instanceOf?(BinaryOp)) { // workaround, otherwise the very left node wouldn't be correctly replaced
+            // replace right node with a com 'expr == right'
+            current right = Comparison new(expr, current right clone(), CompType equal, caseToken)
+
+            // workaround, otherwise the very left node wouldn't be correctly replaced
+            if (!current left instanceOf?(BinaryOp)) {
                 current left = Comparison new(expr, current left clone(), CompType equal, caseToken)
                 break
             }
@@ -60,8 +63,6 @@ Match: class extends Expression {
         }
         caze setExpr(head)
     }
-
-
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
         trail push(this)
