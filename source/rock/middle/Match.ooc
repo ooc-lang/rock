@@ -70,30 +70,49 @@ Match: class extends Expression {
         trail push(this)
 
         if (expr != null) {
+            running := true
+            while (running) {
+                match expr {
+                    case p: Parenthesis =>
+                        expr = p inner
+                    case =>
+                        running = false
+                }
+            }
+
             response := expr resolve(trail, res)
             if(!response ok()) {
                 trail pop(this)
                 return response
             }
-        }
 
-        if (!unwrappedExpr) {
-            // To avoid evaluating the match expression more than once, we
-            // unwrap it into a prior variable declaration - just for safety.
-            // As is, this code might unwrap more than necessary (e.g. a literal)
-            // We need a better way to determine whether an expression will have
-            // side effects when evaluating, but that's beyond the scope of
-            // that issue: https://github.com/nddrylliog/rock/issues/615
-            vdfe := VariableDecl new(null, generateTempName("matchExpr"), expr, expr token)
-            if (trail addBeforeInScope(this, vdfe)) {
-                expr = VariableAccess new(vdfe, vdfe token)
-                unwrappedExpr = true
-            } else {
-                if (res fatal) {
-                    res throwError(CouldntAddBeforeInScope new(token, this, vdfe, trail))
+            if (!unwrappedExpr) {
+                match expr {
+                    case vd: VariableDecl =>
+                        // vds unwrap themselves, no need to do it here
+                        unwrappedExpr = true
+                    case va: VariableAccess =>
+                        // all good
+                        unwrappedExpr = true
+                    case =>
+                        // To avoid evaluating the match expression more than once, we
+                        // unwrap it into a prior variable declaration - just for safety.
+                        // As is, this code might unwrap more than necessary (e.g. a literal)
+                        // We need a better way to determine whether an expression will have
+                        // side effects when evaluating, but that's beyond the scope of
+                        // that issue: https://github.com/nddrylliog/rock/issues/615
+                        vdfe := VariableDecl new(null, generateTempName("matchExpr"), expr, expr token)
+                        if (trail addBeforeInScope(this, vdfe)) {
+                            expr = VariableAccess new(vdfe, vdfe token)
+                            unwrappedExpr = true
+                        } else {
+                            if (res fatal) {
+                                res throwError(CouldntAddBeforeInScope new(token, this, vdfe, trail))
+                            }
+                            res wholeAgain(this, "need to unwrap expr")
+                            return Response OK
+                        }
                 }
-                res wholeAgain(this, "need to unwrap expr")
-                return Response OK
             }
         }
 
