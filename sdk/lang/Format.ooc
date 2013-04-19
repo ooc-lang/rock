@@ -256,9 +256,10 @@ parseArg: func(res: Buffer, info: FSInfoStruct*, va: VarArgsIterator*, p: Char*)
                 res append("(nil)")
             }
         case '%' =>
-                res append('%')
-                   mprintCall = false
-        case => mprintCall = false
+            res append('%')
+            mprintCall = false
+        case =>
+            mprintCall = false
     }
     if(mprintCall) {
         T := va@ getNextType()
@@ -332,16 +333,23 @@ format: func ~main <T> (fmt: T, args: ... ) -> T {
     ptr := getCharPtrFromStringType(fmt)
     end : Pointer = (ptr as SizeT + getSizeFromStringType(fmt) as SizeT) as Pointer
     while (ptr as Pointer < end) {
-        if (!va hasNext?()) {
-            res append(ptr, (end - ptr as Pointer) as SizeT)
-            break
-        }
         match (ptr@) {
             case '%' => {
-                info: FSInfoStruct
-                getEntityInfo(info&, va&, ptr, end)
-                ptr += info bytesProcessed
-                parseArg(res, info&, va&, ptr)
+                if (va hasNext?()) {
+                    info: FSInfoStruct
+                    getEntityInfo(info&, va&, ptr, end)
+                    ptr += info bytesProcessed
+                    parseArg(res, info&, va&, ptr)
+                } else {
+                    ptr += 1
+                    if (ptr@ == '%') {
+                        res append(ptr@)
+                    } else {
+                        // missing argument, display format string instead:
+                        res append('%')
+                        res append(ptr@)
+                    }
+                }
             }
             case => res append(ptr@)
         }
