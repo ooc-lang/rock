@@ -101,8 +101,7 @@ CoverDecl: class extends TypeDecl {
                 if(!burrowedFrom getRef()) return -1
 
                 if(burrowedFrom class == PointerType) {
-                    res throwError(NeedsDeref new(access, "Can't access field '%s' in expression of pointer type '%s' without dereferencing it first" \
-                                                          format(access name, instanceType toString())))
+                    return 0 // we can't access stuff in covers from pointer types
                 }
 
                 if(!burrowedFrom getRef() instanceOf?(This)) break
