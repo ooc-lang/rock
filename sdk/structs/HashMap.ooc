@@ -197,9 +197,8 @@ HashMap: class <K, V> extends BackIterable<V> {
      * @param UInt capacity The number of buckets to use
      * @return HashTable
      */
-    init: func ~withCapacity (capaArg: SizeT) {
+    init: func ~withCapacity (=capacity) {
         _size = 0
-        capacity = capaArg * 1.5
 
         buckets = HashEntry[capacity] new()
 
