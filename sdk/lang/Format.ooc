@@ -145,7 +145,7 @@ m_printn: func <T> (res: Buffer, info: FSInfoStruct@, arg: T) {
 }
 
 getCharPtrFromStringType: func <T> (s : T) -> Char* {
-    res : Char*
+    res : Char* = null
     match (T) {
         case String => res = s as String ? s as String toCString() : null
         case Buffer => res = s as Buffer ? s as Buffer toCString() : null
@@ -162,7 +162,7 @@ getCharPtrFromStringType: func <T> (s : T) -> Char* {
 }
 
 getSizeFromStringType: func<T> (s : T) -> SizeT {
-    res : SizeT
+    res : SizeT = 0
     match (T) {
         case String => res = s as String _buffer size
         case Buffer => res = s as Buffer size
