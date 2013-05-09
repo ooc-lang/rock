@@ -3,6 +3,8 @@ use math
 
 PI := 3.14159_26535_89793_23846_26433_83279
 
+abs: extern func (Int) -> Int
+
 cos: extern func (Double) -> Double
 sin: extern func (Double) -> Double
 tan: extern func (Double) -> Double
