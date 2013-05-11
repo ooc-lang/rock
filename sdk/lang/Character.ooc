@@ -200,7 +200,10 @@ CString: cover from Char* {
         return true
     }
 
-    toString: func -> String { String new(this, length()) }
+    toString: func -> String {
+        if (this == null) return null
+        String new(this, length())
+    }
 
     /** return the string's length, excluding the null byte. */
     length: extern(strlen) func -> Int
