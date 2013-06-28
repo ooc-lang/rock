@@ -6,7 +6,7 @@
 #define array_malloc GC_malloc
 #define array_free GC_free
 #else
-#define array_malloc malloc
+#define array_malloc(size) calloc(1, (size))
 #define array_free free
 #endif // GC
 
