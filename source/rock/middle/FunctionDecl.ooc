@@ -376,6 +376,46 @@ FunctionDecl: class extends Declaration {
 
     isResolved: func -> Bool { false }
 
+    eachTypeArgMappingUntil: func (typeArgName: String, f: Func (Int, String) -> Bool) {
+        i := -1
+        for (arg in args) {
+            i += 1
+            if (arg getType() == null) continue
+
+            if (debugCondition()) "Looking for typeArg %s in arg's type %s" printfln(typeArgName, arg getType() toString())
+
+            type := arg getType()
+            typeArgs := type getTypeArgs()
+
+            if (typeArgs == null) continue
+            j := -1
+            for (typeArg in typeArgs) {
+                j += 1
+                if (debugCondition()) "%s vs %s" printfln(typeArg getName(), typeArgName)
+
+                if (typeArg getName() == typeArgName) {
+                    // found it! now get the real typeArgName and resolve that.
+                    if (!type getRef() instanceOf?(TypeDecl)) {
+                        if (debugCondition()) "Ref isn't a type, it's: %s" printfln(type getRef() toString())
+                        continue
+                    }
+                    typeRef := type getRef() as TypeDecl
+
+                    typeRefTypeArgs := typeRef getTypeArgs()
+                    if (typeRefTypeArgs == null) {
+                        if (debugCondition()) "Type args of %s is null" printfln(typeRef toString())
+                        continue
+                    }
+                    realTypeArgName := typeRefTypeArgs get(j) getName()
+
+                    if (!f(i, realTypeArgName)) {
+                        return // all good!
+                    }
+                }
+            }
+        }
+    }
+
     resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
 
         for(typeArg: VariableDecl in typeArgs) {
