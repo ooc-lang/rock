@@ -156,7 +156,7 @@ FunctionCall: class extends Expression {
      * a return expression, when it's being used.
      */
     debugCondition: inline func -> Bool {
-        false
+        name == "peekaboo"
     }
 
     /**
@@ -1055,15 +1055,54 @@ FunctionCall: class extends Expression {
                 }
 
                 /* myFunction: func <T> (myArg: OtherType<T>) */
-                for(arg in args) {
-                    if(arg getType() == null) continue
+                if (ref) {
+                    i := -1
+                    for (refArg in ref args) {
+                        i += 1
+                        if (refArg getType() == null) continue
 
-                    if(debugCondition()) "Looking for typeArg %s in arg's type %s" printfln(typeArgName, arg getType() toString())
-                    result := arg getType() searchTypeArg(typeArgName, finalScore&)
-                    if(finalScore == -1) return null // something has to be resolved further!
-                    if(result) {
-                        if(debugCondition()) "Found match for arg %s! Hence, result = %s (cause arg = %s)" printfln(typeArgName, result toString(), arg toString())
-                        return result
+                        if (debugCondition()) "Looking for typeArg %s in arg's type %s" printfln(typeArgName, refArg getType() toString())
+
+                        type := refArg getType()
+                        typeArgs := type getTypeArgs()
+
+                        if (typeArgs == null) continue
+                        j := -1
+                        for (refTypeArg in typeArgs) {
+                            j += 1
+                            if (debugCondition()) "%s vs %s" printfln(refTypeArg getName(), typeArgName)
+
+                            if (refTypeArg getName() == typeArgName) {
+                                // found it! now get the real typeArgName and resolve that.
+                                if (!type getRef() instanceOf?(TypeDecl)) {
+                                    if (debugCondition()) "Ref isn't a type, it's: %s" printfln(type getRef() toString())
+                                    continue
+                                }
+                                typeRef := type getRef() as TypeDecl
+
+                                typeRefTypeArgs := typeRef getTypeArgs()
+                                if (typeRefTypeArgs == null) {
+                                    if (debugCondition()) "Type args of %s is null" printfln(typeRef toString())
+                                    continue
+                                }
+                                realTypeArgName := typeRefTypeArgs get(j) getName()
+
+                                arg := args get(i)
+                                if (arg getType() == null) {
+                                    if (debugCondition()) "Type of arg %s is null" printfln(arg toString())
+                                    continue
+                                }
+
+                                if (debugCondition()) "Mapped %s to %s, searching for it in %s" printfln(typeArgName, realTypeArgName, arg toString())
+
+                                result := arg getType() searchTypeArg(realTypeArgName, finalScore&)
+                                if(finalScore == -1) return null // something has to be resolved further!
+                                if(result) {
+                                    if(debugCondition()) "Found match for arg %s! Hence, result = %s (cause arg = %s)" printfln(typeArgName, result toString(), arg toString())
+                                    return result
+                                }
+                            }
+                        }
                     }
                 }
             }
