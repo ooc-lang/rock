@@ -841,7 +841,9 @@ TypeDecl: abstract class extends Declaration {
                 if(vDecl getType() instanceOf?(FuncType)) {
                     if(call suggest(vDecl getFunctionDecl(), res, trail)) {
                         if(call getExpr() == null) {
-                            call setExpr(VariableAccess new("this", call token))
+                            // if the variable is static, use class scope not instance
+                            name := vDecl isStatic() ? "This" : "this"
+                            call setExpr(VariableAccess new(name, call token))
                         }
                     }
                 }
