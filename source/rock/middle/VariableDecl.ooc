@@ -2,7 +2,7 @@ import structs/[ArrayList]
 import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
        Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast, Module,
        Block, Scope, FunctionDecl, Argument, BaseType, FuncType, Statement,
-       NullLiteral, Tuple, TypeList
+       NullLiteral, Tuple, TypeList, AddressOf
 import tinker/[Response, Resolver, Trail, Errors]
 import ../frontend/BuildParams
 
@@ -406,10 +406,15 @@ VariableDecl: class extends Declaration {
             mode := "v"
             if(closure isAnon()) {
                 if(clsAccess) {
+                    // In the case of an assignment or of getting the address of the variable in the ACS the
+                    // variable should be captured by reference
                     bOpIDX := trail find(BinaryOp)
-                    if (trail find(BinaryOp) != -1) {
+                    if(bOpIDX != -1) {
                         bOp := trail get(bOpIDX, BinaryOp)
                         if (bOp getLeft() == clsAccess && bOp isAssign()) mode = "r"
+                    } else if((addrOfIDX := trail find(AddressOf)) != -1) {
+                        addrOf := trail get(addrOfIDX, AddressOf)
+                        if(addrOf expr == clsAccess) mode = "r"
                     }
                 }
 
