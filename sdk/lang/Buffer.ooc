@@ -224,9 +224,10 @@ Buffer: class extends Iterable<Char> {
     /** return a new string containg *other* followed by *this*. */
     prepend: func ~pointer (other: Char*, otherLength: SizeT) {
         if (_rshift() < otherLength) {
-            newthis := This new (size + otherLength)
+            newthis := This new(size + otherLength)
             memcpy(newthis data, other, otherLength)
             memcpy(newthis data + otherLength, data, size)
+            newthis setLength(size + otherLength)
             setBuffer(newthis)
         } else {
             // seems we have enough room on the left
