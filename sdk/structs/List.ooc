@@ -298,7 +298,7 @@ List: abstract class <T> extends BackIterable<T> {
 
             match T {
                 case String => result append((item as String) _buffer)
-                case Buffer  => result append(item as Buffer)
+                case Buffer => result append(item as Buffer)
                 case Char   => result append(item as Char)
                 case        => Exception new("You cannot use `List join` with %s instances." format(this T name toCString())) throw()
             }

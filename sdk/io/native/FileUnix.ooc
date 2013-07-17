@@ -175,7 +175,7 @@ version (unix || apple) {
             actualPath := gc_malloc(MAX_PATH_LENGTH) as CString
             ret := realpath(path, actualPath)
             if (ret == null) OSException new("failed to get absolute path for " + path) throw()
-            String new(actualPath)
+            actualPath toString()
         }
 
         /**

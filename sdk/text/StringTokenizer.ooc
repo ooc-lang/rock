@@ -36,7 +36,7 @@ extend Buffer {
         split(delimiter data, delimiter size, maxTokens)
     }
 
-    split: func ~pointer (delimiter: Char*, delimiterLength:SizeT, maxTokens: SSizeT) -> ArrayList<This> {
+    split: func ~pointer (delimiter: Char*, delimiterLength: SizeT, maxTokens: SSizeT) -> ArrayList<This> {
         findResults := findAll(delimiter, delimiterLength, true)
         maxItems := ((maxTokens <= 0) || (maxTokens > findResults size + 1)) ? findResults size + 1 : maxTokens
         result := ArrayList<This> new(maxItems)

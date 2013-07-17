@@ -101,27 +101,27 @@ File: abstract class {
     }
 
     /**
-     * :return: true if it's a directory
+     * @return true if it's a directory
      */
     dir?: abstract func -> Bool
 
     /**
-     * :return: true if it's a file (ie. not a directory nor a symbolic link)
+     * @return true if it's a file (ie. not a directory nor a symbolic link)
      */
     file?: abstract func -> Bool
 
     /**
-     * :return: true if the file is a symbolic link
+     * @return true if the file is a symbolic link
      */
     link?: abstract func -> Bool
 
     /**
-     * :return: the size of the file, in bytes
+     * @return the size of the file, in bytes
      */
     getSize: abstract func -> LLong
 
     /**
-     * :return: true if the file exists and can be
+     * @return true if the file exists and can be
      * opened for reading
      */
     exists?: func -> Bool {
@@ -134,17 +134,17 @@ File: abstract class {
     }
 
     /**
-     * :return: the permissions for the owner of this file
+     * @return the permissions for the owner of this file
      */
     ownerPerm: abstract func -> Int
 
     /**
-     * :return: the permissions for the group of this file
+     * @return the permissions for the group of this file
      */
     groupPerm: abstract func -> Int
 
     /**
-     * :return: the permissions for the others (not owner, not group)
+     * @return the permissions for the others (not owner, not group)
      */
     otherPerm: abstract func -> Int
 
@@ -156,7 +156,7 @@ File: abstract class {
     }
 
     /**
-     * :return: the last part of the path, e.g. for /etc/init.d/bluetooth
+     * @return the last part of the path, e.g. for /etc/init.d/bluetooth
      * name() will return 'bluetooth'
      */
     getName: func -> String {
@@ -167,7 +167,7 @@ File: abstract class {
     }
 
     /**
-     * :return: the parent of this file, e.g. for /etc/init.d/bluetooth
+     * @return the parent of this file, e.g. for /etc/init.d/bluetooth
      * it will return /etc/init.d/ (as a File), or null if it's the
      * root directory.
      */
@@ -179,7 +179,7 @@ File: abstract class {
     }
 
     /**
-     * :return: the parent of this file, e.g. for /etc/init.d/bluetooth
+     * @return the parent of this file, e.g. for /etc/init.d/bluetooth
      * it will return /etc/init.d/ (as a File), or null if it's the
      * root directory.
      */
@@ -243,22 +243,22 @@ File: abstract class {
     }
 
     /**
-     * :return: the time of last access
+     * @return the time of last access
      */
     lastAccessed: abstract func -> Long
 
     /**
-     * :return: the time of last modification
+     * @return the time of last modification
      */
     lastModified: abstract func -> Long
 
     /**
-     * :return: the time of creation
+     * @return the time of creation
      */
     created: abstract func -> Long
 
     /**
-     * :return: true if the function is relative to the current directory
+     * @return true if the function is relative to the current directory
      */
     relative?: abstract func -> Bool
 
@@ -270,7 +270,7 @@ File: abstract class {
     /**
      * A file corresponding to the absolute path
      *
-     * :see: getAbsolutePath
+     * @see getAbsolutePath
      */
     getAbsoluteFile: func -> This {
         new(getAbsolutePath())
@@ -282,7 +282,8 @@ File: abstract class {
     getReducedPath: func -> String {
         elems := ArrayList<String> new()
 
-        for (elem in path split(This separator)) {
+        tokens := path split(This separator)
+        for (elem in tokens) {
             if (elem == "..") {
                 if (!elems empty?()) {
                     elems removeAt(elems lastIndex())
@@ -299,13 +300,13 @@ File: abstract class {
         result := elems join(This separator)
         if (path startsWith?(This separator)) {
             result = This separator + result
-        }        
+        }
 
         result
     }
 
     /**
-     * :return: a new File with resolved redundancies
+     * @return a new File with resolved redundancies
      */
     getReducedFile: func -> This {
         new(getReducedPath())
@@ -352,7 +353,7 @@ File: abstract class {
     }
 
     /**
-       :return: The content of this file, as a String
+       @return The content of this file, as a String
      */
     read: func -> String {
         fR := FileReader new(this)
@@ -364,7 +365,7 @@ File: abstract class {
     /**
        Write a string to this file.
 
-       :param: str The string to write
+       @param str The string to write
      */
     write: func ~string (str: String) {
         FileWriter new(this) write(BufferReader new(str _buffer)) .close()
@@ -373,21 +374,21 @@ File: abstract class {
     /**
        Write from a reader to this file
 
-       :param: reader What to write in the file
+       @param reader What to write in the file
      */
     write: func ~reader (reader: Reader) {
         FileWriter new(this) write(reader) . close()
     }
 
     /**
-       Walk this directory and call `f` on all files it contains, recursively.
-
-       If `f` returns false, stop walking.
-
-       If we're not a directory, calls f(this) once and returns true.
-
-       :return: true if we finished walking normally, false if we
-       got cancelled by `f` returning false.
+     * Walk this directory and call `f` on all files it contains, recursively.
+     *
+     * If `f` returns false, stop walking.
+     *
+     * If we're not a directory, calls f(this) once and returns true.
+     *
+     * @return true if we finished walking normally, false if we
+     * got cancelled by `f` returning false.
      */
     walk: func (f: Func(This) -> Bool) -> Bool {
         if (file?()) {
@@ -402,25 +403,47 @@ File: abstract class {
     }
 
     /**
+     * If this file has path:
+     *
+     * some/base/directory/sub/path
+     *
+     * And base is a file like:
+     *
+     * some/base/directory
+     *
+     * This method will return a File with path "sub/path"
+     */
+    rebase: func (base: File) -> File {
+        left := base getReducedFile() getAbsolutePath() replaceAll(File separator, '/')
+        full := getReducedFile() getAbsolutePath() replaceAll(File separator, '/')
+
+        if (!left endsWith?("/")) {
+            left = left + "/"
+        }
+        right := full substring(left size)
+        File new(right)
+    }
+
+    /**
        Get a child of this path
 
-       :param: childPath The name of the child, relatively to this path
+       @param childPath The name of the child, relatively to this path
      */
     getChild: func (childPath: String) -> This {
         new(this path, childPath)
     }
 
     /**
-       Get a child of this path
-
-       :param: file A child file - with a path relative to our own path
+     * Get a child of this path
+     *
+     * @param file A child file - with a path relative to our own path
      */
     getChild: func ~file (file: This) -> This {
         getChild(file path)
     }
 
     /**
-       :return: the current working directory
+     * @return the current working directory
      */
     getCwd: static func -> String {
         ooc_get_cwd()

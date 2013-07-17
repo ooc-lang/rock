@@ -183,7 +183,7 @@ CString: cover from Char* {
         result[length] = '\0'
         result as This
     }
-        /** return a copy of *this*. */
+    /** return a copy of *this*. */
     clone: func -> This {
         length := length()
         copy := This new(length)
