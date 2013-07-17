@@ -10,8 +10,10 @@ errno : extern Int
 SIGTERM: extern Int
 SIGKILL: extern Int
 SIGSEGV: extern Int
+SIGABRT: extern Int
 
 kill: extern func (Long, Int)
+signal: extern func (Int, Pointer)
 
 /**
    Process implementation for *nix
@@ -44,19 +46,49 @@ ProcessUnix: class extends Process {
         if(stdIn != null) {
             stdIn close('w')
         }
+
         waitpid(-1, status&, 0)
-        pid = status
+        err := errno
+
+        if (status == -1) {
+            errString := strerror(err)
+            Exception new("Process wait(): %s" format(errString toString())) throw()
+        }
+
         if (WIFEXITED(status)) {
             result = WEXITSTATUS(status)
-            if (stdOut != null) {
-                stdOut close('w')
+        } else if(WIFSIGNALED(status)) {
+            termSig := WTERMSIG(status)
+            message := "Child received signal %d" format(termSig)
+
+            match termSig {
+                case SIGSEGV =>
+                    message = message + " (Segmentation fault)"
+                case SIGABRT =>
+                    message = message + " (Abort)"
+                case =>
+                    // pffrt.
             }
-            if (stdErr != null) {
-                stdErr close('w')
+
+            message = message + "\n"
+            if (stdErr) stdErr write(message)
+            else stderr write(message)
+
+            /*
+            if (termSig == SIGABRT) {
+                // otherwise we'll hang
+                "killing" println()
+                kill()
+                "killed!" println()
             }
-        } else if(WIFSIGNALED(status) && WTERMSIG(status) == SIGSEGV) {
-            if(stdErr) stdErr write("Segmentation fault\n")
-            else stderr write("Segmentation fault\n")
+            */
+        }
+
+        if (stdOut != null) {
+            stdOut close('w')
+        }
+        if (stdErr != null) {
+            stdErr close('w')
         }
 
         return result
@@ -98,15 +130,23 @@ ProcessUnix: class extends Process {
             /* run the stuff. */
             cArgs : CString * = gc_malloc(Pointer size * (args getSize() + 1))
             for(i in 0..args getSize()) {
-//            args getSize() times(|i| // FIXME: Yes, I'd really like to do a closure here, but it breaks cross-platform awesomess. Yes really.
+                // FIXME: Yes, I'd really like to do a closure here, but it breaks cross-platform awesomess. Yes really.
+                // args getSize() times(|i| 
                 cArgs[i] = args[i] toCString()
             }
             cArgs[args getSize()] = null // null-terminated - makes sense
+
+            signal(SIGABRT, sigabrtHandler)
 
             execvp(cArgs[0], cArgs)
             exit(errno) // don't allow the forked process to continue if execvp fails
         }
         return pid
+    }
+
+    sigabrtHandler: static func {
+        "Got a sigabrt" println()
+        exit(255)
     }
 
 }
