@@ -10,6 +10,7 @@ bin-win32
 bin-linux
 *tmp*
 .libs
+.sam-cache
 callgrind.out.*
 
 # This is ugly, BUT IT WORKS.
