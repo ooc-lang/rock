@@ -237,7 +237,7 @@ File: abstract class {
     mkdirs: func ~withMode (mode: Int32) -> Int {
         p := parent
         if (p) {
-            p mkdirs()
+            p mkdirs(mode)
         }
         mkdir()
     }
