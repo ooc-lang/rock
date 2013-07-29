@@ -136,8 +136,17 @@ String: class extends Iterable<Char> {
         (_buffer clone()) toLower(). toString()
     }
 
-    toUpper: func  -> This{
+    toUpper: func -> This {
         (_buffer clone()) toUpper(). toString()
+    }
+
+    capitalize: func -> This {
+        match (size) {
+            case 0 => this
+            case 1 => toUpper()
+            case =>
+                this[0..1] toUpper() + this[1..-1]
+        }
     }
 
     indexOf: func ~char (c: Char, start: SSizeT = 0) -> SSizeT { _buffer indexOf(c, start) }
