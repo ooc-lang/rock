@@ -38,9 +38,7 @@ PipeWin32: class extends Pipe {
 
     /** read 'len' bytes at most from the pipe */
     read: func(bytesRequested: Int) -> Pointer {
-        howmuch: Long
-
-        totalBytesAvail: Long
+        totalBytesAvail: ULong
         if(!PeekNamedPipe(readFD, null, 0, null, totalBytesAvail&, null)) {
             Exception new(This, "Couldn't peek pipe") throw()
         }
@@ -52,7 +50,7 @@ PipeWin32: class extends Pipe {
         bytesAsked := totalBytesAvail > bytesRequested ? bytesRequested : totalBytesAvail
         buffer :=  Buffer new(bytesAsked + 1)
 
-        bytesRead: Long
+        bytesRead: ULong
         if(!ReadFile(readFD, buffer data, bytesAsked, bytesRead&, null)) {
             if(GetLastError() == ERROR_HANDLE_EOF) {
                 // then it's okay

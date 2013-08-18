@@ -22,7 +22,7 @@ version(windows) {
     ThreadWin32: class extends Thread {
 
         handle: Handle
-        threadID: Long
+        threadID: ULong
 
         init: func ~win (=_code) {}
 

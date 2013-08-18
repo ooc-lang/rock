@@ -38,15 +38,12 @@ ProcessWin32: class extends Process {
     wait: func -> Int {
         CloseHandle(pi thread)
         // Wait until child process exits.
-        WaitForSingleObject(pi process, INFINITE);
+        WaitForSingleObject(pi process, INFINITE)
 
-
-        exitCode : Long
+        exitCode: ULong
         GetExitCodeProcess(pi process, exitCode&)
 
         CloseHandle(pi process)
-
-
         exitCode
     }
 
@@ -111,9 +108,10 @@ ProcessWin32: class extends Process {
 
 // extern functions
 ZeroMemory: extern func (Pointer, SizeT)
-CreateProcess: extern func (...) -> Bool // laziness
-WaitForSingleObject: extern func (...) // laziness
-GetExitCodeProcess: extern func (...) -> Int // laziness
+CreateProcess: extern func (CString, CString, Pointer, Pointer, 
+    Bool, Long, Pointer, CString, Pointer, Pointer) -> Bool
+WaitForSingleObject: extern func (Handle, Long)
+GetExitCodeProcess: extern func (Handle, ULong*) -> Int
 CloseHandle: extern func (Handle)
 SetHandleInformation: extern func (Handle, Long, Long) -> Bool
 
