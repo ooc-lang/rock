@@ -47,7 +47,7 @@ ProcessUnix: class extends Process {
             stdIn close('w')
         }
 
-        waitpid(-1, status&, 0)
+        waitpid(pid, status&, 0)
         err := errno
 
         if (status == -1) {
