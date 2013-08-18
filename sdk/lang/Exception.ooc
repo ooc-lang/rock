@@ -11,7 +11,6 @@
 
  */
 import threading/Thread, structs/Stack, structs/LinkedList
-import native/win32/errors
 
 include setjmp, assert, errno
 
@@ -77,27 +76,15 @@ _hasStackFrame: inline func -> Bool {
 assert: extern func(Bool)
 
 version(windows) {
-    DWORD: cover from Long
-    LPTSTR: cover from CString
-    FormatMessage: extern func(dwFlags: DWORD, lpSource: Pointer, dwMessageId: DWORD, dwLanguageId: DWORD,
-        lpBuffer: LPTSTR, nSize: DWORD, Arguments: VaList*) -> DWORD
-    FORMAT_MESSAGE_FROM_SYSTEM: extern Long
-    FORMAT_MESSAGE_IGNORE_INSERTS: extern Long
-    FORMAT_MESSAGE_ARGUMENT_ARRAY: extern Long
+    import native/win32/[types, errors]
+
     getOSErrorCode: func -> Int {
         GetLastError()
     }
+
     getOSError: func -> String {
-        err : DWORD = GetLastError()
-        BUF_SIZE := 256
-        buf := Buffer new(BUF_SIZE)
-        len : SSizeT = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_ARGUMENT_ARRAY,
-            null, err, 0, buf data as CString, BUF_SIZE, null)
-        buf setLength(len)
-        // rip away trailing CR LF TAB SPACES etc.
-        while ((len > 0) && (buf[len - 1] as Octet < 32)) len -= 1
-        buf setLength(len)
-        buf toString()
+        GetWindowsErrorMessage(GetLastError())
+        
     }
 } else {
     errno: extern Int

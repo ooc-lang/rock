@@ -77,4 +77,7 @@ version(windows) {
         return date quadPart / 10000000;
     }
 
+    DWORD: extern cover from Long
+    LPTSTR: extern cover from CString
+
 }
