@@ -61,43 +61,11 @@ File: abstract class {
     }
 
     /**
-       Create a File object, relative to the given parent file
+       Create a File object, from various path elements,
+       which can be either 
      */
-    new: static func ~parentFile (parent: This, .path) -> This {
-        assert(parent != null)
-        assert(parent path != null)
-        assert(!parent path empty?())
-        new(parent path + This separator + path)
-    }
-
-    /**
-       Create a File object, relative to the given parent file
-     */
-    new: static func ~parentFileChildFile (parent, child: This) -> This {
-        assert(parent != null)
-        assert(parent path != null)
-        assert(!parent path empty?())
-        assert(child != null)
-        assert(child path != null)
-        assert(!child path empty?())
-        new(parent path + This separator + child path)
-    }
-
-    /**
-       Create a File object, relative to the given parent file
-     */
-    new: static func ~parentPathChildFile (parent: String, child: This) -> This {
-        assert(child != null)
-        assert(child path != null)
-        assert(!child path empty?())
-        new(parent + This separator + child path)
-    }
-
-    /**
-       Create a File object, relative to the given parent path
-     */
-    new: static func ~parentPath (parent: String, .path) -> This {
-        return new(parent + This separator + path)
+    new: static func ~assemble (args: ...) -> This {
+        This new(This join(args))
     }
 
     /**
@@ -447,6 +415,31 @@ File: abstract class {
      */
     getCwd: static func -> String {
         ooc_get_cwd()
+    }
+
+    /**
+     * Construct a path from any number of File(s) or String(s)
+     */
+    join: static func (args: ...) -> String {
+        first := true
+
+        result := Buffer new()
+
+        args each(|arg|
+            path := match arg {
+                case f: File =>
+                    f path
+                case s: String =>
+                    s
+            }
+            if (first) {
+                first = false
+            } else {
+                result append(separator)
+            }
+            result append(path)
+        )
+        result toString()
     }
 
 }
