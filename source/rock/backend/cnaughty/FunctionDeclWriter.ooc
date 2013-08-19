@@ -185,7 +185,8 @@ FunctionDeclWriter: abstract class extends Skeleton {
                     current app(arg name)
                 case ArgsWriteModes TYPES_ONLY =>
                     {
-                        if(arg instanceOf?(VarArg)) {
+                        if(arg instanceOf?(VarArg) && arg name == null) {
+                            // c vararg
                             current app("...")
                         } else {
                             current app(arg type)
