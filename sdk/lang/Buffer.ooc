@@ -113,8 +113,8 @@ Buffer: class extends Iterable<Char> {
 
     /** sets capacity and size flag, and a zero termination */
     setLength: func (newLength: SizeT) {
-        if(newLength != size) {
-            if(newLength > capacity) {
+        if(newLength != size || newLength == 0) {
+            if(newLength > capacity || newLength == 0) {
                 setCapacity(newLength)
             }
             size = newLength
