@@ -46,7 +46,7 @@ Socket: abstract class {
     /**
        Returns the number of bytes currently waiting to be consumed. This function is
        NON BLOCKING and therefore don't rely on it for halting execution while data is
-       recieved. You may want to look at 'wait()'
+       received. You may want to look at 'wait()'
      */
     available: func -> Int {
         result: Int
@@ -55,7 +55,7 @@ Socket: abstract class {
     }
 
     /**
-       Waits on the socket for data to be recieved or a timeout. If sucessful the return value
+       Waits on the socket for data to be received or a timeout. If sucessful the return value
        is the number of bytes waiting to be consumed.
 
        :param timeoutSec: The timeout in seconds before wait is returned without data available.
@@ -82,7 +82,7 @@ Socket: abstract class {
      }
 
     /**
-      Waits on the socket for data to be recieved or a timeout. If sucessful the return value
+      Waits on the socket for data to be received or a timeout. If sucessful the return value
       is the number of bytes waiting to be consumed.
 
       :param timeoutSec: The timeout in seconds before wait is returned without data available.
