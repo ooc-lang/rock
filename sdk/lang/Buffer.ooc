@@ -12,10 +12,10 @@ import structs/ArrayList
 Buffer: class extends Iterable<Char> {
     
     /** size of the buffer, in bytes, e.g. how much bytes do we store currently */
-    size: SizeT
+    size: Int
 
     /** capacity of the buffer, in bytes, e.g. how much bytes we can store before resizing. */
-    capacity: SizeT
+    capacity: Int
 
     /**
      * Original pointer to the allocated memory - a reference is kept here
@@ -48,7 +48,7 @@ Buffer: class extends Iterable<Char> {
     /**
      * Create a new, empty buffer that can hold 'capacity' bytes before being resized.
      */
-    init: func (capacity: SizeT) {
+    init: func (capacity: Int) {
         setCapacity(capacity)
     }
 
@@ -56,7 +56,7 @@ Buffer: class extends Iterable<Char> {
      * Create a new String from a zero-terminated C String with known length
      * optional flag for stringliteral initializaion with zero copying
      */
-    init: func ~cStrWithLength(s: CString, length: SizeT, stringLiteral? := false) {
+    init: func ~cStrWithLength(s: CString, length: Int, stringLiteral? := false) {
         if(stringLiteral?) {
             data = s
             size = length
@@ -71,7 +71,7 @@ Buffer: class extends Iterable<Char> {
     /**
      * @return the number of characters in this String
      */
-    length: func -> SizeT { size }
+    length: func -> Int { size }
 
     /**
      * Adjust this buffer's capacity, reallocate memory if needed.
@@ -79,7 +79,7 @@ Buffer: class extends Iterable<Char> {
      * @param newCapacity The number of bytes (not characters) this buffer
      * should be capable of storing
      */
-    setCapacity: func (newCapacity: SizeT) {
+    setCapacity: func (newCapacity: Int) {
         rshift := _rshift()
         min := newCapacity + 1 + rshift
         
@@ -112,9 +112,9 @@ Buffer: class extends Iterable<Char> {
     }
 
     /** sets capacity and size flag, and a zero termination */
-    setLength: func (newLength: SizeT) {
-        if(newLength != size) {
-            if(newLength > capacity) {
+    setLength: func (newLength: Int) {
+        if(newLength != size || newLength == 0) {
+            if(newLength > capacity || newLength == 0) {
                 setCapacity(newLength)
             }
             size = newLength
@@ -163,14 +163,14 @@ Buffer: class extends Iterable<Char> {
         copy
     }
 
-    substring: func ~tillEnd (start: SizeT) {
+    substring: func ~tillEnd (start: Int) {
         substring(start, size)
     }
 
     /** *this* will be reduced to the characters in the range ``start..end``
     	The substring begins at the specified start and extends to the character at index end - 1.
     	So the length of the substring is end-start */
-    substring: func (start: SSizeT, end: SSizeT) {
+    substring: func (start: Int, end: Int) {
 		if(start < 0) start += size + 1
 		if(end < 0) end += size + 1
 		if(end != size) setLength(end)
@@ -178,7 +178,7 @@ Buffer: class extends Iterable<Char> {
 	}
 
     /** return a This that contains *this*, repeated *count* times. */
-    times: func (count: SizeT) {
+    times: func (count: Int) {
         origSize := size
         setLength(size * count)
         for(i in 1..count) { // we start at 1, since the 0 entry is already there
@@ -197,13 +197,13 @@ Buffer: class extends Iterable<Char> {
     }
 
     /** appends *other* to *this* */
-    append: func ~pointer (other: Char*, otherLength: SizeT) {
+    append: func ~pointer (other: Char*, otherLength: Int) {
         origlen := size
         setLength(size + otherLength)
         memcpy(data + origlen, other, otherLength)
     }
 
-    append: func ~bufLength (other: This, otherLength: SizeT) {
+    append: func ~bufLength (other: This, otherLength: Int) {
         append(other data, otherLength)
     }
 
@@ -222,7 +222,7 @@ Buffer: class extends Iterable<Char> {
     }
 
     /** return a new string containg *other* followed by *this*. */
-    prepend: func ~pointer (other: Char*, otherLength: SizeT) {
+    prepend: func ~pointer (other: Char*, otherLength: Int) {
         if (_rshift() < otherLength) {
             newthis := This new(size + otherLength)
             memcpy(newthis data, other, otherLength)
@@ -248,7 +248,7 @@ Buffer: class extends Iterable<Char> {
 
     /** compare *length* characters of *this* with *other*, starting at *start*.
         Return true if the two strings are equal, return false if they are not. */
-    compare: func (other: This, start, length: SSizeT) -> Bool {
+    compare: func (other: This, start, length: Int) -> Bool {
         //"comparing %s and %s, start = %zd, length = %zd, size = %zd, start + length = %zd" printfln(data, other data, start, length, size, start + length)
         if (size < (start + length) || other size < length) return false
         
@@ -292,7 +292,7 @@ Buffer: class extends Iterable<Char> {
         (size > 0) && data[size] == c
     }
 
-    find: func ~char (what: Char, offset: SSizeT, searchCaseSensitive := true) -> SSizeT {
+    find: func ~char (what: Char, offset: Int, searchCaseSensitive := true) -> Int {
         find (what&, 1, offset, searchCaseSensitive)
     }
 
@@ -301,14 +301,14 @@ Buffer: class extends Iterable<Char> {
         use offset 0 for a new search, then increase it by the last found position +1
         look at implementation of findAll() for an example
     */
-    find: func (what: This, offset: SSizeT, searchCaseSensitive := true) -> SSizeT {
+    find: func (what: This, offset: Int, searchCaseSensitive := true) -> Int {
         find~pointer(what data, what size, offset, searchCaseSensitive)
     }
 
-    find: func ~pointer (what: Char*, whatSize: SizeT, offset: SSizeT, searchCaseSensitive := true) -> SSizeT {
+    find: func ~pointer (what: Char*, whatSize: Int, offset: Int, searchCaseSensitive := true) -> Int {
         if (offset >= size || offset < 0 || what == null || whatSize == 0) return -1
 
-        maxpos : SSizeT = size - whatSize // need a signed type here
+        maxpos : Int = size - whatSize // need a signed type here
         if (maxpos < 0) return -1
 
         found : Bool
@@ -334,14 +334,14 @@ Buffer: class extends Iterable<Char> {
     }
 
     /** returns a list of positions where buffer has been found, or an empty list if not  */
-    findAll: func ~withCase ( what : This, searchCaseSensitive := true) -> ArrayList <SizeT> {
+    findAll: func ~withCase ( what : This, searchCaseSensitive := true) -> ArrayList <Int> {
         findAll(what data, what size, searchCaseSensitive)
     }
 
-    findAll: func ~pointer ( what : Char*, whatSize: SizeT, searchCaseSensitive := true) -> ArrayList <SizeT> {
-        if (what == null || whatSize == 0) return ArrayList <SizeT> new(0)
-        result := ArrayList <SSizeT> new (size / whatSize)
-        offset : SSizeT = (whatSize ) * -1
+    findAll: func ~pointer ( what : Char*, whatSize: Int, searchCaseSensitive := true) -> ArrayList <Int> {
+        if (what == null || whatSize == 0) return ArrayList <Int> new(0)
+        result := ArrayList <Int> new (size / whatSize)
+        offset : Int = (whatSize ) * -1
         while (((offset = find(what, whatSize, offset + whatSize, searchCaseSensitive)) != -1)) result add (offset)
         result
     }
@@ -350,12 +350,12 @@ Buffer: class extends Iterable<Char> {
         findResults := findAll(what, searchCaseSensitive)
         if (findResults == null || findResults size == 0) return
         
-        newlen: SizeT = size + (whit size * findResults size) - (what size * findResults size)
+        newlen: Int = size + (whit size * findResults size) - (what size * findResults size)
         result := new(newlen)
         result setLength(newlen)
 
-        sstart: SizeT = 0 // source (this) start pos
-        rstart: SizeT = 0 // result start pos
+        sstart: Int = 0 // source (this) start pos
+        rstart: Int = 0 // result start pos
 
         for (item in findResults) {
             sdist := item - sstart // bytes to copy
@@ -414,7 +414,7 @@ Buffer: class extends Iterable<Char> {
     /** return the index of *c*, but only check characters ``start..length``.
         However, the return value is the index of the *c* relative to the
         string's beginning. If *this* does not contain *c*, return -1. */
-    indexOf: func ~char (c: Char, start: SSizeT = 0) -> SSizeT {
+    indexOf: func ~char (c: Char, start: Int = 0) -> Int {
         for(i in start..size) {
             if((data + i)@ == c) return i
         }
@@ -424,7 +424,7 @@ Buffer: class extends Iterable<Char> {
     /** return the index of *s*, but only check characters ``start..length``.
         However, the return value is relative to the *this*' first character.
         If *this* does not contain *c*, return -1. */
-    indexOf: func ~buf (s: This, start: SSizeT = 0) -> SSizeT {
+    indexOf: func ~buf (s: This, start: Int = 0) -> Int {
         return find(s, start, false)
     }
 
@@ -435,7 +435,7 @@ Buffer: class extends Iterable<Char> {
     /** return *true* if *this* contains the string *s* */
     contains?: func ~buf (s: This) -> Bool { indexOf(s) != -1 }
 
-    trim: func ~pointer(s: Char*, sLength: SizeT) {
+    trim: func ~pointer(s: Char*, sLength: Int) {
         trimRight(s, sLength)
         trimLeft(s, sLength)
     }
@@ -470,9 +470,9 @@ Buffer: class extends Iterable<Char> {
     }
 
     /** all characters contained by *s* stripped from the left side. either from *this* or a clone */
-    trimLeft: func ~pointer (s: Char*, sLength: SizeT) {
+    trimLeft: func ~pointer (s: Char*, sLength: Int) {
         if (size == 0 || sLength == 0) return
-        start : SizeT = 0
+        start : Int = 0
         while (start < size && (data + start)@ containedIn?(s, sLength) ) start += 1
         if(start == 0) return
         shiftRight( start )
@@ -495,7 +495,7 @@ Buffer: class extends Iterable<Char> {
     /**
      * @return (a copy of) *this* with all characters contained by *s* stripped from the right side
      */
-    trimRight: func ~pointer (s: Char*, sLength: SizeT) {
+    trimRight: func ~pointer (s: Char*, sLength: Int) {
         end := size
         while(end > 0 && data[end - 1] containedIn?(s, sLength)) {
             end -= 1
@@ -519,8 +519,8 @@ Buffer: class extends Iterable<Char> {
     }
 
     /** return the number of *what*'s occurences in *this*. */
-    count: func (what: Char) -> SizeT {
-        result : SizeT = 0
+    count: func (what: Char) -> Int {
+        result : Int = 0
         for(i in 0..size) {
             if(data[i] == what) result += 1
         }
@@ -528,14 +528,14 @@ Buffer: class extends Iterable<Char> {
     }
 
     /** return the number of *what*'s non-overlapping occurences in *this*. */
-    count: func ~buf (what: This) -> SizeT {
+    count: func ~buf (what: This) -> Int {
         findAll(what) size
     }
 
     /** return the index of the last occurence of *c* in *this*.
         If *this* does not contain *c*, return -1. */
-    lastIndexOf: func (c: Char) -> SSizeT {
-        i : SSizeT = size - 1
+    lastIndexOf: func (c: Char) -> Int {
+        i : Int = size - 1
         while(i >= 0) {
             if(data[i] == c) return i
             i -= 1
@@ -619,7 +619,7 @@ Buffer: class extends Iterable<Char> {
     /**
      * @return the index-th character of this string
      */
-    get: func (index: SSizeT) -> Char {
+    get: func (index: Int) -> Char {
         if(index < 0) index = size + index
         if(index < 0 || index >= size) OutOfBoundsException new(This, index, size) throw()
         data[index]
@@ -628,7 +628,7 @@ Buffer: class extends Iterable<Char> {
     /**
      * @return the index-th character of this string
      */
-    set: func (index: SSizeT, value: Char) {
+    set: func (index: Int, value: Char) {
         if(index < 0) index = size + index
         if(index < 0 || index >= size) OutOfBoundsException new(This, index, size) throw()
         data[index] = value
@@ -651,11 +651,11 @@ operator != (buff1, buff2: Buffer) -> Bool {
 
 /* Access and modification */
 
-operator [] (buffer: Buffer, index: SSizeT) -> Char {
+operator [] (buffer: Buffer, index: Int) -> Char {
     buffer get(index)
 }
 
-operator []= (buffer: Buffer, index: SSizeT, value: Char) {
+operator []= (buffer: Buffer, index: Int, value: Char) {
     buffer set(index, value)
 }
 

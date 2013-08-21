@@ -18,7 +18,7 @@ String: class extends Iterable<Char> {
     _buffer: Buffer
 
     /** Size of this string, in bytes */
-    size: SSizeT {
+    size: Int {
         get {
             _buffer size
         }
@@ -30,11 +30,11 @@ String: class extends Iterable<Char> {
         init(s, s length())
     }
 
-    init: func ~withCStrAndLength(s: CString, length: SizeT) {
+    init: func ~withCStrAndLength(s: CString, length: Int) {
         _buffer = Buffer new(s, length)
     }
 
-    length: func -> SizeT {
+    length: func -> Int {
         _buffer size
     }
 
@@ -48,15 +48,15 @@ String: class extends Iterable<Char> {
         new(_buffer clone())
     }
 
-    substring: func ~tillEnd (start: SizeT) -> This { substring(start, size) }
+    substring: func ~tillEnd (start: Int) -> This { substring(start, size) }
 
-    substring: func (start: SizeT, end: SizeT) -> This{
+    substring: func (start: Int, end: Int) -> This{
         result := _buffer clone()
         result substring(start, end)
         result toString()
     }
 
-    times: func (count: SizeT) -> This {
+    times: func (count: Int) -> This {
         result := _buffer clone(size * count)
         result times(count)
         result toString()
@@ -104,11 +104,11 @@ String: class extends Iterable<Char> {
 
     endsWith?: func ~char(c: Char) -> Bool { _buffer endsWith?(c) }
 
-    find : func (what: This, offset: SSizeT, searchCaseSensitive := true) -> SSizeT {
+    find : func (what: This, offset: Int, searchCaseSensitive := true) -> Int {
         _buffer find(what _buffer, offset, searchCaseSensitive)
     }
 
-    findAll: func ( what : This, searchCaseSensitive := true) -> ArrayList <SizeT> {
+    findAll: func ( what : This, searchCaseSensitive := true) -> ArrayList <Int> {
         _buffer findAll(what _buffer, searchCaseSensitive)
     }
 
@@ -149,15 +149,15 @@ String: class extends Iterable<Char> {
         }
     }
 
-    indexOf: func ~char (c: Char, start: SSizeT = 0) -> SSizeT { _buffer indexOf(c, start) }
+    indexOf: func ~char (c: Char, start: Int = 0) -> Int { _buffer indexOf(c, start) }
 
-    indexOf: func ~string (s: This, start: SSizeT = 0) -> SSizeT { _buffer indexOf(s _buffer, start) }
+    indexOf: func ~string (s: This, start: Int = 0) -> Int { _buffer indexOf(s _buffer, start) }
 
     contains?: func ~char (c: Char) -> Bool { _buffer contains?(c) }
 
     contains?: func ~string (s: This) -> Bool { _buffer contains?(s _buffer) }
 
-    trim: func ~pointer(s: Char*, sLength: SizeT) -> This {
+    trim: func ~pointer(s: Char*, sLength: Int) -> This {
         result := _buffer clone()
         result trim~pointer(s, sLength)
         result toString()
@@ -199,7 +199,7 @@ String: class extends Iterable<Char> {
         result toString()
     }
 
-    trimLeft: func ~pointer (s: Char*, sLength: SizeT) -> This {
+    trimLeft: func ~pointer (s: Char*, sLength: Int) -> This {
         result := _buffer clone()
         result trimLeft~pointer(s, sLength)
         result toString()
@@ -223,7 +223,7 @@ String: class extends Iterable<Char> {
         result toString()
     }
 
-    trimRight: func ~pointer (s: Char*, sLength: SizeT) -> This{
+    trimRight: func ~pointer (s: Char*, sLength: Int) -> This{
         result := _buffer clone()
         result trimRight~pointer(s, sLength)
         result toString()
@@ -235,11 +235,11 @@ String: class extends Iterable<Char> {
         result toString()
     }
 
-    count: func (what: Char) -> SizeT { _buffer count (what) }
+    count: func (what: Char) -> Int { _buffer count (what) }
 
-    count: func ~string (what: This) -> SizeT { _buffer count~buf(what _buffer) }
+    count: func ~string (what: This) -> Int { _buffer count~buf(what _buffer) }
 
-    lastIndexOf: func (c: Char) -> SSizeT { _buffer lastIndexOf(c) }
+    lastIndexOf: func (c: Char) -> Int { _buffer lastIndexOf(c) }
 
     print: func { _buffer print() }
 
@@ -326,7 +326,7 @@ operator != (str1: String, str2: String) -> Bool {
 
 /* Access and modification */
 
-operator [] (string: String, index: SSizeT) -> Char {
+operator [] (string: String, index: Int) -> Char {
     string _buffer [index]
 }
 
@@ -336,7 +336,7 @@ operator [] (string: String, range: Range) -> String {
 
 /* Concatenation and other fun stuff */
 
-operator * (string: String, count: SizeT) -> String {
+operator * (string: String, count: Int) -> String {
     string times(count)
 }
 
@@ -373,7 +373,7 @@ operator + (left: String, right: LDouble) -> String {
 }
 
 // constructor to be called from string literal initializers
-makeStringLiteral: func (str: CString, strLen: SizeT) -> String {
+makeStringLiteral: func (str: CString, strLen: Int) -> String {
     String new(Buffer new(str, strLen, true))
 }
 
@@ -390,7 +390,7 @@ strArrayListFromCString: func ~hack (argc: Int, argv: String*) -> ArrayList<Stri
     strArrayListFromCString(argc, argv as Char**)
 }
 
-cStringPtrToStringPtr: func (cstr: CString*, len: SizeT) -> String* {
+cStringPtrToStringPtr: func (cstr: CString*, len: Int) -> String* {
     // Mostly to allow main to accept String*
     // func-name sucks, I am open to all suggestions 
 
