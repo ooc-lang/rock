@@ -674,14 +674,20 @@ FunctionCall: class extends Expression {
      * Attempt to resolve the *actual* return type of the call, as oppposed
      * to the declared return type of our reference (a function decl).
      *
-     * Mostly usefeful when the
+     * Mostly useful when the return type is generic and needs to be resolved
+     * to a more concrete type.
      */
     resolveReturnType: func (trail: Trail, res: Resolver) -> Response {
 
         if(returnType != null) return Response OK
 
-        //printf("Resolving returnType of %s (=%s), returnType of ref = %s, isGeneric() = %s, ref of returnType of ref = %s\n", toString(), returnType ? returnType toString() : "(nil)",
-        //    ref returnType toString(), ref returnType isGeneric() toString(), ref returnType getRef() ? ref returnType getRef() toString() : "(nil)")
+        if (res params veryVerbose) {
+          "Resolving returnType of %s (=%s), returnType of ref = %s, isGeneric() = %s, ref of returnType of ref = %s, ref returnType isResolved? = %s" printfln(
+            toString(), returnType ? returnType toString() : "(nil)",
+            ref returnType toString(), ref returnType isGeneric() toString(),
+            ref returnType getRef() ? ref returnType getRef() toString() : "(nil)",
+            ref returnType isResolved() toString())
+        }
 
         if(returnType == null && ref != null) {
             if(!ref returnType isResolved()) {

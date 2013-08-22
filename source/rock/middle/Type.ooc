@@ -47,6 +47,10 @@ Type: abstract class extends Expression {
         return under
     }
 
+    isResolved: func -> Bool {
+      getRef() != null
+    }
+
     getRef: abstract func -> Declaration
     setRef: abstract func (d: Declaration)
 
@@ -311,6 +315,10 @@ PointerType: class extends SugarType {
     pointerLevel: func -> Int { inner pointerLevel() + 1 }
 
     isPointer: func -> Bool { inner pointerLevel() == 0 && inner void? }
+
+    isResolved: func -> Bool {
+        super() && inner isResolved()
+    }
 
     write: func (w: AwesomeWriter, name: String) {
         if(inner instanceOf?(ArrayType)) inner as ArrayType write(w, null, true)

@@ -34,7 +34,7 @@ BaseType: class extends Type {
     }
 
     debugCondition: func -> Bool {
-        name startsWith?("MyArray")
+        false
     }
 
     pointerLevel: func -> Int { 0 }
