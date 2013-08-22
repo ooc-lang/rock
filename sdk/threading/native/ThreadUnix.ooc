@@ -8,13 +8,14 @@ version(unix || apple) {
     PThread: cover from pthread_t
 
     version(gc) {
-        pthread_create: extern(GC_pthread_create) func (PThread*, Pointer, startRoutine: Pointer, userArgument: Pointer) -> Int
+        pthread_create: extern(GC_pthread_create) func (threadPtr: PThread*, attrPtr: Pointer, startRoutine: Pointer, userArgument: Pointer) -> Int
         pthread_join:   extern(GC_pthread_join)   func (thread: PThread, retval: Pointer*) -> Int
     }
     version (!gc) {
-        pthread_create: extern func (PThread*, Pointer, startRoutine: Pointer, userArgument: Pointer) -> Int
+        pthread_create: extern func (threadPtr: PThread*, attrPtr: Pointer, startRoutine: Pointer, userArgument: Pointer) -> Int
         pthread_join:   extern func (thread: PThread, retval: Pointer*) -> Int
     }
+    pthread_kill: extern func (thread: PThread, signal: Int) -> Int
 
     /**
      * pthreads implementation of threads.
@@ -43,8 +44,7 @@ version(unix || apple) {
         }
 
         isAlive?: func -> Bool {
-            Exception new(This, "isAlive?: stub") throw()
-            false
+            pthread_kill(pthread, 0) == 0
         }
 
         _currentThread: static func -> This {
