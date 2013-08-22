@@ -16,6 +16,7 @@ version(unix || apple) {
         pthread_join:   extern func (thread: PThread, retval: Pointer*) -> Int
     }
     pthread_kill: extern func (thread: PThread, signal: Int) -> Int
+    pthread_self: extern func -> PThread
 
     /**
      * pthreads implementation of threads.
@@ -48,8 +49,9 @@ version(unix || apple) {
         }
 
         _currentThread: static func -> This {
-            Exception new(This, "currentThread: stub") throw()
-            null
+            thread := This new(func {})
+            thread pthread = pthread_self()
+            thread
         }
 
         _yield: static func -> Bool {
