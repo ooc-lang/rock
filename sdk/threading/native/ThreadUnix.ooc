@@ -1,4 +1,5 @@
-import ../Thread
+import ../Thread, math, os/Time
+
 include unistd
 
 version(unix || apple) {
@@ -25,7 +26,30 @@ version(unix || apple) {
         }
 
         wait: func ~timed (seconds: Double) -> Bool {
-            Exception new(This, "wait~timed: stub") throw()
+            version (!apple) {
+                // We need an absolute number of seconds since the epoch
+                // First order of business - what time is it?
+                tv: TimeVal
+                gettimeofday(tv&, null)
+
+                nowSeconds: Double = tv tv_sec as Double + tv tv_usec as Double / 1_000_000.0
+
+                // Now compute the amount of seconds between January 1st, 1970 and the time
+                // we will stop waiting on our thread
+                absSeconds: Double = nowSeconds + seconds
+
+                // And store it in a timespec, converting again...
+                ts: TimeSpec
+                ts tv_sec = floor(absSeconds) as TimeT
+                ts tv_nsec = ((absSeconds - ts tv_sec) * 1000 + 0.5) * (1_000_000 as Long)
+                
+                result := pthread_timedjoin_np(pthread, null, ts&)
+                return result == 0
+            }
+
+            version (apple) {
+                Exception new(This, "wait~timed: unsupported on OSX") throw()
+            }
             false
         }
 
@@ -53,6 +77,16 @@ version(unix || apple) {
     include sched
 
     PThread: cover from pthread_t
+
+    version (!apple) {
+        TimeT: cover from time_t
+        TimeSpec: cover from struct timespec {
+            tv_sec: extern TimeT
+            tv_nsec: extern Long
+        }
+
+        pthread_timedjoin_np: extern func (thread: PThread, retval: Pointer, abstime: TimeSpec*) -> Int
+    }
 
     version(gc) {
         pthread_create: extern(GC_pthread_create) func (threadPtr: PThread*, attrPtr: Pointer, startRoutine: Pointer, userArgument: Pointer) -> Int
