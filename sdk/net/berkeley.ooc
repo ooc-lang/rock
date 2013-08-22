@@ -157,3 +157,22 @@ version (!windows) {
 }
 
 FIONREAD: extern Int
+
+// winsock needs WSAStartup to be called to work.
+version (windows) {
+  import native/win32/types
+  WSADATA: extern cover
+
+  WSAStartup: extern func (versionRequested: WORD, wsaData: Pointer) -> Int
+
+  initWinsock: func {
+    data: WSADATA
+    ret := WSAStartup(MAKEWORD(2, 2), data&)
+
+    if (ret != 0) {
+      raise("Could not initialize winsock 2.2")
+    }
+  }
+  initWinsock()
+}
+

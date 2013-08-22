@@ -77,7 +77,10 @@ version(windows) {
         return date quadPart / 10000000;
     }
 
+    BYTE: extern cover from UInt8
+    WORD: extern cover from Int
     DWORD: extern cover from Long
     LPTSTR: extern cover from CString
 
+    MAKEWORD: extern func (low, high: BYTE) -> WORD
 }
