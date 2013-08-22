@@ -69,7 +69,7 @@ version(windows) {
     CreateThread: extern func (...) -> Handle
     GetCurrentThread: extern func -> Handle
     WaitForSingleObject: extern func (...) -> Long
-    SwitchToThread: extern func
+    SwitchToThread: extern func -> Bool
 
     INFINITE: extern Long
     WAIT_OBJECT_0: extern Long

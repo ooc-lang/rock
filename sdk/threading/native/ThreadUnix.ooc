@@ -40,14 +40,17 @@ version(unix || apple) {
         }
 
         _yield: static func -> Bool {
-            Exception new(This, "yield: stub") throw()
-            false
+            // pthread_yield is non-standard, use sched_yield instead
+            // as a bonus, this works on OSX too.
+            result := sched_yield()
+            result == 0
         }
 
     }
 
     /* C interface */
     include pthread
+    include sched
 
     PThread: cover from pthread_t
 
@@ -61,4 +64,5 @@ version(unix || apple) {
     }
     pthread_kill: extern func (thread: PThread, signal: Int) -> Int
     pthread_self: extern func -> PThread
+    sched_yield: extern func -> Int
 }
