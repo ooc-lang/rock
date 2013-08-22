@@ -1,0 +1,7 @@
+Name: sdk-net
+Description: net component of the ooc standard library
+
+version (windows) {
+  # Under MinGW, we need that lib to use winsock
+  Libs: -lws2_32
+}

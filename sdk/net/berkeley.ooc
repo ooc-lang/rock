@@ -4,7 +4,8 @@ include unistd | (__USE_BSD)
 
 version (windows) {
     include winsock2
-    include ws2tcpip
+    // Needs Windows XP or later for getnameinfo and getaddrinfo.
+    include ws2tcpip | (_WIN32_WINNT=0x0501)
 } else {
     include sys/socket
     include sys/ioctl
@@ -136,17 +137,23 @@ ntohl: extern func(netlong: UInt32) -> UInt32
 ntohs: extern func(netshort: UInt16) -> UInt16
 fcntl: extern func(descriptor: Int, command: Int, argument: Int) -> Int
 
+// getnameinfo constants
+NI_NAMEREQD: extern Int
+NI_DGRAM: extern Int
+NI_NOFQDN: extern Int
+NI_NUMERICHOST: extern Int
+NI_NUMERICSERV: extern Int
+
 // The following are deprecated
 inet_ntoa: extern func(address: InAddr) -> CString
 inet_aton: extern func(ipAddress: CString, inp: InAddr*) -> Int
 inet_addr: extern func(ipAddress: CString) -> ULong
 // end deprecated
 
-inet_ntop: extern func(addressFamily: Int, address: Pointer, destination: CString, destinationSize: UInt) -> CString
-inet_pton: extern func(addressFamily: Int, address: CString, destination: Pointer) -> Int
-
-version(unix || apple) {
-    ioctl: extern func(d: Int, request: Int, arg: Pointer) -> Int
+version (!windows) {
+  inet_ntop: extern func(addressFamily: Int, address: Pointer, destination: CString, destinationSize: UInt) -> CString
+  inet_pton: extern func(addressFamily: Int, address: CString, destination: Pointer) -> Int
+  ioctl: extern func(d: Int, request: Int, arg: Pointer) -> Int
 }
 
 FIONREAD: extern Int

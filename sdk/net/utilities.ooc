@@ -3,7 +3,7 @@
     between UDPSocket and ServerSocket.
 */
 
-import net/[berkeley, Socket, Address, Exceptions]
+import net/[berkeley, translation, Socket, Address, Exceptions]
 import text/StringTokenizer
 
 /**
@@ -34,7 +34,7 @@ validIp?: func(ip: String) -> Bool {
 getSocketAddress: func (ip: String, port: Int) -> SocketAddress {
     ai: InAddr
     type := ipType(ip)
-    match(inet_pton(type, ip, ai&)) {
+    match(Inet pton(type, ip, ai&)) {
         case -1 =>
             // TODO: Check errno, it should be set to EAFNOSUPPORT
             NetError new("Invalid address family.") throw()
@@ -48,7 +48,7 @@ getSocketAddress: func (ip: String, port: Int) -> SocketAddress {
 getSocketAddress6: func (ip: String, port: Int) -> SocketAddress {
     ai: In6Addr
     type := ipType(ip)
-    match(inet_pton(type, ip, ai&)) {
+    match(Inet pton(type, ip, ai&)) {
         case -1 =>
             // TODO: Check errno, it should be set to EAFNOSUPPORT
             NetError new("Invalid address family.") throw()
@@ -58,3 +58,4 @@ getSocketAddress6: func (ip: String, port: Int) -> SocketAddress {
     addr := SocketAddressIP6 new(ai, port)
     addr
 }
+

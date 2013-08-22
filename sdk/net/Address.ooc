@@ -1,4 +1,4 @@
-import net/[berkeley, Socket, Exceptions]
+import net/[berkeley, translation, Socket, Exceptions]
 
 /**
     Abstract way of representing an IP address
@@ -160,7 +160,7 @@ IP4Address: class extends IPAddress {
         }
 
         family = AddressFamily IP4
-        if(inet_pton(family, ipAddress, ai&) == -1) {
+        if(Inet pton(family, ipAddress toCString(), ai&) == -1) {
             InvalidAddress new("Could not parse address") throw()
         }
     }
@@ -211,7 +211,7 @@ IP4Address: class extends IPAddress {
 
     toString: func -> String {
         addrStr := Buffer new(128)
-        inet_ntop(family, ai&, addrStr toCString(), 128)
+        Inet ntop(family, ai&, addrStr toCString(), 128)
         addrStr sizeFromData()
         return addrStr toString()
     }
@@ -234,7 +234,7 @@ IP6Address: class extends IPAddress {
         }
 
         family = AddressFamily IP6
-        if(inet_pton(family, ipAddress, ai&) == -1) {
+        if(Inet pton(family, ipAddress toCString(), ai&) == -1) {
             InvalidAddress new("Could not parse address") throw()
         }
     }
@@ -312,7 +312,7 @@ IP6Address: class extends IPAddress {
 
     toString: func -> String {
         addrStr := Buffer new(128)
-        inet_ntop(family, ai&, addrStr toCString(), 128)
+        Inet ntop(family, ai&, addrStr toCString(), 128)
         addrStr sizeFromData()
         return addrStr toString()
     }

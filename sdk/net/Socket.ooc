@@ -1,3 +1,4 @@
+use sdk-net
 import net/[berkeley, Exceptions]
 
 /**
@@ -13,7 +14,7 @@ Socket: abstract class {
     init: func ~sock(=family, =type, =protocol) {
         descriptor = socket(family, type, protocol)
         if (descriptor == -1) {
-            SocketError new("Failed to create socket") throw()
+            SocketError new(class, "Failed to create socket") throw()
         }
     }
     init: func ~descriptor(=family, =type, =protocol, =descriptor) {}
@@ -24,23 +25,28 @@ Socket: abstract class {
         version(windows) {
             result = closesocket(descriptor)
         }
-        version (unix || apple) {
+        version (!windows) {
             result = close(descriptor)
         }
 
         if (result == -1) {
-            SocketError new("Failed to close socket") throw()
+            SocketError new(class, "Failed to close socket") throw()
         }
 
         connected? = false
     }
 
     ioctl: func(request: Int, arg: Pointer) {
-        //TODO: abstract this into version blocks to support windows
+      version (windows)  {
+        SocketError new(class, "ioctl unsupported on Windows") throw()
+      }
+
+      version (!windows) {
         rt := ioctl(descriptor, request, arg)
         if(rt != 0) {
-            SocketError new() throw()
+            SocketError new(class, "ioctl failed") throw()
         }
+      }
     }
 
     /**
@@ -89,52 +95,73 @@ Socket: abstract class {
       :throws: A TimeoutError if the wait times out before data becomes available
     */
      wait: func ~justSeconds(timeoutSec: Int) -> Int {
-
          return wait(timeoutSec, 0)
-
      }
 
     /**
        Sets the socket to non-blocking mode
      */
     setNonBlocking: func -> Int {
+      result := 0
 
+      version (windows) {
+        SocketError new(class, "setNonBlocking unsupported on Win32") throw()
+      }
+
+      version (!windows) {
         flags := currentFlags()
 
-        result := fcntl(descriptor, SocketControls SET_SOCKET_FLAGS, flags | SocketControls NON_BLOCKING)
-        if (result < 0)
-            SocketError new() throw()
+        result = fcntl(descriptor, SocketControls SET_SOCKET_FLAGS, flags | SocketControls NON_BLOCKING)
+      }
 
-        return result
+      if (result < 0) {
+          SocketError new(class, "Could not set socket to non-blocking") throw()
+      }
 
+      return result
     }
 
     /**
        Sets the socket to blocking mode
      */
     setBlocking: func -> Int {
+      result := 0
 
+      version (windows) {
+        SocketError new(class, "setBlocking unsupported on Win32") throw()
+      }
+
+      version (!windows) {
         flags := currentFlags()
 
-        result := fcntl(descriptor, SocketControls SET_SOCKET_FLAGS, flags & ~(SocketControls NON_BLOCKING))
-        if (result < 0)
-            SocketError new() throw()
+        result = fcntl(descriptor, SocketControls SET_SOCKET_FLAGS, flags & ~(SocketControls NON_BLOCKING))
+      }
 
-        return result
+      if (result < 0) {
+          SocketError new(class, "Could not set socket to blocking") throw()
+      }
 
+      return result
     }
 
     /**
        Retrieves the current socket flags from the underlying socket
      */
     currentFlags: func -> Int {
+      flags: Int = 0
 
-        flags := fcntl(descriptor, SocketControls GET_SOCKET_FLAGS, 0)
-        if (flags < 0)
-            SocketError new() throw()
+      version (windows) {
+        SocketError new(class, "currentFlags not supported on Win32")
+      }
 
-        return flags
+      version (!windows) {
+        flags = fcntl(descriptor, SocketControls GET_SOCKET_FLAGS, 0)
+        if (flags < 0) {
+            SocketError new(class, "fcntl to get current flags failed") throw()
+        }
+      }
 
+      return flags
     }
 
     /**
@@ -174,9 +201,12 @@ SocketShutdownOptions: cover {
     NO_MORE_SENDS_OR_RECIEVES: extern(SHUT_RDWR) static Int
 }
 
-SocketControls: cover {
-    SET_SOCKET_FLAGS: extern(F_SETFL) static Int
-    GET_SOCKET_FLAGS: extern(F_GETFL) static Int
-    NON_BLOCKING: extern(O_NONBLOCK) static Int
-    ASYNCHRONOUS: extern(O_ASYNC) static Int // this probably shoulden't be implemented as it's badly supported
+version (!windows) {
+  SocketControls: cover {
+      SET_SOCKET_FLAGS: extern(F_SETFL) static Int
+      GET_SOCKET_FLAGS: extern(F_GETFL) static Int
+      NON_BLOCKING: extern(O_NONBLOCK) static Int
+      ASYNCHRONOUS: extern(O_ASYNC) static Int // this probably shoulden't be implemented as it's badly supported
+  }
 }
+
