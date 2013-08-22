@@ -10,6 +10,7 @@ version(windows) {
     // work with recent versions of the gc, and it was redirected to the Win32
     // API anyway :)
     CreateThread: extern func (...) -> Handle
+    GetCurrentThread: extern func -> Handle
     WaitForSingleObject: extern func (...) -> Long // laziness
     INFINITE: extern Long
     WAIT_OBJECT_0: extern Long
@@ -56,8 +57,9 @@ version(windows) {
         }
 
         _currentThread: static func -> This {
-            Exception new(This, "currentThread: stub") throw()
-            null
+            thread := This new(func {})
+            thread handle = GetCurrentThread()
+            thread
         }
 
         _yield: static func -> Bool {
