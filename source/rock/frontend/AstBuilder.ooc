@@ -58,6 +58,10 @@ AstBuilder: class {
         absolutePath := File new(modulePath) getAbsolutePath()
         cache put(absolutePath, module)
 
+        if (params verbose) {
+          "Parsing %s" printfln(absolutePath)
+        }
+
         stack = Stack<Object> new()
         stack push(module)
         versionStack = Stack<VersionSpec> new()
