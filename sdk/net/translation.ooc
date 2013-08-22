@@ -1,7 +1,5 @@
 import net/[berkeley, Socket, Address]
 
-// For Windows, we roll our own implementation, based on:
-// http://mingw-users.1079350.n2.nabble.com/IPv6-getaddrinfo-amp-inet-ntop-td5891996.html
 Inet: class {
 
   ntop: static func (addressFamily: Int, address: Pointer,
@@ -12,6 +10,8 @@ Inet: class {
       return inet_ntop(addressFamily, address, destination, destinationSize)
     }
 
+    // Roll our own implementation, based on:
+    // https://github.com/pkulchenko/luasocket/blob/5a58786a39bbef7ed4805821cc921f1d40f12068/src/inet.c#L512
     match addressFamily {
       case AddressFamily IP4 =>
         in: SockAddrIn
@@ -43,26 +43,29 @@ Inet: class {
       return inet_pton(addressFamily, address, destination)
     }
 
+    // roll our own version, based on:
+    // https://github.com/diegonehab/luasocket/blob/master/src/inet.c
+
     hints: AddrInfo
-    res, ressave: AddrInfo*
-
+    res: AddrInfo*
+    ret := 1
     memset(hints&, 0, AddrInfo size)
-    hints ai_family = AddressFamily IP4
-
-    if (getaddrinfo(address, null, hints&, res&) != 0) {
-      return -1
+    hints ai_family = addressFamily
+    hints ai_flags = AI_NUMERICHOST
+    if (getaddrinfo(address, null, hints&, res&) != 0) return -1
+    match (addressFamily) {
+      case AddressFamily IP4 =>
+        in := res@ ai_addr as SockAddrIn*
+        memcpy(destination, in@ sin_addr&, SockAddrIn size)
+      case AddressFamily IP6 =>
+        in := res@ ai_addr as SockAddrIn6*
+        memcpy(destination, in@ sin6_addr&, SockAddrIn6 size)
+      case =>
+        ret = -1
     }
 
-    ressave = res
-
-    while (res) {
-      memcpy(destination, res@ ai_addr, res@ ai_addrlen)
-      res = res@ ai_next
-    }
-
-    freeaddrinfo(ressave)
-    return 0
-
+    freeaddrinfo(res)
+    ret
   }
 
 }

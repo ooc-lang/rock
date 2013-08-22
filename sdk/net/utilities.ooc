@@ -34,12 +34,12 @@ validIp?: func(ip: String) -> Bool {
 getSocketAddress: func (ip: String, port: Int) -> SocketAddress {
     ai: InAddr
     type := ipType(ip)
-    match(Inet pton(type, ip, ai&)) {
+    match(Inet pton(type, ip toCString(), ai&)) {
         case -1 =>
             // TODO: Check errno, it should be set to EAFNOSUPPORT
-            NetError new("Invalid address family.") throw()
+            NetError new("Invalid address family (%s)" format(ip)) throw()
         case 0 =>
-            NetError new("Invalid network address.") throw()
+            NetError new("Invalid network address (%s)" format(ip)) throw()
     }
     addr := SocketAddressIP4 new(ai, port)
     addr
@@ -48,7 +48,7 @@ getSocketAddress: func (ip: String, port: Int) -> SocketAddress {
 getSocketAddress6: func (ip: String, port: Int) -> SocketAddress {
     ai: In6Addr
     type := ipType(ip)
-    match(Inet pton(type, ip, ai&)) {
+    match(Inet pton(type, ip toCString(), ai&)) {
         case -1 =>
             // TODO: Check errno, it should be set to EAFNOSUPPORT
             NetError new("Invalid address family.") throw()

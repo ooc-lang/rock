@@ -96,10 +96,10 @@ ServerSocket: class extends Socket {
     */
     accept: func -> TCPServerReaderWriterPair {
         addr: SockAddr
-        addrSize: UInt = SockAddr size
+        addrSize: Int = SockAddr size
         conn := accept(descriptor, addr&, addrSize&)
         if(conn == -1) {
-            SocketError new() throw()
+            SocketError new("Failed to accept an incoming connection.") throw()
         }
         sock := TCPSocket new(SocketAddress newFromSock(addr&, addrSize), conn)
         return TCPServerReaderWriterPair new(sock)
@@ -117,7 +117,12 @@ ServerSocket: class extends Socket {
         loop(||
             conn := accept()
             ret := f(conn)
-            shutdown(conn sock descriptor, SHUT_RDWR)
+            version (windows) {
+              shutdown(conn sock descriptor, SD_BOTH)
+            }
+            version (!windows) {
+              shutdown(conn sock descriptor, SHUT_RDWR)
+            }
             conn close()
             (conn && ret) as Bool // Break out of the loop if one of conn or ret is 0 or null
         )

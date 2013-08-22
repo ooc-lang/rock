@@ -97,9 +97,17 @@ INADDR_ANY: extern ULong
 INADDR_NONE: extern ULong
 AI_CANONNAME: extern Int
 
-SHUT_RD: extern Int
-SHUT_WR: extern Int
-SHUT_RDWR: extern Int
+version (windows) {
+  SHUT_RD: extern Int
+  SHUT_WR: extern Int
+  SHUT_RDWR: extern Int
+}
+
+version (!windows) {
+  SD_RECEIVE: extern Int
+  SD_SEND: extern Int
+  SD_BOTH: extern Int
+}
 
 SOL_SOCKET: extern Int
 
@@ -143,6 +151,18 @@ NI_DGRAM: extern Int
 NI_NOFQDN: extern Int
 NI_NUMERICHOST: extern Int
 NI_NUMERICSERV: extern Int
+
+// getaddrinfo constants
+AI_NUMERICHOST: extern Int
+AI_PASSIVE: extern Int
+AI_CANONNAME: extern Int
+AI_ADDRCONFIG: extern Int
+AI_V4MAPPED: extern Int
+AI_ALL: extern Int
+AI_IDN: extern Int
+AI_CANONIDN: extern Int
+AI_IDN_ALLOW_UNASSIGNED: extern Int
+AI_IDN_USE_STD3_ASCII_RULES: extern Int
 
 // The following are deprecated
 inet_ntoa: extern func(address: InAddr) -> CString
