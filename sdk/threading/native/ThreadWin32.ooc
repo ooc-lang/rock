@@ -33,11 +33,22 @@ version(windows) {
         }
 
         wait: func ~timed (seconds: Double) -> Bool {
-            Exception new(This, "wait~timed: stub") throw()
-            false
+            millis := (seconds * 1000.0 + 0.5) as Long
+            result := WaitForSingleObject(handle, millis)
+
+            match result {
+              case WAIT_TIMEOUT =>
+                false // still running
+              case WAIT_OBJECT_0 =>
+                true // has exited!
+              case =>
+                // couldn't wait
+                Exception new(This, "wait~timed failed with %ld" format(result as Long)) throw()
+                false
+            }
         }
 
-        isAlive?: func -> Bool {
+        alive?: func -> Bool {
             result := WaitForSingleObject(handle, 0)
 
             // if it's equal, it has terminated, otherwise, it's still alive
@@ -73,5 +84,6 @@ version(windows) {
 
     INFINITE: extern Long
     WAIT_OBJECT_0: extern Long
+    WAIT_TIMEOUT: extern Long
 
 }

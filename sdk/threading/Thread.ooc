@@ -69,12 +69,12 @@ Thread: abstract class {
      * @return true if the thread has finished while we were waiting, false if it is
      * still running.
      */
-    wait: abstract func ~timed (seconds: Double) -> Int
+    wait: abstract func ~timed (seconds: Double) -> Bool
 
     /**
      * @return true if the thread is still running, false otherwise
      */
-    isAlive?: abstract func -> Bool
+    alive?: abstract func -> Bool
 
     /**
      * @return the thread that's currently running

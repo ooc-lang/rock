@@ -29,7 +29,7 @@ version(unix || apple) {
             false
         }
 
-        isAlive?: func -> Bool {
+        alive?: func -> Bool {
             pthread_kill(pthread, 0) == 0
         }
 
