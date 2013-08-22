@@ -115,39 +115,19 @@ UseDef: class {
     findUse: static func (fileName: String, params: BuildParams) -> File {
         set := params libsPaths
 
-        if (params veryVerbose) {
-            "ooc libs search path: " println()
-            for (f in set) {
-                " - %s" printfln(f getPath())
-            }
-        }
-
         for(path in set) {
             if(path getPath() == null) continue
 
             children := path getChildren()
-            if (params veryVerbose) {
-                "path %s has %d children" printfln(path getPath(), children size)
-            }
 
             for(subPath in children) {
-                if (params veryVerbose) {
-                    "for subPath %s - dir %d - link %d file %d" printfln(subPath getPath(), \
-                        subPath dir?(), subPath link?(), subPath file?())
-                }
                 if(subPath dir?() || subPath link?()) {
                     candidate := File new(subPath, fileName)
-                    if (params veryVerbose) {
-                        "testing candidate %s. exists? %d" printfln(candidate getPath(), candidate exists?())
-                    }
                     if(candidate exists?()) {
                         return candidate
                     }
                 }
                 if(subPath file?() || subPath link?()) {
-                    if (params veryVerbose) {
-                        candidate := File new(subPath, fileName)
-                    }
                     if(subPath getPath() endsWith?(fileName)) {
                         return subPath
                     }
@@ -167,9 +147,6 @@ UseDef: class {
         }
         sourcePath = sourcePathFile path
 
-        if(params veryVerbose) {
-            "Adding %s to sourcepath ..." printfln(sourcePath)
-        }
         params sourcePathTable put(sourcePath, this)
         params sourcePath add(sourcePath)
 
@@ -274,7 +251,6 @@ UseDef: class {
 
     read: func (=file, params: BuildParams) {
         reader := FileReader new(file)
-        if(params veryVerbose) ("Reading use file " + file path) println()
 
         versionStack push(UseProperties new(this, UseVersionOr new(this)))
         

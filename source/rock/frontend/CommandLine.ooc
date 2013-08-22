@@ -267,7 +267,6 @@ CommandLine: class {
                     if(!longOption && option != "vv") warnUseLong("veryVerbose")
                     params verbose = true
                     params veryVerbose = true
-                    params sourcePath debug = true
 
                 } else if (option == "stats") {
 
