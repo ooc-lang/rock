@@ -3,18 +3,6 @@ import native/win32/[types, errors]
 
 version(windows) {
 
-    include windows
-
-    /* covers & extern functions */
-    // this used to be GC_CreateThread, but as it turns out, it doesn't 
-    // work with recent versions of the gc, and it was redirected to the Win32
-    // API anyway :)
-    CreateThread: extern func (...) -> Handle
-    GetCurrentThread: extern func -> Handle
-    WaitForSingleObject: extern func (...) -> Long // laziness
-    INFINITE: extern Long
-    WAIT_OBJECT_0: extern Long
-
     /**
      * Win32 implementation of threads.
      *
@@ -63,10 +51,27 @@ version(windows) {
         }
 
         _yield: static func -> Bool {
-            Exception new(This, "yield: stub") throw()
-            false
+            // I secretly curse whoever thought of this function name
+            SwitchToThread()
         }
 
     }
+
+    /* C interface */
+
+    // Note that for the GC and Win32 threads to play well, the GC has to be
+    // linked dynamically, and not statically. Use `--gc=dynamic` to achieve
+    // that, and make sure you have a copy of libgc.dll.a in your libpath
+
+    include windows
+
+    // Was GC_CreateThread, but it has been removed in recent versions of Boehm
+    CreateThread: extern func (...) -> Handle
+    GetCurrentThread: extern func -> Handle
+    WaitForSingleObject: extern func (...) -> Long
+    SwitchToThread: extern func
+
+    INFINITE: extern Long
+    WAIT_OBJECT_0: extern Long
 
 }

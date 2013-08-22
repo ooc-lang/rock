@@ -2,21 +2,6 @@ import ../Thread
 include unistd
 
 version(unix || apple) {
-    include pthread
-
-    /* covers & extern functions */
-    PThread: cover from pthread_t
-
-    version(gc) {
-        pthread_create: extern(GC_pthread_create) func (threadPtr: PThread*, attrPtr: Pointer, startRoutine: Pointer, userArgument: Pointer) -> Int
-        pthread_join:   extern(GC_pthread_join)   func (thread: PThread, retval: Pointer*) -> Int
-    }
-    version (!gc) {
-        pthread_create: extern func (threadPtr: PThread*, attrPtr: Pointer, startRoutine: Pointer, userArgument: Pointer) -> Int
-        pthread_join:   extern func (thread: PThread, retval: Pointer*) -> Int
-    }
-    pthread_kill: extern func (thread: PThread, signal: Int) -> Int
-    pthread_self: extern func -> PThread
 
     /**
      * pthreads implementation of threads.
@@ -61,4 +46,19 @@ version(unix || apple) {
 
     }
 
+    /* C interface */
+    include pthread
+
+    PThread: cover from pthread_t
+
+    version(gc) {
+        pthread_create: extern(GC_pthread_create) func (threadPtr: PThread*, attrPtr: Pointer, startRoutine: Pointer, userArgument: Pointer) -> Int
+        pthread_join:   extern(GC_pthread_join)   func (thread: PThread, retval: Pointer*) -> Int
+    }
+    version (!gc) {
+        pthread_create: extern func (threadPtr: PThread*, attrPtr: Pointer, startRoutine: Pointer, userArgument: Pointer) -> Int
+        pthread_join:   extern func (thread: PThread, retval: Pointer*) -> Int
+    }
+    pthread_kill: extern func (thread: PThread, signal: Int) -> Int
+    pthread_self: extern func -> PThread
 }
