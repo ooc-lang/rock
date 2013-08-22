@@ -156,7 +156,7 @@ FunctionCall: class extends Expression {
      * a return expression, when it's being used.
      */
     debugCondition: inline func -> Bool {
-        false
+        name == "pton"
     }
 
     /**
@@ -360,6 +360,8 @@ FunctionCall: class extends Expression {
                         message := "No such function %s%s for `%s`" format(name, getArgsTypesRepr(), expr getType() getName())
                         if(expr getType() isGeneric()) {
                             message += " (you can't call methods on generic types! you have to cast them first)"
+                        } else if (ref) {
+                            message += "\n\n>> Closest match: %s\n" format(ref toString())
                         }
                         res throwError(UnresolvedCall new(this, message, ""))
                     }
@@ -454,6 +456,9 @@ FunctionCall: class extends Expression {
                             expr getType() toString(), expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)")
                     } else {
                         message = "No such function %s%s for `%s`" format(name, getArgsTypesRepr(), expr getType() toString())
+                        if (ref) {
+                            message += "\n\n>> Closest match: %s\n" format(ref toString())
+                        }
                     }
                 }
 
