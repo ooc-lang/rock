@@ -331,14 +331,14 @@ ModuleWriter: abstract class extends Skeleton {
         if(inc getVersion()) VersionWriter writeStart(this, inc getVersion())
 
         for(define in inc getDefines()) {
-			current nl(). app("#ifndef "). app(define name)
-			current nl(). app("#define "). app(define name)
+            current nl(). app("#ifdef "). app(define name)
+            current nl(). app("#undef "). app(define name)
+            current nl(). app("#endif")
+            current nl(). app("#define "). app(define name)
             if(define value != null) {
                 current app(' '). app(define value)
             }
-            current nl(). app("#define "). app(define name). app("___defined")
-			current nl(). app("#endif")
-		}
+        }
 
         current nl(). app("#include <")
 
@@ -349,10 +349,7 @@ ModuleWriter: abstract class extends Skeleton {
         current app(inc path). app(".h>")
 
         for(define in inc getDefines()) {
-            current nl(). app("#ifdef "). app(define name). app("___defined")
             current nl(). app("#undef "). app(define name)
-            current nl(). app("#undef "). app(define name). app("___defined")
-            current nl(). app("#endif")
         }
 
         if(inc getVersion()) VersionWriter writeEnd(this)
