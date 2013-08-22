@@ -3,27 +3,27 @@ import native/[MutexUnix, MutexWin32]
 import native/[ThreadLocalUnix, ThreadLocalWin32]
 
 /**
-   A thread is a thread of execution in a program. Multiple threads
-   can run concurrently, allowing parallel computations to occur.
-
-   However, since such threads are preemptible, synchronization issues
-   can occur, such as race conditions (two threads access the same memory
-   location in an interleaved manner, leaving an inconsistent state)
-   or
-
-   :author: Amos Wenger (nddrylliog)
+ * A thread is a thread of execution in a program. Multiple threads
+ * can run concurrently, allowing parallel computations to occur.
+ *
+ * However, since such threads are preemptible, synchronization issues
+ * can occur, such as race conditions (two threads access the same memory
+ * location in an interleaved manner, leaving an inconsistent state)
+ * or
+ * 
+ * @author Amos Wenger (nddrylliog)
  */
 Thread: abstract class {
 
     _code: Func
 
     /**
-       Create a new thread that will run a given function.
-       Note that this only creates the thread - the start() method
-       can be used to effectively start execution of this thread.
-
-       :param code: A function to be executed from the newly created
-       thread. It can be a closure (and it's actually pretty convenient)
+     * Create a new thread that will run a given function.
+     * Note that this only creates the thread - the start() method
+     * can be used to effectively start execution of this thread.
+     *
+     * @param code A function to be executed from the newly created
+     * thread. It can be a closure (and it's actually pretty convenient)
      */
     new: static func (._code) -> This {
 
@@ -40,20 +40,72 @@ Thread: abstract class {
     }
 
     /**
-       Starts the actual execution of a thread.
-
-       This call is non-blocking, since the execution of this thread's
-       code will happen concurrently.
-
-       You can call wait() to block until the started thread has finished
-       its job.
+     * Starts the actual execution of a thread.
+     *
+     * This call is non-blocking, since the execution of this thread's
+     * code will happen concurrently.
+     *
+     * You can call wait() to block until the started thread has finished
+     * its job.
+     *
+     * @return true if the thread has started successfully, false otherwise
      */
-    start: abstract func -> Int
+    start: abstract func -> Bool
 
     /**
-       Blocks until this thread has finished running (ie. join this thread).
+     * Blocks until this thread has finished running (ie. join this thread).
+     *
+     * @return true if the thread has successfully joined, ie. if it's finished running.
+     * otherwise, false - the thread is not joinable, is already dead, a deadlock was
+     * detected, etc.
      */
-    wait: abstract func -> Int
+    wait: abstract func -> Bool
+
+    /**
+     * Similar to wait, but waits at most `seconds` for the thread to wrap it up.
+     *
+     * @param seconds Number of seconds to wait until we give up and stop waiting
+     * for the thread to finish
+     * @return true if the thread has finished while we were waiting, false if it is
+     * still running.
+     */
+    wait: abstract func ~timed (seconds: Double) -> Int
+
+    /**
+     * @return true if the thread is still running, false otherwise
+     */
+    isAlive?: abstract func -> Bool
+
+    /**
+     * @return the thread that's currently running
+     */
+    currentThread: static func -> This {
+      version (unix || apple) {
+        return ThreadUnix _currentThread()
+      }
+      version (windows) {
+        return ThreadWin32 _currentThread()
+      }
+      null
+    }
+
+    /**
+     * Causes the calling thread to relinquish the CPU. The
+     * thread is moved to the end of the queue for its static
+     * priority and a new thread gets to run.
+     *
+     * @return true on success, false on failure
+     */
+    yield: static func -> Bool {
+      version (unix || apple) {
+        return ThreadUnix _yield()
+      }
+      version (windows) {
+        return ThreadWin32 _yield()
+      }
+
+      false
+    }
 
 }
 

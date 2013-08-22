@@ -27,12 +27,34 @@ version(unix || apple) {
 
         init: func ~unix (=_code) {}
 
-        start: func -> Int {
-            return pthread_create(pthread&, null, _code as Closure thunk, _code as Closure context)
+        start: func -> Bool {
+            result := pthread_create(pthread&, null, _code as Closure thunk, _code as Closure context)
+            result == 0
         }
 
-        wait: func -> Int {
-            return pthread_join(pthread, null)
+        wait: func -> Bool {
+            result := pthread_join(pthread, null)
+            result == 0
+        }
+
+        wait: func ~timed (seconds: Double) -> Bool {
+            Exception new(This, "wait~timed: stub") throw()
+            false
+        }
+
+        isAlive?: func -> Bool {
+            Exception new(This, "isAlive?: stub") throw()
+            false
+        }
+
+        _currentThread: static func -> This {
+            Exception new(This, "currentThread: stub") throw()
+            null
+        }
+
+        _yield: static func -> Bool {
+            Exception new(This, "yield: stub") throw()
+            false
         }
 
     }

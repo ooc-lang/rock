@@ -26,7 +26,7 @@ version(windows) {
 
         init: func ~win (=_code) {}
 
-        start: func -> Int {
+        start: func -> Bool {
             handle = CreateThread(
                 null,                    // default security attributes
                 0,                       // use default stack size
@@ -34,11 +34,35 @@ version(windows) {
                 _code as Closure context,// argument to thread function
                 0,                       // use default creation flags
                 threadID&)               // returns the thread identifier
-            return (handle == INVALID_HANDLE_VALUE ? -1 : 0)
+
+            handle != INVALID_HANDLE_VALUE
         }
 
-        wait: func -> Int {
-            WaitForSingleObject(handle, INFINITE) == WAIT_OBJECT_0 ? 0 : -1
+        wait: func -> Bool {
+            result := WaitForSingleObject(handle, INFINITE)
+            result == WAIT_OBJECT_0
+        }
+
+        wait: func ~timed (seconds: Double) -> Bool {
+            Exception new(This, "wait~timed: stub") throw()
+            false
+        }
+
+        isAlive?: func -> Bool {
+            result := WaitForSingleObject(handle, 0)
+
+            // if it's equal, it has terminated, otherwise, it's still alive
+            result != WAIT_OBJECT_0
+        }
+
+        _currentThread: static func -> This {
+            Exception new(This, "currentThread: stub") throw()
+            null
+        }
+
+        _yield: static func -> Bool {
+            Exception new(This, "yield: stub") throw()
+            false
         }
 
     }
