@@ -8,10 +8,13 @@ UDPSocket: class extends Socket {
     remote: SocketAddress
 
     /**
-        Initialize the socket, do not bind to any IP or port.
-        Can be used with 
+        Initialize the socket. Binds to all available IPs.
+
+        :param port: The port, for example 8080, or 80.
     */
-    init: func() {}
+    init: func ~port(port: Int) {
+        init("0.0.0.0", port)
+    }
 
     /**
         Initialize the socket
@@ -19,59 +22,20 @@ UDPSocket: class extends Socket {
         :param ip: The IP, for now it can NOT be a hostname (TODO: This is a bug! Fix it!)
         :param port: The port, for example 8080, or 80.
     */
-    init: func ~ipPort(ip: String, port: Int) {
+    init: func ~ipPort(host: String, port: Int) {
+        // Ohai, IP4-specificness. TODO: Fix this
+        ip := DNS resolveOne(host, SocketType DATAGRAM, AddressFamily IP4)
+        remote = SocketAddress new(ip, port)
         super(remote family(), SocketType DATAGRAM, 0)
-        type = ipType(ip)
-        super(type, SocketType STREAM, 0)
-        bind(ip, port)
+        type = AddressFamily IP4
     }
 
     /**
-        Initialize the socket. Binds to all available IPs.
-
-        :param port: The pot, for example 8080, or 80.
+        Bind the socket
     */
-    init: func ~port(port: Int) {
-        /*
-            Somebody tell me why ip := "0.0.0.0"
-            in init(ip,port) didn't work? Oh well...
-        */
-        init("0.0.0.0", port)
-    }
-
-    /**
-        Bind a local port to the socket.
-    */
-    bind: func(port: Int) {
-        addr := SocketAddress new(IP4Address new(), port)
-        bind(addr)
-    }
-
-    /**
-        Bind a local address and port to the socket.
-    */
-    bind: func ~withIp(ip: String, port: Int) {
-        addr: SocketAddress
-        type := ipType(ip)
-        if(validIp?(ip)) {
-            match(type) {
-                case AddressFamily IP4 =>
-                    addr = getSocketAddress(ip, port)
-                case AddressFamily IP6 =>
-                    addr = getSocketAddress6(ip, port)
-            }
-            bind(addr)
-        } else {
-            InvalidAddress new("Address must be a valid IPv4 or IPv6 IP.") throw()
-        }
-    }
-
-    /**
-        Bind a local address to the socket.
-    */
-    bind: func ~withAddr(addr: SocketAddress) {
-        if(bind(descriptor, addr addr(), addr length()) == -1) {
-            SocketError new() throw()
+    bind: func {
+        if(bind(descriptor, remote addr(), remote length()) == -1) {
+            SocketError new("Could not bind UDP socket") throw()
         }
     }
 
@@ -84,11 +48,7 @@ UDPSocket: class extends Socket {
 
        :return: The number of bytes sent
      */
-    send: func ~withLength(data: Char*, length: SizeT, flags: Int, other: String, port: SizeT, resend: Bool) -> Int {
-        ip := DNS resolveOne(other, SocketType DATAGRAM, AddressFamily IP4) // Ohai, IP4-specificness. TODO: Fix this
-        remote := SocketAddress new(ip, port)
-        init(remote family(), SocketType DATAGRAM, 0)
-
+    send: func ~withLength(data: Char*, length: SizeT, flags: Int, resend: Bool) -> Int {
         bytesSent := sendTo(descriptor, data, length, flags, remote addr(), remote length())
         if (resend)
             while(bytesSent < length && bytesSent != -1) {
@@ -96,8 +56,9 @@ UDPSocket: class extends Socket {
                 bytesSent += sendTo(descriptor, dataSubstring, length - bytesSent, flags, remote addr(), remote length())
             }
 
-        if(bytesSent == -1)
-            SocketError new() throw()
+        if(bytesSent == -1) {
+            SocketError new("Couldn't send an UDP datagram") throw()
+        }
 
         return bytesSent
     }
@@ -110,8 +71,8 @@ UDPSocket: class extends Socket {
 
        :return: The number of bytes sent
      */
-    send: func ~withFlags(data: String, flags: Int, other: String, port: SizeT, resend: Bool) -> Int {
-        send(data toCString(), data size, flags, other, port, resend)
+    send: func ~withFlags(data: String, flags: Int, resend: Bool) -> Int {
+        send(data toCString(), data size, flags, resend)
     }
 
     /**
@@ -121,7 +82,7 @@ UDPSocket: class extends Socket {
 
        :return: The number of bytes sent
      */
-    send: func ~withResend(data: String, other: String, port: SizeT, resend: Bool) -> Int { send(data, 0, other, port, resend) }
+    send: func ~withResend(data: String, resend: Bool) -> Int { send(data, 0, resend) }
 
     /**
        Send a string through this socket with resend attempted for unsent data
@@ -129,22 +90,22 @@ UDPSocket: class extends Socket {
 
        :return: The number of bytes sent
      */
-    send: func(data: String, other: String, port: SizeT) -> Int { send(data, other, port, true) }
+    send: func(data: String) -> Int { send(data, true) }
 
     /**
        Send a byte through this socket
        :param byte: The byte to send
        :param flags: Send flags
      */
-    sendByte: func ~withFlags(byte: Char, flags: Int, other: String, port: SizeT) {
-        send(byte&, Char size, flags, other, port, true)
+    sendByte: func ~withFlags(byte: Char, flags: Int) {
+        send(byte&, Char size, flags, true)
     }
 
     /**
        Send a byte through this socket
        :param byte: The byte to send
      */
-    sendByte: func(byte: Char, other: String, port: SizeT) { sendByte(byte, 0, other, port) }
+    sendByte: func(byte: Char) { sendByte(byte, 0) }
 
     /**
        Receive bytes from this socket
@@ -154,15 +115,11 @@ UDPSocket: class extends Socket {
 
        :return: Number of received bytes
      */
-    receive: func ~withFlags(chars: Char*, length: SizeT, flags: Int, other: String, port: Int) -> Int {
-        ip := DNS resolveOne(other, SocketType DATAGRAM, AddressFamily IP4) // Ohai, IP4-specificness. TODO: Fix this
-        remote := SocketAddress new(ip, port)
-        init(remote family(), SocketType DATAGRAM, 0)
-
+    receive: func ~withFlags(chars: Char*, length: SizeT, flags: Int) -> Int {
         socketLength := remote length()
         bytesRecv := recvFrom(descriptor, chars, length, flags, remote addr(), socketLength&)
         if(bytesRecv == -1) {
-            SocketError new() throw()
+            SocketError new("Error receiveing from UDP socket") throw()
         }
         if(bytesRecv == 0) {
             connected? = false // disconnected!
@@ -177,16 +134,16 @@ UDPSocket: class extends Socket {
 
        :return: Number of received bytes
      */
-    receive: func ~withBuffer(buffer: Buffer, length: SizeT, other: String, port: Int) -> Int {
+    receive: func ~withBuffer(buffer: Buffer, length: SizeT) -> Int {
         assert (length <= buffer capacity)
-        ret := receive(buffer data, length, 0, other, port)
+        ret := receive(buffer data, length, 0)
         buffer setLength(ret)
         ret
     }
 
-    receive: func(length: SizeT, other: String, port: Int) -> Buffer {
+    receive: func(length: SizeT) -> Buffer {
         buffer := Buffer new(length)
-        receive(buffer, length, other, port)
+        receive(buffer, length)
         buffer
     }
 
@@ -196,9 +153,9 @@ UDPSocket: class extends Socket {
 
        :return: The byte read
      */
-    receiveByte: func ~withFlags(flags: Int, other: String, port: Int) -> Char {
+    receiveByte: func ~withFlags(flags: Int) -> Char {
         c: Char
-        receive(c&, 1, 0, other, port)
+        receive(c&, 1, 0)
         return c
     }
 
@@ -207,8 +164,7 @@ UDPSocket: class extends Socket {
 
        :return: The byte read
      */
-    receiveByte: func(other: String, port: Int) -> Char { receiveByte(0, other, port) }
-
+    receiveByte: func -> Char { receiveByte(0) }
 
 //    receiveFrom:
 }
