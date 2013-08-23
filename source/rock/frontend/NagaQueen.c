@@ -12751,7 +12751,15 @@ int nq_parse(void *this, char *path) {
     core->yylineno = 0;
     core->this = this;
     core->path = path;
+
+#if defined(__WIN32__) || defined(__WIN64__)
+    // we need to use binary mode because text mode on MinGW
+    // does CR->LF conversion and we handle that ourselves.
+    core->stream = fopen(path, "rb");
+#else
     core->stream = fopen(path, "r");
+#endif
+
     core->streamoffset = -1;
     core->streamlen = -1;
     if(!core->stream) {
