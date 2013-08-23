@@ -69,21 +69,41 @@ Token: cover {
         // zap the lines before we start
         while(fr hasNext?() && idx < start) {
             c := fr read()
-            if(c == '\n') {
-                lines += 1
-                lastNewLine = idx
+            match c {
+                // CRLF (Win32)
+                case '\r' =>
+                    if (fr peek() == '\n') {
+                        fr read()
+                        idx += 1
+                        lines += 1
+                        lastNewLine = idx
+                    }
+                // LF (Linux, Mac)
+                case '\n' =>
+                  lines += 1
+                  lastNewLine = idx
             }
             idx += 1
         }
-        //"lines = %d, lastNewLine = %d, idx = %d, start = %d" printfln(lines, lastNewLine, idx, start)
+        "lines = %d, lastNewLine = %d, idx = %d, start = %d" printfln(lines, lastNewLine, idx, start)
 
         // zap the end of the line that contains us
         if(fr hasNext?()) while(true) {
             // the order matters - we consider the end-of-file as a newline.
-            if(fr read() == '\n' || !fr hasNext?()) break
+            c := fr read()
+            match c {
+              case '\r' =>
+                if (fr peek() == '\n') {
+                  break
+                }
+              case '\n' =>
+                break
+            }
+            if(!fr hasNext?()) break
+
             idx += 1
         }
-        //"now idx = %d" printfln(idx)
+        "now idx = %d" printfln(idx)
 
         fr reset(lastNewLine == 0 ? 0 : lastNewLine + 1)
         over := Buffer new()
@@ -97,17 +117,39 @@ Token: cover {
         b append(prefix)
         end := getEnd()
         beginning := true
+        done := false
+
+        "Iterating from %d to %d (start = %d, end = %d)" printfln(lastNewLine + 1, idx + 1, start, end)
         for(i in (lastNewLine + 1)..(idx + 1)) {
             c := fr read()
-            if(beginning && c == '\n') continue
+            if (beginning) {
+              match c {
+                // CRLF (Win32)
+                case '\r' =>
+                    if (fr peek() == '\n') {
+                      fr read()
+                      continue
+                    }
+                // LF (Linux, Mac)
+                case '\n' =>
+                    continue
+              }
+            }
             beginning = false
 
             match (c) {
                 case '\t' =>
                     b append("    ")
                     over append("    ")
+                // CRLF (Win32)
+                case '\r' =>
+                    if (fr peek() == '\n') {
+                      fr read()
+                      done = true
+                    }
+                // LF (Linux, Mac)
                 case '\n' =>
-                    break // the outer loop, not the match.
+                    done = true
                 case =>
                     b append(c)
                     if(i < start || i >= end) {
@@ -116,6 +158,8 @@ Token: cover {
                         over append('~')
                     }
             }
+
+            if (done) break
         }
         b append('\n'). append(prefix)
         b append(over)
@@ -137,7 +181,16 @@ Token: cover {
         // zap the lines before we start
         while(fr hasNext?() && idx < start) {
             c := fr read()
-            if(c == '\n') {
+            match c {
+              // CRLF (Win32)
+              case '\r' =>
+                if (fr peek() == '\n') {
+                  idx += 1
+                  fr read()
+                  lines += 1
+                }
+              // LF (Linux, Mac)
+              case '\n' =>
                 lines += 1
             }
             idx += 1
