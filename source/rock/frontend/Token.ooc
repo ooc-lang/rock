@@ -66,7 +66,8 @@ Token: cover {
         lastNewLine := 0
         lines := 1
         idx := 0
-        // zap the lines before we start
+
+        // skip the lines before we start, remember index of the start of our line
         while(fr hasNext?() && idx < start) {
             c := fr read()
             match c {
@@ -85,9 +86,9 @@ Token: cover {
             }
             idx += 1
         }
-        "lines = %d, lastNewLine = %d, idx = %d, start = %d" printfln(lines, lastNewLine, idx, start)
+        //"lines = %d, lastNewLine = %d, idx = %d, start = %d" printfln(lines, lastNewLine, idx, start)
 
-        // zap the end of the line that contains us
+        // skip the end of the line that contains us
         if(fr hasNext?()) while(true) {
             // the order matters - we consider the end-of-file as a newline.
             c := fr read()
@@ -103,7 +104,7 @@ Token: cover {
 
             idx += 1
         }
-        "now idx = %d" printfln(idx)
+        //"now idx = %d" printfln(idx)
 
         fr reset(lastNewLine == 0 ? 0 : lastNewLine + 1)
         over := Buffer new()
@@ -119,7 +120,7 @@ Token: cover {
         beginning := true
         done := false
 
-        "Iterating from %d to %d (start = %d, end = %d)" printfln(lastNewLine + 1, idx + 1, start, end)
+        //"Iterating from %d to %d (start = %d, end = %d)" printfln(lastNewLine + 1, idx + 1, start, end)
         for(i in (lastNewLine + 1)..(idx + 1)) {
             c := fr read()
             if (beginning) {
@@ -178,7 +179,7 @@ Token: cover {
 
         fr := FileReader new(getPath())
 
-        // zap the lines before we start
+        // skip the lines before we start
         while(fr hasNext?() && idx < start) {
             c := fr read()
             match c {
