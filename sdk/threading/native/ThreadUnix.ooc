@@ -1,4 +1,4 @@
-import ../Thread, math, os/Time
+import ../[Thread], math, os/Time
 
 include unistd
 
@@ -17,38 +17,25 @@ version(unix || apple) {
 
         start: func -> Bool {
             result := pthread_create(pthread&, null, _code as Closure thunk, _code as Closure context)
-            result == 0
+            (result == 0)
         }
 
         wait: func -> Bool {
             result := pthread_join(pthread, null)
-            result == 0
+            (result == 0)
         }
 
         wait: func ~timed (seconds: Double) -> Bool {
             version (!apple) {
-                // We need an absolute number of seconds since the epoch
-                // First order of business - what time is it?
-                tv: TimeVal
-                gettimeofday(tv&, null)
-
-                nowSeconds: Double = tv tv_sec as Double + tv tv_usec as Double / 1_000_000.0
-
-                // Now compute the amount of seconds between January 1st, 1970 and the time
-                // we will stop waiting on our thread
-                absSeconds: Double = nowSeconds + seconds
-
-                // And store it in a timespec, converting again...
                 ts: TimeSpec
-                ts tv_sec = floor(absSeconds) as TimeT
-                ts tv_nsec = ((absSeconds - ts tv_sec) * 1000 + 0.5) * (1_000_000 as Long)
-                
+                __setupTimeout(ts&, seconds)
+                    
                 result := pthread_timedjoin_np(pthread, null, ts&)
-                return result == 0
+                return (result == 0)
             }
 
             version (apple) {
-                Exception new(This, "wait~timed: unsupported on OSX") throw()
+                return __fake_timedjoin(seconds)
             }
             false
         }
@@ -67,7 +54,43 @@ version(unix || apple) {
             // pthread_yield is non-standard, use sched_yield instead
             // as a bonus, this works on OSX too.
             result := sched_yield()
-            result == 0
+            (result == 0)
+        }
+
+        // private stuff
+
+        __setupTimeout: func (ts: TimeSpec@, seconds: Double) {
+            // We need an absolute number of seconds since the epoch
+            // First order of business - what time is it?
+            tv: TimeVal
+            gettimeofday(tv&, null)
+
+            nowSeconds: Double = tv tv_sec as Double + tv tv_usec as Double / 1_000_000.0
+
+            // Now compute the amount of seconds between January 1st, 1970 and the time
+            // we will stop waiting on our thread
+            absSeconds: Double = nowSeconds + seconds
+
+            // And store it in a timespec, converting again...
+            ts tv_sec = floor(absSeconds) as TimeT
+            ts tv_nsec = ((absSeconds - ts tv_sec) * 1000 + 0.5) * (1_000_000 as Long)
+        }
+
+        /*
+         * This is a semi-busywait implementation of timedjoin
+         * The real solution is to use condition variables, but
+         * I honestly don't have the courage to use them right now.
+         */
+        __fake_timedjoin: func (seconds: Double) -> Bool {
+            while (seconds > 0.0) {
+                Time sleepMilli(20)
+                seconds -= 0.02
+                if (!alive?()) {
+                    // successfully joined
+                    return true 
+                }
+            }
+            false
         }
 
     }
@@ -77,14 +100,13 @@ version(unix || apple) {
     include sched
 
     PThread: cover from pthread_t
+    TimeT: cover from time_t
+    TimeSpec: cover from struct timespec {
+        tv_sec: extern TimeT
+        tv_nsec: extern Long
+    }
 
     version (!apple) {
-        TimeT: cover from time_t
-        TimeSpec: cover from struct timespec {
-            tv_sec: extern TimeT
-            tv_nsec: extern Long
-        }
-
         pthread_timedjoin_np: extern func (thread: PThread, retval: Pointer, abstime: TimeSpec*) -> Int
     }
 
