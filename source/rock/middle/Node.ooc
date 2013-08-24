@@ -58,6 +58,26 @@ Node: abstract class {
     // Just to be on the safe side - everything has side effects by default
     hasSideEffects : func -> Bool { true }
 
+    /**
+     * Clone this node, so that it may be used somewhere else in the AST
+     * without any modification to the clone hurting the original node.
+     *
+     * @return a clone of this node.
+     */
     clone: abstract func -> This
+
+    /**
+     * Translate stuff like __quest and __bang back into '?' and '!'
+     */
+    unbangify: static func (name: String) -> String {
+      match {
+        case name endsWith?("__quest") =>
+          name[0..-8] + "?"
+        case name endsWith?("__bang") =>
+          name[0..-7] + "!"
+        case =>
+          name
+      }
+    }
 
 }

@@ -49,6 +49,10 @@ FunctionDecl: class extends Declaration {
     /** name: func ~suffix - suffix is null if there's no suffix in the grammar */
     name = "", suffix = null, fullName = null, doc = "" : String
 
+    prettyName: String { get {
+      unbangify(name)
+    } }
+
     /** The return type of this function. If it's generic, or if it's a TypeList, then returnArgs will be used */
     returnType := voidType
     /** For some extreme inference cases, this is the type we can infer from return expression inside the body. See Return */
@@ -369,7 +373,7 @@ FunctionDecl: class extends Declaration {
     toString: func ~withCallContext (call: FunctionCall) -> String {
         (isStatic ? "static " : "") +
         (owner ? owner getName() + " " : "") +
-        (suffix ? (name + "~" + suffix) : name) +
+        (suffix ? (prettyName + "~" + suffix) : prettyName) +
         getArgsRepr(call) +
         (hasReturn() ? " -> " + returnType toString() : "")
     }
@@ -494,7 +498,7 @@ FunctionDecl: class extends Declaration {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        if(debugCondition() || res params veryVerbose) "** Resolving function decl %s" printfln(name)
+        if(debugCondition() || res params veryVerbose) "** Resolving function decl %s" printfln(prettyName)
 
         if(debugCondition()) ("isFatal ? " + res fatal toString()) println()
 
@@ -1121,7 +1125,7 @@ FunctionRedefinition: class extends Error {
     first, second: FunctionDecl
 
     init: func (=first, =second) {
-        message = second token formatMessage("Redefinition of '%s'%s" format(first getName(), first verzion ? (" in version " + first verzion toString()) : ""), "[INFO]") + '\n' +
+        message = second token formatMessage("Redefinition of '%s'%s" format(first prettyName, first verzion ? (" in version " + first verzion toString()) : ""), "[INFO]") + '\n' +
                   first  token formatMessage("\n...first definition was here: ", "[ERROR]")
     }
 

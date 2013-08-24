@@ -28,7 +28,12 @@ VariableAccess: class extends Expression {
     
     reverseExpr: VariableAccess
     
+    /** Name of the variable being accessed. */
     name: String
+
+    prettyName: String { get {
+      unbangify(name)
+    } }
 
     ref: Declaration
 
@@ -135,7 +140,7 @@ VariableAccess: class extends Expression {
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         if(debugCondition()) {
-            "%s is of type %s" printfln(name, getType() ? getType() toString() : "(nil)")
+            "%s is of type %s" printfln(prettyName, getType() ? getType() toString() : "(nil)")
         }
 
         // resolve built-ins first
@@ -195,7 +200,7 @@ VariableAccess: class extends Expression {
                 // We dont use pointerLevel or instanceOf? because we want accesses of an ArrayType to be legal
                 if(exprType class == PointerType) {
                     res throwError(NeedsDeref new(this, "Can't access field '%s' in expression of pointer type '%s' without dereferencing it first" \
-                                                           format(name, exprType toString())))
+                                                           format(prettyName, exprType toString())))
                     return Response OK
                 }
             }
@@ -379,7 +384,7 @@ VariableAccess: class extends Expression {
                 if(reverseExpr && _staticFunc && name == "this") {
                     res throwError(InvalidAccess new(this,
                         "Can't access instance variable '%s' from static function '%s'!" \
-                            format(reverseExpr getName(), _staticFunc getName())
+                            format(reverseExpr prettyName, _staticFunc prettyName)
                     ))
                 }
                 
@@ -397,7 +402,7 @@ VariableAccess: class extends Expression {
             }
             if(res params veryVerbose) {
                 "     - access to %s%s still not resolved, looping (ref = %s)" printfln(\
-                expr ? (expr toString() + "->")  : "", name, ref ? ref toString() : "(nil)")
+                expr ? (expr toString() + "->")  : "", prettyName ? ref toString() : "(nil)")
             }
             res wholeAgain(this, "Couldn't resolve varacc")
         }
@@ -462,7 +467,7 @@ VariableAccess: class extends Expression {
     getName: func -> String { name }
 
     toString: func -> String {
-        expr ? (expr toString() + " " + name) : name
+        expr ? (expr toString() + " " + prettyName) : prettyName
     }
 
     isReferencable: func -> Bool { true }

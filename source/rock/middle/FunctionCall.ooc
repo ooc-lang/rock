@@ -45,6 +45,10 @@ FunctionCall: class extends Expression {
     /** Name of the function being called. */
     name: String
 
+    prettyName: String { get {
+      unbangify(name)
+    } }
+
     /**
      * If the suffix is non-null (ie it has been specified in the code,
      * via name~suffix()), it won't accept functions that have a different
@@ -357,7 +361,7 @@ FunctionCall: class extends Expression {
                     expr as VariableAccess getRef() resolveCall(this, res, trail)
                 } else if(expr getType() != null && expr getType() getRef() != null) {
                     if(!expr getType() getRef() instanceOf?(TypeDecl)) {
-                        message := "No such function %s%s for `%s`" format(name, getArgsTypesRepr(), expr getType() getName())
+                        message := "No such function %s%s for `%s`" format(prettyName, getArgsTypesRepr(), expr getType() getName())
                         if(expr getType() isGeneric()) {
                             message += " (you can't call methods on generic types! you have to cast them first)"
                         } else if (ref) {
@@ -449,13 +453,13 @@ FunctionCall: class extends Expression {
             if(res fatal) {
                 message := "No such function"
                 if(expr == null) {
-                    message = "No such function %s%s" format(name, getArgsTypesRepr())
+                    message = "No such function %s%s" format(prettyName, getArgsTypesRepr())
                 } else if(expr getType() != null) {
                     if(res params veryVerbose) {
-                        message = "No such function %s%s for `%s` (%s)" format(name, getArgsTypesRepr(),
+                        message = "No such function %s%s for `%s` (%s)" format(prettyName, getArgsTypesRepr(),
                             expr getType() toString(), expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)")
                     } else {
-                        message = "No such function %s%s for `%s`" format(name, getArgsTypesRepr(), expr getType() toString())
+                        message = "No such function %s%s for `%s`" format(prettyName, getArgsTypesRepr(), expr getType() toString())
                         if (ref) {
                             message += "\n\n>> Closest match: %s\n" format(ref toString())
                         }
@@ -499,7 +503,7 @@ FunctionCall: class extends Expression {
         (expr as VariableAccess getRef() instanceOf?(ClassDecl) || expr as VariableAccess getRef() instanceOf?(CoverDecl)) && \
         (expr as VariableAccess getRef() as TypeDecl inheritsFrom?(ref getOwner()) || \
         expr as VariableAccess getRef() == ref getOwner()) && !ref isStatic) {
-            res throwError(UnresolvedCall new(this, "No such function %s%s for `%s` (%s)" format(name, getArgsTypesRepr(),
+            res throwError(UnresolvedCall new(this, "No such function %s%s for `%s` (%s)" format(prettyName, getArgsTypesRepr(),
                             expr getType() toString(), expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)"), ""))
         }
 
