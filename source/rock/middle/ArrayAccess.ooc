@@ -49,11 +49,12 @@ ArrayAccess: class extends Expression {
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         if(res fatal && type == null) {
-            if (array instanceOf?(VariableAccess)) {
-                if (!array isResolved()) {
-                    res wholeAgain(this, "Reference to undeclared variable.")
-                    return Response OK
-                }
+            if (!array isResolved()) {
+                // try to let the inner expression throw an error
+                array resolve(trail, res)
+
+                res wholeAgain(this, "Reference to undeclared variable.")
+                return Response OK
             }
             res throwError(InvalidArrayAccess new(token, "Trying to index something that isn't an array, nor has an overload for the []/[]= operators"))
         }
