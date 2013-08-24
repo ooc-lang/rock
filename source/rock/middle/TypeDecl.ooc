@@ -960,12 +960,8 @@ TypeRedefinition: class extends Error {
     first, second: TypeDecl
 
     init: func (=first, =second) {
-        message = second token formatMessage("Redefinition of '%s'%s" format(first getName(), first verzion ? (" in version " + first verzion toString()) : ""), "[INFO]") + '\n' +
-                  first  token formatMessage("\n...first definition was here: ", "[ERROR]")
-    }
-
-    format: func -> String {
-        message
+        super(second token, "Redefinition of '%s'%s" format(first getName(), first verzion ? (" in version " + first verzion toString()) : ""))
+        next = InfoError new(first token, "...first definition was here:")
     }
 
 }
@@ -975,12 +971,8 @@ DuplicateField: class extends Error {
     first, second: VariableDecl
 
     init: func(=first, =second) {
-        message = first  token formatMessage("Redefinition of '%s'" format(first getName()), "[INFO]") + '\n' +
-                  second token formatMessage("\n...first definition was here: ", "[ERROR]")
-    }
-
-    format: func -> String {
-        message
+        super(second token, "Redefinition of '%s'" format(first getName()))
+        next = InfoError new(first token, "...first definition was here:")
     }
 }
 

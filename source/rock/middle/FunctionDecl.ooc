@@ -1135,12 +1135,8 @@ FunctionRedefinition: class extends Error {
     first, second: FunctionDecl
 
     init: func (=first, =second) {
-        message = second token formatMessage("Redefinition of '%s'%s" format(first prettyName, first verzion ? (" in version " + first verzion toString()) : ""), "[INFO]") + '\n' +
-                  first  token formatMessage("\n...first definition was here: ", "[ERROR]")
-    }
-
-    format: func -> String {
-        message
+        super(second token, "Redefinition of '%s'%s" format(first prettyName, first verzion ? (" in version " + first verzion toString()) : "")) 
+        next = InfoError new(first token, "...first definition was here.")
     }
 
 }

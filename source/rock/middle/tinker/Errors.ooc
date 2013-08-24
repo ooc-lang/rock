@@ -25,7 +25,8 @@ DefaultErrorHandler: class implements ErrorHandler {
     init: func ~withParams (=params) {}
 
     onError: func (e: Error) {
-        e format() println()
+        e print()
+        println()
         if(e fatal?() && params fatalError) {
             CommandLine failure(params)
         }
@@ -37,7 +38,7 @@ DefaultErrorHandler: class implements ErrorHandler {
  * An error thrown.
  *
  * Note: in an ideal world, we'd have a nice class hierarchy so
- * we can filter out errors and have re
+ * we can filter out errors.
  *
  * @author Amos Wenger (nddrylliog)
  */
@@ -47,18 +48,38 @@ Error: abstract class {
     token: Token
     message: String
 
+    // errors can be chained, to provide context
+    next: Error = null
+
     init: func ~tokenMessage (=token, =message) {}
 
     fatal?: func -> Bool { true }
 
-    format: func -> String { token formatMessage(message, "ERROR") }
+    format: func -> String {
+        result := token formatMessage(message, getType())
+        if (next) {
+            return result + next format()
+        }
+        result
+    }
+
+    print: func {
+        token printMessage(message, getType())
+        if (next) {
+            next print()
+        }
+    }
+
+    getType: func -> String {
+        "error"
+    }
 
 }
 
 InternalError: class extends Error {
 
     init: func (.token, .message) {
-        super(token, message + "\nThis is a serious error, please report it at https://github.com/nddrylliog/rock/issues")
+        super(token, message)
     }
 
 }
@@ -68,7 +89,16 @@ Warning: class extends Error {
     init: super func ~tokenMessage
     fatal?: func -> Bool { false }
 
-    format: func -> String { token formatMessage(message, "WARNING") }
+    getType: func -> String { "warning" }
+
+}
+
+InfoError: class extends Error {
+
+    init: super func ~tokenMessage
+    fatal?: func -> Bool { false }
+
+    getType: func -> String { "info" }
 
 }
 
