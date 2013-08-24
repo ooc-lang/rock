@@ -166,13 +166,13 @@ Match: class extends Expression {
                             }
                             // inject the variable
                             // add the vDecl
-                            first := caze getBody() first()
-                            caze addBefore(first, vDecl)
+                            caze addFirst(vDecl)
+
                             // add the Assignment (with a cast, to mute gcc)
                             acc := VariableAccess new(vDecl, caseToken)
                             cast := Cast new(getExpr(), vDecl getType(), caseToken)
                             ass := BinaryOp new(acc, cast, OpType ass, caseToken)
-                            caze addBefore(first, ass)
+                            caze addAfter(vDecl, ass)
                         } else {
                             fCall := FunctionCall new(expr, "matches__quest", caseToken)
                             fCall args add(caze getExpr())

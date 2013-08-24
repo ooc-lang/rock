@@ -116,20 +116,19 @@ Scope: class extends Node {
 
     }
 
+    addFirst: func (newcomer: Statement) -> Bool {
+        add(0, newcomer)
+        true
+    }
+
     addBefore: func (mark, newcomer: Statement) -> Bool {
-
-        //printf("Should add %s before %s\n", newcomer toString(), mark toString())
-
         idx := indexOf(mark)
-        //printf("idx = %d\n", idx)
         if(idx != -1) {
             add(idx, newcomer)
-            //println("|| adding newcomer " + newcomer toString() + " at idx " + idx toString())
             return true
         }
 
         return false
-
     }
 
     addAfter: func (mark, newcomer: Statement) -> Bool {
