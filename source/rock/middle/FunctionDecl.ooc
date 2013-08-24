@@ -709,12 +709,22 @@ FunctionDecl: class extends Declaration {
             // TODO: move me out of middle/ !!
             
             match (args getSize()) {
+                case 0 => {
+                    // turn main into a standard prototype. Some libraries, like SDL, will
+                    // require that because of SDL_main.
+                    argc := Argument new(BaseType new("Int", token), generateTempName("argc"), token)
+                    argv := Argument new(PointerType new(BaseType new("CString", token), token), generateTempName("argv"), token)
+                    args add(argc)
+                    args add(argv)
+                }
                 case 1 => {
+                    // replace (args: ArrayList<String>) with (argc: Int, argv1: CString*)
+                    // and assign args to the array-list version of main's arguments
                     if (args first() getType() getName() == "ArrayList") {
                         arg := args first()
                         args clear()
-                        argc := Argument new(BaseType new("Int", arg token), "argc", arg token)
-                        argv := Argument new(PointerType new(BaseType new("CString", arg token), arg token), "argv", arg token)
+                        argc := Argument new(BaseType new("Int", arg token), generateTempName("argc"), arg token)
+                        argv := Argument new(PointerType new(BaseType new("CString", arg token), arg token), generateTempName("argv"), arg token)
                         args add(argc)
                         args add(argv)
 
@@ -728,7 +738,7 @@ FunctionDecl: class extends Declaration {
                     }
                 }
                 case 2 => {
-                    // Replace (argc: Int, argv: String*) with (argc: Int, argv1: CString) 
+                    // Replace (argc: Int, argv: String*) with (argc: Int, argv1: CString*) 
                     // and assign argv to the "String" version of argv1
                     // argv := cStringPtrToStringPtr(argv1, argc)
 
