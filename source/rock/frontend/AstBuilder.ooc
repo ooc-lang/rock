@@ -775,7 +775,11 @@ AstBuilder: class {
     }
 
     onStringLiteral: unmangled(nq_onStringLiteral) func (text: CString) -> StringLiteral {
-        StringLiteral new(text toString() replaceAll("\n", "\\n") replaceAll("\t", "\\t"), token())
+        content := text toString() \
+                   replaceAll("\r\n", "\n") \
+                   replaceAll("\n", "\\n") \
+                   replaceAll("\t", "\\t")
+        StringLiteral new(content, token())
     }
 
     onCharLiteral: unmangled(nq_onCharLiteral) func (value: CString) -> CharLiteral {
