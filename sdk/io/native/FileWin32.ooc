@@ -5,7 +5,7 @@ import ../File
 
 version(windows) {
 
-    include windows
+    include windows | (_WIN32_WINNT=0x0500)
 
     // separators
     File separator = '\\'
@@ -40,11 +40,11 @@ version(windows) {
     FindFirstFile: extern(FindFirstFileA) func (CString, FindData*) -> Handle
     FindNextFile: extern func (Handle, FindData*) -> Bool
     FindClose: extern func (Handle)
-    GetFileAttributes: extern func (CString) -> Long
+    GetFileAttributes: extern func (CString) -> ULong
     CreateDirectory: extern func (CString, Pointer) -> Bool
-    GetCurrentDirectory: extern func (Long, Pointer) -> Int
-    PathCchCanonicalizeEx: extern func (CString, SizeT, CString, ULong) -> Int
-    GetFullPathName: extern func (CString, Long, CString, CString) -> Long
+    GetCurrentDirectory: extern func (ULong, Pointer) -> Int
+    GetFullPathName: extern func (CString, ULong, CString, CString) -> ULong
+    GetLongPathName: extern func (CString, CString, ULong) -> ULong
 
     /*
      * remove implementation
@@ -196,13 +196,18 @@ version(windows) {
         }
 
         /**
-         * The absolute path, e.g. "my/dir" => "/current/directory/my/dir"
+         * The absolute path, e.g. "my/dir" => "C:\current\directory\my\dir"
+         * Also canonicalize case, e.g. the final path will contain the original
+         * case of the concerned folder/files.
          */
         getAbsolutePath: func -> String {
             fullPath := Buffer new(File MAX_PATH_LENGTH)
-            GetFullPathName(path toCString(), File MAX_PATH_LENGTH, fullPath data, null)
-            fullPath sizeFromData()
-            _normalizePath(fullPath toString())
+            fullPath setLength(GetFullPathName(path toCString(), File MAX_PATH_LENGTH, fullPath data, null))
+            normalized := _normalizePath(fullPath toString())
+
+            longPath := Buffer new(File MAX_PATH_LENGTH)
+            longPath setLength(GetLongPathName(normalized toCString(), longPath data, File MAX_PATH_LENGTH))
+            longPath toString()
         }
 
         _getChildren: func <T> (T: Class) -> ArrayList<T> {

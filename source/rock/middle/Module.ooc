@@ -340,20 +340,28 @@ Module: class extends Node {
             if (imp module) continue // nothing to do
 
             // import paths may contain ".." or relative paths - get it straight first
-            (_path, impPath, impElement) := AstBuilder getRealImportPath(imp, this, params)
-            if(!impPath) {
+            (_path, impFile, impElement) := AstBuilder getRealImportPath(imp, this, params)
+            if(!impFile) {
                 params errorHandler onError(ModuleNotFound new(imp))
                 continue
             }
-            absolutePath := File new(impPath path) getAbsolutePath()
+            absolutePath := impFile getAbsolutePath()
+
             // the cache is a key-value store where keys are the absolute paths of modules.
             cached := AstBuilder cache get(absolutePath)
-            impLastModified := impPath lastModified()
+            impLastModified := impFile lastModified()
+
+            // look for path errors on case-insensitive filesystems
+            importAtom := _path trimLeft(".")
+            if (!absolutePath endsWith?(importAtom)) {
+                params errorHandler onError(InternalError new(imp token, "Import path is case-inconsistent with file system (actual file is %s)" \
+                    format(absolutePath) ))
+            }
 
             // if it's not in the cache or outdated, reparse.
             if(!cached || impLastModified > cached lastModified) {
                 if(cached && params veryVerbose) {
-                    "%s has been changed, recompiling... (%d vs %d), impPath = %s" printfln(_path, File new(impPath path) lastModified(), cached lastModified, impPath path)
+                    "%s has been changed, recompiling... (%d vs %d), import path = %s" printfln(_path, impFile lastModified(), cached lastModified, impFile path)
                 }
 
                 cached = Module new(_path[0..-5], impElement path, params, nullToken)
@@ -366,7 +374,7 @@ Module: class extends Node {
                 if(resolver) resolver addModule(cached)
                 
                 cached lastModified = impLastModified
-                AstBuilder new(impPath path, cached, params)
+                AstBuilder new(impFile path, cached, params)
             }
             
             imp setModule(cached)

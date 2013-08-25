@@ -59,7 +59,7 @@ AstBuilder: class {
         cache put(absolutePath, module)
 
         if (params verbose) {
-          "Parsing %s" printfln(absolutePath)
+            "Parsing %s" printfln(absolutePath)
         }
 
         stack = Stack<Object> new()
