@@ -352,10 +352,13 @@ Module: class extends Node {
             impLastModified := impFile lastModified()
 
             // look for path errors on case-insensitive filesystems
-            importAtom := _path trimLeft(".")
-            if (!absolutePath endsWith?(importAtom)) {
-                params errorHandler onError(InternalError new(imp token, "Import path is case-inconsistent with file system (actual file is %s)" \
-                    format(absolutePath) ))
+            version (windows) {
+                longPath := impFile getLongPath()
+                importAtom := _path trimLeft(".")
+                if (!longPath endsWith?(importAtom)) {
+                    params errorHandler onError(InternalError new(imp token, "Import path is case-inconsistent with file system (actual file is %s)" \
+                        format(longPath) ))
+                }
             }
 
             // if it's not in the cache or outdated, reparse.

@@ -236,6 +236,13 @@ File: abstract class {
     getAbsolutePath: abstract func -> String
 
     /**
+     * The long path, normalize casing on case-insensitive filesystems
+     * like Win32.
+     * On case-sensitive filesystems, returns the same path.
+     */
+    getLongPath: func -> String { path }
+
+    /**
      * A file corresponding to the absolute path
      *
      * @see getAbsolutePath

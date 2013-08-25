@@ -197,16 +197,24 @@ version(windows) {
 
         /**
          * The absolute path, e.g. "my/dir" => "C:\current\directory\my\dir"
-         * Also canonicalize case, e.g. the final path will contain the original
-         * case of the concerned folder/files.
          */
         getAbsolutePath: func -> String {
             fullPath := Buffer new(File MAX_PATH_LENGTH)
             fullPath setLength(GetFullPathName(path toCString(), File MAX_PATH_LENGTH, fullPath data, null))
-            normalized := _normalizePath(fullPath toString())
+            _normalizePath(fullPath toString())
+        }
 
+        /**
+         * The long path, ie. with correct casing. e.g. the final path will
+         * contain the original case of the concerned folder/files.
+         */
+        getLongPath: func -> String {
+            abs := getAbsoluteFile()
+            if (!abs exists?()) {
+                Exception new(class, "Called File getLongPath on non-existing file %s" format(abs path)) throw()
+            }
             longPath := Buffer new(File MAX_PATH_LENGTH)
-            longPath setLength(GetLongPathName(normalized toCString(), longPath data, File MAX_PATH_LENGTH))
+            longPath setLength(GetLongPathName(abs path toCString(), longPath data, File MAX_PATH_LENGTH))
             longPath toString()
         }
 
