@@ -257,7 +257,7 @@ ArrayListIterator: class <T> extends BackIterator<T> {
 
     remove: func -> Bool {
         if(list removeAt(index - 1) == null) return false
-        if(index <= list size) index -= 1
+        if(index > 0 && index <= list size) index -= 1
         return true
     }
 
