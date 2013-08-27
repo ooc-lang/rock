@@ -105,6 +105,9 @@ ArrayList: class <T> extends List<T> {
     }
 
     removeAt: func (index: SSizeT) -> T {
+        if (index < 0) index = _size + index
+        if (index < 0 || index >= _size) OutOfBoundsException new(This, index, _size) throw()
+
         element := data[index]
         memmove(data + (index * T size), data + ((index + 1) * T size), (_size - index) * T size)
         _size -= 1
@@ -238,12 +241,15 @@ ArrayListIterator: class <T> extends BackIterator<T> {
 
     list: ArrayList<T>
     index : SSizeT = 0
+    
+    _canRemove := false
 
-    init: func ~iter (=list) {}
+    init: func ~iter (=list)
 
     hasNext?: func -> Bool { index < list size }
 
     next: func -> T {
+        _canRemove = true
         index += 1
         list get(index - 1)
     }
@@ -256,9 +262,27 @@ ArrayListIterator: class <T> extends BackIterator<T> {
     }
 
     remove: func -> Bool {
-        if(list removeAt(index - 1) == null) return false
-        if(index > 0 && index <= list size) index -= 1
-        return true
+        if (!_canRemove) {
+            IllegalIteratorOpException new(class, \
+                "ArrayListIterator remove() called twice in a single iteration - that's illegal.") throw()
+        }
+        _canRemove = false
+
+        list removeAt(index - 1)
+
+        if(index <= list size) {
+            index -= 1
+        }
+
+        true
+    }
+
+}
+
+IllegalIteratorOpException: class extends Exception {
+
+    init: func (.origin, .message) {
+        super(origin, message)
     }
 
 }
