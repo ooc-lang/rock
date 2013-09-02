@@ -34,6 +34,7 @@ else
     GC_FLAGS=--enable-threads=posix --enable-local-thread-alloc
 endif
 
+UNIARCH:=$(ARCH)
 ifneq ($(ARCH), osx)
   ifeq ($(MACHINE), x86_64)
     ARCH:=${ARCH}64
@@ -43,6 +44,7 @@ ifneq ($(ARCH), osx)
     ARCH:=${ARCH}32
   endif
 endif
+
 # this folder must contains libs/
 ROCK_LIBS_DIR?=.
 
@@ -76,3 +78,9 @@ endif
 buildgc:
 	cd sources && ./configure ${GC_FLAGS} && $(MAKE)
 	cp sources/.libs/libgc.a ${GC_PATH}
+ifeq (${UNIARCH},win32)
+	cp sources/.libs/libgc.dll.a ${GC_PATH}
+	mkdir -p ../bin
+	cp -f sources/.libs/libgc-1.dll ../bin/
+endif
+

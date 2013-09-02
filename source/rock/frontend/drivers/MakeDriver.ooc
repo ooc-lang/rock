@@ -125,6 +125,10 @@ MakeDriver: class extends SequenceDriver {
         fW write("  endif\n")
         fW write("endif\n")
 
+        fW write("# keep track of 'universal arch' for later tests\n")
+        fW write("UNIARCH:=$(ARCH)\n")
+
+        fW write("# determine 32-bit or 64-bit\n")
         fW write("ifneq ($(ARCH), osx)\n")
         fW write("  ifeq ($(MACHINE), x86_64)\n")
         fW write("    ARCH:=${ARCH}64\n")
@@ -138,6 +142,9 @@ MakeDriver: class extends SequenceDriver {
         fW write("# this folder must contains libs/\n")
         fW write("ROCK_DIST?=$(shell dirname $(shell dirname $(shell which rock)))\n")
 
+        fW write("# prepare thread flags\n")
+        fW write("THREAD_FLAGS=-pthread\n")
+
         fW write("ifeq ($(MYOS), FreeBSD)\n")
         fW write("    GC_PATH?=-lgc\n")
         fW write("else ifeq ($(MYOS), OpenBSD)\n")
@@ -146,6 +153,9 @@ MakeDriver: class extends SequenceDriver {
         fW write("    GC_PATH?=-lgc\n")
         fW write("else ifeq ($(MYOS), DragonFly)\n")
         fW write("    GC_PATH?=-lgc\n")
+        fW write("else ifeq ($(UNIARCH), win)\n")
+        fW write("    GC_PATH?=-lgc\n")
+        fW write("    THREAD_FLAGS=-mthreads\n")
         fW write("else\n")
         fW write("ifeq (${DYN_GC},)\n")
         fW write("    GC_PATH?=${ROCK_DIST}/libs/${ARCH}/libgc.a\n")
@@ -156,7 +166,7 @@ MakeDriver: class extends SequenceDriver {
 
         fW write("CFLAGS+=")
 
-        fW write(" -I ${ROCK_DIST}/libs/headers/ -L/usr/local/lib -L/usr/pkg/lib -I/usr/local/include -I/usr/pkg/include -std=gnu99 -Wall")
+        fW write(" -I${ROCK_DIST}/libs/headers -L${ROCK_DIST}/libs/${ARCH} -L/usr/local/lib -L/usr/pkg/lib -I/usr/local/include -I/usr/pkg/include -std=gnu99 -Wall")
 
         for (flag in flags compilerFlags) {
             fW write(" "). write(flag)
@@ -259,14 +269,12 @@ MakeDriver: class extends SequenceDriver {
         }
 
         if(params enableGC) {
-            if(params dynGC) {
-                fW write("-lgc")
-            } else {
-                arch := params arch equals?("") ? Target getArch() : params arch
-                Target toString(arch)
-                fW write(" ${GC_PATH}")
-            }
-            fW write(" -lpthread")
+            // disregard dyngc vs staticgc - that's up to the build env to
+            // decide, and it's determined from platform detection.
+            arch := params arch equals?("") ? Target getArch() : params arch
+            Target toString(arch)
+            fW write(" ${GC_PATH}")
+            fW write(" ${THREAD_FLAGS}")
         }
 
         fW write("\n\n")

@@ -202,15 +202,30 @@ Flags: class {
             libsHeaders := File new(params distLocation, "libs/headers/") getPath()
             addCompilerFlag("-I" + libsHeaders)
 
+            target := Target guessHost()
+            arch := params arch equals?("") ? Target getArch() : params arch
+            libsNativeDir := File new(params distLocation, "libs/%s/" format(Target toString(target, arch))) getPath()
+            addCompilerFlag("-L" + libsNativeDir)
+
             if(params dynGC) {
                 addLinkerFlag("-lgc")
             } else {
-                arch := params arch equals?("") ? Target getArch() : params arch
-                libPath := "libs/" + Target toString(arch) + "/libgc.a"
+                libPath := "libs/" + Target toString(target, arch) + "/libgc.a"
                 addLinkerFlag(File new(params distLocation, libPath) path)
             }
 
-            addLinkerFlag("-lpthread")
+            match target {
+                case Target WIN =>
+                    // The SDK doesn't use pthreads on Windows
+                    addCompilerFlag("-mthreads")
+                    addLinkerFlag("-mthreads")
+                case =>
+                    // -lpthread is apparently legacy, some unices don't
+                    // have a separate pthread library and it might do some
+                    // other stuff (like define D_REENTRANT)
+                    addCompilerFlag("-pthread")
+                    addLinkerFlag("-pthread")
+            }
         }
     }
 

@@ -41,6 +41,11 @@ BuildParams: class {
         // need them anyway, do we?
         defines add("GC_NO_THREAD_REDIRECTS")
 
+        version (windows) {
+            // on Windows, for multi-threaded apps, the GC needs to be dynamically linked
+            dynGC = true
+        }
+
         // use a simple error handler by default
         // FIXME: why the workaround :(
         errorHandler = DefaultErrorHandler new(this) as ErrorHandler
