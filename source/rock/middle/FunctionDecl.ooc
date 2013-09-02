@@ -504,6 +504,10 @@ FunctionDecl: class extends Declaration {
 
         trail push(this)
 
+        if (verzion && !verzion isResolved()) {
+            verzion resolve(trail, res)
+        }
+
         if(debugCondition()) "Handling the owner" println()
         
         // handle the case where we specialize a generic function

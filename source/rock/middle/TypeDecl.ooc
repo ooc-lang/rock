@@ -414,6 +414,10 @@ TypeDecl: abstract class extends Declaration {
 
         if(debugCondition() || res params veryVerbose) "====== Resolving type decl %s" printfln(toString())
 
+        if (verzion && !verzion isResolved()) {
+            verzion resolve(trail, res)
+        }
+
         if (!type isResolved()) {
             response := type resolve(trail, res)
             if(!response ok()) {

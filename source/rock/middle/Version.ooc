@@ -26,16 +26,18 @@ VersionBlock: class extends ControlStatement {
     toString: func -> String { spec toString() }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
+        spec resolve(trail, res)
         super(trail, res)
     }
-
-    isResolved: func -> Bool { true }
 
 }
 
 VersionSpec: abstract class {
 
     token: Token
+    spec: BuiltinSpec
+    toplevel := true
+    resolved := false
 
     init: func(=token) {}
 
@@ -49,59 +51,140 @@ VersionSpec: abstract class {
 
     isSatisfied: abstract func (params: BuildParams) -> Bool
 
+    resolve: abstract func (trail: Trail, res: Resolver) -> Response
+    
+    isResolved: func -> Bool { resolved }
+
 }
 
-builtinNames := HashMap<String, String> new()
+/* Built-in spec */
+
+_builtinVersionSpecs := HashMap<String, BuiltinSpec> new()
+BuiltinSpec: class {
+
+    condition: String
+    prelude: String
+    afterword: String
+
+    init: func (=condition)
+
+}
+
+_addBuiltinSpec: func (key, condition: String) {
+    realCondition := "defined(%s)" format(condition)
+    _builtinVersionSpecs put(key, BuiltinSpec new(realCondition))
+}
+
+_addComplexBuiltinSpec: func (key, condition, prelude, afterword: String) {
+    spec := BuiltinSpec new(condition)
+    spec prelude = prelude
+    spec afterword = afterword
+    _builtinVersionSpecs put(key, spec)
+}
 
 {
-    // ooc's excuse for a map literal (so far ^^)
-    builtinNames put("windows", 	"__WIN32__) || defined(__WIN64__")
-    builtinNames put("linux", 	"__linux__")
-    builtinNames put("solaris", 	"__sun")
-    builtinNames put("unix", 	"__unix__")
-    builtinNames put("beos", 	"__BEOS__")
-    builtinNames put("haiku", 	"__HAIKU__")
-    builtinNames put("apple", 	"__APPLE__")
-    builtinNames put("freebsd",		"__FreeBSD__")
-    builtinNames put("openbsd",		"__OpenBSD__")
-    builtinNames put("netbsd",		"__NetBSD__")
-    builtinNames put("dragonfly",	"__DragonFly__")
-    builtinNames put("gnuc", 	"__GNUC__")
-    builtinNames put("arm", 	"__arm__")
-    builtinNames put("i386", 	"__i386__")
-    builtinNames put("x86", 		"__X86__")
-    builtinNames put("x86_64", 	"__x86_64__")
-    builtinNames put("ppc", 		"__ppc__")
-    builtinNames put("ppc64",	"__ppc64__")
-    builtinNames put("64", 		"__x86_64__) || defined(__ppc64__")
-    builtinNames put("gc",		"__OOC_USE_GC__")
-    builtinNames put("android", "__ANDROID__")
+    // Microsoft
+    _addBuiltinSpec("windows",      "__WIN32__) || defined(__WIN64__")
+    _addBuiltinSpec("msvc",         "_MSC_VER")
+
+    // Linux
+    _addBuiltinSpec("linux",        "__linux__")
+    _addBuiltinSpec("cygwin",       "__CYGWIN__")
+    _addBuiltinSpec("mingw",        "__MINGW32__")
+    _addBuiltinSpec("mingw64",      "__MINGW64__")
+
+    // Apple
+    appleString := "__APPLE__) || defined(__MACH__"
+    _addBuiltinSpec("apple", appleString)
+
+    applePrelude := "
+#if defined(__APPLE__) && defined(__MACH__)
+#ifndef _HAS_TARGET_CONDITIONALS_
+#define _HAS_TARGET_CONDITIONALS_
+#include <TargetConditionals.h>
+#endif
+"
+    _addComplexBuiltinSpec("ios_simulator", "TARGET_IPHONE_SIMULATOR == 1",
+        applePrelude, "#endif")
+    _addComplexBuiltinSpec("ios", "TARGET_OS_IPHONE == 1",
+        applePrelude, "#endif")
+    _addComplexBuiltinSpec("osx", "TARGET_OS_MAC == 1",
+        applePrelude, "#endif")
+
+    // BSDs
+    _addBuiltinSpec("freebsd",      "__FreeBSD__")
+    _addBuiltinSpec("openbsd",      "__OpenBSD__")
+    _addBuiltinSpec("netbsd",       "__NetBSD__")
+    _addBuiltinSpec("dragonfly",    "__DragonFly__")
+
+    // Other Unices
+    _addBuiltinSpec("solaris",      "__sun) && defined(__SVR4")
+    _addBuiltinSpec("unix",         "__unix__")
+
+    // BeOSes
+    _addBuiltinSpec("beos",         "__BEOS__")
+    _addBuiltinSpec("haiku",        "__HAIKU__")
+
+    // archs
+    _addBuiltinSpec("arm",          "__arm__")
+    _addBuiltinSpec("i386",         "__i386__")
+    _addBuiltinSpec("x86",          "__X86__")
+    _addBuiltinSpec("x86_64",       "__x86_64__")
+    _addBuiltinSpec("ppc",          "__ppc__")
+    _addBuiltinSpec("ppc64",        "__ppc64__")
+    _addBuiltinSpec("64",           "__x86_64__) || defined(__ppc64__")
+
+    // Various
+    _addBuiltinSpec("gnuc",         "__GNUC__")
+    _addBuiltinSpec("gc",           "__OOC_USE_GC__")
+    _addBuiltinSpec("android",      "__ANDROID__")
+}
+
+MixedComplexVersion: class extends Error {
+
+    init: func (.token, condition: String) {
+        super(token, "%s is a complex version spec, it has to be alone in the version expression" format(condition))
+    }
+
 }
 
 VersionName: class extends VersionSpec {
 
-    origin, name: String
-    resolved := false
+    name: String
 
     init: func ~name (=name, .token) {
         super(token)
-
-        origin = name
-        real := builtinNames get(name)
-        if(real) this name = real
     }
 
     clone: func -> This {
-        new(name, token)
+        c := new(name, token)
+        c spec = spec
+        c
     }
 
     toString: func -> String { name }
 
     write: func (w: AwesomeWriter) {
-        w app("defined("). app(name). app(")")
+        if (spec) {
+            w app(spec condition)
+        } else {
+            w app("defined("). app(name). app(")")
+        }
     }
 
-    isResolved : func -> Bool { resolved }
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        spec = _builtinVersionSpecs get(name)
+        if (spec) {
+            if (spec prelude && !toplevel) {
+                res throwError(MixedComplexVersion new(token, name))
+            }
+        } else {
+            res throwError(Warning new(token, "Unrecognized version: %s" format(name)))
+        }
+        resolved = true
+
+        Response OK
+    }
 
     equals?: func (other: VersionSpec) -> Bool {
         if(!other instanceOf?(This)) return false
@@ -110,7 +193,7 @@ VersionName: class extends VersionSpec {
 
     isSatisfied: func (params: BuildParams) -> Bool {
         if(params isDefined(name)) return true
-        if(origin == "64" && params arch == "64") return true
+        if(name == "64" && params arch == "64") return true
 
         false
     }
@@ -119,29 +202,38 @@ VersionName: class extends VersionSpec {
 
 VersionNegation: class extends VersionSpec {
 
-    spec: VersionSpec
+    inner: VersionSpec
 
-    init: func ~negation (=spec, .token) { super(token) }
+    init: func ~negation (=inner, .token) { super(token) }
 
     clone: func -> This {
-        new(spec clone(), token)
+        new(inner clone(), token)
     }
 
-    toString: func -> String { "!(" + spec toString() + ")" }
+    toString: func -> String { "!(" + inner toString() + ")" }
 
     write: func (w: AwesomeWriter) {
         w app("!(")
-        spec write(w)
+        inner write(w)
         w app(")")
     }
 
     equals?: func (other: VersionSpec) -> Bool {
-        if(!other instanceOf?(This)) return false
-        spec equals?(other as VersionNegation spec)
+        match other {
+            case n: This =>
+                inner equals?(n inner)
+            case => false
+        }
     }
 
     isSatisfied: func (params: BuildParams) -> Bool {
-        !spec isSatisfied(params)
+        !inner isSatisfied(params)
+    }
+
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        inner resolve(trail, res)
+        resolved = inner isResolved()
+        Response OK
     }
 
 }
@@ -167,12 +259,23 @@ VersionAnd: class extends VersionSpec {
     }
 
     equals?: func (other: VersionSpec) -> Bool {
-        if(!other instanceOf?(This)) return false
-        specLeft equals?(other as VersionAnd specLeft) && specRight equals?(other as VersionAnd specRight)
+        match other {
+            case a: This =>
+                specLeft equals?(a specLeft) && 
+                specRight equals?(a specRight)
+            case => false
+        }
     }
 
     isSatisfied: func (params: BuildParams) -> Bool {
         specLeft isSatisfied(params) && specRight isSatisfied(params)
+    }
+
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        specLeft resolve(trail, res)
+        specRight resolve(trail, res)
+        resolved = specLeft isResolved() && specRight isResolved()
+        Response OK
     }
 
 }
@@ -181,7 +284,11 @@ VersionOr: class extends VersionSpec {
 
     specLeft, specRight: VersionSpec
 
-    init: func ~or (=specLeft, =specRight, .token) { super(token) }
+    init: func ~or (=specLeft, =specRight, .token) {
+        super(token)
+        specLeft toplevel = false
+        specRight toplevel = false
+    }
 
     clone: func -> This {
         new(specLeft clone(), specRight clone(), token)
@@ -198,12 +305,24 @@ VersionOr: class extends VersionSpec {
     }
 
     equals?: func (other: VersionSpec) -> Bool {
-        if(!other instanceOf?(This)) return false
-        specLeft equals?(other as VersionOr specLeft) && specRight equals?(other as VersionOr specRight)
+        match other {
+            case o: This =>
+                specLeft equals?(o specLeft) ||
+                specRight equals?(o specRight)
+            case => false
+        }
     }
 
     isSatisfied: func (params: BuildParams) -> Bool {
         specLeft isSatisfied(params) || specRight isSatisfied(params)
     }
 
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        specLeft resolve(trail, res)
+        specRight resolve(trail, res)
+        resolved = specLeft isResolved() && specRight isResolved()
+        Response OK
+    }
+
 }
+

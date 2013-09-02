@@ -109,9 +109,9 @@ Module: class extends Node {
 
     _collectDeps: func (list: List<Module>) -> List<Module> {
         list add(this)
-        for(imp in getAllImports()) {
-            if(imp getModule() == null) continue // what can we do about it? nothing.
-            if(!list contains?(imp getModule())) {
+        for (imp in getAllImports()) {
+            if (imp getModule() == null) continue // what can we do about it? nothing.
+            if (!list contains?(imp getModule())) {
                 imp getModule() _collectDeps(list)
             }
         }
@@ -119,7 +119,7 @@ Module: class extends Node {
     }
 
     addFuncType: func (hashName: String, funcType: FuncType) {
-        if(!funcTypesMap contains?(hashName)) {
+        if (!funcTypesMap contains?(hashName)) {
             funcTypesMap put(hashName, funcType)
         }
     }
@@ -128,19 +128,19 @@ Module: class extends Node {
         assert (str != null)
         assert (str _buffer != null)
         result := str _buffer clone()
-        for(i in 0..result length()) {
+        for (i in 0..result length()) {
             current := result[i]
-            if(!current alphaNumeric?()) {
+            if (!current alphaNumeric?()) {
                 result[i] = '_'
             }
         }
-        if(result size > 0 && !result[0] alpha?()) result prepend("_")
+        if (result size > 0 && !result[0] alpha?()) result prepend("_")
         result toString()
     }
 
     addFunction: func (fDecl: FunctionDecl) {
         // don't add empty-named functions
-        if(fDecl name empty?()) return
+        if (fDecl name empty?()) return
 
         hash := TypeDecl hashName(fDecl)
         old := functions get(hash)
@@ -170,7 +170,7 @@ Module: class extends Node {
         }
 
         types put(tDecl name, tDecl)
-        if(tDecl hasMeta?() && tDecl getMeta()) {
+        if (tDecl hasMeta?() && tDecl getMeta()) {
             addType(tDecl getMeta())
         }
     }
@@ -205,7 +205,7 @@ Module: class extends Node {
 
     addUse: func (uze: Use) {
         uses add(uze)
-        if(uze useDef) for(imp in uze useDef imports) {
+        if (uze useDef) for (imp in uze useDef imports) {
             // todo: make use imports only findable in the SourcePath specified.
             addImport(Import new(imp, uze token))
         }
@@ -223,11 +223,11 @@ Module: class extends Node {
 
     /** return all imports, including those in namespaces */
     getAllImports: func -> List<Import> {
-        if(namespaces empty?()) return imports
+        if (namespaces empty?()) return imports
 
         list := ArrayList<Import> new()
         list addAll(getGlobalImports())
-        for(namespace in namespaces)
+        for (namespace in namespaces)
             list addAll(namespace getImports())
         return list
     }
@@ -237,15 +237,15 @@ Module: class extends Node {
         //printf("Looking for %s in %s\n", access toString(), toString())
 
         resolveAccessNonRecursive(access, res, trail)
-        if(access ref) return 0
+        if (access ref) return 0
 
-        for(imp in getGlobalImports()) {
+        for (imp in getGlobalImports()) {
             imp getModule() resolveAccessNonRecursive(access, res, trail)
-            if(access ref) return 0
+            if (access ref) return 0
         }
 
         namespace := namespaces get(access getName())
-        if(namespace != null) {
+        if (namespace != null) {
             //printf("resolved access %s to namespace %s!\n", access getName(), namespace toString())
             access suggest(namespace)
         }
@@ -258,14 +258,14 @@ Module: class extends Node {
 
         ref := null as Declaration
 
-        for(f in functions) {
-            if(f name == access name) {
-                if(access suggest(f)) return 0
+        for (f in functions) {
+            if (f name == access name) {
+                if (access suggest(f)) return 0
             }
         }
 
         ref = types get(access name)
-        if(ref != null && access suggest(ref)) {
+        if (ref != null && access suggest(ref)) {
             return 0
         }
 
@@ -278,13 +278,13 @@ Module: class extends Node {
     }
 
     resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
-        if(call isMember()) {
+        if (call isMember()) {
             return 0 // hmm no member calls for us
         }
 
         resolveCallNonRecursive(call, res, trail)
 
-        for(imp in getGlobalImports()) {
+        for (imp in getGlobalImports()) {
             imp getModule() resolveCallNonRecursive(call, res, trail)
         }
 
@@ -296,13 +296,13 @@ Module: class extends Node {
         //printf(" >> Looking for function %s in module %s!\n", call name, fullName)
         fDecl : FunctionDecl = null
         fDecl = functions get(TypeDecl hashName(call name, call suffix))
-        if(fDecl) {
+        if (fDecl) {
             call suggest(fDecl, res, trail)
         }
 
-        if(!call suffix) for(fDecl in functions) {
-            if(fDecl name == call name && (call suffix == null)) {
-                if(call debugCondition()) "Suggesting fDecl %s for call %s" printfln(fDecl toString(), call toString())
+        if (!call suffix) for (fDecl in functions) {
+            if (fDecl name == call name && (call suffix == null)) {
+                if (call debugCondition()) "Suggesting fDecl %s for call %s" printfln(fDecl toString(), call toString())
                 call suggest(fDecl, res, trail)
             }
         }
@@ -314,13 +314,13 @@ Module: class extends Node {
         ref : Declaration = null
 
         ref = types get(type name)
-        if(ref != null && type suggest(ref)) {
+        if (ref != null && type suggest(ref)) {
             return 0
         }
 
-        for(imp in getGlobalImports()) {
+        for (imp in getGlobalImports()) {
             ref = imp getModule() types get(type name)
-            if(ref != null && type suggest(ref)) {
+            if (ref != null && type suggest(ref)) {
                 return 0
             }
         }
@@ -341,7 +341,7 @@ Module: class extends Node {
 
             // import paths may contain ".." or relative paths - get it straight first
             (_path, impFile, impElement) := AstBuilder getRealImportPath(imp, this, params)
-            if(!impFile) {
+            if (!impFile) {
                 params errorHandler onError(ModuleNotFound new(imp))
                 continue
             }
@@ -362,8 +362,8 @@ Module: class extends Node {
             }
 
             // if it's not in the cache or outdated, reparse.
-            if(!cached || impLastModified > cached lastModified) {
-                if(cached && params veryVerbose) {
+            if (!cached || impLastModified > cached lastModified) {
+                if (cached && params veryVerbose) {
                     "%s has been changed, recompiling... (%d vs %d), import path = %s" printfln(_path, impFile lastModified(), cached lastModified, impFile path)
                 }
 
@@ -374,7 +374,7 @@ Module: class extends Node {
                 imp setModule(cached)
 
                 cached token = Token new(0, 0, cached)
-                if(resolver) resolver addModule(cached)
+                if (resolver) resolver addModule(cached)
                 
                 cached lastModified = impLastModified
                 AstBuilder new(impFile path, cached, params)
@@ -391,45 +391,53 @@ Module: class extends Node {
 
         trail push(this)
 
+        for (inc in includes) {
+            response := inc resolve(trail, res)
+            if (!response ok()) {
+                if (res params veryVerbose) "response of include %s = %s" printfln(inc toString(), response toString())
+                finalResponse = response
+            }
+        }
+
+        for (oDecl in operators) {
+            if (oDecl isResolved()) continue
+            response := oDecl resolve(trail, res)
+            if (!response ok()) {
+                if (res params veryVerbose) "response of oDecl %s = %s" printfln(oDecl toString(), response toString())
+                finalResponse = response
+            }
+        }
+
+        for (tDecl in types) {
+            if (tDecl isResolved()) continue
+            response := tDecl resolve(trail, res)
+            if (!response ok()) {
+                if (res params veryVerbose) "response of tDecl %s = %s" printfln(tDecl toString(), response toString())
+                finalResponse = response
+            }
+        }
+
+        for (addon in addons) {
+            response := addon resolve(trail, res)
+            if (!response ok()) {
+                if (res params veryVerbose) "response of addon %s = %s" printfln(addon toString(), response toString())
+                finalResponse = response
+            }
+        }
+
+        for (fDecl in functions) {
+            if (fDecl isResolved()) continue
+            response := fDecl resolve(trail, res)
+            if (!response ok()) {
+                if (res params veryVerbose) "response of fDecl %s = %s" printfln(fDecl toString(), response toString())
+                finalResponse = response
+            }
+        }
+
         {
             response := body resolve(trail, res)
-            if(!response ok()) {
-                if(res params veryVerbose) "response of body = %s" printfln(response toString())
-                finalResponse = response
-            }
-        }
-
-        for(oDecl in operators) {
-            if(oDecl isResolved()) continue
-            response := oDecl resolve(trail, res)
-            if(!response ok()) {
-                if(res params veryVerbose) "response of oDecl %s = %s" printfln(oDecl toString(), response toString())
-                finalResponse = response
-            }
-        }
-
-        for(tDecl in types) {
-            if(tDecl isResolved()) continue
-            response := tDecl resolve(trail, res)
-            if(!response ok()) {
-                if(res params veryVerbose) "response of tDecl %s = %s" printfln(tDecl toString(), response toString())
-                finalResponse = response
-            }
-        }
-
-        for(addon in addons) {
-            response := addon resolve(trail, res)
-            if(!response ok()) {
-                if(res params veryVerbose) "response of addon %s = %s" printfln(addon toString(), response toString())
-                finalResponse = response
-            }
-        }
-
-        for(fDecl in functions) {
-            if(fDecl isResolved()) continue
-            response := fDecl resolve(trail, res)
-            if(!response ok()) {
-                if(res params veryVerbose) "response of fDecl %s = %s" printfln(fDecl toString(), response toString())
+            if (!response ok()) {
+                if (res params veryVerbose) "response of body = %s" printfln(response toString())
                 finalResponse = response
             }
         }

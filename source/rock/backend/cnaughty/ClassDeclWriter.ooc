@@ -15,14 +15,14 @@ ClassDeclWriter: abstract class extends Skeleton {
             current = hw
             if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
             writeObjectStruct(this, cDecl)
-            if(cDecl getVersion()) VersionWriter writeEnd(this)
+            if(cDecl getVersion()) VersionWriter writeEnd(this, cDecl getVersion())
 
             //TODO: split into InterfaceImplWriter ?
             if(!cDecl getNonMeta() instanceOf?(InterfaceImpl)) {
                 current = fw
                 if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
                 writeMemberFuncPrototypes(this, cDecl)
-                if(cDecl getVersion()) VersionWriter writeEnd(this)
+                if(cDecl getVersion()) VersionWriter writeEnd(this, cDecl getVersion())
 
                 current = cw
                 if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
@@ -33,7 +33,7 @@ ClassDeclWriter: abstract class extends Skeleton {
                 current = fw
                 if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
                 writeClassGettingPrototype(this, cDecl)
-                if(cDecl getVersion()) VersionWriter writeEnd(this)
+                if(cDecl getVersion()) VersionWriter writeEnd(this, cDecl getVersion())
 
                 current = cw
                 if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
@@ -44,7 +44,7 @@ ClassDeclWriter: abstract class extends Skeleton {
                 writeClassGettingFunction(this, cDecl)
             }
 
-            if(cDecl getVersion()) VersionWriter writeEnd(this)
+            if(cDecl getVersion()) VersionWriter writeEnd(this, cDecl getVersion())
 
             for(interfaceDecl in cDecl getNonMeta() getInterfaceDecls()) {
                 write(this, interfaceDecl getMeta())
@@ -56,7 +56,7 @@ ClassDeclWriter: abstract class extends Skeleton {
             current = hw
             if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
             writeObjectStruct(this, cDecl)
-            if(cDecl getVersion()) VersionWriter writeEnd(this)
+            if(cDecl getVersion()) VersionWriter writeEnd(this, cDecl getVersion())
 
             for(interfaceDecl in cDecl getInterfaceDecls()) {
                 write(this, interfaceDecl)
@@ -426,7 +426,7 @@ ClassDeclWriter: abstract class extends Skeleton {
         if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
         current nl(). app("struct _"). app(structName). app(";")
         current nl(). app("typedef struct _"). app(structName). app(" "). app(structName). app(";")
-        if(cDecl getVersion()) VersionWriter writeEnd(this)
+        if(cDecl getVersion()) VersionWriter writeEnd(this, cDecl getVersion())
 
     }
 

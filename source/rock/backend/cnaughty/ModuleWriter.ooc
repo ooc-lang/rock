@@ -143,7 +143,7 @@ ModuleWriter: abstract class extends Skeleton {
                 if(loadFunc) {
                     if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
                     current nl(). app(loadFunc getFullName()). app("();")
-                    if(cDecl getVersion()) VersionWriter writeEnd(this)
+                    if(cDecl getVersion()) VersionWriter writeEnd(this, cDecl getVersion())
                 }
             }
         }
@@ -352,7 +352,7 @@ ModuleWriter: abstract class extends Skeleton {
             current nl(). app("#undef "). app(define name)
         }
 
-        if(inc getVersion()) VersionWriter writeEnd(this)
+        if(inc getVersion()) VersionWriter writeEnd(this, inc getVersion())
 
     }
 

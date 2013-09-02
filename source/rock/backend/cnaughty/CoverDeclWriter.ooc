@@ -54,7 +54,7 @@ CoverDeclWriter: abstract class extends Skeleton {
         }
         current closeBlock(). app(';'). nl()
 
-        if(cDecl getVersion()) VersionWriter writeEnd(this)
+        if(cDecl getVersion()) VersionWriter writeEnd(this, cDecl getVersion())
 
     }
 
@@ -91,7 +91,7 @@ CoverDeclWriter: abstract class extends Skeleton {
             }
         }
 
-        if(cDecl getVersion()) VersionWriter writeEnd(this)
+        if(cDecl getVersion()) VersionWriter writeEnd(this, cDecl getVersion())
 
     }
 

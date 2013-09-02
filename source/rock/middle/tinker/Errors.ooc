@@ -37,9 +37,6 @@ DefaultErrorHandler: class implements ErrorHandler {
 /**
  * An error thrown.
  *
- * Note: in an ideal world, we'd have a nice class hierarchy so
- * we can filter out errors.
- *
  * @author Amos Wenger (nddrylliog)
  */
 

@@ -464,7 +464,7 @@ CGenerator: class extends Skeleton {
         for(statement in node getBody()) {
             writeLine(statement)
         }
-        VersionWriter writeEnd(this)
+        VersionWriter writeEnd(this, node getSpec())
     }
 
 }

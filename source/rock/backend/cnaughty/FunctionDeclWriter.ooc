@@ -25,7 +25,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
             if(fDecl isProto()) current app("extern ")
             writeFuncPrototype(this, fDecl)
             current app(';')
-            if(fDecl getVersion()) VersionWriter writeEnd(this)
+            if(fDecl getVersion()) VersionWriter writeEnd(this, fDecl getVersion())
 
         }
 
@@ -42,7 +42,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
             current app("#define ") .app(fDecl getFullName()) \
                    .app(' ') .app(externName) .nl()
 
-            if(fDecl getVersion()) VersionWriter writeEnd(this)
+            if(fDecl getVersion()) VersionWriter writeEnd(this, fDecl getVersion())
 
             // don't write to source.
             return
@@ -64,7 +64,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
             writeLine(stat)
         }
         current untab(). nl(). app("}")
-        if(fDecl getVersion()) VersionWriter writeEnd(this)
+        if(fDecl getVersion()) VersionWriter writeEnd(this, fDecl getVersion())
     }
 
     /** Write the name of a function, with its suffix, and prefixed by its owner if any */
