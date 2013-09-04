@@ -27,7 +27,7 @@ JmpBuf: cover from jmp_buf {
     longJmp: extern(longjmp) func (value: Int)
 }
 
-BACKTRACE_LENGTH := 20
+BACKTRACE_LENGTH := 128
 
 _StackFrame: cover {
     buf: JmpBuf
