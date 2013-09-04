@@ -22,6 +22,12 @@ version((linux || apple) && !android) {
     backtraceSymbolsFd: extern(backtrace_symbols_fd) func (array: const Void**, size: Int, fd: Int)
 }
 
+version(windows) {
+    include windows
+
+    RaiseException: extern func (ULong, ULong, ULong, Pointer)
+}
+
 JmpBuf: cover from jmp_buf {
     setJmp: extern(setjmp) func -> Int
     longJmp: extern(longjmp) func (value: Int)
@@ -202,7 +208,12 @@ Exception: class {
         addBacktrace()
         if(!_hasStackFrame()) {
             print()
-            abort()
+            version (windows) {
+                RaiseException(1, 0, 0, null)
+            }
+            version (!windows) {
+                abort()
+            }
         } else {
             frame := _popStackFrame()
             frame@ buf longJmp(_EXCEPTION)
