@@ -14,7 +14,7 @@ import threading/Thread, structs/Stack, structs/LinkedList
 
 include setjmp, assert, errno
 
-version(linux && !android) {
+version((linux || apple) && !android) {
     include execinfo
 
     backtrace: extern func (array: Void**, size: Int) -> Int
@@ -123,7 +123,7 @@ Exception: class {
     backtraces: LinkedList<Backtrace> = LinkedList<Backtrace> new()
 
     addBacktrace: func {
-        version(linux && !android) {
+        version((linux|| apple) && !android) {
             backtraceBuffer := gc_malloc(Pointer size * BACKTRACE_LENGTH)
             backtraceLength := backtrace(backtraceBuffer, BACKTRACE_LENGTH)
             backtraces add(Backtrace new(backtraceLength, backtraceBuffer))
@@ -131,7 +131,7 @@ Exception: class {
     }
 
     printBacktrace: func {
-        version(linux && !android) {
+        version((linux || apple) && !android) {
             if (!backtraces empty?()) {
                 stderr write("[backtrace]\n")
             }
