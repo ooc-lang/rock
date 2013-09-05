@@ -6,19 +6,19 @@ import native/[FileWin32, FileUnix]
 import text/StringTokenizer
 
 /**
-   Represents a file/directory path, allows to retrieve informations like
-   last date of creation/access/modification, permissions, size,
-   existence, content, type, children...
-
-   You can also create directories, remove files, read their content,
-   copy them, write to them.
-
-   For input/output (I/O) beyond 'reading to a String' and
-   'writing a String', see the FileReader and FileWriter classes
-
-   :author: Pierre-Alexandre Croiset
-   :author: Friedrich Weber (fredreichbier)
-   :author: Amos Wenger (nddrylliog)
+ * Represents a file/directory path, allows to retrieve informations like
+ * last date of creation/access/modification, permissions, size,
+ * existence, content, type, children...
+ *
+ * You can also create directories, remove files, read their content,
+ * copy them, write to them.
+ *
+ * For input/output (I/O) beyond 'reading to a String' and
+ * 'writing a String', see the FileReader and FileWriter classes
+ *
+ * @author Pierre-Alexandre Croiset
+ * @author Friedrich Weber (fredreichbier)
+ * @author Amos Wenger (nddrylliog)
  */
 File: abstract class {
 
@@ -47,7 +47,7 @@ File: abstract class {
     MAX_PATH_LENGTH := static const 16383 // cause we alloc +1
 
     /**
-       Create a File object from the given path
+     * Create a File object from the given path
      */
     new: static func (.path) -> This {
         version (unix || apple) {
@@ -61,8 +61,8 @@ File: abstract class {
     }
 
     /**
-       Create a File object, from various path elements,
-       which can be either 
+     * Create a File object, from various path elements,
+     * which can be either 
      */
     new: static func ~assemble (args: ...) -> This {
         This new(This join(args))
@@ -117,7 +117,7 @@ File: abstract class {
     otherPerm: abstract func -> Int
 
     /**
-     *
+     * @return the path of the file represented by this instance
      */
     getPath: func -> String {
         path
@@ -158,7 +158,7 @@ File: abstract class {
     }
 
     /**
-     * create a named pipe at the path specified by this file,
+     * Create a named pipe at the path specified by this file,
      * with permissions 0c755 by default
      */
     mkfifo: func -> Int {
@@ -166,14 +166,14 @@ File: abstract class {
     }
 
     /**
-     * create a directory at the path specified by this file
+     * Create a directory at the path specified by this file
      *
-     * :param mode: The permissions at the creation of the directory
+     * @param mode The permissions at the creation of the directory
      */
     mkfifo: abstract func ~withMode (mode: Int32) -> Int
 
     /**
-     * create a directory at the path specified by this file,
+     * Create a directory at the path specified by this file,
      * with permissions 0c755 by default
      */
     mkdir: func -> Int {
@@ -181,14 +181,14 @@ File: abstract class {
     }
 
     /**
-     * create a directory at the path specified by this file
+     * Create a directory at the path specified by this file
      *
-     * :param mode: The permissions at the creation of the directory
+     * @param mode The permissions at the creation of the directory
      */
     mkdir: abstract func ~withMode (mode: Int32) -> Int
 
     /**
-     * create a directory at the path specified by this file,
+     * Create a directory at the path specified by this file,
      * and all the parent directories if needed,
      * with permissions 0c755 by default
      */
@@ -197,10 +197,10 @@ File: abstract class {
     }
 
     /**
-     * create a directory at the path specified by this file,
+     * Create a directory at the path specified by this file,
      * and all the parent directories if needed
      *
-     * :param mode: The permissions at the creation of the directory
+     * @param mode The permissions at the creation of the directory
      */
     mkdirs: func ~withMode (mode: Int32) -> Int {
         p := parent
@@ -309,7 +309,7 @@ File: abstract class {
     /**
      * Copies the content of this file to another
      *
-     * :param dstFile: the file to copy to
+     * @param dstFile the file to copy to
      */
     copyTo: func(dstFile: This) {
         dstFile parent mkdirs()
@@ -328,7 +328,7 @@ File: abstract class {
     }
 
     /**
-       @return The content of this file, as a String
+     * @return The content of this file, as a String
      */
     read: func -> String {
         fR := FileReader new(this)
@@ -338,18 +338,18 @@ File: abstract class {
     }
 
     /**
-       Write a string to this file.
-
-       @param str The string to write
+     * Write a string to this file.
+     *
+     * @param str The string to write
      */
     write: func ~string (str: String) {
         FileWriter new(this) write(BufferReader new(str _buffer)) .close()
     }
 
     /**
-       Write from a reader to this file
-
-       @param reader What to write in the file
+     * Write from a reader to this file
+     *
+     * @param reader What to write in the file
      */
     write: func ~reader (reader: Reader) {
         FileWriter new(this) write(reader) . close()
@@ -400,9 +400,9 @@ File: abstract class {
     }
 
     /**
-       Get a child of this path
-
-       @param childPath The name of the child, relatively to this path
+     * Get a child of this path
+     *
+     * @param childPath The name of the child, relatively to this path
      */
     getChild: func (childPath: String) -> This {
         new(this path, childPath)
