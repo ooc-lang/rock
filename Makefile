@@ -1,4 +1,4 @@
-.PHONY: all clean mrproper prepare_bootstrap bootstrap install download-bootstrap rescue backup
+.PHONY: all clean mrproper prepare_bootstrap bootstrap install download-bootstrap rescue backup extensions extensions-clean
 PARSER_GEN=greg
 NQ_PATH=source/rock/frontend/NagaQueen.c
 OOC_WARN_FLAGS?=+-w
@@ -115,14 +115,8 @@ clean:
 
 # === Extensions ===
 
-extensions: backtrace
+extensions:
+	cd extensions && $(MAKE)
 
-clean-extensions: clean-backtrace
-
-backtrace:
-	cd extensions/backtrace && $(MAKE)
-
-clean-backtrace:
-	cd extensions/backtrace && $(MAKE) clean
-
-
+extensions-clean:
+	cd extensions && $(MAKE) clean

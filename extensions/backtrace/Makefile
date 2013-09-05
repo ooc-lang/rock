@@ -41,7 +41,7 @@ MAKE_FILE=Makefile.platform-unsupported
 endif
 
 build:
-	BINDIR=../../bin/ $(MAKE) -f ${MAKE_FILE} build
+	BINDIR=../../bin $(MAKE) -f ${MAKE_FILE} build
 
 clean:
 	$(MAKE) -f ${MAKE_FILE} clean

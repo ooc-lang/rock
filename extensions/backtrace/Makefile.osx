@@ -19,7 +19,6 @@ build : backtrace.dylib
 
 backtrace.dylib : backtrace.c
 	gcc ${DEBUG_FLAGS} ${OSX_FLAGS} -DBUILDING_BACKTRACE_LIB -fPIC -O2 -shared -Wall -o $@ $^ -lbfd -lintl -liberty -lz
-	dsymutil $@
 	cp $@ ${BINDIR}/
 
 clean :
