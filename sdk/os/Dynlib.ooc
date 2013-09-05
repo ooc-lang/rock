@@ -15,6 +15,8 @@ Dynlib: abstract class {
     suffix: static String = ""
     path: String
 
+    success := false
+
     /**
      * Open a dynamic library.
      *
@@ -22,17 +24,23 @@ Dynlib: abstract class {
      * If the platform-specific file extension is missing, it will be added
      * automatically.
      */
-    new: static func (path: String) -> This {
+    load: static func (path: String) -> This {
+        dl: Dynlib = null
+
         version (windows) {
-            return DynlibWin32 new(path)
+            dl = DynlibWin32 new(path)
         }
 
         version (!windows) {
-            return DynlibUnix new(path)
+            dl = DynlibUnix new(path)
         }
 
-        raise("Dynamic library loading not supported on your system.")
-        null
+        if (!dl success) {
+            dl = null
+        }
+        
+        // Dynamic library loading not supported on your system
+        dl
     }
 
     /**
@@ -99,19 +107,11 @@ version (windows) {
                 handle = LoadLibraryA(path + suffix)
             }
 
-            if (!handle) {
-                DynlibException new(This, "Could not load dynamic library %s" \
-                    format(path)) throw()
-            }
+            success = (handle != null)
         }
 
         symbol: func (name: String) -> Pointer {
-            addr := GetProcAddress(handle, name)
-            if (!addr) {
-                DynlibException new(This, "Could not find symbol %s in %s" \
-                    format(name, path)) throw()
-            }
-            addr
+            GetProcAddress(handle, name)
         }
 
         close: func -> Bool {
@@ -145,19 +145,11 @@ version (!windows) {
                 handle = dlopen(path + suffix, RTLD_LAZY)
             }
 
-            if (!handle) {
-                DynlibException new(This, "Could not load dynamic library %s" \
-                    format(path)) throw()
-            }
+            success = (handle != null)
         }
 
         symbol: func (name: String) -> Pointer {
-            addr := dlsym(handle, name)
-            if (!addr) {
-                DynlibException new(This, "Could not find symbol %s in %s" \
-                    format(name, path)) throw()
-            }
-            addr
+            dlsym(handle, name)
         }
 
         close: func -> Bool {

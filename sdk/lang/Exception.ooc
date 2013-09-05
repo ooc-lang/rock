@@ -1,26 +1,10 @@
-/*
-  For bestest backtraces, pass `-g +-rdynamic` to rock when compiling.
 
-  gcc's documentation for -rdynamic:
-        -rdynamic
-           Pass the flag -export-dynamic to the ELF linker, on targets that
-           support it. This instructs the linker to add all symbols, not only
-           used ones, to the dynamic symbol table. This option is needed for
-           some uses of "dlopen" or to allow obtaining backtraces from within a
-           program.
-
- */
-import threading/Thread, structs/Stack, structs/LinkedList, os/Env
+// sdk
+import threading/Thread
+import structs/[Stack, LinkedList]
+import lang/Backtrace
 
 include setjmp, assert, errno
-
-version((linux || apple) && !android) {
-    include execinfo
-
-    backtrace: extern func (array: Void**, size: Int) -> Int
-    backtraceSymbols: extern(backtrace_symbols) func (array: const Void**, size: Int) -> Char**
-    backtraceSymbolsFd: extern(backtrace_symbols_fd) func (array: const Void**, size: Int, fd: Int)
-}
 
 version(windows) {
     include windows
@@ -114,50 +98,22 @@ raise: func ~withClass(clazz: Class, msg: String) {
     Exception new(clazz, msg) throw()
 }
 
-Backtrace: class {
-    length: Int
-    buffer: Pointer*
-    init: func(=length, =buffer) {}
-}
-
 /**
  * Base class for all exceptions that can be thrown
  *
  * @author Amos Wenger (nddrylliog)
  */
 Exception: class {
-    backtraces: LinkedList<Backtrace> = LinkedList<Backtrace> new()
+    backtraces: LinkedList<String> = LinkedList<String> new()
 
     addBacktrace: func {
-        version((linux|| apple) && !android) {
-            backtraceBuffer := gc_malloc(Pointer size * BACKTRACE_LENGTH)
-            backtraceLength := backtrace(backtraceBuffer, BACKTRACE_LENGTH)
-            backtraces add(Backtrace new(backtraceLength, backtraceBuffer))
-        }
+        bt := BacktraceHandler get() captureBacktrace()
+        backtraces add(bt)
     }
 
     printBacktrace: func {
-        version((linux || apple) && !android) {
-            if (Env get("FANCY_BACKTRACE")) {
-                return // don't print
-            }
-            if (!backtraces empty?()) {
-                stderr write("[backtrace]\n")
-            }
-
-            first := true
-
-            for (backtrace in backtraces) {
-                if (first) {
-                    first = false
-                } else {
-                    stderr write("[backtrace]\n")
-                }
-                
-                if(backtrace buffer != null) {
-                    backtraceSymbolsFd(backtrace buffer, backtrace length, 2) // hell yeah stderr fd.
-                }
-            }
+        for (backtrace in backtraces) {
+            stderr write(backtrace)
         }
     }
 
@@ -174,6 +130,7 @@ Exception: class {
      * @param message A short text explaning why the exception was thrown
      */
     init: func  (=origin, =message) {
+        addBacktrace()
     }
 
     /**
@@ -182,6 +139,7 @@ Exception: class {
      * @param message A short text explaning why the exception was thrown
      */
     init: func ~noOrigin (=message) {
+        init(null, message)
     }
 
 
@@ -208,7 +166,6 @@ Exception: class {
      */
     throw: func {
         _setException(this)
-        addBacktrace()
         if(!_hasStackFrame()) {
             print()
             version (windows) {

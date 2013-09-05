@@ -454,13 +454,13 @@ static void print_stacktrace(void) {
 }
 #endif // non-__MINGW32__
 
-void BACKTRACE_LIB backtrace_register_callback(backtrace_callback cb, void *context) {
+BACKTRACE_LIB void backtrace_register_callback(backtrace_callback cb, void *context) {
     g_backtrace_callback = cb;
     g_backtrace_context = context;
     return;
 }
 
-void BACKTRACE_LIB backtrace_unregister_callback(void) {
+BACKTRACE_LIB void backtrace_unregister_callback(void) {
     g_backtrace_callback = NULL;
     g_backtrace_context = NULL;
     return;
@@ -500,7 +500,7 @@ static int inspector_thread_main (struct inspector_data *data) {
     return 0;
 }
 
-void BACKTRACE_LIB backtrace_provoke(void) {
+BACKTRACE_LIB char * backtrace_capture(void) {
     HANDLE thread, duplicate_thread;
     HANDLE process;
     HANDLE inspector_thread;
@@ -541,11 +541,8 @@ void BACKTRACE_LIB backtrace_provoke(void) {
     // Join the inspector thread... will be useful between 'resume' and 'return'
     WaitForSingleObject(inspector_thread, INFINITE);
 
-    // Actually output the stack trace from this thread now
-    output_stacktrace();
-
-    // And that's it, folks!
-    return;
+    // Return the stack trace!
+    return g_output;
 }
 
 static LONG WINAPI exception_filter(LPEXCEPTION_POINTERS info) {
@@ -582,9 +579,11 @@ BOOL WINAPI DllMain(HANDLE hinstDLL, DWORD dwReason, LPVOID lpvReserved) {
 }
 #else // __MINGW32__
 
-void BACKTRACE_LIB backtrace_provoke(void) {
+BACKTRACE_LIB char * backtrace_capture(void) {
     // no magic needed outside Windows.
-    print_stacktrace();
+    collect_stacktrace();
+
+    return g_output;
 }
 
 static void backtrace_signal_handler(int signo, siginfo_t *si, ucontext_t* context) {
