@@ -10,7 +10,7 @@
            program.
 
  */
-import threading/Thread, structs/Stack, structs/LinkedList
+import threading/Thread, structs/Stack, structs/LinkedList, os/Env
 
 include setjmp, assert, errno
 
@@ -138,6 +138,9 @@ Exception: class {
 
     printBacktrace: func {
         version((linux || apple) && !android) {
+            if (Env get("FANCY_BACKTRACE")) {
+                return // don't print
+            }
             if (!backtraces empty?()) {
                 stderr write("[backtrace]\n")
             }
