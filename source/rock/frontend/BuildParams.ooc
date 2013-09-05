@@ -17,7 +17,7 @@ import rock/frontend/drivers/[Driver, SequenceDriver]
  * All sorts of paths and options that influence compilation.
  * This class is also responsible for finding the sdk and rock's home directory.
  *
- * :author: Amos Wenger (nddrylliog)
+ * @author Amos Wenger (nddrylliog)
  */
 BuildParams: class {
 
@@ -155,8 +155,11 @@ BuildParams: class {
     // Path to store cache-libs
     libcachePath := ".libs"
 
-    // Add debug info to the generated C files (e.g. -g switch for gcc)
-    debug := false
+    // Profile - debug by default, use `-pr` for release profile
+    profile := Profile DEBUG
+
+    // Optimization level
+    optimization := OptimizationLevel O0
 
     // Do inlining
     inlining := false
@@ -234,7 +237,7 @@ BuildParams: class {
     } 
 
     /**
-     * :return: the path of the executable that should be produced by rock
+     * @return the path of the executable that should be produced by rock
      */
     getBinaryPath: func (defaultPath: String) -> String {
         if (binaryPath == "") {
@@ -271,12 +274,36 @@ BuildParams: class {
         }
     }
 
+    /**
+     * @return true if we have the debug profile.
+     */
+    debug?: func -> Bool {
+        profile == Profile DEBUG
+    }
+
     getArgsRepr: func -> String {
         b := Buffer new()
         b append(arch)
         if(!defaultMain)    b append(" -nomain")
         if(!lineDirectives) b append(" -nolines")
-        if(debug)           b append(" -g")
+        match profile {
+            case Profile DEBUG =>
+                b append(" -pg")
+            case Profile RELEASE =>
+                b append(" -pr")
+        }
+        match optimization {
+            case OptimizationLevel O0 =>
+                b append(" -O0")
+            case OptimizationLevel O1 =>
+                b append(" -O1")
+            case OptimizationLevel O2 =>
+                b append(" -O2")
+            case OptimizationLevel O3 =>
+                b append(" -O3")
+            case OptimizationLevel Os =>
+                b append(" -Os")
+        }
         b append(" -gc=")
         if(enableGC) {
             if(dynGC) {
@@ -312,3 +339,30 @@ BuildParams: class {
     }
 
 }
+
+/**
+ * Profile - can be DEBUG (include debug symbols, etc.)
+ * or RELEASE (no debug symbols, optimize)
+ *
+ * In DEBUG profile, the `debug` version blocks are activated
+ * as well.
+ *
+ * @author Amos Wenger (nddrylliog)
+ */
+Profile: enum {
+    DEBUG
+    RELEASE
+}
+
+/**
+ * Optimization level - from 0 (no optimization) to 3 (full swing),
+ * and s (optimize for size). -Os is the default on RELEASE profile.
+ */
+OptimizationLevel: enum {
+    O0
+    O1
+    O2
+    O3
+    Os
+}
+

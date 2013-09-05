@@ -253,10 +253,37 @@ CommandLine: class {
 
                 } else if (option == "debug" || option == "g") {
 
-                    if(!longOption && option != "g") warnUseLong("debug")
-                    params debug = true
-                    params clean = false
+                    warnDeprecated(option, "pg")
+                    params profile = Profile DEBUG
 
+                } else if (option == "pg") {
+
+                    params profile = Profile DEBUG
+                    
+                } else if (option == "pr") {
+
+                    params profile = Profile RELEASE
+                    
+                } else if (option == "O0") {
+
+                    params optimization = OptimizationLevel O0
+                    
+                } else if (option == "O1") {
+
+                    params optimization = OptimizationLevel O1
+                    
+                } else if (option == "O2") {
+
+                    params optimization = OptimizationLevel O2
+                    
+                } else if (option == "O3") {
+
+                    params optimization = OptimizationLevel O3
+                    
+                } else if (option == "Os") {
+
+                    params optimization = OptimizationLevel Os
+                    
                 } else if (option == "verbose" || option == "v") {
 
                     if(!longOption && option != "v") warnUseLong("verbose")
@@ -410,6 +437,17 @@ CommandLine: class {
             }
         }
 
+        match (params profile) {
+            case Profile DEBUG =>
+                // don't clean on debug
+                params clean = false
+                // define debug symbol
+                params defineSymbol("OOC_DEBUG")
+            case Profile RELEASE =>
+                // optimize on release
+                params optimization = OptimizationLevel Os
+        }
+
         if(modulePaths empty?()) {
             uzeFile : File = null
 
@@ -560,6 +598,10 @@ CommandLine: class {
         first = false
     }
 
+    warnDeprecated: func (old, instead: String) {
+        "[WARNING] Option -%s is deprecated, use -%s instead." printfln(old, instead)
+    }
+
     warnUseLong: func (option: String) {
         "[WARNING] Option -%s is deprecated, use --%s instead." printfln(option, option)
     }
@@ -581,11 +623,6 @@ CommandLine: class {
         Terminal setFgColor(Color red)
         "[FAIL]" println()
         Terminal reset()
-        
-        // compile with -Ddebug if you want rock to raise an exception here
-        version(_DEBUG) {
-            raise("Debugging a CommandLine failure") // for backtrace
-        }
 
         // FIXME: should we *ever* exit(1) ?
         exit(1)

@@ -168,8 +168,27 @@ Flags: class {
     }
 
     absorb: func ~params (params: BuildParams) {
-        if (params debug) {
-            addCompilerFlag("-g")
+        match (params profile) {
+            case Profile DEBUG =>
+                addCompilerFlag("-g")
+                match (params target) {
+                    case Target LINUX =>
+                        // passes -export-dynamic to the linker, otherwise we
+                        // can't have fancy backtraces.
+                        addCompilerFlag("-rdynamic")
+                    case Target OSX =>
+                        // disable position-independent execution (OSX's ASLR),
+                        // otherwise we can't fine line info in our backtraces.
+                        addCompilerFlag("-fno-pie")
+                }
+        }
+
+        match (params optimization) {
+            case OptimizationLevel O0 => addCompilerFlag("-O0")
+            case OptimizationLevel O1 => addCompilerFlag("-O1")
+            case OptimizationLevel O2 => addCompilerFlag("-O2")
+            case OptimizationLevel O3 => addCompilerFlag("-O3")
+            case OptimizationLevel Os => addCompilerFlag("-Os")
         }
 
         if (params libcache) {

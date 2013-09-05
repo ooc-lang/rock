@@ -12,7 +12,7 @@ Skeleton: abstract class extends Visitor {
 
     /** Write a line */
     writeLine: func (stat: Statement) {
-        if(params debug && params lineDirectives) {
+        if(params debug?() && params lineDirectives) {
             if(!stat token module) stat token module = module
 
             current nl(). app("#line "). app(stat token getLineNumber() toString()). app(" \""). app(EscapeSequence escape(stat token getPath())). app("\"")

@@ -137,6 +137,7 @@ _addComplexBuiltinSpec: func (key, condition, prelude, afterword: String) {
     // Various
     _addBuiltinSpec("gnuc",         "__GNUC__")
     _addBuiltinSpec("gc",           "__OOC_USE_GC__")
+    _addBuiltinSpec("debug",        "__OOC_DEBUG__")
     _addBuiltinSpec("android",      "__ANDROID__")
 }
 
