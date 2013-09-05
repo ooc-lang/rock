@@ -1,0 +1,11 @@
+.PHONY: all clean
+
+build : backtrace.dll
+
+backtrace.dll : backtrace.c
+	gcc -DBUILDING_BACKTRACE_LIB -O2 -shared -Wall -o $@ $^ -lbfd -lintl -liberty -limagehlp
+	cp $@ ${BINDIR}/
+
+clean :
+	@rm -f backtrace.dll
+

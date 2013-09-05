@@ -1,0 +1,9 @@
+# Linux
+*.so
+
+# OSX
+*.dylib
+*.dSYM
+
+# Windows
+*.dll

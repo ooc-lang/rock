@@ -112,3 +112,17 @@ endif
 clean:
 	rm -rf *_tmp/ .libs/
 	rm -rf `find build/ -name '*.o'`
+
+# === Extensions ===
+
+extensions: backtrace
+
+clean-extensions: clean-backtrace
+
+backtrace:
+	cd extensions/backtrace && $(MAKE)
+
+clean-backtrace:
+	cd extensions/backtrace && $(MAKE) clean
+
+

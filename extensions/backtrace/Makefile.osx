@@ -1,0 +1,27 @@
+.PHONY: all clean
+
+GETTEXT:=$(shell brew info gettext | grep 'Cellar' | head -1 | cut -d ' ' -f 1)
+ifeq ($(GETTEXT),)
+  echo "gettext not found! install it via 'brew install gettext'"
+  exit 1
+endif
+
+BINUTILS:=$(shell brew info binutils | grep 'Cellar' | head -1 | cut -d ' ' -f 1)
+ifeq ($(BINUTILS),)
+  echo "binutils not found! install it via 'brew install binutils'"
+  exit 1
+endif
+
+DEBUG_FLAGS:=-fno-pie -g
+OSX_FLAGS:=-I$(GETTEXT)/include -I$(BINUTILS)/include -L$(GETTEXT)/lib -L$(BINUTILS)/lib/ -L$(BINUTILS)/lib/x86_64/
+
+build : backtrace.dylib
+
+backtrace.dylib : backtrace.c
+	gcc ${DEBUG_FLAGS} ${OSX_FLAGS} -DBUILDING_BACKTRACE_LIB -fPIC -O2 -shared -Wall -o $@ $^ -lbfd -lintl -liberty -lz
+	dsymutil $@
+	cp $@ ${BINDIR}/
+
+clean :
+	@rm -rf backtrace.dylib backtrace.dSYM
+
