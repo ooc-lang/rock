@@ -66,6 +66,10 @@ Try: class extends ControlStatement {
                     token)
         block add(if_)
         if_ getBody() addAll(this getBody())
+
+        // if everything went fine, unregister the exception handler
+        if_ getBody() add(FunctionCall new("_popStackFrame", token))
+
         // else {
         else_ := Else new(token)
         // match (_getException()) { ... }
