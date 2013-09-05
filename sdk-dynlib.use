@@ -1,0 +1,9 @@
+Name: sdk-dynlib
+Description: dynamic library loading component of the ooc standard library
+
+version (linux) {
+  # Under Linux, we need to link with libdl explicitly
+  # OSX and Windows are fine on that front (go figure).
+  Libs: -ldl
+}
+
