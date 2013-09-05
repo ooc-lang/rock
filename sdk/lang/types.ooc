@@ -1,9 +1,5 @@
-include stddef, stdlib, stdio, ctype, ./Array
-
-version(!_MSC_VER) {
-    // MSVC doesn't support C99, so no stdbool for it
-    include stdbool
-}
+include stddef, stdlib, stdio, ctype, stdbool
+include ./Array
 
 /**
  * objects

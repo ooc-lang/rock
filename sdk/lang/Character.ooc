@@ -15,10 +15,10 @@ strtoul: extern func (Char*, Pointer, Int) -> ULong
 strtof:  extern func (Char*, Pointer)      -> Float
 strtod:  extern func (Char*, Pointer)      -> Double
 // Cygwin doesn't handle long doubles (and doesn't have strtold defined)
-version(!__CYGWIN__) {
+version(!cygwin) {
     strtold: extern func (Char*, Pointer)      -> LDouble
 }
-version(__CYGWIN__) {
+version(cygwin) {
     strtold: func (str: Char*, p: Pointer) -> LDouble {
         strtod(str, p) as LDouble
     }
