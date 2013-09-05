@@ -2,7 +2,7 @@
 PARSER_GEN=greg
 NQ_PATH=source/rock/frontend/NagaQueen.c
 OOC_WARN_FLAGS?=+-w
-OOC_OWN_FLAGS=-v +-O2 -g ${OOC_WARN_FLAGS}
+OOC_OWN_FLAGS=-v -pg -Os ${OOC_WARN_FLAGS}
 
 # used to be CC?=gcc, but that breaks on mingw where CC is set to 'cc' apparently
 CC=gcc
