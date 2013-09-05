@@ -408,7 +408,6 @@ CommandLine: class {
                    
                     "Cleaning up outpath and .libs" println()
                     cleanHardcore()
-                    exit(0)
 
                 } else {
 
@@ -442,7 +441,7 @@ CommandLine: class {
                 // don't clean on debug
                 params clean = false
                 // define debug symbol
-                params defineSymbol("OOC_DEBUG")
+                params defineSymbol(BuildParams DEBUG_DEFINE)
             case Profile RELEASE =>
                 // optimize on release
                 params optimization = OptimizationLevel Os

@@ -28,6 +28,7 @@ BuildParams: class {
 
     /* Builtin defines */
     GC_DEFINE := static const "__OOC_USE_GC__"
+    DEBUG_DEFINE := static const "__OOC_DEBUG__"
 
     init: func (execName: String) {
         findDist(execName)
