@@ -115,7 +115,7 @@ BacktraceHandler: class {
         }
 
         _registerCallback(|ctrace|
-            _format(ctrace toString()) println()
+            stderr write(_format(ctrace toString()))
         )
     }
 

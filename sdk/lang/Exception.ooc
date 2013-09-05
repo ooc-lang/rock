@@ -9,6 +9,7 @@ include setjmp, assert, errno
 version(windows) {
     include windows
 
+    EXCEPTION_NONCONTINUABLE: extern ULong
     RaiseException: extern func (ULong, ULong, ULong, Pointer)
 }
 
@@ -167,9 +168,10 @@ Exception: class {
     throw: func {
         _setException(this)
         if(!_hasStackFrame()) {
-            print()
             version (windows) {
-                RaiseException(1, 0, 0, null)
+                // no particular exception code, but note that the
+                // exception is non-continuable.
+                RaiseException(0, EXCEPTION_NONCONTINUABLE, 0, null)
             }
             version (!windows) {
                 abort()
