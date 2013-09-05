@@ -1,7 +1,7 @@
 
 // sdk stuff
 import io/File
-import os/[Terminal, Process, JobPool]
+import os/[Terminal, Process, JobPool, ShellUtils, Pipe]
 import structs/[List, ArrayList, HashMap]
 
 // our stuff
@@ -89,6 +89,20 @@ SequenceDriver: class extends Driver {
             if (code != 0) {
                 return code
             }
+
+            // step 4b: postlink?
+            version (apple) {
+                if (params debug?()) {
+                    if (params verbose) {
+                        "Merging debug symbols..." println()
+                    }
+
+                    code := dsym(module)
+                    if (code != 0) {
+                        return code
+                    }
+                }
+            }
         }
 
         return 0
@@ -111,6 +125,28 @@ SequenceDriver: class extends Driver {
         }
 
         params compiler launchLinker(flags, params linker) wait()
+    }
+
+    dsym: func (module: Module) -> Int {
+        version (apple) {
+            util := ShellUtils findExecutable("dsymutil", true)
+
+            command := ArrayList<String> new()
+            command add(util getPath())
+            command add(params getBinaryPath(module simpleName))
+
+            process := Process new(command)
+            if (params verbose) {
+                process getCommandLine() println()
+            } else {
+                process setStderr(Pipe new())
+            }
+            process executeNoWait()
+            return process wait()
+        }
+
+        // non-OSX? all good!
+        return 0
     }
 
     /**
