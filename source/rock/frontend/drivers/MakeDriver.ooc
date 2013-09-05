@@ -79,6 +79,9 @@ MakeDriver: class extends SequenceDriver {
         params libcache = true
         flags := Flags new(null, params)
 
+        // we'll do that ourselves
+        flags doTargetSpecific = false
+
         // we'll handle the GC flags ourselves, thanks
         enableGC := params enableGC
         params enableGC = false
@@ -144,7 +147,6 @@ MakeDriver: class extends SequenceDriver {
 
         fW write("# prepare thread flags\n")
         fW write("THREAD_FLAGS=-pthread\n")
-
         fW write("ifeq ($(MYOS), FreeBSD)\n")
         fW write("    GC_PATH?=-lgc\n")
         fW write("else ifeq ($(MYOS), OpenBSD)\n")
@@ -164,9 +166,20 @@ MakeDriver: class extends SequenceDriver {
         fW write("endif\n")
         fW write("endif\n")
 
-        fW write("CFLAGS+=")
+        fW write("\n# prepare debug flags\n")
+        fW write("DEBUG_FLAGS=\n")
+        fW write("DEBUG_BUILD?=1\n")
 
-        fW write(" -I${ROCK_DIST}/libs/headers -L${ROCK_DIST}/libs/${ARCH} -L/usr/local/lib -L/usr/pkg/lib -I/usr/local/include -I/usr/pkg/include -std=gnu99 -Wall")
+        fW write("ifeq ($(DEBUG_BUILD), 1)\n")
+        fW write("DEBUG_FLAGS+= -g\n")
+        fW write("ifeq ($(UNIARCH), osx)\n")
+        fW write("DEBUG_FLAGS+= -fno-pie\n")
+        fW write("else ifeq ($(UNIARCH), linux)\n")
+        fW write("DEBUG_FLAGS+= -rdynamic\n")
+        fW write("endif\n")
+        fW write("endif\n\n")
+
+        fW write("CFLAGS+= -I${ROCK_DIST}/libs/headers -L${ROCK_DIST}/libs/${ARCH} -L/usr/local/lib -L/usr/pkg/lib -I/usr/local/include -I/usr/pkg/include -std=gnu99 -Wall ${DEBUG_FLAGS}")
 
         for (flag in flags compilerFlags) {
             fW write(" "). write(flag)
@@ -274,8 +287,8 @@ MakeDriver: class extends SequenceDriver {
             arch := params arch equals?("") ? Target getArch() : params arch
             Target toString(arch)
             fW write(" ${GC_PATH}")
-            fW write(" ${THREAD_FLAGS}")
         }
+        fW write(" ${THREAD_FLAGS}")
 
         fW write("\n\n")
 

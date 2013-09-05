@@ -60,6 +60,8 @@ Flags: class {
     uses := ArrayList<UseDef> new()
 
     sourceFolders := ArrayList<SourceFolder> new()
+
+    doTargetSpecific := true
   
     init: func (=outPath, =params) {
         addCompilerFlag("-std=gnu99")
@@ -168,19 +170,21 @@ Flags: class {
     }
 
     absorb: func ~params (params: BuildParams) {
-        match (params profile) {
-            case Profile DEBUG =>
-                addCompilerFlag("-g")
-                match (params target) {
-                    case Target LINUX =>
-                        // passes -export-dynamic to the linker, otherwise we
-                        // can't have fancy backtraces.
-                        addCompilerFlag("-rdynamic")
-                    case Target OSX =>
-                        // disable position-independent execution (OSX's ASLR),
-                        // otherwise we can't fine line info in our backtraces.
-                        addCompilerFlag("-fno-pie")
-                }
+        if (doTargetSpecific) {
+            match (params profile) {
+                case Profile DEBUG =>
+                    addCompilerFlag("-g")
+                    match (params target) {
+                        case Target LINUX =>
+                            // passes -export-dynamic to the linker, otherwise we
+                            // can't have fancy backtraces.
+                            addCompilerFlag("-rdynamic")
+                        case Target OSX =>
+                            // disable position-independent execution (OSX's ASLR),
+                            // otherwise we can't fine line info in our backtraces.
+                            addCompilerFlag("-fno-pie")
+                    }
+            }
         }
 
         match (params optimization) {
