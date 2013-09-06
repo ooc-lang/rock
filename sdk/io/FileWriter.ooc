@@ -41,7 +41,7 @@ FileWriter: class extends Writer {
     init: func ~withName (fileName: String, append: Bool) {
         // mingw fseek/ftell are *really* unreliable with text mode
         // if for some weird reason you need to open in text mode, use
-        // FileWriter new(fileName, "ab") or "wb"
+        // FileWriter new(fileName, "at") or "wt"
         init(fileName, append ? "ab" : "wb")
     }
             
