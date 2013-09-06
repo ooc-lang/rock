@@ -91,8 +91,8 @@ BacktraceHandler: class {
         if (lib) {
             _initFuncs()
 
-            // get rid of rock's built-in stuff
-            Env set("FANCY_BACKTRACE", "1")
+            // register exit handler
+            atexit(_cleanup_backtrace)
         } else {
             // couldn't load :(
             fancy? = false
@@ -210,6 +210,18 @@ TraceElement: class {
             return b toString()
         }
         s
+    }
+}
+
+/*
+ * Called on program exit, frees the library - absolutely necessary
+ * on Win32, absolutely useless on other platforms, but doesn't hurt.
+ * Sucks in any case.
+ */
+_cleanup_backtrace: func {
+    h := BacktraceHandler get()
+    if (h lib) {
+        h lib close()
     }
 }
 
