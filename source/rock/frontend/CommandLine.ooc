@@ -31,6 +31,7 @@ CommandLine: class {
 
         modulePaths := ArrayList<String> new()
         isFirst := true
+        alreadyDidSomething := false
 
         for (arg in args) {
             if(isFirst) {
@@ -408,6 +409,7 @@ CommandLine: class {
                    
                     "Cleaning up outpath and .libs" println()
                     cleanHardcore()
+                    alreadyDidSomething = true
 
                 } else {
 
@@ -424,7 +426,7 @@ CommandLine: class {
                     case lowerArg endsWith?(".ooc") =>
                         modulePaths add(arg)
                     case lowerArg endsWith?(".use") =>
-                        prepareCompilationFromUse(File new(arg), modulePaths)
+                        prepareCompilationFromUse(File new(arg), modulePaths, true)
                     case lowerArg contains?(".") =>
                         // unknown file, complain
                         "[ERROR] Don't know what to do with argument %s, bailing out" printfln(arg)
@@ -448,6 +450,9 @@ CommandLine: class {
         }
 
         if(modulePaths empty?()) {
+            if (alreadyDidSomething) {
+                exit(0)
+            }
             uzeFile : File = null
 
             // try to find a .use file
@@ -463,7 +468,7 @@ CommandLine: class {
                 exit(1)
             }
 
-            prepareCompilationFromUse(uzeFile, modulePaths)
+            prepareCompilationFromUse(uzeFile, modulePaths, false)
         }
 
         if(params sourcePath empty?()) {
@@ -498,7 +503,7 @@ CommandLine: class {
 
     }
 
-    prepareCompilationFromUse: func (uzeFile: File, modulePaths: ArrayList<String>) {
+    prepareCompilationFromUse: func (uzeFile: File, modulePaths: ArrayList<String>, crucial: Bool) {
         // extract '.use' from use file
         identifier := uzeFile name[0..-5]
         uze := UseDef new(identifier)
@@ -508,7 +513,12 @@ CommandLine: class {
             uze apply(params)
             modulePaths add(uze main)
         } else {
-            Exception new("[stub] libfolder compilation.") throw()
+            if (crucial) {
+                Exception new("[stub] libfolder compilation.") throw()
+            } else {
+                "rock: no Main directive in use file %s" printfln(uzeFile path)
+                exit(1)
+            }
         }
     }
 
