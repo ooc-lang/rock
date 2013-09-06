@@ -10,10 +10,10 @@ WIN_LINKER_FLAGS:= -lbfd -lintl -liberty -limagehlp
 endif
 
 build : backtrace.dll
+	cp $^ ${BINDIR}/
 
 backtrace.dll : backtrace.c
 	gcc $(WIN_FLAGS) -DBUILDING_BACKTRACE_LIB -O2 -shared -Wall -o $@ $^ $(WIN_LINKER_FLAGS)
-	cp $@ ${BINDIR}/
 
 clean :
 	@rm -f backtrace.dll

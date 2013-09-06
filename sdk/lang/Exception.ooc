@@ -9,7 +9,9 @@ include setjmp, assert, errno
 version(windows) {
     include windows
 
+    DebugBreak: extern func
     RaiseException: extern func (ULong, ULong, ULong, Pointer)
+    IsDebuggerPresent: extern func -> Pointer
 }
 
 JmpBuf: cover from jmp_buf {
@@ -168,7 +170,14 @@ Exception: class {
         addBacktrace()
         if(!_hasStackFrame()) {
             version (windows) {
-                RaiseException(1, 0, 0, null)
+                if (IsDebuggerPresent()) {
+                    // trigger a break point here, debugger will like that!
+                    DebugBreak()
+                } else {
+                    // backtrace-universal is there - raise an exception so
+                    // we get to catch it and then exit peacefully.
+                    RaiseException(0, 0, 0, null)
+                }
             }
             version (!windows) {
                 abort()
