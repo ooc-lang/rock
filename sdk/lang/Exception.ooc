@@ -9,7 +9,6 @@ include setjmp, assert, errno
 version(windows) {
     include windows
 
-    EXCEPTION_NONCONTINUABLE: extern ULong
     RaiseException: extern func (ULong, ULong, ULong, Pointer)
 }
 
@@ -131,7 +130,6 @@ Exception: class {
      * @param message A short text explaning why the exception was thrown
      */
     init: func  (=origin, =message) {
-        addBacktrace()
     }
 
     /**
@@ -167,11 +165,10 @@ Exception: class {
      */
     throw: func {
         _setException(this)
+        addBacktrace()
         if(!_hasStackFrame()) {
             version (windows) {
-                // no particular exception code, but note that the
-                // exception is non-continuable.
-                RaiseException(0, EXCEPTION_NONCONTINUABLE, 0, null)
+                RaiseException(1, 0, 0, null)
             }
             version (!windows) {
                 abort()
@@ -187,6 +184,12 @@ Exception: class {
      */
     rethrow: func {
         throw()
+    }
+
+    printCurrentBacktrace: static func {
+        e := Exception new("backtrace")
+        e addBacktrace()
+        e printBacktrace()
     }
 }
 
