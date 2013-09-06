@@ -467,79 +467,30 @@ BACKTRACE_LIB void backtrace_unregister_callback(void) {
 }
 
 #ifdef __MINGW32__
-struct inspector_data {
-    HANDLE original_thread;
-};
 
-static int inspector_thread_main (struct inspector_data *data) {
-    HANDLE original;
-    CONTEXT context;
-    int res;
-
-    original = data->original_thread;
-
-    // suspend original thread
-    SuspendThread(original);
-
-    // get its content
-    memset(&context, 0, sizeof(CONTEXT));
-    context.ContextFlags = CONTEXT_FULL;
-    res = GetThreadContext(original, &context);
-    if (res == 0) {
-        res = GetLastError();
-        printf("GetThreadContext failed! Error %d.\n", res);
-        abort();
-    }
-
-    // collect the backtrace, but don't print it yet
-    collect_stacktrace(&context);
-    
-    // resume the parent thread
-    ResumeThread(original);
-
-    return 0;
-}
-
+// TODO: 64-bit support (use RtlCaptureContext)
 BACKTRACE_LIB char * backtrace_capture(void) {
-    HANDLE thread, duplicate_thread;
-    HANDLE process;
-    HANDLE inspector_thread;
+    CONTEXT context;
+    memset(&context, 0, sizeof(CONTEXT));
+
+
+    // get a few registers via inline assembly
+    void * reg_eip = NULL;
+    __asm__ volatile ("1: movl $1b, %0" : "=r" (reg_eip));
     
-    // Get a pseudo-handle to the current thread
-    thread = GetCurrentThread();
+    void * reg_esp = NULL;
+    __asm__ volatile ("movl %%esp, %0" : "=r" (reg_esp));
+    
+    void * reg_ebp = NULL;
+    __asm__ volatile ("movl %%ebp, %0" : "=r" (reg_ebp));
 
-    // Get a pseudo-handle to the current process
-    process = GetCurrentProcess();
+    // transfer them to the context
+    context.Eip = (DWORD) reg_eip;
+    context.Esp = (DWORD) reg_esp;
+    context.Ebp = (DWORD) reg_ebp;
 
-    // Now duplicate it so it's a real handle
-    DuplicateHandle(
-        process,              // source process handle
-        thread,               // source handle
-        process,              // target process handle (same)
-        &duplicate_thread,    // target handle
-        0,                    // desired access
-        FALSE,                // inherit handle? (we don't care)
-        DUPLICATE_SAME_ACCESS // we want full access.
-    );
-
-    // Initialize the info we'll pass to the inspector thread
-    struct inspector_data data = (struct inspector_data) {
-        .original_thread = duplicate_thread
-    };
-
-    // Now create a child thread that will suspend us,
-    // print a backtrace, then resume us.
-    inspector_thread = CreateThread(
-        NULL,                  // thread attributes (default)
-        0,                     // stack size (default)
-        (void*) inspector_thread_main, // entry point
-        &data,                 // pointer to userdata
-        0,                     // createion flags (run immediately)
-        NULL                   // receive thread identifier (we don't care)
-    );
-
-    // Join the inspector thread... will be useful between 'resume' and 'return'
-    WaitForSingleObject(inspector_thread, INFINITE);
+    // and... collect the backtrace!
+    collect_stacktrace(&context);
 
     // Return the stack trace!
     return g_output;
