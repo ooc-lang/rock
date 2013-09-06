@@ -1,9 +1,18 @@
 .PHONY: all clean
 
+# This is needed for some installs of MSYS/MinGW... don't ask.
+WIN_FLAGS:= -I/mingw/include -L/mingw/lib
+
+ifeq (${PROCESSOR_ARCHITEW6432}, AMD64)
+WIN_LINKER_FLAGS:= -lbfd -liberty -limagehlp -lz
+else
+WIN_LINKER_FLAGS:= -lbfd -lintl -liberty -limagehlp
+endif
+
 build : backtrace.dll
 
 backtrace.dll : backtrace.c
-	gcc -DBUILDING_BACKTRACE_LIB -O2 -shared -Wall -o $@ $^ -lbfd -lintl -liberty -limagehlp
+	gcc $(WIN_FLAGS) -DBUILDING_BACKTRACE_LIB -O2 -shared -Wall -o $@ $^ $(WIN_LINKER_FLAGS)
 	cp $@ ${BINDIR}/
 
 clean :

@@ -1,18 +1,15 @@
 /* 
-   Copyright (c) 2010 ,
-   Cloud Wu . All rights reserved.
-
-http://www.codingnow.com
-
-Use, modification and distribution are subject to the "New BSD License"
-as listed at <url: http://www.opensource.org/licenses/bsd-license.php >.
-
-how to use: Call LoadLibraryA("backtrace.dll"); at beginning of your program .
-
+ * Universal backtrace extension for rock
+ *
+ * Authors:
+ *   - Cloud Wu, 2010 (http://codingnow.com/)
+ *   - Amos Wenger, 2013
+ * Use, modification and distribution are subject to the "New BSD License"
+ * as listed at <url: http://www.opensource.org/licenses/bsd-license.php >.
 */
 
-#define PACKAGE "mingw-backtrace"
-#define PACKAGE_VERSION "1.0.0"
+#define PACKAGE "universal-backtrace"
+#define PACKAGE_VERSION "2.0.0"
 
 #ifdef __MINGW32__
 
@@ -61,7 +58,11 @@ how to use: Call LoadLibraryA("backtrace.dll"); at beginning of your program .
 // -- begin cross-platform types --
 
 #ifdef __MINGW32__
+#ifdef __MINGW64__
+#define address_t DWORD64
+#else
 #define address_t DWORD
+#endif
 #else
 #define address_t void*
 #endif // __MINGW32__
@@ -252,6 +253,17 @@ static void _backtrace(struct output_buffer *ob, struct bfd_set *set, int depth 
 
     struct bfd_ctx *bc = NULL;
 
+#ifdef __MINGW64__
+    STACKFRAME64 frame;
+    memset(&frame,0,sizeof(frame));
+
+    frame.AddrPC.Offset = context->Rip;
+    frame.AddrPC.Mode = AddrModeFlat;
+    frame.AddrStack.Offset = context->Rsp;
+    frame.AddrStack.Mode = AddrModeFlat;
+    frame.AddrFrame.Offset = context->Rbp;
+    frame.AddrFrame.Mode = AddrModeFlat;
+#else
     STACKFRAME frame;
     memset(&frame,0,sizeof(frame));
 
@@ -261,6 +273,7 @@ static void _backtrace(struct output_buffer *ob, struct bfd_set *set, int depth 
     frame.AddrStack.Mode = AddrModeFlat;
     frame.AddrFrame.Offset = context->Ebp;
     frame.AddrFrame.Mode = AddrModeFlat;
+#endif
 
     HANDLE process = GetCurrentProcess();
     HANDLE thread = GetCurrentThread();
@@ -268,14 +281,14 @@ static void _backtrace(struct output_buffer *ob, struct bfd_set *set, int depth 
     char symbol_buffer[sizeof(IMAGEHLP_SYMBOL) + 255];
     char module_name_raw[MAX_PATH];
 
-    while(StackWalk(IMAGE_FILE_MACHINE_I386, 
+    while(StackWalk64(IMAGE_FILE_MACHINE_AMD64, 
                 process, 
                 thread, 
                 &frame, 
                 context, 
-                0, 
-                SymFunctionTableAccess, 
-                SymGetModuleBase, 0)) {
+                NULL, 
+                SymFunctionTableAccess64, 
+                SymGetModuleBase64, 0)) {
 
 
         --depth;
@@ -287,7 +300,7 @@ static void _backtrace(struct output_buffer *ob, struct bfd_set *set, int depth 
         symbol->SizeOfStruct = (sizeof *symbol) + 255;
         symbol->MaxNameLength = 254;
 
-        DWORD module_base = SymGetModuleBase(process, frame.AddrPC.Offset);
+        address_t module_base = SymGetModuleBase(process, frame.AddrPC.Offset);
 
         const char * module_name = "[unknown module]";
         if (module_base && 
@@ -305,7 +318,7 @@ static void _backtrace(struct output_buffer *ob, struct bfd_set *set, int depth 
         }
 
         if (file == NULL) {
-            DWORD dummy = 0;
+            address_t dummy = 0;
             if (SymGetSymFromAddr(process, frame.AddrPC.Offset, &dummy, symbol)) {
                 file = symbol->Name;
             }
@@ -468,13 +481,18 @@ BACKTRACE_LIB void backtrace_unregister_callback(void) {
 
 #ifdef __MINGW32__
 
-// TODO: 64-bit support (use RtlCaptureContext)
 BACKTRACE_LIB char * backtrace_capture(void) {
     CONTEXT context;
     memset(&context, 0, sizeof(CONTEXT));
 
+    context.ContextFlags = CONTEXT_CONTROL;
 
-    // get a few registers via inline assembly
+#ifdef __MINGW64__
+    // there's a function for that!
+    RtlCaptureContext(&context);
+#else
+    // no function available for 32-bit Windows, we have to
+    // use inline assembly to retrieve the register values we need.
     void * reg_eip = NULL;
     __asm__ volatile ("1: movl $1b, %0" : "=r" (reg_eip));
     
@@ -488,6 +506,7 @@ BACKTRACE_LIB char * backtrace_capture(void) {
     context.Eip = (DWORD) reg_eip;
     context.Esp = (DWORD) reg_esp;
     context.Ebp = (DWORD) reg_ebp;
+#endif
 
     // and... collect the backtrace!
     collect_stacktrace(&context);
