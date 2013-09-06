@@ -78,7 +78,7 @@ endif
 buildgc:
 	cd sources && ./configure ${GC_FLAGS} && $(MAKE)
 	cp sources/.libs/libgc.a ${GC_PATH}
-ifeq (${UNIARCH},win32)
+ifeq (${UNIARCH},win)
 	cp sources/.libs/libgc.dll.a ${GC_PATH}
 	mkdir -p ../bin
 	cp -f sources/.libs/libgc-1.dll ../bin/
