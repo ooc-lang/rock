@@ -24,12 +24,19 @@ BufferWriter: class extends Writer {
     }
 
     _makeRoom: func (len: Long) {
-        if (buffer size < len) buffer setLength(len)
+        // re-allocate if needed...
+        if (buffer capacity < len) {
+            buffer setCapacity(len * 2)
+        }
+        // and keep buffer length up to date
+        if (buffer size < len) {
+            buffer size = len
+        }
     }
 
     write: func ~chr (chr: Char) {
         _makeRoom(pos + 1)
-        buffer[pos] = chr
+        buffer data[pos] = chr
         pos += 1
     }
 
