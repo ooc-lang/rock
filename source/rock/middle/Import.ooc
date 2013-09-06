@@ -16,8 +16,6 @@ import ../frontend/[Token, AstBuilder]
  *
  * Note that all this is C detailery, and it shouldn't even appear in
  * a pure ooc ast, but such is the burden of maintaining rock.
- *
- * :author: Amos Wenger (nddrylliog)
  */
 Import: class {
 

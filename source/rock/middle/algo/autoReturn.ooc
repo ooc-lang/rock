@@ -5,8 +5,6 @@ import ../[Scope, Type, Return, Node, Expression, ControlStatement,
 
 /**
  * Handles implicit return
- *
- * @author Amos Wenger
  */
 autoReturn: func (trail: Trail, res: Resolver, origin: Node, body: Scope, returnType: Type) -> Response {
 

@@ -15,8 +15,6 @@ import rock/backend/cnaughty/CGenerator
  * Default compilation driver: handles launching C compiler
  * jobs, knows what's up-to-date and what needs to be recompiled,
  * in short, as far as you're concerned, God itself.
- * 
- * :author: Amos Wenger (nddrylliog)
  */
 
 SequenceDriver: class extends Driver {
@@ -276,8 +274,6 @@ SequenceDriver: class extends Driver {
  * The sequence driver uses special jobs: module jobs. They
  * remember which module and archive they belong to, so that they
  * can add themselves to a .a file when needed.
- *
- * :author: Amos Wenger (nddrylliog)
  */
 
 ModuleJob: class extends Job {
@@ -307,8 +303,6 @@ ModuleJob: class extends Job {
  * Additionals are source files (.c, .s) that have
  * to be compiled separately as part of rock's regular
  * compile process and added to the sourcefolder archives.
- *
- * :author: Amos Wenger (nddrylliog)
  */
 
 AdditionalJob: class extends Job {

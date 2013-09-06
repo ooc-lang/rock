@@ -37,8 +37,6 @@ import rock/middle/[Module, UseDef]
  * arguments. -lmingw32 uses WinMain, -lSDL2main defines it and uses SDL_main,
  * defined in yourapp-win32.a, which itself uses many SDL functions, defind
  * in -lSDL2. All is well.
- *
- * :author: Amos Wenger (nddrylliog)
  */
 
 Flags: class {

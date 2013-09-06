@@ -10,13 +10,11 @@ import rock/frontend/drivers/AndroidDriver
 import rock/middle/tinker/Errors
 
 /**
-   Represents the requirement for a .use file, ie. a dependency
-   The 'ver' string, if non-null/non-empty, should specify a minimal
-   accepted version. But version checking of .use files isn't implemented
-   in rock yet. (It may be supported by external tools such as reincarnate,
-   though)
-
-   :author: Amos Wenger (nddrylliog)
+ * Represents the requirement for a .use file, ie. a dependency
+ * The 'ver' string, if non-null/non-empty, should specify a minimal
+ * accepted version. But version checking of .use files isn't implemented
+ * in rock yet. (It may be supported by external tools such as reincarnate,
+ * though)
  */
 Requirement: class {
     name, ver: String
@@ -48,10 +46,8 @@ Additional: class {
 }
 
 /**
-   Represents the data in a .use file, such as includes, include paths,
-   libraries, packages (from pkg-config), requirements, etc.
-
-   :author: Amos Wenger (nddrylliog)
+ * Represents the data in a .use file, such as includes, include paths,
+ * libraries, packages (from pkg-config), requirements, etc.
  */
 UseDef: class {
     cache := static HashMap<String, UseDef> new()

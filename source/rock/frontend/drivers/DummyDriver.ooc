@@ -14,8 +14,6 @@ import rock/backend/cnaughty/CGenerator
  * Dummy driver, which only generates the .c source code
  *
  * Use it with -onlygen or -driver=dummy
- *
- * :author: Amos Wenger (nddrylliog)
  */
 DummyDriver: class extends Driver {
 

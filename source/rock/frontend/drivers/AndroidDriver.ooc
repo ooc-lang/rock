@@ -18,8 +18,6 @@ import rock/backend/cnaughty/CGenerator
  * In that case, ndk-build handles a lot of the work for us: dependencies,
  * partial recompilation, build flags - the Android.mk simili-Makefiles we
  * generate will be a lot shorter than the equivalent GNU Makefiles.
- *
- * :author: Amos Wenger (nddrylliog)
  */
 
 AndroidDriver: class extends Driver {

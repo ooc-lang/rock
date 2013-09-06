@@ -4,8 +4,6 @@ import structs/[ArrayList, List, HashMap]
 /**
  * Somehow like the 'classpath' in Java. E.g. holds where to find ooc
  * modules, and well, find them when asked kindly to.
- *
- * :author: Amos Wenger (nddrylliog)
  */
 PathList: class {
     paths := HashMap<String, File> new()

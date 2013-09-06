@@ -6,8 +6,6 @@ version(unix || apple) {
 
     /**
      * pthreads implementation of threads.
-     *
-     * :author: Amos Wenger (nddrylliog)
      */
     ThreadUnix: class extends Thread {
 

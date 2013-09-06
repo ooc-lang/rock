@@ -1,10 +1,14 @@
 ## Contributors (alphabetically)
 
- * [Amos Wenger (nddrylliog)](https://amos.me/)
+ * Alexandros Naskos (shamanas)
+ * Amos Wenger (nddrylliog)
  * Friedrich Weber (fredreichbier)
  * Joshua Roesslein (joshthecoder)
+ * Martin Brandenburg
  * Michael Tremel (itrekkie)
+ * Noel Cower (nilium)
  * Peter Lichard (eagle2com)
+ * rofl0r
  * Scott Olson (tsion)
  * Tim Howard (komiga)
  * Yannic Ahrens (showstopper)

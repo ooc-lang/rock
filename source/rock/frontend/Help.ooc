@@ -1,7 +1,5 @@
 /**
  * Contain the online (rather inline) help of the ooc compiler
- *
- * @author Amos Wenger
  */
 Help: class {
 
@@ -49,18 +47,18 @@ or a library (if it only has a 'SourcePath: something' directive)
 --entrypoint=FUNC
     Use FUNC as entrypoint. (default=main)
 
--g, --debug
-    Compile with debug information.
+-pg
+    Use the 'debug profile' - compile with debug information and no optimization.
+
+-pr
+    Use the 'release profile' - produce optimized code.
+
+-O0, -O1, -O2, -O3, -Os
+    Choose an optimization level
 
 --gc=[dynamic,static,off]
     Link dynamically, link statically, or don't link with the boehm
     GC at all.
-
---gcc,--tcc,--icc,--clang
-    Choose the compiler backend. (default=gcc) Available compilers
-    are the GNU Compiler Collection, TinyCC, Intel C++ Compiler and
-    the LLVM's clang frontend. Also, you can pass onlygen to only
-    generate the code and not to run any compiler.
 
 -h, --help
     Print this help and exit.

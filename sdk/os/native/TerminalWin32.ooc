@@ -13,9 +13,6 @@ version (windows) {
 
     /**
      * Implementation of TerminalHandler for Windows systems
-     * 
-     * @author Alexandros Naskos (Windows port)
-     * @author Amos Wenger (Better cross-platform abstraction)
      */
     TerminalWin32: class extends TerminalHandler {
         bg := Color black

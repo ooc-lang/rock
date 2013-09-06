@@ -2,11 +2,8 @@ import structs/List
 import os/Terminal
 
 /**
-    A generic List implementation that provides a circular list
-    of doubly-linked nodes.
-
-    :author: eagle2com
-    :author: Noel Cower (Nilium)
+ *  A generic List implementation that provides a circular list
+ *  of doubly-linked nodes.
  */
 getchar: extern func
 

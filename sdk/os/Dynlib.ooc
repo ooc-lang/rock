@@ -7,8 +7,6 @@ use sdk-dynlib // so we get -ldl on platforms that require it
  * Allows one to load a library from a .so (Linux), .dylib (OSX),
  * or .dll (Windows) file, and retrieve symbol addresses so that they
  * might be called.
- *
- * @author Amos Wenger (nddrylliog)
  */
 Dynlib: abstract class {
 

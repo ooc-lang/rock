@@ -1,11 +1,7 @@
 
 /**
-   The reader interface provides a medium-indendant way to read characters
-   from a source, e.g. a file, a string, an URL, etc.
-
-   @author Amos Wenger (nddrylliog)
-   @author Scott Olson (tsion / _scott)
-   @author Joshua Roesslein (joshthecoder)
+ * The reader interface provides a medium-indendant way to read characters
+ * from a source, e.g. a file, a string, an URL, etc.
  */
 Reader: abstract class {
 

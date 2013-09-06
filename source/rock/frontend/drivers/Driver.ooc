@@ -11,10 +11,8 @@ import rock/middle/[Import, Include, Module, Use, UseDef]
 import SourceFolder
 
 /**
-   Drives the compilation process, e.g. chooses in which order
-   files are compiled, optionally checks for timestamps and stuff.
-
-   :author: Amos Wenger (nddrylliog)
+ * Drives the compilation process, e.g. chooses in which order
+ * files are compiled, optionally checks for timestamps and stuff.
  */
 Driver: abstract class {
 

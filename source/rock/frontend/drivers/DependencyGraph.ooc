@@ -14,8 +14,6 @@ import rock/middle/tinker/[Errors]
  * between SourceFolder(s)
  * 
  * Used when figuring out what to build first
- *
- * :author: Amos Wenger
  */
 DependencyGraph: class {
 
@@ -142,8 +140,6 @@ DependencyGraph: class {
 
 /**
  * A dependency, ie. lhs => (needs) rhs to be built
- *
- * :author: Amos Wenger
  */
 Dependency: class {
 

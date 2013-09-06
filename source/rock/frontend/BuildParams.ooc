@@ -16,8 +16,6 @@ import rock/frontend/drivers/[Driver, SequenceDriver]
  *
  * All sorts of paths and options that influence compilation.
  * This class is also responsible for finding the sdk and rock's home directory.
- *
- * @author Amos Wenger (nddrylliog)
  */
 BuildParams: class {
 
@@ -347,8 +345,6 @@ BuildParams: class {
  *
  * In DEBUG profile, the `debug` version blocks are activated
  * as well.
- *
- * @author Amos Wenger (nddrylliog)
  */
 Profile: enum {
     DEBUG

@@ -4,11 +4,9 @@ import VariableDecl, Type, Visitor, Node, TypeDecl, VariableAccess, BinaryOp,
 import tinker/[Trail, Resolver, Response, Errors]
 
 /**
-   A function argument.
-
-   Read FunctionDecl for more infos on the different types of arguments.
-
-   :author: Amos Wenger (nddrylliog)
+ * A function argument.
+ *
+ * Read FunctionDecl for more infos on the different types of arguments.
  */
 Argument: abstract class extends VariableDecl {
 

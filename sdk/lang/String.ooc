@@ -4,10 +4,6 @@
  * 
  * The String class is immutable by default, this means every writing operation
  * is done on a clone, which is then returned
- *
- * @author (rofl0r) - rewrite to make String a class, make it immutable etc.
- * @author Amos Wenger (nddrylliog) - initial SDK work
- * @author Scott Olson (tsion/_scott)
  */
 String: class extends Iterable<Char> {
 

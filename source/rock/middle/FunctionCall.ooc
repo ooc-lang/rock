@@ -19,8 +19,6 @@ import tinker/[Response, Resolver, Trail, Errors]
  * Calls to functions that have multi-returns or a generic return type
  * use returnArgs expression (secret variables that are references,
  * and are assigned to when the return happens.)
- *
- * @author Amos Wenger (nddrylliog)
  */
 
 IMPLICIT_AS_EXTERNAL_ONLY: const Bool = true

@@ -5,9 +5,6 @@ import structs/ArrayList
  *
  * When building a string incrementally, with multiple appends, it's best
  * to use Buffer instead of String, to avoid unnecessary allocation
- *
- * @author rofl0r
- * @author Amos Wenger (nddrylliog)
  */
 Buffer: class extends Iterable<Char> {
     

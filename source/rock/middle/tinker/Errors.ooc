@@ -4,8 +4,6 @@ import ../Node
 
 /**
  * Handle errors and warnings from the compiler
- *
- * @author Amos Wenger (nddrylliog)
  */
 
 ErrorHandler: interface {
@@ -36,8 +34,6 @@ DefaultErrorHandler: class implements ErrorHandler {
 
 /**
  * An error thrown.
- *
- * @author Amos Wenger (nddrylliog)
  */
 
 Error: abstract class {

@@ -10,8 +10,6 @@ import native/[ThreadLocalUnix, ThreadLocalWin32]
  * can occur, such as race conditions (two threads access the same memory
  * location in an interleaved manner, leaving an inconsistent state)
  * or
- * 
- * @author Amos Wenger (nddrylliog)
  */
 Thread: abstract class {
 
@@ -110,12 +108,10 @@ Thread: abstract class {
 }
 
 /**
-   A mutex is a mechanism used for synchronizing threads.
-
-   To avoid portions of code to be executed by several threads in parallel,
-   potentially yielding incorrect results
-
-   :author: Amos Wenger (nddrylliog)
+ * A mutex is a mechanism used for synchronizing threads.
+ *
+ * To avoid portions of code to be executed by several threads in parallel,
+ * potentially yielding incorrect results
  */
 Mutex: abstract class {
 
@@ -177,14 +173,12 @@ Mutex: abstract class {
 }
 
 /**
-   A mutex is a mechanism used for synchronizing threads.
-   A recursive mutex can be locked several times in a row. unlock() should be
-   called as many times to properly unlock it.
-
-   To avoid portions of code to be executed by several threads in parallel,
-   potentially yielding incorrect results
-
-   :author: Amos Wenger (nddrylliog)
+ * A mutex is a mechanism used for synchronizing threads.
+ * A recursive mutex can be locked several times in a row. unlock() should be
+ * called as many times to properly unlock it.
+ *
+ * To avoid portions of code to be executed by several threads in parallel,
+ * potentially yielding incorrect results
  */
 RecursiveMutex: abstract class {
 
@@ -242,12 +236,10 @@ RecursiveMutex: abstract class {
 
 }
 
-/*
-    A ThreadLocal is a variable whose data is not shared by all threads
-    (as it is for normal global variables), but each thread has got
-    its own storage.
-
-    :author: Friedrich Weber (fredreichbier)
+/**
+ * A ThreadLocal is a variable whose data is not shared by all threads
+ * (as it is for normal global variables), but each thread has got
+ * its own storage.
  */
 ThreadLocal: abstract class <T> {
     new: static func <T> -> This<T> {

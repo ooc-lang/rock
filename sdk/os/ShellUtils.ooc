@@ -5,8 +5,6 @@ import text/StringTokenizer
 
 /**
  * Utilities for launching processes
- *
- * @author Amos Wenger
  */
 ShellUtils: class {
 

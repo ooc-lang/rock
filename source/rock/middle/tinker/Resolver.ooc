@@ -11,8 +11,6 @@ import Response, Trail, Tinkerer, Errors
  *
  * Calling wholeAgain(this, "<Explain why you're looping>") from a node's
  * resolve() method
- *
- * @author Amos Wenger (nddrylliog)
  */
 Resolver: class {
 

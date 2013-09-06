@@ -13,8 +13,6 @@ import rock/frontend/BuildParams
  * Usually that'll be 'gcc' and 'gcc', or 'clang' and 'clang',
  * but it could well be 'gcc' and 'g++', if you're linking with C++
  * code (god forbid).
- *
- * :author: Amos Wenger (nddrylliog)
  */
 CCompiler: class {
 

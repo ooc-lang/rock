@@ -6,9 +6,6 @@ import native/[ProcessUnix, ProcessWin32]
  * Allows to launch processes with arbitrary arguments, redirect
  * standard input, output, and error, get the error code, and wait
  * for the end of the execution
- *
- * :author: Yannic Ahrens (showstopper)
- * :author: Amos Wenger (nddrylliog)
  */
 Process: abstract class {
 

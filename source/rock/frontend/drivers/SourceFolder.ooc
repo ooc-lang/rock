@@ -13,8 +13,6 @@ import rock/frontend/drivers/Archive
  *
  * It usually corresponds to one use file - when it doesn't, it's because
  * we're compiling from one main .ooc file.
- *
- * :author: Amos Wenger (nddrylliog)
  */
 SourceFolder: class {
 

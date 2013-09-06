@@ -21,13 +21,11 @@ import Skeleton, FunctionDeclWriter, ControlStatementWriter,
     CastWriter, InterfaceDeclWriter, VersionWriter, AccessWriter
 
 /**
-   Generate .c/.h/-fwd.h files from the AST of an ooc module
-
-   The two .h files are useful to work around some limitations in
-   C's inclusion mechanism, especially concerning forward declarations,
-   since ooc allows declarations in almost any order, but C doesn't.
-
-   :author: Amos Wenger
+ * Generate .c/.h/-fwd.h files from the AST of an ooc module
+ *
+ * The two .h files are useful to work around some limitations in
+ * C's inclusion mechanism, especially concerning forward declarations,
+ * since ooc allows declarations in almost any order, but C doesn't.
  */
 CGenerator: class extends Skeleton {
 

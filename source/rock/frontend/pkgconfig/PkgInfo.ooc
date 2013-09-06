@@ -5,8 +5,6 @@ import text/StringTokenizer
 
 /**
  * Information about a package managed by pkg-config
- *
- * :author: Amos Wenger (nddrylliog)
  */
 PkgInfo: class {
 

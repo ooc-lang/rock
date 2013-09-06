@@ -1,8 +1,6 @@
 
 /**
  * Possible Response in the resolve() method.
- *
- * @author Amos Wenger (nddrylliog)
  */
 Response: enum {
     OK

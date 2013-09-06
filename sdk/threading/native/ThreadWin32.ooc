@@ -5,8 +5,6 @@ version(windows) {
 
     /**
      * Win32 implementation of threads.
-     *
-     * :author: Amos Wenger (nddrylliog)
      */
     ThreadWin32: class extends Thread {
 

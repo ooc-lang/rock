@@ -2,12 +2,10 @@
 /**
  * Portable ucontext-based coroutines implementation for cooperative multitasking.
  *
- * Originally based on Steve Dekorte's libcoroutine, see authors below.
- *
- * @author Steve Dekorte (libcoroutine - http://github.com/stevedekorte/coroutine)
- * @author Russ Cox (libcoroutine OSX10.6 fixes)
- * @author Edgar Toernig (Minimalistic cooperative multitasking - http://www.goron.de/~froese/)
- * @author Amos Wenger (nddrylliog)
+ * Based on the work of:
+ *  - Steve Dekorte (libcoroutine - http://github.com/stevedekorte/coroutine)
+ *  - Russ Cox (libcoroutine OSX10.6 fixes)
+ *  - Edgar Toernig (Minimalistic cooperative multitasking - http://www.goron.de/~froese/)
  */
 Coro: class {
 

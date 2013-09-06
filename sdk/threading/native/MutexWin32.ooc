@@ -15,8 +15,6 @@ version(windows) {
 
     /**
      * Win32 implementation of mutexes.
-     *
-     * :author: Amos Wenger (nddrylliog)
      */
     MutexWin32: class extends Mutex {
 
@@ -50,8 +48,6 @@ version(windows) {
      *
      * Apparently, Win32 mutexes are recursive by default, so this is just a
      * copy of `MutexWin32`, which is by
-     *
-     * :author: Amos Wenger (nddrylliog)
      */
     RecursiveMutexWin32: class extends Mutex {
 

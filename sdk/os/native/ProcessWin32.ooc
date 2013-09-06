@@ -7,9 +7,7 @@ version(windows) {
 include windows
 
 /**
-   Process implementation for Win32
-
-   :author: Amos Wenger (nddrylliog)
+ * Process implementation for Win32
  */
 ProcessWin32: class extends Process {
 

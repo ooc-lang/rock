@@ -15,10 +15,6 @@ import text/StringTokenizer
  *
  * For input/output (I/O) beyond 'reading to a String' and
  * 'writing a String', see the FileReader and FileWriter classes
- *
- * @author Pierre-Alexandre Croiset
- * @author Friedrich Weber (fredreichbier)
- * @author Amos Wenger (nddrylliog)
  */
 File: abstract class {
 

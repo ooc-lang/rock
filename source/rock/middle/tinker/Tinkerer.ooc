@@ -17,8 +17,6 @@ import Resolver, Errors
  * error, then we fail with the infamous "Tinkerer is going round
  * in circles". That should really never happen for users. They might
  * just go ahead and start reading code - which would be bad publicity.
- *
- * @author Amos Wenger (nddrylliog)
  */
 Tinkerer: class {
 

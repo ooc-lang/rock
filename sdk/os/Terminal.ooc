@@ -3,9 +3,6 @@ import os/native/[TerminalUnix, TerminalWin32]
 
 /**
  * Set text colors and attributes for various terminals
- * @author Peter Lichard (Initial work)
- * @author Alexandros Naskos (Windows port)
- * @author Amos Wenger (Better cross-platform abstraction)
  */
 Terminal: class {
 

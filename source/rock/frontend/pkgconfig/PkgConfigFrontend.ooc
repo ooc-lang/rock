@@ -5,7 +5,6 @@ import PkgInfo
 /**
  * A frontend to pkgconfig, to retrieve information for packages,
  * like gtk+-2.0, gtkgl-2.0, or imlib2
- * @author nddrylliog aka Amos Wenger
  */
 PkgConfigFrontend: class {
 

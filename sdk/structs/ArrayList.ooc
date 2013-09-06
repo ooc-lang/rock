@@ -1,14 +1,12 @@
 import List
 
 /**
-   Resizable-array implementation of the List interface. Implements all
-   optional list operations, and permits all elements, including null.
-
-   In addition to implementing the List interface, this class provides
-   methods to manipulate the size of the array that is used internally
-   to store the list.
-
-   :author: Amos Wenger (nddrylliog)
+ * Resizable-array implementation of the List interface. Implements all
+ * optional list operations, and permits all elements, including null.
+ *
+ * In addition to implementing the List interface, this class provides
+ * methods to manipulate the size of the array that is used internally
+ * to store the list.
  */
 ArrayList: class <T> extends List<T> {
 

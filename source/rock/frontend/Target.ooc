@@ -1,7 +1,6 @@
+
 /**
  * Used to represent the target platform/architecture for which we're building.
- *
- * @author Amos Wenger
  */
 Target: class {
 

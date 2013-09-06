@@ -1,10 +1,8 @@
 import io/Reader
 
 /**
-   The writer interface provides a medium-independent way to write
-   bytes to anything.
-
-   :author: Amos Wenger (nddrylliog)
+ * The writer interface provides a medium-independent way to write
+ * bytes to anything.
  */
 Writer: abstract class {
 

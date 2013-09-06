@@ -8,16 +8,14 @@ import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
 import tinker/[Resolver, Response, Trail, Errors]
 
 /**
-   A type declaration - a class, a cover, an interface, an enum..
-
-   A type declaration has a name, optionally an extern-name,
-   optional generic type arguments, but also variables and functions.
-
-   This is a base class containing many useful variables and methods, but
-   the most interesting parts are in its subclasses ClassDecl, CoverDecl,
-   InterfaceDecl, and EnumDecl.
-
-   :author: Amos Wenger (nddrylliog)
+ * A type declaration - a class, a cover, an interface, an enum..
+ *
+ * A type declaration has a name, optionally an extern-name,
+ * optional generic type arguments, but also variables and functions.
+ *
+ * This is a base class containing many useful variables and methods, but
+ * the most interesting parts are in its subclasses ClassDecl, CoverDecl,
+ * InterfaceDecl, and EnumDecl.
  */
 TypeDecl: abstract class extends Declaration {
 

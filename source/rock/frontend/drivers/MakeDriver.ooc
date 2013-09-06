@@ -14,8 +14,6 @@ import rock/backend/cnaughty/CGenerator
  * Generate the .c source files in a build/ directory, along with a
  * Makefile that allows to build a version of your program without any
  * ooc-related dependency.
- *
- * :author: Amos Wenger (nddrylliog)
  */
 MakeDriver: class extends SequenceDriver {
 

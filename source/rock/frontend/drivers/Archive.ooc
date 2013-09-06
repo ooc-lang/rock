@@ -13,8 +13,6 @@ import rock/backend/cnaughty/ModuleWriter
 /**
  * Manage .a files stored in .libs/, with their .cacheinfo
  * files, can check up-to-dateness, add files, etc.
- *
- * :author: Amos Wenger (nddrylliog)
  */
 Archive: class {
 

@@ -2,21 +2,19 @@ import structs/[ArrayList,HashMap]
 import text/StringTokenizer
 
 /**
-    class for automated command line options parsing. pass it the ArrayList<String>
-    received from main.
-
-    Opts has "opts", a hashmap of key/value pairs, for flags and options
-    and "args", for arguments that dont start with a "-"
-
-    @author rofl0r
-    use like this: http://gist.github.com/576154 or the example below.
-
-    compilerPath := File new ( (opts set?("cc")) ? opts get("cc") : pathList find("gcc") )
-    if (compilerPath exists?() && opts get?("driver") != "explain")
-        raise ("couldnt find C compiler")
-    opts args each(|cFile| compile(compilerPath, File new(cFile)) )
-
-*/
+ *  class for automated command line options parsing. pass it the ArrayList<String>
+ *  received from main.
+ *
+ *  Opts has "opts", a hashmap of key/value pairs, for flags and options
+ *  and "args", for arguments that dont start with a "-"
+ *
+ *  use like this: http://gist.github.com/576154 or the example below.
+ *
+ *  compilerPath := File new ( (opts set?("cc")) ? opts get("cc") : pathList find("gcc") )
+ *  if (compilerPath exists?() && opts get?("driver") != "explain")
+ *      raise ("couldnt find C compiler")
+ *  opts args each(|cFile| compile(compilerPath, File new(cFile)) )
+ */
 Opts: class {
 
     opts: HashMap<String, String>

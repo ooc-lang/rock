@@ -16,10 +16,7 @@ kill: extern func (Long, Int)
 signal: extern func (Int, Pointer)
 
 /**
-   Process implementation for *nix
-
-   :author: Yannic Ahrens (showstopper)
-   :author: Amos Wenger (nddrylliog)
+ * Process implementation for *nix
  */
 ProcessUnix: class extends Process {
 

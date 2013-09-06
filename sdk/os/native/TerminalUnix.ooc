@@ -8,9 +8,6 @@ version (unix || apple) {
      *
      * Note: Background color codes are the same as Foreground + 10
      * example: background blue = 34 + 10 = 44
-     *
-     * @author Peter Lichard (Initial implementation)
-     * @author Amos Wenger (Better cross-platform abstraction)
      */
     TerminalUnix: class extends TerminalHandler {
 

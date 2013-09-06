@@ -3,8 +3,6 @@
  * A Stick is like a BagStack, ie. it can contain any type - but
  * it provides no safety at all, ie. you have to know the types of
  * what you put in it in order to be able to push it back.
- *
- * @author Amos Wenger (nddrylliog)
  */
 Stick: class {
 

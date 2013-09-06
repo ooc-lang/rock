@@ -7,8 +7,6 @@ import os/Pipe, os/native/PipeUnix
  * By default, files are opened in binary mode. If you want to open
  * them in text mode, use the new~withMode variant, but beware: on 
  * mingw, rewind()/mark() won't work correctly.
- * 
- * @author Amos Wenger (nddrylliog)
  */
 FileWriter: class extends Writer {
 

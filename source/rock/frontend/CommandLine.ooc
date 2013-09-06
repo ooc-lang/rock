@@ -17,8 +17,6 @@ system: extern func (command: CString)
 /**
  * Handles command-line arguments parsing, launches the appropritae
  * driver.
- * 
- * :author: Amos Wenger (nddrylliog)
  */
 
 CommandLine: class {

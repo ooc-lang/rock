@@ -5,8 +5,6 @@ import os/Process
 
 /**
  * A job, ie. us waiting on an external process to finish.
- *
- * :author: Amos Wenger (nddrylliog)
  */
 
 Job: class {
@@ -30,8 +28,6 @@ Job: class {
 
 /**
  * A pool of jobs, quite simply.
- *
- * :author: Amos Wenger (nddrylliog)
  */
 
 JobPool: class {

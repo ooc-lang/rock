@@ -2,10 +2,8 @@ import io/[Writer], ../../io/TabbedWriter
 import ../../middle/[Visitor, Node]
 
 /**
-   Extension of TabbedWriter that allows to handle
-   blocks opening/closing and appending of nodes.
-
-   :author: Amos Wenger
+ * Extension of TabbedWriter that allows to handle
+ * blocks opening/closing and appending of nodes.
  */
 AwesomeWriter: class extends TabbedWriter {
 

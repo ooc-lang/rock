@@ -102,8 +102,6 @@ raise: func ~withClass(clazz: Class, msg: String) {
 
 /**
  * Base class for all exceptions that can be thrown
- *
- * @author Amos Wenger (nddrylliog)
  */
 Exception: class {
     backtraces: LinkedList<String> = LinkedList<String> new()

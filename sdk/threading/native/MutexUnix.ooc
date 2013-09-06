@@ -21,8 +21,6 @@ version(unix || apple) {
 
     /**
      * pthreads implementation of mutexes.
-     *
-     * :author: Amos Wenger (nddrylliog)
      */
     MutexUnix: class extends Mutex {
 

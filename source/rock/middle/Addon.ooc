@@ -14,8 +14,6 @@ import tinker/[Trail, Resolver, Response]
  * world where all fields and methods are hashmap values. So we're just
  * pretending they're member functions - but really, they'll only be available
  * to modules importing the module containing the 'extend' clause.
- *
- * @author Amos Wenger
  */
 Addon: class extends Node {
 

@@ -5,8 +5,6 @@ import text/[StringTokenizer]
 /**
  * A collection of file utilities that should have been in the
  * Java SDK.
- *
- * @author Amos Wenger
  */
 FileUtils: class {
     /**
