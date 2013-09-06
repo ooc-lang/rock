@@ -38,7 +38,7 @@ UNIARCH:=$(ARCH)
 ifneq ($(ARCH), osx)
   ifeq ($(MACHINE), x86_64)
     ARCH:=${ARCH}64
-  else ifeq (${PROCESSOR_ARCHITECTURE}, AMD64)
+  else ifeq (${PROCESSOR_ARCHITEW6432}, AMD64)
     ARCH:=${ARCH}64
   else
     ARCH:=${ARCH}32
