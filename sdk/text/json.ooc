@@ -7,7 +7,7 @@ import io/[Reader,Writer], structs/HashBag
 import json/[Generator,Parser] into _JSON
 
 JSON: class {
-    parse: static func ~hashbag <T> (reader: Reader) -> HashBag {
+    parse: static func ~hashbag (reader: Reader) -> HashBag {
         _JSON parse(reader, HashBag)
     }
 
@@ -15,7 +15,7 @@ JSON: class {
         _JSON parse(reader, T)
     }
 
-    parse: static func ~hashbagString <T> (s: String) -> HashBag {
+    parse: static func ~hashbagString (s: String) -> HashBag {
         _JSON parse(s, HashBag)
     }
 
@@ -27,7 +27,7 @@ JSON: class {
         _JSON generate(w, obj)
     }
 
-    generateString: static func <T> (obj: T) {
+    generateString: static func <T> (obj: T) -> String {
         _JSON generateString(obj)
     }
 }
