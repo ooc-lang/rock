@@ -187,6 +187,11 @@ Exception: class {
             }
             version (!windows) {
                 printMessage()
+                bt := BacktraceHandler get()
+                if (!bt lib) {
+                    // try to display something anyway
+                    printBacktrace()
+                } // else, libbacktrace will do its thing on abort.
                 abort()
             }
         } else {

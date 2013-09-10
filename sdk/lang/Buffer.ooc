@@ -194,10 +194,15 @@ Buffer: class extends Iterable<Char> {
     }
 
     /** appends *other* to *this* */
-    append: func ~pointer (other: Char*, otherLength: Int) {
+    append: func ~pointer (other: CString, otherLength: Int) {
         origlen := size
         setLength(size + otherLength)
         memcpy(data + origlen, other, otherLength)
+    }
+
+    append: func ~cstr (other: CString) {
+        if(!other) return
+        append~pointer(other, other length())
     }
 
     append: func ~bufLength (other: This, otherLength: Int) {

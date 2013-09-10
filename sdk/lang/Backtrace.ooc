@@ -13,7 +13,7 @@ version ((linux || apple) && !android) {
     include execinfo
 
     backtrace: extern func (array: Void**, size: Int) -> Int
-    backtraceSymbols: extern(backtrace_symbols) func (array: const Void**, size: Int) -> Char**
+    backtraceSymbols: extern(backtrace_symbols) func (array: const Void**, size: Int) -> CString*
     backtraceSymbolsFd: extern(backtrace_symbols_fd) func (array: const Void**, size: Int, fd: Int)
 }
 
@@ -48,14 +48,21 @@ BacktraceHandler: class {
         } else {
             // fall back on execinfo? still informative
             version (linux || apple) {
+                stderr write("[lang/Backtrace] Falling back on execinfo.. (build extension if you want fancy backtraces)\n")
                 MAX_SIZE := 128
                 frames := gc_malloc(MAX_SIZE * Pointer size)
-                backtrace(frames, MAX_SIZE)
-                cs := backtraceSymbols(frames, MAX_SIZE)
-                return cs toString()
+                frameCount := backtrace(frames, MAX_SIZE)
+                symbols := backtraceSymbols(frames, frameCount)
+
+                buffer := Buffer new()
+                for (i in 0..frameCount) {
+                    buffer append(symbols[i]). append("\n")
+                }
+                return buffer toString()
             }
 
             // no such luck, use a debugger :(
+            stderr write("[lang/Backtrace] No backtrace extension nor execinfo - use a debugger!\n")
             return ""
         }
     }
@@ -104,13 +111,13 @@ BacktraceHandler: class {
 
         registerCallback = lib symbol("backtrace_register_callback")
         if (!registerCallback) {
-            stderr write("Couldn't get registerCallback symbol!\n")
+            stderr write("[lang/Backtrace] Couldn't get registerCallback symbol!\n")
             return
         }
 
         capture = lib symbol("backtrace_capture")
         if (!capture) {
-            stderr write("Couldn't get capture symbol!\n")
+            stderr write("[lang/Backtrace] Couldn't get capture symbol!\n")
             return
         }
 

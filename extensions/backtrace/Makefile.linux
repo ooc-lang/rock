@@ -1,13 +1,13 @@
-.PHONY: all clean
+.PHONY: build clean
 
 DEBUG_FLAGS:=-g
 LINUX_FLAGS:=-D_GNU_SOURCE
 
 build : backtrace.so
+	cp $^ ${BINDIR}/
 
 backtrace.so : backtrace.c
 	gcc ${LINUX_FLAGS} ${DEBUG_FLAGS} -DBUILDING_BACKTRACE_LIB -fPIC -O2 -shared -Wall -o $@ $^ -lbfd -liberty -lz
-	cp $@ ${BINDIR}/
 
 clean :
 	@rm -f backtrace.so

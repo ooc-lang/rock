@@ -1,4 +1,4 @@
-.PHONY: all clean
+.PHONY: build clean
 
 # This is needed for some installs of MSYS/MinGW... don't ask.
 WIN_FLAGS:= -I/mingw/include -L/mingw/lib -I/usr/local/include -L/usr/local/lib
