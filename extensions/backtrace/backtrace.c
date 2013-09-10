@@ -1,11 +1,11 @@
 /* 
  * Universal backtrace extension for rock
  *
- * Authors:
+ * Inspired by the work of:
  *   - Cloud Wu, 2010 (http://codingnow.com/)
- *   - Amos Wenger, 2013
+ *
  * Use, modification and distribution are subject to the "New BSD License"
- * as listed at <url: http://www.opensource.org/licenses/bsd-license.php >.
+ * as listed at <http://www.opensource.org/licenses/bsd-license.php>.
 */
 
 #define PACKAGE "universal-backtrace"
@@ -281,6 +281,7 @@ static void _backtrace(struct output_buffer *ob, struct bfd_set *set, int depth 
     char symbol_buffer[sizeof(IMAGEHLP_SYMBOL) + 255];
     char module_name_raw[MAX_PATH];
 
+#ifdef __MINGW64__
     while(StackWalk64(IMAGE_FILE_MACHINE_AMD64, 
                 process, 
                 thread, 
@@ -289,6 +290,16 @@ static void _backtrace(struct output_buffer *ob, struct bfd_set *set, int depth 
                 NULL, 
                 SymFunctionTableAccess64, 
                 SymGetModuleBase64, 0)) {
+#else
+    while(StackWalk(IMAGE_FILE_MACHINE_I386, 
+                process, 
+                thread, 
+                &frame, 
+                context, 
+                NULL, 
+                SymFunctionTableAccess, 
+                SymGetModuleBase, 0)) {
+#endif
 
 
         --depth;
@@ -536,7 +547,7 @@ static void backtrace_unregister(void) {
     }
 }
 
-BOOL WINAPI DllMain(HANDLE hinstDLL, DWORD dwReason, LPVOID lpvReserved) {
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpvReserved) {
     switch (dwReason) {
         case DLL_PROCESS_ATTACH:
             backtrace_register();
