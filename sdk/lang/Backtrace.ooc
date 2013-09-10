@@ -149,7 +149,11 @@ BacktraceHandler: class {
                 if (tokens size >= 2) {
                     binary := tokens[0]
                     file := "(from %s)" format(binary)
-                    elements add(TraceElement new(frameno, tokens[2], "", file))
+                    symbol := tokens[2]
+                    if (symbol size >= 30) {
+                        symbol = "..." + symbol substring(symbol size - 30)
+                    }
+                    elements add(TraceElement new(frameno, symbol, "", file))
                 }
             } else {
                 filename := tokens[3]
