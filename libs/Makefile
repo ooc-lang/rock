@@ -34,11 +34,13 @@ else
     GC_FLAGS=--enable-threads=posix --enable-local-thread-alloc
 endif
 
+MINGW64_PRESENT := $(shell echo __MINGW64__ | cpp -E - | tail -1)
+
 UNIARCH:=$(ARCH)
 ifneq ($(ARCH), osx)
   ifeq ($(MACHINE), x86_64)
     ARCH:=${ARCH}64
-  else ifeq (${PROCESSOR_ARCHITEW6432}, AMD64)
+  else ifeq (${MINGW64_PRESENT}, 1)
     ARCH:=${ARCH}64
   else
     ARCH:=${ARCH}32
