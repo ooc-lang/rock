@@ -186,7 +186,7 @@ Exception: class {
                 exit(1)
             }
             version (!windows) {
-                print()
+                printMessage()
                 abort()
             }
         } else {
