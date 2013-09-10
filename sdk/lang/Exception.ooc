@@ -156,8 +156,15 @@ Exception: class {
      * Print this exception, with its origin, if specified, and its message
      */
     print: func {
-        fprintf(stderr, "%s", formatMessage() toCString())
+        printMessage()
         printBacktrace()
+    }
+
+    /**
+     * Print just the message
+     */
+    printMessage: func {
+        fprintf(stderr, "%s", formatMessage() toCString())
     }
 
     /**
@@ -170,14 +177,16 @@ Exception: class {
             version (windows) {
                 if (IsDebuggerPresent()) {
                     // trigger a break point here, debugger will like that!
+                    printMessage()
                     DebugBreak()
                 } else {
-                    // backtrace-universal is there - raise an exception so
-                    // we get to catch it and then exit peacefully.
-                    RaiseException(0, 0, 0, null)
+                    // print the backtrace ourselves
+                    print()
                 }
+                exit(1)
             }
             version (!windows) {
+                print()
                 abort()
             }
         } else {
