@@ -1,4 +1,6 @@
 .PHONY: all clean mrproper prepare_bootstrap bootstrap install download-bootstrap rescue backup extensions extensions-clean
+.SILENT: extensions extensions-clean
+
 PARSER_GEN=greg
 NQ_PATH=source/rock/frontend/NagaQueen.c
 OOC_WARN_FLAGS?=+-w

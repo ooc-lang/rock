@@ -42,7 +42,9 @@ endif
 
 build:
 	BINDIR=../../bin $(MAKE) -f ${MAKE_FILE} build
+	@echo "fancy-backtrace compiled!"
 
 clean:
 	$(MAKE) -f ${MAKE_FILE} clean
+	@echo "fancy-backtrace cleaned!"
 
