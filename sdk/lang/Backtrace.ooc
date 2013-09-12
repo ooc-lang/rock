@@ -112,12 +112,14 @@ BacktraceHandler: class {
         registerCallback = lib symbol("backtrace_register_callback")
         if (!registerCallback) {
             stderr write("[lang/Backtrace] Couldn't get registerCallback symbol!\n")
+            lib = null
             return
         }
 
         capture = lib symbol("backtrace_capture")
         if (!capture) {
             stderr write("[lang/Backtrace] Couldn't get capture symbol!\n")
+            lib = null
             return
         }
 
