@@ -209,7 +209,7 @@ Exception: class {
         if (bt) {
             return h backtraceSymbols(bt)
         }
-        "[no backtrace] use a debugger!"
+        "[no backtrace] use a debugger!\n"
     }
 }
 
@@ -314,6 +314,27 @@ version (windows) {
 
         return EXCEPTION_EXECUTE_HANDLER
     }
+
+    _controlHandler: func (ctrlType: DWORD) -> Bool {
+        message := match ctrlType {
+            case CTRL_C_EVENT        => "(CTRL_C_EVENT) A CTRL+C signal was received"
+            case CTRL_BREAK_EVENT    => "(CTRL_BREAK_EVENT) A CTRL+BREAK signal was received"
+            case CTRL_CLOSE_EVENT    => "(CTRL_CLOSE_EVENT) Console was closed or task was ended"
+            case CTRL_LOGOFF_EVENT   => "(CTRL_LOGOFF_EVENT) User logged off"
+            case CTRL_SHUTDOWN_EVENT => "(CTRL_SHUTDOWN_EVENT) System shutting down"
+            case => "(?) an unknown control signal %u was received" format(ctrlType as UInt)
+        }
+
+        stderr write(message). write('\n')
+
+        // that's all we can do - trying to print a backtrace
+        // will crash on Windows Vista and later. And we can't block
+        // the signal either as the process will be terminated regardless
+        // of what we return...
+
+        // pass it on to the next handler...
+        false
+    }
 }
 
 _setupHandlers: func {
@@ -333,7 +354,8 @@ _setupHandlers: func {
     }
 
     version (windows) {
-        SetUnhandledExceptionFilter(_unhandledExceptionHandler)
+        SetUnhandledExceptionFilter(_unhandledExceptionHandler as Pointer)
+        SetConsoleCtrlHandler(_controlHandler as Pointer, true)
     }
 }
 
@@ -404,7 +426,6 @@ version (windows) {
     include windows
 
     SetUnhandledExceptionFilter: extern func (handler: Pointer) -> Pointer
-    SetConsoleCtrlHandler: extern func (handler: Pointer, add: Bool) -> Bool
 
     EXCEPTION_EXECUTE_HANDLER: extern Int
 
@@ -431,6 +452,13 @@ version (windows) {
     EXCEPTION_INVALID_DISPOSITION, EXCEPTION_NONCONTINUABLE_EXCEPTION,
     EXCEPTION_PRIV_INSTRUCTION, EXCEPTION_SINGLE_STEP,
     EXCEPTION_STACK_OVERFLOW: extern DWORD
+
+    // Windows control handler function
+
+    SetConsoleCtrlHandler: extern func (routine: Pointer, add: Bool)
+
+    CTRL_C_EVENT, CTRL_BREAK_EVENT, CTRL_CLOSE_EVENT, CTRL_LOGOFF_EVENT,
+    CTRL_SHUTDOWN_EVENT: extern DWORD
 
 }
 
