@@ -25,4 +25,3 @@ ifeq ($(BINUTILS),)
 	echo "binutils not found! install it via 'brew install binutils'"
 	exit 1
 endif
-
