@@ -4,14 +4,14 @@ DEBUG_FLAGS := -g -rdynamic
 CC_FLAGS := -D_GNU_SOURCE $(DEBUG_FLAGS)
 LD_FLAGS := -lbfd -liberty -lz
 
-build : check backtrace.so
-	cp backtrace.so ${BINDIR}/
+build : check fancy_backtrace.so
+	cp fancy_backtrace.so ${BINDIR}/
 
-backtrace.so : backtrace.c
+fancy_backtrace.so : fancy_backtrace.c
 	gcc $(CC_FLAGS) -DBUILDING_BACKTRACE_LIB -fPIC -O2 -shared -Wall -o $@ $^ $(LD_FLAGS)
 
 clean :
-	@rm -f backtrace.so
+	@rm -f fancy_backtrace.so
 
 check :
 	@echo "#include <bfd.h>" | cpp -E - > /dev/null 2> /dev/null || \

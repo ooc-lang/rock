@@ -1,5 +1,12 @@
 /* 
- * Universal backtrace extension for rock
+ * Fancy backtrace extension for rock
+ *
+ * Mimics the interface of <execinfo.h> but with fancy_backtrace and
+ * fancy_backtrace_symbols, giving additional information (source file, line
+ * numbers) with pipe-separated values ready for further formatting.
+ *
+ * Also include fancy_backtrace_with_context on Windows, usable in response
+ * to exceptions.
  *
  * Inspired by the work of:
  *   - Cloud Wu, 2010 (http://codingnow.com/)
@@ -8,7 +15,7 @@
  * as listed at <http://www.opensource.org/licenses/bsd-license.php>.
 */
 
-#define PACKAGE "universal-backtrace"
+#define PACKAGE "fancy-backtrace"
 #define PACKAGE_VERSION "2.0.0"
 
 #ifdef __MINGW32__
