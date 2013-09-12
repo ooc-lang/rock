@@ -302,37 +302,6 @@ void __attribute__((destructor)) backtrace_destructor (void) {
 
 #ifdef __MINGW32__
 
-BACKTRACE_LIB int fancy_backtrace(void **frames, int maxFrames) {
-    CONTEXT context;
-    memset(&context, 0, sizeof(CONTEXT));
-
-    context.ContextFlags = CONTEXT_CONTROL;
-
-#ifdef __MINGW64__
-    // there's a function for that!
-    RtlCaptureContext(&context);
-#else
-    // no function available for 32-bit Windows, we have to
-    // use inline assembly to retrieve the register values we need.
-    void * reg_eip = NULL;
-    __asm__ volatile ("1: movl $1b, %0" : "=r" (reg_eip));
-    
-    void * reg_esp = NULL;
-    __asm__ volatile ("movl %%esp, %0" : "=r" (reg_esp));
-    
-    void * reg_ebp = NULL;
-    __asm__ volatile ("movl %%ebp, %0" : "=r" (reg_ebp));
-
-    // transfer them to the context
-    context.Eip = (DWORD) reg_eip;
-    context.Esp = (DWORD) reg_esp;
-    context.Ebp = (DWORD) reg_ebp;
-#endif
-
-    // and... collect!
-    return fancy_backtrace_with_context(frames, maxFrames, &context);
-}
-
 BACKTRACE_LIB int fancy_backtrace_with_context (void **frames, int maxFrames, LPCONTEXT context) {
 
 #ifdef __MINGW64__
@@ -383,17 +352,47 @@ BACKTRACE_LIB int fancy_backtrace_with_context (void **frames, int maxFrames, LP
         frames[frameNo++] = (void*) frame.AddrPC.Offset;
 
         if (frameNo >= maxFrames) {
-            break
+            break;
         }
     }
 
     return frameNo;
 }
 
+BACKTRACE_LIB int fancy_backtrace(void **frames, int maxFrames) {
+    CONTEXT context;
+    memset(&context, 0, sizeof(CONTEXT));
+
+    context.ContextFlags = CONTEXT_CONTROL;
+
+#ifdef __MINGW64__
+    // there's a function for that!
+    RtlCaptureContext(&context);
+#else
+    // no function available for 32-bit Windows, we have to
+    // use inline assembly to retrieve the register values we need.
+    void * reg_eip = NULL;
+    __asm__ volatile ("1: movl $1b, %0" : "=r" (reg_eip));
+    
+    void * reg_esp = NULL;
+    __asm__ volatile ("movl %%esp, %0" : "=r" (reg_esp));
+    
+    void * reg_ebp = NULL;
+    __asm__ volatile ("movl %%ebp, %0" : "=r" (reg_ebp));
+
+    // transfer them to the context
+    context.Eip = (DWORD) reg_eip;
+    context.Esp = (DWORD) reg_esp;
+    context.Ebp = (DWORD) reg_ebp;
+#endif
+
+    // and... collect!
+    return fancy_backtrace_with_context(frames, maxFrames, &context);
+}
+
 BACKTRACE_LIB char ** fancy_backtrace_symbols (void **frames, int numFrames) {
 
     HANDLE process = GetCurrentProcess();
-    HANDLE thread = GetCurrentThread();
 
     if (!SymInitialize(process, 0, TRUE)) {
         fprintf(stderr, "Failed to init symbol context\n");
@@ -408,10 +407,10 @@ BACKTRACE_LIB char ** fancy_backtrace_symbols (void **frames, int numFrames) {
     char module_name_raw[MAX_PATH];
 
     int frameNo = 0;
-    char **result = malloc(sizeof(char*) * numFrames)
+    char **result = malloc(sizeof(char*) * numFrames);
 
     while (frameNo < numFrames) {
-        address_t addrOffset = (address_t) frames[frameNo]
+        address_t addrOffset = (address_t) frames[frameNo];
 
         IMAGEHLP_SYMBOL *symbol = (IMAGEHLP_SYMBOL *)symbol_buffer;
         symbol->SizeOfStruct = (sizeof *symbol) + 255;
