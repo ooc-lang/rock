@@ -1,13 +1,20 @@
-.PHONY: build clean
+.PHONY: build check clean
 
-DEBUG_FLAGS:=-g
-LINUX_FLAGS:=-D_GNU_SOURCE
+DEBUG_FLAGS := -g -rdynamic
+CC_FLAGS := -D_GNU_SOURCE $(DEBUG_FLAGS)
+LD_FLAGS := -lbfd -liberty -lz
 
-build : backtrace.so
-	cp $^ ${BINDIR}/
+build : check backtrace.so
+	cp backtrace.so ${BINDIR}/
 
 backtrace.so : backtrace.c
-	gcc ${LINUX_FLAGS} ${DEBUG_FLAGS} -DBUILDING_BACKTRACE_LIB -fPIC -O2 -shared -Wall -o $@ $^ -lbfd -liberty -lz
+	gcc $(CC_FLAGS) -DBUILDING_BACKTRACE_LIB -fPIC -O2 -shared -Wall -o $@ $^ $(LD_FLAGS)
 
 clean :
 	@rm -f backtrace.so
+
+check :
+	@echo "#include <bfd.h>" | cpp -E - > /dev/null 2> /dev/null || \
+	    (echo "[WARNING] binutils-dev missing! install it via 'apt-get install binutils-dev' or similar.")
+	@echo "#include <zlib.h>" | gcc -E - -o /tmp/zlibtest -lz > /dev/null 2> /dev/null || \
+	    (echo "[WARNING] zlib missing! install it via 'apt-get install zlib1g-dev' or similar.")
