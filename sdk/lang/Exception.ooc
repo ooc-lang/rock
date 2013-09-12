@@ -209,7 +209,7 @@ Exception: class {
         if (bt) {
             return h backtraceSymbols(bt)
         }
-        ""
+        "[no backtrace] use a debugger!"
     }
 }
 
@@ -248,18 +248,19 @@ OutOfMemoryException: class extends Exception {
 version ((linux || apple) && !android) {
     _signalHandler: func (sig: Int) {
         message := match sig {
-            case SIGHUP   => "(SIGHUP ) terminal line hangup"
-            case SIGINT   => "(SIGINT ) interrupt program"
-            case SIGILL   => "(SIGILL ) illegal instruction"
+            case SIGHUP   => "(SIGHUP) terminal line hangup"
+            case SIGINT   => "(SIGINT) interrupt program"
+            case SIGILL   => "(SIGILL) illegal instruction"
             case SIGTRAP  => "(SIGTRAP) trace trap"
             case SIGABRT  => "(SIGABRT) abort program"
-            case SIGFPE   => "(SIGFPE ) floating point exception"
-            case SIGBUS   => "(SIGBUS ) bus error"
+            case SIGFPE   => "(SIGFPE) floating point exception"
+            case SIGBUS   => "(SIGBUS) bus error"
             case SIGSEGV  => "(SIGSEGV) segmentation fault"
-            case SIGSYS   => "(SIGSYS ) non-existent system call invoked"
+            case SIGSYS   => "(SIGSYS) non-existent system call invoked"
             case SIGPIPE  => "(SIGPIPE) write on a pipe with no reader"
             case SIGALRM  => "(SIGALRM) real-time timer expired"
             case SIGTERM  => "(SIGTERM) software termination signal"
+            case          => "(?) unknown signal %d" format(sig)
         }
 
         stderr write(message). write('\n')
@@ -268,6 +269,50 @@ version ((linux || apple) && !android) {
         stderr write(Exception getCurrentBacktrace())
 
         exit(sig)
+    }
+}
+
+version (windows) {
+    _unhandledExceptionHandler: func (exceptionInfo: EXCEPTION_POINTERS*) -> DWORD {
+        code := exceptionInfo@ ExceptionRecord@ ExceptionCode
+        message := match code {
+            case EXCEPTION_ACCESS_VIOLATION           => "(ACCESS_VIOLATION) tried to read from or write to a virtual address without the appropriate access."
+            case EXCEPTION_ARRAY_BOUNDS_EXCEEDED      => "(ARRAY_BOUNDS_EXCEEDED) tried to access an array element that is out of bounds"
+            case EXCEPTION_BREAKPOINT                 => "(BREAKPOINT) a breakpoint was encountered"
+            case EXCEPTION_DATATYPE_MISALIGNMENT      => "(DATATYPE_MISALIGNMEN) tried to read or write misaligned data on hardware that does not provide alignment"
+            case EXCEPTION_FLT_DENORMAL_OPERAND       => "(FLT_DENORMAL_OPERAND) an operand to a floating point operation is denormal (too small)"
+            case EXCEPTION_FLT_DIVIDE_BY_ZERO         => "(FLT_DIVIDE_BY_ZERO) tried to divide a floating point value by zero"
+            case EXCEPTION_FLT_INEXACT_RESULT         => "(FLT_INEXACT_RESULT) the result of a floating point operation cannot be represented as a fraction"
+            case EXCEPTION_FLT_INVALID_OPERATION      => "(FLT_INVALID_OPERATION) other floating point error"
+            case EXCEPTION_FLT_OVERFLOW               => "(FLT_OVERFLOW) exponent of a floating-point operation greater than allowed by the type"
+            case EXCEPTION_FLT_STACK_CHECK            => "(FLT_STACK_CHECK) stack overflow or underflow as a result of a floating point operation"
+            case EXCEPTION_FLT_UNDERFLOW              => "(FLT_UNDERFLOW) exponent of a floating-point operation less than allowed by the type"
+            case EXCEPTION_ILLEGAL_INSTRUCTION        => "(ILLEGAL_INSTRUCTION) tried to execute an invalid instruction"
+            case EXCEPTION_IN_PAGE_ERROR              => "(IN_PAGE_ERROR) tried to access a page that was not present and that the system failed to load"
+            case EXCEPTION_INT_DIVIDE_BY_ZERO         => "(INT_DIVIDE_BY_ZERO) tried to divide an integer value by zero"
+            case EXCEPTION_INT_OVERFLOW               => "(INT_OVERFLOW) integer operation caused to carry out the most significant bit"
+            case EXCEPTION_INVALID_DISPOSITION        => "(INVALID_DISPOSITION) exception handler returned an invalid disposition"
+            case EXCEPTION_NONCONTINUABLE_EXCEPTION   => "(NONCONTINUABLE_EXCEPTION) tried to continue after a non-continuable exception"
+            case EXCEPTION_PRIV_INSTRUCTION           => "(PRIV_INSTRUCTION) tried to execute an instruction not allowed in the current machine mode"
+            case EXCEPTION_SINGLE_STEP                => "(SINGLE_STEP) trace trap or other mechanism signaled that one action was executed"
+            case EXCEPTION_STACK_OVERFLOW             => "(STACK_OVERFLOW) the thread used up its stack"
+            case                                      => "(?) unknown exception code %lu" format(code as ULong)
+        }
+
+        stderr write(message). write('\n')
+
+        // try to display a stack trace.
+        h := BacktraceHandler get()
+
+        context := exceptionInfo@ ContextRecord as Pointer
+        bt := h backtraceWithContext(context)
+        if (bt) {
+            stderr write(h backtraceSymbols(bt))
+        } else {
+            stderr write("[no backtrace] use a debugger!")
+        }
+
+        return EXCEPTION_EXECUTE_HANDLER
     }
 }
 
@@ -285,6 +330,10 @@ _setupHandlers: func {
         signal(SIGPIPE, _signalHandler)
         signal(SIGALRM, _signalHandler)
         signal(SIGTERM, _signalHandler)
+    }
+
+    version (windows) {
+        SetUnhandledExceptionFilter(_unhandledExceptionHandler)
     }
 }
 
@@ -345,6 +394,43 @@ version ((linux || apple) && !android) {
 
     SIGHUP, SIGINT, SIGILL, SIGTRAP, SIGABRT, SIGEMT, SIGFPE, SIGBUS,
     SIGSEGV, SIGSYS, SIGPIPE, SIGALRM, SIGTERM: extern Int
+
+}
+
+version (windows) {
+
+    // Windows exception handling functions
+
+    include windows
+
+    SetUnhandledExceptionFilter: extern func (handler: Pointer) -> Pointer
+    SetConsoleCtrlHandler: extern func (handler: Pointer, add: Bool) -> Bool
+
+    EXCEPTION_EXECUTE_HANDLER: extern Int
+
+    EXCEPTION_POINTERS: extern cover {
+        ExceptionRecord: EXCEPTION_RECORD*
+        ContextRecord: CONTEXT*
+    }
+
+    CONTEXT: extern cover
+
+    DWORD: cover from ULong
+    EXCEPTION_RECORD: extern cover {
+        ExceptionCode: DWORD
+    }
+
+    // exception codes
+    EXCEPTION_ACCESS_VIOLATION, EXCEPTION_ARRAY_BOUNDS_EXCEEDED,
+    EXCEPTION_BREAKPOINT, EXCEPTION_DATATYPE_MISALIGNMENT,
+    EXCEPTION_FLT_DENORMAL_OPERAND, EXCEPTION_FLT_DIVIDE_BY_ZERO,
+    EXCEPTION_FLT_INEXACT_RESULT, EXCEPTION_FLT_INVALID_OPERATION,
+    EXCEPTION_FLT_OVERFLOW, EXCEPTION_FLT_STACK_CHECK, EXCEPTION_FLT_UNDERFLOW,
+    EXCEPTION_ILLEGAL_INSTRUCTION, EXCEPTION_IN_PAGE_ERROR,
+    EXCEPTION_INT_DIVIDE_BY_ZERO, EXCEPTION_INT_OVERFLOW,
+    EXCEPTION_INVALID_DISPOSITION, EXCEPTION_NONCONTINUABLE_EXCEPTION,
+    EXCEPTION_PRIV_INSTRUCTION, EXCEPTION_SINGLE_STEP,
+    EXCEPTION_STACK_OVERFLOW: extern DWORD
 
 }
 

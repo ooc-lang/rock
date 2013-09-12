@@ -288,10 +288,3 @@ version ((linux || apple) && !android) {
         array: Pointer*, size: Int, fd: Int)
 }
 
-// Windows exception handling functions
-version (windows) {
-    SetUnhandledExceptionFilter: extern func (callback: Pointer) -> Pointer
-
-    EXCEPTION_EXECUTE_HANDLER: extern Int
-}
-

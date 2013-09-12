@@ -8,7 +8,7 @@ version (windows) {
 }
 
 foo: func {
-    // SIGSEGV
+    // SIGSEGV or access violation
     /*
         f: Int* = null
         f@ = 0
@@ -27,10 +27,10 @@ foo: func {
     */
 
     // ooc exception
-    ///*
+    /*
         a := ArrayList<Int> new()
         a[0] toString() println()
-    //*/
+    */
 
     // no crash? sleep and try again later
     "Sleeping..." println()
