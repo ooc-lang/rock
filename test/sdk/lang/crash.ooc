@@ -1,6 +1,7 @@
 
 // sdk
 import structs/[ArrayList, List]
+import os/Time
 
 version (windows) {
     RaiseException: extern func (ULong, ULong, ULong, Pointer)
@@ -29,7 +30,11 @@ foo: func {
     /*
         a := ArrayList<Int> new()
         a[0] toString() println()
-     */
+    */
+
+    // no crash? sleep and try again later
+    "Sleeping..." println()
+    Time sleepSec(2)
 }
 
 bar: func {
@@ -59,6 +64,7 @@ App: class {
 
         loop(||
             runToo()
+            true
         )
     }
 
