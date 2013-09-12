@@ -253,7 +253,6 @@ version ((linux || apple) && !android) {
             case SIGILL   => "(SIGILL ) illegal instruction"
             case SIGTRAP  => "(SIGTRAP) trace trap"
             case SIGABRT  => "(SIGABRT) abort program"
-            case SIGEMT   => "(SIGEMT ) emulate instruction executed"
             case SIGFPE   => "(SIGFPE ) floating point exception"
             case SIGBUS   => "(SIGBUS ) bus error"
             case SIGSEGV  => "(SIGSEGV) segmentation fault"
@@ -279,7 +278,6 @@ _setupHandlers: func {
         signal(SIGILL,  _signalHandler)
         signal(SIGTRAP, _signalHandler)
         signal(SIGABRT, _signalHandler)
-        signal(SIGEMT,  _signalHandler)
         signal(SIGFPE,  _signalHandler)
         signal(SIGBUS,  _signalHandler)
         signal(SIGSEGV, _signalHandler)
