@@ -8,16 +8,10 @@ import structs/[ArrayList, List]
 // sdk internals
 import lang/internals/mangling
 
-// fallback for linux/apple if backtrace-universal isn't present
-version ((linux || apple) && !android) {
-    include execinfo
-
-    backtrace: extern func (array: Void**, size: Int) -> Int
-    backtraceSymbols: extern(backtrace_symbols) func (array: const Void**, size: Int) -> CString*
-    backtraceSymbolsFd: extern(backtrace_symbols_fd) func (array: const Void**, size: Int, fd: Int)
-}
-
 BacktraceHandler: class {
+
+    // constants
+    BACKTRACE_LENGTH := static 128
     
     // singleton
     instance: static This
@@ -32,39 +26,78 @@ BacktraceHandler: class {
     // DLL
     lib: Dynlib
 
-    // fancy?
+    /* dylinb functions */
+    fancyBacktrace: Pointer
+    fancyBacktraceSymbols: Pointer
+    fancyBacktraceWithContext: Pointer // windows-only
+    
+    /* options */
+
+    // fancy? (use fancy-backtrace)
     fancy? := true
 
-    // funcs
-    registerCallback, capture: Pointer
+    // raw? (don't format)
+    raw? := false
 
     /* public interface */
 
-    captureBacktrace: func -> String {
+    backtrace: func -> Backtrace {
+        buffer := gc_malloc(Pointer size * BACKTRACE_LENGTH)
+
         if (lib) {
-            // use backtrace-universal, best one!
-            f := (capture, null) as Func -> CString
-            return _format(f() toString())
+            // use fancy-backtrace, best one!
+            f := (fancyBacktrace, null) as Func (Pointer*, Int) -> Int
+            length := f(buffer, BACKTRACE_LENGTH)
+            return Backtrace new(buffer, length)
         } else {
             // fall back on execinfo? still informative
             version (linux || apple) {
                 stderr write("[lang/Backtrace] Falling back on execinfo.. (build extension if you want fancy backtraces)\n")
-                MAX_SIZE := 128
-                frames := gc_malloc(MAX_SIZE * Pointer size)
-                frameCount := backtrace(frames, MAX_SIZE)
-                symbols := backtraceSymbols(frames, frameCount)
-
-                buffer := Buffer new()
-                for (i in 0..frameCount) {
-                    buffer append(symbols[i]). append("\n")
-                }
-                return buffer toString()
+                length := backtrace(buffer, BACKTRACE_LENGTH)
+                return Backtrace new(buffer, length)
             }
 
             // no such luck, use a debugger :(
             stderr write("[lang/Backtrace] No backtrace extension nor execinfo - use a debugger!\n")
-            return ""
+            return null
         }
+    }
+
+    backtraceWithContext: func (contextPtr: Pointer) -> Backtrace {
+        version (windows) {
+            buffer := gc_malloc(Pointer size * BACKTRACE_LENGTH) as Pointer*
+            f := (fancyBacktraceWithContext, null) as Func (Pointer*, Int, Pointer) -> Int
+            length := f(buffer, BACKTRACE_LENGTH, contextPtr)
+            return Backtrace new(buffer, length)
+        }
+
+        return null
+    }
+
+    backtraceSymbols: func (trace: Backtrace) -> String {
+        lines: CString* = null
+
+        if (lib) {
+            // use fancy-backtrace
+            f := (fancyBacktraceSymbols, null) as Func (Pointer*, Int) -> CString*
+            lines = f(trace buffer, trace length)
+            return _format(lines, trace length)
+        } else {
+            // fall back on execinfo
+            version (linux || apple) {
+                lines = backtrace_symbols(trace buffer, trace length)
+
+                // nothing to format here, just a dumb platform-specific
+                // stack trace :/
+                buffer := Buffer new()
+                for (i in 0..trace length) {
+                    buffer append(lines[i]). append('\n')
+                }
+                return buffer toString()
+            }
+        }
+
+        "[no backtrace]"
     }
 
     /* private stuff */
@@ -75,14 +108,18 @@ BacktraceHandler: class {
             return
         }
 
+        if (Env get("RAW_BACKTRACE")) {
+            raw? = false
+        }
+
         // try to load it from the system's search path
         // includes the current directory on Windows
-        lib = Dynlib load("backtrace")
+        lib = Dynlib load("fancy_backtrace")
 
         if (!lib) {
             // try to load it from the current directory?
             // makes the magic work on Linux
-            lib = Dynlib load("./backtrace")
+            lib = Dynlib load("./fancy_backtrace")
         }
 
         if (!lib) {
@@ -90,7 +127,7 @@ BacktraceHandler: class {
             rockPath := ShellUtils findExecutable("rock")
             if (rockPath) {
                 binPath := rockPath getParent()
-                path := File join(binPath, "backtrace")
+                path := File join(binPath, "fancy_backtrace")
                 lib = Dynlib load(path)
             }
         }
@@ -109,50 +146,41 @@ BacktraceHandler: class {
     _initFuncs: func {
         if (!lib) return
 
-        registerCallback = lib symbol("backtrace_register_callback")
-        if (!registerCallback) {
-            stderr write("[lang/Backtrace] Couldn't get registerCallback symbol!\n")
-            lib = null
-            return
-        }
+        _getSymbol(fancyBacktrace&, "fancy_backtrace")
+        _getSymbol(fancyBacktraceSymbols&, "fancy_backtrace_symbols")
 
-        capture = lib symbol("backtrace_capture")
-        if (!capture) {
-            stderr write("[lang/Backtrace] Couldn't get capture symbol!\n")
-            lib = null
-            return
+        version (windows) {
+            _getSymbol(fancyBacktraceWithContext&, "fancy_backtrace_with_context")
         }
-
-        _registerCallback(|ctrace|
-            stderr write(_format(ctrace toString()))
-        )
     }
 
-    _registerCallback: func (callback: Func(CString)) {
-        if (!lib) return
-
-        f := (registerCallback, null) as Func (Pointer, Pointer)
-        c := callback as Closure
-        f(c thunk, c context)
+    _getSymbol: func (target: Pointer@, name: String) {
+        target = lib symbol(name)
+        if (!target) {
+            stderr write("[lang/Backtrace] Couldn't get %s symbol!\n" format(name))
+            lib = null
+        }
     }
 
-    _format: func (trace: String) -> String {
+    _format: func (lines: CString*, length: Int) -> String {
         buffer := Buffer new()
 
-        if (Env get("RAW_BACKTRACE")) {
-            buffer append("[original backtrace]\n")
-            buffer append(trace). append('\n')
+        if (raw?) {
+            buffer append("[raw backtrace]\n")
+            for (i in 0..length) {
+                buffer append(lines[i]). append('\n')
+            }
             return buffer toString()
         }
 
         buffer append("[fancy backtrace]\n")
-        lines := trace split('\n')
 
         frameno := 0
         elements := ArrayList<TraceElement> new()
 
-        for (l in lines) {
-            tokens := l split('|') map(|x| x trim())
+        for (i in 0..length) {
+            line := lines[i] toString()
+            tokens := line split('|') map(|x| x trim())
 
             if (tokens size <= 4) {
                 if (tokens size >= 2) {
@@ -210,8 +238,7 @@ TraceElement: class {
     frameno: Int
     symbol, package, file: String
 
-    init: func (=frameno, =symbol, =package, =file) {
-    }
+    init: func (=frameno, =symbol, =package, =file)
 
     pad: static func (s: String, length: Int) -> String {
         if (s size < length) {
@@ -226,6 +253,16 @@ TraceElement: class {
     }
 }
 
+/**
+ * Holds a yet-unformatted backtrace.
+ */
+Backtrace: class {
+    buffer: Pointer*
+    length: Int
+
+    init: func(=buffer, =length)
+}
+
 /*
  * Called on program exit, frees the library - absolutely necessary
  * on Win32, absolutely useless on other platforms, but doesn't hurt.
@@ -236,5 +273,25 @@ _cleanup_backtrace: func {
     if (h lib) {
         h lib close()
     }
+}
+
+/* ------ C interface ------ */
+
+// fallback for linux/apple
+version ((linux || apple) && !android) {
+    include execinfo
+
+    backtrace: extern func (array: Void**, size: Int) -> Int
+    backtrace_symbols: extern func (
+        array: Pointer*, size: Int) -> CString*
+    backtrace_symbols_fd: extern func (
+        array: Pointer*, size: Int, fd: Int)
+}
+
+// Windows exception handling functions
+version (windows) {
+    SetUnhandledExceptionFilter: extern func (callback: Pointer) -> Pointer
+
+    EXCEPTION_EXECUTE_HANDLER: extern Int
 }
 

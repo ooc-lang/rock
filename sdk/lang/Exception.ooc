@@ -19,8 +19,6 @@ JmpBuf: cover from jmp_buf {
     longJmp: extern(longjmp) func (value: Int)
 }
 
-BACKTRACE_LENGTH := 128
-
 _StackFrame: cover {
     buf: JmpBuf
 }
@@ -104,16 +102,19 @@ raise: func ~withClass(clazz: Class, msg: String) {
  * Base class for all exceptions that can be thrown
  */
 Exception: class {
-    backtraces: LinkedList<String> = LinkedList<String> new()
+    backtraces: LinkedList<Backtrace> = LinkedList<Backtrace> new()
 
     addBacktrace: func {
-        bt := BacktraceHandler get() captureBacktrace()
-        backtraces add(bt)
+        bt := BacktraceHandler get() backtrace()
+        if (bt) {
+            backtraces add(bt)
+        }
     }
 
     printBacktrace: func {
+        h := BacktraceHandler get()
         for (backtrace in backtraces) {
-            stderr write(backtrace)
+            stderr write(h backtraceSymbols(backtrace))
         }
     }
 
@@ -187,11 +188,6 @@ Exception: class {
             }
             version (!windows) {
                 printMessage()
-                bt := BacktraceHandler get()
-                if (!bt lib) {
-                    // try to display something anyway
-                    printBacktrace()
-                } // else, libbacktrace will do its thing on abort.
                 abort()
             }
         } else {
@@ -207,10 +203,13 @@ Exception: class {
         throw()
     }
 
-    printCurrentBacktrace: static func {
-        e := Exception new("backtrace")
-        e addBacktrace()
-        e printBacktrace()
+    getCurrentBacktrace: static func -> String {
+        h := BacktraceHandler get()
+        bt := h backtrace()
+        if (bt) {
+            return h backtraceSymbols(bt)
+        }
+        ""
     }
 }
 
@@ -244,11 +243,60 @@ OutOfMemoryException: class extends Exception {
     }
 }
 
-/* ------ C interfacing ------ */
+/* -------- Signal / exception catching ---------- */
+
+version ((linux || apple) && !android) {
+    _signalHandler: func (sig: Int) {
+        message := match sig {
+            case SIGHUP   => "(SIGHUP ) terminal line hangup"
+            case SIGINT   => "(SIGINT ) interrupt program"
+            case SIGILL   => "(SIGILL ) illegal instruction"
+            case SIGTRAP  => "(SIGTRAP) trace trap"
+            case SIGABRT  => "(SIGABRT) abort program"
+            case SIGEMT   => "(SIGEMT ) emulate instruction executed"
+            case SIGFPE   => "(SIGFPE ) floating point exception"
+            case SIGBUS   => "(SIGBUS ) bus error"
+            case SIGSEGV  => "(SIGSEGV) segmentation fault"
+            case SIGSYS   => "(SIGSYS ) non-existent system call invoked"
+            case SIGPIPE  => "(SIGPIPE) write on a pipe with no reader"
+            case SIGALRM  => "(SIGALRM) real-time timer expired"
+            case SIGTERM  => "(SIGTERM) software termination signal"
+        }
+
+        stderr write(message). write('\n')
+
+        // try to display a stack trace.
+        stderr write(Exception getCurrentBacktrace())
+
+        exit(sig)
+    }
+}
+
+_setupHandlers: func {
+    version ((linux || apple) && !android) {
+        signal(SIGHUP,  _signalHandler)
+        signal(SIGINT,  _signalHandler)
+        signal(SIGILL,  _signalHandler)
+        signal(SIGTRAP, _signalHandler)
+        signal(SIGABRT, _signalHandler)
+        signal(SIGEMT,  _signalHandler)
+        signal(SIGFPE,  _signalHandler)
+        signal(SIGBUS,  _signalHandler)
+        signal(SIGSEGV, _signalHandler)
+        signal(SIGSYS,  _signalHandler)
+        signal(SIGPIPE, _signalHandler)
+        signal(SIGALRM, _signalHandler)
+        signal(SIGTERM, _signalHandler)
+    }
+}
+
+_setupHandlers()
+
+/* ------ C interface ------ */
 
 include stdlib
 
-/** stdlib.h -
+/* stdlib.h -
  *
  * The  abort() first unblocks the SIGABRT signal, and then raises that
  * signal for the calling process.  This results in the abnormal
@@ -264,4 +312,42 @@ include stdlib
  * the signal for a second time.
  */
 abort: extern func
+
+version ((linux || apple) && !android) {
+
+    include signal
+
+    /* signal.h -
+     *
+     * This signal() facility is a simplified interface to the more general
+     * sigaction(2) facility.  Signals allow the manipulation of a process from
+     * outside its domain, as well as allowing the process to manipulate itself
+     * or copies of itself (children).
+     * 
+     * There are two general types of signals: those that cause termination of
+     * a process and those that do not.  Signals which cause termination of a
+     * program might result from an irrecoverable error or might be the result
+     * of a user at a terminal typing the `interrupt' character.
+     *
+     * Signals are used when a process is stopped because it wishes to access
+     * its control terminal while in the background (see tty(4)).  Signals are
+     * optionally generated when a process resumes after being stopped, when
+     * the status of child processes changes, or when input is ready at the
+     * control terminal.
+     *
+     * Most signals result in the termination of the process receiving them, if
+     * no action is taken; some signals instead cause the process receiving
+     * them to be stopped, or are simply discarded if the process has not
+     * requested otherwise.
+     * 
+     * Except for the SIGKILL and SIGSTOP signals, the signal() function allows
+     * for a signal to be caught, to be ignored, or to generate an interrupt.
+     */
+    signal: extern func (sig: Int, f: Pointer) -> Pointer
+
+    SIGHUP, SIGINT, SIGILL, SIGTRAP, SIGABRT, SIGEMT, SIGFPE, SIGBUS,
+    SIGSEGV, SIGSYS, SIGPIPE, SIGALRM, SIGTERM: extern Int
+
+}
+
 

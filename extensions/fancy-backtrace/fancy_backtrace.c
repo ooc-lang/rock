@@ -446,12 +446,12 @@ BACKTRACE_LIB char ** fancy_backtrace_symbols (void **frames, int numFrames) {
         
         char *output = malloc(BUFFER_MAX);
         if (func == NULL) {
-            snprintf(output, BUFFER_MAX, "%s | 0x%p | %s \n", 
+            snprintf(output, BUFFER_MAX, "%s | 0x%p | %s", 
                     module_name,
                     (void *) addrOffset,
                     file);
         } else {
-            snprintf(output, BUFFER_MAX, "%s | 0x%p | %s | %s | %d\n", 
+            snprintf(output, BUFFER_MAX, "%s | 0x%p | %s | %s | %d", 
                     module_name,
                     (void *) addrOffset,
                     func,
@@ -525,12 +525,12 @@ BACKTRACE_LIB char ** fancy_backtrace_symbols(void **frames, int numFrames) {
           }
 
           if (func == NULL) {
-              snprintf(output, BUFFER_MAX, "%s | 0x%p | %s \n", 
+              snprintf(output, BUFFER_MAX, "%s | 0x%p | %s", 
                       module_name,
                       address,
                       file);
           } else {
-              snprintf(output, BUFFER_MAX, "%s | 0x%p | %s | %s | %d\n", 
+              snprintf(output, BUFFER_MAX, "%s | 0x%p | %s | %s | %d", 
                       module_name,
                       address,
                       func,
