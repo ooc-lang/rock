@@ -1,9 +1,9 @@
-.PHONY: all backtrace clean
+.PHONY: all fancy-backtrace clean
 
-all: backtrace
+all: fancy-backtrace
 
-backtrace:
-	cd backtrace && $(MAKE)
+fancy-backtrace:
+	cd fancy-backtrace && $(MAKE)
 
 clean:
-	cd backtrace && $(MAKE) clean
+	cd fancy-backtrace && $(MAKE) clean

@@ -11,12 +11,12 @@ else
 WIN_LINKER_FLAGS:= -lbfd -lintl -liberty -limagehlp -lz
 endif
 
-build : backtrace.dll
+build : fancy_backtrace.dll
 	cp $^ ${BINDIR}/
 
-backtrace.dll : backtrace.c
+fancy_backtrace.dll : fancy_backtrace.c
 	gcc $(WIN_FLAGS) -DBUILDING_BACKTRACE_LIB -O2 -shared -Wall -o $@ $^ $(WIN_LINKER_FLAGS)
 
 clean :
-	@rm -f backtrace.dll
+	@rm -f fancy_backtrace.dll
 

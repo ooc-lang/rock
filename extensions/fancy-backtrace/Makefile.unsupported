@@ -1,0 +1,4 @@
+
+build:
+	@echo "fancy-backtrace unsupported on your platform."
+	@exit 1

@@ -3,11 +3,11 @@
 DEBUG_FLAGS:=-g
 LINUX_FLAGS:=-D_GNU_SOURCE
 
-build : backtrace.so
+build : fancy_backtrace.so
 	cp $^ ${BINDIR}/
 
-backtrace.so : backtrace.c
+backtrace.so : fancy_backtrace.c
 	gcc ${LINUX_FLAGS} ${DEBUG_FLAGS} -DBUILDING_BACKTRACE_LIB -fPIC -O2 -shared -Wall -o $@ $^ -lbfd -liberty -lz
 
 clean :
-	@rm -f backtrace.so
+	@rm -f fancy_backtrace.so
