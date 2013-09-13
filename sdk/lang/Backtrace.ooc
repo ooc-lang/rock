@@ -109,7 +109,7 @@ BacktraceHandler: class {
         }
 
         if (Env get("RAW_BACKTRACE")) {
-            raw? = false
+            raw? = true
         }
 
         // try to load it from the system's search path
