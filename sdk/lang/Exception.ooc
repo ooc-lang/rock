@@ -414,7 +414,7 @@ version ((linux || apple) && !android) {
      */
     signal: extern func (sig: Int, f: Pointer) -> Pointer
 
-    SIGHUP, SIGINT, SIGILL, SIGTRAP, SIGABRT, SIGEMT, SIGFPE, SIGBUS,
+    SIGHUP, SIGINT, SIGILL, SIGTRAP, SIGABRT, SIGFPE, SIGBUS,
     SIGSEGV, SIGSYS, SIGPIPE, SIGALRM, SIGTERM: extern Int
 
 }
