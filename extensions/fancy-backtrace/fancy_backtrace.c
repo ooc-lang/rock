@@ -329,6 +329,10 @@ BACKTRACE_LIB int fancy_backtrace_with_context (void **frames, int maxFrames, LP
     HANDLE thread = GetCurrentThread();
     int frameNo = 0;
 
+    if (!SymInitialize(process, 0, TRUE)) {
+        return 0;
+    }
+
 #ifdef __MINGW64__
     while(StackWalk64(IMAGE_FILE_MACHINE_AMD64, 
                 process, 
@@ -355,6 +359,8 @@ BACKTRACE_LIB int fancy_backtrace_with_context (void **frames, int maxFrames, LP
             break;
         }
     }
+
+    SymCleanup(process);
 
     return frameNo;
 }
@@ -403,7 +409,11 @@ BACKTRACE_LIB char ** fancy_backtrace_symbols (void **frames, int numFrames) {
     struct bfd_set *set = calloc(1, sizeof(*set));
 
     struct bfd_ctx *bc = NULL;
+#ifdef __MINGW64__
+    char symbol_buffer[sizeof(IMAGEHLP_SYMBOL64) + 255];
+#else
     char symbol_buffer[sizeof(IMAGEHLP_SYMBOL) + 255];
+#endif
     char module_name_raw[MAX_PATH];
 
     int frameNo = 0;
@@ -412,11 +422,19 @@ BACKTRACE_LIB char ** fancy_backtrace_symbols (void **frames, int numFrames) {
     while (frameNo < numFrames) {
         address_t addrOffset = (address_t) frames[frameNo];
 
-        IMAGEHLP_SYMBOL *symbol = (IMAGEHLP_SYMBOL *)symbol_buffer;
+#ifdef __MINGW64__
+        IMAGEHLP_SYMBOL64 *symbol = (IMAGEHLP_SYMBOL64 *) symbol_buffer;
+#else
+        IMAGEHLP_SYMBOL *symbol = (IMAGEHLP_SYMBOL *) symbol_buffer;
+#endif
         symbol->SizeOfStruct = (sizeof *symbol) + 255;
         symbol->MaxNameLength = 254;
 
+#ifdef __MINGW64__
+        address_t module_base = SymGetModuleBase64(process, addrOffset);
+#else
         address_t module_base = SymGetModuleBase(process, addrOffset);
+#endif
 
         const char * module_name = "[unknown module]";
         if (module_base && 
@@ -435,10 +453,13 @@ BACKTRACE_LIB char ** fancy_backtrace_symbols (void **frames, int numFrames) {
 
         if (file == NULL) {
             address_t dummy = 0;
+#ifdef __MINGW64__
+            if (SymGetSymFromAddr64(process, addrOffset, &dummy, symbol)) {
+#else
             if (SymGetSymFromAddr(process, addrOffset, &dummy, symbol)) {
+#endif
                 file = symbol->Name;
-            }
-            else {
+            } else {
                 file = "[unknown file]";
             }
         }
