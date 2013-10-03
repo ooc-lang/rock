@@ -4,8 +4,8 @@ import text/Base64
 
 // from a string
 random := "\xe0\x04\x16\xa5\x35\x43\xe4\x47\xe9\x2f\x1f\x7e\xf6\xf1\x78\x63\xe5\xe0\xd1\xcc\x7a\x3b\xf9"
-assert(Base64 toBase64(random) == "4AQWpTVD5EfpLx9+9vF4Y+Xg0cx6O/k=")
-assert(Base64 toBase64(random) != "Knorz")
+assert(Base64 encode(random) == "4AQWpTVD5EfpLx9+9vF4Y+Xg0cx6O/k=")
+assert(Base64 encode(random) != "Knorz")
 
 // from an array
 // TODO: It doesn't work with literals.
@@ -19,7 +19,7 @@ someArray[4] = 0xad
 someArray[5] = 0xbe
 someArray[6] = 0xef
 someArray[7] = 0x03
-assert(Base64 toBase64(someArray) == "ADP+3q2+7wM=")
+assert(Base64 encode(someArray) == "ADP+3q2+7wM=")
 
 // from a memory chunk
 someData := gc_malloc(Octet size * 4) as Octet*
@@ -27,21 +27,21 @@ someData[0] = 0x55
 someData[1] = 0xfa
 someData[2] = 0xaf
 someData[3] = 0xde
-assert(Base64 toBase64(someData, 4) == "Vfqv3g==")
+assert(Base64 encode(someData, 4) == "Vfqv3g==")
 
 // test the padding
 oneOctet := "\x00\x00\x00\x01"
-assert(Base64 toBase64(oneOctet) == "AAAAAQ==")
+assert(Base64 encode(oneOctet) == "AAAAAQ==")
 
 twoOctets := "\x00\x00\x00\x01\x02"
-assert(Base64 toBase64(twoOctets) == "AAAAAQI=")
+assert(Base64 encode(twoOctets) == "AAAAAQI=")
 
 threeOctets := "\x00\x00\x00\x01\x02\x03"
-assert(Base64 toBase64(threeOctets) == "AAAAAQID")
+assert(Base64 encode(threeOctets) == "AAAAAQID")
 
 /* decoding */
 
-assert(Base64 fromBase64("") length == 0)
+assert(Base64 decode("") length == 0)
 
 assertEquals: func ~arrays (a: Octet[], b: Octet[]) {
    assert(a length == b length)
@@ -64,16 +64,16 @@ randomOctets[9] = 88
 randomOctets[10] = 32
 randomOctets[11] = 0
 randomOctets[12] = 144
-assertEquals(Base64 fromBase64("PAiA744pQhfQWCAAkA=="), randomOctets)
+assertEquals(Base64 decode("PAiA744pQhfQWCAAkA=="), randomOctets)
 
 // test the padding
 
 makeAString: func (octets: Octet[]) -> String {
     String new(octets data, octets length)
 }
-assert(makeAString(Base64 fromBase64("AAAAAQ==")) == "\x00\x00\x00\x01")
-assert(makeAString(Base64 fromBase64("AAAAAQI=")) == "\x00\x00\x00\x01\x02")
-assert(makeAString(Base64 fromBase64("AAAAAQID")) == "\x00\x00\x00\x01\x02\x03")
+assert(makeAString(Base64 decode("AAAAAQ==")) == "\x00\x00\x00\x01")
+assert(makeAString(Base64 decode("AAAAAQI=")) == "\x00\x00\x00\x01\x02")
+assert(makeAString(Base64 decode("AAAAAQID")) == "\x00\x00\x00\x01\x02\x03")
 
 // test errors
 
@@ -85,8 +85,8 @@ assertRaises: func (exception: Class, code: Func) {
     }
 }
 
-assertRaises(Base64Error, || Base64 fromBase64("."))
-assertRaises(Base64Error, || Base64 fromBase64("abcdefghi==="))
-assertRaises(Base64Error, || Base64 fromBase64("A[[["))
+assertRaises(Base64Error, || Base64 decode("."))
+assertRaises(Base64Error, || Base64 decode("abcdefghi==="))
+assertRaises(Base64Error, || Base64 decode("A[[["))
 
-makeAString(Base64 fromBase64("QWxsIGlzIGdvb2Qu")) println()
+makeAString(Base64 decode("QWxsIGlzIGdvb2Qu")) println()

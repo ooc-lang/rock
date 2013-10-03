@@ -14,24 +14,24 @@ Base64: class {
      * Unicode, the input type should be "stream of bytes", not "stream
      * of codepoints".
      */
-    toBase64: static func ~string (in: String) -> String {
-        toBase64(in _buffer data as Octet*, in length())
+    encode: static func ~string (in: String) -> String {
+        encode(in _buffer data as Octet*, in length())
     }
 
     /**
      * Convert data at some memory location to Base64 and return a String.
      */
-    toBase64: static func ~pointer (data: Octet*, length: SizeT) -> String {
+    encode: static func ~pointer (data: Octet*, length: SizeT) -> String {
         array: Octet[]
         array length = length
         array data = data
-        toBase64(array)
+        encode(array)
     }
 
     /**
      * Convert an octet array to Base64 and return a String.
      */
-    toBase64: static func (data: Octet[]) -> String {
+    encode: static func (data: Octet[]) -> String {
         buf := Buffer new()
         i := 0
         length := data length
@@ -92,7 +92,7 @@ Base64: class {
      * This throws a Base64Error if the input size is not a multiple
      * of 4 or the input contains invalid characters.
      */
-    fromBase64: static func (in: String) -> Octet[] {
+    decode: static func (in: String) -> Octet[] {
         length := in length()
         if(length % 4 != 0) {
             Base64Error new("%d is not a multiple of 4" format(length)) throw()
