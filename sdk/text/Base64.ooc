@@ -19,11 +19,22 @@ Base64: class {
     }
 
     /**
-     * Convert octets to Base64 and return a String.
+     * Convert data at some memory location to Base64 and return a String.
      */
-    toBase64: static func (data: Octet*, length: SizeT) -> String {
+    toBase64: static func ~pointer (data: Octet*, length: SizeT) -> String {
+        array: Octet[]
+        array length = length
+        array data = data
+        toBase64(array)
+    }
+
+    /**
+     * Convert an octet array to Base64 and return a String.
+     */
+    toBase64: static func (data: Octet[]) -> String {
         buf := Buffer new()
         i := 0
+        length := data length
         leftoverOctets := length % 3
         bunch: UInt32
         while(length - i >= 3) {
@@ -77,13 +88,11 @@ Base64: class {
     }
 
     /**
-     * convert a Base64 String to octets and return
-     * (data pointer, data size).
-     * This throws a Base64Error if the input size
-     * is not a multiple of 4 or the input contains
-     * invalid characters.
+     * Convert a Base64 String to octets and return an octet array.
+     * This throws a Base64Error if the input size is not a multiple
+     * of 4 or the input contains invalid characters.
      */
-    fromBase64: static func (in: String) -> (Octet*, SizeT) {
+    fromBase64: static func (in: String) -> Octet[] {
         length := in length()
         if(length % 4 != 0) {
             Base64Error new("%d is not a multiple of 4" format(length)) throw()
@@ -103,7 +112,7 @@ Base64: class {
         // into 3 octets; we need to take care of the
         // padding though.
         dataSize := ((length / 4) * 3) - paddingChars
-        data := gc_malloc(Octet size * dataSize) as Octet*
+        data := Octet[dataSize] new()
         bunch: UInt32
         i := 0
         while(i < length) {
@@ -124,6 +133,6 @@ Base64: class {
             }
             i += 4
         }
-        (data, dataSize)
+        data
     }
 }
