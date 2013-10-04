@@ -82,7 +82,9 @@ assertRaises: func (exception: Class, code: Func) {
         code()
     } catch(e: Exception) {
         assert(e class == exception)
+        return
     }
+    assert(false)
 }
 
 assertRaises(Base64Error, || Base64 decode("."))
