@@ -80,7 +80,7 @@ Random: class {
        :return: An element pseudo-randomly picked from the given list
      */
     choice: static func <T> (l: List<T>) -> T {
-        return l get(randRange(0, l getSize()))
+        return l get(randRange(0, l size))
     }
 
     /**
@@ -154,6 +154,14 @@ Random: class {
      */
     fastRandRange: static func ~exclude(start, end: Int, ex: List<Int>) -> Int {
         return exclude(start, end, ex, fastRandRange)
+    }
+
+    /**
+       :param l: A list to choose an element from randomly.
+       :return: An element pseudo-randomly picked from the given list
+     */
+    fastChoice: static func <T> (l: List<T>) -> T {
+        return l get(fastRandRange(0, l size))
     }
 
 } 
