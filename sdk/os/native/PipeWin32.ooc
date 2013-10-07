@@ -35,31 +35,29 @@ PipeWin32: class extends Pipe {
             Exception new(This, "Couldn't create pipes") throw()
         }
     }
-
-    /** read 'len' bytes at most from the pipe */
-    read: func(bytesRequested: Int) -> Pointer {
+    
+    read: func ~buffer (buf: CString, len: Int) -> Int {
         totalBytesAvail: ULong
         if(!PeekNamedPipe(readFD, null, 0, null, totalBytesAvail&, null)) {
             Exception new(This, "Couldn't peek pipe") throw()
         }
 
         // Don't try to read if there's no bytes ready atm
-        if(totalBytesAvail == 0) return null
+        if(totalBytesAvail == 0) return 0
 
         // don't request more than there's available
-        bytesAsked := totalBytesAvail > bytesRequested ? bytesRequested : totalBytesAvail
-        buffer :=  Buffer new(bytesAsked + 1)
+        bytesAsked := totalBytesAvail > len ? len : totalBytesAvail
 
         bytesRead: ULong
-        if(!ReadFile(readFD, buffer data, bytesAsked, bytesRead&, null)) {
+        if(!ReadFile(readFD, buf, bytesAsked, bytesRead&, null)) {
             if(GetLastError() == ERROR_HANDLE_EOF) {
                 // then it's okay
-                return null
+                eof = true
+                return -1
             }
             Exception new(This, "Couldn't read pipe") throw()
         }
-        buffer setLength(bytesRead)
-        return buffer data
+        return bytesRead
     }
 
     /** write 'len' bytes of 'data' to the pipe */

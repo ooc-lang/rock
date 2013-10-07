@@ -29,20 +29,30 @@ ProcessWin32: class extends Process {
         ZeroMemory(pi&, ProcessInformation size)
     }
 
-    /**
-       Wait for the process to end. Bad things will happen
-       if you haven't called `executeNoWait` before.
-     */
-    wait: func -> Int {
-        CloseHandle(pi thread)
+    _wait: func (duration: Long) -> Int {
         // Wait until child process exits.
-        WaitForSingleObject(pi process, INFINITE)
+        status := WaitForSingleObject(pi process, duration)
+
+        if (status != WAIT_OBJECT_0) return -1
 
         exitCode: ULong
         GetExitCodeProcess(pi process, exitCode&)
 
+        CloseHandle(pi thread)
         CloseHandle(pi process)
         exitCode
+    }
+
+    /**
+     * Wait for the process to end. Bad things will happen
+     * if you haven't called `executeNoWait` before.
+     */
+    wait: func -> Int {
+        _wait(INFINITE)
+    }
+
+    waitNoHang: func -> Int {
+        _wait(0)
     }
 
     /**
@@ -108,13 +118,15 @@ ProcessWin32: class extends Process {
 ZeroMemory: extern func (Pointer, SizeT)
 CreateProcess: extern func (CString, CString, Pointer, Pointer, 
     Bool, Long, Pointer, CString, Pointer, Pointer) -> Bool
-WaitForSingleObject: extern func (Handle, Long)
+WaitForSingleObject: extern func (Handle, Long) -> Int
 GetExitCodeProcess: extern func (Handle, ULong*) -> Int
 CloseHandle: extern func (Handle)
 SetHandleInformation: extern func (Handle, Long, Long) -> Bool
 
 HANDLE_FLAG_INHERIT: extern Long
 HANDLE_FLAG_PROTECT_FROM_CLOSE: extern Long
+
+WAIT_ABANDONED, WAIT_OBJECT_0, WAIT_TIMEOUT, WAIT_FAILED: extern Int
 
 // covers
 StartupInfo: cover from STARTUPINFO {
@@ -159,6 +171,5 @@ ProcessInformation: cover from PROCESS_INFORMATION {
     pid: extern(dwProcessId)  Long
 }
 INFINITE: extern Long
-WAIT_OBJECT_0: extern Long
 
 }

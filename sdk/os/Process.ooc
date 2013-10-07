@@ -103,6 +103,14 @@ Process: abstract class {
     wait: abstract func -> Int
 
     /**
+     * See if process has ended without hanging if it hasn't yet.
+     * @return exit code, or -1 if process hasn't exited yet.
+     *
+     * Throws an Exception if can't wait for some reason.
+     */
+    waitNoHang: abstract func -> Int
+
+    /**
      * Execute the process without waiting for it to end.
      * You have to call `wait` manually
      * @return child pid process.
@@ -177,8 +185,7 @@ Process: abstract class {
     }
 
     /**
-     * :return: a representation of the command, escaped to some
-     * point.
+     * @return a representation of the command, escaped to some point.
      */
     getCommandLine: func -> String {
         args join(" ") replaceAll("\\", "\\\\")

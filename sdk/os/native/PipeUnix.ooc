@@ -6,9 +6,11 @@ include fcntl
 include sys/stat
 include sys/types
 
+EAGAIN: extern Int
+
 PipeUnix: class extends Pipe {
 
-    readFD, writeFD:  FileDescriptor
+    readFD, writeFD: FileDescriptor
 
     init: func ~withFDs (=readFD, =writeFD) {
         if(readFD == -1 && writeFD == -1) {
@@ -50,12 +52,17 @@ PipeUnix: class extends Pipe {
         writeFD = fds[1]
     }
 
-    /** read 'len' bytes at most from the pipe */
-    read: func(len: Int) -> Pointer {
-        buf := gc_malloc(len + 1) as Char*
+    read: func ~buffer (buf: CString, len: Int) -> Int {
         howmuch := readFD read(buf, len)
-        buf[howmuch] = '\0'
-        return buf
+        if (howmuch <= 0) {
+            if (errno == EAGAIN) {
+                return 0
+            }
+
+            eof = true
+            return -1
+        }
+        howmuch
     }
 
     /** write 'len' bytes of 'data' to the pipe */
@@ -73,6 +80,11 @@ PipeUnix: class extends Pipe {
             case 'w' => writeFD close()
             case     => 0
         }
+    }
+
+    setNonBlocking: func {
+        if (readFD)  readFD setNonBlocking()
+        if (writeFD) writeFD setNonBlocking()
     }
 }
 

@@ -3,8 +3,7 @@ include fcntl
 
 import unistd
 
-open:  extern func(CString, Int) -> Int
-
+open: extern func(CString, Int) -> Int
 
 PIPE_BUF: extern Int
 STDIN_FILENO : extern FileDescriptor
@@ -39,9 +38,18 @@ FileDescriptor: cover from Int {
             printf("Error in FileDescriptor : %s\n", funcName toCString())
         }
     }
+
+    setNonBlocking: func {
+        version (unix || apple) {
+            fcntl(this, F_SETFL, O_NONBLOCK)
+        }
+    }
 }
 
+version (unix || apple) {
+    F_SETFL, F_GETFL: extern Int
+    O_NONBLOCK: extern Int
 
-
-
+    fcntl: extern func (FileDescriptor, Int, Int) -> Int
+}
 
