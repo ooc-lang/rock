@@ -58,20 +58,22 @@ PipeWin32: class extends Pipe {
         }
 
         bytesRead: ULong
-        if(!ReadFile(readFD, buf, bytesAsked, bytesRead&, null)) {
-            if(GetLastError() == ERROR_HANDLE_EOF) {
-                // then it's okay
-                eof = true
-                return -1
-            }
-            Exception new(This, "Couldn't read pipe") throw()
+        success := ReadFile(readFD, buf, bytesAsked, bytesRead&, null)
+        if(!success || bytesRead == 0) {
+            eof = true
+            return -1
         }
         return bytesRead
     }
 
     /** write 'len' bytes of 'data' to the pipe */
     write: func(data: Pointer, len: Int) -> Int {
-        WriteFile(writeFD, data, len as Long, null, null) == 0 ? 1 : 0
+        bytesWritten: ULong
+        success := WriteFile(writeFD, data, len as Long, bytesWritten&, null)
+        if (!success) {
+          WindowsException new(This, GetLastError()) throw()
+        }
+        bytesWritten
     }
 
     /**

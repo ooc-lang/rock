@@ -36,4 +36,10 @@ version(windows) {
         buf toString()
     }
 
+    WindowsException: class extends Exception {
+      init: func (.origin, err: Long) {
+        super(origin, GetWindowsErrorMessage(err))
+      }
+    }
+
 }

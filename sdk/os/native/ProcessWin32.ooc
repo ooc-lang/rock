@@ -61,15 +61,18 @@ ProcessWin32: class extends Process {
     */
     executeNoWait: func -> Long {
         if (stdIn != null || stdOut != null || stdErr != null) {
-            if(stdIn) {
+            if(stdIn != null) {
+                stdIn close('r')
                 si stdInput  = stdIn as PipeWin32 readFD
                 SetHandleInformation(stdOut as PipeWin32 writeFD, HANDLE_FLAG_INHERIT, 0)
             }
-            if(stdOut) {
+            if(stdOut != null) {
+                stdOut close('w')
                 si stdOutput = stdOut as PipeWin32 writeFD
                 SetHandleInformation(stdOut as PipeWin32 readFD, HANDLE_FLAG_INHERIT, 0)
             }
-            if(stdErr) {
+            if(stdErr != null) {
+                stdErr close('w')
                 si stdError  = stdErr as PipeWin32 writeFD
                 SetHandleInformation(stdErr as PipeWin32 readFD, HANDLE_FLAG_INHERIT, 0)
             }
