@@ -242,8 +242,8 @@ RecursiveMutex: abstract class {
  * its own storage.
  */
 ThreadLocal: abstract class <T> {
-    new: static func <T> -> This<T> {
 
+    new: static func <T> -> This<T> {
         version (unix || apple) {
             return ThreadLocalUnix<T> new() as This
         }
@@ -253,6 +253,12 @@ ThreadLocal: abstract class <T> {
         Exception new(This, "Unsupported platform!\n") throw()
         null
     }    
+
+    new: static func ~withVal <T> (val: T) -> This <T> {
+        instance := This<T> new()
+        instance set(val)
+        instance
+    }
 
     /**
         Set the data.

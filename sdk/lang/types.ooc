@@ -108,7 +108,11 @@ Closure: cover {
 Cell: class <T> {
     val: T
 
-    init: func(=val) {}
+    init: func(=val) 
+    init: func ~noval
+
+    set: func (=val)
+    get: func -> T { val }
 }
 
 operator [] <T> (c: Cell<T>, T: Class) -> T {
