@@ -52,7 +52,7 @@ PipeUnix: class extends Pipe {
         writeFD = fds[1]
     }
 
-    read: func ~buffer (buf: CString, len: Int) -> Int {
+    read: func ~cstring (buf: CString, len: Int) -> Int {
         howmuch := readFD read(buf, len)
         if (howmuch <= 0) {
             if (errno == EAGAIN) {
@@ -74,12 +74,17 @@ PipeUnix: class extends Pipe {
      * close the pipe, either in reading or writing
      * @param arg 'r' = close in reading, 'w' = close in writing
      */
-    close: func(mode: Char) -> Int {
+    close: func (mode: Char) -> Int {
         return match mode {
             case 'r' => readFD close()
             case 'w' => writeFD close()
             case     => 0
         }
+    }
+
+    close: func ~both {
+        readFD close()
+        writeFD close()
     }
 
     setNonBlocking: func {

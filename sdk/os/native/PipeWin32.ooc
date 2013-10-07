@@ -37,7 +37,7 @@ PipeWin32: class extends Pipe {
         }
     }
     
-    read: func ~buffer (buf: CString, len: Int) -> Int {
+    read: func ~cstring (buf: CString, len: Int) -> Int {
         bytesAsked: Long
 
         if (blocking) {
@@ -84,6 +84,11 @@ PipeWin32: class extends Pipe {
             case 'w' => CloseHandle(writeFD) ? 1 : 0
             case     => 0
         }
+    }
+
+    close: func ~both {
+        CloseHandle(readFD)
+        CloseHandle(writeFD)
     }
 
     setNonBlocking: func {

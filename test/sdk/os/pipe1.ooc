@@ -5,6 +5,5 @@ main: func {
 
     pipe write("Hello")
     pipe read(128) println()
-    pipe close('w')
-    pipe close('r')
+    pipe close('r'). close('w')
 }

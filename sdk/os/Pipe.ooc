@@ -25,7 +25,7 @@ Pipe: abstract class {
     }
 
     /** read 'len' bytes at most from the pipe */
-    read: func ~cstring (len: Int) -> CString {
+    read: func ~string (len: Int) -> String {
         buf := gc_malloc(len + 1) as CString
         howmuch := read(buf, len)
 
@@ -33,11 +33,20 @@ Pipe: abstract class {
 
         // make sure it's 0-terminated
         buf[howmuch] = '\0'
-        return buf
+        return buf toString()
+    }
+
+    /** attempt to read a buffer-full */
+    read: func ~buffer (buf: Buffer) -> Int {
+        bytesRead := read(buf data, buf capacity)
+        if (bytesRead >= 0) {
+            buf setLength(bytesRead)
+        }
+        bytesRead
     }
 
     /** read max len bytes into buf, return number of bytes read, -1 on eof */
-    read: abstract func ~buffer (buf: CString, len: Int) -> Int
+    read: abstract func ~cstring (buf: CString, len: Int) -> Int
 
     /** write a string to the pipe */
     write: func ~string (str: String) -> Int {
@@ -51,7 +60,12 @@ Pipe: abstract class {
      * close the pipe, either in reading or writing
      * @param arg 'r' = close in reading, 'w' = close in writing
      */
-    close: abstract func(mode: Char) -> Int
+    close: abstract func (mode: Char) -> Int
+
+    /**
+     * Close both ends of the pipe
+     */
+    close: abstract func ~both
 
     /**
      * Switch this pipe to non-blocking mode
