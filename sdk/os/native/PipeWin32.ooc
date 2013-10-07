@@ -19,6 +19,7 @@ SecurityAttributes: cover from SECURITY_ATTRIBUTES {
 
 PipeWin32: class extends Pipe {
 
+    blocking := true
     readFD = 0, writeFD = 0 : Handle
 
     init: func ~twos {
@@ -37,16 +38,24 @@ PipeWin32: class extends Pipe {
     }
     
     read: func ~buffer (buf: CString, len: Int) -> Int {
-        totalBytesAvail: ULong
-        if(!PeekNamedPipe(readFD, null, 0, null, totalBytesAvail&, null)) {
-            Exception new(This, "Couldn't peek pipe") throw()
+        bytesAsked: Long
+
+        if (blocking) {
+            // blocking I/O, just assume there's enough data to be read
+            bytesAsked = len
+        } else {
+            // non-blocking I/O, peek first to see how much we can read
+            totalBytesAvail: ULong
+            if(!PeekNamedPipe(readFD, null, 0, null, totalBytesAvail&, null)) {
+                Exception new(This, "Couldn't peek pipe") throw()
+            }
+
+            // Don't try to read if there's no bytes ready atm
+            if(totalBytesAvail == 0) return 0
+
+            // don't request more than there's available
+            bytesAsked = totalBytesAvail > len ? len : totalBytesAvail
         }
-
-        // Don't try to read if there's no bytes ready atm
-        if(totalBytesAvail == 0) return 0
-
-        // don't request more than there's available
-        bytesAsked := totalBytesAvail > len ? len : totalBytesAvail
 
         bytesRead: ULong
         if(!ReadFile(readFD, buf, bytesAsked, bytesRead&, null)) {
@@ -69,12 +78,16 @@ PipeWin32: class extends Pipe {
      * close the pipe, either in reading or writing
      * @param arg 'r' = close in reading, 'w' = close in writing
      */
-    close: func(mode: Char) -> Int{
+    close: func (mode: Char) -> Int {
         return match mode {
             case 'r' => CloseHandle(readFD) ? 1 : 0
             case 'w' => CloseHandle(writeFD) ? 1 : 0
             case     => 0
         }
+    }
+
+    setNonBlocking: func {
+        blocking = false
     }
 }
 
