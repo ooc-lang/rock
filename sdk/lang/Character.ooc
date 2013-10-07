@@ -183,6 +183,7 @@ CString: cover from Char* {
         result[length] = '\0'
         result as This
     }
+
     /** return a copy of *this*. */
     clone: func -> This {
         length := length()
@@ -194,8 +195,11 @@ CString: cover from Char* {
     equals?: func( other: This) -> Bool {
         if (other == null) return false
         l := length()
+        l2 := length()
+        if (l != l2) return false
+
         for (i in 0..l) {
-            if (( (this + i)@ != (other + i)@) || (other + i)@ == '\0') return false
+            if (this[i] != other[i]) return false
         }
         return true
     }
@@ -207,6 +211,14 @@ CString: cover from Char* {
 
     /** return the string's length, excluding the null byte. */
     length: extern(strlen) func -> Int
+
+    print: func {
+        stdout write(this, 0, length())
+    }
+
+    println: func {
+        stdout write(this, 0, length()). write('\n')
+    }
     
 }
 
