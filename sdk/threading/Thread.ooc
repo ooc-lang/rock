@@ -240,6 +240,12 @@ RecursiveMutex: abstract class {
         ooc_recursive_mutex_unlock(this)
     }
 
+    with: final func (f: Func) {
+        lock()
+        f()
+        unlock()
+    }
+
 }
 
 /**
