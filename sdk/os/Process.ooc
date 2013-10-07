@@ -1,4 +1,5 @@
-import Pipe, PipeReader
+
+import Pipe
 import structs/[List, ArrayList, HashMap]
 import native/[ProcessUnix, ProcessWin32]
 
@@ -128,9 +129,9 @@ Process: abstract class {
         stdOut = Pipe new()
         exitCode := execute()
 
-        result := PipeReader new(stdOut) toString()
+        result := PipeReader new(stdOut) readAll()
 
-        stdOut close('r'). close('w')
+        stdOut close()
         stdOut = null
 
         (result, exitCode)
@@ -148,39 +149,12 @@ Process: abstract class {
         stdErr = Pipe new()
         exitCode := execute()
 
-        result := PipeReader new(stdErr) toString()
+        result := PipeReader new(stdErr) readAll()
 
-        stdErr close('r'). close('w')
+        stdErr close()
         stdErr = null
 
         (result, exitCode)
-
-    }
-
-    /**
-     * Send `data` to the process, wait for the process to end and get the
-     * stdout and stderr data. You have to do `setStdIn(Pipe new())`/
-     * `setStdOut(Pipe new())`/`setStdErr(Pipe new())`
-     * before in order to send / get the data. You have to run `executeNoWait` before.
-     * You can pass null as data, stdoutData or stderrData.
-     */
-    communicate: func (data: String, stdoutData, stderrData: String*) -> Int {
-
-        /* send data to stdin */
-        if(data != null) {
-            written := 0
-            while(written < data length())
-                written += stdIn write(data)
-        }
-
-        result := wait()
-
-        if(stdoutData != null)
-            stdoutData@ = PipeReader new(stdOut) toString()
-        if(stderrData != null)
-            stderrData@ = PipeReader new(stdErr) toString()
-
-        result
 
     }
 

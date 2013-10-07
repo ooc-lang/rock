@@ -1,5 +1,5 @@
 import structs/[HashMap, ArrayList, List]
-import ../[Env, Process, wait, unistd, Pipe, PipeReader]
+import ../[Env, Process, wait, unistd, Pipe]
 import PipeUnix
 
 version(unix || apple) {
@@ -75,8 +75,11 @@ ProcessUnix: class extends Process {
             }
 
             message = message + "\n"
-            if (stdErr) stdErr write(message)
-            else stderr write(message)
+            if (stdErr) {
+                stdErr write(message)
+            } else {
+                stderr write(message)
+            }
 
             /*
             if (termSig == SIGABRT) {

@@ -195,6 +195,7 @@ Buffer: class extends Iterable<Char> {
 
     /** appends *other* to *this* */
     append: func ~pointer (other: CString, otherLength: Int) {
+        _checkLength(otherLength)
         origlen := size
         setLength(size + otherLength)
         memcpy(data + origlen, other, otherLength)
@@ -225,6 +226,7 @@ Buffer: class extends Iterable<Char> {
 
     /** return a new string containg *other* followed by *this*. */
     prepend: func ~pointer (other: Char*, otherLength: Int) {
+        _checkLength(otherLength)
         if (_rshift() < otherLength) {
             newthis := This new(size + otherLength)
             memcpy(newthis data, other, otherLength)
@@ -248,10 +250,13 @@ Buffer: class extends Iterable<Char> {
         size == 0
     }
 
-    /** compare *length* characters of *this* with *other*, starting at *start*.
-        Return true if the two strings are equal, return false if they are not. */
+    /**
+     * Compare `length` characters of *this* with `other`, starting at
+     * `start`.
+     * @return true if the two strings are equal, return false if they are not.
+     */
     compare: func (other: This, start, length: Int) -> Bool {
-        //"comparing %s and %s, start = %zd, length = %zd, size = %zd, start + length = %zd" printfln(data, other data, start, length, size, start + length)
+        _checkLength(length)
         if (size < (start + length) || other size < length) return false
         
         for(i in 0..length) {
@@ -262,9 +267,11 @@ Buffer: class extends Iterable<Char> {
         true
     }
 
-    /** return true if *other* and *this* are equal (in terms of being null / having same size and content). */
+    /**
+     * @return true if `other` and `this` are equal (in terms of being null /
+     * having same size and content).
+     */
     equals?: final func (other: This) -> Bool {
-        //"equaling %s and %s, size = %zd, other size = %zd" printfln(data, other data, size, other size)
         if ((this == null) || (other == null)) return false
         if(other size != size) return false
         compare(other, 0, size)
@@ -639,6 +646,20 @@ Buffer: class extends Iterable<Char> {
     /** @return this buffer, as an UTF8-encoded null-terminated byte array, usable by C functions */
     toCString: func -> CString { data as CString }
 
+    // utils
+
+    _checkLength: static func (len: Int) {
+        if (len < 0) {
+            NegativeLengthException new(This, len) throw()
+        }
+    }
+
+}
+
+NegativeLengthException: class extends Exception {
+    init: func (.origin, len: Int) {
+        super(origin, "Negative length passed: %d" format(len))
+    }
 }
 
 /* Comparisons */
@@ -678,3 +699,4 @@ operator + (left, right: Buffer) -> Buffer {
     b append(right)
     b
 }
+

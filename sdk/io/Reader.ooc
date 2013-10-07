@@ -12,15 +12,15 @@ Reader: abstract class {
        Read 'count' bytes and store them in 'chars' with offset 'offset'
        :return: The number of bytes read
      */
-    read: abstract func (chars: Char*, offset: Int, count: Int) -> SizeT
+    read: abstract func (chars: CString, offset: Int, count: Int) -> SizeT
 
     /**
-       Read a single character, and return int
+     * Read a single character, and return int
      */
     read: abstract func ~char -> Char
 
     /**
-       Read a bufferfull at most, and return the number of bytes read
+     * Read a bufferfull at most, and return the number of bytes read
      */
     read: func ~buffer (buffer: Buffer) -> SizeT {
        count := read(buffer data, 0, buffer capacity)
@@ -28,6 +28,10 @@ Reader: abstract class {
        count
     }
    
+
+    /**
+     * Read till the end of stream, return result as a string.
+     */
     readAll: func -> String {
         in  := Buffer new(4096)
         out := Buffer new(4096)
@@ -235,5 +239,13 @@ SeekMode: enum {
 
     /** seek relative to the end of data */
     END
+}
+
+SeekingNotSupported: class extends Exception {
+
+    init: func (.origin) {
+        super(origin, "Seeking is not supported for this source")
+    }
+
 }
 

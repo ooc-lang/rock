@@ -15,7 +15,7 @@ Writer: abstract class {
        Write a given number of bytes to this stream, and return
        the number that has been effectively written.
      */
-    write: abstract func (bytes: Char*, length: SizeT) -> SizeT
+    write: abstract func (bytes: CString, length: SizeT) -> SizeT
 
     /**
        Write a string to this stream.

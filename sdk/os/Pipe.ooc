@@ -1,4 +1,6 @@
+
 import native/[PipeUnix, PipeWin32]
+import io/[Reader, Writer]
 
 Pipe: abstract class {
 
@@ -50,11 +52,11 @@ Pipe: abstract class {
 
     /** write a string to the pipe */
     write: func ~string (str: String) -> Int {
-        write(str toCString(), str length())
+        write(str _buffer data, str length())
     }
 
     /** write 'len' bytes of 'data' to the pipe */
-    write: abstract func(data: Pointer, len: Int) -> Int
+    write: abstract func (data: CString, len: Int) -> Int
 
     /**
      * close the pipe, either in reading or writing
@@ -76,4 +78,77 @@ Pipe: abstract class {
         eof
     }
 
+    reader: func -> PipeReader {
+        PipeReader new(this)
+    }
+
+    writer: func -> PipeWriter {
+        PipeWriter new(this)
+    }
+
 }
+
+/**
+ * A pipe reader. Non-seekable.
+ */
+PipeReader: class extends Reader {
+
+    pipe: Pipe
+
+    init: func (=pipe)
+
+    read: func (chars: CString, offset: Int, count: Int) -> SizeT {
+        bytesRead := pipe read(chars + offset, count)
+        // the semantics of Reader read() don't specify negative return values
+        bytesRead >= 0 ? bytesRead : 0
+    }
+
+    read: func ~char -> Char {
+        bytesRead := pipe read()
+        // the semantics of Reader read() don't specify negative return values
+        bytesRead >= 0 ? bytesRead : 0
+    }
+
+    hasNext?: func -> Bool {
+        !pipe eof?()
+    }
+
+    mark: func -> Long {
+        SeekingNotSupported new(This) throw()
+        -1
+    }
+
+    seek: func (offset: Long, mode: SeekMode) -> Bool {
+        SeekingNotSupported new(This) throw()
+        false
+    }
+
+    close: func {
+        pipe close('r')
+    }
+
+}
+
+/**
+ * A pipe writer. Non-seekable.
+ */
+PipeWriter: class extends Writer {
+
+    pipe: Pipe
+
+    init: func (=pipe)
+
+    write: func ~chr (chr: Char) {
+        pipe write(chr&, 1)
+    }
+
+    write: func (bytes: CString, length: SizeT) -> SizeT {
+        pipe write(bytes, length)
+    }
+
+    close: func {
+        pipe close('w')
+    }
+
+}
+
