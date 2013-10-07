@@ -29,7 +29,6 @@ typedef unsigned long AO_t __attribute__ ((aligned (4)));
 
 #include "../test_and_set_t_is_char.h"
 
-/* Contributed by Tony Mantler or new.  Should be changed to MIT license? */
 AO_INLINE AO_TS_VAL_t
 AO_test_and_set_full(volatile AO_TS_t *addr) {
   AO_TS_t oldval;
@@ -43,7 +42,8 @@ AO_test_and_set_full(volatile AO_TS_t *addr) {
                 : "=d" (oldval), "=m" (*addr)
                 : "m" (*addr)
                 : "memory");
-   return oldval;
+  /* This cast works due to the above.  */
+  return (AO_TS_VAL_t)oldval;
 }
 #define AO_HAVE_test_and_set_full
 
@@ -63,4 +63,6 @@ AO_compare_and_swap_full(volatile AO_t *addr,
 }
 #define AO_HAVE_compare_and_swap_full
 
-#include "../ao_t_is_int.h"
+/* TODO: implement AO_fetch_compare_and_swap.   */
+
+#define AO_T_IS_INT

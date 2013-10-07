@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Ludovic Courtes <ludo@gnu.org>
+ * Copyright (C) 2011 Ludovic Courtes
  *
  * THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY EXPRESSED
  * OR IMPLIED. ANY USE IS AT YOUR OWN RISK.
@@ -15,32 +15,57 @@
  * thread.
  */
 
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
+
 #ifndef GC_THREADS
 # define GC_THREADS
 #endif
 
 #define GC_NO_THREAD_REDIRECTS 1
+                /* Do not redirect thread creation and join calls.      */
 
 #include "gc.h"
 
-#include <pthread.h>
-#include <stdlib.h>
+#ifdef GC_PTHREADS
+# include <pthread.h>
+#else
+# include <windows.h>
+#endif
 
-static void *thread(void *arg)
+#include <stdlib.h>
+#include <stdio.h>
+
+#ifdef GC_PTHREADS
+  static void *thread(void *arg)
+#else
+  static DWORD WINAPI thread(LPVOID arg)
+#endif
 {
   GC_INIT();
-  GC_MALLOC(123);
-  GC_MALLOC(12345);
-  return NULL;
+  (void)GC_MALLOC(123);
+  (void)GC_MALLOC(12345);
+# ifdef GC_PTHREADS
+    return arg;
+# else
+    return (DWORD)(GC_word)arg;
+# endif
 }
 
 #include "private/gcconfig.h"
 
 int main(void)
 {
-  pthread_t t;
+# ifdef GC_PTHREADS
+    int code;
+    pthread_t t;
+# else
+    HANDLE t;
+    DWORD thread_id;
+# endif
 # if !(defined(BEOS) || defined(MSWIN32) || defined(MSWINCE) \
-       || defined(CYGWIN32) || defined(GC_OPENBSD_THREADS) \
+       || defined(CYGWIN32) || defined(GC_OPENBSD_UTHREADS) \
        || (defined(DARWIN) && !defined(NO_PTHREAD_GET_STACKADDR_NP)) \
        || (defined(LINUX) && !defined(NACL)) \
        || (defined(GC_SOLARIS_THREADS) && !defined(_STRICT_STDC)) \
@@ -49,7 +74,27 @@ int main(void)
     /* GC_INIT() must be called from main thread only. */
     GC_INIT();
 # endif
-  pthread_create (&t, NULL, thread, NULL);
-  pthread_join (t, NULL);
+# ifdef GC_PTHREADS
+    if ((code = pthread_create (&t, NULL, thread, NULL)) != 0) {
+      fprintf(stderr, "Thread creation failed %d\n", code);
+      return 1;
+    }
+    if ((code = pthread_join (t, NULL)) != 0) {
+      fprintf(stderr, "Thread join failed %d\n", code);
+      return 1;
+    }
+# else
+    t = CreateThread(NULL, 0, thread, 0, 0, &thread_id);
+    if (t == NULL) {
+      fprintf(stderr, "Thread creation failed %d\n", (int)GetLastError());
+      return 1;
+    }
+    if (WaitForSingleObject(t, INFINITE) != WAIT_OBJECT_0) {
+      fprintf(stderr, "Thread join failed %d\n", (int)GetLastError());
+      CloseHandle(t);
+      return 1;
+    }
+    CloseHandle(t);
+# endif
   return 0;
 }

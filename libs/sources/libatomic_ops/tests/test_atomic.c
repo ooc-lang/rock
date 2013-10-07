@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2003-2005 Hewlett-Packard Development Company, L.P.
- * Original Author: Hans Boehm
  *
  * This file may be redistributed and/or modified under the
  * terms of the GNU General Public License as published by the Free Software
@@ -16,6 +15,16 @@
 # include "config.h"
 #endif
 
+#if defined(AO_NO_PTHREADS) && defined(AO_USE_PTHREAD_DEFS)
+# include <stdio.h>
+
+  int main(void)
+  {
+    printf("test skipped\n");
+    return 0;
+  }
+
+#else
 
 #include "run_parallel.h"
 
@@ -45,11 +54,11 @@ void * add1sub1_thr(void * id)
   int i;
 
   for (i = 0; i < NITERS; ++i)
-    if (me & 1)
-      AO_fetch_and_sub1(&counter);
-    else
-      AO_fetch_and_add1(&counter);
-
+    if ((me & 1) != 0) {
+      (void)AO_fetch_and_sub1(&counter);
+    } else {
+      (void)AO_fetch_and_add1(&counter);
+    }
   return 0;
 }
 
@@ -77,7 +86,10 @@ void * acqrel_thr(void *id)
       {
         AO_t my_counter1;
         if (me != 1)
-          fprintf(stderr, "acqrel test: too many threads\n");
+          {
+            fprintf(stderr, "acqrel test: too many threads\n");
+            abort();
+          }
         my_counter1 = AO_load(&counter1);
         AO_store(&counter1, my_counter1 + 1);
         AO_store_release_write(&counter2, my_counter1 + 1);
@@ -120,7 +132,7 @@ int acqrel_test(void)
 
 #if defined(AO_HAVE_test_and_set_acquire)
 
-AO_TS_T lock = AO_TS_INITIALIZER;
+AO_TS_t lock = AO_TS_INITIALIZER;
 
 unsigned long locked_counter;
 volatile unsigned long junk = 13;
@@ -165,7 +177,7 @@ int test_and_set_test(void)
 
 #endif /* defined(AO_HAVE_test_and_set_acquire) */
 
-int main()
+int main(void)
 {
   test_atomic();
   test_atomic_acquire();
@@ -188,3 +200,5 @@ int main()
 # endif
   return 0;
 }
+
+#endif /* !AO_NO_PTHREADS || !AO_USE_PTHREAD_DEFS */

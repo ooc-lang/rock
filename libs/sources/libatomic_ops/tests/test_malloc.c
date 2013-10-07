@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2005 Hewlett-Packard Development Company, L.P.
- * Original Author: Hans Boehm
  *
  * This file may be redistributed and/or modified under the
  * terms of the GNU General Public License as published by the Free Software
@@ -35,15 +34,27 @@
 #endif
 
 #ifndef N_REVERSALS
-# define N_REVERSALS 1000 /* must be even */
+# ifdef AO_USE_PTHREAD_DEFS
+#   define N_REVERSALS 4
+# else
+#   define N_REVERSALS 1000 /* must be even */
+# endif
 #endif
 
 #ifndef LIST_LENGTH
-# define LIST_LENGTH 1000
+# ifdef HAVE_MMAP
+#   define LIST_LENGTH 1000
+# else
+#   define LIST_LENGTH 100
+# endif
 #endif
 
 #ifndef LARGE_OBJ_SIZE
-# define LARGE_OBJ_SIZE 200000
+# ifdef HAVE_MMAP
+#   define LARGE_OBJ_SIZE 200000
+# else
+#   define LARGE_OBJ_SIZE 20000
+# endif
 #endif
 
 #ifdef USE_STANDARD_MALLOC
@@ -74,7 +85,7 @@ ln *cons(int d, ln *tail)
     {
       fprintf(stderr, "Out of memory\n");
         /* Normal for more than about 10 threads without mmap? */
-      abort();
+      exit(2);
     }
 
   result -> data = d;
@@ -90,9 +101,9 @@ void print_list(ln *l)
 
   for (p = l; p != 0; p = p -> next)
     {
-      fprintf(stderr, "%d, ", p -> data);
+      printf("%d, ", p -> data);
     }
-  fprintf(stderr, "\n");
+  printf("\n");
 }
 
 /* Check that l contains numbers from m to n inclusive in ascending order */
@@ -153,6 +164,7 @@ void * run_one_test(void * arg) {
   if (0 == p) {
 #   ifdef HAVE_MMAP
       fprintf(stderr, "AO_malloc(%d) failed\n", LARGE_OBJ_SIZE);
+      abort();
 #   else
       fprintf(stderr, "AO_malloc(%d) failed: This is normal without mmap\n",
               LARGE_OBJ_SIZE);
@@ -164,7 +176,7 @@ void * run_one_test(void * arg) {
       {
         fprintf(stderr, "Out of memory\n");
           /* Normal for more than about 10 threads without mmap? */
-        abort();
+        exit(2);
       }
     q[0] = q[LARGE_OBJ_SIZE/2] = q[LARGE_OBJ_SIZE-1] = 'b';
     if (p[0] != 'a' || p[LARGE_OBJ_SIZE/2] != 'a'

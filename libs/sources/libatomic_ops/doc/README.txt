@@ -90,12 +90,19 @@ AO_t fetch_and_add1(volatile AO_t *addr)
         Equivalent to AO_fetch_and_add(addr, 1).
 AO_t fetch_and_sub1(volatile AO_t *addr)
         Equivalent to AO_fetch_and_add(addr, (AO_t)(-1)).
-void or(volatile AO_t *addr, AO_t incr)
-        Atomically or incr into *addr.
+void and(volatile AO_t *addr, AO_t value)
+        Atomically 'and' value into *addr.
+void or(volatile AO_t *addr, AO_t value)
+        Atomically 'or' value into *addr.
+void xor(volatile AO_t *addr, AO_t value)
+        Atomically 'xor' value into *addr.
 int compare_and_swap(volatile AO_t * addr, AO_t old_val, AO_t new_val)
         Atomically compare *addr to old_val, and replace *addr by new_val
         if the first comparison succeeds.  Returns nonzero if the comparison
         succeeded and *addr was updated.
+AO_t fetch_compare_and_swap(volatile AO_t * addr, AO_t old_val, AO_t new_val)
+        Atomically compare *addr to old_val, and replace *addr by new_val
+        if the first comparison succeeds; returns the original value of *addr.
 AO_TS_VAL_t test_and_set(volatile AO_TS_t * addr)
         Atomically read the binary value at *addr, and set it.  AO_TS_VAL_t
         is an enumeration type which includes two values AO_TS_SET and
@@ -137,7 +144,7 @@ ORDERING CONSTRAINTS:
 
 Each operation name also includes a suffix that specifies the associated
 ordering semantics.  The ordering constraint limits reordering of this
-operation with repsect to other atomic operations and ordinary memory
+operation with respect to other atomic operations and ordinary memory
 references.  The current implementation assumes that all memory references
 are to ordinary cacheable memory; the ordering guarantee is with respect
 to other threads or processes, not I/O devices.  (Whether or not this
@@ -153,12 +160,14 @@ _read: Subsequent reads must become visible after reads included in
        the atomic operation or preceding it.  Rarely useful for clients?
 _write: Earlier writes become visible before writes during or after
         the atomic operation.  Rarely useful for clients?
-_full: Ordered with respect to both earlier and later memops.
+_full: Ordered with respect to both earlier and later memory ops.
        AO_store_full or AO_nop_full are the normal ways to force a store
        to be ordered with respect to a later load.
 _release_write: Ordered with respect to earlier writes.  This is
                 normally implemented as either a _write or _release
                 barrier.
+_acquire_read: Ordered with respect to later reads. This is
+                normally implemented as either a _read or _acquire barrier.
 _dd_acquire_read: Ordered with respect to later reads that are data
                dependent on this one.  This is needed on
                a pointer read, which is later dereferenced to read a
@@ -170,10 +179,6 @@ _dd_acquire_read: Ordered with respect to later reads that are data
                eliminate dependencies from the generated code, since
                dependencies force the hardware to execute the code
                serially.)
-_release_read: Ordered with respect to earlier reads.  Useful for
-               implementing read locks.  Can be implemented as _release,
-               but not as _read, since _read groups the current operation
-               with the earlier ones.
 
 We assume that if a store is data-dependent on an a previous load, then
 the two are always implicitly ordered.

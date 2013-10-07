@@ -11,9 +11,6 @@
  * Permission to modify the code and to distribute modified code is granted,
  * provided the above notices are retained, and a notice that the code was
  * modified is included with the above copyright notice.
- *
- * Original author: Bill Janssen
- * Heavily modified by Hans Boehm and others
  */
 
 #include "private/gc_priv.h"
@@ -43,16 +40,18 @@
 /* dlopen calls in either a multi-threaded environment, or if the       */
 /* library initialization code allocates substantial amounts of GC'ed   */
 /* memory.                                                              */
-static void disable_gc_for_dlopen(void)
-{
-  DCL_LOCK_STATE;
-  LOCK();
-  while (GC_incremental && GC_collection_in_progress()) {
-    GC_collect_a_little_inner(1000);
+#ifndef USE_PROC_FOR_LIBRARIES
+  static void disable_gc_for_dlopen(void)
+  {
+    DCL_LOCK_STATE;
+    LOCK();
+    while (GC_incremental && GC_collection_in_progress()) {
+      GC_collect_a_little_inner(1000);
+    }
+    ++GC_dont_gc;
+    UNLOCK();
   }
-  ++GC_dont_gc;
-  UNLOCK();
-}
+#endif
 
 /* Redefine dlopen to guarantee mutual exclusion with           */
 /* GC_register_dynamic_libraries.  Should probably happen for   */

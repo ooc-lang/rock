@@ -27,7 +27,7 @@
  * Including this file will generate an error if AO_compare_and_swap_full()
  * cannot be made available.
  * This will be included from platform-specific atomic_ops files
- * if appropriate, and if AO_FORCE_CAS is defined.  It should not be
+ * if appropriate, and if AO_REQUIRE_CAS is defined.  It should not be
  * included directly, especially since it affects the implementation
  * of other atomic update primitives.
  * The implementation assumes that only AO_store_XXX and AO_test_and_set_XXX
@@ -35,16 +35,16 @@
  * operate on compare_and_swap locations.
  */
 
-#if !defined(ATOMIC_OPS_H)
-#  error This file should not be included directly.
+#ifndef AO_ATOMIC_OPS_H
+# error This file should not be included directly.
 #endif
 
 #ifndef AO_HAVE_double_t
 # include "standard_ao_double_t.h"
 #endif
 
-int AO_compare_and_swap_emulation(volatile AO_t *addr, AO_t old,
-                                  AO_t new_val);
+AO_t AO_fetch_compare_and_swap_emulation(volatile AO_t *addr, AO_t old_val,
+                                         AO_t new_val);
 
 int AO_compare_double_and_swap_double_emulation(volatile AO_double_t *addr,
                                                 AO_t old_val1, AO_t old_val2,
@@ -52,11 +52,13 @@ int AO_compare_double_and_swap_double_emulation(volatile AO_double_t *addr,
 
 void AO_store_full_emulation(volatile AO_t *addr, AO_t val);
 
-#define AO_compare_and_swap_full(addr, old, newval) \
-       AO_compare_and_swap_emulation(addr, old, newval)
-#define AO_HAVE_compare_and_swap_full
+#ifndef AO_HAVE_fetch_compare_and_swap_full
+# define AO_fetch_compare_and_swap_full(addr, old, newval) \
+                AO_fetch_compare_and_swap_emulation(addr, old, newval)
+# define AO_HAVE_fetch_compare_and_swap_full
+#endif
 
-#ifndef AO_HAVE_compare_double_and_swap_double
+#ifndef AO_HAVE_compare_double_and_swap_double_full
 # define AO_compare_double_and_swap_double_full(addr, old1, old2, \
                                                 newval1, newval2) \
         AO_compare_double_and_swap_double_emulation(addr, old1, old2, \

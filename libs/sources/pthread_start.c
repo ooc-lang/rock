@@ -42,19 +42,21 @@
 #include <sched.h>
 
 /* Invoked from GC_start_routine(). */
-void * GC_CALLBACK GC_inner_start_routine(struct GC_stack_base *sb, void *arg)
+GC_INNER_PTHRSTART void * GC_CALLBACK GC_inner_start_routine(
+                                        struct GC_stack_base *sb, void *arg)
 {
   void * (*start)(void *);
   void * start_arg;
   void * result;
-  GC_thread me = GC_start_rtn_prepare_thread(&start, &start_arg, sb, arg);
+  volatile GC_thread me =
+                GC_start_rtn_prepare_thread(&start, &start_arg, sb, arg);
 
 # ifndef NACL
     pthread_cleanup_push(GC_thread_exit_proc, me);
 # endif
   result = (*start)(start_arg);
-# ifdef DEBUG_THREADS
-    GC_log_printf("Finishing thread 0x%x\n", (unsigned)pthread_self());
+# if defined(DEBUG_THREADS) && !defined(GC_PTHREAD_START_STANDALONE)
+    GC_log_printf("Finishing thread %p\n", (void *)pthread_self());
 # endif
   me -> status = result;
 # ifndef NACL
