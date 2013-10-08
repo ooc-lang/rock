@@ -87,9 +87,11 @@ PipeUnix: class extends Pipe {
         writeFD close()
     }
 
-    setNonBlocking: func {
-        if (readFD)  readFD setNonBlocking()
-        if (writeFD) writeFD setNonBlocking()
+    setNonBlocking: func (end: Char) {
+        match end {
+            case 'r' => readFD setNonBlocking()
+            case 'w' => writeFD setNonBlocking()
+        }
     }
 }
 

@@ -72,7 +72,14 @@ Pipe: abstract class {
     /**
      * Switch this pipe to non-blocking mode
      */
-    setNonBlocking: func
+    setNonBlocking: func ~both {
+        setNonBlocking('r')
+        setNonBlocking('w')
+    }
+
+    setNonBlocking: func (end: Char) {
+        raise("This platform doesn't support non-blocking pipe I/O.")
+    }
 
     eof?: func -> Bool {
         eof

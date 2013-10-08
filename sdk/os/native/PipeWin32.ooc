@@ -2,24 +2,8 @@ import ../Pipe, native/win32/[types, errors]
 
 version(windows) {
 
-include windows
-
-/** Extern functions */
-CreatePipe:    extern func (readPipe: Handle*, writePipe: Handle*, lpPipeAttributes: Pointer, nSize: Long /* DWORD */) -> Bool
-ReadFile:      extern func (hFile: Handle, buffer: Pointer, numberOfBytesToRead:  Long, numberOfBytesRead:    Long*, lpOverlapped: Pointer) -> Bool
-WriteFile:     extern func (hFile: Handle, buffer: Pointer, numberOfBytesToWrite: Long, numberOfBytesWritten: Long*, lpOverlapped: Pointer) -> Bool
-CloseHandle:   extern func (handle: Handle) -> Bool
-PeekNamedPipe: extern func (hPipe: Handle, buffer: Pointer, bufferSize: Long, bytesRead: Long*, totalBytesAvail: Long*, bytesLeftThisMessage: Long*) -> Bool
-
-SecurityAttributes: cover from SECURITY_ATTRIBUTES {
-    length: extern(nLength) Int
-    inheritHandle: extern(bInheritHandle) Bool
-    securityDescriptor: extern(lpSecurityDescriptor) Pointer
-}
-
 PipeWin32: class extends Pipe {
 
-    blocking := true
     readFD = 0, writeFD = 0 : Handle
 
     init: func ~twos {
@@ -32,47 +16,37 @@ PipeWin32: class extends Pipe {
 
         /* Try to open a new pipe */
         if(!CreatePipe(readFD&, writeFD&, saAttr&, 0)) {
-            // TODO: add detailed error message
-            Exception new(This, "Couldn't create pipes") throw()
+            WindowsException new(This, GetLastError(), "Failed to create pipe") throw()
         }
     }
     
     read: func ~cstring (buf: CString, len: Int) -> Int {
-        bytesAsked: Long
-
-        if (blocking) {
-            // blocking I/O, just assume there's enough data to be read
-            bytesAsked = len
-        } else {
-            // non-blocking I/O, peek first to see how much we can read
-            totalBytesAvail: ULong
-            if(!PeekNamedPipe(readFD, null, 0, null, totalBytesAvail&, null)) {
-                Exception new(This, "Couldn't peek pipe") throw()
-            }
-
-            // Don't try to read if there's no bytes ready atm
-            if(totalBytesAvail == 0) return 0
-
-            // don't request more than there's available
-            bytesAsked = totalBytesAvail > len ? len : totalBytesAvail
-        }
-
         bytesRead: ULong
-        success := ReadFile(readFD, buf, bytesAsked, bytesRead&, null)
-        if(!success || bytesRead == 0) {
-            eof = true
-            return -1
-        }
-        return bytesRead
+        success := ReadFile(readFD, buf, len, bytesRead&, null)
+
+        // normal read
+        if (success) return bytesRead
+
+        // no data
+        if (GetLastError() == ERROR_NO_DATA) return 0
+
+        // reached eof
+        eof = true
+        return -1
     }
 
     /** write 'len' bytes of 'data' to the pipe */
     write: func(data: Pointer, len: Int) -> Int {
         bytesWritten: ULong
+
+        // will either block (in blocking mode) or always return with true (in
+        // non-blocking mode) regardless of how many bytes were written.
         success := WriteFile(writeFD, data, len as Long, bytesWritten&, null)
+
         if (!success) {
-          WindowsException new(This, GetLastError()) throw()
+          WindowsException new(This, GetLastError(), "Failed to write to pipe") throw()
         }
+
         bytesWritten
     }
 
@@ -80,12 +54,11 @@ PipeWin32: class extends Pipe {
      * close the pipe, either in reading or writing
      * @param arg 'r' = close in reading, 'w' = close in writing
      */
-    close: func (mode: Char) -> Int {
-        return match mode {
-            case 'r' => CloseHandle(readFD) ? 1 : 0
-            case 'w' => CloseHandle(writeFD) ? 1 : 0
-            case     => 0
-        }
+    close: func (end: Char) -> Int {
+        fd := _getFD(end)
+        if (!fd) return 0
+
+        CloseHandle(readFD) ? 1 : 0
     }
 
     close: func ~both {
@@ -93,9 +66,53 @@ PipeWin32: class extends Pipe {
         CloseHandle(writeFD)
     }
 
-    setNonBlocking: func {
-        blocking = false
+    setNonBlocking: func (end: Char) {
+        fd := _getFD(end)
+        if (!fd) return
+        _setFDState(readFD, PIPE_WAIT)
+    }
+
+    setBlocking: func (end: Char) {
+        fd := _getFD(end)
+        if (!fd) return
+        _setFDState(readFD, PIPE_WAIT)
+    }
+
+    // protected ulility methods
+
+    _getFD: func (end: Char) -> Handle {
+        match end {
+            case 'r' => readFD
+            case 'w' => writeFD
+            case => null as Handle
+        }
+    }
+
+    _setFDState: func (handle: Handle, flags: Long) {
+        SetNamedPipeHandleState(handle, flags&, null, null)
     }
 }
 
+/* C interface */
+
+include windows
+
+CreatePipe:    extern func (readPipe: Handle*, writePipe: Handle*, lpPipeAttributes: Pointer, nSize: Long) -> Bool
+ReadFile:      extern func (hFile: Handle, buffer: Pointer, numberOfBytesToRead:  Long,
+    numberOfBytesRead:    Long*, lpOverlapped: Pointer) -> Bool
+WriteFile:     extern func (hFile: Handle, buffer: Pointer, numberOfBytesToWrite: Long,
+    numberOfBytesWritten: Long*, lpOverlapped: Pointer) -> Bool
+CloseHandle:   extern func (handle: Handle) -> Bool
+SetNamedPipeHandleState: extern func (handle: Handle, mode: Long*, maxCollectionCount: Long*, collectDataTimeout: Long*)
+
+PIPE_WAIT, PIPE_NOWAIT: Long
+ERROR_NO_DATA: Long
+
+SecurityAttributes: cover from SECURITY_ATTRIBUTES {
+    length: extern(nLength) Int
+    inheritHandle: extern(bInheritHandle) Bool
+    securityDescriptor: extern(lpSecurityDescriptor) Pointer
 }
+
+}
+

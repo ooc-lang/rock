@@ -40,6 +40,10 @@ version(windows) {
       init: func (.origin, err: Long) {
         super(origin, GetWindowsErrorMessage(err))
       }
+
+      init: func ~withMsg (.origin, err: Long, message: String) {
+        super(origin, "%s: %s" format(message, GetWindowsErrorMessage(err)))
+      }
     }
 
 }

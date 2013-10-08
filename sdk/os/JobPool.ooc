@@ -11,8 +11,7 @@ Job: class {
 
     process: Process
 
-    init: func (=process) {
-    }
+    init: func (=process)
 
     wait: func -> Int {
         code := process wait()
@@ -35,8 +34,7 @@ JobPool: class {
     jobs := ArrayList<Job> new()
     parallelism := System numProcessors()
 
-    init: func {
-    }
+    init: func
 
     /**
      * Wait for a single job to finish.
