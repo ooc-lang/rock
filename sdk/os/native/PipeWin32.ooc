@@ -2,6 +2,9 @@ import ../Pipe, native/win32/[types, errors]
 
 version(windows) {
 
+/**
+ * Windows implementation of pipes.
+ */
 PipeWin32: class extends Pipe {
 
     readFD = 0, writeFD = 0 : Handle

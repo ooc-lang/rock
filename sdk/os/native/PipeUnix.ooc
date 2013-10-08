@@ -2,6 +2,9 @@ import ../[unistd, FileDescriptor, Pipe]
 
 version(unix || apple) {
 
+/**
+ * Unix implementation of pipes.
+ */
 PipeUnix: class extends Pipe {
 
     readFD, writeFD: FileDescriptor
