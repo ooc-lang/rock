@@ -2,12 +2,6 @@ import ../[unistd, FileDescriptor, Pipe]
 
 version(unix || apple) {
 
-include fcntl
-include sys/stat
-include sys/types
-
-EAGAIN: extern Int
-
 PipeUnix: class extends Pipe {
 
     readFD, writeFD: FileDescriptor
@@ -74,12 +68,10 @@ PipeUnix: class extends Pipe {
      * close the pipe, either in reading or writing
      * @param arg 'r' = close in reading, 'w' = close in writing
      */
-    close: func (mode: Char) -> Int {
-        return match mode {
-            case 'r' => readFD close()
-            case 'w' => writeFD close()
-            case     => 0
-        }
+    close: func (end: Char) -> Int {
+        fd := _getFD(end)
+        if (fd == 0) return 0
+        fd close()
     }
 
     close: func ~both {
@@ -88,11 +80,34 @@ PipeUnix: class extends Pipe {
     }
 
     setNonBlocking: func (end: Char) {
+        fd := _getFD(end)
+        if (fd == 0) return
+        fd setNonBlocking()
+    }
+
+    setBlocking: func (end: Char) {
+        fd := _getFD(end)
+        if (fd == 0) return
+        fd setBlocking()
+    }
+
+    // utility functions
+
+    _getFD: func (end: Char) -> FileDescriptor {
         match end {
-            case 'r' => readFD setNonBlocking()
-            case 'w' => writeFD setNonBlocking()
+            case 'r' => readFD
+            case 'w' => writeFD
+            case => 0 as FileDescriptor
         }
     }
 }
+
+/* C interface */
+
+include fcntl
+include sys/stat
+include sys/types
+
+EAGAIN: extern Int
 
 }

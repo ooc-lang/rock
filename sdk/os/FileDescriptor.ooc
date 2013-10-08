@@ -41,7 +41,17 @@ FileDescriptor: cover from Int {
 
     setNonBlocking: func {
         version (unix || apple) {
-            fcntl(this, F_SETFL, O_NONBLOCK)
+            flags := fcntl(this, F_GETFL, 0)
+            flags |= O_NONBLOCK
+            fcntl(this, F_SETFL, flags)
+        }
+    }
+
+    setBlocking: func {
+        version (unix || apple) {
+            flags := fcntl(this, F_GETFL, 0)
+            flags &= ~O_NONBLOCK
+            fcntl(this, F_SETFL, flags)
         }
     }
 }

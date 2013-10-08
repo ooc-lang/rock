@@ -81,6 +81,15 @@ Pipe: abstract class {
         raise("This platform doesn't support non-blocking pipe I/O.")
     }
 
+    SetBlocking: func ~both {
+        setBlocking('r')
+        setBlocking('w')
+    }
+
+    setBlocking: func (end: Char) {
+        raise("This platform doesn't support blocking pipe I/O.")
+    }
+
     eof?: func -> Bool {
         eof
     }
