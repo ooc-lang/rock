@@ -48,7 +48,6 @@
 #include "../alloc.c"
 #include "../dbg_mlc.c"
 #include "../finalize.c"
-#include "../fnlz_mlc.c"
 #include "../mallocx.c"
 #include "../mark.c"
 #include "../mark_rts.c"
@@ -70,9 +69,7 @@
 #include "../specific.c"
 #include "../win32_threads.c"
 
-#ifndef GC_PTHREAD_START_STANDALONE
-# include "../pthread_start.c"
-#endif
+#include "../pthread_start.c"
 
 /* Restore pthread calls redirection (if altered in             */
 /* pthread_stop_world.c, pthread_support.c or win32_threads.c). */

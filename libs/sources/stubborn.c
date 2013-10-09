@@ -29,12 +29,13 @@
     return(GC_malloc(lb));
   }
 
-  GC_API void GC_CALL GC_end_stubborn_change(const void *p)
+  GC_API void GC_CALL GC_end_stubborn_change(void *p)
   {
-    GC_dirty((ptr_t)p);
+    GC_dirty(p);
   }
 
-  GC_API void GC_CALL GC_change_stubborn(const void *p GC_ATTR_UNUSED)
+  /*ARGSUSED*/
+  GC_API void GC_CALL GC_change_stubborn(void *p)
   {
   }
 
@@ -45,11 +46,13 @@
     return(GC_malloc(lb));
   }
 
-  GC_API void GC_CALL GC_end_stubborn_change(const void *p GC_ATTR_UNUSED)
+  /*ARGSUSED*/
+  GC_API void GC_CALL GC_end_stubborn_change(void *p)
   {
   }
 
-  GC_API void GC_CALL GC_change_stubborn(const void *p GC_ATTR_UNUSED)
+  /*ARGSUSED*/
+  GC_API void GC_CALL GC_change_stubborn(void *p)
   {
   }
 

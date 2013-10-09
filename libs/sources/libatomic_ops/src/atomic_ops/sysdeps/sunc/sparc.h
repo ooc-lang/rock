@@ -33,4 +33,5 @@ AO_test_and_set_full(volatile AO_TS_t *addr);
 /* Implemented in separate .S file, for now.    */
 #define AO_HAVE_test_and_set_full
 
-/* TODO: Like the gcc version, extend this for V8 and V9.   */
+/* FIXME: Like the gcc version, this needs to be extended for V8        */
+/* and V9.                                                              */

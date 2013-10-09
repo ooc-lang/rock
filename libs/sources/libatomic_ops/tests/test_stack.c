@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2005 Hewlett-Packard Development Company, L.P.
+ * Original Author: Hans Boehm
  *
  * This file may be redistributed and/or modified under the
  * terms of the GNU General Public License as published by the Free Software
@@ -8,61 +9,35 @@
  * It is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE.  See the GNU General Public License in the
- * file COPYING for more details.
+ * file doc/COPYING for more details.
  */
 
 #if defined(HAVE_CONFIG_H)
 # include "config.h"
 #endif
 
-#include <stdio.h>
+#if defined(__vxworks) || defined(_MSC_VER) || defined(_WIN32_WINCE) \
+    || (defined(_WIN32) && !defined(__CYGWIN32__) && !defined(__CYGWIN__))
 
-#if defined(__vxworks)
-
+  /* Skip the test if no pthreads.  */
   int main(void)
   {
-    printf("test skipped\n");
     return 0;
   }
 
 #else
 
-#if ((defined(_WIN32) && !defined(__CYGWIN32__) && !defined(__CYGWIN__)) \
-     || defined(_MSC_VER) || defined(_WIN32_WINCE)) \
-    && !defined(AO_USE_WIN32_PTHREADS)
-# define USE_WINTHREADS
-#endif
-
-#ifdef USE_WINTHREADS
-# include <windows.h>
-#else
-# include <pthread.h>
-#endif
-
+#include <pthread.h>
 #include <stdlib.h>
-
-#include "atomic_ops_stack.h" /* includes atomic_ops.h as well */
-
-#if (defined(_WIN32_WCE) || defined(__MINGW32CE__)) && !defined(abort)
-# define abort() _exit(-1) /* there is no abort() in WinCE */
-#endif
+#include <stdio.h>
+#include "atomic_ops.h"
+#include "atomic_ops_stack.h"
 
 #ifndef MAX_NTHREADS
 # define MAX_NTHREADS 100
 #endif
 
-#ifdef NO_TIMES
-# define get_msecs() 0
-#elif defined(USE_WINTHREADS) || defined(AO_USE_WIN32_PTHREADS)
-# include <sys/timeb.h>
-  long long get_msecs(void)
-  {
-    struct timeb tb;
-
-    ftime(&tb);
-    return (long long)tb.time * 1000 + tb.millitm;
-  }
-#else /* Unix */
+#ifndef NO_TIMES
 # include <time.h>
 # include <sys/time.h>
   /* Need 64-bit long long support */
@@ -73,7 +48,9 @@
     gettimeofday(&tv, 0);
     return (long long)tv.tv_sec * 1000 + tv.tv_usec/1000;
   }
-#endif /* !NO_TIMES */
+#else
+# define get_msecs() 0
+#endif
 
 typedef struct le {
   AO_t next;
@@ -107,7 +84,7 @@ void print_list(void)
     printf("%d\n", p -> data);
 }
 
-static char marks[MAX_NTHREADS * (MAX_NTHREADS + 1) / 2 + 1];
+static char marks[MAX_NTHREADS * MAX_NTHREADS];
 
 void check_list(int n)
 {
@@ -115,43 +92,25 @@ void check_list(int n)
   int i;
 
   for (i = 1; i <= n; ++i) marks[i] = 0;
-
   for (p = (list_element *)AO_REAL_HEAD_PTR(the_list);
        p != 0;
        p = (list_element *)AO_REAL_NEXT_PTR(p -> next))
     {
-      i = p -> data;
-      if (i > n || i <= 0)
-        {
-          fprintf(stderr, "Found erroneous list element %d\n", i);
-          abort();
-        }
-      if (marks[i] != 0)
-        {
-          fprintf(stderr, "Found duplicate list element %d\n", i);
-          abort();
-        }
-      marks[i] = 1;
+      if (p -> data > n || p -> data <= 0)
+        fprintf(stderr, "Found erroneous list element %d\n", p -> data);
+      if (marks[p -> data] != 0)
+        fprintf(stderr, "Found duplicate list element %d\n", p -> data);
+      marks[p -> data] = 1;
     }
-
   for (i = 1; i <= n; ++i)
     if (marks[i] != 1)
-      {
-        fprintf(stderr, "Missing list element %d\n", i);
-        abort();
-      }
+      fprintf(stderr, "Missing list element %d\n", i);
 }
 
 volatile AO_t ops_performed = 0;
 
-#ifndef LIMIT
+#define LIMIT 1000000
         /* Total number of push/pop ops in all threads per test.    */
-# ifdef AO_USE_PTHREAD_DEFS
-#   define LIMIT 20000
-# else
-#   define LIMIT 1000000
-# endif
-#endif
 
 #ifdef AO_HAVE_fetch_and_add
 # define fetch_and_add(addr, val) AO_fetch_and_add(addr, val)
@@ -166,14 +125,10 @@ volatile AO_t ops_performed = 0;
   }
 #endif
 
-#ifdef USE_WINTHREADS
-  DWORD WINAPI run_one_test(LPVOID arg)
-#else
-  void * run_one_test(void * arg)
-#endif
+void * run_one_test(void * arg)
 {
   list_element * t[MAX_NTHREADS + 1];
-  int index = (int)(size_t)arg;
+  long index = (long)arg;
   int i;
   int j = 0;
 
@@ -235,21 +190,11 @@ int main(int argc, char **argv)
     for (nthreads = 1; nthreads <= max_nthreads; ++nthreads)
       {
         int i;
-#       ifdef USE_WINTHREADS
-          DWORD thread_id;
-          HANDLE thread[MAX_NTHREADS];
-#       else
-          pthread_t thread[MAX_NTHREADS];
-#       endif
+        pthread_t thread[MAX_NTHREADS];
         int list_length = nthreads*(nthreads+1)/2;
         long long start_time;
         list_element * le;
 
-#       ifdef VERBOSE
-          printf("Before add_elements: exper_n=%d, nthreads=%d,"
-                 " max_nthreads=%d, list_length=%d\n",
-                 exper_n, nthreads, max_nthreads, list_length);
-#       endif
         add_elements(list_length);
 #       ifdef VERBOSE
           printf("Initial list (nthreads = %d):\n", nthreads);
@@ -260,16 +205,9 @@ int main(int argc, char **argv)
         for (i = 1; i < nthreads; ++i) {
           int code;
 
-#         ifdef USE_WINTHREADS
-            thread[i] = CreateThread(NULL, 0, run_one_test, (LPVOID)(size_t)i,
-                                     0, &thread_id);
-            code = thread[i] != NULL ? 0 : (int)GetLastError();
-#         else
-            code = pthread_create(&thread[i], 0, run_one_test,
-                                  (void *)(size_t)i);
-#         endif
-          if (code != 0) {
-            fprintf(stderr, "Thread creation failed %u\n", (unsigned)code);
+          if ((code = pthread_create(thread+i, 0, run_one_test,
+                                     (void *)(long)i)) != 0) {
+            fprintf(stderr, "Thread creation failed %u\n", code);
             exit(3);
           }
         }
@@ -278,16 +216,8 @@ int main(int argc, char **argv)
         run_one_test(0);
         for (i = 1; i < nthreads; ++i) {
           int code;
-
-#         ifdef USE_WINTHREADS
-            code = WaitForSingleObject(thread[i], INFINITE) == WAIT_OBJECT_0 ?
-                        0 : (int)GetLastError();
-#         else
-            code = pthread_join(thread[i], 0);
-#         endif
-          if (code != 0) {
-            fprintf(stderr, "Thread join failed %u\n", (unsigned)code);
-            abort();
+          if ((code = pthread_join(thread[i], 0)) != 0) {
+            fprintf(stderr, "Thread join failed %u\n", code);
           }
         }
         times[nthreads][exper_n] = (unsigned long)(get_msecs() - start_time);
@@ -301,6 +231,7 @@ int main(int argc, char **argv)
         while ((le = (list_element *)AO_stack_pop(&the_list)) != 0)
           free(le);
       }
+# ifndef NO_TIMES
     for (nthreads = 1; nthreads <= max_nthreads; ++nthreads)
       {
         unsigned long sum = 0;
@@ -310,17 +241,14 @@ int main(int argc, char **argv)
         for (exper_n = 0; exper_n < N_EXPERIMENTS; ++exper_n)
           {
 #           if defined(VERBOSE)
-              printf(" [%lu]", times[nthreads][exper_n]);
+              printf("[%lu] ", times[nthreads][exper_n]);
 #           endif
             sum += times[nthreads][exper_n];
           }
-#     ifndef NO_TIMES
         printf(" %lu msecs\n", (sum + N_EXPERIMENTS/2)/N_EXPERIMENTS);
-#     else
-        printf(" completed\n");
-#     endif
       }
+# endif /* !NO_TIMES */
   return 0;
 }
 
-#endif
+#endif /* !_MSC_VER */

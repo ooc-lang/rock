@@ -37,18 +37,6 @@
 
 /* Machine specific parts contributed by various people.  See README file. */
 
-#if defined(__ANDROID__) && !defined(PLATFORM_ANDROID)
-  /* __ANDROID__ macro is defined by Android NDK gcc.   */
-# define PLATFORM_ANDROID 1
-#endif
-
-#if defined(__SYMBIAN32__) && !defined(SYMBIAN)
-# define SYMBIAN
-# ifdef __WINS__
-#   pragma data_seg(".data2")
-# endif
-#endif
-
 /* First a unified test for Linux: */
 # if (defined(linux) || defined(__linux__) || defined(PLATFORM_ANDROID)) \
      && !defined(LINUX) && !defined(__native_client__)
@@ -82,18 +70,10 @@
 #    define I386
 #    define mach_type_known
 # endif
-# if defined(__aarch64__)
-#    define AARCH64
-#    if !defined(LINUX)
-#      define NOSYS
-#      define mach_type_known
-#    endif
-# endif
 # if defined(__arm) || defined(__arm__) || defined(__thumb__)
 #    define ARM32
-#    if !defined(LINUX) && !defined(NETBSD) && !defined(FREEBSD) \
-        && !defined(OPENBSD) && !defined(DARWIN) \
-        && !defined(_WIN32) && !defined(__CEGCC__) && !defined(SYMBIAN)
+#    if !defined(LINUX) && !defined(NETBSD) && !defined(OPENBSD) \
+        && !defined(DARWIN) && !defined(_WIN32) && !defined(__CEGCC__)
 #      define NOSYS
 #      define mach_type_known
 #    endif
@@ -270,10 +250,6 @@
 #    define IA64
 #    define mach_type_known
 # endif
-# if defined(LINUX) && defined(__aarch64__)
-#    define AARCH64
-#    define mach_type_known
-# endif
 # if defined(LINUX) && (defined(__arm) || defined(__arm__))
 #    define ARM32
 #    define mach_type_known
@@ -309,6 +285,10 @@
 #    define M32R
 #    define mach_type_known
 # endif
+# if defined(FREEBSD) && (defined(powerpc) || defined(__powerpc__))
+#    define POWERPC
+#    define mach_type_known
+# endif
 # if defined(__alpha) || defined(__alpha__)
 #   define ALPHA
 #   if !defined(LINUX) && !defined(NETBSD) && !defined(OPENBSD) \
@@ -324,14 +304,12 @@
 #   define M68K
 #   define mach_type_known
 # endif
-# if defined(THINK_C) \
-     || (defined(__MWERKS__) && !defined(__powerc) && !defined(SYMBIAN))
+# if defined(THINK_C) || defined(__MWERKS__) && !defined(__powerc)
 #   define M68K
 #   define MACOS
 #   define mach_type_known
 # endif
-# if defined(__MWERKS__) && defined(__powerc) && !defined(__MACH__) \
-     && !defined(SYMBIAN)
+# if defined(__MWERKS__) && defined(__powerc) && !defined(__MACH__)
 #   define POWERPC
 #   define MACOS
 #   define mach_type_known
@@ -377,6 +355,14 @@
 #   define OPENBSD
 #   define mach_type_known
 # endif
+# if defined(FREEBSD) && (defined(i386) || defined(__i386__))
+#   define I386
+#   define mach_type_known
+# endif
+# if defined(FREEBSD) && defined(__x86_64__)
+#   define X86_64
+#   define mach_type_known
+# endif
 # if defined(__NetBSD__) && (defined(i386) || defined(__i386__))
 #   define I386
 #   define mach_type_known
@@ -385,29 +371,9 @@
 #    define X86_64
 #    define mach_type_known
 # endif
-# if defined(FREEBSD) && (defined(i386) || defined(__i386__))
-#   define I386
-#   define mach_type_known
-# endif
-# if defined(FREEBSD) && (defined(__amd64__) || defined(__x86_64__))
-#   define X86_64
-#   define mach_type_known
-# endif
-# if defined(FREEBSD) && defined(__ia64__)
-#   define IA64
-#   define mach_type_known
-# endif
 # if defined(FREEBSD) && defined(__sparc__)
-#   define SPARC
-#   define mach_type_known
-# endif
-# if defined(FREEBSD) && (defined(powerpc) || defined(__powerpc__))
-#   define POWERPC
-#   define mach_type_known
-# endif
-# if defined(FREEBSD) && defined(__arm__)
-#   define ARM32
-#   define mach_type_known
+#    define SPARC
+#    define mach_type_known
 # endif
 # if defined(bsdi) && (defined(i386) || defined(__i386__))
 #    define I386
@@ -443,9 +409,8 @@
 #   define MSWINCE
 #   define mach_type_known
 # else
-#   if ((defined(_MSDOS) || defined(_MSC_VER)) && (_M_IX86 >= 300)) \
-       || (defined(_WIN32) && !defined(__CYGWIN32__) && !defined(__CYGWIN__) \
-           && !defined(SYMBIAN))
+#   if (defined(_MSDOS) || defined(_MSC_VER)) && (_M_IX86 >= 300) \
+        || defined(_WIN32) && !defined(__CYGWIN32__) && !defined(__CYGWIN__)
 #     if defined(__LP64__) || defined(_WIN64)
 #       define X86_64
 #     else
@@ -497,7 +462,7 @@
 #   define NOSYS
 #   define mach_type_known
 # endif
-
+/* Ivan Demakov */
 # if defined(__WATCOMC__) && defined(__386__)
 #   define I386
 #   if !defined(OS2) && !defined(MSWIN32) && !defined(DOS4GW)
@@ -537,10 +502,6 @@
 #    define mach_type_known
 # endif
 
-# if defined(SYMBIAN)
-#   define mach_type_known
-# endif
-
 /* Feel free to add more clauses here */
 
 /* Or manually define the machine type here.  A machine type is         */
@@ -558,7 +519,7 @@
                     /*             I386       ==> Intel 386             */
                     /*              (SEQUENT, OS2, SCO, LINUX, NETBSD,  */
                     /*               FREEBSD, THREE86BSD, MSWIN32,      */
-                    /*               BSDI, SOLARIS, NEXT and others)    */
+                    /*               BSDI,SOLARIS, NEXT, other variants)        */
                     /*             NS32K      ==> Encore Multimax       */
                     /*             MIPS       ==> R2000 through R14K    */
                     /*                  (many variants)                 */
@@ -576,7 +537,6 @@
                     /*                  running Amdahl UTS4             */
                     /*             S390       ==> 390-like machine      */
                     /*                  running LINUX                   */
-                    /*             AARCH64    ==> ARM AArch64           */
                     /*             ARM32      ==> Intel StrongARM       */
                     /*             IA64       ==> Intel IPF             */
                     /*                            (e.g. Itanium)        */
@@ -620,11 +580,11 @@
  * On UNIX-like systems, the collector will scan the area between DATASTART
  * and DATAEND for root pointers.
  *
- * DATAEND, if not "end", where "end" is defined as "extern int end[]".
+ * DATAEND, if not `end' where `end' is defined as ``extern int end[];''.
  * RTH suggests gaining access to linker script synth'd values with
- * this idiom instead of "&end", where "end" is defined as "extern int end".
- * Otherwise, "GCC will assume these are in .sdata/.sbss" and it will, e.g.,
- * cause failures on alpha*-*-* with -msmall-data or -fpic or mips-*-*
+ * this idiom instead of `&end' where `end' is defined as ``extern int end;'' .
+ * Otherwise, ``GCC will assume these are in .sdata/.sbss'' and it will, e.g.,
+ * cause failures on alpha*-*-* with ``-msmall-data or -fpic'' or mips-*-*
  * without any special options.
  *
  * STACKBOTTOM is the cool end of the stack, which is usually the
@@ -684,7 +644,7 @@
  *              int argc;
  *              char **argv, **envp;
  *              {
- *                  volatile int dummy;
+ *                  int dummy;
  *
  *                  GC_stackbottom = (ptr_t)(&dummy);
  *                  return(real_main(argc, argv, envp));
@@ -721,19 +681,8 @@
 # if defined(__GNUC__) && ((__GNUC__ >= 3) \
                            || (__GNUC__ == 2 && __GNUC_MINOR__ >= 8)) \
      && !defined(__INTEL_COMPILER) && !defined(__PATHCC__) \
-     && !(defined(POWERPC) && defined(DARWIN)) /* for MacOS X 10.3.9 */ \
-     && !defined(RTEMS) \
      && !defined(__clang__) /* since no-op in clang (3.0) */
 #   define HAVE_BUILTIN_UNWIND_INIT
-# endif
-
-# ifdef SYMBIAN
-#   define MACH_TYPE "SYMBIAN"
-#   define OS_TYPE "SYMBIAN"
-#   define CPP_WORDSZ 32
-#   define ALIGNMENT 4
-#   define DATASTART NULL
-#   define DATAEND NULL
 # endif
 
 # define STACK_GRAN 0x1000000
@@ -893,10 +842,12 @@
 #   ifdef OPENBSD
 #     define OS_TYPE "OPENBSD"
 #     define ALIGNMENT 4
-#     ifndef GC_OPENBSD_THREADS
+#     ifdef GC_OPENBSD_THREADS
+#      define UTHREAD_SP_OFFSET 268
+#     else
 #       include <sys/param.h>
 #       include <uvm/uvm_extern.h>
-#       define STACKBOTTOM ((ptr_t) USRSTACK)
+#       define STACKBOTTOM USRSTACK
 #     endif
       extern int __data_start[];
 #     define DATASTART ((ptr_t)__data_start)
@@ -946,9 +897,6 @@
 #     define DATAEND (ptr_t)(_end)
 #     define DATASTART (ptr_t)(__bss_start)
 #     define STACKBOTTOM ((ptr_t)ps3_get_stack_bottom())
-#     define NO_PTHREAD_TRYLOCK
-                /* Current GC LOCK() implementation for PS3 explicitly  */
-                /* use pthread_mutex_lock for some reason.              */
 #   endif
 #   ifdef AIX
 #     define OS_TYPE "AIX"
@@ -1079,7 +1027,7 @@
 #     ifdef __ELF__
 #       define DYNAMIC_LOADING
 #     else
-#       error --> Linux SPARC a.out not supported
+          Linux Sparc/a.out not supported
 #     endif
       extern int _end[];
       extern int _etext[];
@@ -1096,10 +1044,12 @@
 #   endif
 #   ifdef OPENBSD
 #     define OS_TYPE "OPENBSD"
-#     ifndef GC_OPENBSD_THREADS
+#     ifdef GC_OPENBSD_THREADS
+#      define UTHREAD_SP_OFFSET 232
+#     else
 #       include <sys/param.h>
 #       include <uvm/uvm_extern.h>
-#       define STACKBOTTOM ((ptr_t) USRSTACK)
+#       define STACKBOTTOM USRSTACK
 #     endif
       extern int __data_start[];
 #     define DATASTART ((ptr_t)__data_start)
@@ -1149,7 +1099,8 @@
 #     define ALIGNMENT 4
                         /* Appears to hold for all "32 bit" compilers   */
                         /* except Borland.  The -a4 option fixes        */
-                        /* Borland.  For Watcom the option is -zp4.     */
+                        /* Borland.                                     */
+                        /* Ivan Demakov: For Watcom the option is -zp4. */
 #   endif
 #   ifdef SEQUENT
 #       define OS_TYPE "SEQUENT"
@@ -1242,14 +1193,12 @@
 #   ifdef NACL
 #      define OS_TYPE "NACL"
        extern int etext[];
-/* #define DATASTART ((ptr_t)((((word) (etext)) + 0xfff) & ~0xfff)) */
-#      define DATASTART ((ptr_t)0x10000000)
+#      define DATASTART ((ptr_t)((((word) (etext)) + 0xfff) & ~0xfff))
        extern int _end[];
 #      define DATAEND (_end)
 #      undef STACK_GRAN
 #      define STACK_GRAN 0x10000
 #      define HEURISTIC1
-#      define NO_PTHREAD_GETATTR_NP
 #      define GETPAGESIZE() 65536
 #      ifndef MAX_NACL_GC_THREADS
 #        define MAX_NACL_GC_THREADS 1024
@@ -1302,18 +1251,13 @@
 #            endif
              extern int _end[];
 #            define DATAEND (ptr_t)(_end)
-#            if defined(PLATFORM_ANDROID) && !defined(GC_NO_SIGSETJMP)
-               /* As of Android NDK r8b, _sigsetjmp is still missing    */
-               /* for x86 (setjmp is used instead to find data_start).  */
-#              define GC_NO_SIGSETJMP
-#            endif
 #       else
              extern int etext[];
 #            define DATASTART ((ptr_t)((((word) (etext)) + 0xfff) & ~0xfff))
 #       endif
 #       ifdef USE_I686_PREFETCH
-          /* FIXME: Thus should use __builtin_prefetch, but we'll leave */
-          /* that for the next release.                                 */
+          /* FIXME: Thus should use __builtin_prefetch, but we'll leave that */
+          /* for the next rtelease.                                          */
 #         define PREFETCH(x) \
             __asm__ __volatile__ ("prefetchnta %0" : : "m"(*(char *)(x)))
             /* Empirically prefetcht0 is much more effective at reducing     */
@@ -1377,10 +1321,12 @@
 #   endif
 #   ifdef OPENBSD
 #       define OS_TYPE "OPENBSD"
-#       ifndef GC_OPENBSD_THREADS
+#       ifdef GC_OPENBSD_THREADS
+#         define UTHREAD_SP_OFFSET 176
+#       else
 #         include <sys/param.h>
 #         include <uvm/uvm_extern.h>
-#         define STACKBOTTOM ((ptr_t) USRSTACK)
+#         define STACKBOTTOM USRSTACK
 #       endif
         extern int __data_start[];
 #       define DATASTART ((ptr_t)__data_start)
@@ -1401,7 +1347,6 @@
 #       else
 #           define SIG_SUSPEND SIGUSR1
 #           define SIG_THR_RESTART SIGUSR2
-                /* SIGTSTP and SIGCONT could be used alternatively.     */
 #       endif
 #       define FREEBSD_STACKBOTTOM
 #       ifdef __ELF__
@@ -1517,7 +1462,6 @@
 #     define DYNAMIC_LOADING
       extern int _end[];
 #     define DATAEND (ptr_t)(_end)
-#     pragma weak __data_start
       extern int __data_start[];
 #     define DATASTART ((ptr_t)(__data_start))
 #     ifdef _MIPS_SZPTR
@@ -1612,10 +1556,12 @@
 #  ifdef OPENBSD
 #    define OS_TYPE "OPENBSD"
 #    define ALIGNMENT 4
-#     ifndef GC_OPENBSD_THREADS
+#    ifdef GC_OPENBSD_THREADS
+#      define UTHREAD_SP_OFFSET 808
+#    else
 #      include <sys/param.h>
 #      include <uvm/uvm_extern.h>
-#      define STACKBOTTOM ((ptr_t) USRSTACK)
+#      define STACKBOTTOM USRSTACK
 #    endif
      extern int _fdata[];
 #    define DATASTART ((ptr_t)_fdata)
@@ -1654,7 +1600,7 @@
 #     define DATASTART ((ptr_t)(__data_start))
 #     ifdef USE_HPUX_FIXED_STACKBOTTOM
         /* The following appears to work for 7xx systems running HP/UX  */
-        /* 9.xx.  Furthermore, it might result in much faster           */
+        /* 9.xx Furthermore, it might result in much faster             */
         /* collections than HEURISTIC2, which may involve scanning      */
         /* segments that directly precede the stack.  It is not the     */
         /* default, since it may not work on older machine/OS           */
@@ -1672,10 +1618,10 @@
 #     include <unistd.h>
 #     define GETPAGESIZE() sysconf(_SC_PAGE_SIZE)
 #     ifndef __GNUC__
-#       define PREFETCH(x)  do { \
+#       define PREFETCH(x)  { \
                               register long addr = (long)(x); \
                               (void) _asm ("LDW", 0, 0, addr, 0); \
-                            } while (0)
+                            }
 #     endif
 #   endif /* HPUX */
 #   ifdef LINUX
@@ -1688,10 +1634,12 @@
 #   endif /* LINUX */
 #  ifdef OPENBSD
 #     define OS_TYPE "OPENBSD"
-#     ifndef GC_OPENBSD_THREADS
+#     ifdef GC_OPENBSD_THREADS
+#       define UTHREAD_SP_OFFSET 520
+#     else
 #       include <sys/param.h>
 #       include <uvm/uvm_extern.h>
-#       define STACKBOTTOM ((ptr_t) USRSTACK)
+#       define STACKBOTTOM USRSTACK
 #     endif
       extern int __data_start[];
 #     define DATASTART ((ptr_t)__data_start)
@@ -1718,10 +1666,12 @@
 #   ifdef OPENBSD
 #       define OS_TYPE "OPENBSD"
 #       define ELF_CLASS ELFCLASS64
-#       ifndef GC_OPENBSD_THREADS
+#       ifdef GC_OPENBSD_THREADS
+#         define UTHREAD_SP_OFFSET 816
+#       else
 #         include <sys/param.h>
 #         include <uvm/uvm_extern.h>
-#         define STACKBOTTOM ((ptr_t) USRSTACK)
+#         define STACKBOTTOM USRSTACK
 #       endif
         extern int __data_start[];
 #       define DATASTART ((ptr_t)__data_start)
@@ -1734,7 +1684,6 @@
 /* MPROTECT_VDB is not yet supported at all on FreeBSD/alpha. */
 #       define SIG_SUSPEND SIGUSR1
 #       define SIG_THR_RESTART SIGUSR2
-                /* SIGTSTP and SIGCONT could be used alternatively.     */
 #       define FREEBSD_STACKBOTTOM
 #       ifdef __ELF__
 #           define DYNAMIC_LOADING
@@ -1941,37 +1890,12 @@
 #       define OS_TYPE "LINUX"
 #       define LINUX_STACKBOTTOM
 #       define DYNAMIC_LOADING
-        extern int __data_start[] __attribute__((__weak__));
+        extern int __data_start[];
 #       define DATASTART ((ptr_t)(__data_start))
-        extern int _end[] __attribute__((__weak__));
-#       define DATAEND (ptr_t)(_end)
-#       define CACHE_LINE_SIZE 256
-#       define GETPAGESIZE() 4096
-#   endif
-# endif
-
-# ifdef AARCH64
-#   define CPP_WORDSZ 64
-#   define MACH_TYPE "AARCH64"
-#   define ALIGNMENT 8
-#   ifndef HBLKSIZE
-#     define HBLKSIZE 4096
-#   endif
-#   ifdef LINUX
-#     define OS_TYPE "LINUX"
-#     define LINUX_STACKBOTTOM
-#     define DYNAMIC_LOADING
-      extern int __data_start[];
-#     define DATASTART ((ptr_t)__data_start)
-      extern char _end[];
-#     define DATAEND ((ptr_t)(&_end))
-#   endif
-#   ifdef NOSYS
-      /* __data_start is usually defined in the target linker script.   */
-      extern int __data_start[];
-#     define DATASTART ((ptr_t)__data_start)
-      extern void *__stack_base__;
-#     define STACKBOTTOM ((ptr_t)__stack_base__)
+    extern int _end[];
+#   define DATAEND (ptr_t)(_end)
+#   define CACHE_LINE_SIZE 256
+#   define GETPAGESIZE() 4096
 #   endif
 # endif
 
@@ -2025,23 +1949,10 @@
 #     define OS_TYPE "MSWINCE"
 #     define DATAEND /* not needed */
 #   endif
-#   ifdef FREEBSD
-      /* FreeBSD/arm */
-#     define ALIGNMENT 4
-#     define OS_TYPE "FREEBSD"
-#     ifdef __ELF__
-#       define DYNAMIC_LOADING
-#     endif
-#     define HEURISTIC2
-      extern char etext[];
-#     define SEARCH_FOR_DATA_START
-#   endif
 #   ifdef DARWIN
       /* iPhone */
 #     define OS_TYPE "DARWIN"
-#     ifndef GC_DONT_REGISTER_MAIN_STATIC_DATA
-#       define DYNAMIC_LOADING
-#     endif
+#     define DYNAMIC_LOADING
 #     define DATASTART ((ptr_t) get_etext())
 #     define DATAEND   ((ptr_t) get_end())
 #     define STACKBOTTOM ((ptr_t) 0x30000000)
@@ -2062,10 +1973,12 @@
 #   ifdef OPENBSD
 #     define ALIGNMENT 4
 #     define OS_TYPE "OPENBSD"
-#     ifndef GC_OPENBSD_THREADS
+#     ifdef GC_OPENBSD_THREADS
+#       define UTHREAD_SP_OFFSET 176
+#     else
 #       include <sys/param.h>
 #       include <uvm/uvm_extern.h>
-#       define STACKBOTTOM ((ptr_t) USRSTACK)
+#       define STACKBOTTOM USRSTACK
 #     endif
       extern int __data_start[];
 #     define DATASTART ((ptr_t)__data_start)
@@ -2119,10 +2032,12 @@
 #   endif
 #   ifdef OPENBSD
 #      define OS_TYPE "OPENBSD"
-#      ifndef GC_OPENBSD_THREADS
+#      ifdef GC_OPENBSD_THREADS
+#        define UTHREAD_SP_OFFSET 332
+#      else
 #        include <sys/param.h>
 #        include <uvm/uvm_extern.h>
-#        define STACKBOTTOM ((ptr_t) USRSTACK)
+#        define STACKBOTTOM USRSTACK
 #      endif
        extern int __data_start[];
 #      define DATASTART ((ptr_t)__data_start)
@@ -2146,6 +2061,7 @@
 #   define OS_TYPE "LINUX"
 #   define DYNAMIC_LOADING
 #   define LINUX_STACKBOTTOM
+#   define USE_GENERIC_PUSH_REGS
 #   define SEARCH_FOR_DATA_START
     extern int _end[];
 #   define DATAEND (_end)
@@ -2183,10 +2099,12 @@
 #   ifdef OPENBSD
 #       define OS_TYPE "OPENBSD"
 #       define ELF_CLASS ELFCLASS64
-#       ifndef GC_OPENBSD_THREADS
+#       ifdef GC_OPENBSD_THREADS
+#         define UTHREAD_SP_OFFSET 400
+#       else
 #         include <sys/param.h>
 #         include <uvm/uvm_extern.h>
-#         define STACKBOTTOM ((ptr_t) USRSTACK)
+#         define STACKBOTTOM USRSTACK
 #       endif
         extern int __data_start[];
 #       define DATASTART ((ptr_t)__data_start)
@@ -2263,7 +2181,6 @@
 #       else
 #           define SIG_SUSPEND SIGUSR1
 #           define SIG_THR_RESTART SIGUSR2
-                /* SIGTSTP and SIGCONT could be used alternatively.     */
 #       endif
 #       define FREEBSD_STACKBOTTOM
 #       ifdef __ELF__
@@ -2369,11 +2286,6 @@
 #       error --> unknown Hexagon OS configuration
 #   endif
 # endif
-
-#if defined(__GLIBC__) && !defined(DONT_USE_LIBC_PRIVATES)
-  /* Use glibc's stack-end marker. */
-# define USE_LIBC_PRIVATES
-#endif
 
 #if defined(LINUX_STACKBOTTOM) && defined(NO_PROC_STAT) \
     && !defined(USE_LIBC_PRIVATES)
@@ -2489,15 +2401,6 @@
 # define SIGRTMAX 63
 #endif
 
-#ifdef GC_OPENBSD_THREADS
-# include <sys/param.h>
-  /* Prior to 5.2 release, OpenBSD had user threads and required        */
-  /* special handling.                                                  */
-# if OpenBSD < 201211
-#   define GC_OPENBSD_UTHREADS 1
-# endif
-#endif /* GC_OPENBSD_THREADS */
-
 #if defined(SVR4) || defined(LINUX) || defined(IRIX5) || defined(HPUX) \
     || defined(OPENBSD) || defined(NETBSD) || defined(FREEBSD) \
     || defined(DGUX) || defined(BSD) || defined(HURD) \
@@ -2534,15 +2437,6 @@
 #if defined(SMALL_CONFIG) && !defined(GC_DISABLE_INCREMENTAL)
   /* Presumably not worth the space it takes.   */
 # define GC_DISABLE_INCREMENTAL
-#endif
-
-#if (defined(MSWIN32) || defined(MSWINCE)) && !defined(USE_WINALLOC)
-  /* USE_WINALLOC is only an option for Cygwin. */
-# define USE_WINALLOC
-#endif
-
-#ifdef USE_WINALLOC
-# undef USE_MMAP
 #endif
 
 #if defined(GC_DISABLE_INCREMENTAL) || defined(MANUAL_VDB)
@@ -2590,18 +2484,17 @@
                              || defined(OPENBSD) || defined(ARM32) \
                              || defined(MIPS) || defined(AVR32))) \
      || (defined(LINUX) && (defined(SPARC) || defined(M68K))) \
-     || ((defined(RTEMS) || defined(PLATFORM_ANDROID)) && defined(I386))) \
-    && !defined(NO_GETCONTEXT)
+     || (defined(RTEMS) && defined(I386))) && !defined(NO_GETCONTEXT)
 # define NO_GETCONTEXT
 #endif
 
 #ifndef PREFETCH
-# define PREFETCH(x) (void)0
+# define PREFETCH(x)
 # define NO_PREFETCH
 #endif
 
 #ifndef PREFETCH_FOR_WRITE
-# define PREFETCH_FOR_WRITE(x) (void)0
+# define PREFETCH_FOR_WRITE(x)
 # define NO_PREFETCH_FOR_WRITE
 #endif
 
@@ -2681,10 +2574,6 @@
 # define THREADS
 #endif
 
-#if defined(PARALLEL_MARK) && !defined(THREADS)
-# error "invalid config - PARALLEL_MARK requires GC_THREADS"
-#endif
-
 #if defined(UNIX_LIKE) && defined(THREADS) && !defined(NO_CANCEL_SAFE) \
     && !defined(PLATFORM_ANDROID)
   /* Make the code cancellation-safe.  This basically means that we     */
@@ -2709,25 +2598,12 @@
 #endif
 
 #if !defined(CAN_HANDLE_FORK) && !defined(NO_HANDLE_FORK) \
-    && !defined(HAVE_NO_FORK) \
-    && ((defined(GC_PTHREADS) && !defined(NACL) \
-         && !defined(GC_WIN32_PTHREADS) && !defined(USE_WINALLOC)) \
+    && ((defined(GC_PTHREADS) && !defined(HURD) && !defined(NACL) \
+         && !defined(PLATFORM_ANDROID) && !defined(GC_WIN32_PTHREADS)) \
         || (defined(DARWIN) && defined(MPROTECT_VDB)) || defined(HANDLE_FORK))
   /* Attempts (where supported and requested) to make GC_malloc work in */
   /* a child process fork'ed from a multi-threaded parent.              */
 # define CAN_HANDLE_FORK
-#endif
-
-#if defined(CAN_HANDLE_FORK) && !defined(CAN_CALL_ATFORK) \
-    && !defined(HURD) && !defined(PLATFORM_ANDROID)
-  /* Have working pthread_atfork().     */
-# define CAN_CALL_ATFORK
-#endif
-
-#if !defined(CAN_HANDLE_FORK) && !defined(HAVE_NO_FORK) \
-    && (defined(MSWIN32) || defined(MSWINCE) || defined(DOS4GW) \
-        || defined(OS2) || defined(SYMBIAN) /* and probably others ... */)
-# define HAVE_NO_FORK
 #endif
 
 #if !defined(USE_MARK_BITS) && !defined(USE_MARK_BYTES) \
@@ -2812,13 +2688,6 @@
 # define NFRAMES 1
 # define NARGS 0
 # define NEED_CALLINFO
-#endif
-
-#if (defined(FREEBSD) || (defined(DARWIN) && !defined(_POSIX_C_SOURCE)) \
-        || (defined(SOLARIS) && (!defined(_XOPEN_SOURCE) \
-                                 || defined(__EXTENSIONS__))) \
-        || defined(LINUX)) && !defined(HAVE_DLADDR)
-# define HAVE_DLADDR
 #endif
 
 #if defined(MAKE_BACK_GRAPH) && !defined(DBG_HDRS_ALL)

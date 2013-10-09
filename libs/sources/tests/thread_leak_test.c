@@ -1,6 +1,6 @@
 
 #ifdef HAVE_CONFIG_H
-# include "config.h"
+# include "private/config.h"
 #endif
 
 #ifndef GC_THREADS
@@ -63,8 +63,7 @@ int main(void) {
           code = t[i] != NULL ? 0 : (int)GetLastError();
 #       endif
         if (code != 0) {
-            fprintf(stderr, "Thread creation failed %d\n", code);
-            exit(2);
+            printf("Thread creation failed %d\n", code);
         }
     }
 
@@ -76,8 +75,7 @@ int main(void) {
                                                         (int)GetLastError();
 #       endif
         if (code != 0) {
-            fprintf(stderr, "Thread join failed %d\n", code);
-            exit(2);
+            printf("Thread join failed %d\n", code);
         }
     }
 

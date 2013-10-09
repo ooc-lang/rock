@@ -20,8 +20,8 @@
 
 STATIC void GC_CALLBACK GC_default_same_obj_print_proc(void * p, void * q)
 {
-    ABORT_ARG2("GC_same_obj test failed",
-               ": %p and %p are not in the same object", p, q);
+    GC_err_printf("%p and %p are not in the same object\n", p, q);
+    ABORT("GC_same_obj test failed");
 }
 
 void (GC_CALLBACK *GC_same_obj_print_proc) (void *, void *)
@@ -30,8 +30,8 @@ void (GC_CALLBACK *GC_same_obj_print_proc) (void *, void *)
 /* Check that p and q point to the same object.  Call           */
 /* *GC_same_obj_print_proc if they don't.                       */
 /* Returns the first argument.  (Return value may be hard       */
-/* to use due to typing issues.  But if we had a suitable       */
-/* preprocessor...)                                             */
+/* to use,due to typing issues.  But if we had a suitable       */
+/* preprocessor ...)                                            */
 /* Succeeds if neither p nor q points to the heap.              */
 /* We assume this is performance critical.  (It shouldn't       */
 /* be called by production code, but this can easily make       */
@@ -43,7 +43,7 @@ GC_API void * GC_CALL GC_same_obj(void *p, void *q)
     ptr_t base, limit;
     word sz;
 
-    if (!EXPECT(GC_is_initialized, TRUE)) GC_init();
+    if (!GC_is_initialized) GC_init();
     hhdr = HDR((word)p);
     if (hhdr == 0) {
         if (divHBLKSZ((word)p) != divHBLKSZ((word)q)
@@ -62,8 +62,7 @@ GC_API void * GC_CALL GC_same_obj(void *p, void *q)
            hhdr = HDR(h);
         }
         limit = (ptr_t)h + hhdr -> hb_sz;
-        if ((word)p >= (word)limit || (word)q >= (word)limit
-            || (word)q < (word)h) {
+        if ((ptr_t)p >= limit || (ptr_t)q >= limit || (ptr_t)q < (ptr_t)h ) {
             goto fail;
         }
         return(p);
@@ -72,7 +71,7 @@ GC_API void * GC_CALL GC_same_obj(void *p, void *q)
     if (sz > MAXOBJBYTES) {
       base = (ptr_t)HBLKPTR(p);
       limit = base + sz;
-      if ((word)p >= (word)limit) {
+      if ((ptr_t)p >= limit) {
         goto fail;
       }
     } else {
@@ -91,7 +90,7 @@ GC_API void * GC_CALL GC_same_obj(void *p, void *q)
     /* If p is not inside a valid object, then either q is      */
     /* also outside any valid object, or it is outside          */
     /* [base, limit).                                           */
-    if ((word)q >= (word)limit || (word)q < (word)base) {
+    if ((ptr_t)q >= limit || (ptr_t)q < base) {
         goto fail;
     }
     return(p);
@@ -102,7 +101,8 @@ fail:
 
 STATIC void GC_CALLBACK GC_default_is_valid_displacement_print_proc (void *p)
 {
-    ABORT_ARG1("GC_is_valid_displacement test failed", ": %p not valid", p);
+    GC_err_printf("%p does not point to valid object displacement\n", p);
+    ABORT("GC_is_valid_displacement test failed");
 }
 
 void (GC_CALLBACK *GC_is_valid_displacement_print_proc)(void *) =
@@ -122,7 +122,7 @@ GC_API void * GC_CALL GC_is_valid_displacement(void *p)
     struct hblk *h;
     word sz;
 
-    if (!EXPECT(GC_is_initialized, TRUE)) GC_init();
+    if (!GC_is_initialized) GC_init();
     hhdr = HDR((word)p);
     if (hhdr == 0) return(p);
     h = HBLKPTR(p);
@@ -138,9 +138,9 @@ GC_API void * GC_CALL GC_is_valid_displacement(void *p)
     sz = hhdr -> hb_sz;
     pdispl = HBLKDISPL(p);
     offset = pdispl % sz;
-    if ((sz > MAXOBJBYTES && (word)p >= (word)h + sz)
+    if ((sz > MAXOBJBYTES && (ptr_t)p >= (ptr_t)h + sz)
         || !GC_valid_offsets[offset]
-        || (word)p - offset + sz > (word)(h + 1)) {
+        || (ptr_t)p - offset + sz > (ptr_t)(h + 1)) {
         goto fail;
     }
     return(p);
@@ -151,7 +151,8 @@ fail:
 
 STATIC void GC_CALLBACK GC_default_is_visible_print_proc(void * p)
 {
-    ABORT_ARG1("GC_is_visible test failed", ": %p not GC-visible", p);
+    GC_err_printf("%p is not a GC visible pointer location\n", p);
+    ABORT("GC_is_visible test failed");
 }
 
 void (GC_CALLBACK *GC_is_visible_print_proc)(void * p) =
@@ -161,18 +162,16 @@ void (GC_CALLBACK *GC_is_visible_print_proc)(void * p) =
 /* Could p be a stack address? */
    STATIC GC_bool GC_on_stack(ptr_t p)
    {
-#    ifdef STACK_GROWS_DOWN
-       if ((word)p >= (word)GC_approx_sp()
-           && (word)p < (word)GC_stackbottom) {
-         return(TRUE);
-       }
-#    else
-       if ((word)p <= (word)GC_approx_sp()
-           && (word)p > (word)GC_stackbottom) {
-         return(TRUE);
-       }
-#    endif
-     return(FALSE);
+#       ifdef STACK_GROWS_DOWN
+            if ((ptr_t)p >= GC_approx_sp() && (ptr_t)p < GC_stackbottom) {
+                return(TRUE);
+            }
+#       else
+            if ((ptr_t)p <= GC_approx_sp() && (ptr_t)p > GC_stackbottom) {
+                return(TRUE);
+            }
+#       endif
+        return(FALSE);
    }
 #endif
 
@@ -183,13 +182,13 @@ void (GC_CALLBACK *GC_is_visible_print_proc)(void * p) =
 /* in hard cases.  (This is intended for debugging use with             */
 /* untyped allocations.  The idea is that it should be possible, though */
 /* slow, to add such a call to all indirect pointer stores.)            */
-/* Currently useless for the multi-threaded worlds.                     */
+/* Currently useless for multithreaded worlds.                          */
 GC_API void * GC_CALL GC_is_visible(void *p)
 {
     hdr *hhdr;
 
     if ((word)p & (ALIGNMENT - 1)) goto fail;
-    if (!EXPECT(GC_is_initialized, TRUE)) GC_init();
+    if (!GC_is_initialized) GC_init();
 #   ifdef THREADS
         hhdr = HDR((word)p);
         if (hhdr != 0 && GC_base(p) == 0) {
@@ -223,11 +222,12 @@ GC_API void * GC_CALL GC_is_visible(void *p)
     retry:
             switch(descr & GC_DS_TAGS) {
                 case GC_DS_LENGTH:
-                    if ((word)p - (word)base > descr) goto fail;
+                    if ((word)((ptr_t)p - (ptr_t)base) > (word)descr) goto fail;
                     break;
                 case GC_DS_BITMAP:
-                    if ((word)p - (word)base >= WORDS_TO_BYTES(BITMAP_BITS)
-                        || ((word)p & (sizeof(word) - 1))) goto fail;
+                    if ((word)((ptr_t)p - (ptr_t)base)
+                         >= WORDS_TO_BYTES(BITMAP_BITS)
+                         || ((word)p & (sizeof(word) - 1))) goto fail;
                     if (!(((word)1 << (WORDSZ - ((ptr_t)p - (ptr_t)base) - 1))
                           & descr)) goto fail;
                     break;
@@ -241,8 +241,8 @@ GC_API void * GC_CALL GC_is_visible(void *p)
                     } else {
                       ptr_t type_descr = *(ptr_t *)base;
                       descr = *(word *)(type_descr
-                                        - (descr - (word)(GC_DS_PER_OBJECT
-                                           - GC_INDIR_PER_OBJ_BIAS)));
+                              - (descr - (word)(GC_DS_PER_OBJECT
+                                          - GC_INDIR_PER_OBJ_BIAS)));
                     }
                     goto retry;
             }

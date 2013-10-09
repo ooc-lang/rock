@@ -30,5 +30,3 @@ AO_test_and_set_full(volatile AO_TS_t *addr)
   return oldval? AO_TS_CLEAR : AO_TS_SET;
 }
 #define AO_HAVE_test_and_set_full
-
-/* TODO: Very incomplete.       */

@@ -9,15 +9,10 @@
  * Permission to modify the code and to distribute modified code is granted,
  * provided the above notices are retained, and a notice that the code was
  * modified is included with the above copyright notice.
+ *
+ * Author: Hans-J. Boehm (boehm@parc.xerox.com)
  */
-
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
-#ifndef CORD_BUILD
-# define CORD_BUILD
-#endif
-
+/* Boehm, October 3, 1994 5:19 pm PDT */
 # include "gc.h"
 # include "cord.h"
 # include <stdlib.h>
@@ -290,10 +285,10 @@ CORD CORD_from_fn(CORD_fn fn, void * client_data, size_t len)
             if (c == '\0') goto gen_case;
             buf[i] = c;
         }
-
+        buf[i] = '\0';
         result = GC_MALLOC_ATOMIC(len+1);
         if (result == 0) OUT_OF_MEMORY;
-        memcpy(result, buf, len);
+        strcpy(result, buf);
         result[len] = '\0';
         return((CORD) result);
     }
@@ -354,7 +349,6 @@ CORD CORD_substr_closure(CORD x, size_t i, size_t n, CORD_fn f)
     sa->sa_cord = (CordRep *)x;
     sa->sa_index = i;
     result = CORD_from_fn(f, (void *)sa, n);
-    if (result == CORD_EMPTY) return CORD_EMPTY; /* n == 0 */
     ((CordRep *)result) -> function.header = SUBSTR_HDR;
     return (result);
 }
@@ -441,10 +435,10 @@ CORD CORD_substr_checked(CORD x, size_t i, size_t n)
                 }
                 *p++ = c;
             }
+            *p = '\0';
             result = GC_MALLOC_ATOMIC(n+1);
             if (result == 0) OUT_OF_MEMORY;
-            memcpy(result, buf, n);
-            result[n] = '\0';
+            strcpy(result, buf);
             return(result);
         }
     }
@@ -458,6 +452,11 @@ CORD CORD_substr(CORD x, size_t i, size_t n)
         /* n < 0 is impossible in a correct C implementation, but       */
         /* quite possible  under SunOS 4.X.                             */
     if (i + n > len) n = len - i;
+#   ifndef __STDC__
+      if (i < 0) ABORT("CORD_substr: second arg. negative");
+        /* Possible only if both client and C implementation are buggy. */
+        /* But empirically this happens frequently.                     */
+#   endif
     return(CORD_substr_checked(x, i, n));
 }
 
@@ -570,7 +569,7 @@ int CORD_riter(CORD x, CORD_iter_fn f1, void * client_data)
  * The following functions are concerned with balancing cords.
  * Strategy:
  * Scan the cord from left to right, keeping the cord scanned so far
- * as a forest of balanced trees of exponentially decreasing length.
+ * as a forest of balanced trees of exponentialy decreasing length.
  * When a new subtree needs to be added to the forest, we concatenate all
  * shorter ones to the new tree in the appropriate order, and then insert
  * the result into the forest.
