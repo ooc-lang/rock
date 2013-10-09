@@ -1,7 +1,7 @@
 BASE64_CHARS := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
 Base64Error: class extends Exception {
-    init: func ~base64 (.message) {
+    init: func (.message) {
         super(message)
     }
 }
