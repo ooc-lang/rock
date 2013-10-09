@@ -25,9 +25,7 @@ Coro: class {
     }
 
     startCoro: func (other: This, callback: Func) {
-        allocdStack: Char[DEFAULT_STACK_SIZE]
-        other stack = allocdStack
-        
+        other allocStackIfNeeded()
         other setup(this, ||
             callback()
             "Scheduler error: returned from coro start function" println(stderr)
@@ -51,11 +49,17 @@ Coro: class {
         swapcontext(env&, next env&)
     }
 
+    allocStackIfNeeded: func {
+        if (!stack) {
+            stack = gc_malloc(DEFAULT_STACK_SIZE)
+        }
+    }
+
 }
 
 /* ------ C interfacing ------- */
 
-include ucontext
+include ucontext | (_XOPEN_SOURCE=600)
 
 StackT: cover from stack_t {
     stackPointer: extern(ss_sp) Pointer
@@ -72,3 +76,4 @@ getcontext: extern func (ucp: UContext*) -> Int
 setcontext: extern func (ucp: UContext*) -> Int
 makecontext: extern func (ucp: UContext*, _func: Pointer, argc: Int, ...)
 swapcontext: extern func (oucp: UContext*, ucp: UContext*) -> Int
+
