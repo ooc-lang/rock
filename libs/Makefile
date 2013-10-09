@@ -1,3 +1,4 @@
+.PHONY: all clean
 
 # try to determine the OS and architecture
 MYOS := $(shell uname -s)
@@ -85,4 +86,8 @@ ifeq (${UNIARCH},win)
 	mkdir -p ../bin
 	cp -f sources/.libs/libgc-1.dll ../bin/
 endif
+
+clean:
+	cd sources && $(MAKE) clean
+	cd sources/libatomic_ops && $(MAKE) clean
 

@@ -39,6 +39,9 @@ prepare_bootstrap:
 boehmgc:
 	cd libs && $(MAKE) LIBGC_FORCE_COMPILE=${LIBGC_FORCE_COMPILE}
 
+boehmgc-clean:
+	cd libs && $(MAKE) clean
+
 # For c-source based rock releases, 'make bootstrap' will compile a version
 # of rock from the C sources in build/, then use that version to re-compile itself
 bootstrap: boehmgc 
