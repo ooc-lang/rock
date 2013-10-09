@@ -24,12 +24,12 @@
 
 /*
  * This implements standard-conforming allocators that interact with
- * the garbage collector.  Gc_allocator<T> allocates garbage-collectible
+ * the garbage collector.  Gc_alloctor<T> allocates garbage-collectable
  * objects of type T.  Traceable_allocator<T> allocates objects that
  * are not themselves garbage collected, but are scanned by the
- * collector for pointers to collectible objects.  Traceable_alloc
+ * collector for pointers to collectable objects.  Traceable_alloc
  * should be used for explicitly managed STL containers that may
- * point to collectible objects.
+ * point to collectable objects.
  *
  * This code was derived from an earlier version of the GNU C++ standard
  * library, which itself was derived from the SGI STL implementation.

@@ -22,8 +22,8 @@
 /* Eventually this one may become unnecessary.  For now we need */
 /* it to keep the old-style build process working.              */
 #define GC_TMP_VERSION_MAJOR 7
-#define GC_TMP_VERSION_MINOR 3
-#define GC_TMP_ALPHA_VERSION 3 /* 7.3alpha3 */
+#define GC_TMP_VERSION_MINOR 2
+#define GC_TMP_ALPHA_VERSION GC_NOT_ALPHA
 
 #ifndef GC_NOT_ALPHA
 # define GC_NOT_ALPHA 0xff
@@ -34,7 +34,7 @@
      || GC_TMP_VERSION_MINOR != GC_VERSION_MINOR \
      || defined(GC_ALPHA_VERSION) != (GC_TMP_ALPHA_VERSION != GC_NOT_ALPHA) \
      || (defined(GC_ALPHA_VERSION) && GC_TMP_ALPHA_VERSION != GC_ALPHA_VERSION)
-#   error Inconsistent version info.  Check README, include/gc_version.h and configure.ac.
+#   error Inconsistent version info.  Check doc/README, include/gc_version.h, and configure.ac.
 # endif
 #else
 # define GC_VERSION_MAJOR GC_TMP_VERSION_MAJOR
