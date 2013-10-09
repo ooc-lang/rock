@@ -3,19 +3,19 @@ import os/Coro
 mainCoro := Coro new()
 mainCoro initializeMainCoro()
 
-coro1 := Coro new()
+letter: Char
 
+coro1 := Coro new()
 mainCoro startCoro(coro1, ||
-    coro1 switchTo(mainCoro)
-    arr := ["Hello", "from", "coro1"]
-    for (i in 0..arr length) {
-        arr[i] println()
+    for (c in "LLAMACORE") {
+        letter = c
         coro1 switchTo(mainCoro)
     }
+    exit(0)
 )
 
-for (i in 0..3) {
-    "> " print()
+while(true) {
+    "%c" printfln(letter)
     mainCoro switchTo(coro1)
 }
 
