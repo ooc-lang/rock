@@ -1,4 +1,44 @@
 
+## 0.9.7 release (2013-10-09)
+
+  - Author names have been removed from all source files, to encourage contributions
+    rather than false ownership. The AUTHORS.md file still contains all contributor names.
+  - Improved backtrace and error condition reporting, with unmangling and pretty printing
+    on OSX, Linux, and Windows. Can be found in extensions/, made with `make extensions`,
+    loaded as a dynamic library if found.
+  - Debug and production profile choosable with -pg and -pr, debug is now the default
+  - New module: os/Dynlib for dynamic library loading
+  - New methods: Thread yield(), Thread currentThread(), Thread isAlive?(), Thread wait~timed()
+  - Fixed UDPSocket and all other socket stuff, cross-platform again.
+  - Fixed line numbers on Windows.
+  - Add closest match when we can't resolve a call (better error reporting)
+  - Fix weird case of additional imports that shouldn't have been needed (resolving fix)
+  - Translate `__bang` and `__quest` back into `?` and `!` in rock error messages
+  - Improve error reporting inside blocks and all braced constructs (e.g. scopes)
+  - Color error output by default
+  - Add CString println()
+  - Add non-blocking I/O for pipes
+  - New PipeReader and PipeWriter implementations, extending io/Reader and io/Writer
+  - Fix BufferWriter
+  - Add a bunch of tests in test/
+  - Fix Windows 64-bit support, both in sequence and make drivers
+  - Link the GC dynamically on Windows, still not resolved that threading issue.
+  - Make ArrayList and ArrayListIterator safer (check out of bounds operations more
+    thoroughly)
+  - File getAbsolutePath() now returns the case-sensitive path on Windows
+  - Empty cases in merge no longer make rock crash
+  - Allow octal sequences that don't start with 0 in EscapeSequence
+  - Force standard main prototype
+  - Fix `>>=` and `<<=` operators
+  - New method: File rebase()
+  - mkdirs() now applies mode to all subdirectories created
+  - Fix generic type name issue (#693)
+  - Add abs function in math
+  - Avoid huge memory leak with repeated clear in structs/HashMap
+  - match now evaluates its condition only once, no matter the number of cases,
+    avoiding undesired side effects.
+  - Avoid entering an infinite loop when trying to be helpful about compiler errors.
+
 ## 0.9.6 release (2013-02-20)
 
   - Cover templates are in! Planning for cleaner arrays in 0.9.7 - in the meantime,
