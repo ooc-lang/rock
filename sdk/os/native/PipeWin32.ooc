@@ -108,8 +108,8 @@ WriteFile:     extern func (hFile: Handle, buffer: Pointer, numberOfBytesToWrite
 CloseHandle:   extern func (handle: Handle) -> Bool
 SetNamedPipeHandleState: extern func (handle: Handle, mode: Long*, maxCollectionCount: Long*, collectDataTimeout: Long*)
 
-PIPE_WAIT, PIPE_NOWAIT: Long
-ERROR_NO_DATA: Long
+PIPE_WAIT, PIPE_NOWAIT: extern Long
+ERROR_NO_DATA: extern Long
 
 SecurityAttributes: cover from SECURITY_ATTRIBUTES {
     length: extern(nLength) Int
