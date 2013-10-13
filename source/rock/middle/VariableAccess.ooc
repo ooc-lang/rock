@@ -402,7 +402,7 @@ VariableAccess: class extends Expression {
             }
             if(res params veryVerbose) {
                 "     - access to %s%s still not resolved, looping (ref = %s)" printfln(\
-                expr ? (expr toString() + "->")  : "", ref ? ref toString() : "(nil)")
+                expr ? (expr toString() + "->")  : "", prettyName, ref ? ref toString() : "(nil)")
             }
             res wholeAgain(this, "Couldn't resolve varacc")
         }
