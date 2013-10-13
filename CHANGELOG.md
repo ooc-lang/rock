@@ -1,4 +1,8 @@
 
+## 0.9.7a release (2013-10-14)
+
+  - Fix Win32 build, some extern variables were in fact not.
+
 ## 0.9.7 release (2013-10-09)
 
   - Author names have been removed from all source files, to encourage contributions
