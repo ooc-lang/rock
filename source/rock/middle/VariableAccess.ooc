@@ -13,9 +13,9 @@ import os/[System, Time], rock/RockVersion, rock/frontend/Target
 
 VariableAccess: class extends Expression {
 
-    _warned := false    
+    _warned := false
     _staticFunc : FunctionDecl = null
-    
+
     expr: Expression {
         get
         set (newExpr) {
@@ -25,9 +25,9 @@ VariableAccess: class extends Expression {
             }
         }
     }
-    
+
     reverseExpr: VariableAccess
-    
+
     /** Name of the variable being accessed. */
     name: String
 
@@ -36,6 +36,8 @@ VariableAccess: class extends Expression {
     } }
 
     ref: Declaration
+
+    funcTypeDone := false
 
     init: func ~variableAccess (.name, .token) {
         init(null, name, token)
@@ -135,7 +137,7 @@ VariableAccess: class extends Expression {
         }
     }
 
-    isResolved: func -> Bool { ref != null && getType() != null }
+    isResolved: func -> Bool { ref != null && getType() != null && funcTypeDone }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
@@ -288,7 +290,9 @@ VariableAccess: class extends Expression {
                 ] as ArrayList<VariableAccess>
 
                 closureType: FuncType = null
-
+                if (debugCondition() || res params veryVerbose) {
+                    "[funcTypeDone] doing our business for %s. parent = %s" printfln(toString(), parent toString())
+                }
 
                 if (parent instanceOf?(FunctionCall)) {
                     /*
@@ -302,7 +306,7 @@ VariableAccess: class extends Expression {
                     fCall := parent as FunctionCall
                     ourIndex := fCall args indexOf(this)
 
-                    if (!fCall isResolved()) {
+                    if (fCall refScore < -1) {
                         res wholeAgain(this, "waiting for parent function call to be resolved, to know if we should transform a functype access")
                         return Response OK
                     }
@@ -311,14 +315,19 @@ VariableAccess: class extends Expression {
                     // 2.) If ref is not a FDecl, it's probably
                     // already "closured" and doesn't need to be wrapped a second time
                     if (!fDecl isExtern() && ref instanceOf?(FunctionDecl)) {
-			if(fDecl args size <= ourIndex) {
-			    res wholeAgain(this, "bad index for ref")
-			    return Response OK
-			}
+                        if(fDecl args size <= ourIndex) {
+                            res wholeAgain(this, "bad index for ref")
+                            return Response OK
+                        }
                         closureType = fDecl args get(ourIndex) getType()
-		    }
+                    } else {
+                        if (debugCondition() || res params veryVerbose) {
+                            "[funcTypeDone] for %s, in an extern C function, all good" printfln(toString())
+                        }
+                        funcTypeDone = true
+                    }
 
-                } elseif (parent instanceOf?(BinaryOp)) {
+                } else if (parent instanceOf?(BinaryOp)) {
                     binOp := parent as BinaryOp
                     if(binOp isAssign() && binOp getRight() == this) {
                         if(binOp getLeft() getType() == null) {
@@ -327,12 +336,12 @@ VariableAccess: class extends Expression {
                         }
                         closureType = binOp getLeft() getType() clone()
                     }
-                } elseif (parent instanceOf?(Return)) {
+                } else if (parent instanceOf?(Return)) {
                     fIndex := trail find(FunctionDecl)
                     if (fIndex != -1) {
                         closureType = trail get(fIndex, FunctionDecl) returnType clone()
                     }
-                } elseif (parent instanceOf?(VariableDecl)) {
+                } else if (parent instanceOf?(VariableDecl)) {
                     /*
                     Handle the assignment of a first-class function.
                     Example:
@@ -352,14 +361,41 @@ VariableAccess: class extends Expression {
                     }
                 }
 
-                if (closureType && closureType instanceOf?(FuncType)) {
-                    fType isClosure = true
-                    closure := StructLiteral new(closureType, closureElements, token)
-                    if(!trail peek() replace(this, closure)) {
-                        res throwError(CouldntReplace new(token, this, closure, trail))
+                if (closureType) {
+                    if (closureType instanceOf?(FuncType)) {
+                        fType isClosure = true
+                        closure := StructLiteral new(closureType, closureElements, token)
+                        if(trail peek() replace(this, closure)) {
+                            if (debugCondition() || res params veryVerbose) {
+                                "[funcTypeDone] replaced %s with closure %s" printfln(toString(), closure toString())
+                            }
+                            funcTypeDone = true
+                        } else {
+                            res throwError(CouldntReplace new(token, this, closure, trail))
+                        }
+                    } else {
+                        if (debugCondition() || res params veryVerbose) {
+                            "[funcTypeDone] nothing to do for %s (closureType = %s)" printfln(toString(), closureType toString())
+                        }
+                        // probably a pointer, nothing to do here
+                        funcTypeDone = true
+                    }
+                } else {
+                    if (debugCondition() || res params veryVerbose) {
+                        "[funcTypeDone] can't find closureType for %s" printfln(toString())
                     }
                 }
+            } else {
+                if (debugCondition() || res params veryVerbose) {
+                    "[funcTypeDone] nothing to do for %s (already a closure)" printfln(toString())
+                }
+                // already a closure
+                funcTypeDone = true
             }
+
+        } else {
+            // not even a func type
+            funcTypeDone = true
         }
 
         // Simple property access? Replace myself with a getter call.
@@ -411,7 +447,7 @@ VariableAccess: class extends Expression {
                             format(reverseExpr prettyName, _staticFunc prettyName)
                     ))
                 }
-                
+
                 if(res params veryVerbose) {
                     println("trail = " + trail toString())
                 }
