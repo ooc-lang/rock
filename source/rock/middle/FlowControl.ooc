@@ -5,14 +5,12 @@ import tinker/[Trail, Resolver, Response, Errors]
 FlowAction: enum {
     _break
     _continue
-}
 
-extend FlowAction {
     toString: func -> String {
         match(this) {
-            case _break     => "break"
-            case _continue  => "continue"
-            case            => "no-op"
+            case This _break     => "break"
+            case This _continue  => "continue"
+            case                 => "no-op"
         }
     }
 }
@@ -43,6 +41,10 @@ FlowControl: class extends Statement {
         }
 
         Response OK
+    }
+
+    toString: func -> String {
+        action toString()
     }
 }
 
