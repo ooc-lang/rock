@@ -727,8 +727,11 @@ FunctionCall: class extends Expression {
                     "Determined return type of %s (whose ref rt is %s) to be %s" printfln(toString(), ref getReturnType() toString(), returnType toString())
                     if(expr) "expr = %s, type = %s" printfln(expr toString(), expr getType() ? expr getType() toString() : "(nil)")
                 }
-                res wholeAgain(this, "because of return type")
-                return Response OK
+
+                if (!res fatal) {
+                    res wholeAgain(this, "returnType has just been determined, might need more rounds.")
+                    return Response OK
+                }
             }
         }
 
@@ -1368,7 +1371,7 @@ FunctionCall: class extends Expression {
     }
 
     toString: func -> String {
-        (expr ? expr toString() + " " : "") + (ref ? ref getName() : name) + getArgsRepr()
+        (expr ? expr toString() + " " : "") + (ref ? ref prettyName : this prettyName) + getArgsRepr()
     }
 
     replace: func (oldie, kiddo: Node) -> Bool {

@@ -17,4 +17,8 @@ While: class extends Conditional {
 
     isDeadEnd: func -> Bool { false }
 
+    toString: func -> String {
+        "while (%s)" format(condition toString())
+    }
+
 }

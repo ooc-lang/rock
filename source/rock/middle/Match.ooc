@@ -174,19 +174,24 @@ Match: class extends Expression {
                             ass := BinaryOp new(acc, cast, OpType ass, caseToken)
                             caze addAfter(vDecl, ass)
                         } else {
-                            fCall := FunctionCall new(expr, "matches__quest", caseToken)
-                            fCall args add(caze getExpr())
-                            hmm := fCall resolve(trail, res)
-                            if(fCall getRef() != null) {
-                                returnType := fCall getRef() getReturnType() getName()
-                                if(returnType != "Bool")
-                                    res throwError(WrongMatchesSignature new(expr token, "matches? returns a %s, but it should return a Bool" format(returnType)))
-                                caze setExpr(fCall)
-                            } else {
-                                if (caze getExpr() instanceOf?(BinaryOp)) {
-                                    unwrapBinaryOpCase(caze)
+                            // try to use 'matches?' but only if we're not in the fatal round,
+                            // otherwise we'll get misleading errors.
+                            if (!res fatal) {
+                                fCall := FunctionCall new(expr, "matches__quest", caseToken)
+                                fCall args add(caze getExpr())
+
+                                hmm := fCall resolve(trail, res)
+                                if(fCall getRef() != null) {
+                                    returnType := fCall getRef() getReturnType() getName()
+                                    if(returnType != "Bool")
+                                        res throwError(WrongMatchesSignature new(expr token, "matches? returns a %s, but it should return a Bool" format(returnType)))
+                                    caze setExpr(fCall)
                                 } else {
-                                    caze setExpr(Comparison new(expr, caze getExpr(), CompType equal, caseToken))
+                                    if (caze getExpr() instanceOf?(BinaryOp)) {
+                                        unwrapBinaryOpCase(caze)
+                                    } else {
+                                        caze setExpr(Comparison new(expr, caze getExpr(), CompType equal, caseToken))
+                                    }
                                 }
                             }
                         }
@@ -310,7 +315,9 @@ Match: class extends Expression {
 
     getType: func -> Type { type }
 
-    toString: func -> String { class name }
+    toString: func -> String {
+        "match (%s)" format(expr toString())
+    }
 
 }
 
