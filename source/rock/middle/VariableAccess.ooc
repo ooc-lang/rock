@@ -359,6 +359,12 @@ VariableAccess: class extends Expression {
                             return Response OK
                         }
                     }
+                } else {
+                    // we're probably fine
+                    if (debugCondition() || res params veryVerbose) {
+                        "[funcTypeDone] %s not in a known suspect parent, probably good" printfln(toString())
+                    }
+                    funcTypeDone = true
                 }
 
                 if (closureType) {
