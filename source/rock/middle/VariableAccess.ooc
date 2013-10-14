@@ -137,6 +137,11 @@ VariableAccess: class extends Expression {
         }
     }
 
+    refresh: func {
+        // need to check again if our parent has changed
+        funcTypeDone = false
+    }
+
     isResolved: func -> Bool { ref != null && getType() != null && funcTypeDone }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
