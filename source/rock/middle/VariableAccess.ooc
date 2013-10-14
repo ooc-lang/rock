@@ -139,8 +139,12 @@ VariableAccess: class extends Expression {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
+        if (isResolved()) {
+            return Response OK
+        }
+
         if(debugCondition()) {
-            "%s is of type %s" printfln(prettyName, getType() ? getType() toString() : "(nil)")
+            "resolve(%s). inferred type = %s" printfln(prettyName, getType() ? getType() toString() : "(nil)")
         }
 
         // resolve built-ins first

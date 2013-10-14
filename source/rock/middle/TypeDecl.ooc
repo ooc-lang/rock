@@ -317,10 +317,6 @@ TypeDecl: abstract class extends Declaration {
                 if(!call) return fDecl
                 score := call getScore(fDecl)
                 if(call debugCondition()) "Considering fDecl %s for fCall %s, score = %d\n" format(fDecl toString(), call toString(), score) println()
-                if(score == -1) {
-                    finalScore = -1 // special score that means "something isn't resolved"
-                    return null
-                }
 
                 if(score > bestScore) {
                     bestScore = score
@@ -690,11 +686,14 @@ TypeDecl: abstract class extends Declaration {
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
 
         if(access debugCondition()) {
-            "Resolving access %s. isMeta = %s\n" format(access toString(), isMeta toString()) println()
+            "resolveAccess(%s) in %s. isMeta = %s" format(access toString(), toString(), isMeta toString()) println()
         }
 
         // don't allow to resolve any access before finishing ghosting
         if(!_finishedGhosting) {
+            if (access debugCondition()) {
+                "We haven't finished ghosting, abandon access resolution" println()
+            }
             return -1
         }
 
@@ -798,19 +797,10 @@ TypeDecl: abstract class extends Declaration {
                 // if fatal and because of us, there could be two reasons
                 // the first one is that we have invalid arguments (like the empty array lit), so we check that
                 call checkArgumentValidity(res)
-                // if the arguments are all valid, then it means that the error is somewhere in the definition
-                // so we resolve ourselves to get a meaningful error message
-                // instead of getting a cryptic error on the call-side (like, 'No such function blah'
-                // where clearly such a function exists)
 
-                if (trail indexOf(this) == -1) {
-                    // we're not in the trail yet, all good
-                    resolve(trail, res)
-                } else {
-                    return -1 // we don't want to enter a loop
-                }
+                // if the arguments are all valid, then it means that the error is somewhere in the definition
+                // so we avoid throwing any error here, but rather let the definition throw something itself.
             }
-            return -1 // something's not resolved
         }
         if(fDecl) {
             if(call debugCondition()) "    \\o/ Found fDecl for %s, it's %s" format(call name, fDecl toString()) println()

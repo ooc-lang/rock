@@ -234,8 +234,6 @@ Module: class extends Node {
 
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
 
-        //printf("Looking for %s in %s\n", access toString(), toString())
-
         resolveAccessNonRecursive(access, res, trail)
         if (access ref) return 0
 
@@ -255,6 +253,10 @@ Module: class extends Node {
     }
 
     resolveAccessNonRecursive: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
+
+        if (access debugCondition()) {
+            "resolveAccess(%s) in %s" printfln(access toString(), toString())
+        }
 
         ref := null as Declaration
 

@@ -178,21 +178,19 @@ FunctionCall: class extends Expression {
         }
 
         score := getScore(candidate)
-        if(score == -1) {
-            if(debugCondition()) "** Score = -1! Aboort" println()
-            if(res fatal) {
-                // check our arguments are all right
-                checkArgumentValidity(res)
-                // trigger a resolve on the candidate so that it'll display a more helpful error
-                candidate resolve(trail, res)
-            }
-            return false
-        }
-
         if(score > refScore) {
             if(debugCondition()) "** New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
             refScore = score
             ref = candidate
+
+            if(score == -1) {
+                if(debugCondition()) "** Score = -1! Aboort" println()
+                if(res fatal) {
+                    // check our arguments are all right
+                    checkArgumentValidity(res)
+                }
+                return false
+            }
 
             // todo: optimize that. not all of this needs to happen in many cases
             if(argsBeforeConversion) {
@@ -322,6 +320,13 @@ FunctionCall: class extends Expression {
          */
         if(refScore <= 0) {
             if(debugCondition()) "\n===============\nResolving call %s" printfln(toString())
+
+            if (res fatal && refScore == -1) {
+                // something went wrong somewhere else
+                res wholeAgain(this, "waiting on some FunctionDecl to resolve.")
+                return Response OK
+            }
+
             if(name == "super") {
                 fDecl := trail get(trail find(FunctionDecl), FunctionDecl)
                 superTypeDecl := fDecl owner getSuperRef()
@@ -432,6 +437,9 @@ FunctionCall: class extends Expression {
         }
 
         if(returnType) {
+            if (debugCondition()) {
+                "returnType for %s is %s, re-resolving it just to make sure" printfln(toString(), returnType toString())
+            }
             response := returnType resolve(trail, res)
             if(!response ok()) return response
 
@@ -449,6 +457,12 @@ FunctionCall: class extends Expression {
 
             // Still no match, and in the fatal round? Throw an error.
             if(res fatal) {
+                if (refScore == -1) {
+                    // something went wrong somewhere else
+                    res wholeAgain(this, "waiting on some FunctionDecl to resolve.")
+                    return Response OK
+                }
+
                 message := "No such function"
                 if(expr == null) {
                     message = "No such function %s%s" format(prettyName, getArgsTypesRepr())
@@ -710,6 +724,9 @@ FunctionCall: class extends Expression {
                     res throwError(InternalError new(token, "Not enough info to resolve return type %s of function call\n" format(ref returnType toString())))
                 }
             } else {
+                if (debugCondition()) {
+                    "ref returnType is not generic, cloning and resolving the clone" println()
+                }
                 returnType = ref returnType clone()
                 returnType resolve(trail, res)
             }
@@ -740,7 +757,9 @@ FunctionCall: class extends Expression {
             return Response LOOP
         }
 
-        //"At the end of resolveReturnType(), the return type of %s is %s" format(toString(), getType() ? getType() toString() : "(nil)") println()
+        if (debugCondition()) {
+            "At the end of resolveReturnType(), the return type of %s is %s" printfln(toString(), getType() ? getType() toString() : "(nil)")
+        }
         return Response OK
 
     }
@@ -960,6 +979,9 @@ FunctionCall: class extends Expression {
         }
 
         for(typeArg in typeArgs) {
+            if (debugCondition()) {
+                "In %s, resolving typeArg %s" printfln(toString(), typeArg toString())
+            }
             response := typeArg resolve(trail, res)
             if(!response ok()) {
                 if(res fatal) res throwError(InternalError new(token, "Couldn't resolve typeArg %s in call %s" format(typeArg toString(), toString())))
