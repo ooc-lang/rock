@@ -143,30 +143,44 @@ VariableAccess: class extends Expression {
             return Response OK
         }
 
-        if(debugCondition()) {
-            "resolve(%s). inferred type = %s" printfln(prettyName, getType() ? getType() toString() : "(nil)")
+        if(debugCondition() || res params veryVerbose) {
+            "Access#resolve(%s). inferred type = %s" printfln(prettyName, getType() ? getType() toString() : "(nil)")
+        }
+
+        if(expr) {
+            trail push(this)
+            if (res params veryVerbose) {
+                "Resolving expr %s for %s." printfln(expr toString(), toString())
+            }
+
+            response := expr resolve(trail, res)
+            trail pop(this)
+            if(!response ok()) {
+                return response
+            }
+
+            // don't go further until we know our expr is resolved
+            if (!expr isResolved()) {
+                res wholeAgain(this, "Waiting on our expr to resolve...")
+                return Response OK
+            }
         }
 
         // resolve built-ins first
-        builtin := getBuiltin(name)
-        if (builtin) {
-            if(!trail peek() replace(this, builtin)) {
-                res throwError(CouldntReplace new(token, this, builtin, trail))
+        if (!expr) {
+            builtin := getBuiltin(name)
+            if (builtin) {
+                if(!trail peek() replace(this, builtin)) {
+                    res throwError(CouldntReplace new(token, this, builtin, trail))
+                }
+                res wholeAgain(this, "builtin replaced")
+                return Response OK
             }
-            res wholeAgain(this, "builtin replaced")
-            return Response OK
         }
 
         trail onOuter(FunctionDecl, |fDecl|
             if(fDecl isStatic()) _staticFunc = fDecl
         )
-
-        if(expr) {
-            trail push(this)
-            response := expr resolve(trail, res)
-            trail pop(this)
-            if(!response ok()) return response
-        }
 
         if(expr && name == "class") {
             if(expr getType() == null || expr getType() getRef() == null) {
@@ -184,6 +198,11 @@ VariableAccess: class extends Expression {
          * Try to resolve the access from the expr
          */
         if(!ref && expr) {
+            if (!expr isResolved()) {
+                res wholeAgain(this, "waiting for expr to resolve..")
+                return Response OK
+            }
+
             if(expr instanceOf?(VariableAccess) && expr as VariableAccess getRef() != null \
               && expr as VariableAccess getRef() instanceOf?(NamespaceDecl)) {
                 expr as VariableAccess getRef() resolveAccess(this, res, trail)
@@ -282,11 +301,12 @@ VariableAccess: class extends Expression {
                      */
                     fCall := parent as FunctionCall
                     ourIndex := fCall args indexOf(this)
-                    fDecl := fCall getRef()
-                    if(!fDecl) {
-                        res wholeAgain(this, "need ref!")
+
+                    if (!fCall isResolved()) {
+                        res wholeAgain(this, "waiting for parent function call to be resolved, to know if we should transform a functype access")
                         return Response OK
                     }
+                    fDecl := fCall getRef()
                     // 1.) extern C functions don't accept a Closure_struct
                     // 2.) If ref is not a FDecl, it's probably
                     // already "closured" and doesn't need to be wrapped a second time
