@@ -1,6 +1,6 @@
 
 // sdk stuff
-import io/File, os/[Terminal, Process, Pipe]
+import io/File, os/[Terminal, Process, Pipe, Time]
 import structs/[ArrayList, List, Stack]
 import text/StringTokenizer
 
@@ -560,6 +560,13 @@ CommandLine: class {
     postParsing: func (module: Module) {
         first := static true
 
+        parseMs := Time measure(||
+            module parseImports(null)
+        )
+        if (params timing) {
+            "Parsing took %d ms" printfln(parseMs)
+        }
+
         if(params onlyparse) {
             if(params verbose) println()
             // Oookay, we're done here.
@@ -567,21 +574,31 @@ CommandLine: class {
             return
         }
 
-        module parseImports(null)
         if(params verbose) {
             "Resolving..." println()
         }
 
         // phase 2: tinker
-        if(!Tinkerer new(params) process(module collectDeps())) {
-            failure(params)
+        resolveMs := Time measure(||
+            if(!Tinkerer new(params) process(module collectDeps())) {
+                failure(params)
+            }
+        )
+        if (params timing) {
+            "Resolving took %d ms" printfln(resolveMs)
         }
 
         if(params backend == "c") {
             // c phase 3: launch the driver
             if(params driver != null) {
-                code := params driver compile(module)
+                code := 0
+                compileMs := Time measure(||
+                    code = params driver compile(module)
+                )
                 if(code == 0) {
+                    if (params timing) {
+                        "C generation & compiling took %d ms" printfln(compileMs)
+                    }
                     if(params shout) success()
                     if(params run) {
                         // FIXME: that's the driver's job
