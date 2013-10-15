@@ -8,6 +8,7 @@ import SourceFolder
 import rock/RockVersion
 import rock/frontend/[AstBuilder, BuildParams, PathList]
 import rock/middle/[Module, TypeDecl, VariableDecl, FunctionDecl]
+import rock/middle/algo/ImportClassifier
 import rock/backend/cnaughty/ModuleWriter
 
 /**
@@ -242,7 +243,9 @@ Archive: class {
                 }
 
                 trans := false
-                for(imp in ModuleWriter classifyImports(null, module)) {
+
+                ImportClassifier classify(module)
+                for(imp in module getAllImports()) {
                     candidate := imp getModule()
                     if(structuralDirties contains?(candidate)) {
                         debug("%s is dirty because of import %s", module getFullName(),

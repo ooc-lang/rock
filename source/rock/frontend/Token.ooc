@@ -73,7 +73,7 @@ Token: cover {
 
     writeMessage: func (prefix, message, type: String, out: ErrorOutput) {
         if(module == null) {
-            return "From unknown source [%s] %s" format(type, message)
+            out append("From unknown source [%s] %s" format(type, message))
         }
 
         out append("\n")

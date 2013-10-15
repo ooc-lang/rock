@@ -218,18 +218,88 @@ Module: class extends Node {
 
     accept: func (visitor: Visitor) { visitor visitModule(this) }
 
-    /** return global (e.g. non-namespaced) imports */
+    /** @return global (e.g. non-namespaced) imports */
     getGlobalImports: func -> List<Import> { imports }
 
-    /** return all imports, including those in namespaces */
+    /** @return all imports, including those in namespaces */
     getAllImports: func -> List<Import> {
         if (namespaces empty?()) return imports
 
         list := ArrayList<Import> new()
         list addAll(getGlobalImports())
-        for (namespace in namespaces)
+        for (namespace in namespaces) {
             list addAll(namespace getImports())
+        }
         return list
+    }
+
+    eachImport: func (f: Func (Import) -> Bool) {
+        for (imp in imports) {
+            if (!f(imp)) return
+        }
+        for (namespace in namespaces) {
+            for (imp in namespace getImports()) {
+                if (!f(imp)) return
+            }
+        }
+    }
+
+    /**
+     * @return true if this module or one of its dependencies imports `other`
+     */
+    hasLink?: func (other: Module) -> Bool {
+        // might be ourselves, you never know..
+        if (other == this) return true
+
+        found := false
+
+        // search in direct imports first
+        eachImport(|imp|
+            if (imp module == other) {
+                found = true // all good! we're importing it directly.
+                return false // break
+            }
+            true
+        )
+        if (found) return true
+
+        // do a thorough search
+        done := ArrayList<Module> new()
+        todo := ArrayList<Module> new()
+
+        eachImport(|imp|
+            todo add(imp module)
+            true
+        )
+
+        while (!todo empty?()) {
+            module := todo removeAt(0)
+            done add(module)
+            "Doing module %s" printfln(module fullName)
+
+            module eachImport(|imp|
+                if (!imp isTight) {
+                    "Ignoring loose import to %s" printfln(imp module fullName)
+                    return true // continue, only considering tight imports
+                }
+
+                if (imp module == other) {
+                    "Import to %s found!" printfln(imp module fullName)
+                    found = true
+                    return false // break
+                } else if (!done contains?(imp module)) {
+                    "Wrong import, but let's check out its imports." printfln(imp module fullName)
+                    // check it out then
+                    todo add(imp module)
+                }
+
+                true // continue
+            )
+
+            if (found) break // else, keep looking
+        }
+
+        found
     }
 
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {

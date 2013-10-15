@@ -42,7 +42,7 @@ ModuleWriter: abstract class extends Skeleton {
         if(!module types empty?()) current nl()
 
         // write imports' includes
-        imports := classifyImports(this, module)
+        imports := module getAllImports()
         for(imp in imports) {
             inc := imp getModule() getPath("-fwd.h")
             current nl(). app("#include <"). app(inc). app(">")
@@ -256,44 +256,6 @@ ModuleWriter: abstract class extends Skeleton {
 	}
 
         current app(')')
-    }
-
-    /** Classify imports between 'tight' and 'loose' */
-    classifyImports: static func (this: Skeleton, module: Module) -> List<Import> {
-
-        imports := module getAllImports() clone()
-
-        for(selfDecl in module getTypes()) {
-            for(imp in imports) {
-                if(selfDecl getSuperRef() != null && selfDecl getSuperRef() getModule() == imp getModule()) {
-                    // tighten imports of modules which contain classes we extend
-                    imp isTight = true
-                } else if(imp getModule() types getKeys() contains?("Class")) {
-                    // tighten imports of core module
-                    imp isTight = true
-                } else {
-                    for(member in selfDecl getVariables()) {
-                        ref := member getType() getRef()
-                        if(!ref instanceOf?(CoverDecl)) continue
-                        coverDecl := ref as CoverDecl
-                        if(coverDecl getFromType() != null) continue
-                        if(coverDecl getModule() != imp getModule()) continue
-                        // uses compound cover, tightening!
-                        imp isTight = true
-                        continue
-                    }
-                    for(interfaceType in selfDecl interfaceTypes) {
-                        if(interfaceType getRef() as TypeDecl getModule() == imp getModule()) {
-                            imp isTight = true
-                            break
-                        }
-                    }
-                }
-            }
-        }
-
-        imports
-
     }
 
     writeTypesForward: static func (this: Skeleton, module: Module, meta: Bool) {

@@ -21,6 +21,10 @@ TypeDecl: abstract class extends Declaration {
 
     name = "", externName = null, doc = "" : String
 
+    prettyName: String { get {
+      unbangify(name)
+    } }
+
     // generic type args, e.g. the T in List: class <T>
     typeArgs := ArrayList<VariableDecl> new()
 
@@ -241,6 +245,10 @@ TypeDecl: abstract class extends Declaration {
             }
         }
         return null
+    }
+
+    getVariableNonRecursive: func (vName: String) -> VariableDecl {
+        variables get(vName)
     }
 
     getVariable: func (vName: String) -> VariableDecl {
