@@ -275,20 +275,16 @@ Module: class extends Node {
         while (!todo empty?()) {
             module := todo removeAt(0)
             done add(module)
-            "Doing module %s" printfln(module fullName)
 
             module eachImport(|imp|
                 if (!imp isTight) {
-                    "Ignoring loose import to %s" printfln(imp module fullName)
                     return true // continue, only considering tight imports
                 }
 
                 if (imp module == other) {
-                    "Import to %s found!" printfln(imp module fullName)
                     found = true
                     return false // break
                 } else if (!done contains?(imp module)) {
-                    "Wrong import, but let's check out its imports." printfln(imp module fullName)
                     // check it out then
                     todo add(imp module)
                 }
@@ -324,7 +320,7 @@ Module: class extends Node {
 
     resolveAccessNonRecursive: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
 
-        if (access debugCondition()) {
+        if (access debugCondition() || res params veryVerbose) {
             "resolveAccess(%s) in %s" printfln(access toString(), toString())
         }
 
