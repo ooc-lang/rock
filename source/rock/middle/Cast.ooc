@@ -73,21 +73,7 @@ Cast: class extends Expression {
 
                 memcpyCall := FunctionCall new("memcpy", token)
                 memcpyCall args add(VariableAccess new(VariableAccess new(varDecl, token), "data", token))
-
-                if(inner getType() == null) {
-                    res wholeAgain(this, "Unresolved type")
-                    return Response OK
-                }
-
-                if(inner getType() instanceOf?(ArrayType)) {
-                    inner getType() toString() println()
-                    // If we are casting from (ooc) array to array, we need to point to the data of the source ooc data too!
-                    memcpyCall args add(VariableAccess new(inner, "data", token))
-                } else {
-                    // In other cases, just point to our data!
-                    memcpyCall args add(inner)
-                }
-
+                memcpyCall args add(inner)
                 memcpyCall args add(copySize)
 
                 trail addAfterInScope(varDecl, memcpyCall)
