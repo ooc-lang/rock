@@ -57,6 +57,8 @@ Return: class extends Statement {
 
             if(expr getType() == null || !expr getType() isResolved()) {
                 res wholeAgain(this, "expr type is unresolved"); return Response OK
+            } else if(retType void? && !expr getType() void?) {
+                res throwError(InconsistentReturn new(token, "Can't return a %s in function declared as not returning anything" format(expr getType() toString())))
             }
         } else {
             if (returnArgs empty?() && !retType void?) {
