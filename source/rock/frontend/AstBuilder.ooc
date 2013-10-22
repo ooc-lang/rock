@@ -774,6 +774,13 @@ AstBuilder: class {
         pop(Tuple)
     }
 
+    onRawStringLiteral: unmangled(nq_onRawStringLiteral) func(object: Object) {
+        match object {
+            case sl: StringLiteral => sl raw? = true
+            case => Exception new("Called onRawStringLiteral on invalid type %s" format(object class name)) throw()
+        }
+    }
+
     onStringLiteral: unmangled(nq_onStringLiteral) func (text: CString) -> StringLiteral {
         content := text toString() \
                    replaceAll("\r\n", "\n") \

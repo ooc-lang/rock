@@ -6,7 +6,11 @@ import tinker/[Response, Resolver, Trail, Errors]
 StringLiteral: class extends Literal {
 
     value: String
-    type := static BaseType new("String", nullToken)
+
+    raw? := false
+
+    objectType := static BaseType new("String", nullToken)
+    rawType := static BaseType new("CString", nullToken)
 
     init: func ~stringLiteral (=value, .token) {
         super(token)
@@ -16,7 +20,7 @@ StringLiteral: class extends Literal {
 
     accept: func (visitor: Visitor) { visitor visitStringLiteral(this) }
 
-    getType: func -> Type { type }
+    getType: func -> Type { raw? ? rawType : objectType }
 
     toString: func -> String { "\"" + value + "\"" }
     
@@ -24,26 +28,27 @@ StringLiteral: class extends Literal {
 
         if(!super(trail, res) ok()) return Response LOOP
 
-        // String object handling
-        parent := trail peek()
-        if(parent class != VariableDecl) {
-            {
-                idx := trail find(FunctionDecl)
-                if(idx == -1) return Response OK
-            }
-            
-            vDecl := VariableDecl new(null, generateTempName("strLit"), this, token)
-            vDecl isStatic = true
-            vAcc := VariableAccess new(vDecl, token)
-            
-            trail module() body add(0, vDecl)
-            if(!parent replace(this, vAcc)) {
-                res throwError(CouldntReplace new(token, this, vAcc, trail))
+        if(!raw?) {
+            // String object handling
+            parent := trail peek()
+            if(parent class != VariableDecl) {
+                {
+                    idx := trail find(FunctionDecl)
+                    if(idx == -1) return Response OK
+                }
+                
+                vDecl := VariableDecl new(null, generateTempName("strLit"), this, token)
+                vDecl isStatic = true
+                vAcc := VariableAccess new(vDecl, token)
+                
+                trail module() body add(0, vDecl)
+                if(!parent replace(this, vAcc)) {
+                    res throwError(CouldntReplace new(token, this, vAcc, trail))
+                }
             }
         }
 
         return Response OK
-
     }
 
 }
