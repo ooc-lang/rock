@@ -170,7 +170,7 @@ CGenerator: class extends Skeleton {
 
     /** Write a string literal */
     visitStringLiteral: func (str: StringLiteral) {
-        writeStringLiteral(str value)
+        writeStringLiteral(str value, str raw?)
     }
 
     /** Write a char literal */
