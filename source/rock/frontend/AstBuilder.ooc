@@ -776,11 +776,38 @@ AstBuilder: class {
 
     onRawStringLiteral: unmangled(nq_onRawStringLiteral) func(object: Object) {
         match object {
+            case itpSl: InterpolatedStringLiteral => params errorHandler onError(SyntaxError new(itpSl token, "A string literal cannot be both interpolated with expressions and raw."))
             case sl: StringLiteral => sl raw? = true
             case => Exception new("Called onRawStringLiteral on invalid type %s" format(object class name)) throw()
         }
     }
 
+    onStringLiteralStart: unmangled(nq_onStringLiteralStart) func {
+        stack push(StringLiteral new(token()))
+    }
+
+    onStringInterpolation: unmangled(nq_onStringInterpolation) func(e: Expression) {
+        str := pop(StringLiteral)
+        if(!str instanceOf?(InterpolatedStringLiteral)) {
+            str = InterpolatedStringLiteral new(str)
+        }
+        str as InterpolatedStringLiteral addExpr(e)
+        stack push(str)
+    }
+
+    onStringTextChunck: unmangled(nq_onStringTextChunck) func(chunck: CString) {
+        peek(StringLiteral) value += chunck toString() \
+                                     replaceAll("\r\n", "\n") \
+                                     replaceAll("\n", "\\n") \
+                                     replaceAll("\t", "\\t") \
+                                     replaceAll("\\#{", "\#{")
+    }
+
+    onStringLiteralEnd: unmangled(nq_onStringLiteralEnd) func -> StringLiteral {
+        pop(StringLiteral)
+    }
+
+/*
     onStringLiteral: unmangled(nq_onStringLiteral) func (text: CString) -> StringLiteral {
         content := text toString() \
                    replaceAll("\r\n", "\n") \
@@ -788,6 +815,7 @@ AstBuilder: class {
                    replaceAll("\t", "\\t")
         StringLiteral new(content, token())
     }
+*/
 
     onCharLiteral: unmangled(nq_onCharLiteral) func (value: CString) -> CharLiteral {
         CharLiteral new(value toString(), token())
