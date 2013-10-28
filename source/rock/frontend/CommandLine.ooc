@@ -325,6 +325,8 @@ CommandLine: class {
                             failure(params)
                             null
                     }
+                    params undoTargetSpecific()
+                    params doTargetSpecific()
 
                 } else if (option startsWith?("driver=")) {
 
