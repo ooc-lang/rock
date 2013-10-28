@@ -236,6 +236,10 @@ BuildParams: class {
      * @return the path of the executable that should be produced by rock
      */
     getBinaryPath: func (defaultPath: String) -> String {
+        if (target == Target WIN) {
+            defaultPath = defaultPath + ".exe"
+        }
+
         if (binaryPath == "") {
             checkBinaryNameCollision(defaultPath)
             defaultPath
