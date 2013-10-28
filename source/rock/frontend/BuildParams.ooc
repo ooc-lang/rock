@@ -341,7 +341,7 @@ BuildParams: class {
                 // Incomplete list, see http://git.savannah.gnu.org/cgit/libtool.git/tree/doc/PLATFORMS
                 case targetToken contains?("mingw") =>
                     target = Target WIN
-                case targetToken contains?("darwin") =>
+                case targetToken contains?("apple") =>
                     target = Target OSX
                 case targetToken contains?("linux") =>
                     target = Target LINUX
