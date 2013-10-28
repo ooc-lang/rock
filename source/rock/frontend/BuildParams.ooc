@@ -109,6 +109,12 @@ BuildParams: class {
     // compiler used for producing an executable from the C sources
     compiler := CCompiler new(this)
 
+    // GNU ar program to use
+    ar := "ar"
+
+    // host value for the toolchain, for example 'i586-mingw32msvc'
+    host := ""
+
     // ooc sourcepath (.ooc)
     sourcePath := PathList new()
 
@@ -230,7 +236,7 @@ BuildParams: class {
             stderr write("Naming conflict (output binary) : There is already a directory called %s.\nTry a different name, e.g. '-o=%s2'\n" format(name, name))
             CommandLine failure(this)
         }
-    } 
+    }
 
     /**
      * @return the path of the executable that should be produced by rock
@@ -284,6 +290,73 @@ BuildParams: class {
             case Target WIN =>
                 // on Windows, for multi-threaded apps, the GC needs to be dynamically linked
                 dynGC = true
+            case Target OSX =>
+                // on OSX, make universal binaries
+                arch = "universal"
+        }
+    }
+
+    getArch: func -> String {
+        if (arch == "") {
+            Target getArch()
+        } else {
+            arch
+        }
+    }
+
+    // adjust consequences of high level parameters like profile, host, etc.
+    bake: func {
+        match profile {
+            case Profile DEBUG =>
+                // don't clean on debug
+                clean = false
+                // define debug symbol
+                defineSymbol(This DEBUG_DEFINE)
+            case Profile RELEASE =>
+                // optimize on release
+                optimization = OptimizationLevel Os
+        }
+
+        if (host != "") {
+            tokens := host split('-')
+            if (tokens size < 2) {
+                "[ERROR] invalid host value: %s" printfln(host)
+                CommandLine failure(this)
+            }
+
+            (archToken, targetToken) := (tokens[0], tokens[1])
+
+            match {
+                case archToken contains?("64") =>
+                    arch = "64"
+                case archToken contains?("86") =>
+                    arch = "32"
+            }
+
+            match {
+                // Incomplete list, see http://git.savannah.gnu.org/cgit/libtool.git/tree/doc/PLATFORMS
+                case targetToken contains?("mingw") =>
+                    target = Target WIN
+                case targetToken contains?("darwin") =>
+                    target = Target OSX
+                case targetToken contains?("linux") =>
+                    target = Target LINUX
+                case targetToken contains?("freebsd") =>
+                    target = Target FREEBSD
+                case targetToken contains?("netbsd") =>
+                    target = Target NETBSD
+                case targetToken contains?("openbsd") =>
+                    target = Target OPENBSD
+                case targetToken contains?("solaris") =>
+                    target = Target SOLARIS
+            }
+
+            undoTargetSpecific()
+            doTargetSpecific()
+
+            prefix := host + "-"
+            compiler setExecutable(prefix + compiler executableName)
+            ar = prefix + ar
         }
     }
 

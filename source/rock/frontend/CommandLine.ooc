@@ -368,10 +368,15 @@ CommandLine: class {
                     Help printHelp()
                     exit(0)
 
-                } else if(option startsWith?("cc=")) {
+                } else if (option startsWith?("cc=")) {
 
                     if(!longOption) warnUseLong("cc")
                     params compiler setExecutable(option substring(3))
+
+                } else if (option startsWith?("host=")) {
+
+                    host := option substring("host=" length())
+                    params host = host
 
                 } else if (option startsWith?("gcc")) {
 
@@ -459,16 +464,7 @@ CommandLine: class {
             }
         }
 
-        match (params profile) {
-            case Profile DEBUG =>
-                // don't clean on debug
-                params clean = false
-                // define debug symbol
-                params defineSymbol(BuildParams DEBUG_DEFINE)
-            case Profile RELEASE =>
-                // optimize on release
-                params optimization = OptimizationLevel Os
-        }
+        params bake()
 
         if(modulePaths empty?()) {
             if (alreadyDidSomething) {

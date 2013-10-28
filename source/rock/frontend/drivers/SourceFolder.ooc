@@ -43,7 +43,7 @@ SourceFolder: class {
 
         // example: .libs/foo-win32.a
         target := params target
-        arch := params arch equals?("") ? Target getArch() : params arch
+        arch := params getArch()
         archivePath := "%s-%s.a" format(identifier, Target toString(target, arch))
         outlib = File new(params libcachePath, archivePath) path
 

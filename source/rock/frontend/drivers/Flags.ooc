@@ -224,7 +224,14 @@ Flags: class {
             addCompilerFlag("-I" + libsHeaders)
 
             target := params target
-            arch := params arch equals?("") ? Target getArch() : params arch
+            arch := params getArch()
+            match arch {
+                case "32" =>
+                    addCompilerFlag("-m32")
+                case "64" =>
+                    addCompilerFlag("-m64")
+            }
+
             libsNativeDir := File new(params distLocation, "libs/%s/" format(Target toString(target, arch))) getPath()
             addCompilerFlag("-L" + libsNativeDir)
 
