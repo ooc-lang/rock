@@ -18,13 +18,13 @@ SourceFolder: class {
 
     // example: foo
     identifier: String
-    
+
     // usually "source", per ooc conventions
     name: String
 
     // typically "$OOC_LIBS/<identifier>/source"
     pathElement: String
-    
+
     // absolute variant of pathElement
     absolutePath: String
 
@@ -34,7 +34,7 @@ SourceFolder: class {
     params: BuildParams
     archive: Archive
     modules := ArrayList<Module> new()
-    
+
     // the UseDef that specified this SourceFolder
     uze: UseDef
 

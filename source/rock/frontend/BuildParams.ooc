@@ -115,6 +115,9 @@ BuildParams: class {
     // host value for the toolchain, for example 'i586-mingw32msvc'
     host := ""
 
+    // compiler flags that should never be used, ever.
+    bannedFlags := ArrayList<String> new()
+
     // ooc sourcepath (.ooc)
     sourcePath := PathList new()
 
@@ -290,6 +293,7 @@ BuildParams: class {
             case Target WIN =>
                 // on Windows, for multi-threaded apps, the GC needs to be dynamically linked
                 dynGC = true
+                bannedFlags add("-pthread")
             case Target OSX =>
                 // on OSX, make universal binaries
                 arch = "universal"

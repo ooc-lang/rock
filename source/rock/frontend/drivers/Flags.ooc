@@ -305,14 +305,21 @@ Flags: class {
         }
     }
 
+    _applyFlags: func (flags: List<String>, command: List<String>) {
+        for (flag in flags) {
+            if (params bannedFlags contains?(flag)) continue
+            command add(flag)
+        }
+    }
+
     apply: func (command: List<String>, link: Bool) {
         if (objects empty?()) {
             Exception new(This, "No objects to compile!") throw()
         }
 
-        command addAll(compilerFlags)
+        _applyFlags(compilerFlags, command)
         if (link) {
-            command addAll(premainFlags)
+            _applyFlags(premainFlags, command)
         } else {
             command add("-c")
         }
@@ -321,7 +328,7 @@ Flags: class {
         command add("-o"). add(outPath)
 
         if (link) {
-            command addAll(linkerFlags)
+            _applyFlags(linkerFlags, command)
         }
     }
   
