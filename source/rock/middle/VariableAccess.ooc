@@ -13,9 +13,9 @@ import os/[System, Time], rock/RockVersion, rock/frontend/Target
 
 VariableAccess: class extends Expression {
 
-    _warned := false    
+    _warned := false
     _staticFunc : FunctionDecl = null
-    
+
     expr: Expression {
         get
         set (newExpr) {
@@ -25,9 +25,9 @@ VariableAccess: class extends Expression {
             }
         }
     }
-    
+
     reverseExpr: VariableAccess
-    
+
     /** Name of the variable being accessed. */
     name: String
 
@@ -36,6 +36,8 @@ VariableAccess: class extends Expression {
     } }
 
     ref: Declaration
+
+    funcTypeDone := false
 
     init: func ~variableAccess (.name, .token) {
         init(null, name, token)
@@ -135,34 +137,57 @@ VariableAccess: class extends Expression {
         }
     }
 
-    isResolved: func -> Bool { ref != null && getType() != null }
+    refresh: func {
+        // need to check again if our parent has changed
+        funcTypeDone = false
+    }
+
+    isResolved: func -> Bool { ref != null && getType() != null && funcTypeDone }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        if(debugCondition()) {
-            "%s is of type %s" printfln(prettyName, getType() ? getType() toString() : "(nil)")
+        if (isResolved()) {
+            return Response OK
+        }
+
+        if(debugCondition() || res params veryVerbose) {
+            "Access#resolve(%s). inferred type = %s" printfln(prettyName, getType() ? getType() toString() : "(nil)")
+        }
+
+        if(expr) {
+            trail push(this)
+            if (res params veryVerbose) {
+                "Resolving expr %s for %s." printfln(expr toString(), toString())
+            }
+
+            response := expr resolve(trail, res)
+            trail pop(this)
+            if(!response ok()) {
+                return response
+            }
+
+            // don't go further until we know our expr is resolved
+            if (!expr isResolved()) {
+                res wholeAgain(this, "Waiting on our expr to resolve...")
+                return Response OK
+            }
         }
 
         // resolve built-ins first
-        builtin := getBuiltin(name)
-        if (builtin) {
-            if(!trail peek() replace(this, builtin)) {
-                res throwError(CouldntReplace new(token, this, builtin, trail))
+        if (!expr) {
+            builtin := getBuiltin(name)
+            if (builtin) {
+                if(!trail peek() replace(this, builtin)) {
+                    res throwError(CouldntReplace new(token, this, builtin, trail))
+                }
+                res wholeAgain(this, "builtin replaced")
+                return Response OK
             }
-            res wholeAgain(this, "builtin replaced")
-            return Response OK
         }
 
         trail onOuter(FunctionDecl, |fDecl|
             if(fDecl isStatic()) _staticFunc = fDecl
         )
-
-        if(expr) {
-            trail push(this)
-            response := expr resolve(trail, res)
-            trail pop(this)
-            if(!response ok()) return response
-        }
 
         if(expr && name == "class") {
             if(expr getType() == null || expr getType() getRef() == null) {
@@ -180,6 +205,11 @@ VariableAccess: class extends Expression {
          * Try to resolve the access from the expr
          */
         if(!ref && expr) {
+            if (!expr isResolved()) {
+                res wholeAgain(this, "waiting for expr to resolve..")
+                return Response OK
+            }
+
             if(expr instanceOf?(VariableAccess) && expr as VariableAccess getRef() != null \
               && expr as VariableAccess getRef() instanceOf?(NamespaceDecl)) {
                 expr as VariableAccess getRef() resolveAccess(this, res, trail)
@@ -265,7 +295,9 @@ VariableAccess: class extends Expression {
                 ] as ArrayList<VariableAccess>
 
                 closureType: FuncType = null
-
+                if (debugCondition() || res params veryVerbose) {
+                    "[funcTypeDone] doing our business for %s. parent = %s" printfln(toString(), parent toString())
+                }
 
                 if (parent instanceOf?(FunctionCall)) {
                     /*
@@ -278,23 +310,29 @@ VariableAccess: class extends Expression {
                      */
                     fCall := parent as FunctionCall
                     ourIndex := fCall args indexOf(this)
-                    fDecl := fCall getRef()
-                    if(!fDecl) {
-                        res wholeAgain(this, "need ref!")
+
+                    if (fCall refScore < -1) {
+                        res wholeAgain(this, "waiting for parent function call to be resolved, to know if we should transform a functype access")
                         return Response OK
                     }
+                    fDecl := fCall getRef()
                     // 1.) extern C functions don't accept a Closure_struct
                     // 2.) If ref is not a FDecl, it's probably
                     // already "closured" and doesn't need to be wrapped a second time
                     if (!fDecl isExtern() && ref instanceOf?(FunctionDecl)) {
-			if(fDecl args size <= ourIndex) {
-			    res wholeAgain(this, "bad index for ref")
-			    return Response OK
-			}
+                        if(fDecl args size <= ourIndex) {
+                            res wholeAgain(this, "bad index for ref")
+                            return Response OK
+                        }
                         closureType = fDecl args get(ourIndex) getType()
-		    }
+                    } else {
+                        if (debugCondition() || res params veryVerbose) {
+                            "[funcTypeDone] for %s, in an extern C function, all good" printfln(toString())
+                        }
+                        funcTypeDone = true
+                    }
 
-                } elseif (parent instanceOf?(BinaryOp)) {
+                } else if (parent instanceOf?(BinaryOp)) {
                     binOp := parent as BinaryOp
                     if(binOp isAssign() && binOp getRight() == this) {
                         if(binOp getLeft() getType() == null) {
@@ -303,12 +341,12 @@ VariableAccess: class extends Expression {
                         }
                         closureType = binOp getLeft() getType() clone()
                     }
-                } elseif (parent instanceOf?(Return)) {
+                } else if (parent instanceOf?(Return)) {
                     fIndex := trail find(FunctionDecl)
                     if (fIndex != -1) {
                         closureType = trail get(fIndex, FunctionDecl) returnType clone()
                     }
-                } elseif (parent instanceOf?(VariableDecl)) {
+                } else if (parent instanceOf?(VariableDecl)) {
                     /*
                     Handle the assignment of a first-class function.
                     Example:
@@ -326,16 +364,49 @@ VariableAccess: class extends Expression {
                             return Response OK
                         }
                     }
+                } else {
+                    // we're probably fine
+                    if (debugCondition() || res params veryVerbose) {
+                        "[funcTypeDone] %s not in a known suspect parent, probably good" printfln(toString())
+                    }
+                    funcTypeDone = true
                 }
 
-                if (closureType && closureType instanceOf?(FuncType)) {
-                    fType isClosure = true
-                    closure := StructLiteral new(closureType, closureElements, token)
-                    if(!trail peek() replace(this, closure)) {
-                        res throwError(CouldntReplace new(token, this, closure, trail))
+                if (closureType) {
+                    if (closureType instanceOf?(FuncType)) {
+                        fType isClosure = true
+                        closure := StructLiteral new(closureType, closureElements, token)
+                        if(trail peek() replace(this, closure)) {
+                            if (debugCondition() || res params veryVerbose) {
+                                "[funcTypeDone] replaced %s with closure %s" printfln(toString(), closure toString())
+                            }
+                            funcTypeDone = true
+                        } else {
+                            res throwError(CouldntReplace new(token, this, closure, trail))
+                        }
+                    } else {
+                        if (debugCondition() || res params veryVerbose) {
+                            "[funcTypeDone] nothing to do for %s (closureType = %s)" printfln(toString(), closureType toString())
+                        }
+                        // probably a pointer, nothing to do here
+                        funcTypeDone = true
+                    }
+                } else {
+                    if (debugCondition() || res params veryVerbose) {
+                        "[funcTypeDone] can't find closureType for %s" printfln(toString())
                     }
                 }
+            } else {
+                if (debugCondition() || res params veryVerbose) {
+                    "[funcTypeDone] nothing to do for %s (already a closure)" printfln(toString())
+                }
+                // already a closure
+                funcTypeDone = true
             }
+
+        } else {
+            // not even a func type
+            funcTypeDone = true
         }
 
         // Simple property access? Replace myself with a getter call.
@@ -387,7 +458,7 @@ VariableAccess: class extends Expression {
                             format(reverseExpr prettyName, _staticFunc prettyName)
                     ))
                 }
-                
+
                 if(res params veryVerbose) {
                     println("trail = " + trail toString())
                 }
@@ -506,3 +577,4 @@ NeedsDeref: class extends Error {
         super(access token, message)
     }
 }
+

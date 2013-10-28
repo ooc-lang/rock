@@ -10,6 +10,8 @@ Cast: class extends Expression {
     inner: Expression
     type: Type
 
+    resolved := false
+
     init: func ~cast (=inner, =type, .token) {
         super(token)
     }
@@ -111,8 +113,14 @@ Cast: class extends Expression {
             }
         }
 
+        resolved = inner isResolved() && inner getType() && inner getType() isResolved() && type isResolved()
+
         return Response OK
 
+    }
+
+    isResolved: func -> Bool {
+        resolved
     }
 
     resolveOverload: func (trail: Trail, res: Resolver) -> Response {

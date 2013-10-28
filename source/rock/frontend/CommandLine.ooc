@@ -10,6 +10,7 @@ import rock/frontend/drivers/[Driver, SequenceDriver, MakeDriver, DummyDriver, C
 import rock/backend/json/JSONGenerator
 import rock/middle/[Module, Import, UseDef]
 import rock/middle/tinker/Tinkerer
+import rock/middle/algo/ImportClassifier
 import rock/RockVersion
 
 system: extern func (command: CString)
@@ -579,13 +580,19 @@ CommandLine: class {
         }
 
         // phase 2: tinker
+        allModules := module collectDeps()
         resolveMs := Time measure(||
-            if(!Tinkerer new(params) process(module collectDeps())) {
+            if(!Tinkerer new(params) process(allModules)) {
                 failure(params)
             }
         )
         if (params timing) {
             "Resolving took %d ms" printfln(resolveMs)
+        }
+
+        // phase 2bis: classify imports
+        for (module in allModules) {
+            ImportClassifier classify(module)
         }
 
         if(params backend == "c") {

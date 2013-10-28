@@ -1,12 +1,19 @@
+
+// sdk
 import structs/List
 
-import ../../middle/Visitor
-import ../../middle/tinker/Errors
-import ../../io/[CachedFileWriter, TabbedWriter], io/[File, FileWriter, Writer], AwesomeWriter
+// visitor
+import rock/middle/Visitor
+import rock/middle/tinker/Errors
 
-import ../../frontend/[BuildParams, Token]
+// i/o
+import rock/io/[CachedFileWriter, TabbedWriter], io/[File, FileWriter, Writer], AwesomeWriter
 
-import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
+// front-end
+import rock/frontend/[BuildParams, Token]
+
+// middle-end
+import rock/middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     BinaryOp, IntLiteral, FloatLiteral, CharLiteral, StringLiteral,
     RangeLiteral, NullLiteral, VariableDecl, If, Else, While, Foreach,
     Conditional, ControlStatement, VariableAccess, Include, Import,
@@ -16,9 +23,11 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     FlowControl, InterfaceDecl, Version, Block, EnumDecl, ArrayLiteral,
     ArrayCreation, StructLiteral, FuncType]
 
+// backend
 import Skeleton, FunctionDeclWriter, ControlStatementWriter,
     ClassDeclWriter, ModuleWriter, CoverDeclWriter, FunctionCallWriter,
-    CastWriter, InterfaceDeclWriter, VersionWriter, AccessWriter
+    CastWriter, InterfaceDeclWriter, VersionWriter, AccessWriter,
+    VariableAccessChecker
 
 /**
  * Generate .c/.h/-fwd.h files from the AST of an ooc module
@@ -208,6 +217,8 @@ CGenerator: class extends Skeleton {
         if(varAcc ref == null) {
             Exception new(This, "Trying to write unresolved variable access %s" format(varAcc getName())) throw()
         }
+
+        VariableAccessChecker check(params, varAcc)
 
         match (varAcc ref) {
             case element: EnumElement =>

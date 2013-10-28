@@ -51,6 +51,7 @@ _handleLastStatement: func (trail: Trail, res: Resolver, origin: Node, scope: Sc
 
         if(!expr getType() void?) {
             scope set(index, Return new(expr, expr token))
+            expr refresh()
             res wholeAgain(origin, "Replaced last expr with a Return")
         }
     } else if(stmt instanceOf?(ControlStatement)) {

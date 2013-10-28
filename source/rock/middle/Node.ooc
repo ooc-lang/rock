@@ -2,61 +2,155 @@ import Visitor, FunctionCall, VariableAccess, VariableDecl, Type, BaseType
 import ../frontend/Token
 import tinker/[Resolver, Response, Trail]
 
+/**
+ * An AST node, such as a statement, an expression, a directive,
+ * a value, etc.
+ */
 Node: abstract class {
 
+    /**
+     * Used to generate collision-free names in the code.
+     */
     nameSeed := static 0
 
+    /**
+     * If the node was parsed, corresponds to the place in an ooc source
+     * file where it was parsed from.
+     */
     token: Token
 
     init: func(=token) {}
 
+    /**
+     * Visitor pattern implementation a-la Java
+     */
     accept: abstract func (visitor: Visitor)
 
+    /**
+     * @return a human-readable representation of that AST node
+     */
     toString: func -> String { class name }
 
+    /* METHODS FOR TINKERING */
+
+    /**
+     * @return true when, as far as we know, the node has been resolved
+     */
     isResolved: func -> Bool { true }
 
+    /**
+     * Should be called when a node's hierarchy has been changed and it might
+     * need to re-resolve some stuff.
+     * No-op by default, override where it makes sense
+     */
+    refresh: func
+
+    /**
+     * Resolve a node.
+     * @return Response LOOP if we really need to loop now, Response OK if we
+     * can continue resolving the rest.
+     */
     resolve: func (trail: Trail, res: Resolver) -> Response { return Response OK }
 
+    /* METHODS FOR SCOPE-LIKES */
+
+    /**
+     * In the 'children' of this node, replace 'oldie' with 'kiddo'.
+     * No-op by default, should be overloaded where it makes sense
+     * @return true if the replacement was successful
+     */
     replace: abstract func (oldie, kiddo: Node) -> Bool
 
+    /**
+     * In the 'children' of this node, add 'newcomer' at the beginning.
+     * No-op by default, should be implemented by scope-likes
+     * @return true if newcomer was added correctly
+     */
     addFirst: func (newcomer: Node) -> Bool { false }
+
+    /**
+     * In the 'children' of this node, add 'newcomer' before 'mark'
+     * No-op by default, should be implemented by scope-likes
+     * @return true if newcomer was added correctly
+     */
     addBefore: func (mark, newcomer: Node) -> Bool { false }
+
+    /**
+     * In the 'children' of this node, add 'newcomer' before 'mark'
+     * No-op by default, should be implemented by scope-likes
+     * @return true if newcomer was added correctly
+     */
     addAfter:  func (mark, newcomer: Node) -> Bool { false }
 
+    /**
+     * @return true if this is a scope.
+     */
     isScope: func -> Bool { false }
 
+    /**
+     * See https://github.com/nddrylliog/rock/issues/701 - can't explain
+     * that one. It's used in operator classes to resolve overloadings, but.. why?
+     *
+     * Supposedly should return the type we expect here, but then we have an inference
+     * problem - how can we solve a function call if we need the type of the argument
+     * to know what we can override an operator with? It hurts the brain just to think about it.
+     */
     getRequiredType: func -> Type { null }
 
     /**
-     * resolveCall should look for a function declaration satisfying call,
-     * and suggest it with call suggest(fDecl)
+     * Looks for a function declaration satisfying `call`, and suggests it with
+     * call suggest(fDecl)
      *
-     * :return: -1 if unresolved types prevented the call resolving
-     * process from finishing, and it should be repeated later, any
-     * other value else.
+     * No-op by default, should be overloaded where it makes sense
+     *
+     * @return -1 if unresolved types prevented the call resolving process from
+     * finishing, and it should be repeated later, any other value otherwise
      */
     resolveCall: func (call : FunctionCall, res: Resolver, trail: Trail) -> Int {
-        // overridden in sub-classes
         0
     }
 
+    /**
+     * Looks for a declaration statisfying `access`, and suggests it with
+     * access suggest(decl)
+     *
+     * No-op by default, should be overloaded where it makes sense
+     *
+     * @return -1 if unresolved things prevented the access resolving process from
+     * finishing, and it should be repeated later, any other value otherwise.
+     */
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
-        // overridden in sub-classes
         0
     }
 
+    /**
+     * Looks for a type declaration statisfying `type`, and suggests it with
+     * type suggest(decl)
+     *
+     * No-op by default, should be overloaded where it makes sense
+     *
+     * @return -1 if unresolved things prevented the type resolving process from
+     * finishing, and it should be repeated later, any other value otherwise.
+     */
     resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
         // overridden in sub-classes
         0
     }
 
+    /**
+     * Generate a collision-free name from an origin
+     */
     generateTempName: func (origin: String) -> String {
         nameSeed += 1
         "__%s%d" format(origin, nameSeed)
     }
 
-    // Just to be on the safe side - everything has side effects by default
+    /**
+     * For example, literals don't have side effects, function calls
+     * might, assignments definitely do.
+     *
+     * @return true if the thing contained itself has side effects.
+     */
     hasSideEffects : func -> Bool { true }
 
     /**
@@ -69,6 +163,8 @@ Node: abstract class {
 
     /**
      * Translate stuff like __quest and __bang back into '?' and '!'
+     *
+     * @return The 'prettified' name, as it appeared in the source
      */
     unbangify: static func (name: String) -> String {
       match {
