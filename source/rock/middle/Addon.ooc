@@ -1,5 +1,5 @@
-import structs/HashMap
-import Node, Type, TypeDecl, FunctionDecl, FunctionCall, Visitor, VariableAccess, ClassDecl, CoverDecl
+import structs/[ArrayList, HashMap]
+import Node, Type, TypeDecl, FunctionDecl, FunctionCall, Visitor, VariableAccess, PropertyDecl, ClassDecl, CoverDecl
 import tinker/[Trail, Resolver, Response]
 
 /**
@@ -25,6 +25,8 @@ Addon: class extends Node {
     base: TypeDecl { get set }
 
     functions := HashMap<String, FunctionDecl> new()
+
+    properties := HashMap<String, PropertyDecl> new()
 
     init: func (=baseType, .token) {
         super(token)
@@ -52,6 +54,11 @@ Addon: class extends Node {
         functions put(hash, fDecl)
     }
 
+    addProperty: func (vDecl: PropertyDecl) {
+        "Yay got property %s" printfln(vDecl name)
+        properties put(vDecl name, vDecl)
+    }
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         if(base == null) {
@@ -67,6 +74,11 @@ Addon: class extends Node {
                     }
                     fDecl setOwner(base)
                 }
+
+                for(prop in properties) {
+                    if(base variables[prop name] != null) token module params errorHandler onError(DuplicateField new(prop, base variables[prop name]))
+                    prop owner = base
+                }
             } else {
                 res wholeAgain(this, "need baseType ref")
             }
@@ -81,6 +93,12 @@ Addon: class extends Node {
         trail push(base getMeta())
         for(f in functions) {
             response := f resolve(trail, res)
+            if(!response ok()) {
+                finalResponse = response
+            }
+        }
+        for(p in properties) {
+            response := p resolve(trail, res)
             if(!response ok()) {
                 finalResponse = response
             }
@@ -119,6 +137,20 @@ Addon: class extends Node {
         }
 
         return 0
+    }
+
+    resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
+        if(base == null) return 0
+
+        vDecl := properties[access name]
+        if(vDecl) {
+            if(access suggest(vDecl)) {
+                // Should I add 'this' here? :/
+                // Or do some property magic?
+            }
+        }
+
+        0
     }
 
     toString: func -> String {

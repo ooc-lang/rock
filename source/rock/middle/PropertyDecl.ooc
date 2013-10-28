@@ -1,7 +1,7 @@
 import structs/[ArrayList]
 import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
        Node, ClassDecl, CoverDecl, FunctionCall, Argument, BinaryOp, Cast, Module,
-       Block, Scope, FunctionDecl, Argument, VariableDecl
+       Block, Scope, FunctionDecl, Argument, VariableDecl, Addon
 import tinker/[Response, Resolver, Trail, Errors]
 import ../frontend/BuildParams
 
@@ -60,6 +60,15 @@ PropertyDecl: class extends VariableDecl {
         }
         // get and store the class.
         node := trail peek()
+
+        if(node instanceOf?(Addon)) {
+            node = node as Addon base
+            if(!node) {
+                res wholeAgain(this, "need addon's base type")
+                return Response OK
+            }
+        }
+
         if(!node instanceOf?(TypeDecl)) {
             res throwError(InternalError new(token, "Properties don't make sense outside types %s!" format(node toString())))
         }

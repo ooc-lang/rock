@@ -466,6 +466,8 @@ AstBuilder: class {
             case list: List<Node> =>
                 vd isArg = true
                 list add(vd)
+            case addon: Addon =>
+                // Do nothing!
             case =>
                 gotStatement(vd)
         }
@@ -528,8 +530,12 @@ AstBuilder: class {
 
     onPropertyDeclEnd: unmangled(nq_onPropertyDeclEnd) func -> PropertyDecl {
         decl := pop(PropertyDecl)
-        node := peek(TypeDecl)
-        node addVariable(decl)
+        node := peek(Node)
+        if(node instanceOf?(TypeDecl)) node as TypeDecl addVariable(decl)
+        else if(node instanceOf?(Addon)) node as Addon addProperty(decl)
+        else {
+            params errorHandler onError(InternalError new(token(), "Should've peek'd a TypeDecl or Addon, but peek'd a %s. Stack = %s" format(node class name, stackRepr())))
+        }
         decl
     }
 

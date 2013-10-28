@@ -96,7 +96,7 @@ InterpolatedStringLiteral: class extends StringLiteral {
         }
 
         if(value) buff append(value)
-        buff toString()
+        "\"%s\"" format(buff toString())
     }
 
     resolve: func(trail: Trail, res: Resolver) -> Response {
