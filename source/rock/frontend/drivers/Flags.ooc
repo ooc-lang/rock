@@ -110,7 +110,7 @@ Flags: class {
         }
 
         // OSX-only feature: frameworks
-        if (Target guessHost() == Target OSX) {
+        if (params target == Target OSX) {
             for(framework in props frameworks) {
                 addLinkerFlag("-Wl,-framework," + framework)
             }
@@ -223,7 +223,7 @@ Flags: class {
             libsHeaders := File new(params distLocation, "libs/headers/") getPath()
             addCompilerFlag("-I" + libsHeaders)
 
-            target := Target guessHost()
+            target := params target
             arch := params arch equals?("") ? Target getArch() : params arch
             libsNativeDir := File new(params distLocation, "libs/%s/" format(Target toString(target, arch))) getPath()
             addCompilerFlag("-L" + libsNativeDir)

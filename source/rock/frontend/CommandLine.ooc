@@ -306,6 +306,26 @@ CommandLine: class {
                     params run = true
                     params shout = false
 
+                } else if (option startsWith?("target=")) {
+
+                    targetName := option substring("target=" length())
+                    params target = match targetName {
+                        case "linux" => Target LINUX
+                        case "win" => Target WIN
+                        case "solaris" => Target SOLARIS
+                        case "haiku" => Target HAIKU
+                        case "osx" => Target OSX
+                        case "freebsd" => Target FREEBSD
+                        case "openbsd" => Target OPENBSD
+                        case "netbsd" => Target NETBSD
+                        case "dragonfly" => Target DRAGONFLY
+                        case "android" => Target ANDROID
+                        case =>
+                            "[ERROR] Unknown target: %s" printfln(targetName)
+                            failure(params)
+                            null
+                    }
+
                 } else if (option startsWith?("driver=")) {
 
                     driverName := option substring("driver=" length())
