@@ -284,8 +284,7 @@ BuildParams: class {
     }
 
     undoTargetSpecific: func {
-        // revert GC settings to default
-        dynGC = false
+        // there's really nothing to do here..
     }
 
     doTargetSpecific: func {
