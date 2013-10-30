@@ -55,7 +55,6 @@ Addon: class extends Node {
     }
 
     addProperty: func (vDecl: PropertyDecl) {
-        "Yay got property %s" printfln(vDecl name)
         properties put(vDecl name, vDecl)
     }
 
@@ -76,7 +75,8 @@ Addon: class extends Node {
                 }
 
                 for(prop in properties) {
-                    if(base variables[prop name] != null) token module params errorHandler onError(DuplicateField new(prop, base variables[prop name]))
+                    old := base getVariable(prop name)
+                    if(old) token module params errorHandler onError(DuplicateField new(prop, old))
                     prop owner = base
                 }
             } else {
@@ -101,6 +101,10 @@ Addon: class extends Node {
             response := p resolve(trail, res)
             if(!response ok()) {
                 finalResponse = response
+            } else {
+                // all functions of an addon are final, because we *definitely* don't have a 'class' field
+                if(p getter) p getter isFinal = true
+                if(p setter) p setter isFinal = true
             }
         }
         trail pop(base getMeta())
