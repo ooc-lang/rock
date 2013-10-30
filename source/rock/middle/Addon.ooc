@@ -76,7 +76,7 @@ Addon: class extends Node {
 
                 for(prop in properties) {
                     old := base getVariable(prop name)
-                    if(old) token module params errorHandler onError(DuplicateField new(prop, old))
+                    if(old) token module params errorHandler onError(DuplicateField new(old, prop))
                     prop owner = base
                 }
             } else {
