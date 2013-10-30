@@ -1,6 +1,6 @@
 import structs/[ArrayList, HashMap]
 import Node, Type, TypeDecl, FunctionDecl, FunctionCall, Visitor, VariableAccess, PropertyDecl, ClassDecl, CoverDecl
-import tinker/[Trail, Resolver, Response]
+import tinker/[Trail, Resolver, Response, Errors]
 
 /**
  * An addon is a collection of methods added to a type via the 'extend'
@@ -149,8 +149,11 @@ Addon: class extends Node {
         vDecl := properties[access name]
         if(vDecl) {
             if(access suggest(vDecl)) {
-                // Should I add 'this' here? :/
-                // Or do some property magic?
+                // If we are trying to access the property's variable declaration from its own getter or setter,
+                //  we would need to define a new field for this type, which is impossible
+                if(!vDecl inOuterSpace(trail)) {
+                    res throwError(ExtendFieldDefinition new(vDecl token, "Property tries to define a field in type extension." ))
+                }
             }
         }
 
@@ -161,4 +164,8 @@ Addon: class extends Node {
         "Addon of %s in module %s" format(baseType toString(), token module getFullName())
     }
 
+}
+
+ExtendFieldDefinition: class extends Error {
+    init: super func ~tokenMessage
 }
