@@ -428,7 +428,10 @@ VariableAccess: class extends Expression {
                 if(shouldReplace) {
                     property := ref as PropertyDecl
                     fCall := FunctionCall new(expr, property getGetterName(), token)
-                    trail peek() replace(this, fCall)
+                    if (!trail peek() replace(this, fCall)) {
+                        res throwError(CouldntReplace new(token, this, fCall, trail))
+                    }
+                    res wholeAgain(this, "Got replaced!")
                     return Response OK
                 }
             } else {
