@@ -254,6 +254,17 @@ InterpolatedStringLiteral: class extends StringLiteral {
         false
     }
 
+    replace: func (oldie, kiddo: Statement) -> Bool {
+        match oldie {
+            case e1: Expression =>
+                match kiddo {
+                    case e2: Expression =>
+                        return expressions replace(e1, e2)
+                }
+        }
+        false
+    }
+
 }
 
 InvalidInterpolatedExpressionError: class extends Error {
