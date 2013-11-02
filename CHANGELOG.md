@@ -1,6 +1,6 @@
 ## 0.9.8 release (fill in date)
 
-  - Added string interpolated literals.
+  - Added interpolated literals.
   - Added raw string (CString) literals.
   - Extend's can now define properties that do not require a field definition.
   - Better error reporting, both with missing imports and braced statements.
@@ -9,7 +9,7 @@
   - Rock now throws an error if we are trying to return a value from a void function.
   - Floating point numbers with no digits are no longer allowed by the grammar.
   - Added --target and --host option for cross compiling.
-  - Added banned flags and banned pthread on Win32
+  - Added banned flags and banned pthread on Win32.
 
 ## 0.9.7a release (2013-10-14)
 
