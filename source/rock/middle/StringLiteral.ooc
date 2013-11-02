@@ -85,6 +85,8 @@ InterpolatedStringLiteral: class extends StringLiteral {
 
     toString: func -> String {
         buff := Buffer new()
+        buff append('"')
+
         for(i in 0 .. strings getSize()) {
             str := strings[i]
             buff append(str)
@@ -96,6 +98,8 @@ InterpolatedStringLiteral: class extends StringLiteral {
         }
 
         if(value) buff append(value)
+        buff append('"')
+
         buff toString()
     }
 

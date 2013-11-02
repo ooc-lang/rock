@@ -1,6 +1,6 @@
-import structs/HashMap
-import Node, Type, TypeDecl, FunctionDecl, FunctionCall, Visitor, VariableAccess, ClassDecl, CoverDecl
-import tinker/[Trail, Resolver, Response]
+import structs/[ArrayList, HashMap]
+import Node, Type, TypeDecl, FunctionDecl, FunctionCall, Visitor, VariableAccess, PropertyDecl, ClassDecl, CoverDecl
+import tinker/[Trail, Resolver, Response, Errors]
 
 /**
  * An addon is a collection of methods added to a type via the 'extend'
@@ -25,6 +25,8 @@ Addon: class extends Node {
     base: TypeDecl { get set }
 
     functions := HashMap<String, FunctionDecl> new()
+
+    properties := HashMap<String, PropertyDecl> new()
 
     init: func (=baseType, .token) {
         super(token)
@@ -52,6 +54,10 @@ Addon: class extends Node {
         functions put(hash, fDecl)
     }
 
+    addProperty: func (vDecl: PropertyDecl) {
+        properties put(vDecl name, vDecl)
+    }
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         if(base == null) {
@@ -66,6 +72,12 @@ Addon: class extends Node {
                         else base getMeta() addInit(fDecl)
                     }
                     fDecl setOwner(base)
+                }
+
+                for(prop in properties) {
+                    old := base getVariable(prop name)
+                    if(old) token module params errorHandler onError(DuplicateField new(old, prop))
+                    prop owner = base
                 }
             } else {
                 res wholeAgain(this, "need baseType ref")
@@ -83,6 +95,16 @@ Addon: class extends Node {
             response := f resolve(trail, res)
             if(!response ok()) {
                 finalResponse = response
+            }
+        }
+        for(p in properties) {
+            response := p resolve(trail, res)
+            if(!response ok()) {
+                finalResponse = response
+            } else {
+                // all functions of an addon are final, because we *definitely* don't have a 'class' field
+                if(p getter) p getter isFinal = true
+                if(p setter) p setter isFinal = true
             }
         }
         trail pop(base getMeta())
@@ -121,8 +143,29 @@ Addon: class extends Node {
         return 0
     }
 
+    resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
+        if(base == null) return 0
+
+        vDecl := properties[access name]
+        if(vDecl) {
+            if(access suggest(vDecl)) {
+                // If we are trying to access the property's variable declaration from its own getter or setter,
+                //  we would need to define a new field for this type, which is impossible
+                if(!vDecl inOuterSpace(trail)) {
+                    res throwError(ExtendFieldDefinition new(vDecl token, "Property tries to define a field in type extension." ))
+                }
+            }
+        }
+
+        0
+    }
+
     toString: func -> String {
         "Addon of %s in module %s" format(baseType toString(), token module getFullName())
     }
 
+}
+
+ExtendFieldDefinition: class extends Error {
+    init: super func ~tokenMessage
 }

@@ -740,6 +740,25 @@ TypeDecl: abstract class extends Declaration {
             }
         }
 
+        // Try to resolve access in addon properties
+        for(addon in getAddons()) {
+            if(resolveAccessInAddon(addon, access, res, trail) == -1) return -1
+        }
+        
+        {
+            ancestor := getSuperRef()
+            while(ancestor != null) {
+                for(addon in ancestor getAddons()) {
+                    if(resolveAccessInAddon(addon, access, res, trail) == -1) return -1
+                }
+                ancestor = ancestor getSuperRef()
+            }
+        }
+
+        if(access getRef()) {
+            return 0
+        }
+
         finalScore := 0
         fDecl := getFunction(access name, null, null, finalScore&)
         if(finalScore == -1) {
@@ -825,12 +844,12 @@ TypeDecl: abstract class extends Declaration {
         }
         
         {
-            ancester := getSuperRef()
-            while(ancester != null) {
-                for(addon in ancester getAddons()) {
+            ancestor := getSuperRef()
+            while(ancestor != null) {
+                for(addon in ancestor getAddons()) {
                     if(resolveCallInAddon(addon, call, res, trail) == -1) return -1
                 }
-                ancester = ancester getSuperRef()
+                ancestor = ancestor getSuperRef()
             }
         }
 
@@ -872,6 +891,26 @@ TypeDecl: abstract class extends Declaration {
             if(addon resolveCall(call, res, trail) == -1) return -1
         }
         
+        0
+    }
+
+    resolveAccessInAddon: func (addon: Addon, access: VariableAccess, res: Resolver, trail: Trail) -> Int {
+        has := false
+
+        // It's possible that the addon was defined in the accesses module
+        if(access token module == addon token module) {
+            has = true
+        } else for(imp in access token module getGlobalImports()) {
+            if(imp getModule() == addon token module) {
+                has = true
+                break
+            }
+        }
+
+        if(has) {
+            if(addon resolveAccess(access, res, trail) == -1) return -1
+        }
+
         0
     }
 
