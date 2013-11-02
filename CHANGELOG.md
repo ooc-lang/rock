@@ -1,6 +1,6 @@
 ## 0.9.8 release (fill in date)
 
-  - Added interpolated literals.
+  - Added interpolated string literals.
   - Added raw string (CString) literals.
   - Extend's can now define properties that do not require a field definition.
   - Better error reporting, both with missing imports and braced statements.
