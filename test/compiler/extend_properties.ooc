@@ -27,7 +27,7 @@ main: func(argc: Int, argv: CString*) -> Int {
         "[PASS]" println()
     } else {
         success? = false
-        "[FAIL] \"lolwuht\" hasWhitespace? should be false, not true" println()
+        "[FAIL] \"lolwut\" hasWhitespace? should be false, not true" println()
     }
 
     success? ? 0 : 1

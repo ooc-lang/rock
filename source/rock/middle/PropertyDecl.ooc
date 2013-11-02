@@ -61,17 +61,19 @@ PropertyDecl: class extends VariableDecl {
         // get and store the class.
         node := trail peek()
 
-        if(node instanceOf?(Addon)) {
-            node = node as Addon base
-            if(!node) {
-                res wholeAgain(this, "need addon's base type")
-                return Response OK
-            }
+        match node {
+            case ad: Addon =>
+                if(!ad base) {
+                    res wholeAgain(this, "need addon's base type")
+                    return Response OK
+                }
+                node = ad base
+            case td: TypeDecl =>
+                // Everything ok
+            case =>
+                res throwError(InternalError new(token, "Properties don't make sense outside types %s!" format(node toString())))
         }
 
-        if(!node instanceOf?(TypeDecl)) {
-            res throwError(InternalError new(token, "Properties don't make sense outside types %s!" format(node toString())))
-        }
         cls = node as ClassDecl
         // setup getter
         if(getter != null) {

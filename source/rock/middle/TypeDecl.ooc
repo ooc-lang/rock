@@ -733,18 +733,18 @@ TypeDecl: abstract class extends Declaration {
             }
         }
 
-        // Try to resolve access in properties
+        // Try to resolve access in addon properties
         for(addon in getAddons()) {
             if(resolveAccessInAddon(addon, access, res, trail) == -1) return -1
         }
         
         {
-            ancester := getSuperRef()
-            while(ancester != null) {
-                for(addon in ancester getAddons()) {
+            ancestor := getSuperRef()
+            while(ancestor != null) {
+                for(addon in ancestor getAddons()) {
                     if(resolveAccessInAddon(addon, access, res, trail) == -1) return -1
                 }
-                ancester = ancester getSuperRef()
+                ancestor = ancestor getSuperRef()
             }
         }
 
@@ -846,12 +846,12 @@ TypeDecl: abstract class extends Declaration {
         }
         
         {
-            ancester := getSuperRef()
-            while(ancester != null) {
-                for(addon in ancester getAddons()) {
+            ancestor := getSuperRef()
+            while(ancestor != null) {
+                for(addon in ancestor getAddons()) {
                     if(resolveCallInAddon(addon, call, res, trail) == -1) return -1
                 }
-                ancester = ancester getSuperRef()
+                ancestor = ancestor getSuperRef()
             }
         }
 

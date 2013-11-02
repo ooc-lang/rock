@@ -530,11 +530,12 @@ AstBuilder: class {
 
     onPropertyDeclEnd: unmangled(nq_onPropertyDeclEnd) func -> PropertyDecl {
         decl := pop(PropertyDecl)
-        node := peek(Node)
-        if(node instanceOf?(TypeDecl)) node as TypeDecl addVariable(decl)
-        else if(node instanceOf?(Addon)) node as Addon addProperty(decl)
-        else {
-            params errorHandler onError(InternalError new(token(), "Should've peek'd a TypeDecl or Addon, but peek'd a %s. Stack = %s" format(node class name, stackRepr())))
+        match (node := peek(Node)) {
+            case td: TypeDecl => td addVariable(decl)
+            case ad: Addon => ad addProperty(decl)
+            case =>
+                message := "Should've peek'd a TypeDecl or an Addon, bur peek'd a %s. Stack = %s" format(node class name, stackRepr())
+                params errorHandler onError(InternalError new(token(), message))
         }
         decl
     }
