@@ -1440,11 +1440,20 @@ FunctionCall: class extends Expression {
 
     replace: func (oldie, kiddo: Node) -> Bool {
         if(oldie == expr) {
-            expr = kiddo;
-            return true;
+            expr = kiddo
+            return true
         }
 
-        args replace(oldie as Expression, kiddo as Expression)
+        if(args replace(oldie as Expression, kiddo as Expression)) {
+            return true
+        }
+
+        // If we have var args and have not replaced ourselves in regular args, go for it!
+        if(varArgs) {
+            return varArgs replace(oldie as Expression, kiddo as Expression)
+        }
+
+        false
     }
 
     setReturnArg: func (retArg: Expression) {

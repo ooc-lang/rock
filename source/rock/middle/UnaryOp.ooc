@@ -7,12 +7,14 @@ UnaryOpType: enum {
     binaryNot        /*  ~  */
     logicalNot       /*  !  */
     unaryMinus       /*  -  */
+    unaryPlus        /*  +  */
 }
 
 unaryOpRepr := [
 	"~",
-        "!",
-        "-"]
+    "!",
+    "-",
+    "+"]
 
 UnaryOp: class extends Expression {
 
@@ -76,13 +78,28 @@ UnaryOp: class extends Expression {
         if(!res wholeAgain && !hasOverload?) {
             // If resolveOverload did not trigger a wholeAgain and we did not find an overload
             // it means that this will not be overloaded so we can do some type checking here
-            if(type == UnaryOpType unaryMinus) {
-                if(inner getType()) {
-                    // Unary minus can only be applied to number types
-                    if(!inner getType() isNumericType()) {
-                        res throwError(InvalidUnaryType new(token,
-                                       "Unoverloaded unary minus expects a numeric type, not a %s" format(inner getType() toString())))
-                    }
+            if(inner getType()) {
+                match type {
+                    case UnaryOpType unaryMinus =>
+                        if(!inner getType() isNumericType()) {
+                            res throwError(InvalidUnaryType new(token,
+                                           "Unoverloaded unary minus expects a numeric type, not a %s" format(inner getType() toString())))
+                        }
+                    case UnaryOpType unaryPlus =>
+                        if(!inner getType() isNumericType()) {
+                            res throwError(InvalidUnaryType new(token,
+                                           "Unoverloaded unary plus expects a numeric type, not a %s" format(inner getType() toString())))
+                        }
+
+                        // Replace ourselves with the inner expression.
+                        // If we don't, we will get translated to + in C, which is an upcast, not a noop.
+                        if(!trail peek() replace(this, inner)) {
+                            if(res fatal) {
+                                res throwError(CouldntReplace new(token, this, inner, trail))
+                            }
+
+                            res wholeAgain(this, "failed to replace ourselves with inner expression, try again")
+                        }
                 }
             }
         }
