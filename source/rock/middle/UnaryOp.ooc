@@ -1,6 +1,6 @@
 import structs/ArrayList
 import ../frontend/Token
-import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl, BaseType
+import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl, BaseType, OverloadStatus
 import tinker/[Trail, Resolver, Response, Errors]
 
 UnaryOpType: enum {
@@ -23,7 +23,7 @@ UnaryOp: class extends Expression {
     boolType: BaseType
 
     resolved? := false
-    hasOverload? := false
+    overloadStatus := OverloadStatus NONE
 
     init: func ~unaryOp (=inner, =type, .token) {
         super(token)
@@ -75,9 +75,7 @@ UnaryOp: class extends Expression {
         }
 
 
-        if(!res wholeAgain && !hasOverload?) {
-            // If resolveOverload did not trigger a wholeAgain and we did not find an overload
-            // it means that this will not be overloaded so we can do some type checking here
+        if(overloadStatus == OverloadStatus NONE) {
             if(inner getType()) {
                 match type {
                     case UnaryOpType unaryMinus =>
@@ -121,7 +119,12 @@ UnaryOp: class extends Expression {
 
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType)
-            if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response OK }
+            if(score == -1) {
+                overloadStatus = OverloadStatus WAITING
+                res wholeAgain(this, "score of op == -1 !!")
+                return Response OK
+            }
+
             if(score > bestScore) {
                 bestScore = score
                 candidate = opDecl
@@ -132,7 +135,12 @@ UnaryOp: class extends Expression {
             module := imp getModule()
             for(opDecl in module getOperators()) {
                 score := getScore(opDecl, reqType)
-                if(score == -1) { res wholeAgain(this, "score of %s == -1 !!"); return Response OK }
+                if(score == -1) {
+                    overloadStatus = OverloadStatus WAITING
+                    res wholeAgain(this, "score of %s == -1 !!")
+                    return Response OK
+                }
+
                 if(score > bestScore) {
                     bestScore = score
                     candidate = opDecl
@@ -141,19 +149,22 @@ UnaryOp: class extends Expression {
         }
 
         if(candidate != null) {
-            hasOverload? = true
-
             fDecl := candidate getFunctionDecl()
             fCall := FunctionCall new(fDecl getName(), token)
             fCall getArguments() add(inner)
             fCall setRef(fDecl)
             if(!trail peek() replace(this, fCall)) {
                 if(res fatal) res throwError(CouldntReplace new(token, this, fCall, trail))
+                overloadStatus = OverloadStatus WAITING
                 res wholeAgain(this, "failed to replace oneself, gotta try again =)")
                 return Response OK
                 //return Response LOOP
+            } else {
+                overloadStatus = OverloadStatus REPLACED
             }
             res wholeAgain(this, "Just replaced with an operator overloading")
+        } else {
+            overloadStatus = OverloadStatus NONE
         }
 
         return Response OK
