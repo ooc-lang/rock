@@ -1077,7 +1077,7 @@ AstBuilder: class {
     }
 
     onDecLiteral: unmangled(nq_onDecLiteral) func (value: CString) -> IntLiteral {
-        IntLiteral new(value toString() replaceAll("_", "") toLLong(), token())
+        IntLiteral new(value toString() replaceAll("_", "") replaceAll("+", "") toLLong(), token())
     }
 
     onOctLiteral: unmangled(nq_onOctLiteral) func (value: CString) -> IntLiteral {
@@ -1093,7 +1093,7 @@ AstBuilder: class {
     }
 
     onFloatLiteral: unmangled(nq_onFloatLiteral) func (value: CString) -> FloatLiteral {
-        FloatLiteral new(value toString() replaceAll("_", ""), token())
+        FloatLiteral new(value toString() replaceAll("_", "") replaceAll("+", ""), token())
     }
 
     onBoolLiteral: unmangled(nq_onBoolLiteral) func (value: Bool) -> BoolLiteral {
@@ -1222,6 +1222,10 @@ AstBuilder: class {
 
     onUnaryMinus: unmangled(nq_onUnaryMinus) func (inner: Expression) -> UnaryOp {
         UnaryOp new(inner, UnaryOpType unaryMinus, token())
+    }
+
+    onUnaryPlus: unmangled(nq_onUnaryPlus) func (inner: Expression) -> UnaryOp {
+        UnaryOp new(inner, UnaryOpType unaryPlus, token())
     }
 
     onParenthesis: unmangled(nq_onParenthesis) func (inner: Expression) -> Parenthesis {

@@ -3,7 +3,7 @@ import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
        Import, Module, FunctionCall, ClassDecl, CoverDecl, AddressOf,
        ArrayAccess, VariableAccess, Cast, NullLiteral, PropertyDecl,
-       Tuple, VariableDecl, FuncType, TypeDecl
+       Tuple, VariableDecl, FuncType, TypeDecl, OverloadStatus
 import tinker/[Trail, Resolver, Response, Errors]
 
 OpType: enum {
@@ -71,7 +71,7 @@ BinaryOp: class extends Expression {
     type: OpType
 
     inferredType: Type
-    replaced := false
+    overloadStatus := OverloadStatus NONE
 
     init: func ~binaryOp (=left, =right, =type, .token) {
         super(token)
@@ -143,7 +143,7 @@ BinaryOp: class extends Expression {
             if(!response ok()) return Response OK // needs another resolve later
         }
 
-        if(!replaced && inferredType == null) {
+        if(overloadStatus == OverloadStatus NONE && inferredType == null) {
             // that's probably not right - for example, for integer/float types promotion, etc.
             inferredType = left getType()
         }
@@ -443,6 +443,7 @@ BinaryOp: class extends Expression {
                         //"Matching %s against %s" printfln(opDecl toString(), toString())
                         score := getScore(opDecl, reqType)
                         if(score == -1) {
+                            overloadStatus = OverloadStatus WAITING
                             return Response LOOP
                         }
                         if(score > bestScore) {
@@ -457,7 +458,12 @@ BinaryOp: class extends Expression {
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType)
             //if(score > 0) ("Considering " + opDecl toString() + " for " + toString() + ", score = %d\n") format(score) println()
-            if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response LOOP }
+            if(score == -1) {
+                overloadStatus = OverloadStatus WAITING
+                res wholeAgain(this, "score of op == -1 !!")
+                return Response LOOP
+            }
+
             if(score > bestScore) {
                 bestScore = score
                 candidate = opDecl
@@ -470,7 +476,12 @@ BinaryOp: class extends Expression {
             for(opDecl in module getOperators()) {
                 score := getScore(opDecl, reqType)
                 //if(score > 0) ("Considering " + opDecl toString() + " for " + toString() + ", score = %d\n") format(score) println()
-                if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response LOOP }
+                if(score == -1) {
+                    overloadStatus = OverloadStatus WAITING
+                    res wholeAgain(this, "score of op == -1 !!")
+                    return Response LOOP
+                }
+
                 if(score > bestScore) {
                     bestScore = score
                     candidate = opDecl
@@ -485,6 +496,8 @@ BinaryOp: class extends Expression {
                 trail push(this)
                 right resolve(trail, res)
                 trail pop(this)
+
+                overloadStatus = OverloadStatus WAITING
                 return Response LOOP
             }
 
@@ -501,11 +514,16 @@ BinaryOp: class extends Expression {
             fCall setRef(fDecl)
             if(!trail peek() replace(this, fCall)) {
                 if(res fatal) res throwError(CouldntReplace new(token, this, fCall, trail))
+
+                overloadStatus = OverloadStatus WAITING
                 res wholeAgain(this, "failed to replace oneself, gotta try again =)")
                 return Response LOOP
             }
-            replaced = true
+
+            overloadStatus = OverloadStatus REPLACED
             res wholeAgain(this, "Just replaced with an operator overload")
+        } else {
+            overloadStatus = OverloadStatus NONE
         }
 
         return Response OK
