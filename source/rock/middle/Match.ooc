@@ -316,7 +316,10 @@ Match: class extends Expression {
     getType: func -> Type { type }
 
     toString: func -> String {
-        "match (%s)" format(expr toString())
+        match expr {
+            case null => "match ()"
+            case => "match (%s)" format(expr toString())
+        }
     }
 
 }

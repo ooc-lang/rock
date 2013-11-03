@@ -104,10 +104,31 @@ InterpolatedStringLiteral: class extends StringLiteral {
     }
 
     resolve: func(trail: Trail, res: Resolver) -> Response {
-        // What we need to do is basically make a simple string literal, replacing interpolated arguments with format specifiers then call format on it
-        // If the interpolated arguments are of a base type (numeric or string), they are directly passed to format with the correct type specifier
-        // Elsewise, we look for toString() methods up in the dependency tree until we find one (if any)
-        // We must add the last piece of text to our string array and we null it so we don't add it multiple times because of many resolve calls
+        // Resolve all expressions first
+        expressionsDone := true
+        trail push(this)
+        for (expr in expressions) {
+            response := expr resolve(trail, res)
+            if (!response ok() || !expr isResolved()) {
+                expressionsDone = false
+            }
+        }
+        trail pop(this)
+        if (!expressionsDone) {
+            res wholeAgain(this, "Need all expressions to be resolved before formatting.")
+            return Response OK
+        }
+
+        // What we need to do is basically make a simple string literal,
+        // replacing interpolated arguments with format specifiers then call
+        // format on it If the interpolated arguments are of a base type
+        // (numeric or string), they are directly passed to format with the
+        // correct type specifier
+        //
+        // Else, we look for toString() methods up in the dependency tree until
+        // we find one (if any) We must add the last piece of text to our
+        // string array and we null it so we don't add it multiple times
+        // because of many resolve calls
         if(value) {
             strings add(value)
             value = null
@@ -125,13 +146,6 @@ InterpolatedStringLiteral: class extends StringLiteral {
             if(i == expressions getSize()) break
             
             expr := expressions[i]
-
-            response := expr resolve(trail, res)
-            if(!response ok()) {
-                trail pop(this)
-                return response
-            }
-
             type := expr getType()
 
             if(!type || !type getRef()) {
@@ -234,8 +248,27 @@ InterpolatedStringLiteral: class extends StringLiteral {
             res throwError(CouldntReplace new(token, this, formatCall, trail))
         }
 
+        res wholeAgain(this, "Just got replaced o/")
         Response OK
     }
+
+    isResolved: func -> Bool {
+        // we always end up being replaced, so we're never resolved
+        // as long as we exist in the AST
+        false
+    }
+
+    replace: func (oldie, kiddo: Statement) -> Bool {
+        match oldie {
+            case e1: Expression =>
+                match kiddo {
+                    case e2: Expression =>
+                        return expressions replace(e1, e2)
+                }
+        }
+        false
+    }
+
 }
 
 InvalidInterpolatedExpressionError: class extends Error {

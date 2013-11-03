@@ -110,7 +110,7 @@ Flags: class {
         }
 
         // OSX-only feature: frameworks
-        if (Target guessHost() == Target OSX) {
+        if (params target == Target OSX) {
             for(framework in props frameworks) {
                 addLinkerFlag("-Wl,-framework," + framework)
             }
@@ -223,8 +223,15 @@ Flags: class {
             libsHeaders := File new(params distLocation, "libs/headers/") getPath()
             addCompilerFlag("-I" + libsHeaders)
 
-            target := Target guessHost()
-            arch := params arch equals?("") ? Target getArch() : params arch
+            target := params target
+            arch := params getArch()
+            match arch {
+                case "32" =>
+                    addCompilerFlag("-m32")
+                case "64" =>
+                    addCompilerFlag("-m64")
+            }
+
             libsNativeDir := File new(params distLocation, "libs/%s/" format(Target toString(target, arch))) getPath()
             addCompilerFlag("-L" + libsNativeDir)
 
@@ -298,14 +305,21 @@ Flags: class {
         }
     }
 
+    _applyFlags: func (flags: List<String>, command: List<String>) {
+        for (flag in flags) {
+            if (params bannedFlags contains?(flag)) continue
+            command add(flag)
+        }
+    }
+
     apply: func (command: List<String>, link: Bool) {
         if (objects empty?()) {
             Exception new(This, "No objects to compile!") throw()
         }
 
-        command addAll(compilerFlags)
+        _applyFlags(compilerFlags, command)
         if (link) {
-            command addAll(premainFlags)
+            _applyFlags(premainFlags, command)
         } else {
             command add("-c")
         }
@@ -314,7 +328,7 @@ Flags: class {
         command add("-o"). add(outPath)
 
         if (link) {
-            command addAll(linkerFlags)
+            _applyFlags(linkerFlags, command)
         }
     }
   

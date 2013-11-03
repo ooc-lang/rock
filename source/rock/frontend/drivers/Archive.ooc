@@ -6,8 +6,9 @@ import io/[File, FileReader, FileWriter], os/[Process, Env]
 // our stuff
 import SourceFolder
 import rock/RockVersion
-import rock/frontend/[AstBuilder, BuildParams, PathList]
+import rock/frontend/[AstBuilder, BuildParams, PathList, Target]
 import rock/middle/[Module, TypeDecl, VariableDecl, FunctionDecl]
+import rock/middle/algo/ImportClassifier
 import rock/backend/cnaughty/ModuleWriter
 
 /**
@@ -123,7 +124,7 @@ Archive: class {
                 debug("Removing %s from archive %s", element oocPath, outlib)
 
                 args := ArrayList<String> new()
-                args add("ar")
+                args add(params ar)
 
                 args add("d")
                 if (params veryVerbose || params debugLibcache) {
@@ -242,7 +243,9 @@ Archive: class {
                 }
 
                 trans := false
-                for(imp in ModuleWriter classifyImports(null, module)) {
+
+                ImportClassifier classify(module)
+                for(imp in module getAllImports()) {
                     candidate := imp getModule()
                     if(structuralDirties contains?(candidate)) {
                         debug("%s is dirty because of import %s", module getFullName(),
@@ -297,7 +300,7 @@ Archive: class {
 
         // update .a using GNU ar
         args := ArrayList<String> new()
-        args add("ar")
+        args add(params ar)
 
         flags := ArrayList<String> new()
 
@@ -314,7 +317,7 @@ Archive: class {
         if (thin) {
             // Apple's linker thinks -T means truncate. Who's living
             // in the 18th century? It's OpenStep's bastard child!
-            version (!apple) {
+            if (params target != Target OSX) {
                 flags add("T")
             }
         }

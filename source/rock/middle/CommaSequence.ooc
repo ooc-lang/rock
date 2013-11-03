@@ -6,6 +6,7 @@ import tinker/[Trail, Resolver, Response]
 CommaSequence: class extends Expression {
 
     body := ArrayList<Statement> new()
+    allResolved := false
 
     init: func ~commaSeq (.token) {
         super(token)
@@ -24,20 +25,42 @@ CommaSequence: class extends Expression {
     getType: func -> Type { body empty?() ? null : body last() as Expression getType() }
 
     toString: func -> String {
-        return "(comma expr)"
+        buf := Buffer new()
+        buf append("<CommaSequence>(")
+        first := true
+        for (s in body) {
+            if (first) {
+                first = false
+            } else {
+                buf append(", ")
+            }
+            buf append(s toString())
+        }
+        buf append(")")
+        return buf toString()
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         trail push(this)
+        allGood := true
         for (statement in body) {
             response := statement resolve(trail, res)
             if(!response ok()) {
                 trail pop(this)
                 return response
             }
+            if (!statement isResolved()) {
+                allGood = false
+            }
         }
         trail pop(this)
+
+        if (allGood) {
+            allResolved = true
+        } else {
+            res wholeAgain(this, "Waiting on some statements to resolve")
+        }
 
         return Response OK
 
@@ -48,5 +71,9 @@ CommaSequence: class extends Expression {
     }
 
     getBody: func -> List<Statement> { body }
+
+    isResolved: func -> Bool {
+        allResolved
+    }
 
 }

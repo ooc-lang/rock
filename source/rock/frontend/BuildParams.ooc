@@ -40,14 +40,11 @@ BuildParams: class {
         // need them anyway, do we?
         defines add("GC_NO_THREAD_REDIRECTS")
 
-        version (windows) {
-            // on Windows, for multi-threaded apps, the GC needs to be dynamically linked
-            dynGC = true
-        }
-
         // use a simple error handler by default
         // FIXME: why the workaround :(
         errorHandler = DefaultErrorHandler new(this) as ErrorHandler
+
+        doTargetSpecific()
     }
 
     findDist: func (execName: String) {
@@ -111,6 +108,15 @@ BuildParams: class {
 
     // compiler used for producing an executable from the C sources
     compiler := CCompiler new(this)
+
+    // GNU ar program to use
+    ar := "ar"
+
+    // host value for the toolchain, for example 'i586-mingw32msvc'
+    host := ""
+
+    // compiler flags that should never be used, ever.
+    bannedFlags := ArrayList<String> new()
 
     // ooc sourcepath (.ooc)
     sourcePath := PathList new()
@@ -233,12 +239,16 @@ BuildParams: class {
             stderr write("Naming conflict (output binary) : There is already a directory called %s.\nTry a different name, e.g. '-o=%s2'\n" format(name, name))
             CommandLine failure(this)
         }
-    } 
+    }
 
     /**
      * @return the path of the executable that should be produced by rock
      */
     getBinaryPath: func (defaultPath: String) -> String {
+        if (target == Target WIN) {
+            defaultPath = defaultPath + ".exe"
+        }
+
         if (binaryPath == "") {
             checkBinaryNameCollision(defaultPath)
             defaultPath
@@ -270,6 +280,86 @@ BuildParams: class {
         idx := _indexOfSymbol(symbol)
         if (idx != -1) {
             defines removeAt(idx)
+        }
+    }
+
+    undoTargetSpecific: func {
+        // there's really nothing to do here..
+    }
+
+    doTargetSpecific: func {
+        match target {
+            case Target WIN =>
+                // on Windows, for multi-threaded apps, the GC needs to be dynamically linked
+                dynGC = true
+                bannedFlags add("-pthread")
+            case Target OSX =>
+                // on OSX, make universal binaries
+                arch = "universal"
+        }
+    }
+
+    getArch: func -> String {
+        if (arch == "") {
+            Target getArch()
+        } else {
+            arch
+        }
+    }
+
+    // adjust consequences of high level parameters like profile, host, etc.
+    bake: func {
+        match profile {
+            case Profile DEBUG =>
+                // don't clean on debug
+                clean = false
+                // define debug symbol
+                defineSymbol(This DEBUG_DEFINE)
+            case Profile RELEASE =>
+                // optimize on release
+                optimization = OptimizationLevel Os
+        }
+
+        if (host != "") {
+            tokens := host split('-')
+            if (tokens size < 2) {
+                "[ERROR] invalid host value: %s" printfln(host)
+                CommandLine failure(this)
+            }
+
+            (archToken, targetToken) := (tokens[0], tokens[1])
+
+            match {
+                case archToken contains?("64") =>
+                    arch = "64"
+                case archToken contains?("86") =>
+                    arch = "32"
+            }
+
+            match {
+                // Incomplete list, see http://git.savannah.gnu.org/cgit/libtool.git/tree/doc/PLATFORMS
+                case targetToken contains?("mingw") =>
+                    target = Target WIN
+                case targetToken contains?("apple") =>
+                    target = Target OSX
+                case targetToken contains?("linux") =>
+                    target = Target LINUX
+                case targetToken contains?("freebsd") =>
+                    target = Target FREEBSD
+                case targetToken contains?("netbsd") =>
+                    target = Target NETBSD
+                case targetToken contains?("openbsd") =>
+                    target = Target OPENBSD
+                case targetToken contains?("solaris") =>
+                    target = Target SOLARIS
+            }
+
+            undoTargetSpecific()
+            doTargetSpecific()
+
+            prefix := host + "-"
+            compiler setExecutable(prefix + compiler executableName)
+            ar = prefix + ar
         }
     }
 

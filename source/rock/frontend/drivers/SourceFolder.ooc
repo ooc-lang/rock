@@ -18,13 +18,13 @@ SourceFolder: class {
 
     // example: foo
     identifier: String
-    
+
     // usually "source", per ooc conventions
     name: String
 
     // typically "$OOC_LIBS/<identifier>/source"
     pathElement: String
-    
+
     // absolute variant of pathElement
     absolutePath: String
 
@@ -34,7 +34,7 @@ SourceFolder: class {
     params: BuildParams
     archive: Archive
     modules := ArrayList<Module> new()
-    
+
     // the UseDef that specified this SourceFolder
     uze: UseDef
 
@@ -42,7 +42,9 @@ SourceFolder: class {
         absolutePath = File new(pathElement) getAbsolutePath()
 
         // example: .libs/foo-win32.a
-        archivePath := "%s-%s.a" format(identifier, Target toString())
+        target := params target
+        arch := params getArch()
+        archivePath := "%s-%s.a" format(identifier, Target toString(target, arch))
         outlib = File new(params libcachePath, archivePath) path
 
         // archive will cache info as .libs/foo-win32.a.cacheinfo

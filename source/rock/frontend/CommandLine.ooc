@@ -10,6 +10,7 @@ import rock/frontend/drivers/[Driver, SequenceDriver, MakeDriver, DummyDriver, C
 import rock/backend/json/JSONGenerator
 import rock/middle/[Module, Import, UseDef]
 import rock/middle/tinker/Tinkerer
+import rock/middle/algo/ImportClassifier
 import rock/RockVersion
 
 system: extern func (command: CString)
@@ -305,6 +306,28 @@ CommandLine: class {
                     params run = true
                     params shout = false
 
+                } else if (option startsWith?("target=")) {
+
+                    targetName := option substring("target=" length())
+                    params target = match targetName {
+                        case "linux" => Target LINUX
+                        case "win" => Target WIN
+                        case "solaris" => Target SOLARIS
+                        case "haiku" => Target HAIKU
+                        case "osx" => Target OSX
+                        case "freebsd" => Target FREEBSD
+                        case "openbsd" => Target OPENBSD
+                        case "netbsd" => Target NETBSD
+                        case "dragonfly" => Target DRAGONFLY
+                        case "android" => Target ANDROID
+                        case =>
+                            "[ERROR] Unknown target: %s" printfln(targetName)
+                            failure(params)
+                            null
+                    }
+                    params undoTargetSpecific()
+                    params doTargetSpecific()
+
                 } else if (option startsWith?("driver=")) {
 
                     driverName := option substring("driver=" length())
@@ -345,10 +368,15 @@ CommandLine: class {
                     Help printHelp()
                     exit(0)
 
-                } else if(option startsWith?("cc=")) {
+                } else if (option startsWith?("cc=")) {
 
                     if(!longOption) warnUseLong("cc")
                     params compiler setExecutable(option substring(3))
+
+                } else if (option startsWith?("host=")) {
+
+                    host := option substring("host=" length())
+                    params host = host
 
                 } else if (option startsWith?("gcc")) {
 
@@ -436,16 +464,7 @@ CommandLine: class {
             }
         }
 
-        match (params profile) {
-            case Profile DEBUG =>
-                // don't clean on debug
-                params clean = false
-                // define debug symbol
-                params defineSymbol(BuildParams DEBUG_DEFINE)
-            case Profile RELEASE =>
-                // optimize on release
-                params optimization = OptimizationLevel Os
-        }
+        params bake()
 
         if(modulePaths empty?()) {
             if (alreadyDidSomething) {
@@ -579,13 +598,19 @@ CommandLine: class {
         }
 
         // phase 2: tinker
+        allModules := module collectDeps()
         resolveMs := Time measure(||
-            if(!Tinkerer new(params) process(module collectDeps())) {
+            if(!Tinkerer new(params) process(allModules)) {
                 failure(params)
             }
         )
         if (params timing) {
             "Resolving took %d ms" printfln(resolveMs)
+        }
+
+        // phase 2bis: classify imports
+        for (module in allModules) {
+            ImportClassifier classify(module)
         }
 
         if(params backend == "c") {

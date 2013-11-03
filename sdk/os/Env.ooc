@@ -40,7 +40,8 @@ Env: class {
             return putenv((key + "=") toCString())
         }
         version(!windows) {
-            return unsetenv(key toCString())
+            unsetenv(key toCString())
+            return 0
         }
         return -1
     }
