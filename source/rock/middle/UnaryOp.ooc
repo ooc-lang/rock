@@ -20,6 +20,9 @@ UnaryOp: class extends Expression {
     type: UnaryOpType
     boolType: BaseType
 
+    resolved? := false
+    hasOverload? := false
+
     init: func ~unaryOp (=inner, =type, .token) {
         super(token)
         boolType = BaseType new("Bool", token)
@@ -31,6 +34,10 @@ UnaryOp: class extends Expression {
 
     accept: func (visitor: Visitor) {
         visitor visitUnaryOp(this)
+    }
+
+    isResolved: func -> Bool {
+        resolved?
     }
 
     getType: func -> Type {
@@ -65,6 +72,22 @@ UnaryOp: class extends Expression {
             if(!response ok()) return response
         }
 
+
+        if(!res wholeAgain && !hasOverload?) {
+            // If resolveOverload did not trigger a wholeAgain and we did not find an overload
+            // it means that this will not be overloaded so we can do some type checking here
+            if(type == UnaryOpType unaryMinus) {
+                if(inner getType()) {
+                    // Unary minus can only be applied to number types
+                    if(!inner getType() isNumericType()) {
+                        res throwError(InvalidUnaryType new(token,
+                                       "Unoverloaded unary minus expects a numeric type, not a %s" format(inner getType() toString())))
+                    }
+                }
+            }
+        }
+
+        resolved? = true
         return Response OK
 
     }
@@ -101,6 +124,8 @@ UnaryOp: class extends Expression {
         }
 
         if(candidate != null) {
+            hasOverload? = true
+
             fDecl := candidate getFunctionDecl()
             fCall := FunctionCall new(fDecl getName(), token)
             fCall getArguments() add(inner)
@@ -159,5 +184,9 @@ UnaryOp: class extends Expression {
 }
 
 InvalidUnaryOverload: class extends Error {
+    init: super func ~tokenMessage
+}
+
+InvalidUnaryType: class extends Error {
     init: super func ~tokenMessage
 }
