@@ -157,3 +157,10 @@ OperatorDecl: class extends Expression {
 InvalidOperatorOverload: class extends Error {
     init: super func ~tokenMessage
 }
+
+OverloadStatus: enum {
+    TRYAGAIN // operator usage waiting for something else to resolve
+    REPLACED // operator usage was replaced with a call to an overload
+    NONE     // operator usage fully resolved, no overload in sight
+}
+

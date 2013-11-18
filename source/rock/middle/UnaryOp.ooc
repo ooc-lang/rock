@@ -20,8 +20,8 @@ UnaryOp: class extends Expression {
     type: UnaryOpType
     boolType: BaseType
 
+    overload := OverloadStatus TRYAGAIN
     resolved? := false
-    hasOverload? := false
 
     init: func ~unaryOp (=inner, =type, .token) {
         super(token)
@@ -72,24 +72,43 @@ UnaryOp: class extends Expression {
             if(!response ok()) return response
         }
 
-
-        if(!res wholeAgain && !hasOverload?) {
-            // If resolveOverload did not trigger a wholeAgain and we did not find an overload
-            // it means that this will not be overloaded so we can do some type checking here
-            if(type == UnaryOpType unaryMinus) {
-                if(inner getType()) {
-                    // Unary minus can only be applied to number types
-                    if(!inner getType() isNumericType()) {
-                        res throwError(InvalidUnaryType new(token,
-                                       "Unoverloaded unary minus expects a numeric type, not a %s" format(inner getType() toString())))
-                    }
-                }
-            }
-        }
+        checkOperandTypes(trail, res)
 
         resolved? = true
         return Response OK
 
+    }
+
+    checkOperandTypes: func (trail: Trail, res: Resolver) {
+        match overload {
+            case OverloadStatus TRYAGAIN =>
+                res wholeAgain(this, "need to check operand types")
+                return
+            case OverloadStatus REPLACED =>
+                // nothing to check
+                return
+            case =>
+                // checking now..
+        }
+
+        match type {
+            case UnaryOpType unaryMinus =>
+                // checking now...
+            case =>
+                // everything else is fine
+                return
+        }
+
+        if (!inner getType()) {
+            res wholeAgain(this, "need inner type to check operand type")
+            return
+        }
+
+        // Unary minus can only be applied to numeric types
+        if(!inner getType() isNumericType()) {
+            res throwError(InvalidUnaryType new(token,
+                            "Invalid operand type (%s) for unary minus" format(inner getType() toString())))
+        }
     }
 
     resolveOverload: func (trail: Trail, res: Resolver) -> Response {
@@ -123,23 +142,34 @@ UnaryOp: class extends Expression {
             }
         }
 
-        if(candidate != null) {
-            hasOverload? = true
-
-            fDecl := candidate getFunctionDecl()
-            fCall := FunctionCall new(fDecl getName(), token)
-            fCall getArguments() add(inner)
-            fCall setRef(fDecl)
-            if(!trail peek() replace(this, fCall)) {
-                if(res fatal) res throwError(CouldntReplace new(token, this, fCall, trail))
-                res wholeAgain(this, "failed to replace oneself, gotta try again =)")
-                return Response OK
-                //return Response LOOP
-            }
-            res wholeAgain(this, "Just replaced with an operator overloading")
+        match candidate {
+            case null =>
+                // at this point, all hope to find an overload is lost
+                overload = OverloadStatus NONE
+            case =>
+                // found one? replace it.
+                replaceWithOverload(trail, res, candidate)
         }
 
         return Response OK
+    }
+
+    replaceWithOverload: func (trail: Trail, res: Resolver, candidate: OperatorDecl) {
+
+        fDecl := candidate getFunctionDecl()
+        fCall := FunctionCall new(fDecl getName(), token)
+        fCall getArguments() add(inner)
+        fCall setRef(fDecl)
+
+        if(trail peek() replace(this, fCall)) {
+            res wholeAgain(this, "Just replaced with an overlokad")
+            overload = OverloadStatus REPLACED
+        } else {
+            if(res fatal) {
+                res throwError(CouldntReplace new(token, this, fCall, trail))
+            }
+            res wholeAgain(this, "failed to replace operator usage with an overload")
+        }
 
     }
 
