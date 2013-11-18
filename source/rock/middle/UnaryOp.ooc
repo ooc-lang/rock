@@ -21,7 +21,6 @@ UnaryOp: class extends Expression {
     boolType: BaseType
 
     overload := OverloadStatus TRYAGAIN
-    resolved? := false
 
     init: func ~unaryOp (=inner, =type, .token) {
         super(token)
@@ -37,7 +36,7 @@ UnaryOp: class extends Expression {
     }
 
     isResolved: func -> Bool {
-        resolved?
+        overload != OverloadStatus TRYAGAIN
     }
 
     getType: func -> Type {
@@ -74,7 +73,6 @@ UnaryOp: class extends Expression {
 
         checkOperandTypes(trail, res)
 
-        resolved? = true
         return Response OK
 
     }
