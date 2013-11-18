@@ -459,7 +459,7 @@ void GC_push_thread_structures(void)
     GC_push_all((ptr_t)(GC_threads), (ptr_t)(GC_threads)+sizeof(GC_threads));
 #   if defined(THREAD_LOCAL_ALLOC)
       GC_push_all((ptr_t)(&GC_thread_key),
-                  (ptr_t)(&GC_thread_key) + sizeof(&GC_thread_key));
+                  (ptr_t)(&GC_thread_key) + sizeof(GC_thread_key));
 #   endif
 }
 
@@ -1177,7 +1177,10 @@ GC_API void * GC_CALL GC_call_with_gc_active(GC_fn_type fn,
     if (!me->thread_blocked) {
       /* We are not inside GC_do_blocking() - do nothing more.  */
       UNLOCK();
-      return fn(client_data);
+      client_data = fn(client_data);
+      /* Prevent treating the above as a tail call.     */
+      GC_noop1((word)(&stacksect));
+      return client_data; /* result */
     }
 
     /* Setup new "stack section".       */
@@ -1588,8 +1591,10 @@ GC_API int WRAP_FUNC(pthread_create)(pthread_t *new_thread,
         }
         if (0 == stack_size) {
            pthread_attr_t my_attr;
+
            pthread_attr_init(&my_attr);
            pthread_attr_getstacksize(&my_attr, &stack_size);
+           pthread_attr_destroy(&my_attr);
         }
         /* On Solaris 10, with default attr initialization,     */
         /* stack_size remains 0.  Fudge it.                     */
@@ -1813,7 +1818,7 @@ yield:
     }
 }
 
-#else  /* !USE_SPINLOCK */
+#else  /* !USE_SPIN_LOCK */
 GC_INNER void GC_lock(void)
 {
 #ifndef NO_PTHREAD_TRYLOCK
@@ -1827,7 +1832,7 @@ GC_INNER void GC_lock(void)
 #endif /* !NO_PTHREAD_TRYLOCK */
 }
 
-#endif /* !USE_SPINLOCK */
+#endif /* !USE_SPIN_LOCK */
 
 #ifdef PARALLEL_MARK
 
@@ -1934,5 +1939,13 @@ GC_INNER void GC_notify_all_marker(void)
 }
 
 #endif /* PARALLEL_MARK */
+
+#ifdef PTHREAD_REGISTER_CANCEL_WEAK_STUBS
+  /* Workaround "undefined reference" linkage errors on some targets. */
+  void __pthread_register_cancel() __attribute__((__weak__));
+  void __pthread_unregister_cancel() __attribute__((__weak__));
+  void __pthread_register_cancel() {}
+  void __pthread_unregister_cancel() {}
+#endif
 
 #endif /* GC_PTHREADS */

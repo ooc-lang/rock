@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 1991-1994 by Xerox Corporation.  All rights reserved.
- * opyright (c) 1999-2000 by Hewlett-Packard Company.  All rights reserved.
+ * Copyright (c) 1999-2000 by Hewlett-Packard Company.  All rights reserved.
  *
  * THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY EXPRESSED
  * OR IMPLIED.  ANY USE IS AT YOUR OWN RISK.
@@ -642,7 +642,7 @@ GC_API void * GC_CALL GC_malloc_explicitly_typed_ignore_off_page(size_t lb,
    } else {
        op = (ptr_t)GENERAL_MALLOC_IOP(lb, GC_explicit_kind);
        if (op != NULL) {
-         lg = BYTES_TO_WORDS(GC_size(op));
+         lg = BYTES_TO_GRANULES(GC_size(op));
          ((word *)op)[GRANULES_TO_WORDS(lg) - 1] = d;
        }
    }

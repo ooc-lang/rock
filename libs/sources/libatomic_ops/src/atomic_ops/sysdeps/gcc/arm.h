@@ -15,8 +15,6 @@
  *
  */
 
-#include "../read_ordered.h"
-
 #include "../test_and_set_t_is_ao_t.h" /* Probably suboptimal */
 
 /* NEC LE-IT: ARMv6 is the first architecture providing support for     */
@@ -79,6 +77,8 @@ AO_nop_full(void)
       : "=&r"(dest)
       : /* empty */
       : AO_THUMB_SWITCH_CLOBBERS "memory");
+# else
+    AO_compiler_barrier();
 # endif
 }
 #define AO_HAVE_nop_full
@@ -269,11 +269,15 @@ AO_compare_and_swap(volatile AO_t *addr, AO_t old_val, AO_t new_val)
 #if !defined(__ARM_ARCH_6__) && !defined(__ARM_ARCH_6J__) \
     && !defined(__ARM_ARCH_6T2__) && !defined(__ARM_ARCH_6Z__) \
     && !defined(__ARM_ARCH_6ZT2__) && (!defined(__thumb__) \
-              || (defined(__thumb2__) && !defined(__ARM_ARCH_7__) \
-                  && !defined(__ARM_ARCH_7M__) && !defined(__ARM_ARCH_7EM__)))
+        || (defined(__thumb2__) && !defined(__ARM_ARCH_7__) \
+            && !defined(__ARM_ARCH_7M__) && !defined(__ARM_ARCH_7EM__))) \
+    && (!defined(__clang__) || (__clang_major__ > 3) \
+         || (__clang_major__ == 3 && __clang_minor__ >= 3))
   /* LDREXD/STREXD present in ARMv6K/M+ (see gas/config/tc-arm.c)       */
   /* In the Thumb mode, this works only starting from ARMv7 (except for */
-  /* the base and 'M' models).                                          */
+  /* the base and 'M' models).  Clang3.2 (and earlier) does not         */
+  /* allocate register pairs for LDREXD/STREXD properly (besides,       */
+  /* Clang3.1 does not support "%H<r>" operand specification).          */
   AO_INLINE int
   AO_compare_double_and_swap_double(volatile AO_double_t *addr,
                                     AO_t old_val1, AO_t old_val2,
@@ -288,16 +292,16 @@ AO_compare_and_swap(volatile AO_t *addr, AO_t old_val, AO_t new_val)
 
     do {
       __asm__ __volatile__("@AO_compare_double_and_swap_double\n"
-        "       ldrexd  %0, [%1]\n"     /* get original to r1 & r2 */
+        "       ldrexd  %0, %H0, [%1]\n" /* get original to r1 & r2 */
         : "=&r"(tmp)
         : "r"(addr)
         : "cc");
       if (tmp != old_val)
         break;
       __asm__ __volatile__(
-        "       strexd  %0, %2, [%3]\n" /* store new one if matched */
+        "       strexd  %0, %3, %H3, [%2]\n" /* store new one if matched */
         : "=&r"(result), "+m"(*addr)
-        : "r"(new_val), "r"(addr)
+        : "r" (addr), "r" (new_val)
         : "cc");
     } while (result);
     return !result;   /* if succeded, return 1 else 0 */

@@ -28,7 +28,7 @@
   /* FIXME: At least AO_spin should be factored out.    */
 #include <windows.h>
 
-AO_t dummy;
+static AO_t dummy = 1;
 
 /* Spin for 2**n units. */
 static void AO_spin(int n)
@@ -53,7 +53,7 @@ void AO_pause(int n)
         DWORD msecs;
 
         /* Short async-signal-safe sleep. */
-        msecs = (n > 18? 100 : (1 << (n - 12)));
+        msecs = n > 28 ? 100 : n < 22 ? 1 : 1 << (n - 22); /* in millis */
         Sleep(msecs);
       }
 }

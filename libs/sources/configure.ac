@@ -78,7 +78,7 @@ AC_ARG_ENABLE(cplusplus,
 dnl Features which may be selected in the following thread-detection switch.
 AH_TEMPLATE([PARALLEL_MARK], [Define to enable parallel marking.])
 AH_TEMPLATE([THREAD_LOCAL_ALLOC],
-            [Define to enable thread-local allocation optimisation.])
+            [Define to enable thread-local allocation optimization.])
 AH_TEMPLATE([USE_COMPILER_TLS],
             [Define to use of compiler-support for thread-local variables.])
 
@@ -159,17 +159,21 @@ case "$THREADS" in
      *-*-openbsd*)
         AC_DEFINE(GC_OPENBSD_THREADS)
         THREADDLLIBS=-pthread
-        INCLUDES="$INCLUDES -pthread"
+        AM_CFLAGS="$AM_CFLAGS -pthread"
         openbsd_threads=true
         ;;
      *-*-freebsd*)
         AC_MSG_WARN("FreeBSD does not yet fully support threads with Boehm GC.")
         AC_DEFINE(GC_FREEBSD_THREADS)
-        INCLUDES="$INCLUDES -pthread"
+        AM_CFLAGS="$AM_CFLAGS -pthread"
+        if test "${enable_parallel_mark}" = yes; then
+          AC_DEFINE(PARALLEL_MARK)
+        fi
+        AC_DEFINE(THREAD_LOCAL_ALLOC)
         ;;
      *-*-kfreebsd*-gnu)
         AC_DEFINE(GC_FREEBSD_THREADS)
-        INCLUDES="$INCLUDES -pthread"
+        AM_CFLAGS="$AM_CFLAGS -pthread"
         THREADDLLIBS=-pthread
         AC_DEFINE(_REENTRANT)
         if test "${enable_parallel_mark}" = yes; then
@@ -245,7 +249,7 @@ case "$THREADS" in
           # May want to enable it in other cases, too.
           # Measurements have not yet been done.
         fi
-        INCLUDES="$INCLUDES -pthread"
+        AM_CFLAGS="$AM_CFLAGS -pthread"
         THREADDLLIBS="-lpthread -lrt"
         ;;
       *)
@@ -291,7 +295,7 @@ case "$THREADS" in
     AC_DEFINE([DGUX_THREADS], 1,
               [Define to enable support for DB/UX threads.])
     # Enable _POSIX4A_DRAFT10_SOURCE with flag -pthread
-    INCLUDES="-pthread $INCLUDES"
+    AM_CFLAGS="-pthread $AM_CFLAGS"
     ;;
  aix)
     THREADS=posix
@@ -337,7 +341,7 @@ if test $compiler_xlc = yes -a "$powerpc_darwin" = true; then
   AC_DEFINE([DARWIN_DONT_PARSE_STACK], 1, [See doc/README.macros.])
 fi
 
-if test "$GCC" == yes; then
+if test "$GCC" = yes; then
   # Disable aliasing optimization unless forced to.
   AC_MSG_CHECKING([whether gcc supports -fno-strict-aliasing])
   ac_cv_fno_strict_aliasing=no
@@ -408,13 +412,13 @@ TARGET_ECOS="$with_ecos"
 
 addobjs=
 addlibs=
-CXXINCLUDES=
+
 case "$TARGET_ECOS" in
    no)
       ;;
    *)
       AC_DEFINE([ECOS], 1, [Define to enable eCos target support.])
-      CXXINCLUDES="-I${TARGET_ECOS}/include"
+      AM_CPPFLAGS="-I${TARGET_ECOS}/include $AM_CPPFLAGS"
       addobjs="$addobjs ecos.lo"
       ;;
 esac
@@ -422,9 +426,8 @@ esac
 AM_CONDITIONAL(CPLUSPLUS, test "${enable_cplusplus}" = yes)
 
 AC_SUBST(CXX)
-
-AC_SUBST(INCLUDES)
-AC_SUBST(CXXINCLUDES)
+AC_SUBST(AM_CFLAGS)
+AC_SUBST(AM_CPPFLAGS)
 
 # Configuration of shared libraries
 #
@@ -442,8 +445,8 @@ esac
 AC_MSG_RESULT($enable_shared)
 
 # Compile with GC_DLL defined unless building static libraries.
-if test "${enable_shared}" == yes; then
-  if test "${enable_static}" == no; then
+if test "${enable_shared}" = yes; then
+  if test "${enable_static}" = no; then
     AC_DEFINE(GC_DLL)
     # FIXME: Also pass -fvisibility=hidden option if GCC v4+ and not Win32.
   fi
@@ -494,6 +497,9 @@ case "$host" in
     machdep="mach_dep.lo sparc_mach_dep.lo"
     ;;
  sparc*-*-openbsd*)
+    machdep="mach_dep.lo sparc_mach_dep.lo"
+    ;;
+ sparc64-*-freebsd*)
     machdep="mach_dep.lo sparc_mach_dep.lo"
     ;;
  sparc-sun-solaris2.3)
@@ -707,7 +713,7 @@ if test -n "${with_cross_host}"; then
              [Define to tune the collector for small heap sizes.])
 fi
 
-if test "$enable_gc_debug" == "no"; then
+if test "$enable_gc_debug" = "no"; then
    AC_DEFINE([NO_DEBUGGING], 1,
              [Disable debugging, like GC_dump and its callees.])
 fi

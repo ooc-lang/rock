@@ -1,3 +1,545 @@
+[7.2e]
+
+2013-11-10  Ivan Maidanski <ivmai@mail.ru>
+
+	* doc/README: Bump version to 7.2e (rev. E).
+
+2013-09-16  Ivan Maidanski <ivmai@mail.ru>
+
+	* reclaim.c (GC_add_leaked): Remove FIXME.
+	* reclaim.c (GC_print_all_errors): Declare n_leaked, leaked[] local
+	variables initialized from GC_[n_]leaked while holding the allocation
+	lock (reset GC_n_leaked and GC_leaked[] as well); add GC_ASSERT for
+	n_leaked; use [n_]leaked while printing leaked objects
+	pointers.
+	* reclaim.c (GC_print_all_errors): Acquire lock to reset
+	printing_errors.
+
+2013-09-15  Ivan Maidanski <ivmai@mail.ru> (really Neale Ferguson)
+
+	* include/private/gcconfig.h (__data_start, _end): Add "weak"
+	attribute for Linux/s390.
+
+2013-09-15  Ivan Maidanski <ivmai@mail.ru> (mostly really Alex Rozenman)
+
+	* pthread_support.c (__pthread_unregister_cancel,
+	__pthread_unregister_cancel): Declare weak stubs for pthread_cancel API
+	(only if PTHREAD_REGISTER_CANCEL_WEAK_STUBS defined).
+
+2013-09-06  Ivan Maidanski <ivmai@mail.ru>
+
+	* include/private/gc_pmark.h (mse): Move to gc_priv.h (as used by
+	GC_mark_stack_limit, GC_mark_stack_top, GC_mark_stack).
+	* include/private/gc_pmark.h (GC_mark_stack_limit, GC_mark_stack_top,
+	GC_mark_stack): Remove variable declaration.
+	* include/private/gc_priv.h (_GC_arrays): Add _mark_stack,
+	_mark_stack_limit, _mark_stack_top fields.
+	* include/private/gc_priv.h (GC_mark_stack_limit, GC_mark_stack_top,
+	GC_mark_stack): Define macro (redirecting to the corresponding field
+	of GC_arrays).
+	* mark.c (GC_mark_stack, GC_mark_stack_limit, GC_mark_stack_top):
+	Remove variable; move comment to gc_priv.h.
+	* mark.c (GC_push_marked1, GC_push_marked2, GC_push_marked4): Undefine
+	GC_mark_stack_top and GC_mark_stack_limit macros (before redefining
+	them to local variables) at function start, redefine them back to the
+	corresponding field of GC_arrays at function exit.
+
+2013-09-02  Ivan Maidanski <ivmai@mail.ru>
+
+	* configure: Regenerate.
+	* Makefile.in: Likewise.
+
+2013-09-02  Ivan Maidanski <ivmai@mail.ru>
+
+	* tests/tests.am (TESTS, check_PROGRAMS, initsecondarythread_SOURCES,
+	initsecondarythread_LDADD): Rename initsecondarythread to
+	initsecondarythread_test (except for .c file).
+
+2013-09-01  Ivan Maidanski <ivmai@mail.ru>
+
+	* configure.ac (INCLUDES): Replace with AM_CFLAGS (as the former is
+	deprecated in Automake 1.13.4).
+	* configure.ac (CXXINCLUDES): Replace with AM_CPPFLAGS.
+
+2013-09-02  Ivan Maidanski <ivmai@mail.ru>
+
+	* configure: Regenerate (by autoreconf -vif using autoconf-2.69,
+	automake-1.13.4 and libtool-2.4.2).
+	* Makefile.in: Likewise.
+	* aclocal.m4: Likewise.
+	* compile: Likewise.
+	* config.guess: Likewise.
+	* config.sub: Likewise.
+	* configure: Likewise.
+	* depcomp: Likewise.
+	* install-sh: Likewise.
+	* ltmain.sh: Likewise.
+	* m4/libtool.m4: Likewise.
+	* missing: Likewise.
+	* mkinstalldirs: Likewise.
+	* test-driver: New generated file.
+
+2013-08-29  Ivan Maidanski <ivmai@mail.ru>
+
+	* configure: Regenerate.
+
+2012-02-27  Ivan Maidanski <ivmai@mail.ru>
+
+	* configure.ac (PARALLEL_MARK): Define for freebsd if
+	enable_parallel_mark is yes.
+	* configure.ac (THREAD_LOCAL_ALLOC): Always define for freebsd (if
+	posix threads).
+
+2013-08-25  Ivan Maidanski <ivmai@mail.ru>
+
+	* Makefile.in (pkgdatadir): Move from "doc" to base folder.
+	* doc/gc.man: Remove "PORT INFORMATION".
+
+2013-08-25  Ivan Maidanski <ivmai@mail.ru>
+
+	* include/gc_config_macros.h (GC_RETURN_ADDR_PARENT): Use
+	__builtin_extract_return_addr (since the address passed to dladdr);
+	do not define the macro for GCC pre-v4.
+
+2013-08-24  Ivan Maidanski <ivmai@mail.ru>
+
+	* include/gc_config_macros.h (GC_CAN_SAVE_CALL_STACKS): Define also
+	for __amd64__ (synonym for __x86_64__).
+	* include/gc_config_macros.h (GC_RETURN_ADDR_PARENT): Define only for
+	x86 and x86_64 (which have frame-pointer register, for other targets
+	GCC might report "unsupported argument to __builtin_return_address"
+	warning).
+
+2013-08-24  Ivan Maidanski <ivmai@mail.ru>
+
+	* dbg_mlc.c (GC_caller_func_offset): Do not define (and do not include
+	dlfcn.h) unless GC_ADD_CALLER; test HAVE_DLADDR (and
+	GC_RETURN_ADDR_PARENT) instead of FREEBSD macro.
+	* dbg_mlc.c (GC_caller_func_offset): Use STATIC; replace the K&R-style
+	function definition with the ANSI C one; remove unnecessary "const" in
+	type casts; do not call dladdr() if address is 0.
+	* dbg_mlc.c (GC_debug_malloc, GC_debug_realloc): Move assignment of
+	"s" argument to "unknown" to GC_caller_func_offset (if GC_ADD_CALLER).
+	* dbg_mlc.c (GC_debug_realloc): Do not call GC_caller_func_offset if
+	"p" argument is NULL (i.e., if redirected to GC_debug_malloc)..
+	* include/private/gcconfig.h (HAVE_DLADDR): Define for FREEBSD.
+
+2013-08-23  Ivan Maidanski <ivmai@mail.ru>
+
+	* dbg_mlc.c (GC_debug_malloc_replacement,
+	GC_debug_realloc_replacement): Use GC_DBG_EXTRAS (instead of
+	"GC_DBG_RA NULL, 0").
+	* malloc.c (GC_debug_malloc_replacement): Likewise.
+	* mallocx.c (GC_debug_realloc_replacement): Likewise.
+	* include/private/gc_priv.h (GC_DBG_EXTRAS): New macro (similar to
+	GC_EXTRAS but pass NULL/0 instead of __FILE__and __LINE__);
+	pass "unknown" instead of NULL unless GC_ADD_CALLER.
+	* include/private/gc_priv.h (GC_DBG_RA): Remove.
+
+2013-08-23  Ivan Maidanski <ivmai@mail.ru>
+
+	* malloc.c (GC_debug_malloc_replacement): Pass NULL (instead of
+	"unknown") to "s" argument of GC_debug_malloc to match that
+	replacement definition in dbg_mlc.c.
+	* mallocx.c (GC_debug_realloc_replacement): Likewise.
+
+2013-08-22  Ivan Maidanski <ivmai@mail.ru>
+
+	* os_dep.c (old_segv_act): Define static variable for FREEBSD (same as
+	for NETBSD).
+	* os_dep.c (GC_set_and_save_fault_handler): Reformat code (related to
+	FreeBSD).
+	* os_dep.c (GC_reset_fault_handler): Initialize old_segv_act (and
+	old_bus_act) for FREEBSD (same as for NETBSD).
+
+2013-08-22  Ivan Maidanski <ivmai@mail.ru>
+
+	* include/private/gcconfig.h (ALIGNMENT, OS_TYPE, DYNAMIC_LOADING,
+	HEURISTIC2, etext, SEARCH_FOR_DATA_START): Reformat (adjust
+	indentation) for FreeBSD/arm.
+
+2013-07-21  Ivan Maidanski <ivmai@mail.ru>
+
+	* configure.ac (Configuration of machine-dependent code): Handle
+	sparc64-*-freebsd* case.
+
+2013-07-21  Ivan Maidanski <ivmai@mail.ru>
+
+	* dbg_mlc.c (GC_caller_func_offset): Test FREEBSD macro instead of
+	__FreeBSD__ (since the former is always defined in gcconfig.h included
+	from this file indirectly).
+	* dyn_load.c (ElfW): Likewise.
+	* dbg_mlc.c (GC_caller_func): Fix name to GC_caller_func_offset.
+	* dbg_mlc.c (GC_debug_realloc): Invoke GC_caller_func_offset if
+	GC_ADD_CALLER (same as in GC_debug_malloc and commit 2cdf7ec).
+	* include/private/gc_priv.h (RA): Fix name to GC_DBG_RA.
+	* include/private/gcconfig.h (X86_64): Test __x86_64__ in addition to
+	__amd64__ for FreeBSD (proposed in commit b54833a).
+
+2013-07-21  Ivan Maidanski <ivmai@mail.ru> (mostly really Vitaly Magerya)
+
+	* Makefile.in (pkgdatadir): Move to "doc" folder.
+	* configure (Configuration of machine-dependent code): Handle
+	sparc64-*-freebsd*.
+	* dbg_mlc.c (GC_caller_func_offset): New function (empty unless
+	FreeBSD).
+	* dbg_mlc.c (GC_debug_malloc): Invoke GC_caller_func_offset if
+	GC_ADD_CALLER.
+	* dbg_mlc.c (GC_debug_malloc_replacement,
+	GC_debug_realloc_replacement): Pass NULL (instead of "unknown") to
+	GC_debug_malloc/realloc.
+	* doc/gc.man: Add "PORT INFORMATION".
+	* dyn_load.c (ElfW): Define for __FreeBSD__.
+	* include/gc.h (GC_RETURN_ADDR_PARENT): New macro.
+	* include/private/gc_priv.h (RA): Define to "GC_RETURN_ADDR_PARENT,"
+	if GC_RETURN_ADDR_PARENT defined.
+	* include/private/gcconfig.h (IA64, ARM32,
+	ALIGNMENT, OS_TYPE, DYNAMIC_LOADING, HEURISTIC2,
+	etext, SEARCH_FOR_DATA_START): Define for FreeBSD.
+	* os_dep.c (GC_set_and_save_fault_handler): Invoke sigaction(SIGBUS)
+	for FreeBSD.
+	* os_dep.c (AIM): Define before include machine/trap.h if FreeBSD/ppc.
+	* os_dep.c (CODE_OK): Define to test "code" against EXC_DSI (instead
+	of BUS_PAGE_FAULT) if FreeBSD/ppc.
+
+2013-07-21  Ivan Maidanski <ivmai@mail.ru> (mostly really Mike McGaughey)
+
+	* Makefile.in (pkgdatadir): Move to "doc" folder.
+	* configure (Configuration of machine-dependent code): Handle
+	sparc64-*-freebsd*.
+	* dbg_mlc.c (GC_caller_func_offset): New function (empty unless
+	FreeBSD).
+	* dbg_mlc.c (GC_debug_malloc, GC_debug_realloc): Invoke
+	GC_caller_func_offset if GC_ADD_CALLER.
+	* dbg_mlc.c (RA): Define to GC_RETURN_ADDR_PARENT (if the latter is
+	defined).
+	* dbg_mlc.c (GC_debug_malloc_replacement,
+	GC_debug_realloc_replacement): Pass NULL (instead of "unknown") to
+	GC_debug_malloc/realloc.
+	* doc/gc.man: Add "PORT INFORMATION".
+	* dyn_load.c (ElfW): Define for FreeBSD.
+	* include/private/gcconfig.h (X86_64, IA64, POWERPC, ARM32,
+	mach_type_known, ALIGNMENT, OS_TYPE, DYNAMIC_LOADING, HEURISTIC2,
+	etext, SEARCH_FOR_DATA_START): Likewise.
+	* os_dep.c (old_bus_act): Likewise.
+	* include/gc.h (GC_RETURN_ADDR_PARENT): New macro.
+	* os_dep.c (GC_set_and_save_fault_handler): Invoke sigaction(SIGBUS)
+	for FreeBSD.
+	* os_dep.c (AIM): Define before include machine/trap.h if FreeBSD/ppc.
+	* os_dep.c (CODE_OK): Define to test "code" against EXC_DSI (instead
+	of BUS_PAGE_FAULT) if FreeBSD/ppc.
+
+2013-07-20  Ivan Maidanski <ivmai@mail.ru>
+
+	* include/private/config.h.in: Regenerate.
+
+2013-07-20  Ivan Maidanski <ivmai@mail.ru>
+
+	* pthread_stop_world.c (GC_push_all_stacks): Use
+	traced_stack_sect->prev instead of traced_stack_sect if saved_stack_ptr
+	(of traced_stack_sect) is the same as stop_info.stack_ptr of the
+	examined thread (thus preventing assertion violation in
+	GC_push_all_stack_sections invoked during incremental collection).
+
+2013-07-20  Ivan Maidanski <ivmai@mail.ru>
+
+	* misc.c (GC_call_with_gc_active): Add GC_noop1 call between "fn" call
+	and "return" statement to discourage the compiler from treating the
+	function call as a tail one (thus ensuring "stackbottom" COOLER_THAN
+	any stack pointer value obtained inside "fn").
+	* pthread_support.c (GC_call_with_gc_active): Likewise.
+	* win32_threads.c (GC_call_with_gc_active): Likewise.
+
+2013-07-17  Ivan Maidanski <ivmai@mail.ru>
+
+	* mark.c (GC_mark_from): If "descr" is less than size of word then
+	skip prefetching and PUSH_CONTENTS of the current entry (thus,
+	eliminate assertion violation in the prefetch loop) if SMALL_CONFIG is
+	not defined.
+
+2013-07-16  Ivan Maidanski <ivmai@mail.ru>
+
+	* mark.c (GC_mark_from): Fix typo (capitalization) in comment ("ASAP").
+
+2013-07-15  Ivan Maidanski <ivmai@mail.ru>
+
+	* win32_threads.c (GC_PTHREAD_PTRVAL): Define also if
+	GC_PTHREADS_PARAMARK (even w/o GC_WIN32_PTHREADS).
+
+2013-07-11  Ivan Maidanski <ivmai@mail.ru>
+
+	* alloc.c: Fix typo ("overflow").
+	* configure.ac: Fix typo ("optimization").
+	* doc/README.amiga: Fix typos ("also", "specific", "unnecessary").
+	* doc/README.cords: Fix typos ("descendants", "highlighted").
+	* doc/README.changes: Fix typos ("[un]collectible").
+	* doc/README: Likewise.
+	* dbg_mlc.c: Likewise.
+	* doc/README.hp: Likewise.
+	* doc/README.linux: Likewise.
+	* doc/gcdescr.html: Likewise.
+	* doc/gcinterface.html: Likewise.
+	* include/gc_mark.h: Likewise.
+	* include/gc_pthread_redirects.h: Likewise.
+	* include/new_gc_alloc.h: Likewise.
+	* include/private/dbg_mlc.h: Likewise.
+	* include/private/gc_pmark.h: Likewise.
+	* include/private/gc_priv.h: Likewise.
+	* new_hblk.c: Likewise.
+	* doc/README.changes: Fix typo ("multi-threaded").
+	* cord/cordxtra.c: Likewise.
+	* doc/debugging.html: Likewise.
+	* doc/gcinterface.html: Likewise.
+	* doc/leak.html: Likewise.
+	* doc/overview.html: Likewise.
+	* doc/simple_example.html: Likewise.
+	* include/gc_mark.h: Likewise.
+	* include/private/gc_priv.h: Likewise.
+	* os_dep.c: Likewise.
+	* ptr_chck.c: Likewise.
+	* doc/README: Fix typo ("pointer-free").
+	* allchblk.c: Likewise.
+	* doc/debugging.html: Likewise.
+	* doc/gcdescr.html: Likewise.
+
+2013-07-11  Ondrej Bilka <neleai@seznam.cz>
+
+	* blacklst.c: Fix typo ("even though").
+	* cord/cordbscs.c: Fix typo ("exponentially").
+	* cord/cordxtra.c: Fix typo ("represented").
+	* dyn_load.c: Fix typos ("uncollectible", "occurred").
+	* extra/AmigaOS: Fix typos ("specific", "necessary", "always",
+	"effectiveness").
+	* finalize.c: Fix typo ("descendants").
+	* include/cord.h: Fix typo ("idiosyncrasies").
+	* include/gc.h: Fix typo ("collectible").
+	* include/gc_allocator.h: Fix typos ("allocator", "[un]collectible").
+	* mach_dep.c: Fix typo ("erroneously").
+	* malloc.c: Fix typos ("[un]collectible", "pointer-free",
+	"initialization").
+	* mallocx.c: Fix typos ("largely", "pointer-free", "uncollectible").
+	* mark.c: Fix typos ("[un]collectible", "even though").
+	* misc.c: Fix typo ("erroneously").
+	* os_dep.c: Fix typos ("non-addressable", "happening", "pointer-free").
+	* tests/test.c: Fix typos ("uncollectible", "reversed").
+	* tests/test_cpp.cc: Fix typos ("[un]collectible").
+	* typd_mlc.c: Fix typo ("copyright").
+	* win32_threads.c: Fix typos ("optimization", "uncollectible").
+
+2013-07-10  Ivan Maidanski <ivmai@mail.ru>
+
+	* SMakefile.amiga (clean, test, gctest, setjmp_t, gc*.lib, setjmp_t):
+
+2013-06-12  Ivan Maidanski <ivmai@mail.ru>
+
+	* win32_threads.c (signalObjectAndWait_func): Fix a typo in comment.
+
+2013-05-04  Ivan Maidanski <ivmai@mail.ru>
+
+	* doc/README.changes: Fix triple-letter typos.
+	* doc/overview.html: Likewise.
+	* mark.c (GC_push_marked1): Fix a triple-letter typo in a comment.
+	* os_dep.c (GC_register_data_segments): Likewise.
+
+2013-02-13  Andy Wingo <wingo@pobox.com>
+
+	* tests/tests.am (gctest_LDADD, threadleaktest_LDADD,
+	threadkey_test_LDADD,
+	initsecondarythread_LDADD): Link to pthreads (or appropriate
+	threading libraries) as needed; fixes failure to link with new GNU ld
+	linking rules.
+
+2012-12-28  Ivan Maidanski <ivmai@mail.ru>
+
+	* doc/README: Change README.debugging to debugging.html.
+	* Makefile.dj (OTHER_FILES): Likewise.
+
+2012-12-23  Ivan Maidanski <ivmai@mail.ru>
+
+	* os_dep.c (GC_win32_free_heap): Test GLOBAL_ALLOC_TEST instead of
+	GC_no_win32_dlls to determine whether the memory is allocated using
+	GlobalAlloc (only if MSWIN32).
+
+2012-12-23  Ivan Maidanski <ivmai@mail.ru>
+
+	* os_dep.c (detect_GetWriteWatch): Pass 0 (instead of GC_page_size)
+	to Win32 VirtualFree if GWW_VDB (dwSize must be 0 if MEM_RELEASE
+	according to MSDN).
+
+2012-12-23  Ivan Maidanski <ivmai@mail.ru>
+
+	* mark.c (GC_print_trace): Perform UNLOCK (if "lock" is on) before
+	return (inside loop).
+
+2012-12-09  Ivan Maidanski <ivmai@mail.ru>
+
+	* include/gc.h (GC_enable): Fix typo and refine comment.
+
+2012-12-23  Ivan Maidanski <ivmai@mail.ru>
+
+	* os_dep.c (GC_win32_free_heap): Do not invoke virtual free for
+	Cygwin, remove "else" branch  (only if MSWIN32 but not CYGWIN32).
+
+2012-10-21  Max Mouratov <mmouratov@gmail.com>
+
+	* os_dep.c (GC_win32_free_heap): Fix VirtualAlloc leaks when freeing the
+	heap on Win32.
+
+2012-12-08  Reimer Behrends <behrends@gmail.com>
+
+	* typd_mlc.c (GC_malloc_explicitly_typed_ignore_off_page): Use
+	BYTES_TO_GRANULES instead of BYTES_TO_WORDS when calculating "lg"
+	local variable value.
+
+2012-11-25  Ivan Maidanski <ivmai@mail.ru>
+
+	* include/gc.h (GC_uintptr_t): Define (for Win32/CE) even if
+	GC_NO_THREAD_DECLS; move definition upper than GC_CreateThread.
+	* include/gc.h (GC_WIN32_SIZE_T): New macro (defined as GC_uintptr_t,
+	Win32 threads only).
+	* include/gc.h (GC_CreateThread): Use GC_WIN32_SIZE_T instead of DWORD
+	type for "dwStackSize" argument (Win32 threads only).
+	* win32_threads.c (GC_CreateThread): Likewise.
+	* tests/test.c (fork_a_thread): Verify types of GC_CreateThread
+	arguments by explicit casts (only if GC_WIN32_THREADS).
+
+2012-11-19  Ivan Maidanski <ivmai@mail.ru>
+
+	* include/private/gc_priv.h (MAX_HEAP_SECTS): Define to 384 instead of
+	128 if Win32/Cygwin and PARALLEL_MARK.
+
+2012-11-18  Ivan Maidanski <ivmai@mail.ru>
+
+	* win32_threads.c (GC_marker_cv, GC_marker_Id): Move variable
+	definition up to precede GC_mark_thread (only if PARALLEL_MARK and
+	DONT_USE_SIGNALANDWAIT).
+	* win32_threads.c (GC_mark_thread): Set corresponding element of
+	GC_marker_Id[] to GetCurrentThreadId() value (only if PARALLEL_MARK
+	and DONT_USE_SIGNALANDWAIT).
+	* win32_threads.c (start_mark_threads): Do not set GC_marker_Id[]
+	elements here because GetCurrentThreadId should be invoked from the
+	corresponding thread; update comment (only if PARALLEL_MARK and
+	DONT_USE_SIGNALANDWAIT).
+
+2012-11-11  Ivan Maidanski <ivmai@mail.ru>
+
+	* misc.c (GC_write): Define "inside_write" static variable (only
+	for Win32 and only if THREADS and GC_ASSERTIONS or
+	GC_PRINT_VERBOSE_STATS); if this variable is set then just return,
+	set this variable if GC_write_disabled or GC_log is
+	INVALID_HANDLE_VALUE just before ABORT call (to prevent infinite
+	recursion).
+	* misc.c (GC_abort): Do not call WRITE if GC_write_disabled
+	(only for Win32 and only if THREADS and GC_ASSERTIONS) to prevent
+	abort in GC_write.
+
+2012-11-08  Ivan Maidanski <ivmai@mail.ru>
+
+	* pthread_support.c (GC_lock): Fix USE_SPIN_LOCK macro name in comment.
+
+2012-11-06  Ivan Maidanski <ivmai@mail.ru>
+
+	* include/private/gc_priv.h (_GC_arrays): Fix comment for
+	_bytes_allocd_before_gc, _bytes_allocd, _composite_in_use and
+	_atomic_in_use fields (replace "words" unit with "bytes").
+	* include/private/gc_priv.h (GC_objfreelist): Fix comment (replace
+	"words" unit with "bytes").
+
+2012-10-24  Ivan Maidanski <ivmai@mail.ru>
+
+	* cord/cordtest.c (test_extras): Explicitly clear cord handles
+	obtained from CORD_from_file(), invoke GC_gcollect and
+	GC_invoke_finalizers to force f1a, f1b, f2 handles to be closed before
+	removing the files; remove the second attempts to remove the files on
+	rename failure (print a warning instead) as it might cause double
+	fclose (or double free); add comments.
+
+2012-10-24  Ivan Maidanski <ivmai@mail.ru>
+
+	* pthread_support.c (pthread_create): Cleanup my_attr resource by
+	calling pthread_attr_destroy (only if GC_ASSERTIONS).
+
+2012-10-23  Ivan Maidanski <ivmai@mail.ru>
+
+	* misc.c (GC_clear_stack): Declare "dummy" local array as volatile to
+	prevent optimizing it out by compiler; add cast of "dummy" to void*
+	(to un-volatile the pointer) in BZERO call (only if THREADS).
+
+2012-10-19  Ivan Maidanski <ivmai@mail.ru>
+
+	* os_dep.c (GC_unix_mmap_get_mem): Check open("/dev/zero") (or open
+	of similar file on Symbian) result and abort (with the appropriate
+	message) on failure (only if USE_MMAP_ANON is undefined).
+
+2012-10-17  Ivan Maidanski <ivmai@mail.ru>
+
+	* cord/cordprnt.c (CORD_vsprintf): Invoke va_end (before return) for
+	vsprintf_args initialized by [__]va_copy (only if __va_copy defined
+	or GCC but not DJGPP).
+
+2012-10-17  Ivan Maidanski <ivmai@mail.ru>
+
+	* pthread_support.c (GC_push_thread_structures): Fix sizeof argument
+	(take size of GC_thread_key variable instead of its address) if
+	THREAD_LOCAL_ALLOC.
+	* win32_threads.c (GC_push_thread_structures): Likewise.
+
+2012-09-29  Ivan Maidanski <ivmai@mail.ru>
+
+	* mach_dep.c (GC_with_callee_saves_pushed): Fix a typo in comment.
+
+2012-09-19  Ivan Maidanski <ivmai@mail.ru>
+
+	* configure: Regenerate (by autoreconf -vif using autoconf-2.68,
+	automake-1.11.3 and libtool-2.4.2).
+	* Makefile.in: Likewise.
+	* aclocal.m4: Likewise.
+	* compile: Likewise.
+	* config.guess: Likewise.
+	* config.sub: Likewise.
+	* depcomp: Likewise.
+	* install-sh: Likewise.
+	* ltmain.sh: Likewise.
+	* m4/libtool.m4: Likewise.
+	* m4/ltoptions.m4: Likewise.
+	* m4/ltversion.m4: Likewise.
+	* missing: Likewise.
+
+2012-09-11  Ivan Maidanski <ivmai@mail.ru>
+
+	* cord/cordbscs.c (CORD_substr_closure): Prevent SEGV if CORD_from_fn
+	returned NULL/CORD_EMPTY (in case "n" argument is zero).
+
+2012-09-11  Ivan Maidanski <ivmai@mail.ru>
+
+	* alloc.c (min_bytes_allocd): Fix comment (replace "words" with
+	"bytes").
+
+2012-09-11  Ivan Maidanski <ivmai@mail.ru>
+
+	* alloc.c (min_bytes_allocd): Do not return zero in case of big
+	GC_free_space_divisor value (return 1 instead to prevent infinite loop
+	in GC_allocobj if GC_adj_bytes_allocd returns zero); update comment.
+
+2012-09-11  Ivan Maidanski <ivmai@mail.ru>
+
+	* doc/README (GC_free_space_divisor): Update information.
+
+2012-09-06  Colin LeMahieu <clemahieu@gmail.com>
+
+	* os_dep.c (GC_get_stack_base): Use inline assembly statement instead
+	of variable assembly attribute (to workaround clang 3.1 linkage error
+	on Cygwin).
+
+2012-08-27  Ivan Maidanski <ivmai@mail.ru>
+
+	* configure: Regenerate.
+
+2012-08-26  Thomas Klausner <tk@giga.or.at>
+
+	* configure.ac: Replace all unportable '==' test operators with '='
+	ones.
+
 [7.2d]
 
 2012-08-09  Ivan Maidanski <ivmai@mail.ru>
@@ -202,7 +744,7 @@
 2012-04-02  Ivan Maidanski <ivmai@mail.ru>
 
 	* configure: Regenerate.
-	* include/private/config.h.in : Likewise.
+	* include/private/config.h.in: Likewise.
 
 2012-04-02  Ivan Maidanski <ivmai@mail.ru>
 

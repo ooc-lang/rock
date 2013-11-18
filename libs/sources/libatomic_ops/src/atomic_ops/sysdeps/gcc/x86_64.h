@@ -135,7 +135,7 @@ AO_compare_and_swap_full(volatile AO_t *addr, AO_t old, AO_t new_val)
 /* HB: Changed this to not define either by default.  There are
  * enough machines and tool chains around on which cmpxchg16b
  * doesn't work.  And the emulation is unsafe by our usual rules.
- * Hoewever both are clearly useful in certain cases.
+ * However both are clearly useful in certain cases.
  */
 AO_INLINE int
 AO_compare_double_and_swap_double_full(volatile AO_double_t *addr,
@@ -172,8 +172,4 @@ AO_compare_double_and_swap_double_full(volatile AO_double_t *addr,
 #define AO_HAVE_compare_double_and_swap_double_full
 #endif /* AO_WEAK_DOUBLE_CAS_EMULATION */
 
-#endif /* AO_CMPXCHG16B_AVAILABLE */
-
-#ifdef __ILP32__
-# define AO_T_IS_INT
-#endif
+#endif /* !AO_CMPXCHG16B_AVAILABLE */

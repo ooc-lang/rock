@@ -69,23 +69,7 @@ GC_EXTERN unsigned GC_n_mark_procs;
 /* Number of mark stack entries to discard on overflow. */
 #define GC_MARK_STACK_DISCARDS (INITIAL_MARK_STACK_SIZE/8)
 
-typedef struct GC_ms_entry {
-    ptr_t mse_start;    /* First word of object, word aligned.  */
-    GC_word mse_descr;  /* Descriptor; low order two bits are tags,     */
-                        /* as described in gc_mark.h.                   */
-} mse;
-
 GC_EXTERN size_t GC_mark_stack_size;
-
-GC_EXTERN mse * GC_mark_stack_limit;
-
-#ifdef PARALLEL_MARK
-  GC_EXTERN mse * volatile GC_mark_stack_top;
-#else
-  GC_EXTERN mse * GC_mark_stack_top;
-#endif
-
-GC_EXTERN mse * GC_mark_stack;
 
 #ifdef PARALLEL_MARK
     /*
@@ -466,7 +450,7 @@ typedef int mark_state_t;       /* Current state of marking, as follows:*/
                                 /* grungy objects above scan_ptr.       */
 
 #define MS_PUSH_UNCOLLECTABLE 2 /* I holds, except that marked          */
-                                /* uncollectable objects above scan_ptr */
+                                /* uncollectible objects above scan_ptr */
                                 /* may point to unmarked objects.       */
                                 /* Roots may point to unmarked objects  */
 

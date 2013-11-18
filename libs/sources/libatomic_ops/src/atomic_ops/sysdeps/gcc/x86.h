@@ -129,6 +129,8 @@ AO_compare_and_swap_full(volatile AO_t *addr, AO_t old, AO_t new_val)
 }
 #define AO_HAVE_compare_and_swap_full
 
+#if !defined(__x86_64__)
+
 /* Returns nonzero if the comparison succeeded. */
 /* Really requires at least a Pentium.          */
 AO_INLINE int
@@ -137,44 +139,91 @@ AO_compare_double_and_swap_double_full(volatile AO_double_t *addr,
                                        AO_t new_val1, AO_t new_val2)
 {
   char result;
-#if __PIC__
-  /* If PIC is turned on, we can't use %ebx as it is reserved for the   */
-  /* GOT pointer.  We can save and restore %ebx because GCC won't be    */
-  /* using it for anything else (such as any of the m operands).        */
-# if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)
-    /* Starting from GCC 4.3, we use %edi (for new_val1) instead of a   */
-    /* memory operand and swap instruction instead of push/pop because  */
-    /* some GCC releases have a bug in processing memory operands (if   */
-    /* address base is %esp) in the inline assembly after push.         */
-    __asm__ __volatile__("xchg %%ebx,%6;" /* swap GOT ptr and new_val1 */
-                       "lock; cmpxchg8b %0; setz %1;"
-                       "xchg %%ebx,%6;" /* restore ebx and edi */
-                       : "=m"(*addr), "=a"(result)
-                       : "m"(*addr), "d" (old_val2), "a" (old_val1),
-                         "c" (new_val2), "D" (new_val1) : "memory");
+# ifdef __PIC__
+    AO_t saved_ebx;
+
+    /* If PIC is turned on, we cannot use ebx as it is reserved for the */
+    /* GOT pointer.  We should save and restore ebx.  The proposed      */
+    /* solution is not so efficient as the older alternatives using     */
+    /* push ebx or edi as new_val1 (w/o clobbering edi and temporary    */
+    /* local variable usage) but it is more portable (it works even if  */
+    /* ebx is not used as GOT pointer, and it works for the buggy GCC   */
+    /* releases that incorrectly evaluate memory operands offset in the */
+    /* inline assembly after push).                                     */
+#   ifdef __OPTIMIZE__
+      __asm__ __volatile__("mov %%ebx, %2\n\t" /* save ebx */
+                           "lea %0, %%edi\n\t" /* in case addr is in ebx */
+                           "mov %7, %%ebx\n\t" /* load new_val1 */
+                           "lock; cmpxchg8b (%%edi)\n\t"
+                           "mov %2, %%ebx\n\t" /* restore ebx */
+                           "setz %1"
+                        : "=m" (*addr), "=a" (result), "=m" (saved_ebx)
+                        : "m" (*addr), "d" (old_val2), "a" (old_val1),
+                          "c" (new_val2), "m" (new_val1)
+                        : "%edi", "memory");
+#   else
+      /* A less-efficient code manually preserving edi if GCC invoked   */
+      /* with -O0 option (otherwise it fails while finding a register   */
+      /* in class 'GENERAL_REGS').                                      */
+      AO_t saved_edi;
+      __asm__ __volatile__("mov %%edi, %3\n\t" /* save edi */
+                           "mov %%ebx, %2\n\t" /* save ebx */
+                           "lea %0, %%edi\n\t" /* in case addr is in ebx */
+                           "mov %8, %%ebx\n\t" /* load new_val1 */
+                           "lock; cmpxchg8b (%%edi)\n\t"
+                           "mov %2, %%ebx\n\t" /* restore ebx */
+                           "mov %3, %%edi\n\t" /* restore edi */
+                           "setz %1"
+                        : "=m" (*addr), "=a" (result),
+                          "=m" (saved_ebx), "=m" (saved_edi)
+                        : "m" (*addr), "d" (old_val2), "a" (old_val1),
+                          "c" (new_val2), "m" (new_val1) : "memory");
+#   endif
 # else
-    /* For older compiler releases, we continue to use push/pop as at   */
-    /* least GCC 4.2.1 does not recognize 'D' as a valid register name. */
-    __asm__ __volatile__("pushl %%ebx;" /* save ebx used for PIC GOT ptr */
-                       "movl %6,%%ebx;" /* move new_val1 to %ebx */
-                       "lock; cmpxchg8b %0; setz %1;"
-                       "pop %%ebx;"     /* restore %ebx */
-                       : "=m"(*addr), "=a"(result)
-                       : "m"(*addr), "d" (old_val2), "a" (old_val1),
-                         "c" (new_val2), "m" (new_val1) : "memory");
-# endif
-#else
-  /* We can't just do the same thing in non-PIC mode, because GCC
-   * might be using %ebx as the memory operand.  We could have ifdef'd
-   * in a clobber, but there's no point doing the push/pop if we don't
-   * have to. */
-  __asm__ __volatile__("lock; cmpxchg8b %0; setz %1;"
-                       : "=m"(*addr), "=a"(result)
-                       : "m"(*addr), "d" (old_val2), "a" (old_val1),
+    /* For non-PIC mode, this operation could be simplified (and be     */
+    /* faster) by using ebx as new_val1 (GCC would refuse to compile    */
+    /* such code for PIC mode).                                         */
+    __asm__ __volatile__("lock; cmpxchg8b %0; setz %1"
+                       : "=m" (*addr), "=a" (result)
+                       : "m" (*addr), "d" (old_val2), "a" (old_val1),
                          "c" (new_val2), "b" (new_val1) : "memory");
-#endif
+# endif
   return (int) result;
 }
 #define AO_HAVE_compare_double_and_swap_double_full
+
+#else /* x86_64 && ILP32 */
+
+  /* X32 has native support for 64-bit integer operations (AO_double_t  */
+  /* is a 64-bit integer and we could use 64-bit cmpxchg).              */
+  /* This primitive is used by compare_double_and_swap_double_full.     */
+  AO_INLINE int
+  AO_double_compare_and_swap_full(volatile AO_double_t *addr,
+                                  AO_double_t old_val, AO_double_t new_val)
+  {
+    /* It is safe to use __sync CAS built-in here.      */
+    return __sync_bool_compare_and_swap(&addr->AO_whole,
+                                        old_val.AO_whole, new_val.AO_whole
+                                        /* empty protection list */);
+  }
+# define AO_HAVE_double_compare_and_swap_full
+
+  /* TODO: Remove if generalized.       */
+  AO_INLINE int
+  AO_compare_double_and_swap_double_full(volatile AO_double_t *addr,
+                                         AO_t old_val1, AO_t old_val2,
+                                         AO_t new_val1, AO_t new_val2)
+  {
+    AO_double_t old_w;
+    AO_double_t new_w;
+    old_w.AO_val1 = old_val1;
+    old_w.AO_val2 = old_val2;
+    new_w.AO_val1 = new_val1;
+    new_w.AO_val2 = new_val2;
+    return AO_double_compare_and_swap_full(addr, old_w, new_w);
+  }
+# define AO_HAVE_compare_double_and_swap_double_full
+
+#endif /* x86_64 && ILP32 */
 
 #include "../ao_t_is_int.h"

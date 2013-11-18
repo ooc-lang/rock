@@ -447,9 +447,9 @@ CORD CORD_from_file_eager(FILE * f)
     for(;;) {
         c = getc(f);
         if (c == 0) {
-          /* Append the right number of NULs    */
-          /* Note that any string of NULs is rpresented in 4 words, */
-          /* independent of its length.                 */
+          /* Append the right number of NULs                            */
+          /* Note that any string of NULs is represented in 4 words,    */
+          /* independent of its length.                                 */
             register size_t count = 1;
 
             CORD_ec_flush_buf(ecord);
@@ -571,7 +571,7 @@ CORD CORD_from_file_lazy_inner(FILE * f, size_t len)
         /* This greatly increases the probability       */
         /* of avoiding deadlock if buffer allocation    */
         /* is redirected to GC_malloc and the           */
-        /* world is multithreaded.                      */
+        /* world is multi-threaded.                     */
         char buf[1];
 
         if (fread(buf, 1, 1, f) > 1) {

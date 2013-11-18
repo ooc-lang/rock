@@ -36,7 +36,7 @@ Public License, but is not needed by, nor linked into the collector library.
 It is included here only because the atomic_ops distribution is, for
 simplicity, included in its entirety.
 
-This is version 7.2d of a conservative garbage collector for C and C++.
+This is version 7.2e of a conservative garbage collector for C and C++.
 
 You might find a more recent version of this at
 
@@ -142,13 +142,13 @@ to be disregarded, greatly reducing the probability of accidental
 retention of large objects.  For most purposes it seems best to compile
 with ALL_INTERIOR_POINTERS and to use GC_malloc_ignore_off_page if
 you get collector warnings from allocations of very large objects.
-See README.debugging for details.
+See debugging.html for details.
 
   WARNING: pointers inside memory allocated by the standard "malloc" are not
 seen by the garbage collector.  Thus objects pointed to only from such a
 region may be prematurely deallocated.  It is thus suggested that the
 standard "malloc" be used only for memory regions, such as I/O buffers, that
-are guaranteed not to contain pointers to garbage collectable memory.
+are guaranteed not to contain pointers to garbage collectible memory.
 Pointers in C language automatic, static, or register variables,
 are correctly recognized.  (Note that GC_malloc_uncollectable has semantics
 similar to standard malloc, but allocates objects that are traced by the
@@ -359,8 +359,8 @@ good way for the collector to compute this value.)  Client code may include
    see gc.h.
 
   The global variable GC_free_space_divisor may be adjusted up from its
-default value of 4 to use less space and more collection time, or down for
-the opposite effect.  Setting it to 1 or 0 will effectively disable collections
+default value of 3 to use less space and more collection time, or down for
+the opposite effect.  Setting it to 1 will almost disable collections
 and cause all allocations to simply grow the heap.
 
   The variable GC_non_gc_bytes, which is normally 0, may be changed to reflect
@@ -512,7 +512,7 @@ GC_change_stubborn.
 This mechanism performs best for objects that are written only for
 initialization, and such that only one stubborn object is writable
 at once.  It is typically not worth using for short-lived
-objects.  Stubborn objects are treated less efficiently than pointerfree
+objects.  Stubborn objects are treated less efficiently than pointer-free
 (atomic) objects.
 
 A rough rule of thumb is that, in the absence of VM information, garbage

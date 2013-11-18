@@ -953,13 +953,23 @@ struct roots {
 #     define MAX_HEAP_SECTS 768         /* Separately added heap sections. */
 #   endif
 # elif defined(SMALL_CONFIG) && !defined(USE_PROC_FOR_LIBRARIES)
-#   define MAX_HEAP_SECTS 128           /* Roughly 256MB (128*2048*1K)  */
+#   if defined(PARALLEL_MARK) && (defined(MSWIN32) || defined(CYGWIN32))
+#     define MAX_HEAP_SECTS 384
+#   else
+#     define MAX_HEAP_SECTS 128         /* Roughly 256MB (128*2048*1K)  */
+#   endif
 # elif CPP_WORDSZ > 32
 #   define MAX_HEAP_SECTS 1024          /* Roughly 8GB                  */
 # else
 #   define MAX_HEAP_SECTS 512           /* Roughly 4GB                  */
 # endif
 #endif /* !MAX_HEAP_SECTS */
+
+typedef struct GC_ms_entry {
+    ptr_t mse_start;    /* First word of object, word aligned.  */
+    word mse_descr;     /* Descriptor; low order two bits are tags,     */
+                        /* as described in gc_mark.h.                   */
+} mse;
 
 /* Lists of all heap blocks and free lists      */
 /* as well as other random data structures      */
@@ -999,12 +1009,12 @@ struct _GC_arrays {
         /* large object blocks.  This is used to help decide when it    */
         /* is safe to split up a large block.                           */
   word _bytes_allocd_before_gc;
-                /* Number of words allocated before this        */
+                /* Number of bytes allocated before this        */
                 /* collection cycle.                            */
 # ifndef SEPARATE_GLOBALS
 #   define GC_bytes_allocd GC_arrays._bytes_allocd
     word _bytes_allocd;
-        /* Number of words allocated during this collection cycle.      */
+        /* Number of bytes allocated during this collection cycle.      */
 # endif
   word _bytes_dropped;
         /* Number of black-listed bytes dropped during GC cycle */
@@ -1029,6 +1039,17 @@ struct _GC_arrays {
   ptr_t _scratch_last_end_ptr;
         /* Used by headers.c, and can easily appear to point to */
         /* heap.                                                */
+  mse *_mark_stack;
+        /* Limits of stack for GC_mark routine.  All ranges     */
+        /* between GC_mark_stack (incl.) and GC_mark_stack_top  */
+        /* (incl.) still need to be marked from.                */
+  mse *_mark_stack_limit;
+# ifdef PARALLEL_MARK
+    mse *volatile _mark_stack_top;
+        /* Updated only with mark lock held, but read asynchronously.   */
+# else
+    mse *_mark_stack_top;
+# endif
   GC_mark_proc _mark_procs[MAX_MARK_PROCS];
         /* Table of user-defined mark procedures.  There is     */
         /* a small number of these, which can be referenced     */
@@ -1042,18 +1063,18 @@ struct _GC_arrays {
                           /* free list for atomic objs  */
 # endif
   void *_uobjfreelist[MAXOBJGRANULES+1];
-                          /* Uncollectable but traced objs      */
+                          /* Uncollectible but traced objs      */
                           /* objects on this and auobjfreelist  */
                           /* are always marked, except during   */
                           /* garbage collections.               */
 # ifdef ATOMIC_UNCOLLECTABLE
 #   define GC_auobjfreelist GC_arrays._auobjfreelist
     void *_auobjfreelist[MAXOBJGRANULES+1];
-                        /* Atomic uncollectable but traced objs */
+                        /* Atomic uncollectible but traced objs */
 # endif
-  word _composite_in_use; /* Number of words in accessible      */
+  word _composite_in_use; /* Number of bytes in the accessible  */
                           /* composite objects.                 */
-  word _atomic_in_use;    /* Number of words in accessible      */
+  word _atomic_in_use;    /* Number of bytes in the accessible  */
                           /* atomic objects.                    */
 # ifdef USE_MUNMAP
 #   define GC_unmapped_bytes GC_arrays._unmapped_bytes
@@ -1158,7 +1179,7 @@ struct _GC_arrays {
     struct callinfo _last_stack[NFRAMES];
                 /* Stack at last garbage collection.  Useful for        */
                 /* debugging mysterious object disappearances.  In the  */
-                /* multithreaded case, we currently only save the       */
+                /* multi-threaded case, we currently only save the      */
                 /* calling stack.                                       */
 # endif
 };
@@ -1178,6 +1199,9 @@ GC_API_PRIV GC_FAR struct _GC_arrays GC_arrays;
 #define GC_large_allocd_bytes GC_arrays._large_allocd_bytes
 #define GC_large_free_bytes GC_arrays._large_free_bytes
 #define GC_last_heap_addr GC_arrays._last_heap_addr
+#define GC_mark_stack GC_arrays._mark_stack
+#define GC_mark_stack_limit GC_arrays._mark_stack_limit
+#define GC_mark_stack_top GC_arrays._mark_stack_top
 #define GC_mark_procs GC_arrays._mark_procs
 #define GC_max_heapsize GC_arrays._max_heapsize
 #define GC_max_large_allocd_bytes GC_arrays._max_large_allocd_bytes
@@ -1227,7 +1251,7 @@ GC_EXTERN struct obj_kind {
 
 #ifdef SEPARATE_GLOBALS
   extern word GC_bytes_allocd;
-        /* Number of words allocated during this collection cycle */
+        /* Number of bytes allocated during this collection cycle.      */
   extern ptr_t GC_objfreelist[MAXOBJGRANULES+1];
                           /* free list for NORMAL objects */
 # define beginGC_objfreelist ((ptr_t)(&GC_objfreelist))
@@ -1715,9 +1739,16 @@ GC_INNER ptr_t GC_allocobj(size_t sz, int kind);
                                 /* head.  Sz is in granules.            */
 
 #ifdef GC_ADD_CALLER
-# define GC_DBG_RA GC_RETURN_ADDR,
+  /* GC_DBG_EXTRAS is used by GC debug API functions (unlike GC_EXTRAS  */
+  /* used by GC debug API macros) thus GC_RETURN_ADDR_PARENT (pointing  */
+  /* to client caller) should be used if possible.                      */
+# ifdef GC_RETURN_ADDR_PARENT
+#  define GC_DBG_EXTRAS GC_RETURN_ADDR_PARENT, NULL, 0
+# else
+#  define GC_DBG_EXTRAS GC_RETURN_ADDR, NULL, 0
+# endif
 #else
-# define GC_DBG_RA /* empty */
+# define GC_DBG_EXTRAS "unknown", 0
 #endif
 
 /* We make the GC_clear_stack() call a tail one, hoping to get more of  */

@@ -84,7 +84,7 @@ asm static void PushMacRegisters()
 
 # if defined(M68K) && defined(AMIGA)
     /* This function is not static because it could also be             */
-    /* errorneously defined in .S file, so this error would be caught   */
+    /* erroneously defined in .S file, so this error would be caught    */
     /* by the linker.                                                   */
     void GC_push_regs(void)
     {
@@ -248,7 +248,7 @@ GC_INNER void GC_with_callee_saves_pushed(void (*fn)(ptr_t, void *),
         /* Generic code                          */
         /* The idea is due to Parag Patel at HP. */
         /* We're not sure whether he would like  */
-        /* to be he acknowledged for it or not.  */
+        /* to be acknowledged for it or not.     */
         jmp_buf regs;
         register word * i = (word *) regs;
         register ptr_t lim = (ptr_t)(regs) + (sizeof regs);

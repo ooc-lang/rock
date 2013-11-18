@@ -96,30 +96,18 @@ GC_INNER unsigned GC_n_kinds = GC_N_KINDS_INITIAL_VALUE;
                 /* grow dynamically.                                    */
 # endif
 
-/*
- * Limits of stack for GC_mark routine.
- * All ranges between GC_mark_stack(incl.) and GC_mark_stack_top(incl.) still
- * need to be marked from.
- */
-
 STATIC word GC_n_rescuing_pages = 0;
                                 /* Number of dirty pages we marked from */
                                 /* excludes ptrfree pages, etc.         */
 
-GC_INNER mse * GC_mark_stack = NULL;
-GC_INNER mse * GC_mark_stack_limit = NULL;
 GC_INNER size_t GC_mark_stack_size = 0;
 
 #ifdef PARALLEL_MARK
-  GC_INNER mse * volatile GC_mark_stack_top = NULL;
-        /* Updated only with mark lock held, but read asynchronously.   */
   STATIC volatile AO_t GC_first_nonempty = 0;
         /* Lowest entry on mark stack   */
         /* that may be nonempty.        */
         /* Updated only by initiating   */
         /* thread.                      */
-#else
-  GC_INNER mse * GC_mark_stack_top = NULL;
 #endif
 
 GC_INNER mark_state_t GC_mark_state = MS_NONE;
@@ -129,7 +117,7 @@ GC_INNER GC_bool GC_mark_stack_too_small = FALSE;
 static struct hblk * scan_ptr;
 
 STATIC GC_bool GC_objects_are_marked = FALSE;
-                /* Are there collectable marked objects in the heap?    */
+                /* Are there collectible marked objects in the heap?    */
 
 /* Is a collection in progress?  Note that this can return true in the  */
 /* nonincremental case, if a collection has been abandoned and the      */
@@ -148,7 +136,7 @@ GC_INNER void GC_clear_hdr_marks(hdr *hhdr)
     hhdr -> hb_n_marks = 0;
 }
 
-/* Set all mark bits in the header.  Used for uncollectable blocks. */
+/* Set all mark bits in the header.  Used for uncollectible blocks. */
 GC_INNER void GC_set_hdr_marks(hdr *hhdr)
 {
     unsigned i;
@@ -285,7 +273,7 @@ GC_INNER void GC_initiate_gc(void)
 STATIC struct hblk * GC_push_next_marked(struct hblk *h);
                 /* Ditto, but also mark from clean pages.       */
 STATIC struct hblk * GC_push_next_marked_uncollectable(struct hblk *h);
-                /* Ditto, but mark only from uncollectable pages.       */
+                /* Ditto, but mark only from uncollectible pages.       */
 
 static void alloc_mark_stack(size_t);
 
@@ -788,6 +776,10 @@ GC_INNER mse * GC_mark_from(mse *mark_stack_top, mse *mark_stack,
       }
     } else /* Small object with length descriptor */ {
       mark_stack_top--;
+#     ifndef SMALL_CONFIG
+        if (descr < sizeof(word))
+          continue;
+#     endif
       limit = current_p + (word)descr;
     }
 #   ifdef ENABLE_TRACE
@@ -807,7 +799,7 @@ GC_INNER mse * GC_mark_from(mse *mark_stack_top, mse *mark_stack,
 #     ifndef SMALL_CONFIG
         word deferred;
 
-        /* Try to prefetch the next pointer to be examined asap.        */
+        /* Try to prefetch the next pointer to be examined ASAP.        */
         /* Empirically, this also seems to help slightly without        */
         /* prefetches, at least on linux/X86.  Presumably this loop     */
         /* ends up with less register pressure, and gcc thus ends up    */
@@ -999,7 +991,7 @@ STATIC void GC_do_local_mark(mse *local_mark_stack, mse *local_top)
             /* Try to share the load, since the main stack is empty,    */
             /* and helper threads are waiting for a refill.             */
             /* The entries near the bottom of the stack are likely      */
-            /* to require more work.  Thus we return those, eventhough  */
+            /* to require more work.  Thus we return those, even though */
             /* it's harder.                                             */
             mse * new_bottom = local_mark_stack
                                 + (local_top - local_mark_stack)/2;
@@ -1479,7 +1471,10 @@ void GC_print_trace(word gc_no, GC_bool lock)
     for (i = GC_trace_buf_ptr-1; i != GC_trace_buf_ptr; i--) {
         if (i < 0) i = TRACE_ENTRIES-1;
         p = GC_trace_buf + i;
-        if (p -> gc_no < gc_no || p -> kind == 0) return;
+        if (p -> gc_no < gc_no || p -> kind == 0) {
+            if (lock) UNLOCK();
+            return;
+        }
         printf("Trace:%s (gc:%u,bytes:%lu) 0x%X, 0x%X\n",
                 p -> kind, (unsigned)p -> gc_no,
                 (unsigned long)p -> bytes_allocd,
@@ -1572,13 +1567,16 @@ STATIC void GC_push_marked1(struct hblk *h, hdr *hhdr)
     word *q;
     word mark_word;
 
-    /* Allow registers to be used for some frequently acccessed */
+    /* Allow registers to be used for some frequently accessed  */
     /* global variables.  Otherwise aliasing issues are likely  */
     /* to prevent that.                                         */
     ptr_t greatest_ha = GC_greatest_plausible_heap_addr;
     ptr_t least_ha = GC_least_plausible_heap_addr;
     mse * mark_stack_top = GC_mark_stack_top;
     mse * mark_stack_limit = GC_mark_stack_limit;
+
+#   undef GC_mark_stack_top
+#   undef GC_mark_stack_limit
 #   define GC_mark_stack_top mark_stack_top
 #   define GC_mark_stack_limit mark_stack_limit
 #   define GC_greatest_plausible_heap_addr greatest_ha
@@ -1605,7 +1603,8 @@ STATIC void GC_push_marked1(struct hblk *h, hdr *hhdr)
 #   undef GC_least_plausible_heap_addr
 #   undef GC_mark_stack_top
 #   undef GC_mark_stack_limit
-
+#   define GC_mark_stack_limit GC_arrays._mark_stack_limit
+#   define GC_mark_stack_top GC_arrays._mark_stack_top
     GC_mark_stack_top = mark_stack_top;
 }
 
@@ -1627,6 +1626,8 @@ STATIC void GC_push_marked2(struct hblk *h, hdr *hhdr)
     mse * mark_stack_top = GC_mark_stack_top;
     mse * mark_stack_limit = GC_mark_stack_limit;
 
+#   undef GC_mark_stack_top
+#   undef GC_mark_stack_limit
 #   define GC_mark_stack_top mark_stack_top
 #   define GC_mark_stack_limit mark_stack_limit
 #   define GC_greatest_plausible_heap_addr greatest_ha
@@ -1654,7 +1655,8 @@ STATIC void GC_push_marked2(struct hblk *h, hdr *hhdr)
 #   undef GC_least_plausible_heap_addr
 #   undef GC_mark_stack_top
 #   undef GC_mark_stack_limit
-
+#   define GC_mark_stack_limit GC_arrays._mark_stack_limit
+#   define GC_mark_stack_top GC_arrays._mark_stack_top
     GC_mark_stack_top = mark_stack_top;
 }
 
@@ -1675,6 +1677,9 @@ STATIC void GC_push_marked4(struct hblk *h, hdr *hhdr)
     ptr_t least_ha = GC_least_plausible_heap_addr;
     mse * mark_stack_top = GC_mark_stack_top;
     mse * mark_stack_limit = GC_mark_stack_limit;
+
+#   undef GC_mark_stack_top
+#   undef GC_mark_stack_limit
 #   define GC_mark_stack_top mark_stack_top
 #   define GC_mark_stack_limit mark_stack_limit
 #   define GC_greatest_plausible_heap_addr greatest_ha
@@ -1703,6 +1708,8 @@ STATIC void GC_push_marked4(struct hblk *h, hdr *hhdr)
 #   undef GC_least_plausible_heap_addr
 #   undef GC_mark_stack_top
 #   undef GC_mark_stack_limit
+#   define GC_mark_stack_limit GC_arrays._mark_stack_limit
+#   define GC_mark_stack_top GC_arrays._mark_stack_top
     GC_mark_stack_top = mark_stack_top;
 }
 
@@ -1830,7 +1837,7 @@ STATIC struct hblk * GC_push_next_marked(struct hblk *h)
   }
 #endif /* !GC_DISABLE_INCREMENTAL */
 
-/* Similar to above, but for uncollectable pages.  Needed since we      */
+/* Similar to above, but for uncollectible pages.  Needed since we      */
 /* do not clear marks for such pages, even for full collections.        */
 STATIC struct hblk * GC_push_next_marked_uncollectable(struct hblk *h)
 {

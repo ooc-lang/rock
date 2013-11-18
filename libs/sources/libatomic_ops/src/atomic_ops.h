@@ -105,7 +105,7 @@
 /*      data.x = ...; data.y = ...; ...                         */
 /*      AO_store_release_write(&data_is_initialized, 1)         */
 /* then data is guaranteed to be initialized after the test     */
-/*      if (AO_load_release_read(&data_is_initialized)) ...     */
+/*      if (AO_load_acquire_read(&data_is_initialized)) ...     */
 /* succeeds.  Furthermore, this should generate near-optimal    */
 /* code on all common platforms.                                */
 /*                                                              */
@@ -136,7 +136,7 @@
 /* added as a higher layer.  But that would sacrifice           */
 /* usability from signal handlers.                              */
 /* The synthesis section is implemented almost entirely in      */
-/* atomic_ops_generalize.h.                                     */
+/* atomic_ops/generalize.h.                                     */
 
 /* Some common defaults.  Overridden for some architectures.    */
 #define AO_t size_t
@@ -216,7 +216,14 @@
       /* It is safe to use __sync CAS built-in on this architecture.    */
 #     define AO_USE_SYNC_CAS_BUILTIN
 #   endif
-#   include "atomic_ops/sysdeps/gcc/x86_64.h"
+#   ifdef __ILP32__
+#     ifndef AO_USE_PENTIUM4_INSTRS
+#       define AO_USE_PENTIUM4_INSTRS
+#     endif
+#     include "atomic_ops/sysdeps/gcc/x86.h"
+#   else
+#     include "atomic_ops/sysdeps/gcc/x86_64.h"
+#   endif
 # endif /* __x86_64__ */
 # if defined(__ia64__)
 #   include "atomic_ops/sysdeps/gcc/ia64.h"
@@ -291,7 +298,14 @@
 #     if __INTEL_COMPILER > 1110
 #       define AO_USE_SYNC_CAS_BUILTIN
 #     endif
-#     include "atomic_ops/sysdeps/gcc/x86_64.h"
+#     ifdef __ILP32__
+#       ifndef AO_USE_PENTIUM4_INSTRS
+#         define AO_USE_PENTIUM4_INSTRS
+#       endif
+#       include "atomic_ops/sysdeps/gcc/x86.h"
+#     else
+#       include "atomic_ops/sysdeps/gcc/x86_64.h"
+#     endif
 #   endif /* __x86_64__ */
 # endif
 #endif
@@ -359,7 +373,7 @@
 # define AO_GENERALIZE_TWICE
 #endif
 
-/* Theoretically we should repeatedly include atomic_ops_generalize.h.  */
+/* Theoretically we should repeatedly include atomic_ops/generalize.h.  */
 /* In fact, we observe that this converges after a small fixed number   */
 /* of iterations, usually one.                                          */
 #include "atomic_ops/generalize.h"

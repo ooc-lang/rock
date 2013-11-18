@@ -395,7 +395,7 @@ sexpr gcj_ints(int low, int up)
 }
 #endif /* GC_GCJ_SUPPORT */
 
-/* To check uncollectable allocation we build lists with disguised cdr  */
+/* To check uncollectible allocation we build lists with disguised cdr  */
 /* pointers, and make sure they don't go away.                          */
 sexpr uncollectable_ints(int low, int up)
 {
@@ -525,7 +525,10 @@ void check_marks_int_list(sexpr x)
     {
         DWORD thread_id;
         HANDLE h;
-        h = GC_CreateThread(NULL, 0, tiny_reverse_test, 0, 0, &thread_id);
+        h = GC_CreateThread((SECURITY_ATTRIBUTES *)NULL, (word)0,
+                            tiny_reverse_test, NULL, (DWORD)0, &thread_id);
+                                /* Explicitly specify types of the      */
+                                /* arguments to test the prototype.     */
         if (h == (HANDLE)NULL) {
             GC_printf("Small thread creation failed %d\n",
                           (int)GetLastError());
@@ -613,7 +616,7 @@ void *GC_CALLBACK reverse_test_inner(void *data)
       h[1999] = gcj_ints(1,200);
       for (i = 0; i < 51; ++i)
         h[1999] = gcj_reverse(h[1999]);
-      /* Leave it as the reveresed list for now. */
+      /* Leave it as the reversed list for now. */
 #   else
       h[1999] = ints(1,200);
 #   endif

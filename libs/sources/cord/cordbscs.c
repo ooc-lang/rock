@@ -349,6 +349,7 @@ CORD CORD_substr_closure(CORD x, size_t i, size_t n, CORD_fn f)
     sa->sa_cord = (CordRep *)x;
     sa->sa_index = i;
     result = CORD_from_fn(f, (void *)sa, n);
+    if (result == CORD_EMPTY) return CORD_EMPTY; /* n == 0 */
     ((CordRep *)result) -> function.header = SUBSTR_HDR;
     return (result);
 }
@@ -569,7 +570,7 @@ int CORD_riter(CORD x, CORD_iter_fn f1, void * client_data)
  * The following functions are concerned with balancing cords.
  * Strategy:
  * Scan the cord from left to right, keeping the cord scanned so far
- * as a forest of balanced trees of exponentialy decreasing length.
+ * as a forest of balanced trees of exponentially decreasing length.
  * When a new subtree needs to be added to the forest, we concatenate all
  * shorter ones to the new tree in the appropriate order, and then insert
  * the result into the forest.
