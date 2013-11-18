@@ -290,8 +290,7 @@ BuildParams: class {
     doTargetSpecific: func {
         match target {
             case Target WIN =>
-                // on Windows, for multi-threaded apps, the GC needs to be dynamically linked
-                dynGC = true
+                // on Windows, we never use pthreads
                 bannedFlags add("-pthread")
             case Target OSX =>
                 // on OSX, make universal binaries

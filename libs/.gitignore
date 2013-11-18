@@ -1,6 +1,10 @@
+# GC compilation produce
 *.o
 *.lo
 *.la
+sources/libatomic_ops/pkgconfig
+
+# Binary builds
 linux*
 win*
 osx*
