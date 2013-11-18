@@ -3,3 +3,6 @@
 
 # ... except ooc files
 !*.ooc
+
+# and subdirectories
+!shouldfail/
