@@ -9,18 +9,18 @@ version(windows) {
     ThreadWin32: class extends Thread {
 
         handle: Handle
-        threadID: ULong
+        threadID: UInt
 
         init: func ~win (=_code) {}
 
         start: func -> Bool {
-            handle = CreateThread(
+            handle = _beginthreadex(
                 null,                    // default security attributes
-                0,                       // use default stack size
-                _code as Closure thunk,  // thread function name
+                0,                       // default stack size
+                _code as Closure thunk,  // thread start address
                 _code as Closure context,// argument to thread function
-                0,                       // use default creation flags
-                threadID&)               // returns the thread identifier
+                0,                       // start thread as soon as it is created
+                threadID&) as Handle     // returns the thread identifier
 
             handle != INVALID_HANDLE_VALUE
         }
@@ -68,14 +68,22 @@ version(windows) {
 
     /* C interface */
 
-    // Note that for the GC and Win32 threads to play well, the GC has to be
-    // linked dynamically, and not statically. Use `--gc=dynamic` to achieve
-    // that, and make sure you have a copy of libgc.dll.a in your libpath
-
     include windows
 
-    // Was GC_CreateThread, but it has been removed in recent versions of Boehm
-    CreateThread: extern func (...) -> Handle
+    // CreateThread causes memory leaks, see:
+    // http://stackoverflow.com/questions/331536/, and
+    // http://support.microsoft.com/kb/104641/en-us
+    // CreateThread: extern func (...) -> Handle
+
+    version (gc) {
+      // Use Boehm-provided replacement for _beginthreadex
+      _beginthreadex: extern(GC_beginthreadex) func (security: Pointer, stackSize: UInt, startAddress: Pointer, arglist: Pointer, initflag: UInt, thrdaddr: UInt*) -> Handle
+    }
+
+    version (!gc) {
+      _beginthreadex: extern func (security: Pointer, stackSize: UInt, startAddress: Pointer, arglist: Pointer, initflag: UInt, thrdaddr: UInt*) -> Handle
+    }
+
     GetCurrentThread: extern func -> Handle
     WaitForSingleObject: extern func (...) -> Long
     SwitchToThread: extern func -> Bool

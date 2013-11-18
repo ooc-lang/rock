@@ -91,7 +91,7 @@ PipeWin32: class extends Pipe {
         }
     }
 
-    _setFDState: func (handle: Handle, flags: Long) {
+    _setFDState: func (handle: Handle, flags: ULong) {
         SetNamedPipeHandleState(handle, flags&, null, null)
     }
 }
@@ -108,7 +108,7 @@ WriteFile:     extern func (hFile: Handle, buffer: Pointer, numberOfBytesToWrite
 CloseHandle:   extern func (handle: Handle) -> Bool
 SetNamedPipeHandleState: extern func (handle: Handle, mode: Long*, maxCollectionCount: Long*, collectDataTimeout: Long*)
 
-PIPE_WAIT, PIPE_NOWAIT: extern Long
+PIPE_WAIT, PIPE_NOWAIT: extern ULong
 ERROR_NO_DATA: extern Long
 
 SecurityAttributes: cover from SECURITY_ATTRIBUTES {
