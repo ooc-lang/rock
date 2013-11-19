@@ -425,8 +425,6 @@ BinaryOp: class extends Expression {
         bestScore := 0
         candidate : OperatorDecl = null
 
-        reqType := trail peek() getRequiredType()
-
         // first we check the lhs's type
         lhsType := left getType()
 
@@ -441,7 +439,7 @@ BinaryOp: class extends Expression {
 
                     for (opDecl in tDecl operators) {
                         //"Matching %s against %s" printfln(opDecl toString(), toString())
-                        score := getScore(opDecl, reqType)
+                        score := getScore(opDecl)
                         if(score == -1) {
                             return Response LOOP
                         }
@@ -455,7 +453,7 @@ BinaryOp: class extends Expression {
 
         // then we check the current module
         for(opDecl in trail module() getOperators()) {
-            score := getScore(opDecl, reqType)
+            score := getScore(opDecl)
             //if(score > 0) ("Considering " + opDecl toString() + " for " + toString() + ", score = %d\n") format(score) println()
             if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response LOOP }
             if(score > bestScore) {
@@ -468,7 +466,7 @@ BinaryOp: class extends Expression {
         for(imp in trail module() getAllImports()) {
             module := imp getModule()
             for(opDecl in module getOperators()) {
-                score := getScore(opDecl, reqType)
+                score := getScore(opDecl)
                 //if(score > 0) ("Considering " + opDecl toString() + " for " + toString() + ", score = %d\n") format(score) println()
                 if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response LOOP }
                 if(score > bestScore) {
@@ -512,7 +510,7 @@ BinaryOp: class extends Expression {
 
     }
 
-    getScore: func (op: OperatorDecl, reqType: Type) -> Int {
+    getScore: func (op: OperatorDecl) -> Int {
 
         symbol := repr()
 
@@ -553,14 +551,14 @@ BinaryOp: class extends Expression {
         rightScore := right getType() getScore(opRight getType())
         if(rightScore == -1) return -1
 
-        reqScore   := reqType ? fDecl getReturnType() getScore(reqType) : 0
-        if(reqScore   == -1) return -1
-
         //printf("leftScore = %d, rightScore = %d\n", leftScore, rightScore)
 
-        score := leftScore + rightScore + reqScore
+        score := leftScore + rightScore
 
-        if(half) score /= 2  // used to prioritize '+=', '-=', and blah, over '+ and =', etc.
+        if (half) {
+            // used to prioritize '+=', '-=', and blah, over '+ and =', etc.
+            score /= 2
+        }
 
         return score
 

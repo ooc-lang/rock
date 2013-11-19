@@ -1,7 +1,7 @@
 import structs/ArrayList
 import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
-       IntLiteral, Ternary, BaseType, BinaryOp, CoverDecl
+       IntLiteral, Ternary, BaseType, BinaryOp, CoverDecl, VariableDecl, TypeDecl
 import tinker/[Resolver, Trail, Response, Errors]
 
 CompType: enum {
@@ -128,10 +128,35 @@ Comparison: class extends Expression {
         bestScore := 0
         candidate : OperatorDecl = null
 
-        reqType := trail peek() getRequiredType()
+        // first we check the lhs's type
+        lhsType := left getType()
 
+        if (lhsType) {
+            lhsTypeRef := lhsType getRef()
+
+            match lhsTypeRef {
+                case tDecl: TypeDecl =>
+                    if (tDecl isMeta) {
+                        tDecl = tDecl getNonMeta()
+                    }
+
+                    for (opDecl in tDecl operators) {
+                        //"Matching %s against %s" printfln(opDecl toString(), toString())
+                        score := getScore(opDecl)
+                        if(score == -1) {
+                            return Response LOOP
+                        }
+                        if(score > bestScore) {
+                            bestScore = score
+                            candidate = opDecl
+                        }
+                    }
+            }
+        }
+
+        // then we check the current module
         for(opDecl in trail module() getOperators()) {
-            score := getScore(opDecl, reqType)
+            score := getScore(opDecl)
             //if(score > 0) ("Considering " + opDecl toString() + " for " + toString() + ", score = %d\n") format(score) println()
             if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response LOOP }
             if(score > bestScore) {
@@ -140,10 +165,11 @@ Comparison: class extends Expression {
             }
         }
 
+        // and then the imports
         for(imp in trail module() getAllImports()) {
             module := imp getModule()
             for(opDecl in module getOperators()) {
-                score := getScore(opDecl, reqType)
+                score := getScore(opDecl)
                 //if(score > 0) ("Considering " + opDecl toString() + " for " + toString() + ", score = %d\n") format(score) println()
                 if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response LOOP }
                 if(score > bestScore) {
@@ -194,7 +220,7 @@ Comparison: class extends Expression {
 
     }
 
-    getScore: func (op: OperatorDecl, reqType: Type) -> Int {
+    getScore: func (op: OperatorDecl) -> Int {
 
         symbol := repr()
 
@@ -206,8 +232,13 @@ Comparison: class extends Expression {
         }
 
         fDecl := op getFunctionDecl()
+        args := ArrayList<VariableDecl> new()
+        args addAll(fDecl getArguments())
 
-        args := fDecl getArguments()
+        if (fDecl owner) {
+            args add(0, fDecl owner getThisDecl())
+        }
+
         if(args getSize() != 2) {
             token module params errorHandler onError(InvalidComparisonOverload new(op token,
                 "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol, args getSize())))
@@ -224,12 +255,13 @@ Comparison: class extends Expression {
         if(leftScore  == -1) return -1
         rightScore := right getType() getStrictScore(opRight getType())
         if(rightScore == -1) return -1
-        reqScore   := reqType ? fDecl getReturnType() getScore(reqType) : 0
-        if(reqScore   == -1) return -1
 
-        score := leftScore + rightScore + reqScore
+        score := leftScore + rightScore
 
-        if(half) score /= 2  // used to prioritize '<=', '>=', and blah, over '<=>'
+        if (half) {
+            // used to prioritize '<=', '>=', and blah, over '<=>'
+            score /= 2
+        }
 
         return score
 

@@ -224,7 +224,6 @@ ArrayAccess: class extends Expression {
         candidate : OperatorDecl = null
 
         parent := trail peek()
-        reqType := parent getRequiredType()
 
         inAssign := (parent instanceOf?(BinaryOp)) &&
                     (parent as BinaryOp isAssign()) &&
@@ -244,7 +243,7 @@ ArrayAccess: class extends Expression {
 
                     for (opDecl in tDecl operators) {
                         //"Matching %s against %s" printfln(opDecl toString(), toString())
-                        score := getScore(opDecl, reqType, inAssign ? parent as BinaryOp : null, res)
+                        score := getScore(opDecl, inAssign ? parent as BinaryOp : null, res)
                         if(score == -1) {
                             return Response LOOP
                         }
@@ -258,7 +257,7 @@ ArrayAccess: class extends Expression {
 
         // then we check the current module
         for(opDecl in trail module() getOperators()) {
-            score := getScore(opDecl, reqType, inAssign ? parent as BinaryOp : null, res)
+            score := getScore(opDecl, inAssign ? parent as BinaryOp : null, res)
             if(score == -1) {
                 return Response LOOP
             }
@@ -272,7 +271,7 @@ ArrayAccess: class extends Expression {
         for(imp in trail module() getAllImports()) {
             module := imp getModule()
             for(opDecl in module getOperators()) {
-                score := getScore(opDecl, reqType, inAssign ? parent as BinaryOp : null, res)
+                score := getScore(opDecl, inAssign ? parent as BinaryOp : null, res)
                 if(score == -1) return Response LOOP
                 if(score > bestScore) {
                     bestScore = score
@@ -319,7 +318,7 @@ ArrayAccess: class extends Expression {
     }
 
     isResolved: func -> Bool { array isResolved() && type != null }
-    getScore: func (op: OperatorDecl, reqType: Type, assign: BinaryOp, res: Resolver) -> Int {
+    getScore: func (op: OperatorDecl, assign: BinaryOp, res: Resolver) -> Int {
         if(!(op getSymbol() equals?(assign != null ? "[]=" : "[]"))) {
             return 0 // not the right overload type - skip
         }
@@ -378,12 +377,9 @@ ArrayAccess: class extends Expression {
             indexScore += assignScore
         }
 
-        reqScore   := reqType ? fDecl getReturnType() getScore(reqType) : 0
-        if(reqScore   == -1) return -1
+        //"Score of %s for %s = %d (array %d, index %d)" printfln(op toString(), toString(), arrayScore + indexScore, arrayScore, indexScore)
 
-        //"Score of %s for %s = %d (array %d, index %d, req %d)" printfln(op toString(), toString(), arrayScore + indexScore + reqScore, arrayScore, indexScore, reqScore)
-
-        return arrayScore + indexScore + reqScore
+        return arrayScore + indexScore
 
     }
 

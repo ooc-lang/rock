@@ -122,8 +122,6 @@ UnaryOp: class extends Expression {
         bestScore := 0
         candidate : OperatorDecl = null
 
-        reqType := trail peek() getRequiredType()
-
         // first we check the inner's type
         innerType := inner getType()
 
@@ -138,7 +136,7 @@ UnaryOp: class extends Expression {
 
                     for (opDecl in tDecl operators) {
                         //"Matching %s against %s" printfln(opDecl toString(), toString())
-                        score := getScore(opDecl, reqType)
+                        score := getScore(opDecl)
                         if(score == -1) {
                             return Response LOOP
                         }
@@ -152,7 +150,7 @@ UnaryOp: class extends Expression {
 
         // then we check the current module
         for(opDecl in trail module() getOperators()) {
-            score := getScore(opDecl, reqType)
+            score := getScore(opDecl)
             if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response OK }
             if(score > bestScore) {
                 bestScore = score
@@ -164,7 +162,7 @@ UnaryOp: class extends Expression {
         for(imp in trail module() getAllImports()) {
             module := imp getModule()
             for(opDecl in module getOperators()) {
-                score := getScore(opDecl, reqType)
+                score := getScore(opDecl)
                 if(score == -1) { res wholeAgain(this, "score of %s == -1 !!"); return Response OK }
                 if(score > bestScore) {
                     bestScore = score
@@ -204,7 +202,7 @@ UnaryOp: class extends Expression {
 
     }
 
-    getScore: func (op: OperatorDecl, reqType: Type) -> Int {
+    getScore: func (op: OperatorDecl) -> Int {
 
         symbol := repr()
 
@@ -232,10 +230,8 @@ UnaryOp: class extends Expression {
 
         argScore := args get(0) getType() getScore(inner getType())
         if(argScore == -1) return -1
-        reqScore := reqType ? fDecl getReturnType() getScore(reqType) : 0
-        if(reqScore == -1) return -1
 
-        return argScore + reqScore
+        return argScore
 
     }
 

@@ -88,16 +88,6 @@ Node: abstract class {
     isScope: func -> Bool { false }
 
     /**
-     * See https://github.com/nddrylliog/rock/issues/701 - can't explain
-     * that one. It's used in operator classes to resolve overloadings, but.. why?
-     *
-     * Supposedly should return the type we expect here, but then we have an inference
-     * problem - how can we solve a function call if we need the type of the argument
-     * to know what we can override an operator with? It hurts the brain just to think about it.
-     */
-    getRequiredType: func -> Type { null }
-
-    /**
      * Looks for a function declaration satisfying `call`, and suggests it with
      * call suggest(fDecl)
      *
