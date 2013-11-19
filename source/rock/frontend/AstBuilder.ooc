@@ -1224,6 +1224,10 @@ AstBuilder: class {
         UnaryOp new(inner, UnaryOpType unaryMinus, token())
     }
 
+    onUnaryPlus: unmangled(nq_onUnaryPlus) func (inner: Expression) -> UnaryOp {
+        UnaryOp new(inner, UnaryOpType unaryPlus, token())
+    }
+
     onParenthesis: unmangled(nq_onParenthesis) func (inner: Expression) -> Parenthesis {
         Parenthesis new(inner, token())
     }

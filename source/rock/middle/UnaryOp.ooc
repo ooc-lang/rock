@@ -1,18 +1,20 @@
 import structs/ArrayList
 import ../frontend/Token
-import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl, BaseType
+import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl, BaseType, TypeDecl, VariableDecl
 import tinker/[Trail, Resolver, Response, Errors]
 
 UnaryOpType: enum {
     binaryNot        /*  ~  */
     logicalNot       /*  !  */
     unaryMinus       /*  -  */
+    unaryPlus        /*  +  */
 }
 
 unaryOpRepr := [
 	"~",
         "!",
-        "-"]
+        "-",
+        "+"]
 
 UnaryOp: class extends Expression {
 
@@ -92,6 +94,8 @@ UnaryOp: class extends Expression {
         match type {
             case UnaryOpType unaryMinus =>
                 // checking now...
+            case UnaryOpType unaryPlus =>
+                // checking now...
             case =>
                 // everything else is fine
                 return
@@ -104,8 +108,9 @@ UnaryOp: class extends Expression {
 
         // Unary minus can only be applied to numeric types
         if(!inner getType() isNumericType()) {
-            res throwError(InvalidUnaryType new(token,
-                            "Invalid operand type (%s) for unary minus" format(inner getType() toString())))
+            message := "Invalid operand type '%s' for operator '%s'" format(inner getType() toString(), repr())
+            error := InvalidUnaryType new(token, message)
+            res throwError(error)
         }
     }
 
@@ -119,6 +124,33 @@ UnaryOp: class extends Expression {
 
         reqType := trail peek() getRequiredType()
 
+        // first we check the inner's type
+        innerType := inner getType()
+
+        if (innerType) {
+            innerTypeRef := innerType getRef()
+
+            match innerTypeRef {
+                case tDecl: TypeDecl =>
+                    if (tDecl isMeta) {
+                        tDecl = tDecl getNonMeta()
+                    }
+
+                    for (opDecl in tDecl operators) {
+                        //"Matching %s against %s" printfln(opDecl toString(), toString())
+                        score := getScore(opDecl, reqType)
+                        if(score == -1) {
+                            return Response LOOP
+                        }
+                        if(score > bestScore) {
+                            bestScore = score
+                            candidate = opDecl
+                        }
+                    }
+            }
+        }
+
+        // then we check the current module
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, reqType)
             if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response OK }
@@ -128,6 +160,7 @@ UnaryOp: class extends Expression {
             }
         }
 
+        // and then the imports
         for(imp in trail module() getAllImports()) {
             module := imp getModule()
             for(opDecl in module getOperators()) {
@@ -180,15 +213,19 @@ UnaryOp: class extends Expression {
         }
 
         fDecl := op getFunctionDecl()
+        args := ArrayList<VariableDecl> new()
+        args addAll(fDecl getArguments())
 
-        args := fDecl getArguments()
+        if (fDecl owner) {
+            args add(0, fDecl owner getThisDecl())
+        }
 
         //if we have 2 arguments, then it's a binary plus binary
         if(args getSize() == 2) return 0
 
         if(args getSize() != 1) {
             token module params errorHandler onError(InvalidUnaryOverload new(op token,
-                "Ohum, you need 1 argument to override the '%s' operator, not %d" format(symbol, args getSize())))
+                "You need 1 argument to override the '%s' operator, not %d" format(symbol, args getSize())))
         }
 
         if(args get(0) getType() == null || inner getType() == null) { return -1 }
@@ -218,3 +255,4 @@ InvalidUnaryOverload: class extends Error {
 InvalidUnaryType: class extends Error {
     init: super func ~tokenMessage
 }
+
