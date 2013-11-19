@@ -249,6 +249,17 @@ SequenceDriver: class extends Driver {
      */
     buildAdditional: func (sourceFolder: SourceFolder, uze: UseDef, additional: Additional) -> Int {
 
+        lowerName := additional relative path toLower()
+        match {
+            case lowerName endsWith?(".c") =>
+                // C source file, compile away
+            case lowerName endsWith?(".s") =>
+                // Assembly file, compile away
+            case =>
+                // probably just want to copy it.
+                return 0
+        }
+
         cPath := File new(File new(params libcachePath, uze identifier), additional relative) getPath()
         oPath := "%s.o" format(cPath[0..-3])
 
