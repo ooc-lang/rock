@@ -1,5 +1,9 @@
-before_script: "sudo apt-get -y -q install curl make"
-script: make rescue
+before_script:
+  - sudo apt-get -y -q install curl make
+
+script:
+  - make rescue
+  - make clean self
 
 notifications:
   webhooks: http://rcmp.programble.co.cc/irc.freenode.net/ooc-lang
