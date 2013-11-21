@@ -485,7 +485,15 @@ VariableDeclTuple: class extends VariableDecl {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        expr resolve(trail, res)
+        if (expr) {
+            trail push(this)
+            response := expr resolve(trail, res)
+            trail pop(this)
+
+            if (!response ok()) {
+                return response
+            }
+        }
 
         match {
             case expr == null =>
