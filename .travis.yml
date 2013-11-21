@@ -3,7 +3,7 @@ before_script:
 
 script:
   - make rescue
-  - make clean self
+  - OOC=bin/rock make clean self
 
 notifications:
   webhooks: http://rcmp.programble.co.cc/irc.freenode.net/ooc-lang
