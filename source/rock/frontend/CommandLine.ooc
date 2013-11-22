@@ -49,7 +49,7 @@ CommandLine: class {
 
                 if (option startsWith?("sourcepath=")) {
                     "[ERROR] Specifying sourcepath by hand is deprecated.\nInstead, create a .use file and specify the sourcepath from there." println()
-                    hardDeprecation("staticlib", params)
+                    hardDeprecation("staticlib")
                 } else if (option startsWith?("outpath=")) {
 
                     if(!longOption) warnUseLong("outpath")
@@ -57,13 +57,13 @@ CommandLine: class {
                     params clean = false
 
                 } else if (option startsWith?("staticlib")) {
-                    hardDeprecation("staticlib", params)
+                    hardDeprecation("staticlib")
                 } else if (option startsWith?("dynamiclib")) {
-                    hardDeprecation("dynamiclib", params)
+                    hardDeprecation("dynamiclib")
                 } else if (option startsWith?("packagefilter=")) {
-                    hardDeprecation("packagefilter", params)
+                    hardDeprecation("packagefilter")
                 } else if (option startsWith?("libfolder=")) {
-                    hardDeprecation("libfolder", params)
+                    hardDeprecation("libfolder")
                 } else if(option startsWith?("backend")) {
 
                     if(!longOption) warnUseLong("backend")
@@ -104,23 +104,23 @@ CommandLine: class {
 
                 } else if (option == "newsdk") {
 
-                    hardDeprecation("newsdk", params)
+                    hardDeprecation("newsdk")
 
                 } else if (option == "newstr") {
 
-                    hardDeprecation("newstr", params)
+                    hardDeprecation("newstr")
 
                 } else if(option == "cstrings") {
 
-                    hardDeprecation("cstrings", params)
+                    hardDeprecation("cstrings")
 
                 } else if (option == "inline") {
 
-                    hardDeprecation("inline", params)
+                    hardDeprecation("inline")
 
                 } else if (option == "no-inline") {
 
-                    hardDeprecation("inline", params)
+                    hardDeprecation("inline")
 
                 } else if (option == "c") {
 
@@ -169,7 +169,7 @@ CommandLine: class {
 
                 } else if (option == "nolibcache") {
 
-                    hardDeprecation("nolibcache", params)
+                    hardDeprecation("nolibcache")
 
                 } else if (option == "libcache") {
 
@@ -322,7 +322,7 @@ CommandLine: class {
                         case "android" => Target ANDROID
                         case =>
                             "[ERROR] Unknown target: %s" printfln(targetName)
-                            failure(params)
+                            failure()
                             null
                     }
                     params undoTargetSpecific()
@@ -334,7 +334,7 @@ CommandLine: class {
                     params driver = match (driverName) {
                         case "combine" =>
                             "[ERROR] The combine driver is deprecated." println()
-                            failure(params)
+                            failure()
                             params driver
                         case "sequence" =>
                             SequenceDriver new(params)
@@ -347,7 +347,7 @@ CommandLine: class {
                             DummyDriver new(params)
                         case =>
                             "[ERROR] Unknown driver: %s" printfln(driverName)
-                            failure(params)
+                            failure()
                             null
                     }
 
@@ -380,19 +380,19 @@ CommandLine: class {
 
                 } else if (option startsWith?("gcc")) {
 
-                    hardDeprecation("gcc", params)
+                    hardDeprecation("gcc")
 
                 } else if (option startsWith?("icc")) {
 
-                    hardDeprecation("icc", params)
+                    hardDeprecation("icc")
 
                 } else if (option startsWith?("tcc")) {
 
-                    hardDeprecation("tcc", params)
+                    hardDeprecation("tcc")
 
                 } else if (option startsWith?("clang")) {
 
-                    hardDeprecation("clang", params)
+                    hardDeprecation("clang")
 
                 } else if (option == "onlyparse") {
 
@@ -416,7 +416,7 @@ CommandLine: class {
 
                 } else if (option == "slave") {
 
-                    hardDeprecation("slave", params)
+                    hardDeprecation("slave")
 
                 } else if (option startsWith?("j")) {
 
@@ -456,7 +456,7 @@ CommandLine: class {
                     case lowerArg contains?(".") =>
                         // unknown file, complain
                         "[ERROR] Don't know what to do with argument %s, bailing out" printfln(arg)
-                        failure(params)
+                        failure()
                     case =>
                         // probably an ooc file without the extension
                         modulePaths add(arg + ".ooc")
@@ -555,7 +555,7 @@ CommandLine: class {
         if(!moduleFile) {
             "[ERROR] Could not find main .ooc file: %s" printfln(moduleName)
             "[INFO] SourcePath = %s" printfln(params sourcePath toString())
-            failure(params)
+            failure()
             exit(1)
         }
 
@@ -601,7 +601,7 @@ CommandLine: class {
         allModules := module collectDeps()
         resolveMs := Time measure(||
             if(!Tinkerer new(params) process(allModules)) {
-                failure(params)
+                failure()
             }
         )
         if (params timing) {
@@ -632,7 +632,7 @@ CommandLine: class {
                     }
                 } else {
                     if(params shout) {
-                        failure(params)
+                        failure()
                     }
                 }
             }
@@ -667,9 +667,8 @@ CommandLine: class {
         warn("Option -%s is deprecated, use --%s instead." format(option, option))
     }
 
-    hardDeprecation: static func (parameter: String, params: BuildParams) {
+    hardDeprecation: static func (parameter: String) {
         error("%s parameter is deprecated" format(parameter))
-        failure(params)
     }
 
     success: static func {
@@ -679,7 +678,7 @@ CommandLine: class {
         Terminal reset()
     }
 
-    failure: static func (params: BuildParams) {
+    failure: static func {
         Terminal setAttr(Attr bright)
         Terminal setFgColor(Color red)
         "[FAIL]" println()

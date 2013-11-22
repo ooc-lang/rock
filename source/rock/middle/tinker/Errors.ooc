@@ -26,7 +26,7 @@ DefaultErrorHandler: class implements ErrorHandler {
         e print()
         println()
         if(e fatal?() && params fatalError) {
-            CommandLine failure(params)
+            CommandLine failure()
         }
     }
 

@@ -237,7 +237,7 @@ BuildParams: class {
     checkBinaryNameCollision: func (name: String) {
         if (File new(name) dir?()) {
             stderr write("Naming conflict (output binary) : There is already a directory called %s.\nTry a different name, e.g. '-o=%s2'\n" format(name, name))
-            CommandLine failure(this)
+            CommandLine failure()
         }
     }
 
@@ -322,8 +322,8 @@ BuildParams: class {
         if (host != "") {
             tokens := host split('-')
             if (tokens size < 2) {
-                "[ERROR] invalid host value: %s" printfln(host)
-                CommandLine failure(this)
+                CommandLine error("Invalid host value: %s" format(host))
+                CommandLine failure()
             }
 
             (archToken, targetToken) := (tokens[0], tokens[1])
