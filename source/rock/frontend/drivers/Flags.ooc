@@ -42,7 +42,7 @@ import rock/middle/[Module, UseDef]
 Flags: class {
 
     customPkgCache := static HashMap<CustomPkg, PkgInfo> new()
-  
+
     // flags
     compilerFlags := ArrayList<String> new()
     premainFlags := ArrayList<String> new()
@@ -51,7 +51,7 @@ Flags: class {
 
     outPath: String
     params: BuildParams
-  
+
     modules := ArrayList<Module> new()
 
     /* identifier => UseDef */
@@ -60,12 +60,12 @@ Flags: class {
     sourceFolders := ArrayList<SourceFolder> new()
 
     doTargetSpecific := true
-  
+
     init: func (=outPath, =params) {
         addCompilerFlag("-std=gnu99")
         addCompilerFlag("-Wall")
     }
-  
+
     absorb: func ~sourceFolder (sourceFolder: SourceFolder) {
         if (sourceFolders contains?(sourceFolder)) {
             return
@@ -76,7 +76,7 @@ Flags: class {
             absorb(module)
         }
     }
-  
+
     absorb: func ~module (module: Module) {
         if(modules contains?(module)) {
            return
@@ -91,7 +91,7 @@ Flags: class {
             absorb(imp getModule())
         }
     }
-  
+
     absorb: func ~useDef (useDef: UseDef) {
         if (!useDef) {
             // this workaround sucks, but sometimes useDef is null on Windows. Go figure.
@@ -117,12 +117,12 @@ Flags: class {
         }
 
         // handle pkg-config packages
-        for(pkg in useDef pkgs) {
+        for(pkg in props pkgs) {
             absorb(PkgConfigFrontend getInfo(pkg), useDef)
         }
 
         // handle pkg-config-like packages (sdl2-config, etc.)
-        for(pkg in useDef customPkgs) {
+        for(pkg in props customPkgs) {
             info: PkgInfo
             if (customPkgCache contains?(pkg)) {
                 info = customPkgCache get(pkg)
@@ -218,7 +218,7 @@ Flags: class {
         for(compilerArg in params compilerArgs) {
             addCompilerFlag(compilerArg)
         }
-            
+
         if(params enableGC) {
             libsHeaders := File new(params distLocation, "libs/headers/") getPath()
             addCompilerFlag("-I" + libsHeaders)
@@ -331,6 +331,6 @@ Flags: class {
             _applyFlags(linkerFlags, command)
         }
     }
-  
+
 }
 

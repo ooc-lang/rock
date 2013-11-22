@@ -62,8 +62,6 @@ UseDef: class {
     linker:        String { get set }
     main:          String { get set }
 
-    pkgs                : ArrayList<String> { get set }
-    customPkgs          : ArrayList<CustomPkg> { get set }
     imports             : ArrayList<String> { get set }
     preMains            : ArrayList<String> { get set }
     androidLibs         : ArrayList<String> { get set }
@@ -76,8 +74,6 @@ UseDef: class {
     _relevantProperties: UseProperties
 
     init: func (=identifier) {
-        pkgs                = ArrayList<String> new()
-        customPkgs          = ArrayList<CustomPkg> new()
         imports             = ArrayList<String> new()
         preMains            = ArrayList<String> new()
         androidLibs         = ArrayList<String> new()
@@ -249,7 +245,7 @@ UseDef: class {
         reader := FileReader new(file)
 
         versionStack push(UseProperties new(this, UseVersionOr new(this)))
-        
+
         while(reader hasNext?()) {
             line := reader readLine() \
                            trim() /* general whitespace */ \
@@ -283,32 +279,35 @@ UseDef: class {
 
             id := lineReader readUntil(':')
             value := lineReader readAll() trim()
-            
+
             if (id startsWith?("_")) {
                 // reserved ids for external tools (packaging, etc.)
                 continue
             }
+
+            current := versionStack peek()
 
             if (id == "Name") {
                 name = value
             } else if (id == "Description") {
                 description = value
             } else if (id == "Pkgs") {
-                for (pkg in value split(','))
-                    pkgs add(pkg trim())
+                for (pkg in value split(',')) {
+                    current pkgs add(pkg trim())
+                }
             } else if (id == "CustomPkg") {
-                customPkgs add(parseCustomPkg(value))
+                current customPkgs add(parseCustomPkg(value))
             } else if (id == "Libs") {
                 for (lib in value split(',')) {
-                    versionStack peek() libs add(lib trim())
+                    current libs add(lib trim())
                 }
             } else if (id == "Frameworks") {
                 for (framework in value split(',')) {
-                    versionStack peek() frameworks add(framework trim())
+                    current frameworks add(framework trim())
                 }
             } else if (id == "Includes") {
                 for (inc in value split(',')) {
-                    versionStack peek() includes add(inc trim())
+                    current includes add(inc trim())
                 }
             } else if (id == "PreMains") {
                 for (pm in value split(',')) {
@@ -322,7 +321,7 @@ UseDef: class {
                     if (libFile relative?()) {
                         libFile = file parent getChild(path) getAbsoluteFile()
                     }
-                    versionStack peek() libPaths add(libFile path)
+                    current libPaths add(libFile path)
                 }
             } else if (id == "IncludePaths") {
                 for (path in value split(',')) {
@@ -330,7 +329,7 @@ UseDef: class {
                     if (incFile relative?()) {
                         incFile = file parent getChild(path) getAbsoluteFile()
                     }
-                    versionStack peek() includePaths add(incFile path)
+                    current includePaths add(incFile path)
                 }
             } else if (id == "AndroidLibs") {
                 for (path in value split(',')) {
@@ -357,11 +356,11 @@ UseDef: class {
                         case =>
                             relative
                     }
-                    versionStack peek() additionals add(Additional new(relative, absolute))
+                    current additionals add(Additional new(relative, absolute))
                 }
             } else if (id == "Requires") {
                 for (req in value split(',')) {
-                    versionStack peek() requirements add(Requirement new(req trim(), "0"))
+                    current requirements add(Requirement new(req trim(), "0"))
                 }
             } else if (id == "SourcePath") {
                 sourcePath = value
@@ -373,12 +372,10 @@ UseDef: class {
             } else if (id == "Origin" || id == "Variant") {
                 // known, but ignored ids
             } else if (id == "Main") {
-                main = value 
+                main = value
                 if (!main endsWith?(".ooc")) {
                     main = "%s.ooc" format(main)
                 }
-            } else if (id startsWith?("_")) {
-                // unknown and ignored ids
             } else if (!id empty?()) {
                 "Unknown key in %s: %s" format(file getPath(), id) println()
             }
@@ -405,6 +402,8 @@ UseProperties: class {
     useDef: UseDef
     useVersion: UseVersion { get set }
 
+    pkgs                : ArrayList<String> { get set }
+    customPkgs          : ArrayList<CustomPkg> { get set }
     additionals         : ArrayList<Additional> { get set }
     frameworks          : ArrayList<String> { get set }
     includePaths        : ArrayList<String> { get set }
@@ -415,6 +414,8 @@ UseProperties: class {
     requirements        : ArrayList<Requirement> { get set }
 
     init: func (=useDef, =useVersion) {
+        pkgs                = ArrayList<String> new()
+        customPkgs          = ArrayList<CustomPkg> new()
         additionals         = ArrayList<Additional> new()
         frameworks          = ArrayList<String> new()
         includePaths        = ArrayList<String> new()
@@ -426,6 +427,8 @@ UseProperties: class {
     }
 
     merge!: func (other: This) -> This {
+        pkgs                      addAll(other pkgs)
+        customPkgs                addAll(other customPkgs)
         additionals               addAll(other additionals)
         frameworks                addAll(other frameworks)
         includePaths              addAll(other includePaths)
@@ -509,7 +512,7 @@ UseVersionAnd: class extends UseVersion {
     }
 
     satisfied?: func (params: BuildParams) -> Bool {
-        lhs satisfied?(params) && rhs satisfied?(params) 
+        lhs satisfied?(params) && rhs satisfied?(params)
     }
 
     toString: func -> String {
@@ -525,7 +528,7 @@ UseVersionOr: class extends UseVersion {
     }
 
     satisfied?: func (params: BuildParams) -> Bool {
-        lhs satisfied?(params) || rhs satisfied?(params) 
+        lhs satisfied?(params) || rhs satisfied?(params)
     }
 
     toString: func -> String {

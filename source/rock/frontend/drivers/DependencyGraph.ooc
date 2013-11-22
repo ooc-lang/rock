@@ -12,7 +12,7 @@ import rock/middle/tinker/[Errors]
 /**
  * The dependency graph of a project, ie know the dependencies
  * between SourceFolder(s)
- * 
+ *
  * Used when figuring out what to build first
  */
 DependencyGraph: class {
@@ -49,7 +49,7 @@ DependencyGraph: class {
     _walk: func ~module (parent: SourceFolder, module: Module, done: ArrayList<Module>) {
         if (done contains?(module)) return
         done add(module)
-        
+
         pathElement := module getPathElement()
         absolutePath := File new(pathElement) getAbsolutePath()
         name := File new(absolutePath) name
@@ -73,7 +73,7 @@ DependencyGraph: class {
             _walk(dep, child, done)
         }
     }
-    
+
 
     _addDependency: func (lhs, rhs: SourceFolder) {
         key := "%s => %s" format(lhs identifier, rhs identifier)
@@ -105,7 +105,7 @@ DependencyGraph: class {
 
     _computeList: func {
         pool := ArrayList<SourceFolder> new()
-        sourceFolders each(|k, sf| pool add(sf)) 
+        sourceFolders each(|k, sf| pool add(sf))
 
         list = ArrayList<SourceFolder> new()
 
@@ -129,7 +129,7 @@ DependencyGraph: class {
                 _throwError(nullToken, message)
             }
         }
-        
+
         if (params verbose) {
             repr := list map(|sf| sf identifier) join(", ")
             "Build order: [%s]" printfln(repr)
@@ -168,3 +168,4 @@ DependencyError: class extends Error {
     init: super func ~tokenMessage
 
 }
+
