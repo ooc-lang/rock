@@ -1,5 +1,7 @@
+
 import io/[File]
 import structs/[ArrayList, List, HashMap]
+import rock/frontend/CommandLine
 
 /**
  * Somehow like the 'classpath' in Java. E.g. holds where to find ooc
@@ -8,6 +10,10 @@ import structs/[ArrayList, List, HashMap]
 PathList: class {
     paths := HashMap<String, File> new()
     debug := false
+    debugChatty := false
+
+    // Paths we've warned about - that they can't escape the sourcepath
+    warnings := HashMap<String, String> new()
 
     getPaths : func -> HashMap<String, File> { paths }
 
@@ -101,9 +107,21 @@ PathList: class {
      */
     getFile: func (path: String) -> (File, File) {
         for(element in paths) {
+            reducedElement := element getReducedPath()
             candidate := File new(element path, path)
-            if(debug) ("Trying path " + candidate getPath()) println()
+            if(debugChatty) ("Trying path " + candidate getPath()) println()
             if (candidate exists?() && candidate file?()) {
+                if(debug) ("For " + path + ", found path " + candidate getPath() + " in element " + element getPath()) println()
+                reduced := candidate getReducedPath()
+                valid := reduced startsWith?(reducedElement)
+                if (!valid) {
+                    // can't escape the sourcepath o/
+                    if (!warnings contains?(reduced)) {
+                        warnings put(reduced, reducedElement)
+                        CommandLine warn("Warning: import %s was found at %s, but it can't escape source element %s" format(path, reduced, reducedElement))
+                    }
+                    continue
+                }
                 return (candidate, element)
             }
         }

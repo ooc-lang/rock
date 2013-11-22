@@ -647,16 +647,28 @@ CommandLine: class {
         first = false
     }
 
-    warnDeprecated: func (old, instead: String) {
-        "[WARNING] Option -%s is deprecated, use -%s instead." printfln(old, instead)
+    warn: static func (message: String) {
+        Terminal setFgColor(Color yellow)
+        "[WARN ] %s" printfln(message)
+        Terminal reset()
+    }
+    
+    error: static func (message: String) {
+        Terminal setFgColor(Color red)
+        "[ERROR] %s" printfln(message)
+        Terminal reset()
     }
 
-    warnUseLong: func (option: String) {
-        "[WARNING] Option -%s is deprecated, use --%s instead." printfln(option, option)
+    warnDeprecated: static func (old, instead: String) {
+        warn("Option -%s is deprecated, use -%s instead." format(old, instead))
     }
 
-    hardDeprecation: func (parameter: String, params: BuildParams) {
-        "[ERROR] %s parameter is deprecated" printfln(parameter)
+    warnUseLong: static func (option: String) {
+        warn("Option -%s is deprecated, use --%s instead." format(option, option))
+    }
+
+    hardDeprecation: static func (parameter: String, params: BuildParams) {
+        error("%s parameter is deprecated" format(parameter))
         failure(params)
     }
 
