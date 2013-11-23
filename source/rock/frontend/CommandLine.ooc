@@ -289,10 +289,17 @@ CommandLine: class {
                     if(!longOption && option != "v") warnUseLong("verbose")
                     params verbose = true
 
-                } else if (option == "veryVerbose" || option == "vv") {
+                } else if (option == "verboser" || option == "vv") {
 
-                    if(!longOption && option != "vv") warnUseLong("veryVerbose")
+                    if(!longOption && option != "vv") warnUseLong("verbose")
                     params verbose = true
+                    params verboser = true
+
+                } else if (option == "veryVerbose" || option == "vvv") {
+
+                    if(!longOption && option != "vvv") warnUseLong("veryVerbose")
+                    params verbose = true
+                    params verboser = true
                     params veryVerbose = true
 
                 } else if (option == "stats") {

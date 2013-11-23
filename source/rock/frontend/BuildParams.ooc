@@ -169,8 +169,11 @@ BuildParams: class {
     // Do inlining
     inlining := false
 
-    // Displays which files it parses, and a few debug infos
+    // Display compilation progress info
     verbose := false
+
+    // Displays which files it parses, and a few debug infos
+    verboser := false
 
     // Display compilation statistics
     stats := false

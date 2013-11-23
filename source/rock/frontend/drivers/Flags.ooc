@@ -53,6 +53,7 @@ Flags: class {
     params: BuildParams
 
     modules := ArrayList<Module> new()
+    mainModule: Module
 
     /* identifier => UseDef */
     uses := ArrayList<UseDef> new()
@@ -331,6 +332,8 @@ Flags: class {
             _applyFlags(linkerFlags, command)
         }
     }
+
+    setMainModule: func (=mainModule)
 
 }
 

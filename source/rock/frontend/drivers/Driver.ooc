@@ -43,7 +43,7 @@ Driver: abstract class {
                 src  := File new(pathElement, inc path + ".h") 
                 dest := File new(destDir,        inc path + ".h")
                 
-                if (params verbose) {
+                if (params verboser) {
                     "Copying %s to %s" printfln(src path, dest path)
                 }
                 src copyTo(dest)
@@ -73,7 +73,7 @@ Driver: abstract class {
                 destDir := File new(base, useDef identifier)
                 dest := File new(destDir, additional relative)
 
-                if (params verbose) {
+                if (params verboser) {
                     "Copying %s to %s" printfln(src path, dest path)
                 }
                 src copyTo(dest)

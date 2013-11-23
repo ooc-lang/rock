@@ -130,7 +130,7 @@ DependencyGraph: class {
             }
         }
 
-        if (params verbose) {
+        if (params verboser) {
             repr := list map(|sf| sf identifier) join(", ")
             "Build order: [%s]" printfln(repr)
         }

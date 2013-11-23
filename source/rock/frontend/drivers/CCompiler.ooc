@@ -7,6 +7,7 @@ import structs/[List, ArrayList]
 // our stuff
 import Flags
 import rock/frontend/BuildParams
+import rock/middle/Module
 
 /**
  * This classes handles the launch of our C compiler and linker.
@@ -78,7 +79,26 @@ CCompiler: class {
 
         // display the command line if needed
         if (params verbose) {
-            process getCommandLine() println()
+            if (params verboser) {
+                process getCommandLine() println()
+            } else {
+                action := match link {
+                    case true => "[LD]"
+                    case =>      "[CC]"
+                }
+                target := match link {
+                    case true => flags outPath
+                    case      =>
+                        match (flags mainModule) {
+                            case null =>
+                                flags objects join(" ")
+                            case =>
+                                flags mainModule fullName
+                        }
+                }
+
+                "%s %s" printfln(action, target)
+            }
         } else {
             process setStderr(Pipe new())
         }

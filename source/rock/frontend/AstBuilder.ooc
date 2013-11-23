@@ -58,7 +58,7 @@ AstBuilder: class {
         absolutePath := File new(modulePath) getAbsolutePath()
         cache put(absolutePath, module)
 
-        if (params verbose) {
+        if (params verboser) {
             "Parsing %s" printfln(absolutePath)
         }
 

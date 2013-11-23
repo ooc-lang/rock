@@ -48,7 +48,7 @@ SequenceDriver: class extends Driver {
 
         // step 2: compile
         if (params verbose) {
-            "Compiling (-j %d)..." printfln(pool parallelism)
+            "Compiling with %d thread%s..." printfln(pool parallelism, pool parallelism > 1 ? "s" : "")
         }
         for (sourceFolder in graph list) {
             if(params verbose) {
@@ -131,11 +131,16 @@ SequenceDriver: class extends Driver {
 
             command := ArrayList<String> new()
             command add(util getPath())
-            command add(params getBinaryPath(module simpleName))
+            binPath := params getBinaryPath(module simpleName)
+            command add(binPath)
 
             process := Process new(command)
             if (params verbose) {
-                process getCommandLine() println()
+                if (params verboser) {
+                    process getCommandLine() println()
+                } else {
+                    "[DSYM] %s" printfln(binPath)
+                }
             } else {
                 process setStderr(Pipe new())
             }
@@ -178,7 +183,7 @@ SequenceDriver: class extends Driver {
         }
 
         if(params verbose) {
-            "\n%d new/updated modules to compile" printfln(dirtyModules size)
+            "\nCompiling %d modules" printfln(dirtyModules size)
         }
 
         // step 1: compile ooc modules
@@ -227,6 +232,7 @@ SequenceDriver: class extends Driver {
             flags absorb(params)
             flags absorb(sourceFolder)
             flags absorb(module)
+            flags setMainModule(module)
 
             process := params compiler launchCompiler(flags)
             code := pool add(ModuleJob new(process, module, archive, oFile path))

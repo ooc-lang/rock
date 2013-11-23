@@ -87,7 +87,7 @@ UseDef: class {
             file := findUse(identifier + ".use", params)
             if(!file) return null
 
-            if (params verbose) {
+            if (params verboser) {
                 "Use %s sourced from %s" printfln(identifier, file path)
             }
 
