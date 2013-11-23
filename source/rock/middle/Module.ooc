@@ -12,7 +12,7 @@ Module: class extends Node {
     // statistics house-keeping
     timesImported := 0
     timesLooped := 0
-    
+
     // true if this module is a dummy only used to get imports!
     dummy := false
 
@@ -21,11 +21,11 @@ Module: class extends Node {
 
     // all variants of useful paths
     path, fullName, simpleName, underName, pathElement, oocPath: String
-    
+
     // mostly controls the generation of an implicit main
     main := false
 
-    // 
+    // pretty much the whole contents of a module
     types      := OrderedMultiMap<String, TypeDecl> new()
     addons     := ArrayList<Addon> new()
     functions  := OrderedMultiMap<String, FunctionDecl> new()
@@ -61,7 +61,7 @@ Module: class extends Node {
         }
 
         underName = sanitize(this fullName)
-        
+
         dead = false
     }
 
@@ -205,9 +205,11 @@ Module: class extends Node {
 
     addUse: func (uze: Use) {
         uses add(uze)
-        if (uze useDef) for (imp in uze useDef imports) {
-            // todo: make use imports only findable in the SourcePath specified.
-            addImport(Import new(imp, uze token))
+        useDef := uze useDef
+        if (useDef) for (importPath in useDef imports) {
+            imp := Import new(importPath, uze token)
+            imp sourcePathElement = useDef sourcePath
+            addImport(imp)
         }
     }
 
@@ -443,11 +445,11 @@ Module: class extends Node {
 
                 cached token = Token new(0, 0, cached)
                 if (resolver) resolver addModule(cached)
-                
+
                 cached lastModified = impLastModified
                 AstBuilder new(impFile path, cached, params)
             }
-            
+
             imp setModule(cached)
             cached parseImports(resolver)
         }

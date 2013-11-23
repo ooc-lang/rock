@@ -90,8 +90,11 @@ AstBuilder: class {
         impPath: File = null
         impElement: File = null
 
-        if (oocImpPath contains?("..")) {
-            (impPat2, impElemen2) := params sourcePath getFileInElement(path, module pathElement)
+        // those workarounds may be removed in 0.9.9+, since #726 was resolved.
+        // in the meantime, I'm (ndd) keeping them around, trying not to use current-gen
+        // features in current-gen source to facilitate bootstrapping.
+        if (imp sourcePathElement) {
+            (impPat2, impElemen2) := params sourcePath getFileInElement(path, imp sourcePathElement)
             (impPath, impElement) = (impPat2, impElemen2)
         } else {
             (impPat2, impElemen2) := params sourcePath getFile(path)
@@ -100,6 +103,8 @@ AstBuilder: class {
         if(!impElement) {
             parent := File new(module path) parent
             if(parent) {
+                // import can also be 'implicitly relative', e.g. io/File can import io/native/FileWin32
+                // just by doing 'import native/FileWin32'
                 path = FileUtils resolveRedundancies(parent path + File separator + oocImpPath)
                 (impPat2, impElemen2) := params sourcePath getFileInElement(path, module pathElement)
                 (impPath, impElement) = (impPat2, impElemen2)

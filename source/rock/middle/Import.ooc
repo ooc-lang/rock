@@ -24,9 +24,18 @@ Import: class {
     isTight: Bool { get set } // tight imports include '.h', loose imports include '-fwd.h'
     token: Token
 
+    // can be set to limit where an import can be found
+    sourcePathElement: String
+
     init: func ~imp (=path, =token) {
         this path = this path replaceAll('/', File separator)
         this isTight = false
+
+        if (path contains?("..")) {
+            // relative path, can only be contained in same sourcepath
+            // as 'importing' module
+            sourcePathElement = token module pathElement
+        }
     }
 
     setModule: func(=module) {

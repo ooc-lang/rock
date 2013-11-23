@@ -363,12 +363,17 @@ UseDef: class {
                     current requirements add(Requirement new(req trim(), "0"))
                 }
             } else if (id == "SourcePath") {
-                sourcePath = value
+                if (sourcePath) {
+                    "Duplicate SourcePath entry"
+                } else {
+                    sourcePath = value
+                }
             } else if (id == "Version") {
                 versionNumber = value
             } else if (id == "Imports") {
-                for (imp in value split(','))
+                for (imp in value split(',')) {
                     imports add(imp trim())
+                }
             } else if (id == "Origin" || id == "Variant") {
                 // known, but ignored ids
             } else if (id == "Main") {
