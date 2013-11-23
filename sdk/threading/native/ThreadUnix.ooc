@@ -105,7 +105,8 @@ version(unix || apple) {
     }
 
     version (!apple) {
-        pthread_timedjoin_np: extern func (thread: PThread, retval: Pointer, abstime: TimeSpec*) -> Int
+        // Using proto here as defining '_GNU_SOURCE' seems to cause more trouble than anything else...
+        pthread_timedjoin_np: extern proto func (thread: PThread, retval: Pointer, abstime: TimeSpec*) -> Int
     }
 
     version(gc) {
