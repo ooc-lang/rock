@@ -502,7 +502,7 @@ VariableDeclTuple: class extends VariableDecl {
             case expr instanceOf?(Tuple) =>
                 tuple2 := expr as Tuple
                 if(tuple elements getSize() != tuple2 elements getSize()) {
-                    res throwError(TupleMismatch new(token, "Tuples don't match for multi-variable declaration."))
+                    res throwError(TupleMismatch new(token, "Incompatible tuples in multi-variable declaration."))
                     return Response OK
                 }
 
@@ -531,10 +531,12 @@ VariableDeclTuple: class extends VariableDecl {
 
             case expr instanceOf?(FunctionCall) =>
                 fCall := expr as FunctionCall
+
                 if(fCall getRef() == null) {
                     res wholeAgain(this, "Need fCall ref")
                     return Response OK
                 }
+
                 if(fCall getRef() getReturnArgs() empty?()) {
                     if(res fatal) {
                         res throwError(TupleMismatch new(token, "Need a multi-return function call as the expression of a tuple-variable declaration."))
@@ -542,48 +544,35 @@ VariableDeclTuple: class extends VariableDecl {
                     res wholeAgain(this, "need multi-return func call")
                     return Response OK
                 }
-                parent := trail peek()
 
-                returnArgs := fCall getReturnArgs()
                 returnType := fCall getRef() getReturnType() as TypeList
                 returnTypes := returnType types
 
-                if(tuple getElements() getSize() < returnTypes getSize()) {
-                    bad := false
-                    if(tuple getElements() empty?()) {
-                        bad = true
-                    } else {
-                        element := tuple getElements() last()
-                        if(!element instanceOf?(VariableAccess)) {
-                             res throwError(IncompatibleElementInTupleVarDecl new(element token, "Expected a variable access in a tuple-variable declaration!"))
-                        }
-                        if(element as VariableAccess getName() != "_") bad = true
-                    }
-                    if(bad) res throwError(TupleMismatch new(tuple token, "Tuple variable declaration doesn't match return type %s of function %s" format(returnType toString(), fCall getName())))
-                }
-
                 j := 0
                 for(element in tuple getElements()) {
-                    if(!element instanceOf?(VariableAccess)) {
-                        res throwError(IncompatibleElementInTupleVarDecl new(element token, "Expected a variable access in a tuple-variable declaration!"))
-                    }
-                    argName := element as VariableAccess getName()
-
-                    if(argName == "_") {
-                        returnArgs add(null)
-                    } else {
-                        // woohoo.
-                        argType := returnTypes get(j)
-                        argDecl := VariableDecl new(argType, argName, element token)
-                        returnArgs add(VariableAccess new(argDecl, argDecl token))
-                        if(!trail addBeforeInScope(this, argDecl)) {
-                            res throwError(CouldntAddBeforeInScope new(token, argDecl, this, trail))
-                        }
+                    match element {
+                        case vAcc: VariableAccess =>
+                            argName := vAcc getName()
+                            if (argName == "_") {
+                                // '_' are skipped
+                            } else {
+                                argType := returnTypes get(j)
+                                argDecl := VariableDecl new(argType, argName, element token)
+                                if(!trail addBeforeInScope(this, argDecl)) {
+                                    res throwError(CouldntAddBeforeInScope new(token, this, argDecl, trail))
+                                }
+                                vAcc setRef(argDecl)
+                            }
                     }
                     j += 1
                 }
-                trail addBeforeInScope(this, fCall)
-                parent as Scope remove(this)
+
+                assign := BinaryOp new(tuple, fCall, OpType ass, token)
+                parent := trail peek()
+                if (!parent replace(this, assign)) {
+                    res throwError(CouldntReplace new(token, this, assign, trail))
+                }
+                res wholeAgain(this, "replaced decl with assignment")
             case =>
                 res throwError(InternalError new(token, "Unsupported expression type %s for VariableDeclTuple." format(expr class name)))
         }

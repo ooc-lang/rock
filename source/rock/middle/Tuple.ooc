@@ -96,3 +96,8 @@ Tuple: class extends Expression {
     }
 
 }
+
+InvalidTupleUse: class extends Error {
+    init: super func ~tokenMessage
+}
+

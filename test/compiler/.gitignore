@@ -6,3 +6,4 @@
 
 # and subdirectories
 !shouldfail/
+!tuples/

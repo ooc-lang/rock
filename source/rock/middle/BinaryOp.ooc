@@ -3,7 +3,8 @@ import ../frontend/Token
 import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
        Import, Module, FunctionCall, ClassDecl, CoverDecl, AddressOf,
        ArrayAccess, VariableAccess, Cast, NullLiteral, PropertyDecl,
-       Tuple, VariableDecl, FuncType, TypeDecl
+       Tuple, VariableDecl, FuncType, TypeDecl, StructLiteral, TypeList,
+       Scope
 import tinker/[Trail, Resolver, Response, Errors]
 
 OpType: enum {
@@ -93,7 +94,7 @@ BinaryOp: class extends Expression {
     hasSideEffects : func -> Bool { !isAssign() }
 
     getType: func -> Type { inferredType }
-    
+
     getLeft:  func -> Expression { left  }
     getRight: func -> Expression { right }
 
@@ -114,6 +115,171 @@ BinaryOp: class extends Expression {
         type = OpType ass
 
         true
+    }
+
+    handleTuples: func (trail: Trail, res: Resolver) {
+        match left {
+            case t1: Tuple =>
+                match right {
+                    case t2: Tuple =>
+                        unwrapTupleTupleAssign(t1, t2, trail, res)
+                    case call: FunctionCall =>
+                        unwrapTupleCallAssign(t1, call, trail, res)
+                    case =>
+                        message := "Invalid tuple usage: assignment rhs has incompatible type"
+                        res throwError(InvalidTupleUse new(token, message))
+                }
+            case =>
+                match right {
+                    case sl: StructLiteral =>
+                        // assigning struct literals is fine.
+                    case t2: Tuple =>
+                        message := "Invalid tuple usage: assignment lhs needs to be a tuple"
+                        res throwError(InvalidTupleUse new(token, message))
+                }
+        }
+    }
+
+    unwrapTupleCallAssign: func (tuple: Tuple, fCall: FunctionCall, trail: Trail, res: Resolver) {
+        if(fCall getRef() == null) {
+            res wholeAgain(this, "Need fCall ref")
+            return
+        }
+
+        if(fCall getRef() getReturnArgs() empty?()) {
+            if(res fatal) {
+                res throwError(TupleMismatch new(token, "Need a multi-return function call as the expression of a tuple-variable declaration."))
+            }
+            res wholeAgain(this, "need multi-return func call")
+            return
+        }
+
+        returnArgs := fCall getReturnArgs()
+        returnType := fCall getRef() getReturnType() as TypeList
+        returnTypes := returnType types
+
+        // If the tuple has fewer elements...
+        if(tuple getElements() getSize() < returnTypes getSize()) {
+            bad := false
+            // empty is always invalid (also not parsable, probably)
+            if(tuple getElements() empty?()) {
+                bad = true
+            } else {
+                // the only case is where the last element is a VariableAccess...
+                element := tuple getElements() last()
+                if(!element instanceOf?(VariableAccess)) {
+                    message := "Expected a variable access in a tuple-variable declaration!"
+                    res throwError(InvalidTupleUse new(element token, message))
+                    return
+                }
+                // ...that has the name '_' - which means 'soak / ignore the rest of the values'
+                if(element as VariableAccess getName() != "_") {
+                    bad = true
+                }
+            }
+            if(bad) res throwError(TupleMismatch new(tuple token, "Tuple variable declaration doesn't match return type %s of function %s" format(returnType toString(), fCall getName())))
+        }
+
+        j := 0
+        for(element in tuple getElements()) {
+            match element {
+                case vAcc: VariableAccess =>
+                    argName := vAcc getName()
+                    if(argName == "_") {
+                        // '_' are skipped
+                        returnArgs add(null)
+                    } else {
+                        // others are added as the call's returnArgs
+                        returnArgs add(vAcc)
+                    }
+                case =>
+                    message := "Expected a variable access in a tuple-variable declaration!"
+                    res throwError(InvalidTupleUse new(element token, message))
+                    return
+            }
+            j += 1
+        }
+        if (!trail addBeforeInScope(this, fCall)) {
+            res throwError(CouldntAddBeforeInScope new(token, this, fCall, trail))
+        }
+
+        parent := trail peek()
+        match parent {
+            case s: Scope =>
+                s remove(this)
+                res wholeAgain(this, "replaced assignment with fCall and its returnArgs")
+            case =>
+                message := "Tuple / functionCall assignment in a strange place"
+                res throwError(InvalidTupleUse new(token, message))
+        }
+    }
+
+    unwrapTupleTupleAssign: func (t1: Tuple, t2: Tuple, trail: Trail, res: Resolver) {
+        if(t1 elements getSize() != t2 elements getSize()) {
+            message := "Invalid assignment (incompatible tuples) between types %s and %s\n" format(
+                left getType() toString(), right getType() toString())
+            res throwError(InvalidOperatorUse new(token, message))
+            return
+        }
+
+        size := t1 elements getSize()
+
+        for(i in 0..size) {
+            l := t1 elements[i]
+            if(!l instanceOf?(VariableAccess)) continue
+            la := l as VariableAccess
+
+            for(j in i..size) {
+                r := t2 elements[j]
+                if(!r instanceOf?(VariableAccess)) continue
+
+                ra := r as VariableAccess
+                if(la getRef() == null || ra getRef() == null) {
+                    res wholeAgain(this, "need ref")
+                    return
+                }
+                if(la getRef() == ra getRef()) {
+                    if(i == j) {
+                        useless := false
+                        if(la expr != null && ra expr != null) {
+                            if(la expr instanceOf?(VariableAccess) &&
+                                ra expr instanceOf?(VariableAccess)) {
+                                    lae := la expr as VariableAccess
+                                    rae := ra expr as VariableAccess
+                                    if(lae getRef() == rae getRef()) {
+                                        useless = true
+                                    }
+                            }
+                        } else {
+                            useless = true
+                        }
+                        if(useless) { continue }
+                    }
+
+                    tmpDecl := VariableDecl new(null, generateTempName(la getName()), la, la token)
+                    if(!trail addBeforeInScope(this, tmpDecl)) {
+                        res throwError(CouldntAddBeforeInScope new(token, this, tmpDecl, trail))
+                    }
+                    t2 elements[j] = VariableAccess new(tmpDecl, tmpDecl token)
+                }
+            }
+        }
+
+        for(i in 0..t1 elements getSize()) {
+            child := new(t1 elements[i], t2 elements[i], type, token)
+
+            if(i == t1 elements getSize() - 1) {
+                // last? replace
+                if(!trail peek() replace(this, child)) {
+                    res throwError(CouldntReplace new(token, this, child, trail))
+                }
+            } else {
+                // otherwise, add before
+                if(!trail addBeforeInScope(this, child)) {
+                    res throwError(CouldntAddBeforeInScope new(token, this, child, trail))
+                }
+            }
+        }
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
@@ -158,10 +324,19 @@ BinaryOp: class extends Expression {
             }
 
             if(left getType() == null || !left isResolved()) {
-                res wholeAgain(this, "left type is unresolved"); return Response OK
+                res wholeAgain(this, "left type is unresolved")
+                return Response OK
             }
             if(right getType() == null || !right isResolved()) {
-                res wholeAgain(this, "right type is unresolved"); return Response OK
+                res wholeAgain(this, "right type is unresolved")
+                return Response OK
+            }
+
+            // Handle tuples?
+            hasTuples := left instanceOf?(Tuple) || right instanceOf?(Tuple)
+            if(hasTuples) {
+                // Assigning tuples need unwrapping
+                handleTuples(trail, res)
             }
 
             // Left side is a property access? Replace myself with a setter call.
@@ -188,7 +363,7 @@ BinaryOp: class extends Expression {
 
             // if we're an assignment from a generic return value
             // we need to set the returnArg to left and disappear! =)
-            if(realRight instanceOf?(FunctionCall)) {
+            if(realRight instanceOf?(FunctionCall) && !hasTuples) {
                 fCall := realRight as FunctionCall
                 fDecl := fCall getRef()
                 if(!fDecl || !fDecl getReturnType() isResolved()) {
@@ -252,77 +427,6 @@ BinaryOp: class extends Expression {
             }
         }
 
-        // Assigning tuples need unwinding
-        if(type == OpType ass && left instanceOf?(Tuple) && right instanceOf?(Tuple)) {
-            t1 := left as Tuple
-            t2 := right as Tuple
-
-            if(t1 elements getSize() != t2 elements getSize()) {
-                res throwError(InvalidOperatorUse new(token, "Invalid assignment between operands of type %s and %s\n" format(
-                    left getType() toString(), right getType() toString())))
-                return Response OK
-            }
-
-            size := t1 elements getSize()
-
-            for(i in 0..size) {
-                l := t1 elements[i]
-                if(!l instanceOf?(VariableAccess)) continue
-                la := l as VariableAccess
-
-                for(j in i..size) {
-                    r := t2 elements[j]
-                    if(!r instanceOf?(VariableAccess)) continue
-
-                    ra := r as VariableAccess
-                    if(la getRef() == null || ra getRef() == null) {
-                        res wholeAgain(this, "need ref")
-                        return Response OK
-                    }
-                    if(la getRef() == ra getRef()) {
-                        if(i == j) {
-                            useless := false
-                            if(la expr != null && ra expr != null) {
-                                if(la expr instanceOf?(VariableAccess) &&
-                                   ra expr instanceOf?(VariableAccess)) {
-                                       lae := la expr as VariableAccess
-                                       rae := ra expr as VariableAccess
-                                       if(lae getRef() == rae getRef()) {
-                                           useless = true
-                                       }
-                                }
-                            } else {
-                                useless = true
-                            }
-                            if(useless) { continue }
-                        }
-
-                        tmpDecl := VariableDecl new(null, generateTempName(la getName()), la, la token)
-                        if(!trail addBeforeInScope(this, tmpDecl)) {
-                            res throwError(CouldntAddBeforeInScope new(token, this, tmpDecl, trail))
-                        }
-                        t2 elements[j] = VariableAccess new(tmpDecl, tmpDecl token)
-                    }
-                }
-            }
-
-            for(i in 0..t1 elements getSize()) {
-                child := new(t1 elements[i], t2 elements[i], type, token)
-
-                if(i == t1 elements getSize() - 1) {
-                    // last? replace
-                    if(!trail peek() replace(this, child)) {
-                        res throwError(CouldntReplace new(token, this, child, trail))
-                    }
-                } else {
-                    // otherwise, add before
-                    if(!trail addBeforeInScope(this, child)) {
-                        res throwError(CouldntAddBeforeInScope new(token, this, child, trail))
-                    }
-                }
-            }
-        }
-
         if(!isLegal(res)) {
             if(res fatal) {
                 res throwError(InvalidOperatorUse new(token, "Invalid use of operator %s between operands of type %s and %s\n" format(
@@ -373,7 +477,7 @@ BinaryOp: class extends Expression {
             // if only one of the sides are compound covers (structs) - it's illegal.
             return false
         }
-        
+
         if(lCompound || rCompound) {
             // you can only assign compound covers (structs), others must be overloaded
             return (type == OpType ass)
