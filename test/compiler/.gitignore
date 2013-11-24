@@ -7,3 +7,11 @@
 # and subdirectories
 !shouldfail/
 !tuples/
+!generics/
+!control/
+!closures/
+!operators/
+!properties/
+!preprocessor/
+!values/
+!functions/
