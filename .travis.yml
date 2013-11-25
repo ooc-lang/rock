@@ -2,8 +2,11 @@ before_script:
   - sudo apt-get -y -q install curl make
 
 script:
+  - export PATH=$PATH:$PWD/bin:$PWD/sam
   - make rescue
-  - OOC=bin/rock make clean self
+  - git clone --depth=1 git://github.com/nddrylliog/sam.git 
+  - (cd sam && rock -v)
+  - sam test
 
 notifications:
   webhooks: http://rcmp.pw/freenode/ooc-lang
