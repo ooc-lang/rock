@@ -29,7 +29,8 @@ Driver: abstract class {
         done add(module)
 
         path := module path + ".ooc"
-        pathElement := params sourcePath getFile(path) parent
+        (candidate, element) := params sourcePath getFile(path)
+        pathElement := candidate parent
 
         for(inc: Include in module includes) {
             if(inc mode == IncludeMode LOCAL) {
