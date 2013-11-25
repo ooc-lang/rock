@@ -1,3 +1,4 @@
+//! shouldfail
 
 // sdk
 import structs/[ArrayList, List]
@@ -9,10 +10,10 @@ version (windows) {
 
 foo: func {
     // SIGSEGV or access violation
-    /*
+    //*
         f: Int* = null
         f@ = 0
-    */
+    //*/
 
     // SIGFPE
     /*
@@ -44,7 +45,6 @@ bar: func {
 main: func {
     app := App new()
     app run()
-    0
 }
 
 App: class {
