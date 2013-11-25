@@ -1,3 +1,4 @@
+//! shouldfail
 
 main: func {
 
