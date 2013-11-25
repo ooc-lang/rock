@@ -266,7 +266,21 @@ BinaryOp: class extends Expression {
         }
 
         for(i in 0..t1 elements getSize()) {
-            child := new(t1 elements[i], t2 elements[i], type, token)
+            ignore := false
+            
+            lhs := t1 elements[i]
+            rhs := t2 elements[i]
+
+            match lhs {
+                case va: VariableAccess =>
+                    if (va getName() == "_") {
+                        ignore = true
+                    }
+            }
+
+            if (ignore) continue
+
+            child := new(lhs, rhs, type, token)
 
             if(i == t1 elements getSize() - 1) {
                 // last? replace

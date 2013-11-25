@@ -1,6 +1,6 @@
 import ../frontend/[Token, BuildParams]
 import Literal, Visitor, Type, Expression, Node, TypeList, NullLiteral,
-       Cast, StructLiteral
+       Cast, StructLiteral, VariableAccess
 import tinker/[Response, Resolver, Trail, Errors]
 import structs/[List, ArrayList]
 
@@ -38,7 +38,20 @@ Tuple: class extends Expression {
                 if(elementType) {
                     list types add(elementType)
                 } else {
-                    return null
+                    good := false
+
+                    // if it's a varacc to '_' it's fine
+                    match element {
+                        case vAcc: VariableAccess =>
+                            if (vAcc getName() == "_") {
+                                good = true
+                                list types add(voidType)
+                            }
+                    }
+
+                    if (!good) {
+                        return null
+                    }
                 }
             }
             type = list
