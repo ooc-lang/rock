@@ -1,7 +1,7 @@
-import math into math
+import math into meth
 
 main: func {
-    a := math abs(-3)
+    a := meth abs(-3)
 
     if (a != 3) {
         "Fail! a = %d" printfln(a)

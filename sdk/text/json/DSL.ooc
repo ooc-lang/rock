@@ -43,3 +43,4 @@ DSL: class { // TODO: make this a singleton. or so.
 make: func (f: Func(DSL) -> HashBag) -> String {
     DSL new() json(f) // TODO: not so nice
 }
+

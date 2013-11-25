@@ -151,7 +151,7 @@ VariableAccess: class extends Expression {
         }
 
         if(debugCondition() || res params veryVerbose) {
-            "Access#resolve(%s). inferred type = %s" printfln(prettyName, getType() ? getType() toString() : "(nil)")
+            "Access#resolve(%s). ref = %s inferred type = %s" printfln(prettyName, ref ? ("(%s) %s" format(ref class name, ref toString())) : "(nil)", getType() ? getType() toString() : "(nil)")
         }
 
         if(expr) {
@@ -522,20 +522,34 @@ VariableAccess: class extends Expression {
     getRef: func -> Declaration { ref }
 
     getType: func -> Type {
-
-        if(!ref) return null
-        if(ref instanceOf?(Expression)) {
-            return ref as Expression getType()
+        if(!ref) {
+            return null
         }
-        return null
+
+        match ref {
+            case nDecl: NamespaceDecl =>
+                voidType
+            case expr: Expression =>
+                expr getType()
+            case =>
+                // nothing
+                null
+        }
     }
 
     isMember: func -> Bool {
-        (expr != null) &&
-        !(expr instanceOf?(VariableAccess) &&
-          expr as VariableAccess getRef() != null &&
-          expr as VariableAccess getRef() instanceOf?(NamespaceDecl)
-        )
+        if (!expr) {
+            return false
+        }
+
+        match expr {
+            case vAcc: VariableAccess =>
+                if (vAcc getRef() != null && vAcc getRef() instanceOf?(NamespaceDecl)) {
+                    return false
+                }
+        }
+
+        true
     }
 
     getName: func -> String { name }
