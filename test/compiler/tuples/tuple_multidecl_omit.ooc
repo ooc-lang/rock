@@ -8,7 +8,7 @@ main: func {
 }
 
 one: func {
-    (a, b, _) :=  foo()
+    (a, b, _) := foo()
 
     if (a != 1 || b != 2) {
         "Fail! (one) a = %d, b = %d" printfln(a, b)
@@ -17,7 +17,7 @@ one: func {
 }
 
 two: func {
-    (a, _, b) :=  foo()
+    (a, _, b) := foo()
 
     if (a != 1 || b != 3) {
         "Fail! (two) a = %d, b = %d" printfln(a, b)
@@ -26,7 +26,7 @@ two: func {
 }
 
 three: func {
-    (_, a, b) :=  foo()
+    (_, a, b) := foo()
 
     if (a != 2 || b != 3) {
         "Fail! (two) a = %d, b = %d" printfln(a, b)
