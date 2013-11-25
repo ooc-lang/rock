@@ -6,5 +6,5 @@ script:
   - OOC=bin/rock make clean self
 
 notifications:
-  webhooks: http://rcmp.programble.co.cc/irc.freenode.net/ooc-lang
+  webhooks: http://rcmp.pw/freenode/ooc-lang
 
