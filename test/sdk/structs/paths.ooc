@@ -2,9 +2,12 @@ import io/FileReader
 import structs/[HashBag, Bag]
 import text/json
 
+// example.json taken from http://json.org/example.html
+data := "
+{\"glossary\": { \"title\": \"example glossary\", \"GlossDiv\": { \"title\": \"S\", \"GlossList\": { \"GlossEntry\": { \"ID\": \"SGML\", \"SortAs\": \"SGML\", \"GlossTerm\": \"Standard Generalized Markup Language\", \"Acronym\": \"SGML\", \"Abbrev\": \"ISO 8879:1986\", \"GlossDef\": { \"para\": \"A meta-markup language, used to create markup languages such as DocBook.\", \"GlossSeeAlso\": [\"GML\", \"XML\"] }, \"GlossSee\": \"markup\" }}}}, \"foo\": [\"bar\", {\"muh\": \"kuh\", \"blargh\": [[[\"nope\"]]]}]}
+"
+
 main: func {
-    // example.json taken from http://json.org/example.html
-    data := FileReader new("example.json") readAll()
     object := JSON parse(data, HashBag)
 
     fails := false
