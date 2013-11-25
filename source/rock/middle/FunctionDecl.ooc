@@ -622,7 +622,7 @@ FunctionDecl: class extends Declaration {
                 if(returnArgs empty?()) createReturnArg(returnType, "genericReturn")
             } else if(returnType instanceOf?(TypeList)) {
                 list := returnType as TypeList
-                if(list types getSize() > returnArgs getSize()) {
+                if(returnArgs empty?()) {
                     for(type in list types) {
                         createReturnArg(ReferenceType new(type, type token), "tupleArg")
                     }

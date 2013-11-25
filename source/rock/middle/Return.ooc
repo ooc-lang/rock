@@ -2,7 +2,7 @@ import structs/List
 import ../frontend/[Token,BuildParams]
 import Visitor, Statement, Expression, Node, FunctionDecl, FunctionCall,
        VariableAccess, VariableDecl, AddressOf, ArrayAccess, If,
-       BinaryOp, Cast, Type, Module, Tuple
+       BinaryOp, Cast, Type, TypeList, Module, Tuple
 import tinker/[Response, Resolver, Trail, Errors]
 
 Return: class extends Statement {
@@ -42,7 +42,7 @@ Return: class extends Statement {
             }
         }
 
-        if (retType && !retType isResolved()) {
+        if (!retType || !retType isResolved()) {
             res wholeAgain(this, "need returnType to be resolved!")
             return Response OK
         }
@@ -56,131 +56,165 @@ Return: class extends Statement {
             }
 
             if(expr getType() == null || !expr getType() isResolved()) {
-                res wholeAgain(this, "expr type is unresolved"); return Response OK
-            } else if(retType void? && !expr getType() void?) {
-                res throwError(InconsistentReturn new(token, "Can't return a %s in function declared as not returning anything" format(expr getType() toString())))
-            }
-        } else {
-            if (returnArgs empty?() && !retType void?) {
-                res throwError(InconsistentReturn new(token, "Can't return nothing in function declared as returning a %s" format(retType toString())))
-            } else {
-                // no expression, and the function's alright with that - nothing more to do.
+                res wholeAgain(this, "expr type is unresolved")
                 return Response OK
             }
         }
 
-        if (retType) {
+        // by this point, retType is non-null *and* resolved
+        retType = retType refToPointer()
 
-            retType = retType refToPointer()
+        shouldHaveReturnArgs := (retType isGeneric() || retType instanceOf?(TypeList))
+        if (shouldHaveReturnArgs && returnArgs empty?()) {
+            res wholeAgain(this, "waiting for fDecl to create returnArgs")
+        }
 
-            if(retType isGeneric() && returnArgs empty?()) {
-                // create the generic returnArg - just in case.
-                returnArgs add(VariableDecl new(retType, generateTempName("genericReturn"), token))
+        isVoid := retType void?
+
+        if(expr) {
+            if(expr getType() == null || !expr getType() isResolved()) {
+                res wholeAgain(this, "Need info about the expr type")
+                return Response OK
             }
 
+            // generic returns, multi-returns
             if(!returnArgs empty?()) {
-
-                // if it's a generic FunctionCall, just hook its returnArg to the outer FunctionDecl and be done with it.
-                if(expr instanceOf?(FunctionCall)) {
-                    fCall := expr as FunctionCall
-                    if( fCall getRef() == null ||
-                        fCall getRef() getReturnType() == null ||
-                       !fCall getRef() getReturnType() isResolved()) {
-                        res wholeAgain(this, "We need the fcall to be fully resolved before resolving ourselves")
-                    }
-
-                    if(fCall getRef() getReturnType() isGeneric()) {
-                        // TODO: what if the return type of the outer function decl isn't generic?
-                        fCall setReturnArg(VariableAccess new(returnArgs[0], token))
-                        if(!trail peek() addBefore(this, fCall)) {
-                            res throwError(CouldntAddBefore new(token, this, fCall, trail))
-                        }
-                        expr = null
-                        res wholeAgain(this, "Unwrapped into outer fCall")
-                        return Response OK
-                    }
-                }
-
-                // if the expr is something else, we're gonna have to handle it ourselves. muahaha.
-                j := 0
-                for(returnArg in returnArgs) {
-
-                    returnExpr := expr
-                    if(expr instanceOf?(Tuple)) {
-                        returnExpr = expr as Tuple elements get(j)
-                    }
-
-                    returnAcc := VariableAccess new(returnArg, token)
-
-                    byRef? := returnArg getType() instanceOf?(ReferenceType)
-                    needIf? := (retType isGeneric() || byRef?)
-
-                    if(needIf?) {
-                        // generic variables have weird semantics
-                        if1 := If new(byRef? ? AddressOf new(returnAcc, token) : returnAcc, token)
-
-                        if(returnExpr hasSideEffects()) {
-                            vdfe := VariableDecl new(null, generateTempName("returnVal"), returnExpr, returnExpr token)
-                            if(!trail peek() addBefore(this, vdfe)) {
-                                res throwError(CouldntAddBefore new(token, this, vdfe, trail))
-                            }
-                            returnExpr = VariableAccess new(vdfe, vdfe token)
-                        }
-
-                        // ass needs to be created now because returnExpr might've changed
-                        ass := BinaryOp new(returnAcc, returnExpr, OpType ass, token)
-                        if1 getBody() add(ass)
-
-                        if(!trail peek() addBefore(this, if1)) {
-                            res throwError(CouldntAddBefore new(token, this, if1, trail))
-                        }
-                    } else {
-                        ass := BinaryOp new(returnAcc, returnExpr, OpType ass, token)
-                        if(!trail peek() addBefore(this, ass)) {
-                            res throwError(CouldntAddBefore new(token, this, ass, trail))
-                        }
-                    }
-                    j += 1
-
-                }
-
-                expr = null
-                res wholeAgain(this, "Turned into an assignment")
-                return Response LOOP
-
-            }
-
-            if(expr) {
-                if(expr getType() == null || !expr getType() isResolved()) {
-                    res wholeAgain(this, "Need info about the expr type")
+                replaced := handleReturnArgs(retType, returnArgs, res, trail)
+                if (replaced) {
                     return Response OK
                 }
-                if(!retType getName() toLower() equals?("void") && !retType equals?(expr getType())) {
-                    score := expr getType() getScore(retType)
-                    if (score == -1) {
-                        res wholeAgain(this, "something's unresolved in declared ret type vs returned type.")
-                        return Response OK
-                    }
-
-                    if (score < 0) {
-                        msg: String
-                        if (res params veryVerbose) {
-                            msg = "The declared return type (%s) and the returned value (%s) do not match!\nscore = %d\ntrail = %s" format(retType toString(), expr getType() toString(), score, trail toString())
-                        } else {
-                            msg = "The declared return type (%s) and the returned value (%s) do not match!" format(retType toString(), expr getType() toString())
-                        }
-                        res throwError(InconsistentReturn new(token, msg))
-                    }
-                    expr = Cast new(expr, retType, expr token)
-                }
             }
 
-            if (retType == voidType && !expr)
-                res throwError(InconsistentReturn new(expr token, "Function is declared to return `null`, not %s! trail = %s" format(expr getType() toString(), trail toString())))
+            // check: func is void yet we return something
+            if (isVoid) {
+                err := InconsistentReturn new(expr token, "Returning something from a void function is illegal")
+                res throwError(err)
+            }
+
+            // check: func isn't void but we return the wrong thing
+            if(!isVoid && !retType equals?(expr getType())) {
+                score := expr getType() getScore(retType)
+                if (score == -1) {
+                    res wholeAgain(this, "something's unresolved in declared ret type vs returned type.")
+                    return Response OK
+                }
+
+                if (score < 0) {
+                    msg: String
+                    if (res params veryVerbose) {
+                        msg = "The declared return type (%s) and the returned value (%s) do not match!\nscore = %d\ntrail = %s" format(retType toString(), expr getType() toString(), score, trail toString())
+                    } else {
+                        msg = "The declared return type (%s) and the returned value (%s) do not match!" format(retType toString(), expr getType() toString())
+                    }
+                    res throwError(InconsistentReturn new(token, msg))
+                }
+                expr = Cast new(expr, retType, expr token)
+            }
+        } else {
+            // check: func is non-void and we're returning nothing
+            if (!isVoid && returnArgs empty?()) {
+                msg := "Returning nothing is non-void function"
+                err := InconsistentReturn new(token, msg)
+                res throwError(err)
+            }
         }
 
         return Response OK
 
+    }
+
+    handleReturnArgs: func (retType: Type, returnArgs: List<VariableDecl>, res: Resolver, trail: Trail) -> Bool {
+        // if it's a generic FunctionCall, just hook its returnArg to the outer FunctionDecl and be done with it.
+        if(expr && expr instanceOf?(FunctionCall)) {
+            fCall := expr as FunctionCall
+            ref := fCall getRef()
+
+            if(ref == null) {
+                res wholeAgain(this, "Return needs its expr (fcall) to be resolved")
+                return false
+            }
+
+            fRetType := ref getReturnType()
+            if (fRetType == null || !fRetType isResolved()) {
+                res wholeAgain(this, "We need the fcall to be fully resolved before resolving ourselves")
+                return false
+            }
+
+            if (fRetType isGeneric()) {
+                // TODO: what if the return type of the outer function decl isn't generic?
+                fCall setReturnArg(VariableAccess new(returnArgs[0], token))
+                if(!trail peek() addBefore(this, fCall)) {
+                    err := CouldntAddBefore new(token, this, fCall, trail)
+                    res throwError(err)
+                }
+                expr = null
+                res wholeAgain(this, "Unwrapped into outer fCall")
+                return true
+            }
+
+            match fRetType {
+                // outer is a multi-return? Us too! Just relay them.
+                case tl: TypeList =>
+                    callReturnArgs := fCall getReturnArgs()
+                    for (returnArg in returnArgs) {
+                        vAcc := VariableAccess new(returnArg, returnArg token)
+                        callReturnArgs add(vAcc)
+                    }
+                    if(!trail peek() addBefore(this, fCall)) {
+                        err := CouldntAddBefore new(token, this, fCall, trail)
+                        res throwError(err)
+                    }
+                    expr = null
+                    res wholeAgain(this, "Unwrapped into outer fCall")
+                    return true
+            }
+        }
+
+        // if the expr is something else, we're gonna have to handle it ourselves. muahaha.
+        j := 0
+        for(returnArg in returnArgs) {
+            returnExpr := expr
+            if(expr instanceOf?(Tuple)) {
+                returnExpr = expr as Tuple elements get(j)
+            }
+
+            returnAcc := VariableAccess new(returnArg, token)
+
+            byRef? := returnArg getType() instanceOf?(ReferenceType)
+            needIf? := (retType isGeneric() || byRef?)
+
+            if(needIf?) {
+                // generic variables have weird semantics
+                if1 := If new(byRef? ? AddressOf new(returnAcc, token) : returnAcc, token)
+
+                if(returnExpr hasSideEffects()) {
+                    vdfe := VariableDecl new(null, generateTempName("returnVal"), returnExpr, returnExpr token)
+                    if(!trail peek() addBefore(this, vdfe)) {
+                        res throwError(CouldntAddBefore new(token, this, vdfe, trail))
+                    }
+                    returnExpr = VariableAccess new(vdfe, vdfe token)
+                }
+
+                // ass needs to be created now because returnExpr might've changed
+                ass := BinaryOp new(returnAcc, returnExpr, OpType ass, token)
+                if1 getBody() add(ass)
+
+                if(!trail peek() addBefore(this, if1)) {
+                    res throwError(CouldntAddBefore new(token, this, if1, trail))
+                }
+            } else {
+                ass := BinaryOp new(returnAcc, returnExpr, OpType ass, token)
+                if(!trail peek() addBefore(this, ass)) {
+                    res throwError(CouldntAddBefore new(token, this, ass, trail))
+                }
+            }
+            j += 1
+
+        }
+
+        expr = null
+        res wholeAgain(this, "Turned into an assignment")
+        return true
     }
 
     toString: func -> String { expr == null ? "return" : "return " + expr toString() }
