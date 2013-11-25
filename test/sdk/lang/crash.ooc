@@ -1,4 +1,4 @@
-//! shouldfail
+//! shouldcrash
 
 // sdk
 import structs/[ArrayList, List]
