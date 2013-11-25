@@ -30,5 +30,5 @@ main: func {
         "[FAIL] \"lolwut\" hasWhitespace? should be false, not true" println()
     }
 
-    exit(success? ? 1 : 0)
+    exit(success? ? 0 : 1)
 }
