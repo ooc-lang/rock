@@ -10,7 +10,7 @@ extend String {
     hasWhitespace?: Bool { get { this contains?(' ') } }
 }
 
-main: func(argc: Int, argv: CString*) -> Int {
+main: func {
     success? := true
 
     "Tests for #711..." println()
@@ -30,5 +30,5 @@ main: func(argc: Int, argv: CString*) -> Int {
         "[FAIL] \"lolwut\" hasWhitespace? should be false, not true" println()
     }
 
-    success? ? 0 : 1
+    exit(success? ? 1 : 0)
 }
