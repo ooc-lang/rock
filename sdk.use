@@ -1,7 +1,7 @@
 Name: sdk
 Description: ooc standard library
 SourcePath: sdk
-Imports: lang/Abstractions, lang/Buffer, lang/BufferIterator, lang/Character, lang/Exception, lang/Format, lang/IO, lang/Iterators, lang/Memory, lang/Numbers, lang/String, lang/System, lang/types, lang/VarArgs
+Imports: lang/Abstractions, lang/Buffer, lang/BufferIterator, lang/Character, lang/Exception, lang/Format, lang/IO, lang/Iterators, lang/Memory, lang/Numbers, lang/String, lang/stdlib, lang/types, lang/VarArgs
 
 AndroidLibs: gc
 AndroidIncludePaths: ../gc/include

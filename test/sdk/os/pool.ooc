@@ -4,8 +4,8 @@ pool := JobPool new()
 "Default parallelism = %d" printfln(pool parallelism)
 
 for (i in 0..3) {
-    duration := Random randInt(1, 4)
-    "Sleeping for %d" printfln(duration)
+    duration := 0.1 * Random randInt(1, 4)
+    "Sleeping for %.1fs" printfln(duration)
 
     p := Process new(["sleep", duration toString()])
     p executeNoWait()
