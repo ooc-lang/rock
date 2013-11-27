@@ -177,12 +177,40 @@ MakeDriver: class extends SequenceDriver {
         fW write("endif\n")
         fW write("endif\n\n")
 
-        fW write("CFLAGS+= -I${ROCK_DIST}/libs/headers -L${ROCK_DIST}/libs/${ARCH} -L/usr/local/lib -L/usr/pkg/lib -I/usr/local/include -I/usr/pkg/include -std=gnu99 -Wall ${DEBUG_FLAGS}")
+        fW write("CFLAGS+= -I${ROCK_DIST}/libs/headers -I/usr/local/include -I/usr/pkg/include ${DEBUG_FLAGS}")
 
         for (flag in flags compilerFlags) {
             fW write(" "). write(flag)
         }
-        fW write("\n")
+        fW write("\n\n")
+
+        fW write("LDFLAGS+= -L${ROCK_DIST}/libs/${ARCH} -L/usr/local/lib -L/usr/pkg/lib")
+
+        for(dynamicLib in params dynamicLibs) {
+            fW write(" -l "). write(dynamicLib)
+        }
+
+        for(libPath in params libPath getPaths()) {
+            fW write(" -L "). write(libPath getPath())
+        }
+
+        for(linkerFlag in flags linkerFlags) {
+            fW write(" "). write(linkerFlag)
+        }
+
+        if(params enableGC) {
+            // disregard dyngc vs staticgc - that's up to the build env to
+            // decide, and it's determined from platform detection.
+            arch := params arch equals?("") ? Target getArch() : params arch
+            Target toString(arch)
+            fW write(" ${GC_PATH}")
+        }
+        fW write("\n\n")
+
+        // workaround: Linux needs -ldl because of os/Dynlib
+        fW write("ifeq ($(UNIARCH), linux)\n")
+        fW write("LDFLAGS += -ldl\n")
+        fW write("endif\n")
 
         fW write("EXECUTABLE=")
         if(params binaryPath != "") {
@@ -263,32 +291,7 @@ MakeDriver: class extends SequenceDriver {
 
         fW write("\nlink: ${OBJECT_FILES}\n")
 
-        fW write("\t${CC} ${CFLAGS} ${OBJECT_FILES} ")
-
-        for(dynamicLib in params dynamicLibs) {
-            fW write(" -l "). write(dynamicLib)
-        }
-
-        for(libPath in params libPath getPaths()) {
-            fW write(" -L "). write(libPath getPath())
-        }
-
-        fW write(" -o ${EXECUTABLE}")
-
-        for(linkerFlag in flags linkerFlags) {
-            fW write(" "). write(linkerFlag)
-        }
-
-        if(params enableGC) {
-            // disregard dyngc vs staticgc - that's up to the build env to
-            // decide, and it's determined from platform detection.
-            arch := params arch equals?("") ? Target getArch() : params arch
-            Target toString(arch)
-            fW write(" ${GC_PATH}")
-        }
-        fW write(" ${THREAD_FLAGS}")
-
-        fW write("\n\n")
+        fW write("\t${CC} ${CFLAGS} ${OBJECT_FILES} ${LDFLAGS} -o ${EXECUTABLE} ${THREAD_FLAGS}\n\n")
 
         fW write("\nclean:\n")
 
