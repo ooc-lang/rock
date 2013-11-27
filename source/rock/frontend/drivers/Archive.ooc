@@ -20,6 +20,8 @@ Archive: class {
     supportedVersion := static "0.4"
 
     map := static HashMap<Module, Archive> new()
+    dirtyModules := ArrayList<Module> new()
+    structuralDirties := ArrayList<Module> new()
 
     /** Source folder that this archive is for */
     sourceFolder: SourceFolder
@@ -199,14 +201,15 @@ Archive: class {
         }
     }
 
-    dirtyModules: func -> List<Module> {
+    updateDirtyModules: func -> List<Module> {
 
         modules := sourceFolder modules
-        dirtyModules := ArrayList<Module> new()
-        structuralDirties := ArrayList<Module> new()
         transModules := ArrayList<Module> new()
         cleanModules := ArrayList<Module> new()
         cleanModules addAll(modules)
+
+        dirtyModules clear()
+        structuralDirties clear()
 
         running := true
         while(running) {
@@ -247,7 +250,8 @@ Archive: class {
                 ImportClassifier classify(module)
                 for(imp in module getAllImports()) {
                     candidate := imp getModule()
-                    if(structuralDirties contains?(candidate)) {
+                    archive := map get(candidate)
+                    if(archive && archive structuralDirties contains?(candidate)) {
                         debug("%s is dirty because of import %s", module getFullName(),
                             candidate getFullName())
                         if(!trans) {
@@ -424,32 +428,32 @@ ArchiveModule: class {
                 for (variable in tDecl getVariables()) {
                     if(variable isStatic) {
                         if(!statVarIter hasNext?()) {
-                            if(archive params debugLibcache) "Static var %s has changed, %s not up-to-date\n" printfln(variable getName(), oocPath)
+                            if(archive params debugLibcache) "Static var %s has changed, %s not up-to-date" printfln(variable getName(), oocPath)
                             return false
                         }
                         next := statVarIter next()
                         if(next != variable getName()) {
-                            if(archive params debugLibcache) "Static var %s has changed, %s not up-to-date\n" printfln(variable getName(), oocPath)
+                            if(archive params debugLibcache) "Static var %s has changed, %s not up-to-date" printfln(variable getName(), oocPath)
                             return false
                         }
                     } else {
                         if(!instanceVarIter hasNext?()) {
-                            if(archive params debugLibcache) "Instance var %s has changed, %s not up-to-date\n" printfln(variable getName(), oocPath)
+                            if(archive params debugLibcache) "Instance var %s has changed, %s not up-to-date" printfln(variable getName(), oocPath)
                             return false
                         }
                         next := instanceVarIter next()
                         if(next != variable getName()) {
-                            if(archive params debugLibcache) "Instance var %s has changed, %s not up-to-date\n" printfln(variable getName(), oocPath)
+                            if(archive params debugLibcache) "Instance var %s has changed, %s not up-to-date" printfln(variable getName(), oocPath)
                             return false
                         }
                     }
                 }
                 if(statVarIter hasNext?()) {
-                    if(archive params debugLibcache) "Fewer static vars, %s not up-to-date\n" printfln(oocPath)
+                    if(archive params debugLibcache) "Fewer static vars, %s not up-to-date" printfln(oocPath)
                     return false
                 }
                 if(instanceVarIter hasNext?()) {
-                    if(archive params debugLibcache) "Fewer instance vars, %s not up-to-date\n" printfln(oocPath)
+                    if(archive params debugLibcache) "Fewer instance vars, %s not up-to-date" printfln(oocPath)
                     return false
                 }
 
@@ -457,18 +461,18 @@ ArchiveModule: class {
 
                 for (function in tDecl getFunctions()) {
                     if(!functionIter hasNext?()) {
-                        if(archive params debugLibcache) "Function %s has changed (%d vs %d), %s not up-to-date\n" printfln(function getFullName(), archType functions getSize(), tDecl getFunctions() getSize(), oocPath)
+                        if(archive params debugLibcache) "Function %s has changed (%d vs %d), %s not up-to-date" printfln(function getFullName(), archType functions getSize(), tDecl getFunctions() getSize(), oocPath)
                         return false
                     }
                     next := functionIter next()
                     if(next != function getFullName()) {
-                        if(archive params debugLibcache) "Function %s has changed (vs %s), %s not up-to-date\n" printfln(function getFullName(), next, oocPath)
+                        if(archive params debugLibcache) "Function %s has changed (vs %s), %s not up-to-date" printfln(function getFullName(), next, oocPath)
                         return false
                     }
                 }
 
                 if(functionIter hasNext?()) {
-                    if(archive params debugLibcache) "Fewer methods, %s not up-to-date\n" printfln(oocPath)
+                    if(archive params debugLibcache) "Fewer methods, %s not up-to-date" printfln(oocPath)
                     return false
                 }
             }

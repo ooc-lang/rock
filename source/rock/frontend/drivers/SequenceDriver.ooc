@@ -37,12 +37,13 @@ SequenceDriver: class extends Driver {
         dirtyModules := HashMap<SourceFolder, List<Module>> new()
 
         graph = DependencyGraph new(params, sourceFolders)
+        reverseList := graph list reverse()
 
         // step 1: generate C sources
         if (params verbose) {
             "Generating C sources..." println()
         }
-        for (sourceFolder in graph list) {
+        for (sourceFolder in reverseList) {
             dirtyModules put(sourceFolder, generateSources(sourceFolder))
         }
 
@@ -50,7 +51,7 @@ SequenceDriver: class extends Driver {
         if (params verbose) {
             "Compiling with %d thread%s..." printfln(pool parallelism, pool parallelism > 1 ? "s" : "")
         }
-        for (sourceFolder in graph list) {
+        for (sourceFolder in reverseList) {
             if(params verbose) {
                 // generate random colors for every source folder
                 hash := ac_X31_hash(sourceFolder identifier) + 42
@@ -72,7 +73,7 @@ SequenceDriver: class extends Driver {
         }
 
         // step 3: archive
-        for (sourceFolder in graph list) {
+        for (sourceFolder in reverseList) {
             archive := sourceFolder archive
             archive save(params, false, true)
         }
@@ -161,7 +162,8 @@ SequenceDriver: class extends Driver {
 
         archive := sourceFolder archive
         if(archive exists?) {
-            dirtyModules addAll(archive dirtyModules())
+            archive updateDirtyModules()
+            dirtyModules addAll(archive dirtyModules)
         } else {
             // on first compile, we have no archive info
             dirtyModules addAll(sourceFolder modules)
