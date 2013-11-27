@@ -7,7 +7,7 @@ script:
   - make extensions
   - git clone --depth=1 git://github.com/nddrylliog/sam.git 
   - (cd sam && rock -v)
-  - sam test
+  - sam test rock.use
 
 notifications:
   webhooks: http://rcmp.pw/freenode/ooc-lang
