@@ -73,6 +73,7 @@ PropertyDecl: class extends VariableDecl {
             case =>
                 res throwError(InternalError new(token, "Properties don't make sense outside types %s!" format(node toString())))
         }
+        cls = node as ClassDecl
 
         {
             response := super(trail, res)
@@ -82,6 +83,20 @@ PropertyDecl: class extends VariableDecl {
 
             if (!type && getter != null) {
                 last := getter body last()
+
+                getter setOwner(cls isMeta ? cls getNonMeta() : cls)
+
+                trail push(this)
+                trail push(getter)
+                trail push(getter body)
+                response = last resolve(trail, res)
+                if (!response ok()) {
+                    return response
+                }
+                trail pop(getter body)
+                trail pop(getter)
+                trail pop(this)
+
                 match last {
                     case e: Expression =>
                         type = e getType()
@@ -107,7 +122,6 @@ PropertyDecl: class extends VariableDecl {
             }
         }
 
-        cls = node as ClassDecl
         // setup getter
         if(getter != null) {
             // this is also done for extern getters.
