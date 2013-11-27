@@ -569,7 +569,7 @@ CommandLine: class {
         modulePath := moduleFile path
         fullName := moduleName[0..-5] // strip the ".ooc"
         module := Module new(fullName, pathElement path, params, nullToken)
-        module token = Token new(0, 0, module)
+        module token = Token new(0, 0, module, 0)
         module main = true
         module lastModified = moduleFile lastModified()
 

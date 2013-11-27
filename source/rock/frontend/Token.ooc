@@ -9,17 +9,20 @@ import os/Terminal
 
 /* Will go into the load method of Token */
 nullToken : Token
-nullToken = Token new(0, 0, null)
+nullToken = Token new(0, 0, null, 0)
 
 Token: cover {
 
-    /** Start and length of a token, in bytes */
-    start, length : SizeT
+    /** Start and length of this token, in bytes */
+    start, length: SizeT
+
+    /** 0-based line number of this token */
+    lineno: SizeT
 
     /** Module this token comes from */
     module: Module
 
-    init: func@ (=start, =length, =module) {}
+    init: func@ (=start, =length, =module, =lineno) {}
 
     /**
      * Creates a new token enclosing this one and the one passed as an argument.
@@ -208,32 +211,11 @@ Token: cover {
         module oocPath
     }
 
+    /**
+     * @return the 1-based line number of this token
+     */
     getLineNumber: func -> Int {
-        lines := 1
-        idx := 0
-
-        fr := FileReader new(getPath())
-
-        // skip the lines before we start
-        while(fr hasNext?() && idx < start) {
-            c := fr read()
-            match c {
-              // CRLF (Win32)
-              case '\r' =>
-                if (fr peek() == '\n') {
-                  idx += 1
-                  fr read()
-                  lines += 1
-                }
-              // LF (Linux, Mac)
-              case '\n' =>
-                lines += 1
-            }
-            idx += 1
-        }
-        fr close()
-
-        return lines
+        lineno + 1
     }
 
     getLength: func -> SizeT {

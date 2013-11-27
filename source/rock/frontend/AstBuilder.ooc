@@ -52,7 +52,8 @@ AstBuilder: class {
     stack: Stack<Object>
     versionStack: Stack<VersionSpec>
 
-    tokenPos : Int*
+    tokenPos: Int*
+    lineNoPointer: Int*
 
     init: func (=modulePath, =module, =params) {
         absolutePath := File new(modulePath) getAbsolutePath()
@@ -122,7 +123,7 @@ AstBuilder: class {
     }
 
     error: func (errorID: Int, message: String, index: Int) {
-        params errorHandler onError(SyntaxError new(Token new(index, 1, module), message))
+        params errorHandler onError(SyntaxError new(Token new(index, 1, module, lineNoPointer@), message))
     }
 
     onUse: unmangled(nq_onUse) func (name: CString) {
@@ -1284,7 +1285,7 @@ AstBuilder: class {
     }
 
     token: func -> Token {
-        Token new(tokenPos[0], tokenPos[1], module)
+        Token new(tokenPos[0], tokenPos[1], module, lineNoPointer@)
     }
 
     peek: func <T> (T: Class) -> T {
@@ -1328,7 +1329,10 @@ AstBuilder: class {
 }
 
 // position in stream handling
-nq_setTokenPositionPointer: unmangled func (this: AstBuilder, tokenPos: Int*) { this tokenPos = tokenPos }
+nq_setTokenPositionPointer: unmangled func (this: AstBuilder, tokenPos: Int*, lineNoPointer: Int*) {
+    this tokenPos = tokenPos
+    this lineNoPointer = lineNoPointer
+}
 
 // string handling
 nq_StringClone: unmangled func (string: CString) -> CString             { string clone() }
