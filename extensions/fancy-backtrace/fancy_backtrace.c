@@ -67,6 +67,7 @@
 #endif // non __MINGW32__
 
 #define BUFFER_MAX 256
+#define BUFFER_MAX_LONG 4096
 
 /////////////////////////////////////////////////////
 //
@@ -109,6 +110,26 @@ struct find_info {
 //
 /////////////////////////////////////////////////////
 
+/* look for a command in the PATH */
+static int lookup_command(const char *command, char *buf, int len) {
+    char command_buffer[BUFFER_MAX];
+
+    // could use 'which', but 'command -v' has more consistent output
+    snprintf(command_buffer, BUFFER_MAX, "command -v %s", command);
+
+    FILE *fp = popen(command_buffer, "r");
+    int bytes_read = fread(buf, 1, len, fp);
+    fclose(fp);
+
+    if (bytes_read > 0) {
+        // get rid of trailing whitespace
+        while (buf[bytes_read - 1] == '\n') {
+            buf[--bytes_read] = '\0';
+        }
+    }
+
+    return bytes_read;
+}
 
 static void lookup_section(bfd *abfd, asection *sec, void *opaque_data) {
     struct find_info *data = opaque_data;
@@ -160,7 +181,18 @@ static int init_bfd_ctx(struct bfd_ctx *bc, const char * procname) {
 
     bfd *b = bfd_openr(procname, 0);
     if (!b) {
-        fprintf(stderr, "Failed to open bfd from (%s)\n" , procname);
+        // try looking up as a command in the PATH
+        char result[BUFFER_MAX_LONG];
+        int len = lookup_command(procname, result, BUFFER_MAX_LONG);
+
+        if (len > 0) {
+          b = bfd_openr(result, 0);
+        }
+    }
+
+    if (!b) {
+        // still no luck? we're done here.
+        //fprintf(stderr, "Failed to open bfd from (%s)\n" , procname);
         return 1;
     }
 
