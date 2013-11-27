@@ -7,10 +7,6 @@ import Type, Declaration, VariableAccess, VariableDecl, TypeDecl,
        InterfaceDecl, Node, ClassDecl, CoverDecl, Cast, FuncType,
        FunctionCall, Module, NamespaceDecl
 
-NumericState: enum {
-    UNKNOWN, YES, NO
-}
-
 BaseType: class extends Type {
 
     namespace: VariableAccess = null
@@ -331,7 +327,20 @@ BaseType: class extends Type {
                 }
             }
 
-            if(isNumericType() && other isNumericType()) {
+            lhsInt := getIntegerState()
+            if (lhsInt == NumericState UNKNOWN) return -1
+            rhsInt := other getIntegerState()
+            if (rhsInt == NumericState UNKNOWN) return -1
+
+            lhsFp := getFloatingPointState()
+            if (lhsFp == NumericState UNKNOWN) return -1
+            rhsFp := other getFloatingPointState()
+            if (rhsFp == NumericState UNKNOWN) return -1
+
+            lhsNum := (lhsInt == NumericState YES || lhsFp == NumericState YES)
+            rhsNum := (rhsInt == NumericState YES || rhsFp == NumericState YES)
+
+            if (lhsNum && rhsNum) {
                 // a mild match - it's not too good to mix integer types. Maybe we need more safety here?
                 return scoreSeed / 4
             }
@@ -340,55 +349,89 @@ BaseType: class extends Type {
         return This NOLUCK_SCORE // no luck.
     }
 
-    _computeFloatingPoint: func {
+    _computeFloatingPointState: func {
         if(name == "double" || name == "float" || name == "long double") {
             _floatingPoint = NumericState YES
             return
         }
 
+        if (getRef() == null) {
+            // can't dig
+            return
+        }
         down := dig()
         while (down) {
-            if(down isFloatingPointType()) {
-                _floatingPoint = NumericState YES
+            match (down getFloatingPointState()) {
+                case NumericState YES =>
+                    // good, then we are too
+                    _floatingPoint = NumericState YES
+                    return
+                case NumericState UNKNOWN =>
+                    // we can't tell yet.
+                    return
+                case =>
+                    // keep digging!
+            }
+
+            if (down getRef() == null) {
+                // can't dig, still unsure
                 return
             }
             down = down dig()
         }
 
+        // we went the distance, and no, we're not.
         _floatingPoint = NumericState NO
     }
 
-    _computeInteger: func {
+    _computeIntegerState: func {
         if((name endsWith?(" long") || name == "long" || name endsWith?(" int") || name == "int" || name endsWith?(" short") || name == "short" ||
           ((name startsWith?("int") || name startsWith?("uint")) && name endsWith?("_t")) || name == "size_t" || name == "ssize_t")) {
             _integer = NumericState YES
             return
         }
 
+        if (getRef() == null) {
+            // can't dig
+            return
+        }
         down := dig()
         while (down) {
-            if (down isIntegerType()) {
-                _integer = NumericState YES
+            match (down getIntegerState()) {
+                case NumericState YES =>
+                    // good, then we are too
+                    _integer = NumericState YES
+                    return
+                case NumericState UNKNOWN =>
+                    // we can't tell yet.
+                    return
+                case =>
+                    // keep digging!
+            }
+
+            if (down getRef() == null) {
+                // can't dig, still unsure.
                 return
             }
             down = down dig()
         }
 
+        // we went the distance, and no, we're not.
         _integer = NumericState NO
     }
 
-    isNumericType: func -> Bool {
-        isFloatingPointType() || isIntegerType()
+    getFloatingPointState: func -> NumericState {
+        if(_floatingPoint == NumericState UNKNOWN) {
+            _computeFloatingPointState()
+        }
+        _floatingPoint
     }
 
-    isFloatingPointType: func -> Bool {
-        if(_floatingPoint == NumericState UNKNOWN) _computeFloatingPoint()
-        (_floatingPoint == NumericState YES)
-    }
-
-    isIntegerType: func -> Bool {
-        if(_integer == NumericState UNKNOWN) _computeInteger()
-        (_integer == NumericState YES)
+    getIntegerState: func -> NumericState {
+        if(_integer == NumericState UNKNOWN) {
+            _computeIntegerState()
+        }
+        _integer
     }
 
     dereference: func -> Type {

@@ -9,6 +9,10 @@ import tinker/[Response, Resolver, Trail]
 
 voidType := VoidType new()
 
+NumericState: enum {
+    UNKNOWN, YES, NO
+}
+
 Type: abstract class extends Expression {
 
     SCORE_SEED := const static 1024
@@ -126,15 +130,23 @@ Type: abstract class extends Expression {
     }
 
     isNumericType: func -> Bool {
-        false
+        isIntegerType() || isFloatingPointType()
     }
 
     isFloatingPointType: func -> Bool {
-        false
+        getFloatingPointState() == NumericState YES 
     }
 
     isIntegerType: func -> Bool {
-        false
+        getIntegerState() == NumericState YES 
+    }
+
+    getIntegerState: func -> NumericState {
+        NumericState NO
+    }
+
+    getFloatingPointState: func -> NumericState {
+        NumericState NO
     }
 
     isPointer: func -> Bool { false }
