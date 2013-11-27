@@ -248,10 +248,13 @@ Flags: class {
                     // The SDK doesn't use pthreads on Windows
                     addCompilerFlag("-mthreads")
                     addLinkerFlag("-mthreads")
+                case Target OSX =>
+                    // For OSX, -lpthread suffices, -pthread yields a warning
+                    addLinkerFlag("-lpthread")
                 case =>
-                    // -lpthread is apparently legacy, some unices don't
-                    // have a separate pthread library and it might do some
-                    // other stuff (like define D_REENTRANT)
+                    // for other unices, -pthread is apparently a good idea.
+                    // Some unices don't have a separate pthread library and it
+                    // might do some other stuff (like define D_REENTRANT)
                     addCompilerFlag("-pthread")
                     addLinkerFlag("-pthread")
             }
