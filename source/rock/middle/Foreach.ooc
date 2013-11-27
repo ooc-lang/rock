@@ -1,11 +1,12 @@
 import ../frontend/Token
 import ControlStatement, Expression, Visitor, VariableDecl, Node,
        VariableAccess, VariableDecl, IntLiteral, Type, RangeLiteral,
-       FunctionCall, Block, Scope, While, BinaryOp, BaseType
+       FunctionCall, Block, Scope, While, BinaryOp, BaseType, Tuple
 import tinker/[Trail, Resolver, Response, Errors]
 
 Foreach: class extends ControlStatement {
 
+    indexVariable: Expression
     variable: Expression
     collection: Expression
 
@@ -27,26 +28,63 @@ Foreach: class extends ControlStatement {
 
     replace: func (oldie, kiddo: Node) -> Bool {
         match oldie {
-            case variable   => variable   = kiddo; replaced = true; return true
-            case collection => collection = kiddo; return true
+            case variable      => variable      = kiddo; replaced = true; return true
+            case indexVariable => indexVariable = kiddo; replaced = true; return true
+            case collection    => collection    = kiddo; return true
         }
         return super(oldie, kiddo)
     }
 
+    _createDeclFromAccess: func (vAcc: VariableAccess) {
+        varType: Type = null
+        if(collection instanceOf?(RangeLiteral)) {
+            varType = BaseType new("Int", vAcc token)
+        }
+        variable = VariableDecl new(varType, vAcc getName(), vAcc token)
+    }
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        if(variable instanceOf?(VariableAccess) && !replaced) {
-            varType : Type = null
-            if(collection instanceOf?(RangeLiteral)) {
-                varType = BaseType new("Int", variable token)
-            }
-            variable = VariableDecl new(varType, variable as VariableAccess getName(), variable token)
+        match variable {
+            case vAcc: VariableAccess =>
+                if (!replaced) {
+                    _createDeclFromAccess(vAcc)
+                }
+            case tuple: Tuple =>
+                if (!replaced) {
+                    (a, b) := (tuple[0], tuple[1])
+                    match a {
+                        case vAcc: VariableAccess =>
+                            intType := BaseType new("Int", a token)
+                            initialValue := IntLiteral new(-1, vAcc token)
+                            indexVariable = VariableDecl new(intType, vAcc getName(), initialValue, a token)
+                        case =>
+                            res throwError(InvalidForeach new(a token, "Invalid element in foreach tuple, expected identifier"))
+                            return Response OK
+                    }
+
+                    match b {
+                        case vAcc: VariableAccess =>
+                            _createDeclFromAccess(vAcc)
+                        case =>
+                            res throwError(InvalidForeach new(b token, "Invalid element in foreach tuple, expected identifier"))
+                            return Response OK
+                    }
+                }
         }
 
         trail push(this)
 
         {
             response := variable resolve(trail, res)
+            if(!response ok()) {
+                trail pop(this)
+                return response
+            }
+        }
+
+        if (indexVariable) {
+            response := indexVariable resolve(trail, res)
             if(!response ok()) {
                 trail pop(this)
                 return response
@@ -111,11 +149,19 @@ Foreach: class extends ControlStatement {
                 return Response OK
             }
 
-            while1 getBody() add(BinaryOp new(variable, nextCall, OpType ass, token)).
-                             addAll(getBody())
+            whileBody := while1 getBody()
+
+            whileBody add(BinaryOp new(variable, nextCall, OpType ass, token))
+            if (indexVariable) {
+                one := IntLiteral new(1, token)
+                whileBody add(BinaryOp new(indexVariable, one, OpType addAss, token))
+            }
+            whileBody addAll(getBody())
 
             if(!list replace(this, block)) {
-                if(res fatal) "Failed to replace %s with %s in a %s. trail = %s" printfln(toString(), block toString(), list toString(), trail toString())
+                if(res fatal) {
+                    "Failed to replace %s with %s in a %s. trail = %s" printfln(toString(), block toString(), list toString(), trail toString())
+                }
                 res wholeAgain(this, "Can't turn into a while :/, list = " + list toString() + " (it's a " + list class name)
                 return Response LOOP
             }
@@ -150,4 +196,8 @@ Foreach: class extends ControlStatement {
 
     toString: func -> String { "for (" + variable toString() + " in " + collection toString() + ")" }
 
+}
+
+InvalidForeach: class extends Error {
+    init: super func ~tokenMessage
 }
