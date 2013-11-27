@@ -234,7 +234,7 @@ Flags: class {
             }
 
             libsNativeDir := File new(params distLocation, "libs/%s/" format(Target toString(target, arch))) getPath()
-            addCompilerFlag("-L" + libsNativeDir)
+            addLinkerFlag("-L" + libsNativeDir)
 
             if(params dynGC) {
                 addLinkerFlag("-lgc")
