@@ -1,15 +1,41 @@
-## 0.9.8 release (fill in date)
+## 0.9.8 release (2013-11-27)
 
-  - Added interpolated string literals.
-  - Added raw string (CString) literals.
-  - Extend's can now define properties that do not require a field definition.
-  - Better error reporting, both with missing imports and braced statements.
+  - Added a few rock tests, they are now runnable by sam, and ran on each git push
+    on Travis, see `test/README.md`.
+  - Added interpolated string literals, using a Ruby-like syntax, `"Like #{this}"`
+  - Added raw string (CString) literals, e.g. `c"C string here"`
+  - `extend` blocks can now define properties that do not require a field definition (virtual properties)
+  - Added another form of foreach, `for ((index, element) in iterable)`, where index is an Int from 0
+    to `iterable size()`.
+  - Added the `::=` operator for 'property declarations from expr', for example
+    `fullName ::= "#{firstName} #{lastName}"`
   - Added a base64 encoder and decoder to the sdk.
-  - Separated trails where it makes sense, this way we don't get really weird error messages.
-  - Rock now throws an error if we are trying to return a value from a void function.
-  - Floating point numbers with no digits are no longer allowed by the grammar.
-  - Added --target and --host option for cross compiling.
+  - Added --target and --host option for cross compiling, successfully tested cross-compiling from
+    Linux to Windows and OSX.
+  - Downgraded to Boehm GC 7.2e, which supports Windows threads properly, making this
+    the first release in years where the GC won't go batshit crazy if you use threads on Win32.
+  - Fix cross-library base class problem (#541) - partial recompilation should now
+    work all the time.
+  - The `fancy_backtrace` extension now scans the PATH to find the executable
+    if dladdr doesn't return an absolute path.
+  - The `Pkgs` directive of .use files can now be in version blocks.
+  - Tuple assignment now works as expected. The return expression of a multi-return method
+    can now be another multi-return method call.
+  - Unary minus operator precedence fixed, behaves as intended with expressions now.
+  - Unary plus operator added, behaves like unary minus, can be overloaded.
+  - Unary operator overloads can now be instance methods instead of just functions.
+  - Better error reporting, both with missing imports and braced statements.
+  - Relative imports and imports from .use files are now restricted to their respective
+    SourcePath elements.
+  - Rock now has stricker type checking algorithms for returns from void and non-void functions.
+  - Code generation is now faster and much less IO-intensive due to us re-using line info
+    from nagaqueen instead of recomputing it each time we output a `#line` C directive.
   - Added banned flags and banned pthread on Win32.
+  - Separated trails where it makes sense, this way we don't get really weird error messages.
+  - Floating point numbers with no digits are no longer allowed by the grammar.
+  - Rock is less verbose by default with `-v`, use `-vv` to return to previous `-v` behavior,
+    and `-vvv` to be drowned in Tinkerer messages.
+  - Fixed a few AST generation bugs.
 
 ## 0.9.7a release (2013-10-14)
 
