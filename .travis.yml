@@ -1,9 +1,10 @@
 before_script:
-  - sudo apt-get -y -q install curl make
+  - sudo apt-get -y -q install curl make binutils-dev zlib1g-dev
 
 script:
   - export PATH=$PATH:$PWD/bin:$PWD/sam
   - make rescue
+  - make extensions
   - git clone --depth=1 git://github.com/nddrylliog/sam.git 
   - (cd sam && rock -v)
   - sam test
