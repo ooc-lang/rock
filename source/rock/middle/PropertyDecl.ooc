@@ -74,12 +74,46 @@ PropertyDecl: class extends VariableDecl {
                 res throwError(InternalError new(token, "Properties don't make sense outside types %s!" format(node toString())))
         }
 
+        {
+            response := super(trail, res)
+            if (!response ok()) {
+                return response
+            }
+
+            if (!type && getter != null) {
+                last := getter body last()
+                match last {
+                    case e: Expression =>
+                        type = e getType()
+                    case =>
+                        err := InvalidPropertyDecl new(last token, "Last statement of property decl getter should be an expression")
+                        res throwError(err)
+                }
+
+                if (!type) {
+                    res wholeAgain(this, "need to infer and resolve type")
+                    return Response OK
+                }
+            }
+
+            response = type resolve(trail, res)
+            if (!response ok()) {
+                return response
+            }
+
+            if (!type getRef()) {
+                res wholeAgain(this, "need to resolve type")
+                return Response OK
+            }
+        }
+
         cls = node as ClassDecl
         // setup getter
         if(getter != null) {
             // this is also done for extern getters.
             getter setName(getGetterName()) .setReturnType(type)
             cls addFunction(getter)
+
             // are we a cover? if yes, use func@
             if(cls instanceOf?(CoverDecl)) {
                 if(cls as CoverDecl fromType == null || !cls as CoverDecl fromType isPointer()) {
@@ -142,7 +176,7 @@ PropertyDecl: class extends VariableDecl {
             setter resolve(trail, res)
             trail pop(this)
         }
-        super(trail, res)
+
         resolved = true
         return Response OK
     }
@@ -173,4 +207,13 @@ PropertyDecl: class extends VariableDecl {
         && !(getter ? trail data contains?(getter) : false) \
         && !trail data contains?(this)
     }
+
+    isResolved: func -> Bool {
+        resolved
+    }
 }
+
+InvalidPropertyDecl: class extends Error {
+    init: super func ~tokenMessage
+}
+
