@@ -353,6 +353,21 @@ File: abstract class {
     }
 
     /**
+     * Find a file or directory with the given name
+     * @return the first match for the given name
+     */
+    find: func ~first (name: String) -> File {
+        result: This
+
+        find(name, |f|
+            result = f
+            false
+        )
+
+        result
+    }
+
+    /**
      * Copies the content of this file to another
      *
      * @param dstFile the file to copy to
