@@ -541,6 +541,9 @@ CommandLine: class {
             modulePaths add(uze main)
         } else {
             // compile as a library
+            if (params verbose) {
+                "Compiling '%s' as a library" printfln(identifier)
+            }
             uze apply(params)
 
             if (!uze sourcePath) {
@@ -548,7 +551,6 @@ CommandLine: class {
                 failure()
             }
 
-            "Compiling '%s' as a library" printfln(identifier)
             params link = false
 
             base := File new(uze sourcePath)
