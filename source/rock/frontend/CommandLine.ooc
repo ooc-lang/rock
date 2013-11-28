@@ -581,14 +581,12 @@ CommandLine: class {
     }
 
     clean: func {
-        // oh that's a hack.
-        system("rm -rf %s" format(params outPath path))
+        params outPath rm_rf()
     }
 
     cleanHardcore: func {
         clean()
-        // oh that's the same hack. Someone implement File recursiveDelete() already.
-        system("rm -rf %s" format(params libcachePath))
+        File new(params libcachePath) rm_rf()
     }
 
     parse: func (moduleName: String) -> Int {
