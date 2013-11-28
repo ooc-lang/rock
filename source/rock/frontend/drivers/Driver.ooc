@@ -28,6 +28,8 @@ Driver: abstract class {
         if(done contains?(module)) return
         done add(module)
 
+        if (module dummy) return
+
         path := module path + ".ooc"
         (candidate, element) := params sourcePath getFile(path)
         pathElement := candidate parent

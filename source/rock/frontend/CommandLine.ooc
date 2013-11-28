@@ -31,6 +31,7 @@ CommandLine: class {
         modulePaths := ArrayList<String> new()
         isFirst := true
         alreadyDidSomething := false
+        targetModule: Module
 
         for (arg in args) {
             if(isFirst) {
@@ -459,7 +460,7 @@ CommandLine: class {
                     case lowerArg endsWith?(".ooc") =>
                         modulePaths add(arg)
                     case lowerArg endsWith?(".use") =>
-                        prepareCompilationFromUse(File new(arg), modulePaths, true)
+                        prepareCompilationFromUse(File new(arg), modulePaths, true, targetModule&)
                     case lowerArg contains?(".") =>
                         // unknown file, complain
                         "[ERROR] Don't know what to do with argument %s, bailing out" printfln(arg)
@@ -473,7 +474,7 @@ CommandLine: class {
 
         params bake()
 
-        if(modulePaths empty?()) {
+        if(modulePaths empty?() && !targetModule) {
             if (alreadyDidSomething) {
                 exit(0)
             }
@@ -492,7 +493,7 @@ CommandLine: class {
                 exit(1)
             }
 
-            prepareCompilationFromUse(uzeFile, modulePaths, false)
+            prepareCompilationFromUse(uzeFile, modulePaths, false, targetModule&)
         }
 
         if(params sourcePath empty?()) {
@@ -512,7 +513,9 @@ CommandLine: class {
 
         errorCode := 0
 
-        for(modulePath in modulePaths) {
+        if (targetModule) {
+            postParsing(targetModule)
+        } else for(modulePath in modulePaths) {
             code := parse(modulePath replaceAll('/', File separator))
             if(code != 0) {
                 errorCode = 2 // C compiler failure.
@@ -527,7 +530,7 @@ CommandLine: class {
 
     }
 
-    prepareCompilationFromUse: func (uzeFile: File, modulePaths: ArrayList<String>, crucial: Bool) {
+    prepareCompilationFromUse: func (uzeFile: File, modulePaths: ArrayList<String>, crucial: Bool, targetModule: Module@) {
         // extract '.use' from use file
         identifier := uzeFile name[0..-5]
         uze := UseDef new(identifier)
@@ -537,11 +540,42 @@ CommandLine: class {
             uze apply(params)
             modulePaths add(uze main)
         } else {
-            if (crucial) {
-                Exception new("[stub] libfolder compilation.") throw()
-            } else {
-                "rock: no Main directive in use file %s" printfln(uzeFile path)
-                exit(1)
+            // compile as a library
+            uze apply(params)
+            if (params verbose) {
+                if (!uze sourcePath) {
+                    error("No SourcePath directive in '%s'" format(uzeFile path))
+                    failure()
+                }
+
+                "Compiling '%s' as a library" printfln(identifier)
+                params link = false
+
+                base := File new(uze sourcePath)
+                if (!base exists?()) {
+                    error("SourcePath '%s' doesn't exist" format(base path))
+                    failure()
+                }
+
+                importz := ArrayList<String> new()
+                base walk(|f|
+                    if (f file?() && f path toLower() endsWith?(".ooc")) {
+                        importz add(f rebase(base) path[0..-5])
+                    }
+                    true
+                )
+
+                fullName := ""
+                module := Module new(fullName, uze sourcePath, params, nullToken)
+                module token = Token new(0, 0, module, 0)
+                module lastModified = uzeFile lastModified()
+                module dummy = true
+                for (importPath in importz) {
+                    imp := Import new(importPath, module token)
+                    module addImport(imp)
+                }
+
+                targetModule = module
             }
         }
     }
