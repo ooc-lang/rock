@@ -28,28 +28,33 @@ Driver: abstract class {
         if(done contains?(module)) return
         done add(module)
 
-        if (module dummy) return
-
         path := module path + ".ooc"
         (candidate, element) := params sourcePath getFile(path)
-        pathElement := candidate parent
 
-        for(inc: Include in module includes) {
-            if(inc mode == IncludeMode LOCAL) {
-                base := params libcache ? params libcachePath : params outPath path
-                if (doublePrefix()) {
-                    base = File new(base, module getUseDef() identifier) path
+        if (candidate) {
+            pathElement := candidate parent
+
+            for(inc: Include in module includes) {
+                if(inc mode == IncludeMode LOCAL) {
+                    base := params libcache ? params libcachePath : params outPath path
+                    if (doublePrefix()) {
+                        base = File new(base, module getUseDef() identifier) path
+                    }
+
+                    destDir := File new(base, module getSourceFolderName())
+
+                    src  := File new(pathElement, inc path + ".h") 
+                    dest := File new(destDir,     inc path + ".h")
+                    
+                    if (params verboser) {
+                        "Copying %s to %s" printfln(src path, dest path)
+                    }
+                    src copyTo(dest)
                 }
-
-                destDir := File new(base, module getSourceFolderName())
-
-                src  := File new(pathElement, inc path + ".h") 
-                dest := File new(destDir,        inc path + ".h")
-                
-                if (params verboser) {
-                    "Copying %s to %s" printfln(src path, dest path)
-                }
-                src copyTo(dest)
+            }
+        } else {
+            if (!module dummy) {
+                raise("Can't find module %s in the sourcepath" format(module fullName))
             }
         }
 
