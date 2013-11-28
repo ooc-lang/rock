@@ -175,7 +175,7 @@ CommandLine: class {
 
                     if(!longOption) warnUseLong("libcache")
                     params libcache = true
-                    
+
                 } else if (option == "libcachepath") {
 
                     if(!longOption) warnUseLong("libcachepath")
@@ -259,31 +259,31 @@ CommandLine: class {
                 } else if (option == "pg") {
 
                     params profile = Profile DEBUG
-                    
+
                 } else if (option == "pr") {
 
                     params profile = Profile RELEASE
-                    
+
                 } else if (option == "O0") {
 
                     params optimization = OptimizationLevel O0
-                    
+
                 } else if (option == "O1") {
 
                     params optimization = OptimizationLevel O1
-                    
+
                 } else if (option == "O2") {
 
                     params optimization = OptimizationLevel O2
-                    
+
                 } else if (option == "O3") {
 
                     params optimization = OptimizationLevel O3
-                    
+
                 } else if (option == "Os") {
 
                     params optimization = OptimizationLevel Os
-                    
+
                 } else if (option == "verbose" || option == "v") {
 
                     if(!longOption && option != "v") warnUseLong("verbose")
@@ -429,7 +429,7 @@ CommandLine: class {
 
                     threads := arg substring(2) toInt()
                     params parallelism = threads
-    
+
                 } else if (option startsWith?("m")) {
 
                     arch := arg substring(2)
@@ -439,7 +439,7 @@ CommandLine: class {
                         "Unrecognized architecture: %s" printfln(arch)
 
                 } else if (option == "x") {
-                   
+
                     "Cleaning up outpath and .libs" println()
                     cleanHardcore()
                     alreadyDidSomething = true
@@ -659,7 +659,7 @@ CommandLine: class {
         "[WARN ] %s" printfln(message)
         Terminal reset()
     }
-    
+
     error: static func (message: String) {
         Terminal setFgColor(Color red)
         "[ERROR] %s" printfln(message)
