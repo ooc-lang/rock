@@ -23,7 +23,7 @@ File: abstract class {
 
     name: String { get { getName() } }
     parent: This { get { getParent() } }
-    
+
     children: ArrayList<This> {
         get {
             getChildren()
@@ -58,7 +58,7 @@ File: abstract class {
 
     /**
      * Create a File object, from various path elements,
-     * which can be either 
+     * which can be either File instances or Strings.
      */
     new: static func ~assemble (args: ...) -> This {
         This new(This join(args))
