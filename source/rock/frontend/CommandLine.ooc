@@ -542,41 +542,40 @@ CommandLine: class {
         } else {
             // compile as a library
             uze apply(params)
-            if (params verbose) {
-                if (!uze sourcePath) {
-                    error("No SourcePath directive in '%s'" format(uzeFile path))
-                    failure()
-                }
 
-                "Compiling '%s' as a library" printfln(identifier)
-                params link = false
-
-                base := File new(uze sourcePath)
-                if (!base exists?()) {
-                    error("SourcePath '%s' doesn't exist" format(base path))
-                    failure()
-                }
-
-                importz := ArrayList<String> new()
-                base walk(|f|
-                    if (f file?() && f path toLower() endsWith?(".ooc")) {
-                        importz add(f rebase(base) path[0..-5])
-                    }
-                    true
-                )
-
-                fullName := ""
-                module := Module new(fullName, uze sourcePath, params, nullToken)
-                module token = Token new(0, 0, module, 0)
-                module lastModified = uzeFile lastModified()
-                module dummy = true
-                for (importPath in importz) {
-                    imp := Import new(importPath, module token)
-                    module addImport(imp)
-                }
-
-                targetModule = module
+            if (!uze sourcePath) {
+                error("No SourcePath directive in '%s'" format(uzeFile path))
+                failure()
             }
+
+            "Compiling '%s' as a library" printfln(identifier)
+            params link = false
+
+            base := File new(uze sourcePath)
+            if (!base exists?()) {
+                error("SourcePath '%s' doesn't exist" format(base path))
+                failure()
+            }
+
+            importz := ArrayList<String> new()
+            base walk(|f|
+                if (f file?() && f path toLower() endsWith?(".ooc")) {
+                    importz add(f rebase(base) path[0..-5])
+                }
+                true
+            )
+
+            fullName := ""
+            module := Module new(fullName, uze sourcePath, params, nullToken)
+            module token = Token new(0, 0, module, 0)
+            module lastModified = uzeFile lastModified()
+            module dummy = true
+            for (importPath in importz) {
+                imp := Import new(importPath, module token)
+                module addImport(imp)
+            }
+
+            targetModule = module
         }
     }
 
