@@ -49,3 +49,12 @@ Env: class {
     /* clearenv is not used since it's not part of the POSIX-2001 standard
      * and not available, for example, on OSX */
 }
+
+operator [] (c: EnvClass, key: String) -> String {
+    Env get(key)
+}
+
+operator []= (c: EnvClass, key, value: String) {
+    Env set(key, value, true)
+}
+
