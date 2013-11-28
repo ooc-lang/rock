@@ -296,10 +296,60 @@ File: abstract class {
     getChildren: abstract func -> ArrayList<This>
 
     /**
-     * Tries to remove the file. This only works for files, not directories.
+     * Tries to remove the file. This only works for files or empty directories
+     * @return true if successful
      */
-    remove: func -> Int {
-        _remove(this path)
+    rm: func -> Bool {
+        _remove(this)
+    }
+
+    /**
+     * Delete a file or directory and all its children, recursively
+     */
+    rm_rf: func -> Bool {
+        if (dir?()) {
+            // delete em'all!
+            for (child in getChildren()) {
+                if (!child rm_rf()) {
+                    return false
+                }
+            }
+        }
+        rm()
+    }
+
+    /**
+     * Find a file or directory with the given name
+     * @param name The name of the file to find (case sensitive)
+     * @param cb A callback that takes a file whenever one is found.
+     * if it returns false, the search will stop. If true, the search
+     * will continue.
+     * @return true if the file was found (cb returned false at some point),
+     * or false if it wasn't.
+     */
+    find: func (name: String, cb: Func (File) -> Bool) -> Bool {
+        found := false
+
+        walk(|f|
+            if (f getName() == name) {
+                if (!cb(f)) {
+                    // abort if caller is happy
+                    found = true
+                    return false
+                }
+            }
+            if (f dir?()) {
+                if (f find(name, cb)) {
+                    // abort if caller found happiness in a sub-directory
+                    found = true
+                    return false
+                }
+            }
+
+            true
+        )
+
+        false
     }
 
     /**

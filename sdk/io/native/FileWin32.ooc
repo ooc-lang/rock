@@ -45,12 +45,17 @@ version(windows) {
     GetCurrentDirectory: extern func (ULong, Pointer) -> Int
     GetFullPathName: extern func (CString, ULong, CString, CString) -> ULong
     GetLongPathName: extern func (CString, CString, ULong) -> ULong
+    DeleteFile: extern func (CString) -> Bool
+    RemoveDirectory: extern func (CString) -> Bool
 
     /*
      * remove implementation
      */
-    _remove: unmangled func (path: String) -> Int {
-        printf("Win32: should remove file %s\n", path toCString())
+    _remove: unmangled func (file: File) -> Bool {
+        if (file dir?()) {
+            return RemoveDirectory(file path)
+        }
+        return DeleteFile(file path)
     }
 
     ooc_get_cwd: unmangled func -> String {

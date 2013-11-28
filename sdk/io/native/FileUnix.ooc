@@ -65,8 +65,9 @@ version (unix || apple) {
     _mkdir: extern(mkdir) func (CString, ModeT) -> Int
     _mkfifo: extern(mkfifo) func (CString, ModeT) -> Int
     remove: extern func (path: CString) -> Int
-    _remove: unmangled func (path: String) -> Int {
-        remove(path)
+    _remove: unmangled func (file: File) -> Bool {
+        // returns 0 on success
+        remove(file path) == 0
     }
 
     /*
