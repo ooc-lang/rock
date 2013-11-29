@@ -77,90 +77,116 @@ version (unix || apple) {
 
         init: func ~unix (=path)
 
-        _getFileStat: func -> FileStat {
-            result: FileStat
-            res := lstat(path as CString, result&)
-            if (res != 0) {
-                // make sure we don't have any flags set by mistake
-                memset(result&, 0, FileStat size)
-            }
-            return result
-        }
-
         /**
          * @return true if it's a directory
          */
         dir?: func -> Bool {
-            return S_ISDIR(_getFileStat() st_mode)
+            result: FileStat
+            res := lstat(path as CString, result&)
+            (res == 0 && S_ISDIR(result st_mode))
         }
 
         /**
          * @return true if it's a file (ie. not a directory nor a symbolic link)
          */
         file?: func -> Bool {
-            return S_ISREG(_getFileStat() st_mode)
+            result: FileStat
+            res := lstat(path as CString, result&)
+            (res == 0 && S_ISREG(result st_mode))
         }
 
         /**
          * @return true if the file is a symbolic link
          */
         link?: func -> Bool {
-            return S_ISLNK(_getFileStat() st_mode)
+            result: FileStat
+            res := lstat(path as CString, result&)
+            (res == 0 && S_ISLNK(result st_mode))
         }
 
         /**
-         * @return the size of the file, in bytes
+         * @return the size of the file, in bytes, or -1 if
+         * the file doesn't exist.
          */
         getSize: func -> LLong {
-            return _getFileStat() st_size as LLong
+            result: FileStat
+            res := lstat(path as CString, result&)
+            match res {
+                case 0 => result st_size as LLong
+                case => -1
+            }
         }
 
         /**
          * @return the permissions for the owner of this file
          */
         ownerPerm: func -> Int {
-            return ((_getFileStat() st_mode) & S_IRWXU) as Int >> 6
+            result: FileStat
+            res := lstat(path as CString, result&)
+            match res {
+                case 0 => (result st_mode & S_IRWXU) as Int >> 6
+                case => -1
+            }
         }
 
         /**
          * @return the permissions for the group of this file
          */
         groupPerm: func -> Int {
-            return ((_getFileStat() st_mode) & S_IRWXG) as Int >> 3
+            result: FileStat
+            res := lstat(path as CString, result&)
+            match res {
+                case 0 => (result st_mode & S_IRWXG) as Int >> 3
+                case => -1
+            }
         }
 
         /**
          * @return the permissions for the others (not owner, not group)
          */
         otherPerm: func -> Int {
-            return ((_getFileStat() st_mode) & S_IRWXO) as Int
+            result: FileStat
+            res := lstat(path as CString, result&)
+            match res {
+                case 0 => (result st_mode & S_IRWXO) as Int
+                case => -1
+            }
         }
 
         /**
          * @return the time of last access, or -1 if it doesn't exist
          */
-        //FIXME maybe the exists call is redundant
         lastAccessed: func -> Long {
-            if (!exists?()) return -1
-            return _getFileStat() st_atime as Long
+            result: FileStat
+            res := lstat(path as CString, result&)
+            match res {
+                case 0 => result st_atime as Long
+                case => -1
+            }
         }
 
         /**
          * @return the time of last modification, or -1 if it doesn't exist
          */
-        //FIXME maybe the exists call is redundant
         lastModified: func -> Long {
-            if (!exists?()) return -1
-            return _getFileStat() st_mtime as Long
+            result: FileStat
+            res := lstat(path as CString, result&)
+            match res {
+                case 0 => result st_mtime as Long
+                case => -1
+            }
         }
 
         /**
          * @return the time of creation, or -1 if it doesn't exist
          */
-        //FIXME maybe the exists call is redundant
         created: func -> Long {
-            if (!exists?()) return -1
-            return _getFileStat() st_ctime as Long
+            result: FileStat
+            res := lstat(path as CString, result&)
+            match res {
+                case 0 => result st_ctime as Long
+                case => -1
+            }
         }
 
         /**
@@ -179,7 +205,9 @@ version (unix || apple) {
             assert(!path empty?())
             actualPath := gc_malloc(MAX_PATH_LENGTH) as CString
             ret := realpath(path, actualPath)
-            if (ret == null) OSException new("failed to get absolute path for " + path) throw()
+            if (ret == null) {
+                OSException new("failed to get absolute path for " + path) throw()
+            }
             actualPath toString()
         }
 
