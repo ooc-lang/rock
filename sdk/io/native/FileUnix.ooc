@@ -79,7 +79,11 @@ version (unix || apple) {
 
         _getFileStat: func -> FileStat {
             result: FileStat
-            lstat(path as CString, result&)
+            res := lstat(path as CString, result&)
+            if (res != 0) {
+                // make sure we don't have any flags set by mistake
+                memset(result&, 0, FileStat size)
+            }
             return result
         }
 
