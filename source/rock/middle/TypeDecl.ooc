@@ -32,15 +32,15 @@ TypeDecl: abstract class extends Declaration {
     // when instanciating for example Array: cover template <T> to
     // Array<Int>, we have "T" => BaseType("Int") and we can
     // directly suggest the Int type instead of T
-    templateArgs := HashMap<String, Declaration> new()
+    templateArgs := HashMap<String, Declaration> new(10)
 
     // internal state variables
     hasCheckedInheritance := false
     hasCheckedAbstract := false
 
     // the crux of the matter
-    variables := HashMap<String, VariableDecl> new()
-    functions := HashMap<String, FunctionDecl> new()
+    variables := HashMap<String, VariableDecl> new(10)
+    functions := HashMap<String, FunctionDecl> new(10)
     operators := ArrayList<OperatorDecl> new()
 
     // interface types that this type implements
