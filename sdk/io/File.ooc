@@ -85,17 +85,9 @@ File: abstract class {
     getSize: abstract func -> LLong
 
     /**
-     * @return true if the file exists and can be
-     * opened for reading
+     * @return true if the file exists
      */
-    exists?: func -> Bool {
-        fd := FStream open(path, "rb")
-        if(fd) {
-            fd close()
-            return true
-        }
-        false
-    }
+    exists?: abstract func -> Bool
 
     /**
      * @return the permissions for the owner of this file

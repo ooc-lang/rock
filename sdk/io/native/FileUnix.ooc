@@ -118,6 +118,15 @@ version (unix || apple) {
         }
 
         /**
+         * @return true if the file exists
+         */
+        exists?: func -> Bool {
+            result: FileStat
+            res := lstat(path as CString, result&)
+            (res == 0)
+        }
+
+        /**
          * @return the permissions for the owner of this file
          */
         ownerPerm: func -> Int {

@@ -32,7 +32,8 @@ version(windows) {
      */
     FILE_ATTRIBUTE_DIRECTORY,
     FILE_ATTRIBUTE_REPARSE_POINT,
-    FILE_ATTRIBUTE_NORMAL: extern Long // DWORD
+    FILE_ATTRIBUTE_NORMAL,
+    INVALID_FILE_ATTRIBUTES: extern Long // DWORD
 
     /*
      * file-related functions from Win32
@@ -73,15 +74,6 @@ version(windows) {
 
         init: func ~win32 (.path) {
             this path = _normalizePath(path)
-        }
-
-        /**
-         * @return true if the file exists and can be
-         * opened for reading
-         */
-        exists?: func -> Bool {
-            (ffd, ok) := _getFindData()
-            ok
         }
 
         _getFindData: func -> (FindData, Bool) {
@@ -128,6 +120,14 @@ version(windows) {
         getSize: func -> LLong {
             (ffd, ok) := _getFindData()
             return (ok) ? toLLong(ffd fileSizeLow, ffd fileSizeHigh) : 0
+        }
+
+        /**
+         * @return true if the file exists
+         */
+        exists?: func -> Bool {
+            res := GetFileAttributes(path as CString)
+            (res != INVALID_FILE_ATTRIBUTES)
         }
 
         /**
