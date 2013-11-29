@@ -1,3 +1,4 @@
+
 import ArrayList
 
 /**
@@ -177,7 +178,7 @@ HashMap: class <K, V> extends BackIterable<V> {
     buckets: HashEntry[]
     keys: ArrayList<K>
     
-    size : SizeT {
+    size: SizeT {
     	get {
             _size
  	}

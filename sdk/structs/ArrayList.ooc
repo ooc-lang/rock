@@ -16,7 +16,7 @@ ArrayList: class <T> extends List<T> {
     
     size: SSizeT {
     	get {
-    		_size
+            _size
     	}
     }
 

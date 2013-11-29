@@ -1,3 +1,4 @@
+
 import HashMap, ArrayList, List
 
 /**
@@ -16,8 +17,8 @@ MultiMap: class <K, V> extends HashMap<K, V> {
         super(capacity)
     }
 
-    get: func ~_super (key: K) -> K {
-        super(key)
+    get: func ~_super (key: K) -> V {
+        super(key) as Object
     }
 
     put: func ~_super (key: K, value: V) -> Bool {
@@ -25,7 +26,7 @@ MultiMap: class <K, V> extends HashMap<K, V> {
     }
 
     put: func (key: K, value: V) -> Bool {
-        already := get~_super(key) as Object
+        already := getAll(key)
         if(already == null) {
             // First of the kind - just put it
             put~_super(key, value)
@@ -44,38 +45,39 @@ MultiMap: class <K, V> extends HashMap<K, V> {
     }
 
     remove: func (key: K) -> Bool {
-        already := get~_super(key) as Object
-        if(already == null) {
-            // Doesn't contain it
-            return false
-        } else if (already instanceOf?(List)) {
-            // Already at least two - remove from the list, from last to first
-            list := already as List<V>
-            list removeAt(list lastIndex())
-            if(list getSize() == 1) {
-                // Only one left - turn the list into a single element
-                put~_super(key, list first())
-            }
-            return true
-        } else {
-            // Only one - remove it
-            return super(key)
+        already := getAll(key)
+        match already {
+            case null =>
+                // Doesn't contain it
+                false
+            case list: List<V> =>
+                // Already at least two - remove from the list, from last to first
+                list removeAt(list lastIndex())
+                if(list getSize() == 1) {
+                    // Only one left - turn the list into a single element
+                    put~_super(key, list first())
+                }
+                true
+            case =>
+                // Only one - remove it
+                super(key)
         }
     }
 
-    getAll: func (key: K) -> V {
-        get~_super(key)
+    getAll: func (key: K) -> Object {
+        get~_super(key) as Object
     }
 
     get: func (key: K) -> V {
-        val := super(key) as Object
-        if(val == null) {
-            return val
-        } else if(val instanceOf?(List)) {
-            list := val as List<V>
-            return list last()
+        val := getAll(key)
+        match val {
+            case null =>
+                null
+            case list: List<V> =>
+                list last()
+            case =>
+                val
         }
-        return val
     }
 
     iterator: func -> MultiMapValueIterator<K, V> {
