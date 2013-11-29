@@ -8,16 +8,15 @@ CoverDeclWriter: abstract class extends Skeleton {
 
         if (cDecl template) {
             for (instance in cDecl instances) {
-                "Writing %s, it's a template instance" printfln(instance toString())
+                // write templates instances
                 This write(this, instance)
 
                 meta := instance getMeta()
-                "Writing %s, it's a template instance's meta" printfln(meta toString())
+                // write templates instances' meta
                 ClassDeclWriter write(this, meta)
             }
 
             // cover templates themselves are not written down, silly compilerbro
-            "Not writing %s, it's a cover template" printfln(cDecl toString())
             return
         }
 
@@ -62,16 +61,15 @@ CoverDeclWriter: abstract class extends Skeleton {
 
         if (cDecl template) {
             for (instance in cDecl instances) {
-                "Writing-typedef %s, it's a template instance" printfln(instance toString())
+                // write-typedef template instances
                 This writeTypedef(this, instance)
 
                 meta := instance getMeta()
-                "Writing-typedef %s, it's a template instance's meta" printfln(meta toString())
+                // write-typedef template instances' meta
                 ClassDeclWriter writeStructTypedef(this, meta)
             }
 
             // cover templates themselves are not written down, silly compilerbro
-            "Not writing-typedef %s, it's a cover template" printfln(cDecl toString())
             return
         }
 

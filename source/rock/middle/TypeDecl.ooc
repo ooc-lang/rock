@@ -662,15 +662,14 @@ TypeDecl: abstract class extends Declaration {
     }
 
     resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
-	
+
         if(type getName() == "This") {
             if(type suggest(getNonMeta() ? getNonMeta() : this)) return 0
         }
 
-        { 
+        {
             ref := templateArgs get(type name)
             if (ref) {
-                "Got corresponding templateArg for %s : %s" printfln(type name, ref toString())
                 if(type suggest(ref)) return 0
             }
         }
@@ -681,12 +680,12 @@ TypeDecl: abstract class extends Declaration {
             }
         }
 
-	finalScore := 0
-	haystack := getInstanceType()
-	result := haystack searchTypeArg(type getName(), finalScore&)
-	if (result && finalScore >= 0) {
-	    if(type suggest(result getRef())) return 0
-	}
+        finalScore := 0
+        haystack := getInstanceType()
+        result := haystack searchTypeArg(type getName(), finalScore&)
+        if (result && finalScore >= 0) {
+            if(type suggest(result getRef())) return 0
+        }
 
         0
     }
@@ -710,10 +709,9 @@ TypeDecl: abstract class extends Declaration {
             if(access suggest(getNonMeta() ? getNonMeta() : this)) return 0
         }
 
-        { 
+        {
             ref := templateArgs get(access getName())
             if (ref) {
-                "Got corresponding templateArg for var access %s : %s" printfln(access getName(), ref toString())
                 if(access suggest(ref)) return 0
             }
         }
@@ -744,7 +742,7 @@ TypeDecl: abstract class extends Declaration {
         for(addon in getAddons()) {
             if(resolveAccessInAddon(addon, access, res, trail) == -1) return -1
         }
-        
+
         {
             ancestor := getSuperRef()
             while(ancestor != null) {
@@ -842,7 +840,7 @@ TypeDecl: abstract class extends Declaration {
         for(addon in getAddons()) {
             if(resolveCallInAddon(addon, call, res, trail) == -1) return -1
         }
-        
+
         {
             ancestor := getSuperRef()
             while(ancestor != null) {
@@ -872,7 +870,7 @@ TypeDecl: abstract class extends Declaration {
         0
 
     }
-    
+
     resolveCallInAddon: func (addon: Addon, call: FunctionCall, res: Resolver, trail: Trail) -> Int {
         has := false
 
@@ -890,7 +888,7 @@ TypeDecl: abstract class extends Declaration {
         if(has) {
             if(addon resolveCall(call, res, trail) == -1) return -1
         }
-        
+
         0
     }
 

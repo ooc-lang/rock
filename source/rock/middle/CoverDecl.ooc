@@ -16,7 +16,7 @@ CoverDecl: class extends TypeDecl {
     template: TemplateDef { get set }
     templateParent: CoverDecl { get set }
 
-    instances := HashMap<String, CoverDecl> new()
+    instances: HashMap<String, CoverDecl>
 
     init: func ~coverDeclNoSuper(.name, .token) {
         super(name, token)
@@ -47,7 +47,7 @@ CoverDecl: class extends TypeDecl {
         if (template) {
             response := Response OK
 
-            for (instance in instances) {
+            if (instances) for (instance in instances) {
                 response = instance resolve(trail, res)
 
                 if (!response ok()) {
@@ -147,15 +147,11 @@ CoverDecl: class extends TypeDecl {
     }
 
     getTemplateInstance: func (spec: BaseType) -> CoverDecl {
-        "Should get a template instance of %s as per %s" printfln(toString(), spec toString())
-
         fingerprint := _getFingerprint(spec)
 
-        if (instances contains?(fingerprint)) {
+        if (instances && instances contains?(fingerprint)) {
             return instances get(fingerprint)
         }
-
-        "Creating instance with fingerprint: %s" printfln(fingerprint)
 
         instance := This new(fingerprint, token)
         instance templateParent = this
@@ -170,11 +166,8 @@ CoverDecl: class extends TypeDecl {
 
             name := template typeArgs get(i) getName()
             ref := typeArg getRef()
-            "name %s, ref %s" printfln(name, ref ? ref toString() : "(nil)")
 
             if (typeArg inner isGeneric()) {
-                "is generic!" println()
-
                 thisRef := VariableDecl new(typeArg inner getRef() getType(), name, spec token)
                 instance addTypeArg(thisRef)
             } else {
@@ -204,6 +197,10 @@ CoverDecl: class extends TypeDecl {
             instance addFunction(fDeclClone)
         }
 
+        if (!instances) {
+            // small hashmap capacity to prevent lots of allocations.
+            instances = HashMap<String, CoverDecl> new(10)
+        }
         instances put(fingerprint, instance)
 
         instance

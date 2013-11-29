@@ -115,7 +115,6 @@ BaseType: class extends Type {
                 match decl {
                     case cDecl: CoverDecl =>
                         if (cDecl template) {
-                            "Resolving %s to a cover template!" printfln(toString())
                             return suggest(cDecl getTemplateInstance(this))
                         }
                 }

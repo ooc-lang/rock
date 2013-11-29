@@ -1,0 +1,95 @@
+
+/**
+ * With template, everything is inlined - the struct
+ * type is written inline, the methods become macros,
+ * so there should be no symbol conflict
+ */
+MyArray: cover template <T> {
+    length: Int
+    data: T*
+
+    init: func@ (=length) {
+        data = gc_malloc(T size * length)
+    }
+
+    get: func (index: Int) -> T {
+        _checkIndex(index)
+        data[index]
+    }
+
+    set: func@ (index: Int, value: T) {
+        _checkIndex(index)
+        data[index] = value
+    }
+
+    _checkIndex: func (index: Int) {
+        if (index < 0 || index >= length) {
+            Exception new("Out of bounds array access: %d should be in %d..%d" \
+                format(index, 0, length)) throw()
+        }
+    }
+
+    operator [] (i: Int) -> T {
+        get(i)
+    }
+
+    operator []= (i: Int, v: T) {
+        set(i, v)
+    }
+
+    operator + (other: This<T>) -> This<T> {
+        append(other)
+    }
+
+    append: func (other: This<T>) -> This<T> {
+        result := This<T> new(length + other length)
+
+        i := 0
+        doAppend := func (v: T) {
+            result[i] = v
+            i += 1
+        }
+
+        each(|v| doAppend(v))
+        other each(|v| doAppend(v))
+        result
+    }
+
+    each: func (f: Func (T)) {
+        for (i in 0..length) {
+            f(this[i])
+        }
+    }
+}
+
+main: func {
+
+    ints := MyArray<Int> new(4)
+    ints[0] = 1
+    ints[1] = 2
+    ints[2] = 3
+    ints[3] = 4
+
+    "Regular foreach: " println()
+    for (i in 0..ints length) {
+        ints[i] toString() println()
+    }
+
+    "each(): " println()
+    ints each(|n|
+        n toString() println()
+    )
+
+    ants := MyArray<Int> new(2)
+    ants[0] = 5
+    ants[1] = 6
+
+    unts := ints + ants
+
+    "unts each(): " println()
+    unts each(|n|
+        n toString() println()
+    )
+
+}
+
