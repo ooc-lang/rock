@@ -189,7 +189,7 @@ HashMap: class <K, V> extends BackIterable<V> {
      */
 
     init: func {
-        init(10)
+        init(100)
     }
 
     /**
