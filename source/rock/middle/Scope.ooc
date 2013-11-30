@@ -5,7 +5,7 @@ import tinker/[Trail, Resolver, Response]
 import ../frontend/[BuildParams, Token]
 
 Scope: class extends Node {
-	
+
     size: SSizeT {
         get {
             list getSize()
@@ -31,49 +31,59 @@ Scope: class extends Node {
     accept: func (v: Visitor) { v visitScope(this) }
 
     resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
-        va: static VariableAccess
-        
-        if(!va) va = VariableAccess new(null, nullToken)
-        va name = type getName()
-        va ref = null
-        
-        if(resolveAccess(va, res, trail) == -1) return -1
-        if(va ref) type suggest(va ref)
-
-        0
+        resolveName(type getName(), list size, res, trail, |vDecl|
+            type suggest(vDecl)
+        )
     }
 
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
-        index := list getSize()
+        index := -1
         ourIndex := trail indexOf(this)
 
         if(ourIndex != -1) {
             node : Statement = null
 
-            if(ourIndex + 1 >= trail getSize()) node = access
-            else                             node = trail get(ourIndex + 1)
+            if(ourIndex + 1 >= trail getSize()) {
+                // 'access' is a direct child of us
+                node = access
+            } else {
+                // 'access' is within another statement
+                node = trail get(ourIndex + 1)
+            }
             index = list indexOf(node)
         }
 
         // probably a global
         if(index == -1) index = list getSize()
 
+        resolveName(access getName(), index, res, trail, |vDecl|
+            access suggest(vDecl)
+        )
+    }
+
+    resolveName: func (name: String, index: Int, res: Resolver, trail: Trail, cb: Func (VariableDecl) -> Bool) -> Int {
         for(i in 0..index) {
             candidate := list get(i)
-            if(candidate instanceOf?(VariableDecl) && candidate as VariableDecl getName() == access getName()) {
-                if(access suggest(candidate as VariableDecl)) {
-                    return 0
-                }
-            } else if(candidate instanceOf?(VersionBlock)) {
-                vb := candidate as VersionBlock
-                for(stmt in vb getBody()) {
-                    if(stmt instanceOf?(VariableDecl) && stmt as VariableDecl getName() == access getName()) {
-                        //printf("Suggesting %s from version block %s\n", stmt toString(), vb toString())
-                        if(access suggest(stmt as VariableDecl)) {
+
+            match candidate {
+                case vDecl: VariableDecl =>
+                    if (vDecl name == name) {
+                        if(cb(vDecl)) {
                             return 0
                         }
                     }
-                }
+                case vb: VersionBlock =>
+                    vBody := vb getBody()
+                    for(stmt in vBody) {
+                        match stmt {
+                            case vDecl: VariableDecl =>
+                                if (vDecl name == name) {
+                                    if (cb(vDecl)) {
+                                        return 0
+                                    }
+                                }
+                        }
+                    }
             }
         }
 
@@ -132,19 +142,13 @@ Scope: class extends Node {
     }
 
     addAfter: func (mark, newcomer: Statement) -> Bool {
-
-        //printf("Should add %s after %s\n", newcomer toString(), mark toString())
-
         idx := indexOf(mark)
-        //printf("idx = %d\n", idx)
-        if(idx != -1) {
-            add(idx + 1, newcomer)
-            //println("|| adding newcomer " + newcomer toString() + " at idx " + (idx + 1) toString())
-            return true
+        if (idx == -1) {
+            return false
         }
 
-        return false
-
+        add(idx + 1, newcomer)
+        true
     }
 
     add:      func ~append (n: Statement) { list add(n) }
