@@ -5,6 +5,8 @@ script:
   - export PATH=$PATH:$PWD/bin:$PWD/sam
   - export OOC_LIBS=$PWD
   - make rescue
+  - make clean self
+  - make clean self
   - make extensions
   - git clone --depth=1 git://github.com/nddrylliog/sam.git 
   - (cd sam && rock -v)
