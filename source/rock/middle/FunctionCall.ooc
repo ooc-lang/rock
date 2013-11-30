@@ -162,7 +162,7 @@ FunctionCall: class extends Expression {
      * Usually has 'name == "something"' instead of 'false' as
      * a return expression, when it's being used.
      */
-    debugCondition: inline func -> Bool {
+    debugCondition: final func -> Bool {
         false
     }
 
@@ -248,7 +248,7 @@ FunctionCall: class extends Expression {
 
         if(debugCondition() || res params veryVerbose) {
             "===============================================================" println()
-            "     - Resolving call to %s (ref = %s)" printfln(name, ref ? ref toString(): "(nil)")
+            "     - Resolving call to %s (ref = %s, refScore = %d)" printfln(name, ref ? ref toString(): "(nil)", refScore)
         }
 
         // resolve all arguments
@@ -519,7 +519,7 @@ FunctionCall: class extends Expression {
                 res throwError(UnresolvedCall new(this, message, precisions))
                 return Response OK
             } else {
-                res wholeAgain(this, "not resolved")
+                res wholeAgain(this, "not match yet")
                 return Response OK
             }
 

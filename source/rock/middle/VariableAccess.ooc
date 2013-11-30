@@ -82,7 +82,7 @@ VariableAccess: class extends Expression {
     // It's just an access, it has no side-effects whatsoever
     hasSideEffects : func -> Bool { false }
 
-    debugCondition: inline func -> Bool {
+    debugCondition: final func -> Bool {
         false
     }
 

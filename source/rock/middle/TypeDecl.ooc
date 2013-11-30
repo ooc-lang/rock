@@ -103,7 +103,7 @@ TypeDecl: abstract class extends Declaration {
         null
     }
 
-    debugCondition: inline func -> Bool {
+    debugCondition: final func -> Bool {
         false
     }
 

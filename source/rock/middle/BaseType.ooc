@@ -29,7 +29,7 @@ BaseType: class extends Type {
         super(token)
     }
 
-    debugCondition: func -> Bool {
+    debugCondition: final func -> Bool {
         false
     }
 
