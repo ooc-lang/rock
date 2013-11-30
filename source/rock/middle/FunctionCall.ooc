@@ -211,7 +211,7 @@ FunctionCall: class extends Expression {
                 declArg := candidate args get(i)
                 if(declArg instanceOf?(VarArg)) break
                 callArg := args get(i)
-                
+
                 if(callArg getType() == null) return false
                 if(declArg getType() == null) return false
                 declArgType := declArg getType() refToPointer()
@@ -578,7 +578,7 @@ FunctionCall: class extends Expression {
             res wholeAgain(this, "waiting on expr to resolve")
             return Response OK
         }
-        
+
         // Setting it too soon would cause some important stuff to never happen, such as wrapping
         // function pointers into closures. Too late would make rock blow up. I'm not happy with that..
         resolved = true
@@ -876,7 +876,7 @@ FunctionCall: class extends Expression {
             // use the default value as an argument expression.
             if(refArg expr) args add(refArg expr)
         }
-        
+
         Response OK
     }
 
@@ -907,13 +907,13 @@ FunctionCall: class extends Expression {
                         arg := args[i]
                         argType := arg getType()
                         if(!argType) return Response LOOP
-                        
+
                         if(argType pointerLevel() > 0) {
                             argType = NullLiteral type // 'T*' = 'Pointer', != 'T'
                         }
                         elements add(TypeAccess new(argType, token))
                         ast types add(NullLiteral type)
-                        
+
                         elements add(arg)
                         ast types add(arg getType())
                     }
@@ -1354,7 +1354,7 @@ FunctionCall: class extends Expression {
                 if(debugCondition()) "Args don't match! Too many call args" println()
                 return false
             }
-            
+
             if(declIter next() instanceOf?(VarArg)) {
                 if(debugCondition()) "Varargs swallow all!" println()
                 // well, whatever we have left, VarArgs swallows it all.
@@ -1374,7 +1374,7 @@ FunctionCall: class extends Expression {
                 // varargs can also be omitted.
                 return true
             }
-            
+
             if(declArg expr) {
                 // optional arg
                 if(debugCondition()) "Optional arg." println()
