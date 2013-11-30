@@ -15,7 +15,7 @@ HashEntry: cover {
 
 }
 
-nullHashEntry: HashEntry <None, None>
+nullHashEntry: HashEntry
 memset(nullHashEntry&, 0, HashEntry size)
 
 stringEquals: func <K> (k1, k2: K) -> Bool {
@@ -200,8 +200,7 @@ HashMap: class <K, V> extends BackIterable<V> {
         _size = 0
 
         buckets = HashEntry[capacity] new()
-
-        keys = ArrayList<K> new(capacity)
+        keys = ArrayList<K> new()
 
         keyEquals = getStandardEquals(K)
         hashKey = getStandardHashFunc(K)
@@ -471,7 +470,11 @@ HashMap: class <K, V> extends BackIterable<V> {
     }
 
     clear: func {
-        init(capacity)
+        _size = 0
+        for (i in 0..capacity) {
+            buckets[i] = nullHashEntry
+        }
+        keys clear()
     }
 
     getSize: func -> SSizeT { _size }

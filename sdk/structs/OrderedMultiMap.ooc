@@ -46,4 +46,9 @@ OrderedMultiMap: class <K, V> extends MultiMap<K, V> {
         return true
     }
 
+    clear: func {
+        super()
+        orderedKeys clear()
+    }
+
 }
