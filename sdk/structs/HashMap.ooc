@@ -177,7 +177,7 @@ HashMap: class <K, V> extends BackIterable<V> {
 
     buckets: HashEntry[]
     keys: ArrayList<K>
-    
+
     size: SizeT {
     	get {
             _size
@@ -185,18 +185,16 @@ HashMap: class <K, V> extends BackIterable<V> {
     }
 
     /**
-     * Returns a hash table with 100 buckets
-     * @return HashTable
+     * Returns a new hash map
      */
 
     init: func {
-        init(100)
+        init(10)
     }
 
     /**
      * Returns a hash table of a specified bucket capacity.
      * @param UInt capacity The number of buckets to use
-     * @return HashTable
      */
     init: func ~withCapacity (=capacity) {
         _size = 0
@@ -212,9 +210,8 @@ HashMap: class <K, V> extends BackIterable<V> {
     }
 
     /**
-     * Returns the HashEntry associated with a key.
+     * Retrieve the HashEntry associated with a key.
      * @param key The key associated with the HashEntry
-     * @return HashEntry
      */
     getEntry: func (key: K, result: HashEntry*) -> Bool {
         hash : SizeT = hashKey(key) % capacity
