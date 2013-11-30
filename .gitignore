@@ -9,7 +9,7 @@ bin
 bin-win32
 bin-linux
 *tmp*
-.libs
+.libs*
 .sam-cache
 callgrind.out.*
 
