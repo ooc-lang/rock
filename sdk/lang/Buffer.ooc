@@ -7,7 +7,7 @@ import structs/ArrayList
  * to use Buffer instead of String, to avoid unnecessary allocation
  */
 Buffer: class extends Iterable<Char> {
-    
+
     /** size of the buffer, in bytes, e.g. how much bytes do we store currently */
     size: Int
 
@@ -61,7 +61,7 @@ Buffer: class extends Iterable<Char> {
             capacity = 0
         } else {
     	    setLength(length)
-	        memcpy(data, s, length) 
+            memcpy(data, s, length) 
         }        
     }
 
@@ -168,11 +168,11 @@ Buffer: class extends Iterable<Char> {
     	The substring begins at the specified start and extends to the character at index end - 1.
     	So the length of the substring is end-start */
     substring: func (start: Int, end: Int) {
-		if(start < 0) start += size + 1
-		if(end < 0) end += size + 1
-		if(end != size) setLength(end)
-		if(start > 0) shiftRight(start)
-	}
+        if(start < 0) start += size + 1
+        if(end < 0) end += size + 1
+        if(end != size) setLength(end)
+        if(start > 0) shiftRight(start)
+    }
 
     /** return a This that contains *this*, repeated *count* times. */
     times: func (count: Int) {
@@ -257,8 +257,10 @@ Buffer: class extends Iterable<Char> {
      */
     compare: func (other: This, start, length: Int) -> Bool {
         _checkLength(length)
-        if (size < (start + length) || other size < length) return false
-        
+        if (size < (start + length) || other size < length) {
+            return false
+        }
+
         for(i in 0..length) {
             if(data[start + i] != other[i]) {
                 return false
@@ -348,7 +350,9 @@ Buffer: class extends Iterable<Char> {
     }
 
     findAll: func ~pointer ( what : Char*, whatSize: Int, searchCaseSensitive := true) -> ArrayList <Int> {
-        if (what == null || whatSize == 0) return ArrayList <Int> new(0)
+        if (what == null || whatSize == 0) {
+            return ArrayList <Int> new(0)
+        }
         result := ArrayList <Int> new (size / whatSize)
         offset : Int = (whatSize ) * -1
         while (((offset = find(what, whatSize, offset + whatSize, searchCaseSensitive)) != -1)) result add (offset)
@@ -357,8 +361,10 @@ Buffer: class extends Iterable<Char> {
 
     replaceAll: func ~buf (what, whit: This, searchCaseSensitive := true) {
         findResults := findAll(what, searchCaseSensitive)
-        if (findResults == null || findResults size == 0) return
-        
+        if (findResults == null || findResults size == 0) {
+            return
+        }
+
         newlen: Int = size + (whit size * findResults size) - (what size * findResults size)
         result := new(newlen)
         result setLength(newlen)
@@ -371,7 +377,7 @@ Buffer: class extends Iterable<Char> {
             memcpy(result data + rstart, data + sstart, sdist)
             sstart += sdist
             rstart += sdist
-            
+
             memcpy(result data + rstart, whit data, whit size)
             sstart += what size
             rstart += whit size
@@ -389,7 +395,7 @@ Buffer: class extends Iterable<Char> {
             if(data[i] == oldie) data[i] = kiddo
         }
     }
-    
+
     /** Transform all characters according to a transformation function */
     map: func (f: Func (Char) -> Char) {
         for(i in 0..size) {
@@ -516,7 +522,7 @@ Buffer: class extends Iterable<Char> {
     reverse: func {
         result := this
         bytesLeft := size
-        
+
         i := 0
         while (bytesLeft > 1) {
             c := result data[i]
@@ -556,7 +562,7 @@ Buffer: class extends Iterable<Char> {
     print: func {
         fwrite(data, 1, size, stdout)
     }
-    
+
     print: func ~withStream (stream: FStream) {
         fwrite(data, 1, size, stream)
     }
@@ -565,7 +571,7 @@ Buffer: class extends Iterable<Char> {
     println: func {
         print(stdout); '\n' print(stdout)
     }
-    
+
     println: func ~withStream (stream: FStream) {
         print(stream); '\n' print(stream)
     }
@@ -628,7 +634,7 @@ Buffer: class extends Iterable<Char> {
     /**
      * @return the index-th character of this string
      */
-    get: func (index: Int) -> Char {
+    get: final func (index: Int) -> Char {
         if(index < 0) index = size + index
         if(index < 0 || index >= size) OutOfBoundsException new(This, index, size) throw()
         data[index]
@@ -637,7 +643,7 @@ Buffer: class extends Iterable<Char> {
     /**
      * @return the index-th character of this string
      */
-    set: func (index: Int, value: Char) {
+    set: final func (index: Int, value: Char) {
         if(index < 0) index = size + index
         if(index < 0 || index >= size) OutOfBoundsException new(This, index, size) throw()
         data[index] = value
