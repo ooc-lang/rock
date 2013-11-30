@@ -319,7 +319,7 @@ BuildParams: class {
                 defineSymbol(This DEBUG_DEFINE)
             case Profile RELEASE =>
                 // optimize on release
-                optimization = OptimizationLevel Os
+                optimization = OptimizationLevel O3
         }
 
         if (host != "") {
