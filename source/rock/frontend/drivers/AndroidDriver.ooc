@@ -50,15 +50,15 @@ AndroidDriver: class extends Driver {
             generateMakefile(sourceFolder)
         }
 
-        0 
+        0
     }
-    
+
     /**
      * Build a source folder into object files or a static library
      */
     generateSources: func (sourceFolder: SourceFolder) {
 
-        originalOutPath := params outPath 
+        originalOutPath := params outPath
         params outPath = File new(originalOutPath, sourceFolder identifier)
 
         "Generating sources in %s" printfln(params outPath path)
@@ -121,7 +121,7 @@ AndroidDriver: class extends Driver {
         }
         fw write("\n")
 
-        localSharedLibraries := ArrayList<String> new() 
+        localSharedLibraries := ArrayList<String> new()
         for (useDef in uses) {
             localSharedLibraries addAll(useDef androidLibs)
         }
@@ -175,7 +175,7 @@ AndroidDriver: class extends Driver {
             return sourceFoldersDone
         }
         modulesDone add(module)
-        
+
         for (uze in module getUses()) {
             useDef := uze useDef
             dep := sourceFolders get(useDef identifier)
