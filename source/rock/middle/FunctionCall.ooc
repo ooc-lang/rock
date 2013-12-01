@@ -175,7 +175,7 @@ FunctionCall: class extends Expression {
      */
     suggest: func (candidate: FunctionDecl, res: Resolver, trail: Trail) -> Bool {
 
-        if(debugCondition()) "** [refScore = %d] Got suggestion %s for %s" printfln(refScore, candidate toString(), toString())
+        if(debugCondition()) "** [refScore = %d, ref = %s] Got suggestion %s for %s" printfln(refScore, ref ? ref toString() : "(nil)", candidate toString(), toString())
 
         if(isMember() && candidate owner == null) {
             if(debugCondition()) "** %s is no fit!, we need something to fit %s" printfln(candidate toString(), toString())
@@ -183,7 +183,15 @@ FunctionCall: class extends Expression {
         }
 
         score := getScore(candidate)
-        if (score <= refScore) return false
+        if (score <= refScore) {
+            // usually we'd give up here, except..
+            if (refScore == -1 && ref == candidate) {
+                // then we'll continue
+            } else {
+                // we can give up.
+                return false
+            }
+        }
 
         if(debugCondition()) {
             "** New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
@@ -344,7 +352,7 @@ FunctionCall: class extends Expression {
 
             if (res fatal && refScore == -1) {
                 // something went wrong somewhere else
-                res wholeAgain(this, "waiting on some FunctionDecl to resolve.")
+                res wholeAgain(this, "(error-throwing) waiting on some FunctionDecl to resolve.")
                 return Response OK
             }
 
@@ -480,10 +488,10 @@ FunctionCall: class extends Expression {
             precisions := ""
 
             // Still no match, and in the fatal round? Throw an error.
-            if(res fatal) {
+            if(res fatal || (refScore < -1 && refScore > INT_MIN)) {
                 if (refScore == -1) {
                     // something went wrong somewhere else
-                    res wholeAgain(this, "waiting on some FunctionDecl to resolve.")
+                    res wholeAgain(this, "(in refScore <= 0) waiting on some FunctionDecl to resolve.")
                     return Response OK
                 }
 
@@ -520,7 +528,7 @@ FunctionCall: class extends Expression {
                 res throwError(UnresolvedCall new(this, message, precisions))
                 return Response OK
             } else {
-                res wholeAgain(this, "not match yet")
+                res wholeAgain(this, "no match yet")
                 return Response OK
             }
 
