@@ -91,7 +91,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
             if(cDecl getSuperRef() != null) {
                 superDecl : FunctionDecl = null
-                superDecl = cDecl getSuperRef() lookupFunction(fDecl name, fDecl suffix)
+                superDecl = cDecl getSuperRef() lookupFunction(fDecl name, fDecl getSuffixOrEmpty())
                 // don't write the function if it was declared in the parent
                 if(superDecl != null) {
                     // Already declared in super, skipping
@@ -228,7 +228,7 @@ ClassDeclWriter: abstract class extends Skeleton {
             current nl(). nl()
             FunctionDeclWriter writeFuncPrototype(this, decl, (decl isFinal()) ? null : "_impl")
             current app(' '). openBlock()
-            
+
             match (decl getName()) {
                 case ClassDecl DEFAULTS_FUNC_NAME || ClassDecl COVER_DEFAULTS_FUNC_NAME =>
                     writeDefaults(this, cDecl)
