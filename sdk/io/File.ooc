@@ -502,6 +502,10 @@ File: abstract class {
         result toString()
     }
 
+    toString: func -> String {
+        "File(#{path})"
+    }
+
 }
 
 _isDirHardlink?: inline func (dir: CString) -> Bool {
