@@ -1,5 +1,5 @@
 import io/File, text/EscapeSequence
-import structs/[HashMap, ArrayList, List, OrderedMultiMap]
+import structs/[HashMap, ArrayList, List, MultiMap]
 import ../frontend/[Token, BuildParams, PathList, AstBuilder]
 import ../utils/FileUtils
 import Node, FunctionDecl, Visitor, Import, Include, Use, UseDef, TypeDecl,
@@ -26,9 +26,9 @@ Module: class extends Node {
     main := false
 
     // pretty much the whole contents of a module
-    types      := OrderedMultiMap<String, TypeDecl> new()
+    types      := MultiMap<String, TypeDecl> new()
     addons     := ArrayList<Addon> new()
-    functions  := OrderedMultiMap<String, FunctionDecl> new()
+    functions  := MultiMap<String, FunctionDecl> new()
     operators  := ArrayList<OperatorDecl> new()
 
     includes   := ArrayList<Include> new()
@@ -214,8 +214,8 @@ Module: class extends Node {
     }
 
     getOperators: func -> List<OperatorDecl> { operators }
-    getFunctions: func -> OrderedMultiMap<String, FunctionDecl>  { functions }
-    getTypes:     func -> OrderedMultiMap<String, TypeDecl>  { types }
+    getFunctions: func -> MultiMap<String, FunctionDecl>  { functions }
+    getTypes:     func -> MultiMap<String, TypeDecl>  { types }
     getUses:      func -> List<Use>          { uses }
 
     accept: func (visitor: Visitor) { visitor visitModule(this) }

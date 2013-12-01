@@ -1,4 +1,4 @@
-import structs/[ArrayList, OrderedMultiMap]
+import structs/[ArrayList, MultiMap]
 
 main: func {
     stringString()
@@ -103,7 +103,7 @@ stringString: func {
         keys[i] = "#{keys[i]}-#{i}"
     }
 
-    map := OrderedMultiMap<String, String> new(1)
+    map := MultiMap<String, String> new(1)
 
     for (k in keys) {
         map put(k, k)

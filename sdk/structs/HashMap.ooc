@@ -437,6 +437,7 @@ HashMap: class <K, V> extends BackIterable<V> {
         oldBuckets := buckets
 
         /* Clear key list and size */
+        oldKeys := keys clone()
         keys clear()
         _size = 0
 
@@ -455,6 +456,9 @@ HashMap: class <K, V> extends BackIterable<V> {
                 put(entry key as K, entry value as V)
             }
         }
+
+        // restore old keys to keep order
+        keys = oldKeys
 
         return true
     }
