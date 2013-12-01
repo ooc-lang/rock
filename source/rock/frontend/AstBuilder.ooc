@@ -308,7 +308,8 @@ AstBuilder: class {
     }
 
     onClassBody: unmangled(nq_onClassBody) func {
-        peek(ClassDecl) addDefaultInit()    }
+        // good on you!
+    }
 
     onClassEnd: unmangled(nq_onClassEnd) func {
         module addType(pop(ClassDecl))

@@ -4,6 +4,8 @@ import Generator
 
 DSL: class { // TODO: make this a singleton. or so.
 
+    init: func
+
     json: func (f: Func(This) -> HashBag) -> String {
         generateString(f(this))
     }

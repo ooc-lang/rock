@@ -13,6 +13,8 @@ ErrorHandler: interface {
 }
 
 DevNullErrorHandler: class implements ErrorHandler {
+    init: func
+
     onError: func (e: Error) { /* To the bit bucket! */ }
 }
 

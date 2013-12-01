@@ -47,10 +47,18 @@ FunctionDecl: class extends Declaration {
     oDecl: OperatorDecl
 
     /** name: func ~suffix - suffix is null if there's no suffix in the grammar */
-    name = "", suffix = null, fullName = null, doc = "" : String
+    name := ""
+    suffix: String
+
+    fullName: String
+    doc := ""
+
+    hash: String { get {
+        suffix ? "#{name}~#{suffix}" : name
+    } }
 
     prettyName: String { get {
-      unbangify(name)
+        unbangify(name)
     } }
 
     /** The return type of this function. If it's generic, or if it's a TypeList, then returnArgs will be used */
@@ -125,6 +133,9 @@ FunctionDecl: class extends Declaration {
     /** true if it's an anonymous function, ie. our name is empty on the beginning */
     isAnon: Bool
 
+    /** true if new auto-generated from init */
+    autoNew := false
+
     genericConstraints: HashMap<Type, Type>
 
     init: func ~funcDecl (=name, .token) {
@@ -187,6 +198,9 @@ FunctionDecl: class extends Declaration {
     setName: func (=name) {}
     getName: func -> String { name }
 
+    getSuffixOrEmpty: func -> String {
+        suffix ? suffix : ""
+    }
     getSuffix: func -> String { suffix }
     setSuffix: func(suffix: String) { this suffix = suffix }
 
@@ -675,15 +689,15 @@ FunctionDecl: class extends Declaration {
                 res wholeAgain(this, "something in our typedecl's functions needs resolving!")
                 return Response OK
             }
-
-            if(ref isSuper) {
-                // oh really? then wait until it's not super anymore.
-                res wholeAgain(this, "superRef of a super func is super itself! looping.")
-                return Response OK
-            }
             
             superCall := FunctionCall new("super", token)
             if(ref != null) {
+                if(ref isSuper) {
+                    // oh really? then wait until it's not super anymore.
+                    res wholeAgain(this, "superRef of a super func is super itself! looping.")
+                    return Response OK
+                }
+
                 for(arg in ref args) {
                     if(!arg isResolved()) {
                         res wholeAgain(arg, "some arg we need to copy needs resolving!")
@@ -702,10 +716,15 @@ FunctionDecl: class extends Declaration {
 
                 if(name == "init") {
                     // add ourselves again, for new-generation from init
-                    owner removeFunction(this). addFunction(this)
+                    owner removeFunction(this)
+                    owner addFunction(this)
                 }
+
+                res wholeAgain(this, "Just changed super func")
             } else {
-                res throwError(UnresolvedCall new(token, superCall, "There is no such super-func in %s!" format(superTypeDecl toString())))
+                msg := "There is no such super-func in %s!" format(superTypeDecl toString())
+                err := UnresolvedCall new(token, superCall, msg)
+                res throwError(err)
             }
         }
 

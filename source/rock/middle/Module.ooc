@@ -118,9 +118,9 @@ Module: class extends Node {
         list
     }
 
-    addFuncType: func (hashName: String, funcType: FuncType) {
-        if (!funcTypesMap contains?(hashName)) {
-            funcTypesMap put(hashName, funcType)
+    addFuncType: func (hash: String, funcType: FuncType) {
+        if (!funcTypesMap contains?(hash)) {
+            funcTypesMap put(hash, funcType)
         }
     }
 
@@ -138,21 +138,62 @@ Module: class extends Node {
         result toString()
     }
 
+    /**
+     * Add a function declaration to this module.
+     */
     addFunction: func (fDecl: FunctionDecl) {
         // don't add empty-named functions
         if (fDecl name empty?()) return
 
-        hash := TypeDecl hashName(fDecl)
-        old := functions get(hash)
-        if (old != null) {
-            if ((old verzion == fDecl verzion) ||
-                (old verzion != null && fDecl verzion != null && old verzion equals?(fDecl verzion))) {
-
-                params errorHandler onError(FunctionRedefinition new(old, fDecl))
-                return
-            }
+        if (checkFunctionRedefinition(fDecl)) {
+            // duplicate
+            return
         }
-        functions put(hash, fDecl)
+
+        functions put(fDecl getName(), fDecl)
+    }
+
+    /**
+     * Check if 'kiddo' is a redefinition of a previously
+     * added method in this type.
+     *
+     * @return true if it is
+     */
+    checkFunctionRedefinition: func (kiddo: FunctionDecl) -> Bool {
+        redefines := false
+
+        functions getEachUntil(kiddo getName(), |oldie|
+            if (oldie == kiddo) {
+                // this is an internal error - it should never happen
+                raise("in type #{name}, added #{oldie} more than once")
+                redefines = true
+            }
+
+            if (kiddo getSuffixOrEmpty() == oldie getSuffixOrEmpty()) {
+                // same suffixes...
+                isOkay := false
+
+                if (( oldie verzion != null &&
+                      kiddo verzion != null &&
+                     !oldie verzion equals?(kiddo verzion)
+                     )) {
+                    // if they're in different version blocks, it's fine
+                    isOkay = true
+                }
+
+                if (!isOkay) {
+                    // same suffixes, same (or no) versions, not okay
+                    err := FunctionRedefinition new(oldie, kiddo)
+                    token module params errorHandler onError(err)
+                    redefines = true
+                }
+            }
+
+            // as soon as we've found a redefinition, we can break
+            !redefines
+        )
+
+        redefines
     }
 
     addAddon: func (addon: Addon) {
@@ -364,18 +405,15 @@ Module: class extends Node {
     resolveCallNonRecursive: func (call: FunctionCall, res: Resolver, trail: Trail) {
 
         //printf(" >> Looking for function %s in module %s!\n", call name, fullName)
-        fDecl : FunctionDecl = null
-        fDecl = functions get(TypeDecl hashName(call name, call suffix))
-        if (fDecl) {
-            call suggest(fDecl, res, trail)
-        }
 
-        if (!call suffix) for (fDecl in functions) {
-            if (fDecl name == call name && (call suffix == null)) {
-                if (call debugCondition()) "Suggesting fDecl %s for call %s" printfln(fDecl toString(), call toString())
-                call suggest(fDecl, res, trail)
+        functions getEach(call name, |fDecl|
+            if (call suffix && fDecl suffix != call suffix) {
+                // skip it! till you make it.
+                return
             }
-        }
+
+            call suggest(fDecl, res, trail)
+        )
 
     }
 

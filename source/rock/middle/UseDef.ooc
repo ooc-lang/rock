@@ -244,7 +244,7 @@ UseDef: class {
     read: func (=file, params: BuildParams) {
         reader := FileReader new(file)
 
-        versionStack push(UseProperties new(this, UseVersionOr new(this)))
+        versionStack push(UseProperties new(this, UseVersion new(this)))
 
         while(reader hasNext?()) {
             line := reader readLine() \
@@ -451,8 +451,7 @@ UseProperties: class {
 UseVersion: class {
     useDef: UseDef
 
-    init: func (=useDef) {
-    }
+    init: func (=useDef)
 
     satisfied?: func (params: BuildParams) -> Bool {
         true

@@ -3,6 +3,8 @@ Coyote: class {
     firstName := "Wile E."
     lastName := "Coyote"
     fullName ::= "#{firstName} #{lastName}"
+
+    init: func
 }
 
 main: func {

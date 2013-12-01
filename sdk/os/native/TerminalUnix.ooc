@@ -11,6 +11,8 @@ version (unix || apple) {
      */
     TerminalUnix: class extends TerminalHandler {
 
+        init: func
+
         _lookupColor: func (c: Color) -> Int {
             // black = 30, and then the ordering is correct
             c as Int + 30

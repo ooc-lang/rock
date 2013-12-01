@@ -42,7 +42,7 @@ InterfaceImpl: class extends ClassDecl {
         if(aliases getSize() == ref getMeta() getFunctions() getSize()) return Response OK
 
         for(key: FunctionDecl in ref getMeta() getFunctions()) {
-            hash := hashName(key)
+            hash := key hash
             alias := aliases get(hash)
             if(alias == null) {
                 //FIXME: smarter strategy needed here to match functions - also, check signatures

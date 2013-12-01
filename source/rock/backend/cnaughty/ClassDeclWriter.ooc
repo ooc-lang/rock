@@ -87,6 +87,7 @@ ClassDeclWriter: abstract class extends Skeleton {
         for (fDecl in cDecl functions) {
 
             if(fDecl isExtern()) continue
+            if(fDecl isStatic()) continue
 
             if(cDecl getSuperRef() != null) {
                 superDecl : FunctionDecl = null
@@ -374,11 +375,11 @@ ClassDeclWriter: abstract class extends Skeleton {
                     continue // skip it.
                 }
 
-                if (parentDecl isStatic() && parentDecl isAbstract()) {
-                    continue // abstract static funcs aren't written in classes
+                if (parentDecl isStatic()) {
+                    continue // static funcs aren't written in classes
                 }
 
-                if (parentDecl isStatic() || (realDecl == null && parentDecl isAbstract())) {
+                if (realDecl == null && parentDecl isAbstract()) {
                     writeDesignatedInit(this, parentDecl, realDecl, false)
                 } else {
                     writeDesignatedInit(this, parentDecl, realDecl, true)

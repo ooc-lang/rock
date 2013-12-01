@@ -183,64 +183,65 @@ FunctionCall: class extends Expression {
         }
 
         score := getScore(candidate)
-        if(score > refScore) {
-            if(debugCondition()) "** New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
-            refScore = score
-            ref = candidate
+        if (score <= refScore) return false
 
-            if(score == -1) {
-                if(debugCondition()) "** Score = -1! Aboort" println()
-                if(res fatal) {
-                    // check our arguments are all right
-                    checkArgumentValidity(res)
-                }
-                return false
-            }
-
-            // todo: optimize that. not all of this needs to happen in many cases
-            if(argsBeforeConversion) {
-                for(i in argsBeforeConversion getKeys()) {
-                    callArg := argsBeforeConversion[i]
-                    args set(i, callArg)
-                }
-            }
-            candidateUsesAs = false
-
-            for(i in 0..args getSize()) {
-                if(i >= candidate args getSize()) break
-                declArg := candidate args get(i)
-                if(declArg instanceOf?(VarArg)) break
-                callArg := args get(i)
-
-                if(callArg getType() == null) return false
-                if(declArg getType() == null) return false
-                declArgType := declArg getType() refToPointer()
-                if (declArgType isGeneric()) {
-                    declArgType = declArgType realTypize(this)
-                }
-
-                if(callArg getType() getScore(declArgType) == Type NOLUCK_SCORE) {
-                    ref := callArg getType() getRef()
-                    if(ref instanceOf?(TypeDecl)) {
-                        ref as TypeDecl implicitConversions each(|opdecl|
-                            if(opdecl fDecl getReturnType() equals?(declArgType)) {
-                                candidateUsesAs = true
-                                if(!(IMPLICIT_AS_EXTERNAL_ONLY) || candidate isExtern()) {
-                                    args set(i, Cast new(callArg, declArgType, callArg token))
-                                    if(!argsBeforeConversion) {
-                                        // lazy instantiation of argsBeforeConversion
-                                        argsBeforeConversion = HashMap<Int, Expression> new()
-                                    }
-                                    argsBeforeConversion put(i, callArg)
-                                }
-                            }
-                        )
-                    }
-                }
-            }
-            return score > 0
+        if(debugCondition()) {
+            "** New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
         }
-        return false
+        refScore = score
+        ref = candidate
+
+        if(score == -1) {
+            if(debugCondition()) "** Score = -1! Aboort" println()
+            if(res fatal) {
+                // check our arguments are all right
+                checkArgumentValidity(res)
+            }
+            return false
+        }
+
+        // todo: optimize that. not all of this needs to happen in many cases
+        if(argsBeforeConversion) {
+            for(i in argsBeforeConversion getKeys()) {
+                callArg := argsBeforeConversion[i]
+                args set(i, callArg)
+            }
+        }
+        candidateUsesAs = false
+
+        for(i in 0..args getSize()) {
+            if(i >= candidate args getSize()) break
+            declArg := candidate args get(i)
+            if(declArg instanceOf?(VarArg)) break
+            callArg := args get(i)
+
+            if(callArg getType() == null) return false
+            if(declArg getType() == null) return false
+            declArgType := declArg getType() refToPointer()
+            if (declArgType isGeneric()) {
+                declArgType = declArgType realTypize(this)
+            }
+
+            if(callArg getType() getScore(declArgType) == Type NOLUCK_SCORE) {
+                ref := callArg getType() getRef()
+                if(ref instanceOf?(TypeDecl)) {
+                    ref as TypeDecl implicitConversions each(|opdecl|
+                        if(opdecl fDecl getReturnType() equals?(declArgType)) {
+                            candidateUsesAs = true
+                            if(!(IMPLICIT_AS_EXTERNAL_ONLY) || candidate isExtern()) {
+                                args set(i, Cast new(callArg, declArgType, callArg token))
+                                if(!argsBeforeConversion) {
+                                    // lazy instantiation of argsBeforeConversion
+                                    argsBeforeConversion = HashMap<Int, Expression> new()
+                                }
+                                argsBeforeConversion put(i, callArg)
+                            }
+                        }
+                    )
+                }
+            }
+        }
+        return score > 0
 
     }
 

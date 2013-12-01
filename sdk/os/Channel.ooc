@@ -61,6 +61,8 @@ scheduler: func {
 Channel: class <T> {
 
     queue := LinkedList<T> new()
+
+    init: func
     
     send: func (t: T) {
         //"Sending %d" printfln(t as Int)

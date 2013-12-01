@@ -19,8 +19,6 @@ ClassDecl: class extends TypeDecl {
     
     shouldCheckNoArgConstructor := false
 
-    defaultInit := null as FunctionDecl
-
     init: func ~classDeclNoSuper(.name, .token) {
         super(name, token)
     }
@@ -39,39 +37,7 @@ ClassDecl: class extends TypeDecl {
 
     accept: func (visitor: Visitor) { visitor visitClassDecl(this) }
 
-    hasOtherInit: func -> Bool {
-        for(fDecl in functions) if(fDecl getName() == "init") {
-            if(fDecl != defaultInit) return true
-        }
-        false
-    }
-
     resolve: func (trail: Trail, res: Resolver) -> Response {
-
-        if(shouldCheckNoArgConstructor) {
-            finalScore := 0
-            if(defaultInit == null || hasOtherInit()) {
-                shouldCheckNoArgConstructor = false
-            } else {
-                if(getSuperRef() == null) superType resolve(trail, res)
-                if(getSuperRef() == null) {
-                    res wholeAgain(this, "need superRef to check for noarg cons")
-                    return Response OK
-                } else {
-                    superRef := getSuperRef()
-                    fDecl := superRef getFunction("init", "", finalScore&)
-                    if(finalScore == -1) {
-                        res wholeAgain(this, "something not resolved in getFunction")
-                        return Response OK
-                    }
-                    
-                    if (fDecl == null || fDecl getArguments() size > 0) {
-                        message := "No default no-arg constructor in super-class %s. You need to define a constructor yourself." format(superType getName())
-                        res throwError(NoDefaultConstructorError new(token, message))
-                    }
-                }
-            }
-        }
 
         if(isMeta) {
             meat := getNonMeta()
@@ -197,33 +163,6 @@ ClassDecl: class extends TypeDecl {
 
     replace: func (oldie, kiddo: Node) -> Bool { false }
 
-    addDefaultInit: func {
-
-        if(!isMeta) {
-            getMeta() addDefaultInit()
-            return
-        }
-
-        if(!isAbstract && !isObjectClass() && !isClassClass() && defaultInit == null) {
-            /*
-             * Concrete classes that aren't `Object` nor `Class` get a
-             * default, no-args constructor that does nothing.
-             * It gets removed as soon as you add another init() function
-             * though, see addInit()
-             */
-            init := FunctionDecl new("init", token)
-            addFunction(init)
-
-            // TODO: check if the super-type actually has a no-arg constructor, throw an error if not
-            if(superType != null && superType getName() != "ClassClass") {
-                init getBody() add(FunctionCall new("super", token))
-                shouldCheckNoArgConstructor = true
-            }
-
-            defaultInit = init // if defaultInit is set earlier, it'll try to remove it..
-        }
-    }
-
     addFunction: func (fDecl: FunctionDecl) {
 
         if(isMeta) {
@@ -243,7 +182,7 @@ ClassDecl: class extends TypeDecl {
                  * ..but you can also define the new function yourself,
                  * e.g. if you allocate in a special way
                  */
-                already := lookupFunction(fDecl getName(), fDecl getSuffix())
+                already := lookupFunction(fDecl getName(), fDecl getSuffixOrEmpty())
                 if (already != null) removeFunction(fDecl)
             }
         }
@@ -256,16 +195,6 @@ ClassDecl: class extends TypeDecl {
 
         isCover := (getNonMeta() instanceOf?(CoverDecl))
 
-        if(defaultInit != null) {
-            /*
-             * As soon as we've got another init defined, remove the
-             * default, no-args, empty one.
-             */
-            functions remove(hashName("init", null))
-            functions remove(hashName("new", null))
-            defaultInit = null
-        }
-
         if(isAbstract || (getNonMeta() instanceOf?(ClassDecl) && getNonMeta() as ClassDecl isAbstract)) {
             // don't generate new for abstract classes
             return
@@ -274,6 +203,7 @@ ClassDecl: class extends TypeDecl {
         newType := (isMeta ? getNonMeta() getInstanceType() : getInstanceType()) as BaseType
 
         constructor := FunctionDecl new("new", fDecl token)
+        constructor autoNew = true
         constructor setStatic(true)
         constructor setSuffix(fDecl getSuffix())
         retType := newType clone()

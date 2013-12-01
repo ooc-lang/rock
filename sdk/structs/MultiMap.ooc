@@ -25,6 +25,10 @@ MultiMap: class <K, V> extends HashMap<K, V> {
         super(key, value)
     }
 
+    remove: func ~_super (key: K) -> Bool {
+        super(key)
+    }
+
     put: func (key: K, value: V) -> Bool {
         already := getAll(key)
         if(already == null) {
@@ -64,6 +68,26 @@ MultiMap: class <K, V> extends HashMap<K, V> {
         }
     }
 
+    removeValue: func (key: K, value: V) -> Bool {
+        already := getAll(key)
+        match already {
+            case null =>
+                // Doesn't contain it
+                false
+            case list: List<V> =>
+                // let list handle it
+                res := list remove(value)
+                if(res && list getSize() == 1) {
+                    // Only one left - turn the list into a single element
+                    put~_super(key, list first())
+                }
+                res
+            case =>
+                // Only one - remove it
+                remove~_super(key)
+        }
+    }
+
     getAll: func (key: K) -> Object {
         get~_super(key) as Object
     }
@@ -77,6 +101,30 @@ MultiMap: class <K, V> extends HashMap<K, V> {
                 list last()
             case =>
                 val
+        }
+    }
+
+    getEach: func (key: K, f: Func (V)) {
+        val := getAll(key)
+        match val {
+            case null =>
+                return
+            case list: List<V> =>
+                list each(f)
+            case =>
+                f(val)
+        }
+    }
+
+    getEachUntil: func (key: K, f: Func (V) -> Bool) {
+        val := getAll(key)
+        match val {
+            case null =>
+                return
+            case list: List<V> =>
+                list eachUntil(f)
+            case =>
+                f(val)
         }
     }
 
@@ -95,7 +143,7 @@ MultiMapValueIterator: class <K, V> extends BackIterator<V> {
 
     map: MultiMap<K, V>
     index := 0
-    sub : Iterator<V>
+    sub: Iterator<V>
 
     init: func ~multiMap (=map) {}
 

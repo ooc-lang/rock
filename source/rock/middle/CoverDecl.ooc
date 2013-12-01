@@ -191,6 +191,11 @@ CoverDecl: class extends TypeDecl {
                 continue
             }
 
+            if (fDecl autoNew) {
+                // let autoNew do its thing in CoverDecl
+                continue
+            }
+
             fDeclClone := fDecl clone()
             fDeclClone owner = null
 
@@ -198,8 +203,7 @@ CoverDecl: class extends TypeDecl {
         }
 
         if (!instances) {
-            // small hashmap capacity to prevent lots of allocations.
-            instances = HashMap<String, CoverDecl> new(10)
+            instances = HashMap<String, CoverDecl> new()
         }
         instances put(fingerprint, instance)
 

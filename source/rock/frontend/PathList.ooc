@@ -13,6 +13,8 @@ PathList: class {
 
     getPaths : func -> HashMap<String, File> { paths }
 
+    init: func
+
     /**
      * Add an element to the classpath
      * :param: path

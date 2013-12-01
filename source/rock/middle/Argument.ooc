@@ -8,7 +8,7 @@ import tinker/[Trail, Resolver, Response, Errors]
  *
  * Read FunctionDecl for more infos on the different types of arguments.
  */
-Argument: abstract class extends VariableDecl {
+Argument: class extends VariableDecl {
 
     init: func ~argument (.type, .name, .token) { super(type, name, token) }
 

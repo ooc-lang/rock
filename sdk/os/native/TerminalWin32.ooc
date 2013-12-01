@@ -18,6 +18,8 @@ version (windows) {
         bg := Color black
         fg := Color white
 
+        init: func
+
         /* Color codes */
         colors := [
             0 , // black
