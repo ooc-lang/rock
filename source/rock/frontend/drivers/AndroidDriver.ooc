@@ -37,7 +37,7 @@ AndroidDriver: class extends Driver {
         params libcachePath = params outPath path
         copyLocals(module, params)
 
-        // from the on, we handle the show - adjusting outPath as we go
+        // from then on, we handle the show - adjusting outPath as we go
         params libcache = false
 
         // step 2: generate C sources
