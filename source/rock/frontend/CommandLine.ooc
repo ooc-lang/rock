@@ -619,18 +619,18 @@ CommandLine: class {
     postParsing: func (module: Module) {
         first := static true
 
-        parseMs := Time measure(||
-            module parseImports(null)
-        )
-        if (params timing) {
-            "Parsing took %d ms" printfln(parseMs)
-        }
-
         if(params onlyparse) {
             if(params verbose) println()
             // Oookay, we're done here.
             success()
             return
+        }
+
+        parseMs := Time measure(||
+            module parseImports(null)
+        )
+        if (params timing) {
+            "Parsing took %d ms" printfln(parseMs)
         }
 
         if(params verbose) {
