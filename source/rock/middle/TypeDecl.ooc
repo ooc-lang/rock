@@ -339,40 +339,70 @@ TypeDecl: abstract class extends Declaration {
     getFunction: func ~real (name, suffix: String, call: FunctionCall,
         recursive: Bool, bestScore: Int, bestMatch: FunctionDecl, finalScore: Int@) -> FunctionDecl {
 
-        for(fDecl: FunctionDecl in functions) {
-            if(fDecl name == name && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix == suffix)) {
-                if(!call) return fDecl
+        done := false
+        result: FunctionDecl
+
+        functions getEachUntil(name, |fDecl|
+            if (suffix == null || (suffix == "" && fDecl suffix == null) || (fDecl suffix == suffix)) {
+                if(!call) {
+                    result = fDecl
+                    done = true
+                    return false // break
+                }
+
                 score := call getScore(fDecl)
-                if(call debugCondition()) "Considering fDecl %s for fCall %s, score = %d\n" format(fDecl toString(), call toString(), score) println()
+                if(call debugCondition()) {
+                    "Considering fDecl %s for fCall %s, score = %d\n" format(fDecl toString(), call toString(), score) println()
+                }
 
                 if(score > bestScore) {
                     bestScore = score
                     bestMatch = fDecl
                 }
             }
+
+            true
+        )
+
+        if (done) {
+            return result
         }
+
+        tempScore := 0
 
         if(call && call expr && call expr getType() && call expr getType() getRef() &&
            call expr getType() getRef() instanceOf?(ClassDecl) &&
            call expr getType() getRef() as ClassDecl isMeta) {
-            for(fDecl: FunctionDecl in functions) {
-                // Not ignoring static methods is intended; we want static member access without explicit `This`.
-                if(fDecl name == name && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix == suffix)) {
+
+            functions getEachUntil(name, |fDecl|
+                if (suffix == null || (suffix == "" && fDecl suffix == null) || (fDecl suffix == suffix)) {
+                    // TODO: sounds expensive. Isn't it?
                     if(!fDecl isStatic) fDecl = fDecl getStaticVariant()
 
-                    if(!call) return fDecl
+                    if (!call) {
+                        result = fDecl
+                        done = true
+                        return false // break
+                    }
                     score := call getScore(fDecl)
                     if(score == -1) {
-                        finalScore = -1
-                        return null // special score that means "something isn't resolved"
+                        tempScore = -1 // special score that means "something isn't resolved"
+                        done = true
+                        return false
                     }
-
                     if(score > bestScore) {
                         bestScore = score
                         bestMatch = fDecl
                     }
                 }
-            }
+
+                true
+            )
+        }
+
+        if (done) {
+            finalScore = tempScore
+            return result
         }
 
         if(recursive && getSuperRef() != null) {
