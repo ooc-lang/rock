@@ -78,9 +78,10 @@ VariableDecl: class extends Declaration {
         )
     }
 
-    /** If `true`, the property should not be added to the instance struct as a member.
-        Ordinary variables never are virtual. Properties can be.
-      */
+    /**
+     * If `true`, the property should not be added to the instance struct as a member.
+     * Ordinary variables never are virtual. Properties can be.
+     */
     isVirtual: func -> Bool { false }
 
     setOwner: func (=owner) {}
@@ -164,7 +165,7 @@ VariableDecl: class extends Declaration {
                 return response
             }
         }
-        
+
         if(type == null && expr != null) {
             // infer the type
             type = expr getType()
@@ -204,7 +205,7 @@ VariableDecl: class extends Declaration {
         // and add a Cast in that case. (Fixes compiler warnings.)
         // Example: "a: Node = EmptyNode new()
         // => "a: Node = EmptyNode new() as Node
-                 
+
         if (type && expr) {
             exprType := expr getType()
             if (!exprType) {
@@ -369,7 +370,7 @@ VariableDecl: class extends Declaration {
     }
 
     isMember: func -> Bool { owner != null }
-    
+
     isLegal: func (res: Resolver) -> Bool {
         (lType, rType) := (type, expr getType())
 
@@ -380,7 +381,7 @@ VariableDecl: class extends Declaration {
         }
 
         (lRef, rRef) := (lType getRef(), rType getRef())
-        
+
         if(lRef instanceOf?(ClassDecl) && rRef instanceOf?(ClassDecl)) {
             if(!(
                 (lType equals?(rType)) ||
@@ -390,7 +391,7 @@ VariableDecl: class extends Declaration {
                 return false
             }
         }
-        
+
         return true
     }
 
