@@ -189,4 +189,4 @@ BinarySequenceReader: class {
 _i := 0x10f as UInt16
 // On big endian, this looks like: [ 0x01 | 0x0f ]
 // On little endian, this looks like: [ 0x0f | 0x01 ]
-ENDIANNESS := static (_i& as UInt8*)[0] == 0x0f ? Endianness little : Endianness big
+ENDIANNESS := (_i& as UInt8*)[0] == 0x0f ? Endianness little : Endianness big
