@@ -9,8 +9,9 @@ Coyote: class {
 
 main: func {
     c := Coyote new()
-    if (c fullName != "Wile E. Coyote") {
-        "Fail! fullName = %s" printfln(c fullName)
+    fullName := c fullName
+    if (fullName != "Wile E. Coyote") {
+        "Fail! fullName = %s" printfln(fullName)
         exit(1)
     }
 

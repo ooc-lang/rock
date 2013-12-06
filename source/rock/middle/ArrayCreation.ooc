@@ -32,7 +32,7 @@ ArrayCreation: class extends Expression {
             return Response LOOP
         }
 
-        if(!realType  resolve(trail, res) ok()) {
+        if(!realType resolve(trail, res) ok()) {
             return Response LOOP
         }
 

@@ -95,7 +95,11 @@ CGenerator: class extends Skeleton {
 
         match ref {
             case tDecl: TypeDecl =>
-                current app(tDecl underName()). app("_class()")
+                if (typeAccess inner pointerLevel() > 0) {
+                    current app("lang_types__Pointer_class()")
+                } else {
+                    current app(tDecl underName()). app("_class()")
+                }
             case vDecl: VariableDecl =>
                 // TODO: fix namespaced type accesses?
                 // TODO: figure out if last parameter needs to be adjusted sometimes

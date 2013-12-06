@@ -57,8 +57,14 @@ Cast: class extends Expression {
             if(!response ok()) return response
         }
 
+        innerType := inner getType()
+        if (!innerType || innerType getRef() == null) {
+            res wholeAgain(this, "needs innerType")
+            return Response OK
+        }
+
         // Casting to an arrayType isn't innocent
-        if(type instanceOf?(ArrayType)) {
+        if(type instanceOf?(ArrayType) && !innerType instanceOf?(ArrayType)) {
             arrType := type as ArrayType
             parent := trail peek()
 
@@ -77,6 +83,7 @@ Cast: class extends Expression {
                 memcpyCall args add(VariableAccess new(VariableAccess new(varDecl, token), "data", token))
                 memcpyCall args add(inner)
                 memcpyCall args add(copySize)
+                "Turning #{this} to memcpy call #{memcpyCall}, inner = #{inner}, type = #{inner getType()}"
 
                 trail addAfterInScope(varDecl, memcpyCall)
             } else {
@@ -92,12 +99,12 @@ Cast: class extends Expression {
             innerType := inner getType()
             if (innerType == null) {
                 res wholeAgain(this, "Unresolved type")
-                return Response OK  
+                return Response OK
             }
             groundType := innerType getGroundType()
             if (groundType == null) {
                 res wholeAgain(this, "Unresolved groundtype")
-                return Response OK  
+                return Response OK
             }
 
             // Following code checks whether a pointer is to be casted to a struct-type
@@ -106,7 +113,7 @@ Cast: class extends Expression {
                 typeName := type getGroundType() getName()
                 // TODO: check whether the "struct " check really works
                 // Closure is a special-case (built-in)
-                if (typeName == "Closure" || typeName startsWith?("struct ")) { 
+                if (typeName == "Closure" || typeName startsWith?("struct ")) {
                     msg := "Casting a pointer [%s] of the type [%s] to a struct type[%s]!" format(inner toString(), innerType toString(), typeName)
                     Exception new(This, msg) throw()
                 }
@@ -134,7 +141,7 @@ Cast: class extends Expression {
         for(opDecl in trail module() getOperators()) {
             if(opDecl symbol != "as") continue
             score := getScore(opDecl)
-            //printf("Considering %s for %s, score = %d\n", opDecl toString(), toString(), score)
+            //"Considering %s for %s, score = %d" printfln(opDecl toString(), toString(), score)
             if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response OK }
             if(score > bestScore) {
                 bestScore = score
@@ -147,7 +154,7 @@ Cast: class extends Expression {
             for(opDecl in module getOperators()) {
                 if(opDecl symbol != "as") continue
                 score := getScore(opDecl)
-                //printf("Considering %s for %s, score = %d\n", opDecl toString(), toString(), score)
+                //"Considering %s for %s, score = %d" printfln(opDecl toString(), toString(), score)
                 if(score == -1) { res wholeAgain(this, "score of %s == -1 !!"); return Response OK }
                 if(score > bestScore) {
                     bestScore = score
