@@ -61,6 +61,7 @@ UseDef: class {
     sourcePath:    String { get set }
     linker:        String { get set }
     main:          String { get set }
+    binarypath:    String { get set }
 
     imports             : ArrayList<String> { get set }
     preMains            : ArrayList<String> { get set }
@@ -144,6 +145,10 @@ UseDef: class {
 
         if (linker) {
             params linker = linker
+        }
+
+        if (binarypath) {
+            params binaryPath = binarypath
         }
     }
 
@@ -315,6 +320,8 @@ UseDef: class {
                 }
             } else if (id == "Linker") {
                 linker = value trim()
+            } else if (id == "BinaryPath") {
+                binarypath = value trim()
             } else if (id == "LibPaths") {
                 for (path in value split(',')) {
                     libFile := File new(path trim())
