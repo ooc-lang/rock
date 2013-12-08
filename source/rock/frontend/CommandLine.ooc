@@ -137,6 +137,11 @@ CommandLine: class {
                     if(!longOption) warnUseLong("debuglibcache")
                     params debugLibcache = true
 
+                } else if (option == "debugtemplates") {
+
+                    if(!longOption) warnUseLong("debugtemplates")
+                    params debugTemplates = true
+
                 } else if(option startsWith?("ignoredefine=")) {
 
                     if(!longOption) warnUseLong("ignoredefine")

@@ -364,6 +364,7 @@ FunctionDecl: class extends Declaration {
         for(arg in args) {
             if(isFirst) isFirst = false
             else        sb append(", ")
+            sb append(arg toString()). append(" :")
             argType := arg getType()
             if(argType) {
                 if(call) {
@@ -483,7 +484,7 @@ FunctionDecl: class extends Declaration {
         if(access debugCondition()) {
             "Looking for %s in %s, got %d typeArgs" printfln(access toString(), toString(), typeArgs size)
         }
-        
+
         for(typeArg in typeArgs) {
             if(access name == typeArg name) {
                 if(access suggest(typeArg)) return 0
@@ -523,7 +524,7 @@ FunctionDecl: class extends Declaration {
         }
 
         if(debugCondition()) "Handling the owner" println()
-        
+
         // handle the case where we specialize a generic function
         if(owner) {
             meat := owner isMeta ? owner as ClassDecl : owner getMeta()
@@ -689,7 +690,7 @@ FunctionDecl: class extends Declaration {
                 res wholeAgain(this, "something in our typedecl's functions needs resolving!")
                 return Response OK
             }
-            
+
             superCall := FunctionCall new("super", token)
             if(ref != null) {
                 if(ref isSuper) {
@@ -730,7 +731,7 @@ FunctionDecl: class extends Declaration {
 
        if(name == "main" && owner == null) {
             // TODO: move me out of middle/ !!
-            
+
             match (args getSize()) {
                 case 0 => {
                     // turn main into a standard prototype. Some libraries, like SDL, will
@@ -761,11 +762,11 @@ FunctionDecl: class extends Declaration {
                     }
                 }
                 case 2 => {
-                    // Replace (argc: Int, argv: String*) with (argc: Int, argv1: CString*) 
+                    // Replace (argc: Int, argv: String*) with (argc: Int, argv1: CString*)
                     // and assign argv to the "String" version of argv1
                     // argv := cStringPtrToStringPtr(argv1, argc)
 
-                    if (args get(0) getType() getName() == "Int" && args get(1) getType() getName() == "String") { 
+                    if (args get(0) getType() getName() == "Int" && args get(1) getType() getName() == "String") {
                         arg := args get(1)
                         pseudoArgv := BaseType new("CString", arg token)
                         argv := Argument new(PointerType new(pseudoArgv, arg token), generateTempName("argv"), arg token)
@@ -773,7 +774,7 @@ FunctionDecl: class extends Declaration {
                         argcAccess := VariableAccess new(args get(0), args get(0) token)
                         constructCall := FunctionCall new("cStringPtrToStringPtr", arg token)
                         constructCall args add(argvAccess)
-                        constructCall args add(argcAccess) 
+                        constructCall args add(argcAccess)
 
                         myArgv := VariableDecl new(null, "argv", constructCall, nullToken)
                         args[1] = argv
@@ -782,8 +783,8 @@ FunctionDecl: class extends Declaration {
                 }
             }
         }
-        
-	    if (isClosure) {
+
+        if (isClosure) {
             if(countdown > 0) {
                 countdown -= 1
                 res wholeAgain(this, "countdown!")
@@ -820,7 +821,7 @@ FunctionDecl: class extends Declaration {
                 res wholeAgain(this, "Need type of the expr of the parent call")
                 return false
             }
-            
+
             j := 0
             callExprTypeArgs := parentCall expr getType() getTypeArgs()
             if(callExprTypeArgs) {
@@ -839,11 +840,11 @@ FunctionDecl: class extends Declaration {
             res throwError(InternalError new(token, "[ACS]: Can't find `this` in the call's arguments.\ntrail = %s" format(trail toString())))
         }
 
-		if(ind >= parentFunc args size) {
-			res wholeAgain(this, "Invalid argument index - call candidate probably doesn't match")
-			return false
-		}
-        
+        if(ind >= parentFunc args size) {
+            res wholeAgain(this, "Invalid argument index - call candidate probably doesn't match")
+            return false
+        }
+
         argType := parentFunc args[ind] getType()
         if (!argType || argType class != FuncType) {
             res wholeAgain(this, "Missing type information in the function pointer.")
@@ -856,7 +857,7 @@ FunctionDecl: class extends Declaration {
         fScore := 0
         needTrampoline := false
 
-        // infer return type 
+        // infer return type
         if(funcPointer returnType) {
             returnType = funcPointer returnType
         }
@@ -1158,7 +1159,7 @@ FunctionRedefinition: class extends Error {
     first, second: FunctionDecl
 
     init: func (=first, =second) {
-        super(second token, "Redefinition of '%s'%s" format(first prettyName, first verzion ? (" in version " + first verzion toString()) : "")) 
+        super(second token, "Redefinition of '%s'%s" format(first prettyName, first verzion ? (" in version " + first verzion toString()) : ""))
         next = InfoError new(first token, "...first definition was here.")
     }
 

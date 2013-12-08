@@ -7,7 +7,7 @@ CoverDeclWriter: abstract class extends Skeleton {
     write: static func ~_cover (this: Skeleton, cDecl: CoverDecl) {
 
         if (cDecl template) {
-            for (instance in cDecl instances) {
+            if (cDecl instances) for (instance in cDecl instances) {
                 // write templates instances
                 This write(this, instance)
 

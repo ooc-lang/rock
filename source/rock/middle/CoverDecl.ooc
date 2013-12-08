@@ -39,15 +39,16 @@ CoverDecl: class extends TypeDecl {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
         if (debugCondition()) {
-            "Resolving CoverDecl %s, template = %p" printfln(
-                toString(), template
-            )
+            "Resolving CoverDecl #{this}, template = #{template}" println()
         }
 
         if (template) {
             response := Response OK
 
             if (instances) for (instance in instances) {
+                if (debugCondition()) {
+                    "Resolving instance #{instance}" println()
+                }
                 response = instance resolve(trail, res)
 
                 if (!response ok()) {
@@ -204,6 +205,14 @@ CoverDecl: class extends TypeDecl {
 
         if (!instances) {
             instances = HashMap<String, CoverDecl> new()
+        }
+
+        if (token module params debugTemplates) {
+            "Instanciated #{fingerprint} => #{instance}" println()
+            meta := instance getMeta()
+            for (f in meta functions) {
+                "- #{f}" println()
+            }
         }
         instances put(fingerprint, instance)
 

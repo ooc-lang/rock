@@ -184,6 +184,7 @@ BuildParams: class {
     // Debugging purposes
     debugLoop := false
     debugLibcache := false
+    debugTemplates := false
 
     // Ignore these defines when trying to determine if a cached lib is up-to-date or not
     ignoredDefines := ArrayList<String> new()
