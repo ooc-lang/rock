@@ -63,9 +63,9 @@ EnumDecl: class extends TypeDecl {
                 case intLit: IntLiteral =>
                     IntLiteral new(match incrementOper {
                         case '+' =>
-                            intLit value + incrementStep
+                            intLit number + incrementStep
                         case '*' =>
-                            intLit value * incrementStep
+                            intLit number * incrementStep
                     }, intLit token)
                 case floatLit: FloatLiteral =>
                     FloatLiteral new(match incrementOper {

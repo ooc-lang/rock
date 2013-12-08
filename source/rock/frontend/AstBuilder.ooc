@@ -253,11 +253,11 @@ AstBuilder: class {
     }
 
     onEnumIncrementExpr: unmangled(nq_onEnumIncrementExpr) func (oper: Char, step: IntLiteral) {
-        peek(EnumDecl) setIncrement(oper, step value)
+        peek(EnumDecl) setIncrement(oper, step number)
     }
 
     onEnumElementStart: unmangled(nq_onEnumElementStart) func (name, doc: CString) {
-        element := EnumElement new(peek(EnumDecl) getInstanceType(),name toString(), token())
+        element := EnumElement new(peek(EnumDecl) getInstanceType(), name toString(), token())
         element doc = doc toString()
         stack push(element)
     }
@@ -1094,19 +1094,19 @@ AstBuilder: class {
     }
 
     onDecLiteral: unmangled(nq_onDecLiteral) func (value: CString) -> IntLiteral {
-        IntLiteral new(value toString() replaceAll("_", "") toLLong(), token())
+        IntLiteral new(value toString(), IntBase DECIMAL, token())
     }
 
     onOctLiteral: unmangled(nq_onOctLiteral) func (value: CString) -> IntLiteral {
-        IntLiteral new(value toString() replaceAll("_", "") substring(2) toLLong(8), token())
+        IntLiteral new(value toString()[2..-1], IntBase OCTAL, token())
     }
 
     onBinLiteral: unmangled(nq_onBinLiteral) func (value: CString) -> IntLiteral {
-        IntLiteral new(value toString() replaceAll("_", "") substring(2) toLLong(2), token())
+        IntLiteral new(value toString()[2..-1], IntBase BINARY, token())
     }
 
     onHexLiteral: unmangled(nq_onHexLiteral) func (value: CString) -> IntLiteral {
-        IntLiteral new(value toString() replaceAll("_", "") toLLong(16), token())
+        IntLiteral new(value toString()[2..-1], IntBase HEXADECIMAL, token())
     }
 
     onFloatLiteral: unmangled(nq_onFloatLiteral) func (value: CString) -> FloatLiteral {
