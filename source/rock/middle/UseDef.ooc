@@ -67,6 +67,7 @@ UseDef: class {
     preMains            : ArrayList<String> { get set }
     androidLibs         : ArrayList<String> { get set }
     androidIncludePaths : ArrayList<String> { get set }
+    oocLibPaths         : ArrayList<File> { get set }
 
     properties := ArrayList<UseProperties> new()
     versionStack := Stack<UseProperties> new()
@@ -79,6 +80,7 @@ UseDef: class {
         preMains            = ArrayList<String> new()
         androidLibs         = ArrayList<String> new()
         androidIncludePaths = ArrayList<String> new()
+        oocLibPaths         = ArrayList<File> new()
     }
 
     parse: static func (identifier: String, params: BuildParams) -> UseDef {
@@ -149,6 +151,10 @@ UseDef: class {
 
         if (binarypath) {
             params binaryPath = binarypath
+        }
+        
+        for (path in oocLibPaths) {
+            params libsPaths add(path)
         }
     }
 
@@ -345,6 +351,26 @@ UseDef: class {
             } else if (id == "AndroidIncludePaths") {
                 for (path in value split(',')) {
                     androidIncludePaths add(path trim())
+                }
+            } else if (id == "OocLibPaths") {
+                for (path in value split(',')) {
+                    relative := File new(path trim()) getReducedFile()
+
+                    if (!relative relative?()) {
+                        "[WARNING]: ooc lib path %s is absolute - it's been ignored" printfln(relative path)
+                        continue
+                    }
+
+                    candidate := file parent getChild(relative path)
+
+                    absolute := match (candidate exists?()) {
+                        case true =>
+                            candidate getAbsoluteFile()
+                        case =>
+                            relative
+                    }
+
+                    oocLibPaths add(absolute)
                 }
             } else if (id == "Additionals") {
                 for (path in value split(',')) {
