@@ -6720,9 +6720,9 @@ YY_RULE(int) yy_FP_LIT_SUFFIX(GREG *G)
 {  yyprintfv((stderr, "%s\n", "FP_LIT_SUFFIX"));
 
   {  int yypos26= G->pos, yythunkpos26= G->thunkpos;
-  {  int yypos28= G->pos, yythunkpos28= G->thunkpos;  if (!yymatchChar(G, 'f')) goto l29;
+  {  int yypos28= G->pos, yythunkpos28= G->thunkpos;  if (!yymatchClass(G, (const unsigned char *)"\000\000\000\000\000\000\000\000\100\000\000\000\100\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000", "fF")) goto l29;
   goto l28;
-  l29:;	  G->pos= yypos28; G->thunkpos= yythunkpos28;  if (!yymatchChar(G, 'd')) goto l26;
+  l29:;	  G->pos= yypos28; G->thunkpos= yythunkpos28;  if (!yymatchClass(G, (const unsigned char *)"\000\000\000\000\000\000\000\000\000\020\000\000\000\020\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000", "lL")) goto l26;
 
   }
   l28:;	  goto l27;

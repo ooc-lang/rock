@@ -1110,7 +1110,7 @@ AstBuilder: class {
     }
 
     onFloatLiteral: unmangled(nq_onFloatLiteral) func (value: CString) -> FloatLiteral {
-        FloatLiteral new(value toString() replaceAll("_", ""), token())
+        FloatLiteral new(value toString(), token())
     }
 
     onBoolLiteral: unmangled(nq_onBoolLiteral) func (value: Bool) -> BoolLiteral {

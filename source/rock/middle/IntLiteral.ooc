@@ -57,7 +57,7 @@ IntLiteral: class extends Literal {
                 case =>
                     break // we're good
             }
-            string = string[0..-2] // strip last char
+            string = string[0..-2] // strip suffix
         }
         value = string
         _inferType()

@@ -8,7 +8,11 @@ check: func <T> (t: T, ref: Class) {
 
 main: func {
     check(3.5, Double)
-    check(3.5d, Double)
     check(3.5f, Float)
+    check(3.5F, Float)
+    check(3.5l, LDouble)
+    check(3.5L, LDouble)
+
+    "Pass" println()
 }
 
