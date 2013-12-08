@@ -1,4 +1,5 @@
 before_script:
+  - sudo apt-get -y -q update
   - sudo apt-get -y -q install curl make libgc-dev binutils-dev zlib1g-dev
 
 script:
