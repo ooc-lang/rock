@@ -28,7 +28,7 @@ Coro: class {
         other allocStackIfNeeded()
         other setup(this, ||
             callback()
-            "Scheduler error: returned from coro start function" println(stderr)
+            raise("Scheduler error: returned from coro start function")
             exit(-1)
         )
         switchTo(other)
@@ -46,18 +46,35 @@ Coro: class {
     }
 
     switchTo: func (next: This) {
+        oldStackBase := GC_stackbottom
+        stackBase := env stack stackPointer as UInt8*
+        stackSize := env stack stackSize
+        GC_add_roots(stackBase, stackBase + stackSize)
+        GC_stackbottom = stackBase
         swapcontext(env&, next env&)
+        GC_stackbottom = oldStackBase
+        GC_remove_roots(stackBase, stackBase + stackSize)
     }
 
     allocStackIfNeeded: func {
         if (!stack) {
-            stack = gc_malloc(DEFAULT_STACK_SIZE)
+            stack = coro_malloc(DEFAULT_STACK_SIZE)
+        }
+    }
+
+    free: func {
+        if (stack) {
+            coro_free(stack)
+            stack = null
         }
     }
 
 }
 
 /* ------ C interfacing ------- */
+
+coro_malloc: extern func (s: SizeT) -> Pointer
+coro_free: extern func (p: Pointer)
 
 include ucontext | (_XOPEN_SOURCE=600)
 
@@ -76,4 +93,8 @@ getcontext: extern func (ucp: UContext*) -> Int
 setcontext: extern func (ucp: UContext*) -> Int
 makecontext: extern func (ucp: UContext*, _func: Pointer, argc: Int, ...)
 swapcontext: extern func (oucp: UContext*, ucp: UContext*) -> Int
+
+GC_add_roots: extern func (Pointer, Pointer)
+GC_remove_roots: extern func (Pointer, Pointer)
+GC_stackbottom: extern Pointer
 
