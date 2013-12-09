@@ -73,8 +73,8 @@ Coro: class {
 
 /* ------ C interfacing ------- */
 
-coro_malloc: extern func (s: SizeT) -> Pointer
-coro_free: extern func (p: Pointer)
+coro_malloc: extern(malloc) func (s: SizeT) -> Pointer
+coro_free: extern(free) func (p: Pointer)
 
 include ucontext | (_XOPEN_SOURCE=600)
 
