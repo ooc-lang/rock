@@ -18,11 +18,11 @@ Coro: class {
 
     init: func
 
-    initializeMainCoro: func {
+    initializeMainCoro: final func {
         isMain = true
     }
 
-    startCoro: func (other: This, callback: Func) {
+    startCoro: final func (other: This, callback: Func) {
         other allocStackIfNeeded()
         other setup(this, ||
             callback()
@@ -33,7 +33,7 @@ Coro: class {
         other free()
     }
 
-    setup: func (coro: Coro, callback: Func) {
+    setup: final func (coro: Coro, callback: Func) {
         getcontext(env&)
 
         env stack address = stack
@@ -49,18 +49,18 @@ Coro: class {
         makecontext(env&, callback as Closure thunk, 1, callback as Closure context)
     }
 
-    switchTo: func (next: This) {
+    switchTo: final func (next: This) {
         GC_stackbottom = next env stack address
         swapcontext(env&, next env&)
     }
 
-    allocStackIfNeeded: func {
+    allocStackIfNeeded: final func {
         if (!stack) {
             stack = coro_malloc(DEFAULT_STACK_SIZE)
         }
     }
 
-    free: func {
+    free: final func {
         GC_remove_roots(
             stack,
             stack + DEFAULT_STACK_SIZE
