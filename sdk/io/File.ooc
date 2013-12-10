@@ -320,26 +320,23 @@ File: abstract class {
      * or false if it wasn't.
      */
     find: func (name: String, cb: Func (File) -> Bool) -> Bool {
-        found := false
 
-        walk(|f|
-            if (f getName() == name) {
-                if (!cb(f)) {
-                    // abort if caller is happy
-                    found = true
-                    return false
-                }
+        if (getName() == name) {
+            if (!cb(this)) {
+                // abort if caller is happy
+                return true
             }
-            if (f dir?()) {
-                if (f find(name, cb)) {
+        }
+
+        if (dir?()) {
+            children := getChildren()
+            for (child in children) {
+                if (child find(name, cb)) {
                     // abort if caller found happiness in a sub-directory
-                    found = true
-                    return false
+                    return true
                 }
             }
-
-            true
-        )
+        }
 
         false
     }
@@ -348,10 +345,57 @@ File: abstract class {
      * Find a file or directory with the given name
      * @return the first match for the given name
      */
-    find: func ~first (name: String) -> File {
+    find: func ~first (name: String) -> This {
         result: This
 
         find(name, |f|
+            result = f
+            false
+        )
+
+        result
+    }
+
+    /**
+     * Do a 'shallow search' for a file with a given
+     * name.
+     */
+    findShallow: func (name: String, level: Int, cb: Func (File) -> Bool) -> Bool {
+        fName := getName()
+        if (fName == name) {
+            if (!cb(this)) {
+                // abort if caller is happy
+                return true
+            }
+        }
+
+        if (dir?() && level >= 0) {
+            if (fName == ".git") {
+                return false // skip
+            }
+
+            children := getChildren()
+            for (child in children) {
+                if (child findShallow(name, level - 1, cb)) {
+                    // abort if caller found happiness in a sub-directory
+                    return true
+                }
+            }
+        }
+
+        false
+
+    }
+
+    /**
+     * Do a 'shallow search' for a file with a given
+     * name.
+     * @return the first match for the given name
+     */
+    findShallow: func ~first (name: String, level: Int) -> This {
+        result: This
+
+        findShallow(name, level, |f|
             result = f
             false
         )
@@ -441,7 +485,7 @@ File: abstract class {
      *
      * This method will return a File with path "sub/path"
      */
-    rebase: func (base: File) -> File {
+    rebase: func (base: File) -> This {
         left := base getReducedFile() getAbsolutePath() replaceAll(File separator, '/')
         full := getReducedFile() getAbsolutePath() replaceAll(File separator, '/')
 
