@@ -9,16 +9,14 @@
  */
 Coro: class {
 
-    // this was originally commented '128k needed on PPC due to parser'
-    // I have no idea what that means but 128k sounds reasonable.
+    // 128k stack = room for quite a few function calls
     DEFAULT_STACK_SIZE := static 128 * 1_024
-    MIN_STACK_SIZE := static 8_192
 
-    stack: Pointer
+    stack: UInt8*
     env: UContext
     isMain: Bool
 
-    init: func {}
+    init: func
 
     initializeMainCoro: func {
         isMain = true
@@ -32,28 +30,28 @@ Coro: class {
             exit(-1)
         )
         switchTo(other)
+        other free()
     }
 
     setup: func (coro: Coro, callback: Func) {
         getcontext(env&)
 
-        env stack stackPointer = stack
-        env stack stackSize    = DEFAULT_STACK_SIZE
-        env stack flags        = 0
-        env link               = coro env&
+        env stack address = stack
+        env stack size    = DEFAULT_STACK_SIZE
+        env stack flags   = 0
+        env link          = coro env&
+
+        GC_add_roots(
+            stack,
+            stack + DEFAULT_STACK_SIZE
+        )
 
         makecontext(env&, callback as Closure thunk, 1, callback as Closure context)
     }
 
     switchTo: func (next: This) {
-        oldStackBase := GC_stackbottom
-        stackBase := env stack stackPointer as UInt8*
-        stackSize := env stack stackSize
-        GC_add_roots(stackBase, stackBase + stackSize)
-        GC_stackbottom = stackBase
+        GC_stackbottom = next env stack address
         swapcontext(env&, next env&)
-        GC_stackbottom = oldStackBase
-        GC_remove_roots(stackBase, stackBase + stackSize)
     }
 
     allocStackIfNeeded: func {
@@ -63,6 +61,11 @@ Coro: class {
     }
 
     free: func {
+        GC_remove_roots(
+            stack,
+            stack + DEFAULT_STACK_SIZE
+        )
+
         if (stack) {
             coro_free(stack)
             stack = null
@@ -79,9 +82,9 @@ coro_free: extern(free) func (p: Pointer)
 include ucontext | (_XOPEN_SOURCE=600)
 
 StackT: cover from stack_t {
-    stackPointer: extern(ss_sp) Pointer
+    address: extern(ss_sp) Pointer
     flags: extern(ss_flags) Int
-    stackSize: extern(ss_size) SizeT
+    size: extern(ss_size) SizeT
 }
 
 UContext: cover from ucontext_t {
@@ -96,5 +99,5 @@ swapcontext: extern func (oucp: UContext*, ucp: UContext*) -> Int
 
 GC_add_roots: extern func (Pointer, Pointer)
 GC_remove_roots: extern func (Pointer, Pointer)
-GC_stackbottom: extern Pointer
+GC_stackbottom: extern UInt8*
 
