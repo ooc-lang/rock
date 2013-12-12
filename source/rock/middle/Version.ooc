@@ -59,6 +59,7 @@ VersionSpec: abstract class {
 
 /* Built-in spec */
 
+_unknownVersionSpecs := HashMap<String, String> new()
 _builtinVersionSpecs := HashMap<String, BuiltinSpec> new()
 BuiltinSpec: class {
 
@@ -180,7 +181,10 @@ VersionName: class extends VersionSpec {
                 res throwError(MixedComplexVersion new(token, name))
             }
         } else {
-            res throwError(Warning new(token, "Unrecognized version: %s" format(name)))
+            if (!_unknownVersionSpecs contains?(name)) {
+                _unknownVersionSpecs put(name, name)
+                res throwError(Warning new(token, "Unrecognized version: %s" format(name)))
+            }
         }
         resolved = true
 
