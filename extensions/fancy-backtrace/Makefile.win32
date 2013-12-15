@@ -1,5 +1,7 @@
 .PHONY: build clean
 
+GCC ?= gcc
+
 # This is needed for some installs of MSYS/MinGW... don't ask.
 WIN_FLAGS:= -I/mingw/include -L/mingw/lib -I/usr/local/include -L/usr/local/lib
 
@@ -8,14 +10,14 @@ MINGW64_PRESENT := $(shell echo __MINGW64__ | cpp -E - | tail -1)
 ifeq ($(MINGW64_PRESENT), 1)
 WIN_LINKER_FLAGS:= -lbfd -liberty -limagehlp -lz
 else
-WIN_LINKER_FLAGS:= -lbfd -lintl -liberty -limagehlp -lz
+WIN_LINKER_FLAGS:= -lbfd -liberty -lintl -limagehlp -lz
 endif
 
 build : fancy_backtrace.dll
 	cp $^ ${BINDIR}/
 
 fancy_backtrace.dll : fancy_backtrace.c
-	gcc $(WIN_FLAGS) -DBUILDING_BACKTRACE_LIB -O2 -shared -Wall -o $@ $^ $(WIN_LINKER_FLAGS)
+	$(GCC) $(WIN_FLAGS) -DBUILDING_BACKTRACE_LIB -O2 -shared -Wall -o $@ $^ $(WIN_LINKER_FLAGS)
 
 clean :
 	@rm -f fancy_backtrace.dll
