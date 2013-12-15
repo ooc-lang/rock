@@ -431,6 +431,11 @@ CommandLine: class {
 
                     hardDeprecation("slave")
 
+                } else if (option startsWith?("bannedflag=")) {
+
+                    flag := arg substring(arg indexOf('=') + 1)
+                    params bannedFlags add(flag)
+
                 } else if (option startsWith?("j")) {
 
                     threads := arg substring(2) toInt()

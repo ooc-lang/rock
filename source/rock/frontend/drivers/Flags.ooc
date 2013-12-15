@@ -311,7 +311,9 @@ Flags: class {
 
     _applyFlags: func (flags: List<String>, command: List<String>) {
         for (flag in flags) {
-            if (params bannedFlags contains?(flag)) continue
+            if (params bannedFlags contains?(flag))  {
+                continue
+            }
             command add(flag)
         }
     }
