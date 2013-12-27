@@ -331,6 +331,10 @@ BuildParams: class {
             }
 
             (archToken, targetToken) := (tokens[0], tokens[1])
+            thirdToken := ""
+            if (tokens size >= 3) {
+                thirdToken = tokens[2]
+            }
 
             match {
                 case archToken contains?("64") =>
@@ -341,7 +345,7 @@ BuildParams: class {
 
             match {
                 // Incomplete list, see http://git.savannah.gnu.org/cgit/libtool.git/tree/doc/PLATFORMS
-                case targetToken contains?("mingw") =>
+                case targetToken contains?("mingw") || thirdToken contains?("mingw") =>
                     target = Target WIN
                 case targetToken contains?("apple") =>
                     target = Target OSX
