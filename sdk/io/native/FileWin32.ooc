@@ -158,7 +158,12 @@ version(windows) {
         * @return true if a file is executable by the current owner
         */
         executable?: func -> Bool {
-            // Win32 has no concept of 'executable' bit
+            // Win32 has no *simple* concept of 'executable' bit
+            // we'd have to handle ACLs, and that's a nasty can of worms.
+            // For now, `executable?` and `setExecutable` are enough
+            // to set basic permissions when creating files on *nix.
+            // See discussion on this commit for more details:
+            // https://github.com/nddrylliog/rock/commit/c6b8e9a23079451f2d6c6964cace8ff786f4d434
             false
         }
 
@@ -167,7 +172,7 @@ version(windows) {
         * current user, group, and other.
         */
        setExecutable: func (exec: Bool) -> Bool {
-            // Win32 has no concept of 'executable' bit
+            // see comment for 'executable?'
             false
         }
 
