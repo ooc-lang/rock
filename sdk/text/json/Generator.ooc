@@ -13,7 +13,12 @@ EXCLUDE := const "'" // don't escape the '
 generate: func <T> (writer: Writer, obj: T) {
     match T {
         case String => {
-            writer write("\"%s\"" format(EscapeSequence escape(obj as String, EXCLUDE) toCString()))
+            if(obj as String == null) {
+                // Special case: "null as String" should probably not segfault.
+                writer write("null")
+            } else {
+                writer write("\"%s\"" format(EscapeSequence escape(obj as String, EXCLUDE) toCString()))
+            }
         }
         case Int => {
             writer write(obj as Int toString())
