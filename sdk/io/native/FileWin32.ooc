@@ -134,7 +134,7 @@ version(windows) {
          * @return the permissions for the owner of this file
          */
         ownerPerm: func -> Int {
-            // FIXME stub
+            // Win32 permissions are not unix-like
             return 0
         }
 
@@ -142,7 +142,7 @@ version(windows) {
          * @return the permissions for the group of this file
          */
         groupPerm: func -> Int {
-            // FIXME stub
+            // Win32 permissions are not unix-like
             return 0
         }
 
@@ -150,8 +150,25 @@ version(windows) {
          * @return the permissions for the others (not owner, not group)
          */
         otherPerm: func -> Int {
-            // FIXME stub
+            // Win32 permissions are not unix-like
             return 0
+        }
+
+        /**
+        * @return true if a file is executable by the current owner
+        */
+        executable?: func -> Bool {
+            // Win32 has no concept of 'executable' bit
+            false
+        }
+
+        /**
+        * set the executable bit on this file's permissions for
+        * current user, group, and other.
+        */
+       setExecutable: func (exec: Bool) -> Bool {
+            // Win32 has no concept of 'executable' bit
+            false
         }
 
         mkdir: func ~withMode (mode: Int32) -> Int {

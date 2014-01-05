@@ -103,6 +103,17 @@ File: abstract class {
      * @return the permissions for the others (not owner, not group)
      */
     otherPerm: abstract func -> Int
+    
+    /**
+     * @return true if a file is executable by the current owner
+     */
+    executable?: abstract func -> Bool
+
+    /**
+     * set the executable bit on this file's permissions for
+     * current user, group, and other.
+     */
+    setExecutable: abstract func (exec: Bool) -> Bool
 
     /**
      * @return the path of the file represented by this instance

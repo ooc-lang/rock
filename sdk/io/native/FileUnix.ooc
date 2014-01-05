@@ -56,12 +56,19 @@ version (unix || apple) {
         st_atime, st_mtime, st_ctime: extern TimeT
     }
 
-    S_ISDIR: extern func (...) -> Bool
-    S_ISREG: extern func (...) -> Bool
-    S_ISLNK: extern func (...) -> Bool
-    S_IRWXU, S_IRWXG, S_IRWXO: extern Int // constants
+    // mode masks
+    S_ISDIR: extern func (...) -> Bool // directory
+    S_ISREG: extern func (...) -> Bool // regular
+    S_ISLNK: extern func (...) -> Bool // symbolic link
+
+    // permissions masks
+    // Full, Read,    Write,   eXecute
+    S_IRWXU, S_IRUSR, S_IWUSR, S_IXUSR: extern ModeT // user
+    S_IRWXG, S_IRGRP, S_IWGRP, S_IXGRP: extern ModeT // group
+    S_IRWXO, S_IROTH, S_IWOTH, S_IXOTH: extern ModeT // other
 
     lstat: extern func (CString, FileStat*) -> Int
+    chmod: extern func (CString, ModeT) -> Int
     _mkdir: extern(mkdir) func (CString, ModeT) -> Int
     _mkfifo: extern(mkfifo) func (CString, ModeT) -> Int
     remove: extern func (path: CString) -> Int
@@ -160,6 +167,37 @@ version (unix || apple) {
                 case 0 => (result st_mode & S_IRWXO) as Int
                 case => -1
             }
+        }
+
+        /**
+         * @return true if a file is executable by the current owner
+         */
+        executable?: func -> Bool {
+            result: FileStat
+            res := lstat(path as CString, result&)
+            match res {
+                case 0 => (result st_mode & S_IXUSR) != 0
+                case => false
+            }
+        }
+
+        /**
+         * set the executable bit on this file's permissions for
+         * current user, group, and other.
+         */
+       setExecutable: func (exec: Bool) -> Bool {
+            result: FileStat
+            res := lstat(path as CString, result&)
+            if (res != 0) return false // couldn't get file mode
+
+            mode := result st_mode
+            if (exec) {
+                mode |=  (S_IXUSR | S_IXGRP | S_IXOTH)
+            } else {
+                mode &= ~(S_IXUSR | S_IXGRP | S_IXOTH)
+            }
+
+            chmod(path as CString, mode) == 0
         }
 
         /**
