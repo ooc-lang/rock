@@ -8,6 +8,7 @@ import text/StringTokenizer
 import Help, Token, BuildParams, AstBuilder, PathList, Target
 import rock/frontend/drivers/[Driver, SequenceDriver, MakeDriver, DummyDriver, CCompiler, AndroidDriver]
 import rock/backend/json/JSONGenerator
+import rock/backend/lua/LuaGenerator
 import rock/middle/[Module, Import, UseDef]
 import rock/middle/tinker/Tinkerer
 import rock/middle/algo/ImportClassifier
@@ -70,7 +71,7 @@ CommandLine: class {
                     if(!longOption) warnUseLong("backend")
                     params backend = arg substring(arg indexOf('=') + 1)
 
-                    if(params backend != "c" && params backend != "json") {
+                    if(params backend != "c" && params backend != "json" && params backend != "lua") {
                         "Unknown backend: %s." format(params backend) println()
                         params backend = "c"
                     }
@@ -691,6 +692,12 @@ CommandLine: class {
             params clean = false // -backend=json implies -noclean
             for(candidate in module collectDeps()) {
                 JSONGenerator new(params, candidate) write() .close()
+            }
+        } else if(params backend == "lua") {
+            // generate lua stuff!
+            params clean = false // -backend=json implies -noclean
+            for(candidate in module collectDeps()) {
+                LuaGenerator new(params, candidate) write() .close()
             }
         }
 
