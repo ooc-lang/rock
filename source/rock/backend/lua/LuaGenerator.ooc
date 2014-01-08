@@ -20,19 +20,30 @@ import ../../backend/cnaughty/[FunctionDeclWriter, Skeleton, AwesomeWriter, CGen
 LuaGenerator: class extends CGenerator {
 
     outFile: File
-    cdecl, bind, types, imports: Buffer
-    cdeclWriter, bindWriter, typesWriter, importsWriter: AwesomeWriter
+    funcs, bind, types, imports: Buffer
+    funcsWriter, bindWriter, typesWriter, importsWriter: AwesomeWriter
 
     init: func (=params, =module) {
         outFile = File new(params outPath getPath(), module getPath(".lua"))
         outFile parent mkdirs()
 
-        cdecl = Buffer new()
-        cdeclWriter = AwesomeWriter new(this, BufferWriter new(cdecl))
-        cdeclWriter tab(). nl()
-
         types = Buffer new()
         typesWriter = AwesomeWriter new(this, BufferWriter new(types))
+        typesWriter app("_typesdeclared = false"). nl().
+                    app("function _module.declare_types()"). tab(). nl().
+                    app("if _typesdeclared then return end"). nl().
+                    app("_typesdeclared = true"). nl().
+                    app("howling.import_types(_imports)"). nl(). nl().
+                    app("ffi.cdef[["). nl()
+
+        funcs = Buffer new()
+        funcsWriter = AwesomeWriter new(this, BufferWriter new(funcs))
+        funcsWriter app("_funcsdeclared = false"). nl().
+                    app("function _module.declare_and_bind_funcs()"). tab(). nl().
+                    app("if _funcsdeclared then return end"). nl().
+                    app("_funcsdeclared = true"). nl().
+                    app("howling.import_funcs(_imports)"). nl(). nl().
+                    app("ffi.cdef[["). nl()
 
         bind = Buffer new()
         bindWriter = AwesomeWriter new(this, BufferWriter new(bind))
@@ -41,7 +52,7 @@ LuaGenerator: class extends CGenerator {
         imports = Buffer new()
         importsWriter = AwesomeWriter new(this, BufferWriter new(imports))
 
-        current = cdeclWriter
+        current = funcsWriter
     }
 
     write: func {
@@ -51,43 +62,33 @@ LuaGenerator: class extends CGenerator {
     /** generate now, actually. */
     close: func {
         writer := FileWriter new(outFile)
-        // write the cdecl part
-            // bind code: Add module
+        // close the types declaration
+        typesWriter app("]]"). untab(). nl().
+                    app("end"). nl(). nl()
+        // add the binds to the funcs
+        funcsWriter app("]]"). nl().
+                    app(bind toString()). untab(). nl().
+                    app("end"). nl(). nl()
+
+        // write the funcs part
         writer write("local howling = require(\"howling\")\n").
-               // howling has to know about our module as soon as possible
-               // to prevent issues with double inclusion.
                write("local _module = howling.Module:new(\"#{module getFullName()}\")\n").
                write("local ffi = require(\"ffi\")\n\n").
-               write("ffi.cdef[[\n")
-        writer write(types toString()).
-               write("]]\n\n").
                write(imports toString()).
-               write("\n").
-               write("_initialized = false\n").
-               write("function _module.init ()\n").
-               write("    if _initialized then return end\n").
-               write("    _initialized = true\n").
-               write("    for k,v in pairs(_imports) do\n").
-               write("        howling.loader:load(k).init()\n").
-               write("    end\n").  
-               write("    ffi.cdef[[\n").
-               write(cdecl toString())
-        writer write("    ]]\n\n")
-        // write the bind part
-        writer write(bind toString()).
-               write("\nend\n")
+               write(types toString()).
+               write(funcs toString())
         // and finally, return the new module.
-        writer write("\nreturn _module\n")
+        writer write("return _module\n")
         writer close()
     }
 
-    /** Write the function prototype to the cdecl buffer. */
+    /** Write the function prototype to the funcs buffer. */
     visitFunctionDecl: func (node: FunctionDecl) {
         // Skip versioned functions
         if(node getVersion())
             return
-        current = cdeclWriter
-        // cdecl: write the function prototype
+        current = funcsWriter
+        // funcs: write the function prototype
         FunctionDeclWriter writeFuncPrototype(this, node)
         current app(';') .nl()
         // bind: bind a function if it isn't a member.
@@ -123,7 +124,7 @@ LuaGenerator: class extends CGenerator {
             if(function name startsWith?("__") &&
                 function name endsWith?("__"))
                 continue;
-            // Write the cdecl code
+            // Write the funcs code
             function accept(this)
             name := function name
             if(function getSuffix())
@@ -142,7 +143,7 @@ LuaGenerator: class extends CGenerator {
             else first = false
             bindWriter app('"'). app(name). app('"')
         }
-        bindWriter untab(). nl(). app("}"). untab(). nl(). app("})"). nl()    
+        bindWriter untab(). nl(). app("}"). untab(). nl(). app("})"). nl()
     }
 
     visitCoverDecl: func (node: CoverDecl) {
@@ -179,13 +180,16 @@ LuaGenerator: class extends CGenerator {
 
     visitModule:             func (node: Module) {
         // Import the imports!
-        importsWriter app("local _imports = {}"). nl()
+        importsWriter app("local _imports = {"). tab()
+        first := true
         for(imp in module getGlobalImports()) {
+            if(!first) importsWriter app(',')
+            first = false
             imported := imp getModule()
             path := "#{imported getUseDef() identifier}:#{imported path}"
-            importsWriter app("_imports[\"#{path}\"] = howling.loader:load(\"#{path}\", true)"). nl()
+            importsWriter nl(). app("\"#{path}\"")
         }
-        importsWriter nl()
+        importsWriter untab(). nl(). app("}"). nl(). nl()
         for(function in node functions)
             function accept(this)
         for(type in node types)
