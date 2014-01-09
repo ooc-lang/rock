@@ -15,7 +15,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
     EnumDecl, OperatorDecl, InterfaceDecl, InterfaceImpl, Version, TypeList]
 
 import ../../backend/cnaughty/[FunctionDeclWriter, Skeleton, AwesomeWriter, CGenerator,
-        ClassDeclWriter, CoverDeclWriter]
+        ClassDeclWriter, CoverDeclWriter, EnumDeclWriter]
 
 LuaGenerator: class extends CGenerator {
 
@@ -29,7 +29,7 @@ LuaGenerator: class extends CGenerator {
 
         types = Buffer new()
         typesWriter = AwesomeWriter new(this, BufferWriter new(types))
-        typesWriter app("_typesdeclared = false"). nl().
+        typesWriter app("local _typesdeclared = false"). nl().
                     app("function _module.declare_types()"). tab(). nl().
                     app("if _typesdeclared then return end"). nl().
                     app("_typesdeclared = true"). nl().
@@ -38,7 +38,7 @@ LuaGenerator: class extends CGenerator {
 
         funcs = Buffer new()
         funcsWriter = AwesomeWriter new(this, BufferWriter new(funcs))
-        funcsWriter app("_funcsdeclared = false"). nl().
+        funcsWriter app("local _funcsdeclared = false"). nl().
                     app("function _module.declare_and_bind_funcs()"). tab(). nl().
                     app("if _funcsdeclared then return end"). nl().
                     app("_funcsdeclared = true"). nl().
@@ -82,11 +82,19 @@ LuaGenerator: class extends CGenerator {
         writer close()
     }
 
-    /** Write the function prototype to the funcs buffer. */
-    visitFunctionDecl: func (node: FunctionDecl) {
+    shouldBindFunction: func (node: FunctionDecl) -> Bool {
         // Skip versioned functions
         if(node getVersion())
-            return
+            return false
+        // We could probably load extern functions, but let's not do that. (TODO?)
+        if(node isExtern())
+            return false
+        return true
+    }
+
+    /** Write the function prototype to the funcs buffer. */
+    visitFunctionDecl: func (node: FunctionDecl) {
+        if(!shouldBindFunction(node)) return
         current = funcsWriter
         // funcs: write the function prototype
         FunctionDeclWriter writeFuncPrototype(this, node)
@@ -123,7 +131,8 @@ LuaGenerator: class extends CGenerator {
             // Ignore __...__ functions (TODO?)
             if(function name startsWith?("__") &&
                 function name endsWith?("__"))
-                continue;
+                continue
+            if(!shouldBindFunction(function)) continue
             // Write the funcs code
             function accept(this)
             name := function name
@@ -154,7 +163,14 @@ LuaGenerator: class extends CGenerator {
         current = typesWriter
         CoverDeclWriter writeTypedef(this, node)
         typesWriter nl()
-        generateClasslike(node)
+        // Some types can't be bound. (That is, primitive types!)
+        /*from_ := node getFromType()
+        if(from_ && !from_ instanceOf?(SugarType))
+            return
+        // Also, extern covers.
+        if(node isExtern())
+            return
+        generateClasslike(node)*/
     }
 
 
@@ -163,7 +179,10 @@ LuaGenerator: class extends CGenerator {
     }
 
     visitEnumDecl: func (node: EnumDecl) {
-
+        // Enums are "wrapped" by typedef'ing them to int, for now. TODO.
+        if(!node isExtern()) {
+            typesWriter app("typedef int "). app(node underName()). app(';'). nl()
+        }
     }
 
     visitOperatorDecl: func (node: OperatorDecl) {
