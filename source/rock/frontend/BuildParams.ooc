@@ -47,6 +47,9 @@ BuildParams: class {
         doTargetSpecific()
     }
 
+    // handle with care.
+    init: func ~empty
+
     findDist: func (execName: String) {
         // specified by command-line?
         if(distLocation) return

@@ -7,7 +7,7 @@ import structs/[List, ArrayList, HashMap]
 import Driver, SequenceDriver, CCompiler, Flags, SourceFolder
 
 import rock/frontend/[BuildParams, Target]
-import rock/middle/Module
+import rock/middle/[Module, UseDef]
 import rock/backend/cnaughty/CGenerator
 
 /**
@@ -218,6 +218,14 @@ MakeDriver: class extends SequenceDriver {
         }
         fW write("\n\n")
 
+        for (useDef in flags uses) {
+            "Handling useDef %s" printfln(useDef name)
+
+            fW write("ifeq ($(UNIARCH),linux)\n")
+            writeUseDef(fW, useDef getPropertiesForTarget(Target LINUX))
+            fW write("endif # linux usedef flags\n")
+        }
+
         fW write("LDFLAGS+= $(PKG_LDFLAGS) -L${ROCK_DIST}/libs/${ARCH} -L$(PREFIX)/lib -L/usr/pkg/lib")
 
         for(dynamicLib in params dynamicLibs) {
@@ -240,11 +248,6 @@ MakeDriver: class extends SequenceDriver {
             fW write(" ${GC_PATH}")
         }
         fW write("\n\n")
-
-        // workaround: Linux needs -ldl because of os/Dynlib
-        fW write("ifeq ($(UNIARCH), linux)\n")
-        fW write("LDFLAGS += -ldl\n")
-        fW write("endif\n")
 
         fW write("EXECUTABLE=")
         if(params binaryPath != "") {
@@ -339,6 +342,14 @@ MakeDriver: class extends SequenceDriver {
 
         return 0
 
+    }
+
+    writeUseDef: func (fW: FileWriter, props: UseProperties) {
+        fW write("LDFLAGS += ")
+        for (lib in props libs) {
+            fW write(lib). write(" ")
+        }
+        fW write("\n")
     }
 
 }

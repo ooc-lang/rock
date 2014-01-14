@@ -152,7 +152,7 @@ UseDef: class {
         if (binarypath) {
             params binaryPath = binarypath
         }
-        
+
         for (path in oocLibPaths) {
             params libsPaths add(path)
         }
@@ -431,6 +431,17 @@ UseDef: class {
                 _relevantProperties merge!(p)
             )
         }
+
+        _relevantProperties
+    }
+
+    getPropertiesForTarget: func ~forTarget (target: Int) -> UseProperties {
+        _relevantProperties = UseProperties new(this, UseVersion new(this))
+        params := BuildParams new()
+        params target = target
+        properties filter(|p| p useVersion satisfied?(params)) each(|p|
+            _relevantProperties merge!(p)
+        )
 
         _relevantProperties
     }

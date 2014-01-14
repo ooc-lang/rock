@@ -107,6 +107,13 @@ Flags: class {
         }
         uses add(useDef)
 
+        if (!doTargetSpecific) {
+            // beyond this point, we have to do target-specific stuff
+            // like call pkg-config, define which properties in version
+            // blocks are 'relevant' and stuff - and we don't want to do that.
+            return
+        }
+
         props := useDef getRelevantProperties(params)
 
         for (lib in props libs) {
