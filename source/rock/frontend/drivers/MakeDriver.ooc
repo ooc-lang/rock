@@ -22,7 +22,7 @@ MakeDriver: class extends SequenceDriver {
 
     // build/Makefile
     makefile: File
-    
+
     // Original output path (e.g. "rock_tmp")
     originalOutPath: File
 
@@ -234,7 +234,7 @@ MakeDriver: class extends SequenceDriver {
             for (additional in props additionals) {
                 cPath := File new(File new(originalOutPath, uze identifier), additional relative) path
                 oPath := "%s.o" format(cPath[0..-3])
-                
+
                 if (params verbose) {
                     "cPath = %s" printfln(cPath)
                     "oPath = %s" printfln(oPath)

@@ -34,7 +34,7 @@ PkgConfigFrontend: class {
         utilPath := ShellUtils findExecutable(utilName, true) getPath()
 
         cflags := ""
-        
+
         for (cflagArg in cflagArgs) {
             cflagslist := [utilPath] as ArrayList<String>
             cflagslist addAll(pkgs)
@@ -49,7 +49,7 @@ PkgConfigFrontend: class {
         }
 
         libs := ""
-        
+
         for (libsArg in libsArgs) {
             libslist := [utilPath] as ArrayList<String>
             libslist addAll(pkgs)
@@ -68,7 +68,7 @@ PkgConfigFrontend: class {
     _shell: static func (command: ArrayList<String>) -> String {
         try {
             (output, exitCode) := Process new(command) getOutput()
-        
+
             if (exitCode != 0) {
                 ProcessException new(This, "Couldn't execute a pkg-config like utility")
             }
