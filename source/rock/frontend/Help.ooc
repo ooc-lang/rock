@@ -22,9 +22,10 @@ or a library (if it only has a 'SourcePath: something' directive)
     the first one. The reason this is optional is because the output of
     allerrors is sometimes not so helpful. You might want to pipe it to less :)
 
---backend=[c]
-    Choose the rock backend. Currently, only the default backend c is
-    supported.
+--backend=[c,json,luaffi]
+    Choose the rock backend. By default, the 'c' backend is used. 'json'
+    generates a JSON representation of the AST, and 'luaffi' generate .lua
+    boilerplate to help using ooc module from Lua with ooc-lua.
 
 -c
     Don't link.
