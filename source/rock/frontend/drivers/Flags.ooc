@@ -43,6 +43,9 @@ Flags: class {
 
     customPkgCache := static HashMap<CustomPkg, PkgInfo> new()
 
+    // pkgs
+    pkgs := HashMap<String, String> new()
+
     // flags
     compilerFlags := ArrayList<String> new()
     premainFlags := ArrayList<String> new()
@@ -119,6 +122,9 @@ Flags: class {
 
         // handle pkg-config packages
         for(pkg in props pkgs) {
+            if (!pkgs contains?(pkg)) {
+                pkgs put(pkg, pkg)
+            }
             absorb(PkgConfigFrontend getInfo(pkg), useDef)
         }
 
