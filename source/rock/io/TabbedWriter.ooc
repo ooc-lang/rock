@@ -8,6 +8,7 @@ TabbedWriter: class {
     stream: Writer
     tabLevel := 0
     tabWidth := 4
+    softTab := true
 
     init: func (=stream) { }
 
@@ -21,6 +22,14 @@ TabbedWriter: class {
 
     app: func ~str (s: String) {
         stream write(s)
+    }
+
+    write: func (s: String) {
+        stream write(s)
+    }
+
+    writeln: func (s: String) {
+        this app(s). app('\n')
     }
 
     printf: final func ~format (fmt: String, ...) {
@@ -39,7 +48,16 @@ TabbedWriter: class {
     }
 
     writeTabs: func {
-        stream write(" " times (tabLevel * tabWidth), tabLevel * tabWidth)
+        if (softTab) {
+            count := tabLevel * tabWidth
+            for (i in 0..count) {
+                stream write(" ")
+            }
+        } else {
+            for (i in 0..tabLevel) {
+                stream write("\t")
+            }
+        }
     }
 
     newUntabbedLine: func {
