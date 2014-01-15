@@ -12,25 +12,4 @@ bin-linux
 .libs*
 .sam-cache
 callgrind.out.*
-
-# This is ugly, BUT IT WORKS.
-libs/sources/.deps/
-libs/sources/Makefile
-libs/sources/bdw-gc.pc
-libs/sources/config.log
-libs/sources/config.status
-libs/sources/include/private/config.h
-libs/sources/include/private/stamp-h1
-libs/sources/libatomic_ops/Makefile
-libs/sources/libatomic_ops/config.log
-libs/sources/libatomic_ops/config.status
-libs/sources/libatomic_ops/doc/Makefile
-libs/sources/libatomic_ops/src/.deps/
-libs/sources/libatomic_ops/src/Makefile
-libs/sources/libatomic_ops/src/atomic_ops/Makefile
-libs/sources/libatomic_ops/src/atomic_ops/sysdeps/Makefile
-libs/sources/libatomic_ops/src/config.h
-libs/sources/libatomic_ops/src/stamp-h1
-libs/sources/libatomic_ops/tests/.deps/
-libs/sources/libatomic_ops/tests/Makefile
-libs/sources/libtool
+/vendor-prefix
