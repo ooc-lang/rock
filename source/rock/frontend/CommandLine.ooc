@@ -71,7 +71,7 @@ CommandLine: class {
                     if(!longOption) warnUseLong("backend")
                     params backend = arg substring(arg indexOf('=') + 1)
 
-                    if(params backend != "c" && params backend != "json" && params backend != "lua") {
+                    if(params backend != "c" && params backend != "json" && params backend != "luaffi") {
                         "Unknown backend: %s." format(params backend) println()
                         params backend = "c"
                     }
@@ -689,13 +689,13 @@ CommandLine: class {
             }
         } else if(params backend == "json") {
             // json phase 3: generate.
-            params clean = false // -backend=json implies -noclean
+            params clean = false // --backend=json implies -noclean
             for(candidate in module collectDeps()) {
                 JSONGenerator new(params, candidate) write() .close()
             }
-        } else if(params backend == "lua") {
+        } else if(params backend == "luaffi") {
             // generate lua stuff!
-            params clean = false // -backend=json implies -noclean
+            params clean = false // --backend=luaffi implies -noclean
             for(candidate in module collectDeps()) {
                 LuaGenerator new(params, candidate) write() .close()
             }

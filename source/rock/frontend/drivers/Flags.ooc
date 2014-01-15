@@ -233,28 +233,25 @@ Flags: class {
             addCompilerFlag(compilerArg)
         }
 
+        // 32 or 64 ?
+        arch := params getArch()
+        match arch {
+            case "32" =>
+                addCompilerFlag("-m32")
+            case "64" =>
+                addCompilerFlag("-m64")
+        }
+
         if(params enableGC) {
-            libsHeaders := File new(params distLocation, "libs/headers/") getPath()
-            addCompilerFlag("-I" + libsHeaders)
+            vendorInclude := File join(params distLocation, "vendor-prefix", "include")
+            addCompilerFlag("-I" + vendorInclude)
+
+            vendorLib := File join(params distLocation, "vendor-prefix", "lib")
+            addLinkerFlag("-L" + vendorLib)
+
+            addLinkerFlag("-lgc")
 
             target := params target
-            arch := params getArch()
-            match arch {
-                case "32" =>
-                    addCompilerFlag("-m32")
-                case "64" =>
-                    addCompilerFlag("-m64")
-            }
-
-            libsNativeDir := File new(params distLocation, "libs/%s/" format(Target toString(target, arch))) getPath()
-            addLinkerFlag("-L" + libsNativeDir)
-
-            if(params dynGC) {
-                addLinkerFlag("-lgc")
-            } else {
-                libPath := "libs/" + Target toString(target, arch) + "/libgc.a"
-                addLinkerFlag(File new(params distLocation, libPath) path)
-            }
 
             match target {
                 case Target WIN =>
