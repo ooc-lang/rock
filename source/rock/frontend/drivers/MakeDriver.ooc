@@ -173,8 +173,6 @@ MakefileWriter: class {
 
     writeArchDetect: func {
         tw writeln("# system / arch detection")
-        tw writeln("SYSTEM:=$(SYSTEM)")
-        tw writeln("ARCH:=$(ARCH)")
         tw writeln("CROSS_TOKENS:=$(subst -, ,$(CROSS))")
         tw nl()
 
@@ -280,10 +278,6 @@ MakefileWriter: class {
     }
 
     writeFlags: func {
-        tw writeln("CFLAGS :=$(CFLAGS)")
-        tw writeln("LDFLAGS:=$(LDFLAGS)")
-        tw nl()
-
         tw writeln("ifeq ($(ARCH),64)")
         tw writeln("  CFLAGS+=-m64")
         tw writeln("else ifeq ($(ARCH),32)")
@@ -291,13 +285,13 @@ MakefileWriter: class {
         tw writeln("endif # arch -> -m option")
         tw nl()
 
-        tw write("CFLAGS+= $(PKG_CFLAGS) -I$(PREFIX)/include -I/usr/pkg/include $(DEBUG_FLAGS)")
+        tw write("CFLAGS+= -I$(PREFIX)/include -I/usr/pkg/include $(DEBUG_FLAGS)")
         for (flag in flags compilerFlags) {
             tw write(" "). write(flag)
         }
         tw nl(). nl()
 
-        tw write("LDFLAGS+= $(PKG_LDFLAGS) -L$(PREFIX)/lib -L/usr/pkg/lib")
+        tw write("LDFLAGS+=-L$(PREFIX)/lib -L/usr/pkg/lib")
         for(dynamicLib in params dynamicLibs) {
             tw write(" -l "). write(dynamicLib)
         }
@@ -308,14 +302,6 @@ MakefileWriter: class {
 
         for(linkerFlag in flags linkerFlags) {
             tw write(" "). write(linkerFlag)
-        }
-
-        if(params enableGC) {
-            // disregard dyngc vs staticgc - that's up to the build env to
-            // decide, and it's determined from platform detection.
-            arch := params arch equals?("") ? Target getArch() : params arch
-            Target toString(arch)
-            tw write(" -lgc")
         }
         tw nl(). nl()
 
@@ -331,6 +317,11 @@ MakefileWriter: class {
             }
             tw write("endif # "). write(name). write(" usedef flags"). nl(). nl()
         )
+
+        if(params enableGC) {
+            tw writeln("LDFLAGS+=-lgc")
+            tw nl()
+        }
     }
 
     writeUseDef: func (props: UseProperties) {
@@ -370,6 +361,26 @@ MakefileWriter: class {
             tw write("PKGS+="). write(name). nl()
             tw write("CFLAGS +=$(strip $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) "). write(name). write(" --cflags)) "). nl()
             tw write("LDFLAGS+=$(strip $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) "). write(name). write(" --libs)) "). nl()
+        )
+
+        props customPkgs each(|customPkg|
+            tw write("CFLAGS +=$(strip $(shell PATH=$(PREFIX)/bin:$PATH "). write(customPkg utilName)
+            for (name in customPkg names) {
+                tw write(" "). write(name)
+            }
+            for (arg in customPkg cflagArgs) {
+                tw write(" "). write(arg)
+            }
+            tw write("))"). nl()
+
+            tw write("LDFLAGS +=$(strip $(shell PATH=$(PREFIX)/bin:$PATH "). write(customPkg utilName)
+            for (name in customPkg names) {
+                tw write(" "). write(name)
+            }
+            for (arg in customPkg libsArgs) {
+                tw write(" "). write(arg)
+            }
+            tw write("))"). nl()
         )
     }
 
@@ -437,7 +448,7 @@ MakefileWriter: class {
         tw nl()
 
         tw writeln("link: $(OBJECT_FILES)")
-        tw writeln("\t$(GCC) $(CFLAGS) $(OBJECT_FILES) $(LDFLAGS) -o $(EXECUTABLE) $(THREAD_FLAGS)")
+        tw writeln("\t$(GCC) $(CFLAGS) $(OBJECT_FILES) -o $(EXECUTABLE) $(THREAD_FLAGS) $(LDFLAGS)")
         tw nl()
 
         tw writeln("clean:")
