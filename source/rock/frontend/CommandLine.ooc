@@ -24,6 +24,7 @@ system: extern func (command: CString)
 CommandLine: class {
 
     params: BuildParams
+    mainUseDef: UseDef
 
     init: func(args : ArrayList<String>) {
 
@@ -545,6 +546,7 @@ CommandLine: class {
         // extract '.use' from use file
         identifier := uzeFile name[0..-5]
         uze := UseDef new(identifier)
+        mainUseDef = uze
         uze read(uzeFile, params)
         if(uze main) {
             // compile as a program
@@ -685,6 +687,20 @@ CommandLine: class {
                     if(params shout) {
                         failure()
                     }
+                }
+            }
+
+            if (mainUseDef && mainUseDef luaBindings) {
+                // generate lua stuff!
+                params clean = false // --backend=luaffi implies -noclean
+                params outPath = File new(mainUseDef file parent, mainUseDef luaBindings) getAbsoluteFile()
+
+                if (params verbose) {
+                    "Writing lua bindings to #{params outPath path}" println()
+                }
+
+                for(candidate in module collectDeps()) {
+                    LuaGenerator new(params, candidate) write() .close()
                 }
             }
         } else if(params backend == "json") {

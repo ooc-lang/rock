@@ -62,6 +62,7 @@ UseDef: class {
     linker:        String { get set }
     main:          String { get set }
     binarypath:    String { get set }
+    luaBindings:   String { get set }
 
     imports             : ArrayList<String> { get set }
     preMains            : ArrayList<String> { get set }
@@ -415,6 +416,8 @@ UseDef: class {
                 if (!main endsWith?(".ooc")) {
                     main = "%s.ooc" format(main)
                 }
+            } else if (id == "LuaBindings") {
+                luaBindings = value
             } else if (!id empty?()) {
                 "Unknown key in %s: %s" format(file getPath(), id) println()
             }
