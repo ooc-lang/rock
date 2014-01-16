@@ -84,27 +84,44 @@ LuaGenerator: class extends CGenerator {
 
     shouldBindFunction: func (node: FunctionDecl) -> Bool {
         // Skip versioned functions
-        if(node getVersion())
+        if (node getVersion()) {
             return false
+        }
+
         // We could probably load extern functions, but let's not do that. (TODO?)
-        if(node isExtern())
+        if (node isExtern()) {
             return false
+        }
+
         // Skip main
-        if(node isEntryPoint())
+        if (node isEntryPoint()) {
             return false
+        }
+
+        // Ignore closures
+        if (node fromClosure) {
+            return false
+        }
+
+        // Ignore __...__ functions
+        if (node name startsWith?("__") &&
+            node name endsWith?("__")) {
+            return false
+        }
+
         return true
     }
 
     /** Write the function prototype to the funcs buffer. */
     visitFunctionDecl: func (node: FunctionDecl) {
-        if(!shouldBindFunction(node)) return
+        if (!shouldBindFunction(node)) return
         current = funcsWriter
         // funcs: write the function prototype
         FunctionDeclWriter writeFuncPrototype(this, node)
         current app(';') .nl()
         // bind: bind a function if it isn't a member.
         // if it is a member, `visitClassDecl` does the binding.
-        if(!node isMember()) {
+        if (!node isMember()) {
             current = bindWriter
             bindWriter app("_module:func(\"")
             FunctionDeclWriter writeSuffixedName(this, node)
@@ -114,9 +131,9 @@ LuaGenerator: class extends CGenerator {
 
     visitClassDecl: func (node: ClassDecl) {
         // Skip versioned classes
-        if(node getVersion())
+        if (node getVersion())
             return
-        if(node isMeta)
+        if (node isMeta)
             return
         // write the struct typedefs to `types` (makes them opaque, but that
         // should be enough for now)
@@ -130,28 +147,26 @@ LuaGenerator: class extends CGenerator {
     generateClasslike: func (node: TypeDecl) {
         // Collect all functions to bind them.
         functions := ArrayList<String> new()
-        for(function in node meta functions) {
-            // Ignore __...__ functions (TODO?)
-            if(function name startsWith?("__") &&
-                function name endsWith?("__"))
+        for (function in node meta functions) {
+            // Ignore functions we should not bind
+            if (!shouldBindFunction(function)) {
                 continue
-            if(!shouldBindFunction(function)) continue
+            }
+
             // Write the funcs code
             function accept(this)
             name := function name
-            if(function getSuffix())
+            if (function getSuffix())
                 name = "%s_%s" format(name, function getSuffix())
             functions add(name)
         }
-        // Skip closures
-        if(node name startsWith?("_") && node name endsWith?("_ctx"))
-            return
+
         // Write the bind code.
         bindWriter app("local _class = _module:class(\"#{node name}\", {"). tab(). nl().
                    app("functions = {"). tab(). nl()
         first := true
-        for(name in functions) {
-            if(!first) bindWriter app(','). nl()
+        for (name in functions) {
+            if (!first) bindWriter app(','). nl()
             else first = false
             bindWriter app('"'). app(name). app('"')
         }
@@ -160,16 +175,16 @@ LuaGenerator: class extends CGenerator {
 
     visitCoverDecl: func (node: CoverDecl) {
         // Skip versioned classes
-        if(node getVersion())
+        if (node getVersion())
             return
         // Write the typedef to `types`
         current = typesWriter
         // if we are binding an extern type, // we need an opaque type definition as well.
         // but let's assume that SDK definitions don't need that. (TODO)
-        if(node fromType) {
+        if (node fromType) {
             fromName := node fromType getName()
             // we don't need an opaque type if we're covering structs or unions
-            if(!(fromName startsWith?("struct ") || fromName startsWith?("union") ||
+            if (!(fromName startsWith?("struct ") || fromName startsWith?("union") ||
                 module getUseDef() identifier == "sdk")) {
                 typesWriter app("typedef struct ___#{fromName} #{fromName};"). nl()
             }
@@ -178,10 +193,10 @@ LuaGenerator: class extends CGenerator {
         typesWriter nl()
         // Some types can't be bound. (That is, primitive types!)
         /*from_ := node getFromType()
-        if(from_ && !from_ instanceOf?(SugarType))
+        if (from_ && !from_ instanceOf?(SugarType))
             return
         // Also, extern covers.
-        if(node isExtern())
+        if (node isExtern())
             return
         generateClasslike(node)*/
     }
@@ -193,7 +208,7 @@ LuaGenerator: class extends CGenerator {
 
     visitEnumDecl: func (node: EnumDecl) {
         // Enums are "wrapped" by typedef'ing them to int, for now. TODO.
-        if(!node isExtern()) {
+        if (!node isExtern()) {
             typesWriter app("typedef int "). app(node underName()). app(';'). nl()
         }
     }
@@ -210,28 +225,35 @@ LuaGenerator: class extends CGenerator {
 
     }
 
-    visitModule:             func (node: Module) {
+    visitModule: func (node: Module) {
         // Import the imports!
         importsWriter app("local _imports = {"). tab()
         first := true
-        for(imp in module getGlobalImports()) {
-            if(!first) importsWriter app(',')
+        for (imp in module getGlobalImports()) {
+            if (!first) importsWriter app(',')
             first = false
             imported := imp getModule()
             path := "#{imported getUseDef() identifier}:#{imported path}"
             importsWriter nl(). app("\"#{path}\"")
         }
+
         importsWriter untab(). nl(). app("}"). nl(). nl()
-        for(function in node functions)
+
+        for (function in node functions) {
             function accept(this)
-        for(type in node types)
+        }
+
+        for (type in node types) {
             type accept(this)
-        for(op in node operators) {
+        }
+
+        for (op in node operators) {
             visitOperatorDecl(op)
         }
-        // TODO: Don't write global variables (yet)
-/*        for(child in node body)
-            if(child instanceOf?(VariableDecl))
+
+        // TODO: Write global variables at some point?
+/*        for (child in node body)
+            if (child instanceOf?(VariableDecl))
                 child accept(this)*/
     }
 }

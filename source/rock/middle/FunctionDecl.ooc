@@ -116,6 +116,7 @@ FunctionDecl: class extends Declaration {
     partialByReference := ArrayList<VariableDecl> new()
     partialByValue := ArrayList<VariableDecl> new()
     clsAccesses := ArrayList<VariableAccess> new()
+    fromClosure := false
     _unwrappedClosure := false
     _unwrappedACS := false
 
@@ -169,6 +170,8 @@ FunctionDecl: class extends Declaration {
         copy context = context
         copy owner = owner
         copy verzion = verzion
+
+        copy fromClosure = fromClosure
 
         args each(|e|
             copy args add(e clone())
@@ -593,6 +596,8 @@ FunctionDecl: class extends Declaration {
         isClosure := name empty?()
 
         if (isClosure) {
+            fromClosure = true
+
             //if (!_unwrappedACS && !argumentsReady()) {
             if (!_unwrappedACS) {
                 if (!unwrapACS(trail, res)) {
@@ -1053,6 +1058,7 @@ FunctionDecl: class extends Declaration {
             trail addBeforeInScope(this, closureDecl)
 
             thunk := FunctionDecl new(getName() + "_thunk", token)
+            thunk fromClosure = true
             thunk typeArgs addAll(typeArgs)
             thunk args addAll(args)
             thunk returnType = returnType
