@@ -388,6 +388,7 @@ MakefileWriter: class {
     }
 
     writeExecutable: func {
+        tw writeln("ifeq ($(EXECUTABLE),)")
         tw write("EXECUTABLE:=")
         if(params binaryPath != "") {
             tw write(params binaryPath)
@@ -399,6 +400,7 @@ MakefileWriter: class {
         tw writeln("ifeq ($(SYSTEM),win)")
         tw writeln("EXECUTABLE:=$(EXECUTABLE).exe")
         tw writeln("endif")
+        tw writeln("endif # has to determine executable")
         tw nl()
     }
 
