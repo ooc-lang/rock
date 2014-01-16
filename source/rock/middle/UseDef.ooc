@@ -68,6 +68,7 @@ UseDef: class {
     androidLibs         : ArrayList<String> { get set }
     androidIncludePaths : ArrayList<String> { get set }
     oocLibPaths         : ArrayList<File> { get set }
+    requirements        : ArrayList<Requirement> { get set }
 
     properties := ArrayList<UseProperties> new()
     versionStack := Stack<UseProperties> new()
@@ -81,6 +82,7 @@ UseDef: class {
         androidLibs         = ArrayList<String> new()
         androidIncludePaths = ArrayList<String> new()
         oocLibPaths         = ArrayList<File> new()
+        requirements        = ArrayList<Requirement> new()
     }
 
     parse: static func (identifier: String, params: BuildParams) -> UseDef {
@@ -98,8 +100,7 @@ UseDef: class {
             This cache put(identifier, cached)
 
             // parse requirements, if any
-            props := cached getRelevantProperties(params)
-            for (req in props requirements) {
+            for (req in cached requirements) {
                 req useDef = This parse(req name, params)
             }
         }
@@ -393,7 +394,7 @@ UseDef: class {
                 }
             } else if (id == "Requires") {
                 for (req in value split(',')) {
-                    current requirements add(Requirement new(req trim(), "0"))
+                    requirements add(Requirement new(req trim(), "0"))
                 }
             } else if (id == "SourcePath") {
                 if (sourcePath) {
@@ -460,8 +461,6 @@ UseProperties: class {
     libPaths            : ArrayList<String> { get set }
     libs                : ArrayList<String> { get set }
 
-    requirements        : ArrayList<Requirement> { get set }
-
     init: func (=useDef, =useVersion) {
         pkgs                = ArrayList<String> new()
         customPkgs          = ArrayList<CustomPkg> new()
@@ -471,8 +470,6 @@ UseProperties: class {
         includes            = ArrayList<String> new()
         libPaths            = ArrayList<String> new()
         libs                = ArrayList<String> new()
-
-        requirements        = ArrayList<Requirement> new()
     }
 
     merge!: func (other: This) -> This {

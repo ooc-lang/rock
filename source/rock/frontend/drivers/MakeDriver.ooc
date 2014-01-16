@@ -89,6 +89,10 @@ MakeDriver: class extends SequenceDriver {
         for (sourceFolder in sourceFolders) {
             flags absorb(sourceFolder)
         }
+
+        for (module in toCompile) {
+            flags absorb(module)
+        }
         params libcache = false
 
         // do the actual writing
@@ -121,10 +125,10 @@ MakefileWriter: class {
         writePrelude()
         writeCC()
         writePrefix()
-        writePkgConfig()
         writeArchDetect()
         writeThreadFlags()
         writeDebugFlags()
+        writePkgConfig()
         writeFlags()
         writeExecutable()
         writeObjectFiles()
@@ -163,18 +167,8 @@ MakefileWriter: class {
         tw writeln("endif")
 
         tw writeln("PKG_CONFIG?=pkg-config")
-        tw write("PKGS := ")
-        flags pkgs each(|name, value|
-            tw write(name). write(" ")
-        )
-        tw nl(). nl()
 
-        tw write("PKG_CFLAGS :=\n")
-        tw write("PKG_LDFLAGS :=\n")
-        flags pkgs each(|name, value|
-            tw write("PKG_CFLAGS  += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) "). write(name). write(" --cflags)\n")
-            tw write("PKG_LDFLAGS += $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) "). write(name). write(" --libs)\n")
-        )
+        tw writeln("PKGS:=")
     }
 
     writeArchDetect: func {
@@ -275,12 +269,12 @@ MakefileWriter: class {
         tw writeln("DEBUG_BUILD?=1")
 
         tw writeln("ifneq ($(strip $(DEBUG_BUILD)),)")
-        tw writeln("DEBUG_FLAGS+= -g")
-        tw writeln("ifeq ($(SYSTEM),osx)")
-        tw writeln("DEBUG_FLAGS+= -fno-pie")
-        tw writeln("else ifeq ($(SYSTEM),linux)")
-        tw writeln("DEBUG_FLAGS+= -rdynamic")
-        tw writeln("endif")
+        tw writeln("  DEBUG_FLAGS+= -g")
+        tw writeln("  ifeq ($(SYSTEM),osx)")
+        tw writeln("    DEBUG_FLAGS+= -fno-pie")
+        tw writeln("  else ifeq ($(SYSTEM),linux)")
+        tw writeln("    DEBUG_FLAGS+= -rdynamic")
+        tw writeln("  endif")
         tw writeln("endif")
         tw nl()
     }
@@ -288,6 +282,14 @@ MakefileWriter: class {
     writeFlags: func {
         tw writeln("CFLAGS :=$(CFLAGS)")
         tw writeln("LDFLAGS:=$(LDFLAGS)")
+        tw nl()
+
+        tw writeln("ifeq ($(ARCH),64)")
+        tw writeln("  CFLAGS+=-m64")
+        tw writeln("else ifeq ($(ARCH),32)")
+        tw writeln("  CFLAGS+=-m32")
+        tw writeln("endif # arch -> -m option")
+        tw nl()
 
         tw write("CFLAGS+= $(PKG_CFLAGS) -I$(PREFIX)/include -I/usr/pkg/include $(DEBUG_FLAGS)")
         for (flag in flags compilerFlags) {
@@ -327,25 +329,62 @@ MakefileWriter: class {
             for (useDef in flags uses) {
                 writeUseDef(useDef getPropertiesForTarget(target))
             }
-            tw writeln("endif # linux usedef flags\n")
+            tw write("endif # "). write(name). write(" usedef flags"). nl(). nl()
         )
     }
 
     writeUseDef: func (props: UseProperties) {
-        tw write("LDFLAGS += ")
-        for (lib in props libs) {
-            tw write(lib). write(" ")
+        // cflags
+        cflags  := ArrayList<String> new()
+        for (path in props includePaths) {
+            cflags add("-I" + path)
         }
-        tw nl()
+
+        if (!cflags empty?()) {
+            tw write("CFLAGS += ")
+            for (flag in cflags) {
+                tw write(flag). write(" ")
+            }
+            tw nl()
+        }
+
+        // ldflags
+        ldflags := ArrayList<String> new()
+        ldflags addAll(props libs)
+        for (path in props libPaths) {
+            ldflags add("-L" + path)
+        }
+        for (framework in props frameworks) {
+            ldflags add("-Wl,-framework," + framework)
+        }
+
+        if (!ldflags empty?()) {
+            tw write("LDFLAGS += ")
+            for (flag in ldflags) {
+                tw write(flag). write(" ")
+            }
+            tw nl()
+        }
+
+        props pkgs each(|name, value|
+            tw write("PKGS+="). write(name). nl()
+            tw write("CFLAGS +=$(strip $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) "). write(name). write(" --cflags)) "). nl()
+            tw write("LDFLAGS+=$(strip $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) $(PKG_CONFIG) "). write(name). write(" --libs)) "). nl()
+        )
     }
 
     writeExecutable: func {
-        tw write("EXECUTABLE=")
+        tw write("EXECUTABLE:=")
         if(params binaryPath != "") {
             tw write(params binaryPath)
         } else {
             tw write(module simpleName)
         }
+        tw nl()
+
+        tw writeln("ifeq ($(SYSTEM),win)")
+        tw writeln("EXECUTABLE:=$(EXECUTABLE).exe")
+        tw writeln("endif")
         tw nl()
     }
 
