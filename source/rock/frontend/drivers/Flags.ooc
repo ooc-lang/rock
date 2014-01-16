@@ -107,6 +107,11 @@ Flags: class {
         }
         uses add(useDef)
 
+        // .use file dependencies
+        for(req in useDef requirements) {
+            absorb(req useDef)
+        }
+
         if (!doTargetSpecific) {
             // beyond this point, we have to do target-specific stuff
             // like call pkg-config, define which properties in version
@@ -158,11 +163,6 @@ Flags: class {
         // library paths
         for(libPath in props libPaths) {
             addLinkerFlag("-L" + libPath)
-        }
-
-        // .use file dependenceis
-        for(req in props requirements) {
-            absorb(req useDef)
         }
 
     }
@@ -233,13 +233,15 @@ Flags: class {
             addCompilerFlag(compilerArg)
         }
 
-        // 32 or 64 ?
-        arch := params getArch()
-        match arch {
-            case "32" =>
-                addCompilerFlag("-m32")
-            case "64" =>
-                addCompilerFlag("-m64")
+        if (doTargetSpecific) {
+            // 32 or 64 ?
+            arch := params getArch()
+            match arch {
+                case "32" =>
+                    addCompilerFlag("-m32")
+                case "64" =>
+                    addCompilerFlag("-m64")
+            }
         }
 
         if(params enableGC) {
