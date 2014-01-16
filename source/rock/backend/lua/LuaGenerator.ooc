@@ -175,8 +175,15 @@ LuaGenerator: class extends CGenerator {
 
     visitCoverDecl: func (node: CoverDecl) {
         // Skip versioned classes
-        if (node getVersion())
+        if (node getVersion()) {
             return
+        }
+
+        // Skip extern covers
+        if (node isExtern()) {
+            return
+        }
+
         // Write the typedef to `types`
         current = typesWriter
         // if we are binding an extern type, // we need an opaque type definition as well.
