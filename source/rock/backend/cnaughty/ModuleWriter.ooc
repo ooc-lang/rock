@@ -302,13 +302,26 @@ ModuleWriter: abstract class extends Skeleton {
             }
         }
 
-        current nl(). app("#include <")
+        current nl(). app("#include ")
+        match (inc mode) {
+            case IncludeMode MACRO =>
+                // muffin to do.
+            case => 
+                current app("<")
+        }
 
         if (inc mode == IncludeMode LOCAL) {
             current app(inc token module getSourceFolderName()). app('/')
         }
 
-        current app(inc path). app(".h>")
+        current app(inc path)
+
+        match (inc mode) {
+            case IncludeMode MACRO =>
+                // muffin to do
+            case => 
+                current app(".h>")
+        }
 
         for(define in inc getDefines()) {
             current nl(). app("#undef "). app(define name)
