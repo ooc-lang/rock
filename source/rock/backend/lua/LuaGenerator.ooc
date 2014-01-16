@@ -225,7 +225,8 @@ LuaGenerator: class extends CGenerator {
     }
 
     visitInterfaceDecl: func (node: InterfaceDecl) {
-
+        // write the fat type, move one with our lives.
+        node fatType accept(this)
     }
 
     visitInterfaceImpl: func (node: InterfaceImpl) {
