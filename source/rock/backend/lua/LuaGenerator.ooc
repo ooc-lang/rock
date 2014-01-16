@@ -89,6 +89,9 @@ LuaGenerator: class extends CGenerator {
         // We could probably load extern functions, but let's not do that. (TODO?)
         if(node isExtern())
             return false
+        // Skip main
+        if(node isEntryPoint())
+            return false
         return true
     }
 
@@ -161,6 +164,16 @@ LuaGenerator: class extends CGenerator {
             return
         // Write the typedef to `types`
         current = typesWriter
+        // if we are binding an extern type, // we need an opaque type definition as well.
+        // but let's assume that SDK definitions don't need that. (TODO)
+        if(node fromType) {
+            fromName := node fromType getName()
+            // we don't need an opaque type if we're covering structs or unions
+            if(!(fromName startsWith?("struct ") || fromName startsWith?("union") ||
+                module getUseDef() identifier == "sdk")) {
+                typesWriter app("typedef struct ___#{fromName} #{fromName};"). nl()
+            }
+        }
         CoverDeclWriter writeTypedef(this, node)
         typesWriter nl()
         // Some types can't be bound. (That is, primitive types!)
