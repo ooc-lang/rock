@@ -976,6 +976,7 @@ FunctionDecl: class extends Declaration {
 
             // create the context struct's cover
             ctxStruct := CoverDecl new(name + "_ctx", token)
+            ctxStruct fromClosure = true
 
             // look for versioned nodes or VersionBlocks in the trail. If we're using
             // a closure in a versioned context, we don't want the context struct to appear

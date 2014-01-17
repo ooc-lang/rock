@@ -18,6 +18,8 @@ CoverDecl: class extends TypeDecl {
 
     instances: HashMap<String, CoverDecl>
 
+    fromClosure := false
+
     init: func ~coverDeclNoSuper(.name, .token) {
         super(name, token)
     }

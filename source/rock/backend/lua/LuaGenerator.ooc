@@ -184,6 +184,11 @@ LuaGenerator: class extends CGenerator {
             return
         }
 
+        // Skip 'closure covers'
+        if (node fromClosure) {
+            return
+        }
+
         // Write the typedef to `types`
         current = typesWriter
         // if we are binding an extern type, // we need an opaque type definition as well.
