@@ -20,8 +20,8 @@ import ../../backend/cnaughty/[FunctionDeclWriter, Skeleton, AwesomeWriter, CGen
 LuaGenerator: class extends CGenerator {
 
     outFile: File
-    funcs, bind, types, imports: Buffer
-    funcsWriter, bindWriter, typesWriter, importsWriter: AwesomeWriter
+    funcs, bind, types, imports, classes: Buffer
+    funcsWriter, bindWriter, typesWriter, importsWriter, classesWriter: AwesomeWriter
 
     init: func (=params, =module) {
         outFile = File new(params outPath getPath(), module getPath(".lua"))
@@ -33,7 +33,8 @@ LuaGenerator: class extends CGenerator {
                     app("function _module.declare_types()"). tab(). nl().
                     app("if _typesdeclared then return end"). nl().
                     app("_typesdeclared = true"). nl().
-                    app("howling.import_types(_imports)"). nl(). nl().
+                    app("howling.import_types(_tight_imports)"). nl().
+                    app("howling.import_types(_loose_imports)"). nl(). nl().
                     app("ffi.cdef[["). nl()
 
         funcs = Buffer new()
@@ -42,8 +43,18 @@ LuaGenerator: class extends CGenerator {
                     app("function _module.declare_and_bind_funcs()"). tab(). nl().
                     app("if _funcsdeclared then return end"). nl().
                     app("_funcsdeclared = true"). nl().
-                    app("howling.import_funcs(_imports)"). nl(). nl().
+                    app("howling.import_funcs(_tight_imports)"). nl().
+                    app("howling.import_funcs(_loose_imports)"). nl(). nl().
                     app("ffi.cdef[["). nl()
+
+        classes = Buffer new()
+        classesWriter = AwesomeWriter new(this, BufferWriter new(classes))
+        classesWriter app("local _classesdeclared = false"). nl().
+                      app("function _module.declare_classes()"). tab(). nl().
+                      app("if _classesdeclared then return end"). nl().
+                      app("_classesdeclared = true"). nl().
+                      app("howling.import_classes(_tight_imports)"). nl(). nl().
+                      app("ffi.cdef[["). nl()
 
         bind = Buffer new()
         bindWriter = AwesomeWriter new(this, BufferWriter new(bind))
@@ -69,6 +80,9 @@ LuaGenerator: class extends CGenerator {
         funcsWriter app("]]"). nl().
                     app(bind toString()). untab(). nl().
                     app("end"). nl(). nl()
+        // close classes
+        classesWriter app("]]"). untab(). nl().
+                      app("end"). nl(). nl()
 
         // write the funcs part
         writer write("local howling = require(\"howling\")\n").
@@ -76,7 +90,8 @@ LuaGenerator: class extends CGenerator {
                write("local ffi = require(\"ffi\")\n\n").
                write(imports toString()).
                write(types toString()).
-               write(funcs toString())
+               write(funcs toString()).
+               write(classes toString())
         // and finally, return the new module.
         writer write("return _module\n")
         writer close()
@@ -141,6 +156,10 @@ LuaGenerator: class extends CGenerator {
         ClassDeclWriter writeStructTypedef(this, node)
         typesWriter nl()
         generateClasslike(node)
+        // write the struct contents to `classes`
+        current = classesWriter
+        ClassDeclWriter writeObjectStruct(this, node)
+        classesWriter nl()
     }
 
     /** Classes and covers. */
@@ -240,17 +259,15 @@ LuaGenerator: class extends CGenerator {
 
     visitModule: func (node: Module) {
         // Import the imports!
-        importsWriter app("local _imports = {"). tab()
-        first := true
+        importsWriter app("local _tight_imports, _loose_imports = {}, {}")
         for (imp in module getGlobalImports()) {
-            if (!first) importsWriter app(',')
-            first = false
             imported := imp getModule()
             path := "#{imported getUseDef() identifier}:#{imported path}"
-            importsWriter nl(). app("\"#{path}\"")
+            table := imp isTight ? "_tight_imports" : "_loose_imports"
+            importsWriter nl(). app("table.insert(#{table}, \"#{path}\")")
         }
 
-        importsWriter untab(). nl(). app("}"). nl(). nl()
+        importsWriter nl(). nl()
 
         for (function in node functions) {
             function accept(this)
