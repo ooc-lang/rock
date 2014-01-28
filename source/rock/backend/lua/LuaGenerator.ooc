@@ -193,21 +193,41 @@ LuaGenerator: class extends CGenerator {
             }
             bindWriter untab(). nl(). app("},"). nl()
         }
-        // write properties
+        // collect attributes and properties
         {
-            bindWriter app("properties = {"). tab(). nl()
-            first := true
+            properties := ArrayList<String> new()
+            members := ArrayList<String> new()
             iter := node variables iterator()
             while(iter hasNext?()) {
                 node := iter next()
                 if(node instanceOf?(PropertyDecl)) {
                     // found a PropertyDecl howling should know about
-                    if (!first) bindWriter app(','). nl()
-                    else first = false
-                    bindWriter app('"'). app(node name). app('"')
+                    properties add(node name)
+                } else {
+                    // ... or an attribute
+                    members add(node name)
                 }
             }
-            bindWriter untab(). nl(). app("}"). nl()
+            {
+                bindWriter app("properties = {"). tab(). nl()
+                first := true
+                for(prop in properties) {
+                    if(!first) bindWriter app(','). nl()
+                    else first = false
+                    bindWriter app('"'). app(prop). app('"')
+                }
+                bindWriter untab(). nl(). app("},"). nl()
+            }
+            {
+                bindWriter app("members = {"). tab(). nl()
+                first := true
+                for(member in members) {
+                    if(!first) bindWriter app(','). nl()
+                    else first = false
+                    bindWriter app('"'). app(member). app('"')
+                }
+                bindWriter untab(). nl(). app("}"). nl()
+            }
         }
         bindWriter untab(). nl(). app("})"). nl()
     }
