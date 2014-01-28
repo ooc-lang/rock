@@ -1,5 +1,5 @@
 import io/[File, FileWriter, BufferWriter]
-import structs/[Bag, HashBag, MultiMap, List, ArrayList]
+import structs/[Bag, HashBag, MultiMap, List, ArrayList, HashMap]
 import text/json/Generator
 
 import ../../frontend/[BuildParams, Token]
@@ -118,9 +118,10 @@ LuaGenerator: class extends CGenerator {
             return false
         }
 
-        // Ignore __...__ functions
+        // Ignore __...__ functions, but keep getters and setters
         if (node name startsWith?("__") &&
-            node name endsWith?("__")) {
+            node name endsWith?("__") &&
+                !(node name startsWith?("__get") || node name startsWith?("__set"))) {
             return false
         }
 
@@ -180,16 +181,35 @@ LuaGenerator: class extends CGenerator {
             functions add(name)
         }
 
+        bindWriter app("local _class = _module:class(\"#{node name}\", {"). tab(). nl()
         // Write the bind code.
-        bindWriter app("local _class = _module:class(\"#{node name}\", {"). tab(). nl().
-                   app("functions = {"). tab(). nl()
-        first := true
-        for (name in functions) {
-            if (!first) bindWriter app(','). nl()
-            else first = false
-            bindWriter app('"'). app(name). app('"')
+        {
+            bindWriter app("functions = {"). tab(). nl()
+            first := true
+            for (name in functions) {
+                if (!first) bindWriter app(','). nl()
+                else first = false
+                bindWriter app('"'). app(name). app('"')
+            }
+            bindWriter untab(). nl(). app("},"). nl()
         }
-        bindWriter untab(). nl(). app("}"). untab(). nl(). app("})"). nl()
+        // write properties
+        {
+            bindWriter app("properties = {"). tab(). nl()
+            first := true
+            iter := node variables iterator()
+            while(iter hasNext?()) {
+                node := iter next()
+                if(node instanceOf?(PropertyDecl)) {
+                    // found a PropertyDecl howling should know about
+                    if (!first) bindWriter app(','). nl()
+                    else first = false
+                    bindWriter app('"'). app(node name). app('"')
+                }
+            }
+            bindWriter untab(). nl(). app("}"). nl()
+        }
+        bindWriter untab(). nl(). app("})"). nl()
     }
 
     visitCoverDecl: func (node: CoverDecl) {
