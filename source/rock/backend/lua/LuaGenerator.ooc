@@ -259,6 +259,14 @@ LuaGenerator: class extends CGenerator {
                 module getUseDef() identifier == "sdk")) {
                 typesWriter app("typedef struct ___#{fromName} #{fromName};"). nl()
             }
+        } else {
+            // FIXME blacklisting stuff here is a terrible terrible workaround
+            if (node name != "_StackFrame") {
+                old := current
+                current = classesWriter
+                CoverDeclWriter writeGuts(this, node)
+                current = old
+            }
         }
         CoverDeclWriter writeTypedef(this, node)
         typesWriter nl()
@@ -289,7 +297,12 @@ LuaGenerator: class extends CGenerator {
     }
 
     visitInterfaceDecl: func (node: InterfaceDecl) {
-        // write the fat type, move one with our lives.
+        // write the meta class decl typedef
+        current = typesWriter
+        ClassDeclWriter writeStructTypedef(this, node getMeta())
+
+        // then write the fat type
+        current = classesWriter
         node fatType accept(this)
     }
 
