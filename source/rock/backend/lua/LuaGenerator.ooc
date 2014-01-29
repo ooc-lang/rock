@@ -299,7 +299,8 @@ LuaGenerator: class extends CGenerator {
 
     visitModule: func (node: Module) {
         // Import the imports!
-        importsWriter app("local _tight_imports, _loose_imports = {}, {}")
+        importsWriter app("local _tight_imports, _loose_imports = {}, {}"). nl().
+                      app("_module._loose_imports = _loose_imports")
         for (imp in module getGlobalImports()) {
             imported := imp getModule()
             path := "#{imported getUseDef() identifier}:#{imported path}"
