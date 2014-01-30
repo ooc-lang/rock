@@ -68,6 +68,7 @@ VarArg: class extends Argument {
 
     clone: func -> This {
         copy := new(token, name)
+        copy type = type ? type clone() : null
         cloneInto(copy) as This
     }
 
@@ -122,6 +123,7 @@ DotArg: class extends Argument {
 
     clone: func -> This {
         copy := new(name, token)
+        copy type = type ? type clone() : null
         cloneInto(copy) as This
     }
 
@@ -164,6 +166,7 @@ AssArg: class extends DotArg {
 
     clone: func -> This {
         copy := new(name, token)
+        copy type = type ? type clone() : null
         cloneInto(copy) as This
     }
 

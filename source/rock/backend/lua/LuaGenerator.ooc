@@ -128,9 +128,33 @@ LuaGenerator: class extends CGenerator {
         return true
     }
 
+    /** Replace all object arguments with void* arguments. */
+    prepareArgument: func (voidPointer: Type, arg: VariableDecl) {
+        if(!arg instanceOf?(VarArg)) {
+            if(arg getType() getRef() instanceOf?(ClassDecl)) {
+                arg setType(voidPointer)
+            }
+        }
+    }
+
+    /** return a new function decl whose object parameter types are all void*
+     * This is because LuaJIT FFI is very strict about pointer types.
+     */
+    prepareFunctionDecl: func (orig: FunctionDecl) -> FunctionDecl {
+        voidPointer := PointerType new(voidType, orig token)
+        node := orig clone()
+        // TODO: Ideally, this would also modify the thisPointer. But cloning
+        // TypeDecls isn't supported, and modifying the AST feels bad.
+        node args each(|arg|
+            prepareArgument(voidPointer, arg)
+        )
+        node
+    }
+
     /** Write the function prototype to the funcs buffer. */
     visitFunctionDecl: func (node: FunctionDecl) {
         if (!shouldBindFunction(node)) return
+        node = prepareFunctionDecl(node)
         current = funcsWriter
         // funcs: write the function prototype
         FunctionDeclWriter writeFuncPrototype(this, node)
