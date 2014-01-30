@@ -28,6 +28,7 @@ version(gc) {
 
     gc_malloc: extern(GC_malloc) func (size: SizeT) -> Pointer
     gc_malloc_atomic: extern(GC_malloc_atomic) func (size: SizeT) -> Pointer
+    gc_malloc_uncollectable: extern(GC_malloc_uncollectable) func (size: SizeT) -> Pointer
     gc_strdup: extern(GC_strdup) func (str: CString) -> CString
     gc_realloc: extern(GC_realloc) func (ptr: Pointer, size: SizeT) -> Pointer
     gc_calloc: func (nmemb: SizeT, size: SizeT) -> Pointer {
