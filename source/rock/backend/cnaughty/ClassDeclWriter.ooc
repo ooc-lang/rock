@@ -66,9 +66,14 @@ ClassDeclWriter: abstract class extends Skeleton {
 
     }
 
-    writeObjectStruct: static func (this: Skeleton, cDecl: ClassDecl) {
-
-        current nl(). app("struct _"). app(cDecl underName()). app(' '). openBlock()
+    writeObjectStruct: static func (this: Skeleton, cDecl: ClassDecl, name: String = null) {
+        current nl(). app("struct ")
+        if(name == null) {
+            current app('_'). app(cDecl underName())
+        } else {
+            current app(name)
+        }
+        current app(' '). openBlock()
 
         if (cDecl name != "Object" && cDecl getSuperRef() != null) {
             current nl(). app("struct _"). app(cDecl getSuperRef() underName()). app(" __super__;")

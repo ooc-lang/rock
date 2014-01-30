@@ -159,7 +159,12 @@ LuaGenerator: class extends CGenerator {
         generateClasslike(node)
         // write the struct contents to `classes`
         current = classesWriter
-        ClassDeclWriter writeObjectStruct(this, node)
+        rename := "_#{node underName()}__hidden"
+        // Write the struct containing the actual fields.
+        ClassDeclWriter writeObjectStruct(this, node, rename)
+        // Write a struct only containing a reference to that struct
+        current app("struct _#{node underName()} "). openBlock(). nl().
+                app("struct #{rename} _values;"). nl(). closeBlock(). app(';')
         classesWriter nl()
     }
 
