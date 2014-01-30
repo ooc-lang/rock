@@ -186,6 +186,10 @@ FunctionDecl: class extends Declaration {
             copy typeArgs add(ta clone())
         )
 
+        returnArgs each(|ra|
+            copy returnArgs add(ra clone())
+        )
+
         copy vDecl = vDecl
 
         copy
