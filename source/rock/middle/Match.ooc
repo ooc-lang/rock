@@ -23,7 +23,9 @@ Match: class extends Expression {
 
     clone: func -> This {
         copy := new(token)
-        copy expr = expr clone()
+        if (expr) {
+            copy expr = expr clone()
+        }
         cases each(|c| copy cases add(c clone()))
         copy
     }
