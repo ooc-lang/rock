@@ -693,7 +693,7 @@ CommandLine: class {
             if (mainUseDef && mainUseDef luaBindings) {
                 // generate lua stuff!
                 params clean = false // --backend=luaffi implies -noclean
-                params outPath = File new(mainUseDef file parent, mainUseDef luaBindings) getAbsoluteFile()
+                params outPath = File new(mainUseDef file parent, mainUseDef luaBindings)
 
                 if (params verbose) {
                     "Writing lua bindings to #{params outPath path}" println()
