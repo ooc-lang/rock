@@ -13,6 +13,7 @@ VariableDecl: class extends Declaration {
     type: Type
     expr: Expression
     inferOnly? := false
+    isGenerated := false
     owner: TypeDecl
 
     isArg := false

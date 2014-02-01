@@ -43,6 +43,7 @@ StringLiteral: class extends Literal {
                 }
                 
                 vDecl := VariableDecl new(null, generateTempName("strLit"), this, token)
+                vDecl isGenerated = true
                 vDecl isStatic = true
                 vAcc := VariableAccess new(vDecl, token)
                 

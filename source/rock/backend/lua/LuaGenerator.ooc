@@ -364,9 +364,16 @@ LuaGenerator: class extends CGenerator {
             visitOperatorDecl(op)
         }
 
-        // TODO: Write global variables at some point?
-/*        for (child in node body)
-            if (child instanceOf?(VariableDecl))
-                child accept(this)*/
+        // write globals in 'classes' block
+        current = classesWriter
+        for (child in node body) {
+            match child {
+                case vDecl: VariableDecl =>
+                    if (!vDecl isGenerated) {
+                        vDecl getType() accept(this)
+                        current app(" "). app(vDecl getFullName()). app(";"). nl()
+                    }
+            }
+        }
     }
 }
