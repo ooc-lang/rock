@@ -20,8 +20,8 @@ import ../../backend/cnaughty/[FunctionDeclWriter, Skeleton, AwesomeWriter, CGen
 LuaGenerator: class extends CGenerator {
 
     outFile: File
-    funcs, bind, types, imports, classes: Buffer
-    funcsWriter, bindWriter, typesWriter, importsWriter, classesWriter: AwesomeWriter
+    funcs, bind, bindEnums, types, imports, classes: Buffer
+    funcsWriter, bindWriter, bindEnumsWriter, typesWriter, importsWriter, classesWriter: AwesomeWriter
 
     init: func (=params, =module) {
         outFile = File new(params outPath getPath(), module getPath(".lua"))
@@ -60,6 +60,10 @@ LuaGenerator: class extends CGenerator {
         bindWriter = AwesomeWriter new(this, BufferWriter new(bind))
         bindWriter tab(). nl()
 
+        bindEnums = Buffer new()
+        bindEnumsWriter = AwesomeWriter new(this, BufferWriter new(bindEnums))
+        bindEnumsWriter tab(). nl()
+
         imports = Buffer new()
         importsWriter = AwesomeWriter new(this, BufferWriter new(imports))
 
@@ -82,6 +86,7 @@ LuaGenerator: class extends CGenerator {
                     app("end"). nl(). nl()
         // close classes
         classesWriter app("]]"). untab(). nl().
+                      app(bindEnums toString()). untab(). nl().
                       app("end"). nl(). nl()
 
         // write the funcs part
@@ -261,6 +266,23 @@ LuaGenerator: class extends CGenerator {
         bindWriter untab(). nl(). app("})"). nl()
     }
 
+    /** Enums. */
+    generateEnumlike: func (node: EnumDecl) {
+        bindEnumsWriter app("local _enum = _module:enum(\"#{node name}\", {"). tab(). nl()
+        // Write the bind code.
+        {
+            bindEnumsWriter app("values = {"). tab(). nl()
+            first := true
+            for (variable in node meta variables) {
+                if(!first) bindEnumsWriter app(','). nl()
+                else first = false
+                bindEnumsWriter app('"'). app(variable name). app('"')
+            }
+            bindEnumsWriter untab(). nl(). app("}")
+        }
+        bindEnumsWriter untab(). nl(). app("})"). nl()
+    }
+
     visitCoverDecl: func (node: CoverDecl) {
         // Skip versioned classes
         if (node getVersion()) {
@@ -319,6 +341,7 @@ LuaGenerator: class extends CGenerator {
         if (!node isExtern()) {
             typesWriter app("typedef int "). app(node underName()). app(';'). nl()
         }
+        generateEnumlike(node)
     }
 
     visitOperatorDecl: func (node: OperatorDecl) {
