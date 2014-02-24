@@ -215,6 +215,10 @@ AstBuilder: class {
         peek(CoverDecl) setExternName(externName toString())
     }
 
+    onCoverProto: unmangled(nq_onCoverProto) func (externName: CString) {
+        peek(CoverDecl) setProto(true)
+    }
+
     onCoverFromType: unmangled(nq_onCoverFromType) func (type: Type) {
         peek(CoverDecl) setFromType(type)
     }

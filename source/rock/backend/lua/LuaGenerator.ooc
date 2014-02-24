@@ -301,7 +301,19 @@ LuaGenerator: class extends CGenerator {
 
         // Write the typedef to `types`
         current = typesWriter
-        // if we are binding an extern type, // we need an opaque type definition as well.
+
+        if (node isProto) {
+            fullName := node getFullName()
+            typesWriter app("typedef struct _#{fullName} #{fullName};"). nl()
+
+            old := current
+            current = classesWriter
+            CoverDeclWriter writeGuts(this, node)
+            current = old
+            return
+        }
+
+        // if we are binding an extern type, we need an opaque type definition as well.
         // but let's assume that SDK definitions don't need that. (TODO)
         if (node fromType) {
             fromName := node fromType getName()
@@ -320,15 +332,8 @@ LuaGenerator: class extends CGenerator {
             }
         }
         CoverDeclWriter writeTypedef(this, node)
+
         typesWriter nl()
-        // Some types can't be bound. (That is, primitive types!)
-        /*from_ := node getFromType()
-        if (from_ && !from_ instanceOf?(SugarType))
-            return
-        // Also, extern covers.
-        if (node isExtern())
-            return
-        generateClasslike(node)*/
     }
 
 

@@ -12,6 +12,7 @@ import tinker/[Response, Resolver, Trail, Errors]
 CoverDecl: class extends TypeDecl {
 
     fromType: Type
+    isProto: Bool
 
     template: TemplateDef { get set }
     templateParent: CoverDecl { get set }
@@ -32,6 +33,8 @@ CoverDecl: class extends TypeDecl {
 
     setFromType: func (=fromType) {}
     getFromType: func -> Type { fromType }
+
+    setProto: func (=isProto) {}
 
     // all functions of a cover are final, because we don't have a 'class' field
     addFunction: func (fDecl: FunctionDecl) {
