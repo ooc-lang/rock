@@ -86,8 +86,9 @@ void GC_free(void *);
 
 ///////////////////// re-entrant data structures ////////////////////////
 
+typedef int (*_NagaQueenIoInterface_read)(void *, size_t, void *);
 struct _NagaQueenIoInterface {
-    int (*read)(void *, size_t, void *);
+    _NagaQueenIoInterface_read read;
 };
 
 struct _NagaQueenCore {
@@ -309,7 +310,7 @@ void nq_onFunctionCallArg(void *this, void *expr);
 void *nq_onFunctionCallEnd(void *this);
 void nq_onFunctionCallExpr(void *this, void *call, void *expr);
 void *nq_onFunctionCallChain(void *this, void *expr, void *call);
-void nq_onFunctionCallCombo(void *this, void *call, void *expr);
+void *nq_onFunctionCallCombo(void *this, void *call, void *expr);
 
 void nq_onArrayLiteralStart(void *this);
 void *nq_onArrayLiteralEnd(void *this);
@@ -422,6 +423,11 @@ void nq_onCatchExpr(void *this, void *value);
 void nq_onCatchEnd(void *this);
 
 void nq_error(void *this, int errorID, char *defaultMessage, int index);
+
+// Templates
+
+void nq_onTemplateStart(void *this);
+void nq_onTemplateEnd(void *this);
 
 /////////////////////                callbacks def end               ////////////////////////
 
@@ -1771,8 +1777,8 @@ YY_ACTION(void) yy_13_Access(GREG *G, char *yytext, int yyleng, yythunk *thunk, 
 #define ident G->val[-5]
   yyprintf((stderr, "do yy_13_Access"));
   yyprintfvTcontext(yytext);
-  yyprintf((stderr, "\n  {nq_onFunctionCallCombo(core->this, call, l); yy=l=call; }\n"));
-  nq_onFunctionCallCombo(core->this, call, l); yy=l=call; ;
+  yyprintf((stderr, "\n  {yy=l=nq_onFunctionCallCombo(core->this, call, l); }\n"));
+  yy=l=nq_onFunctionCallCombo(core->this, call, l); ;
 #undef r
 #undef call
 #undef index
@@ -5269,15 +5275,15 @@ YY_ACTION(void) yy_2_EnumIncrementOper(GREG *G, char *yytext, int yyleng, yythun
 {
   yyprintf((stderr, "do yy_2_EnumIncrementOper"));
   yyprintfvTcontext(yytext);
-  yyprintf((stderr, "\n  {yy='+'; }\n"));
-  yy='+'; ;
+  yyprintf((stderr, "\n  {yy=\"+\"; }\n"));
+  yy="+"; ;
 }
 YY_ACTION(void) yy_1_EnumIncrementOper(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
   yyprintf((stderr, "do yy_1_EnumIncrementOper"));
   yyprintfvTcontext(yytext);
-  yyprintf((stderr, "\n  {yy='*'; }\n"));
-  yy='*'; ;
+  yyprintf((stderr, "\n  {yy=\"*\"; }\n"));
+  yy="*"; ;
 }
 YY_ACTION(void) yy_4_EnumElement(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
@@ -5368,8 +5374,8 @@ YY_ACTION(void) yy_4_EnumDecl(GREG *G, char *yytext, int yyleng, yythunk *thunk,
 #define doc G->val[-6]
   yyprintf((stderr, "do yy_4_EnumDecl"));
   yyprintfvTcontext(yytext);
-  yyprintf((stderr, "\n  {nq_onEnumIncrementExpr(core->this, op, step); }\n"));
-  nq_onEnumIncrementExpr(core->this, op, step); ;
+  yyprintf((stderr, "\n  {nq_onEnumIncrementExpr(core->this, ((char*)op)[0], step); }\n"));
+  nq_onEnumIncrementExpr(core->this, ((char*)op)[0], step); ;
 #undef step
 #undef op
 #undef fromType
@@ -13261,7 +13267,7 @@ int nq_memparse(void *this, char *buffer, size_t len) {
     }
     nq_setTokenPositionPointer(this, core->token, &(core->yylineno));
     core->io = (struct _NagaQueenIoInterface) {
-      _nq_memread
+      (_NagaQueenIoInterface_read)_nq_memread
     };
 
     G->data = core;
@@ -13299,7 +13305,7 @@ int nq_parse(void *this, char *path) {
     }
     nq_setTokenPositionPointer(this, core->token, &(core->yylineno));
     core->io = (struct _NagaQueenIoInterface) {
-      _nq_fread
+      (_NagaQueenIoInterface_read)_nq_fread
     };
 
     G->data = core;
