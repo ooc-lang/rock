@@ -157,6 +157,8 @@ MakefileWriter: class extends MetaDriverWriter {
         tw writeln("  ifneq ($(TARGET), osx)")
         tw writeln("    ifeq ($(BUILD_MACHINE), x86_64)")
         tw writeln("      ARCH:=64")
+        tw writeln("    else ifeq ($(BUILD_MACHINE), amd64)")
+        tw writeln("      ARCH:=64")
         tw writeln("    else ifeq ($(PROCESSOR_ARCHITECTURE), AMD64)")
         tw writeln("      ARCH:=64")
         tw writeln("    else")

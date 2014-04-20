@@ -25,7 +25,7 @@ CMakeDriver: class extends MetaDriver {
 
 }
 
-CMakefileWriter: class extends MetaDriverWriter{
+CMakefileWriter: class extends MetaDriverWriter {
 
     file: File
     flags: Flags
