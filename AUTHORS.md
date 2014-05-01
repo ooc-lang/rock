@@ -4,6 +4,7 @@
  * Amos Wenger (nddrylliog)
  * Friedrich Weber (fredreichbier)
  * Joshua Roesslein (joshthecoder)
+ * Marie Markwell (duckinator)
  * Martin Brandenburg
  * Michael Tremel (itrekkie)
  * Noel Cower (nilium)
