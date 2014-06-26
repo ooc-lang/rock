@@ -322,7 +322,7 @@ void nq_onRawStringLiteral(void *this, void *object);
 
 void nq_onStringLiteralStart(void *this);
 void nq_onStringInterpolation(void *this, void *expression);
-void nq_onStringTextChunck(void *this, char *chunck);
+void nq_onStringTextChunk(void *this, char *chunck);
 void *nq_onStringLiteralEnd(void *this);
 
 void *nq_onCharLiteral(void *this, char *value);
@@ -1006,8 +1006,8 @@ YY_ACTION(void) yy_1_TextChunk(GREG *G, char *yytext, int yyleng, yythunk *thunk
 {
   yyprintf((stderr, "do yy_1_TextChunk"));
   yyprintfvTcontext(yytext);
-  yyprintf((stderr, "\n  {nq_onStringTextChunck(core->this, yytext); }\n"));
-  nq_onStringTextChunck(core->this, yytext); ;
+  yyprintf((stderr, "\n  {nq_onStringTextChunk(core->this, yytext); }\n"));
+  nq_onStringTextChunk(core->this, yytext); ;
 }
 YY_ACTION(void) yy_1_Interpolation(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {

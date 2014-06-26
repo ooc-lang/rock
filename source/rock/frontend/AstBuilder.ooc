@@ -823,7 +823,7 @@ AstBuilder: class {
         stack push(str)
     }
 
-    onStringTextChunk: unmangled(nq_onStringTextChunck) func(chunk: CString) {
+    onStringTextChunk: unmangled(nq_onStringTextChunk) func(chunk: CString) {
         peek(StringLiteral) value += chunk toString() \
                                      replaceAll("\r\n", "\n") \
                                      replaceAll("\n", "\\n") \
