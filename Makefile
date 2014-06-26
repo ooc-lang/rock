@@ -75,7 +75,7 @@ half-bootstrap: boehmgc
 # Copy the manpage and create a symlink to the binary
 install:
 	if [ -e $(BIN_INSTALL_PATH)/rock ]; then echo "$(BIN_INSTALL_PATH)/rock already exists, overwriting."; rm -f $(BIN_INSTALL_PATH)/rock $(BIN_INSTALL_PATH)/rock.exe; fi
-	ln -s $(PWD)/bin/rock* $(BIN_INSTALL_PATH)/
+	ln -s $(PWD)/bin/rock $(BIN_INSTALL_PATH)/
 	install -d $(MAN_INSTALL_PATH)
 	install docs/rock.1 $(MAN_INSTALL_PATH)/
 
