@@ -768,6 +768,22 @@ FunctionDecl: class extends Declaration {
                         arg fullName = "%s__%s" format(arg token module getUnderName(), arg name)
                         vdfe := VariableDecl new(null, arg getFullName(), constructCall, token)
                         body add(0, vdfe)
+                    }else if(args first() getType() getName() == "String"){
+                        // replace (String[]) with (argc: Int, argv: CString*)
+                        // and assign args to string array
+                        arg := args first()
+                        args clear()
+                        argc := Argument new(BaseType new("Int", arg token), generateTempName("argc"), arg token)
+                        argv := Argument new(PointerType new(BaseType new("CString", arg token), arg token), generateTempName("argv"), arg token)
+                        args add(argc)
+                        args add(argv)
+
+                        constructCall := FunctionCall new("strArrayFromCString", arg token)
+                        constructCall args add(VariableAccess new(argc, arg token)) \
+                                          .add(VariableAccess new(argv, arg token))
+                        arg fullName = "%s__%s" format(arg token module getUnderName(), arg name)
+                        vdfe := VariableDecl new(null, arg getFullName(), constructCall, token)
+                        body add(0, vdfe)
                     }
                 }
                 case 2 => {

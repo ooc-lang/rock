@@ -386,6 +386,16 @@ strArrayListFromCString: func ~hack (argc: Int, argv: String*) -> ArrayList<Stri
     strArrayListFromCString(argc, argv as Char**)
 }
 
+strArrayFromCString: func (argc: Int, argv: Char**) -> String[] {
+    result := String[argc] new()
+    argc times(|i| result[i] = (argv[i] as CString toString()))
+    result
+}
+
+strArrayFromCString: func ~hack (argc: Int, argv: String*) -> String[] {
+    strArrayFromCString(argc, argv as Char**)
+}
+
 cStringPtrToStringPtr: func (cstr: CString*, len: Int) -> String* {
     // Mostly to allow main to accept String*
     // func-name sucks, I am open to all suggestions 
