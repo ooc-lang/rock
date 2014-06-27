@@ -224,10 +224,11 @@ BinaryOp: class extends Expression {
 
         size := t1 elements getSize()
 
-        /**
+        /*
          * fix tuple swap such like (a,b) = (a,a+b)
          * if an expression in right side is not VariableAccess it will be reduced
          * to VariableAccess with temp variable
+         * FIXME: We can use less temp variable for not all expressions use var in tuple
          */
         for(i in 0..size){
             r := t2 elements[i]
