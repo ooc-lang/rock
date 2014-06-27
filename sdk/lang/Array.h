@@ -4,35 +4,43 @@
 
 #ifdef __OOC_USE_GC__
 #define array_malloc GC_malloc
+#define array_realloc GC_REALLOC
 #define array_free GC_free
 #else
 #define array_malloc(size) calloc(1, (size))
+#define array_realloc realloc
 #define array_free free
 #endif // GC
 
 #include <stdint.h>
 
 
-#define _lang_array__Array_new(type, size) ((_lang_array__Array) { size, array_malloc(size * sizeof(type)) });
+#define _lang_array__Array_new(type, size) ((_lang_array__Array) { size, array_malloc(size * sizeof(type)), sizeof(type)});
 
 #define _lang_array__Array_get(array, index, type) ( \
-    (index < 0 || index >= array.length) ? \
-    lang_Exception__Exception_throw((lang_Exception__Exception *) lang_Exception__OutOfBoundsException_new_noOrigin(index, array.length)), \
+    (index < 0 || index >= array.rlength) ? \
+    lang_Exception__Exception_throw((lang_Exception__Exception *) lang_Exception__OutOfBoundsException_new_noOrigin(index, array.rlength)), \
     *((type*) NULL) : \
     ((type*) array.data)[index])
 
 #define _lang_array__Array_set(array, index, type, value) \
-    (index < 0 || index >= array.length) ? \
-    lang_Exception__Exception_throw((lang_Exception__Exception *) lang_Exception__OutOfBoundsException_new_noOrigin(index, array.length)), \
+    (index < 0 || index >= array.rlength) ? \
+    lang_Exception__Exception_throw((lang_Exception__Exception *) lang_Exception__OutOfBoundsException_new_noOrigin(index, array.rlength)), \
     *((type*) NULL) : \
     (((type*) array.data)[index] = value)
 
+//#define _lang_array__Array_realloc(array) { array_realloc(array.data, array.rlength * array.unitSize) }
 #define _lang_array__Array_free(array) { array_free(array.data) }
 
 typedef struct {
-    size_t length;
+    size_t rlength;
     void* data;
+	size_t unitSize;
 } _lang_array__Array;
+
+void *_lang_array__Array_realloc(_lang_array__Array array){
+	return array_realloc(array.data, array.rlength * array.unitSize);
+}
 
 #endif // ___lang_array___
 

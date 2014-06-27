@@ -1,3 +1,4 @@
+import structs/ArrayList
 include stddef, stdlib, stdio, ctype, stdbool
 include ./Array
 
@@ -66,9 +67,19 @@ Class: abstract class {
 }
 
 Array: cover from _lang_array__Array {
-    length: extern SizeT
+    rlength: extern SizeT
     data: extern Pointer
+    unitSize: extern SizeT
 
+    length: SizeT {
+        get{ rlength }
+        set(length){
+            rlength = length
+            data = realloc()
+        }
+    }
+
+    realloc: extern(_lang_array__Array_realloc) func -> Pointer
     free: extern(_lang_array__Array_free) func
 }
 
