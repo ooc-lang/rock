@@ -224,6 +224,22 @@ BinaryOp: class extends Expression {
 
         size := t1 elements getSize()
 
+        /**
+         * fix tuple swap such like (a,b) = (a,a+b)
+         * if an expression in right side is not VariableAccess it will be reduced
+         * to VariableAccess with temp variable
+         */
+        for(i in 0..size){
+            r := t2 elements[i]
+            if(!r instanceOf?(VariableAccess)){
+                tmpDecl := VariableDecl new(null, generateTempName("exchange_r_in_t2"), r, r token)
+                if(!trail addBeforeInScope(this, tmpDecl)) {
+                    res throwError(CouldntAddBeforeInScope new(token, this, tmpDecl, trail))
+                }
+                t2 elements[i] = VariableAccess new(tmpDecl, tmpDecl token)
+            }
+        }
+
         for(i in 0..size) {
             l := t1 elements[i]
             if(!l instanceOf?(VariableAccess)) continue
