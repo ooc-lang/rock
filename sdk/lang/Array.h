@@ -29,7 +29,8 @@
     *((type*) NULL) : \
     (((type*) array.data)[index] = value)
 
-//#define _lang_array__Array_realloc(array) { array_realloc(array.data, array.rlength * array.unitSize) }
+#define _lang_array__Array_realloc(array) { array_realloc(array.data, array.rlength * array.unitSize) }
+
 #define _lang_array__Array_free(array) { array_free(array.data) }
 
 typedef struct {
@@ -38,9 +39,6 @@ typedef struct {
 	size_t unitSize;
 } _lang_array__Array;
 
-void *_lang_array__Array_realloc(_lang_array__Array array){
-	return array_realloc(array.data, array.rlength * array.unitSize);
-}
 
 #endif // ___lang_array___
 
