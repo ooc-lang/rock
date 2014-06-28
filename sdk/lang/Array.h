@@ -31,7 +31,7 @@
 
 #define _lang_array__Array_realloc(array) { array_realloc(array.data, array.rlength * array.unitSize) }
 
-#define _lang_array__Array_free(array) { array_free(array.data) }
+#define _lang_array__Array_free(array) { array_free(array.data); }
 
 typedef struct {
     size_t rlength;
