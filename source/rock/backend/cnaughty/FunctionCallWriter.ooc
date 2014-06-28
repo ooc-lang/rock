@@ -71,9 +71,11 @@ FunctionCallWriter: abstract class extends Skeleton {
 
             // TODO maybe check there's some kind of inheritance/compatibility here?
             // or in the tinker phase?
-            if(shouldCastThis || !(callType equals?(declType))) {
+            if(shouldCastThis || (!(callType equals?(declType)))) {
                 // If this is a ref call, we should write down the referenced type that is passed as the callType (as determined in tinkering phase)
-                current app("("). app(fDecl isThisRef ? callType : declType). app(") ")
+                // FIXME: When it is a non-ref Array we should not cast it. I'm not sure if it is correct, but it works.
+                if(!(callType class == ArrayType && !fDecl isThisRef))
+                    current app("("). app(fDecl isThisRef ? (fDecl owner thisRefDecl getType()) : declType). app(") ")
             }
 
             if(fDecl isThisRef) current app("&("). app(fCall expr). app(")")
