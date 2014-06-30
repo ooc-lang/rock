@@ -937,7 +937,7 @@ TypeDecl: abstract class extends Declaration {
         // function call's module.
         if(call token module == addon token module) {
             has = true
-        } else for(imp in call token module getGlobalImports()) {
+        } else for(imp in call token module getAllImports()) {
             if(imp getModule() == addon token module) {
                 has = true
                 break
