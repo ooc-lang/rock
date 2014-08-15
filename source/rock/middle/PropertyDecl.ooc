@@ -75,6 +75,16 @@ PropertyDecl: class extends VariableDecl {
         }
         cls = node as ClassDecl
 
+        // setup getter
+        if(getter != null) {
+            // are we a cover? if yes, use func@
+            if(cls instanceOf?(CoverDecl)) {
+                if(cls as CoverDecl fromType == null || !cls as CoverDecl fromType isPointer()) {
+                    getter isThisRef = true
+                }
+            }
+        }
+
         {
             response := super(trail, res)
             if (!response ok()) {
@@ -128,12 +138,6 @@ PropertyDecl: class extends VariableDecl {
             getter setName(getGetterName()) .setReturnType(type)
             cls addFunction(getter)
 
-            // are we a cover? if yes, use func@
-            if(cls instanceOf?(CoverDecl)) {
-                if(cls as CoverDecl fromType == null || !cls as CoverDecl fromType isPointer()) {
-                    getter isThisRef = true
-                }
-            }
             // static property -> static getter
             if(isStatic()) {
                 getter setStatic(true)
