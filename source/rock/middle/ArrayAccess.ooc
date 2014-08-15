@@ -88,7 +88,13 @@ ArrayAccess: class extends Expression {
                 // If we do not find an overload, we must make sure the indices are valid (numeric or enum members) for raw arrays (C and ooc arrays)
                 for(index in indices) {
                     if(!isValidIndex(index)) {
-                        res throwError(InvalidArrayIndex new(token, "Trying to access an array with an index of non numeric type %s without proper overload" format(index getType() ? index getType() toString() : "(nil)")))
+                        if (res fatal) {
+                            res throwError(InvalidArrayIndex new(token, "Trying to access an array with an index of non numeric type %s without proper overload" format(index getType() ? index getType() toString() : "(nil)")))
+                        } else {
+                            // try again later o/
+                            res wholeAgain(this, "need to figure out if something is a valid index or not")
+                            return Response OK
+                        }
                     }
                 }
             }
@@ -114,8 +120,15 @@ ArrayAccess: class extends Expression {
                 deepDown = deepDown as ArrayAccess array
             }
 
-            // If we are not dealing with an ooc array or a pointer and we care about type checking, we just return true because a non overloaded access on such a type will be detected elsewhere
+            deepType := deepDown getType()
+            if (!deepType) {
+                // not resolved yet, will need to check again on next round
+                return false
+            }
             if(deepDown getType() pointerLevel() <= 0 && !deepDown getType() instanceOf?(ArrayType)) {
+                // If we are not dealing with an ooc array or a pointer and we care
+                // about type checking, we just return true because a non
+                // overloaded access on such a type will be detected elsewhere
                 return true
             }
         }
