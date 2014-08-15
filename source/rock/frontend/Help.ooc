@@ -9,7 +9,7 @@ Help: class {
     printHelp: static func {
 
         println("Usage: rock [options] files\n")
-       println(
+        println(
 "The default rock options are:
 rock yourmodule.ooc -backend=c -driver=sequence -gc=static -libcache -outpath=rock_tmp/ -o=yourmodule
 
@@ -126,11 +126,6 @@ or a library (if it only has a 'SourcePath: something' directive)
 -r, --run
     Run the executable after a successful compilation.
 
---sdk=path/to/sdk
-    Specify an explicit path to the sdk. Use if rock cannot find it itself, and
-    you're not willing to export ROCK_SDK to path/to/rock/sdk or ROCK_DIST to
-    path/to/rock. The sdk should contain a few basic things in lang/
-
 --shout
     Print a big fat status indicator (usually [ OK ] or [FAIL]) when a build
     process is finished.
@@ -180,9 +175,6 @@ ADVANCED OPTIONS
 
 --newstr
     Use the String class to store normal string literals, not C strings
-
---cstrings
-    Use C strings for normal string literals, not the ooc String class
 
 --no-inline
     Disable generic inlining
