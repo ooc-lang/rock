@@ -46,10 +46,9 @@ CoverDeclWriter: abstract class extends Skeleton {
         current nl(). app("struct _"). app(cDecl underName()). app(' '). openBlock()
         for(vDecl in cDecl variables) {
             current nl()
-            if(!vDecl isExtern()) {
-                vDecl type write(current, vDecl name)
-                current app(';')
-            }
+            if(vDecl isExtern() || vDecl isVirtual()) continue;
+            vDecl type write(current, vDecl name)
+            current app(';')
         }
         current closeBlock(). app(';'). nl()
 
