@@ -109,8 +109,8 @@ Comparison: class extends Expression {
 
         (lRef, rRef) := (lType getRef(), rType getRef())
 
-        lCompound := lRef instanceOf?(CoverDecl) && !lRef as CoverDecl getFromType()
-        rCompound := rRef instanceOf?(CoverDecl) && !rRef as CoverDecl getFromType()
+        lCompound := lRef instanceOf?(CoverDecl) && !lRef as CoverDecl getFromType() && lType pointerLevel() == 0
+        rCompound := rRef instanceOf?(CoverDecl) && !rRef as CoverDecl getFromType() && rType pointerLevel() == 0
 
         if(lCompound || rCompound) {
             // if either side are compound covers (structs) - it's illegal.
