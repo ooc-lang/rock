@@ -39,27 +39,28 @@ JobPool: class {
     /**
      * Wait for a single job to finish.
      */
-    waitOne: func -> Int {
-        if (jobs empty?()) return 0
+    waitOne: func -> (Int, Job) {
+        if (jobs empty?()) return (0, null)
 
-        jobs removeAt(0) wait()
+        job := jobs removeAt(0)
+        (job wait(), job)
     }
 
     /**
      * Wait for all jobs to finish. If any job has a non-zero
      * exit code, it will be returned here.
      */
-    waitAll: func -> Int {
+    waitAll: func -> (Int, Job) {
         exitCode := 0
 
         while (!jobs empty?()) {
-            code := waitOne()
+            (code, job) := waitOne()
             if (code != 0) {
-                exitCode = code
+                return (code, job)
             }
         }
 
-        exitCode
+        (exitCode, null)
     }
 
     /**
@@ -68,14 +69,14 @@ JobPool: class {
      * Beware, this call may block if we already have
      * too many jobs queued.
      */
-    add: func (job: Job) -> Int {
-        code := _maybeWait()
+    add: func (job: Job) -> (Int, Job) {
+        (code, waitedJob) := _maybeWait()
         jobs add(job)
-        code
+        (code, waitedJob)
     }
 
     
-    _maybeWait: func -> Int {
+    _maybeWait: func -> (Int, Job) {
         if (jobs size < parallelism) {
             return 0 // all good, let's launch more!
         }
