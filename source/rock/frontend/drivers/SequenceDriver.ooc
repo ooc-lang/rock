@@ -128,7 +128,7 @@ SequenceDriver: class extends Driver {
 
         linkerProcess := params compiler launchLinker(flags, params linker)
         code := linkerProcess wait()
-        if (linkerProcess stdErr) {
+        if (code != 0 && linkerProcess stdErr) {
             // print stderr
             errOutput := PipeReader new(linkerProcess stdErr) readAll()
             stderr write("C linker failed on %s from %s, bailing out\n\n" format(module fullName, module getUseDef() identifier))
