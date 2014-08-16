@@ -1,9 +1,9 @@
-[![Build Status](https://secure.travis-ci.org/nddrylliog/rock.png?branch=master)](http://travis-ci.org/nddrylliog/rock)
+[![Build Status](https://secure.travis-ci.org/fasterthanlime/rock.png?branch=99x)](http://travis-ci.org/fasterthanlime/rock)
 
 # rock
 
   * [ooc](http://ooc-lang.org/)
-  * [rock](https://github.com/nddrylliog/rock)
+  * [rock](https://github.com/fasterthanlime/rock)
 
 rock is an ooc compiler written in ooc - in other words, it's
 where things begin to become really exciting.
