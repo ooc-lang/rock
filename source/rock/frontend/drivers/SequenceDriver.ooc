@@ -109,6 +109,9 @@ SequenceDriver: class extends Driver {
 
     link: func (module: Module) -> Int {
         binaryPath := params getBinaryPath(module simpleName)
+        if (!binaryPath) {
+            return 1
+        }
         binaryName := File new(binaryPath) name
 
         // step 4 b: link that big thin archive

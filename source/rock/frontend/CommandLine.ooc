@@ -337,7 +337,7 @@ CommandLine: class {
                         case "android" => Target ANDROID
                         case =>
                             "[ERROR] Unknown target: %s" printfln(targetName)
-                            failure()
+                            failure(params)
                             null
                     }
                     params undoTargetSpecific()
@@ -349,7 +349,7 @@ CommandLine: class {
                     params driver = match (driverName) {
                         case "combine" =>
                             "[ERROR] The combine driver is deprecated." println()
-                            failure()
+                            failure(params)
                             params driver
                         case "sequence" =>
                             SequenceDriver new(params)
@@ -362,7 +362,7 @@ CommandLine: class {
                             DummyDriver new(params)
                         case =>
                             "[ERROR] Unknown driver: %s" printfln(driverName)
-                            failure()
+                            failure(params)
                             null
                     }
 
@@ -476,7 +476,7 @@ CommandLine: class {
                     case lowerArg contains?(".") =>
                         // unknown file, complain
                         "[ERROR] Don't know what to do with argument %s, bailing out" printfln(arg)
-                        failure()
+                        failure(params)
                     case =>
                         // probably an ooc file without the extension
                         modulePaths add(arg + ".ooc")
@@ -484,7 +484,12 @@ CommandLine: class {
             }
         }
 
-        params bake()
+        try {
+            params bake()
+        } catch (e: ParamsError) {
+            error(e message)
+            failure(params)
+        }
 
         if(modulePaths empty?() && !targetModule) {
             if (alreadyDidSomething) {
@@ -561,7 +566,7 @@ CommandLine: class {
 
             if (!uze sourcePath) {
                 error("No SourcePath directive in '%s'" format(uzeFile path))
-                failure()
+                failure(params)
             }
 
             params link = false
@@ -569,7 +574,7 @@ CommandLine: class {
             base := File new(uze sourcePath)
             if (!base exists?()) {
                 error("SourcePath '%s' doesn't exist" format(base path))
-                failure()
+                failure(params)
             }
 
             importz := ArrayList<String> new()
@@ -608,7 +613,7 @@ CommandLine: class {
         if(!moduleFile) {
             "[ERROR] Could not find main .ooc file: %s" printfln(moduleName)
             "[INFO] SourcePath = %s" printfln(params sourcePath toString())
-            failure()
+            failure(params)
             exit(1)
         }
 
@@ -635,7 +640,7 @@ CommandLine: class {
         if(params onlyparse) {
             if(params verbose) println()
             // Oookay, we're done here.
-            success()
+            success(params)
             return
         }
 
@@ -654,7 +659,7 @@ CommandLine: class {
         allModules := module collectDeps()
         resolveMs := Time measure(||
             if(!Tinkerer new(params) process(allModules)) {
-                failure()
+                failure(params)
             }
         )
         if (params timing) {
@@ -677,16 +682,14 @@ CommandLine: class {
                     if (params timing) {
                         "C generation & compiling took %d ms" printfln(compileMs)
                     }
-                    if(params shout) success()
+                    success(params)
                     if(params run) {
                         // FIXME: that's the driver's job
                         if(params binaryPath && !params binaryPath empty?()) Process new(["./" + params binaryPath]) execute()
                         else Process new(["./" + module simpleName]) execute()
                     }
                 } else {
-                    if(params shout) {
-                        failure()
-                    }
+                    failure(params)
                 }
             }
 
@@ -744,18 +747,22 @@ CommandLine: class {
         error("%s parameter is deprecated" format(parameter))
     }
 
-    success: static func {
-        Terminal setAttr(Attr bright)
-        Terminal setFgColor(Color green)
-        "[ OK ]" println()
-        Terminal reset()
+    success: static func (params: BuildParams) {
+        if (params shout) {
+            Terminal setAttr(Attr bright)
+            Terminal setFgColor(Color green)
+            "[ OK ]" println()
+            Terminal reset()
+        }
     }
 
-    failure: static func {
-        Terminal setAttr(Attr bright)
-        Terminal setFgColor(Color red)
-        "[FAIL]" println()
-        Terminal reset()
+    failure: static func (params: BuildParams) {
+        if (params shout) {
+            Terminal setAttr(Attr bright)
+            Terminal setFgColor(Color red)
+            "[FAIL]" println()
+            Terminal reset()
+        }
 
         // FIXME: should we *ever* exit(1) ?
         exit(1)

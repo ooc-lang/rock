@@ -95,7 +95,7 @@ AstBuilder: class {
         // in the meantime, I'm (ndd) keeping them around, trying not to use current-gen
         // features in current-gen source to facilitate bootstrapping.
         if (imp sourcePathElement) {
-            (impPat2, impElemen2) := params sourcePath getFileInElement(path, imp sourcePathElement)
+            (impPat2, impElemen2) := params sourcePath getFileInElement(path, imp sourcePathElement, params)
             (impPath, impElement) = (impPat2, impElemen2)
         } else {
             (impPat2, impElemen2) := params sourcePath getFile(path)
@@ -107,7 +107,7 @@ AstBuilder: class {
                 // import can also be 'implicitly relative', e.g. io/File can import io/native/FileWin32
                 // just by doing 'import native/FileWin32'
                 path = FileUtils resolveRedundancies(parent path + File separator + oocImpPath)
-                (impPat2, impElemen2) := params sourcePath getFileInElement(path, module pathElement)
+                (impPat2, impElemen2) := params sourcePath getFileInElement(path, module pathElement, params)
                 (impPath, impElement) = (impPat2, impElemen2)
             }
         }

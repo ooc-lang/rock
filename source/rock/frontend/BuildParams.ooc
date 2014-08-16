@@ -241,10 +241,12 @@ BuildParams: class {
     // compilation driver
     driver := SequenceDriver new(this)
 
-    checkBinaryNameCollision: func (name: String) {
+    validBinaryName?: func (name: String) -> Bool {
         if (File new(name) dir?()) {
             stderr write("Naming conflict (output binary) : There is already a directory called %s.\nTry a different name, e.g. '-o=%s2'\n" format(name, name))
-            CommandLine failure()
+            false
+        } else {
+            true
         }
     }
 
@@ -257,7 +259,9 @@ BuildParams: class {
         }
 
         if (binaryPath == "") {
-            checkBinaryNameCollision(defaultPath)
+            if (!validBinaryName?(defaultPath)) {
+                return null
+            }
             defaultPath
         } else {
             binaryPath
@@ -329,8 +333,7 @@ BuildParams: class {
         if (host != "") {
             tokens := host split('-')
             if (tokens size < 2) {
-                CommandLine error("Invalid host value: %s" format(host))
-                CommandLine failure()
+                ParamsError new("Invalid host value: %s" format(host)) throw()
             }
 
             (archToken, targetToken) := (tokens[0], tokens[1])
@@ -461,5 +464,9 @@ OptimizationLevel: enum {
     O2
     O3
     Os
+}
+
+ParamsError: class extends Exception {
+    init: func (=message)
 }
 
