@@ -37,7 +37,7 @@ make sure it can find the SDK!
 See the `INSTALL` file
 
 To switch to the most recent git, read
-[ReleaseToGit](https://github.com/nddrylliog/rock/blob/master/docs/workflow/ReleaseToGit.md)
+[ReleaseToGit](https://github.com/fasterthanlime/rock/blob/master/docs/workflow/ReleaseToGit.md)
 
 ## License
 
