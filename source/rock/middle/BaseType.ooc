@@ -340,8 +340,14 @@ BaseType: class extends Type {
             rhsNum := (rhsInt == NumericState YES || rhsFp == NumericState YES)
 
             if (lhsNum && rhsNum) {
-                // a mild match - it's not too good to mix integer types. Maybe we need more safety here?
-                return scoreSeed / 4
+                if (rhsFp == NumericState YES) {
+                    // it's better to fit an int into a double than the other way around
+                    // because we lose less precision.
+                    return scoreSeed / 4
+                } else {
+                    // a mild match - it's not too good to mix integer types. Maybe we need more safety here?
+                    return scoreSeed / 8
+                }
             }
         }
 
