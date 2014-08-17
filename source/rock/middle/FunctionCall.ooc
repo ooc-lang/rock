@@ -351,7 +351,16 @@ FunctionCall: class extends Expression {
             if(debugCondition()) "\n===============\nResolving call %s" printfln(toString())
 
             if (expr != null && name == "instanceOf__quest") {
-                ref := expr getType() getRef()
+                exprType := expr getType()
+                if (exprType == null) {
+                    res wholeAgain(this, "waiting for expr type")
+                    return Response OK
+                }
+                ref := exprType getRef()
+                if (ref == null) {
+                    res wholeAgain(this, "waiting for expr type ref")
+                    return Response OK
+                }
                 match ref {
                     case cd: CoverDecl =>
                         "got a call to #{toString()}, expr type ref = #{ref toString()}" println()

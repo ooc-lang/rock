@@ -13,6 +13,9 @@ Module: class extends Node {
     timesImported := 0
     timesLooped := 0
 
+    // Used to generate collision-free names in the code.
+    tempNameSeed := 0
+
     // true if this module is a dummy only used to get imports!
     dummy := false
 

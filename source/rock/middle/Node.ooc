@@ -1,4 +1,4 @@
-import Visitor, FunctionCall, VariableAccess, VariableDecl, Type, BaseType
+import Visitor, FunctionCall, VariableAccess, VariableDecl, Type, BaseType, Module
 import ../frontend/Token
 import tinker/[Resolver, Response, Trail]
 
@@ -7,11 +7,6 @@ import tinker/[Resolver, Response, Trail]
  * a value, etc.
  */
 Node: abstract class {
-
-    /**
-     * Used to generate collision-free names in the code.
-     */
-    nameSeed := static 0
 
     /**
      * If the node was parsed, corresponds to the place in an ooc source
@@ -131,8 +126,8 @@ Node: abstract class {
      * Generate a collision-free name from an origin
      */
     generateTempName: func (origin: String) -> String {
-        nameSeed += 1
-        "__%s%d" format(origin, nameSeed)
+        token module tempNameSeed += 1
+        "__%s_%s%d" format(token module underName, origin, token module tempNameSeed)
     }
 
     /**
