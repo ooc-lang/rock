@@ -1,3 +1,48 @@
+
+## 0.9.9 release (2014-08-17)
+
+  - rock has been relicensed to MIT (#755)
+  - Boehm GC is now properly vendored - it lives in the `vendor` directory and is installed
+  to `vendor-prefix` - the new targets `boehmgc` and `boehmgc-clean` have been added to the
+  Makefile (#768)
+  - Changes to git workflow: the `master` branch is now bleeding-edge, `stable`
+    is stable, and version branches still exist (#794)
+  - rock now supports library precompilation - when compiling from a .use file that has
+  no Main field (#733)
+  - io/File now has `find`, `rm`, and `rm_rf` to find files, remove files, and remove files
+  and directories recursively (#734, #735, #737, #738)
+  - ArrayAccess type checking has been relaxed to better accomodate operator overloading
+  with non-numeric indices (#740)
+  - SequenceDriver fixes related to archives - better incremental (re)compilation support (#741)
+  - Don't fopen files to check if they exist anymore (performance increase + correctness) (#742)
+  - Numeric literal suffixes: `d` and `f` - no-suffix floating point literals now default
+  to Double, which is coherent with C/C++ (#749)
+  - String format now supports the `%ull` specifier (#750)
+  - C arrays declarations like `a: Int* = [1, 2, 3]` now work as expected. (#751)
+  - Passing a pointer to a generic function will now pass the `Pointer` type, not the
+  inner type (Int, etc.) (#752)
+  - .use files now support the `BinaryPath` directive for executable name (#754)
+  - .use files now support the `OocLibPaths` directive to add to the ooc libs search path (#756)
+  - Warnings about unknown version names now happen only once per unknown name (as opposed
+  to: a fuckload) (#757)
+  - Fix for each usage on `Range` instances (#759)
+  - Make `match` autocast work with primitive (#760)
+  - Namespaced import fixes (#766)
+  - Complex tuple assignment no longer clobbers left-hand-side variables (#774)
+  - Fixed too-strict operator overloading checks for unary operators (#780)
+  - Fixed code generation error with properties in covers (#781, #782)
+  - Always exit with non-zero code even in quiet mode (#786)
+  - Always print C compiler failures to stderr, even in quiet mode (#787)
+  - Add support for main: func (args: String[]) (#788)
+  - Add support for scientific notation in floating point literals (#784)
+  - Code quality fixes to the `fancy_backtrace` extension (#779)
+  - text/Shlex now has inline documentation and a test case (#785)
+  - Various Win32 Pipe & Process fixes (e.g. #791), notably, ProcessWin32 now passes
+    environment variables (#792) and redirects std{in,err,out} correctly (#793)
+  - Various luaffi backend fixes (#769, #770, #771, #772, #773)
+  - Various performance improvements in rock's compilation process (#744, #743)
+  - Various test cases added and ported to Win32 (#790)
+
 ## 0.9.8 release (2013-11-27)
 
   - Added a few rock tests, they are now runnable by sam, and ran on each git push
