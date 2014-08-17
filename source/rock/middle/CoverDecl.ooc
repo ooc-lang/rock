@@ -29,6 +29,10 @@ CoverDecl: class extends TypeDecl {
         super(name, superType, token)
     }
 
+    isPrimitiveType: func -> Bool {
+        true
+    }
+
     accept: func (visitor: Visitor) { visitor visitCoverDecl(this) }
 
     setFromType: func (=fromType) {}

@@ -350,6 +350,18 @@ FunctionCall: class extends Expression {
         if(refScore <= 0) {
             if(debugCondition()) "\n===============\nResolving call %s" printfln(toString())
 
+            if (expr != null && name == "instanceOf__quest") {
+                ref := expr getType() getRef()
+                match ref {
+                    case cd: CoverDecl =>
+                        "got a call to #{toString()}, expr type ref = #{ref toString()}" println()
+                        expr = VariableAccess new(expr, "class", expr token)
+                        name = "inheritsFrom__quest"
+                        res wholeAgain(this, "replaced instanceOf with inheritsFrom")
+                        return Response OK
+                }
+            }
+
             if (res fatal && refScore == -1) {
                 // something went wrong somewhere else
                 res wholeAgain(this, "(error-throwing) waiting on some FunctionDecl to resolve.")

@@ -3,7 +3,8 @@ import ../frontend/Token
 import algo/typeAnalysis
 import ControlStatement, Statement, Expression, Visitor, VariableDecl,
        Node, VariableAccess, Scope, BoolLiteral, Comparison, Type,
-       FunctionDecl, Return, BinaryOp, FunctionCall, Cast, Parenthesis
+       FunctionDecl, Return, BinaryOp, FunctionCall, Cast, Parenthesis,
+       CoverDecl
 import tinker/[Trail, Resolver, Response, Errors]
 
 Match: class extends Expression {
@@ -138,14 +139,21 @@ Match: class extends Expression {
                             break
                         }
 
-                        while(caseExpr instanceOf?(Parenthesis))
+                        while(caseExpr instanceOf?(Parenthesis)) {
                             caseExpr = caseExpr as Parenthesis inner
+                        }
+
                         if(caseExpr instanceOf?(VariableDecl)) {
                             // unwrap `VariableDecl` (e.g. `case n: Node =>`) cases here
                             fCall: FunctionCall
                             mType := expr getType()
+                            ref := mType getRef()
+
                             if(mType isGeneric()) {
                                 acc := VariableAccess new(mType, caseToken)
+                                fCall = FunctionCall new(acc, "inheritsFrom__quest", caseToken)
+                            } else if(ref instanceOf?(CoverDecl)) {
+                                acc := VariableAccess new(expr, "class", expr token)
                                 fCall = FunctionCall new(acc, "inheritsFrom__quest", caseToken)
                             } else {
                                 fCall = FunctionCall new(expr, "instanceOf__quest", caseToken)

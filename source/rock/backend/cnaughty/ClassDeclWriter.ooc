@@ -324,8 +324,14 @@ ClassDeclWriter: abstract class extends Skeleton {
         current app(';')
         if (cDecl getNonMeta() getSuperRef()) {
             current nl(). app(This CLASS_NAME). app(" *classPtr = ("). app(This CLASS_NAME). app(" *) &class;")
-            current nl(). app("if(!__done__)"). openBlock().
-                    nl(). app("classPtr->super = ("). app(This CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getFullName()). app("_class();")
+            current nl(). app("if(!__done__)"). openBlock()
+            match (cDecl getNonMeta()) {
+                case cd: CoverDecl =>
+                    // covers don't have super classes, silly.
+                    current nl(). app("classPtr->super = NULL;")
+                case =>
+                    current nl(). app("classPtr->super = ("). app(This CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getFullName()). app("_class();")
+            }
             current nl(). app("__done__ = true;").
                     nl(). app("classPtr->name = ")
             writeStringLiteral(realDecl getNonMeta() name)

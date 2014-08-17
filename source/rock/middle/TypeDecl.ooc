@@ -97,6 +97,10 @@ TypeDecl: abstract class extends Declaration {
         }
     }
 
+    isPrimitiveType: func -> Bool {
+        false
+    }
+
     clone: func -> This {
         // saving us a whole lot of trouble.
         Exception new(This, "Cloning a TypeDecl is unsupported") throw()
