@@ -1,4 +1,4 @@
-import structs/[ArrayList, HashMap]
+import structs/[ArrayList, HashMap, MultiMap]
 import Node, Type, TypeDecl, FunctionDecl, FunctionCall, Visitor, VariableAccess, PropertyDecl, ClassDecl, CoverDecl
 import tinker/[Trail, Resolver, Response, Errors]
 
@@ -24,7 +24,7 @@ Addon: class extends Node {
 
     base: TypeDecl { get set }
 
-    functions := HashMap<String, FunctionDecl> new()
+    functions := MultiMap<String, FunctionDecl> new()
 
     properties := HashMap<String, PropertyDecl> new()
 
@@ -50,8 +50,9 @@ Addon: class extends Node {
     // all functions of an addon are final, because we *definitely* don't have a 'class' field
     addFunction: func (fDecl: FunctionDecl) {
         fDecl isFinal = true
-        hash := TypeDecl hashName(fDecl)
-        functions put(hash, fDecl)
+
+        // TODO: check for redefinitions...
+        functions put(fDecl getName(), fDecl)
     }
 
     addProperty: func (vDecl: PropertyDecl) {
@@ -114,31 +115,20 @@ Addon: class extends Node {
 
     resolveCall: func (call : FunctionCall, res: Resolver, trail: Trail) -> Int {
         if(base == null) return 0
-    
-        hash := TypeDecl hashName(call name, call suffix)
-        fDecl := functions get(hash)
-        if(fDecl) {
-            if(call suggest(fDecl, res, trail)) {
-                // add `this` if needed.
-                if(fDecl hasThis() && !call getExpr()) {
+
+        functions getEach(call name, |fDecl|
+            if (call suffix && fDecl suffix != call suffix) {
+                // skip it! till you make it.
+                return
+            }
+
+            if (call suggest(fDecl, res, trail)) {
+                if (fDecl hasThis() && !call getExpr()) {
+                    // add `this` if needed.
                     call setExpr(VariableAccess new("this", call token))
                 }
             }
-        }
-
-        // TODO: why do we even need this?
-        if(!call getSuffix()) {
-            for(fDecl in functions) {
-                if(fDecl name == call name) {
-                    if(call suggest(fDecl, res, trail)) {
-                        // success? set this if needed.
-                        if(fDecl hasThis() && !call getExpr()) {
-                            call setExpr(VariableAccess new("this", call token))
-                        }
-                    }
-                }
-            }
-        }
+        )
 
         return 0
     }

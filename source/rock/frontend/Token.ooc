@@ -255,6 +255,8 @@ ErrorOutput: abstract class {
 
 TextErrorOutput: class extends ErrorOutput {
     buffer := Buffer new()
+
+    init: func
     
     setColor: func (color: Color) {
         /* text output is not colored - setColor is a no-op */
@@ -282,6 +284,8 @@ TextErrorOutput: class extends ErrorOutput {
 }
 
 TerminalErrorOutput: class extends ErrorOutput {
+
+    init: func
     
     setColor: func (color: Color) {
         Terminal setFgColor(color)

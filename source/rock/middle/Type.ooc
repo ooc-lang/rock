@@ -134,11 +134,11 @@ Type: abstract class extends Expression {
     }
 
     isFloatingPointType: func -> Bool {
-        getFloatingPointState() == NumericState YES 
+        getFloatingPointState() == NumericState YES
     }
 
     isIntegerType: func -> Bool {
-        getIntegerState() == NumericState YES 
+        getIntegerState() == NumericState YES
     }
 
     getIntegerState: func -> NumericState {
@@ -288,7 +288,7 @@ SugarType: abstract class extends Type {
             dug := other dig()
             if(dug) return getScoreImpl(dug, scoreSeed / 2)
         }
-        
+
         return This NOLUCK_SCORE
     }
 
@@ -341,7 +341,7 @@ PointerType: class extends SugarType {
 
     equals?: func (other: This) -> Bool {
         if(other class != this class) return false
-        
+
         other as PointerType inner equals?(inner)
     }
 

@@ -47,10 +47,18 @@ FunctionDecl: class extends Declaration {
     oDecl: OperatorDecl
 
     /** name: func ~suffix - suffix is null if there's no suffix in the grammar */
-    name = "", suffix = null, fullName = null, doc = "" : String
+    name := ""
+    suffix: String
+
+    fullName: String
+    doc := ""
+
+    hash: String { get {
+        suffix ? "#{name}~#{suffix}" : name
+    } }
 
     prettyName: String { get {
-      unbangify(name)
+        unbangify(name)
     } }
 
     /** The return type of this function. If it's generic, or if it's a TypeList, then returnArgs will be used */
@@ -108,6 +116,7 @@ FunctionDecl: class extends Declaration {
     partialByReference := ArrayList<VariableDecl> new()
     partialByValue := ArrayList<VariableDecl> new()
     clsAccesses := ArrayList<VariableAccess> new()
+    fromClosure := false
     _unwrappedClosure := false
     _unwrappedACS := false
 
@@ -124,6 +133,9 @@ FunctionDecl: class extends Declaration {
 
     /** true if it's an anonymous function, ie. our name is empty on the beginning */
     isAnon: Bool
+
+    /** true if new auto-generated from init */
+    autoNew := false
 
     genericConstraints: HashMap<Type, Type>
 
@@ -159,6 +171,8 @@ FunctionDecl: class extends Declaration {
         copy owner = owner
         copy verzion = verzion
 
+        copy fromClosure = fromClosure
+
         args each(|e|
             copy args add(e clone())
         )
@@ -170,6 +184,10 @@ FunctionDecl: class extends Declaration {
 
         typeArgs each(|ta|
             copy typeArgs add(ta clone())
+        )
+
+        returnArgs each(|ra|
+            copy returnArgs add(ra clone())
         )
 
         copy vDecl = vDecl
@@ -187,6 +205,9 @@ FunctionDecl: class extends Declaration {
     setName: func (=name) {}
     getName: func -> String { name }
 
+    getSuffixOrEmpty: func -> String {
+        suffix ? suffix : ""
+    }
     getSuffix: func -> String { suffix }
     setSuffix: func(suffix: String) { this suffix = suffix }
 
@@ -210,7 +231,7 @@ FunctionDecl: class extends Declaration {
 
     isAnon: func -> Bool { isAnon }
 
-    debugCondition: inline func -> Bool {
+    debugCondition: final func -> Bool {
         false
     }
 
@@ -350,6 +371,7 @@ FunctionDecl: class extends Declaration {
         for(arg in args) {
             if(isFirst) isFirst = false
             else        sb append(", ")
+            sb append(arg toString()). append(" :")
             argType := arg getType()
             if(argType) {
                 if(call) {
@@ -469,7 +491,7 @@ FunctionDecl: class extends Declaration {
         if(access debugCondition()) {
             "Looking for %s in %s, got %d typeArgs" printfln(access toString(), toString(), typeArgs size)
         }
-        
+
         for(typeArg in typeArgs) {
             if(access name == typeArg name) {
                 if(access suggest(typeArg)) return 0
@@ -509,7 +531,7 @@ FunctionDecl: class extends Declaration {
         }
 
         if(debugCondition()) "Handling the owner" println()
-        
+
         // handle the case where we specialize a generic function
         if(owner) {
             meat := owner isMeta ? owner as ClassDecl : owner getMeta()
@@ -578,6 +600,8 @@ FunctionDecl: class extends Declaration {
         isClosure := name empty?()
 
         if (isClosure) {
+            fromClosure = true
+
             //if (!_unwrappedACS && !argumentsReady()) {
             if (!_unwrappedACS) {
                 if (!unwrapACS(trail, res)) {
@@ -676,14 +700,14 @@ FunctionDecl: class extends Declaration {
                 return Response OK
             }
 
-            if(ref isSuper) {
-                // oh really? then wait until it's not super anymore.
-                res wholeAgain(this, "superRef of a super func is super itself! looping.")
-                return Response OK
-            }
-            
             superCall := FunctionCall new("super", token)
             if(ref != null) {
+                if(ref isSuper) {
+                    // oh really? then wait until it's not super anymore.
+                    res wholeAgain(this, "superRef of a super func is super itself! looping.")
+                    return Response OK
+                }
+
                 for(arg in ref args) {
                     if(!arg isResolved()) {
                         res wholeAgain(arg, "some arg we need to copy needs resolving!")
@@ -702,16 +726,21 @@ FunctionDecl: class extends Declaration {
 
                 if(name == "init") {
                     // add ourselves again, for new-generation from init
-                    owner removeFunction(this). addFunction(this)
+                    owner removeFunction(this)
+                    owner addFunction(this)
                 }
+
+                res wholeAgain(this, "Just changed super func")
             } else {
-                res throwError(UnresolvedCall new(token, superCall, "There is no such super-func in %s!" format(superTypeDecl toString())))
+                msg := "There is no such super-func in %s!" format(superTypeDecl toString())
+                err := UnresolvedCall new(token, superCall, msg)
+                res throwError(err)
             }
         }
 
        if(name == "main" && owner == null) {
             // TODO: move me out of middle/ !!
-            
+
             match (args getSize()) {
                 case 0 => {
                     // turn main into a standard prototype. Some libraries, like SDL, will
@@ -739,14 +768,30 @@ FunctionDecl: class extends Declaration {
                         arg fullName = "%s__%s" format(arg token module getUnderName(), arg name)
                         vdfe := VariableDecl new(null, arg getFullName(), constructCall, token)
                         body add(0, vdfe)
+                    }else if(args first() getType() getName() == "String"){
+                        // replace (String[]) with (argc: Int, argv: CString*)
+                        // and assign args to string array
+                        arg := args first()
+                        args clear()
+                        argc := Argument new(BaseType new("Int", arg token), generateTempName("argc"), arg token)
+                        argv := Argument new(PointerType new(BaseType new("CString", arg token), arg token), generateTempName("argv"), arg token)
+                        args add(argc)
+                        args add(argv)
+
+                        constructCall := FunctionCall new("strArrayFromCString", arg token)
+                        constructCall args add(VariableAccess new(argc, arg token)) \
+                                          .add(VariableAccess new(argv, arg token))
+                        arg fullName = "%s__%s" format(arg token module getUnderName(), arg name)
+                        vdfe := VariableDecl new(null, arg getFullName(), constructCall, token)
+                        body add(0, vdfe)
                     }
                 }
                 case 2 => {
-                    // Replace (argc: Int, argv: String*) with (argc: Int, argv1: CString*) 
+                    // Replace (argc: Int, argv: String*) with (argc: Int, argv1: CString*)
                     // and assign argv to the "String" version of argv1
                     // argv := cStringPtrToStringPtr(argv1, argc)
 
-                    if (args get(0) getType() getName() == "Int" && args get(1) getType() getName() == "String") { 
+                    if (args get(0) getType() getName() == "Int" && args get(1) getType() getName() == "String") {
                         arg := args get(1)
                         pseudoArgv := BaseType new("CString", arg token)
                         argv := Argument new(PointerType new(pseudoArgv, arg token), generateTempName("argv"), arg token)
@@ -754,7 +799,7 @@ FunctionDecl: class extends Declaration {
                         argcAccess := VariableAccess new(args get(0), args get(0) token)
                         constructCall := FunctionCall new("cStringPtrToStringPtr", arg token)
                         constructCall args add(argvAccess)
-                        constructCall args add(argcAccess) 
+                        constructCall args add(argcAccess)
 
                         myArgv := VariableDecl new(null, "argv", constructCall, nullToken)
                         args[1] = argv
@@ -763,8 +808,8 @@ FunctionDecl: class extends Declaration {
                 }
             }
         }
-        
-	    if (isClosure) {
+
+        if (isClosure) {
             if(countdown > 0) {
                 countdown -= 1
                 res wholeAgain(this, "countdown!")
@@ -801,7 +846,7 @@ FunctionDecl: class extends Declaration {
                 res wholeAgain(this, "Need type of the expr of the parent call")
                 return false
             }
-            
+
             j := 0
             callExprTypeArgs := parentCall expr getType() getTypeArgs()
             if(callExprTypeArgs) {
@@ -820,11 +865,11 @@ FunctionDecl: class extends Declaration {
             res throwError(InternalError new(token, "[ACS]: Can't find `this` in the call's arguments.\ntrail = %s" format(trail toString())))
         }
 
-		if(ind >= parentFunc args size) {
-			res wholeAgain(this, "Invalid argument index - call candidate probably doesn't match")
-			return false
-		}
-        
+        if(ind >= parentFunc args size) {
+            res wholeAgain(this, "Invalid argument index - call candidate probably doesn't match")
+            return false
+        }
+
         argType := parentFunc args[ind] getType()
         if (!argType || argType class != FuncType) {
             res wholeAgain(this, "Missing type information in the function pointer.")
@@ -837,7 +882,7 @@ FunctionDecl: class extends Declaration {
         fScore := 0
         needTrampoline := false
 
-        // infer return type 
+        // infer return type
         if(funcPointer returnType) {
             returnType = funcPointer returnType
         }
@@ -951,6 +996,7 @@ FunctionDecl: class extends Declaration {
 
             // create the context struct's cover
             ctxStruct := CoverDecl new(name + "_ctx", token)
+            ctxStruct fromClosure = true
 
             // look for versioned nodes or VersionBlocks in the trail. If we're using
             // a closure in a versioned context, we don't want the context struct to appear
@@ -1033,6 +1079,7 @@ FunctionDecl: class extends Declaration {
             trail addBeforeInScope(this, closureDecl)
 
             thunk := FunctionDecl new(getName() + "_thunk", token)
+            thunk fromClosure = true
             thunk typeArgs addAll(typeArgs)
             thunk args addAll(args)
             thunk returnType = returnType
@@ -1139,7 +1186,7 @@ FunctionRedefinition: class extends Error {
     first, second: FunctionDecl
 
     init: func (=first, =second) {
-        super(second token, "Redefinition of '%s'%s" format(first prettyName, first verzion ? (" in version " + first verzion toString()) : "")) 
+        super(second token, "Redefinition of '%s'%s" format(first prettyName, first verzion ? (" in version " + first verzion toString()) : ""))
         next = InfoError new(first token, "...first definition was here.")
     }
 

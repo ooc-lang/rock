@@ -8,6 +8,7 @@ import text/StringTokenizer
 import Help, Token, BuildParams, AstBuilder, PathList, Target
 import rock/frontend/drivers/[Driver, SequenceDriver, MakeDriver, DummyDriver, CCompiler, AndroidDriver]
 import rock/backend/json/JSONGenerator
+import rock/backend/lua/LuaGenerator
 import rock/middle/[Module, Import, UseDef]
 import rock/middle/tinker/Tinkerer
 import rock/middle/algo/ImportClassifier
@@ -23,6 +24,7 @@ system: extern func (command: CString)
 CommandLine: class {
 
     params: BuildParams
+    mainUseDef: UseDef
 
     init: func(args : ArrayList<String>) {
 
@@ -31,6 +33,7 @@ CommandLine: class {
         modulePaths := ArrayList<String> new()
         isFirst := true
         alreadyDidSomething := false
+        targetModule: Module
 
         for (arg in args) {
             if(isFirst) {
@@ -69,7 +72,7 @@ CommandLine: class {
                     if(!longOption) warnUseLong("backend")
                     params backend = arg substring(arg indexOf('=') + 1)
 
-                    if(params backend != "c" && params backend != "json") {
+                    if(params backend != "c" && params backend != "json" && params backend != "luaffi") {
                         "Unknown backend: %s." format(params backend) println()
                         params backend = "c"
                     }
@@ -136,6 +139,11 @@ CommandLine: class {
                     if(!longOption) warnUseLong("debuglibcache")
                     params debugLibcache = true
 
+                } else if (option == "debugtemplates") {
+
+                    if(!longOption) warnUseLong("debugtemplates")
+                    params debugTemplates = true
+
                 } else if(option startsWith?("ignoredefine=")) {
 
                     if(!longOption) warnUseLong("ignoredefine")
@@ -175,7 +183,7 @@ CommandLine: class {
 
                     if(!longOption) warnUseLong("libcache")
                     params libcache = true
-                    
+
                 } else if (option == "libcachepath") {
 
                     if(!longOption) warnUseLong("libcachepath")
@@ -259,31 +267,31 @@ CommandLine: class {
                 } else if (option == "pg") {
 
                     params profile = Profile DEBUG
-                    
+
                 } else if (option == "pr") {
 
                     params profile = Profile RELEASE
-                    
+
                 } else if (option == "O0") {
 
                     params optimization = OptimizationLevel O0
-                    
+
                 } else if (option == "O1") {
 
                     params optimization = OptimizationLevel O1
-                    
+
                 } else if (option == "O2") {
 
                     params optimization = OptimizationLevel O2
-                    
+
                 } else if (option == "O3") {
 
                     params optimization = OptimizationLevel O3
-                    
+
                 } else if (option == "Os") {
 
                     params optimization = OptimizationLevel Os
-                    
+
                 } else if (option == "verbose" || option == "v") {
 
                     if(!longOption && option != "v") warnUseLong("verbose")
@@ -329,7 +337,7 @@ CommandLine: class {
                         case "android" => Target ANDROID
                         case =>
                             "[ERROR] Unknown target: %s" printfln(targetName)
-                            failure()
+                            failure(params)
                             null
                     }
                     params undoTargetSpecific()
@@ -341,7 +349,7 @@ CommandLine: class {
                     params driver = match (driverName) {
                         case "combine" =>
                             "[ERROR] The combine driver is deprecated." println()
-                            failure()
+                            failure(params)
                             params driver
                         case "sequence" =>
                             SequenceDriver new(params)
@@ -354,7 +362,7 @@ CommandLine: class {
                             DummyDriver new(params)
                         case =>
                             "[ERROR] Unknown driver: %s" printfln(driverName)
-                            failure()
+                            failure(params)
                             null
                     }
 
@@ -425,11 +433,16 @@ CommandLine: class {
 
                     hardDeprecation("slave")
 
+                } else if (option startsWith?("bannedflag=")) {
+
+                    flag := arg substring(arg indexOf('=') + 1)
+                    params bannedFlags add(flag)
+
                 } else if (option startsWith?("j")) {
 
                     threads := arg substring(2) toInt()
                     params parallelism = threads
-    
+
                 } else if (option startsWith?("m")) {
 
                     arch := arg substring(2)
@@ -439,7 +452,7 @@ CommandLine: class {
                         "Unrecognized architecture: %s" printfln(arch)
 
                 } else if (option == "x") {
-                   
+
                     "Cleaning up outpath and .libs" println()
                     cleanHardcore()
                     alreadyDidSomething = true
@@ -459,11 +472,11 @@ CommandLine: class {
                     case lowerArg endsWith?(".ooc") =>
                         modulePaths add(arg)
                     case lowerArg endsWith?(".use") =>
-                        prepareCompilationFromUse(File new(arg), modulePaths, true)
+                        prepareCompilationFromUse(File new(arg), modulePaths, true, targetModule&)
                     case lowerArg contains?(".") =>
                         // unknown file, complain
                         "[ERROR] Don't know what to do with argument %s, bailing out" printfln(arg)
-                        failure()
+                        failure(params)
                     case =>
                         // probably an ooc file without the extension
                         modulePaths add(arg + ".ooc")
@@ -471,9 +484,14 @@ CommandLine: class {
             }
         }
 
-        params bake()
+        try {
+            params bake()
+        } catch (e: ParamsError) {
+            error(e message)
+            failure(params)
+        }
 
-        if(modulePaths empty?()) {
+        if(modulePaths empty?() && !targetModule) {
             if (alreadyDidSomething) {
                 exit(0)
             }
@@ -492,7 +510,7 @@ CommandLine: class {
                 exit(1)
             }
 
-            prepareCompilationFromUse(uzeFile, modulePaths, false)
+            prepareCompilationFromUse(uzeFile, modulePaths, false, targetModule&)
         }
 
         if(params sourcePath empty?()) {
@@ -512,7 +530,9 @@ CommandLine: class {
 
         errorCode := 0
 
-        for(modulePath in modulePaths) {
+        if (targetModule) {
+            postParsing(targetModule)
+        } else for(modulePath in modulePaths) {
             code := parse(modulePath replaceAll('/', File separator))
             if(code != 0) {
                 errorCode = 2 // C compiler failure.
@@ -527,34 +547,65 @@ CommandLine: class {
 
     }
 
-    prepareCompilationFromUse: func (uzeFile: File, modulePaths: ArrayList<String>, crucial: Bool) {
+    prepareCompilationFromUse: func (uzeFile: File, modulePaths: ArrayList<String>, crucial: Bool, targetModule: Module@) {
         // extract '.use' from use file
         identifier := uzeFile name[0..-5]
         uze := UseDef new(identifier)
+        mainUseDef = uze
         uze read(uzeFile, params)
         if(uze main) {
             // compile as a program
             uze apply(params)
             modulePaths add(uze main)
         } else {
-            if (crucial) {
-                Exception new("[stub] libfolder compilation.") throw()
-            } else {
-                "rock: no Main directive in use file %s" printfln(uzeFile path)
-                exit(1)
+            // compile as a library
+            if (params verbose) {
+                "Compiling '%s' as a library" printfln(identifier)
             }
+            uze apply(params)
+
+            if (!uze sourcePath) {
+                error("No SourcePath directive in '%s'" format(uzeFile path))
+                failure(params)
+            }
+
+            params link = false
+
+            base := File new(uze sourcePath)
+            if (!base exists?()) {
+                error("SourcePath '%s' doesn't exist" format(base path))
+                failure(params)
+            }
+
+            importz := ArrayList<String> new()
+            base walk(|f|
+                if (f file?() && f path toLower() endsWith?(".ooc")) {
+                    importz add(f rebase(base) path[0..-5])
+                }
+                true
+            )
+
+            fullName := ""
+            module := Module new(fullName, uze sourcePath, params, nullToken)
+            module token = Token new(0, 0, module, 0)
+            module lastModified = uzeFile lastModified()
+            module dummy = true
+            for (importPath in importz) {
+                imp := Import new(importPath, module token)
+                module addImport(imp)
+            }
+
+            targetModule = module
         }
     }
 
     clean: func {
-        // oh that's a hack.
-        system("rm -rf %s" format(params outPath path))
+        params outPath rm_rf()
     }
 
     cleanHardcore: func {
         clean()
-        // oh that's the same hack. Someone implement File recursiveDelete() already.
-        system("rm -rf %s" format(params libcachePath))
+        File new(params libcachePath) rm_rf()
     }
 
     parse: func (moduleName: String) -> Int {
@@ -562,7 +613,7 @@ CommandLine: class {
         if(!moduleFile) {
             "[ERROR] Could not find main .ooc file: %s" printfln(moduleName)
             "[INFO] SourcePath = %s" printfln(params sourcePath toString())
-            failure()
+            failure(params)
             exit(1)
         }
 
@@ -586,18 +637,18 @@ CommandLine: class {
     postParsing: func (module: Module) {
         first := static true
 
+        if(params onlyparse) {
+            if(params verbose) println()
+            // Oookay, we're done here.
+            success(params)
+            return
+        }
+
         parseMs := Time measure(||
             module parseImports(null)
         )
         if (params timing) {
             "Parsing took %d ms" printfln(parseMs)
-        }
-
-        if(params onlyparse) {
-            if(params verbose) println()
-            // Oookay, we're done here.
-            success()
-            return
         }
 
         if(params verbose) {
@@ -608,7 +659,7 @@ CommandLine: class {
         allModules := module collectDeps()
         resolveMs := Time measure(||
             if(!Tinkerer new(params) process(allModules)) {
-                failure()
+                failure(params)
             }
         )
         if (params timing) {
@@ -631,23 +682,41 @@ CommandLine: class {
                     if (params timing) {
                         "C generation & compiling took %d ms" printfln(compileMs)
                     }
-                    if(params shout) success()
+                    success(params)
                     if(params run) {
                         // FIXME: that's the driver's job
                         if(params binaryPath && !params binaryPath empty?()) Process new(["./" + params binaryPath]) execute()
                         else Process new(["./" + module simpleName]) execute()
                     }
                 } else {
-                    if(params shout) {
-                        failure()
-                    }
+                    failure(params)
+                }
+            }
+
+            if (mainUseDef && mainUseDef luaBindings) {
+                // generate lua stuff!
+                params clean = false // --backend=luaffi implies -noclean
+                params outPath = File new(mainUseDef file parent, mainUseDef luaBindings)
+
+                if (params verbose) {
+                    "Writing lua bindings to #{params outPath path}" println()
+                }
+
+                for(candidate in module collectDeps()) {
+                    LuaGenerator new(params, candidate) write() .close()
                 }
             }
         } else if(params backend == "json") {
             // json phase 3: generate.
-            params clean = false // -backend=json implies -noclean
+            params clean = false // --backend=json implies -noclean
             for(candidate in module collectDeps()) {
                 JSONGenerator new(params, candidate) write() .close()
+            }
+        } else if(params backend == "luaffi") {
+            // generate lua stuff!
+            params clean = false // --backend=luaffi implies -noclean
+            for(candidate in module collectDeps()) {
+                LuaGenerator new(params, candidate) write() .close()
             }
         }
 
@@ -659,7 +728,7 @@ CommandLine: class {
         "[WARN ] %s" printfln(message)
         Terminal reset()
     }
-    
+
     error: static func (message: String) {
         Terminal setFgColor(Color red)
         "[ERROR] %s" printfln(message)
@@ -678,18 +747,22 @@ CommandLine: class {
         error("%s parameter is deprecated" format(parameter))
     }
 
-    success: static func {
-        Terminal setAttr(Attr bright)
-        Terminal setFgColor(Color green)
-        "[ OK ]" println()
-        Terminal reset()
+    success: static func (params: BuildParams) {
+        if (params shout) {
+            Terminal setAttr(Attr bright)
+            Terminal setFgColor(Color green)
+            "[ OK ]" println()
+            Terminal reset()
+        }
     }
 
-    failure: static func {
-        Terminal setAttr(Attr bright)
-        Terminal setFgColor(Color red)
-        "[FAIL]" println()
-        Terminal reset()
+    failure: static func (params: BuildParams) {
+        if (params shout) {
+            Terminal setAttr(Attr bright)
+            Terminal setFgColor(Color red)
+            "[FAIL]" println()
+            Terminal reset()
+        }
 
         // FIXME: should we *ever* exit(1) ?
         exit(1)

@@ -22,7 +22,7 @@ nq_parse: extern proto func (AstBuilder, CString) -> Int
 // reserved C99 keywords
 reservedWords := ["auto", "int", "long", "char", "register", "short", "do",
                   "sizeof", "double", "struct", "switch", "typedef", "union",
-                  "unsigned", "signed", "goto", "enum", "const", "near", "far"]
+                  "unsigned", "signed", "goto", "enum", "const", "near", "far", "default"]
 reservedHashs := computeReservedHashs(reservedWords)
 
 ReservedKeywordError: class extends Error {
@@ -95,7 +95,7 @@ AstBuilder: class {
         // in the meantime, I'm (ndd) keeping them around, trying not to use current-gen
         // features in current-gen source to facilitate bootstrapping.
         if (imp sourcePathElement) {
-            (impPat2, impElemen2) := params sourcePath getFileInElement(path, imp sourcePathElement)
+            (impPat2, impElemen2) := params sourcePath getFileInElement(path, imp sourcePathElement, params)
             (impPath, impElement) = (impPat2, impElemen2)
         } else {
             (impPat2, impElemen2) := params sourcePath getFile(path)
@@ -107,7 +107,7 @@ AstBuilder: class {
                 // import can also be 'implicitly relative', e.g. io/File can import io/native/FileWin32
                 // just by doing 'import native/FileWin32'
                 path = FileUtils resolveRedundancies(parent path + File separator + oocImpPath)
-                (impPat2, impElemen2) := params sourcePath getFileInElement(path, module pathElement)
+                (impPat2, impElemen2) := params sourcePath getFileInElement(path, module pathElement, params)
                 (impPath, impElement) = (impPat2, impElemen2)
             }
         }
@@ -215,6 +215,10 @@ AstBuilder: class {
         peek(CoverDecl) setExternName(externName toString())
     }
 
+    onCoverProto: unmangled(nq_onCoverProto) func (externName: CString) {
+        peek(CoverDecl) setProto(true)
+    }
+
     onCoverFromType: unmangled(nq_onCoverFromType) func (type: Type) {
         peek(CoverDecl) setFromType(type)
     }
@@ -253,11 +257,11 @@ AstBuilder: class {
     }
 
     onEnumIncrementExpr: unmangled(nq_onEnumIncrementExpr) func (oper: Char, step: IntLiteral) {
-        peek(EnumDecl) setIncrement(oper, step value)
+        peek(EnumDecl) setIncrement(oper, step number)
     }
 
     onEnumElementStart: unmangled(nq_onEnumElementStart) func (name, doc: CString) {
-        element := EnumElement new(peek(EnumDecl) getInstanceType(),name toString(), token())
+        element := EnumElement new(peek(EnumDecl) getInstanceType(), name toString(), token())
         element doc = doc toString()
         stack push(element)
     }
@@ -308,7 +312,8 @@ AstBuilder: class {
     }
 
     onClassBody: unmangled(nq_onClassBody) func {
-        peek(ClassDecl) addDefaultInit()    }
+        // good on you!
+    }
 
     onClassEnd: unmangled(nq_onClassEnd) func {
         module addType(pop(ClassDecl))
@@ -818,8 +823,8 @@ AstBuilder: class {
         stack push(str)
     }
 
-    onStringTextChunck: unmangled(nq_onStringTextChunck) func(chunck: CString) {
-        peek(StringLiteral) value += chunck toString() \
+    onStringTextChunk: unmangled(nq_onStringTextChunk) func(chunk: CString) {
+        peek(StringLiteral) value += chunk toString() \
                                      replaceAll("\r\n", "\n") \
                                      replaceAll("\n", "\\n") \
                                      replaceAll("\t", "\\t") \
@@ -1093,23 +1098,23 @@ AstBuilder: class {
     }
 
     onDecLiteral: unmangled(nq_onDecLiteral) func (value: CString) -> IntLiteral {
-        IntLiteral new(value toString() replaceAll("_", "") toLLong(), token())
+        IntLiteral new(value toString(), IntBase DECIMAL, token())
     }
 
     onOctLiteral: unmangled(nq_onOctLiteral) func (value: CString) -> IntLiteral {
-        IntLiteral new(value toString() replaceAll("_", "") substring(2) toLLong(8), token())
+        IntLiteral new(value toString()[2..-1], IntBase OCTAL, token())
     }
 
     onBinLiteral: unmangled(nq_onBinLiteral) func (value: CString) -> IntLiteral {
-        IntLiteral new(value toString() replaceAll("_", "") substring(2) toLLong(2), token())
+        IntLiteral new(value toString()[2..-1], IntBase BINARY, token())
     }
 
     onHexLiteral: unmangled(nq_onHexLiteral) func (value: CString) -> IntLiteral {
-        IntLiteral new(value toString() replaceAll("_", "") toLLong(16), token())
+        IntLiteral new(value toString()[2..-1], IntBase HEXADECIMAL, token())
     }
 
     onFloatLiteral: unmangled(nq_onFloatLiteral) func (value: CString) -> FloatLiteral {
-        FloatLiteral new(value toString() replaceAll("_", ""), token())
+        FloatLiteral new(value toString(), token())
     }
 
     onBoolLiteral: unmangled(nq_onBoolLiteral) func (value: Bool) -> BoolLiteral {

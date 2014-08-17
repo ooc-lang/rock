@@ -66,7 +66,7 @@ SequenceDriver: class extends Driver {
         }
         if(params verbose) println()
 
-        code := pool waitAll()
+        (code, failedJob) := pool waitAll()
         if (code != 0) {
             // failed, can stop launching jobs now
             return code
@@ -109,6 +109,9 @@ SequenceDriver: class extends Driver {
 
     link: func (module: Module) -> Int {
         binaryPath := params getBinaryPath(module simpleName)
+        if (!binaryPath) {
+            return 1
+        }
         binaryName := File new(binaryPath) name
 
         // step 4 b: link that big thin archive
@@ -123,7 +126,16 @@ SequenceDriver: class extends Driver {
             flags addObject(sourceFolder archive)
         }
 
-        params compiler launchLinker(flags, params linker) wait()
+        linkerProcess := params compiler launchLinker(flags, params linker)
+        code := linkerProcess wait()
+        if (code != 0 && linkerProcess stdErr) {
+            // print stderr
+            errOutput := PipeReader new(linkerProcess stdErr) readAll()
+            stderr write("C linker failed on %s from %s, bailing out\n\n" format(module fullName, module getUseDef() identifier))
+            stderr write(errOutput)
+        }
+
+        code
     }
 
     dsym: func (module: Module) -> Int {
@@ -239,7 +251,7 @@ SequenceDriver: class extends Driver {
             process := params compiler launchCompiler(flags)
             code := pool add(ModuleJob new(process, module, archive, oFile path))
             if (code != 0) {
-                // a process failed, can stop launching jobs now
+                // a process failed we can stop launching jobs now
                 return code
             }
         } else {
@@ -278,7 +290,7 @@ SequenceDriver: class extends Driver {
         flags addObject(cPath)
 
         process := params compiler launchCompiler(flags)
-        code := pool add(AdditionalJob new(process, archive, oPath))
+        code := pool add(AdditionalJob new(process, archive, cPath, oPath))
         if (code != 0) {
             // a process failed, can stop launching jobs now
             return code
@@ -307,12 +319,17 @@ ModuleJob: class extends Job {
 
     onExit: func (code: Int) {
         if (code != 0) {
-          "C compiler failed (got code %d), aborting compilation process" printfln(code)
-          return
+            stderr write("C compiler failed on module %s from %s, bailing out\n\n" format(module fullName, module getUseDef() identifier))
+
+            if (process stdErr) {
+               stderr write(PipeReader new(process stdErr) readAll())
+            }
+
+            return
         }
 
         if (archive) {
-          archive add(module, objectPath)
+            archive add(module, objectPath)
         }
     }
 
@@ -327,15 +344,19 @@ ModuleJob: class extends Job {
 AdditionalJob: class extends Job {
 
     archive: Archive
-    objectPath: String
+    sourcePath, objectPath: String
 
-    init: func (.process, =archive, =objectPath) {
+    init: func (.process, =archive, =sourcePath, =objectPath) {
       super(process)
     }
 
     onExit: func (code: Int) {
         if (code != 0) {
-          "C compiler failed (got code %d), aborting compilation process" printfln(code)
+          stderr write("C compiler failed on additional %s, bailing out\n\n" format(sourcePath))
+
+          if (process stdErr) {
+               stderr write(PipeReader new(process stdErr) readAll())
+          }
           return
         }
 

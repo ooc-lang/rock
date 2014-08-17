@@ -32,7 +32,8 @@ version(windows) {
      */
     FILE_ATTRIBUTE_DIRECTORY,
     FILE_ATTRIBUTE_REPARSE_POINT,
-    FILE_ATTRIBUTE_NORMAL: extern Long // DWORD
+    FILE_ATTRIBUTE_NORMAL,
+    INVALID_FILE_ATTRIBUTES: extern Long // DWORD
 
     /*
      * file-related functions from Win32
@@ -45,12 +46,17 @@ version(windows) {
     GetCurrentDirectory: extern func (ULong, Pointer) -> Int
     GetFullPathName: extern func (CString, ULong, CString, CString) -> ULong
     GetLongPathName: extern func (CString, CString, ULong) -> ULong
+    DeleteFile: extern func (CString) -> Bool
+    RemoveDirectory: extern func (CString) -> Bool
 
     /*
      * remove implementation
      */
-    _remove: unmangled func (path: String) -> Int {
-        printf("Win32: should remove file %s\n", path toCString())
+    _remove: unmangled func (file: File) -> Bool {
+        if (file dir?()) {
+            return RemoveDirectory(file path)
+        }
+        return DeleteFile(file path)
     }
 
     ooc_get_cwd: unmangled func -> String {
@@ -68,15 +74,6 @@ version(windows) {
 
         init: func ~win32 (.path) {
             this path = _normalizePath(path)
-        }
-
-        /**
-         * @return true if the file exists and can be
-         * opened for reading
-         */
-        exists?: func -> Bool {
-            (ffd, ok) := _getFindData()
-            ok
         }
 
         _getFindData: func -> (FindData, Bool) {
@@ -126,10 +123,18 @@ version(windows) {
         }
 
         /**
+         * @return true if the file exists
+         */
+        exists?: func -> Bool {
+            res := GetFileAttributes(path as CString)
+            (res != INVALID_FILE_ATTRIBUTES)
+        }
+
+        /**
          * @return the permissions for the owner of this file
          */
         ownerPerm: func -> Int {
-            // FIXME stub
+            // Win32 permissions are not unix-like
             return 0
         }
 
@@ -137,7 +142,7 @@ version(windows) {
          * @return the permissions for the group of this file
          */
         groupPerm: func -> Int {
-            // FIXME stub
+            // Win32 permissions are not unix-like
             return 0
         }
 
@@ -145,8 +150,30 @@ version(windows) {
          * @return the permissions for the others (not owner, not group)
          */
         otherPerm: func -> Int {
-            // FIXME stub
+            // Win32 permissions are not unix-like
             return 0
+        }
+
+        /**
+        * @return true if a file is executable by the current owner
+        */
+        executable?: func -> Bool {
+            // Win32 has no *simple* concept of 'executable' bit
+            // we'd have to handle ACLs, and that's a nasty can of worms.
+            // For now, `executable?` and `setExecutable` are enough
+            // to set basic permissions when creating files on *nix.
+            // See discussion on this commit for more details:
+            // https://github.com/nddrylliog/rock/commit/c6b8e9a23079451f2d6c6964cace8ff786f4d434
+            false
+        }
+
+        /**
+        * set the executable bit on this file's permissions for
+        * current user, group, and other.
+        */
+       setExecutable: func (exec: Bool) -> Bool {
+            // see comment for 'executable?'
+            false
         }
 
         mkdir: func ~withMode (mode: Int32) -> Int {

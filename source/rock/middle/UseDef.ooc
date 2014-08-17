@@ -61,11 +61,15 @@ UseDef: class {
     sourcePath:    String { get set }
     linker:        String { get set }
     main:          String { get set }
+    binarypath:    String { get set }
+    luaBindings:   String { get set }
 
     imports             : ArrayList<String> { get set }
     preMains            : ArrayList<String> { get set }
     androidLibs         : ArrayList<String> { get set }
     androidIncludePaths : ArrayList<String> { get set }
+    oocLibPaths         : ArrayList<File> { get set }
+    requirements        : ArrayList<Requirement> { get set }
 
     properties := ArrayList<UseProperties> new()
     versionStack := Stack<UseProperties> new()
@@ -78,6 +82,8 @@ UseDef: class {
         preMains            = ArrayList<String> new()
         androidLibs         = ArrayList<String> new()
         androidIncludePaths = ArrayList<String> new()
+        oocLibPaths         = ArrayList<File> new()
+        requirements        = ArrayList<Requirement> new()
     }
 
     parse: static func (identifier: String, params: BuildParams) -> UseDef {
@@ -95,8 +101,7 @@ UseDef: class {
             This cache put(identifier, cached)
 
             // parse requirements, if any
-            props := cached getRelevantProperties(params)
-            for (req in props requirements) {
+            for (req in cached requirements) {
                 req useDef = This parse(req name, params)
             }
         }
@@ -144,6 +149,14 @@ UseDef: class {
 
         if (linker) {
             params linker = linker
+        }
+
+        if (binarypath) {
+            params binaryPath = binarypath
+        }
+
+        for (path in oocLibPaths) {
+            params libsPaths add(path)
         }
     }
 
@@ -244,7 +257,7 @@ UseDef: class {
     read: func (=file, params: BuildParams) {
         reader := FileReader new(file)
 
-        versionStack push(UseProperties new(this, UseVersionOr new(this)))
+        versionStack push(UseProperties new(this, UseVersion new(this)))
 
         while(reader hasNext?()) {
             line := reader readLine() \
@@ -315,6 +328,8 @@ UseDef: class {
                 }
             } else if (id == "Linker") {
                 linker = value trim()
+            } else if (id == "BinaryPath") {
+                binarypath = value trim()
             } else if (id == "LibPaths") {
                 for (path in value split(',')) {
                     libFile := File new(path trim())
@@ -339,6 +354,26 @@ UseDef: class {
                 for (path in value split(',')) {
                     androidIncludePaths add(path trim())
                 }
+            } else if (id == "OocLibPaths") {
+                for (path in value split(',')) {
+                    relative := File new(path trim()) getReducedFile()
+
+                    if (!relative relative?()) {
+                        "[WARNING]: ooc lib path %s is absolute - it's been ignored" printfln(relative path)
+                        continue
+                    }
+
+                    candidate := file parent getChild(relative path)
+
+                    absolute := match (candidate exists?()) {
+                        case true =>
+                            candidate getAbsoluteFile()
+                        case =>
+                            relative
+                    }
+
+                    oocLibPaths add(absolute)
+                }
             } else if (id == "Additionals") {
                 for (path in value split(',')) {
                     relative := File new(path trim()) getReducedFile()
@@ -360,7 +395,7 @@ UseDef: class {
                 }
             } else if (id == "Requires") {
                 for (req in value split(',')) {
-                    current requirements add(Requirement new(req trim(), "0"))
+                    requirements add(Requirement new(req trim(), "0"))
                 }
             } else if (id == "SourcePath") {
                 if (sourcePath) {
@@ -381,6 +416,8 @@ UseDef: class {
                 if (!main endsWith?(".ooc")) {
                     main = "%s.ooc" format(main)
                 }
+            } else if (id == "LuaBindings") {
+                luaBindings = value
             } else if (!id empty?()) {
                 "Unknown key in %s: %s" format(file getPath(), id) println()
             }
@@ -401,6 +438,17 @@ UseDef: class {
 
         _relevantProperties
     }
+
+    getPropertiesForTarget: func ~forTarget (target: Int) -> UseProperties {
+        _relevantProperties = UseProperties new(this, UseVersion new(this))
+        params := BuildParams new()
+        params target = target
+        properties filter(|p| p useVersion satisfied?(params)) each(|p|
+            _relevantProperties merge!(p)
+        )
+
+        _relevantProperties
+    }
 }
 
 UseProperties: class {
@@ -416,8 +464,6 @@ UseProperties: class {
     libPaths            : ArrayList<String> { get set }
     libs                : ArrayList<String> { get set }
 
-    requirements        : ArrayList<Requirement> { get set }
-
     init: func (=useDef, =useVersion) {
         pkgs                = ArrayList<String> new()
         customPkgs          = ArrayList<CustomPkg> new()
@@ -427,8 +473,6 @@ UseProperties: class {
         includes            = ArrayList<String> new()
         libPaths            = ArrayList<String> new()
         libs                = ArrayList<String> new()
-
-        requirements        = ArrayList<Requirement> new()
     }
 
     merge!: func (other: This) -> This {
@@ -451,8 +495,7 @@ UseProperties: class {
 UseVersion: class {
     useDef: UseDef
 
-    init: func (=useDef) {
-    }
+    init: func (=useDef)
 
     satisfied?: func (params: BuildParams) -> Bool {
         true

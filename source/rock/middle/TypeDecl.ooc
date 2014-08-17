@@ -1,4 +1,4 @@
-import structs/[ArrayList, List, HashMap]
+import structs/[ArrayList, List, HashMap, MultiMap]
 import ../frontend/[Token, BuildParams]
 import ../io/TabbedWriter
 import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
@@ -40,7 +40,7 @@ TypeDecl: abstract class extends Declaration {
 
     // the crux of the matter
     variables := HashMap<String, VariableDecl> new()
-    functions := HashMap<String, FunctionDecl> new()
+    functions := MultiMap<String, FunctionDecl> new()
     operators := ArrayList<OperatorDecl> new()
 
     // interface types that this type implements
@@ -97,13 +97,17 @@ TypeDecl: abstract class extends Declaration {
         }
     }
 
+    isPrimitiveType: func -> Bool {
+        false
+    }
+
     clone: func -> This {
         // saving us a whole lot of trouble.
         Exception new(This, "Cloning a TypeDecl is unsupported") throw()
         null
     }
 
-    debugCondition: inline func -> Bool {
+    debugCondition: final func -> Bool {
         false
     }
 
@@ -186,33 +190,53 @@ TypeDecl: abstract class extends Declaration {
     getInterfaceTypes: func -> List<Type>          { interfaceTypes }
     getInterfaceDecls: func -> List<InterfaceImpl> { interfaceDecls }
 
-    hashName: static func (name, suffix: String) -> String {
-        suffix ? "%s~%s" format(name, suffix) : name
-    }
-
-    hashName: static func ~fromFuncDecl (fDecl: FunctionDecl) -> String {
-        This hashName(fDecl getName(), fDecl getSuffix())
-    }
-
     hasMeta?: func -> Bool {
         !isMeta
     }
 
     addFunction: func (fDecl: FunctionDecl) {
-        if(isMeta) {
-            hash := hashName(fDecl)
-            old := functions get(hash)
-            if (old != null && fDecl getName() != "init") { /* init is an exception */
-                if(old == fDecl) Exception new(This, "Replacing %s with %s, which is the same!" format (old getName(), fDecl getName())) throw()
-                token module params errorHandler onError(FunctionRedefinition new(old, fDecl))
-                return
+        if (!isMeta)  {
+            meta addFunction(fDecl)
+            return
+        }
+
+        if (checkFunctionRedefinition(fDecl)) {
+            // duplicate
+            return
+        }
+
+        functions put(fDecl getName(), fDecl)
+        fDecl setOwner(getNonMeta())
+    }
+
+    /**
+     * Check if 'kiddo' is a redefinition of a previously
+     * added method in this type.
+     *
+     * @return true if it is
+     */
+    checkFunctionRedefinition: func (kiddo: FunctionDecl) -> Bool {
+        redefines := false
+
+        functions getEachUntil(kiddo name, |oldie|
+            if (oldie == kiddo) {
+                // this is an internal error - it should never happen
+                raise("in type #{name}, added #{oldie} more than once")
+                redefines = true
             }
 
-            functions put(hash, fDecl)
-            fDecl setOwner(getNonMeta())
-        } else {
-            meta addFunction(fDecl)
-        }
+            if (kiddo getSuffixOrEmpty() == oldie getSuffixOrEmpty()) {
+                // same suffixes, not okay
+                err := FunctionRedefinition new(oldie, kiddo)
+                token module params errorHandler onError(err)
+                redefines = true
+            }
+
+            // as soon as we've found a redefinition, we can break
+            !redefines
+        )
+
+        redefines
     }
 
     addOperator: func (oDecl: OperatorDecl) {
@@ -221,30 +245,29 @@ TypeDecl: abstract class extends Declaration {
     }
 
     removeFunction: func(fDecl: FunctionDecl) {
-        if(isMeta) {
-            functions remove(This hashName(fDecl))
-        } else {
+        if (!isMeta) {
             meta removeFunction(fDecl)
+            return
         }
+
+        functions removeValue(fDecl getName(), fDecl)
     }
 
-    lookupFunction: func (fName, fSuffix: String) -> FunctionDecl {
+    lookupFunction: func (fName: String, fSuffix: String = null) -> FunctionDecl {
+        result: FunctionDecl
 
-        // quick lookup, if we're lucky (exact suffix or no suffix)
-        fDecl : FunctionDecl = null
-        fDecl = functions get(This hashName(fName, fSuffix))
-        if(fDecl) return fDecl
-
-        // slow lookup, if we have a vague query
-        if(fSuffix == null) {
-            for(f in functions) {
-                // returns the first match.. is it useful?
-                if(f getName() == fName) {
-                    return fDecl
-                }
+        functions getEachUntil(fName, |fDecl|
+            if (fSuffix == null || fDecl suffix == fSuffix) {
+                result = fDecl
+                // we've found, can break
+                return false
             }
-        }
-        return null
+
+            // still looking for the right match, continue
+            true
+        )
+
+        result
     }
 
     getVariableNonRecursive: func (vName: String) -> VariableDecl {
@@ -320,40 +343,70 @@ TypeDecl: abstract class extends Declaration {
     getFunction: func ~real (name, suffix: String, call: FunctionCall,
         recursive: Bool, bestScore: Int, bestMatch: FunctionDecl, finalScore: Int@) -> FunctionDecl {
 
-        for(fDecl: FunctionDecl in functions) {
-            if(fDecl name == name && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix == suffix)) {
-                if(!call) return fDecl
+        done := false
+        result: FunctionDecl
+
+        functions getEachUntil(name, |fDecl|
+            if (suffix == null || (suffix == "" && fDecl suffix == null) || (fDecl suffix == suffix)) {
+                if(!call) {
+                    result = fDecl
+                    done = true
+                    return false // break
+                }
+
                 score := call getScore(fDecl)
-                if(call debugCondition()) "Considering fDecl %s for fCall %s, score = %d\n" format(fDecl toString(), call toString(), score) println()
+                if(call debugCondition()) {
+                    "Considering fDecl %s for fCall %s, score = %d\n" format(fDecl toString(), call toString(), score) println()
+                }
 
                 if(score > bestScore) {
                     bestScore = score
                     bestMatch = fDecl
                 }
             }
+
+            true
+        )
+
+        if (done) {
+            return result
         }
+
+        tempScore := 0
 
         if(call && call expr && call expr getType() && call expr getType() getRef() &&
            call expr getType() getRef() instanceOf?(ClassDecl) &&
            call expr getType() getRef() as ClassDecl isMeta) {
-            for(fDecl: FunctionDecl in functions) {
-                // Not ignoring static methods is intended; we want static member access without explicit `This`.
-                if(fDecl name == name && (suffix == null || (suffix == "" && fDecl suffix == null) || fDecl suffix == suffix)) {
+
+            functions getEachUntil(name, |fDecl|
+                if (suffix == null || (suffix == "" && fDecl suffix == null) || (fDecl suffix == suffix)) {
+                    // TODO: sounds expensive. Isn't it?
                     if(!fDecl isStatic) fDecl = fDecl getStaticVariant()
 
-                    if(!call) return fDecl
+                    if (!call) {
+                        result = fDecl
+                        done = true
+                        return false // break
+                    }
                     score := call getScore(fDecl)
                     if(score == -1) {
-                        finalScore = -1
-                        return null // special score that means "something isn't resolved"
+                        tempScore = -1 // special score that means "something isn't resolved"
+                        done = true
+                        return false
                     }
-
                     if(score > bestScore) {
                         bestScore = score
                         bestMatch = fDecl
                     }
                 }
-            }
+
+                true
+            )
+        }
+
+        if (done) {
+            finalScore = tempScore
+            return result
         }
 
         if(recursive && getSuperRef() != null) {
@@ -662,15 +715,14 @@ TypeDecl: abstract class extends Declaration {
     }
 
     resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
-	
+
         if(type getName() == "This") {
             if(type suggest(getNonMeta() ? getNonMeta() : this)) return 0
         }
 
-        { 
+        {
             ref := templateArgs get(type name)
             if (ref) {
-                "Got corresponding templateArg for %s : %s" printfln(type name, ref toString())
                 if(type suggest(ref)) return 0
             }
         }
@@ -681,12 +733,12 @@ TypeDecl: abstract class extends Declaration {
             }
         }
 
-	finalScore := 0
-	haystack := getInstanceType()
-	result := haystack searchTypeArg(type getName(), finalScore&)
-	if (result && finalScore >= 0) {
-	    if(type suggest(result getRef())) return 0
-	}
+        finalScore := 0
+        haystack := getInstanceType()
+        result := haystack searchTypeArg(type getName(), finalScore&)
+        if (result && finalScore >= 0) {
+            if(type suggest(result getRef())) return 0
+        }
 
         0
     }
@@ -694,7 +746,7 @@ TypeDecl: abstract class extends Declaration {
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
 
         if(access debugCondition()) {
-            "resolveAccess(%s) in %s. isMeta = %s" format(access toString(), toString(), isMeta toString()) println()
+            "resolveAccess(%s) in %s (%d vars, %d functions). isMeta = %s" printfln(access toString(), toString(), variables size, functions size, isMeta toString())
         }
 
         // don't allow to resolve any access before finishing ghosting
@@ -710,10 +762,9 @@ TypeDecl: abstract class extends Declaration {
             if(access suggest(getNonMeta() ? getNonMeta() : this)) return 0
         }
 
-        { 
+        {
             ref := templateArgs get(access getName())
             if (ref) {
-                "Got corresponding templateArg for var access %s : %s" printfln(access getName(), ref toString())
                 if(access suggest(ref)) return 0
             }
         }
@@ -744,7 +795,7 @@ TypeDecl: abstract class extends Declaration {
         for(addon in getAddons()) {
             if(resolveAccessInAddon(addon, access, res, trail) == -1) return -1
         }
-        
+
         {
             ancestor := getSuperRef()
             while(ancestor != null) {
@@ -786,17 +837,21 @@ TypeDecl: abstract class extends Declaration {
             }
         }
 
-        // ask the metaclass for the variable (makes static member access without explicit `This` possible)
+        // ask the metaclass for the variable (makes static
+        // member access without explicit `This` possible)
         if(!isMeta) {
             mvDecl : Declaration
 
+            // try variables first
             mvDecl = getMeta() variables get(access getName())
             if(mvDecl == null) {
-                mvDecl = getMeta() functions get(access getName())
+                // or functions, that's good too.
+                mvDecl = getMeta() lookupFunction(access getName())
             }
 
             if(mvDecl != null && access suggest(mvDecl)) {
                 if(access expr == null) {
+                    // Make a variable access '<Type> <name>'
                     varAcc := VariableAccess new(getInstanceType(), nullToken)
                     access expr = varAcc
                 }
@@ -811,14 +866,20 @@ TypeDecl: abstract class extends Declaration {
     resolveCall: func (call : FunctionCall, res: Resolver, trail: Trail) -> Int {
 
         if(call debugCondition()) {
-            "\n====> Search %s in %s (which has %d functions)" printfln(call toString(), name, functions getSize())
+            "\n====> Search %s in %s (which has %d functions)" printfln(call toString(), name, functions size)
             for(f in functions) {
                 "  - Got %s!" printfln(f toString())
             }
         }
 
         finalScore := 0
-        fDecl := getFunction(call name, call suffix, call, true, finalScore&)
+        recursive := true
+        if (call name == "new") {
+            // constructors are special beasts :/
+            recursive = false
+        }
+
+        fDecl := getFunction(call name, call suffix, call, recursive, finalScore&)
         if(finalScore == -1) {
             if(res fatal) {
                 // if fatal and because of us, there could be two reasons
@@ -842,7 +903,7 @@ TypeDecl: abstract class extends Declaration {
         for(addon in getAddons()) {
             if(resolveCallInAddon(addon, call, res, trail) == -1) return -1
         }
-        
+
         {
             ancestor := getSuperRef()
             while(ancestor != null) {
@@ -872,7 +933,7 @@ TypeDecl: abstract class extends Declaration {
         0
 
     }
-    
+
     resolveCallInAddon: func (addon: Addon, call: FunctionCall, res: Resolver, trail: Trail) -> Int {
         has := false
 
@@ -880,7 +941,7 @@ TypeDecl: abstract class extends Declaration {
         // function call's module.
         if(call token module == addon token module) {
             has = true
-        } else for(imp in call token module getGlobalImports()) {
+        } else for(imp in call token module getAllImports()) {
             if(imp getModule() == addon token module) {
                 has = true
                 break
@@ -890,7 +951,7 @@ TypeDecl: abstract class extends Declaration {
         if(has) {
             if(addon resolveCall(call, res, trail) == -1) return -1
         }
-        
+
         0
     }
 

@@ -47,6 +47,9 @@ BuildParams: class {
         doTargetSpecific()
     }
 
+    // handle with care.
+    init: func ~empty
+
     findDist: func (execName: String) {
         // specified by command-line?
         if(distLocation) return
@@ -184,6 +187,7 @@ BuildParams: class {
     // Debugging purposes
     debugLoop := false
     debugLibcache := false
+    debugTemplates := false
 
     // Ignore these defines when trying to determine if a cached lib is up-to-date or not
     ignoredDefines := ArrayList<String> new()
@@ -237,10 +241,12 @@ BuildParams: class {
     // compilation driver
     driver := SequenceDriver new(this)
 
-    checkBinaryNameCollision: func (name: String) {
+    validBinaryName?: func (name: String) -> Bool {
         if (File new(name) dir?()) {
             stderr write("Naming conflict (output binary) : There is already a directory called %s.\nTry a different name, e.g. '-o=%s2'\n" format(name, name))
-            CommandLine failure()
+            false
+        } else {
+            true
         }
     }
 
@@ -253,7 +259,9 @@ BuildParams: class {
         }
 
         if (binaryPath == "") {
-            checkBinaryNameCollision(defaultPath)
+            if (!validBinaryName?(defaultPath)) {
+                return null
+            }
             defaultPath
         } else {
             binaryPath
@@ -319,17 +327,20 @@ BuildParams: class {
                 defineSymbol(This DEBUG_DEFINE)
             case Profile RELEASE =>
                 // optimize on release
-                optimization = OptimizationLevel Os
+                optimization = OptimizationLevel O3
         }
 
         if (host != "") {
             tokens := host split('-')
             if (tokens size < 2) {
-                CommandLine error("Invalid host value: %s" format(host))
-                CommandLine failure()
+                ParamsError new("Invalid host value: %s" format(host)) throw()
             }
 
             (archToken, targetToken) := (tokens[0], tokens[1])
+            thirdToken := ""
+            if (tokens size >= 3) {
+                thirdToken = tokens[2]
+            }
 
             match {
                 case archToken contains?("64") =>
@@ -340,7 +351,7 @@ BuildParams: class {
 
             match {
                 // Incomplete list, see http://git.savannah.gnu.org/cgit/libtool.git/tree/doc/PLATFORMS
-                case targetToken contains?("mingw") =>
+                case targetToken contains?("mingw") || thirdToken contains?("mingw") =>
                     target = Target WIN
                 case targetToken contains?("apple") =>
                     target = Target OSX
@@ -453,5 +464,9 @@ OptimizationLevel: enum {
     O2
     O3
     Os
+}
+
+ParamsError: class extends Exception {
+    init: func (=message)
 }
 

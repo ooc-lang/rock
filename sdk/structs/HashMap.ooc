@@ -1,3 +1,4 @@
+
 import ArrayList
 
 /**
@@ -14,7 +15,7 @@ HashEntry: cover {
 
 }
 
-nullHashEntry: HashEntry <None, None>
+nullHashEntry: HashEntry
 memset(nullHashEntry&, 0, HashEntry size)
 
 stringEquals: func <K> (k1, k2: K) -> Bool {
@@ -176,33 +177,30 @@ HashMap: class <K, V> extends BackIterable<V> {
 
     buckets: HashEntry[]
     keys: ArrayList<K>
-    
-    size : SizeT {
+
+    size: SizeT {
     	get {
             _size
  	}
     }
 
     /**
-     * Returns a hash table with 100 buckets
-     * @return HashTable
+     * Returns a new hash map
      */
 
     init: func {
-        init(100)
+        init(3)
     }
 
     /**
      * Returns a hash table of a specified bucket capacity.
      * @param UInt capacity The number of buckets to use
-     * @return HashTable
      */
     init: func ~withCapacity (=capacity) {
         _size = 0
 
         buckets = HashEntry[capacity] new()
-
-        keys = ArrayList<K> new(capacity)
+        keys = ArrayList<K> new()
 
         keyEquals = getStandardEquals(K)
         hashKey = getStandardHashFunc(K)
@@ -211,9 +209,8 @@ HashMap: class <K, V> extends BackIterable<V> {
     }
 
     /**
-     * Returns the HashEntry associated with a key.
+     * Retrieve the HashEntry associated with a key.
      * @param key The key associated with the HashEntry
-     * @return HashEntry
      */
     getEntry: func (key: K, result: HashEntry*) -> Bool {
         hash : SizeT = hashKey(key) % capacity
@@ -440,6 +437,7 @@ HashMap: class <K, V> extends BackIterable<V> {
         oldBuckets := buckets
 
         /* Clear key list and size */
+        oldKeys := keys clone()
         keys clear()
         _size = 0
 
@@ -459,6 +457,9 @@ HashMap: class <K, V> extends BackIterable<V> {
             }
         }
 
+        // restore old keys to keep order
+        keys = oldKeys
+
         return true
     }
 
@@ -473,7 +474,11 @@ HashMap: class <K, V> extends BackIterable<V> {
     }
 
     clear: func {
-        init(capacity)
+        _size = 0
+        for (i in 0..capacity) {
+            buckets[i] = nullHashEntry
+        }
+        keys clear()
     }
 
     getSize: func -> SSizeT { _size }

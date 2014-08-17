@@ -9,49 +9,66 @@
  */
 Coro: class {
 
-    // this was originally commented '128k needed on PPC due to parser'
-    // I have no idea what that means but 128k sounds reasonable.
+    // 128k stack = room for quite a few function calls
     DEFAULT_STACK_SIZE := static 128 * 1_024
-    MIN_STACK_SIZE := static 8_192
 
-    stack: Pointer
+    stack: UInt8*
     env: UContext
     isMain: Bool
 
-    init: func {}
+    init: func
 
-    initializeMainCoro: func {
+    initializeMainCoro: final func {
         isMain = true
     }
 
-    startCoro: func (other: This, callback: Func) {
+    startCoro: final func (other: This, callback: Func) {
         other allocStackIfNeeded()
         other setup(this, ||
             callback()
-            "Scheduler error: returned from coro start function" println(stderr)
+            raise("Scheduler error: returned from coro start function")
             exit(-1)
         )
         switchTo(other)
+        other free()
     }
 
-    setup: func (coro: Coro, callback: Func) {
+    setup: final func (coro: Coro, callback: Func) {
         getcontext(env&)
 
-        env stack stackPointer = stack
-        env stack stackSize    = DEFAULT_STACK_SIZE
-        env stack flags        = 0
-        env link               = coro env&
+        env stack address = stack
+        env stack size    = DEFAULT_STACK_SIZE
+        env stack flags   = 0
+        env link          = coro env&
+
+        GC_add_roots(
+            stack,
+            stack + DEFAULT_STACK_SIZE
+        )
 
         makecontext(env&, callback as Closure thunk, 1, callback as Closure context)
     }
 
-    switchTo: func (next: This) {
+    switchTo: final func (next: This) {
+        GC_stackbottom = next env stack address
         swapcontext(env&, next env&)
     }
 
-    allocStackIfNeeded: func {
+    allocStackIfNeeded: final func {
         if (!stack) {
-            stack = gc_malloc(DEFAULT_STACK_SIZE)
+            stack = coro_malloc(DEFAULT_STACK_SIZE)
+        }
+    }
+
+    free: final func {
+        GC_remove_roots(
+            stack,
+            stack + DEFAULT_STACK_SIZE
+        )
+
+        if (stack) {
+            coro_free(stack)
+            stack = null
         }
     }
 
@@ -59,12 +76,15 @@ Coro: class {
 
 /* ------ C interfacing ------- */
 
+coro_malloc: extern(malloc) func (s: SizeT) -> Pointer
+coro_free: extern(free) func (p: Pointer)
+
 include ucontext | (_XOPEN_SOURCE=600)
 
 StackT: cover from stack_t {
-    stackPointer: extern(ss_sp) Pointer
+    address: extern(ss_sp) Pointer
     flags: extern(ss_flags) Int
-    stackSize: extern(ss_size) SizeT
+    size: extern(ss_size) SizeT
 }
 
 UContext: cover from ucontext_t {
@@ -76,4 +96,8 @@ getcontext: extern func (ucp: UContext*) -> Int
 setcontext: extern func (ucp: UContext*) -> Int
 makecontext: extern func (ucp: UContext*, _func: Pointer, argc: Int, ...)
 swapcontext: extern func (oucp: UContext*, ucp: UContext*) -> Int
+
+GC_add_roots: extern func (Pointer, Pointer)
+GC_remove_roots: extern func (Pointer, Pointer)
+GC_stackbottom: extern UInt8*
 

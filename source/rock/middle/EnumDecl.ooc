@@ -1,7 +1,8 @@
-import structs/HashMap
+import structs/[ArrayList, HashMap]
 import ../io/TabbedWriter
 import TypeDecl, Declaration, Visitor, Node, VariableAccess, Type,
-       VariableDecl, IntLiteral, FloatLiteral, Expression, FunctionDecl
+       VariableDecl, IntLiteral, FloatLiteral, Expression, FunctionDecl,
+       CoverDecl, Module, StructLiteral, BaseType
 import tinker/[Trail, Resolver, Response, Errors]
 import ../frontend/Token
 
@@ -10,6 +11,9 @@ EnumDecl: class extends TypeDecl {
     incrementOper := '+'
     incrementStep : Int64 = 1
     fromType: Type
+
+    valuesCoverDecl: CoverDecl
+    valuesGlobal: VariableDecl
 
     init: func ~enumDecl(.name, .token) {
         super(name, token)
@@ -29,7 +33,32 @@ EnumDecl: class extends TypeDecl {
             if(!response ok()) return response
         }
 
+        if (valuesCoverDecl == null) {
+            createCovers()
+            res wholeAgain(this, "need to resolve coverdecls for enum")
+        }
+
         Response OK
+    }
+
+    createCovers: func {
+        valuesCoverDecl = CoverDecl new(name + "__values_t", token)
+        for (v in getMeta() variables) {
+            vDecl := VariableDecl new(BaseType new("Int", token), v name, v token)
+            valuesCoverDecl addVariable(vDecl)
+        }
+        valuesCoverDecl module = token module
+        token module addType(valuesCoverDecl)
+
+        elements := ArrayList<Expression> new()
+        for (v in getMeta() variables) {
+            elements add(VariableAccess new(v, token))
+        }
+
+        slit := StructLiteral new(valuesCoverDecl getInstanceType(), elements, token)
+        valuesGlobal = VariableDecl new(null, name + "__values", slit, token)
+        valuesGlobal isGlobal = true
+        token module body add(valuesGlobal)
     }
 
     addFunction: func (fDecl: FunctionDecl) {
@@ -63,9 +92,9 @@ EnumDecl: class extends TypeDecl {
                 case intLit: IntLiteral =>
                     IntLiteral new(match incrementOper {
                         case '+' =>
-                            intLit value + incrementStep
+                            intLit number + incrementStep
                         case '*' =>
-                            intLit value * incrementStep
+                            intLit number * incrementStep
                     }, intLit token)
                 case floatLit: FloatLiteral =>
                     FloatLiteral new(match incrementOper {

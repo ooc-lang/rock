@@ -1,7 +1,7 @@
 
 import io/[File]
 import structs/[ArrayList, List, HashMap]
-import rock/frontend/CommandLine
+import rock/frontend/[CommandLine, BuildParams]
 
 /**
  * Somehow like the 'classpath' in Java. E.g. holds where to find ooc
@@ -12,6 +12,8 @@ PathList: class {
     debug := false
 
     getPaths : func -> HashMap<String, File> { paths }
+
+    init: func
 
     /**
      * Add an element to the classpath
@@ -116,7 +118,7 @@ PathList: class {
      * Find the file in the given path element of the source path.
      * @see getFile
      */
-    getFileInElement: func (path, elementPath: String) -> (File, File) {
+    getFileInElement: func (path, elementPath: String, params: BuildParams) -> (File, File) {
         element := File new(elementPath)
         reducedElement := element getReducedPath()
         candidate := File new(element, path)
@@ -126,7 +128,7 @@ PathList: class {
             if (!valid) {
                 // can't escape the sourcepath!
                 CommandLine error("Import %s was found at %s, but it can't escape source element %s" format(path, reduced, reducedElement))
-                CommandLine failure()
+                CommandLine failure(params)
             }
             return (candidate, element)
         }

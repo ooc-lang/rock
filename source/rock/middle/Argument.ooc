@@ -8,7 +8,7 @@ import tinker/[Trail, Resolver, Response, Errors]
  *
  * Read FunctionDecl for more infos on the different types of arguments.
  */
-Argument: abstract class extends VariableDecl {
+Argument: class extends VariableDecl {
 
     init: func ~argument (.type, .name, .token) { super(type, name, token) }
 
@@ -60,14 +60,15 @@ VarArg: class extends Argument {
         if(type && !type isResolved()) {
             type resolve(trail, res)
         }
-        
+
         Response OK
     }
 
-    toString: func -> String { "..." }
+    toString: func -> String { "<vararg>..." }
 
     clone: func -> This {
         copy := new(token, name)
+        copy type = type ? type clone() : null
         cloneInto(copy) as This
     }
 
@@ -95,34 +96,34 @@ DotArg: class extends Argument {
             return Response OK
         }
 
-	if(type == null) {
-	    type = ref getType()
-	    
-	    if(type == null) {
-		if(res fatal) {
-		    res throwError(UnresolvedArgumentAccess new(token, "Couldn't resolve %s referring to '%s' in type '%s'" format(class name, name, tDecl getName())))
-		}
-		res wholeAgain(this, "Hasn't resolved type yet :x")
-		return Response OK
-	    } else if(type isGeneric()) {
-		type = type clone()
-		// force re-resolving in the child's context
-		// useful in case of generic specialization, e.g.
-		// A: class <T> {}
-		// B: class extends A<Int> {}
-		type setRef(null)
-		type resolve(trail, res)
-	    }
-	}
+        if(type == null) {
+            type = ref getType()
 
-                return super(trail, res)
+            if(type == null) {
+                if(res fatal) {
+                    res throwError(UnresolvedArgumentAccess new(token, "Couldn't resolve %s referring to '%s' in type '%s'" format(class name, name, tDecl getName())))
+                }
+                res wholeAgain(this, "Hasn't resolved type yet :x")
+                return Response OK
+            } else if(type isGeneric()) {
+                type = type clone()
+                // force re-resolving in the child's context
+                // useful in case of generic specialization, e.g.
+                // A: class <T> {}
+                // B: class extends A<Int> {}
+                type setRef(null)
+                type resolve(trail, res)
+            }
+        }
 
+        return super(trail, res)
     }
 
     toString: func -> String { "." + name }
 
     clone: func -> This {
         copy := new(name, token)
+        copy type = type ? type clone() : null
         cloneInto(copy) as This
     }
 
@@ -165,6 +166,7 @@ AssArg: class extends DotArg {
 
     clone: func -> This {
         copy := new(name, token)
+        copy type = type ? type clone() : null
         cloneInto(copy) as This
     }
 

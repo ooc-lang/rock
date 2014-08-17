@@ -10,6 +10,7 @@ import rock/middle/tinker/[Resolver, Response, Trail, Errors]
 IncludeMode: enum {
     LOCAL
     PATHY
+    MACRO
 }
 
 Define: class {
@@ -26,7 +27,16 @@ Include: class {
     verzion: VersionSpec
     defines := ArrayList<Define> new()
 
-    init: func (=token, =path, =mode) {}
+    init: func (=token, =path, =mode) {
+        detectMacro()
+    }
+
+    detectMacro: func {
+        if (path startsWith?(".")) {
+            path = path[1..-1]
+            mode = IncludeMode MACRO
+        }
+    }
 
     setVersion: func(=verzion) {}
     getVersion: func -> VersionSpec { verzion }

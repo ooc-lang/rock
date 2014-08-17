@@ -62,22 +62,21 @@ ProcessWin32: class extends Process {
     executeNoWait: func -> Long {
         if (stdIn != null || stdOut != null || stdErr != null) {
             if(stdIn != null) {
-                stdIn close('r')
                 si stdInput  = stdIn as PipeWin32 readFD
                 SetHandleInformation(stdOut as PipeWin32 writeFD, HANDLE_FLAG_INHERIT, 0)
             }
             if(stdOut != null) {
-                stdOut close('w')
                 si stdOutput = stdOut as PipeWin32 writeFD
                 SetHandleInformation(stdOut as PipeWin32 readFD, HANDLE_FLAG_INHERIT, 0)
             }
             if(stdErr != null) {
-                stdErr close('w')
                 si stdError  = stdErr as PipeWin32 writeFD
                 SetHandleInformation(stdErr as PipeWin32 readFD, HANDLE_FLAG_INHERIT, 0)
             }
             si flags |= StartFlags UseStdHandles
         }
+
+        envString := buildEnvironment()
 
         // Reference: http://msdn.microsoft.com/en-us/library/ms682512%28VS.85%29.aspx
         // Start the child process.
@@ -88,7 +87,7 @@ ProcessWin32: class extends Process {
             null,        // Thread handle not inheritable
             true,        // Set handle inheritance to true
             0,           // No creation flags
-            null,        // Use parent's environment block
+            envString,   // Use parent's environment block
             cwd ? cwd toCString() : null, // Use custom cwd if we have one
             si&,         // Pointer to STARTUPINFO structure
             pi&          // Pointer to PROCESS_INFORMATION structure
@@ -101,9 +100,54 @@ ProcessWin32: class extends Process {
             )) throw()
             return -1
         }
+
+        if(stdIn != null) {
+            stdIn close('r')
+        }
+
+        if(stdOut != null) {
+            stdOut close('w')
+        }
+        if(stdErr != null) {
+            stdErr close('w')
+        }
         
         this pid = pi pid
         return pi pid
+    }
+
+    buildEnvironment: func -> Char* {
+        if (env == null) {
+            return null
+        }
+
+        envLength := 1
+        env each(|k, v|
+            envLength += k size
+            envLength += v size
+            envLength += 2 // one for the =, one for the \0
+        )
+
+        envString := gc_malloc(envLength) as Char*
+        index := 0
+        for (k in env getKeys()) {
+            v := env get(k)
+
+            memcpy(envString + index, k toCString(), k size)
+            index += k size
+
+            envString[index] = '='
+            index += 1
+
+            memcpy(envString + index, v toCString(), v size)
+            index += v size
+
+            envString[index] = '\0'
+            index += 1
+        }
+
+        envString[index] = '\0'
+        envString
     }
 
     terminate: func {

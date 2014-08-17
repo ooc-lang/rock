@@ -46,11 +46,13 @@ ControlStatementWriter: abstract class extends Skeleton {
         }
 
         range := foreach collection as RangeLiteral
-        current app("for (").
-            app(foreach variable). app(" = "). app(range lower). app("; ").
+        current app("for ("). app(foreach variable). app(" = "). app(range lower)
+        if(foreach indexVariable) current app(", "). app(foreach indexVariable). app(" = "). app(range lower)
+        current app("; ").
             app(access).           app(" < "). app(range upper). app("; ").
-            app(access).           app("++) {").
-        tab()
+            app(access).           app("++")
+        if(foreach indexVariable) current app(", "). app(foreach indexVariable). app("++")
+        current app(") {"). tab()
         for(stat in foreach body) {
             writeLine(stat)
         }

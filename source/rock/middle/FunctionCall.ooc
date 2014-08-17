@@ -162,7 +162,7 @@ FunctionCall: class extends Expression {
      * Usually has 'name == "something"' instead of 'false' as
      * a return expression, when it's being used.
      */
-    debugCondition: inline func -> Bool {
+    debugCondition: final func -> Bool {
         false
     }
 
@@ -175,7 +175,7 @@ FunctionCall: class extends Expression {
      */
     suggest: func (candidate: FunctionDecl, res: Resolver, trail: Trail) -> Bool {
 
-        if(debugCondition()) "** [refScore = %d] Got suggestion %s for %s" printfln(refScore, candidate toString(), toString())
+        if(debugCondition()) "** [refScore = %d, ref = %s] Got suggestion %s for %s" printfln(refScore, ref ? ref toString() : "(nil)", candidate toString(), toString())
 
         if(isMember() && candidate owner == null) {
             if(debugCondition()) "** %s is no fit!, we need something to fit %s" printfln(candidate toString(), toString())
@@ -183,64 +183,73 @@ FunctionCall: class extends Expression {
         }
 
         score := getScore(candidate)
-        if(score > refScore) {
-            if(debugCondition()) "** New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
-            refScore = score
-            ref = candidate
-
-            if(score == -1) {
-                if(debugCondition()) "** Score = -1! Aboort" println()
-                if(res fatal) {
-                    // check our arguments are all right
-                    checkArgumentValidity(res)
-                }
+        if (score <= refScore) {
+            // usually we'd give up here, except..
+            if (refScore == -1 && ref == candidate) {
+                // then we'll continue
+            } else {
+                // we can give up.
                 return false
             }
-
-            // todo: optimize that. not all of this needs to happen in many cases
-            if(argsBeforeConversion) {
-                for(i in argsBeforeConversion getKeys()) {
-                    callArg := argsBeforeConversion[i]
-                    args set(i, callArg)
-                }
-            }
-            candidateUsesAs = false
-
-            for(i in 0..args getSize()) {
-                if(i >= candidate args getSize()) break
-                declArg := candidate args get(i)
-                if(declArg instanceOf?(VarArg)) break
-                callArg := args get(i)
-                
-                if(callArg getType() == null) return false
-                if(declArg getType() == null) return false
-                declArgType := declArg getType() refToPointer()
-                if (declArgType isGeneric()) {
-                    declArgType = declArgType realTypize(this)
-                }
-
-                if(callArg getType() getScore(declArgType) == Type NOLUCK_SCORE) {
-                    ref := callArg getType() getRef()
-                    if(ref instanceOf?(TypeDecl)) {
-                        ref as TypeDecl implicitConversions each(|opdecl|
-                            if(opdecl fDecl getReturnType() equals?(declArgType)) {
-                                candidateUsesAs = true
-                                if(!(IMPLICIT_AS_EXTERNAL_ONLY) || candidate isExtern()) {
-                                    args set(i, Cast new(callArg, declArgType, callArg token))
-                                    if(!argsBeforeConversion) {
-                                        // lazy instantiation of argsBeforeConversion
-                                        argsBeforeConversion = HashMap<Int, Expression> new()
-                                    }
-                                    argsBeforeConversion put(i, callArg)
-                                }
-                            }
-                        )
-                    }
-                }
-            }
-            return score > 0
         }
-        return false
+
+        if(debugCondition()) {
+            "** New high score, %d/%s wins against %d/%s" format(score, candidate toString(), refScore, ref ? ref toString() : "(nil)") println()
+        }
+        refScore = score
+        ref = candidate
+
+        if(score == -1) {
+            if(debugCondition()) "** Score = -1! Aboort" println()
+            if(res fatal) {
+                // check our arguments are all right
+                checkArgumentValidity(res)
+            }
+            return false
+        }
+
+        // todo: optimize that. not all of this needs to happen in many cases
+        if(argsBeforeConversion) {
+            for(i in argsBeforeConversion getKeys()) {
+                callArg := argsBeforeConversion[i]
+                args set(i, callArg)
+            }
+        }
+        candidateUsesAs = false
+
+        for(i in 0..args getSize()) {
+            if(i >= candidate args getSize()) break
+            declArg := candidate args get(i)
+            if(declArg instanceOf?(VarArg)) break
+            callArg := args get(i)
+
+            if(callArg getType() == null) return false
+            if(declArg getType() == null) return false
+            declArgType := declArg getType() refToPointer()
+            if (declArgType isGeneric()) {
+                declArgType = declArgType realTypize(this)
+            }
+
+            if(callArg getType() getScore(declArgType) == Type NOLUCK_SCORE) {
+                ref := callArg getType() getRef()
+                if(ref instanceOf?(TypeDecl)) {
+                    ref as TypeDecl implicitConversions each(|opdecl|
+                        if(opdecl fDecl getReturnType() equals?(declArgType)) {
+                            candidateUsesAs = true
+                            if(!(IMPLICIT_AS_EXTERNAL_ONLY) || candidate isExtern()) {
+                                args set(i, Cast new(callArg, declArgType, callArg token))
+                                if(!argsBeforeConversion) {
+                                    // lazy instantiation of argsBeforeConversion
+                                    argsBeforeConversion = HashMap<Int, Expression> new()
+                                }
+                                argsBeforeConversion put(i, callArg)
+                            }
+                        }
+                    )
+                }
+            }
+        }
+        return score > 0
 
     }
 
@@ -248,7 +257,7 @@ FunctionCall: class extends Expression {
 
         if(debugCondition() || res params veryVerbose) {
             "===============================================================" println()
-            "     - Resolving call to %s (ref = %s)" printfln(name, ref ? ref toString(): "(nil)")
+            "     - Resolving call to %s (ref = %s, refScore = %d)" printfln(name, ref ? ref toString(): "(nil)", refScore)
         }
 
         // resolve all arguments
@@ -341,9 +350,30 @@ FunctionCall: class extends Expression {
         if(refScore <= 0) {
             if(debugCondition()) "\n===============\nResolving call %s" printfln(toString())
 
+            if (expr != null && name == "instanceOf__quest") {
+                exprType := expr getType()
+                if (exprType == null) {
+                    res wholeAgain(this, "waiting for expr type")
+                    return Response OK
+                }
+                ref := exprType getRef()
+                if (ref == null) {
+                    res wholeAgain(this, "waiting for expr type ref")
+                    return Response OK
+                }
+                match ref {
+                    case cd: CoverDecl =>
+                        "got a call to #{toString()}, expr type ref = #{ref toString()}" println()
+                        expr = VariableAccess new(expr, "class", expr token)
+                        name = "inheritsFrom__quest"
+                        res wholeAgain(this, "replaced instanceOf with inheritsFrom")
+                        return Response OK
+                }
+            }
+
             if (res fatal && refScore == -1) {
                 // something went wrong somewhere else
-                res wholeAgain(this, "waiting on some FunctionDecl to resolve.")
+                res wholeAgain(this, "(error-throwing) waiting on some FunctionDecl to resolve.")
                 return Response OK
             }
 
@@ -479,10 +509,10 @@ FunctionCall: class extends Expression {
             precisions := ""
 
             // Still no match, and in the fatal round? Throw an error.
-            if(res fatal) {
+            if(res fatal || (refScore < -1 && refScore > INT_MIN)) {
                 if (refScore == -1) {
                     // something went wrong somewhere else
-                    res wholeAgain(this, "waiting on some FunctionDecl to resolve.")
+                    res wholeAgain(this, "(in refScore <= 0) waiting on some FunctionDecl to resolve.")
                     return Response OK
                 }
 
@@ -519,7 +549,7 @@ FunctionCall: class extends Expression {
                 res throwError(UnresolvedCall new(this, message, precisions))
                 return Response OK
             } else {
-                res wholeAgain(this, "not resolved")
+                res wholeAgain(this, "no match yet")
                 return Response OK
             }
 
@@ -578,7 +608,7 @@ FunctionCall: class extends Expression {
             res wholeAgain(this, "waiting on expr to resolve")
             return Response OK
         }
-        
+
         // Setting it too soon would cause some important stuff to never happen, such as wrapping
         // function pointers into closures. Too late would make rock blow up. I'm not happy with that..
         resolved = true
@@ -876,7 +906,7 @@ FunctionCall: class extends Expression {
             // use the default value as an argument expression.
             if(refArg expr) args add(refArg expr)
         }
-        
+
         Response OK
     }
 
@@ -907,13 +937,13 @@ FunctionCall: class extends Expression {
                         arg := args[i]
                         argType := arg getType()
                         if(!argType) return Response LOOP
-                        
+
                         if(argType pointerLevel() > 0) {
                             argType = NullLiteral type // 'T*' = 'Pointer', != 'T'
                         }
                         elements add(TypeAccess new(argType, token))
                         ast types add(NullLiteral type)
-                        
+
                         elements add(arg)
                         ast types add(arg getType())
                     }
@@ -1008,9 +1038,13 @@ FunctionCall: class extends Expression {
             typeResult := resolveTypeArg(typeArg name, trail, finalScore&)
             if(finalScore == -1) break
             if(typeResult) {
-                result := typeResult instanceOf?(FuncType) ?
-                    VariableAccess new("Pointer", token) :
-                    VariableAccess new(typeResult, token)
+                result := match {
+                    case typeResult instanceOf?(FuncType) || (typeResult pointerLevel() > 0) =>
+                        VariableAccess new("Pointer", token)
+                    case =>
+                        VariableAccess new(typeResult, token)
+                }
+
                 if (typeResult isGeneric()) {
                     result setRef(null) // force re-resolution - we may not be in the correct context
                 }
@@ -1078,6 +1112,13 @@ FunctionCall: class extends Expression {
                     }
                     if(argType getName() == typeArgName) {
                         implArg := args get(j)
+                        match implArg {
+                            case addr: AddressOf =>
+                                if (addr isForGenerics) {
+                                    implArg = addr expr
+                                }
+                        }
+
                         result := implArg getType()
                         realCount := 0
                         while(result instanceOf?(SugarType) && realCount < refCount) {
@@ -1354,7 +1395,7 @@ FunctionCall: class extends Expression {
                 if(debugCondition()) "Args don't match! Too many call args" println()
                 return false
             }
-            
+
             if(declIter next() instanceOf?(VarArg)) {
                 if(debugCondition()) "Varargs swallow all!" println()
                 // well, whatever we have left, VarArgs swallows it all.
@@ -1374,7 +1415,7 @@ FunctionCall: class extends Expression {
                 // varargs can also be omitted.
                 return true
             }
-            
+
             if(declArg expr) {
                 // optional arg
                 if(debugCondition()) "Optional arg." println()

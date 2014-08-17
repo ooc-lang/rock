@@ -74,7 +74,7 @@ TerminalHandler: abstract class {
 
 TerminalDummy: class extends TerminalHandler {
 
-    init: super func
+    init: func
 
     /** Set foreground and background color */
     setColor: func (f, b: Color)

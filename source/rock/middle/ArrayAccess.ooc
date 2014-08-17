@@ -72,7 +72,6 @@ ArrayAccess: class extends Expression {
 
         trail pop(this)
 
-        // TODO: put that in a function
         if(!handleArrayCreation(trail, res) ok()) {
             return Response LOOP
         }
@@ -89,7 +88,13 @@ ArrayAccess: class extends Expression {
                 // If we do not find an overload, we must make sure the indices are valid (numeric or enum members) for raw arrays (C and ooc arrays)
                 for(index in indices) {
                     if(!isValidIndex(index)) {
-                        res throwError(InvalidArrayIndex new(token, "Trying to access an array with an index of non numeric type %s without proper overload" format(index getType() ? index getType() toString() : "(nil)")))
+                        if (res fatal) {
+                            res throwError(InvalidArrayIndex new(token, "Trying to access an array with an index of non numeric type %s without proper overload" format(index getType() ? index getType() toString() : "(nil)")))
+                        } else {
+                            // try again later o/
+                            res wholeAgain(this, "need to figure out if something is a valid index or not")
+                            return Response OK
+                        }
                     }
                 }
             }
@@ -115,8 +120,15 @@ ArrayAccess: class extends Expression {
                 deepDown = deepDown as ArrayAccess array
             }
 
-            // If we are not dealing with an ooc array or a pointer and we care about type checking, we just return true because a non overloaded access on such a type will be detected elsewhere
+            deepType := deepDown getType()
+            if (!deepType) {
+                // not resolved yet, will need to check again on next round
+                return false
+            }
             if(deepDown getType() pointerLevel() <= 0 && !deepDown getType() instanceOf?(ArrayType)) {
+                // If we are not dealing with an ooc array or a pointer and we care
+                // about type checking, we just return true because a non
+                // overloaded access on such a type will be detected elsewhere
                 return true
             }
         }
@@ -136,12 +148,25 @@ ArrayAccess: class extends Expression {
             if(indices getSize() > 1) {
                 res throwError(InvalidArrayCreation new(token, "You can't call new on an ArrayAccess with several indices! Only one index is supported."))
             }
+
             index := indices[0]
+            if (!index getType() || !index getType() getRef()) {
+                res wholeAgain(this, "need index type turned into ArrayCreation!")
+                return Response OK
+            }
 
             // We should only pass numbers when creating an array
             // We don't care about checking whether the type is an array/pointer in this case, as we know we are accessing a class.
             if(!isValidIndex(index, true)) {
-                res throwError(InvalidArrayIndex new(token, "Trying to create an array with a size of non numeric type %s" format(index getType() ? index getType() toString() : "(nil)")))
+                if (!res fatal) {
+                    res wholeAgain(this, "need to check index type")
+                    return Response OK
+                }
+
+                typeString := index getType() ? index getType() toString() : "(nil)"
+                message := "Trying to create an array with a size of non numeric type %s" format(typeString)
+                err := InvalidArrayIndex new(token, message)
+                res throwError(err)
             }
 
             varAcc := deepDown as VariableAccess

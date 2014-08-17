@@ -28,12 +28,17 @@ version(gc) {
 
     gc_malloc: extern(GC_malloc) func (size: SizeT) -> Pointer
     gc_malloc_atomic: extern(GC_malloc_atomic) func (size: SizeT) -> Pointer
+    gc_malloc_uncollectable: extern(GC_malloc_uncollectable) func (size: SizeT) -> Pointer
     gc_strdup: extern(GC_strdup) func (str: CString) -> CString
     gc_realloc: extern(GC_realloc) func (ptr: Pointer, size: SizeT) -> Pointer
     gc_calloc: func (nmemb: SizeT, size: SizeT) -> Pointer {
         gc_malloc(nmemb * size)
     }
     gc_free: extern(GC_free) func (ptr: Pointer)
+
+    gc_register_finalizer: extern(GC_register_finalizer) func (ptr: Pointer, finalizer: Pointer, userdata: Pointer, wtf1: Pointer, wtf2: Pointer)
+    gc_register_finalizer_ignore_self: extern(GC_register_finalizer_ignore_self) func (ptr: Pointer, finalizer: Pointer, userdata: Pointer, wtf1: Pointer, wtf2: Pointer)
+    gc_register_finalizer_no_order: extern(GC_register_finalizer_no_order) func (ptr: Pointer, finalizer: Pointer, userdata: Pointer, wtf1: Pointer, wtf2: Pointer)
 
     GC_add_roots: extern func (Pointer, Pointer)
     GC_remove_roots: extern func (Pointer, Pointer)

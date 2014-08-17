@@ -66,9 +66,14 @@ ClassDeclWriter: abstract class extends Skeleton {
 
     }
 
-    writeObjectStruct: static func (this: Skeleton, cDecl: ClassDecl) {
-
-        current nl(). app("struct _"). app(cDecl underName()). app(' '). openBlock()
+    writeObjectStruct: static func (this: Skeleton, cDecl: ClassDecl, name: String = null) {
+        current nl(). app("struct ")
+        if(name == null) {
+            current app('_'). app(cDecl underName())
+        } else {
+            current app(name)
+        }
+        current app(' '). openBlock()
 
         if (cDecl name != "Object" && cDecl getSuperRef() != null) {
             current nl(). app("struct _"). app(cDecl getSuperRef() underName()). app(" __super__;")
@@ -87,10 +92,11 @@ ClassDeclWriter: abstract class extends Skeleton {
         for (fDecl in cDecl functions) {
 
             if(fDecl isExtern()) continue
+            if(fDecl isStatic()) continue
 
             if(cDecl getSuperRef() != null) {
                 superDecl : FunctionDecl = null
-                superDecl = cDecl getSuperRef() lookupFunction(fDecl name, fDecl suffix)
+                superDecl = cDecl getSuperRef() lookupFunction(fDecl name, fDecl getSuffixOrEmpty())
                 // don't write the function if it was declared in the parent
                 if(superDecl != null) {
                     // Already declared in super, skipping
@@ -227,7 +233,7 @@ ClassDeclWriter: abstract class extends Skeleton {
             current nl(). nl()
             FunctionDeclWriter writeFuncPrototype(this, decl, (decl isFinal()) ? null : "_impl")
             current app(' '). openBlock()
-            
+
             match (decl getName()) {
                 case ClassDecl DEFAULTS_FUNC_NAME || ClassDecl COVER_DEFAULTS_FUNC_NAME =>
                     writeDefaults(this, cDecl)
@@ -318,8 +324,14 @@ ClassDeclWriter: abstract class extends Skeleton {
         current app(';')
         if (cDecl getNonMeta() getSuperRef()) {
             current nl(). app(This CLASS_NAME). app(" *classPtr = ("). app(This CLASS_NAME). app(" *) &class;")
-            current nl(). app("if(!__done__)"). openBlock().
-                    nl(). app("classPtr->super = ("). app(This CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getFullName()). app("_class();")
+            current nl(). app("if(!__done__)"). openBlock()
+            match (cDecl getNonMeta()) {
+                case cd: CoverDecl =>
+                    // covers don't have super classes, silly.
+                    current nl(). app("classPtr->super = NULL;")
+                case =>
+                    current nl(). app("classPtr->super = ("). app(This CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getFullName()). app("_class();")
+            }
             current nl(). app("__done__ = true;").
                     nl(). app("classPtr->name = ")
             writeStringLiteral(realDecl getNonMeta() name)
@@ -374,11 +386,11 @@ ClassDeclWriter: abstract class extends Skeleton {
                     continue // skip it.
                 }
 
-                if (parentDecl isStatic() && parentDecl isAbstract()) {
-                    continue // abstract static funcs aren't written in classes
+                if (parentDecl isStatic()) {
+                    continue // static funcs aren't written in classes
                 }
 
-                if (parentDecl isStatic() || (realDecl == null && parentDecl isAbstract())) {
+                if (realDecl == null && parentDecl isAbstract()) {
                     writeDesignatedInit(this, parentDecl, realDecl, false)
                 } else {
                     writeDesignatedInit(this, parentDecl, realDecl, true)

@@ -4,7 +4,7 @@ import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
        Import, Module, FunctionCall, ClassDecl, CoverDecl, AddressOf,
        ArrayAccess, VariableAccess, Cast, NullLiteral, PropertyDecl,
        Tuple, VariableDecl, FuncType, TypeDecl, StructLiteral, TypeList,
-       Scope
+       Scope, TemplateDef
 import tinker/[Trail, Resolver, Response, Errors]
 
 OpType: enum {
@@ -224,6 +224,22 @@ BinaryOp: class extends Expression {
 
         size := t1 elements getSize()
 
+        /*
+         * fix tuple swap such like (a,b) = (a,a+b)
+         * if an expression in right side is not VariableAccess it will be reduced
+         * to VariableAccess with temp variable
+         */
+        for(i in 0..size){
+            r := t2 elements[i]
+            if(!r instanceOf?(VariableAccess)){
+                tmpDecl := VariableDecl new(null, generateTempName("exchange_r_in_t2"), r, r token)
+                if(!trail addBeforeInScope(this, tmpDecl)) {
+                    res throwError(CouldntAddBeforeInScope new(token, this, tmpDecl, trail))
+                }
+                t2 elements[i] = VariableAccess new(tmpDecl, tmpDecl token)
+            }
+        }
+
         for(i in 0..size) {
             l := t1 elements[i]
             if(!l instanceOf?(VariableAccess)) continue
@@ -267,7 +283,7 @@ BinaryOp: class extends Expression {
 
         for(i in 0..t1 elements getSize()) {
             ignore := false
-            
+
             lhs := t1 elements[i]
             rhs := t2 elements[i]
 
@@ -494,7 +510,49 @@ BinaryOp: class extends Expression {
 
         if(lCompound || rCompound) {
             // you can only assign compound covers (structs), others must be overloaded
-            return (type == OpType ass)
+            if (type == OpType ass) {
+                // template instances can be incompatible
+                lDecl := lRef as CoverDecl
+                rDecl := rRef as CoverDecl
+                lTemplate := lDecl templateParent
+                rTemplate := rDecl templateParent
+
+                if (!!lTemplate ^ !!rTemplate) {
+                    // only one of them are templates - it's illegal
+                    return false
+                }
+
+                if (!!lTemplate && !!rTemplate) {
+                    lTemplateArgs := lDecl templateArgs
+                    rTemplateArgs := rDecl templateArgs
+
+                    // both templates, must check that TemplateDefs match
+                    if (lTemplateArgs size != rTemplateArgs size) {
+                        // no way this'll work
+                        return false
+                    }
+
+                    matches := true
+                    lTemplateArgs each(|key, lTemplateArg|
+                        rTemplateArg := rTemplateArgs get(key) 
+                        if (rTemplateArg) {
+                            if (lTemplateArg != rTemplateArg) {
+                                matches = false
+                            }
+                        } else {
+                            matches = false
+                        }
+                    )
+                    if (!matches) {
+                        return false
+                    }
+                } else {
+                    // no templates at all, that's okay
+                    return true
+                }
+            } else {
+                return false
+            }
         }
 
         lCover := lRef instanceOf?(CoverDecl)
@@ -652,8 +710,19 @@ BinaryOp: class extends Expression {
         }
 
         if(args getSize() != 2) {
-            token module params errorHandler onError(InvalidBinaryOverload new(op token,
-                "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol, args getSize())))
+            match (symbol) {
+                case "-" || "+" =>
+                    if (args getSize() == 1) {
+                        // correct, but not the right overload type - skip
+                        return 0
+                    } else {
+                        token module params errorHandler onError(InvalidBinaryOverload new(op token,
+                            "Argl, you need 1 or 2 arguments to override the '%s' operator, not %d" format(symbol, args getSize())))
+                    }
+                case =>
+                    token module params errorHandler onError(InvalidBinaryOverload new(op token,
+                        "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol, args getSize())))
+            }
         }
 
         opLeft  := args get(0)

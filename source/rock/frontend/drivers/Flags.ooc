@@ -43,6 +43,9 @@ Flags: class {
 
     customPkgCache := static HashMap<CustomPkg, PkgInfo> new()
 
+    // pkgs
+    pkgs := HashMap<String, String> new()
+
     // flags
     compilerFlags := ArrayList<String> new()
     premainFlags := ArrayList<String> new()
@@ -104,6 +107,18 @@ Flags: class {
         }
         uses add(useDef)
 
+        // .use file dependencies
+        for(req in useDef requirements) {
+            absorb(req useDef)
+        }
+
+        if (!doTargetSpecific) {
+            // beyond this point, we have to do target-specific stuff
+            // like call pkg-config, define which properties in version
+            // blocks are 'relevant' and stuff - and we don't want to do that.
+            return
+        }
+
         props := useDef getRelevantProperties(params)
 
         for (lib in props libs) {
@@ -119,6 +134,9 @@ Flags: class {
 
         // handle pkg-config packages
         for(pkg in props pkgs) {
+            if (!pkgs contains?(pkg)) {
+                pkgs put(pkg, pkg)
+            }
             absorb(PkgConfigFrontend getInfo(pkg), useDef)
         }
 
@@ -145,11 +163,6 @@ Flags: class {
         // library paths
         for(libPath in props libPaths) {
             addLinkerFlag("-L" + libPath)
-        }
-
-        // .use file dependenceis
-        for(req in props requirements) {
-            absorb(req useDef)
         }
 
     }
@@ -220,11 +233,8 @@ Flags: class {
             addCompilerFlag(compilerArg)
         }
 
-        if(params enableGC) {
-            libsHeaders := File new(params distLocation, "libs/headers/") getPath()
-            addCompilerFlag("-I" + libsHeaders)
-
-            target := params target
+        if (doTargetSpecific) {
+            // 32 or 64 ?
             arch := params getArch()
             match arch {
                 case "32" =>
@@ -232,16 +242,18 @@ Flags: class {
                 case "64" =>
                     addCompilerFlag("-m64")
             }
+        }
 
-            libsNativeDir := File new(params distLocation, "libs/%s/" format(Target toString(target, arch))) getPath()
-            addLinkerFlag("-L" + libsNativeDir)
+        if(params enableGC) {
+            vendorInclude := File join(params distLocation, "vendor-prefix", "include")
+            addCompilerFlag("-I" + vendorInclude)
 
-            if(params dynGC) {
-                addLinkerFlag("-lgc")
-            } else {
-                libPath := "libs/" + Target toString(target, arch) + "/libgc.a"
-                addLinkerFlag(File new(params distLocation, libPath) path)
-            }
+            vendorLib := File join(params distLocation, "vendor-prefix", "lib")
+            addLinkerFlag("-L" + vendorLib)
+
+            addLinkerFlag("-lgc")
+
+            target := params target
 
             match target {
                 case Target WIN =>
@@ -311,7 +323,9 @@ Flags: class {
 
     _applyFlags: func (flags: List<String>, command: List<String>) {
         for (flag in flags) {
-            if (params bannedFlags contains?(flag)) continue
+            if (params bannedFlags contains?(flag))  {
+                continue
+            }
             command add(flag)
         }
     }

@@ -12,11 +12,14 @@ import tinker/[Response, Resolver, Trail, Errors]
 CoverDecl: class extends TypeDecl {
 
     fromType: Type
+    isProto: Bool
 
     template: TemplateDef { get set }
     templateParent: CoverDecl { get set }
 
-    instances := HashMap<String, CoverDecl> new()
+    instances: HashMap<String, CoverDecl>
+
+    fromClosure := false
 
     init: func ~coverDeclNoSuper(.name, .token) {
         super(name, token)
@@ -26,10 +29,16 @@ CoverDecl: class extends TypeDecl {
         super(name, superType, token)
     }
 
+    isPrimitiveType: func -> Bool {
+        true
+    }
+
     accept: func (visitor: Visitor) { visitor visitCoverDecl(this) }
 
     setFromType: func (=fromType) {}
     getFromType: func -> Type { fromType }
+
+    setProto: func (=isProto) {}
 
     // all functions of a cover are final, because we don't have a 'class' field
     addFunction: func (fDecl: FunctionDecl) {
@@ -39,15 +48,16 @@ CoverDecl: class extends TypeDecl {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
         if (debugCondition()) {
-            "Resolving CoverDecl %s, template = %p" printfln(
-                toString(), template
-            )
+            "Resolving CoverDecl #{this}, template = #{template}" println()
         }
 
         if (template) {
             response := Response OK
 
-            for (instance in instances) {
+            if (instances) for (instance in instances) {
+                if (debugCondition()) {
+                    "Resolving instance #{instance}" println()
+                }
                 response = instance resolve(trail, res)
 
                 if (!response ok()) {
@@ -147,15 +157,11 @@ CoverDecl: class extends TypeDecl {
     }
 
     getTemplateInstance: func (spec: BaseType) -> CoverDecl {
-        "Should get a template instance of %s as per %s" printfln(toString(), spec toString())
-
         fingerprint := _getFingerprint(spec)
 
-        if (instances contains?(fingerprint)) {
+        if (instances && instances contains?(fingerprint)) {
             return instances get(fingerprint)
         }
-
-        "Creating instance with fingerprint: %s" printfln(fingerprint)
 
         instance := This new(fingerprint, token)
         instance templateParent = this
@@ -170,11 +176,8 @@ CoverDecl: class extends TypeDecl {
 
             name := template typeArgs get(i) getName()
             ref := typeArg getRef()
-            "name %s, ref %s" printfln(name, ref ? ref toString() : "(nil)")
 
             if (typeArg inner isGeneric()) {
-                "is generic!" println()
-
                 thisRef := VariableDecl new(typeArg inner getRef() getType(), name, spec token)
                 instance addTypeArg(thisRef)
             } else {
@@ -198,12 +201,28 @@ CoverDecl: class extends TypeDecl {
                 continue
             }
 
+            if (fDecl autoNew) {
+                // let autoNew do its thing in CoverDecl
+                continue
+            }
+
             fDeclClone := fDecl clone()
             fDeclClone owner = null
 
             instance addFunction(fDeclClone)
         }
 
+        if (!instances) {
+            instances = HashMap<String, CoverDecl> new()
+        }
+
+        if (token module params debugTemplates) {
+            "Instanciated #{fingerprint} => #{instance}" println()
+            meta := instance getMeta()
+            for (f in meta functions) {
+                "- #{f}" println()
+            }
+        }
         instances put(fingerprint, instance)
 
         instance

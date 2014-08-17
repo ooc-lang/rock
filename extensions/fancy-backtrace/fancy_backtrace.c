@@ -212,12 +212,12 @@ static int init_bfd_ctx(struct bfd_ctx *bc, const char * procname) {
 
     void *symbol_table;
 
-    unsigned dummy = 0;
-    unsigned num_symbols = 0;
+    unsigned int size = 0;
+    signed long num_symbols = 0;
 
-    num_symbols = bfd_read_minisymbols(b, FALSE, &symbol_table, &dummy);
+    num_symbols = bfd_read_minisymbols(b, FALSE, &symbol_table, &size);
     if (num_symbols == 0) {
-      num_symbols = bfd_read_minisymbols(b, TRUE, &symbol_table, &dummy);
+      num_symbols = bfd_read_minisymbols(b, TRUE, &symbol_table, &size);
     }
 
     if (num_symbols < 0) {

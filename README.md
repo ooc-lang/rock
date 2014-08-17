@@ -34,10 +34,14 @@ make sure it can find the SDK!
 
 ## Install
 
-See the INSTALL file
+See the `INSTALL` file
 
-To switch to the most recent git, read [ReleaseToGit](https://github.com/fasterthanlime/rock/blob/master/docs/workflow/ReleaseToGit.md)
+To switch to the most recent git, read
+[ReleaseToGit](https://github.com/fasterthanlime/rock/blob/master/docs/workflow/ReleaseToGit.md)
 
 ## License
 
-rock is distributed under a BSD license, see LICENSE for details.
+rock is distributed under the MIT license, see `LICENSE` for details.
+
+Boehm GC sources are vendored, it is distributed under an X11/MIT-like license,
+see `libs/sources/LICENSE` for details.

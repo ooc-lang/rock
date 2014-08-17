@@ -23,7 +23,7 @@ File: abstract class {
 
     name: String { get { getName() } }
     parent: This { get { getParent() } }
-    
+
     children: ArrayList<This> {
         get {
             getChildren()
@@ -58,7 +58,7 @@ File: abstract class {
 
     /**
      * Create a File object, from various path elements,
-     * which can be either 
+     * which can be either File instances or Strings.
      */
     new: static func ~assemble (args: ...) -> This {
         This new(This join(args))
@@ -85,17 +85,9 @@ File: abstract class {
     getSize: abstract func -> LLong
 
     /**
-     * @return true if the file exists and can be
-     * opened for reading
+     * @return true if the file exists
      */
-    exists?: func -> Bool {
-        fd := FStream open(path, "rb")
-        if(fd) {
-            fd close()
-            return true
-        }
-        false
-    }
+    exists?: abstract func -> Bool
 
     /**
      * @return the permissions for the owner of this file
@@ -111,6 +103,17 @@ File: abstract class {
      * @return the permissions for the others (not owner, not group)
      */
     otherPerm: abstract func -> Int
+    
+    /**
+     * @return true if a file is executable by the current owner
+     */
+    executable?: abstract func -> Bool
+
+    /**
+     * set the executable bit on this file's permissions for
+     * current user, group, and other.
+     */
+    setExecutable: abstract func (exec: Bool) -> Bool
 
     /**
      * @return the path of the file represented by this instance
@@ -296,10 +299,119 @@ File: abstract class {
     getChildren: abstract func -> ArrayList<This>
 
     /**
-     * Tries to remove the file. This only works for files, not directories.
+     * Tries to remove the file. This only works for files or empty directories
+     * @return true if successful
      */
-    remove: func -> Int {
-        _remove(this path)
+    rm: func -> Bool {
+        _remove(this)
+    }
+
+    /**
+     * Delete a file or directory and all its children, recursively
+     */
+    rm_rf: func -> Bool {
+        if (dir?()) {
+            // delete em'all!
+            for (child in getChildren()) {
+                if (!child rm_rf()) {
+                    return false
+                }
+            }
+        }
+        rm()
+    }
+
+    /**
+     * Find a file or directory with the given name
+     * @param name The name of the file to find (case sensitive)
+     * @param cb A callback that takes a file whenever one is found.
+     * if it returns false, the search will stop. If true, the search
+     * will continue.
+     * @return true if the file was found (cb returned false at some point),
+     * or false if it wasn't.
+     */
+    find: func (name: String, cb: Func (File) -> Bool) -> Bool {
+
+        if (getName() == name) {
+            if (!cb(this)) {
+                // abort if caller is happy
+                return true
+            }
+        }
+
+        if (dir?()) {
+            children := getChildren()
+            for (child in children) {
+                if (child find(name, cb)) {
+                    // abort if caller found happiness in a sub-directory
+                    return true
+                }
+            }
+        }
+
+        false
+    }
+
+    /**
+     * Find a file or directory with the given name
+     * @return the first match for the given name
+     */
+    find: func ~first (name: String) -> This {
+        result: This
+
+        find(name, |f|
+            result = f
+            false
+        )
+
+        result
+    }
+
+    /**
+     * Do a 'shallow search' for a file with a given
+     * name.
+     */
+    findShallow: func (name: String, level: Int, cb: Func (File) -> Bool) -> Bool {
+        fName := getName()
+        if (fName == name) {
+            if (!cb(this)) {
+                // abort if caller is happy
+                return true
+            }
+        }
+
+        if (dir?() && level >= 0) {
+            if (fName == ".git") {
+                return false // skip
+            }
+
+            children := getChildren()
+            for (child in children) {
+                if (child findShallow(name, level - 1, cb)) {
+                    // abort if caller found happiness in a sub-directory
+                    return true
+                }
+            }
+        }
+
+        false
+
+    }
+
+    /**
+     * Do a 'shallow search' for a file with a given
+     * name.
+     * @return the first match for the given name
+     */
+    findShallow: func ~first (name: String, level: Int) -> This {
+        result: This
+
+        findShallow(name, level, |f|
+            result = f
+            false
+        )
+
+        result
     }
 
     /**
@@ -384,7 +496,7 @@ File: abstract class {
      *
      * This method will return a File with path "sub/path"
      */
-    rebase: func (base: File) -> File {
+    rebase: func (base: File) -> This {
         left := base getReducedFile() getAbsolutePath() replaceAll(File separator, '/')
         full := getReducedFile() getAbsolutePath() replaceAll(File separator, '/')
 
@@ -443,6 +555,10 @@ File: abstract class {
             result append(path)
         )
         result toString()
+    }
+
+    toString: func -> String {
+        "File(#{path})"
     }
 
 }

@@ -19,6 +19,11 @@ main: func {
         pipe close('w')
     )
 
-    reader start(); writer start()
-    reader wait();  writer wait()
+    reader start()
+    writer start()
+    
+    reader wait()
+    writer wait()
+
+    "Pass!" println()
 }

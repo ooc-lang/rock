@@ -46,7 +46,7 @@ FSInfoStruct: cover {
     flags: SizeT
     base : Int
     bytesProcessed: SizeT
-
+    length : Int
 }
 
 __digits: String = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -65,8 +65,8 @@ m_printn: func <T> (res: Buffer, info: FSInfoStruct@, arg: T) {
     size := info fieldwidth
     i := 0
     
-    n: UInt32
-    signed_n: Int32
+    n: UInt64
+    signed_n: Int64
     
     if(T size == 4) {
         n = arg as UInt32
@@ -92,8 +92,9 @@ m_printn: func <T> (res: Buffer, info: FSInfoStruct@, arg: T) {
         sign = '+'
     }
 
-    if(sign)
+    if(sign) {
         size -= 1
+    }
 
     /* Find the number in reverse. */
     if(n == 0) {
@@ -131,11 +132,12 @@ m_printn: func <T> (res: Buffer, info: FSInfoStruct@, arg: T) {
     }
 
     /* Left align the numbers. */
-    if(info flags & TF_LEFT)
+    if(info flags & TF_LEFT) {
         while(size > 0) {
             size -= 1
             res append(' ')
         }
+    }
 }
 
 getCharPtrFromStringType: func <T> (s : T) -> Char* {
@@ -211,6 +213,8 @@ parseArg: func(res: Buffer, info: FSInfoStruct*, va: VarArgsIterator*, p: Char*)
             tmp append("f")
             T := va@ getNextType()
             match T {
+              case LDouble =>
+                res append(tmp toString() cformat(argNext(va, LDouble) as LDouble))
               case Double =>
                 res append(tmp toString() cformat(argNext(va, Double) as Double))
               case => // assume everything else is Float
@@ -314,7 +318,11 @@ getEntityInfo: inline func (info: FSInfoStruct@, va: VarArgsIterator*, start: Ch
     }
 
     /* Find the length modifier. */
-    while (p@ == 'l' || p@ == 'h' || p@ == 'L') checkedInc()
+    info length = 0
+    while (p@ == 'l' || p@ == 'h' || p@ == 'L') {
+        info length += 1
+        checkedInc()
+    }
 
     info bytesProcessed = p as SizeT - start as SizeT
 }

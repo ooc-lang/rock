@@ -61,7 +61,7 @@ PipeWin32: class extends Pipe {
         fd := _getFD(end)
         if (!fd) return 0
 
-        CloseHandle(readFD) ? 1 : 0
+        CloseHandle(fd) ? 1 : 0
     }
 
     close: func ~both {

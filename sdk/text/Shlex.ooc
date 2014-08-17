@@ -1,13 +1,21 @@
 import text/[EscapeSequence]
 import structs/ArrayList
 
-WAIT := 0
-WORD := 1
-SQUOTED := 2
-DQUOTED := 3
+ShlexState: enum {
+    WAIT = 0
+    WORD
+    SQUOTED
+    DQUOTED
+}
 
+/**
+ * Shell-like string lexer.
+ * 
+ * Parses simple-quoted (') or double-quoted (") arguments,
+ * and returns a list of token.
+ */
 Shlex: class {
-    state: Int
+    state: ShlexState
     buffer: Buffer
     result: ArrayList<String>
     backslash: Bool
@@ -34,27 +42,27 @@ Shlex: class {
 
     feed: func ~char (chr: Char) {
         match state {
-            case WAIT => {
-                /* WAIT state: if `chr` is non-printable, just skip it. 
-                   If `chr` is ', change to SQUOTED. If `chr` is ", change to DQUOTED.
-                   If `chr` is printable, but neither " nor ', change to WORD state and add it to the buffer. */
+            case ShlexState WAIT => {
+                /* ShlexState WAIT state: if `chr` is non-printable, just skip it. 
+                   If `chr` is ', change to ShlexState SQUOTED. If `chr` is ", change to ShlexState DQUOTED.
+                   If `chr` is printable, but neither " nor ', change to ShlexState WORD state and add it to the buffer. */
                 if(chr whitespace?()) {
                     /* skip */
                 } else if (chr == '"') {
-                    state = DQUOTED
+                    state = ShlexState DQUOTED
                 } else if (chr == '\'') {
-                    state = SQUOTED
+                    state = ShlexState SQUOTED
                 } else {
                     buffer append(chr)
-                    state = WORD
+                    state = ShlexState WORD
                 }
             }
-            case WORD => {
-                /* WORD state: if `chr` is non-printable, add to result, change to WAIT state.
+            case ShlexState WORD => {
+                /* ShlexState WORD state: if `chr` is non-printable, add to result, change to ShlexState WAIT state.
                    Otherwise, add it to the buffer. */
                 if(chr whitespace?()) {
                     _add(false)
-                    state = WAIT
+                    state = ShlexState WAIT
                 } else {
                     buffer append(chr)
                 }
@@ -66,7 +74,7 @@ Shlex: class {
                  *    and add '\\\\' to the buffer.
                  *  - if `backslash` is true, add a backslash and `chr` to the buffer. Set `backslash` to false.
                  *  - if `backslash` is false and the adequate quoting character, end the string,
-                 *    set the state to WAIT.
+                 *    set the state to ShlexState WAIT.
                  *  - if `backslash` is false and any other character, add it to the buffer.
                  */
                  if(chr == '\\') {
@@ -80,9 +88,9 @@ Shlex: class {
                     buffer append('\\') .append(chr)
                     backslash = false
                  } else {
-                    if(chr == match state { case DQUOTED => '"'; case SQUOTED => '\'' }) {
+                    if(chr == match state { case ShlexState DQUOTED => '"'; case ShlexState SQUOTED => '\'' }) {
                         _add(true)
-                        state = WAIT
+                        state = ShlexState WAIT
                     } else {
                         buffer append(chr)
                     }

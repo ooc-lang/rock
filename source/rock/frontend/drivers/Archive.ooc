@@ -17,7 +17,7 @@ import rock/backend/cnaughty/ModuleWriter
  */
 Archive: class {
 
-    supportedVersion := static "0.4"
+    supportedVersion := static "0.5"
 
     map := static HashMap<Module, Archive> new()
     dirtyModules := ArrayList<Module> new()
@@ -118,10 +118,23 @@ Archive: class {
         }
 
         cacheSize := fR readLine() toInt()
+        parsedModules := ArrayList<ArchiveModule> new()
 
         for(i in 0..cacheSize) {
-            element := ArchiveModule new(fR, this)
+            parsedModules add(ArchiveModule new(fR, this))
+        }
+        fR close()
+
+        upToDate := true
+        for (element in parsedModules) {
             if(element module == null) {
+                if (!element hasMain?) {
+                    // it's okay
+                    continue
+                }
+
+                upToDate = false
+
                 // If we didn't find the module, it should be removed from the archive.
                 debug("Removing %s from archive %s", element oocPath, outlib)
 
@@ -146,7 +159,10 @@ Archive: class {
                 elements put(element oocPath, element)
             }
         }
-        fR close()
+
+        if (!upToDate) {
+            _write()
+        }
     }
 
     _write: func {
@@ -370,6 +386,8 @@ ArchiveModule: class {
     archive: Archive
 
     types := HashMap<String, ArchiveType> new()
+    functions := ArrayList<String> new()
+    hasMain? ::= functions contains?("main")
 
     /**
        Create info about a module
@@ -384,10 +402,14 @@ ArchiveModule: class {
             lastModified = -1
         }
 
-        for(tDecl in module getTypes()) {
+        for (tDecl in module getTypes()) {
             archType := ArchiveType new(tDecl)
             types put(archType name, archType)
         }
+
+        module getFunctions() each(|key, fDecl|
+            functions add(fDecl getFullName())
+        )
     }
 
     /**
@@ -397,11 +419,17 @@ ArchiveModule: class {
         oocPath = fR readLine()
         objectPath = fR readLine()
         lastModified = fR readLine() toLong()
-        typesSize := fR readLine() toInt()
 
+        typesSize := fR readLine() toInt()
         for(i in 0..typesSize) {
             archType := ArchiveType new(fR)
             types put(archType name, archType)
+        }
+
+        functionsSize := fR readLine() toInt()
+        for(i in 0..functionsSize) {
+            fName := fR readLine()
+            functions add(fName)
         }
 
         _getModule()
@@ -488,9 +516,6 @@ ArchiveModule: class {
         oocFile := File new(archive pathElement, oocPath)
         if(oocFile exists?()) {
             module = AstBuilder cache get(oocFile getAbsolutePath())
-            if (!module) {
-                archive debug("Not found in AstBuilder cache: %s", oocFile path)
-            }
         } else {
             archive debug("Couldn't find ooc file %s", oocFile path)
         }
@@ -504,14 +529,19 @@ ArchiveModule: class {
         // object path
         // lastModified
         // number of types
-        fW writef("%s\n%s\n%ld\n%d\n", oocPath, objectPath, lastModified, types getSize())
+        fW writef("%s\n%s\n%ld\n%d\n", oocPath, objectPath, lastModified, types size)
 
         // write each type
-        for(type in types) {
+        for (type in types) {
             type write(fW)
         }
-    }
 
+        // write each function
+        fW writef("%d\n", functions size)
+        for (f in functions) {
+            fW writef("%s\n")
+        }
+    }
 }
 
 /**
