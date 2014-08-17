@@ -24,7 +24,7 @@ version(unix || apple) {
         }
 
         wait: func ~timed (seconds: Double) -> Bool {
-            version (!apple) {
+            version (!openbsd) {
                 ts: TimeSpec
                 __setupTimeout(ts&, seconds)
                     
@@ -32,7 +32,7 @@ version(unix || apple) {
                 return (result == 0)
             }
 
-            version (apple) {
+            version (openbsd) {
                 return __fake_timedjoin(seconds)
             }
             false
@@ -104,7 +104,7 @@ version(unix || apple) {
         tv_nsec: extern Long
     }
 
-    version (!apple) {
+    version (!openbsd) {
         // Using proto here as defining '_GNU_SOURCE' seems to cause more trouble than anything else...
         pthread_timedjoin_np: extern proto func (thread: PThread, retval: Pointer, abstime: TimeSpec*) -> Int
     }

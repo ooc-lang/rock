@@ -133,6 +133,8 @@ MakeDriver: class extends SequenceDriver {
         fW write("ifneq ($(ARCH), osx)\n")
         fW write("  ifeq ($(MACHINE), x86_64)\n")
         fW write("    ARCH:=${ARCH}64\n")
+        fW write("  ifeq ($(MACHINE), amd64)\n")
+        fW write("    ARCH:=${ARCH}64\n")
         fW write("  else ifeq (${PROCESSOR_ARCHITECTURE}, AMD64)\n")
         fW write("    ARCH:=${ARCH}64\n")
         fW write("  else\n")

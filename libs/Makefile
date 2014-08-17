@@ -41,6 +41,8 @@ UNIARCH:=$(ARCH)
 ifneq ($(ARCH), osx)
   ifeq ($(MACHINE), x86_64)
     ARCH:=${ARCH}64
+  else ifeq ($(MACHINE), amd64)
+    ARCH:=${ARCH}64
   else ifeq (${MINGW64_PRESENT}, 1)
     ARCH:=${ARCH}64
   else
