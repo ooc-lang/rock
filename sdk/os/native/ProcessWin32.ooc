@@ -76,6 +76,8 @@ ProcessWin32: class extends Process {
             si flags |= StartFlags UseStdHandles
         }
 
+        envString := buildEnvironment()
+
         // Reference: http://msdn.microsoft.com/en-us/library/ms682512%28VS.85%29.aspx
         // Start the child process.
         if(!CreateProcess(
@@ -85,7 +87,7 @@ ProcessWin32: class extends Process {
             null,        // Thread handle not inheritable
             true,        // Set handle inheritance to true
             0,           // No creation flags
-            null,        // Use parent's environment block
+            envString,   // Use parent's environment block
             cwd ? cwd toCString() : null, // Use custom cwd if we have one
             si&,         // Pointer to STARTUPINFO structure
             pi&          // Pointer to PROCESS_INFORMATION structure
@@ -112,6 +114,40 @@ ProcessWin32: class extends Process {
         
         this pid = pi pid
         return pi pid
+    }
+
+    buildEnvironment: func -> Char* {
+        if (env == null) {
+            return null
+        }
+
+        envLength := 1
+        env each(|k, v|
+            envLength += k size
+            envLength += v size
+            envLength += 2 // one for the =, one for the \0
+        )
+
+        envString := gc_malloc(envLength) as Char*
+        index := 0
+        for (k in env getKeys()) {
+            v := env get(k)
+
+            memcpy(envString + index, k toCString(), k size)
+            index += k size
+
+            envString[index] = '='
+            index += 1
+
+            memcpy(envString + index, v toCString(), v size)
+            index += v size
+
+            envString[index] = '\0'
+            index += 1
+        }
+
+        envString[index] = '\0'
+        envString
     }
 
     terminate: func {

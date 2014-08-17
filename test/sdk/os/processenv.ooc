@@ -1,12 +1,23 @@
 import os/Process, structs/HashMap
 
-p := Process new(["bash", "-c", "echo $MYVAR"])
+main: func {
+    env := HashMap<String, String> new()
+    env put("MYVAR", "42")
 
-env := HashMap<String, String> new()
-env put("MYVAR", "42")
-p setEnv(env)
+    command := ["bash", "-c", "echo $MYVAR"]
+    version (windows) {
+        command = ["cmd", "/c", "echo %MYVAR%"]
+    }
 
-p execute()
-output := p getOutput()
+    p := Process new(command)
+    p setEnv(env)
+    p execute()
+    output := p getOutput()
+    output = output trim()
+    if (output != "42") {
+        "Fail! expected output = 42, but got #{output}" println()
+        exit(1)
+    }
 
-"output = %s" printfln(output)
+    "Pass" println()
+}
