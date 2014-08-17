@@ -62,17 +62,14 @@ ProcessWin32: class extends Process {
     executeNoWait: func -> Long {
         if (stdIn != null || stdOut != null || stdErr != null) {
             if(stdIn != null) {
-                stdIn close('r')
                 si stdInput  = stdIn as PipeWin32 readFD
                 SetHandleInformation(stdOut as PipeWin32 writeFD, HANDLE_FLAG_INHERIT, 0)
             }
             if(stdOut != null) {
-                stdOut close('w')
                 si stdOutput = stdOut as PipeWin32 writeFD
                 SetHandleInformation(stdOut as PipeWin32 readFD, HANDLE_FLAG_INHERIT, 0)
             }
             if(stdErr != null) {
-                stdErr close('w')
                 si stdError  = stdErr as PipeWin32 writeFD
                 SetHandleInformation(stdErr as PipeWin32 readFD, HANDLE_FLAG_INHERIT, 0)
             }
@@ -100,6 +97,17 @@ ProcessWin32: class extends Process {
                 cmdLine
             )) throw()
             return -1
+        }
+
+        if(stdIn != null) {
+            stdIn close('r')
+        }
+
+        if(stdOut != null) {
+            stdOut close('w')
+        }
+        if(stdErr != null) {
+            stdErr close('w')
         }
         
         this pid = pi pid
