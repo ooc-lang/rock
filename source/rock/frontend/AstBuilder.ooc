@@ -630,6 +630,10 @@ AstBuilder: class {
         peek(OperatorDecl) setByRef(true)
     }
 
+    onOperatorAbstract: unmangled(nq_onOperatorAbstract) func {
+        peek(OperatorDecl) setAbstract(true)
+    }
+
     onOperatorSymbol: unmangled(nq_onOperatorSymbol) func (symbol: CString) {
         peek(OperatorDecl) symbol = symbol toString() trim()
     }
