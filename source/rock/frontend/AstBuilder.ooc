@@ -33,6 +33,10 @@ IllegalTypeArgError: class extends Error {
     init: super func ~tokenMessage
 }
 
+InvalidModifierError: class extends Error {
+    init: super func ~tokenMessage
+}
+
 computeReservedHashs: func (words: String[]) -> ArrayList<Int> {
     list := ArrayList<Int> new()
     words length times(|i|
@@ -631,6 +635,8 @@ AstBuilder: class {
     }
 
     onOperatorAbstract: unmangled(nq_onOperatorAbstract) func {
+        checkModifierValidity("abstract")
+
         peek(OperatorDecl) setAbstract(true)
     }
 
@@ -663,6 +669,19 @@ AstBuilder: class {
      * Functions
      */
 
+    checkModifierValidity: func(mod: String) {
+        temp := pop(Node)
+
+        match (peek(Node)) {
+            case tDecl: TypeDecl =>
+                // All is fine :D
+            case =>
+                params errorHandler onError(InvalidModifierError new(temp token, "Invalid use of modifier #{mod} outside of a type declaration"))
+        }
+
+        stack push(temp)
+    }
+
     onFunctionStart: unmangled(nq_onFunctionStart) func (name, doc: CString) {
         fDecl := FunctionDecl new(name toString(), token())
         fDecl setVersion(getVersion())
@@ -679,12 +698,18 @@ AstBuilder: class {
     }
 
     onFunctionAbstract: unmangled(nq_onFunctionAbstract) func {
+        checkModifierValidity("abstract")
+
         peek(FunctionDecl) isAbstract = true
     }
     onFunctionThisRef: unmangled(nq_onFunctionThisRef) func {
+        checkModifierValidity("@")
+
         peek(FunctionDecl) isThisRef = true
     }
     onFunctionStatic: unmangled(nq_onFunctionStatic) func {
+        checkModifierValidity("static")
+
         peek(FunctionDecl) isStatic = true
     }
     onFunctionInline: unmangled(nq_onFunctionInline) func {
@@ -692,6 +717,8 @@ AstBuilder: class {
     }
 
     onFunctionFinal: unmangled(nq_onFunctionFinal) func {
+        checkModifierValidity("final")
+
         peek(FunctionDecl) isFinal = true
     }
 
@@ -700,6 +727,8 @@ AstBuilder: class {
     }
 
     onFunctionSuper: unmangled(nq_onFunctionSuper) func {
+        checkModifierValidity("super")
+
         peek(FunctionDecl) isSuper = true
     }
 
