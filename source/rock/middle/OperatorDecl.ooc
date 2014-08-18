@@ -58,6 +58,10 @@ OperatorDecl: class extends Expression {
         fDecl isThisRef = byref
     }
 
+    setAbstract: func (abs: Bool) {
+        fDecl setAbstract(abs)
+    }
+
     computeName: func {
         assert(fDecl != null)
 
