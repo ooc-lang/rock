@@ -635,7 +635,7 @@ AstBuilder: class {
     }
 
     onOperatorAbstract: unmangled(nq_onOperatorAbstract) func {
-        checkModifierValidity("abstract")
+        checkModifierValidity("abstract", false)
 
         peek(OperatorDecl) setAbstract(true)
     }
@@ -669,14 +669,26 @@ AstBuilder: class {
      * Functions
      */
 
-    checkModifierValidity: func(mod: String) {
+    checkModifierValidity: func(mod: String, allowInAddon? := true) {
         temp := pop(Node)
+
+        errorOut := func {
+            params errorHandler onError(InvalidModifierError new(temp token, \
+                   "Invalid use of modifier #{mod} outside of a type declaration#{allowInAddon? ? " or extention" : ""}"))
+        }
 
         match (peek(Node)) {
             case tDecl: TypeDecl =>
                 // All is fine :D
+            case addon: Addon =>
+                // Hm, there may be an issue there
+                if(!allowInAddon?) {
+                    errorOut()
+                }
             case =>
-                params errorHandler onError(InvalidModifierError new(temp token, "Invalid use of modifier #{mod} outside of a type declaration"))
+                // Definitely an issue
+                errorOut()
+                
         }
 
         stack push(temp)
@@ -698,7 +710,7 @@ AstBuilder: class {
     }
 
     onFunctionAbstract: unmangled(nq_onFunctionAbstract) func {
-        checkModifierValidity("abstract")
+        checkModifierValidity("abstract", false)
 
         peek(FunctionDecl) isAbstract = true
     }
@@ -727,7 +739,7 @@ AstBuilder: class {
     }
 
     onFunctionSuper: unmangled(nq_onFunctionSuper) func {
-        checkModifierValidity("super")
+        checkModifierValidity("super", false)
 
         peek(FunctionDecl) isSuper = true
     }
