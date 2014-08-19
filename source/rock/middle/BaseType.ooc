@@ -254,7 +254,8 @@ BaseType: class extends Type {
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
         //printf("%s vs %s, other isGeneric ? %s pointerLevel ? %d isPointer() ? %d, other isPointer() ? %d\n", toString(), other toString(), other isGeneric() toString(), other pointerLevel(), isPointer(), other getGroundType() isPointer())
 
-        if(void?) return This NOLUCK_SCORE
+        if(void? && other void?) return scoreSeed
+        else if(void?) return This NOLUCK_SCORE
 
         ourRef := getRef()
         if(!ourRef) return -1

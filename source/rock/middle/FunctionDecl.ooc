@@ -1156,6 +1156,10 @@ FunctionDecl: class extends Declaration {
      * is compatible with the function signature in the interface decl
      */
     getScore: func (decl: FunctionDecl) -> Int {
+        if(debugCondition()) {
+            "** Getting score of #{this} vs #{decl}" println()
+        }
+
         score := Type SCORE_SEED / 4
 
         // First things first: MUST share name
@@ -1185,6 +1189,7 @@ FunctionDecl: class extends Declaration {
             score += Type SCORE_SEED / 8
         }
 
+        // Arguments
         declIter : Iterator<Argument> = decl args iterator()
         ourIter : Iterator<Argument> = args iterator()
 
@@ -1219,6 +1224,18 @@ FunctionDecl: class extends Declaration {
                     ourArg getType() getRef(), declArgType getRef())
             }
         }
+
+        // Return type
+        typeScore := returnType getScore(decl returnType)
+
+        if(typeScore == -1) {
+            if(debugCondition()) {
+                "-1 because of type score between return types #{returnType} and #{decl returnType}" println()
+            }
+            return -1
+        }
+
+        score += returnType getScore(decl returnType)
 
         if(debugCondition()) {
             "Final score = %d" printfln(score)
