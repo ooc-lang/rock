@@ -48,6 +48,14 @@ InterfaceImpl: class extends ClassDecl {
                 //FIXME: smarter strategy needed here to match functions - also, check signatures
                 finalScore : Int
                 value := impl getMeta() getFunction(key getName(), key getSuffix(), null, true, finalScore&)
+
+                // Check for the score between declarations
+                if(value getScore(key) > 0) {
+                    res throwError(InterfaceContractNotSatisfied new(value token,
+                        "%s implements function %s, from interface %s, incorrectly\n" format(
+                        impl getName(), key toString(), superType toString())))
+                }
+
                 if(finalScore == -1) {
                     res wholeAgain(this, "Not finished checking every function is implemented")
                     return Response OK
