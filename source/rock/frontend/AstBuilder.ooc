@@ -1258,6 +1258,10 @@ AstBuilder: class {
         BinaryOp new(left, right, OpType rshift, token())
     }
 
+    onNullCoalescing: unmangled(nq_onNullCoalescing) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpType nullCoal, token())
+    }
+
     onLogicalOr: unmangled(nq_onLogicalOr) func (left, right: Expression) -> BinaryOp {
         BinaryOp new(left, right, OpType or, token())
     }

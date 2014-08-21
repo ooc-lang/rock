@@ -148,6 +148,8 @@ OperatorDecl: class extends Expression {
             case "~"   =>  "B_NEG"
             case "as"  =>  "AS"
 
+            case "??"  => "NULL_COAL"
+
             case       =>  token module params errorHandler onError(InvalidOperatorOverload new(token, "Unknown overloaded symbol: %s" format(symbol))); "UNKNOWN"
         }
     }
