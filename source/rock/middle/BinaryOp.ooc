@@ -4,7 +4,7 @@ import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
        Import, Module, FunctionCall, ClassDecl, CoverDecl, AddressOf,
        ArrayAccess, VariableAccess, Cast, NullLiteral, PropertyDecl,
        Tuple, VariableDecl, FuncType, TypeDecl, StructLiteral, TypeList,
-       Scope, TemplateDef
+       Scope, TemplateDef, Ternary, Comparison
 import tinker/[Trail, Resolver, Response, Errors]
 
 OpType: enum {
@@ -35,6 +35,8 @@ OpType: enum {
 
     or         /*  || */
     and        /*  && */
+
+    nullCoal   /* ?? */
 }
 
 opTypeRepr := [
@@ -64,7 +66,9 @@ opTypeRepr := [
         "&=",
 
         "||",
-        "&&"]
+        "&&",
+
+        "??"]
 
 BinaryOp: class extends Expression {
 
@@ -455,6 +459,22 @@ BinaryOp: class extends Expression {
                     trail pop(this)
                 }
             }
+        }
+
+        // We must replace the null-coalescing operator with a ternary operator
+        if(type == OpType nullCoal) {
+            // The final expression we want is (left != null ? left : right)
+            condition := Comparison new(left, NullLiteral new(token), CompType notEqual, token)
+            ternary := Ternary new(condition, left, right, token)
+
+            if(!trail peek() replace(this, ternary)) {
+                if(res fatal) res throwError(CouldntReplace new(token, this, ternary, trail))
+                res wholeAgain(this, "failed to replace oneself, gotta try again =)")
+                return Response LOOP
+            }
+
+            res wholeAgain(this, "replaced null coalescing operator with ternary")
+            return Response OK
         }
 
         if(!isLegal(res)) {
