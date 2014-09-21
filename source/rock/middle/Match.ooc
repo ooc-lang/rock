@@ -4,7 +4,7 @@ import algo/typeAnalysis
 import ControlStatement, Statement, Expression, Visitor, VariableDecl,
        Node, VariableAccess, Scope, BoolLiteral, Comparison, Type,
        FunctionDecl, Return, BinaryOp, FunctionCall, Cast, Parenthesis,
-       CoverDecl
+       CoverDecl, If, Conditional
 import tinker/[Trail, Resolver, Response, Errors]
 
 Match: class extends Expression {
@@ -276,6 +276,39 @@ Match: class extends Expression {
 
     }
 
+    isStatement: func(trail: Trail) -> Bool {
+        if(trail findScope() != trail getSize() - 1) {
+            return false
+        }
+
+
+        if(trail getSize() < 2) return true
+        scopeParent := trail get(trail getSize() - 2)
+        match scopeParent {
+            case fDecl: FunctionDecl => return fDecl body last() != this || fDecl returnType == voidType
+            case cond: Conditional => {
+                // An If-Else as the only two statements in a function decl body is an expression
+                if(cond body last() != this) return true
+
+                if(trail getSize() < 4) return true
+                fDecl? := trail get(trail getSize() - 4)
+                if(!fDecl? instanceOf?(FunctionDecl)) return true
+
+                fDecl := fDecl? as FunctionDecl
+                // The fDecl needs at least 2 statements to have an If-Else statement :D
+                if(fDecl body getSize() < 2) return true
+
+                if(!fDecl body first() instanceOf?(If)) return true
+                for(i in 1 .. fDecl body getSize() - 1) {
+                    if(!fDecl body get(i) instanceOf?(Conditional)) return true
+                }
+
+                return false
+            }
+        }
+        true
+    }
+
     inferType: func (trail: Trail, res: Resolver) -> Response {
 
         funcIndex   := trail find(FunctionDecl)
@@ -295,6 +328,13 @@ Match: class extends Expression {
 
             baseType := cases first() getType()
             if(!baseType) return Response OK
+
+            // If the match is a statement rather than an expression, we don't need to find a common type
+            // In fact, it is harmful to do so as incompatible "return" types from each case are allowed
+            if(isStatement(trail)) {
+                type = baseType
+                return Response OK
+            }
 
             // We find the common roots between our base type and next type
             // This root becomes our new base type
