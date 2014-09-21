@@ -72,15 +72,16 @@ Target: class {
     toString: static func(target: Int, arch: String) -> String {
 
         return match(target) {
-            case This WIN       => "win" + arch
-            case This LINUX     => "linux" + arch
-            case This SOLARIS   => "solaris" + arch
-            case This HAIKU     => "haiku" + arch
+            case This WIN       => "win"       + arch
+            case This LINUX     => "linux"     + arch
+            case This SOLARIS   => "solaris"   + arch
+            case This HAIKU     => "haiku"     + arch
             case This OSX       => "osx"
-            case This FREEBSD   => "freebsd" + arch
-            case This OPENBSD   => "openbsd" + arch
-            case This NETBSD    => "netbsd" + arch
+            case This FREEBSD   => "freebsd"   + arch
+            case This OPENBSD   => "openbsd"   + arch
+            case This NETBSD    => "netbsd"    + arch
             case This DRAGONFLY => "dragonfly" + arch
+            case This ANDROID   => "android"   + arch
             case                => Exception new("Invalid arch: " + target toString()) throw(); ""
         }
 
