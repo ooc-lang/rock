@@ -18,6 +18,9 @@ Match: class extends Expression {
     casesResolved := 0
     casesSize := -1
 
+    _statementCalculated? := false
+    _statement?: Bool
+
     init: func ~match_ (.token) {
         super(token)
     }
@@ -284,41 +287,52 @@ Match: class extends Expression {
         //    that is the only thing in a non-void FunctionDecl scope
         // 3) If it is the last statement in a Case's scope, where the Match statement of the Case is an expression itself
 
+        calc := func(b: Bool) -> Bool {
+            _statementCalculated? = true
+            _statement? = b
+            b
+        }
+
+        if(_statementCalculated?) {
+            return _statement?
+        }
+
         diff := trail getSize() - depth
         if(trail find(Scope, diff - 1) != diff - 1) {
-            return false
+            return calc(false)
         }
 
 
-        if(diff < 2) return true
+        if(diff < 2) return calc(true)
         scopeParent := trail get(diff - 2)
         match scopeParent {
             case fDecl: FunctionDecl => return fDecl body last() != this || fDecl returnType == voidType
             case cond: Conditional => {
                 // An If-Else as the only two statements in a function decl body is an expression
-                if(cond body last() != this) return true
+                if(cond body last() != this) return calc(true)
 
-                if(diff < 4) return true
+                if(diff < 4) return calc(true)
                 fDecl? := trail get(diff - 4)
-                if(!fDecl? instanceOf?(FunctionDecl)) return true
+                if(!fDecl? instanceOf?(FunctionDecl)) return calc(true)
 
                 fDecl := fDecl? as FunctionDecl
                 // The fDecl needs at least 2 statements to have an If-Else statement :D
-                if(fDecl body getSize() < 2 || fDecl returnType == voidType) return true
+                if(fDecl body getSize() < 2 || fDecl returnType == voidType) return calc(true)
 
-                if(!fDecl body first() instanceOf?(If)) return true
+                if(!fDecl body first() instanceOf?(If)) return calc(true)
                 for(i in 1 .. fDecl body getSize() - 1) {
-                    if(!fDecl body get(i) instanceOf?(Conditional)) return true
+                    if(!fDecl body get(i) instanceOf?(Conditional)) return calc(true)
                 }
 
-                return false
+                return calc(false)
             }
             case m: Match => {
                 // The case pops itself from the trail before resolving the body, so we get the match directly!
-                return m isStatement(trail, depth + 2)
+                return calc(m isStatement(trail, depth + 2))
             }
         }
-        true
+
+        calc(true)
     }
 
     inferType: func (trail: Trail, res: Resolver) -> Response {
