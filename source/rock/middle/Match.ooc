@@ -285,7 +285,7 @@ Match: class extends Expression {
         // 3) If it is the last statement in a Case's scope, where the Match statement of the Case is an expression itself
 
         diff := trail getSize() - depth
-        if(trail findScope() != diff - 1) {
+        if(trail find(Scope, diff - 1) != diff - 1) {
             return false
         }
 
@@ -313,7 +313,10 @@ Match: class extends Expression {
 
                 return false
             }
-            case caze: Case => return trail get(diff - 3) as Match isStatement(trail, diff - 3)
+            case m: Match => {
+                // The case pops itself from the trail before resolving the body, so we get the match directly!
+                return m as Match isStatement(trail, 2)
+            }
         }
         true
     }
