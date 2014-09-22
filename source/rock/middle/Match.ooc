@@ -315,7 +315,7 @@ Match: class extends Expression {
             }
             case m: Match => {
                 // The case pops itself from the trail before resolving the body, so we get the match directly!
-                return m as Match isStatement(trail, 2)
+                return m isStatement(trail, depth + 2)
             }
         }
         true
