@@ -276,27 +276,35 @@ Match: class extends Expression {
 
     }
 
-    isStatement: func(trail: Trail) -> Bool {
-        if(trail findScope() != trail getSize() - 1) {
+    isStatement: func(trail: Trail, depth := 0) -> Bool {
+        // If the match is not in a scope, it is definitely an expression, not a statement.
+        // Otherwise, there are three cases where it can be an expression.
+        // 1) If it is the last statement in a non-void return FunctionDecl scope
+        // 2) If it is the last statement in a Conditionals' scope, when this conditional is part of a conditional branch
+        //    that is the only thing in a non-void FunctionDecl scope
+        // 3) If it is the last statement in a Case's scope, where the Match statement of the Case is an expression itself
+
+        diff := trail getSize() - depth
+        if(trail findScope() != diff - 1) {
             return false
         }
 
 
-        if(trail getSize() < 2) return true
-        scopeParent := trail get(trail getSize() - 2)
+        if(diff < 2) return true
+        scopeParent := trail get(diff - 2)
         match scopeParent {
             case fDecl: FunctionDecl => return fDecl body last() != this || fDecl returnType == voidType
             case cond: Conditional => {
                 // An If-Else as the only two statements in a function decl body is an expression
                 if(cond body last() != this) return true
 
-                if(trail getSize() < 4) return true
-                fDecl? := trail get(trail getSize() - 4)
+                if(diff < 4) return true
+                fDecl? := trail get(diff - 4)
                 if(!fDecl? instanceOf?(FunctionDecl)) return true
 
                 fDecl := fDecl? as FunctionDecl
                 // The fDecl needs at least 2 statements to have an If-Else statement :D
-                if(fDecl body getSize() < 2) return true
+                if(fDecl body getSize() < 2 || fDecl returnType == voidType) return true
 
                 if(!fDecl body first() instanceOf?(If)) return true
                 for(i in 1 .. fDecl body getSize() - 1) {
@@ -305,6 +313,7 @@ Match: class extends Expression {
 
                 return false
             }
+            case caze: Case => return trail get(diff - 3) as Match isStatement(trail, diff - 3)
         }
         true
     }
