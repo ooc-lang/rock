@@ -338,7 +338,7 @@ CommandLine: class {
                         case =>
                             "[ERROR] Unknown target: %s" printfln(targetName)
                             failure(params)
-                            null
+                            -1
                     }
                     params undoTargetSpecific()
                     params doTargetSpecific()

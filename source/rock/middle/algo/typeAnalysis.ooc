@@ -129,6 +129,13 @@ findCommonRoot: func(type1, type2: Type) -> Type {
 
     if(distance1 == -1 || distance2 == -1) return null
 
+    // Pointer vs clas type -> Pointer
+    if(btype1 instanceOf?(BaseType) && btype1 isPointer() && btype2 getRef() && btype2 getRef() instanceOf?(ClassDecl)) {
+        return _createSugarWith(btype1, type1)
+    } else if(btype2 instanceOf?(BaseType) && btype2 isPointer() && btype1 getRef() && btype1 getRef() instanceOf?(ClassDecl)) {
+        return _createSugarWith(btype2, type1)
+    }
+
     if(coverAgainstClass(btype1, btype2)) {
         return null
     }
