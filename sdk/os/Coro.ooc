@@ -1,114 +1,47 @@
+import native/[CoroUnix, CoroWin32]
 
 /**
- * Portable ucontext-based coroutines implementation for cooperative multitasking.
+ * Portable ucontext/fiber-based coroutines implementation for cooperative multitasking.
  *
  * Based on the work of:
  *  - Steve Dekorte (libcoroutine - http://github.com/stevedekorte/coroutine)
  *  - Russ Cox (libcoroutine OSX10.6 fixes)
  *  - Edgar Toernig (Minimalistic cooperative multitasking - http://www.goron.de/~froese/)
  */
-Coro: class {
-
-    // 128k stack = room for quite a few function calls
+Coro: abstract class {
+    // 128k stack is enough room for quite a few function calls
     DEFAULT_STACK_SIZE := static 128 * 1_024
 
-    stack: UInt8*
-    env: UContext
-    isMain: Bool
+    isMain := false
 
-    init: func
+    new: static func -> This {
+        version(unix || apple) {
+            return CoroUnix new() as This
+        }
+        version(windows) {
+            return CoroWin32 new() as This
+        }
+        raise("os/Coro is unsupported on your platform!")
+        null
+    }
 
-    initializeMainCoro: final func {
+    /// Marks that this Coro is a main coro (cannot yield)
+    initializeMainCoro: func {
         isMain = true
     }
 
-    startCoro: final func (other: This, callback: Func) {
-        other allocStackIfNeeded()
-        other setup(this, ||
-            callback()
-            raise("Scheduler error: returned from coro start function")
-            exit(-1)
-        )
-        switchTo(other)
-        other free()
-    }
+    /// Starts a child Coro that executes the callback
+    startCoro: abstract func(other: This, callback: Func)
 
-    setup: final func (coro: Coro, callback: Func) {
-        getcontext(env&)
+    /// Sets up a child Coro
+    setup: abstract func(other: This, callback: Func)
 
-        env stack address = stack
-        env stack size    = DEFAULT_STACK_SIZE
-        env stack flags   = 0
-        env link          = coro env&
+    /// Switches execution to another Coro
+    switchTo: abstract func(next: This)
 
-        GC_add_roots(
-            stack,
-            stack + DEFAULT_STACK_SIZE
-        )
+    /// Yields execution to the Coro that spawned this
+    yield: abstract func
 
-        makecontext(env&, callback as Closure thunk, 1, callback as Closure context)
-    }
-
-    switchTo: final func (next: This) {
-        GC_stackbottom = next env stack address
-        swapcontext(env&, next env&)
-    }
-
-    yield: final func {
-        // A main coro cannot yield
-        if(isMain) {
-            raise("Scheduler error: yielded from main coro")
-        }
-
-        previousCtx := (env link as UContext*)@
-        GC_stackbottom = previousCtx stack address
-        swapcontext(env&, previousCtx&)
-    }
-
-    allocStackIfNeeded: final func {
-        if (!stack) {
-            stack = coro_malloc(DEFAULT_STACK_SIZE)
-        }
-    }
-
-    free: final func {
-        GC_remove_roots(
-            stack,
-            stack + DEFAULT_STACK_SIZE
-        )
-
-        if (stack) {
-            coro_free(stack)
-            stack = null
-        }
-    }
-
+    /// Frees non-GC memory that the Coro may have allocated (e.g. stack memory)
+    free: abstract func
 }
-
-/* ------ C interfacing ------- */
-
-coro_malloc: extern(malloc) func (s: SizeT) -> Pointer
-coro_free: extern(free) func (p: Pointer)
-
-include ucontext | (_XOPEN_SOURCE=600)
-
-StackT: cover from stack_t {
-    address: extern(ss_sp) Pointer
-    flags: extern(ss_flags) Int
-    size: extern(ss_size) SizeT
-}
-
-UContext: cover from ucontext_t {
-    stack: extern(uc_stack) StackT
-    link: extern(uc_link) Pointer
-}
-
-getcontext: extern func (ucp: UContext*) -> Int
-setcontext: extern func (ucp: UContext*) -> Int
-makecontext: extern func (ucp: UContext*, _func: Pointer, argc: Int, ...)
-swapcontext: extern func (oucp: UContext*, ucp: UContext*) -> Int
-
-GC_add_roots: extern func (Pointer, Pointer)
-GC_remove_roots: extern func (Pointer, Pointer)
-GC_stackbottom: extern UInt8*
-
