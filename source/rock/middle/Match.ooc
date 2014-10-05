@@ -4,7 +4,7 @@ import algo/typeAnalysis
 import ControlStatement, Statement, Expression, Visitor, VariableDecl,
        Node, VariableAccess, Scope, BoolLiteral, Comparison, Type,
        FunctionDecl, Return, BinaryOp, FunctionCall, Cast, Parenthesis,
-       CoverDecl
+       CoverDecl, If, Conditional
 import tinker/[Trail, Resolver, Response, Errors]
 
 Match: class extends Expression {
@@ -17,6 +17,9 @@ Match: class extends Expression {
 
     casesResolved := 0
     casesSize := -1
+
+    _statementCalculated? := false
+    _statement?: Bool
 
     init: func ~match_ (.token) {
         super(token)
@@ -276,6 +279,62 @@ Match: class extends Expression {
 
     }
 
+    isStatement: func(trail: Trail, depth := 0) -> Bool {
+        // If the match is not in a scope, it is definitely an expression, not a statement.
+        // Otherwise, there are three cases where it can be an expression.
+        // 1) If it is the last statement in a non-void return FunctionDecl scope
+        // 2) If it is the last statement in a Conditionals' scope, when this conditional is part of a conditional branch
+        //    that is the only thing in a non-void FunctionDecl scope
+        // 3) If it is the last statement in a Case's scope, where the Match statement of the Case is an expression itself
+
+        calc := func(b: Bool) -> Bool {
+            _statementCalculated? = true
+            _statement? = b
+            b
+        }
+
+        if(_statementCalculated?) {
+            return _statement?
+        }
+
+        diff := trail getSize() - depth
+        if(trail find(Scope, diff - 1) != diff - 1) {
+            return calc(false)
+        }
+
+
+        if(diff < 2) return calc(true)
+        scopeParent := trail get(diff - 2)
+        match scopeParent {
+            case fDecl: FunctionDecl => return fDecl body last() != this || fDecl returnType == voidType
+            case cond: Conditional => {
+                // An If-Else as the only two statements in a function decl body is an expression
+                if(cond body last() != this) return calc(true)
+
+                if(diff < 4) return calc(true)
+                fDecl? := trail get(diff - 4)
+                if(!fDecl? instanceOf?(FunctionDecl)) return calc(true)
+
+                fDecl := fDecl? as FunctionDecl
+                // The fDecl needs at least 2 statements to have an If-Else statement :D
+                if(fDecl body getSize() < 2 || fDecl returnType == voidType) return calc(true)
+
+                if(!fDecl body first() instanceOf?(If)) return calc(true)
+                for(i in 1 .. fDecl body getSize() - 1) {
+                    if(!fDecl body get(i) instanceOf?(Conditional)) return calc(true)
+                }
+
+                return calc(false)
+            }
+            case m: Match => {
+                // The case pops itself from the trail before resolving the body, so we get the match directly!
+                return calc(m isStatement(trail, depth + 2))
+            }
+        }
+
+        calc(true)
+    }
+
     inferType: func (trail: Trail, res: Resolver) -> Response {
 
         funcIndex   := trail find(FunctionDecl)
@@ -295,6 +354,13 @@ Match: class extends Expression {
 
             baseType := cases first() getType()
             if(!baseType) return Response OK
+
+            // If the match is a statement rather than an expression, we don't need to find a common type
+            // In fact, it is harmful to do so as incompatible "return" types from each case are allowed
+            if(isStatement(trail)) {
+                type = baseType
+                return Response OK
+            }
 
             // We find the common roots between our base type and next type
             // This root becomes our new base type

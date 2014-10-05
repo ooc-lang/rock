@@ -1,6 +1,5 @@
 import structs/ArrayList
-import ../[Type, BaseType, TypeDecl, Expression]
-import ../tinker/[Resolver, Trail]
+import ../[Type, BaseType, TypeDecl, CoverDecl, ClassDecl, Expression]
 
 
 distanceFromObject: func(type: BaseType) -> Int {
@@ -69,12 +68,32 @@ getInnermostType: func(type: Type) -> Type {
 // A common root is a type that represents both of the types it comes from
 // For example, if Bar extends Foo and Baz extends Foo, Foo is the closer common root of Foo and Bar
 findCommonRoot: func(type1, type2: Type) -> Type {
+
+    coverAgainstClass := func(t1, t2: Type) -> Bool {
+        // cover vs class -> incompatible
+        if(t1 getRef() && t2 getRef()) {
+            ref1 := t1 getRef()
+            ref2 := t2 getRef()
+
+            if(ref1 instanceOf?(CoverDecl) && ref2 instanceOf?(ClassDecl)\
+            || ref2 instanceOf?(CoverDecl) && ref1 instanceOf?(ClassDecl)) {
+                return true
+            }
+        }
+
+        false
+    }
+
     basic := func(t1, t2: Type) -> Type {
         if(t1 equals?(type2)) return t1
         if(t1 isNumericType() && t2 isNumericType()) {
             // The root of an integer and a floating point type is the floating point type
             if(t2 isFloatingPointType()) return t2
             return t1
+        }
+
+        if(coverAgainstClass(t1, t2)) {
+            return null
         }
 
         if(t1 getScore(t2) > 0 || t2 getScore(t1) > 0) {
@@ -109,6 +128,17 @@ findCommonRoot: func(type1, type2: Type) -> Type {
     distance2 := distanceFromObject(btype2)
 
     if(distance1 == -1 || distance2 == -1) return null
+
+    // Pointer vs class type -> Pointer
+    if(btype1 instanceOf?(BaseType) && btype1 isPointer() && btype2 getRef() && btype2 getRef() instanceOf?(ClassDecl)) {
+        return _createSugarWith(btype1, type1)
+    } else if(btype2 instanceOf?(BaseType) && btype2 isPointer() && btype1 getRef() && btype1 getRef() instanceOf?(ClassDecl)) {
+        return _createSugarWith(btype2, type1)
+    }
+
+    if(coverAgainstClass(btype1, btype2)) {
+        return null
+    }
 
     // Go closer and closer to Object with the type that has the biggest distance, checking to see if we can return a root every time
     type1Bigger := distance1 > distance2
