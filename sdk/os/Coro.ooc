@@ -54,6 +54,17 @@ Coro: class {
         swapcontext(env&, next env&)
     }
 
+    yield: final func {
+        // A main coro cannot yield
+        if(isMain) {
+            raise("Scheduler error: yielded from main coro")
+        }
+
+        previousCtx := (env link as UContext*)@
+        GC_stackbottom = previousCtx stack address
+        swapcontext(env&, previousCtx&)
+    }
+
     allocStackIfNeeded: final func {
         if (!stack) {
             stack = coro_malloc(DEFAULT_STACK_SIZE)
