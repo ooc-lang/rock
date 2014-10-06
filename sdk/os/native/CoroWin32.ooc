@@ -21,7 +21,7 @@ CoroWin32: class extends Coro {
         fiber = GetCurrentFiber()
     }
 
-    startCoro: final func(other: Coro, callback: Func) {
+    startCoro: func(other: Coro, callback: Func) {
         other setup(this, ||
             callback()
             raise("Scheduler error: returned from coro start function")
@@ -31,11 +31,11 @@ CoroWin32: class extends Coro {
         other free()
     }
 
-    switchTo: final func(next: Coro) {
+    switchTo: func(next: Coro) {
         SwitchToFiber(next as This fiber)
     }
 
-    yield: final func {
+    yield: func {
         if(isMain) {
             raise("Scheduler error: yielded from main coro")
         }
@@ -43,7 +43,7 @@ CoroWin32: class extends Coro {
         SwitchToFiber(parent)
     }
 
-    setup: final func(coro: Coro, callback: Func) {
+    setup: func(coro: Coro, callback: Func) {
         if(fiber != null && !isMain) {
             DeleteFiber(fiber)
         }
@@ -58,7 +58,7 @@ CoroWin32: class extends Coro {
     }
 
     // Freeing a main fiber results in exiting the thread it was executed in
-    free: final func {
+    free: func {
         if(fiber) {
             DeleteFiber(fiber)
         }
