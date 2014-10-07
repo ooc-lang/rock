@@ -24,6 +24,7 @@ CoroWin32: class extends Coro {
     startCoro: func(other: Coro, callback: Func) {
         other setup(this, ||
             callback()
+            other switchTo(this)
         )
         switchTo(other)
         other free()
