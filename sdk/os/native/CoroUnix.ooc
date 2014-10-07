@@ -13,8 +13,6 @@ CoroUnix: class extends Coro {
         other as This allocStackIfNeeded()
         other as This setup(this, ||
             callback()
-            raise("Scheduler error: returned from coro start function")
-            exit(-1)
         )
         switchTo(other)
         other free()

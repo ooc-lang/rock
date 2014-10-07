@@ -24,8 +24,6 @@ CoroWin32: class extends Coro {
     startCoro: func(other: Coro, callback: Func) {
         other setup(this, ||
             callback()
-            raise("Scheduler error: returned from coro start function")
-            exit(-1)
         )
         switchTo(other)
         other free()
