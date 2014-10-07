@@ -317,7 +317,11 @@ CGenerator: class extends Skeleton {
         } else {
             arrayType inner write(current, null)
         }
-        current app(", "). app(arrayType expr). app(")")
+        if(arrayType expr){
+            current app(", "). app(arrayType expr). app(")")
+        } else {
+            current app(", "). app("0"). app(")")
+        }
 
         if(writeForLoop? && arrayType inner instanceOf?(ArrayType)) {
             current app(';'). nl(). app("{"). tab(). nl(). app("int "). app(name). app("__i;"). nl().
