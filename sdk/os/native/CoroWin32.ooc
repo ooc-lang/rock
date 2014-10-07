@@ -27,7 +27,6 @@ CoroWin32: class extends Coro {
             other switchTo(this)
         )
         switchTo(other)
-        other free()
     }
 
     switchTo: func(next: Coro) {

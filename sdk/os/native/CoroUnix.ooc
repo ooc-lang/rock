@@ -15,7 +15,6 @@ CoroUnix: class extends Coro {
             callback()
         )
         switchTo(other)
-        other free()
     }
 
     setup: func (coro: Coro, callback: Func) {
