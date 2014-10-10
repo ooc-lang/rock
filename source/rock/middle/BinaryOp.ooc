@@ -113,8 +113,17 @@ BinaryOp: class extends Expression {
     unwrapAssign: func (trail: Trail, res: Resolver) -> Bool {
         if(!isAssign()) return false
 
+        unwrapGetter := func(e: Expression) -> Expression{
+            if(e instanceOf?(VariableAccess) && e as VariableAccess ref instanceOf?(PropertyDecl)) {
+                ep := e as VariableAccess ref as PropertyDecl
+                if(ep inOuterSpace(trail)) {
+                    return FunctionCall new(e as VariableAccess expr, ep getGetterName(), token)
+                }
+            }
+            e
+        }
         innerType := type - (OpType addAss - OpType add)
-        inner := BinaryOp new(left, right, innerType, token)
+        inner := BinaryOp new(unwrapGetter(left), unwrapGetter(right), innerType, token)
         right = inner
         type = OpType ass
 
@@ -457,6 +466,7 @@ BinaryOp: class extends Expression {
                     trail push(this)
                     right resolve(trail, res)
                     trail pop(this)
+                    return Response LOOP
                 }
             }
         }
