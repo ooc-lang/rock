@@ -113,8 +113,21 @@ BinaryOp: class extends Expression {
     unwrapAssign: func (trail: Trail, res: Resolver) -> Bool {
         if(!isAssign()) return false
 
+        unwrapGetter := func(e: Expression) -> Expression{
+            if(e instanceOf?(VariableAccess) && e as VariableAccess ref instanceOf?(PropertyDecl)) {
+                ep := e as VariableAccess ref as PropertyDecl
+                if(ep inOuterSpace(trail)) {
+                    fCall := FunctionCall new(e as VariableAccess expr, ep getGetterName(), token)
+                    trail push(this)
+                    fCall resolve(trail, res)
+                    trail pop(this)
+                    return fCall
+                }
+            }
+            e
+        }
         innerType := type - (OpType addAss - OpType add)
-        inner := BinaryOp new(left, right, innerType, token)
+        inner := BinaryOp new(unwrapGetter(left), unwrapGetter(right), innerType, token)
         right = inner
         type = OpType ass
 
@@ -381,7 +394,7 @@ BinaryOp: class extends Expression {
                     fCall := FunctionCall new(left as VariableAccess expr, leftProperty getSetterName(), token)
                     fCall getArguments() add(right)
                     trail peek() replace(this, fCall)
-                    return Response OK
+                    return Response LOOP
                 } else {
                     // We're in a setter/getter. This means the property is not virtual.
                     leftProperty setVirtual(false)
@@ -455,8 +468,12 @@ BinaryOp: class extends Expression {
                     // only outside of get/set.
                     unwrapAssign(trail, res)
                     trail push(this)
-                    right resolve(trail, res)
+                    response := right resolve(trail, res)
                     trail pop(this)
+                    if(!response ok()){
+                        return response
+                    }
+                    return Response LOOP
                 }
             }
         }
