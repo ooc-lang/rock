@@ -394,7 +394,7 @@ BinaryOp: class extends Expression {
                     fCall := FunctionCall new(left as VariableAccess expr, leftProperty getSetterName(), token)
                     fCall getArguments() add(right)
                     trail peek() replace(this, fCall)
-                    return Response OK
+                    return Response LOOP
                 } else {
                     // We're in a setter/getter. This means the property is not virtual.
                     leftProperty setVirtual(false)
