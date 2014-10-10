@@ -468,8 +468,11 @@ BinaryOp: class extends Expression {
                     // only outside of get/set.
                     unwrapAssign(trail, res)
                     trail push(this)
-                    right resolve(trail, res)
+                    response := right resolve(trail, res)
                     trail pop(this)
+                    if(!response ok()){
+                        return response
+                    }
                     return Response LOOP
                 }
             }
