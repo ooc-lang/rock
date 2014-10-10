@@ -8,4 +8,6 @@ foo: class{
 }
 
 bar := foo new()
+bar b += bar b + 1
 bar b += 1
+bar b = bar b + 1
