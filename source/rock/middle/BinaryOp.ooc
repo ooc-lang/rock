@@ -117,7 +117,11 @@ BinaryOp: class extends Expression {
             if(e instanceOf?(VariableAccess) && e as VariableAccess ref instanceOf?(PropertyDecl)) {
                 ep := e as VariableAccess ref as PropertyDecl
                 if(ep inOuterSpace(trail)) {
-                    return FunctionCall new(e as VariableAccess expr, ep getGetterName(), token)
+                    fCall := FunctionCall new(e as VariableAccess expr, ep getGetterName(), token)
+                    trail push(this)
+                    fCall resolve(trail, res)
+                    trail pop(this)
+                    return fCall
                 }
             }
             e
