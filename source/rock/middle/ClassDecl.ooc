@@ -18,6 +18,7 @@ ClassDecl: class extends TypeDecl {
     isFinal := false
     
     shouldCheckNoArgConstructor := false
+    isInitReported := false
 
     init: func ~classDeclNoSuper(.name, .token) {
         super(name, token)
@@ -55,6 +56,14 @@ ClassDecl: class extends TypeDecl {
                     fDecl isThisRef = true
                     fDecl isFinal = true
                     addFunction(fDecl)
+                }
+            }
+
+            if(!isInitReported && isCover) {
+                initDecl := functions get("init")
+                if(initDecl && !initDecl isThisRef){
+                    isInitReported = true
+                    res throwError(Warning new(initDecl token, "init in cover is non-ref."))
                 }
             }
 
