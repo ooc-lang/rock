@@ -65,7 +65,7 @@ extend Double {
 
     sqrt: extern(sqrt) func -> This
     cbrt: extern(cbrt) func -> This
-    abs: extern(fabs) func -> This
+    abs: extern(fabs) func ~math -> This
     pow: extern(pow) func (This) -> This
     exp: extern(exp) func -> This
 
@@ -99,7 +99,7 @@ extend Float {
 
     sqrt: extern(sqrtf) func -> This
     cbrt: extern(cbrtf) func -> This
-    abs: extern(fabsf) func -> This
+    abs: extern(fabsf) func ~math -> This
     pow: extern(powf) func (This) -> This
     exp: extern(expf) func -> This
 
@@ -133,7 +133,7 @@ extend LDouble {
 
     sqrt: extern(sqrtl) func -> This
     cbrt: extern(cbrtl) func -> This
-    abs: extern(fabsl) func -> This
+    abs: extern(fabsl) func ~math -> This
     pow: extern(powl) func (This) -> This
     exp: extern(expl) func -> This
 
