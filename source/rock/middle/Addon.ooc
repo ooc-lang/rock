@@ -58,6 +58,31 @@ Addon: class extends Node {
     addProperty: func (vDecl: PropertyDecl) {
         properties put(vDecl name, vDecl)
     }
+    
+    lookupFunction: func (fName: String, fSuffix: String = null) -> FunctionDecl {
+        result: FunctionDecl
+        functions getEachUntil(fName, |fDecl|
+            if (fSuffix == null || fDecl suffix == fSuffix \
+                || (fSuffix == "" && fDecl suffix == null)) {
+                result = fDecl
+                return false
+            }
+            true
+        )
+        result
+    }
+
+    checkRedefinitions: func(trail: Trail, res: Resolver){
+        // Base unresolved, can not check
+        if(base == null) return
+
+        for(fDecl in functions){
+            for(addon in base addons){
+                other := addon lookupFunction(fDecl getName(), fDecl getSuffixOrEmpty())
+                if(other != null) res throwError(FunctionRedefinition new(fDecl, other))
+            }
+        }
+    }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
@@ -65,6 +90,7 @@ Addon: class extends Node {
             baseType resolve(trail, res)
             if(baseType isResolved()) {
                 base = baseType getRef() as TypeDecl
+                checkRedefinitions(trail, res)
                 base addons add(this)
 
                 for(fDecl in functions) {
