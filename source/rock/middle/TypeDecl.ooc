@@ -257,7 +257,7 @@ TypeDecl: abstract class extends Declaration {
         result: FunctionDecl
 
         functions getEachUntil(fName, |fDecl|
-            if (fSuffix == null || fDecl suffix == fSuffix) {
+            if (fSuffix == null || fDecl getSuffixOrEmpty() == fSuffix) {
                 result = fDecl
                 // we've found, can break
                 return false
