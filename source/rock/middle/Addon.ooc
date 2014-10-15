@@ -62,8 +62,7 @@ Addon: class extends Node {
     lookupFunction: func (fName: String, fSuffix: String = null) -> FunctionDecl {
         result: FunctionDecl
         functions getEachUntil(fName, |fDecl|
-            if (fSuffix == null || fDecl suffix == fSuffix \
-                || (fSuffix == "" && fDecl suffix == null)) {
+            if (fSuffix == null || fDecl getSuffixOrEmpty() == fSuffix){
                 result = fDecl
                 return false
             }
@@ -77,7 +76,14 @@ Addon: class extends Node {
         if(base == null) return
 
         for(fDecl in functions){
-            for(addon in base addons){
+            bother : FunctionDecl 
+            if(!base isMeta){
+                bother = base meta lookupFunction(fDecl getName(), fDecl getSuffixOrEmpty())
+            } else {
+                bother = base lookupFunction(fDecl getName(), fDecl getSuffixOrEmpty())
+            }
+            if(bother != null) res throwError(FunctionRedefinition new(fDecl, bother))
+            for(addon in base getAddons()){
                 other := addon lookupFunction(fDecl getName(), fDecl getSuffixOrEmpty())
                 if(other != null) res throwError(FunctionRedefinition new(fDecl, other))
             }
