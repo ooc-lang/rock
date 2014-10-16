@@ -203,6 +203,7 @@ ClassDecl: class extends TypeDecl {
     addInit: func(fDecl: FunctionDecl) {
 
         isCover := (getNonMeta() instanceOf?(CoverDecl))
+        isCompoundCover := isCover && getNonMeta() as CoverDecl fromType == null
 
         if(isAbstract || (getNonMeta() instanceOf?(ClassDecl) && getNonMeta() as ClassDecl isAbstract)) {
             // don't generate new for abstract classes
@@ -258,7 +259,7 @@ ClassDecl: class extends TypeDecl {
         if(!isCover) {
             defaultsCall := FunctionCall new(DEFAULTS_FUNC_NAME, fDecl token)
             constructor getBody() add(defaultsCall)
-        } else {
+        } else if(isCompoundCover){
             defaultsCall := FunctionCall new(COVER_DEFAULTS_FUNC_NAME, fDecl token)
             defaultsCall expr = VariableAccess new(vdfe, fDecl token)
             constructor getBody() add(defaultsCall)
