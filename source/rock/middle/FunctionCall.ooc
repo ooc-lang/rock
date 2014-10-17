@@ -64,6 +64,13 @@ FunctionCall: class extends Expression {
     typeArgs := ArrayList<Expression> new()
 
     /**
+     * Explicit generic type.
+     * Such as foo<Int, String, Int32>(1, "a", 2)
+     * This list is not really used to realize typearg but just for validation
+     */
+    argumentTypes := ArrayList<Type> new()
+
+    /**
      * Calls to functions that have multi-returns or a generic return type
      * use returnArgs expression (secret variables that are references,
      * and are assigned to when the return happens.)
@@ -260,6 +267,25 @@ FunctionCall: class extends Expression {
             "     - Resolving call to %s (ref = %s, refScore = %d)" printfln(name, ref ? ref toString(): "(nil)", refScore)
         }
 
+        // resolve explicit type args
+        if(!argumentTypes empty?()){
+            if(argumentTypes size > args size){
+                res throwError(InvalidArgument new(token, "Argument do not match: Trying to call function %s%s with argument %s" \
+                format(prettyName, getTypeArgsRepr(), getArgsTypesRepr())))
+            }
+            trail push(this)
+            for(type in argumentTypes){
+                if(!type isResolved()){
+                    response := type resolve(trail, res)
+                    if(!response ok()){
+                        trail pop(this)
+                        return response
+                    }
+                }
+            }
+            trail pop(this)
+        }
+
         // resolve all arguments
         unresolvedArgs := false
         if(!args empty?()) {
@@ -286,9 +312,15 @@ FunctionCall: class extends Expression {
                 return Response OK
             }
 
-            for(arg in args) {
+            for((itype, arg) in args) {
                 response := resolveArg(arg, false)
                 if(!response ok()) return response
+                /*
+                if(itype > 0 && argumentTypes size > itype && !arg getType() equals?(argumentTypes[itype-1])){
+                    res throwError(InvalidArgument new(token, "Argument %s do not match explicitly implemented type %s." \
+                        format(arg toString(), argumentTypes[itype] toString())))
+                }
+                */
             }
 
             // resolve the arguments we replaced with the varArg structure access
@@ -1385,6 +1417,13 @@ FunctionCall: class extends Expression {
      * Returns true if decl has a signature compatible with this function call
      */
     matchesArgs: func (decl: FunctionDecl) -> Bool {
+        // explicit typeargs
+        if(!argumentTypes empty?()){
+            if(argumentTypes size > decl typeArgs size){
+                if(debugCondition()) "Args don't match! Too many generic args" println()
+                return false
+            }
+        }
 
         callIter := args iterator()
         declIter := decl args iterator()
@@ -1475,8 +1514,22 @@ FunctionCall: class extends Expression {
         return sb toString()
     }
 
+    getTypeArgsRepr: func -> String {
+        if(argumentTypes empty?()) return ""
+        sb := Buffer new()
+        sb append("<")
+        isFirst := true
+        for(t in argumentTypes){
+            if(!isFirst) sb append(", ")
+            sb append(t toString())
+            if(isFirst) isFirst = false
+        }
+        sb append(">")
+        return sb toString()
+    }
+
     toString: func -> String {
-        (expr ? expr toString() + " " : "") + (ref ? ref prettyName : this prettyName) + getArgsRepr()
+        (expr ? expr toString() + " " : "") + (ref ? ref prettyName : this prettyName) + getTypeArgsRepr() + getArgsRepr()
     }
 
     replace: func (oldie, kiddo: Node) -> Bool {
