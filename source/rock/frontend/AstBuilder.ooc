@@ -790,6 +790,10 @@ AstBuilder: class {
         peek(FunctionCall) setSuffix(suffix toString())
     }
 
+    onFunctionCallTypeArg: unmangled(nq_onFunctionCallTypeArg) func (expr: Type) {
+        peek(FunctionCall) argumentTypes add(expr)
+    }
+
     onFunctionCallArg: unmangled(nq_onFunctionCallArg) func (expr: Expression) {
         peek(FunctionCall) args add(expr)
     }
