@@ -6,7 +6,7 @@ import text/StringTokenizer
 
 // our stuff
 import Help, Token, BuildParams, AstBuilder, PathList, Target
-import rock/frontend/drivers/[Driver, SequenceDriver, MakeDriver, DummyDriver, CCompiler, AndroidDriver]
+import rock/frontend/drivers/[Driver, SequenceDriver, MakeDriver, DummyDriver, CCompiler, AndroidDriver, CMakeDriver]
 import rock/backend/json/JSONGenerator
 import rock/backend/lua/LuaGenerator
 import rock/middle/[Module, Import, UseDef]
@@ -358,6 +358,8 @@ CommandLine: class {
                             AndroidDriver new(params)
                         case "make" =>
                             MakeDriver new(params)
+                        case "cmake" =>
+                            CMakeDriver new(params)
                         case "dummy" =>
                             DummyDriver new(params)
                         case =>
