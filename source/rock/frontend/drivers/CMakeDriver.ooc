@@ -142,7 +142,7 @@ CMakefileWriter: class {
     writeBasicConfig: func{
         tw writeln("cmake_minimum_required (VERSION 2.6)")
         tw nl()
-        //tw writeln("set(${CMAKE_EXE_LINKER_FLAGS} \"${CMAKE_EXE_LINKER_FLAGS} -ldl -lm\")")
+        tw writeln("ENABLE_LANGUAGE(C)")
         tw nl()
     }
 
@@ -310,23 +310,31 @@ CMakefileWriter: class {
         }
     }
 
+    projectName: func -> String{
+        projName := ""
+        if(params binaryPath != "") {
+            projName = params binaryPath
+        } else {
+            projName = module simpleName
+        }
+        projName
+    }
+
     writeProject: func {
         tw write("project(")
-        if(params binaryPath != "") {
-            tw write(params binaryPath)
-        } else {
-            tw write(module simpleName)
-        }
+        tw write(projectName() == "" ? "dummy" : projectName())
         tw write(")")
         tw nl()
     }
 
     writeExecutable: func{
-        tw write("add_executable(")
-        if(params binaryPath != "") {
-            tw write(params binaryPath)
+
+        if(projectName() == ""){
+            tw write("add_library(")
+            tw write("dummy")
         } else {
-            tw write(module simpleName)
+            tw write("add_executable(")
+            tw write(projectName())
         }
         tw write(" ${cset_SOURCES})"). nl()
     }
