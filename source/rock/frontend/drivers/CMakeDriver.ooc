@@ -154,8 +154,7 @@ CMakefileWriter: class {
         tw writeln("find_package (Threads)")
         tw writeln("set(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ${Threads_INCLUDE_DIRS}\")")
         tw writeln("if(CMAKE_USE_PTHREADS_INIT)")
-        tw writeln("  set(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} -pthread\")")
-        tw writeln("  set(CMAKE_EXE_LINKER_FLAGS \"${CMAKE_EXE_LINKER_FLAGS} -lpthread\")")
+        tw writeln("  set(CMAKE_EXE_LINKER_FLAGS \"${CMAKE_EXE_LINKER_FLAGS} ${CMAKE_THREAD_LIBS_INIT}\")")
         tw writeln("endif(CMAKE_USE_PTHREADS_INIT)")
         tw nl()
     }
