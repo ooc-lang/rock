@@ -587,7 +587,7 @@ CommandLine: class {
                 true
             )
 
-            fullName := ""
+            fullName := identifier
             module := Module new(fullName, uze sourcePath, params, nullToken)
             module token = Token new(0, 0, module, 0)
             module lastModified = uzeFile lastModified()

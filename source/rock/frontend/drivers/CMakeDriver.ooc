@@ -313,31 +313,35 @@ CMakefileWriter: class {
         }
     }
 
-    projectName: func -> String{
+    projectName: func -> (String, Bool){
         projName := ""
         if(params binaryPath != "") {
             projName = params binaryPath
-        } else if(!module dummy){
+        } else {
             projName = module simpleName
         }
-        projName
+        (projName, module dummy)
     }
 
     writeProject: func {
+        (name, dummy) := projectName()
         tw write("project(")
-        tw write(projectName() == "" ? "dummy" : projectName())
+        tw write(name == "" ? "dummy" : name)
         tw write(")")
         tw nl()
     }
 
     writeExecutable: func{
-
-        if(projectName() == ""){
+        (name, dummy) := projectName()
+        if(dummy){
+            tw write("add_library(")
+            tw write(name)
+        } else if(name == ""){
             tw write("add_library(")
             tw write("dummy")
         } else {
             tw write("add_executable(")
-            tw write(projectName())
+            tw write(name)
         }
         tw write(" ${cset_SOURCES})"). nl()
     }
