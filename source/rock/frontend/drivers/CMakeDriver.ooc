@@ -289,23 +289,17 @@ CMakefileWriter: class {
 
         if(!props customPkgs empty?()){
             props customPkgs each(|customPkg|
-                tw write("set(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ")
-                for (name in customPkg names) {
-                    tw write(" "). write(name)
+                if(!customPkg names empty?()){
+                    tw write("\tpkg_check_modules(custompkgs REQUIRED ")
+                    for (name in customPkg names) {
+                        tw write(" "). write(name)
+                    }
+                    tw writeln(")")
+                    tw writeln("\tlink_directories(${custompkgs_LIBRARY_DIRS})")
+                    tw writeln("\tinclude_directories(${custompkgs_INCLUDE_DIRS})")
+                    tw writeln("\tset(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} ${custompkgs_CFLAGS})")
+                    tw writeln("\tset(CMAKE_EXE_LINKER_FLAGS ${CAMKE_EXE_LINKER_FLAGS} ${custom_CFLAGS})")
                 }
-                for (arg in customPkg cflagArgs) {
-                    tw write(" "). write(arg)
-                }
-                tw write("\")"). nl()
-
-                tw write("set(CMAKE_EXE_LINKER_FLAGS \"${CAMKE_EXE_LINKER_FLAGS} ")
-                for (name in customPkg names) {
-                    tw write(" "). write(name)
-                }
-                for (arg in customPkg libsArgs) {
-                    tw write(" "). write(arg)
-                }
-                tw write("\")"). nl()
             )
         }
     }
@@ -314,7 +308,7 @@ CMakefileWriter: class {
         projName := ""
         if(params binaryPath != "") {
             projName = params binaryPath
-        } else {
+        } else if(!module dummy){
             projName = module simpleName
         }
         projName
@@ -353,6 +347,7 @@ CMakefileWriter: class {
     writeSources: func{
         tw write("set(cset_SOURCES ")
         for(currentModule in toCompile) {
+            if(currentModule dummy) continue
             path := File new(originalOutPath, currentModule getPath("")) getPath()
             tw write(path). write(".c ")
         }
