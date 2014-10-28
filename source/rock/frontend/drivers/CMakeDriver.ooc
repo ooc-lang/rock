@@ -282,24 +282,33 @@ CMakefileWriter: class {
             tw writeln(")")
         tw writeln("\tlink_directories(${pkgs_LIBRARY_DIRS})")
         tw writeln("\tinclude_directories(${pkgs_INCLUDE_DIRS})")
-        tw writeln("\tset(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} ${pkgs_CFLAGS})")
-        tw writeln("\tset(CMAKE_EXE_LINKER_FLAGS ${CAMKE_EXE_LINKER_FLAGS} ${pkgs_CFLAGS})")
+        tw writeln("\tset(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ${pkgs_CFLAGS}\")")
+        tw writeln("\tset(CMAKE_EXE_LINKER_FLAGS \"${CAMKE_EXE_LINKER_FLAGS} ${pkgs_CFLAGS}\")")
         tw nl()
         }
 
         if(!props customPkgs empty?()){
             props customPkgs each(|customPkg|
-                if(!customPkg names empty?()){
-                    tw write("\tpkg_check_modules(custompkgs REQUIRED ")
-                    for (name in customPkg names) {
-                        tw write(" "). write(name)
-                    }
-                    tw writeln(")")
-                    tw writeln("\tlink_directories(${custompkgs_LIBRARY_DIRS})")
-                    tw writeln("\tinclude_directories(${custompkgs_INCLUDE_DIRS})")
-                    tw writeln("\tset(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} ${custompkgs_CFLAGS})")
-                    tw writeln("\tset(CMAKE_EXE_LINKER_FLAGS ${CAMKE_EXE_LINKER_FLAGS} ${custom_CFLAGS})")
+                tw write("\texecute_process(COMMAND ")
+                tw write(customPkg utilName). write(" ")
+                for (name in customPkg names) {
+                    tw write(" "). write(name)
                 }
+                for (arg in customPkg cflagArgs) {
+                    tw write(" "). write(arg)
+                }
+                tw writeln(" OUTPUT_VARIABLE custompkgs)")
+                tw writeln("\tset(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ${custompkgs}\")")
+                tw write("\texecute_process(COMMAND ")
+                tw write(customPkg utilName). write(" ")
+                for (name in customPkg names) {
+                    tw write(" "). write(name)
+                }
+                for (arg in customPkg libsArgs) {
+                    tw write(" "). write(arg)
+                }
+                tw writeln(" OUTPUT_VARIABLE custompkgs)")
+                tw writeln("\tset(CMAKE_EXE_LINKER_FLAGS \"${CAMKE_EXE_LINKER_FLAGS} ${custompkgs}\")")
             )
         }
     }
