@@ -33,11 +33,12 @@ or a library (if it only has a 'SourcePath: something' directive)
 --cc=[/path/to/ccompiler/binary]
     point to the C compilers executable
 
---driver=[combine,sequence,make,dummy]
+--driver=[combine,sequence,make,cmake,dummy]
     Choose the compile driver to use. combine compiles all C files
     combined, sequence compiles them sequentially, make creates a
-    Makefile. dummy only generates the .c sources to rock_tmp/ (or whatever
-    you set your -outpath to)
+    Makefile, cmake creates a CMakeList.txt for CMake. dummy only 
+    generates the .c sources to rock_tmp/ (or whatever you set your
+    -outpath to)
 
 -Dmydefine
     sets \"mydefine\" for version blocks
