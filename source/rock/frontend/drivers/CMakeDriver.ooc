@@ -142,8 +142,13 @@ CMakefileWriter: class {
     writeBasicConfig: func{
         tw writeln("cmake_minimum_required (VERSION 2.6)")
         tw nl()
-        tw write("set(CMAKE_C_COMPILER \""). write(params compiler executableName).
+
+        tw write("find_program(customCC ").
+            write(params compiler executableName). writeln(")")
+        tw writeln("IF(EXISTS ${customCC})")
+        tw write("\tset(CMAKE_C_COMPILER \""). write(params compiler executableName).
         write("\")"). nl()
+        tw writeln("ENDIF(EXISTS ${customCC})")
         tw writeln("ENABLE_LANGUAGE(C)")
         tw nl()
     }
