@@ -142,6 +142,8 @@ CMakefileWriter: class {
     writeBasicConfig: func{
         tw writeln("cmake_minimum_required (VERSION 2.6)")
         tw nl()
+        tw write("set(CMAKE_C_COMPILER \""). write(params compiler executableName).
+        write("\")"). nl()
         tw writeln("ENABLE_LANGUAGE(C)")
         tw nl()
     }
@@ -297,8 +299,9 @@ CMakefileWriter: class {
                 for (arg in customPkg cflagArgs) {
                     tw write(" "). write(arg)
                 }
-                tw writeln(" OUTPUT_VARIABLE custompkgs)")
-                tw writeln("\tset(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ${custompkgs}\")")
+                tw writeln(" OUTPUT_VARIABLE custompkgs OUTPUT_STRIP_TRAILING_WHITESPACE)")
+                tw writeln("\tSTRING(REGEX REPLACE \"(\\r?\\n)+$\" \"\" custompkgs \"${custompkgs}\")")
+                tw writeln("\tset(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ${custompkgs} \")")
                 tw write("\texecute_process(COMMAND ")
                 tw write(customPkg utilName). write(" ")
                 for (name in customPkg names) {
@@ -307,8 +310,9 @@ CMakefileWriter: class {
                 for (arg in customPkg libsArgs) {
                     tw write(" "). write(arg)
                 }
-                tw writeln(" OUTPUT_VARIABLE custompkgs)")
-                tw writeln("\tset(CMAKE_EXE_LINKER_FLAGS \"${CAMKE_EXE_LINKER_FLAGS} ${custompkgs}\")")
+                tw writeln(" OUTPUT_VARIABLE custompkgs OUTPUT_STRIP_TRAILING_WHITESPACE)")
+                tw writeln("\tSTRING(REGEX REPLACE \"(\\r?\\n)+$\" \"\" custompkgs \"${custompkgs}\")")
+                tw writeln("\tset(CMAKE_EXE_LINKER_FLAGS \"${CAMKE_EXE_LINKER_FLAGS} ${custompkgs} \")")
             )
         }
     }
@@ -331,14 +335,23 @@ CMakefileWriter: class {
         tw nl()
     }
 
+    libraryType: func -> String{
+        if(params staticLib){
+            return "STATIC"
+        }
+        "SHARED"
+    }
+
     writeExecutable: func{
         (name, dummy) := projectName()
         if(dummy){
             tw write("add_library(")
-            tw write(name)
+            tw write(name). write(" ")
+            tw write(libraryType())
         } else if(name == ""){
             tw write("add_library(")
-            tw write("dummy")
+            tw write("dummy ")
+            tw write(libraryType())
         } else {
             tw write("add_executable(")
             tw write(name)
