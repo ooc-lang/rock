@@ -115,6 +115,9 @@ BuildParams: class {
     // GNU ar program to use
     ar := "ar"
 
+    // library type when compile from dummy module
+    staticLib := false
+
     // host value for the toolchain, for example 'i586-mingw32msvc'
     host := ""
 
