@@ -195,7 +195,7 @@ CMakefileWriter: class {
             tw write(" -L "). write(libPath getPath())
         }
 
-        or(linkerFlag in flags linkerFlags) {
+        for(linkerFlag in flags linkerFlags) {
             tw write(" "). write(linkerFlag)
         }
         tw writeln("\")")
