@@ -64,14 +64,14 @@ Driver: abstract class {
 
         usedefCollection := ArrayList<UseDef> new()
         for(uze: Use in module getUses()) {
-            useDef := uze useDef
-            if (usesDone contains?(useDef)) {
-                continue
-            }
-            walkUseDef(useDef, usedefCollection)
+            usedefCollection add(uze useDef)
+            walkUseDef(uze useDef, usedefCollection)
         }
         
         for(useDef: UseDef in usedefCollection) {
+            if (usesDone contains?(useDef)) {
+                continue
+            }
             usesDone add(useDef)
 
             props := useDef getRelevantProperties(params)
