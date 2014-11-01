@@ -9,7 +9,7 @@ import Help, Token, BuildParams, AstBuilder, PathList, Target
 import rock/frontend/drivers/[Driver, SequenceDriver, MakeDriver, DummyDriver, CCompiler, AndroidDriver, CMakeDriver]
 import rock/backend/json/JSONGenerator
 import rock/backend/lua/LuaGenerator
-import rock/middle/[Module, Import, UseDef, Use]
+import rock/middle/[Module, Import, UseDef]
 import rock/middle/tinker/Tinkerer
 import rock/middle/algo/ImportClassifier
 import rock/RockVersion
@@ -599,13 +599,6 @@ CommandLine: class {
             for (importPath in importz) {
                 imp := Import new(importPath, module token)
                 module addImport(imp)
-            }
-
-            for (requirement in uze requirements){
-                identifier := requirement name
-                uuz := Use new(identifier, params, nullToken)
-                if(!module uses contains?(uuz))
-                    module uses add(uuz)
             }
 
             targetModule = module
