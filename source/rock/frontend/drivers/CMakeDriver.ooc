@@ -147,7 +147,7 @@ CMakefileWriter: class {
             write(params compiler executableName). writeln(")")
         tw writeln("IF(EXISTS ${customCC})")
         tw write("\tset(CMAKE_C_COMPILER \""). write(params compiler executableName).
-        write("\")"). nl()
+            rite("\")"). nl()
         tw writeln("ENDIF(EXISTS ${customCC})")
         tw writeln("ENABLE_LANGUAGE(C)")
         tw nl()
@@ -167,7 +167,6 @@ CMakefileWriter: class {
     }
 
     writeBasicFlags: func {
-
         tw writeln("set(CMAKE_C_FLAGS_DEBUG \"-g -O0 -fno-inline ${CMAKE_C_FLAGS_DEBUG}\")")
         tw writeln("set(CMAKE_C_FLAGS_RELEASE \"-O3 ${CMAKE_C_FLAGS_RELEASE}\")")
     }
@@ -185,7 +184,7 @@ CMakefileWriter: class {
             tw write(" "). write(flag)
         }
         tw writeln("\")")
-        tw nl(). nl()
+        tw nl()
 
         tw write("SET(CMAKE_EXE_LINKER_FLAGS \"${CMAKE_EXE_LINKER_FLAGS} -L/usr/pkg/lib")
         for(dynamicLib in params dynamicLibs) {
@@ -196,11 +195,11 @@ CMakefileWriter: class {
             tw write(" -L "). write(libPath getPath())
         }
 
-        for(linkerFlag in flags linkerFlags) {
+        or(linkerFlag in flags linkerFlags) {
             tw write(" "). write(linkerFlag)
         }
-        tw write("\")")
-        tw nl(). nl()
+        tw writeln("\")")
+        tw nl()
 
         targets := HashMap<Int, String> new()
         targets put(Target LINUX, "Linux")
@@ -240,7 +239,7 @@ CMakefileWriter: class {
             tw writeln("message(STATUS \"Using Boehm GC library: ${LIBGC}\")")
             tw writeln("include_directories(${GC_INCLUDE_DIRS})")
             tw writeln("set(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ${GC_CFLAGS}\")")
-            tw write("SET(CMAKE_EXE_LINKER_FLAGS \"${CMAKE_EXE_LINKER_FLAGS} -lgc\")")
+            tw writeln("SET(CMAKE_EXE_LINKER_FLAGS \"${CMAKE_EXE_LINKER_FLAGS} -lgc\")")
 
             tw nl()
         }
@@ -258,7 +257,7 @@ CMakefileWriter: class {
             for (flag in cflags) {
                 tw write(flag). write(" ")
             }
-            tw write("\")")
+            tw writeln("\")")
             tw nl()
         }
 
@@ -287,11 +286,11 @@ CMakefileWriter: class {
                 tw write(name). write(" "). nl()
             )
             tw writeln(")")
-        tw writeln("\tlink_directories(${pkgs_LIBRARY_DIRS})")
-        tw writeln("\tinclude_directories(${pkgs_INCLUDE_DIRS})")
-        tw writeln("\tset(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ${pkgs_CFLAGS}\")")
-        tw writeln("\tset(CMAKE_EXE_LINKER_FLAGS \"${CAMKE_EXE_LINKER_FLAGS} ${pkgs_CFLAGS}\")")
-        tw nl()
+            tw writeln("\tlink_directories(${pkgs_LIBRARY_DIRS})")
+            tw writeln("\tinclude_directories(${pkgs_INCLUDE_DIRS})")
+            tw writeln("\tset(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ${pkgs_CFLAGS}\")")
+            tw writeln("\tset(CMAKE_EXE_LINKER_FLAGS \"${CAMKE_EXE_LINKER_FLAGS} ${pkgs_CFLAGS}\")")
+            tw nl()
         }
 
         if(!props customPkgs empty?()){
@@ -336,7 +335,7 @@ CMakefileWriter: class {
         (name, dummy) := projectName()
         tw write("project(")
         tw write(name == "" ? "dummy" : name)
-        tw write(")")
+        tw writeln(")")
         tw nl()
     }
 
@@ -361,7 +360,7 @@ CMakefileWriter: class {
             tw write("add_executable(")
             tw write(name)
         }
-        tw write(" ${cset_SOURCES})"). nl()
+        tw writeln(" ${cset_SOURCES})"). nl()
     }
 
     writeIncludes: func{
