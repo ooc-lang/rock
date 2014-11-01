@@ -147,7 +147,7 @@ CMakefileWriter: class {
             write(params compiler executableName). writeln(")")
         tw writeln("IF(EXISTS ${customCC})")
         tw write("\tset(CMAKE_C_COMPILER \""). write(params compiler executableName).
-            rite("\")"). nl()
+            write("\")"). nl()
         tw writeln("ENDIF(EXISTS ${customCC})")
         tw writeln("ENABLE_LANGUAGE(C)")
         tw nl()
