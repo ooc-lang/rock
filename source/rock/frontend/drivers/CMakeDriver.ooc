@@ -131,6 +131,7 @@ CMakefileWriter: class {
         writeIncludes()
         writeSources()
         writeExecutable()
+        writeLinkLibraries()
     }
 
     writePrelude: func {
@@ -167,13 +168,19 @@ CMakefileWriter: class {
         tw nl()
     }
 
-    writeAddCFlags: func(flag: String, tab: Int = 0, variable: String="CMAKE_C_FLAGS"){
+    writeAddCFlags: func(flag: String, tab: Int = 0, variable: String="CMAKE_C_FLAGS", failOnNotExists: Bool = false){
         prefix := ""
         for(i in 0..tab) prefix += "\t"
         tw write(prefix). writeln("check_c_compiler_flag("+flag+" FLAG_"+flag[1..-1]+")")
         tw write(prefix). writeln("if(FLAG_"+flag[1..-1]+")")
         tw write(prefix). writeln("\tset("+variable+" \"${"+variable+"} "+flag+"\")")
-        tw write(prefix). writeln("endif(FLAG_"+flag[1..-1]+")")
+        if(failOnNotExists){
+            tw write(prefix). writeln("else()")
+            tw write(prefix). writeln("\tmessage( FATAL_ERROR \"Flag "+flag+" is required but is not supported by compiler\")")
+            tw write(prefix). writeln("endif()")
+        } else {
+            tw write(prefix). writeln("endif(FLAG_"+flag[1..-1]+")")
+        }
     }
 
     writeBasicFlags: func {
@@ -190,20 +197,19 @@ CMakefileWriter: class {
         tw writeln("\tSET(CMAKE_DET_ARCH_FLAG \"-m32\")")
         tw writeln("endif()")
         if(params arch == ""){
-            writeAddCFlags("${CMAKE_DET_ARCH_FLAG}", 1)
+            writeAddCFlags("${CMAKE_DET_ARCH_FLAG}")
         } else {
             tw writeln("IF(NOT \"${CMAKE_DET_ARCH_FLAG}\" MATCHES \"-m"+params arch+"\")")
-            tw writeln("\tmessage(WARNING \"You have arch ${CMAKE_DET_ARCH_FLAG} but -m"+params arch+" is used.\")")
+            tw writeln("\tmessage(WARNING \"You have arch ${CMAKE_DET_ARCH_FLAG} but -m"+params arch+" is used\")")
             tw writeln("ENDIF(NOT \"${CMAKE_DET_ARCH_FLAG}\" MATCHES \"-m"+params arch+"\")")
-            writeAddCFlags("-m"+params arch, 1)
+            writeAddCFlags("-m"+params arch)
         }
         tw nl()
 
-        tw write("set(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} -I/usr/pkg/include ")
+        writeAddCFlags("-I/usr/pkg/include")
         for (flag in flags compilerFlags) {
-            tw write(" "). write(flag)
+            writeAddCFlags(flag)
         }
-        tw writeln("\")"). nl()
 
         tw write("SET(CMAKE_EXE_LINKER_FLAGS \"${CMAKE_EXE_LINKER_FLAGS} -L/usr/pkg/lib")
         for(dynamicLib in params dynamicLibs) {
@@ -248,17 +254,37 @@ CMakefileWriter: class {
         if(params enableGC) {
             tw writeln("pkg_check_modules(GC REQUIRED bdw-gc)")
             tw writeln("link_directories(${GC_LIBRARY_DIRS})")
-            tw writeln("# If there's a threaded version, use it")
-            tw writeln("find_library(LIBGC gc-threaded PATHS ${GC_LIBRARY_DIRS})")
-            tw writeln("if (LIBGC)")
-            tw writeln("else ()")
-            tw writeln("	find_library(LIBGC gc PATHS GC_LIBRARY_DIRS)")
-            tw writeln("endif ()")
-            tw writeln("message(STATUS \"Using Boehm GC library: ${LIBGC}\")")
-            tw writeln("include_directories(${GC_INCLUDE_DIRS})")
-            tw writeln("set(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ${GC_CFLAGS}\")")
-            tw write("SET(CMAKE_EXE_LINKER_FLAGS \"${CMAKE_EXE_LINKER_FLAGS} -lgc\")")
-
+            if(params dynGC){
+                tw writeln("find_library(LIBGC gc-threaded PATHS ${GC_LIBRARY_DIRS})")
+                tw writeln("if (LIBGC)")
+                tw writeln("else ()")
+                tw writeln("\tfind_library(LIBGC gc PATHS GC_LIBRARY_DIRS)")
+                tw writeln("endif ()")
+                tw writeln("if (NOT LIBGC)")
+                tw writeln("\tmessage( FATAL_ERROR \"Can not find libgc\" )")
+                tw writeln("endif (NOT LIBGC)")
+                tw writeln("message(STATUS \"Using Boehm GC library: ${LIBGC}\")")
+                tw writeln("include_directories(${GC_INCLUDE_DIRS})")
+                tw writeln("set(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ${GC_CFLAGS}\")")
+            } else {
+                tw writeln("find_library(LIBGC libgc-threaded.a PATHS ${GC_LIBRARY_DIRS})")
+                tw writeln("if (LIBGC)")
+                tw writeln("else ()")
+                tw writeln("\tfind_library(LIBGC NAMES libgc.a PATHS GC_LIBRARY_DIRS)")
+                tw writeln("endif ()")
+                tw writeln("if (NOT LIBGC)")
+                tw writeln("\tmessage( FATAL_ERROR \"Can not find static libgc\" )")
+                tw writeln("endif (NOT LIBGC)")
+                tw writeln("message(STATUS \"Using Boehm GC library: ${LIBGC}\")")
+                tw writeln("include_directories(${GC_INCLUDE_DIRS})")
+                tw writeln("set(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ${GC_CFLAGS}\")")
+                tw writeln("message(STATUS \"Static Boehm GC needs -pthread flag\")")
+                tw writeln("IF(WIN32)")
+                writeAddCFlags("-mthread", 1, "CMAKE_C_FLAGS", true)
+                tw writeln("ELSE()")
+                writeAddCFlags("-pthread", 1, "CMAKE_C_FLAGS", true)
+                tw writeln("ENDIF()")
+            }
             tw nl()
         }
     }
@@ -271,12 +297,9 @@ CMakefileWriter: class {
         }
 
         if (!cflags empty?()) {
-            tw write("\tset(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ")
             for (flag in cflags) {
-                tw write(flag). write(" ")
+                writeAddCFlags(flag)
             }
-            tw write("\")")
-            tw nl()
         }
 
         // ldflags
@@ -378,7 +401,15 @@ CMakefileWriter: class {
             tw write("add_executable(")
             tw write(name)
         }
-        tw writeln(" ${cset_SOURCES})"). nl()
+        tw writeln(" ${cset_SOURCES} )"). nl()
+    }
+
+    writeLinkLibraries: func{
+        (name, dummy) := projectName()
+        tw write("target_link_libraries(").
+            write(name == "" ? "dummy" : name).
+            write(" ").
+            write("${LIBGC})")
     }
 
     writeIncludes: func{
