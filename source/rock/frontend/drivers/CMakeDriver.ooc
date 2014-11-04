@@ -141,7 +141,7 @@ CMakefileWriter: class {
     }
 
     writeBasicConfig: func{
-        tw writeln("cmake_minimum_required (VERSION 2.6)")
+        tw writeln("cmake_minimum_required (VERSION 3.0)")
         tw nl()
 
         tw write("find_program(customCC ").
