@@ -252,7 +252,7 @@ CMakefileWriter: class {
         )
 
         if(params enableGC) {
-            tw writeln("pkg_check_modules(GC REQUIRED bdw-gc)")
+            tw writeln("pkg_check_modules(GC bdw-gc)")
             tw writeln("link_directories(${GC_LIBRARY_DIRS})")
             if(params dynGC){
                 tw writeln("find_library(LIBGC gc-threaded PATHS ${GC_LIBRARY_DIRS})")
