@@ -213,11 +213,9 @@ SequenceDriver: class extends Driver {
         flags absorb(sourceFolder)
 
         for (uze in flags uses) {
-            if (uze sourcePath && uze sourcePath == sourceFolder absolutePath) {
-                props := uze getRelevantProperties(params)
-                for (additional in props additionals) {
-                    buildAdditional(sourceFolder, uze, additional)
-                }
+            props := uze getRelevantProperties(params)
+            for (additional in props additionals) {
+                buildAdditional(sourceFolder, uze, additional)
             }
         }
 
