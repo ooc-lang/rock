@@ -175,8 +175,10 @@ JSONGenerator: class extends Visitor {
         obj put("doc", node doc)
         /* `extends` */
         if(node getSuperRef() != null) {
+            obj put("extendsFullName", node getSuperRef() getFullName())
             obj put("extends", node getSuperRef() name as String)
         } else {
+            obj put("extendsFullName", null)
             obj put("extends", null)
         }
         /* generic types */
@@ -229,8 +231,10 @@ JSONGenerator: class extends Visitor {
         obj put("fullName", node underName())
         /* `extends` */
         if(node getSuperRef() != null) {
+            obj put("extendsFullName", node getSuperRef() getFullName())
             obj put("extends", node getSuperRef() name as String)
         } else {
+            obj put("extendsFullName", null)
             obj put("extends", null)
         }
         /* `from` */
