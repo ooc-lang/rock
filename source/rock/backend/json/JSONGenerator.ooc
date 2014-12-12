@@ -70,6 +70,8 @@ JSONGenerator: class extends Visitor {
     resolveType: func (type: Type) -> String {
         if(type instanceOf?(FuncType)) {
             return generateFuncTag(type as FuncType)
+        } else if(type instanceOf?(ArrayType)) {
+            return "array(%s)" format(resolveType(type as ArrayType inner))
         } else if(type instanceOf?(PointerType)) {
             return "pointer(%s)" format(resolveType(type as PointerType inner))
         } else if(type instanceOf?(ReferenceType)) {
