@@ -13,6 +13,7 @@ CoverDecl: class extends TypeDecl {
 
     fromType: Type
     isProto: Bool
+    isGenerated := false
 
     template: TemplateDef { get set }
     templateParent: CoverDecl { get set }

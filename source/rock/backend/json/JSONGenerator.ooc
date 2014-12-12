@@ -212,6 +212,7 @@ JSONGenerator: class extends Visitor {
     }
 
     visitCoverDecl: func (node: CoverDecl) {
+        if (node isGenerated) { return }
         obj := HashBag new()
         putToken(obj, node token)
         /* `name` */
@@ -257,6 +258,7 @@ JSONGenerator: class extends Visitor {
     }
 
     visitFunctionDecl: func (node: FunctionDecl) {
+        if (node isGenerated) { return }
         /* add to the objects. */
         obj := buildFunctionDecl(node, "function")
         addObject(node name, obj)
@@ -360,6 +362,7 @@ JSONGenerator: class extends Visitor {
     }
 
     visitVariableDecl: func (node: VariableDecl) {
+        if (node isGenerated) { return }
         /* add to the objects */
         obj := buildVariableDecl(node, "globalVariable")
         addObject(node name, obj)

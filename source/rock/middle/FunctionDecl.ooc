@@ -46,6 +46,8 @@ FunctionDecl: class extends Declaration {
     /** The operator declaration this FunctionDecl corresponds to */
     oDecl: OperatorDecl
 
+    isGenerated := false
+
     /** name: func ~suffix - suffix is null if there's no suffix in the grammar */
     name := ""
     suffix: String
@@ -968,6 +970,7 @@ FunctionDecl: class extends Declaration {
         module := trail module()
 
         name = generateTempName(module getUnderName() + "_closure")
+        isGenerated = true
         varAcc := VariableAccess new(name, token)
         varAcc setRef(this)
         module addFunction(this)
@@ -996,6 +999,7 @@ FunctionDecl: class extends Declaration {
 
             // create the context struct's cover
             ctxStruct := CoverDecl new(name + "_ctx", token)
+            ctxStruct isGenerated = true
             ctxStruct fromClosure = true
 
             // look for versioned nodes or VersionBlocks in the trail. If we're using
@@ -1079,6 +1083,7 @@ FunctionDecl: class extends Declaration {
             trail addBeforeInScope(this, closureDecl)
 
             thunk := FunctionDecl new(getName() + "_thunk", token)
+            thunk isGenerated = true
             thunk fromClosure = true
             thunk typeArgs addAll(typeArgs)
             thunk args addAll(args)
