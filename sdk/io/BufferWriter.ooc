@@ -15,10 +15,6 @@ BufferWriter: class extends Writer {
 
     init: func ~withBuffer (=buffer)
 
-    buffer: func -> Buffer {
-        return buffer
-    }
-
     close: func {
         /* do nothing. */
     }
