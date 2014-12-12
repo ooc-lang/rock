@@ -8,10 +8,6 @@ BufferReader: class extends Reader {
 
     init: func ~withBuffer (=buffer) {}
 
-    buffer: func -> Buffer {
-        return buffer
-    }
-
     close: func {
         // nothing to close.
     }
