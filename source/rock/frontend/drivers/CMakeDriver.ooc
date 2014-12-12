@@ -184,32 +184,33 @@ CMakefileWriter: class {
     }
 
     writeBasicFlags: func {
-        tw writeln("IF( NOT CMAKE_BUILD_TYPE )")
-        tw writeln("\tSET( CMAKE_BUILD_TYPE "+ \
-            match (params profile){
-                case Profile DEBUG => "Debug"
-                case Profile RELEASE => "Release"
-                case => "Debug"
-            } \
-            + ")")
-        tw writeln("ENDIF()")
+        prof := match (params profile){
+            case Profile DEBUG => "Debug"
+            case Profile RELEASE => "Release"
+            case => ""
+        }
+        if(prof != ""){
+            tw writeln("IF( NOT CMAKE_BUILD_TYPE )")
+            tw writeln("\tSET( CMAKE_BUILD_TYPE "+ prof + ")")
+            tw writeln("ENDIF()")
+        }
         optimization := match(params optimization){
             case OptimizationLevel O0 => "-O0"
             case OptimizationLevel O1 => "-O1"
             case OptimizationLevel O2 => "-O2"
             case OptimizationLevel O3 => "-O3"
             case OptimizationLevel Os => "-Os"
-            case => match(params profile){
-                        case Profile DEBUG => "-O0"
-                        case Profile RELEASE => "-O3"
-                        case => "-O0"  
-                    }
+            case => ""
         }
         writeAddCFlags("-pg", 0, "CMAKE_C_FLAGS_DEBUG")
-        writeAddCFlags(optimization, 0, "CMAKE_C_FLAGS_DEBUG")
+        writeAddCFlags(optimization == "" ? "-O0" : optimization, 0, "CMAKE_C_FLAGS_DEBUG")
         writeAddCFlags("-fno-inline", 0, "CMAKE_C_FLAGS_DEBUG")
-        writeAddCFlags(optimization, 0, "CMAKE_C_FLAGS_RELEASE")
+        writeAddCFlags(optimization == "" ? "-O3" : optimization, 0, "CMAKE_C_FLAGS_RELEASE")
         tw writeln("SET(CMAKE_EXE_LINKER_FLAGS_DEBUG \" ${CMAKE_EXE_LINKER_FLAGS_DEBUG} -pg\")")
+
+        if(prof == "" && optimization != ""){
+            writeAddCFlags(optimization)
+        }
     }
 
     writeFlags: func {
@@ -219,7 +220,9 @@ CMakefileWriter: class {
         tw writeln("\tSET(CMAKE_DET_ARCH_FLAG \"-m32\")")
         tw writeln("ENDIF()")
         if(params arch == ""){
-            writeAddCFlags("${CMAKE_DET_ARCH_FLAG}")
+            tw writeln("IF(NOT CMAKE_GENERATOR STREQUAL Xcode)")
+            writeAddCFlags("${CMAKE_DET_ARCH_FLAG}", 1)
+            tw writeln("ENDIF(NOT CMAKE_GENERATOR STREQUAL Xcode)")
         } else {
             tw writeln("IF(NOT \"${CMAKE_DET_ARCH_FLAG}\" MATCHES \"-m"+params arch+"\")")
             tw writeln("\tmessage(WARNING \"You have arch ${CMAKE_DET_ARCH_FLAG} but -m"+params arch+" is used\")")
