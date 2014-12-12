@@ -100,7 +100,7 @@ CCompiler: class {
                 "%s %s" printfln(action, target)
             }
         }
-        process setStderr(Pipe new())
+        // process setStderr(Pipe new())
 
         // actually launch the command
         process executeNoWait()
