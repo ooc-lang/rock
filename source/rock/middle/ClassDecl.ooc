@@ -61,7 +61,7 @@ ClassDecl: class extends TypeDecl {
 
             if(!isInitReported && isCover) {
                 initDecl := functions get("init")
-                if(initDecl && !initDecl isThisRef){
+                if(initDecl && !initDecl isThisRef && !initDecl isExtern){
                     isInitReported = true
                     res throwError(Warning new(initDecl token, "init in cover is non-ref."))
                 }
