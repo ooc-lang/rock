@@ -16,7 +16,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
 
 JSONGenerator: class extends Visitor {
 
-    VERSION := static "1.1.0"
+    VERSION := static "1.2.0"
 
     params: BuildParams
     outFile: File
@@ -71,7 +71,7 @@ JSONGenerator: class extends Visitor {
         obj put("token", bag)
     }
 
-    resolveType: func (type: Type) -> String {
+    resolveType: func (type: Type, full := false) -> String {
         if(type instanceOf?(FuncType)) {
             return generateFuncTag(type as FuncType)
         } else if(type instanceOf?(ArrayType)) {
@@ -91,9 +91,21 @@ JSONGenerator: class extends Visitor {
             }
             buffer append(')')
             return buffer toString()
-        } else {
+        } else if(type instanceOf?(BaseType)) {
             /* base type */
-            return type as BaseType name /* TODO? */
+            if (full) {
+                ref := type getRef()
+                match ref {
+                    case td: TypeDecl =>
+                        td getFullName()
+                    case =>
+                        "any"
+                }
+            } else {
+                return type as BaseType name /* TODO? */
+            }
+        } else {
+            "any"
         }
     }
 
@@ -336,6 +348,7 @@ JSONGenerator: class extends Visitor {
         obj put("genericTypes", genericTypes)
         /* return type */
         if(node returnType != voidType) {
+            obj put("returnTypeFqn", resolveType(node getReturnType(), true))
             obj put("returnType", resolveType(node getReturnType()))
         } else {
             obj put("returnType", null)
@@ -363,6 +376,7 @@ JSONGenerator: class extends Visitor {
             } else {
                 l add(null)
             }
+            l add(resolveType(arg type, true))
             args add(l)
         }
         obj put("arguments", args)
@@ -449,6 +463,7 @@ JSONGenerator: class extends Visitor {
         }
         /* `varType` */
         obj put("varType", resolveType(node type))
+        obj put("varTypeFqn", resolveType(node type, true))
         obj
     }
 
