@@ -16,6 +16,8 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
 
 JSONGenerator: class extends Visitor {
 
+    VERSION := static "1.1.0"
+
     params: BuildParams
     outFile: File
     module: Module
@@ -29,6 +31,8 @@ JSONGenerator: class extends Visitor {
         objects = MultiMap<String, HashBag> new()
 
         /* build the structure! */
+        root put("version", VERSION)
+
         root put("path", module path)
 
         globalImports := Bag new()
