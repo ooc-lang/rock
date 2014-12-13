@@ -16,7 +16,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
 
 JSONGenerator: class extends Visitor {
 
-    VERSION := static "1.2.0"
+    VERSION := static "1.2.1"
 
     params: BuildParams
     outFile: File
@@ -73,7 +73,7 @@ JSONGenerator: class extends Visitor {
 
     resolveType: func (type: Type, full := false) -> String {
         if(type instanceOf?(FuncType)) {
-            return generateFuncTag(type as FuncType)
+            return generateFuncTag(type as FuncType, full)
         } else if(type instanceOf?(ArrayType)) {
             return "array(%s)" format(resolveType(type as ArrayType inner))
         } else if(type instanceOf?(PointerType)) {
@@ -521,7 +521,7 @@ JSONGenerator: class extends Visitor {
         addObject(node name, obj)
     }
 
-    generateFuncTag: func ~funcType (node: FuncType) -> String {
+    generateFuncTag: func ~funcType (node: FuncType, full := false) -> String {
         buf := Buffer new()
         buf append("Func(")
         first := true
@@ -551,7 +551,7 @@ JSONGenerator: class extends Visitor {
                     buf append(',')
                 else
                     first_ = false
-                buf append(resolveType(arg))
+                buf append(resolveType(arg, full))
             }
             buf append(')')
         }
@@ -560,7 +560,7 @@ JSONGenerator: class extends Visitor {
                 buf append(',')
             else
                 first = false
-            buf append("return(%s)" format(resolveType(node returnType)))
+            buf append("return(%s)" format(resolveType(node returnType, full)))
         }
         buf append(')')
         buf toString()
