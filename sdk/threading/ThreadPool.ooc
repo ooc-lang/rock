@@ -10,7 +10,7 @@ ThreadPool: class{
     init: func
 
     add: func(t: Thread, start: Bool = true){
-        _shouldWait()
+        _waitForSlot()
         lock lock()
         pool add(t)
         lock unlock()
@@ -49,10 +49,9 @@ ThreadPool: class{
         lock unlock()
     }
 
-    _shouldWait: func -> Bool {
+    _waitForSlot: func{
         clearPool()
-        if(pool size < parallelism) return false
-
+        if(pool size < parallelism) return
         waitFirst()
     }
 
