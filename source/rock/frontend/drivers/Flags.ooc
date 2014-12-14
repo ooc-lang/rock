@@ -5,7 +5,7 @@ import structs/[List, ArrayList, HashMap]
 
 // our stuff
 import rock/frontend/[BuildParams, Target]
-import rock/frontend/drivers/[Archive, SourceFolder]
+import rock/frontend/drivers/[Archive, SourceFolder, CCompiler]
 import rock/frontend/pkgconfig/[PkgInfo, PkgConfigFrontend]
 import rock/middle/[Module, UseDef]
 
@@ -190,7 +190,9 @@ Flags: class {
                         case Target LINUX =>
                             // passes -export-dynamic to the linker, otherwise we
                             // can't have fancy backtraces.
-                            addCompilerFlag("-rdynamic")
+                            if(params compiler executableName startsWith?("gcc")){
+                                addCompilerFlag("-rdynamic")
+                            }
                         case Target OSX =>
                             // disable position-independent execution (OSX's ASLR),
                             // otherwise we can't fine line info in our backtraces.
