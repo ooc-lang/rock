@@ -16,7 +16,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
 
 JSONGenerator: class extends Visitor {
 
-    VERSION := static "1.2.1"
+    VERSION := static "1.2.2"
 
     params: BuildParams
     outFile: File
@@ -256,8 +256,16 @@ JSONGenerator: class extends Visitor {
         /* `from` */
         if(node fromType != null) {
             obj put("from", node fromType toString())
+            fromRef := node fromType getRef()
+            match fromRef {
+                case td: TypeDecl =>
+                    obj put("fromFqn", td getFullName())
+                case =>
+                    obj put("fromFqn", "any")
+            }
         } else {
             obj put("from", null)
+            obj put("fromFqn", null)
         }
         /* `members` */
         members := Bag new()
