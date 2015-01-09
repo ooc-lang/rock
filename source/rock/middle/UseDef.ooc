@@ -110,7 +110,23 @@ UseDef: class {
     }
 
     findUse: static func (fileName: String, params: BuildParams) -> File {
+        getName := func(path: String)->String{
+            len := path size - 1
+            while(len > 0){
+                if(path[len] == '/' || path[len] == '\\'){
+                    break
+                }
+                len -= 1
+            }
+            ret := ""
+            for(i in len+1..path size){
+                ret += path[i]
+            }
+            ret
+        }
         set := params libsPaths
+
+        _cache: File = null
 
         for(path in set) {
             if(path getPath() == null) continue
@@ -125,14 +141,16 @@ UseDef: class {
                     }
                 }
                 if(subPath file?() || subPath link?()) {
-                    if(subPath getPath() endsWith?(fileName)) {
+                    if(getName(subPath getPath()) == fileName){
                         return subPath
+                    } else if(subPath getPath() endsWith?(fileName)) {
+                        if(!_cache) _cache = subPath
                     }
                 }
             }
         }
 
-        return null
+        return _cache
     }
 
     apply: func (params: BuildParams) {
