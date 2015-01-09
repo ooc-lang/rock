@@ -128,7 +128,7 @@ DependencyGraph: class {
                 message := "Circular dependencies among remaining modules: [%s]" format(repr)
 
                 if (params verbose) {
-                    message += "\nDependcy Graph: \n"
+                    message += "\nDependency Graph: \n"
                     for(sf in pool){
                         message += "%s : %d [\n" \
                                 format(sf identifier, _numDependencies(sf))
