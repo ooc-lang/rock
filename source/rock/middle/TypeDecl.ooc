@@ -37,6 +37,7 @@ TypeDecl: abstract class extends Declaration {
     // internal state variables
     hasCheckedInheritance := false
     hasCheckedAbstract := false
+    hasCheckedRedefine := false
 
     // the crux of the matter
     variables := HashMap<String, VariableDecl> new()
@@ -463,6 +464,43 @@ TypeDecl: abstract class extends Declaration {
 
     }
 
+    checkFinalInherit: func(res: Resolver) -> Bool{
+        list := ArrayList<TypeDecl> new()
+        current := this
+
+        while(current != null) {
+            if(current getSuperType() == null) break // it's alright
+
+            next := current getSuperRef()
+            if(next == null) {
+                res wholeAgain(this, "need superRef to check final redefine")
+                return false
+            }
+
+            list add(current)
+            current = next
+        }
+
+        if(list size > 2){
+            for(i in 0..list size - 1){
+                for(j in i+1..list size){
+                    list[i] functions each(|fdecl|
+                        if(fdecl name == "init" || fdecl name == "new"){ return }
+                        list[j] functions getEachUntil(fdecl name, |other|
+                            if (other isFinal && fdecl getSuffixOrEmpty() == other getSuffixOrEmpty()) {
+                                res throwError(FinalInherit new(fdecl, other))
+                                return true
+                            }
+                            false
+                        )
+                    )
+                }
+            }
+        }
+        true
+
+    }
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         trail push(this)
@@ -497,6 +535,10 @@ TypeDecl: abstract class extends Declaration {
 
             if(!hasCheckedAbstract && superType getRef() != null && isMeta) {
                 if(checkAbstractFuncs(res)) hasCheckedAbstract = true
+            }
+
+            if(getNonMeta() && getNonMeta() class == ClassDecl && !hasCheckedRedefine && superType getRef() != null){
+                if(checkFinalInherit(res)) hasCheckedRedefine = true
             }
 
             // So we resolved the super type, we got to make sure we have no field redifinitions
@@ -1083,3 +1125,16 @@ AbstractContractNotSatisfied: class extends Error {
 InheritanceLoop: class extends Error {
     init: super func ~tokenMessage
 }
+
+
+FinalInherit: class extends Error {
+
+    first, second: FunctionDecl 
+
+    init: func (=first, =second) {
+        super(first token, "Can not inherit from final function '%s'" format(first getName()))
+        next = InfoError new(second token, "...first definition was here:")
+    }
+
+}
+
