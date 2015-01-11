@@ -113,8 +113,10 @@ UseDef: class {
         getName := func(path: String)->String{
             len := path size - 1
             while(len > 0){
-                if(path[len] == '/' || path[len] == '\\'){
-                    break
+                version(windows){
+                    if(path[len] == '/' || path[len] == '\\'){ break }
+                } else {
+                    if(path[len] == '/'){ break }
                 }
                 len -= 1
             }
