@@ -427,7 +427,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
         decl := realDecl ? realDecl : parentDecl
         FunctionDeclWriter writeFullName(this, decl)
-        if(!decl isExternWithName() && impl) current app("_impl")
+        if(!decl isFinal && !decl isAbstract && !decl isExternWithName() && impl) current app("_impl")
         current app(',')
 
     }
