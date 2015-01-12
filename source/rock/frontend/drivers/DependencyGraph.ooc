@@ -126,6 +126,21 @@ DependencyGraph: class {
             } else {
                 repr := pool map(|sf| sf identifier) join(", ")
                 message := "Circular dependencies among remaining modules: [%s]" format(repr)
+
+                if (params verbose) {
+                    message += "\nDependency Graph: \n"
+                    for(sf in pool){
+                        message += "%s : %d [\n" \
+                                format(sf identifier, _numDependencies(sf))
+                        for (dep in deps) {
+                            if (!dep satisfied && dep lhs == sf) {
+                                message += "\t"+dep toString()+"\n"
+                            }
+                        }
+                        message += "]\n"
+                    }
+                }
+
                 _throwError(nullToken, message)
             }
         }
