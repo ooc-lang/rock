@@ -427,7 +427,19 @@ ClassDeclWriter: abstract class extends Skeleton {
 
         decl := realDecl ? realDecl : parentDecl
         FunctionDeclWriter writeFullName(this, decl)
-        if(!decl isFinal && !decl isAbstract && !decl isExternWithName() && impl) current app("_impl")
+
+        if(
+            // final funcs are not in the vtable: no _impl.
+            !decl isFinal &&
+            // abstract funcs are in the vtable, but we don't have an _impl ourselves
+            !decl isAbstract &&
+            // externWithName(s) are just gateways to C functions: no _impl.
+            !decl isExternWithName() &&
+            // the caller of writeDesignatedInit has some logic on whether
+            // or not to write the _impl suffix too.
+            impl
+        ) current app("_impl")
+
         current app(',')
 
     }
