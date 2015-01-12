@@ -125,7 +125,7 @@ UseDef: class {
                     }
                 }
                 if(subPath file?() || subPath link?()) {
-                    if(subPath getPath() endsWith?(fileName)) {
+                    if(subPath name == fileName) {
                         return subPath
                     }
                 }
