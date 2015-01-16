@@ -3,7 +3,7 @@
 import io/File
 import os/[Terminal, Process, JobPool, ShellUtils, Pipe]
 import structs/[List, ArrayList, HashMap, Utils]
-import threading/[Thread, ThreadPool]
+import threading/Thread
 
 // our stuff
 import Driver, Archive, SourceFolder, Flags, CCompiler, DependencyGraph
