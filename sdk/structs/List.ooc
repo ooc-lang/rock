@@ -1,5 +1,5 @@
 import math/Random, structs/ArrayList /* for List shuffle */
-import structs/HashMap /* for getStandardEquals() - should probably move that in a separate Module */
+import structs/Utils
 
 /**
  * List interface for a data container
@@ -12,7 +12,7 @@ List: abstract class <T> extends BackIterable<T> {
         }
     }
 
-    equals? := getStandardEquals(T)
+    equals? := Utils getStandardEquals(T)
 
     /**
      * Appends the specified element to the end of this list.

@@ -2,7 +2,8 @@
 // sdk stuff
 import io/File
 import os/[Terminal, Process, JobPool, ShellUtils, Pipe]
-import structs/[List, ArrayList, HashMap]
+import structs/[List, ArrayList, HashMap, Utils]
+import threading/[Thread, ThreadPool]
 
 // our stuff
 import Driver, Archive, SourceFolder, Flags, CCompiler, DependencyGraph
@@ -54,7 +55,7 @@ SequenceDriver: class extends Driver {
         for (sourceFolder in reverseList) {
             if(params verbose) {
                 // generate random colors for every source folder
-                hash := ac_X31_hash(sourceFolder identifier) + 42
+                hash := Utils ac_X31_hash(sourceFolder identifier) + 42
                 Terminal setFgColor(Color fromHash(hash))
                 if(hash & 0b01) Terminal setAttr(Attr bright)
                 "%s, " printf(sourceFolder identifier)
@@ -184,6 +185,7 @@ SequenceDriver: class extends Driver {
         for(module in dirtyModules) {
             CGenerator new(params, module) write()
         }
+
         dirtyModules
 
     }
