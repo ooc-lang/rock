@@ -2,7 +2,7 @@ import structs/[ArrayList]
 import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
        Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast, Module,
        Block, Scope, FunctionDecl, Argument, BaseType, FuncType, Statement,
-       NullLiteral, Tuple, TypeList, AddressOf
+       NullLiteral, Tuple, TypeList, AddressOf, PropertyDecl
 import tinker/[Response, Resolver, Trail, Errors]
 import ../frontend/BuildParams
 
@@ -311,12 +311,14 @@ VariableDecl: class extends Declaration {
                 }
                 expr = null
             }
-            fCall := FunctionCall new("gc_malloc", token)
-            tAccess := VariableAccess new(type getName(), token)
-            sizeAccess := VariableAccess new(tAccess, "size", token)
-            fCall getArguments() add(sizeAccess)
-            expr = fCall
-            res wholeAgain(this, "just set expr to gc_malloc cause generic!")
+            if(!this instanceOf?(PropertyDecl)){
+                fCall := FunctionCall new("gc_malloc", token)
+                tAccess := VariableAccess new(type getName(), token)
+                sizeAccess := VariableAccess new(tAccess, "size", token)
+                fCall getArguments() add(sizeAccess)
+                expr = fCall
+                res wholeAgain(this, "just set expr to gc_malloc cause generic!")
+            }
         }
 
         if(expr != null && !isLegal(res)) {
