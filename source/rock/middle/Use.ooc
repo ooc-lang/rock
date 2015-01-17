@@ -17,7 +17,7 @@ Use: class {
 \nTo install ooc libraries, copy their directories to /usr/lib/ooc/
 If you want to install libraries elsewhere, use the OOC_LIBS environment variable,
 which is the path ooc will scan for .use files (in this case, %s.use).
-For more information, see http://docs.ooc-lang.org/language/libs.html
+For more information, see http://ooc-lang.org/docs/tools/rock/usefiles/
 -------------------" format(identifier, identifier))
             )
         } else {
