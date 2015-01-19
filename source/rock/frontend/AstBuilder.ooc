@@ -1,7 +1,7 @@
 
 import io/File, text/[EscapeSequence]
 
-import structs/[ArrayList, List, Stack, HashMap]
+import structs/[ArrayList, List, Stack, HashMap, Utils]
 
 import ../utils/FileUtils
 import ../frontend/[Token, BuildParams]
@@ -41,7 +41,7 @@ computeReservedHashs: func (words: String[]) -> ArrayList<Int> {
     list := ArrayList<Int> new()
     words length times(|i|
         word := words[i]
-        list add(ac_X31_hash(word))
+        list add(Utils ac_X31_hash(word))
     )
     list
 }
@@ -475,7 +475,7 @@ AstBuilder: class {
     }
 
     gotVarDecl: func (vd: VariableDecl) {
-        hash := ac_X31_hash(vd getName())
+        hash := Utils ac_X31_hash(vd getName())
         idx := reservedHashs indexOf(hash)
         if(idx != -1) {
             // same hash? compare length and then full-string comparison

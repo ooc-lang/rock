@@ -1,4 +1,4 @@
-import io/[BufferReader, BufferWriter, File], structs/HashMap
+import io/[BufferReader, BufferWriter, File], structs/Utils
 
 /**
    Cached file writer.
@@ -37,8 +37,8 @@ CachedFileWriter: class extends BufferWriter {
             thisContent := buffer toString()
             fileContent := file read()
 
-            hash1 := ac_X31_hash(thisContent)
-            hash2 := ac_X31_hash(fileContent)
+            hash1 := Utils ac_X31_hash(thisContent)
+            hash2 := Utils ac_X31_hash(fileContent)
 
             if(hash1 == hash2) {
                 // same hash? don't rewrite.

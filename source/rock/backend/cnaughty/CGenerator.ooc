@@ -415,18 +415,30 @@ CGenerator: class extends Skeleton {
     }
 
     visitComparison: func (comp: Comparison) {
-        current app(comp left). app(" "). app(comp repr()). app(" ")
-
-        leftType  := comp left  getType()
-        while(leftType  instanceOf?(ReferenceType)) { leftType  = leftType  as ReferenceType inner }
-
+        leftType  := comp left getType()
         rightType := comp right getType()
+        if(leftType isGeneric()){
+            current app("(*(")
+            current app(comp left). app(")) "). app(comp repr()). app(" ")
+        } else {
+            current app(comp left). app(" "). app(comp repr()). app(" ")
+        }
+        while(leftType instanceOf?(ReferenceType)) { leftType  = leftType  as ReferenceType inner }
+
         while(rightType instanceOf?(ReferenceType)) { rightType = rightType as ReferenceType inner }
 
-        if(!rightType equals?(leftType)) {
-            current app('('). app (leftType). app(") ")
+        if(rightType isGeneric()){
+            current app("(*(")
+            if(!rightType equals?(leftType)) {
+                current app('('). app (leftType). app("*) ")
+            }
+            current app(comp right). app("))")
+        } else {
+            if(!rightType equals?(leftType)) {
+                current app('('). app (leftType). app(") ")
+            }
+            current app(comp right)
         }
-        current app(comp right)
     }
 
     visitTernary: func (tern: Ternary) {
