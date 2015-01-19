@@ -674,7 +674,7 @@ AstBuilder: class {
 
         errorOut := func {
             params errorHandler onError(InvalidModifierError new(temp token, \
-                   "Invalid use of modifier #{mod} outside of a type declaration#{allowInAddon? ? " or extention" : ""}"))
+                   "Invalid use of modifier #{mod} outside of a type declaration#{allowInAddon? ? " or extension" : ""}"))
         }
 
         match (peek(Node)) {
