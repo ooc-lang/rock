@@ -73,6 +73,14 @@ findTypeRoot: func(t: BaseType) -> BaseType{
     t
 }
 
+
+baseRank : func -> Int{
+    version (x86 || i386) {
+        return 60
+    } 
+    100
+}
+
 /* C99 6.3.1.8 Usual arithmetic conversions */
 numberTypeScore: func(t: BaseType) -> Int{
     realType := findTypeRoot(t)
@@ -105,14 +113,17 @@ numberTypeScore: func(t: BaseType) -> Int{
         case "signed long" => 63
         case "int32_t" => 62
 
-        case "size_t" => 60
-        case "ptrdiff_t" => 59
+        case "size_t" => baseRank() 
+        case "ptrdiff_t" => baseRank() - 1
+        case "ssize_t" => baseRank() - 2 
 
         case "unsigned int" => 34
         case "int" => 33
         case "signed int" => 33
+
         case "unsigned short" => 32
-        case "uint16_t" => 31
+        case "signed short" => 31
+        case "uint16_t" => 30
 
         case "unsigned char" => 17
         case "uint8_t" => 16
