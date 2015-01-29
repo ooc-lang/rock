@@ -1,5 +1,5 @@
 import structs/ArrayList
-import ../[Type, BaseType, TypeDecl, CoverDecl, ClassDecl, Expression]
+import ../[Type, BaseType, TypeDecl, CoverDecl, ClassDecl, Expression, EnumDecl]
 
 
 distanceFromObject: func(type: BaseType) -> Int {
@@ -105,6 +105,9 @@ numberTypeScore: func(t: BaseType) -> Int{
         case "signed long" => 63
         case "int32_t" => 62
 
+        case "size_t" => 60
+        case "ptrdiff_t" => 59
+
         case "unsigned int" => 34
         case "int" => 33
         case "signed int" => 33
@@ -148,7 +151,9 @@ findCommonRoot: func(type1, type2: Type) -> Type {
 
     basic := func(t1, t2: Type) -> Type {
         if(t1 equals?(type2)) return t1
-        if(t1 isNumericType() && t2 isNumericType()) {
+        if((t1 isNumericType() && t2 isNumericType()) || \
+            t1 getRef() instanceOf?(EnumDecl) && t2 isNumericType() || \
+            t1 isNumericType() && t2 getRef() instanceOf?(EnumDecl)) {
             if(t1 instanceOf?(BaseType) && t2 instanceOf?(BaseType)){
                 return numberType(t1 as BaseType, t2 as BaseType)
             }
