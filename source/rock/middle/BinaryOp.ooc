@@ -6,6 +6,7 @@ import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
        Tuple, VariableDecl, FuncType, TypeDecl, StructLiteral, TypeList,
        Scope, TemplateDef, Ternary, Comparison
 import tinker/[Trail, Resolver, Response, Errors]
+import algo/typeAnalysis
 
 OpType: enum {
     add        /*  +  */
@@ -356,12 +357,9 @@ BinaryOp: class extends Expression {
             if(!response ok()) return Response OK // needs another resolve later
         }
 
-        if(!replaced && inferredType == null) {
-            // that's probably not right - for example, for integer/float types promotion, etc.
-            inferredType = left getType()
-        }
+        {
+            // findCommonRoot need both left and right is resolved
 
-        if(type == OpType ass) {
             if (!left isResolved()) {
                 res wholeAgain(this, "Can't resolve '%s'. (maybe you forgot to declare a variable?)" format(left toString()))
                 return Response OK
@@ -378,7 +376,16 @@ BinaryOp: class extends Expression {
                 res wholeAgain(this, "right type is unresolved")
                 return Response OK
             }
+        }
 
+
+        if(!replaced && inferredType == null) {
+            inferredType = findCommonRoot(left getType(), right getType())
+            // if fails to infer, type equals to left
+            if(inferredType == null) inferredType = left getType()
+        }
+
+        if(type == OpType ass) {
             // Handle tuples?
             hasTuples := left instanceOf?(Tuple) || right instanceOf?(Tuple)
             if(hasTuples) {

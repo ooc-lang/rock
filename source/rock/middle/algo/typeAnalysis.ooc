@@ -1,5 +1,5 @@
 import structs/ArrayList
-import ../[Type, BaseType, TypeDecl, CoverDecl, ClassDecl, Expression]
+import ../[Type, BaseType, TypeDecl, CoverDecl, ClassDecl, Expression, EnumDecl]
 
 
 distanceFromObject: func(type: BaseType) -> Int {
@@ -64,6 +64,82 @@ getInnermostType: func(type: Type) -> Type {
     type
 }
 
+findTypeRoot: func(t: BaseType) -> BaseType{
+    if(t getRef() != null && t getRef() instanceOf?(CoverDecl)){
+        if(t getRef() as CoverDecl getFromType() != null && t getRef() as CoverDecl getFromType() instanceOf?(BaseType)){
+            return findTypeRoot(t getRef() as CoverDecl getFromType() as BaseType)
+        }
+    }
+    t
+}
+
+
+baseRank : func -> Int{
+    version (x86 || i386) {
+        return 60
+    } 
+    100
+}
+
+/* C99 6.3.1.8 Usual arithmetic conversions */
+numberTypeScore: func(t: BaseType) -> Int{
+    realType := findTypeRoot(t)
+    match(realType name){
+        /* First, if the corresponding real type of either operand is long double, 
+         the other operand is converted, without change of type domain, 
+         to a type whose corresponding real type is long double. */
+        case "long double" => 1024
+        /* Otherwise, if the corresponding real type of either operand is double
+         the other operand is converted, without change of type domain,
+         to a type whose corresponding real type is double.*/
+        case "double" => 512
+        /* Otherwise, if the corresponding real type of either operand is float,
+         the other operand is converted, without change of type domain,
+         to a type whose corresponding real type is float. */
+        case "float" => 256
+        /* Otherwise, the integer promotions are performed on both operands. */
+
+        /* The following is not a C99 implementation, we need a better one */
+
+        case "unsigned long long" => 129
+        case "uint64_t" => 128
+        case "long long" => 127
+        case "signed long long" => 127
+        case "int64_t" => 126
+
+        case "unsigned long" => 65
+        case "uint32_t" => 64
+        case "long" => 63
+        case "signed long" => 63
+        case "int32_t" => 62
+
+        case "size_t" => baseRank() 
+        case "ptrdiff_t" => baseRank() - 1
+        case "ssize_t" => baseRank() - 2 
+
+        case "unsigned int" => 34
+        case "int" => 33
+        case "signed int" => 33
+
+        case "unsigned short" => 32
+        case "signed short" => 31
+        case "uint16_t" => 30
+
+        case "unsigned char" => 17
+        case "uint8_t" => 16
+        case "Octet" => 15
+        case "char" => 14
+        case "signed char" => 14
+        case "int8_t" => 12
+
+        case => 0
+    }
+}
+
+numberType: func(type1, type2: BaseType) -> Type{
+    numberTypeScore(type1) < numberTypeScore(type2) ? type2 : type1
+}
+
 // Returns the clsoer common root of two types
 // A common root is a type that represents both of the types it comes from
 // For example, if Bar extends Foo and Baz extends Foo, Foo is the closer common root of Foo and Bar
@@ -86,7 +162,12 @@ findCommonRoot: func(type1, type2: Type) -> Type {
 
     basic := func(t1, t2: Type) -> Type {
         if(t1 equals?(type2)) return t1
-        if(t1 isNumericType() && t2 isNumericType()) {
+        if((t1 isNumericType() && t2 isNumericType()) || \
+            t1 getRef() instanceOf?(EnumDecl) && t2 isNumericType() || \
+            t1 isNumericType() && t2 getRef() instanceOf?(EnumDecl)) {
+            if(t1 instanceOf?(BaseType) && t2 instanceOf?(BaseType)){
+                return numberType(t1 as BaseType, t2 as BaseType)
+            }
             // The root of an integer and a floating point type is the floating point type
             if(t2 isFloatingPointType()) return t2
             return t1
