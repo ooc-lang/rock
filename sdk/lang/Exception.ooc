@@ -148,9 +148,9 @@ Exception: class {
      */
     formatMessage: func -> String {
         if(origin)
-            "[%s in %s]: %s\n" format(class name toCString(), origin name toCString(), message ? message toCString() : "<no message>" toCString())
+            "\x1b[31;1m[%s in %s]: %s\x1b[0m\n" format(class name toCString(), origin name toCString(), message ? message toCString() : "<no message>" toCString())
         else
-            "[%s]: %s\n" format(class name toCString(), message ? message toCString() : "<no message>" toCString())
+            "\x1b[31;1m[%s]: %s\x1b[0m\n" format(class name toCString(), message ? message toCString() : "<no message>" toCString())
     }
 
     /**
