@@ -1,5 +1,6 @@
 import structs/[Stack, ArrayList]
-import ../[Node, Module, Statement, Scope, If, Else, BinaryOp]
+import ../[Node, Module, Statement, Scope, If, Else, BinaryOp,
+    Return, VariableDecl, FunctionCall, VariableAccess, ControlStatement]
 
 Trail: class extends Stack<Node> {
 
