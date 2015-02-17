@@ -432,7 +432,7 @@ VariableDecl: class extends Declaration {
                             // Find out if our access is between the kid closure and the parent closure
                             isDefined? := false
                             intermediateScopeIndex := closureIndex - 1
-                            while(intermediateScopeIndex > scopeDepth) {
+                            while(intermediateScopeIndex >= scopeDepth) {
                                 interScope? := trail get(intermediateScopeIndex, Node)
                                 if(interScope? instanceOf?(Scope)) {
                                     interScope := interScope? as Scope
