@@ -82,6 +82,22 @@ baseRank : func -> Int{
     99
 }
 
+findSuperRoot: func(a: BaseType) -> BaseType{
+    list := ["ULLong", "UInt64", "ULong", 
+            "UInt32", "UInt", "UShort", 
+            "UInt16", "UInt8"] as ArrayList<String>
+    baseScore := numberTypeScore(a)
+    idx := list size - 1
+    while(idx >= 0){
+        t := BaseType new(list[idx], nullToken)
+        if(numberTypeScore(t) > baseScore){
+            return t
+        }
+        idx -= 1
+    }
+    return a
+}
+
 /* C99 6.3.1.8 Usual arithmetic conversions */
 numberTypeScore: func(t: BaseType) -> Int{
     realType := findTypeRoot(t)
@@ -90,25 +106,26 @@ numberTypeScore: func(t: BaseType) -> Int{
         case "double" => 512
         case "float" => 256
 
-        case "unsigned long long" => 130
-        case "uint64_t" => 128
-        case "long long" => 127
+        case "unsigned long long" => 132
+        case "uint64_t" => 130
+        case "long long" => 129
         case "signed long long" => 127
         case "int64_t" => 125
 
-        case "unsigned long" => 66
-        case "uint32_t" => 64
-        case "long" => 63
+        case "unsigned long" => 68
+        case "uint32_t" => 66
+        case "long" => 65
         case "signed long" => 63
-        case "int32_t" => 61
+        case "long int" => 61
+        case "int32_t" => 59
 
         case "size_t" => baseRank() 
         case "ptrdiff_t" => baseRank() - 1
         case "ssize_t" => baseRank() - 2 
         case "wchar" => (baseRank() - 1) / 2
 
-        case "unsigned int" => 34
-        case "int" => 33
+        case "unsigned int" => 36
+        case "int" => 35
         case "signed int" => 33
 
         case "unsigned short" => 32
@@ -119,9 +136,9 @@ numberTypeScore: func(t: BaseType) -> Int{
         case "uint8_t" => 18
         case "Octet" => 15
         case "char" => 13
-        case "signed char" => 13
-        case "int8_t" => 11
-        
+        case "signed char" => 11
+        case "int8_t" => 9 
+
         /*
          unexcepted type, this should never happen
          */
@@ -187,10 +204,7 @@ numberType: func(type1, type2: BaseType) -> Type{
      Otherwise, both operands are converted to the unsigned integer type
      corresponding to the type of the operand with signed integer type.
      */
-
-    // in current rock, returning unresolved type will make rock blow up.
-    // here we just return the type with higher score(INCORRECT)
-    s1 < s2 ? type2 : type1
+    return findSuperRoot(s1 < s2 ? type2 : type1)
 }
 
 // Returns the clsoer common root of two types

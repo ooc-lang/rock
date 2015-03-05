@@ -394,6 +394,10 @@ BinaryOp: class extends Expression {
             inferredType = findCommonRoot(left getType(), right getType())
             // if fails to infer, type equals to left
             if(inferredType == null) inferredType = left getType()
+            if(!inferredType isResolved()){
+                res wholeAgain(this, "just gussed the common root")
+                return inferredType resolve(trail, res)
+            }
         }
 
         if(type == OpType ass) {
