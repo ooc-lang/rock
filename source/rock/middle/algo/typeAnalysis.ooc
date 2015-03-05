@@ -1,4 +1,3 @@
-
 import structs/ArrayList
 import ../[Type, BaseType, TypeDecl, CoverDecl, ClassDecl, Expression, EnumDecl, Node]
 import ../tinker/[Resolver, Errors]
@@ -78,42 +77,30 @@ findTypeRoot: func(t: BaseType) -> BaseType{
 
 baseRank : func -> Int{
     version (x86 || i386) {
-        return 60
+        return 49
     } 
-    100
+    99
 }
 
 /* C99 6.3.1.8 Usual arithmetic conversions */
 numberTypeScore: func(t: BaseType) -> Int{
     realType := findTypeRoot(t)
     match(realType name){
-        /* First, if the corresponding real type of either operand is long double, 
-         the other operand is converted, without change of type domain, 
-         to a type whose corresponding real type is long double. */
         case "long double" => 1024
-        /* Otherwise, if the corresponding real type of either operand is double
-         the other operand is converted, without change of type domain,
-         to a type whose corresponding real type is double.*/
         case "double" => 512
-        /* Otherwise, if the corresponding real type of either operand is float,
-         the other operand is converted, without change of type domain,
-         to a type whose corresponding real type is float. */
         case "float" => 256
-        /* Otherwise, the integer promotions are performed on both operands. */
 
-        /* The following is not a C99 implementation, we need a better one */
-
-        case "unsigned long long" => 129
+        case "unsigned long long" => 130
         case "uint64_t" => 128
         case "long long" => 127
         case "signed long long" => 127
-        case "int64_t" => 126
+        case "int64_t" => 125
 
-        case "unsigned long" => 65
+        case "unsigned long" => 66
         case "uint32_t" => 64
         case "long" => 63
         case "signed long" => 63
-        case "int32_t" => 62
+        case "int32_t" => 61
 
         case "size_t" => baseRank() 
         case "ptrdiff_t" => baseRank() - 1
@@ -124,22 +111,84 @@ numberTypeScore: func(t: BaseType) -> Int{
         case "signed int" => 33
 
         case "unsigned short" => 32
-        case "signed short" => 31
-        case "uint16_t" => 30
+        case "signed short" => 30
+        case "uint16_t" => 28
 
-        case "unsigned char" => 17
+        case "unsigned char" => 18
         case "uint8_t" => 16
         case "Octet" => 15
-        case "char" => 14
-        case "signed char" => 14
-        case "int8_t" => 12
-
+        case "char" => 13
+        case "signed char" => 13
+        case "int8_t" => 11
+        
+        /*
+         unexcepted type, this should never happen
+         */
         case => 0
     }
 }
 
 numberType: func(type1, type2: BaseType) -> Type{
-    numberTypeScore(type1) < numberTypeScore(type2) ? type2 : type1
+    s1 := numberTypeScore(type1) 
+    s2 := numberTypeScore(type2)
+    /*
+     First, if the corresponding real type of either operand is long double, the other
+     operand is converted, without change of type domain, to a type whose
+     corresponding real type is long double.
+     */
+    if(s1 == 1024) return type1
+    if(s2 == 1024) return type2
+    /*
+     Otherwise, if the corresponding real type of either operand is double, the other
+     operand is converted, without change of type domain, to a type whose
+     corresponding real type is double.
+     */
+    if(s1 == 512) return type1
+    if(s2 == 512) return type2
+    /*
+     Otherwise, if the corresponding real type of either operand is float, the other
+     operand is converted, without change of type domain, to a type whose
+     corresponding real type is float.
+     */
+    if(s1 == 256) return type1
+    if(s2 == 256) return type2
+    /*
+     Otherwise, the integer promotions are performed on both operands. Then the
+     following rules are applied to the promoted operands:
+     */
+
+    /*
+     If both operands have the same type, then no further conversion is needed.
+     Otherwise, if both operands have signed integer types or both have unsigned
+     integer types, the operand with the type of lesser integer conversion rank is
+     converted to the type of the operand with greater rank.
+     */
+    if(s1 == s2) return type1
+    /*
+     Otherwise, if the operand that has unsigned integer type has rank greater or
+     equal to the rank of the type of the other operand, then the operand with
+     signed integer type is converted to the type of the operand with unsigned
+     integer type.
+     */
+    if(s2 > s1 && s2 % 2 == 0) (type1, type2) = (type2, type1)
+    if(s1 > s2 && s1 % 2 == 0){ return type1 }
+    /*
+     Otherwise, if the type of the operand with signed integer type can represent
+     all of the values of the type of the operand with unsigned integer type, then
+     the operand with unsigned integer type is converted to the type of the
+     operand with signed integer type.
+     */
+    if(s2 - s1 >= 10 && s2 % 2 == 1) return type2
+    if(s1 - s2 >= 10 && s1 % 2 == 1) return type1
+
+    /*
+     Otherwise, both operands are converted to the unsigned integer type
+     corresponding to the type of the operand with signed integer type.
+     */
+
+    // in current rock, returning unresolved type will make rock blow up.
+    // here we just return the type with higher score(INCORRECT)
+    s1 < s2 ? type2 : type1
 }
 
 // Returns the clsoer common root of two types
