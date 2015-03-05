@@ -105,17 +105,18 @@ numberTypeScore: func(t: BaseType) -> Int{
         case "size_t" => baseRank() 
         case "ptrdiff_t" => baseRank() - 1
         case "ssize_t" => baseRank() - 2 
+        case "wchar" => (baseRank() - 1) / 2
 
         case "unsigned int" => 34
         case "int" => 33
         case "signed int" => 33
 
         case "unsigned short" => 32
-        case "signed short" => 30
-        case "uint16_t" => 28
+        case "signed short" => 31
+        case "uint16_t" => 29
 
         case "unsigned char" => 18
-        case "uint8_t" => 16
+        case "uint8_t" => 18
         case "Octet" => 15
         case "char" => 13
         case "signed char" => 13
@@ -164,13 +165,14 @@ numberType: func(type1, type2: BaseType) -> Type{
      converted to the type of the operand with greater rank.
      */
     if(s1 == s2) return type1
+    if((s1 % 2) == (s2 % 2)){ return s1 < s2 ? type2 : type1 }
     /*
      Otherwise, if the operand that has unsigned integer type has rank greater or
      equal to the rank of the type of the other operand, then the operand with
      signed integer type is converted to the type of the operand with unsigned
      integer type.
      */
-    if(s2 > s1 && s2 % 2 == 0) (type1, type2) = (type2, type1)
+    if(s2 > s1 && s2 % 2 == 0){ return type2 } 
     if(s1 > s2 && s1 % 2 == 0){ return type1 }
     /*
      Otherwise, if the type of the operand with signed integer type can represent
