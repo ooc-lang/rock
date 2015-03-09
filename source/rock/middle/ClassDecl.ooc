@@ -73,6 +73,12 @@ ClassDecl: class extends TypeDecl {
                     fDecl setStatic(true)
                     addFunction(fDecl)
                 }
+
+                functions each(|x|
+                    if(x name == "" || x name == null){
+                        res throwError(AnonymousFunctionDecl new(x token, "Anonymous function can not be defined in class or cover."))
+                    }
+                )
             }
         }
 
@@ -276,6 +282,10 @@ ClassDecl: class extends TypeDecl {
 
         addFunction(constructor)
     }
+}
+
+AnonymousFunctionDecl: class extends Error{
+    init: super func ~tokenMessage
 }
 
 NoDefaultConstructorError: class extends Error {
