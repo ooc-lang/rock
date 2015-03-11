@@ -4,7 +4,7 @@ import io/[File, FileWriter]
 import structs/[List, ArrayList, HashMap]
 
 // our stuff
-import Driver, SequenceDriver, CCompiler, Flags, SourceFolder
+import Driver, GenericDriver, CCompiler, Flags, SourceFolder
 
 import rock/frontend/[BuildParams, Target]
 import rock/middle/[Module, UseDef]
@@ -16,97 +16,17 @@ import rock/io/TabbedWriter
  * Makefile that allows to build a version of your program without any
  * ooc-related dependency.
  */
-MakeDriver: class extends SequenceDriver {
+MakeDriver: class extends GenericDriver {
+    init: func (.params) { super("Makefile", "Make driver", params) }
 
-    // the self-containing directory containing buildable C sources
-    builddir: File
-
-    // build/Makefile
-    makefile: File
-
-    // Original output path (e.g. "rock_tmp")
-    originalOutPath: File
-
-    init: func (.params) { super(params) }
-
-    setup: func {
-        wasSetup := static false
-        if(wasSetup) return
-
-        // no lib-caching for the make driver!
-        params libcache = false
-
-        // keeping them for later (ie. Makefile invocation)
-        params clean = false
-
-        // build/
-        builddir = File new("build")
-
-        // build/rock_tmp/
-        originalOutPath = params outPath
-        params outPath = File new(builddir, params outPath getPath())
-        params outPath mkdirs()
-
-        // build/Makefile
-        makefile = File new(builddir, "Makefile")
-
-        wasSetup = true
+    getWriter: func (flags: Flags, toCompile: ArrayList<Module>, module: Module) -> GenericWriter {
+        MakefileWriter new(params, makefile, flags, toCompile, module, originalOutPath)
     }
-
-    compile: func (module: Module) -> Int {
-
-        if(params verbose) {
-           "Make driver" println()
-        }
-
-        setup()
-
-        params outPath mkdirs()
-
-        toCompile := ArrayList<Module> new()
-        sourceFolders := collectDeps(module, HashMap<String, SourceFolder> new(), toCompile)
-
-        for(candidate in toCompile) {
-            CGenerator new(params, candidate) write()
-        }
-
-        params libcachePath = params outPath path
-        copyLocals(module, params)
-
-        params libcachePath = originalOutPath path
-        params libcache = true
-        flags := Flags new(null, params)
-
-        // we'll do that ourselves
-        flags doTargetSpecific = false
-
-        // we'll handle the GC flags ourselves, thanks
-        enableGC := params enableGC
-        params enableGC = false
-        flags absorb(params)
-        params enableGC = enableGC
-
-        for (sourceFolder in sourceFolders) {
-            flags absorb(sourceFolder)
-        }
-
-        for (module in toCompile) {
-            flags absorb(module)
-        }
-        params libcache = false
-
-        // do the actual writing
-        mw := MakefileWriter new(params, makefile, flags, toCompile, module, originalOutPath)
-        mw write()
-        mw close()
-
-        return 0
-
-    }
-
 }
 
-MakefileWriter: class {
+
+
+MakefileWriter: class extends GenericWriter {
 
     file: File
     flags: Flags
