@@ -7,7 +7,7 @@ import structs/[ArrayList,List]
 srand: extern func(Int)
 
 /**
-   C stdlib function to generate a random integer between INT_MIN and INT_MAX
+   C stdlib function to generate a random integer between 0 and INT_MAX
  */
 rand: extern func -> Int
 RAND_MAX: extern const Int
@@ -25,7 +25,7 @@ Random: class {
     state := static Time microtime()
 
     /**
-       :return: a pseudo-random number between INT_MIN and INT_MAX, generated using
+       :return: a pseudo-random number between 0 and INT_MAX, generated using
        the C functions srand/rand
      */
     random: static func -> Int {
