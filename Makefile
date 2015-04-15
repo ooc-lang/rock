@@ -37,11 +37,13 @@ prepare_bootstrap:
 	$(OOC) -driver=make rock.use --outpath=c-source -o=../bin/c_rock -v -pg +-w
 	@echo "Done!"
 
-boehmgc:
+boehmgc: vendor-prefix/lib/libgc.a
+
+vendor-prefix/lib/libgc.a:
 	$(MAKE) boehmgc-clean
 	mkdir -p $(VENDOR_PREFIX)
 	mkdir -p vendor-build
-	(cd vendor-build && ../vendor/gc/configure --prefix=$(VENDOR_PREFIX) --disable-shared --enable-static && $(MAKE) && $(MAKE) install)
+	(cd vendor-build && ../vendor/gc/configure --prefix=$(VENDOR_PREFIX) --disable-shared --enable-static ${GC_FLAGS} && $(MAKE) && $(MAKE) install)
 	rm -rf vendor-build
 
 boehmgc-clean:
