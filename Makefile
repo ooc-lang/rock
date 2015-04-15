@@ -98,7 +98,7 @@ download-bootstrap:
 	rm -rf build/
 	# Note: ./utils/downloader tries curl, ftp, and then wget.
 	#        GNU ftp will _not_ work: it does not accept a url as an argument.
-	./utils/downloader.sh http://downloads.ooc-lang.org/rock/0.9.9/latest-bootstrap.tar.bz2 | tar xjmf - 1>/dev/null
+	./utils/downloader.sh http://downloads.ooc-lang.org/rock/0.9.10/latest-bootstrap.tar.bz2 | tar xjmf - 1>/dev/null
 	if [ ! -e build ]; then cp -rfv rock-*/build ./; fi
 
 # Attempt to grab a rock bootstrap from Alpaca and recompile
