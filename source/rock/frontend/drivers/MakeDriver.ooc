@@ -124,6 +124,7 @@ MakefileWriter: class {
         "Writing to %s" printfln(file path)
         writePrelude()
         writeCC()
+        writeAR()
         writePrefix()
         writeArchDetect()
         writeThreadFlags()
@@ -148,6 +149,17 @@ MakefileWriter: class {
         tw write  ("  GCC:="). write(params compiler executableName). nl()
         tw writeln("else")
         tw writeln("  GCC:=$(CROSS)-gcc")
+        tw writeln("endif")
+        tw writeln("endif")
+        tw nl()
+    }
+
+    writeAR: func {
+        tw writeln("ifeq ($(AR),)")
+        tw writeln("ifeq ($(CROSS),)")
+        tw write  ("  AR:="). write(params ar). nl()
+        tw writeln("else")
+        tw writeln("  AR:=$(CROSS)-ar")
         tw writeln("endif")
         tw writeln("endif")
         tw nl()
@@ -274,7 +286,9 @@ MakefileWriter: class {
         tw writeln("      DEBUG_FLAGS+= -fno-pie")
         tw writeln("    endif")
         tw writeln("  else ifeq ($(SYSTEM),linux)")
-        tw writeln("    DEBUG_FLAGS+= -rdynamic")
+        tw writeln("    ifneq ($(strip $(filter $(GCC), gcc)),)")
+        tw writeln("      DEBUG_FLAGS+= -rdynamic")
+        tw writeln("    endif")
         tw writeln("  endif")
         tw writeln("endif")
         tw nl()
@@ -287,6 +301,10 @@ MakefileWriter: class {
         tw writeln("  CFLAGS+=-m32")
         tw writeln("endif # arch -> -m option")
         tw nl()
+        if(module dummy && !params staticLib){
+            tw writeln("CFLAGS+=-fPIC")
+            tw writeln("LDFLAGS+=-shared")
+        }
 
         tw write("CFLAGS+= -I$(PREFIX)/include -I/usr/pkg/include $(DEBUG_FLAGS)")
         for (flag in flags compilerFlags) {
@@ -398,7 +416,23 @@ MakefileWriter: class {
         tw nl()
 
         tw writeln("ifeq ($(SYSTEM),win)")
-        tw writeln("EXECUTABLE:=$(EXECUTABLE).exe")
+        if(module dummy){
+            if(params staticLib){
+                tw writeln("EXECUTABLE:=$(EXECUTABLE).lib")
+            } else {
+                tw writeln("EXECUTABLE:=$(EXECUTABLE).dll")
+            }
+        } else {
+            tw writeln("EXECUTABLE:=$(EXECUTABLE).exe")
+        }
+        tw writeln("else")
+        if(module dummy){
+            if(params staticLib){
+                tw writeln("EXECUTABLE:=$(EXECUTABLE).a")
+            } else {
+                tw writeln("EXECUTABLE:=$(EXECUTABLE).so")
+            }
+        }
         tw writeln("endif")
         tw writeln("endif # has to determine executable")
         tw nl()
@@ -453,7 +487,12 @@ MakefileWriter: class {
         tw nl()
 
         tw writeln("link: $(OBJECT_FILES)")
-        tw writeln("\t$(GCC) $(CFLAGS) $(OBJECT_FILES) -o $(EXECUTABLE) $(THREAD_FLAGS) $(LDFLAGS)")
+        if(module dummy && params staticLib){
+            tw writeln("\t$(AR) rcs -o $(EXECUTABLE) $(OBJECT_FILES)")
+        }else{
+            tw writeln("\t$(GCC) $(CFLAGS) $(OBJECT_FILES) -o $(EXECUTABLE) $(THREAD_FLAGS) $(LDFLAGS)")
+        }
+
         tw nl()
 
         tw writeln("clean:")
