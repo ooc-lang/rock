@@ -69,20 +69,20 @@ charHash: func <K> (key: K) -> SizeT {
    :param: key The key to hash
    :param: seed The seed value
  */
-murmurHash: func <K> (keyTagazok: K) -> SizeT {
+murmurHash: func <K> (keyTagazok: K) -> UInt32 {
 
-    seed: SizeT = 1 // TODO: figure out what makes a good seed value?
+    seed: UInt32 = 1 // TODO: figure out what makes a good seed value?
 
     len := K size
-    m = 0x5bd1e995 : const SizeT
-    r = 24 : const SSizeT
+    m = 0x5bd1e995 : const UInt32 
+    r = 24 : const Int32
     l := len
 
-    h : SizeT = seed ^ len
-    data := (keyTagazok&) as Octet*
+    h : UInt32 = seed ^ len
+    data := (keyTagazok&) as UInt8*
 
     while (true) {
-        k := (data as SizeT*)@
+        k := (data as UInt32*)@
 
         k *= m
         k ^= k >> r
@@ -92,8 +92,8 @@ murmurHash: func <K> (keyTagazok: K) -> SizeT {
         h ^= k
 
         data += 4
-        if(len < 4) break
         len -= 4
+        if(len < 4) break
     }
 
     t := 0
