@@ -355,6 +355,56 @@ BaseType: class extends Type {
         return This NOLUCK_SCORE // no luck.
     }
 
+    _theoreticalTypeWidth := -1
+
+    getTheoreticalTypeWidth: func -> Int {
+        if (_theoreticalTypeWidth == -1) {
+           _computeTheoreticalTypeWidth() 
+        }
+        _theoreticalTypeWidth
+    }
+
+    _computeTheoreticalTypeWidth: func {
+        simpleName := name replaceAll("unsigned ", "")
+
+        _theoreticalTypeWidth = match simpleName {
+            case "float" => 4
+            case "double" => 8
+            case "long double" => 16
+
+            case "char" => 1
+            case "short" => 2
+            case "int" => 4
+            case "long" => 8
+            case "long long" => 16
+
+            case => 0
+        }
+
+        if (_theoreticalTypeWidth != 0) {
+            return
+        }
+
+        if (getRef() == null) {
+            // can't dig
+            return
+        }
+        down := dig()
+        while (down) {
+            _theoreticalTypeWidth = down getTheoreticalTypeWidth()
+
+            if (_theoreticalTypeWidth != 0) {
+                return
+            }
+
+            if (down getRef() == null) {
+                // can't dig, still unsure
+                return
+            }
+            down = down dig()
+        }
+    }
+
     _computeFloatingPointState: func {
         if(name == "double" || name == "float" || name == "long double") {
             _floatingPoint = NumericState YES

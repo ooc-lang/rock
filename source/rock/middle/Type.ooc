@@ -137,6 +137,10 @@ Type: abstract class extends Expression {
         getFloatingPointState() == NumericState YES
     }
 
+    getTheoreticalTypeWidth: func -> Int {
+        0
+    }
+
     isIntegerType: func -> Bool {
         getIntegerState() == NumericState YES
     }

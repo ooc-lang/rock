@@ -88,8 +88,25 @@ findCommonRoot: func(type1, type2: Type) -> Type {
         if(t1 equals?(type2)) return t1
         if(t1 isNumericType() && t2 isNumericType()) {
             // The root of an integer and a floating point type is the floating point type
-            if(t2 isFloatingPointType()) return t2
-            return t1
+            f1 := t1 isFloatingPointType()
+            f2 := t2 isFloatingPointType()
+
+            if (f1 && !f2) {
+                return t1
+            }
+
+            if (!f1 && f2) {
+                return t2
+            }
+
+            // Both floating or neither, take widest type
+            w1 := t1 getTheoreticalTypeWidth() 
+            w2 := t2 getTheoreticalTypeWidth() 
+            if (w1 >= w2) {
+                return t1
+            } else {
+                return t2
+            }
         }
 
         if(coverAgainstClass(t1, t2)) {
