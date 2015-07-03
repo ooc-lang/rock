@@ -141,8 +141,10 @@ ArrayLiteral: class extends Literal {
                     cast getType()
                 case vDecl: VariableDecl =>
                     parentIdx += 1
-                    grandpa := trail peek(parentIdx)
                     vDecl getType()
+                case binOp: BinaryOp =>
+                    parentIdx += 1
+                    binOp left getType()
                 case =>
                     null
             }
@@ -175,7 +177,7 @@ ArrayLiteral: class extends Literal {
                 }
 
                 if (isGood && (type == null || !type equals?(outerType))) {
-                    type = outerType
+                    type = outerType clone()
 
                     if (shouldReplace) {
                         readyToUnwrap = false
