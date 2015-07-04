@@ -64,7 +64,13 @@ VarArg: class extends Argument {
         Response OK
     }
 
-    toString: func -> String { "<vararg>..." }
+    toString: func -> String {
+        if (name) {
+            name + "..."
+        } else {
+            "..."
+        }
+    }
 
     clone: func -> This {
         copy := new(token, name)

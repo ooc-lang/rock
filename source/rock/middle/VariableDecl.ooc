@@ -72,7 +72,7 @@ VariableDecl: class extends Declaration {
     getName: func -> String { name }
 
     toString: func -> String {
-        "%s : %s%s" format(
+        "%s: %s%s" format(
             name,
             type ? type toString() : "<unknown type>",
             expr ? (" = " + expr toString()) : ""

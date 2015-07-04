@@ -373,18 +373,7 @@ FunctionDecl: class extends Declaration {
         for(arg in args) {
             if(isFirst) isFirst = false
             else        sb append(", ")
-            sb append(arg toString()). append(" :")
-            argType := arg getType()
-            if(argType) {
-                if(call) {
-                    finalScore := 0
-                    solved := call resolveTypeArg(argType getName(), null, finalScore&)
-                    if(solved) argType = solved
-                }
-                sb append(argType toString())
-            } else {
-                sb append("...")
-            }
+            sb append(arg toString())
         }
         sb append(")")
         return sb toString()
