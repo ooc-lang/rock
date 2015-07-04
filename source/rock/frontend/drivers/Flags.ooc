@@ -67,7 +67,6 @@ Flags: class {
 
     init: func (=outPath, =params) {
         addCompilerFlag("-std=gnu99")
-        addCompilerFlag("-Wall")
     }
 
     absorb: func ~sourceFolder (sourceFolder: SourceFolder) {

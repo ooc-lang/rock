@@ -1,10 +1,13 @@
 import structs/[ArrayList, List, HashMap]
+import io/File
 import ../frontend/[Token, BuildParams, CommandLine]
 import Visitor, Expression, FunctionDecl, Argument, Type,
        TypeDecl, Node, VariableDecl, VariableAccess, AddressOf, CommaSequence, BinaryOp,
        InterfaceDecl, Cast, NamespaceDecl, BaseType, FuncType, Return,
        TypeList, Scope, Block, StructLiteral, NullLiteral,
-       IntLiteral, Ternary, ClassDecl, CoverDecl, ArrayLiteral
+       IntLiteral, Ternary, ClassDecl, CoverDecl, ArrayLiteral, Module,
+       StringLiteral
+import text/EscapeSequence
 import tinker/[Response, Resolver, Trail, Errors]
 
 /**
@@ -254,6 +257,38 @@ FunctionCall: class extends Expression {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
+
+        if (name == "slurp" && expr == null) {
+            mod := trail module()
+
+            if (args size < 1) {
+                message := "slurp needs one argument: the file to slurp"
+                res throwError(InvalidSlurp new(this, message, ""))
+            }
+            arg := args get(0)
+            match (arg) {
+                case sl: StringLiteral =>
+                    path := sl value
+                    file := File new(mod pathElement, path)
+                    if (!file exists?()) {
+                        message := "while slurping, file not found: #{file getReducedPath()}"
+                        res throwError(InvalidSlurp new(this, message, ""))
+                    }
+
+                    contents := file read()
+                    escaped := EscapeSequence escape(contents)
+                    kid := StringLiteral new(escaped, token)
+                    if (!trail peek() replace(this, kid)) {
+                        res throwError(CouldntReplace new(token, this, kid, trail))
+                    }
+                    res wholeAgain(this, "just unwrapped")
+                    return Response OK
+
+                case =>
+                    message := "slurp only accepts paths via string literal"
+                    res throwError(InvalidSlurp new(this, message, ""))
+            }
+        }
 
         if(debugCondition() || res params veryVerbose) {
             "===============================================================" println()
@@ -1505,6 +1540,25 @@ FunctionCall: class extends Expression {
 
 }
 
+InvalidSlurp: class extends Error {
+
+    call: FunctionCall
+    precisions: String
+
+    init: func (.call, .message, =precisions) {
+        init(call token, call, message)
+    }
+
+    init: func ~withToken(.token, =call, .message) {
+        super(call expr ? call expr token enclosing(call token) : call token, message)
+        precisions = ""
+    }
+
+    format: func -> String {
+        token formatMessage(message, "ERROR") + precisions
+    }
+
+}
 
 /**
  * Error thrown when a type isn't defined
