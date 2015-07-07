@@ -237,13 +237,13 @@ FunctionDecl: class extends Declaration {
         false
     }
 
-    markForPartialing: func(var: VariableDecl, mode: String) {
+    markForPartialing: func(var: VariableDecl, mode: Char) {
         if (!partialByReference contains?(var)) {
             match (mode) {
-                case "r" =>
+                case 'r' =>
                     if(partialByValue contains?(var)) partialByValue remove(var)
                     partialByReference add(var)
-                case "v" =>
+                case 'v' =>
                     if(partialByValue contains?(var)) return
                     partialByValue add(var)
             }
@@ -1028,6 +1028,19 @@ FunctionDecl: class extends Declaration {
             if(ctxVersion != null)
                 ctxStruct setVersion(ctxVersion)
 
+            outerClosures := ArrayList<FunctionDecl> new()
+
+            // find outer closures in case they already have some things by reference,
+            // in which case we don't need to do AddressOf again
+            for(i in 1..trail size) {
+                node := trail peek(i)
+                match node {
+                    case fd: FunctionDecl =>
+                        if (!fd fromClosure) continue
+                        outerClosures add(fd)
+                }
+            }
+
             // add corresponding variables to the context struct
             // and to the struct initializer for the context
             elements := ArrayList<Expression> new()
@@ -1045,7 +1058,24 @@ FunctionDecl: class extends Declaration {
                 eDeclType := PointerType new(e getType(), e getType() token)
                 eDecl := VariableDecl new(eDeclType, e getName(), token)
                 ctxStruct addVariable(eDecl)
-                elements add(AddressOf new(VariableAccess new(e, e token), token))
+
+                alreadyByRef := false
+                for (outerClosure in outerClosures) {
+                    for (ee in outerClosure partialByReference) {
+                        if (ee name == e name) {
+                            alreadyByRef = true
+                            break
+                        }
+                    }
+                    if (alreadyByRef) break
+                }
+
+                el: Expression = VariableAccess new(e, e token)
+                if (!alreadyByRef) {
+                    el = AddressOf new(el, token)
+                }
+
+                elements add(el)
             }
 
             // add the context struct's cover to the Module so we can actually use it

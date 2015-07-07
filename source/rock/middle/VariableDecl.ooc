@@ -405,7 +405,7 @@ VariableDecl: class extends Declaration {
 
         if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
             closure := trail get(closureIndex, FunctionDecl)
-            mode := "v"
+            mode := 'v'
             if(closure isAnon()) {
                 if(clsAccess) {
                     // In the case of an assignment or of getting the address of the variable in the ACS the
@@ -413,10 +413,10 @@ VariableDecl: class extends Declaration {
                     bOpIDX := trail find(BinaryOp)
                     if(bOpIDX != -1) {
                         bOp := trail get(bOpIDX, BinaryOp)
-                        if (bOp getLeft() == clsAccess && bOp isAssign()) mode = "r"
+                        if (bOp getLeft() == clsAccess && bOp isAssign()) mode = 'r'
                     } else if((addrOfIDX := trail find(AddressOf)) != -1) {
                         addrOf := trail get(addrOfIDX, AddressOf)
-                        if(addrOf expr == clsAccess) mode = "r"
+                        if(addrOf expr == clsAccess) mode = 'r'
                     }
                 }
 
