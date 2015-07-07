@@ -11,7 +11,12 @@ import rock/middle/[Module, UseDef]
 import rock/backend/cnaughty/CGenerator
 import rock/io/TabbedWriter
 
-GenericDriver: class extends SequenceDriver {
+/**
+ * Meta drivers are drivers which do not compile directly, but rather generate
+ * build files for another utility, such as GNU Make, C Make, xcodebuild,
+ * or whatever else.
+ */
+MetaDriver: class extends SequenceDriver {
 
     // the self-containing directory containing buildable C sources
     builddir: File
@@ -26,7 +31,7 @@ GenericDriver: class extends SequenceDriver {
     // The string name
     driverName: String
 
-    getWriter: func (flags: Flags, toCompile: ArrayList<Module>, module: Module) -> GenericWriter { null }
+    getWriter: func (flags: Flags, toCompile: ArrayList<Module>, module: Module) -> MetaDriverWriter { null }
 
     init: func(=filepath, =driverName, .params) { super(params) }
 
@@ -107,9 +112,8 @@ GenericDriver: class extends SequenceDriver {
 
 }
 
-
-
-GenericWriter: class {
+MetaDriverWriter: class {
     write: func
     close: func
 }
+
