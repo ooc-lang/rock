@@ -424,34 +424,39 @@ VariableDecl: class extends Declaration {
                 scopeDepth := closureIndex - 1
                 while(scopeDepth > 0) {
                     maybeScope := trail get(scopeDepth, Node)
-                    if(maybeScope instanceOf?(Scope)) {
-                        scope := maybeScope as Scope
-                        maybeClosure := trail get(scopeDepth - 1, Node)
-                        if(maybeClosure instanceOf?(FunctionDecl)) {
-                            closure := maybeClosure as FunctionDecl
-                            // Find out if our access is between the kid closure and the parent closure
-                            isDefined? := false
-                            intermediateScopeIndex := closureIndex - 1
-                            while(intermediateScopeIndex > scopeDepth) {
-                                interScope? := trail get(intermediateScopeIndex, Node)
-                                if(interScope? instanceOf?(Scope)) {
-                                    interScope := interScope? as Scope
-                                    if(interScope list contains?(|stmt| stmt instanceOf?(VariableDecl) && stmt as VariableDecl name == name)) {
-                                        isDefined? = true
-                                    }
+                    match maybeScope {
+                        case scope: Scope =>
+                            if(maybeScope instanceOf?(Scope)) {
+                                scope := maybeScope as Scope
+                                maybeClosure := trail get(scopeDepth - 1, Node)
+
+                                match maybeClosure {
+                                    case closure: FunctionDecl =>
+                                        // Find out if our access is between the kid closure and the parent closure
+                                        isDefined? := false
+                                        intermediateScopeIndex := closureIndex - 1
+                                        while(intermediateScopeIndex >= scopeDepth) {
+                                            interScope? := trail get(intermediateScopeIndex, Node)
+                                            if(interScope? instanceOf?(Scope)) {
+                                                interScope := interScope? as Scope
+                                                if(interScope list contains?(|stmt| stmt instanceOf?(VariableDecl) && stmt as VariableDecl name == name)) {
+                                                    isDefined? = true
+                                                }
+                                            }
+                                            intermediateScopeIndex -= 1
+                                        }
+                                        // Only partial the variable in the top function if it has not
+                                        // been defined by it and it is not one of its arguments
+                                        if(closure isAnon && !closure args contains?(|arg| arg name == name || arg name == name + "_generic") \
+                                            && !isDefined?) {
+                                            // Mark the variable for partialing to top level closure
+                                            closure markForPartialing(this, mode)
+                                            if(clsAccess && !closure clsAccesses contains?(clsAccess)) {
+                                                closure clsAccesses add(clsAccess)
+                                            }
+                                        }
                                 }
-                                intermediateScopeIndex -= 1
                             }
-                            // Only partial the variable in the top function if it has not be defined by it and it is not one of its arguments
-                            if(closure isAnon && !closure args contains?(|arg| arg name == name || arg name == name + "_generic") \
-                                && !isDefined?) {
-                                // Mark the variable for partialing to top level closure
-                                closure markForPartialing(this, mode)
-                                if(clsAccess && !closure clsAccesses contains?(clsAccess)) {
-                                    closure clsAccesses add(clsAccess)
-                                }
-                            }
-                        }
                     }
                     scopeDepth -= 1
                 }
