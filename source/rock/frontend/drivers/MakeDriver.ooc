@@ -4,7 +4,7 @@ import io/[File, FileWriter]
 import structs/[List, ArrayList, HashMap]
 
 // our stuff
-import Driver, GenericDriver, CCompiler, Flags, SourceFolder
+import Driver, MetaDriver, CCompiler, Flags, SourceFolder
 
 import rock/frontend/[BuildParams, Target]
 import rock/middle/[Module, UseDef]
@@ -16,17 +16,15 @@ import rock/io/TabbedWriter
  * Makefile that allows to build a version of your program without any
  * ooc-related dependency.
  */
-MakeDriver: class extends GenericDriver {
+MakeDriver: class extends MetaDriver {
     init: func (.params) { super("Makefile", "Make driver", params) }
 
-    getWriter: func (flags: Flags, toCompile: ArrayList<Module>, module: Module) -> GenericWriter {
+    getWriter: func (flags: Flags, toCompile: ArrayList<Module>, module: Module) -> MetaDriverWriter {
         MakefileWriter new(params, makefile, flags, toCompile, module, originalOutPath)
     }
 }
 
-
-
-MakefileWriter: class extends GenericWriter {
+MakefileWriter: class extends MetaDriverWriter {
 
     file: File
     flags: Flags
