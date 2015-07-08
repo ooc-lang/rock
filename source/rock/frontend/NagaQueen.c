@@ -1067,8 +1067,8 @@ YY_ACTION(void) yy_2_OocDocCore(GREG *G, char *yytext, int yyleng, yythunk *thun
 {
   yyprintf((stderr, "do yy_2_OocDocCore"));
   yyprintfvTcontext(yytext);
-  yyprintf((stderr, "\n  {yy=nq_StringClone(yytext); printf(\"Got one-line oocdoc: %%s\\n\", yytext) }\n"));
-  yy=nq_StringClone(yytext); printf("Got one-line oocdoc: %s\n", yytext) ;
+  yyprintf((stderr, "\n  {yy=nq_StringClone(yytext) }\n"));
+  yy=nq_StringClone(yytext) ;
 }
 YY_ACTION(void) yy_1_OocDocCore(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_XTYPE YY_XVAR)
 {
