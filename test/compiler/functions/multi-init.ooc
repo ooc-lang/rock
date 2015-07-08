@@ -2,6 +2,16 @@
 intDone := false
 strDone := false
 
+describe("Sholud call right constructor based on suffix", ||
+    Dog new(42)
+    Dog new("43")
+
+    expect(true, intDone)
+    expect(true, strDone)
+)
+
+// support code
+
 Dog: class {
 
     init: func ~int (a: Int) {
@@ -14,19 +24,3 @@ Dog: class {
 
 }
 
-main: func {
-    Dog new(42)
-    Dog new("43")
-
-    if (!intDone) {
-        "Fail! intDone should be true" println()
-        exit(1)
-    }
-
-    if (!strDone) {
-        "Fail! strDone should be true" println()
-        exit(1)
-    }
-
-    "Pass" println()
-}

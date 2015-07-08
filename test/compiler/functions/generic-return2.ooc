@@ -1,4 +1,11 @@
 
+describe("should be able to return Int value through two levels of generic functions", ||
+    v := kablooey(Int)
+    expect(42, v)
+)
+
+// support code
+
 blooey: func <T> (T: Class) -> T {
     match T {
         case Int => 42
@@ -7,15 +14,5 @@ blooey: func <T> (T: Class) -> T {
 
 kablooey: func <T> (T: Class) -> T {
     blooey(T)
-}
-
-main: func {
-    v := kablooey(Int)
-    if (v != 42) {
-        "Fail! (v = %d)" printfln(v)
-        exit(1)
-    }
-
-    "Pass" println()
 }
 
