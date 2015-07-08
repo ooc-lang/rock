@@ -237,6 +237,20 @@ FunctionDecl: class extends Declaration {
         false
     }
 
+    findArg: func (name: String) -> VariableDecl {
+        for (arg in args) {
+            if (arg name == name) return arg
+        }
+        null
+    }
+
+    findTypeArg: func (name: String) -> VariableDecl {
+        for (arg in typeArgs) {
+            if (arg name == name) return arg
+        }
+        null
+    }
+
     markForPartialing: func(var: VariableDecl, mode: Char) {
         if (!partialByReference contains?(var)) {
             match (mode) {

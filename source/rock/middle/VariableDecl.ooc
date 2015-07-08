@@ -192,6 +192,10 @@ VariableDecl: class extends Declaration {
             }
         }
 
+        if (type != null && type getRef() != null) {
+            checkRedefinition(trail, res)
+        }
+
         if(fDecl != null) {
             if(debugCondition()) "Resolving the fDecl." println()
             response := fDecl resolve(trail, res)
@@ -331,6 +335,30 @@ VariableDecl: class extends Declaration {
 
         return Response OK
 
+    }
+
+    checkRedefinition: func (trail: Trail, res: Resolver) {
+        i := trail size - 3
+        
+        while (i >= 0) {
+            node := trail get(i)
+
+            match node {
+                case block: Block =>
+                    // from a block, we can shadow the function argument
+                    return
+
+                case fd: FunctionDecl =>
+                    // if it's a type-arg, re-declarating is legit (so we
+                    // can specify typeArg as an argument directly while calling
+                    // a generic function)
+                    arg := fd findArg(name)
+                    if (arg && fd findTypeArg(name) == null) {
+                        res throwError(VariableRedefinition new(arg, this))
+                    }
+            }
+            i -= 1
+        }
     }
 
     replace: func (oldie, kiddo: Node) -> Bool {
@@ -591,6 +619,17 @@ VariableDeclTuple: class extends VariableDecl {
 
 TupleMismatch: class extends Error {
     init: super func ~tokenMessage
+}
+
+VariableRedefinition: class extends Error {
+
+    first, second: VariableDecl
+
+    init: func (=first, =second) {
+        super(second token, "Redefinition of '#{first name}'")
+        next = InfoError new(first token, "...first definition was here.")
+    }
+
 }
 
 IncompatibleElementInTupleVarDecl: class extends Error {
