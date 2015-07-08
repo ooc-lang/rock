@@ -362,7 +362,7 @@ FunctionDecl: class extends Declaration {
         for(typeArg in typeArgs) {
             type addTypeArg(typeArg)
         }
-        if (vDecl != null) {
+        if (vDecl != null || isAnon) {
             type isClosure = true
         }
 
