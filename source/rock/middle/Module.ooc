@@ -407,8 +407,10 @@ Module: class extends Node {
 
     resolveCallNonRecursive: func (call: FunctionCall, res: Resolver, trail: Trail) {
 
-        //printf(" >> Looking for function %s in module %s!\n", call name, fullName)
+        //" >> Looking for function #{call name} in module #{fullName}!" println()
 
+        // look into functions declared as:
+        // f: func (args) { body }
         functions getEach(call name, |fDecl|
             if (call suffix && fDecl suffix != call suffix) {
                 // skip it! till you make it.
@@ -417,6 +419,10 @@ Module: class extends Node {
 
             call suggest(fDecl, res, trail)
         )
+
+        // look into functions declared as:
+        // f: Func = func (args) { body }
+        body resolveCall(call, res, trail)
 
     }
 
