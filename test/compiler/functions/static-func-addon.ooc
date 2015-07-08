@@ -1,3 +1,11 @@
+
+describe("should allow statis funcs in addon", ||
+    bar := Foo bar()
+    expect(42, bar x)
+)
+
+// support code
+
 Foo: class {
     x: Int
 
@@ -10,14 +18,4 @@ extend Foo {
     }
 }
 
-main: func {
-    bar := Foo bar()
 
-    if(bar x != 42) {
-        "Fail!" println()
-        exit(1)
-    }
-
-    "Pass" println()
-    exit(0)
-}

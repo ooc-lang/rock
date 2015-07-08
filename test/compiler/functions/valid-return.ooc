@@ -1,15 +1,10 @@
 
+describe("should do implicit cast when returning", ||
+    v := valuey()
+    expect(3, v)
+)
+
 valuey: func -> Int {
     return 3.14
-}
-
-main: func {
-    v := valuey()
-    if (v != 3) {
-        "Fail! (v = %d)" printfln(v)
-        exit(1)
-    }
-
-    "Pass" println()
 }
 

@@ -1,9 +1,9 @@
 //! shouldfail
 
-base: class{
+base: class {
     exists?: func -> Bool { return false }
 }
 
-extend base{
+extend base {
     exists?: func -> Bool { return true }
 }
