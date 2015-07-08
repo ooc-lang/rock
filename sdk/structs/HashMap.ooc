@@ -46,21 +46,29 @@ genericEquals: func <K> (k1, k2: K) -> Bool {
     memcmp(k1, k2, K size) == 0
 }
 
-intHash: func <K> (key: K) -> SizeT {
-    result: SizeT = key as Int
-    return result
+charHash: func <K> (key: K) -> UInt32 {
+    // N.B.: both casts are necessary. Casting 'key' directly to UInt would
+    // deref a pointer to UInt which would read random memory just after the
+    // char, which is not a good idea..
+    return (key as Char) as UInt32
 }
 
-pointerHash: func <K> (key: K) -> SizeT {
-    return (key as Pointer) as SizeT
+intHash: func <K> (key: K) -> UInt32 {
+    return (key as Int) as UInt32
 }
 
-charHash: func <K> (key: K) -> SizeT {
-    // both casts are necessary
-    // Casting 'key' directly to UInt would deref a pointer to UInt
-    // which would read random memory just after the char, which is not a good idea..
-    return (key as Char) as SizeT
+pointerHash: func <K> (key: K) -> UInt32 {
+    return (key as Pointer) as UInt32
 }
+
+// According to http://stackoverflow.com/a/9241429, the main
+// purpose of seeded hashes is to avoid deny of service attack
+// (attacker supplies set of strings that all have the same
+// hash, thus rendering hashmaps slow)
+// The ooc sdk isn't really designed with security in mind,
+// but if someone wants to change it in their app (every start-up,
+// for instance), they should be able to just assign this global.
+MURMUR_HASH_SEED: UInt32 = 1
 
 /**
    Port of Austin Appleby's Murmur Hash implementation
@@ -69,17 +77,15 @@ charHash: func <K> (key: K) -> SizeT {
    :param: key The key to hash
    :param: seed The seed value
  */
-murmurHash: func <K> (keyTagazok: K) -> UInt32 {
-
-    seed: UInt32 = 1 // TODO: figure out what makes a good seed value?
+murmurHash: func <K> (key: K) -> UInt32 {
 
     len := K size
     m = 0x5bd1e995 : const UInt32 
     r = 24 : const Int32
     l := len
 
-    h : UInt32 = seed ^ len
-    data := (keyTagazok&) as UInt8*
+    h : UInt32 = MURMUR_HASH_SEED ^ len
+    data := (key&) as UInt8*
 
     while (true) {
         k := (data as UInt32*)@
@@ -119,10 +125,10 @@ murmurHash: func <K> (keyTagazok: K) -> UInt32 {
  * @param s The string to hash
  * @return UInt
  */
-ac_X31_hash: func <K> (key: K) -> SizeT {
+ac_X31_hash: func <K> (key: K) -> UInt32 {
     assert(key != null)
     s : Char* = (K == String) ? (key as String) toCString() as Char* : key as Char*
-    h = s@ : SizeT
+    h = s@ : UInt32
     if (h) {
         s += 1
         while (s@) {
@@ -151,7 +157,7 @@ getStandardEquals: func <T> (T: Class) -> Func <T> (T, T) -> Bool {
     }
 }
 
-getStandardHashFunc: func <T> (T: Class) -> Func <T> (T) -> SizeT {
+getStandardHashFunc: func <T> (T: Class) -> Func <T> (T) -> UInt32 {
     if(T == String || T == CString) {
         ac_X31_hash
     } else if(T size == Pointer size) {
@@ -173,15 +179,13 @@ HashMap: class <K, V> extends BackIterable<V> {
 
     _size, capacity: SizeT
     keyEquals: Func <K> (K, K) -> Bool
-    hashKey: Func <K> (K) -> SizeT
+    hashKey: Func <K> (K) -> UInt32
 
     buckets: HashEntry[]
     keys: ArrayList<K>
 
     size: SizeT {
-    	get {
-            _size
- 	}
+    	get { _size }
     }
 
     /**
@@ -213,7 +217,7 @@ HashMap: class <K, V> extends BackIterable<V> {
      * @param key The key associated with the HashEntry
      */
     getEntry: func (key: K, result: HashEntry*) -> Bool {
-        hash : SizeT = hashKey(key) % capacity
+        hash : UInt32 = hashKey(key) % capacity
         entry := buckets[hash]
 
         if(entry key == null) { return false }
@@ -241,7 +245,7 @@ HashMap: class <K, V> extends BackIterable<V> {
      * @param key The key associated with the HashEntry
      * @return HashEntry
      */
-    getEntryForHash: func (key: K, hash: SizeT, result: HashEntry*) -> Bool {
+    getEntryForHash: func (key: K, hash: UInt32, result: HashEntry*) -> Bool {
         entry := buckets[hash]
 
         if(entry key == null) {
@@ -291,7 +295,7 @@ HashMap: class <K, V> extends BackIterable<V> {
      */
     put: func (key: K, value: V) -> Bool {
 
-        hash : SizeT = hashKey(key) % capacity
+        hash : UInt32 = hashKey(key) % capacity
 
         entry : HashEntry
 
@@ -381,7 +385,7 @@ HashMap: class <K, V> extends BackIterable<V> {
      * @return Bool
      */
     remove: func (key: K) -> Bool {
-        hash : SizeT = hashKey(key) % capacity
+        hash : UInt32 = hashKey(key) % capacity
 
         prev = null : HashEntry*
         entry: HashEntry* = (buckets data as HashEntry*)[hash]&
