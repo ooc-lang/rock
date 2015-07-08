@@ -754,17 +754,17 @@ BinaryOp: class extends Expression {
 
         if(args getSize() != 2) {
             match (symbol) {
-                case "-" || "+" =>
+                case "-" || "+" || "-=" || "+=" =>
                     if (args getSize() == 1) {
                         // correct, but not the right overload type - skip
                         return 0
                     } else {
                         token module params errorHandler onError(InvalidBinaryOverload new(op token,
-                            "Argl, you need 1 or 2 arguments to override the '%s' operator, not %d" format(symbol, args getSize())))
+                            "Overloads for '%s' operator require 1 or 2 arguments, not %d" format(symbol, args getSize())))
                     }
                 case =>
                     token module params errorHandler onError(InvalidBinaryOverload new(op token,
-                        "Argl, you need 2 arguments to override the '%s' operator, not %d" format(symbol, args getSize())))
+                        "Overloads for '%s' operator require 2 arguments, not %d" format(symbol, args getSize())))
             }
         }
 
