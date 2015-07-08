@@ -1,5 +1,5 @@
 
-main: func {
+describe("foreach should support iterating through String (Iterable)", ||
     a := "hello"
     b := Buffer new()
 
@@ -8,10 +8,5 @@ main: func {
     }
     result := b toString()
 
-    if (result != a) {
-        "Fail! result = %s" printfln(result)
-        exit(1)
-    }
-
-    "Pass" println()
-}
+    expect(a, result)
+)
