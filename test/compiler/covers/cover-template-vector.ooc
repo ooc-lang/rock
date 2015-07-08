@@ -1,4 +1,20 @@
 
+describe("a fairly complex cover template class", ||
+    vf := Vec2<Float> new(1.0, 1.0)
+    vf add!(1.0, 2.0)
+
+    expect(2.0, vf x)
+    expect(3.0, vf y)
+
+    vi := Vec2<Int> new(3, 4)
+    vi = vi add(4, 4)
+
+    expect(7, vi x)
+    expect(8, vi y)
+)
+
+// support code
+
 Vec2: cover template <T> {
     x, y: T
 
@@ -20,23 +36,4 @@ Vec2: cover template <T> {
     }
 }
 
-main: func {
-    vf := Vec2<Float> new(1.0, 1.0)
-    vf add!(1.0, 1.0)
-
-    if (vf x != 2.0 || vf y != 2.0) {
-        "Fail! #{vf x}, #{vf y} should equal 2.0, 2.0" println()
-        exit(1)
-    }
-
-    vi := Vec2<Int> new(3, 4)
-    vi = vi add(4, 3)
-
-    if (vi x != 7 || vi y != 7) {
-        "Fail! #{vi x}, #{vi y} should equal 7, 7" println()
-        exit(1)
-    }
-
-    "Pass" println()
-}
 

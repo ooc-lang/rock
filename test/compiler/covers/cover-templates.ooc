@@ -1,4 +1,41 @@
 
+describe("A cover template-based version of array", ||
+
+    ints := MyArray<Int> new(4)
+    ints[0] = 1
+    ints[1] = 2
+    ints[2] = 3
+    ints[3] = 4
+
+    "Regular foreach: " println()
+    for (i in 0..ints length) {
+        expect(i + 1, ints[i])
+    }
+
+    "each(): " println()
+    j := 1
+    ints each(|n|
+        expect(j, n)
+        j += 1
+    )
+
+    ants := MyArray<Int> new(2)
+    ants[0] = 5
+    ants[1] = 6
+
+    unts := ints + ants
+
+    "unts each(): " println()
+    j = 1
+    unts each(|n|
+        expect(j, n)
+        j += 1
+    )
+
+)
+
+// Support code
+
 /**
  * With template, everything is inlined - the struct
  * type is written inline, the methods become macros,
@@ -60,36 +97,5 @@ MyArray: cover template <T> {
             f(this[i])
         }
     }
-}
-
-main: func {
-
-    ints := MyArray<Int> new(4)
-    ints[0] = 1
-    ints[1] = 2
-    ints[2] = 3
-    ints[3] = 4
-
-    "Regular foreach: " println()
-    for (i in 0..ints length) {
-        ints[i] toString() println()
-    }
-
-    "each(): " println()
-    ints each(|n|
-        n toString() println()
-    )
-
-    ants := MyArray<Int> new(2)
-    ants[0] = 5
-    ants[1] = 6
-
-    unts := ints + ants
-
-    "unts each(): " println()
-    unts each(|n|
-        n toString() println()
-    )
-
 }
 
