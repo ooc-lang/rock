@@ -73,14 +73,14 @@ FuncType: class extends Type {
         copy := This new(token)
 
         if(typeArgs) {
-            typeArgs each(|typeArg|
+            for (typeArg in typeArgs) {
                 copy addTypeArg(typeArg clone())
-            )
+            }
         }
 
-        argTypes each(|argType|
-            copy argTypes add(argType clone())
-        )
+        for (argType in argTypes) {
+            copy argTypes add(argType ? argType clone(): null)
+        }
 
         copy returnType = returnType ? returnType clone() : null
         copy varArg = varArg
@@ -176,7 +176,7 @@ FuncType: class extends Type {
 
         for(argType in argTypes) {
             if(!argType) {
-                "Got null argType in FuncType %s" printfln(toString())
+                "Got null argType in FuncType #{this}. Trail =\n #{trail}" println()
                 continue
             }
             response := argType resolve(trail, res)

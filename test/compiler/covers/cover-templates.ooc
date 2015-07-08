@@ -1,4 +1,6 @@
 
+use sam-assert
+
 describe("A cover template-based version of array", ||
 
     ints := MyArray<Int> new(4)
@@ -82,13 +84,13 @@ MyArray: cover template <T> {
         result := This<T> new(length + other length)
 
         i := 0
-        doAppend := func (v: T) {
-            result[i] = v
+        doAppend := func (vavavouey: T) {
+            result[i] = vavavouey
             i += 1
         }
 
-        each(|v| doAppend(v))
-        other each(|v| doAppend(v))
+        each(|vignoble| doAppend(vignoble))
+        other each(|valery| doAppend(valery))
         result
     }
 

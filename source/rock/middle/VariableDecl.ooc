@@ -185,7 +185,7 @@ VariableDecl: class extends Declaration {
                 ("For " + toString() + ", resolving type " + type toString() + ", of type " + type class name) println()
             }
             response := type resolve(trail, res)
-            if(debugCondition()) "Done resolving the type, ref = %s" printfln(type getRef() ? type getRef() toString() : "nil")
+            if(debugCondition() || res params veryVerbose) "Done resolving the type, ref = %s" printfln(type getRef() ? type getRef() toString() : "nil")
             if(!response ok()) {
                 trail pop(this)
                 return response

@@ -140,11 +140,11 @@ InterpolatedStringLiteral: class extends StringLiteral {
 
         trail push(this)
         for(i in 0 .. strings getSize()) {
-            // First we push a text chunck
+            // First we push a text chunk
             literalBuffer append(strings[i])
 
             // Now, if we do have an expression, we must go to serious business
-            if(i == expressions getSize()) break
+            if (i == expressions getSize()) break
             
             expr := expressions[i]
             type := expr getType()
@@ -154,6 +154,8 @@ InterpolatedStringLiteral: class extends StringLiteral {
                 res wholeAgain(this, "expr type or type ref is null")
                 return Response OK
             }
+
+            type = type templateAbsolute()
 
             specifier := match {
                 case type isFloatingPointType() => "%f"
@@ -173,67 +175,71 @@ InterpolatedStringLiteral: class extends StringLiteral {
                 continue
             }
 
-            if(!res fatal) {
-                // So we must make sure that we have all super-refs of our type right up to Object to be able to look up a toString method
-                // Also, we make sure all the ref's have metas as well
-                ref := type getRef()
-                objectReached? := false
-                while(ref && ref instanceOf?(TypeDecl)) {
-                    ref = ref as TypeDecl isMeta ? ref as TypeDecl getNonMeta() : ref
+            // So we must make sure that we have all super-refs of our type right up to Object to be able to look up a toString method
+            // Also, we make sure all the ref's have metas as well
+            ref := type getRef()
+            objectReached? := false
+            while(ref && ref instanceOf?(TypeDecl)) {
+                ref = ref as TypeDecl isMeta ? ref as TypeDecl getNonMeta() : ref
 
-                    if(!ref as TypeDecl getMeta()) {
+                if(!ref as TypeDecl getMeta()) {
+                    break
+                }
+
+                if(ref as TypeDecl isObjectClass()) {
+                    objectReached? = true
+                    break
+                }
+
+                ref = ref as TypeDecl getSuperType() ? ref as TypeDecl getSuperType() getRef() : null
+            }
+
+            if(!objectReached?) {
+                trail pop(this)
+                res wholeAgain(this, "need all of the expression's meta and non meta refs up to Object")
+                return Response OK
+            }
+
+            // Let's get back to our first ref, this time knowing it is a TypeDecl
+            typeDecl := type getRef() as TypeDecl
+            fail := true
+            while(typeDecl) {
+                if(!typeDecl isMeta) typeDecl = typeDecl getMeta()
+
+                // Let's try to find a toString method that matches our needs
+                fDecl := typeDecl lookupFunction("toString", null)
+
+                if(fDecl) {
+                    returnType := fDecl returnType
+
+                    if(fDecl args empty?() && \
+                        returnType instanceOf?(BaseType) && \
+                        (returnType equals?(objectType) || returnType as BaseType inheritsFrom?(objectType))) {
+
+                        // It matches! o/
+                        toStringCall := FunctionCall new(expr, "toString", expr token)
+                        args add(toStringCall)
+                        fail = false
                         break
                     }
-
-                    if(ref as TypeDecl isObjectClass()) {
-                        objectReached? = true
-                        break
-                    }
-
-                    ref = ref as TypeDecl getSuperType() ? ref as TypeDecl getSuperType() getRef() : null
                 }
 
-                if(!objectReached?) {
-                    trail pop(this)
-                    res wholeAgain(this, "need all of the expression's meta and non meta refs up to Object")
-                    return Response OK
+                // If we don't check that the typeDecl is not a root class, this results in an infinite loop (Object -> Class -> Object -> ...)
+                // Also, we know that Object and Class do not define a toString() method (if that is too much of an assumption considering custom SDKs, let us know)
+                typeDecl = match (typeDecl getSuperType() != null && !typeDecl getSuperType() getRef() as TypeDecl isRootClass()) {
+                    case true => typeDecl getSuperType() getRef()
+                    case => null
                 }
+            }
 
-                // Let's get back to our first ref, this time knowing it is a TypeDecl
-                typeDecl := type getRef() as TypeDecl
-                fail := true
-                while(typeDecl) {
-                    if(!typeDecl isMeta) typeDecl = typeDecl getMeta()
-
-                    // Let's try to find a toString method that matches our needs
-                    fDecl := typeDecl lookupFunction("toString", null)
-
-                    if(fDecl) {
-                        returnType := fDecl returnType
-
-                        if(fDecl args empty?() && \
-                           returnType instanceOf?(BaseType) && \
-                           (returnType equals?(objectType) || returnType as BaseType inheritsFrom?(objectType))) {
-
-                            // It matches! o/
-                            toStringCall := FunctionCall new(expr, "toString", expr token)
-                            args add(toStringCall)
-                            fail = false
-                            break
-                        }
-                    }
-
-                    // If we don't check that the typeDecl is not a root class, this results in an infinite loop (Object -> Class -> Object -> ...)
-                    // Also, we know that Object and Class do not define a toString() method (if that is too much of an assumption considering custom SDKs, let us know)
-                    typeDecl = match (typeDecl getSuperType() != null && !typeDecl getSuperType() getRef() as TypeDecl isRootClass()) {
-                        case true => typeDecl getSuperType() getRef()
-                        case => null
-                    }
-                }
-
-                if(fail) {
-                    res throwError(InvalidInterpolatedExpressionError new(token, \
+            if (fail) {
+                if (res fatal) {
+                    res throwError(InvalidInterpolatedExpressionError new(token,
                         "Expression %s of type %s cannot be interpolated to string as it is neither a base type nor has a valid toString method." format(expr toString(), type toString())))
+                } else {
+                    res wholeAgain(expr, "Waiting on expression type to do string interpolation")
+                    trail pop(this)
+                    return Response OK
                 }
             }
 
@@ -268,6 +274,15 @@ InterpolatedStringLiteral: class extends StringLiteral {
                 }
         }
         false
+    }
+
+    clone: func -> This {
+        copy := new(this)
+        copy strings addAll(strings)
+        for (e in expressions) {
+            copy expressions add(e clone())
+        }
+        copy
     }
 
 }

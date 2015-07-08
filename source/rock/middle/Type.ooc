@@ -193,6 +193,10 @@ Type: abstract class extends Expression {
         null
     }
 
+    templateAbsolute: func -> This {
+        clone()
+    }
+
 }
 
 TypeAccess: class extends Type {

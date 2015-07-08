@@ -692,6 +692,15 @@ BaseType: class extends Type {
 
     setNamespace: func (=namespace) {}
 
+    templateAbsolute: func -> This {
+        c := clone()
+        match (c ref) {
+            case td: TypeDecl =>
+                c name = td name
+        }
+        c
+    }
+
 }
 
 VoidType: class extends BaseType {

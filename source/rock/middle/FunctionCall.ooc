@@ -166,7 +166,7 @@ FunctionCall: class extends Expression {
      * a return expression, when it's being used.
      */
     debugCondition: final func -> Bool {
-        false
+        name == "fafou"
     }
 
     /**
@@ -408,7 +408,7 @@ FunctionCall: class extends Expression {
 
             if (res fatal && refScore == -1) {
                 // something went wrong somewhere else
-                res wholeAgain(this, "(error-throwing) waiting on some FunctionDecl to resolve.")
+                res wholeAgain(this, "call #{this} waiting on #{ref ? ref toString() : "a function"} to resolve.")
                 return Response OK
             }
 
@@ -554,6 +554,9 @@ FunctionCall: class extends Expression {
                 message := "No such function"
                 if(expr == null) {
                     message = "No such function %s%s" format(prettyName, getArgsTypesRepr())
+                    if (ref) {
+                        message += "\n\n>> Closest match: %s\n" format(ref toString())
+                    }
                 } else if(expr getType() != null) {
                     if(res params veryVerbose) {
                         message = "No such function %s%s for `%s` (%s)" format(prettyName, getArgsTypesRepr(),

@@ -905,7 +905,7 @@ TypeDecl: abstract class extends Declaration {
 
     }
 
-    resolveCall: func (call : FunctionCall, res: Resolver, trail: Trail) -> Int {
+    resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
 
         if(call debugCondition()) {
             "\n====> Search %s in %s (which has %d functions)" printfln(call toString(), name, functions size)

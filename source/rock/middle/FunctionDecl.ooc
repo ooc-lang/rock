@@ -169,6 +169,7 @@ FunctionDecl: class extends Declaration {
         copy externName = externName
         copy unmangledName = unmangledName
         copy suffix = suffix
+        copy acs = acs
 
         copy isThisRef = isThisRef
         copy context = context
@@ -354,7 +355,9 @@ FunctionDecl: class extends Declaration {
         }
         for(arg in args) {
             if(arg instanceOf?(VarArg)) break
-            type argTypes add(arg getType())
+            argType := arg getType()
+            // if (!argType) return null
+            type argTypes add(argType)
         }
         type returnType = returnType
         for(typeArg in typeArgs) {
@@ -617,7 +620,7 @@ FunctionDecl: class extends Declaration {
             }
             args each(| arg |
                 if (arg getType() == null || !arg getType() isResolved()) {
-                    "Looping because of arg %s" format(arg toString()) println()
+                    if (debugCondition()) "Looping because of arg %s" format(arg toString()) println()
                     res wholeAgain(this, "need arg type for the ref")
                     return
                 }
@@ -907,7 +910,6 @@ FunctionDecl: class extends Declaration {
         }
 
         if (needTrampoline) {
-
             /*
                 1. The generic function arguments get the postfix "_generic".
                 2. The type of each generic argument is figured out.
@@ -939,6 +941,7 @@ FunctionDecl: class extends Declaration {
 
             }
         }
+
         _unwrappedACS = true
         return true
     }
@@ -954,11 +957,18 @@ FunctionDecl: class extends Declaration {
         }
 
         for (e in partialByValue) {
-            if(e getType() == null || !getType() isResolved()) {
+            if(e getType() == null || !e getType() isResolved()) {
                 res wholeAgain(this, "Need partial-by-value's return types")
                 return
             }
         }
+
+        closureType := getType()
+        if (!closureType) {
+            res wholeAgain(this, "Need our complete type before unwarapping")
+            return
+        }
+        closureType = closureType clone()
 
         // find the outer function call
         parentIdx := trail find(FunctionCall)
@@ -977,7 +987,6 @@ FunctionDecl: class extends Declaration {
         varAcc setRef(this)
         module addFunction(this)
 
-        closureType := getType() clone()
         closureType as FuncType isClosure = true
 
         isFlat := (parentCall != null && parentCall getRef() isExtern())
