@@ -10,7 +10,7 @@ script:
   - make clean self
   - make extensions
   - git clone --depth=1 git://github.com/nddrylliog/sam.git 
-  - (cd sam && rock -v)
+  - (cd sam && rock -v sam.use)
   - sam test rock.use
 
 notifications:
