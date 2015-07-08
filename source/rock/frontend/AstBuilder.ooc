@@ -700,6 +700,10 @@ AstBuilder: class {
         fDecl doc = doc toString()
         stack push(fDecl)
     }
+    
+    onFunctionACS: unmangled(nq_onFunctionACS) func {
+        peek(FunctionDecl) acs = true
+    }
 
     onFunctionExtern: unmangled(nq_onFunctionExtern) func (externName: CString) {
         peek(FunctionDecl) setExternName(externName toString())

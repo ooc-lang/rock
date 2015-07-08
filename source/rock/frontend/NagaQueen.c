@@ -283,6 +283,7 @@ void nq_onOperatorBodyStart(void *this);
 void nq_onOperatorEnd(void *this);
 
 void nq_onFunctionStart(void *this, char *name, char *doc);
+void nq_onFunctionACS(void *this);
 void nq_onFunctionExtern(void *this, char *externName);
 void nq_onFunctionUnmangled(void *this, char *unmangledName);
 void nq_onFunctionAbstract(void *this);
@@ -1670,8 +1671,8 @@ YY_ACTION(void) yy_1_ACS(GREG *G, char *yytext, int yyleng, yythunk *thunk, YY_X
 #define i G->val[-2]
   yyprintf((stderr, "do yy_1_ACS"));
   yyprintfvTcontext(yytext);
-  yyprintf((stderr, "\n  {tokenPos; nq_onFunctionStart(core->this, \"\", \"\"); nq_onFunctionArgsStart(core->this); }\n"));
-  tokenPos; nq_onFunctionStart(core->this, "", ""); nq_onFunctionArgsStart(core->this); ;
+  yyprintf((stderr, "\n  {tokenPos; nq_onFunctionStart(core->this, \"\", \"\"); nq_onFunctionACS(core->this); nq_onFunctionArgsStart(core->this); }\n"));
+  tokenPos; nq_onFunctionStart(core->this, "", ""); nq_onFunctionACS(core->this); nq_onFunctionArgsStart(core->this); ;
 #undef s
 #undef i
 }

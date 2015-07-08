@@ -120,6 +120,8 @@ FunctionDecl: class extends Declaration {
     clsAccesses := ArrayList<VariableAccess> new()
     fromClosure := false
     _unwrappedClosure := false
+
+    acs := false
     _unwrappedACS := false
 
     /**
@@ -607,8 +609,7 @@ FunctionDecl: class extends Declaration {
         if (isClosure) {
             fromClosure = true
 
-            //if (!_unwrappedACS && !argumentsReady()) {
-            if (!_unwrappedACS) {
+            if (!_unwrappedACS && acs) {
                 if (!unwrapACS(trail, res)) {
                     trail pop(this)
                     return Response OK
