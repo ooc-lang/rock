@@ -1182,6 +1182,10 @@ AstBuilder: class {
         BinaryOp new(left, right, OpType doubleArr, token())
     }
 
+    onAssignMod: unmangled(nq_onAssignMod) func (left, right: Expression) -> BinaryOp {
+        BinaryOp new(left, right, OpType modAss, token())
+    }
+
     onAssignAdd: unmangled(nq_onAssignAdd) func (left, right: Expression) -> BinaryOp {
         BinaryOp new(left, right, OpType addAss, token())
     }

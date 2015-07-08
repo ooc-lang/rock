@@ -22,11 +22,13 @@ OpType: enum {
 
     doubleArr  /*  => */
     ass        /*  =  */
+
     addAss     /*  += */
     subAss     /*  -= */
     mulAss     /*  *= */
     expAss     /*.**=.*/
     divAss     /*  /= */
+    modAss     /*  %= */
     rshiftAss  /* >>= */
     lshiftAss  /* <<= */
     bOrAss     /*  |= */
@@ -59,6 +61,7 @@ opTypeRepr := [
         "*=",
         "**=",
         "/=",
+        "%=",
         ">>=",
         "<<=",
         "|=",
@@ -727,12 +730,15 @@ BinaryOp: class extends Expression {
 
         symbol := repr()
 
-        half := false
+        half := 0
 
         if(!(op getSymbol() equals?(symbol))) {
             if(isAssign() && symbol startsWith?(op getSymbol())) {
-                // alright!
-                half = true
+                s1 := op getSymbol()
+                while (half < symbol size && half < s1 size && symbol[half] == s1[half]) {
+                    half += 1
+                }
+                half = symbol size - half
             } else {
                 return 0 // not the right overload type - skip
             }
@@ -779,9 +785,9 @@ BinaryOp: class extends Expression {
 
         score := leftScore + rightScore
 
-        if (half) {
+        if (half > 0) {
             // used to prioritize '+=', '-=', and blah, over '+ and =', etc.
-            score /= 2
+            score /= half + 1
         }
 
         return score
