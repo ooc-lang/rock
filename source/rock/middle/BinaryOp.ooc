@@ -612,7 +612,7 @@ BinaryOp: class extends Expression {
             // If the left side is an immutable function, fail immediately.
             l := lRef as FuncType
             if (!(l isClosure)) {
-            token module params errorHandler onError(InvalidBinaryOverload new(token,
+            token module params errorHandler onError(InvalidOperatorUse new(token,
                 "%s is an immutable function. You must not reassign it. (Perhaps you want to use a first-class function instead?)" format(left toString())))
             }
         }
@@ -752,20 +752,8 @@ BinaryOp: class extends Expression {
             args add(0, fDecl owner getThisDecl())
         }
 
-        if(args getSize() != 2) {
-            match (symbol) {
-                case "-" || "+" || "-=" || "+=" =>
-                    if (args getSize() == 1) {
-                        // correct, but not the right overload type - skip
-                        return 0
-                    } else {
-                        token module params errorHandler onError(InvalidBinaryOverload new(op token,
-                            "Overloads for '%s' operator require 1 or 2 arguments, not %d" format(symbol, args getSize())))
-                    }
-                case =>
-                    token module params errorHandler onError(InvalidBinaryOverload new(op token,
-                        "Overloads for '%s' operator require 2 arguments, not %d" format(symbol, args getSize())))
-            }
+        if (args size < 2) {
+            return 0 // not the right overload type -- skip
         }
 
         opLeft  := args get(0)
@@ -802,10 +790,6 @@ BinaryOp: class extends Expression {
         }
     }
 
-}
-
-InvalidBinaryOverload: class extends Error {
-    init: super func ~tokenMessage
 }
 
 InvalidOperatorUse: class extends Error {

@@ -1,4 +1,6 @@
 
+use sam-assert
+
 Point2D: class {
     x, y: Int
     init: func(=x, =y)

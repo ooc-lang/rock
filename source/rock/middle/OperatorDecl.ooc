@@ -103,6 +103,31 @@ OperatorDecl: class extends Expression {
             }
         }
 
+        if (symbol != "as") {
+            numArgs := fDecl args size
+            if (fDecl owner) {
+                numArgs += 1
+            }
+
+            if(numArgs != 2) {
+                match (symbol) {
+                    case "-" || "+" =>
+                        if (numArgs != 1) {
+                            res throwError(InvalidOperatorOverload new(token,
+                                "Overloading '%s' requires 1 or 2 arguments, not %d" format(symbol, numArgs)))
+                        }
+                    case "[]=" =>
+                        if (numArgs != 3) {
+                            res throwError(InvalidOperatorOverload new(token,
+                                "Overloading '%s' requires 3 arguments, not %d" format(symbol, numArgs)))
+                        }
+                    case =>
+                        res throwError(InvalidOperatorOverload new(token,
+                            "Overloading '%s' requires 2 arguments, not %d" format(symbol, numArgs)))
+                }
+            }
+        }
+
         Response OK
     }
 
@@ -163,6 +188,7 @@ OperatorDecl: class extends Expression {
 InvalidOperatorOverload: class extends Error {
     init: super func ~tokenMessage
 }
+
 
 OverloadStatus: enum {
     TRYAGAIN // operator usage waiting for something else to resolve
