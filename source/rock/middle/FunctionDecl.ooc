@@ -356,7 +356,6 @@ FunctionDecl: class extends Declaration {
         for(arg in args) {
             if(arg instanceOf?(VarArg)) break
             argType := arg getType()
-            // if (!argType) return null
             type argTypes add(argType)
         }
         type returnType = returnType

@@ -84,13 +84,13 @@ MyArray: cover template <T> {
         result := This<T> new(length + other length)
 
         i := 0
-        doAppend := func (vavavouey: T) {
-            result[i] = vavavouey
+        doAppend := func (v: T) {
+            result[i] = v
             i += 1
         }
 
-        each(|vignoble| doAppend(vignoble))
-        other each(|valery| doAppend(valery))
+        each(|v| doAppend(v))
+        other each(|v| doAppend(v))
         result
     }
 
