@@ -9,15 +9,26 @@ describe("nested closures should be able to modify outer variable by ref", ||
             g = (3, 0) as Tuple
         )
     )
-    expect(3, g a)
+    expect(g a, 3)
 )
 
-describe("nested closures should not capture outer closure by ref by default", ||
+describe("nested closures should not capture outer var by ref by default", ||
     g := (1, 0) as Tuple
     please(||
         g a = 2
     )
-    expect(1, g a)
+    expect(g a, 1)
+)
+
+describe("nested closures should capture outer var by ref when marked", ||
+    g := (1, 0) as Tuple
+    please(||
+        please(||
+            g = g
+            g a = 2
+        )
+    )
+    expect(g a, 2)
 )
 
 // support code
