@@ -288,12 +288,6 @@ VariableAccess: class extends Expression {
             parent := trail peek()
 
             if (!fType isClosure) {
-
-                closureElements := [
-                    this
-                    NullLiteral new(token)
-                ] as ArrayList<VariableAccess>
-
                 closureType: FuncType = null
                 if (debugCondition() || res params veryVerbose) {
                     "[funcTypeDone] doing our business for %s. parent = %s" printfln(toString(), parent toString())
@@ -375,6 +369,12 @@ VariableAccess: class extends Expression {
                 if (closureType) {
                     if (closureType instanceOf?(FuncType)) {
                         fType isClosure = true
+
+                        closureElements := [
+                            this
+                            NullLiteral new(token)
+                        ] as ArrayList<VariableAccess>
+
                         closure := StructLiteral new(closureType, closureElements, token)
                         if(trail peek() replace(this, closure)) {
                             if (debugCondition() || res params veryVerbose) {
