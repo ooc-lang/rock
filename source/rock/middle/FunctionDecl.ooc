@@ -729,8 +729,8 @@ FunctionDecl: class extends Declaration {
             }
         }
 
-       if(name == "main" && owner == null) {
-            // TODO: move me out of middle/ !!
+       if(isMain()) {
+            // TODO: move out of middle/
 
             match (args getSize()) {
                 case 0 => {
@@ -755,9 +755,7 @@ FunctionDecl: class extends Declaration {
                         constructCall := FunctionCall new("strArrayListFromCString", arg token)
                         constructCall args add(VariableAccess new(argc, arg token)) \
                                           .add(VariableAccess new(argv, arg token))
-                        // Mangle the argument's name :D
-                        arg fullName = "%s__%s" format(arg token module getUnderName(), arg name)
-                        vdfe := VariableDecl new(null, arg getFullName(), constructCall, token)
+                        vdfe := VariableDecl new(null, arg getName(), constructCall, token)
                         body add(0, vdfe)
                     }else if(args first() getType() getName() == "String"){
                         // replace (String[]) with (argc: Int, argv: CString*)
