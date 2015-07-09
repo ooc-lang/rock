@@ -1,4 +1,5 @@
 import structs/ArrayList
+import rock/frontend/Token
 import ../[Type, BaseType, TypeDecl, CoverDecl, ClassDecl, Expression, EnumDecl, Node]
 import ../tinker/[Resolver, Errors]
 
