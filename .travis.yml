@@ -14,7 +14,6 @@ script:
   - make rescue
   - make clean self
   - make clean self
-  - make extensions
   - git clone --depth=1 git://github.com/fasterthanlime/sam.git 
   - (cd sam && rock -v sam.use)
   - sam test rock.use
