@@ -653,7 +653,7 @@ BaseType: class extends Type {
 
     realTypize: func (call: FunctionCall) -> Type {
         finalScore := 0
-        solved := call resolveTypeArg(name, null, finalScore&)
+        solved := call resolveTypeArg(null, null, name, finalScore&)
         if(solved) return solved
         this
     }

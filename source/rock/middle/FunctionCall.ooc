@@ -7,6 +7,7 @@ import Visitor, Expression, FunctionDecl, Argument, Type,
        TypeList, Scope, Block, StructLiteral, NullLiteral,
        IntLiteral, Ternary, ClassDecl, CoverDecl, ArrayLiteral, Module,
        StringLiteral
+import algo/typeAnalysis
 import text/EscapeSequence
 import tinker/[Response, Resolver, Trail, Errors]
 
@@ -166,7 +167,7 @@ FunctionCall: class extends Expression {
      * a return expression, when it's being used.
      */
     debugCondition: final func -> Bool {
-        name == "fafou"
+        false
     }
 
     /**
@@ -853,7 +854,7 @@ FunctionCall: class extends Expression {
             finalScore := 0
             if(ref returnType isGeneric()) {
                 if(res params veryVerbose) "\t$$$$ resolving returnType %s for %s" printfln(ref returnType toString(), toString())
-                returnType = resolveTypeArg(ref returnType getName(), trail, finalScore&)
+                returnType = resolveTypeArg(trail, res, ref returnType getName(), finalScore&)
                 if((finalScore == -1 || returnType == null) && res fatal) {
                     res throwError(InternalError new(token, "Not enough info to resolve return type %s of function call\n" format(ref returnType toString())))
                 }
@@ -916,7 +917,7 @@ FunctionCall: class extends Expression {
                 if(typeArg getRef() instanceOf?(VariableDecl)) {
                     typeArgName := typeArg getRef() as VariableDecl getName()
                     finalScore := 0
-                    result := resolveTypeArg(typeArgName, trail, finalScore&)
+                    result := resolveTypeArg(trail, res, typeArgName, finalScore&)
                     if(finalScore == -1) return false
                     if(debugCondition()) "[realTypize] result = %s\n" printfln(result ? result toString() : "(nil)")
                     if(result) baseType typeArgs set(j, TypeAccess new(result, typeArg token))
@@ -1097,7 +1098,7 @@ FunctionCall: class extends Expression {
             //if(res params veryVerbose) printf("\t$$$$ resolving typeArg %s\n", typeArg name)
 
             finalScore := 0
-            typeResult := resolveTypeArg(typeArg name, trail, finalScore&)
+            typeResult := resolveTypeArg(trail, res, typeArg name, finalScore&)
             if(finalScore == -1) break
             if(typeResult) {
                 result := match {
@@ -1138,12 +1139,11 @@ FunctionCall: class extends Expression {
 
     }
 
-    resolveTypeArg: func (typeArgName: String, trail: Trail, finalScore: Int@) -> Type {
+    resolveTypeArg: func (trail: Trail, res: Resolver, typeArgName: String, finalScore: Int@) -> Type {
 
         if(debugCondition()) "Should resolve typeArg %s in call %s" printfln(typeArgName, toString())
 
         if(ref && refScore > 0) {
-
             if(ref genericConstraints) for(key in ref genericConstraints getKeys()) {
                 if(key getName() == typeArgName) {
                     return ref genericConstraints get(key)
@@ -1159,20 +1159,29 @@ FunctionCall: class extends Expression {
             }
 
             if(inFunctionTypeArgs) {
-                j := 0
-                for(arg in ref args) {
-                    /* myFunction: func <T> (myArg: T)
+                combinedResult: Type = null
+
+                for((j, arg) in ref args) {
+                    /*
+                     * Use case:
+                     * 
+                     *   myFunction: func <T> (myArg: T)
+                     *
                      * or:
-                     * myFunction: func <T> (myArg: T[])
-                     * or any level of nesting =)
+                     *
+                     *   myFunction: func <T> (myArg: T[])
+                     *
+                     * or any level of nesting
                      */
                     argType := arg type
                     refCount := 0
-                    while(argType instanceOf?(SugarType)) {
+
+                    while (argType instanceOf?(SugarType)) {
                         argType = argType as SugarType inner
                         refCount += 1
                     }
-                    if(argType getName() == typeArgName) {
+
+                    if (argType getName() == typeArgName) {
                         implArg := args get(j)
                         match implArg {
                             case addr: AddressOf =>
@@ -1182,14 +1191,21 @@ FunctionCall: class extends Expression {
                         }
 
                         result := implArg getType()
+                        if (result == null) {
+                            if(debugCondition()) " >> We need the inferred return type. Looping" println()
+                            finalScore = -1
+                            return null
+                        }
+
                         realCount := 0
-                        while(result instanceOf?(SugarType) && realCount < refCount) {
+                        while (result instanceOf?(SugarType) && realCount < refCount) {
                             result = result as SugarType inner
                             realCount += 1
                         }
+
                         if(realCount == refCount) {
                             if(debugCondition()) " >> Found arg-arg %s for typeArgName %s, returning %s" printfln(implArg toString(), typeArgName, result toString())
-                            return result
+                            combineTypesHard(res, this, combinedResult&, result, "arg-arg")
                         }
                     }
 
@@ -1228,13 +1244,18 @@ FunctionCall: class extends Expression {
 
                                 if(debugCondition()) " >> Found ref-arg %s for typeArgName %s, returning %s" format(implArg toString(), typeArgName, result toString()) println()
                                 return result
+
                             case tAcc: TypeAccess =>
                                 return tAcc inner
+
                             case type: Type =>
                                 return type
                         }
                     }
-                    j += 1
+                }
+
+                if (combinedResult) {
+                    return combinedResult
                 }
 
                 /* myFunction: func <T> (myArg: OtherType<T>) */
@@ -1277,6 +1298,7 @@ FunctionCall: class extends Expression {
                         return result
                     }
                 }
+
             }
         }
 

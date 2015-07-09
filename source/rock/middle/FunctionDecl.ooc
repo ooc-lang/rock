@@ -423,9 +423,13 @@ FunctionDecl: class extends Declaration {
             typeArgs := type getTypeArgs()
 
             if (typeArgs == null) continue
-            j := -1
-            for (typeArg in typeArgs) {
-                j += 1
+            for ((j, typeArg) in typeArgs) {
+                if (typeArg == null) continue
+                if (!typeArg instanceOf?(TypeAccess)) {
+                    // FIXME: #895
+                    continue
+                }
+
                 if (debugCondition()) "%s vs %s" printfln(typeArg getName(), typeArgName)
 
                 if (typeArg getName() == typeArgName) {
@@ -923,7 +927,7 @@ FunctionDecl: class extends Declaration {
             for (arg in args) {
                 if (arg getType() isGeneric()) {
                     oldName := arg name
-                    genType := parentCall resolveTypeArg(arg getType() getName(), trail, fScore&)
+                    genType := parentCall resolveTypeArg(trail, res, arg getType() getName(), fScore&)
                     if (fScore == -1 || genType == null) {
                         res wholeAgain(this, "Can't figure out the actual type of the generic.")
                         return false

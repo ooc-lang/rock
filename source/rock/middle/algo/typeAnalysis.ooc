@@ -1,6 +1,8 @@
-import structs/ArrayList
-import ../[Type, BaseType, TypeDecl, CoverDecl, ClassDecl, Expression]
 
+import structs/ArrayList
+
+import ../[Type, BaseType, TypeDecl, CoverDecl, ClassDecl, Expression, Node]
+import ../tinker/[Resolver, Errors]
 
 distanceFromObject: func(type: BaseType) -> Int {
     ref := type ref as TypeDecl
@@ -34,6 +36,7 @@ _createSugarWith: func(inner, sugar: Type) -> Type {
     arrayExprs := ArrayList<Expression> new()
 
     /* Let's say our sugar was PointerType(ArrayType(Foo))
+
        We want to construct our inner (lets say Int) to this sugar like that:
        Int => ArrayType(Int) => PointerType(ArrayType(Int))
        So we add the steps we will take in reverse */
@@ -67,7 +70,7 @@ getInnermostType: func(type: Type) -> Type {
 // Returns the clsoer common root of two types
 // A common root is a type that represents both of the types it comes from
 // For example, if Bar extends Foo and Baz extends Foo, Foo is the closer common root of Foo and Bar
-findCommonRoot: func(type1, type2: Type) -> Type {
+findCommonRoot: func (type1, type2: Type) -> Type {
 
     coverAgainstClass := func(t1, t2: Type) -> Bool {
         // cover vs class -> incompatible
@@ -170,4 +173,42 @@ findCommonRoot: func(type1, type2: Type) -> Type {
     }
 
     null
+
 }
+
+/**
+ * Tries to combine type1 and type2, then store it into type1.
+ * If can't, throws a compile error.
+ *
+ * type1 may be null, in which case, it'll be set to type2.
+ */
+ combineTypesHard: func (res: Resolver, node: Node, type1: Type@, type2: Type, location := "unknown") {
+    if (type1 == null) {
+        type1 = type2
+        return
+    }
+
+    result := findCommonRoot(type1, type2)
+
+    if (result == null) {
+        // node token printMessage("no common root for #{type1} and #{type2} (at #{location})")
+        if (res != null) {
+            res throwError(IrreconcilableTypes new(node, type1, type2))
+        }
+    } else {
+        // node token printMessage("common root of #{type1} and #{type2} is #{result}")
+        type1 = result
+    }
+}
+
+IrreconcilableTypes: class extends Error {
+
+    parent: Node
+    type1, type2: Type
+
+    init: func (=parent, =type1, =type2) {
+        super(parent token, "Incompatible types: no common root found between '#{type1}' and '#{type2}'")
+    }
+
+}
+
