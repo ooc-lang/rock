@@ -128,7 +128,7 @@ AstBuilder: class {
 
     error: func (errorID: Int, message: String, index: Int) {
         token := (index, 1, module, lineNoPointer@) as Token
-        err := SyntaxError new(token, message)
+        err := SyntaxError new(token, message trimRight('\n'))
         params errorHandler onError(err)
     }
 
@@ -477,6 +477,10 @@ AstBuilder: class {
     }
 
     gotVarDecl: func (vd: VariableDecl) {
+        if (vd getName() == null) {
+            params errorHandler onError(SyntaxError new(vd token, "Got variable decl without name!"))
+        }
+
         hash := ac_X31_hash(vd getName())
         idx := reservedHashs indexOf(hash)
         if(idx != -1) {
@@ -1419,11 +1423,6 @@ nq_error: unmangled func (this: AstBuilder, errorID: Int, message: CString, inde
 SyntaxError: class extends Error {
 
     init: super func ~tokenMessage
-
-    prepareMessage: func -> String {
-        // syntax errors (from nagaqueen) already have a newline
-        message
-    }
 
 }
 
