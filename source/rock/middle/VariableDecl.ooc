@@ -304,26 +304,7 @@ VariableDecl: class extends Declaration {
             }
         }
 
-        if(!isArg && type != null && type isGeneric() && type pointerLevel() == 0) {
-            if(debugCondition()) "Generic, set expr to malloc" println()
-            if(expr != null) {
-                if(expr instanceOf?(FunctionCall) && expr as FunctionCall getName() == "gc_malloc") return Response OK
-
-                ass := BinaryOp new(VariableAccess new(this, token), expr, OpType ass, token)
-                if(!trail addAfterInScope(this, ass)) {
-                    res throwError(CouldntAddAfterInScope new(token, this, ass, trail))
-                }
-                expr = null
-            }
-            if(!this instanceOf?(PropertyDecl)){
-                fCall := FunctionCall new("gc_malloc", token)
-                tAccess := VariableAccess new(type getName(), token)
-                sizeAccess := VariableAccess new(tAccess, "size", token)
-                fCall getArguments() add(sizeAccess)
-                expr = fCall
-                res wholeAgain(this, "just set expr to gc_malloc cause generic!")
-            }
-        }
+        checkGenericInitialization(trail, res)
 
         if(expr != null && !isLegal(res)) {
             res throwError(IncompatibleInit new(token, "Incompatible type in initialization: %s initialized to a %s\n" format(
@@ -337,6 +318,45 @@ VariableDecl: class extends Declaration {
 
         return Response OK
 
+    }
+
+    _genericInitializationDone := false
+
+    checkGenericInitialization: func (trail: Trail, res: Resolver) {
+        // already done? don't redo.
+        if (_genericInitializationDone) return
+
+        // arguments don't need to be initialized
+        if (isArg) return
+
+        // only generics need explicit memory allocation
+        if (!type isGeneric()) return
+
+        // pointer to generics don't need memory
+        if (type pointerLevel() > 0) return
+
+        if(debugCondition()) "Adding explicit initialization for generic var #{this}" println()
+
+        // already have an expr? turn it into an assignment after the allocation
+        if(expr != null) {
+            thisAcc := VariableAccess new(this, token)
+            ass := BinaryOp new(thisAcc, expr, OpType ass, token)
+            if(!trail addAfterInScope(this, ass)) {
+                res throwError(CouldntAddAfterInScope new(token, this, ass, trail))
+            }
+            expr = null
+        }
+
+        typeAcc := VariableAccess new(type, token)
+        sizeAcc := VariableAccess new(typeAcc, "size", token)
+
+        fCall := FunctionCall new("gc_malloc", token)
+        fCall args add(sizeAcc)
+
+        expr = fCall
+        res wholeAgain(this, "just set expr to gc_malloc cause generic!")
+
+        _genericInitializationDone = true
     }
 
     checkRedefinition: func (trail: Trail, res: Resolver) {

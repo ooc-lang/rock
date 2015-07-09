@@ -60,6 +60,7 @@ VariableAccess: class extends Expression {
     init: func ~typeAccess (type: Type, .token) {
         super(token)
         name = type getName()
+
         if(type getRef() instanceOf?(VariableDecl)) {
             varDecl := type getRef() as VariableDecl
             if(varDecl getOwner() != null) {

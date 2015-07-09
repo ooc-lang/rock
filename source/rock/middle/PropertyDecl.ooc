@@ -199,6 +199,10 @@ PropertyDecl: class extends VariableDecl {
         return Response OK
     }
 
+    checkGenericInitialization: func (trail: Trail, res: Resolver) {
+        // don't do generic initialization for properties, cf. #840
+    }
+
     /** resolve `set` and `get` functions to `getter` and `setter` */
     resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
         match (call name) {
