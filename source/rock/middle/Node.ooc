@@ -146,7 +146,7 @@ Node: abstract class {
      * For example, literals don't have side effects, function calls
      * might, assignments definitely do.
      */
-    hasSideEffects : func -> Bool { true }
+    hasSideEffects: func -> Bool { true }
 
     /**
      * Clone this node, so that it may be used somewhere else in the AST

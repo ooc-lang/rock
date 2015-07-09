@@ -223,6 +223,8 @@ Cast: class extends Expression {
         }
     }
 
+    hasSideEffects: func -> Bool { false }
+
 }
 
 InvalidCastOverload: class extends Error {
