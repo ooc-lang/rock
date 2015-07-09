@@ -50,8 +50,12 @@ Error: abstract class {
 
     fatal?: func -> Bool { true }
 
+    prepareMessage: func -> String {
+        message + "\n"
+    }
+
     format: func -> String {
-        result := token formatMessage(message, getType())
+        result := token formatMessage(prepareMessage(), getType())
         if (next) {
             return result + next format()
         }
@@ -59,7 +63,7 @@ Error: abstract class {
     }
 
     print: func {
-        token printMessage(message, getType())
+        token printMessage(prepareMessage(), getType())
         if (next) {
             next print()
         }

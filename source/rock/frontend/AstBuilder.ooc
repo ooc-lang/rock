@@ -1417,6 +1417,13 @@ nq_error: unmangled func (this: AstBuilder, errorID: Int, message: CString, inde
 }
 
 SyntaxError: class extends Error {
+
     init: super func ~tokenMessage
+
+    prepareMessage: func -> String {
+        // syntax errors (from nagaqueen) already have a newline
+        message
+    }
+
 }
 

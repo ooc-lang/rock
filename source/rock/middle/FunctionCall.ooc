@@ -451,12 +451,18 @@ FunctionCall: class extends Expression {
                 } else if(expr getType() != null && expr getType() getRef() != null) {
                     if(!expr getType() getRef() instanceOf?(TypeDecl)) {
                         message := "No such function %s%s for `%s`" format(prettyName, getArgsTypesRepr(), expr getType() getName())
+                        precisions := ""
+
                         if(expr getType() isGeneric()) {
                             message += " (you can't call methods on generic types! you have to cast them first)"
                         } else if (ref) {
-                            message += "\n\n>> Closest match: %s\n" format(ref toString())
+                            precisions += showNearestMatch(res params)
                         }
-                        res throwError(UnresolvedCall new(this, message, ""))
+                        err := UnresolvedCall new(this, message)
+                        if (!precisions empty?()) {
+                            err next = InfoError new(ref ? ref token : nullToken, precisions)
+                        }
+                        res throwError(err)
                     }
                     tDecl := expr getType() getRef() as TypeDecl
                     meta := tDecl getMeta()
@@ -555,20 +561,12 @@ FunctionCall: class extends Expression {
                 message := "No such function"
                 if(expr == null) {
                     message = "No such function %s%s" format(prettyName, getArgsTypesRepr())
-                    if (ref) {
-                        // TODO: use showNearestMatch (amos)
-                        message += "\n\n>> Closest match: %s\n" format(ref toString())
-                    }
                 } else if (expr getType() != null) {
                     if(res params veryVerbose) {
                         message = "No such function %s%s for `%s` (%s)" format(prettyName, getArgsTypesRepr(),
                             expr getType() toString(), expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)")
                     } else {
                         message = "No such function %s%s for `%s`" format(prettyName, getArgsTypesRepr(), expr getType() toString())
-                        if (ref) {
-                            // TODO: use showNearestMatch (amos)
-                            message += "\n\n>> Closest match: %s\n" format(ref toString())
-                        }
                     }
                 }
 
@@ -587,7 +585,11 @@ FunctionCall: class extends Expression {
                         if(similar) message += similar
                     }
                 }
-                res throwError(UnresolvedCall new(this, message, precisions))
+                err := UnresolvedCall new(this, message)
+                if (!precisions empty?()) {
+                    err next = InfoError new(ref ? ref token : nullToken, precisions)
+                }
+                res throwError(err)
                 return Response OK
             } else {
                 res wholeAgain(this, "no match yet")
@@ -609,8 +611,9 @@ FunctionCall: class extends Expression {
         (expr as VariableAccess getRef() instanceOf?(ClassDecl) || expr as VariableAccess getRef() instanceOf?(CoverDecl)) && \
         (expr as VariableAccess getRef() as TypeDecl inheritsFrom?(ref getOwner()) || \
         expr as VariableAccess getRef() == ref getOwner()) && !ref isStatic) {
-            res throwError(UnresolvedCall new(this, "No such function %s%s for `%s` (%s)" format(prettyName, getArgsTypesRepr(),
-                            expr getType() toString(), expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)"), ""))
+            msg := "No such function %s%s for `%s` (%s)" format(prettyName, getArgsTypesRepr(),
+                            expr getType() toString(), expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)")
+            res throwError(UnresolvedCall new(this, msg))
         }
 
         /* 
@@ -683,7 +686,7 @@ FunctionCall: class extends Expression {
     showNearestMatch: func (params: BuildParams) -> String {
         b := Buffer new()
 
-        b append("\n\n\tNearest match is:\n\n\t\t%s\n" format(ref toString(this)))
+        b append("Nearest match is `#{ref toString(this)}`")
 
         callIter := args iterator()
         declIter := ref args iterator()
@@ -694,12 +697,12 @@ FunctionCall: class extends Expression {
             callArg := callIter next()
 
             if(declArg getType() == null) {
-                b append(declArg token formatMessage("\tbut couldn't resolve type of this argument in the declaration\n", ""))
+                b append("\n..but couldn't resolve type of argument `#{declArg}` in the declaration")
                 continue
             }
 
             if(callArg getType() == null) {
-                b append(callArg token formatMessage("\tbut couldn't resolve type of this argument in the call\n", ""))
+                b append("\n..but couldn't resolve type of argument `#{callArg}` in the call")
                 continue
             }
 
@@ -711,12 +714,11 @@ FunctionCall: class extends Expression {
             score := callArg getType() getScore(declArgType)
             if(score < 0) {
                 if(params veryVerbose) {
-                    b append("\t..but the type of this arg should be `%s` (%s), not %s (%s)\n" format(declArgType toString(), declArgType getRef() ? declArgType getRef() token toString() : "(nil)",
+                    b append("\n..but the type of this arg should be `%s` (%s), not %s (%s)\n" format(declArgType toString(), declArgType getRef() ? declArgType getRef() token toString() : "(nil)",
                                                                                            callArg getType() toString(), callArg getType() getRef() ? callArg getType() getRef() token toString() : "(nil)"))
                 } else {
-                    b append("\t..but the type of this arg (%s) should be `%s`, not `%s`\n" format(callArg toString(), declArgType toString(), callArg getType() toString()))
+                    b append("\n..but the arg `%s` should be of type `%s` instead of `%s`\n" format(callArg toString(), declArgType toString(), callArg getType() toString()))
                 }
-                b append(token formatMessage("\t\t", "", ""))
             }
         }
 
@@ -1618,19 +1620,17 @@ InvalidSlurp: class extends Error {
 UnresolvedCall: class extends Error {
 
     call: FunctionCall
-    precisions: String
 
-    init: func (.call, .message, =precisions) {
-        init(call token, call, message)
+    init: func (.call, .message) {
+        super(call token, message)
     }
 
-    init: func ~withToken(.token, =call, .message) {
-        super(call expr ? call expr token enclosing(call token) : call token, message)
-        precisions = ""
-    }
-
-    format: func -> String {
-        token formatMessage(message, "ERROR") + precisions
+    init: func ~withToken (.token, call: FunctionCall, message: String) {
+        token = call token
+        if (call expr) {
+            token = call expr token enclosing(token)
+        }
+        super(token, message)
     }
 
 }
