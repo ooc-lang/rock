@@ -326,14 +326,23 @@ VariableDecl: class extends Declaration {
         // already done? don't redo.
         if (_genericInitializationDone) return
 
-        // arguments don't need to be initialized
-        if (isArg) return
+        if (isArg) {
+            // arguments don't need to be initialized
+            _genericInitializationDone = true
+            return
+        }
 
-        // only generics need explicit memory allocation
-        if (!type isGeneric()) return
+        if (!type isGeneric()) {
+            // only generics need explicit memory allocation
+            _genericInitializationDone = true
+            return
+        }
 
-        // pointer to generics don't need memory
-        if (type pointerLevel() > 0) return
+        if (type pointerLevel() > 0) {
+            // pointer to generics don't need memory
+            _genericInitializationDone = true
+            return
+        }
 
         if(debugCondition()) "Adding explicit initialization for generic var #{this}" println()
 
