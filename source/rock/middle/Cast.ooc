@@ -103,6 +103,22 @@ Cast: class extends Expression {
             }
         }
 
+        // Casting between arrayTypes is always forbidden
+
+        match innerType {
+            case arrayType: ArrayType =>
+                if (arrayType expr == null) {
+                    match type {
+                        case arrayType2: ArrayType =>
+                            if (arrayType2 expr == null) {
+                                msg := "ooc arrays cannot be cast to anything"
+                                err := InvalidCast new(token, msg)
+                                res throwError(err)
+                            }
+                    }
+                }
+        }
+
         // Casting anything to a generic type (except for Pointer) is disallowed
 
         if (type isGeneric() && type pointerLevel() == 0) {

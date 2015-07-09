@@ -4,15 +4,15 @@ import tinker/[Trail, Resolver, Response]
 
 ArrayCreation: class extends Expression {
 
-    expr: Expression = null /* assigned in ArrayAccess, RTFC */
-    literal? := false // used to signify this array is created by a literal and skip some code generation
+    expr: Expression = null /* assigned in ArrayAccess */
+    literal? := false /* used to signify this array is created by a literal and skip some code generation */
     arrayType, realType : ArrayType
 
-    init: func ~withLiteral?(.arrayType, =literal?, .token) {
+    init: func ~withLiteral (.arrayType, =literal?, .token) {
         init(arrayType, token)
     }
 
-    init: func ~arrayCrea(=arrayType, .token) {
+    init: func ~arrayCrea (=arrayType, .token) {
         super(token)
         realType = arrayType exprLessClone()
     }

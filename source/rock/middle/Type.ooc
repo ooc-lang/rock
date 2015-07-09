@@ -464,7 +464,7 @@ ArrayType: class extends PointerType {
                 w app(' '). app(name)
             }
         } else if(forceStars?) {
-            //Nested array declaration
+            // Nested array declaration
             base := inner
             while(base instanceOf?(This)) {
                 base = base as This inner
