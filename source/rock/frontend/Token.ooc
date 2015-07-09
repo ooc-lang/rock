@@ -77,7 +77,7 @@ Token: cover {
      */
 
     printMessage: func ~noType (message: String) {
-        printMessage("", message, "")
+        printMessage("", message, "info")
     }
 
     printMessage: func ~noPrefix (message, type: String) {

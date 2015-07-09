@@ -254,7 +254,12 @@ FunctionDecl: class extends Declaration {
         null
     }
 
-    markForPartialing: func(var: VariableDecl, mode: Char) {
+    markForPartialing: func (var: VariableDecl, mode: Char) {
+        if (var getType() instanceOf?(ReferenceType)) {
+            // references are.. passed by value. cf. #595
+            mode = 'v'
+        }
+
         if (!partialByReference contains?(var)) {
             match (mode) {
                 case 'r' =>
@@ -1073,9 +1078,15 @@ FunctionDecl: class extends Declaration {
             // by-value (read-only) variables
             for(e in partialByValue) {
                 eDeclType := e getType() clone()
+                acc: Expression = VariableAccess new(e, e token)
+                if (e getType() instanceOf?(ReferenceType)) {
+                    eDeclType = eDeclType refToPointer()
+                    acc = AddressOf new(acc, acc token)
+                }
+
                 eDecl := VariableDecl new(eDeclType, e getName(), token)
                 ctxStruct addVariable(eDecl)
-                elements add(VariableAccess new(e, e token))
+                elements add(acc)
             }
 
             // by-reference (read/write) variables
@@ -1144,14 +1155,18 @@ FunctionDecl: class extends Declaration {
 
             argOffset := 0
 
+            ctxAcc := VariableAccess new(ctxArg, token)
+
             // add to the thunk call the by-value variables from the context
             for(arg in partialByValue) {
-                call args add(VariableAccess new(VariableAccess new(ctxArg, token), arg getName(), token))
+                argAcc := VariableAccess new(ctxAcc, arg getName(), token)
+                call args add(argAcc)
             }
 
             // add to the thunk call the by-reference variables from the context
             for(arg in partialByReference) {
-                call args add(VariableAccess new(VariableAccess new(ctxArg, token), arg getName(), token))
+                argAcc := VariableAccess new(ctxAcc, arg getName(), token)
+                call args add(argAcc)
             }
 
             // add to the thunk call the variable arguments that are not part of the context
