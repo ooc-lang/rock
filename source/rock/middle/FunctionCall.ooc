@@ -555,15 +555,17 @@ FunctionCall: class extends Expression {
                 if(expr == null) {
                     message = "No such function %s%s" format(prettyName, getArgsTypesRepr())
                     if (ref) {
+                        // TODO: use showNearestMatch (amos)
                         message += "\n\n>> Closest match: %s\n" format(ref toString())
                     }
-                } else if(expr getType() != null) {
+                } else if (expr getType() != null) {
                     if(res params veryVerbose) {
                         message = "No such function %s%s for `%s` (%s)" format(prettyName, getArgsTypesRepr(),
                             expr getType() toString(), expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)")
                     } else {
                         message = "No such function %s%s for `%s`" format(prettyName, getArgsTypesRepr(), expr getType() toString())
                         if (ref) {
+                            // TODO: use showNearestMatch (amos)
                             message += "\n\n>> Closest match: %s\n" format(ref toString())
                         }
                     }
@@ -595,7 +597,7 @@ FunctionCall: class extends Expression {
 
         // finally, avoid & on lvalues: unwrap unreferencable expressions.
         if(ref && ref isThisRef && expr && !expr isReferencable()) {
-            vDecl := VariableDecl new(null, generateTempName("hi_mum"), expr, expr token)
+            vDecl := VariableDecl new(null, generateTempName("unwrapped_lvalue"), expr, expr token)
             trail addBeforeInScope(this, vDecl)
             expr = VariableAccess new(vDecl, expr token)
             return Response OK
@@ -610,11 +612,12 @@ FunctionCall: class extends Expression {
                             expr getType() toString(), expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)"), ""))
         }
 
-        /* check for String instances passed to C vararg functions if helpful.
-           Skip `va_arg`. `va_arg` is a vararg function that takes the last-before-vararg
-           argument as an argument. For methods, it's always `this` (implicit first argument).
-           So, skip it.
-          */
+        /* 
+         * Check for String instances passed to C vararg functions if helpful.
+         * Skip `va_arg`. `va_arg` is a vararg function that takes the
+         * last-before-vararg argument as an argument. For methods, it's always
+         * `this` (implicit first argument).  So, skip it.
+         */
         if(res params helpful && this name != "va_start") {
             doIt := true
             idx := 0
@@ -647,16 +650,17 @@ FunctionCall: class extends Expression {
             return Response OK
         }
 
-        // Setting it too soon would cause some important stuff to never happen, such as wrapping
-        // function pointers into closures. Too late would make rock blow up. I'm not happy with that..
+        /*
+         * Setting it too soon would cause some important stuff to never
+         * happen, such as wrapping function pointers into closures. Too late
+         * would make rock blow up. I'm not happy with that (amos)
+         */
         resolved = true
 
         return Response OK
-
     }
 
     findSimilar: func (res: Resolver) -> String {
-
         buff := Buffer new()
 
         for(imp in res collectAllImports()) {
@@ -669,7 +673,6 @@ FunctionCall: class extends Expression {
         }
 
         buff toString()
-
     }
 
     /**

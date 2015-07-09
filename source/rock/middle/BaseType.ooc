@@ -7,11 +7,19 @@ import Type, Declaration, VariableAccess, VariableDecl, TypeDecl,
        InterfaceDecl, Node, ClassDecl, CoverDecl, Cast, FuncType,
        FunctionCall, Module, NamespaceDecl
 
+/**
+ * BaseType(s) are types that are neither pointers, nor references.
+ * This has nothing to do with the "primitive" (covers) vs "object" (class)
+ * distinction.
+ */
 BaseType: class extends Type {
 
     namespace: VariableAccess = null
+
     ref: Declaration = null
+
     name: String
+
     _floatingPoint := NumericState UNKNOWN
     _integer := NumericState UNKNOWN
 
@@ -29,6 +37,15 @@ BaseType: class extends Type {
         super(token)
     }
 
+    /**
+     * For internal use, override with someting like
+     * 
+     *   name == "Kalamazoo"
+     *
+     * ..or another unique name, and use that name in the code
+     * you're trying to compile, to get additional debug output
+     * from rock.
+     */
     debugCondition: final func -> Bool {
         false
     }
@@ -36,55 +53,6 @@ BaseType: class extends Type {
     pointerLevel: func -> Int { 0 }
 
     isPointer: func -> Bool { name == "Pointer" }
-
-    write: func (w: AwesomeWriter, name: String) {
-        if(getRef() == null) {
-            Exception new(This, "Trying to write unresolved type " + toString()) throw()
-        }
-        match {
-            case getRef() instanceOf?(InterfaceDecl)=> writeInterfaceType(w, getRef() as InterfaceDecl)
-            case getRef() instanceOf?(TypeDecl)     => writeRegularType  (w, getRef() as TypeDecl)
-            case getRef() instanceOf?(VariableDecl) => writeGenericType  (w, getRef() as VariableDecl)
-        }
-        if(name != null) w app(' '). app(name)
-    }
-
-    writeInterfaceType: func (w: AwesomeWriter, id: InterfaceDecl) {
-        w app(id getFatType() getInstanceType())
-    }
-
-    writeRegularType: func (w: AwesomeWriter, td: TypeDecl) {
-
-        if(td isExtern()) {
-            if(td instanceOf?(CoverDecl)) {
-                cDecl := getRef() as CoverDecl
-                fromType := cDecl getFromType()
-                if(fromType != null && cDecl isExtern()) {
-                    // for extern covers, write directly the underlying
-                    // type - since we don't even write a typedef.
-                    w app(fromType getGroundType() toString())
-                    return
-                }
-            }
-
-            // still have a chance to have an extern name
-            w app(td getExternName())
-            return
-        }
-
-        while(td instanceOf?(CoverDecl) && td as CoverDecl isAddon()) {
-            td = td as CoverDecl getBase() getNonMeta()
-        }
-
-        w app(td underName())
-        if(td instanceOf?(ClassDecl)) {
-            w app('*')
-        }
-    }
-
-    writeGenericType: func (w: AwesomeWriter, vd: VariableDecl) {
-        w app("uint8_t*")
-    }
 
     equals?: func (other: This) -> Bool {
         if(other class != this class) return false
@@ -701,8 +669,69 @@ BaseType: class extends Type {
         c
     }
 
+    /* BACKEND FUNCTIONS */
+
+    /*
+     * The following functions don't belong in middle/ at all... they're used
+     * by the C backend to write types to C header or source files.
+     */
+
+    write: func (w: AwesomeWriter, name: String) {
+        if(getRef() == null) {
+            Exception new(This, "Trying to write unresolved type " + toString()) throw()
+        }
+        match {
+            case getRef() instanceOf?(InterfaceDecl)=> writeInterfaceType(w, getRef() as InterfaceDecl)
+            case getRef() instanceOf?(TypeDecl)     => writeRegularType  (w, getRef() as TypeDecl)
+            case getRef() instanceOf?(VariableDecl) => writeGenericType  (w, getRef() as VariableDecl)
+        }
+        if(name != null) w app(' '). app(name)
+    }
+
+    writeInterfaceType: func (w: AwesomeWriter, id: InterfaceDecl) {
+        w app(id getFatType() getInstanceType())
+    }
+
+    writeRegularType: func (w: AwesomeWriter, td: TypeDecl) {
+
+        if(td isExtern()) {
+            if(td instanceOf?(CoverDecl)) {
+                cDecl := getRef() as CoverDecl
+                fromType := cDecl getFromType()
+                if(fromType != null && cDecl isExtern()) {
+                    // for extern covers, write directly the underlying
+                    // type - since we don't even write a typedef.
+                    w app(fromType getGroundType() toString())
+                    return
+                }
+            }
+
+            // still have a chance to have an extern name
+            w app(td getExternName())
+            return
+        }
+
+        while(td instanceOf?(CoverDecl) && td as CoverDecl isAddon()) {
+            td = td as CoverDecl getBase() getNonMeta()
+        }
+
+        w app(td underName())
+        if(td instanceOf?(ClassDecl)) {
+            w app('*')
+        }
+    }
+
+    writeGenericType: func (w: AwesomeWriter, vd: VariableDecl) {
+        w app("uint8_t*")
+    }
+
 }
 
+/**
+ * VoidType is simply more comfortable to instanciate from within the
+ * compiler than having to instanciate a BaseType and set its ref
+ * so we don't wait for it to resolve!
+ */
 VoidType: class extends BaseType {
 
     init: func {
@@ -715,6 +744,8 @@ VoidType: class extends BaseType {
     }
 
 }
+
+/* ROCK COMPILE-TIME ERRORS */
 
 UnresolvedType: class extends Error {
     type: Type

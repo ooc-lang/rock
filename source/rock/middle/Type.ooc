@@ -57,7 +57,8 @@ Type: abstract class extends Expression {
 
     /**
      * Get the reference of this type (usually a TypeDecl,
-     * but could be a VariableDecl)
+     * but could be a VariableDecl, if we're a generic type
+     * for instance.)
      */
     getRef: abstract func -> Declaration
 
@@ -314,13 +315,21 @@ TypeAccess: class extends Type {
 
 }
 
+/**
+ * Common base class for PointerType and ReferenceType, since they're both
+ * sugarcoated versions of an inner type (at least that's why it's named so').
+ */
 SugarType: abstract class extends Type {
 
+    /**
+     * The `Int` to our `Int*` or `Int&`
+     */
     inner: Type
 
     init: func ~sugarType (=inner, .token) { super(token) }
 
     resolve: func (trail: Trail, res: Resolver) -> Response { inner resolve(trail, res) }
+
     getRef: func -> Declaration   { inner getRef()  }
     setRef: func (d: Declaration) { inner setRef(d) }
 
@@ -367,10 +376,12 @@ SugarType: abstract class extends Type {
         inner checkedDigImpl(list, res)
     }
 
+    clone: abstract func -> This
+
     realTypize: func (call: FunctionCall) -> Type {
         diff := inner realTypize(call)
         if(diff != inner) {
-            copy := clone() as This
+            copy := clone()
             copy inner = diff
             return copy
         }
@@ -545,6 +556,9 @@ ReferenceType: class extends SugarType {
         new(inner clone(), token)
     }
 
+    /**
+     * Convert all ReferenceType(s) to PointerType(s), all the way down
+     */
     refToPointer: func -> Type {
         PointerType new(inner refToPointer(), token)
     }
