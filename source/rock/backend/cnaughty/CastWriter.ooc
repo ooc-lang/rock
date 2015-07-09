@@ -6,11 +6,18 @@ CastWriter: abstract class extends Skeleton {
 
     write: static func ~cast (this: Skeleton, cast: Cast) {
 
-        if(cast inner getType() isGeneric() && cast inner getType() pointerLevel() == 0) {
+        before := cast inner getType()
+        after := cast type
 
+        genericBefore := before isGeneric() && before pointerLevel() == 0
+        genericAfter  := after isGeneric()  && after  pointerLevel() == 0
+
+        if (genericBefore && !genericAfter) {
+
+            // from generic to real
             current app("(* ("). app(cast type). app("*)"). app(cast inner). app(')')
 
-        } else if(cast getType() getRef() instanceOf?(InterfaceDecl)) {
+        } else if (cast getType() getRef() instanceOf?(InterfaceDecl)) {
 
             iDecl := cast getType() getRef() as InterfaceDecl
 

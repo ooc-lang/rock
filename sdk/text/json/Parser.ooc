@@ -312,7 +312,7 @@ Parser: class {
     }
 
     getRoot: func <T> (T: Class) -> T {
-        stack get(0, T) as T
+        stack get(0, T)
     }
 
     pushSimpleValue: func (token: Token@) {

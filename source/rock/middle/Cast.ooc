@@ -57,13 +57,22 @@ Cast: class extends Expression {
             if(!response ok()) return response
         }
 
+        // Guards
+
         innerType := inner getType()
         if (!innerType || innerType getRef() == null) {
             res wholeAgain(this, "needs innerType")
             return Response OK
         }
 
+        groundType := innerType getGroundType()
+        if (groundType == null || groundType getRef() == null) {
+            res wholeAgain(this, "need ground type of innerType")
+            return Response OK
+        }
+
         // Casting to an arrayType isn't innocent
+
         if(type instanceOf?(ArrayType) && !innerType instanceOf?(ArrayType)) {
             arrType := type as ArrayType
             parent := trail peek()
@@ -83,7 +92,6 @@ Cast: class extends Expression {
                 memcpyCall args add(VariableAccess new(VariableAccess new(varDecl, token), "data", token))
                 memcpyCall args add(inner)
                 memcpyCall args add(copySize)
-                "Turning #{this} to memcpy call #{memcpyCall}, inner = #{inner}, type = #{inner getType()}"
 
                 trail addAfterInScope(varDecl, memcpyCall)
             } else {
@@ -94,29 +102,28 @@ Cast: class extends Expression {
                 }
             }
         }
-        {
-            // Let's avoid segfaults \0/
-            innerType := inner getType()
-            if (innerType == null) {
-                res wholeAgain(this, "Unresolved type")
-                return Response OK
-            }
-            groundType := innerType getGroundType()
-            if (groundType == null) {
-                res wholeAgain(this, "Unresolved groundtype")
-                return Response OK
-            }
 
-            // Following code checks whether a pointer is to be casted to a struct-type
-            // which is bad, very, very, bad
-            if (groundType isPointer()) {
-                typeName := type getGroundType() getName()
-                // TODO: check whether the "struct " check really works
-                // Closure is a special-case (built-in)
-                if (typeName == "Closure" || typeName startsWith?("struct ")) {
-                    msg := "Casting a pointer [%s] of the type [%s] to a struct type[%s]!" format(inner toString(), innerType toString(), typeName)
-                    Exception new(This, msg) throw()
-                }
+        // Casting anything to a generic type (except for Pointer) is disallowed
+
+        if (type isGeneric() && type pointerLevel() == 0) {
+            if (!innerType isPointer()) {
+                msg := "Only pointers can be cast to generics. '#{inner}' of type '#{innerType}', can't."
+                err := InvalidCast new(token, msg)
+                res throwError(err)
+            }
+        }
+
+        // Casting a pointer to a struct is disallowed
+
+        if (groundType isPointer()) {
+            typeName := groundType getName()
+
+            // TODO: check whether the "struct " check really works
+            // Closure is a special-case (built-in)
+            if (typeName == "Closure" || typeName startsWith?("struct ")) {
+                msg := "Casting '#{inner}' (a pointer of type #{innerType}) to struct type '#{groundType}' is illegal."
+                err := InvalidCast new(token, msg)
+                res throwError(err)
             }
         }
 
@@ -223,12 +230,21 @@ Cast: class extends Expression {
         }
     }
 
-    hasSideEffects: func -> Bool { false }
+    hasSideEffects: func -> Bool { inner hasSideEffects() }
 
 }
+
+/* ROCK ERROR CLASSES */
 
 InvalidCastOverload: class extends Error {
 
     init: super func ~tokenMessage
 
 }
+
+InvalidCast: class extends Error {
+
+    init: super func ~tokenMessage
+
+}
+

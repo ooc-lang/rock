@@ -794,12 +794,6 @@ FunctionCall: class extends Expression {
      * need to unwrap
      */
     isFriendlyHost: func (node: Node) -> Bool {
-        if (node isScope() ||
-            node instanceOf?(CommaSequence) ||
-            node instanceOf?(VariableDecl)) {
-            return true
-        }
-
         // all scopes are friendly
         if (node isScope()) return true
 
@@ -811,8 +805,16 @@ FunctionCall: class extends Expression {
                 // friendly too, we'll know where to store the result
                 return true
             case bop: BinaryOp =>
-                // friendly if we're an lvalue in an assignment
-                return (bop type == OpType ass && bop left == this)
+                // friendly if we're the rhs in an assignment (wrapped in a cast while not)
+                if (bop type != OpType ass) {
+                    return false
+                }
+                
+                rhs := bop right
+                while (rhs instanceOf?(Cast)) {
+                    rhs = rhs as Cast inner
+                }
+                return rhs == this
         }
 
         false
