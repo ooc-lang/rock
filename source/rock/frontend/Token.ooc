@@ -7,22 +7,28 @@ import ../middle/Module
 import io/[FileReader, File]
 import os/Terminal
 
-/* Will go into the load method of Token */
-nullToken : Token
-nullToken = Token new(0, 0, null, 0)
+/* Token can't be null, but it can be filled with zero-values */
+nullToken := (0, 0, null, 0) as Token
 
+/**
+ * A token stores the position in source of a particular piece of code,
+ * like a symbol, an operator, any node really.
+ *
+ * It also contains method allowing pretty-printing of error messages,
+ * with line & column numbers and even underlining.
+ */
 Token: cover {
 
     /** Start and length of this token, in bytes */
     start, length: SizeT
 
-    /** 0-based line number of this token */
-    lineno: SizeT
-
     /** Module this token comes from */
     module: Module
 
-    init: func@ (=start, =length, =module, =lineno) {}
+    /** 0-based line number of this token */
+    lineno: SizeT
+
+    /* No constructor, should be built with cover-literal syntax */
 
     /**
      * Creates a new token enclosing this one and the one passed as an argument.
@@ -35,7 +41,6 @@ Token: cover {
      *    ~~~~~~~~~~~~~~~~~~~
      *
      * And that's actually how it's used.
-     *
      */
     enclosing: func (next: This) -> This {
         ex : This
@@ -56,6 +61,25 @@ Token: cover {
         )
     }
 
+    /* MESSAGE PRINTING FUNCTIONS */
+
+    /*
+     * The following functions allow comfortable debugging of compiler
+     * code by doing something like:
+     *
+     * MyNode: class extends Node {
+     *    resolve: func (...) {
+     *      if (debugCondition()) {
+     *        token printMessage("Currently resolving #{this}!")
+     *      }
+     *    }
+     * }
+     */
+
+    printMessage: func ~noType (message: String) {
+        printMessage("", message, "")
+    }
+
     printMessage: func ~noPrefix (message, type: String) {
         printMessage("", message, type)
     }
@@ -74,6 +98,23 @@ Token: cover {
         output toString()
     }
 
+    /**
+     * Writes a message like:
+     *
+     * test/compiler/generics.ooc:9:12 error No such function println() for `T`
+     *   g list get(0) println()
+     *          ~~~~~~~~~~~~~~
+     *
+     * Notably, it displays the path to to the ooc file, a line number and
+     * a column, the line of code in question, and a wavy blue underline of
+     * the part we're talking about.
+     *
+     * If you're seeing wrong highlights in the compiler output, it probably
+     * means parsing went wrong (nagaqueen & rock having different interpretations
+     * of whitespace?) or token propagation was done wrong in the AST (e.g.
+     * lazily passing nullToken instead of relaying another node's token or even
+     * using enclosing)
+     */
     writeMessage: func (prefix, message, type: String, out: ErrorOutput) {
         if(module == null) {
             out append("From unknown source [%s] %s" format(type, message))
@@ -207,6 +248,9 @@ Token: cover {
         out append("\n")
     }
 
+    /**
+     * Path to the ooc file this token has been parsed from
+     */
     getPath: func -> String {
         module oocPath
     }
@@ -218,14 +262,24 @@ Token: cover {
         lineno + 1
     }
 
+    /**
+     * Length of this token in bytes
+     */
     getLength: func -> SizeT {
         return length
     }
 
+    /**
+     * 0-based offset from the start of the file, in bytes
+     */
     getStart: func -> SizeT {
         return start
     }
 
+    /**
+     * 0-based position of the end of this token, from the start of the file,
+     * in bytes
+     */
     getEnd: func -> SizeT {
         return start + length
     }
@@ -237,8 +291,8 @@ Token: cover {
 }
 
 /** 
- * Can receive error messages. Implementations may format
- * to a string or directly write on a terminal.
+ * Can receive error messages. Implementations may format to a string or
+ * directly write on a terminal.
  */
 ErrorOutput: abstract class {
     /* colors */
@@ -253,6 +307,11 @@ ErrorOutput: abstract class {
     }
 }
 
+/**
+ * Outputs an error to a buffer, without color support (for example when rock's
+ * output is being redirected, or when it's used on a platform that doesn't support
+ * ANSI escapes)
+ */
 TextErrorOutput: class extends ErrorOutput {
     buffer := Buffer new()
 
@@ -283,6 +342,10 @@ TextErrorOutput: class extends ErrorOutput {
     }
 }
 
+/**
+ * Outputs an error to a terminal, with color support. Relies on os/Terminal to
+ * do so.
+ */
 TerminalErrorOutput: class extends ErrorOutput {
 
     init: func

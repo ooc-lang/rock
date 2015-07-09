@@ -127,7 +127,9 @@ AstBuilder: class {
     }
 
     error: func (errorID: Int, message: String, index: Int) {
-        params errorHandler onError(SyntaxError new(Token new(index, 1, module, lineNoPointer@), message))
+        token := (index, 1, module, lineNoPointer@) as Token
+        err := SyntaxError new(token, message)
+        params errorHandler onError(err)
     }
 
     onUse: unmangled(nq_onUse) func (name: CString) {
@@ -1347,13 +1349,15 @@ AstBuilder: class {
     }
 
     token: func -> Token {
-        Token new(tokenPos[0], tokenPos[1], module, lineNoPointer@)
+        (tokenPos[0], tokenPos[1], module, lineNoPointer@) as Token
     }
 
     peek: func <T> (T: Class) -> T {
         node := stack peek() as Node
         if(!node instanceOf?(T)) {
-            params errorHandler onError(InternalError new(token(), "Should've peek'd a %s, but peek'd a %s. Stack = %s" format(T name, node class name, stackRepr())))
+            msg := "Should've peek'd a %s, but peek'd a %s. Stack = %s" format(T name, node class name, stackRepr())
+            err := InternalError new(token(), msg)
+            params errorHandler onError(err)
         }
         return node
     }
@@ -1361,7 +1365,9 @@ AstBuilder: class {
     pop: func <T> (T: Class) -> T {
         node := stack pop() as Node
         if(!node instanceOf?(T)) {
-            params errorHandler onError(InternalError new(token(), "Should've pop'd a %s, but pop'd a %s. Stack = %s" format(T name, node class name, stackRepr())))
+            msg := "Should've pop'd a %s, but pop'd a %s. Stack = %s" format(T name, node class name, stackRepr())
+            err := InternalError new(token(), msg)
+            params errorHandler onError(err)
         }
         return node
     }

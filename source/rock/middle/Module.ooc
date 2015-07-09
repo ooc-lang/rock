@@ -490,7 +490,8 @@ Module: class extends Node {
                 AstBuilder cache put(absolutePath, cached)
                 imp setModule(cached)
 
-                cached token = Token new(0, 0, cached, 0)
+                cached token = nullToken
+                cached token module = cached
                 if (resolver) resolver addModule(cached)
 
                 cached lastModified = impLastModified

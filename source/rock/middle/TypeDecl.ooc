@@ -25,13 +25,17 @@ TypeDecl: abstract class extends Declaration {
       unbangify(name)
     } }
 
-    // generic type args, e.g. the T in List: class <T>
+    /**
+     * Generic type args, e.g. the T in 'List: class <T>'
+     */
     typeArgs := ArrayList<VariableDecl> new()
 
-    // type arg instances - this is used for cover templates,
-    // when instanciating for example Array: cover template <T> to
-    // Array<Int>, we have "T" => BaseType("Int") and we can
-    // directly suggest the Int type instead of T
+    /**
+     * Type arg instances - this is used for cover templates, when
+     * instanciating for example Array: cover template <T> to Array<Int>, we
+     * have "T" => BaseType("Int") and we can directly suggest the Int type
+     * instead of T
+     */
     templateArgs := HashMap<String, Declaration> new()
 
     // internal state variables

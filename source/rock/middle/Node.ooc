@@ -11,10 +11,13 @@ Node: abstract class {
     /**
      * If the node was parsed, corresponds to the place in an ooc source
      * file where it was parsed from.
+     *
+     * Token is a cover, so it can't be null, but it can have all-zero values
+     * and a null module (see `nullToken` near Token's definition)
      */
     token: Token
 
-    init: func(=token) {}
+    init: func (=token)
 
     /**
      * Visitor pattern implementation a-la Java
@@ -30,6 +33,8 @@ Node: abstract class {
 
     /**
      * @return true when, as far as we know, the node has been resolved
+     * Note: don't rely on this too much, it's too simplistic to fit
+     * rock's resolve process
      */
     isResolved: func -> Bool { true }
 
@@ -45,7 +50,9 @@ Node: abstract class {
      * @return Response LOOP if we really need to loop now, Response OK if we
      * can continue resolving the rest.
      */
-    resolve: func (trail: Trail, res: Resolver) -> Response { return Response OK }
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        Response OK
+    }
 
     /* METHODS FOR SCOPE-LIKES */
 
@@ -123,7 +130,10 @@ Node: abstract class {
     }
 
     /**
-     * Generate a collision-free name from an origin
+     * Generate a symbol name by prefixing it with the module's underName and
+     * the `origin` parameter.
+     *
+     * Uses a per-module numeric seed to avoid collisions.
      */
     generateTempName: func (origin: String) -> String {
         token module tempNameSeed += 1
@@ -131,10 +141,10 @@ Node: abstract class {
     }
 
     /**
+     * @return true if the thing contained itself has side effects.
+     *
      * For example, literals don't have side effects, function calls
      * might, assignments definitely do.
-     *
-     * @return true if the thing contained itself has side effects.
      */
     hasSideEffects : func -> Bool { true }
 
@@ -142,12 +152,15 @@ Node: abstract class {
      * Clone this node, so that it may be used somewhere else in the AST
      * without any modification to the clone hurting the original node.
      *
+     * Implementing this correctly is crucial to functionality that heavily
+     * uses cloning such as cover templates, inlining, etc.
+     *
      * @return a clone of this node.
      */
     clone: abstract func -> This
 
     /**
-     * Translate stuff like __quest and __bang back into '?' and '!'
+     * Translate stuff like '__quest' and '__bang' back into '?' and '!'
      *
      * @return The 'prettified' name, as it appeared in the source
      */
@@ -163,3 +176,4 @@ Node: abstract class {
     }
 
 }
+

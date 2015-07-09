@@ -55,43 +55,94 @@ Type: abstract class extends Expression {
       getRef() != null
     }
 
+    /**
+     * Get the reference of this type (usually a TypeDecl,
+     * but could be a VariableDecl)
+     */
     getRef: abstract func -> Declaration
+
+    /**
+     * Set the reference of this type. May be ignored
+     * on some subclasses that have computed refs.
+     */
     setRef: abstract func (d: Declaration)
 
+    /**
+     * @return true if 1) this type has a ref, AND 2) it's a VariableDecl.
+     * Not reliable if you don't check that it has a ref first, it might
+     * just return false because it's not resolved yet.
+     */
     isGeneric: func -> Bool {
         if(getRef()) {
-            //printf("ref of %s is %s %s\n", toString(), getRef() class name, getRef() toString())
             return getRef() instanceOf?(VariableDecl)
         }
         return false
     }
 
+    /**
+     * Attempts to find the 'real' type of a generic type (ie. this)
+     * from the info given to us by function call (e.g. is it a method call
+     * on a generic class?, is it a call to a top-level generic function with
+     * explicit typeArgs? etc.)
+     */
     realTypize: abstract func (call: FunctionCall) -> Type
 
+    /**
+     * Types usually have no children, can't replace anything
+     */
     replace: func (oldie, kiddo: Node) -> Bool { false }
 
+    /**
+     * Type subclasses should definitely implement clone — 'T' might
+     * mean different things in different cover template instances, for instance
+     *
+     * This method does not conserve the reference, so the type will have to
+     * be resolved again (on purpose).
+     */
     clone: abstract func -> This
 
+    /**
+     * A twist on `clone`, that keeps the ref.
+     */
     cloneWithRef: func -> This {
         copy := clone()
         copy setRef(getRef())
         copy
     }
 
-    reference:   func          -> This {
-        p := PointerType new(this, token)
-        p
+    /**
+     * @return `T*` for type `T`
+     */
+    reference: func -> This {
+        PointerType new(this, token)
     }
     dereference: abstract func -> This
 
     /**
-     * :return: true if the node supports type arguments and it's been
+     * @return true if the node supports type arguments and it's been
      * successfully added, false if not
      */
     addTypeArg: func (typeArg: TypeAccess) -> Bool { false }
 
+    /**
+     * typeArgs are specified between chevrons, e.g. in `Foo<K, V>`,
+     * K and V are the typeArgs of Foo.
+     *
+     * @return a list of typeArgs, or null if none (to avoid instanciating
+     * a list for every little non-generic type)
+     */
     getTypeArgs: abstract func -> List<TypeAccess>
 
+    /**
+     * The type of a type is.. a meta-type.
+     *
+     * Let's say we have:
+     *
+     *   rita := Dog new()
+     *
+     * Then 'rita' is a VariableAccess, which type is 'Dog',
+     * and the type of 'Dog' is 'DogClass' (which inherits from 'Class')
+     */
     getType: func -> This {
         getRef() ? getRef() getType() : null
     }

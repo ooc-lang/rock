@@ -589,7 +589,8 @@ CommandLine: class {
 
             fullName := ""
             module := Module new(fullName, uze sourcePath, params, nullToken)
-            module token = Token new(0, 0, module, 0)
+            module token = nullToken
+            module token module = module
             module lastModified = uzeFile lastModified()
             module dummy = true
             for (importPath in importz) {
@@ -622,7 +623,8 @@ CommandLine: class {
         modulePath := moduleFile path
         fullName := moduleName[0..-5] // strip the ".ooc"
         module := Module new(fullName, pathElement path, params, nullToken)
-        module token = Token new(0, 0, module, 0)
+        module token = nullToken
+        module token module = module
         module main = true
         module lastModified = moduleFile lastModified()
 
