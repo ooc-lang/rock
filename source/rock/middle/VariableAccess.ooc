@@ -492,6 +492,10 @@ VariableAccess: class extends Expression {
 
     _genericAccessDone := false
 
+    /**
+     * This has some intersection with FunctionCall's `resolveTypeArg`
+     * TODO: maybe find a unified way to do that? (amos)
+     */
     checkGenericAccess: func (trail: Trail, res: Resolver) {
         type := getType()
         if (!type) {
@@ -502,12 +506,6 @@ VariableAccess: class extends Expression {
         typeRef := getType() getRef()
         if (!typeRef) {
             res wholeAgain(this, "need our type's ref")
-            return
-        }
-
-        if (!type isGeneric()) {
-            // nothing to do for non-generic accesses
-            _genericAccessDone = true
             return
         }
 
@@ -531,64 +529,123 @@ VariableAccess: class extends Expression {
             return
         }
 
-        exprType := expr getType()
-        if (exprType == null || exprType getRef() == null) {
-            res wholeAgain(expr, "need our expr's ref")
+        if (type isGeneric()) {
+            realTypize(trail, res)
             return
         }
 
-        exprTypeRef := exprType getRef()
-        if (debugCondition()) {
-            token printMessage("Found access to generic, type = #{type}, expr = #{expr}, expr type = #{exprType}, expr type ref = #{exprTypeRef}", "")
-        }
-        exprTypeDecl: TypeDecl
-        match exprTypeRef {
-            case td: TypeDecl =>
-                exprTypeDecl = td
-            case =>
-                msg := "Expected #{expr}'s typeRef to be a TypeDecl"
-                err := InternalError new(token, msg)
-                res throwError(err)
-        }
+        // so we're not a generic type, but we still might have some
+        // type args that are generic!
+        typeArgs := type getTypeArgs()
 
-        lhsTypeArgs := exprTypeDecl getTypeArgs()
-        rhsTypeArgs := exprType getTypeArgs()
-
-        if (rhsTypeArgs == null) {
-            // not in a qualified expr, can't infer
+        if (typeArgs == null) {
+            // no type args, nothing to do
             _genericAccessDone = true
             return
         }
-        
-        if (lhsTypeArgs size != rhsTypeArgs size) {
-            msg := "Inconsistent typeArgs count between #{type} and #{exprType} in generic variable access"
-            err := InternalError new(token, msg)
-            res throwError(err)
+
+        hasGenericTypeArgs := false
+        for (typeArg in typeArgs) {
+            if (typeArg getRef() == null) {
+                res wholeAgain(this, "need ref of all typeArgs of our type")
+                return
+            }
+
+            if (typeArg isGeneric()) {
+                hasGenericTypeArgs = true
+                break
+            }
+        }
+
+        if (!hasGenericTypeArgs) {
+            // no generic type args, all good
+            _genericAccessDone = true
             return
         }
 
-        ourTypeArg := type getName()
-        for (i in 0..lhsTypeArgs size) {
-            lhsType := lhsTypeArgs get(i)
-            rhsType := rhsTypeArgs get(i)
+        realTypizeInner(trail, res)
+    }
 
-            if (lhsType name == ourTypeArg) {
-                if (rhsType isGeneric()) {
-                    // rhs is a generic type too, we're probably inside a
-                    // generic typedecl, where generic types aren't real yet
-                    _genericAccessDone = true
-                    return
-                }
+    /**
+     * Turn `T` into the real type, inferred from the expr, as in this
+     * example:
+     *
+     *   Gift: class <T> {
+     *     t: T
+     *     init: func (=t)
+     *   }
+     *   g := Gift<Int> new(42)
+     *   g t toString() println() // `g t` should have type `Int`, not `T`
+     */
+    realTypize: func (trail: Trail, res: Resolver) {
+        // TODO: re-check preconditions here?
+        // should only be called by checkGenericAccess
 
-                cast := Cast new(this, rhsType inner clone(), token)
-                if (!parent replace(this, cast)) {
-                    res throwError(CouldntReplace new(token, this, cast, trail))
-                }
-                res wholeAgain(this, "Just realtypized ourselves")
-                _genericAccessDone = true
+        ourTypeArg := getType() getName()
+        finalScore := 0
+        realType := expr getType() searchTypeArg(ourTypeArg, finalScore&)
+        if (finalScore == -1) {
+            // try again next time!
+            return
+        }
+
+        if (realType == null || realType isGeneric()) {
+            // we're probably inside a generic type declaration, where generic
+            // types aren't real yet
+            _genericAccessDone = true
+            return
+        }
+
+        cast := Cast new(this, realType clone(), token)
+        if (!trail peek() replace(this, cast)) {
+            res throwError(CouldntReplace new(token, this, cast, trail))
+        }
+        res wholeAgain(this, "Just realtypized ourselves")
+        _genericAccessDone = true
+        return
+    }
+
+    realTypizeInner: func (trail: Trail, res: Resolver) {
+        type := getType()
+
+        typeResult := type clone()
+        exprType := expr getType()
+
+        typeArgs := typeResult getTypeArgs()
+        replacedSome := false
+
+        for ((i, typeArg) in typeArgs) {
+            finalScore := 0
+            realType := expr getType() searchTypeArg(typeArg getName(), finalScore&)
+
+            if (finalScore == -1) {
+                // try again next time!
                 return
             }
+
+            if (realType == null || realType isGeneric()) {
+                // we're probably inside a generic type declaration, where generic
+                // types aren't real yet
+                continue
+            }
+
+            typeArgs set(i, TypeAccess new(realType, typeArg token))
+            replacedSome = true
         }
+
+        if (!replacedSome) {
+            // turns out there was nothing to replace! all good.
+            _genericAccessDone = true
+            return
+        }
+
+        cast := Cast new(this, typeResult clone(), token)
+        if (!trail peek() replace(this, cast)) {
+            res throwError(CouldntReplace new(token, this, cast, trail))
+        }
+        res wholeAgain(this, "Just inner-realtypized ourselves")
+        _genericAccessDone = true
+        return
     }
 
     findSimilar: func (res: Resolver) -> String {

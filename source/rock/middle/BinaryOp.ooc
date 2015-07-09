@@ -560,14 +560,9 @@ BinaryOp: class extends Expression {
         // if we reach here, we need to unwrap!
         unwrapAssign(trail, res)
 
-        // try to avoid looping by resolving right immediately
-        trail push(this)
-        right resolve(trail, res)
-        trail pop(this)
-
-        // now we can go on to the isLegal() test, etc.
+        res wholeAgain(this, "just unwrapped!")
         _checkUnwrapAssignDone = true
-        return true
+        return false
     }
 
     isGeneric: func -> Bool {

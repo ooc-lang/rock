@@ -763,6 +763,7 @@ FunctionCall: class extends Expression {
             }
 
             seq := CommaSequence new(token)
+            seq origin = this
             if(!trail peek() replace(this, seq)) {
                 if(res fatal) res throwError(CouldntReplace new(token, this, seq, trail))
                 // FIXME: what if we already added the vDecl?
@@ -793,10 +794,28 @@ FunctionCall: class extends Expression {
      * need to unwrap
      */
     isFriendlyHost: func (node: Node) -> Bool {
-        node isScope() ||
-        node instanceOf?(CommaSequence) ||
-        node instanceOf?(VariableDecl) ||
-        (node instanceOf?(BinaryOp) && node as BinaryOp type == OpType ass)
+        if (node isScope() ||
+            node instanceOf?(CommaSequence) ||
+            node instanceOf?(VariableDecl)) {
+            return true
+        }
+
+        // all scopes are friendly
+        if (node isScope()) return true
+
+        match node {
+            case cs: CommaSequence =>
+                // that's what we use to unwrap, so, yes
+                return true
+            case vd: VariableDecl =>
+                // friendly too, we'll know where to store the result
+                return true
+            case bop: BinaryOp =>
+                // friendly if we're an lvalue in an assignment
+                return (bop type == OpType ass && bop left == this)
+        }
+
+        false
     }
 
     /**
@@ -1530,15 +1549,18 @@ FunctionCall: class extends Expression {
     }
 
     setReturnArg: func (retArg: Expression) {
-        if(returnArgs empty?()) returnArgs add(retArg)
-        else                     returnArgs[0] = retArg
+        if(returnArgs empty?()) {
+            returnArgs add(retArg)
+        } else {
+            returnArgs[0] = retArg
+        }
     }
     getReturnArgs: func -> List<Expression> { returnArgs }
 
     getRef: func -> FunctionDecl { ref }
     setRef: func (=ref) { refScore = 1; /* or it'll keep trying to resolve it =) */ }
 
-    getArguments: func ->  ArrayList<Expression> { args }
+    getArguments: func -> ArrayList<Expression> { args }
 
     isResolved: func -> Bool {
         refScore > 0 && ref != null && resolved

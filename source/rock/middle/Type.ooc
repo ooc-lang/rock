@@ -223,24 +223,24 @@ Type: abstract class extends Expression {
     checkedDigImpl: abstract func (list: List<Type>, res: Resolver)
 
     /**
-        Used in FunctionCall scoring - When we have a reftype, say, Int@,
-        from the inside it should have type 'Int', but from the outside, 'Int*'.
-        This converts Int@ to Int*.
-        Note that the pointerLevel() for Int@ is 0, whereas for Int* it's 1.
-    */
+     * Used in FunctionCall scoring - When we have a reftype, say, Int@,
+     * from the inside it should have type 'Int', but from the outside, 'Int*'.
+     * This converts Int@ to Int*.
+     * Note that the pointerLevel() for Int@ is 0, whereas for Int* it's 1.
+     */
     refToPointer: func -> This {
         this
     }
 
     /**
-        Search for a type argument, e.g. <T> in a type.
-        This is less trivial than it sounds. In the simplest case, we have
-        ArrayList<Int> for example, so T -> Int
-        But in some other cases, we have Trail extends Stack<Node>
-        and thus T -> Node.
-
-        :return: The real type corresponding to a TypeArg, or null if none is found.
-    */
+     * Search for a type argument, e.g. <T> in a type.
+     * This is less trivial than it sounds. In the simplest case, we have
+     * ArrayList<Int> for example, so T -> Int
+     * But in some other cases, we have Trail extends Stack<Node>
+     * and thus T -> Node.
+     *
+     * @return The real type corresponding to a TypeArg, or null if none is found.
+     */
     searchTypeArg: func (typeArgName: String, finalScore: Int@) -> Type {
         null
     }

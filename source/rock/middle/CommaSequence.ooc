@@ -8,13 +8,22 @@ CommaSequence: class extends Expression {
     body := ArrayList<Statement> new()
     allResolved := false
 
+    origin: Node
+
     init: func ~commaSeq (.token) {
         super(token)
     }
 
-    clone: func -> This {
+    clone: func -> Node {
+        // let stuff unwrap again if we're cloned
+        if (origin) {
+            return origin clone()
+        }
+
         copy := new(token)
-        body each(|stat| copy body add(stat clone()))
+        for (stat in body) {
+            copy body add(stat clone())
+        }
         copy
     }
 

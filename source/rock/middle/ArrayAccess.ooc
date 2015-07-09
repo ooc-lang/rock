@@ -56,7 +56,7 @@ ArrayAccess: class extends Expression {
                 res wholeAgain(this, "Reference to undeclared variable.")
                 return Response OK
             }
-            res throwError(InvalidArrayAccess new(token, "Trying to index something that isn't an array, nor has an overload for the []/[]= operators"))
+            res throwError(InvalidArrayAccess new(token, "Trying to index '#{array}' that isn't an array, nor has an overload for the []/[]= operators"))
         }
 
         trail push(this)
