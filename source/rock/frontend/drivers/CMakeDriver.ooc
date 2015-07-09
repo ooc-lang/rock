@@ -123,8 +123,8 @@ CMakefileWriter: class extends MetaDriverWriter{
             if(Target LINUX == target){
                 tw writeln("IF(CMAKE_SYSTEM_NAME STREQUAL Linux)")
                 tw write("\tmessage(STATUS \"Found System: ").
-                    write(name).
-                    writeln("\")")
+                write(name).
+                writeln("\")")
                 for (useDef in flags uses) {
                     writeUseDef(useDef getPropertiesForTarget(target))
                 }
@@ -133,8 +133,8 @@ CMakefileWriter: class extends MetaDriverWriter{
             }
             tw write("IF("). write(name). writeln(")")
             tw write("\tmessage(STATUS \"Found System: ").
-                write(name).
-                writeln("\")")
+            write(name).
+            writeln("\")")
             for (useDef in flags uses) {
                 writeUseDef(useDef getPropertiesForTarget(target))
             }
@@ -200,11 +200,11 @@ CMakefileWriter: class extends MetaDriverWriter{
                 tw write(name). write(" "). nl()
             )
             tw writeln(")")
-        tw writeln("\tlink_directories(${pkgs_LIBRARY_DIRS})")
-        tw writeln("\tinclude_directories(${pkgs_INCLUDE_DIRS})")
-        tw writeln("\tset(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} ${pkgs_CFLAGS})")
-        tw writeln("\tset(CMAKE_EXE_LINKER_FLAGS ${CAMKE_EXE_LINKER_FLAGS} ${pkgs_CFLAGS})")
-        tw nl()
+            tw writeln("\tlink_directories(${pkgs_LIBRARY_DIRS})")
+            tw writeln("\tinclude_directories(${pkgs_INCLUDE_DIRS})")
+            tw writeln("\tset(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} ${pkgs_CFLAGS})")
+            tw writeln("\tset(CMAKE_EXE_LINKER_FLAGS ${CAMKE_EXE_LINKER_FLAGS} ${pkgs_CFLAGS})")
+            tw nl()
         }
 
         if(!props customPkgs empty?()){
