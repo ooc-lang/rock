@@ -106,7 +106,7 @@ Match: class extends Expression {
                         // As is, this code might unwrap more than necessary (e.g. a literal)
                         // We need a better way to determine whether an expression will have
                         // side effects when evaluating, but that's beyond the scope of
-                        // that issue: https://github.com/nddrylliog/rock/issues/615
+                        // that issue: https://github.com/fasterthanlime/rock/issues/615
                         vdfe := VariableDecl new(null, generateTempName("matchExpr"), expr, expr token)
                         if (trail addBeforeInScope(this, vdfe)) {
                             expr = VariableAccess new(vdfe, vdfe token)

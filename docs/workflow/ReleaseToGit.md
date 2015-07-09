@@ -6,7 +6,7 @@ Single-line Method
 
 Giving Rock a run for its money is now quicker and easier than ever. Run the following command in your shell, and life is good. Tested and working on OS X and Ubuntu. Should work on any POSIX compliant system.
 
-``bash -c "`curl -L http://github.com/nddrylliog/rock/raw/master/utils/ooc-install.sh`"``
+``bash -c "`curl -L http://github.com/fasterthanlime/rock/raw/master/utils/ooc-install.sh`"``
 
 
 So you've tried rock..
@@ -25,7 +25,7 @@ Quick way
 ---------
 
   1. Extract release, cd, make
-  2. git clone git://github.com/nddrylliog/rock.git && cd rock
+  2. git clone git://github.com/fasterthanlime/rock.git && cd rock
   3. ROCK_DIST=. OOC=../rock-x.y.z*/bin/rock make self
   
 And you're done! Of course, rock-x.y.z should be the number of the
@@ -40,9 +40,9 @@ Long way with detailed explanations
 
 Rock is a <a href="http://en.wikipedia.org/wiki/Self-hosting">self-hosting</a> compiler, each release of rock is used to build the next release of rock. To use the git version, simply follow these steps (specific steps may vary depending on your OS):
 
-1. Check that you have a stable release of rock (0.9.1 as of 8/05/2010), you can download the release from <a href="http://github.com/nddrylliog/rock/downloads">here</a>.
+1. Check that you have a stable release of rock (0.9.1 as of 8/05/2010), you can download the release from <a href="http://github.com/fasterthanlime/rock/downloads">here</a>.
 
-2. Let's assume that you unpackaged the folder to /usr/share/rock-0.9.1. "cd /usr/share/" and clone the latest development copy "git clone git://github.com/nddrylliog/rock.git"
+2. Let's assume that you unpackaged the folder to /usr/share/rock-0.9.1. "cd /usr/share/" and clone the latest development copy "git clone git://github.com/fasterthanlime/rock.git"
 
 3. "cd rock/", inside this directory execute "OOC=../rock-0.9.1/bin/rock ROCK_DIST=. make self". This will build the latest binary for rock using the stable release. This is self-hosting in action :)
 
@@ -75,5 +75,5 @@ Let's walk through the different targets the Makefile offers us
   mere mortals (hem, users) can bootstrap cleanly.
   
   - 'make grammar' Regenerate NagaQueen.c from ../nagaqueen/grammar/nagaqueen.leg
-  with greg. Both nagaqueen and greg are nddrylliog's projects on github.com
+  with greg. Both nagaqueen and greg are fasterthanlime's projects on github.com
 

@@ -57,7 +57,7 @@ function do_install {
       rm -rf "$f"
     fi
            
-    git clone "http://github.com/nddrylliog/rock.git" "$f"
+    git clone "http://github.com/fasterthanlime/rock.git" "$f"
     export ROCK_DIST="$f"
     cd "$f"
     

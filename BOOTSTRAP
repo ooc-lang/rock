@@ -1,4 +1,4 @@
 It looks like you don't have a set of C sources rock can bootstrap from.
 
 Try running `make rescue`, or when everything else fails, get help on IRC
-and/or open an issue here: https://github.com/nddrylliog/rock/issues
+and/or open an issue here: https://github.com/fasterthanlime/rock/issues

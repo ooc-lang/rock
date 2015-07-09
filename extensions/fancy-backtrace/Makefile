@@ -26,7 +26,7 @@ else ifeq ($(MYOS),)
   ifeq (${OS}, Windows_NT)
     ARCH=win
   else
-    $(error "OS ${OS} unrecognized - please open an issue at https://github.com/nddrylliog/rock/issues")
+    $(error "OS ${OS} unrecognized - please open an issue at https://github.com/fasterthanlime/rock/issues")
   endif
 endif
 

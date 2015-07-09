@@ -48,7 +48,7 @@ Tinkerer: class {
         // this was experimental stuff to figure out if the order modules
         // were resolved in was actually meaningful and impacted on speed
         // and total number of rounds. It turns out - not so much. But I'm
-        // leaving that here, because it's interesting. -- nddrylliog
+        // leaving that here, because it's interesting. -- amos
         if (Env get("ROCK_SORT") == "1") {
             "Sorting!\n" print()
             resolvers sort(|r1, r2|
