@@ -82,53 +82,77 @@ OperatorDecl: class extends Expression {
     resolve: func (trail: Trail, res: Resolver) -> Response {
         fDecl resolve(trail, res)
 
-        if (implicit && !_doneImplicit) {
-            if (fDecl args getSize() != 1) {
-                res throwError(InvalidOperatorOverload new(token, "Overloading of 'as' needs exactly one argument."))
-                return Response LOOP
-            }
+        response := checkNumArgs(res)
+        if (!response ok()) return response
 
-            fromType := fDecl args get(0) getType()
-            toType := fDecl getReturnType()
+        reponse := checkImplicitConversions(res)
+        if (!response ok()) return response
 
-            if(fromType == null || !fromType isResolved()) {
-                res wholeAgain(this, "need first arg's type")
-                return Response OK
-            }
+        Response OK
+    }
 
-            ref := fromType getRef()
-            if(ref instanceOf?(TypeDecl)) {
-                _doneImplicit = true
-                ref as TypeDecl implicitConversions add(this)
-            }
+    checkNumArgs: func (res: Resolver) -> Response {
+        numArgs := fDecl args size
+        if (fDecl owner) {
+            numArgs += 1
         }
 
-        if (symbol != "as") {
-            numArgs := fDecl args size
-            if (fDecl owner) {
-                numArgs += 1
-            }
-
-            if(numArgs != 2) {
-                match (symbol) {
-                    case "-" || "+" =>
-                        if (numArgs != 1) {
-                            res throwError(InvalidOperatorOverload new(token,
-                                "Overloading '%s' requires 1 or 2 arguments, not %d" format(symbol, numArgs)))
-                        }
-                    case "[]=" =>
-                        if (numArgs != 3) {
-                            res throwError(InvalidOperatorOverload new(token,
-                                "Overloading '%s' requires 3 arguments, not %d" format(symbol, numArgs)))
-                        }
-                    case =>
-                        res throwError(InvalidOperatorOverload new(token,
-                            "Overloading '%s' requires 2 arguments, not %d" format(symbol, numArgs)))
+        match symbol {
+            // unary only
+            case "as" =>
+                if (numArgs != 1) {
+                    return needArgs(res, "exactly 1", numArgs)
                 }
-            }
+
+            // unary or binary
+            case "-" || "+" =>
+                if (numArgs < 1 || numArgs > 2) {
+                    return needArgs(res, "1 or 2", numArgs)
+                }
+
+            // only case of 3-arguments only
+            case "[]=" =>
+                if (numArgs != 3) {
+                    return needArgs(res, "exactly 3", numArgs)
+                }
+
+            // all remaining operators are binary
+            case =>
+                if (numArgs != 2) {
+                    return needArgs(res, "exactly 2", numArgs)
+                }
         }
 
         Response OK
+    }
+
+    checkImplicitConversions: func (res: Resolver) -> Response {
+        if (!implicit) return Response OK
+        if (_doneImplicit) return Response OK
+
+        fromType := fDecl args get(0) getType()
+        toType := fDecl getReturnType()
+
+        if(fromType == null || !fromType isResolved()) {
+            res wholeAgain(this, "need first arg's type")
+            return Response OK
+        }
+
+        match (fromType getRef()) {
+            case td: TypeDecl =>
+                td implicitConversions add(this)
+                _doneImplicit = true
+        }
+
+        Response OK
+    }
+
+    needArgs: func (res: Resolver, expected: String, given: Int) -> Response {
+        message := "Overloading of '#{symbol}' requires #{expected} argument(s), not #{given}."
+        err := InvalidOperatorOverload new(token, message)
+        res throwError(err)
+
+        Response LOOP
     }
 
     getName: func -> String {
