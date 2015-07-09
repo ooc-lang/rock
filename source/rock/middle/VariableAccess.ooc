@@ -574,11 +574,8 @@ VariableAccess: class extends Expression {
 
             if (lhsType name == ourTypeArg) {
                 if (rhsType isGeneric()) {
-                    // that's no real type at all, we're probably in that same
-                    // generic class definition
-
-                    // TODO: need a better check, maybe that rhsType's ref is
-                    // a VariableDecl?
+                    // rhs is a generic type too, we're probably inside a
+                    // generic typedecl, where generic types aren't real yet
                     _genericAccessDone = true
                     return
                 }
