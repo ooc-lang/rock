@@ -1,5 +1,5 @@
 import structs/[Stack, ArrayList]
-import ../[Node, Module, Statement, Scope, If, Else]
+import ../[Node, Module, Statement, Scope, If, Else, BinaryOp]
 
 Trail: class extends Stack<Node> {
 
@@ -19,7 +19,7 @@ Trail: class extends Stack<Node> {
      */
     pop: func ~verify (reference: Node) -> Node {
 
-        popped : Node = pop()
+        popped: Node = pop()
         if(popped != reference) {
             Exception new(This, "Should have popped " +
                 reference toString() + " but popped " + popped toString()) throw()
@@ -170,6 +170,32 @@ Trail: class extends Stack<Node> {
 
         sb toString()
 
+    }
+
+    /**
+     * @return true when `node`'s parent is a BinaryOp, of one of the
+     * assignment types, and `node` is on the left-hand side (ie. being
+     * assigned to)
+     */
+    isLHS: func (node: Node) -> Bool {
+        match (parent := peek()) {
+            case bop: BinaryOp =>
+                return bop isAssign() && bop left == node
+        }
+        false
+    }
+
+    /**
+     * @return true when `node`'s parent is a BinaryOp, of one of the
+     * assignment types, and `node` is on the right-hand side (ie. being
+     * assigned)
+     */
+    isRHS: func (node: Node) -> Bool {
+        match (parent := peek()) {
+            case bop: BinaryOp =>
+                return bop isAssign() && bop right == node
+        }
+        false
     }
 
     /**

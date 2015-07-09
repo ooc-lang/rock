@@ -89,7 +89,13 @@ BinaryOp: class extends Expression {
         new(left clone(), right clone(), type, token)
     }
 
-    isAssign: func -> Bool { (type >= OpType ass) && (type <= OpType bAndAss) }
+    isAssign: func -> Bool {
+        (type >= OpType ass) && (type <= OpType bAndAss)
+    }
+
+    isCompositeAssign: func -> Bool {
+        (type >= OpType addAss) && (type <= OpType bAndAss)
+    }
 
     isBooleanOp: func -> Bool { type == OpType or || type == OpType and }
 
@@ -114,7 +120,7 @@ BinaryOp: class extends Expression {
     }
 
     unwrapAssign: func (trail: Trail, res: Resolver) -> Bool {
-        if(!isAssign()) return false
+        if(!isCompositeAssign()) return false
 
         unwrapGetter := func(e: Expression) -> Expression{
             if(e instanceOf?(VariableAccess) && e as VariableAccess ref instanceOf?(PropertyDecl)) {
@@ -130,7 +136,9 @@ BinaryOp: class extends Expression {
             e
         }
         innerType := type - (OpType addAss - OpType add)
-        inner := BinaryOp new(unwrapGetter(left), unwrapGetter(right), innerType, token)
+        // very important to clone left! otherwise generics won't play well
+        // (behave differently when lhs or rhs, cf. #889)
+        inner := BinaryOp new(unwrapGetter(left clone()), unwrapGetter(right), innerType, token)
         right = inner
         type = OpType ass
 
@@ -455,31 +463,8 @@ BinaryOp: class extends Expression {
             }
         }
 
-        // In case of a expression like `expr attribute += value` where `attribute`
-        // is a property, we need to unwrap this to `expr attribute = expr attribute + value`.
-        if(isAssign() && left instanceOf?(VariableAccess)) {
-            if(left getType() == null || !left isResolved()) {
-                res wholeAgain(this, "left type is unresolved"); return Response OK
-            }
-            if(right getType() == null || !right isResolved()) {
-                res wholeAgain(this, "right type is unresolved"); return Response OK
-            }
-            // are we in a +=, *=, /=, ... operator? unwrap myself.
-            if(left as VariableAccess ref instanceOf?(PropertyDecl)) {
-                leftProperty := left as VariableAccess ref as PropertyDecl
-                if(leftProperty inOuterSpace(trail)) {
-                    // only outside of get/set.
-                    unwrapAssign(trail, res)
-                    trail push(this)
-                    response := right resolve(trail, res)
-                    trail pop(this)
-                    if(!response ok()){
-                        return response
-                    }
-                    return Response LOOP
-                }
-            }
-        }
+        // Do we need to unwrap `a += b` to `a = a + b` ?
+        if (!checkUnwrapAssign(trail, res)) return Response OK
 
         // We must replace the null-coalescing operator with a ternary operator
         if(type == OpType nullCoal) {
@@ -508,6 +493,81 @@ BinaryOp: class extends Expression {
 
         return Response OK
 
+    }
+
+    _checkUnwrapAssignDone := false
+
+    /**
+     * Check if we need to unwrap `a += b` into `a = a + b`
+     * @return false if the resolving process for this node needs to
+     * stop for now (ie. after wholeAgain), true if it's all good.
+     */
+    checkUnwrapAssign: func (trail: Trail, res: Resolver) -> Bool {
+
+        if (!isCompositeAssign()) {
+            // well that was quick
+            _checkUnwrapAssignDone = true
+            return true
+        }
+
+        if (!left instanceOf?(VariableAccess)) {
+            // easy one too
+            _checkUnwrapAssignDone = true
+            return true
+        }
+
+        lhsType := left getType()
+        rhsType := right getType()
+
+        if(lhsType == null || lhsType getRef() == null) {
+            res wholeAgain(this, "need left type & its ref")
+            return false
+        }
+
+        if(rhsType == null || rhsType getRef() == null) {
+            res wholeAgain(this, "need right type & its ref")
+            return false
+        }
+
+        lhs := left as VariableAccess
+        lhsRef := lhs getRef()
+
+        match lhsRef {
+            // property assignment (calling setters and getters) only works if we unwrap
+            case lhsPropDecl: PropertyDecl =>
+                if(!lhsPropDecl inOuterSpace(trail)) {
+                    // we're inside a property getter or setter, regular
+                    // rules do not apply (ie. never unwrap)
+                    _checkUnwrapAssignDone = true
+                    return true
+                }
+
+            // generic access / assignment of generic members only works if we unwrap
+            case lhsVarDecl: VariableDecl =>
+                lhsVarDeclType := lhsVarDecl getType()
+                if (lhsVarDeclType == null || lhsVarDeclType getRef() == null) {
+                    res wholeAgain(this, "need lhs var decl type & its ref")
+                    return false
+                }
+
+                if (!lhsVarDeclType isGeneric()) {
+                    // no need to unwrap non-property, non-generic stuff
+                    _checkUnwrapAssignDone = true
+                    return true
+                }
+        }
+
+        // if we reach here, we need to unwrap!
+        unwrapAssign(trail, res)
+
+        // try to avoid looping by resolving right immediately
+        trail push(this)
+        right resolve(trail, res)
+        trail pop(this)
+
+        // now we can go on to the isLegal() test, etc.
+        _checkUnwrapAssignDone = true
+        return true
     }
 
     isGeneric: func -> Bool {

@@ -3,7 +3,7 @@ import BinaryOp, Visitor, Expression, VariableDecl, FunctionDecl,
        TypeDecl, Declaration, Type, Node, ClassDecl, NamespaceDecl,
        EnumDecl, PropertyDecl, FunctionCall, Module, Import, FuncType,
        NullLiteral, AddressOf, BaseType, StructLiteral, Return,
-       Argument, Scope, CoverDecl, StringLiteral
+       Argument, Scope, CoverDecl, StringLiteral, Cast
 
 import tinker/[Resolver, Response, Trail, Errors]
 import structs/ArrayList
@@ -145,6 +145,8 @@ VariableAccess: class extends Expression {
 
     isResolved: func -> Bool { ref != null && getType() != null && funcTypeDone }
 
+    // TODO: oh boy.. this needs to be broken down into different methods
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         if (isResolved()) {
@@ -195,6 +197,7 @@ VariableAccess: class extends Expression {
                 res wholeAgain(this, "expr type or expr type ref is null")
                 return Response OK
             }
+
             if(!expr getType() getRef() instanceOf?(ClassDecl)) {
                 name = expr getType() getName()
                 ref = expr getType() getRef()
@@ -284,7 +287,7 @@ VariableAccess: class extends Expression {
             }
         }
 
-        if (getType() instanceOf?(FuncType) ) {
+        if (getType() instanceOf?(FuncType)) {
             fType := getType() as FuncType
             parent := trail peek()
 
@@ -327,15 +330,14 @@ VariableAccess: class extends Expression {
                         funcTypeDone = true
                     }
 
-                } else if (parent instanceOf?(BinaryOp)) {
-                    binOp := parent as BinaryOp
-                    if(binOp isAssign() && binOp getRight() == this) {
-                        if(binOp getLeft() getType() == null) {
-                            res wholeAgain(this, "need type of BinOp's lhs")
-                            return Response OK
-                        }
-                        closureType = binOp getLeft() getType() clone()
+                } else if (trail isRHS(this)) {
+                    binOp := trail peek() as BinaryOp
+                    lhsType := binOp left getType()
+                    if(lhsType == null) {
+                        res wholeAgain(this, "need type of BinOp's lhs")
+                        return Response OK
                     }
+                    closureType = lhsType clone()
                 } else if (parent instanceOf?(Return)) {
                     fIndex := trail find(FunctionDecl)
                     if (fIndex != -1) {
@@ -482,8 +484,114 @@ VariableAccess: class extends Expression {
             res wholeAgain(this, "Couldn't resolve varacc")
         }
 
+        checkGenericAccess(trail, res)
+
         return Response OK
 
+    }
+
+    _genericAccessDone := false
+
+    checkGenericAccess: func (trail: Trail, res: Resolver) {
+        type := getType()
+        if (!type) {
+            res wholeAgain(this, "need our type")
+            return
+        }
+
+        typeRef := getType() getRef()
+        if (!typeRef) {
+            res wholeAgain(this, "need our type's ref")
+            return
+        }
+
+        if (!type isGeneric()) {
+            // nothing to do for non-generic accesses
+            _genericAccessDone = true
+            return
+        }
+
+        parent := trail peek()
+        match parent {
+            case cast: Cast =>
+                // parent is already an explicit cast, nothing to do
+                _genericAccessDone = true
+                return
+        }
+
+        if (trail isLHS(this)) {
+            // we're being assigned to, no cast needed (nor wanted)
+            _genericAccessDone = true
+            return
+        }
+
+        if (expr == null) {
+            // we can't infer our type without an expr
+            _genericAccessDone = true
+            return
+        }
+
+        exprType := expr getType()
+        if (exprType == null || exprType getRef() == null) {
+            res wholeAgain(expr, "need our expr's ref")
+            return
+        }
+
+        exprTypeRef := exprType getRef()
+        if (debugCondition()) {
+            token printMessage("Found access to generic, type = #{type}, expr = #{expr}, expr type = #{exprType}, expr type ref = #{exprTypeRef}", "")
+        }
+        exprTypeDecl: TypeDecl
+        match exprTypeRef {
+            case td: TypeDecl =>
+                exprTypeDecl = td
+            case =>
+                msg := "Expected #{expr}'s typeRef to be a TypeDecl"
+                err := InternalError new(token, msg)
+                res throwError(err)
+        }
+
+        lhsTypeArgs := exprTypeDecl getTypeArgs()
+        rhsTypeArgs := exprType getTypeArgs()
+
+        if (rhsTypeArgs == null) {
+            // not in a qualified expr, can't infer
+            _genericAccessDone = true
+            return
+        }
+        
+        if (lhsTypeArgs size != rhsTypeArgs size) {
+            msg := "Inconsistent typeArgs count between #{type} and #{exprType} in generic variable access"
+            err := InternalError new(token, msg)
+            res throwError(err)
+            return
+        }
+
+        ourTypeArg := type getName()
+        for (i in 0..lhsTypeArgs size) {
+            lhsType := lhsTypeArgs get(i)
+            rhsType := rhsTypeArgs get(i)
+
+            if (lhsType name == ourTypeArg) {
+                if (rhsType isGeneric()) {
+                    // that's no real type at all, we're probably in that same
+                    // generic class definition
+
+                    // TODO: need a better check, maybe that rhsType's ref is
+                    // a VariableDecl?
+                    _genericAccessDone = true
+                    return
+                }
+
+                cast := Cast new(this, rhsType inner clone(), token)
+                if (!parent replace(this, cast)) {
+                    res throwError(CouldntReplace new(token, this, cast, trail))
+                }
+                res wholeAgain(this, "Just realtypized ourselves")
+                _genericAccessDone = true
+                return
+            }
+        }
     }
 
     findSimilar: func (res: Resolver) -> String {
