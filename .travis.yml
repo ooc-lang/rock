@@ -6,7 +6,6 @@ addons:
       - curl
       - make
       - libgc-dev
-      - binutils-dev
       - zlib1g-dev
 
 script:
@@ -16,7 +15,7 @@ script:
   - make clean self
   - make clean self
   - make extensions
-  - git clone --depth=1 git://github.com/nddrylliog/sam.git 
+  - git clone --depth=1 git://github.com/fasterthanlime/sam.git 
   - (cd sam && rock -v sam.use)
   - sam test rock.use
 
