@@ -666,7 +666,6 @@ BaseType: class extends Type {
         }
 
         typeRef := getRef() as TypeDecl
-        if (typeRef typeArgs empty?()) return null
 
         j := 0
         for (arg in typeRef typeArgs) {
@@ -715,8 +714,6 @@ BaseType: class extends Type {
             }
             j += 1
         }
-
-        // FIXME: debug
 
         // translate things like:
         // HashMap<K, V> extends Iterator<V>

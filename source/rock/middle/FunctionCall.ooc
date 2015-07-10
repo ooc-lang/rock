@@ -167,7 +167,7 @@ FunctionCall: class extends Expression {
      * a return expression, when it's being used.
      */
     debugCondition: final func -> Bool {
-        false
+        name == "backward"
     }
 
     /**
@@ -869,12 +869,19 @@ FunctionCall: class extends Expression {
                 returnType resolve(trail, res)
             }
 
-            if(returnType != null && !realTypize(returnType, trail, res)) {
-                res wholeAgain(this, "because couldn't properly realTypize return type.")
-                returnType = null
-            }
-            if(returnType != null) {
-                if(debugCondition()) "Realtypized return of %s = %s, isResolved = %s ?\n" printfln(toString(), returnType toString(), returnType isResolved() toString())
+            if (returnType != null) {
+                if (debugCondition()) {
+                    token printMessage("before realtypizing, returnType = #{returnType}")
+                }
+
+                if(!realTypize(returnType, trail, res)) {
+                    res wholeAgain(this, "because couldn't properly realTypize return type.")
+                    returnType = null
+                }
+
+                if (debugCondition()) {
+                    token printMessage("after realtypizing, returnType = #{returnType}")
+                }
             }
 
             if(returnType) {
@@ -1317,7 +1324,9 @@ FunctionCall: class extends Expression {
                 }
             } else if(expr getType() != null) {
                 /* expr: Type<T>; expr myFunction() */
-                if(debugCondition()) "Looking for typeArg %s in expr %s" printfln(typeArgName, expr toString())
+                if(debugCondition()) {
+                    token printMessage("Looking for typeArg #{typeArgName} in expr #{expr} (of type #{expr getType()})")
+                }
                 result := expr getType() searchTypeArg(typeArgName, finalScore&)
                 if(finalScore == -1) return null // something has to be resolved further!
                 if(result) {
