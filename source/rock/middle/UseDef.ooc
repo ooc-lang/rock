@@ -406,9 +406,7 @@ UseDef: class {
             } else if (id == "Version") {
                 versionNumber = value
             } else if (id == "Imports") {
-                for (imp in value split(',')) {
-                    imports add(imp trim())
-                }
+                parseImports(value)
             } else if (id == "Origin" || id == "Variant") {
                 // known, but ignored ids
             } else if (id == "Main") {
@@ -425,6 +423,28 @@ UseDef: class {
 
         reader close()
         properties add(versionStack pop())
+    }
+
+    parseImports: func (value: String) {
+        sr := StringReader new(value)
+
+        while (sr hasNext?()) {
+            start := sr readUntil('[')
+
+            if (sr hasNext?()) {
+                inside := sr readUntil(']')
+
+                // grouped imports
+                inside split(',') each(|s|
+                    imports add(start + s trim())
+                )
+            } else {
+                // regular imports
+                value split(',') each(|s|
+                    imports add(s trim())
+                )
+            }
+        }
     }
 
     getRelevantProperties: func (params: BuildParams) -> UseProperties {
