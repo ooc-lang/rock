@@ -147,10 +147,24 @@ Exception: class {
      * @return the exception's message, nicely formatted
      */
     formatMessage: func -> String {
-        if(origin)
-            "\x1b[31;1m[%s in %s]: %s\x1b[0m\n" format(class name toCString(), origin name toCString(), message ? message toCString() : "<no message>" toCString())
-        else
-            "\x1b[31;1m[%s]: %s\x1b[0m\n" format(class name toCString(), message ? message toCString() : "<no message>" toCString())
+        // color exceptions in red, cf. #862
+        // can't use os/Terminal since we're supposed to
+        // return a string
+        redStart := "\x1b[31;1m"
+        redEnd := "\x1b[0m"
+
+        version (windows) {
+            // this isn't entirely correct - we should also avoid
+            // colored output when stderr is redirected (a-la 'diff')
+            redStart = ""
+            redEnd = ""
+        }
+        
+        if(origin) {
+            "#{redStart}[#{class name} in #{origin name}]: #{message ? message : "<no message>"}#{redEnd}"
+        } else {
+            "#{redStart}[#{class name}]: #{message ? message : "<no message>"}#{redEnd}"
+        }
     }
 
     /**

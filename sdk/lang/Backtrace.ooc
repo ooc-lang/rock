@@ -12,6 +12,7 @@ BacktraceHandler: class {
 
     // constants
     BACKTRACE_LENGTH := static 128
+    WARNED_ABOUT_FALLBACK := false
     
     // singleton
     instance: static This
@@ -52,7 +53,10 @@ BacktraceHandler: class {
         } else {
             // fall back on execinfo? still informative
             version (linux || apple) {
-                stderr write("[lang/Backtrace] Falling back on execinfo.. (build extension if you want fancy backtraces)\n")
+                if (!WARNED_ABOUT_FALLBACK) {
+                    stderr write("[lang/Backtrace] Falling back on execinfo.. (build extension if you want fancy backtraces)\n")
+                    WARNED_ABOUT_FALLBACK = true
+                }
                 length := backtrace(buffer, BACKTRACE_LENGTH)
                 return Backtrace new(buffer, length)
             }
