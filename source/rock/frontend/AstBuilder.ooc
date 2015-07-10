@@ -821,9 +821,10 @@ AstBuilder: class {
         vDecl isGlobal = true // well, that's not true, but at least this way it won't be marked for partialing...
 
         commaSeq := CommaSequence new(expr token)
-        commaSeq body add(BinaryOp new(VariableAccess new(name, expr token), expr, OpType ass, expr token)) . add(call)
+        commaSeq body add(vDecl).
+            add(BinaryOp new(VariableAccess new(name, expr token), expr, OpType ass, expr token)).
+            add(call)
 
-        onStatement(vDecl)
         return commaSeq
     }
 
@@ -901,8 +902,8 @@ AstBuilder: class {
             case vd: VariableDecl =>
                 gotVarDecl(vd)
             case seq: CommaSequence =>
-                for(vd: VariableDecl in seq body) {
-                    gotVarDecl(vd)
+                for(vd: Statement in seq body) {
+                    onStatement(vd)
                 }
             case =>
                 gotStatement(stmt)
@@ -1005,7 +1006,9 @@ AstBuilder: class {
     onIfEnd: unmangled(nq_onIfEnd) func -> If {
         pop(If)
     }
-
+    onElseMatched: unmangled(nq_onElseMatched) func(s: If, e: Else){
+        s setElse(e)
+    }
     // else
     onElseStart: unmangled(nq_onElseStart) func {
         stack push(Else new(token()))
