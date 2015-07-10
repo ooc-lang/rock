@@ -263,7 +263,12 @@ VariableAccess: class extends Expression {
                         suggest(isThisRef ? tDecl thisRefDecl : tDecl thisDecl)
                     }
                 }
-                node resolveAccess(this, res, trail)
+                status := node resolveAccess(this, res, trail)
+                if (status == -1) {
+                    token printMessage("asked to wait while resolving access #{this}, ref = #{ref ? ref toString() : "<none>"}")
+                    res wholeAgain(this, "asked to wait while resolving access")
+                    return Response OK
+                }
 
                 if(ref) {
                     if(expr) {

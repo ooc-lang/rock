@@ -1,6 +1,6 @@
 import structs/[ArrayList]
 import VariableAccess, VariableDecl, Statement, Node, Visitor,
-       FunctionCall, Type, FuncType, Version, BaseType
+       FunctionCall, Type, FuncType, Version, BaseType, Tuple
 import tinker/[Trail, Resolver, Response]
 import ../frontend/[BuildParams, Token]
 
@@ -66,6 +66,19 @@ Scope: class extends Node {
             candidate := list get(i)
 
             match candidate {
+                // a VariableDeclTuple is like a chrysalis from which a
+                // beautiful pupa VariableDecl eventually emerges. While
+                // it's still in chrysalis form, though, we gently let
+                // the VariableAccess know it's not ready yet. cf. #903
+                case vDeclTuple: VariableDeclTuple =>
+                    for (el in vDeclTuple tuple elements) {
+                        match (el) {
+                            case va: VariableAccess =>
+                                if (va getName() == name) {
+                                    return -1
+                                }
+                        }
+                    }
                 case vDecl: VariableDecl =>
                     if (vDecl name == name) {
                         if(cb(vDecl)) {
@@ -91,17 +104,21 @@ Scope: class extends Node {
     }
 
     resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
-        // FIXME: this is as wrong as resolveAccess, see the comments up there.
-
         for(stat in this) {
-            if(stat instanceOf?(VariableDecl)) {
-                vDecl := stat as VariableDecl
-                // experimental
-                if((vDecl getType() instanceOf?(FuncType) || (vDecl getType() != null && vDecl type getName() == "Closure")) &&
-                    vDecl name == call name &&
-                    call suggest(vDecl getFunctionDecl(), res, trail)) {
-                        break
-                }
+            match stat {
+                case vDecl: VariableDecl =>
+                    // can call funcTypes (C functions) or closures (anonymous ooc functions w/context)
+                    declType := vDecl getType()
+                    if (declType == null) continue
+
+                    funcType    := declType instanceOf?(FuncType)
+                    closureType := declType getName() == "Closure"
+
+                    if((funcType || closureType) && vDecl name == call name) {
+                        if (call suggest(vDecl getFunctionDecl(), res, trail)) {
+                            break
+                        }
+                    }
             }
         }
 
