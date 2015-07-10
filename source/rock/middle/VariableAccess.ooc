@@ -265,7 +265,6 @@ VariableAccess: class extends Expression {
                 }
                 status := node resolveAccess(this, res, trail)
                 if (status == -1) {
-                    token printMessage("asked to wait while resolving access #{this}, ref = #{ref ? ref toString() : "<none>"}")
                     res wholeAgain(this, "asked to wait while resolving access")
                     return Response OK
                 }
