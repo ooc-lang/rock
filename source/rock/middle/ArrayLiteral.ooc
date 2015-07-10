@@ -2,7 +2,7 @@ import ../frontend/[Token, BuildParams]
 import Literal, Visitor, Type, Expression, FunctionCall, Block,
        VariableDecl, VariableAccess, Cast, Node, ClassDecl, TypeDecl, BaseType,
        Statement, IntLiteral, BinaryOp, Block, ArrayCreation, FunctionCall,
-       FunctionDecl
+       FunctionDecl, CommaSequence
 import tinker/[Response, Resolver, Trail, Errors]
 import algo/typeAnalysis
 import structs/[List, ArrayList]
@@ -280,6 +280,8 @@ ArrayLiteral: class extends Literal {
         vDecl : VariableDecl = null
         vAcc : VariableAccess = null
 
+        mustPopVdecl := false
+
         if(parent instanceOf?(VariableDecl)) {
             vDecl = parent as VariableDecl
             vAcc = VariableAccess new(vDecl, token)
@@ -317,6 +319,9 @@ ArrayLiteral: class extends Literal {
                 res wholeAgain(this, "Trail is messed up, gotta loop.")
                 return Response OK
             }
+            trail push(vDecl)
+            mustPopVdecl = true
+            varDeclIdx = trail size - 1
         }
 
         vDecl setType(null)
@@ -334,7 +339,8 @@ ArrayLiteral: class extends Literal {
 
         // if varDecl is our immediate parent
         success := false
-        if(trail getSize() - varDeclIdx == 1) {
+        varDeclIsParent := trail size - varDeclIdx == 1
+        if(varDeclIsParent) {
             success = trail addAfterInScope(vDecl, block)
         } else {
             success = trail addBeforeInScope(this, block)
@@ -365,8 +371,16 @@ ArrayLiteral: class extends Literal {
                     fDecl getBody() add(init)
                     memberDecl setExpr(null)
                 }
+            } else if (parent instanceOf?(CommaSequence)) {
+                res throwError(InternalError new(token, "We're in a comma sequence! trail =\n\n#{trail}"))
             } else {
-                res throwError(CouldntAddAfterInScope new(token, (trail getSize() - varDeclIdx == 1) ? vDecl : this, block, trail))
+                token printMessage("grandpa is a #{grandpa class name}: #{grandpa}")
+                token printMessage("trail size = #{trail size}, varDeclIdx = #{varDeclIdx}")
+                if (varDeclIsParent) {
+                    res throwError(CouldntAddAfterInScope new(token, vDecl, block, trail))
+                } else {
+                    res throwError(CouldntAddBeforeInScope new(token, this, block, trail))
+                }
             }
         }
 
@@ -385,6 +399,9 @@ ArrayLiteral: class extends Literal {
 
         type = PointerType new(arrType inner, arrType token)
 
+        if (mustPopVdecl) {
+            trail pop(vDecl)
+        }
         return Response LOOP
 
     }
