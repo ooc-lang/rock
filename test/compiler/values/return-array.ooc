@@ -1,8 +1,6 @@
 
 // Test case for https://github.com/fasterthanlime/rock/issues/348
 
-use sam-assert
-
 f: func -> Int[] {
     [1, 2, 3, 4]
 }
