@@ -1005,7 +1005,9 @@ AstBuilder: class {
     onIfEnd: unmangled(nq_onIfEnd) func -> If {
         pop(If)
     }
-
+    onElseMatched: unmangled(nq_onElseMatched) func(s: If, e: Else){
+        s setElse(e)
+    }
     // else
     onElseStart: unmangled(nq_onElseStart) func {
         stack push(Else new(token()))

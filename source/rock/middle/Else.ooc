@@ -22,38 +22,9 @@ Else: class extends Conditional {
 
     resolve: func(trail: Trail, res: Resolver) -> Response {
         trail push(this)
-        scope := trail get(trail findScope()) as Scope
-        // Check if an Else has got an If in front of it
-        if (scope) {
-            self := scope list indexOf(this)
-            foundIf := false
-            scope list each(|elem| if (elem instanceOf?(If)) {
-                    if (scope list indexOf(elem) <= self) {
-                        foundIf = true
-                    }
-                }
-            ) 
-            if (!foundIf) 
-                res throwError(LonesomeElse new(this))
-
-            
-        }
         response := body resolve(trail, res)
         trail pop(this)
         return response
-        
-    }
-
-}
-
-LonesomeElse: class extends Error {
-
-    first: Statement
-    init: func (=first) {
-        message = first token formatMessage("Found a single-standing `else`. (Note, there must be an if before)", "[ERROR]")
-    }
-    format: func -> String {
-        message
     }
 
 }
