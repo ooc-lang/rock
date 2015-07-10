@@ -18,6 +18,8 @@ Type: abstract class extends Expression {
     SCORE_SEED := const static 1024
     NOLUCK_SCORE := const static -100000
 
+    owner: Expression = null
+
     init: func ~type (.token) {
         super(token)
     }
@@ -292,7 +294,9 @@ TypeAccess: class extends Type {
     setRef: func (d: Declaration) { inner setRef(d) }
 
     clone: func -> This {
-        new(inner clone(), token)
+        copy := new(inner clone(), token)
+        copy owner = owner
+        copy
     }
 
     dereference: func -> Type { inner dereference() }

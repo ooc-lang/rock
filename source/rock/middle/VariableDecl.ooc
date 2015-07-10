@@ -142,7 +142,7 @@ VariableDecl: class extends Declaration {
 
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
         // FIXME: This, huh, shouldn't be needed at all, right?
-        // ie. it should all be handled in Scope anyway, I think.
+        // ie. it should all be handled in Scope anyway, I think. -- amos
         if(name == access name) {
             access suggest(this)
         }
@@ -376,6 +376,10 @@ VariableDecl: class extends Declaration {
                 res throwError(CouldntAddAfterInScope new(token, this, ass, trail))
             }
             expr = null
+        }
+
+        if (type getName() == "Kakhi") {
+            token printMessage("It's for this varDecl! Trail = \n\n#{trail}")
         }
 
         typeAcc := VariableAccess new(type, token)
@@ -692,3 +696,6 @@ IncompatibleElementInTupleVarDecl: class extends Error {
 IncompatibleInit: class extends Error {
     init: super func ~tokenMessage
 }
+
+trap: func {}
+

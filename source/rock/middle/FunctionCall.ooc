@@ -1109,12 +1109,20 @@ FunctionCall: class extends Expression {
 
             finalScore := 0
             typeResult := resolveTypeArg(trail, res, typeArg name, finalScore&)
+
             if(finalScore == -1) break
             if(typeResult) {
+                if (debugCondition()) {
+                    token printMessage("in #{this}, resolved typeArg #{typeArg}, result = #{typeResult}")
+                    token printMessage("owner is #{typeResult owner ? typeResult owner toString() : "<nil>"}")
+                }
                 result := match {
                     case typeResult instanceOf?(FuncType) || (typeResult pointerLevel() > 0) =>
                         VariableAccess new("Pointer", token)
                     case =>
+                        if (debugCondition()) {
+                            token printMessage("making an access to typeResult")
+                        }
                         VariableAccess new(typeResult, token)
                 }
 
@@ -1214,7 +1222,17 @@ FunctionCall: class extends Expression {
                         }
 
                         if(realCount == refCount) {
-                            if(debugCondition()) " >> Found arg-arg %s for typeArgName %s, returning %s" printfln(implArg toString(), typeArgName, result toString())
+                            if(debugCondition()) {
+                                token printMessage(" >> Found arg-arg #{implArg} (of type #{implArg class name}) for typeArgName #{typeArgName}, returning #{result}")
+                            }
+
+                            match implArg {
+                                case va: VariableAccess =>
+                                    if (va expr) {
+                                        result = result clone()
+                                        result owner = va expr
+                                    }
+                            }
                             combineTypesHard(res, this, combinedResult&, result, "arg-arg")
                         }
                     }

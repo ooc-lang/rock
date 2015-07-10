@@ -61,13 +61,26 @@ VariableAccess: class extends Expression {
         super(token)
         name = type getName()
 
+        if (debugCondition()) {
+            token printMessage("Building new typeAccess for #{type}, ref = #{type getRef()}")
+            trap()
+        }
+
         if(type getRef() instanceOf?(VariableDecl)) {
             varDecl := type getRef() as VariableDecl
             if(varDecl getOwner() != null) {
                 if(varDecl isStatic) {
                     expr = VariableAccess new(varDecl getOwner() getInstanceType(), token)
                 } else {
-                    expr = VariableAccess new("this", token)
+                    if (debugCondition()) {
+                        token printMessage("That's where the 'this' comes from! owner is #{type owner ? type owner toString() : "<none>"}")
+                    }
+                    if (type owner) {
+                        expr = type owner
+                    } else {
+                        // FIXME: ideally, this would never happen? 'owner' would just be 'this'
+                        expr = VariableAccess new("this", token)
+                    }
                 }
             }
         } else {
@@ -473,7 +486,8 @@ VariableAccess: class extends Expression {
                     println("trail = " + trail toString())
                 }
                 msg := "Undefined symbol '%s'" format(subject toString())
-                if(res params helpful) {
+                msg += "Trail = #{trail}"
+                if (res params helpful) {
                     similar := subject findSimilar(res)
                     if(similar) {
                         msg += similar
@@ -488,6 +502,9 @@ VariableAccess: class extends Expression {
             res wholeAgain(this, "Couldn't resolve varacc")
         }
 
+        if (debugCondition()) {
+            token printMessage("About to check generic access")
+        }
         checkGenericAccess(trail, res)
 
         return Response OK
@@ -496,10 +513,6 @@ VariableAccess: class extends Expression {
 
     _genericAccessDone := false
 
-    /**
-     * This has some intersection with FunctionCall's `resolveTypeArg`
-     * TODO: maybe find a unified way to do that? (amos)
-     */
     checkGenericAccess: func (trail: Trail, res: Resolver) {
         type := getType()
         if (!type) {
@@ -533,8 +546,18 @@ VariableAccess: class extends Expression {
             return
         }
 
+        if (debugCondition()) {
+            token printMessage("About to realtypize maybe?")
+        }
+
         if (type isGeneric()) {
+            if (debugCondition()) {
+                token printMessage("realtypizing!")
+            }
             realTypize(trail, res)
+            if (debugCondition()) {
+                token printMessage("done realtypizing.")
+            }
             return
         }
 
@@ -567,6 +590,9 @@ VariableAccess: class extends Expression {
             return
         }
 
+        if (debugCondition()) {
+            token printMessage("realtypizing inner!")
+        }
         realTypizeInner(trail, res)
     }
 
@@ -588,16 +614,27 @@ VariableAccess: class extends Expression {
         ourTypeArg := getType() getName()
         finalScore := 0
         realType := expr getType() searchTypeArg(ourTypeArg, finalScore&)
+        if (debugCondition()) {
+            token printMessage("done doing searchTypeArg, finalScore = #{finalScore}")
+        }
+
         if (finalScore == -1) {
             // try again next time!
             return
         }
 
         if (realType == null || realType isGeneric()) {
+            if (debugCondition()) {
+                token printMessage("realType null or generic :(")
+            }
             // we're probably inside a generic type declaration, where generic
             // types aren't real yet
             _genericAccessDone = true
             return
+        }
+
+        if (debugCondition()) {
+            token printMessage("realType for #{this} found to be #{realType}, with ref #{realType getRef()}")
         }
 
         cast := Cast new(this, realType clone(), token)
