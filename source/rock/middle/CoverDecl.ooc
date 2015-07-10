@@ -49,7 +49,7 @@ CoverDecl: class extends TypeDecl {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
         if (debugCondition()) {
-            "Resolving CoverDecl #{this}, template = #{template}" println()
+            "Resolving CoverDecl #{this}, template = #{template ? template toString() : "<none>"}" println()
         }
 
         if (template) {
