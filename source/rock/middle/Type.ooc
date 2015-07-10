@@ -270,7 +270,12 @@ TypeAccess: class extends Type {
         visitor visitTypeAccess(this)
     }
 
-    resolve: func (trail: Trail, res: Resolver) -> Response { inner resolve(trail, res) }
+    resolve: func (trail: Trail, res: Resolver) -> Response {
+        trail push(this)
+        response := inner resolve(trail, res)
+        trail pop(this)
+        response
+    }
 
     write: func (w: AwesomeWriter, name: String) {}
 
