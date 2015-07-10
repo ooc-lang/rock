@@ -167,7 +167,7 @@ FunctionCall: class extends Expression {
      * a return expression, when it's being used.
      */
     debugCondition: final func -> Bool {
-        name == "backward"
+        false
     }
 
     /**
