@@ -72,12 +72,12 @@ Try: class extends ControlStatement {
 
         // else {
         else_ := Else new(token)
+        if_ setElse(else_)
         // match (_getException()) { ... }
         match_ := Match new(token)
         match_ setExpr(FunctionCall new("_getException", token))
         match_ cases addAll(catches)
         else_ add(match_)
-        block add(else_)
         // add the last "fall-through" case if needed.
         rethrow? := true
         for(caze in catches) {
