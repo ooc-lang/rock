@@ -1,9 +1,9 @@
 
 // Test for https://github.com/fasterthanlime/rock/pull/897
 
-use sam-assert
+include ./constnum
 
-SIGHUP: extern const Int
+GRAAL: extern(_THE_GRAAL_) const Int
 
 foo: func <T> (t: T) -> String {
     match t {
@@ -15,6 +15,6 @@ foo: func <T> (t: T) -> String {
 }
 
 describe("should know that extern const are not referencable", ||
-   expect("matched!", foo(SIGHUP))
+   expect("matched!", foo(GRAAL))
 )
 

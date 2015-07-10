@@ -1,1 +1,1 @@
-#define SIG1 1
+#define _THE_GRAAL_ 1
