@@ -20,13 +20,13 @@ nullToken := (0, 0, null, 0) as Token
 Token: cover {
 
     /** Start and length of this token, in bytes */
-    start, length: SizeT
+    start, length: Int
 
     /** Module this token comes from */
     module: Module
 
     /** 0-based line number of this token */
-    lineno: SizeT
+    lineno: Int
 
     /* No constructor, should be built with cover-literal syntax */
 
@@ -129,6 +129,9 @@ Token: cover {
         lines := 1
         idx := 0
 
+        start := getStart()
+        end := getEnd()
+
         // skip the lines before we start, remember index of the start of our line
         while(fr hasNext?() && idx < start) {
             c := fr read()
@@ -190,7 +193,6 @@ Token: cover {
         }
 
         out append(prefix)
-        end := getEnd()
         beginning := true
         done := false
 
@@ -265,23 +267,31 @@ Token: cover {
     /**
      * Length of this token in bytes
      */
-    getLength: func -> SizeT {
-        return length
+    getLength: func -> Int {
+        return (length > 0 ? length : -length)
     }
 
     /**
      * 0-based offset from the start of the file, in bytes
      */
-    getStart: func -> SizeT {
-        return start
+    getStart: func -> Int {
+        if (length > 0) {
+            start
+        } else {
+            start + length
+        }
     }
 
     /**
      * 0-based position of the end of this token, from the start of the file,
      * in bytes
      */
-    getEnd: func -> SizeT {
-        return start + length
+    getEnd: func -> Int {
+        if (length > 0) {
+            start + length
+        } else {
+            start
+        }
     }
 
     equals?: func (other: This) -> Bool {
