@@ -9,7 +9,7 @@ import Help, Token, BuildParams, AstBuilder, PathList, Target
 import rock/frontend/drivers/[Driver, SequenceDriver, MakeDriver, DummyDriver, CCompiler, AndroidDriver, CMakeDriver]
 import rock/backend/json/JSONGenerator
 import rock/backend/lua/LuaGenerator
-import rock/middle/[Module, Import, UseDef]
+import rock/middle/[Module, Import, UseDef, Use]
 import rock/middle/tinker/Tinkerer
 import rock/middle/algo/ImportClassifier
 import rock/RockVersion
@@ -169,6 +169,11 @@ CommandLine: class {
 
                     if(!longOption) warnUseLong("libs")
                     params libPath = File new(option substring(5))
+
+                } else if(option startsWith?("use=")) {
+                    
+                    if (!longOption) warnUseLong("use")
+                    params builtinUses add(option substring(4))
 
                 } else if(option startsWith?("linker=")) {
 
@@ -626,6 +631,9 @@ CommandLine: class {
         module token = nullToken
         module token module = module
         module main = true
+        for (uze in params builtinUses) {
+            module addUse(Use new(uze, params, module token))
+        }
         module lastModified = moduleFile lastModified()
 
         // phase 1: parse

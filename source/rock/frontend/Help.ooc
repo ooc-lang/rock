@@ -81,6 +81,10 @@ or a library (if it only has a 'SourcePath: something' directive)
     in them so it's easy to use them! You can also use the OOC_LIBS environment
     variable.
 
+--use=some-ooc-lib
+    Add `use some-ooc-lib` to the start of the main module file so it's accessible.
+    Used by sam to insert its builtin assertion library for example.
+
 --linker=LINKER
     Use LINKER in the last step of the sequence driver.
 

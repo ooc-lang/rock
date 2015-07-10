@@ -232,6 +232,9 @@ BuildParams: class {
     // dynamic libraries to be linked into the executable
     dynamicLibs := ArrayList<String> new()
 
+    // use files to add to main module
+    builtinUses := ArrayList<String> new()
+
     // backend
     backend: String = "c"
 
