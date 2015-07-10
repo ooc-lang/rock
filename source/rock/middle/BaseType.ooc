@@ -169,7 +169,7 @@ BaseType: class extends Type {
             tDecl := ref as TypeDecl
             if(!tDecl isMeta && !tDecl getTypeArgs() empty?()) {
                 if((typeArgs == null || typeArgs getSize() != tDecl getTypeArgs() getSize()) && !trail peek() instanceOf?(Cast)) {
-                    message : String = match {
+                    quantity : String = match {
                         case typeArgs == null =>
                             "No"
                         case typeArgs getSize() < tDecl getTypeArgs() getSize() =>
@@ -178,7 +178,10 @@ BaseType: class extends Type {
                             "Too many"
                     }
 
-                    res throwError(MismatchedTypeParams new(token, "%s type parameters for %s. It should match %s" format(message, toString(), tDecl getInstanceType() toString())))
+                    model := tDecl name + tDecl typeArgsRepr()
+                    msg := "#{quantity} type parameters for #{this}. It should match #{model}"
+                    err := MismatchedTypeParams new(token, msg)
+                    res throwError(err)
                 }
             }
         }

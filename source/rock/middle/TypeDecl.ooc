@@ -426,7 +426,9 @@ TypeDecl: abstract class extends Declaration {
 
     getModule: func -> Module { module }
     getType: func -> Type { type }
-    getInstanceType: func -> Type { instanceType }
+    getInstanceType: func -> Type {
+        instanceType
+    }
     getThisDecl: func -> VariableDecl { thisDecl }
 
     isResolved: func -> Bool { false }
@@ -1060,10 +1062,15 @@ TypeDecl: abstract class extends Declaration {
     }
 
     toString: func -> String {
-        repr := class name + ' ' + name
-        if (getTypeArgs() empty?()) return repr
+        "#{class name} #{name} #{typeArgsRepr()}"
+    }
+
+    typeArgsRepr: func -> String {
+        if (getTypeArgs() empty?()) return ""
+
         b := Buffer new()
-        b append(repr). append('<')
+
+        b append('<')
         isFirst := true
         for (typeArg in getTypeArgs()) {
             if (isFirst) isFirst = false
@@ -1071,7 +1078,7 @@ TypeDecl: abstract class extends Declaration {
             b append(typeArg getName())
         }
         b append('>')
-        return b toString()
+        b toString()
     }
 
     getMeta: func -> ClassDecl { meta }
