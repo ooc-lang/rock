@@ -9,6 +9,8 @@ Block: class extends ControlStatement {
 
     accept: func (v: Visitor) { v visitBlock(this) }
 
+    isDeadEnd: func -> Bool { true }
+
     clone: func -> This {
         copy := new(token)
         body list each(|stat| copy body add(stat clone()))

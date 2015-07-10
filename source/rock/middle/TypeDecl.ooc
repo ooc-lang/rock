@@ -631,10 +631,9 @@ TypeDecl: abstract class extends Declaration {
             }
         }
 
-        for (vDecl in variables) {
-            response := vDecl resolve(trail, res)
+        {
+            response := resolveVariables(trail, res)
             if (!response ok()) {
-                //if (debugCondition() || res params veryVerbose) printf("====== Response of vDecl %s of %s == %s\n", vDecl toString(), toString(), response toString())
                 trail pop(this)
                 return response
             }
@@ -671,6 +670,19 @@ TypeDecl: abstract class extends Declaration {
 
         return Response OK
 
+    }
+
+    resolveVariables: func (trail: Trail, res: Resolver) -> Response {
+        for (vDecl in variables) {
+            response := vDecl resolve(trail, res)
+            if (!response ok()) return response
+        }
+
+        Response OK
+    }
+
+    resolveVariable: func (trail: Trail, res: Resolver, vDecl: VariableDecl) -> Response {
+        vDecl resolve(trail, res)
     }
 
     checkAbstractFuncs: func (res: Resolver) -> Bool {

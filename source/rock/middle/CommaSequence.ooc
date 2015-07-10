@@ -14,6 +14,10 @@ CommaSequence: class extends Expression {
         super(token)
     }
 
+    add: func (n: Node) {
+        body add(n as Statement)
+    }
+
     clone: func -> Node {
         // let stuff unwrap again if we're cloned
         if (origin) {

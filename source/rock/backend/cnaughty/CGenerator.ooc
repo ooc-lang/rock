@@ -467,10 +467,21 @@ CGenerator: class extends Skeleton {
 
     visitCommaSequence: func (node: CommaSequence) {
         current app("(")
+        body := node getBody()
+        numNodes := body size
         isFirst := true
-        for(statement in node getBody()) {
-            if(isFirst) isFirst = false
-            else        current app(", ")
+
+        for((j, statement) in body) {
+            if (j < numNodes - 1 && statement instanceOf?(VariableAccess)) {
+                // that's a no-op, skip it
+                continue
+            }
+
+            if (isFirst) {
+                isFirst = false
+            } else {
+                current app(", ")
+            }
             current app(statement)
         }
         current app(")")

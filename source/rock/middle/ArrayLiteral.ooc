@@ -2,7 +2,7 @@ import ../frontend/[Token, BuildParams]
 import Literal, Visitor, Type, Expression, FunctionCall, Block,
        VariableDecl, VariableAccess, Cast, Node, ClassDecl, TypeDecl, BaseType,
        Statement, IntLiteral, BinaryOp, Block, ArrayCreation, FunctionCall,
-       FunctionDecl, CommaSequence
+       FunctionDecl, CommaSequence, Scope
 import tinker/[Response, Resolver, Trail, Errors]
 import algo/typeAnalysis
 import structs/[List, ArrayList]
@@ -164,12 +164,12 @@ ArrayLiteral: class extends Literal {
                             baseType := b typeArgs first() inner
                             outerType = ArrayType new(baseType, IntLiteral new(elements size, token), token)
 
-                            vDecl := VariableDecl new(outerType, generateTempName("arrLitOp"), this, token)
-                            trail addBeforeInScope(this, vDecl)
-                            parent replace(this, VariableAccess new(vDecl, token))
+                            // vDecl := VariableDecl new(outerType, generateTempName("arrLitOp"), this, token)
+                            // trail addBeforeInScope(this, vDecl)
+                            // parent replace(this, VariableAccess new(vDecl, token))
                             type = outerType
 
-                            return 2 // need to loop
+                            // return 2 // need to loop
                         }
                         hasTypeArgs
                     case =>
@@ -253,79 +253,21 @@ ArrayLiteral: class extends Literal {
                 at
         }
 
-        // set to true if a VDFE should become a simple VD with
-        // explicit initialization in getDefaultsFunc()/getLoadFunc()
-        // this happens when the order of initialization becomes
-        // important, especially when casting an array literal to an ArrayList
-        memberInitShouldMove := false
+        seq := CommaSequence new(token)
 
-        // check outer var-decl
-        varDeclIdx := trail find(VariableDecl)
-        if(varDeclIdx != -1) {
-            memberDecl := trail get(varDeclIdx) as VariableDecl
-            if(memberDecl getType() == null) {
-                res wholeAgain(this, "need memberDecl type")
-                return Response OK
-            }
+        arrCrea := ArrayCreation new(arrType, true, token)
+        arrLit := VariableDecl new(null, generateTempName("arrLit"), arrCrea, token)
+        arrLit isGenerated = true
+        arrAcc := VariableAccess new(arrLit, token)
+
+        seq add(arrLit)
+
+        parent := trail peek()
+        if (!parent replace(this, seq)) {
+            token printMessage("parent is a #{parent class name}, #{parent}")
+            res throwError(CouldntReplace new(token, this, seq, trail))
         }
 
-        // bitch-jump casts
-        parentIdx := 1
-        parent := trail peek(parentIdx)
-        while(parent instanceOf?(Cast)) {
-            parentIdx += 1
-            parent = trail peek(parentIdx)
-        }
-
-        vDecl : VariableDecl = null
-        vAcc : VariableAccess = null
-
-        mustPopVdecl := false
-
-        if(parent instanceOf?(VariableDecl)) {
-            vDecl = parent as VariableDecl
-            vAcc = VariableAccess new(vDecl, token)
-            if(vDecl isMember()) {
-                vAcc expr = vDecl isStatic() ? VariableAccess new(vDecl owner getNonMeta() getInstanceType(), token) : VariableAccess new("this", token)
-            }
-        } else {
-            vDecl = VariableDecl new(null, generateTempName("arrLit"), token)
-            vAcc = VariableAccess new(vDecl, token)
-            if(vDecl isMember()) {
-                vAcc expr = vDecl isStatic() ? VariableAccess new(vDecl owner getNonMeta() getInstanceType(), token) : VariableAccess new("this", token)
-            }
-            if(!trail addBeforeInScope(this, vDecl)) {
-                grandpa := trail peek(parentIdx + 2)
-                memberDecl := (varDeclIdx != -1 ? trail get(varDeclIdx) as VariableDecl : null)
-
-                if(grandpa instanceOf?(ClassDecl)) {
-                    cDecl := grandpa as ClassDecl
-                    fDecl: FunctionDecl
-                    if(memberDecl isStatic()) {
-                        fDecl = cDecl getLoadFunc()
-                    } else {
-                        fDecl = cDecl getDefaultsFunc()
-                    }
-                    fDecl getBody() add(vDecl)
-                    memberInitShouldMove = true
-                } else {
-                    if(res fatal) res throwError(CouldntAddBeforeInScope new(token, this, vDecl, trail))
-                    res wholeAgain(this, "Trail is messed up, gotta loop")
-                    return Response OK
-                }
-            }
-            if(!parent replace(this, vAcc)) {
-                if(res fatal) res throwError(CouldntReplace new(token, this, vAcc, trail))
-                res wholeAgain(this, "Trail is messed up, gotta loop.")
-                return Response OK
-            }
-            trail push(vDecl)
-            mustPopVdecl = true
-            varDeclIdx = trail size - 1
-        }
-
-        vDecl setType(null)
-        vDecl setExpr(ArrayCreation new(arrType, true, token))
         ptrType := match (arrType inner) {
             case aType: ArrayType =>
                 PointerType new(arrType exprLessClone(), token)
@@ -333,77 +275,27 @@ ArrayLiteral: class extends Literal {
                 PointerType new(arrType inner, token)
         }
         ptrDecl := VariableDecl new(ptrType, generateTempName("ptrLit"), this, token)
-
-        // add memcpy from C-pointer literal block
-        block := Block new(token)
-
-        // if varDecl is our immediate parent
-        success := false
-        varDeclIsParent := trail size - varDeclIdx == 1
-        if(varDeclIsParent) {
-            success = trail addAfterInScope(vDecl, block)
-        } else {
-            success = trail addBeforeInScope(this, block)
-        }
-
-        if(!success) {
-            grandpa := trail get(varDeclIdx - 1)
-            memberDecl := trail get(varDeclIdx) as VariableDecl
-
-            if(grandpa instanceOf?(ClassDecl)) {
-                cDecl := grandpa as ClassDecl
-                fDecl: FunctionDecl
-                if(memberDecl isStatic()) {
-                    fDecl = cDecl getLoadFunc()
-                } else {
-                    fDecl = cDecl getDefaultsFunc()
-                }
-                fDecl getBody() add(block)
-
-                if(memberInitShouldMove) {
-                    // now we should move the 'expr' of our VariableDecl into fDecl's body,
-                    // because order matters here.
-                    if(memberDecl getType() == null) memberDecl setType(memberDecl expr getType()) // fixate type
-                    memberAcc := VariableAccess new(memberDecl, token)
-                    memberAcc expr = memberDecl isStatic() ? VariableAccess new(memberDecl owner getNonMeta() getInstanceType(), token) : VariableAccess new("this", token)
-
-                    init := BinaryOp new(memberAcc, memberDecl expr, OpType ass, token)
-                    fDecl getBody() add(init)
-                    memberDecl setExpr(null)
-                }
-            } else if (parent instanceOf?(CommaSequence)) {
-                res throwError(InternalError new(token, "We're in a comma sequence! trail =\n\n#{trail}"))
-            } else {
-                token printMessage("grandpa is a #{grandpa class name}: #{grandpa}")
-                token printMessage("trail size = #{trail size}, varDeclIdx = #{varDeclIdx}")
-                if (varDeclIsParent) {
-                    res throwError(CouldntAddAfterInScope new(token, vDecl, block, trail))
-                } else {
-                    res throwError(CouldntAddBeforeInScope new(token, this, block, trail))
-                }
-            }
-        }
-
-        block getBody() add(ptrDecl)
+        ptrDecl isGenerated = true
+        seq add(ptrDecl)
 
         innerTypeAcc := VariableAccess new(arrType inner, token)
 
-        sizeExpr : Expression = (arrType expr ? arrType expr : VariableAccess new(vAcc, "length", token))
+        sizeExpr : Expression = (arrType expr ? arrType expr : VariableAccess new(arrAcc, "length", token))
         copySize := BinaryOp new(sizeExpr, VariableAccess new(innerTypeAcc, "size", token), OpType mul, token)
 
         memcpyCall := FunctionCall new("memcpy", token)
-        memcpyCall args add(VariableAccess new(vAcc, "data", token))
+        memcpyCall args add(VariableAccess new(arrAcc, "data", token))
         memcpyCall args add(VariableAccess new(ptrDecl, token))
         memcpyCall args add(copySize)
-        block getBody() add(memcpyCall)
+        seq add(memcpyCall)
+
+        seq add(arrAcc)
 
         type = PointerType new(arrType inner, arrType token)
 
-        if (mustPopVdecl) {
-            trail pop(vDecl)
-        }
-        return Response LOOP
+        token printMessage("After everything, seq = #{seq}")
 
+        return Response LOOP
     }
 
     replace: func (oldie, kiddo: Node) -> Bool {

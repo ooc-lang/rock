@@ -2,7 +2,7 @@ import structs/[ArrayList]
 import Type, Declaration, Expression, Visitor, TypeDecl, VariableAccess,
        Node, ClassDecl, FunctionCall, Argument, BinaryOp, Cast, Module,
        Block, Scope, FunctionDecl, Argument, BaseType, FuncType, Statement,
-       NullLiteral, Tuple, TypeList, AddressOf, PropertyDecl
+       NullLiteral, Tuple, TypeList, AddressOf, PropertyDecl, CommaSequence
 import tinker/[Response, Resolver, Trail, Errors]
 import ../frontend/BuildParams
 
@@ -42,7 +42,7 @@ VariableDecl: class extends Declaration {
     }
 
     debugCondition: final func -> Bool {
-        false
+        name == "willow"
     }
 
     clone: func -> This {
@@ -230,29 +230,58 @@ VariableDecl: class extends Declaration {
             if(!parent isScope() && !parent instanceOf?(TypeDecl) && !parent instanceOf?(FuncType)) {
                 if(debugCondition()) "Parent isn't scope nor typedecl, unwrapping." println()
                 varAcc := VariableAccess new(this, token)
-                result := trail peek() replace(this, varAcc)
+
+                scopeIdx := trail findScope()
+
+                result := false
+
+                if (scopeIdx != -1) {
+                    scope := trail get(scopeIdx) as Scope
+
+                    parentBeforeScope := trail get(scopeIdx + 1, Node)
+
+                    if (isGenerated || parentBeforeScope instanceOf?(FunctionCall)) {
+                        result = trail addBeforeInScope(parentBeforeScope as Statement, this)
+                    } else {
+                        token printMessage("Trying the block method for #{this}")
+                        block := Block new(token)
+                        block getBody() add(this)
+                        block getBody() add(parentBeforeScope as Statement)
+
+                        token printMessage("Type of scope is #{scope class name}")
+                        token printMessage("Replacing in scope #{scope}")
+                        token printMessage("Replacing #{parentBeforeScope}")
+                        result = scope replace(parentBeforeScope, block)
+                    }
+                } else {
+                    // Didn't find a scope, but maybe we can find something else?
+                    mDeclIdx := trail find(VariableDecl)
+                    cDeclIdx := trail find(ClassDecl)
+                    if (cDeclIdx != -1 && mDeclIdx != -1 && (mDeclIdx - cDeclIdx) == 1) {
+                        cDecl := trail get(cDeclIdx, ClassDecl)
+                        mDecl := trail get(mDeclIdx, VariableDecl)
+
+                        fDecl: FunctionDecl
+                        if(mDecl isStatic()) {
+                            fDecl = cDecl getLoadFunc()
+                        } else {
+                            fDecl = cDecl getDefaultsFunc()
+                        }
+                        fDecl getBody() add(this)
+                        result = true
+
+                        token printMessage("Found the ClassDecl! #{cDecl}")
+                    }
+                }
+
+                if(!result) {
+                    res throwError(InternalError new(token, "Couldn't unwrap decl `#{this}` , trail = " + trail toString()))
+                }
+
+                result = trail peek() replace(this, varAcc)
                 if(!result) {
                     res throwError(CouldntReplace new(token, this, varAcc, trail))
                     return Response LOOP
-                }
-
-                idx := trail findScope()
-                scope := trail get(idx) as Scope
-
-                parent := trail get(idx + 1, Node)
-
-                if(parent instanceOf?(FunctionCall)) {
-                    result = trail addBeforeInScope(parent as Statement, this)
-                } else {
-                    block := Block new(token)
-                    block getBody() add(this)
-                    block getBody() add(parent as Statement)
-
-                    result = scope replace(trail get(idx + 1), block)
-                }
-
-                if(!result) {
-                    res throwError(InternalError new(token, "Couldn't unwrap " + toString() + " , trail = " + trail toString()))
                 }
 
                 res wholeAgain(this, "parent isn't scope nor typedecl, unwrapped")

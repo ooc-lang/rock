@@ -538,8 +538,8 @@ FunctionCall: class extends Expression {
 
                 if(returnType void?) {
                     parent := trail peek()
-                    if(!parent instanceOf?(Scope)) {
-                        res throwError(UseOfVoidExpression new(token, "Use of a void function call as an expression"))
+                    if(!parent instanceOf?(Scope) && !parent instanceOf?(CommaSequence)) {
+                        res throwError(UseOfVoidExpression new(token, "Use of a void function call `#{this}` as an expression"))
                     }
                 }
             }

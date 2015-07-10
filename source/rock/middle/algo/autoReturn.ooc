@@ -21,6 +21,7 @@ _autoReturnExplore: func (trail: Trail, res: Resolver, origin: Node, scope: Scop
 
     if(scope empty?()) {
         // scope is empty, we need a return
+        origin token printMessage("scope is empty #{scope}")
         _returnNeeded(res, origin)
         return
     }
@@ -83,10 +84,12 @@ _handleLastStatement: func (trail: Trail, res: Resolver, origin: Node, scope: Sc
                 }
             }
         } else {
+            origin token printMessage("cStat #{cStat class name} isn't dead end #{cStat}")
             _returnNeeded(res, origin)
         }
     } else {
         // unknown type of node? need return.
+        origin token printMessage("unknown type for stmt #{stmt}")
 
         _returnNeeded(res, origin)
         res wholeAgain(origin, "was needing return")
