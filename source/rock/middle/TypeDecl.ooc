@@ -427,6 +427,11 @@ TypeDecl: abstract class extends Declaration {
     getModule: func -> Module { module }
     getType: func -> Type { type }
     getInstanceType: func -> Type {
+        if (instanceType getTypeArgs() == null && !typeArgs empty?()) {
+            for (typeArg in typeArgs) {
+                instanceType addTypeArg(TypeAccess new(BaseType new(typeArg getName(), typeArg token), typeArg token))
+            }
+        }
         instanceType
     }
     getThisDecl: func -> VariableDecl { thisDecl }
@@ -521,6 +526,15 @@ TypeDecl: abstract class extends Declaration {
             response := type resolve(trail, res)
             if (!response ok()) {
                 if (debugCondition() || res params veryVerbose) "====== Response of type of %s == %s" printfln(toString(), response toString())
+                trail pop(this)
+                return response
+            }
+        }
+
+        if (!instanceType isResolved()) {
+            response := instanceType resolve(trail, res)
+            if (!response ok()) {
+                if (debugCondition() || res params veryVerbose) "====== Response of instanceType of %s == %s" printfln(toString(), response toString())
                 trail pop(this)
                 return response
             }

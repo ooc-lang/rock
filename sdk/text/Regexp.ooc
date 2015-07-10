@@ -149,7 +149,7 @@ Match: class extends Iterable<String> {
         return group(number)
     }
 
-    iterator: func -> Iterator<String> { MatchGroupIterator new(this) }
+    iterator: func -> Iterator<String> { MatchGroupIterator<String> new(this) }
 }
 
 MatchGroupIterator: class <T> extends Iterator<T> {

@@ -256,7 +256,8 @@ TypeAccess: class extends Type {
     inner: Type
 
     init: func ~typeAccess (=inner, .token) {
-        if(!inner) Exception new("Creating null typeAccess") throw()
+        if(!inner) raise("Creating null typeAccess")
+        if(inner == this) raise("Created cyclic typeAccess")
         super(token)
     }
 
@@ -316,6 +317,10 @@ TypeAccess: class extends Type {
             return new(diff, token)
         }
         this
+    }
+
+    toString: func -> String {
+        inner toString()
     }
 
 }

@@ -13,6 +13,7 @@ import Type, Declaration, VariableAccess, VariableDecl, TypeDecl,
  * distinction.
  */
 BaseType: class extends Type {
+    cloneDepth := static 0
 
     namespace: VariableAccess = null
 
@@ -61,7 +62,8 @@ BaseType: class extends Type {
 
     addTypeArg: func (typeArg: TypeAccess) -> Bool {
         if (!typeArgs) typeArgs = ArrayList<TypeAccess> new()
-        typeArgs add(typeArg); true
+        typeArgs add(typeArg clone())
+        true
     }
 
     getName: func -> String { name }
@@ -253,8 +255,14 @@ BaseType: class extends Type {
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
         //printf("%s vs %s, other isGeneric ? %s pointerLevel ? %d isPointer() ? %d, other isPointer() ? %d\n", toString(), other toString(), other isGeneric() toString(), other pointerLevel(), isPointer(), other getGroundType() isPointer())
 
-        if (void? && other void?) return scoreSeed
-        else if (void?) return This NOLUCK_SCORE
+        while (other instanceOf?(TypeAccess)) {
+            other = other as TypeAccess inner
+        }
+
+        if (void?) {
+            // only void matches with void.
+            return (other void?) ? scoreSeed : This NOLUCK_SCORE
+        }
 
         ourRef := getRef()
         if (!ourRef) return -1
@@ -286,6 +294,56 @@ BaseType: class extends Type {
         if (isPointer() && (ground isPointer() || ground pointerLevel() > 0)) {
             // two pointers = okay
             return scoreSeed / 2
+        }
+
+        superType: Type = null
+        match ourRef {
+            case td: TypeDecl =>
+                superType = td getSuperType()
+        }
+
+        // compare generic type arguments
+        lhsTypeArgs := getTypeArgs()
+        rhsTypeArgs := other getTypeArgs()
+
+        // one has, other doesn't? no luck
+        if ((lhsTypeArgs == null) != (rhsTypeArgs == null)) {
+            if (superType) {
+                return superType getScore(other)
+            } else {
+                return This NOLUCK_SCORE
+            }
+        }
+
+        if ((lhsTypeArgs != null) && (rhsTypeArgs != null)) {
+            if (lhsTypeArgs size != rhsTypeArgs size) {
+                // mismatch in numbers
+                if (superType) {
+                    return superType getScore(other)
+                } else {
+                    return This NOLUCK_SCORE
+                }
+            }
+
+            for ((i, lhsArg) in lhsTypeArgs) {
+                rhsArg := rhsTypeArgs[i]
+
+                if (lhsArg == null) {
+                    return -1
+                }
+                if (rhsArg == null) {
+                    return -1
+                }
+                innerScore := lhsArg getScore(rhsArg)
+
+                if (innerScore < 0) {
+                    if (superType) {
+                        return superType getScore(other)
+                    } else {
+                        return innerScore
+                    }
+                }
+            }
         }
         
         if (other instanceOf?(BaseType)) {
@@ -498,12 +556,21 @@ BaseType: class extends Type {
     }
 
     clone: func -> This {
+        if (cloneDepth > 25) {
+            raise("clone loop!")
+        }
+
+        cloneDepth += 1
+
         copy := new(name, token)
         if (getTypeArgs()) for (typeArg in getTypeArgs()) {
             copy addTypeArg(typeArg clone())
         }
 
         copy setRef(getRef())
+
+        cloneDepth -= 1
+
         copy
     }
 
@@ -582,7 +649,7 @@ BaseType: class extends Type {
         }
 
         typeRef := getRef() as TypeDecl
-        if (typeRef typeArgs == null) return null
+        if (typeRef typeArgs empty?()) return null
 
         j := 0
         for (arg in typeRef typeArgs) {
@@ -599,14 +666,37 @@ BaseType: class extends Type {
                 //printf("Found candidate %s (which is a %s) for typeArg %s, ref is a %s, = %s\n", candidate toString(), candidate class name, typeArgName, ref class name, ref toString())
                 if (ref instanceOf?(TypeDecl)) {
                     // resolves to a known type
-                    result = ref as TypeDecl getInstanceType()
+                    result = ref as TypeDecl getInstanceType() clone()
+                    token printMessage("found typeArg #{typeArgName} in typeDecl ref `#{ref}`, it's `#{result}` (and we are `#{this}`)")
+
+                    downResult := result
+                    // TODO: doing that a lot, need a method or something.. -- amos
+                    while (downResult instanceOf?(TypeAccess)) {
+                        downResult = downResult as TypeAccess inner
+                    }
+                    match downResult {
+                        case baseType: BaseType =>
+                            if (baseType typeArgs) {
+                                // translate into our own typeArgs
+                                if (candidate getTypeArgs() == null) raise("expected non-null typeArgs")
+                                for ((i, typeArg) in candidate getTypeArgs()) {
+                                    if (i > baseType typeArgs size) {
+                                        raise("#{i} > #{baseType typeArgs size} (missing typeArgs in typeDecl ref result)")
+                                    }
+                                    baseType typeArgs set(i, typeArg)
+                                }
+                            }
+                    }
+                    token printMessage("after adjustment, typeArg #{typeArgName} is rather `#{result}`")
                 } else if (ref instanceOf?(VariableDecl)) {
                     // resolves to an access to another generic type
                     result = BaseType new(ref as VariableDecl getName(), token)
                     result setRef(ref) // FIXME: that is experimental. is that a good idea?
+                    token printMessage("found typeArg #{typeArgName} in variableDecl ref #{ref}")
                 } else if (ref instanceOf?(FuncType)) {
                     //printf("ref of %s is a %s!\n", candidate toString(), ref class name)
                     result = ref as FuncType
+                    token printMessage("found typeArg #{typeArgName} in funcType ref #{ref}")
                 }
                 return result
             }

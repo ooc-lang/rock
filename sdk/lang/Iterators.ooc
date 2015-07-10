@@ -76,7 +76,7 @@ BackIterator: abstract class <T> extends Iterator<T> {
     hasPrev?: abstract func -> Bool
     prev: abstract func -> T
 
-    iterator: func -> BackIterator<T> {this}
+    iterator: func -> BackIterator<T> { this }
 
     reversed: func -> ReverseIterator<T> {
         iter := ReverseIterator<T> new()

@@ -30,7 +30,7 @@ Bag: class {
     clear: func { data clear() }
 
     get: func <T> (index: SSizeT, T: Class) -> T {
-        data get(index) val
+        data get(index) val // yolo
     }
 
     indexOf: func <T> (element: T) -> SSizeT {

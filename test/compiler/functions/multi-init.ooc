@@ -2,7 +2,7 @@
 intDone := false
 strDone := false
 
-describe("Sholud call right constructor based on suffix", ||
+describe("Should call right constructor based on suffix", ||
     Dog new(42)
     Dog new("43")
 
