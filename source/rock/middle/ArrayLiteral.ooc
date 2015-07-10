@@ -264,7 +264,6 @@ ArrayLiteral: class extends Literal {
 
         parent := trail peek()
         if (!parent replace(this, seq)) {
-            token printMessage("parent is a #{parent class name}, #{parent}")
             res throwError(CouldntReplace new(token, this, seq, trail))
         }
 
@@ -292,8 +291,6 @@ ArrayLiteral: class extends Literal {
         seq add(arrAcc)
 
         type = PointerType new(arrType inner, arrType token)
-
-        token printMessage("After everything, seq = #{seq}")
 
         return Response LOOP
     }

@@ -42,7 +42,7 @@ VariableDecl: class extends Declaration {
     }
 
     debugCondition: final func -> Bool {
-        name == "willow"
+        false
     }
 
     clone: func -> This {
@@ -243,14 +243,9 @@ VariableDecl: class extends Declaration {
                     if (isGenerated || parentBeforeScope instanceOf?(FunctionCall)) {
                         result = trail addBeforeInScope(parentBeforeScope as Statement, this)
                     } else {
-                        token printMessage("Trying the block method for #{this}")
                         block := Block new(token)
                         block getBody() add(this)
                         block getBody() add(parentBeforeScope as Statement)
-
-                        token printMessage("Type of scope is #{scope class name}")
-                        token printMessage("Replacing in scope #{scope}")
-                        token printMessage("Replacing #{parentBeforeScope}")
                         result = scope replace(parentBeforeScope, block)
                     }
                 } else {
@@ -269,8 +264,6 @@ VariableDecl: class extends Declaration {
                         }
                         fDecl getBody() add(this)
                         result = true
-
-                        token printMessage("Found the ClassDecl! #{cDecl}")
                     }
                 }
 

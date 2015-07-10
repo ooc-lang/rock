@@ -3,9 +3,7 @@
 
 use sam-assert
 
-include ./constnum
-
-SIG1: extern const Int
+SIGHUP: extern const Int
 
 foo: func <T> (t: T) -> String {
     match t {
@@ -17,6 +15,6 @@ foo: func <T> (t: T) -> String {
 }
 
 describe("should know that extern const are not referencable", ||
-   expect("matched!", foo(SIG1))
+   expect("matched!", foo(SIGHUP))
 )
 
