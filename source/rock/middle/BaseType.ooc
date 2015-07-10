@@ -253,7 +253,9 @@ BaseType: class extends Type {
     getTypeArgs: func -> List<TypeAccess> { typeArgs }
 
     getScoreImpl: func (other: Type, scoreSeed: Int) -> Int {
-        //printf("%s vs %s, other isGeneric ? %s pointerLevel ? %d isPointer() ? %d, other isPointer() ? %d\n", toString(), other toString(), other isGeneric() toString(), other pointerLevel(), isPointer(), other getGroundType() isPointer())
+        // if (debugCondition()) {
+        //     token printMessage("#{this} vs #{other}, other isGeneric #{other isGeneric()}, pointerLevel ? #{other pointerLevel()}, isPointer() ? #{isPointer()}, other isPointer() ? #{other isPointer()}\n")
+        // }
 
         while (other instanceOf?(TypeAccess)) {
             other = other as TypeAccess inner
@@ -302,12 +304,25 @@ BaseType: class extends Type {
                 superType = td getSuperType()
         }
 
+        lhsCoverDecl := ourRef instanceOf?(CoverDecl)
+        rhsCoverDecl := hisRef instanceOf?(CoverDecl)
+
+        if (lhsCoverDecl && rhsCoverDecl) {
+            lhsCover := ourRef as CoverDecl
+            rhsCover := hisRef as CoverDecl
+            if (lhsCover == rhsCover) {
+                // all good
+                return scoreSeed
+            }
+        }
+
         // compare generic type arguments
         lhsTypeArgs := getTypeArgs()
         rhsTypeArgs := other getTypeArgs()
 
         // one has, other doesn't? no luck
         if ((lhsTypeArgs == null) != (rhsTypeArgs == null)) {
+            // if (debugCondition()) { token printMessage("one has, other doesn't") }
             if (superType) {
                 return superType getScore(other)
             } else {
@@ -316,7 +331,9 @@ BaseType: class extends Type {
         }
 
         if ((lhsTypeArgs != null) && (rhsTypeArgs != null)) {
+            // if (debugCondition()) { token printMessage("both have!") }
             if (lhsTypeArgs size != rhsTypeArgs size) {
+                // if (debugCondition()) { token printMessage("number mismatch") }
                 // mismatch in numbers
                 if (superType) {
                     return superType getScore(other)
@@ -667,7 +684,6 @@ BaseType: class extends Type {
                 if (ref instanceOf?(TypeDecl)) {
                     // resolves to a known type
                     result = ref as TypeDecl getInstanceType() clone()
-                    token printMessage("found typeArg #{typeArgName} in typeDecl ref `#{ref}`, it's `#{result}` (and we are `#{this}`)")
 
                     downResult := result
                     // TODO: doing that a lot, need a method or something.. -- amos
@@ -687,16 +703,13 @@ BaseType: class extends Type {
                                 }
                             }
                     }
-                    token printMessage("after adjustment, typeArg #{typeArgName} is rather `#{result}`")
                 } else if (ref instanceOf?(VariableDecl)) {
                     // resolves to an access to another generic type
                     result = BaseType new(ref as VariableDecl getName(), token)
                     result setRef(ref) // FIXME: that is experimental. is that a good idea?
-                    token printMessage("found typeArg #{typeArgName} in variableDecl ref #{ref}")
                 } else if (ref instanceOf?(FuncType)) {
                     //printf("ref of %s is a %s!\n", candidate toString(), ref class name)
                     result = ref as FuncType
-                    token printMessage("found typeArg #{typeArgName} in funcType ref #{ref}")
                 }
                 return result
             }

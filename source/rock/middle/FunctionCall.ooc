@@ -167,8 +167,7 @@ FunctionCall: class extends Expression {
      * a return expression, when it's being used.
      */
     debugCondition: final func -> Bool {
-        // false
-        name == "get"
+        false
     }
 
     /**
@@ -858,7 +857,6 @@ FunctionCall: class extends Expression {
             if(ref returnType isGeneric()) {
                 if(res params veryVerbose) "\t$$$$ resolving returnType %s for %s" printfln(ref returnType toString(), toString())
                 returnType = resolveTypeArg(trail, res, ref returnType getName(), finalScore&)
-                token printMessage("inferred to returnType #{returnType}")
 
                 if((finalScore == -1 || returnType == null) && res fatal) {
                     res throwError(InternalError new(token, "Not enough info to resolve return type %s of function call\n" format(ref returnType toString())))

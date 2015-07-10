@@ -427,6 +427,19 @@ TypeDecl: abstract class extends Declaration {
     getModule: func -> Module { module }
     getType: func -> Type { type }
     getInstanceType: func -> Type {
+        meat := getNonMeta()
+        if (meat == null) {
+            meat = this
+        }
+        match meat {
+            case cd: CoverDecl =>
+                if (cd templateParent != null) {
+                    // we've been specialized, don't add typeArgs
+                    token printMessage("Not adding typeArgs to #{this}")
+                    return instanceType
+                }
+        }
+
         if (instanceType getTypeArgs() == null && !typeArgs empty?()) {
             for (typeArg in typeArgs) {
                 instanceType addTypeArg(TypeAccess new(BaseType new(typeArg getName(), typeArg token), typeArg token))

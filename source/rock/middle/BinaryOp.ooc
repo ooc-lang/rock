@@ -720,8 +720,8 @@ BinaryOp: class extends Expression {
                     }
 
                     for (opDecl in tDecl operators) {
-                        //"Matching %s against %s" printfln(opDecl toString(), toString())
                         score := getScore(opDecl)
+                        token printMessage("Matching #{opDecl} against #{this}, score = #{score}")
                         if(score == -1) {
                             return Response LOOP
                         }

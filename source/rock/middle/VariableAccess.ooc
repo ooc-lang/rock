@@ -583,7 +583,6 @@ VariableAccess: class extends Expression {
 
         ourTypeArg := getType() getName()
         finalScore := 0
-        token printMessage("searching typeArg #{ourTypeArg} in #{expr getType()}")
         realType := expr getType() searchTypeArg(ourTypeArg, finalScore&)
         if (finalScore == -1) {
             // try again next time!
@@ -597,7 +596,6 @@ VariableAccess: class extends Expression {
             return
         }
 
-        token printMessage("realTypizing #{this} from #{getType()} to #{realType}")
         cast := Cast new(this, realType clone(), token)
         if (!trail peek() replace(this, cast)) {
             res throwError(CouldntReplace new(token, this, cast, trail))
