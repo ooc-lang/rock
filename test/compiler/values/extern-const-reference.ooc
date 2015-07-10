@@ -1,12 +1,22 @@
+
+// Test for https://github.com/fasterthanlime/rock/pull/897
+
+use sam-assert
+
 include ./constnum
 
 SIG1: extern const Int
 
-foo: func<T>(a: T){
-    match(a){
-        case b: Int => "matched!" 
-        case => Exception new("error") throw()
+foo: func <T> (t: T) -> String {
+    match t {
+        case i: Int =>
+            "matched!" 
+        case =>
+            "error"
     }
 }
 
-main: func{ foo(SIG1) }
+describe("should know that extern const are not referencable", ||
+   expect("matched!", foo(SIG1))
+)
+
