@@ -2,7 +2,9 @@
 
  * Alexandros Naskos / [@shamanas](https://github.com/shamanas)
  * Amos Wenger / [@fasterthanlime](https://github.com/fasterthanlime) (previously @nddrylliog)
+ * Brian Callahan / [@ibara](https://github.com/ibara)
  * David Hesselbom / [@davidhesselbom](https://github.com/davidhesselbom)
+ * Dwayne Slater / [@ds84182](https://github.com/ds84182)
  * Friedrich Weber / [@fredreichbier](https://github.com/fredreichbier)
  * Hongjie Zhai / [@zhaihj](https://github.com/zhaihj)
  * Joshua Roesslein / [@joshthecoder](https://github.com/joshthecoder)

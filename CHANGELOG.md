@@ -1,4 +1,121 @@
 
+## 0.9.10 release (2015-07-11)
+
+This release represents 196 commits, 178 files changed with 8520 additions and
+4468 deletions, 64 issues closed, and about 30 pull requests merged!
+
+It contains a lot of contributions from @zhaihj, who has been maintaining their
+own fork of rock and fixing issues while I was gone. It also contains the bulk
+of the work of @shamanas right after 0.9.9 was released, and many reports
+from the Cogneco team, @davidhesselbom in particular. Welcome also to @ds84182,
+@ibara, and @kirbyfan64 for their first patch!
+
+The 0.9.10 release is codenamed "rita" because it's the name of my dog! (-- amos)
+Adopted her a week ago, and doesn't really care for ooc generics bugs,
+but she's lovely nonetheless
+
+Summary:
+
+  - Attempted to better comment & reformat some parts of rock.
+  - Test suite is now 164 tests strong, and uses sam's new 'sam-assert'
+    library that has `describe` and `expect` instead of a lot of duplicated
+    code and ugly exit(1) calls.
+  - Generics bugfixes by the dozen - more things work now, but also more
+    things are checked and trigger compile errors instead of runtime crashes
+    or invalid C code generation.
+  - Same goes for operator overloads
+  - Same goes for closures
+
+Features:
+
+  - New CMake driver, generates `CMakeLists.txt`, good enough to compile rock! (#847)
+  - New `--use` option to force the main module to 'use' an ooc library. Used
+    by sam to add its 'sam-assert' (#902)
+  - The `Imports` directive in usefiles now supports grouped import syntax (#904)
+  - When a call to a function is slighty wrong, rock is now a lot more helpful
+    in a lot of cases (#894)
+  - Exceptions now print the word `exception` in red when thrown. Apparently
+    a big plus! (#862)
+  - New operator, `??`, the null coalescing operator (#809)
+
+Generics bugfixes:
+
+  - Assignment between parameterized types is now checked. (And oddly enough, the
+    sdk, rock, and all tests still compile..) (#842)
+  - Accessing a generic member used to require a cast, but not any more (#889, #425)
+  - Properties of generic types used to cause a mysterious `gc_malloc` unresolved
+    error, well, not anymore. (#840)
+  - When matching against a parameterized type (e.g. ArrayList<T>), rock used
+    to complain about the lack of typeArgs. It's now valid to have an
+    unqualified parameterized type in a match (#802)
+  - rock doesn't segfault on parameterized function call (which is invalid ooc) (#811, #833)
+  - The type arg of a parameterized function is now inferred from all arguments
+    of that type, not only the first. Also, an error is thrown if they're incompatible (#825, #826)
+  - Don't generate unnecessary temporary variable/memcpy calls because of cast (#892)
+  - Casting to a generic type is now forbidden (except from Pointer) (#891)
+  - A subtle cover-template bug I really don't want to talk about (#887)
+  - String interpolation inside cover templates was broken (#886)
+
+Bugfixes:
+
+  - Common root algorithm now follows C99 rules as closely as possible when
+    dealing with numeric types.
+  - Various problems related to capturing variables in nested closures are
+    now fixed (#864)
+  - murmurHash was broken because of SizeT changes, is now fixed. (#874)
+  - Additional `/` after `///` or additional `*` after `/**` are now interpreted as
+    regular comments, not oocdocs. To the ASCII art machines! (#829)
+  - All assignment operators are now overloadable (yes, even `%=`, which doesn't
+    make any sense in C-land.. but this is not C-Land). (#869)
+  - Casting between ooc array types is now illegal, this prevents many runtime crashes (#795)
+  - Array literal type is now inferred from all elements (tries to find common root)
+    rather than the first element (#881)
+  - Fixed size-related bug in Array.h (missing parenthesis in C macros, grr.) (#878)
+  - It is now possible to declare abstract operators in classes. (#796)
+  - Top-level function definitions no longer accept 'abstract', 'static', and
+    'final' modifiers since they don't make sense (#797)
+  - Cover types and 'Object' are now incompatible at compile-time, that will
+    prevent runtime crashes (#803, #827)
+  - Function implementation correctness is better checked (when implementing an
+    interface) (#805)
+  - Emit a warning when assigning to a field in by-value cover constructor (tl;dr
+    use init: func@ if you insist on having cover constructors..) (#832)
+  - Overloading a final function is illegal and should be a compile-time error (#851)
+  - Overloading a constructor but swapping its arguments - if one of them was a
+    FuncType - could cause a crash (crazy right?) (#856)
+  - Declaring multiple variables via a tuple-declaration could conflict with
+    function parameters. It's now checked. (#863)
+  - Declaring multiple variables via a tuple-declaration was sometimes shadowed
+    by class members. (#903)
+  - Using match on `args` from the main function was somehow broken (#866)
+  - Reduce amount of warnings (only use -rdynamic on gcc, Array.h tweaks) (#867)
+  - Turned 'Casting pointer to a struct' into a proper compile error rather
+    than just throwing an exception (#893)
+  - Using a composite-assign operator (+=, -=) on an expression that returned
+    a generic type generated crashing C code. (#890)
+  - Operator overloads used to be checked on use, not on definition.. (#888)
+  - Was assuming most anonymous functions used ACS, but they don't. (#885)
+  - When assigning between closures, sometimes did a double-wrap, which generated
+    invalid C code (#884)
+  - Nested closures that capture something by reference were broken - the innermost
+    closure was getting the address of the address. (#882)
+  - Globally-declared Func objects are now callable (#876)
+  - Passing an extern const to a generic function (or trying to get its address)
+    resulted in a segfault at runtime (#897)
+  - Calling a function returned from another call was broken sometimes (#901)
+  - If-else generation was broken in version blocks sometimes (#534, #900)
+  - EscapeSequence was not properly padding hex escapes with zeroes (#877)
+  - Usefile searching was slightly wrong (#849)
+  - When there's a circular dependency, show the dependency graph (#850)
+
+Docs:
+
+  - Default-valued parameters are now documented (#808)
+  - Fixed doc of properties with simple getter/setter (#812)
+  - Comments in math/Random were wrong for 'random' (#870)
+  - Added mention of Sublime Text in 'editors' section of website (#871)
+  - Fixed documentation of extern enum syntax (#899)
+
 ## 0.9.9 release (2014-08-17)
 
   - rock has been relicensed to MIT (#755)
