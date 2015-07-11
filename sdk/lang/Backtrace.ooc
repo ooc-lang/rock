@@ -12,7 +12,7 @@ BacktraceHandler: class {
 
     // constants
     BACKTRACE_LENGTH := static 128
-    WARNED_ABOUT_FALLBACK := false
+    WARNED_ABOUT_FALLBACK := static false
     
     // singleton
     instance: static This
