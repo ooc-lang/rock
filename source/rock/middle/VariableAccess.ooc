@@ -486,7 +486,6 @@ VariableAccess: class extends Expression {
                     println("trail = " + trail toString())
                 }
                 msg := "Undefined symbol '%s'" format(subject toString())
-                msg += "Trail = #{trail}"
                 if (res params helpful) {
                     similar := subject findSimilar(res)
                     if(similar) {
