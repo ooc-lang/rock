@@ -232,6 +232,10 @@ MakefileWriter: class extends MetaDriverWriter {
         targets put(Target LINUX, "linux")
         targets put(Target WIN, "win")
         targets put(Target OSX, "osx")
+        targets put(Target FREEBSD, "freebsd")
+        targets put(Target OPENBSD, "openbsd")
+        targets put(Target NETBSD, "netbsd")
+        targets put(Target DRAGONFLY, "dragonfly")
 
         targets each(|target, name|
             tw write("ifeq ($(SYSTEM),"). write(name). writeln(")")
