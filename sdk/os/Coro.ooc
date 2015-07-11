@@ -15,7 +15,7 @@ Coro: abstract class {
     isMain := false
 
     new: static func -> This {
-        version(unix || apple) {
+        version(linux || apple) {
             return CoroUnix new() as This
         }
         version(windows) {
