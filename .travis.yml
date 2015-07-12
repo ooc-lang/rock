@@ -7,7 +7,7 @@ addons:
       - make
       - libgc-dev
       - zlib1g-dev
-      - ligc1c2
+      - libgc1c2
 
 script:
   - export PATH=$PATH:$PWD/bin:$PWD/sam
