@@ -60,7 +60,11 @@ ifneq ($(IS_BOOTSTRAP),)
 	@echo "Creating bin/ in case it does not exist."
 	mkdir -p bin/
 	@echo "Compiling from C source"
+ifneq (${EXTERNAL_GC},)
+	cd build/ && ROCK_DIST=.. GC_PATH="-lgc" $(MAKE) -j4
+else
 	cd build/ && ROCK_DIST=.. CFLAGS="-I$(VENDOR_PREFIX)/include" LDFLAGS="-L$(VENDOR_PREFIX)/lib" GC_PATH="-lgc" PREFIX=$(VENDOR_PREFIX) $(MAKE) -j4
+endif
 	@echo "Now re-compiling ourself"
 	OOC=bin/c_rock ROCK_DIST=. $(MAKE) self
 	@echo "Congrats! you have a boostrapped version of rock in bin/rock now. Have fun!"
