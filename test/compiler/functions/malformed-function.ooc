@@ -1,5 +1,6 @@
 //!shouldfail
 
-foo: class{
-    bar: func ~suffix func(test: Int)
+Foo: class {
+    bar: func ~suffix func (test: Int)
 }
+
