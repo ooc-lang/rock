@@ -8,7 +8,7 @@ import ../frontend/BuildParams
 
 VariableDecl: class extends Declaration {
 
-    name = "", fullName = null, doc = "" : String
+    name = "", originalName = "", fullName = null, doc = "" : String
 
     type: Type
     expr: Expression
@@ -395,6 +395,8 @@ VariableDecl: class extends Declaration {
     }
 
     checkRedefinition: func (trail: Trail, res: Resolver) {
+        // Explanation of 3: top of the trail is at 'size - 1', skip ourselves,
+        // skip parent (which, obviously, has us as a declaration)
         i := trail size - 3
         
         while (i >= 0) {
@@ -487,74 +489,77 @@ VariableDecl: class extends Declaration {
      */
     captureInUpstreamClosures: func (trail: Trail, depth: Int, clsAccess: VariableAccess = null) {
         closureIndex := trail find(FunctionDecl)
+        if (closureIndex == -1 || closureIndex <= depth) {
+            // no closure found, nothing to do
+            return
+        }
 
-        if(closureIndex > depth) { // if it's not found (-1), this will be false anyway
-            closure := trail get(closureIndex, FunctionDecl)
-            mode := 'v'
-            if(closure isAnon()) {
-                if(clsAccess) {
-                    // In the case of an assignment or of getting the address of the variable in the ACS the
-                    // variable should be captured by reference
-                    bOpIDX := trail find(BinaryOp)
-                    if(bOpIDX != -1) {
-                        bOp := trail get(bOpIDX, BinaryOp)
-                        if (bOp getLeft() == clsAccess && bOp isAssign()) mode = 'r'
-                    } else if((addrOfIDX := trail find(AddressOf)) != -1) {
-                        addrOf := trail get(addrOfIDX, AddressOf)
-                        if(addrOf expr == clsAccess) mode = 'r'
-                    }
-                }
+        closure := trail get(closureIndex, FunctionDecl)
+        mode := 'v' // by-value until proven by-ref
 
-                // Find the first Scope that is the body of a function declaration in the top of the trail
-                scopeDepth := closureIndex - 1
-                while(scopeDepth > 0) {
-                    maybeScope := trail get(scopeDepth, Node)
-                    match maybeScope {
-                        case scope: Scope =>
-                            if(maybeScope instanceOf?(Scope)) {
-                                scope := maybeScope as Scope
-                                maybeClosure := trail get(scopeDepth - 1, Node)
+        if (!closure isAnon()) {
+            // regular function decl, not a closure
+            return
+        }
 
-                                match maybeClosure {
-                                    case closure: FunctionDecl =>
-                                        // Find out if our access is between the kid closure and the parent closure
-                                        isDefined? := false
-                                        intermediateScopeIndex := closureIndex - 1
-                                        while(intermediateScopeIndex >= scopeDepth) {
-                                            interScope? := trail get(intermediateScopeIndex, Node)
-                                            if(interScope? instanceOf?(Scope)) {
-                                                interScope := interScope? as Scope
-                                                if(interScope list contains?(|stmt| stmt instanceOf?(VariableDecl) && stmt as VariableDecl name == name)) {
-                                                    isDefined? = true
-                                                }
-                                            }
-                                            intermediateScopeIndex -= 1
+        if(clsAccess && trail lvalue?(clsAccess)) {
+            // lvalues should be captured by reference
+            mode = 'r'
+        }
+
+        // If the variable has been defined in the closure body, we don't need to mark it for partialing
+        definedInClosure? := closure getBody() contains?(this)
+
+        if (closure isAnon && !isGlobal && !definedInClosure? && closure findArg(name) == null) {
+            closure markForPartialing(this, mode)
+            if(clsAccess) closure clsAccesses add(clsAccess)
+        }
+
+        if (isGlobal || definedInClosure?) return
+
+        // Find the first Scope that is the body of a function declaration in the top of the trail
+        scopeDepth := closureIndex - 1
+        while(scopeDepth > 0) {
+            match (trail get(scopeDepth, Node)) {
+                case scope: Scope =>
+                    match (trail get(scopeDepth - 1, Node)) {
+                        case closure: FunctionDecl =>
+                            // Find out if our access is between the kid closure and the parent closure
+                            isDefined? := false
+                            intermediateScopeIndex := closureIndex - 1
+                            while(intermediateScopeIndex >= scopeDepth) {
+                                match (trail get(intermediateScopeIndex, Node)) {
+                                    case interScope: Scope =>
+                                        if(interScope containsDeclaration?(name)) {
+                                            isDefined? = true
                                         }
-                                        // Only partial the variable in the top function if it has not
-                                        // been defined by it and it is not one of its arguments
-                                        if(closure isAnon && !closure args contains?(|arg| arg name == name || arg name == name + "_generic") \
-                                            && !isDefined?) {
-                                            // Mark the variable for partialing to top level closure
-                                            closure markForPartialing(this, mode)
-                                            if(clsAccess && !closure clsAccesses contains?(clsAccess)) {
-                                                closure clsAccesses add(clsAccess)
-                                            }
-                                        }
+                                }
+                                intermediateScopeIndex -= 1
+                            }
+
+                            if (isDefined?) break
+
+                            // Only partial the variable in the top function if it has not
+                            // been defined by it and it is not one of its arguments
+                            if(closure isAnon && closure findArg(name) == null && !isDefined?) {
+                                // Mark the variable for partialing to top level closure
+                                closure markForPartialing(this, mode)
+                                if(clsAccess && !closure clsAccesses contains?(clsAccess)) {
+                                    closure clsAccesses add(clsAccess)
                                 }
                             }
                     }
-                    scopeDepth -= 1
-                }
-
-                // If the variable has been defined in the closure body, we don't need to mark it for partialing
-                definedInClosure? := closure getBody() list ? closure getBody() list contains?(this) : false
-                if(closure isAnon && !isGlobal && !definedInClosure? &&
-                    !closure args contains?(|arg| arg == this || arg name == this name + "_generic")) {
-                    closure markForPartialing(this, mode)
-                    if(clsAccess) closure clsAccesses add(clsAccess)
-                }
             }
+            scopeDepth -= 1
         }
+    }
+
+    /**
+     * @return true if this variable decl tuple contains the given name
+     */
+    hasName?: func (name: String) -> Bool {
+        (this name == name) ||
+        (originalName != null && originalName == name)
     }
 
 }
@@ -670,6 +675,22 @@ VariableDeclTuple: class extends VariableDecl {
         }
 
         Response OK
+    }
+
+    /**
+     * @return true if this variable decl tuple contains the given name
+     */
+    hasName?: func (name: String) -> Bool {
+        for (el in tuple elements) {
+            match (el) {
+                case va: VariableAccess =>
+                    if (va getName() == name) {
+                        return true
+                    }
+            }
+        }
+
+        false
     }
 
 }

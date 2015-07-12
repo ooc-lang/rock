@@ -36,6 +36,27 @@ Scope: class extends Node {
         )
     }
 
+    /**
+     * @return true if this scope contains a variable declaration with
+     * the name `name`, false otherwise
+     */
+    containsDeclaration?: func (name: String) -> Bool {
+        for (stmt in list) {
+            match stmt {
+                case vd: VariableDecl =>
+                    if (vd hasName?(name)) return true
+            }
+        }
+        false
+    }
+
+    /**
+     * @return true if this scope contains `stmt`
+     */
+    contains?: func (stmt: Statement) -> Bool {
+        list contains?(stmt)
+    }
+
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
         index := -1
         ourIndex := trail indexOf(this)
@@ -53,17 +74,20 @@ Scope: class extends Node {
             index = list indexOf(node)
         }
 
-        // probably a global
-        if(index == -1) index = list getSize()
-
         resolveName(access getName(), index, res, trail, |vDecl|
             access suggest(vDecl)
         )
     }
 
     resolveName: func (name: String, index: Int, res: Resolver, trail: Trail, cb: Func (VariableDecl) -> Bool) -> Int {
-        for(i in 0..index) {
-            candidate := list get(i)
+        // probably a global
+        if (index == -1) {
+            index = list size
+        }
+
+        for((i, candidate) in list) {
+            // don't count variables declared after index
+            if (i >= index) break
 
             match candidate {
                 // a VariableDeclTuple is like a chrysalis from which a
@@ -71,32 +95,18 @@ Scope: class extends Node {
                 // it's still in chrysalis form, though, we gently let
                 // the VariableAccess know it's not ready yet. cf. #903
                 case vDeclTuple: VariableDeclTuple =>
-                    for (el in vDeclTuple tuple elements) {
-                        match (el) {
-                            case va: VariableAccess =>
-                                if (va getName() == name) {
-                                    return -1
-                                }
-                        }
-                    }
+                    if (vDeclTuple hasName?(name)) return -1
+
                 case vDecl: VariableDecl =>
-                    if (vDecl name == name) {
-                        if(cb(vDecl)) {
-                            return 0
-                        }
+                    if (vDecl hasName?(name)) {
+                        if(cb(vDecl)) return 1
                     }
+
                 case vb: VersionBlock =>
-                    vBody := vb getBody()
-                    for(stmt in vBody) {
-                        match stmt {
-                            case vDecl: VariableDecl =>
-                                if (vDecl name == name) {
-                                    if (cb(vDecl)) {
-                                        return 0
-                                    }
-                                }
-                        }
-                    }
+                    // version blocks don't introduce a new scope,
+                    // let them resolve access in their entire body
+                    result := vb getBody() resolveName(name, -1, res, trail, cb)
+                    if (result != 0) return result
             }
         }
 

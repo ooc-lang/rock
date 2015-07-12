@@ -75,9 +75,9 @@ ClassDecl: class extends TypeDecl {
                 }
 
                 for (f in functions) {
-                    if (x name == "" || x name == null) {
+                    if (f name == "" || f name == null) {
                         msg :=  "Anonymous function can not be defined in class or cover."
-                        err := AnonymousFunctionDecl new(x token, msg)
+                        err := AnonymousFunctionDecl new(f token, msg)
                         res throwError(err)
                     }
                 }

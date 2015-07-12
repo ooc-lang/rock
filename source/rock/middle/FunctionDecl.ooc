@@ -240,16 +240,26 @@ FunctionDecl: class extends Declaration {
         false
     }
 
+    /**
+     * @return an argument of this function that has the name `name`,
+     * or null.
+     */
     findArg: func (name: String) -> VariableDecl {
         for (arg in args) {
+            // not using 'hasName?', that would make it think 'x_generic'
+            // is a redefinition of 'x'
             if (arg name == name) return arg
         }
         null
     }
 
+    /**
+     * @return a type argument of this function that has the name `name`,
+     * or null.
+     */
     findTypeArg: func (name: String) -> VariableDecl {
-        for (arg in typeArgs) {
-            if (arg name == name) return arg
+        for (typeArg in typeArgs) {
+            if (typeArg name == name) return typeArg
         }
         null
     }
@@ -940,6 +950,7 @@ FunctionDecl: class extends Declaration {
                     if(genType isGeneric()) {
                         continue
                     }
+                    arg originalName = arg name
                     arg name = arg name + "_generic"
                     genType = genType clone()
                     genType token = arg token

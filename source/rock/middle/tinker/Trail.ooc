@@ -1,5 +1,5 @@
 import structs/[Stack, ArrayList]
-import ../[Node, Module, Statement, Scope, If, Else, BinaryOp,
+import ../[Node, Module, Statement, Scope, If, Else, BinaryOp, AddressOf,
     Return, VariableDecl, FunctionCall, VariableAccess, ControlStatement]
 
 Trail: class extends Stack<Node> {
@@ -178,10 +178,12 @@ Trail: class extends Stack<Node> {
      * assignment types, and `node` is on the left-hand side (ie. being
      * assigned to)
      */
-    isLHS: func (node: Node) -> Bool {
+    lvalue?: func (node: Node) -> Bool {
         match (parent := peek()) {
             case bop: BinaryOp =>
                 return bop isAssign() && bop left == node
+            case ref: AddressOf =>
+                return ref expr == node
         }
         false
     }
@@ -191,7 +193,7 @@ Trail: class extends Stack<Node> {
      * assignment types, and `node` is on the right-hand side (ie. being
      * assigned)
      */
-    isRHS: func (node: Node) -> Bool {
+    rvalue?: func (node: Node) -> Bool {
         match (parent := peek()) {
             case bop: BinaryOp =>
                 return bop isAssign() && bop right == node

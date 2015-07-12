@@ -347,7 +347,7 @@ VariableAccess: class extends Expression {
                         funcTypeDone = true
                     }
 
-                } else if (trail isRHS(this)) {
+                } else if (trail rvalue?(this)) {
                     binOp := trail peek() as BinaryOp
                     lhsType := binOp left getType()
                     if(lhsType == null) {
@@ -533,7 +533,7 @@ VariableAccess: class extends Expression {
                 return
         }
 
-        if (trail isLHS(this)) {
+        if (trail lvalue?(this)) {
             // we're being assigned to, no cast needed (nor wanted)
             _genericAccessDone = true
             return
