@@ -7,10 +7,12 @@ addons:
       - make
       - libgc-dev
       - zlib1g-dev
+      - ligc1c2
 
 script:
   - export PATH=$PATH:$PWD/bin:$PWD/sam
   - export OOC_LIBS=$PWD
+  - mkdir -p vendor-prefix/lib/ && touch vendor-prefix/lib/libgc.a
   - make -s rescue
   - make clean self
   - make clean self
