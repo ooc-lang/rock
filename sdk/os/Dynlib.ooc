@@ -127,7 +127,6 @@ version (!windows) {
     RTLD_LAZY, RTLD_NOW, RTLD_GLOBAL, RTLD_LOCAL: extern Int
 
     dlopen: extern func (path: CString, flag: Int) -> Pointer
-    GC_dlopen: extern proto func (path: const Char*, flag: Int) -> Pointer
     dlsym: extern func (handle: Pointer, name: CString) -> Pointer
     dlclose: extern func (handle: Pointer) -> Int
 

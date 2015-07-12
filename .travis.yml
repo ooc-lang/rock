@@ -7,13 +7,11 @@ addons:
       - make
       - libgc-dev
       - zlib1g-dev
-      - libgc1c2
 
 script:
   - export PATH=$PATH:$PWD/bin:$PWD/sam
   - export OOC_LIBS=$PWD
   - export OOC_FLAGS=--quiet
-  - export EXTERNAL_GC=1
   - make -s rescue
   - make clean self
   - make clean self
