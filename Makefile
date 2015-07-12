@@ -5,7 +5,10 @@ VENDOR_PREFIX:=$(PWD)/vendor-prefix
 PARSER_GEN:=greg
 NQ_PATH:=source/rock/frontend/NagaQueen.c
 OOC_WARN_FLAGS?=+-w
-OOC_OWN_FLAGS:=-v -pg -O3 $(OOC_WARN_FLAGS) -I$(VENDOR_PREFIX)/include -L$(VENDOR_PREFIX)/lib --gc=dynamic
+OOC_OWN_FLAGS:=-v -pg -O3 $(OOC_WARN_FLAGS) --gc=dynamic
+ifeq (${EXTERNAL_GC},)
+OOC_OWN_FLAGS+=-I$(VENDOR_PREFIX)/include -L$(VENDOR_PREFIX)/lib
+endif
 
 # used to be CC?=gcc, but that breaks on mingw where CC is set to 'cc' apparently
 CC=gcc
