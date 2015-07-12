@@ -435,7 +435,6 @@ TypeDecl: abstract class extends Declaration {
             case cd: CoverDecl =>
                 if (cd templateParent != null) {
                     // we've been specialized, don't add typeArgs
-                    token printMessage("Not adding typeArgs to #{this}")
                     return instanceType
                 }
         }

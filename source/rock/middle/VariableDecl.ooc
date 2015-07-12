@@ -378,10 +378,6 @@ VariableDecl: class extends Declaration {
             expr = null
         }
 
-        if (type getName() == "Kakhi") {
-            token printMessage("It's for this varDecl! Trail = \n\n#{trail}")
-        }
-
         typeAcc := VariableAccess new(type, token)
         sizeAcc := VariableAccess new(typeAcc, "size", token)
 
