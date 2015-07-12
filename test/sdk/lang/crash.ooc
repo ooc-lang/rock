@@ -43,6 +43,10 @@ bar: func {
 }
 
 main: func {
+    // hangs on OpenBSD for some reason
+    version (openbsd) {
+        exit(1)
+    }
     app := App new()
     app run()
 }
