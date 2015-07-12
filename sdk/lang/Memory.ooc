@@ -20,7 +20,7 @@ version(!gc) {
 version(gc) {
     include gc/gc | (GC_THREADS) 
     // to get the GC_pthread_* prototypes
-    include gc/gc_pthread_redirects | (GC_NO_THREAD_REDIRECTS)
+    include gc/gc_pthread_redirects | (GC_NO_THREAD_REDIRECTS, GC_NO_DLOPEN)
 
     gc_malloc_for_generics: func (size: SizeT) -> Pointer {
         gc_malloc(size)
