@@ -12,7 +12,7 @@ addons:
 script:
   - export PATH=$PATH:$PWD/bin:$PWD/sam
   - export OOC_LIBS=$PWD
-  - mkdir -p vendor-prefix/lib/ && touch vendor-prefix/lib/libgc.a
+  - export EXTERNAL_GC=1
   - make -s rescue
   - make clean self
   - make clean self

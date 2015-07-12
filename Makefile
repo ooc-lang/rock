@@ -40,11 +40,15 @@ prepare_bootstrap:
 boehmgc: vendor-prefix/lib/libgc.a
 
 vendor-prefix/lib/libgc.a:
+ifneq (${EXTERNAL_GC},)
+  	@echo "EXTERNAL_GC is set, using os-provided Boehm GC library"
+else
 	$(MAKE) boehmgc-clean
 	mkdir -p $(VENDOR_PREFIX)
 	mkdir -p vendor-build
 	(cd vendor-build && ../vendor/gc/configure --prefix=$(VENDOR_PREFIX) --disable-shared --enable-static ${GC_FLAGS} && $(MAKE) && $(MAKE) install)
 	rm -rf vendor-build
+endif
 
 boehmgc-clean:
 	rm -rf vendor-prefix vendor-build
