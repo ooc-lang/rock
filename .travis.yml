@@ -18,7 +18,7 @@ script:
   - make clean self
   - make clean self
   - git clone --depth=1 git://github.com/fasterthanlime/sam.git 
-  - (cd sam && rock -v sam.use)
+  - (cd sam && rock --quiet sam.use)
   - sam test rock.use
 
 notifications:
