@@ -421,16 +421,6 @@ VariableAccess: class extends Expression {
             token printMessage("[checkFuncType] checking #{this}. parent = #{parent}")
         }
 
-        /*
-         * Handle the assignment of a first-class function.
-         * Example:
-         *
-         * f: func() {}
-         * g := f
-         *
-         * The right side needs to be a Closure having f and null as context.
-         */
-
         match (parent typeForExpr(trail, this, inferredType&)) {
             case SearchResult RETRY =>
                 res wholeAgain(this, "waiting on parent to infer our type")
