@@ -335,9 +335,8 @@ Archive: class {
         }
 
         if (thin) {
-            // Apple's linker thinks -T means truncate. Who's living
-            // in the 18th century? It's OpenStep's bastard child!
             // OpenBSD's binutils (binutils-2.15) predates ar -T.
+            // Apparently, so does OSX's
             if (params target != Target OSX && params target != Target OPENBSD) {
                 flags add("T")
             }
