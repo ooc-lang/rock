@@ -682,7 +682,7 @@ VariableDeclTuple: class extends VariableDecl {
      */
     hasName?: func (name: String) -> Bool {
         for (el in tuple elements) {
-            match (el) {
+            match el {
                 case va: VariableAccess =>
                     if (va getName() == name) {
                         return true
