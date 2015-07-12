@@ -1620,6 +1620,47 @@ FunctionCall: class extends Expression {
         refScore > 0 && ref != null && resolved
     }
 
+    /**
+     * @return true if this variable decl is being assigned `expr`
+     */
+    hasExpr?: func (expr: Expression) -> Bool {
+        for (arg in args) {
+            if (expr == arg) return true
+        }
+        false
+    }
+
+    /**
+     * Try to find the type for a given expression, if any
+     */
+    typeForExpr: func (trail: Trail, expr: Expression, target: Type@) -> SearchResult {
+        if (ref == null || refScore < -1) {
+            // can't infer yet
+            return SearchResult RETRY
+        }
+
+        idx := args indexOf(expr)
+        if (idx == -1) {
+            // not even in our args
+            return SearchResult NONE
+        }
+
+        if (idx >= ref args size) {
+            // decl we refer to doesn't have enough args for some reason?
+            return SearchResult RETRY
+        }
+
+        refArg := ref args get(idx)
+        refArgType := refArg getType()
+        if (refArgType == null) {
+            // well, maybe later
+            return SearchResult RETRY
+        }
+
+        target = refArgType
+        SearchResult FOUND
+    }
+
 }
 
 InvalidSlurp: class extends Error {

@@ -31,13 +31,13 @@ VariableAccess: class extends Expression {
     /** Name of the variable being accessed. */
     name: String
 
+    /** Name, but with __quest and __bang turned back into '?' and '!' **/
     prettyName: String { get {
       unbangify(name)
     } }
 
+    /** Declaration being accessed, usually a VariableDecl, could be something else. */
     ref: Declaration
-
-    funcTypeDone := false
 
     init: func ~variableAccess (.name, .token) {
         init(null, name, token)
@@ -153,10 +153,10 @@ VariableAccess: class extends Expression {
 
     refresh: func {
         // need to check again if our parent has changed
-        funcTypeDone = false
+        _funcTypeDone = false
     }
 
-    isResolved: func -> Bool { ref != null && getType() != null && funcTypeDone }
+    isResolved: func -> Bool { ref != null && getType() != null && _funcTypeDone }
 
     // TODO: oh boy.. this needs to be broken down into different methods
 
@@ -304,131 +304,12 @@ VariableAccess: class extends Expression {
             }
         }
 
-        if (getType() instanceOf?(FuncType)) {
-            fType := getType() as FuncType
-            parent := trail peek()
-
-            if (!fType isClosure) {
-                closureType: FuncType = null
-                if (debugCondition() || res params veryVerbose) {
-                    "[funcTypeDone] doing our business for %s. parent = %s" printfln(toString(), parent toString())
-                }
-
-                if (parent instanceOf?(FunctionCall)) {
-                    /*
-                     * The case we're looking for is this one:
-                     *
-                     *     registerCallback(exit)
-                     *
-                     * If registerCallback is an ooc function and the arg is
-                     * a FuncType we need to make a StructLiteral out of ourselves.
-                     */
-                    fCall := parent as FunctionCall
-                    ourIndex := fCall args indexOf(this)
-
-                    if (fCall refScore < -1) {
-                        res wholeAgain(this, "waiting for parent function call to be resolved, to know if we should transform a functype access")
-                        return Response OK
-                    }
-                    fDecl := fCall getRef()
-                    // 1.) extern C functions don't accept a Closure_struct
-                    // 2.) If ref is not a FDecl, it's probably
-                    // already "closured" and doesn't need to be wrapped a second time
-                    if (!fDecl isExtern() && ref instanceOf?(FunctionDecl)) {
-                        if(fDecl args size <= ourIndex) {
-                            res wholeAgain(this, "bad index for ref")
-                            return Response OK
-                        }
-                        closureType = fDecl args get(ourIndex) getType()
-                    } else {
-                        if (debugCondition() || res params veryVerbose) {
-                            "[funcTypeDone] for %s, in an extern C function, all good" printfln(toString())
-                        }
-                        funcTypeDone = true
-                    }
-
-                } else if (trail rvalue?(this)) {
-                    binOp := trail peek() as BinaryOp
-                    lhsType := binOp left getType()
-                    if(lhsType == null) {
-                        res wholeAgain(this, "need type of BinOp's lhs")
-                        return Response OK
-                    }
-                    closureType = lhsType clone()
-                } else if (parent instanceOf?(Return)) {
-                    fIndex := trail find(FunctionDecl)
-                    if (fIndex != -1) {
-                        closureType = trail get(fIndex, FunctionDecl) returnType clone()
-                    }
-                } else if (parent instanceOf?(VariableDecl)) {
-                    /*
-                    Handle the assignment of a first-class function.
-                    Example:
-
-                    f: func() {}
-                    g := f
-
-                    The right side needs to be a Closure having f and null as context.
-                    */
-                    p := parent as VariableDecl
-                    if (p expr == this) {
-                        closureType = ref getType()
-                        if (!closureType) {
-                            res wholeAgain(this, "need type of FDecl")
-                            return Response OK
-                        }
-                    }
-                } else {
-                    // we're probably fine
-                    if (debugCondition() || res params veryVerbose) {
-                        "[funcTypeDone] %s not in a known suspect parent, probably good" printfln(toString())
-                    }
-                    funcTypeDone = true
-                }
-
-                if (closureType) {
-                    if (closureType instanceOf?(FuncType)) {
-                        fType isClosure = true
-
-                        closureElements := [
-                            this
-                            NullLiteral new(token)
-                        ] as ArrayList<VariableAccess>
-
-                        closure := StructLiteral new(closureType, closureElements, token)
-                        if(trail peek() replace(this, closure)) {
-                            if (debugCondition() || res params veryVerbose) {
-                                "[funcTypeDone] replaced %s with closure %s" printfln(toString(), closure toString())
-                            }
-                            funcTypeDone = true
-                        } else {
-                            res throwError(CouldntReplace new(token, this, closure, trail))
-                        }
-                    } else {
-                        if (debugCondition() || res params veryVerbose) {
-                            "[funcTypeDone] nothing to do for %s (closureType = %s)" printfln(toString(), closureType toString())
-                        }
-                        // probably a pointer, nothing to do here
-                        funcTypeDone = true
-                    }
-                } else {
-                    if (debugCondition() || res params veryVerbose) {
-                        "[funcTypeDone] can't find closureType for %s" printfln(toString())
-                    }
-                }
-            } else {
-                if (debugCondition() || res params veryVerbose) {
-                    "[funcTypeDone] nothing to do for %s (already a closure)" printfln(toString())
-                }
-                // already a closure
-                funcTypeDone = true
-            }
-
-        } else {
-            // not even a func type
-            funcTypeDone = true
+        // Do we need to turn into a closure struct?
+        match checkFuncType(trail, res) {
+            case BranchResult BREAK => return Response OK
+            case BranchResult LOOP  => return Response LOOP
         }
-
+        
         // Simple property access? Replace myself with a getter call.
         if(ref && ref instanceOf?(PropertyDecl)) {
             // Make sure we're not in a getter/setter yet (the trail would contain `ref` then)
@@ -510,8 +391,89 @@ VariableAccess: class extends Expression {
 
     }
 
+    _funcTypeDone := false
+
+    /**
+     * @return true if resolving process should stop there
+     */
+    checkFuncType: func (trail: Trail, res: Resolver) -> BranchResult {
+        if (_funcTypeDone) {
+            return BranchResult CONTINUE
+        }
+
+        if (!getType() instanceOf?(FuncType)) {
+            _funcTypeDone = true
+            return BranchResult CONTINUE
+        }
+
+        ourType := getType() as FuncType
+        parent := trail peek()
+
+        if (ourType isClosure) {
+            // already a closure
+            _funcTypeDone = true
+            return BranchResult CONTINUE
+        }
+
+        inferredType: Type
+
+        if (debugCondition() || res params veryVerbose) {
+            token printMessage("[checkFuncType] checking #{this}. parent = #{parent}")
+        }
+
+        /*
+         * Handle the assignment of a first-class function.
+         * Example:
+         *
+         * f: func() {}
+         * g := f
+         *
+         * The right side needs to be a Closure having f and null as context.
+         */
+
+        match (parent typeForExpr(trail, this, inferredType&)) {
+            case SearchResult RETRY =>
+                res wholeAgain(this, "waiting on parent to infer our type")
+                return BranchResult BREAK
+
+            case SearchResult NONE =>
+                // no conversion needed, all done
+                _funcTypeDone = true
+                return BranchResult CONTINUE
+        }
+
+        if (!inferredType instanceOf?(FuncType)) {
+            // Not a func type, no need to convert
+            // TODO: check for reverse conversions & disallow
+            _funcTypeDone = true
+            return BranchResult CONTINUE
+        }
+
+        ourType isClosure = true
+
+        closureElements := ArrayList<Expression> new().
+            add(this).
+            add(NullLiteral new(token))
+
+        closure := StructLiteral new(inferredType, closureElements, token)
+
+        if(!parent replace(this, closure)) {
+            res throwError(CouldntReplace new(token, this, closure, trail))
+        }
+
+        if (debugCondition() || res params veryVerbose) {
+            token printMessage("[funcTypeDone] replaced #{this} with closure #{closure}")
+        }
+        _funcTypeDone = true
+        BranchResult CONTINUE
+    }
+
     _genericAccessDone := false
 
+    /**
+     * Check if we're accessible a variable of generic type,
+     * in which case we need to be cast.
+     */
     checkGenericAccess: func (trail: Trail, res: Resolver) {
         type := getType()
         if (!type) {

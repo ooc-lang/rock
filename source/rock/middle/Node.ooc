@@ -1,4 +1,5 @@
-import Visitor, FunctionCall, VariableAccess, VariableDecl, Type, BaseType, Module
+import Visitor, FunctionCall, VariableAccess, VariableDecl, Type, BaseType,
+       Module, Expression
 import ../frontend/Token
 import tinker/[Resolver, Response, Trail]
 
@@ -175,5 +176,48 @@ Node: abstract class {
       }
     }
 
+    /**
+     * @return true if this node reads from `expr`
+     */
+    hasExpr?: func (expr: Expression) -> Bool {
+        false
+    }
+
+    /**
+     * Try to infer the required type for a given expression, if any
+     */
+    typeForExpr: func (trail: Trail, expr: Expression, target: Type@) -> SearchResult {
+        SearchResult NONE
+    }
+
+}
+
+/**
+ * Used as a return value on various methods that can be called
+ * while resolving a node.
+ */
+BranchResult: enum {
+    /** All good, keep going */
+    CONTINUE
+
+    /** 'resolveAgain' was called, return 'Response OK' and break */
+    BREAK
+
+    /** 'resolveAgain' was called, return 'Response LOOP' and break */
+    LOOP
+}
+
+/**
+ * Used as a return value for methods supposed to find something.
+ */
+SearchResult: enum {
+    /** Retry later, not enough info yet */
+    RETRY
+
+    /** Didn't find anything */
+    NONE
+
+    /** Found something! */
+    FOUND
 }
 

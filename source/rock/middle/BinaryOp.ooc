@@ -855,6 +855,24 @@ BinaryOp: class extends Expression {
         }
     }
 
+    /**
+     * Try to find the type for a given expression, if any
+     */
+    typeForExpr: func (trail: Trail, expr: Expression, target: Type@) -> SearchResult {
+        if (isAssign() && expr == right) {
+            type := left getType()
+            if (type == null) {
+                // might be resolved later?
+                return SearchResult RETRY
+            } else {
+                target = type
+                return SearchResult FOUND
+            }
+        }
+
+        return SearchResult NONE
+    }
+
 }
 
 InvalidOperatorUse: class extends Error {

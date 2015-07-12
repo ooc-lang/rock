@@ -551,11 +551,32 @@ VariableDecl: class extends Declaration {
     }
 
     /**
-     * @return true if this variable decl tuple contains the given name
+     * @return true if this variable decl contains the given name
      */
     hasName?: func (name: String) -> Bool {
         (this name == name) ||
         (originalName != null && originalName == name)
+    }
+
+    /**
+     * @return true if this variable decl is being assigned `expr`
+     */
+    hasExpr?: func (expr: Expression) -> Bool {
+        this expr == expr
+    }
+
+    /**
+     * Try to find the type for a given expression, if any
+     */
+    typeForExpr: func (trail: Trail, expr: Expression, target: Type@) -> SearchResult {
+        // never send retry - vdfe's don't have types to start with,
+        // so it doesn't make sense to return a type
+        if (this expr == expr && this type != null) {
+            type = this type
+            return SearchResult FOUND
+        }
+
+        SearchResult NONE
     }
 
 }
@@ -687,6 +708,28 @@ VariableDeclTuple: class extends VariableDecl {
         }
 
         false
+    }
+
+    /**
+     * @return true if one of the variables in this decl tuple is being
+     * assigned `expr`
+     */
+    hasExpr?: func (expr: Expression) -> Bool {
+        match expr {
+            case tuple: Tuple =>
+                for (el in tuple elements) {
+                    if (el == expr) return true
+                }
+        }
+        false
+    }
+
+    /**
+     * Try to find the type for a given expression, if any
+     */
+    typeForExpr: func (trail: Trail, expr: Expression, target: Type@) -> SearchResult {
+        // tuple decls never have types
+        return SearchResult NONE
     }
 
 }

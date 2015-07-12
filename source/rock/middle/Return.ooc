@@ -228,6 +228,37 @@ Return: class extends Statement {
         return false
     }
 
+    /**
+     * @return true if this variable decl is being assigned `expr`
+     */
+    hasExpr?: func (expr: Expression) -> Bool {
+        this expr == expr
+    }
+
+    /**
+     * Try to find the type for a given expression, if any
+     */
+    typeForExpr: func (trail: Trail, expr: Expression, target: Type@) -> SearchResult {
+        if (expr != this expr) {
+            // can't infer if it's not our expr, duh
+            return SearchResult NONE
+        }
+
+        idx := trail find(FunctionDecl)
+        if (idx == -1) {
+            // not in a function decl? that can't be good.
+            return SearchResult NONE
+        }
+
+        fDecl := trail get(idx, FunctionDecl)
+        if (fDecl returnType) {
+            // infer from function's return type
+            target = fDecl returnType
+            return SearchResult FOUND
+        }
+        SearchResult NONE
+    }
+
 }
 
 InconsistentReturn: class extends Error {

@@ -2,6 +2,11 @@ import structs/[Stack, ArrayList]
 import ../[Node, Module, Statement, Scope, If, Else, BinaryOp, AddressOf,
     Return, VariableDecl, FunctionCall, VariableAccess, ControlStatement]
 
+/**
+ * The trail is a stack of nodes that gets pushed to and popped from
+ * while walking the AST to 'resolve' all nodes (find what accesses refer
+ * to, transform it so we can generate proper C code, etc.)
+ */
 Trail: class extends Stack<Node> {
 
     init: func ~trail {
@@ -37,6 +42,10 @@ Trail: class extends Stack<Node> {
         find(T, getSize() - 1)
     }
 
+    /**
+     * Tries to find a `T`, and if it does, calls `f` with it.
+     * Otherwise doesn't call f.
+     */
     onOuter: func <T> (T: Class, f: Func (T)) {
         idx := find(T)
         if(idx != -1) f(get(idx, T))
@@ -57,7 +66,6 @@ Trail: class extends Stack<Node> {
         }
 
         return i
-
     }
 
     /**
@@ -66,7 +74,6 @@ Trail: class extends Stack<Node> {
      * at all.
      */
     findScope: func -> Int {
-
         i := getSize() - 1
         while(i >= 0) {
             node := data get(i) as Node
@@ -75,7 +82,6 @@ Trail: class extends Stack<Node> {
         }
 
         return i
-
     }
 
     /**
@@ -184,19 +190,6 @@ Trail: class extends Stack<Node> {
                 return bop isAssign() && bop left == node
             case ref: AddressOf =>
                 return ref expr == node
-        }
-        false
-    }
-
-    /**
-     * @return true when `node`'s parent is a BinaryOp, of one of the
-     * assignment types, and `node` is on the right-hand side (ie. being
-     * assigned)
-     */
-    rvalue?: func (node: Node) -> Bool {
-        match (parent := peek()) {
-            case bop: BinaryOp =>
-                return bop isAssign() && bop right == node
         }
         false
     }
