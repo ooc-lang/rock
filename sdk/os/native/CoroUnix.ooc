@@ -1,6 +1,6 @@
 import ../Coro
 
-version(linux || apple) {
+version ((unix && !openbsd) || apple) {
 
 CoroUnix: class extends Coro {
 
