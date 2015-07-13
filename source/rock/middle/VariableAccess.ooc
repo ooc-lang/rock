@@ -242,35 +242,6 @@ VariableAccess: class extends Expression {
             _warned = true
         }
 
-        if(!ref) {
-            if(res fatal) {
-                subject := this
-                if(reverseExpr && _staticFunc && name == "this") {
-                    res throwError(InvalidAccess new(this,
-                        "Can't access instance variable '%s' from static function '%s'!" \
-                            format(reverseExpr prettyName, _staticFunc prettyName)
-                    ))
-                }
-
-                if(res params veryVerbose) {
-                    println("trail = " + trail toString())
-                }
-                msg := "Undefined symbol '%s'" format(subject toString())
-                if (res params helpful) {
-                    similar := subject findSimilar(res)
-                    if(similar) {
-                        msg += similar
-                    }
-                }
-                res throwError(UnresolvedAccess new(subject, msg))
-            }
-            if(res params veryVerbose) {
-                "     - access to %s%s still not resolved, looping (ref = %s)" printfln(\
-                expr ? (expr toString() + "->")  : "", prettyName, ref ? ref toString() : "(nil)")
-            }
-            res wholeAgain(this, "waiting to find out ref of variable access")
-        }
-
         if (debugCondition()) {
             token printMessage("about to check generic access")
         }
@@ -408,17 +379,28 @@ VariableAccess: class extends Expression {
                             node = tDecl getNonMeta()
                         }
 
-                        // in initialization of a member object!
-                        if (name == "this" && trail find(Scope) == -1) {
-                            // nowadays, covers have __cover_defaults__ but they have
-                            // by-ref this, for obvious reasons.
-                            isThisRef := trail find(CoverDecl) != -1
+                        if (name == "this") {
+                            if (reverseExpr && _staticFunc) {
+                                res throwError(InvalidAccess new(this,
+                                    "Can't access instance variable '%s' from static function '%s'!" \
+                                    format(reverseExpr prettyName, _staticFunc prettyName)
+                                ))
+                                return BranchResult BREAK
+                            }
 
-                            suggest(isThisRef ? tDecl thisRefDecl : tDecl thisDecl)
+                            if (trail find(Scope) == -1) {
+                                // in initialization of a member object!
+                                // nowadays, covers have __cover_defaults__ but they have
+                                // by-ref this, for obvious reasons.
+                                isThisRef := trail find(CoverDecl) != -1
 
-                            // all good!
-                            return BranchResult CONTINUE
+                                suggest(isThisRef ? tDecl thisRefDecl : tDecl thisDecl)
+
+                                // all good!
+                                return BranchResult CONTINUE
+                            }
                         }
+
                 }
 
                 status := node resolveAccess(this, res, trail)
@@ -457,7 +439,17 @@ VariableAccess: class extends Expression {
         }
 
         if (ref == null) {
-            res wholeAgain(this, "need to resolve an access")
+            if (res fatal) {
+                msg := "Undefined symbol '#{this}'"
+                if (res params helpful) {
+                    similar := findSimilar(res)
+                    if(similar) {
+                        msg += similar
+                    }
+                }
+                res throwError(UnresolvedAccess new(this, msg))
+            }
+            res wholeAgain(this, "waiting to find out ref of variable access")
             BranchResult BREAK
         } else {
             BranchResult CONTINUE
