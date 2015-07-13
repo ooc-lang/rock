@@ -335,8 +335,14 @@ Archive: class {
         }
 
         if (thin) {
-            // OpenBSD's binutils (binutils-2.15) predates ar -T.
-            // Apparently, so does OSX's
+            // ar -T first appears in binutils-2.19. OpenBSD (and some, but not
+            // all, of the other BSDs) use binutils-2.17, as it was the last
+            // version released under the GPLv2 license.
+
+            // Apple's binutils are likely even older, coming from FreeBSD.
+            // The 'ar' man page on OSX describes '-T' as emulating the historic
+            // archive format, which only supported sixten bytes for the name.
+            // Obviously that won't work well with ooc at all.
             if (params target != Target OSX && params target != Target OPENBSD) {
                 flags add("T")
             }
