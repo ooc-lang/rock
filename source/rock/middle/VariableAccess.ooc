@@ -182,34 +182,10 @@ VariableAccess: class extends Expression {
             }
         }
 
-        // resolve built-ins first
-        if (!expr) {
-            builtin := getBuiltin(name)
-            if (builtin) {
-                if(!trail peek() replace(this, builtin)) {
-                    res throwError(CouldntReplace new(token, this, builtin, trail))
-                }
-                res wholeAgain(this, "builtin replaced")
-                return Response OK
-            }
-        }
-
+        // Mark whether we're in a static func or not for further error checking
         trail onOuter(FunctionDecl, |fDecl|
             if(fDecl isStatic()) _staticFunc = fDecl
         )
-
-        if(expr && name == "class") {
-            if(expr getType() == null || expr getType() getRef() == null) {
-                res wholeAgain(this, "expr type or expr type ref is null")
-                return Response OK
-            }
-
-            if(!expr getType() getRef() instanceOf?(ClassDecl)) {
-                name = expr getType() getName()
-                ref = expr getType() getRef()
-                expr = null
-            }
-        }
 
         // What do we refer to?
         match checkAccessResolution(trail, res) {
@@ -292,11 +268,11 @@ VariableAccess: class extends Expression {
                 "     - access to %s%s still not resolved, looping (ref = %s)" printfln(\
                 expr ? (expr toString() + "->")  : "", prettyName, ref ? ref toString() : "(nil)")
             }
-            res wholeAgain(this, "Couldn't resolve varacc")
+            res wholeAgain(this, "waiting to find out ref of variable access")
         }
 
         if (debugCondition()) {
-            token printMessage("About to check generic access")
+            token printMessage("about to check generic access")
         }
         checkGenericAccess(trail, res)
 
@@ -314,6 +290,29 @@ VariableAccess: class extends Expression {
         }
 
         if(expr) {
+            /*
+             * If our name is "class", try resolving from expr in a special way
+             */
+            if (name == "class") {
+                exprType := expr getType()
+                if(exprType == null || exprType getRef() == null) {
+                    res wholeAgain(this, "waiting on expr type or expr type ref for class access")
+                    return BranchResult BREAK
+                }
+
+                match (exprType getRef()) {
+                    case cDecl: ClassDecl =>
+                        // all good, will be handled by regular resolution
+
+                    case =>
+                        // Turn `42 class` into `IntClass`
+                        name = expr getType() getName()
+                        ref = expr getType() getRef()
+                        expr = null
+                        return BranchResult CONTINUE
+                }
+            }
+
             /*
              * Try to resolve the access from the expr, e.g. if we have
              *
@@ -380,6 +379,18 @@ VariableAccess: class extends Expression {
             }
 
         } else {
+            /*
+             * Try resolving as a builtin, e.g. __BUILD_DATE__, etc.
+             */
+            builtin := getBuiltin(name)
+            if (builtin) {
+                if(!trail peek() replace(this, builtin)) {
+                    res throwError(CouldntReplace new(token, this, builtin, trail))
+                }
+                res wholeAgain(this, "builtin replaced")
+                return BranchResult BREAK
+            }
+
             /*
              * Try to resolve the access from the trail
              *
@@ -730,6 +741,10 @@ VariableAccess: class extends Expression {
 
     }
 
+    /**
+     * A list of global variables that are evaluated at compile time
+     * cf. https://ooc-lang.org/docs/lang/preprocessor/#constants
+     */
     getBuiltin: func (name: String) -> Expression {
         match name {
             case "__BUILD_DATETIME__" =>
