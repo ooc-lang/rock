@@ -341,6 +341,8 @@ BinaryOp: class extends Expression {
         }
     }
 
+    _resolved := false
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         trail push(this)
@@ -363,9 +365,9 @@ BinaryOp: class extends Expression {
 
         trail pop(this)
 
-        {
-            response := resolveOverload(trail, res)
-            if(!response ok()) return Response OK // needs another resolve later
+        match (resolveOverload(trail, res)) {
+            case BranchResult BREAK => return Response OK
+            case BranchResult LOOP  => return Response LOOP
         }
 
         {
@@ -395,7 +397,7 @@ BinaryOp: class extends Expression {
             // if fails to infer, type equals to left
             if(inferredType == null) inferredType = left getType()
             if(!inferredType isResolved()){
-                res wholeAgain(this, "just gussed the common root")
+                res wholeAgain(this, "just inferred the common root for a binary operator")
                 return inferredType resolve(trail, res)
             }
         }
@@ -503,8 +505,20 @@ BinaryOp: class extends Expression {
             res wholeAgain(this, "Illegal use, looping in hope.")
         }
 
+        _resolved = true
+
         return Response OK
 
+    }
+
+    isResolved: func -> Bool {
+        // if we've been replaced, we're not 'resolved', technically,
+        // our parent needs to wholeAgain.
+        _resolved && !replaced
+    }
+
+    refresh: func {
+        _resolved = false
     }
 
     _checkUnwrapAssignDone := false
@@ -700,13 +714,17 @@ BinaryOp: class extends Expression {
         true
     }
 
-    resolveOverload: func (trail: Trail, res: Resolver) -> Response {
+    /**
+     * Tries to find if this particular usage of an operator is covered
+     * by an operator overload somewhere
+     */
+    resolveOverload: func (trail: Trail, res: Resolver) -> BranchResult {
 
         // so here's the plan: we give each operator overload a score
         // depending on how well it fits our requirements (types)
 
         bestScore := 0
-        candidate : OperatorDecl = null
+        candidate: OperatorDecl = null
 
         // first we check the lhs's type
         lhsType := left getType()
@@ -720,10 +738,13 @@ BinaryOp: class extends Expression {
                         tDecl = tDecl getNonMeta()
                     }
 
+                    // trying to resolve as member operator overload
+                    // on the lhs' type
                     for (opDecl in tDecl operators) {
                         score := getScore(opDecl)
                         if(score == -1) {
-                            return Response LOOP
+                            res wholeAgain(this, "asked to wait when resolving operator overload on type")
+                            return BranchResult BREAK
                         }
                         if(score > bestScore) {
                             bestScore = score
@@ -733,11 +754,15 @@ BinaryOp: class extends Expression {
             }
         }
 
+        // TODO: reduce code duplication here using a Cons -- amos
+
         // then we check the current module
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl)
-            //if(score > 0) ("Considering " + opDecl toString() + " for " + toString() + ", score = %d\n") format(score) println()
-            if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response LOOP }
+            if(score == -1) {
+                res wholeAgain(this, "asked to wait when resolving operator overload in own module")
+                return BranchResult BREAK
+            }
             if(score > bestScore) {
                 bestScore = score
                 candidate = opDecl
@@ -749,8 +774,10 @@ BinaryOp: class extends Expression {
             module := imp getModule()
             for(opDecl in module getOperators()) {
                 score := getScore(opDecl)
-                //if(score > 0) ("Considering " + opDecl toString() + " for " + toString() + ", score = %d\n") format(score) println()
-                if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response LOOP }
+                if (score == -1) {
+                    res wholeAgain(this, "asked to wait when resolving operator overload in imported module")
+                    return BranchResult BREAK
+                }
                 if(score > bestScore) {
                     bestScore = score
                     candidate = opDecl
@@ -758,6 +785,7 @@ BinaryOp: class extends Expression {
             }
         }
 
+        // Found a candidate
         if(candidate != null) {
             if(isAssign() && !candidate getSymbol() endsWith?("=")) {
                 // we need to unwrap first!
@@ -766,30 +794,32 @@ BinaryOp: class extends Expression {
                 right resolve(trail, res)
                 trail pop(this)
                 res wholeAgain(this, "just unwrapped assign")
-                return Response OK
+                return BranchResult BREAK
             }
 
             fDecl := candidate getFunctionDecl()
             fCall := FunctionCall new(fDecl getName(), token)
 
+            // if 'static', add to args, otherwise set as expr
             if (fDecl owner) {
                 fCall expr = left
             } else {
-                fCall getArguments() add(left)
+                fCall args add(left)
             }
 
-            fCall getArguments() add(right)
+            fCall args add(right)
             fCall setRef(fDecl)
+
             if(!trail peek() replace(this, fCall)) {
-                if(res fatal) res throwError(CouldntReplace new(token, this, fCall, trail))
-                res wholeAgain(this, "failed to replace oneself, gotta try again =)")
-                return Response LOOP
+                res throwError(CouldntReplace new(token, this, fCall, trail))
+                return BranchResult BREAK
             }
+
             replaced = true
             res wholeAgain(this, "Just replaced with an operator overload")
         }
 
-        return Response OK
+        BranchResult CONTINUE
 
     }
 

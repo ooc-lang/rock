@@ -34,32 +34,36 @@ Tuple: class extends Expression {
     }
 
     getType: func -> Type {
-        // TODO: what if we modify the tuple in the AST later?
-        if(!type) {
-            list := TypeList new(token)
-            for(element in elements) {
-                elementType := element getType()
-                if(elementType) {
-                    list types add(elementType)
-                } else {
-                    good := false
+        if (type) {
+            // TODO: what if we modify the tuple in the AST later? - amos
+            return type
+        }
 
-                    // if it's a varacc to '_' it's fine
-                    match element {
-                        case vAcc: VariableAccess =>
-                            if (vAcc getName() == "_") {
-                                good = true
-                                list types add(voidType)
-                            }
-                    }
+        list := TypeList new(token)
 
-                    if (!good) {
-                        return null
-                    }
+        for(element in elements) {
+            elementType := element getType()
+            if(elementType) {
+                list types add(elementType)
+            } else {
+                good := false
+
+                // if it's a varacc to '_' it's fine
+                match element {
+                    case vAcc: VariableAccess =>
+                        if (vAcc getName() == "_") {
+                            good = true
+                            list types add(voidType)
+                        }
+                }
+
+                if (!good) {
+                    return null
                 }
             }
-            type = list
         }
+        type = list
+
         type
     }
 
@@ -79,33 +83,73 @@ Tuple: class extends Expression {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        trail push(this)
-        for (element in elements) {
-            response := element resolve(trail, res)
-            if(!response ok()) {
-                trail pop(this)
-                return Response LOOP
-            }
+
+        match resolveElements(trail, res) {
+            case BranchResult BREAK => return Response OK
+            case BranchResult LOOP  => return Response LOOP
         }
 
         if(getType()) {
             getType() resolve(trail, res)
         } else {
-            res wholeAgain(this, "Need type")
+            res wholeAgain(this, "need type of tuple")
         }
-        trail pop(this)
 
-        parent := trail peek()
-        if(parent instanceOf?(Cast)) {
-            cast := parent as Cast
-            structLit := StructLiteral new(cast getType(), elements, token)
-            grandpa := trail peek(2)
-            if(!grandpa replace(cast, structLit)) {
-                res throwError(CouldntReplace new(token, cast, structLit, trail))
+        unwrapIfNeeded(trail,res)
+
+        Response OK
+    }
+
+    _elementsResolved := false
+
+    resolveElements: func (trail: Trail, res: Resolver) -> BranchResult {
+        if (_elementsResolved) {
+            // all done
+            return BranchResult CONTINUE
+        }
+
+        trail push(this)
+
+        unresolvedElements := false
+        for (element in elements) {
+            response := element resolve(trail, res)
+
+            if(!element isResolved()) {
+                unresolvedElements = true
             }
         }
 
-        Response OK
+        trail pop(this)
+
+        if (unresolvedElements) {
+            res wholeAgain(this, "waiting on tuple element to resolve")
+            return BranchResult BREAK
+        }
+
+        _elementsResolved = true
+        BranchResult CONTINUE
+    }
+
+    _unwrapChecked := false
+
+    unwrapIfNeeded: func (trail: Trail, res: Resolver) {
+
+        if (_unwrapChecked) {
+            return
+        }
+
+        match (trail peek()) {
+            // casting into a struct literal
+            case cast: Cast =>
+                structLit := StructLiteral new(cast getType(), elements, token)
+                grandpa := trail peek(2)
+                if(!grandpa replace(cast, structLit)) {
+                    res throwError(CouldntReplace new(token, cast, structLit, trail))
+                }
+        }
+
+        _unwrapChecked = true
+
     }
 
     replace: func (oldie, kiddo: Node) -> Bool {

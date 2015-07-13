@@ -46,14 +46,14 @@ _handleLastStatement: func (trail: Trail, res: Resolver, origin: Node, scope: Sc
     if(stmt instanceOf?(Expression)) {
         expr := stmt as Expression
         if(expr getType() == null) {
-            res wholeAgain(origin, "need the type of some statement in autoReturn")
+            res wholeAgain(expr, "need the type of expression #{expr} in autoReturn")
             return
         }
 
         if(!expr getType() void?) {
             scope set(index, Return new(expr, expr token))
             expr refresh()
-            res wholeAgain(origin, "Replaced last expr with a Return")
+            res wholeAgain(expr, "replaced last expr with a return")
         }
     } else if(stmt instanceOf?(ControlStatement)) {
         cStat := stmt as ControlStatement
