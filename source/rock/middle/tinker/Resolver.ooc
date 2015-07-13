@@ -88,7 +88,7 @@ Resolver: class {
         }
 
         if((params veryVerbose && fatal) || params debugLoop) {
-            node token formatMessage("%s : %s because '%s'\n" format(node toString(), node class name, reason), "LOOP") println()
+            node token printMessage("wholeAgain 'because #{reason}' for #{node} (of type #{node class name})")
         }
         wholeAgain = true
     }

@@ -4,7 +4,7 @@ import ../frontend/[BuildParams, CommandLine]
 import ../middle/Module
 
 // sdk
-import io/[FileReader, File]
+import io/[StringReader]
 import os/Terminal
 
 /* Token can't be null, but it can be filled with zero-values */
@@ -123,7 +123,7 @@ Token: cover {
 
         out append("\n")
 
-        fr := FileReader new(getPath())
+        fr := StringReader new(module getSource())
 
         lastNewLine := 0
         lines := 1

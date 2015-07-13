@@ -99,6 +99,15 @@ Module: class extends Node {
         File new(File new(pathElement) name, path) path + suffix
     }
 
+    _cachedSource: String
+
+    getSource: func -> String {
+        if (!_cachedSource) {
+            _cachedSource = File new(getOocPath()) read()
+        }
+        _cachedSource
+    }
+
     getOocPath: func -> String {
         oocPath
     }
