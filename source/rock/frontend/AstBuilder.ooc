@@ -1241,7 +1241,7 @@ AstBuilder: class {
     }
 
     onAdd: unmangled(nq_onAdd) func (left, right: Expression) -> BinaryOp {
-        BinaryOp new(left, right, OpType add, left token enclosing(right token))
+        BinaryOp new(left, right, OpType add, token())
     }
 
     onSub: unmangled(nq_onSub) func (left, right: Expression) -> BinaryOp {
