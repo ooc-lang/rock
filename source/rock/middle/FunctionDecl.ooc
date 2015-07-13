@@ -432,7 +432,9 @@ FunctionDecl: class extends Declaration {
             i += 1
             if (arg getType() == null) continue
 
-            if (debugCondition()) "Looking for typeArg %s in arg's type %s" printfln(typeArgName, arg getType() toString())
+            if (debugCondition()) {
+                "Looking for typeArg %s in arg's type %s" printfln(typeArgName, arg getType() toString())
+            }
 
             type := arg getType()
             typeArgs := type getTypeArgs()
@@ -517,7 +519,7 @@ FunctionDecl: class extends Declaration {
         }
 
         if(access debugCondition()) {
-            "Looking for %s in %s, got %d typeArgs" printfln(access toString(), toString(), typeArgs size)
+            token printMessage("Looking for #{access} in #{this}, got #{typeArgs size} typeArgs")
         }
 
         for(typeArg in typeArgs) {
@@ -532,7 +534,7 @@ FunctionDecl: class extends Declaration {
             }
         }
 
-        // FIXME: I'm pretty sure this isn't necessary (harmful, even)
+        // FIXME: I'm pretty sure this isn't necessary (harmful, even) - amos
         body resolveAccess(access, res, trail)
 
         0

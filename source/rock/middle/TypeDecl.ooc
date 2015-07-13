@@ -832,13 +832,13 @@ TypeDecl: abstract class extends Declaration {
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
 
         if (access debugCondition()) {
-            "resolveAccess(%s) in %s (%d vars, %d functions). isMeta = %s" printfln(access toString(), toString(), variables size, functions size, isMeta toString())
+            token printMessage("Looking for #{access} in #{this} (#{variables size} vars, #{functions size} functions). isMeta = #{isMeta}")
         }
 
         // don't allow to resolve any access before finishing ghosting
         if (!_finishedGhosting) {
             if (access debugCondition()) {
-                "We haven't finished ghosting, abandon access resolution" println()
+                token printMessage("We haven't finished ghosting, asking access #{access} to wait.")
             }
             return -1
         }
@@ -855,19 +855,12 @@ TypeDecl: abstract class extends Declaration {
             }
         }
 
-        if (access debugCondition()) {
-            for (v in variables) {
-                "Got var %s %s" printfln(toString(), v toString())
-            }
-            for (f in functions) {
-                "Got function %s %s" printfln(toString(), f toString())
-            }
-        }
-
         vDecl := variables get(access getName())
         if (vDecl) {
-            //"&&&&&&&& Found vDecl %s for %s in %s" printfln(vDecl toString(), access name, name)
             if (access suggest(vDecl)) {
+                if (access debugCondition()) {
+                    access token printMessage("Found vDecl #{vDecl} for #{access name} in #{name}")
+                }
                 if (access expr == null) {
                     varAcc := VariableAccess new("this", access token)
                     varAcc reverseExpr = access

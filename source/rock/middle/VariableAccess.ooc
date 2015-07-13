@@ -72,9 +72,6 @@ VariableAccess: class extends Expression {
                 if(varDecl isStatic) {
                     expr = VariableAccess new(varDecl getOwner() getInstanceType(), token)
                 } else {
-                    if (debugCondition()) {
-                        token printMessage("That's where the 'this' comes from! owner is #{type owner ? type owner toString() : "<none>"}")
-                    }
                     if (type owner) {
                         expr = type owner
                     } else {
@@ -158,8 +155,6 @@ VariableAccess: class extends Expression {
 
     isResolved: func -> Bool { ref != null && getType() != null && _funcTypeDone }
 
-    // TODO: oh boy.. this needs to be broken down into different methods
-
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         if (isResolved()) {
@@ -167,23 +162,21 @@ VariableAccess: class extends Expression {
         }
 
         if(debugCondition() || res params veryVerbose) {
-            "Access#resolve(%s). ref = %s inferred type = %s" printfln(prettyName, ref ? ("(%s) %s" format(ref class name, ref toString())) : "(nil)", getType() ? getType() toString() : "(nil)")
+            token printMessage("Resolving. Current ref = #{ref ? ref toString() : "<none>"} inferred type = #{getType() ? getType() toString() : "(nil)"}")
         }
 
-        if(expr) {
+        if(expr != null) {
             trail push(this)
-            if (res params veryVerbose) {
-                "Resolving expr %s for %s." printfln(expr toString(), toString())
-            }
 
             response := expr resolve(trail, res)
             trail pop(this)
             if(!response ok()) {
+                res wholeAgain(this, "Waiting on our expr to resolve...")
                 return response
             }
 
             // don't go further until we know our expr is resolved
-            if (!expr isResolved()) {
+            if (!expr isResolved() || expr getType() == null) {
                 res wholeAgain(this, "Waiting on our expr to resolve...")
                 return Response OK
             }
@@ -218,90 +211,10 @@ VariableAccess: class extends Expression {
             }
         }
 
-        /*
-         * Try to resolve the access from the expr
-         */
-        if(!ref && expr) {
-            if (!expr isResolved()) {
-                res wholeAgain(this, "waiting for expr to resolve..")
-                return Response OK
-            }
-
-            if(expr instanceOf?(VariableAccess) && expr as VariableAccess getRef() != null \
-              && expr as VariableAccess getRef() instanceOf?(NamespaceDecl)) {
-                expr as VariableAccess getRef() resolveAccess(this, res, trail)
-            } else {
-                exprType := expr getType()
-                if(exprType == null) {
-                    res wholeAgain(this, "expr's type isn't resolved yet, and it's needed to resolve the access")
-                    return Response OK
-                }
-                typeDecl := exprType getRef()
-                if(!typeDecl) {
-                    if(res fatal) res throwError(UnresolvedType new(expr token, expr getType(), "Can't resolve type %s" format(expr getType() toString())))
-                    res wholeAgain(this, "unresolved access, looping")
-                    return Response OK
-                }
-
-                typeDecl resolveAccess(this, res, trail)
-                // We dont use pointerLevel or instanceOf? because we want accesses of an ArrayType to be legal
-                if(exprType class == PointerType) {
-                    res throwError(NeedsDeref new(this, "Can't access field '%s' in expression of pointer type '%s' without dereferencing it first" \
-                                                           format(prettyName, exprType toString())))
-                    return Response OK
-                }
-            }
-        }
-
-        /*
-         * Try to resolve the access from the trail
-         *
-         * It's far simpler than resolving a function call, we just
-         * explore the trail from top to bottom and retain the first match.
-         */
-        if(!ref && !expr) {
-            depth := trail getSize() - 1
-            while(depth >= 0) {
-                node := trail get(depth)
-                if(node instanceOf?(TypeDecl)) {
-                    tDecl := node as TypeDecl
-                    if(tDecl isMeta) node = tDecl getNonMeta()
-
-                    // in initialization of a member object!
-                    if(!ref && name == "this" && trail find(Scope) == -1) {
-                        // nowadays, covers have __cover_defaults__ but they have
-                        // by-ref this, for obvious reasons.
-                        isThisRef := trail find(CoverDecl) != -1
-
-                        suggest(isThisRef ? tDecl thisRefDecl : tDecl thisDecl)
-                    }
-                }
-                status := node resolveAccess(this, res, trail)
-                if (status == -1) {
-                    res wholeAgain(this, "asked to wait while resolving access")
-                    return Response OK
-                }
-
-                if(ref) {
-                    if(expr) {
-                        if(expr instanceOf?(VariableAccess)) {
-                            trail push(this)
-                            response := expr resolve(trail, res)
-                            trail pop(this)
-                            if(!response ok()) return Response LOOP
-                            varAcc := expr as VariableAccess
-                        }
-                    }
-
-                    // only accesses to variable decls need to be partialed (not type decls)
-                    if(ref instanceOf?(VariableDecl) && !ref as VariableDecl isGlobal() && expr == null) {
-                        ref as VariableDecl captureInUpstreamClosures(trail, depth, this)
-                    }
-
-                    break // break on first match
-                }
-                depth -= 1
-            }
+        // What do we refer to?
+        match checkAccessResolution(trail, res) {
+            case BranchResult BREAK => return Response OK
+            case BranchResult LOOP  => return Response LOOP
         }
 
         // Do we need to turn into a closure struct?
@@ -390,11 +303,160 @@ VariableAccess: class extends Expression {
         return Response OK
 
     }
+    
+    /**
+     * 
+     */
+    checkAccessResolution: func (trail: Trail, res: Resolver) -> BranchResult {
+        if (ref != null) {
+            // already resolved!
+            return BranchResult CONTINUE
+        }
+
+        if(expr) {
+            /*
+             * Try to resolve the access from the expr, e.g. if we have
+             *
+             *   dog name
+             *
+             * We try to find the type of 'dog', then find if it has such a field, etc.
+             */
+            if (!expr isResolved()) {
+                res wholeAgain(this, "waiting for expr to resolve..")
+                return BranchResult BREAK
+            }
+
+            // Try namespace resolution first
+            match expr {
+                case va: VariableAccess =>
+                    vaRef := va getRef()
+
+                    match vaRef {
+                        case null =>
+                            res wholeAgain(this, "need va ref")
+                            return BranchResult BREAK
+                        case nDecl: NamespaceDecl =>
+                            nDecl resolveAccess(this, res, trail)
+                            if (ref != null) {
+                                // all good!
+                                return BranchResult CONTINUE
+                            }
+                    }
+            }
+
+            exprType := expr getType()
+            if(exprType == null) {
+                res wholeAgain(this, "expr's type isn't resolved yet, and it's needed to resolve the access")
+                return BranchResult BREAK
+            }
+
+            // (we compare classes instead of using pointerLevel or instanceOf?
+            // because we want accesses of an ArrayType to be legal)
+            if(exprType class == PointerType) {
+                msg := "Can't access field '#{prettyName}' in type '#{exprType}' without dereferencing it"
+                res throwError(NeedsDeref new(this, msg))
+                return BranchResult BREAK
+            }
+
+            exprRef := exprType getRef()
+            if(exprRef == null) {
+                if(res fatal) {
+                    msg := "can't resolve type #{exprType}"
+                    err := UnresolvedType new(expr token, expr getType(), msg)
+                    res throwError(err)
+                }
+                res wholeAgain(this, "access to unresolved type decl, looping")
+                return BranchResult BREAK
+            }
+
+            if (debugCondition()) {
+                token printMessage("Calling resolveAccess on exprRef #{exprRef}")
+            }
+
+            result := exprRef resolveAccess(this, res, trail)
+            if (result == -1) {
+                res wholeAgain(this, "asked to wait by exprRef")
+                return BranchResult BREAK
+            }
+
+        } else {
+            /*
+             * Try to resolve the access from the trail
+             *
+             * It's far simpler than resolving a function call, we just
+             * explore the trail from top to bottom and retain the first match.
+             */
+            depth := trail getSize() - 1
+
+            while (depth >= 0) {
+                node := trail get(depth)
+
+                match node {
+                    case tDecl: TypeDecl =>
+                        if (tDecl isMeta) {
+                            node = tDecl getNonMeta()
+                        }
+
+                        // in initialization of a member object!
+                        if (name == "this" && trail find(Scope) == -1) {
+                            // nowadays, covers have __cover_defaults__ but they have
+                            // by-ref this, for obvious reasons.
+                            isThisRef := trail find(CoverDecl) != -1
+
+                            suggest(isThisRef ? tDecl thisRefDecl : tDecl thisDecl)
+
+                            // all good!
+                            return BranchResult CONTINUE
+                        }
+                }
+
+                status := node resolveAccess(this, res, trail)
+                if (status == -1) {
+                    res wholeAgain(this, "asked to wait while resolving access")
+                    return BranchResult BREAK
+                }
+
+                if (ref != null) {
+                    if (expr == null) {
+                        // potentially capture vDecl
+                        match ref {
+                            case vDecl: VariableDecl =>
+                                if (!vDecl isGlobal()) {
+                                    // only accesses to variable decls need to be captured (not type decls)
+                                    vDecl captureInUpstreamClosures(trail, depth, this)
+                                }
+                        }
+                    } else {
+                        // resolving the call gave us an expr (e.g. we were accessing
+                        // an unqualified member field), which we need to resolve
+                        trail push(this)
+                        response := expr resolve(trail, res)
+                        trail pop(this)
+                        if (!response ok()) {
+                            res wholeAgain(this, "waiting on expr")
+                            return BranchResult BREAK
+                        }
+                    }
+
+                    break // break on first match
+                }
+
+                depth -= 1
+            }
+        }
+
+        if (ref == null) {
+            res wholeAgain(this, "need to resolve an access")
+            BranchResult BREAK
+        } else {
+            BranchResult CONTINUE
+        }
+    }
 
     _funcTypeDone := false
 
     /**
-     * @return true if resolving process should stop there
+     * Check if we need to turn into a closure struct literal (containing thunk + context)
      */
     checkFuncType: func (trail: Trail, res: Resolver) -> BranchResult {
         if (_funcTypeDone) {
@@ -564,7 +626,14 @@ VariableAccess: class extends Expression {
 
         ourTypeArg := getType() getName()
         finalScore := 0
-        realType := expr getType() searchTypeArg(ourTypeArg, finalScore&)
+
+        exprType := expr getType()
+        if (exprType == null || exprType getRef() == null) {
+            res wholeAgain(this, "need expr type to realtypize")
+            return
+        }
+
+        realType := exprType searchTypeArg(ourTypeArg, finalScore&)
         if (debugCondition()) {
             token printMessage("done doing searchTypeArg, finalScore = #{finalScore}")
         }
@@ -602,13 +671,17 @@ VariableAccess: class extends Expression {
 
         typeResult := type clone()
         exprType := expr getType()
+        if (exprType == null || exprType getRef() == null) {
+            res wholeAgain(this, "waiting for expr type")
+            return
+        }
 
         typeArgs := typeResult getTypeArgs()
         replacedSome := false
 
         for ((i, typeArg) in typeArgs) {
             finalScore := 0
-            realType := expr getType() searchTypeArg(typeArg getName(), finalScore&)
+            realType := exprType searchTypeArg(typeArg getName(), finalScore&)
 
             if (finalScore == -1) {
                 // try again next time!
