@@ -29,6 +29,10 @@ Comparison: class extends Expression {
 
     left, right: Expression
     compType: CompType
+
+    _resolved := false
+    replaced := false
+
     type := static BaseType new("Bool", nullToken)
 
     init: func ~comparison (=left, =right, =compType, .token) {
@@ -55,34 +59,18 @@ Comparison: class extends Expression {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        trail push(this)
-        {
-            response := left resolve(trail, res)
-            if(!response ok()) {
-                trail pop(this)
-                return response
-            }
-        }
-        {
-            response := right resolve(trail, res)
-            if(!response ok()) {
-                trail pop(this)
-                return response
-            }
-        }
-        {
-            response := This type resolve(trail, res)
-            if(!response ok()) {
-                trail pop(this)
-                return response
-            }
+        if (isResolved() || replaced) {
+            return Response OK
         }
 
-        trail pop(this)
+        match (resolveSides(trail, res)) {
+            case BranchResult BREAK => return Response OK
+            case BranchResult LOOP  => return Response LOOP
+        }
 
-        {
-            response := resolveOverload(trail, res)
-            if(!response ok()) return Response OK // needs another resolve later
+        match (resolveOverload(trail, res)) {
+            case BranchResult BREAK => return Response OK
+            case BranchResult LOOP  => return Response LOOP
         }
 
         if(!isLegal(res)) {
@@ -92,10 +80,64 @@ Comparison: class extends Expression {
                 return Response OK
             }
             res wholeAgain(this, "Illegal use, looping in hope.")
+            return Response OK
         }
+
+        _resolved = true
 
         return Response OK
 
+    }
+
+    isResolved: func -> Bool {
+        // if we've been replaced, we're not 'resolved', technically,
+        // our parent needs to wholeAgain.
+        _resolved && !replaced
+    }
+
+    refresh: func {
+        _resolved = false
+    }
+
+    // TODO: remove duplicate code with BinaryOp -- amos
+
+    resolveSides: func (trail: Trail, res: Resolver) -> BranchResult {
+        trail push(this)
+
+        match (left resolve(trail, res)) {
+            case Response OK => // good
+            case =>
+                trail pop(this)
+                return BranchResult LOOP
+        }
+
+        match (right resolve(trail, res)) {
+            case Response OK => // good
+            case =>
+                trail pop(this)
+                return BranchResult LOOP
+        }
+
+        match (This type resolve(trail, res)) {
+            case Response OK => // good
+            case =>
+                trail pop(this)
+                return BranchResult LOOP
+        }
+
+        trail pop(this)
+
+        if (!left isResolved() || !right isResolved()) {
+            res wholeAgain(this, "need both sides of comparison to be resolved")
+            return BranchResult BREAK
+        }
+
+        if (left getType() == null || right getType() == null) {
+            res wholeAgain(this, "need type of both sides")
+            return BranchResult BREAK
+        }
+
+        BranchResult CONTINUE
     }
 
     isLegal: func (res: Resolver) -> Bool {
@@ -120,13 +162,19 @@ Comparison: class extends Expression {
         true
     }
 
-    resolveOverload: func (trail: Trail, res: Resolver) -> Response {
+    // TODO: this is, of course, duplicated in BinaryOp... :( - amos
+
+    /**
+     * Tries to find if this particular usage of an operator is covered
+     * by an operator overload somewhere
+     */
+    resolveOverload: func (trail: Trail, res: Resolver) -> BranchResult {
 
         // so here's the plan: we give each operator overload a score
         // depending on how well it fits our requirements (types)
 
         bestScore := 0
-        candidate : OperatorDecl = null
+        candidate: OperatorDecl = null
 
         // first we check the lhs's type
         lhsType := left getType()
@@ -140,11 +188,13 @@ Comparison: class extends Expression {
                         tDecl = tDecl getNonMeta()
                     }
 
+                    // trying to resolve as member operator overload
+                    // on the lhs' type
                     for (opDecl in tDecl operators) {
-                        //"Matching %s against %s" printfln(opDecl toString(), toString())
                         score := getScore(opDecl)
                         if(score == -1) {
-                            return Response LOOP
+                            res wholeAgain(this, "asked to wait when resolving operator overload on type")
+                            return BranchResult BREAK
                         }
                         if(score > bestScore) {
                             bestScore = score
@@ -154,11 +204,15 @@ Comparison: class extends Expression {
             }
         }
 
+        // TODO: reduce code duplication here using a Cons -- amos
+
         // then we check the current module
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl)
-            //if(score > 0) ("Considering " + opDecl toString() + " for " + toString() + ", score = %d\n") format(score) println()
-            if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response LOOP }
+            if(score == -1) {
+                res wholeAgain(this, "asked to wait when resolving operator overload in own module")
+                return BranchResult BREAK
+            }
             if(score > bestScore) {
                 bestScore = score
                 candidate = opDecl
@@ -170,8 +224,10 @@ Comparison: class extends Expression {
             module := imp getModule()
             for(opDecl in module getOperators()) {
                 score := getScore(opDecl)
-                //if(score > 0) ("Considering " + opDecl toString() + " for " + toString() + ", score = %d\n") format(score) println()
-                if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response LOOP }
+                if (score == -1) {
+                    res wholeAgain(this, "asked to wait when resolving operator overload in imported module")
+                    return BranchResult BREAK
+                }
                 if(score > bestScore) {
                     bestScore = score
                     candidate = opDecl
@@ -179,12 +235,16 @@ Comparison: class extends Expression {
             }
         }
 
-        if(candidate == null) {
-
-            if(compType == CompType compare) {
-                // a <=> b
-                // a > b ? 1 : (a < b ? -1 : 0)
-
+        if (candidate == null) {
+            // TODO: that's not an overload, move out of this method -- amos
+            if (compType == CompType compare) {
+                /*
+                 *   a <=> b
+                 *
+                 * becomes
+                 *
+                 *   a > b ? 1 : (a < b ? -1 : 0)
+                 */
                 minus := IntLiteral new(-1, token)
                 zero  := IntLiteral new(0,  token)
                 plus  := IntLiteral new(1,  token)
@@ -194,29 +254,37 @@ Comparison: class extends Expression {
                 if(!trail peek() replace(this, outer)) {
                     res throwError(CouldntReplace new(token, this, outer, trail))
                 }
+                replaced = true
+                res wholeAgain(this, "unwrapped comparison operator <=>")
+                return BranchResult BREAK
             }
 
-        } else {
-            fDecl := candidate getFunctionDecl()
-            fCall := FunctionCall new(fDecl getName(), token)
-            fCall setRef(fDecl)
-            fCall getArguments() add(left)
-            fCall getArguments() add(right)
-            node := fCall as Node
+            // no candidate, no need to overload
+            return BranchResult CONTINUE
+        }
+        
+        fDecl := candidate getFunctionDecl()
+        fCall := FunctionCall new(fDecl getName(), token)
+        fCall setRef(fDecl)
+        fCall args add(left). add(right)
 
-            if(candidate getSymbol() equals?("<=>")) {
-                node = Comparison new(node as Expression, IntLiteral new(0, token), compType, token)
-            }
+        node := fCall as Node
 
-            if(!trail peek() replace(this, node)) {
-                if(res fatal) res throwError(CouldntReplace new(token, this, node, trail))
-                res wholeAgain(this, "failed to replace oneself, gotta try again =)")
-                return Response LOOP
-            }
-            res wholeAgain(this, "Just replaced with an operator overloading")
+        if (candidate getSymbol() equals?("<=>")) {
+            node = Comparison new(node as Expression, IntLiteral new(0, token), compType, token)
         }
 
-        return Response OK
+        if (!trail peek() replace(this, node)) {
+            if (res fatal) {
+                res throwError(CouldntReplace new(token, this, node, trail))
+            }
+            res wholeAgain(this, "couldn't replace")
+            return BranchResult BREAK
+        }
+
+        replaced = true
+        res wholeAgain(this, "Just replaced with an operator overload")
+        return BranchResult BREAK
 
     }
 
@@ -269,9 +337,16 @@ Comparison: class extends Expression {
 
     replace: func (oldie, kiddo: Node) -> Bool {
         match oldie {
-            case left  => left  = kiddo; true
-            case right => right = kiddo; true
-            case => false
+            case left  =>
+                left = kiddo
+                refresh()
+                true
+            case right =>
+                right = kiddo
+                refresh()
+                true
+            case =>
+                false
         }
     }
 

@@ -10,6 +10,9 @@ ArrayAccess: class extends Expression {
     array: Expression
     indices := ArrayList<Expression> new()
 
+    _resolved := false
+    replaced := false
+
     type: Type = null
 
     getArray: func -> Expression { array }
@@ -48,69 +51,63 @@ ArrayAccess: class extends Expression {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        if(res fatal && type == null) {
-            if (!array isResolved()) {
-                // try to let the inner expression throw an error
-                array resolve(trail, res)
+        match (resolveInsides(trail, res)) {
+            case BranchResult BREAK => return Response OK
+            case BranchResult LOOP  => return Response LOOP
+        }
 
-                res wholeAgain(this, "Reference to undeclared variable.")
-                return Response OK
-            }
+        if(res fatal && type == null) {
             res throwError(InvalidArrayAccess new(token, "Trying to index '#{array}' that isn't an array, nor has an overload for the []/[]= operators"))
         }
 
-        trail push(this)
-
-        for(index in indices) {
-            if(!index resolve(trail, res) ok()) {
-                res wholeAgain(this, "because of index!")
-            }
-        }
-        if(!array resolve(trail, res) ok()) {
-            res wholeAgain(this, "because of array!")
-        }
-
-        trail pop(this)
-
-        if(!handleArrayCreation(trail, res) ok()) {
+        // TODO: migrate to BranchResult -- amos
+        if (!handleArrayCreation(trail, res) ok()) {
             return Response LOOP
         }
 
-        {
-            hasOverload := true
-            response := resolveOverload(trail, res, hasOverload&)
-            if(!response ok()) {
-                res wholeAgain(this, "overload says some things aren't resolved yet")
-                return Response OK
-            }
+        match (resolveOverload(trail, res)) {
+            case BranchResult BREAK => return Response OK
+            case BranchResult LOOP  => return Response LOOP
+        }
 
-            if(!hasOverload) {
-                // If we do not find an overload, we must make sure the indices are valid (numeric or enum members) for raw arrays (C and ooc arrays)
-                for(index in indices) {
-                    if(!isValidIndex(index)) {
-                        if (res fatal) {
-                            res throwError(InvalidArrayIndex new(token, "Trying to access an array with an index of non numeric type %s without proper overload" format(index getType() ? index getType() toString() : "(nil)")))
-                        } else {
-                            // try again later o/
-                            res wholeAgain(this, "need to figure out if something is a valid index or not")
-                            return Response OK
-                        }
+        if(!replaced) {
+            // If we do not find an overload, we must make sure the indices are valid (numeric or enum members) for raw arrays (C and ooc arrays)
+            for(index in indices) {
+                if(!isValidIndex(index)) {
+                    if (res fatal) {
+                        res throwError(InvalidArrayIndex new(token, "Trying to access an array with an index of non numeric type %s without proper overload" format(index getType() ? index getType() toString() : "(nil)")))
+                    } else {
+                        // try again later o/
+                        res wholeAgain(this, "need to figure out if something is a valid index or not")
+                        return Response OK
                     }
                 }
             }
         }
 
         if(array getType() == null) {
-            res wholeAgain(this, "because of array type!")
+            res wholeAgain(this, "array access needs array type")
         } else {
             type = array getType() dereference()
             if(type == null) {
-                res wholeAgain(this, "because of array dereference type!")
+                res wholeAgain(this, "array access needs dereference of array type")
             }
         }
 
+        _resolved = true
+
         return Response OK
 
+    }
+
+    isResolved: func -> Bool {
+        // if we've been replaced, we're not 'resolved', technically,
+        // our parent needs to wholeAgain.
+        _resolved && !replaced
+    }
+
+    refresh: func {
+        _resolved = false
     }
 
     isValidIndex: func(index: Expression, ignore := false) -> Bool {
@@ -232,21 +229,15 @@ ArrayAccess: class extends Expression {
 
     }
 
-    resolveOverload: func (trail: Trail, res: Resolver, hasOne?: Bool* = null) -> Response {
+    // TODO: this is, of course, duplicated in BinaryOp... :( - amos
 
-        /*
-        "Looking for an overload of %s[%s], %s" printfln(
-            array getType() ? array getType() toString() : "(nil)",
-            indices[0] getType() ? indices[0] getType() toString() : "(nil)",
-            array getType() && array getType() getRef() ? array getType() getRef() toString() : "(nil)"
-        )
-        */
+    resolveOverload: func (trail: Trail, res: Resolver) -> BranchResult {
 
         // so here's the plan: we give each operator overload a score
         // depending on how well it fits our requirements (types)
 
         bestScore := 0
-        candidate : OperatorDecl = null
+        candidate: OperatorDecl = null
 
         parent := trail peek()
 
@@ -267,10 +258,10 @@ ArrayAccess: class extends Expression {
                     }
 
                     for (opDecl in tDecl operators) {
-                        //"Matching %s against %s" printfln(opDecl toString(), toString())
                         score := getScore(opDecl, inAssign ? parent as BinaryOp : null, res)
                         if(score == -1) {
-                            return Response LOOP
+                            res wholeAgain(this, "asked to wait when resolving operator overload on type")
+                            return BranchResult BREAK
                         }
                         if(score > bestScore) {
                             bestScore = score
@@ -284,7 +275,8 @@ ArrayAccess: class extends Expression {
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl, inAssign ? parent as BinaryOp : null, res)
             if(score == -1) {
-                return Response LOOP
+                res wholeAgain(this, "asked to wait when resolving operator overload in own module")
+                return BranchResult BREAK
             }
             if(score > bestScore) {
                 bestScore = score
@@ -297,7 +289,10 @@ ArrayAccess: class extends Expression {
             module := imp getModule()
             for(opDecl in module getOperators()) {
                 score := getScore(opDecl, inAssign ? parent as BinaryOp : null, res)
-                if(score == -1) return Response LOOP
+                if(score == -1) {
+                    res wholeAgain(this, "asked to wait when resolving operator overload in imported module")
+                    return BranchResult BREAK
+                }
                 if(score > bestScore) {
                     bestScore = score
                     candidate = opDecl
@@ -305,44 +300,93 @@ ArrayAccess: class extends Expression {
             }
         }
 
-        if(candidate != null) {
-            if(hasOne?) hasOne?@ = true
-
-            fDecl := candidate getFunctionDecl()
-            fCall := FunctionCall new(fDecl getName(), token)
-            fCall setRef(fDecl)
-
-            if (fDecl owner) {
-                fCall expr = array
-            } else {
-                fCall getArguments() add(array)
-            }
-
-            fCall getArguments() addAll(indices)
-
-            if(inAssign) {
-                assign := parent as BinaryOp
-                fCall getArguments() add(assign getRight())
-
-                if(!trail peek(2) replace(assign, fCall)) {
-                    res throwError(CouldntReplace new(token, assign, fCall, trail))
-                }
-            } else {
-                if(!trail peek() replace(this, fCall)) {
-                    res throwError(CouldntReplace new(token, this, fCall, trail))
-                }
-            }
-
-            res wholeAgain(this, "Just been replaced with an overload")
-            return Response LOOP
+        if (candidate == null) {
+            // no operator overload found!
+            return BranchResult CONTINUE
         }
-        if(hasOne?) hasOne?@ = false
 
-        return Response OK
+        fDecl := candidate getFunctionDecl()
+        fCall := FunctionCall new(fDecl getName(), token)
+        fCall setRef(fDecl)
+
+        if (fDecl owner) {
+            fCall expr = array
+        } else {
+            fCall args add(array)
+        }
+
+        fCall args addAll(indices)
+
+        if(inAssign) {
+            assign := parent as BinaryOp
+            fCall args add(assign getRight())
+
+            if(!trail peek(2) replace(assign, fCall)) {
+                if (res fatal) {
+                    res throwError(CouldntReplace new(token, assign, fCall, trail))
+                    return BranchResult BREAK
+                }
+
+                res wholeAgain(this, "couldn't replace with overload")
+                return BranchResult BREAK
+            }
+        } else {
+            if(!trail peek() replace(this, fCall)) {
+                if (res fatal) {
+                    res throwError(CouldntReplace new(token, this, fCall, trail))
+                    return BranchResult BREAK
+                }
+
+                res wholeAgain(this, "couldn't replace with overload")
+                return BranchResult BREAK
+            }
+        }
+
+        replaced = true
+        res wholeAgain(this, "array access replaced with an overload")
+        return BranchResult BREAK
 
     }
 
-    isResolved: func -> Bool { array isResolved() && type != null }
+    resolveInsides: func (trail: Trail, res: Resolver) -> BranchResult {
+        trail push(this)
+
+        hasUnresolved := false
+
+        for (index in indices) {
+            match (index resolve(trail, res)) {
+                case Response OK => // good
+                case =>
+                    trail pop(this)
+                    return BranchResult LOOP
+            }
+
+            if (!index isResolved() || index getType() == null) {
+                hasUnresolved = true
+            }
+        }
+
+        match (array resolve(trail, res)) {
+            case Response OK => // good
+            case =>
+                trail pop(this)
+                return BranchResult LOOP
+        }
+
+        if (!array isResolved() || array getType() == null) {
+            hasUnresolved = true
+        }
+
+        trail pop(this)
+
+        if (hasUnresolved) {
+            res wholeAgain(this, "need all indices and array to be resolved")
+            return BranchResult BREAK
+        }
+
+        BranchResult CONTINUE
+    }
+
     getScore: func (op: OperatorDecl, assign: BinaryOp, res: Resolver) -> Int {
         if(!(op getSymbol() equals?(assign != null ? "[]=" : "[]"))) {
             return 0 // not the right overload type - skip
@@ -429,9 +473,18 @@ ArrayAccess: class extends Expression {
 
     replace: func (oldie, kiddo: Node) -> Bool {
         match oldie {
-            case array => array = kiddo; true
-            case => indices replace(oldie as Expression, kiddo as Expression)
+            case array =>
+                array = kiddo
+                refresh()
+                return true
+            case =>
+                if (indices replace(oldie as Expression, kiddo as Expression)) {
+                    refresh()
+                    return true
+                }
         }
+
+        false
     }
 
 }

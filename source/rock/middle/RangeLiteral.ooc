@@ -5,6 +5,8 @@ import tinker/[Resolver, Response, Trail]
 
 RangeLiteral: class extends Literal {
 
+    replaced := false
+
     lower, upper: Expression
     type := static BaseType new("Range", nullToken)
 
@@ -54,6 +56,7 @@ RangeLiteral: class extends Literal {
             if(!parent replace(this, newCall)) {
                 "Couldn't replace %s with %s in %s" printfln(toString(), newCall toString(), parent toString())
             }
+            replaced = true
             res wholeAgain(this, "replaced with range constructor!")
         }
 
@@ -68,6 +71,10 @@ RangeLiteral: class extends Literal {
             case upper => upper = kiddo; true
             case => false
         }
+    }
+
+    isResolved: func -> Bool {
+        super() && !replaced
     }
 
 }

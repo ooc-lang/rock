@@ -22,7 +22,8 @@ UnaryOp: class extends Expression {
     type: UnaryOpType
     boolType: BaseType
 
-    overload := OverloadStatus TRYAGAIN
+    _resolved := false
+    replaced := false
 
     init: func ~unaryOp (=inner, =type, .token) {
         super(token)
@@ -35,10 +36,6 @@ UnaryOp: class extends Expression {
 
     accept: func (visitor: Visitor) {
         visitor visitUnaryOp(this)
-    }
-
-    isResolved: func -> Bool {
-        overload != OverloadStatus TRYAGAIN
     }
 
     getType: func -> Type {
@@ -56,54 +53,58 @@ UnaryOp: class extends Expression {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        trail push(this)
-        boolType resolve(trail, res)
-        {
-            response := inner resolve(trail, res)
-            if(!response ok()) {
-                trail pop(this)
-                return response
-            }
+        match (resolveInsides(trail, res)) {
+            case BranchResult BREAK => return Response OK
+            case BranchResult LOOP  => return Response LOOP
         }
 
-        trail pop(this)
+        match (resolveOverload(trail, res)) {
+            case BranchResult BREAK => return Response OK
+            case BranchResult LOOP  => return Response LOOP
+        }
 
-        {
-            response := resolveOverload(trail, res)
-            if(!response ok()) return response
+        match (checkOperandTypes(trail, res)) {
+            case BranchResult BREAK => return Response OK
+            case BranchResult LOOP  => return Response LOOP
         }
 
         checkOperandTypes(trail, res)
+
+        _resolved = true
 
         return Response OK
 
     }
 
-    checkOperandTypes: func (trail: Trail, res: Resolver) {
-        match overload {
-            case OverloadStatus TRYAGAIN =>
-                res wholeAgain(this, "need to check operand types")
-                return
-            case OverloadStatus REPLACED =>
-                // nothing to check
-                return
+    resolveInsides: func (trail: Trail, res: Resolver) -> BranchResult {
+        trail push(this)
+
+        boolType resolve(trail, res)
+
+        match (inner resolve(trail, res)) {
+            case Response OK => // good
             case =>
-                // checking now..
+                trail pop(this)
+                return BranchResult LOOP
         }
 
+        trail pop(this)
+
+        if (!inner isResolved() || inner getType() == null) {
+            res wholeAgain(this, "need type of inner in unaryop")
+            return BranchResult BREAK
+        }
+
+        BranchResult CONTINUE
+    }
+
+    checkOperandTypes: func (trail: Trail, res: Resolver) -> BranchResult {
         match type {
-            case UnaryOpType unaryMinus =>
-                // checking now...
-            case UnaryOpType unaryPlus =>
-                // checking now...
+            case UnaryOpType unaryMinus || UnaryOpType unaryPlus =>
+                // proceed to checkint area
             case =>
                 // everything else is fine
-                return
-        }
-
-        if (!inner getType()) {
-            res wholeAgain(this, "need inner type to check operand type")
-            return
+                return BranchResult CONTINUE
         }
 
         // Unary minus can only be applied to numeric types
@@ -111,16 +112,25 @@ UnaryOp: class extends Expression {
             message := "Invalid operand type '%s' for operator '%s'" format(inner getType() toString(), repr())
             error := InvalidUnaryType new(token, message)
             res throwError(error)
+            return BranchResult BREAK
         }
+
+        BranchResult CONTINUE
     }
 
-    resolveOverload: func (trail: Trail, res: Resolver) -> Response {
+    // TODO: this is, of course, duplicated in BinaryOp... :( - amos
+
+    /**
+     * Tries to find if this particular usage of an operator is covered
+     * by an operator overload somewhere
+     */
+    resolveOverload: func (trail: Trail, res: Resolver) -> BranchResult {
 
         // so here's the plan: we give each operator overload a score
         // depending on how well it fits our requirements (types)
 
         bestScore := 0
-        candidate : OperatorDecl = null
+        candidate: OperatorDecl = null
 
         // first we check the inner's type
         innerType := inner getType()
@@ -135,10 +145,10 @@ UnaryOp: class extends Expression {
                     }
 
                     for (opDecl in tDecl operators) {
-                        //"Matching %s against %s" printfln(opDecl toString(), toString())
                         score := getScore(opDecl)
                         if(score == -1) {
-                            return Response LOOP
+                            res wholeAgain(this, "asked to wait when resolving operator overload on type")
+                            return BranchResult BREAK
                         }
                         if(score > bestScore) {
                             bestScore = score
@@ -151,7 +161,10 @@ UnaryOp: class extends Expression {
         // then we check the current module
         for(opDecl in trail module() getOperators()) {
             score := getScore(opDecl)
-            if(score == -1) { res wholeAgain(this, "score of op == -1 !!"); return Response OK }
+            if(score == -1) {
+                res wholeAgain(this, "asked to wait when resolving operator overload in own module")
+                return BranchResult BREAK
+            }
             if(score > bestScore) {
                 bestScore = score
                 candidate = opDecl
@@ -163,7 +176,10 @@ UnaryOp: class extends Expression {
             module := imp getModule()
             for(opDecl in module getOperators()) {
                 score := getScore(opDecl)
-                if(score == -1) { res wholeAgain(this, "score of %s == -1 !!"); return Response OK }
+                if(score == -1) {
+                    res wholeAgain(this, "asked to wait when resolving operator overload in own module")
+                    return BranchResult BREAK
+                }
                 if(score > bestScore) {
                     bestScore = score
                     candidate = opDecl
@@ -173,32 +189,33 @@ UnaryOp: class extends Expression {
 
         match candidate {
             case null =>
-                // at this point, all hope to find an overload is lost
-                overload = OverloadStatus NONE
+                // All good!
+                BranchResult CONTINUE
             case =>
                 // found one? replace it.
                 replaceWithOverload(trail, res, candidate)
         }
-
-        return Response OK
     }
 
-    replaceWithOverload: func (trail: Trail, res: Resolver, candidate: OperatorDecl) {
+    replaceWithOverload: func (trail: Trail, res: Resolver, candidate: OperatorDecl) -> BranchResult {
 
         fDecl := candidate getFunctionDecl()
         fCall := FunctionCall new(fDecl getName(), token)
         fCall getArguments() add(inner)
         fCall setRef(fDecl)
 
-        if(trail peek() replace(this, fCall)) {
-            res wholeAgain(this, "Just replaced with an overlokad")
-            overload = OverloadStatus REPLACED
-        } else {
+        if(!trail peek() replace(this, fCall)) {
             if(res fatal) {
                 res throwError(CouldntReplace new(token, this, fCall, trail))
+                return BranchResult BREAK
             }
             res wholeAgain(this, "failed to replace operator usage with an overload")
+            return BranchResult BREAK
         }
+
+        replaced = true
+        res wholeAgain(this, "just replaced with overload")
+        BranchResult BREAK
 
     }
 
@@ -237,9 +254,20 @@ UnaryOp: class extends Expression {
 
     replace: func (oldie, kiddo: Node) -> Bool {
         match oldie {
-            case inner => inner = kiddo; true
+            case inner =>
+                inner = kiddo
+                refresh()
+                true
             case => false
         }
+    }
+
+    refresh: func {
+        _resolved = false
+    }
+
+    isResolved: func -> Bool {
+        _resolved && !replaced
     }
 
 }

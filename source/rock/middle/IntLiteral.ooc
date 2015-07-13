@@ -81,7 +81,6 @@ IntLiteral: class extends Literal {
                 "Int"
         }
         type = BaseType new(typeName, nullToken)
-        "Found intliteral #{this}"
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {

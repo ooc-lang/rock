@@ -29,41 +29,16 @@ Ternary: class extends Expression {
 
     hasSideEffects : func -> Bool { condition hasSideEffects() || ifTrue hasSideEffects() || ifFalse hasSideEffects() }
 
+    _resolved := false
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        trail push(this)
-        {
-            response := condition resolve(trail, res)
-            if(!response ok()) {
-                trail pop(this)
-                return response
-            }
+        match (resolveInsides(trail, res)) {
+            case BranchResult BREAK => return Response OK
+            case BranchResult LOOP  => return Response LOOP
         }
 
-        {
-            response := ifTrue resolve(trail, res)
-            if(!response ok()) {
-                trail pop(this)
-                return response
-            }
-        }
-
-        {
-            response := ifFalse resolve(trail, res)
-            if(!response ok()) {
-                trail pop(this)
-                return response
-            }
-        }
-        trail pop(this)
-        
-        
         parent := trail peek()
-            
-        if(ifTrue getType() == null || ifFalse getType() == null) {
-            res wholeAgain(this, "Need ifTrue/ifFalse types")
-            return Response OK
-        }
         
         if(!ifTrue getType() equals?(ifFalse getType())) {
             isLeftPointerLike  := ifTrue  getType() getGroundType() pointerLevel() > 0 || ifTrue  getType() getGroundType() getRef() instanceOf?(ClassDecl)
@@ -75,17 +50,84 @@ Ternary: class extends Expression {
             }
         }
 
+        _resolved = true
+
         return Response OK
 
+    }
+
+    isResolved: func -> Bool {
+        _resolved
+    }
+
+    refresh: func {
+        _resolved = false
+    }
+
+    resolveInsides: func (trail: Trail, res: Resolver) -> BranchResult {
+        trail push(this)
+
+        hasUnresolved := false
+
+        match (condition resolve(trail, res)) {
+            case Response OK => // good
+            case =>
+                trail pop(this)
+                return BranchResult LOOP
+        }
+
+        if (!condition isResolved() || condition getType() == null) {
+            hasUnresolved = true
+        }
+
+        match (ifTrue resolve(trail, res)) {
+            case Response OK => // good
+            case =>
+                trail pop(this)
+                return BranchResult LOOP
+        }
+
+        if (!ifTrue isResolved() || ifTrue getType() == null) {
+            hasUnresolved = true
+        }
+
+        match (ifFalse resolve(trail, res)) {
+            case Response OK => // good
+            case =>
+                trail pop(this)
+                return BranchResult LOOP
+        }
+
+        if (!ifFalse isResolved() || ifFalse getType() == null) {
+            hasUnresolved = true
+        }
+
+        trail pop(this)
+
+        if (hasUnresolved) {
+            res wholeAgain(this, "need all insides of ternary to be resolved")
+            return BranchResult BREAK
+        }
+
+        BranchResult CONTINUE
     }
 
     toString: func -> String { condition toString() + " ? " + ifTrue toString() + " : " + ifFalse toString() }
 
     replace: func (oldie, kiddo: Node) -> Bool {
         match oldie {
-            case condition => condition = kiddo; true
-            case ifTrue    => ifTrue = kiddo; true
-            case ifFalse   => ifFalse = kiddo; true
+            case condition =>
+                condition = kiddo
+                refresh()
+                true
+            case ifTrue =>
+                ifTrue = kiddo
+                refresh()
+                true
+            case ifFalse =>
+                ifFalse = kiddo
+                refresh()
+                true
             case => false
         }
     }

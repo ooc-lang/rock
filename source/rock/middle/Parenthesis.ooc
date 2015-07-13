@@ -37,4 +37,8 @@ Parenthesis: class extends Expression {
 
     toString: func -> String { "(" + inner toString() + ")" }
 
+    isResolved: func -> Bool {
+        inner isResolved()
+    }
+
 }

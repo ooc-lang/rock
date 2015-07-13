@@ -298,7 +298,7 @@ FunctionCall: class extends Expression {
 
         // resolve all arguments
         unresolvedArgs := false
-        if(!args empty?()) {
+        if (!args empty?()) {
             trail push(this)
             i := 0
 
@@ -312,7 +312,7 @@ FunctionCall: class extends Expression {
                     return response
                 }
                 if(!replaced?) i += 1
-                if(!arg isResolved()) {
+                if(!arg isResolved() || arg getType() == null) {
                     if (debugCondition() || res params veryVerbose) {
                         "for call %s, arg still not resolved: %s" printfln(toString(), arg toString())
                     }

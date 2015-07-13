@@ -136,6 +136,7 @@ BinaryOp: class extends Expression {
             }
             e
         }
+
         innerType := type - (OpType addAss - OpType add)
         // very important to clone left! otherwise generics won't play well
         // (behave differently when lhs or rhs, cf. #889)
@@ -146,33 +147,44 @@ BinaryOp: class extends Expression {
         true
     }
 
-    handleTuples: func (trail: Trail, res: Resolver) {
+    handleTuples: func (trail: Trail, res: Resolver) -> BranchResult {
         match left {
             case t1: Tuple =>
                 match right {
                     case t2: Tuple =>
-                        unwrapTupleTupleAssign(t1, t2, trail, res)
+                        return unwrapTupleTupleAssign(t1, t2, trail, res)
                     case call: FunctionCall =>
-                        unwrapTupleCallAssign(t1, call, trail, res)
+                        return unwrapTupleCallAssign(t1, call, trail, res)
                     case =>
                         message := "Invalid tuple usage: assignment rhs has incompatible type"
                         res throwError(InvalidTupleUse new(token, message))
+                        return BranchResult BREAK
                 }
             case =>
                 match right {
                     case sl: StructLiteral =>
                         // assigning struct literals is fine.
+                        return BranchResult CONTINUE
                     case t2: Tuple =>
                         message := "Invalid tuple usage: assignment lhs needs to be a tuple"
                         res throwError(InvalidTupleUse new(token, message))
+                        return BranchResult BREAK
                 }
         }
+
+        BranchResult CONTINUE
     }
 
-    unwrapTupleCallAssign: func (tuple: Tuple, fCall: FunctionCall, trail: Trail, res: Resolver) {
+    /**
+     * Unwrap a case like:
+     *
+     * f: func () -> (K, V) { return (k, v) }
+     * (kk, vv) := f()
+     */
+    unwrapTupleCallAssign: func (tuple: Tuple, fCall: FunctionCall, trail: Trail, res: Resolver) -> BranchResult {
         if(fCall getRef() == null) {
             res wholeAgain(this, "Need fCall ref")
-            return
+            return BranchResult BREAK
         }
 
         if(fCall getRef() getReturnArgs() empty?()) {
@@ -180,7 +192,7 @@ BinaryOp: class extends Expression {
                 res throwError(TupleMismatch new(token, "Need a multi-return function call as the expression of a tuple-variable declaration."))
             }
             res wholeAgain(this, "need multi-return func call")
-            return
+            return BranchResult BREAK
         }
 
         returnArgs := fCall getReturnArgs()
@@ -190,6 +202,7 @@ BinaryOp: class extends Expression {
         // If the tuple has fewer elements...
         if(tuple getElements() getSize() < returnTypes getSize()) {
             bad := false
+
             // empty is always invalid (also not parsable, probably)
             if(tuple getElements() empty?()) {
                 bad = true
@@ -199,14 +212,18 @@ BinaryOp: class extends Expression {
                 if(!element instanceOf?(VariableAccess)) {
                     message := "Expected a variable access in a tuple-variable declaration!"
                     res throwError(InvalidTupleUse new(element token, message))
-                    return
+                    return BranchResult BREAK
                 }
                 // ...that has the name '_' - which means 'soak / ignore the rest of the values'
                 if(element as VariableAccess getName() != "_") {
                     bad = true
                 }
             }
-            if(bad) res throwError(TupleMismatch new(tuple token, "Tuple variable declaration doesn't match return type %s of function %s" format(returnType toString(), fCall getName())))
+            if(bad) {
+                message := "Tuple declaration #{this} doesn't match return type #{returnType} of function #{fCall getName()}"
+                res throwError(TupleMismatch new(tuple token, message))
+                return BranchResult BREAK
+            }
         }
 
         j := 0
@@ -224,96 +241,149 @@ BinaryOp: class extends Expression {
                 case =>
                     message := "Expected a variable access in a tuple-variable declaration!"
                     res throwError(InvalidTupleUse new(element token, message))
-                    return
+                    return BranchResult BREAK
             }
             j += 1
         }
         if (!trail addBeforeInScope(this, fCall)) {
             res throwError(CouldntAddBeforeInScope new(token, this, fCall, trail))
+            return BranchResult BREAK
         }
 
         parent := trail peek()
         match parent {
             case s: Scope =>
-                s remove(this)
+                if (!s remove(this)) {
+                    message := "Couldn't remove #{this} from scope after replace"
+                    res throwError(InternalError new(token, message))
+                    return BranchResult BREAK
+                }
                 res wholeAgain(this, "replaced assignment with fCall and its returnArgs")
+                return BranchResult BREAK
             case =>
                 message := "Tuple / functionCall assignment in a strange place"
                 res throwError(InvalidTupleUse new(token, message))
+                return BranchResult BREAK
         }
+
+        BranchResult CONTINUE
     }
 
-    unwrapTupleTupleAssign: func (t1: Tuple, t2: Tuple, trail: Trail, res: Resolver) {
-        if(t1 elements getSize() != t2 elements getSize()) {
-            message := "Invalid assignment (incompatible tuples) between types %s and %s\n" format(
-                left getType() toString(), right getType() toString())
-            res throwError(InvalidOperatorUse new(token, message))
-            return
-        }
+    /**
+     * Unwrap a case like:
+     *
+     * f: func () -> (K, V) { return (k, v) }
+     * (kk, vv) := f()
+     */
+    unwrapTupleTupleAssign: func (t1: Tuple, t2: Tuple, trail: Trail, res: Resolver) -> BranchResult {
+        lhsNumElements := t1 elements size
+        rhsNumElements := t2 elements size
 
-        size := t1 elements getSize()
+        if(lhsNumElements != rhsNumElements) {
+            message := "Invalid assignment (incompatible tuples) between types #{left getType()} and #{right getType()}"
+            res throwError(InvalidOperatorUse new(token, message))
+            return BranchResult BREAK
+        }
 
         /*
-         * fix tuple swap such like (a,b) = (a,a+b)
-         * if an expression in right side is not VariableAccess it will be reduced
-         * to VariableAccess with temp variable
+         * Handle cases like:
+         *
+         *   (a, b) = (a, a + b)
+         * 
+         * We store `a + b` in a temporary variable to reduce it to a simple
+         * tuple assignment case.
          */
-        for(i in 0..size){
-            r := t2 elements[i]
-            if(!r instanceOf?(VariableAccess)){
-                tmpDecl := VariableDecl new(null, generateTempName("exchange_r_in_t2"), r, r token)
-                if(!trail addBeforeInScope(this, tmpDecl)) {
-                    res throwError(CouldntAddBeforeInScope new(token, this, tmpDecl, trail))
-                }
-                t2 elements[i] = VariableAccess new(tmpDecl, tmpDecl token)
-            }
-        }
-
-        for(i in 0..size) {
-            l := t1 elements[i]
-            if(!l instanceOf?(VariableAccess)) continue
-            la := l as VariableAccess
-
-            for(j in i..size) {
-                r := t2 elements[j]
-                if(!r instanceOf?(VariableAccess)) continue
-
-                ra := r as VariableAccess
-                if(la getRef() == null || ra getRef() == null) {
-                    res wholeAgain(this, "need ref")
-                    return
-                }
-                if(la getRef() == ra getRef()) {
-                    if(i == j) {
-                        useless := false
-                        if(la expr != null && ra expr != null) {
-                            if(la expr instanceOf?(VariableAccess) &&
-                                ra expr instanceOf?(VariableAccess)) {
-                                    lae := la expr as VariableAccess
-                                    rae := ra expr as VariableAccess
-                                    if(lae getRef() == rae getRef()) {
-                                        useless = true
-                                    }
-                            }
-                        } else {
-                            useless = true
-                        }
-                        if(useless) { continue }
-                    }
-
-                    tmpDecl := VariableDecl new(null, generateTempName(la getName()), la, la token)
+        for ((i, r) in t2 elements) {
+            match r {
+                case va: VariableAccess =>
+                    // all good
+                case =>
+                    // need to unwrap
+                    tmpDecl := VariableDecl new(null, generateTempName("tup_el_tmp"), r, r token)
                     if(!trail addBeforeInScope(this, tmpDecl)) {
                         res throwError(CouldntAddBeforeInScope new(token, this, tmpDecl, trail))
+                        return BranchResult BREAK
                     }
-                    t2 elements[j] = VariableAccess new(tmpDecl, tmpDecl token)
-                }
+                    t2 elements[i] = VariableAccess new(tmpDecl, tmpDecl token)
+            }
+
+            if(!r instanceOf?(VariableAccess)){
             }
         }
 
-        for(i in 0..t1 elements getSize()) {
+        /*
+         * Handle swap cases like:
+         *
+         *   (a, b) = (b, a)
+         * 
+         * Reduce them to
+         *
+         *   a := tmp
+         *   a = b
+         *   b = tmp
+         * 
+         */
+        for ((i, l) in t1 elements) {
+            if (!l instanceOf?(VariableAccess)) continue
+            la := l as VariableAccess
+
+            for((j, r) in t2 elements) {
+                if (!r instanceOf?(VariableAccess)) continue
+                ra := r as VariableAccess
+
+                if (la getRef() == null || ra getRef() == null) {
+                    res wholeAgain(this, "need ref of accesses on both sides of tuple assign")
+                    return BranchResult BREAK
+                }
+
+                if (la getRef() != ra getRef()) {
+                    // not the same vars
+                    continue
+                }
+
+                /*
+                 * If we have `(foo a, foo b) = (bar a, bar b)`, the refs
+                 * will be the same, but we don't need the temporary variable.
+                 */
+                if(i == j) {
+                    tmpNeeded := true
+
+                    match (la expr) {
+                        case null =>
+                            // lhs is not a member access
+                        case lae: VariableAccess =>
+                            match (ra expr) {
+                                case null =>
+                                    // rhs not a member access, but lhs is - no workaround needed
+                                    tmpNeeded = false
+                                case rae: VariableAccess =>
+                                    if (lae getRef() == null || rae getRef() == null) {
+                                        res wholeAgain(this, "need access's expr refs from both sides of tuple assignment")
+                                        return BranchResult BREAK
+                                    }
+
+                                    if (lae getRef() != rae getRef()) {
+                                        // accessing same member from different objects
+                                        tmpNeeded = false
+                                    }
+                            }
+                    }
+
+                    if (!tmpNeeded) continue
+                }
+
+                tmpDecl := VariableDecl new(null, generateTempName(la getName()), la, la token)
+                if(!trail addBeforeInScope(this, tmpDecl)) {
+                    res throwError(CouldntAddBeforeInScope new(token, this, tmpDecl, trail))
+                    return BranchResult BREAK
+                }
+                t2 elements[j] = VariableAccess new(tmpDecl, tmpDecl token)
+            }
+        }
+
+        for((i, lhs) in t1 elements) {
             ignore := false
 
-            lhs := t1 elements[i]
             rhs := t2 elements[i]
 
             match lhs {
@@ -327,70 +397,41 @@ BinaryOp: class extends Expression {
 
             child := new(lhs, rhs, type, token)
 
-            if(i == t1 elements getSize() - 1) {
+            if(i == lhsNumElements - 1) {
                 // last? replace
                 if(!trail peek() replace(this, child)) {
                     res throwError(CouldntReplace new(token, this, child, trail))
+                    return BranchResult BREAK
                 }
             } else {
                 // otherwise, add before
                 if(!trail addBeforeInScope(this, child)) {
                     res throwError(CouldntAddBeforeInScope new(token, this, child, trail))
+                    return BranchResult BREAK
                 }
             }
         }
+
+        BranchResult CONTINUE
     }
 
     _resolved := false
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        trail push(this)
-
-        {
-            response := left resolve(trail, res)
-            if(!response ok()) {
-                trail pop(this)
-                return response
-            }
+        if (isResolved() || replaced) {
+            return Response OK
         }
 
-        {
-            response := right resolve(trail, res)
-            if(!response ok()) {
-                trail pop(this)
-                return response
-            }
+        match (resolveSides(trail, res)) {
+            case BranchResult BREAK => return Response OK
+            case BranchResult LOOP  => return Response LOOP
         }
-
-        trail pop(this)
 
         match (resolveOverload(trail, res)) {
             case BranchResult BREAK => return Response OK
             case BranchResult LOOP  => return Response LOOP
         }
-
-        {
-            // findCommonRoot need both left and right is resolved
-
-            if (!left isResolved()) {
-                res wholeAgain(this, "Can't resolve '%s'. (maybe you forgot to declare a variable?)" format(left toString()))
-                return Response OK
-            } else if (!right isResolved()) {
-                res wholeAgain(this, "Can't resolve %s. (maybe you forgot to declare a variable?" format(right toString()))
-                return Response OK
-            }
-
-            if(left getType() == null || !left isResolved()) {
-                res wholeAgain(this, "left type is unresolved")
-                return Response OK
-            }
-            if(right getType() == null || !right isResolved()) {
-                res wholeAgain(this, "right type is unresolved")
-                return Response OK
-            }
-        }
-
 
         if(!replaced && inferredType == null) {
             inferredType = findCommonRoot(left getType(), right getType())
@@ -407,7 +448,10 @@ BinaryOp: class extends Expression {
             hasTuples := left instanceOf?(Tuple) || right instanceOf?(Tuple)
             if(hasTuples) {
                 // Assigning tuples need unwrapping
-                handleTuples(trail, res)
+                match handleTuples(trail, res) {
+                    case BranchResult BREAK => return Response OK
+                    case BranchResult LOOP  => return Response LOOP
+                }
             }
 
             // Left side is a property access? Replace myself with a setter call.
@@ -426,7 +470,7 @@ BinaryOp: class extends Expression {
                 }
             }
 
-            cast : Cast = null
+            cast: Cast = null
             realRight := right
             if(right instanceOf?(Cast)) {
                 cast = right as Cast
@@ -469,7 +513,10 @@ BinaryOp: class extends Expression {
                 result := trail peek() replace(this, fCall)
 
                 if(!result) {
-                    if(res fatal) res throwError(CouldntReplace new(token, this, fCall, trail))
+                    if(res fatal) {
+                        res throwError(CouldntReplace new(token, this, fCall, trail))
+                        return Response OK
+                    }
                 }
 
                 res wholeAgain(this, "Replaced ourselves, need to tidy up")
@@ -478,7 +525,10 @@ BinaryOp: class extends Expression {
         }
 
         // Do we need to unwrap `a += b` to `a = a + b` ?
-        if (!checkUnwrapAssign(trail, res)) return Response OK
+        match (checkUnwrapAssign(trail, res)) {
+            case BranchResult BREAK => return Response OK
+            case BranchResult LOOP  => return Response LOOP
+        }
 
         // We must replace the null-coalescing operator with a ternary operator
         if(type == OpType nullCoal) {
@@ -487,9 +537,8 @@ BinaryOp: class extends Expression {
             ternary := Ternary new(condition, left, right, token)
 
             if(!trail peek() replace(this, ternary)) {
-                if(res fatal) res throwError(CouldntReplace new(token, this, ternary, trail))
-                res wholeAgain(this, "failed to replace oneself, gotta try again =)")
-                return Response LOOP
+                res throwError(CouldntReplace new(token, this, ternary, trail))
+                return Response OK
             }
 
             res wholeAgain(this, "replaced null coalescing operator with ternary")
@@ -503,6 +552,7 @@ BinaryOp: class extends Expression {
                 return Response OK
             }
             res wholeAgain(this, "Illegal use, looping in hope.")
+            return Response OK
         }
 
         _resolved = true
@@ -521,6 +571,38 @@ BinaryOp: class extends Expression {
         _resolved = false
     }
 
+    resolveSides: func (trail: Trail, res: Resolver) -> BranchResult {
+        trail push(this)
+
+        match (left resolve(trail, res)) {
+            case Response OK => // good
+            case =>
+                trail pop(this)
+                return BranchResult LOOP
+        }
+
+        match (right resolve(trail, res)) {
+            case Response OK => // good
+            case =>
+                trail pop(this)
+                return BranchResult LOOP
+        }
+
+        trail pop(this)
+
+        if (!left isResolved() || !right isResolved()) {
+            res wholeAgain(this, "need both sides of binop to be resolved")
+            return BranchResult BREAK
+        }
+
+        if (left getType() == null || right getType() == null) {
+            res wholeAgain(this, "need type of both sides")
+            return BranchResult BREAK
+        }
+
+        BranchResult CONTINUE
+    }
+
     _checkUnwrapAssignDone := false
 
     /**
@@ -528,18 +610,18 @@ BinaryOp: class extends Expression {
      * @return false if the resolving process for this node needs to
      * stop for now (ie. after wholeAgain), true if it's all good.
      */
-    checkUnwrapAssign: func (trail: Trail, res: Resolver) -> Bool {
+    checkUnwrapAssign: func (trail: Trail, res: Resolver) -> BranchResult {
 
         if (!isCompositeAssign()) {
             // well that was quick
             _checkUnwrapAssignDone = true
-            return true
+            return BranchResult CONTINUE
         }
 
         if (!left instanceOf?(VariableAccess)) {
             // easy one too
             _checkUnwrapAssignDone = true
-            return true
+            return BranchResult CONTINUE
         }
 
         lhsType := left getType()
@@ -547,12 +629,12 @@ BinaryOp: class extends Expression {
 
         if(lhsType == null || lhsType getRef() == null) {
             res wholeAgain(this, "need left type & its ref")
-            return false
+            return BranchResult BREAK
         }
 
         if(rhsType == null || rhsType getRef() == null) {
             res wholeAgain(this, "need right type & its ref")
-            return false
+            return BranchResult BREAK
         }
 
         lhs := left as VariableAccess
@@ -565,7 +647,7 @@ BinaryOp: class extends Expression {
                     // we're inside a property getter or setter, regular
                     // rules do not apply (ie. never unwrap)
                     _checkUnwrapAssignDone = true
-                    return true
+                    return BranchResult CONTINUE
                 }
 
             // generic access / assignment of generic members only works if we unwrap
@@ -573,13 +655,13 @@ BinaryOp: class extends Expression {
                 lhsVarDeclType := lhsVarDecl getType()
                 if (lhsVarDeclType == null || lhsVarDeclType getRef() == null) {
                     res wholeAgain(this, "need lhs var decl type & its ref")
-                    return false
+                    return BranchResult BREAK
                 }
 
                 if (!lhsVarDeclType isGeneric()) {
                     // no need to unwrap non-property, non-generic stuff
                     _checkUnwrapAssignDone = true
-                    return true
+                    return BranchResult CONTINUE
                 }
         }
 
@@ -588,7 +670,7 @@ BinaryOp: class extends Expression {
 
         res wholeAgain(this, "just unwrapped!")
         _checkUnwrapAssignDone = true
-        return false
+        return BranchResult BREAK
     }
 
     isGeneric: func -> Bool {
@@ -785,14 +867,16 @@ BinaryOp: class extends Expression {
             }
         }
 
-        // Found a candidate
         if(candidate != null) {
+            // found a candidate, let's overload
             if(isAssign() && !candidate getSymbol() endsWith?("=")) {
                 // we need to unwrap first!
                 unwrapAssign(trail, res)
+
                 trail push(this)
                 right resolve(trail, res)
                 trail pop(this)
+
                 res wholeAgain(this, "just unwrapped assign")
                 return BranchResult BREAK
             }
@@ -811,14 +895,19 @@ BinaryOp: class extends Expression {
             fCall setRef(fDecl)
 
             if(!trail peek() replace(this, fCall)) {
-                res throwError(CouldntReplace new(token, this, fCall, trail))
+                if (res fatal) {
+                    res throwError(CouldntReplace new(token, this, fCall, trail))
+                }
+                res wholeAgain(this, "couldn't replace")
                 return BranchResult BREAK
             }
 
             replaced = true
-            res wholeAgain(this, "Just replaced with an operator overload")
+            res wholeAgain(this, "replaced with an operator overload")
+            return BranchResult BREAK
         }
 
+        // no candidate, no need to overload
         BranchResult CONTINUE
 
     }
@@ -881,9 +970,16 @@ BinaryOp: class extends Expression {
 
     replace: func (oldie, kiddo: Node) -> Bool {
         match oldie {
-            case left  => left  = kiddo; true
-            case right => right = kiddo; true
-            case => false
+            case left  =>
+                left = kiddo
+                refresh()
+                true
+            case right =>
+                right = kiddo
+                refresh()
+                true
+            case =>
+                false
         }
     }
 

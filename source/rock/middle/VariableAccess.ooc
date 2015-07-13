@@ -153,7 +153,25 @@ VariableAccess: class extends Expression {
         _funcTypeDone = false
     }
 
-    isResolved: func -> Bool { ref != null && getType() != null && _funcTypeDone }
+    isResolved: func -> Bool {
+        if (ref == null) {
+            return false
+        }
+
+        if (!_funcTypeDone) {
+            return false
+        }
+
+        if (getType() == null || getType() getRef() == null) {
+            return false
+        }
+
+        if (expr != null && !expr isResolved()) {
+            return false
+        }
+
+        true
+    }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
@@ -219,9 +237,14 @@ VariableAccess: class extends Expression {
                     property := ref as PropertyDecl
                     fCall := FunctionCall new(expr, property getGetterName(), token)
                     if (!trail peek() replace(this, fCall)) {
-                        res throwError(CouldntReplace new(token, this, fCall, trail))
+                        if (res fatal) {
+                            res throwError(CouldntReplace new(token, this, fCall, trail))
+                            return Response OK
+                        }
+                        res wholeAgain(this, "couldn't replace with getter call")
+                        return Response OK
                     }
-                    res wholeAgain(this, "Got replaced!")
+                    res wholeAgain(this, "replaced with getter call")
                     return Response OK
                 }
             } else {

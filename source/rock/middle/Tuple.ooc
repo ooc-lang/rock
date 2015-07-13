@@ -9,6 +9,8 @@ Tuple: class extends Expression {
     elements := ArrayList<Expression> new()
     type : Type = null
 
+    replaced := false
+
     init: func ~tuple (.token) {
         super(token)
     }
@@ -82,7 +84,13 @@ Tuple: class extends Expression {
         buffer toString()
     }
 
+    _resolved := false
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
+
+        if (isResolved()) {
+            return Response OK
+        }
 
         match resolveElements(trail, res) {
             case BranchResult BREAK => return Response OK
@@ -97,7 +105,12 @@ Tuple: class extends Expression {
 
         unwrapIfNeeded(trail,res)
 
+        _resolved = true
         Response OK
+    }
+
+    isResolved: func -> Bool {
+        _resolved && !replaced
     }
 
     _elementsResolved := false
@@ -113,6 +126,14 @@ Tuple: class extends Expression {
         unresolvedElements := false
         for (element in elements) {
             response := element resolve(trail, res)
+
+            match (element) {
+                case va: VariableAccess =>
+                    if (va name == "_") {
+                        // don't resolve that
+                        continue
+                    }
+            }
 
             if(!element isResolved()) {
                 unresolvedElements = true
@@ -146,6 +167,7 @@ Tuple: class extends Expression {
                 if(!grandpa replace(cast, structLit)) {
                     res throwError(CouldntReplace new(token, cast, structLit, trail))
                 }
+                replaced = true
         }
 
         _unwrapChecked = true
