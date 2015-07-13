@@ -1,8 +1,6 @@
 
 // Test for https://github.com/fasterthanlime/rock/issues/890
 
-use sam-assert
-
 Ditto: class {
     s: String
     init: func (=s)

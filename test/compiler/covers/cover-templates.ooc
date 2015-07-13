@@ -1,6 +1,4 @@
 
-use sam-assert
-
 describe("A cover template-based version of array", ||
 
     ints := MyArray<Int> new(4)

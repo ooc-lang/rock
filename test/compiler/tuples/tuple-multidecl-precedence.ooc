@@ -1,8 +1,6 @@
 
 // Test for https://github.com/fasterthanlime/rock/issues/903
 
-use sam-assert
-
 describe("tuple variable decls should have precedence over members", ||
     bar := Foo new(1337)
     expect(1337, bar xolophan)

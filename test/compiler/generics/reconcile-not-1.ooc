@@ -3,8 +3,6 @@
 
 // Test for https://github.com/fasterthanlime/rock/issues/825
 
-use sam-assert
-
 Foo: class { init: func }
 
 falafel: func <Tuvalu> (a, b: Tuvalu) -> String {

@@ -1,7 +1,6 @@
 
 // Test for https://github.com/fasterthanlime/rock/issues/889
 
-use sam-assert
 import structs/ArrayList
 
 describe("should be able access member with its own typeargs", ||

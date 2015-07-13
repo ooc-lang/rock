@@ -1,6 +1,4 @@
 
-use sam-assert
-
 takeArray: func (arr: Int[]) -> Int {
     expect(42, arr[0])
     1

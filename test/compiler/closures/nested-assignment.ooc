@@ -1,6 +1,4 @@
 
-use sam-assert
-
 done := false
 
 main: func {

@@ -1,12 +1,5 @@
 
-use sam-assert
-
-Point2D: class {
-    x, y: Int
-    init: func(=x, =y)
-    operator - -> This { This new(-this x, -this y) }
-    operator - (other: This) -> This { This new(this x - other x, this y - other y) }
-}
+// Test for https://github.com/fasterthanlime/rock/issues/780
 
 describe("operator overload order should not matter", ||
     p := Point2D new(2, 3)
@@ -16,3 +9,14 @@ describe("operator overload order should not matter", ||
     expect(1, p x)
     expect(2, p y)
 )
+
+// Support code
+
+Point2D: class {
+    x, y: Int
+    init: func(=x, =y)
+    operator - -> This { This new(-this x, -this y) }
+    operator - (other: This) -> This { This new(this x - other x, this y - other y) }
+}
+
+

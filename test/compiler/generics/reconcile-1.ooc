@@ -1,8 +1,6 @@
 
 // Test for https://github.com/fasterthanlime/rock/issues/825
 
-use sam-assert
-
 Foo: class { init: func }
 Bar: class extends Foo { init: super func }
 

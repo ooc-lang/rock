@@ -1,6 +1,4 @@
 
-use sam-assert
-
 describe("casting to ooc array should allocate & memcpy", ||
     carr: Int* = gc_malloc(Int size * 3)
     carr[0] = 1

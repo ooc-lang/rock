@@ -1,8 +1,6 @@
 
 // test for https://github.com/fasterthanlime/rock/issues/886
 
-use sam-assert
-
 formatInt: func (i: Int) -> String {
     "~#{i}"
 }

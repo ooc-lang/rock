@@ -1,8 +1,6 @@
 
 // Test for https://github.com/fasterthanlime/rock/issues/802
 
-use sam-assert
-
 getType: func <T> (t: T) -> String {
     match t {
         case i: Int =>

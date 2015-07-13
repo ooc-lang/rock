@@ -3,8 +3,6 @@
 
 // Test for https://github.com/fasterthanlime/rock/issues/891
 
-use sam-assert
-
 Peeker: class {
     inner: Object
     init: func (=inner)

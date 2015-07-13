@@ -1,12 +1,13 @@
 
+// Test for https://github.com/fasterthanlime/rock/issues/783
 
-main: func {
+describe("it should be legal to compare the address of structs", ||
     s := (1, 5) as S
     a := s&
     b := s&
 
     expect(b, a)
-}
+)
 
 // Support code
 

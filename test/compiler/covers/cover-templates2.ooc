@@ -3,8 +3,6 @@
 // where resolve orders is so that things don't get resolved properly.
 // see https://github.com/fasterthanlime/rock/issues/887
 
-use sam-assert
-
 assignDone := false
 pleaseDone := false
 

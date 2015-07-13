@@ -27,8 +27,6 @@ gprint: func <Tina> (t: Tina) {
     index += 1
 }
 
-//operator => <K, V> (k: K, v: V) -> Pair { Pair<K, V> new(k, v) }
-
 hashbag: func (args: ...) {
     args each(|arg|
         pair := arg as Pair

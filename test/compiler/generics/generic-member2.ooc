@@ -1,8 +1,6 @@
 
 // Test for https://github.com/fasterthanlime/rock/issues/889
 
-use sam-assert
-
 describe("should be able to assign, plus-assign, access generic member", ||
     g := Gift<Int> new(42)
 
