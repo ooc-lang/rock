@@ -1,7 +1,7 @@
 .PHONY: all clean mrproper prepare_bootstrap bootstrap install download-bootstrap rescue backup extensions extensions-clean
 .SILENT: extensions extensions-clean
 
-VENDOR_PREFIX:=$(PWD)/vendor-prefix
+VENDOR_PREFIX:=$(CURDIR)/vendor-prefix
 PARSER_GEN:=greg
 NQ_PATH:=source/rock/frontend/NagaQueen.c
 OOC_WARN_FLAGS?=+-w
@@ -90,7 +90,7 @@ half-bootstrap: boehmgc
 # Copy the manpage and create a symlink to the binary
 install:
 	if [ -e $(BIN_INSTALL_PATH)/rock ]; then echo "$(BIN_INSTALL_PATH)/rock already exists, overwriting."; rm -f $(BIN_INSTALL_PATH)/rock $(BIN_INSTALL_PATH)/rock.exe; fi
-	ln -s $(PWD)/bin/rock* $(BIN_INSTALL_PATH)/
+	ln -s $(CURDIR)/bin/rock* $(BIN_INSTALL_PATH)/
 	install -d $(MAN_INSTALL_PATH)
 	install docs/rock.1 $(MAN_INSTALL_PATH)/
 
