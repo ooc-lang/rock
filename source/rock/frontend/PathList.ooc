@@ -23,10 +23,12 @@ PathList: class {
         file := File new(path)
 
         if (!file exists?()) {
-            Exception new(This, "Classpath element cannot be found: %s" format(path)) throw()
+            CommandLine warn ("Classpath element cannot be found: %s" format(path))
+            return
         }
         else if (!file dir?()) {
-            Exception new(This, "Classpath element is not a directory: %s" format(path)) throw()
+            CommandLine warn("Classpath element is not a directory: %s" format(path))
+            return
         }
 
         absolutePath := file getAbsolutePath()
@@ -52,14 +54,9 @@ PathList: class {
     remove: func(path: String) {
         file := File new(path)
 
-        if (!file exists?()) {
-            Exception new(This, "Classpath element cannot be found: " + file getPath()) throw()
-        }
-        else if (!file dir?()) {
-            Exception new(This, "Classpath element is not a directory: " + file getPath()) throw()
-        }
-        else if (!paths contains?(file getAbsolutePath())) {
-            Exception new(This, "Attempting to remove a nonexistant path: " + file getPath()) throw()
+        if (!paths contains?(file getAbsolutePath())) {
+            CommandLine warn("Attempting to remove a nonexistant path: " + file getPath())
+            return
         }
 
         paths remove(file getAbsolutePath())
