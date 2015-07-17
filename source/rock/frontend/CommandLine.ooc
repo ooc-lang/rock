@@ -300,6 +300,10 @@ CommandLine: class {
 
                     params optimization = OptimizationLevel Os
 
+                } else if (option == "pipe") {
+
+                    params pipe = true
+
                 } else if (option == "verbose" || option == "v") {
 
                     if(!longOption && option != "v") warnUseLong("verbose")

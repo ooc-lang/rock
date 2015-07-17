@@ -174,6 +174,9 @@ BuildParams: class {
     // Optimization level
     optimization := OptimizationLevel O0
 
+    // Use pipes instead of temporary files
+    pipe := false
+
     // Do inlining
     inlining := false
 
@@ -413,6 +416,9 @@ BuildParams: class {
                 b append(" -O3")
             case OptimizationLevel Os =>
                 b append(" -Os")
+        }
+        if(pipe) {
+            b append(" -pipe")
         }
         b append(" -gc=")
         if(enableGC) {

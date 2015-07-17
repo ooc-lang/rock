@@ -206,6 +206,10 @@ Flags: class {
             case OptimizationLevel Os => addCompilerFlag("-Os")
         }
 
+        if (params pipe) {
+            addCompilerFlag("-pipe")
+        }
+
         if (params libcache) {
             addCompilerFlag("-I" + params libcachePath)
         } else {
