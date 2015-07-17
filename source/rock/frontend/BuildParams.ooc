@@ -19,103 +19,105 @@ import rock/frontend/drivers/[Driver, SequenceDriver]
  */
 BuildParams: class {
 
-    errorHandler: ErrorHandler { get set }
-    fatalError := true
+errorHandler: ErrorHandler { get set }
+fatalError := true
 
-    compilerArgs := ArrayList<String> new()
+		    compilerArgs := ArrayList<String> new()
 
-    /* Builtin defines */
-    GC_DEFINE := static const "__OOC_USE_GC__"
-    DEBUG_DEFINE := static const "__OOC_DEBUG__"
+		    /* Builtin defines */
+		    GC_DEFINE := static const "__OOC_USE_GC__"
+		    DEBUG_DEFINE := static const "__OOC_DEBUG__"
 
-    init: func (execName: String) {
-        findDist(execName)
-        findLibsPath()
+		    init: func (execName: String) {
+			    findDist(execName)
+				    findLibsPath()
 
-        // use the GC by default =)
-        defines add(This GC_DEFINE)
-        // also, don't use the thread redirects by default. It causes problems on
-        // mingw where the mingw definition of `_beginthreadex` gets messed up by
-        // the gc's `_beginthreadex` -> `GC_beginthreadex` macro. And we don't
-        // need them anyway, do we?
-        defines add("GC_NO_THREAD_REDIRECTS")
+				    // use the GC by default =)
+				    defines add(This GC_DEFINE)
+				    // also, don't use the thread redirects by default. It causes problems on
+				    // mingw where the mingw definition of `_beginthreadex` gets messed up by
+				    // the gc's `_beginthreadex` -> `GC_beginthreadex` macro. And we don't
+				    // need them anyway, do we?
+				    defines add("GC_NO_THREAD_REDIRECTS")
 
-        // use a simple error handler by default
-        // FIXME: why the workaround :(
-        errorHandler = DefaultErrorHandler new(this) as ErrorHandler
+				    // use a simple error handler by default
+				    // FIXME: why the workaround :(
+				    errorHandler = DefaultErrorHandler new(this) as ErrorHandler
 
-        doTargetSpecific()
-    }
+				    doTargetSpecific()
+		    }
 
-    // handle with care.
-    init: func ~empty
+	    // handle with care.
+init: func ~empty
 
-    findDist: func (execName: String) {
-        // specified by command-line?
-        if(distLocation) return
+	      findDist: func (execName: String) {
+		      // specified by command-line?
+		      if(distLocation) return
 
-        env := Env get("ROCK_DIST")
-        if(!env) {
-            env = Env get("OOC_DIST")
-        }
+			      env := Env get("ROCK_DIST")
+				      if(!env) {
+					      env = Env get("OOC_DIST")
+				      }
 
-        if (env && !env empty?()) {
-            distLocation = File new(env trimRight(File separator))
-            return
-        }
+		      if (env && !env empty?()) {
+			      distLocation = File new(env trimRight(File separator))
+				      return
+		      }
 
-        // fall back to ../../ from the executable
-        // e.g. if rock is in /opt/ooc/rock/bin/rock
-        // then it will set dist to /opt/ooc/rock/
-        exec := ShellUtils findExecutable(execName, false)
-        if(exec && exec path != null && !exec path empty?()) {
-            realpath := exec getAbsolutePath()
-            distLocation = File new(realpath) getParent() getParent()
-            return
-        }
+		      // fall back to ../../ from the executable
+		      // e.g. if rock is in /opt/ooc/rock/bin/rock
+		      // then it will set dist to /opt/ooc/rock/
+exec := ShellUtils findExecutable(execName, false)
+	      if(exec && exec path != null && !exec path empty?()) {
+realpath := exec getAbsolutePath()
+		  distLocation = File new(realpath) getParent() getParent()
+		  return
+	      }
 
-        // fall back on the current working directory
-        file := File new(File getCwd())
-        distLocation = file getParent()
-        if (distLocation path empty?() || !distLocation exists?()) Exception new (This, "can not find the distribution. did you set ROCK_DIST environment variable?")
-    }
+      // fall back on the current working directory
+file := File new(File getCwd())
+	      distLocation = file getParent()
+	      if (distLocation path empty?() || !distLocation exists?()) Exception new (This, "can not find the distribution. did you set ROCK_DIST environment variable?")
+	      }
 
-    findLibsPath: func {
-        // add from environment variable
-        path := Env get("OOC_LIBS")
-        if(path) {
-            path split(File pathDelimiter, false) each(|libPath|
-                libsPaths add(File new(libPath))
-            )
-        } else {
-            addIfExists := func (path: String) {
-              f := File new(path)
-              if (f exists?()) {
-                libsPaths add(f)
-              }
-            }
+findLibsPath: func {
+		      // add from environment variable
+path := Env get("OOC_LIBS")
+	      if(path) {
+		      path split(File pathDelimiter, false) each(|libPath|
+				      libsPaths add(File new(libPath))
+				      )
+	      } else {
+addIfExists := func (path: String) {
+f := File new(path)
+	   if (f exists?()) {
+		   libsPaths add(f)
+	   }
+	     }
 
-            addIfExists("/usr/lib/ooc")
-            addIfExists("/usr/local/lib/ooc")
-        }
+	     addIfExists("/usr/lib/ooc")
+		     addIfExists("/usr/local/lib/ooc")
+	      }
 
-        // add rock dist location as last element
-        libsPaths add(distLocation)
-    }
+      // add rock dist location as last element
+      libsPaths add(distLocation)
+	      }
 
-    // location of rock's distribution, with a libs/ folder for the gc, etc.
-    distLocation: File
+	      // location of rock's distribution, with a libs/ folder for the gc, etc.
+distLocation: File
 
-    // where ooc libraries live (.use)
-    libsPaths := ArrayList<File> new()
+		      // where ooc libraries live (.use)
+		      libsPaths := ArrayList<File> new()
 
-    // compiler used for producing an executable from the C sources
-    compiler := CCompiler new(this)
+		      // compiler used for producing an executable from the C sources
+		      compiler := CCompiler new(this)
 
-    // GNU ar program to use
-    ar := "ar"
+		      // GNU ar program to use
+		      ar := "ar"
 
-    // host value for the toolchain, for example 'i586-mingw32msvc'
+		      staticLib := false
+
+		      // host value for the toolchain, for example 'i586-mingw32msvc'
     host := ""
 
     // compiler flags that should never be used, ever.

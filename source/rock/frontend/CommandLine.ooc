@@ -212,7 +212,10 @@ CommandLine: class {
                     if(!longOption) warnUseLong("nomain")
                     params defaultMain = false
 
-                } else if (option startsWith?("gc=")) {
+                } else if (option == "static") {
+		     
+		    params staticLib = true
+		} else if (option startsWith?("gc=")) {
 
                     suboption := option substring(3)
                     match suboption {
