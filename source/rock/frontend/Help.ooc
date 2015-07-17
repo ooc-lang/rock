@@ -58,6 +58,10 @@ or a library (if it only has a 'SourcePath: something' directive)
 -O0, -O1, -O2, -O3, -Os
     Choose an optimization level
 
+-pipe
+    Use pipes rather than temporary files for communication between the
+    various stages of compilation.
+
 --gc=[dynamic,static,off]
     Link dynamically, link statically, or don't link with the boehm
     GC at all.
