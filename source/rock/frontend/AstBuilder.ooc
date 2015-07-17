@@ -17,7 +17,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Declaration, PropertyDecl, CallChain, Tuple, Addon, Try, CommaSequence,
     TemplateDef]
 
-nq_parse: extern proto func (AstBuilder, CString) -> Int
+nq_memparse: extern proto func (AstBuilder, CString, SizeT) -> Int
 
 // reserved C99 keywords
 reservedWords := ["auto", "int", "long", "char", "register", "short", "do",
@@ -53,12 +53,16 @@ AstBuilder: class {
     params: BuildParams
     modulePath: String
     module: Module
-    stack: Stack<Object>
-    versionStack: Stack<VersionSpec>
+    stack := Stack<Object> new()
+    versionStack := Stack<VersionSpec> new()
 
     tokenPos: Int*
     lineNoPointer: Int*
 
+    /**
+     * Create a new AST builder for the given `module`, which should
+     * be parsed from `modulePath`, with the associated build `params`
+     */
     init: func (=modulePath, =module, =params) {
         absolutePath := File new(modulePath) getAbsolutePath()
         cache put(absolutePath, module)
@@ -67,17 +71,17 @@ AstBuilder: class {
             "Parsing %s" printfln(absolutePath)
         }
 
-        stack = Stack<Object> new()
         stack push(module)
-        versionStack = Stack<VersionSpec> new()
 
         module addUse(Use new("sdk", params, module token))
 
-        result := nq_parse(this, modulePath)
-        if(result == -1) {
-            Exception new(This, "File " +modulePath + " not found") throw()
+        source := module getSource()
+        if (source == null) {
+            // FIXME: `raise` can't be the best option we have, can it?
+            raise("ooc source file `#{modulePath}` not found")
         }
 
+        result := nq_memparse(this, source toCString(), source size)
     }
 
     /**
@@ -664,8 +668,8 @@ AstBuilder: class {
                 m addOperator(oDecl)
             case tDecl: TypeDecl =>
                 tDecl addOperator(oDecl)
-            case =>
-                message := "Now where are you putting OperatorDecl(s) ?"
+            case n: Node =>
+                message := "Found OperatorDecl(s) in invalid context #{n}"
                 error := InternalError new(token(), message)
                 params errorHandler onError(error)
         }

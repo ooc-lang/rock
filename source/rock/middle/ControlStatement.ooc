@@ -7,7 +7,10 @@ ControlStatement: abstract class extends Statement {
 
     body := Scope new()
 
-    init: func ~controlStatement (.token) { super(token) }
+    init: func ~controlStatement (.token) {
+        body token = token
+        super(token)
+    }
 
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
         // FIXME: this probably isn't needed. Harmful, even.
@@ -15,11 +18,21 @@ ControlStatement: abstract class extends Statement {
         0
     }
 
-    resolve: func (trail: Trail, res: Resolver) -> Response {
+    resolveBody: func (trail: Trail, res: Resolver) -> BranchResult {
         trail push(this)
-        response := body resolve(trail, res)
+        result := body resolve(trail, res)
         trail pop(this)
-        return response
+
+        if (result == Response LOOP) {
+            return BranchResult LOOP
+        }
+
+        if (!body isResolved()) {
+            res wholeAgain(this, "waiting on body to resolve")
+            return BranchResult BREAK
+        }
+
+        BranchResult CONTINUE
     }
 
     replace: func (oldie, kiddo: Node) -> Bool {

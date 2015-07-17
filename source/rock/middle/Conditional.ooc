@@ -4,28 +4,37 @@ import tinker/[Trail, Resolver, Response]
 
 Conditional: abstract class extends ControlStatement {
 
+    _resolved := false
+
     condition: Expression
 
     init: func ~conditional (=condition, .token) { super(token) }
 
-    resolve: func (trail: Trail, res: Resolver) -> Response {
+    resolveCondition: func (trail: Trail, res: Resolver) -> BranchResult {
+        trail push(this)
+        result := condition resolve(trail, res)
+        trail pop(this)
 
-        if(condition != null) {
-            trail push(this)
-            response := condition resolve(trail, res)
-            trail pop(this)
-            if(!response ok()) {
-                return response
-            }
+        if (result == Response LOOP) {
+            return BranchResult LOOP
         }
 
-        return super(trail, res)
+        if (!condition isResolved()) {
+            res wholeAgain(this, "waiting on condition to resolve")
+            return BranchResult BREAK
+        }
 
+        BranchResult CONTINUE
+    }
+
+    refresh: func {
+        _resolved = false
     }
 
     replace: func (oldie, kiddo: Node) -> Bool {
         if(oldie == condition) {
             condition = kiddo
+            refresh()
             return true
         }
 

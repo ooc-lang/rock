@@ -136,7 +136,16 @@ Scope: class extends Node {
         return 0
     }
 
+    _resolved := false
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
+
+        if (isResolved()) {
+            // all done
+            return Response OK
+        }
+
+        hasUnresolved := false
 
         trail push(this)
         for(stat in this) {
@@ -146,11 +155,38 @@ Scope: class extends Node {
                 trail pop(this)
                 return response
             }
+            if (!stat isResolved()) {
+                hasUnresolved = true
+            }
+        }
+        trail pop(this)
+
+        if (hasUnresolved) {
+            res wholeAgain(this, "need to resolve scope again for a node")
+            return Response OK
         }
 
-        trail pop(this)
+        _resolved = true
+
         return Response OK
 
+    }
+
+    isResolved: func -> Bool {
+        _resolved
+    }
+    
+    refresh: func {
+        _resolved = false
+    }
+
+    replace: func (oldie, kiddo: Statement) -> Bool {
+        if (list replace(oldie, kiddo)) {
+            refresh()
+            return true
+        }
+
+        false
     }
 
     addFirst: func (newcomer: Statement) -> Bool {
@@ -178,7 +214,16 @@ Scope: class extends Node {
         true
     }
 
-    add:      func ~append (n: Statement) { list add(n) }
+    add: func ~append (n: Statement) {
+        list add(n)
+        refresh()
+    }
+
+    add: func ~withIndex (i: Int, s: Statement) {
+        list add(i, s)
+        refresh()
+    }
+
     remove:   func (n: Statement) -> Bool { list remove(n) }
     removeAt: func (i: Int) -> Statement  { list removeAt(i) }
 
@@ -194,14 +239,17 @@ Scope: class extends Node {
     lastIndex: func -> Int { list lastIndex() }
 
     get: func (i: Int) -> Statement  { list get(i) }
-    set: func (i: Int, s: Statement) { list set(i, s) }
-    add: func ~withIndex (i: Int, s: Statement) { list add(i, s) }
+    set: func (i: Int, s: Statement) {
+        list set(i, s)
+        refresh()
+    }
 
-    addAll: func (s: Scope) { list addAll(s list) }
+    addAll: func (s: Scope) {
+        list addAll(s list)
+        refresh()
+    }
 
     indexOf: func (s: Statement) -> Int { list indexOf(s) }
-
-    replace: func (oldie, kiddo: Statement) -> Bool { list replace(oldie, kiddo) }
 
     getSize: func -> Int { list getSize() }
 
@@ -209,11 +257,11 @@ Scope: class extends Node {
 
     toString: func -> String {
         sb := Buffer new()
-        sb append('{')
+        sb append("{ ")
         isFirst := true
         for(stmt in list) {
             if(isFirst) isFirst = false
-            else        sb append(", ")
+            else        sb append("; ")
             sb append(stmt toString())
         }
         sb append(" }")

@@ -30,6 +30,10 @@ VersionBlock: class extends ControlStatement {
         super(trail, res)
     }
 
+    isResolved: func -> Bool {
+        spec isResolved() && body isResolved()
+    }
+
 }
 
 VersionSpec: abstract class {

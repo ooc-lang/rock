@@ -13,6 +13,7 @@ import os/[System, Time], rock/RockVersion, rock/frontend/Target
 
 VariableAccess: class extends Expression {
 
+    _replaced := false
     _warned := false
     _staticFunc : FunctionDecl = null
 
@@ -170,6 +171,10 @@ VariableAccess: class extends Expression {
             return false
         }
 
+        if (_replaced) {
+            return false
+        }
+
         true
     }
 
@@ -244,6 +249,7 @@ VariableAccess: class extends Expression {
                         res wholeAgain(this, "couldn't replace with getter call")
                         return Response OK
                     }
+                    _replaced = true
                     res wholeAgain(this, "replaced with getter call")
                     return Response OK
                 }

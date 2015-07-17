@@ -4,6 +4,8 @@ import tinker/[Resolver, Response, Trail, Errors]
 
 OperatorDecl: class extends Expression {
 
+    _resolved := false
+
     symbol: String {
         get { symbol }
         set (s) {
@@ -17,7 +19,6 @@ OperatorDecl: class extends Expression {
     }
 
     implicit := false // for implicit as
-    _doneImplicit := false
 
     fDecl : FunctionDecl { get set }
 
@@ -52,8 +53,6 @@ OperatorDecl: class extends Expression {
         "operator " + symbol + " " + (fDecl ? fDecl getArgsRepr() : "")
     }
 
-    isResolved: func -> Bool { false }
-
     setByRef: func (byref: Bool) {
         fDecl isThisRef = byref
     }
@@ -62,14 +61,17 @@ OperatorDecl: class extends Expression {
         fDecl setAbstract(abs)
     }
 
+    /**
+     * Called by AstBuilder on `onOperatorEnd`
+     */
     computeName: func {
         assert(fDecl != null)
 
         sb := Buffer new()
-        sb append("__OP_"). append(getName())
+        sb append("__op_"). append(getName())
 
         for(arg in fDecl args) {
-            sb append("_"). append(arg instanceOf?(VarArg) ? "__VA_ARG__" : arg getType() toMangledString())
+            sb append("_"). append(arg instanceOf?(VarArg) ? "__varg__" : arg getType() toMangledString())
         }
 
         if(!fDecl isVoid()) {
@@ -80,18 +82,60 @@ OperatorDecl: class extends Expression {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        fDecl resolve(trail, res)
 
-        response := checkNumArgs(res)
-        if (!response ok()) return response
+        if (isResolved()) {
+            return Response OK
+        }
 
-        reponse := checkImplicitConversions(res)
-        if (!response ok()) return response
+        match (resolveInsides(trail, res)) {
+            case BranchResult BREAK => return Response OK
+            case BranchResult LOOP  => return Response LOOP
+        }
+
+        match (checkImplicitConversions(trail, res)) {
+            case BranchResult BREAK => return Response OK
+            case BranchResult LOOP  => return Response LOOP
+        }
+
+        match (checkNumArgs(trail, res)) {
+            case BranchResult BREAK => return Response OK
+            case BranchResult LOOP  => return Response LOOP
+        }
+
+        _resolved = true
 
         Response OK
     }
 
-    checkNumArgs: func (res: Resolver) -> Response {
+    isResolved: func -> Bool {
+        _resolved
+    }
+
+    /**
+     * Resolve all children nodes of OperatorDecl
+     */
+    resolveInsides: func (trail: Trail, res: Resolver) -> BranchResult {
+        fDecl resolve(trail, res)
+
+        if (!fDecl isResolved()) {
+            res wholeAgain(this, "need fDecl to be resolved")
+            return BranchResult BREAK
+        }
+
+        BranchResult CONTINUE
+    }
+
+    _numArgsDone := false
+
+    /**
+     * Check that this operator overload has the right number of arguments
+     */
+    checkNumArgs: func (trail: Trail, res: Resolver) -> BranchResult {
+        if (_numArgsDone) {
+            // all done
+            return BranchResult CONTINUE
+        }
+
         numArgs := fDecl args size
         if (fDecl owner) {
             numArgs += 1
@@ -122,84 +166,109 @@ OperatorDecl: class extends Expression {
                     return needArgs(res, "exactly 2", numArgs)
                 }
         }
-
-        Response OK
+        
+        _numArgsDone = true
+        BranchResult CONTINUE
     }
 
-    checkImplicitConversions: func (res: Resolver) -> Response {
-        if (!implicit) return Response OK
-        if (_doneImplicit) return Response OK
+    _doneImplicit := false
+
+    /**
+     * Handles 'implicit as' (adds to a list in the relevant
+     * TypeDecl)
+     */
+    checkImplicitConversions: func (trail: Trail, res: Resolver) -> BranchResult {
+        if (_doneImplicit) {
+            // already done
+            return BranchResult CONTINUE
+        }
+
+        if (!implicit) {
+            // nothing to do
+            _doneImplicit = true
+            return BranchResult CONTINUE
+        }
 
         fromType := fDecl args get(0) getType()
-        toType := fDecl getReturnType()
 
         if(fromType == null || !fromType isResolved()) {
             res wholeAgain(this, "need first arg's type")
-            return Response OK
+            return BranchResult BREAK
         }
 
         match (fromType getRef()) {
             case td: TypeDecl =>
+                // mark as an implicit conversion for that type
                 td implicitConversions add(this)
-                _doneImplicit = true
         }
 
-        Response OK
+        _doneImplicit = true
+        BranchResult CONTINUE
     }
 
-    needArgs: func (res: Resolver, expected: String, given: Int) -> Response {
+    /**
+     * Called when wrong number of args given to operator overload
+     */
+    needArgs: func (res: Resolver, expected: String, given: Int) -> BranchResult {
         message := "Overloading of '#{symbol}' requires #{expected} argument(s), not #{given}."
         err := InvalidOperatorOverload new(token, message)
         res throwError(err)
 
-        Response LOOP
+        BranchResult BREAK
     }
 
+    /**
+     * Get the name of the overload based on our symbol
+     */
     getName: func -> String {
         return match (symbol) {
-            case "[]"  =>  "IDX"
-            case "+"   =>  "ADD"
-            case "-"   =>  "SUB"
-            case "*"   =>  "MUL"
-            case "**"  =>  "EXP"
-            case "/"   =>  "DIV"
-            case "<<"  =>  "B_LSHIFT"
-            case ">>"  =>  "B_RSHIFT"
-            case "^"   =>  "B_XOR"
-            case "&"   =>  "B_AND"
-            case "|"   =>  "B_OR"
+            case "[]"  =>  "idx"
+            case "+"   =>  "add"
+            case "-"   =>  "sub"
+            case "*"   =>  "mul"
+            case "**"  =>  "exp"
+            case "/"   =>  "div"
+            case "<<"  =>  "blsh"
+            case ">>"  =>  "blsh"
+            case "^"   =>  "bxor"
+            case "&"   =>  "band"
+            case "|"   =>  "bor"
 
-            case "[]=" =>  "IDX_ASS"
-            case "+="  =>  "ADD_ASS"
-            case "-="  =>  "SUB_ASS"
-            case "*="  =>  "MUL_ASS"
-            case "**=" =>  "EXP_ASS"
-            case "/="  =>  "DIV_ASS"
-            case "<<=" =>  "B_LSHIFT_ASS"
-            case ">>=" =>  "B_RSHIFT_ASS"
-            case "^="  =>  "B_XOR_ASS"
-            case "&="  =>  "B_AND_ASS"
-            case "|="  =>  "B_OR_ASS"
+            case "[]=" =>  "idxa"
+            case "+="  =>  "adda"
+            case "-="  =>  "suba"
+            case "*="  =>  "mula"
+            case "**=" =>  "expa"
+            case "/="  =>  "diva"
+            case "<<=" =>  "blsha"
+            case ">>=" =>  "blsha"
+            case "^="  =>  "bxora"
+            case "&="  =>  "banda"
+            case "|="  =>  "bora"
 
-            case "=>"  =>  "DOUBLE_ARR"
-            case "&&"  =>  "L_AND"
-            case "||"  =>  "L_OR"
-            case "%"   =>  "MOD"
-            case "="   =>  "ASS"
-            case "=="  =>  "EQ"
-            case "<="  =>  "GTE"
-            case ">="  =>  "LTE"
-            case "!="  =>  "NE"
-            case "!"   =>  "NOT"
-            case "<"   =>  "LT"
-            case ">"   =>  "GT"
-            case "<=>" =>  "CMP"
-            case "~"   =>  "B_NEG"
-            case "as"  =>  "AS"
+            case "=>"  =>  "dar"
+            case "&&"  =>  "land"
+            case "||"  =>  "lor"
+            case "%"   =>  "mod"
+            case "="   =>  "ass"
+            case "=="  =>  "eq"
+            case "<="  =>  "gte"
+            case ">="  =>  "lte"
+            case "!="  =>  "ne"
+            case "!"   =>  "not"
+            case "<"   =>  "lt"
+            case ">"   =>  "gt"
+            case "<=>" =>  "cmp"
+            case "~"   =>  "b_neg"
+            case "as"  =>  "as"
 
-            case "??"  => "NULL_COAL"
+            case "??"  => "coal"
 
-            case       =>  token module params errorHandler onError(InvalidOperatorOverload new(token, "Unknown overloaded symbol: %s" format(symbol))); "UNKNOWN"
+            case =>
+                handler := token module params errorHandler
+                err := InvalidOperatorOverload new(token, "Unknown overloaded symbol: %s" format(symbol))
+                handler onError(err)
+                "unk"
         }
     }
 

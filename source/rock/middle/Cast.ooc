@@ -10,7 +10,7 @@ Cast: class extends Expression {
     inner: Expression
     type: Type
 
-    resolved := false
+    _resolved := false
 
     init: func ~cast (=inner, =type, .token) {
         super(token)
@@ -31,6 +31,10 @@ Cast: class extends Expression {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
+
+        if (isResolved()) {
+            return Response OK
+        }
 
         trail push(this)
 
@@ -96,6 +100,7 @@ Cast: class extends Expression {
                 trail addAfterInScope(varDecl, memcpyCall)
             } else {
                 if(res fatal) {
+                    // TODO: throw InternalError(s), not exceptions
                     Exception new(This, "Casting to ArrayType %s in unrecognized parent node %s (%s)!" format(type toString(), parent toString(), parent class name)) throw()
                 } else {
                     res wholeAgain(this, "Mysterious parent.")
@@ -143,14 +148,14 @@ Cast: class extends Expression {
             }
         }
 
-        resolved = inner isResolved() && inner getType() && inner getType() isResolved() && type isResolved()
+        _resolved = inner isResolved() && inner getType() && inner getType() isResolved() && type isResolved()
 
         return Response OK
 
     }
 
     isResolved: func -> Bool {
-        resolved
+        _resolved
     }
 
     resolveOverload: func (trail: Trail, res: Resolver) -> Response {

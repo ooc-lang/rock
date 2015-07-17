@@ -1,10 +1,10 @@
 import ../frontend/Token
-import Conditional, Expression, Visitor, Else
+import Conditional, Expression, Visitor, Else, Node
 import tinker/[Trail, Resolver, Response, Errors]
 
 If: class extends Conditional {
     elze: Else
-    unwrapped: Bool = false
+    _unwrapped := false
 
     init: func ~_if (.condition, .token) { super(condition, token) }
 
@@ -28,20 +28,36 @@ If: class extends Conditional {
     isDeadEnd: func -> Bool { false }
 
     resolve: func(trail: Trail, res: Resolver) -> Response {
-        if(elze != null && !unwrapped){
+        if(elze != null && !_unwrapped) {
             trail push(this)
             if(!trail addAfterInScope(this, elze)){
                 trail pop(this)
                 res throwError(FailedUnwrapElse new(elze token, "Failed to unwrap else"))
             }
-            unwrapped = true
+            _unwrapped = true
             elze resolve(trail, res)
             trail pop(this)
-            res wholeAgain(this, "just unwrapped else")
+
+            res wholeAgain(this, "just _unwrapped else")
             return Response OK
         }
 
-        super(trail, res)
+        match (resolveCondition(trail, res)) {
+            case BranchResult BREAK => return Response OK
+            case BranchResult LOOP  => return Response LOOP
+        }
+
+        match (resolveBody(trail, res)) {
+            case BranchResult BREAK => return Response OK
+            case BranchResult LOOP  => return Response LOOP
+        }
+
+        _resolved = true
+        Response OK
+    }
+
+    isResolved: func -> Bool {
+        _resolved && body isResolved()
     }
 
 }

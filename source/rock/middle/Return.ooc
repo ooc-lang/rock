@@ -24,7 +24,14 @@ Return: class extends Statement {
 
     accept: func (visitor: Visitor) { visitor visitReturn(this) }
 
+    _resolved := false
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
+
+        if (_resolved) {
+            // all done
+            return Response OK
+        }
 
         retType: Type = null
         returnArgs: List<VariableDecl> = null
@@ -55,8 +62,13 @@ Return: class extends Statement {
                 return response
             }
 
-            if(expr getType() == null || !expr getType() isResolved()) {
-                res wholeAgain(this, "expr type is unresolved")
+            if (!expr isResolved()) {
+                res wholeAgain(this, "expr of return is unresolved")
+                return Response OK
+            }
+
+            if (expr getType() == null || !expr getType() isResolved()) {
+                res wholeAgain(this, "expr type of return is unresolved")
                 return Response OK
             }
         }
@@ -89,6 +101,7 @@ Return: class extends Statement {
             if (isVoid) {
                 err := InconsistentReturn new(expr token, "Returning something from a void function is illegal")
                 res throwError(err)
+                return Response OK
             }
 
             // check: func isn't void but we return the wrong thing
@@ -119,9 +132,30 @@ Return: class extends Statement {
             }
         }
 
+        _resolved = true
+
         return Response OK
 
     }
+
+    isResolved: func -> Bool {
+        _resolved
+    }
+
+    refresh: func {
+        _resolved = false
+    }
+
+    replace: func (oldie, kiddo: Node) -> Bool {
+        if(expr == oldie) {
+            expr = kiddo
+            refresh()
+            return true
+        }
+
+        return false
+    }
+
 
     handleReturnArgs: func (retType: Type, returnArgs: List<VariableDecl>, res: Resolver, trail: Trail) -> Bool {
         // if it's a generic FunctionCall, just hook its returnArg to the outer FunctionDecl and be done with it.
@@ -218,15 +252,6 @@ Return: class extends Statement {
     }
 
     toString: func -> String { expr == null ? "return" : "return " + expr toString() }
-
-    replace: func (oldie, kiddo: Node) -> Bool {
-        if(expr == oldie) {
-            expr = kiddo
-            return true
-        }
-
-        return false
-    }
 
     /**
      * @return true if this variable decl is being assigned `expr`

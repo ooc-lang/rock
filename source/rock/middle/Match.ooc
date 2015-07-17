@@ -72,7 +72,14 @@ Match: class extends Expression {
         caze setExpr(head)
     }
 
+    _resolved := false
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
+
+        if (isResolved()) {
+            return Response OK
+        }
+
         trail push(this)
 
         if (expr != null) {
@@ -181,11 +188,12 @@ Match: class extends Expression {
                             // add the vDecl
                             caze addFirst(vDecl)
 
-                            // add the Assignment (with a cast, to mute gcc)
-                            acc := VariableAccess new(vDecl, caseToken)
+                            // and assign to it the right value
                             cast := Cast new(getExpr(), vDecl getType(), caseToken)
-                            ass := BinaryOp new(acc, cast, OpType ass, caseToken)
-                            caze addAfter(vDecl, ass)
+                            vDecl setExpr(cast)
+
+                            caze refresh()
+                            res wholeAgain(this, "transformed case (vDecl)")
                         } else {
                             // try to use 'matches?' but only if we're not in the fatal round,
                             // otherwise we'll get misleading errors.
@@ -207,21 +215,29 @@ Match: class extends Expression {
                                     }
                                 }
                             }
+
+                            caze refresh()
+                            res wholeAgain(this, "transformed case (matches?)")
                         }
                     }
                 } else if(!caseExpr) {
                     // This is a catch-all!
                     if(catchAll?) {
                         res throwError(MultipleCatchAll new(caze token, "Multiple catch-all cases detected, only the first one has any effect"))
-                    } else catchAll? = true
+                    } else {
+                        catchAll? = true
+                    }
                 }
                 casesResolved += 1
             }
         }
         if(casesResolved < casesSize) {
             trail pop(this)
+            res wholeAgain(this, "match need all cases to be resolved")
             return Response OK
         }
+
+        hasUnresolvedCases := false
 
         for (caze in cases) {
             response := caze resolve(trail, res)
@@ -229,8 +245,17 @@ Match: class extends Expression {
                 trail pop(this)
                 return response
             }
+
+            if (!caze isResolved()) {
+                hasUnresolvedCases = true
+            }
         }
         trail pop(this)
+
+        if (hasUnresolvedCases) {
+            res wholeAgain(this, "match needs all cases resolved")
+            return Response OK
+        }
 
         if(type == null) {
             response := inferType(trail, res)
@@ -238,7 +263,9 @@ Match: class extends Expression {
                 return response
             }
             if(type == null && !(trail peek() instanceOf?(Scope))) {
-                if(res fatal) res throwError(InternalError new(token, "Couldn't figure out type of match"))
+                if(res fatal) {
+                    res throwError(InternalError new(token, "Couldn't figure out type of match"))
+                }
                 res wholeAgain(this, "need to resolve type")
                 return Response OK
             }
@@ -275,8 +302,16 @@ Match: class extends Expression {
             }
         }
 
+        _resolved = true
         return Response OK
+    }
 
+    isResolved: func -> Bool {
+        _resolved
+    }
+
+    refresh: func {
+        _resolved = false
     }
 
     isStatement: func(trail: Trail, depth := 0) -> Bool {
@@ -352,8 +387,14 @@ Match: class extends Expression {
                 return Response OK
             }
 
-            baseType := cases first() getType()
-            if(!baseType) return Response OK
+            firstCase := cases first()
+            baseType := firstCase getType()
+            if(!baseType) {
+                if (res fatal) {
+                    res throwError(InternalError new(token, "match missing type of first case #{firstCase}"))
+                }
+                return Response OK
+            }
 
             // If the match is a statement rather than an expression, we don't need to find a common type
             // In fact, it is harmful to do so as incompatible "return" types from each case are allowed
@@ -365,9 +406,14 @@ Match: class extends Expression {
             // We find the common roots between our base type and next type
             // This root becomes our new base type
             // If there is no root, this means we have an incompatible type
-            for(i in 1 .. cases getSize()) {
+            for(i in 1 .. cases size) {
                 currType := cases get(i) getType()
-                if(!currType) return Response OK
+                if(!currType) {
+                    if (res fatal) {
+                        res throwError(InternalError new(token, "match missing type of case at index #{i}"))
+                    }
+                    return Response OK
+                }
 
                 root := findCommonRoot(baseType, currType)
                 if(!root) {
@@ -420,7 +466,9 @@ Case: class extends ControlStatement {
     accept: func (visitor: Visitor) {}
 
     getExpr: func -> Expression { expr }
-    setExpr: func (=expr) {}
+    setExpr: func (=expr) {
+        refresh()
+    }
 
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) {
 
@@ -429,7 +477,13 @@ Case: class extends ControlStatement {
 
     }
 
+    _resolved := false
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
+
+        if (isResolved()) {
+            return Response OK
+        }
 
         if (expr != null) {
             trail push(this)
@@ -438,15 +492,36 @@ Case: class extends ControlStatement {
             if(!response ok()) {
                 return response
             }
+
+            if (!expr isResolved()) {
+                res wholeAgain(this, "case needs expr to be resolved")
+                return Response OK
+            }
         }
 
-        return body resolve(trail, res)
+        body resolve(trail, res)
+        if (!body isResolved()) {
+            res wholeAgain(this, "case needs its body to be resolved")
+            return Response OK
+        }
 
+        _resolved = true
+        Response OK
+
+    }
+
+    isResolved: func -> Bool {
+        _resolved && body isResolved()
+    }
+
+    refresh: func {
+        _resolved = false
     }
 
     replace: func (oldie, kiddo: Node) -> Bool {
         if(oldie == expr) {
             expr = kiddo as Expression
+            refresh()
             return true
         }
         false
@@ -463,6 +538,15 @@ Case: class extends ControlStatement {
 
         return statement as Expression getType()
     }
+
+    toString: func -> String {
+        res := "case"
+        if (expr) {
+            res += " #{expr}"
+        }
+        res += " #{body}"
+    }
+
 }
 
 ExpectedExpression: class extends Error {

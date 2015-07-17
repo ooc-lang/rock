@@ -38,8 +38,6 @@ Ternary: class extends Expression {
             case BranchResult LOOP  => return Response LOOP
         }
 
-        parent := trail peek()
-        
         if(!ifTrue getType() equals?(ifFalse getType())) {
             isLeftPointerLike  := ifTrue  getType() getGroundType() pointerLevel() > 0 || ifTrue  getType() getGroundType() getRef() instanceOf?(ClassDecl)
             isRightPointerLike := ifFalse getType() getGroundType() pointerLevel() > 0 || ifFalse getType() getGroundType() getRef() instanceOf?(ClassDecl)
@@ -57,7 +55,7 @@ Ternary: class extends Expression {
     }
 
     isResolved: func -> Bool {
-        _resolved
+        _resolved && ifTrue isResolved() && ifFalse isResolved()
     }
 
     refresh: func {

@@ -88,7 +88,7 @@ VariableDecl: class extends Declaration {
     setOwner: func (=owner) {}
     getOwner: func -> TypeDecl { owner }
 
-    setExpr: func (=expr) {}
+    setExpr: func (=expr) { refresh() }
     getExpr: func -> Expression { expr }
 
     isStatic: func -> Bool { isStatic }
@@ -577,6 +577,14 @@ VariableDecl: class extends Declaration {
         }
 
         SearchResult NONE
+    }
+
+    isResolved: func -> Bool {
+        // FIXME: so much missing here still -- amos
+        if (getType() == null) return false
+        if (expr && !expr isResolved()) return false
+
+        true
     }
 
 }

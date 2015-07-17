@@ -121,8 +121,14 @@ FunctionDecl: class extends Declaration {
     fromClosure := false
     _unwrappedClosure := false
 
+    /**
+     * True if that's a closure using 'awesome closure syntax', aka
+     *
+     *   something something(|a, b, c|
+     *     // function body
+     *   )
+     */
     acs := false
-    _unwrappedACS := false
 
     /**
      * If we are a method (member function), 'owner' is non-null, and is a reference
@@ -424,8 +430,6 @@ FunctionDecl: class extends Declaration {
         (hasReturn() ? " -> " + returnType toString() : "")
     }
 
-    isResolved: func -> Bool { false }
-
     eachTypeArgMappingUntil: func (typeArgName: String, f: Func (Int, String) -> Bool) {
         i := -1
         for (arg in args) {
@@ -548,11 +552,17 @@ FunctionDecl: class extends Declaration {
         return true
     }
 
+    _resolved := false
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        if(debugCondition() || res params veryVerbose) "** Resolving function decl %s" printfln(prettyName)
+        if (isResolved()) {
+            return Response OK
+        }
 
-        if(debugCondition()) ("isFatal ? " + res fatal toString()) println()
+        if(debugCondition() || res params veryVerbose) {
+            token printMessage("resolving function decl #{prettyName}")
+        }
 
         trail push(this)
 
@@ -560,9 +570,13 @@ FunctionDecl: class extends Declaration {
             verzion resolve(trail, res)
         }
 
-        if(debugCondition()) "Handling the owner" println()
+        if(debugCondition()) {
+            token printMessage("handling the owner")
+        }
 
-        // handle the case where we specialize a generic function
+        /*
+         * handle the case where we specialize a generic function
+         */
         if(owner) {
             meat := owner isMeta ? owner as ClassDecl : owner getMeta()
             comeBack: Bool
@@ -613,7 +627,9 @@ FunctionDecl: class extends Declaration {
             }
         }
 
-        if(debugCondition()) "Handling the args" println()
+        if(debugCondition()) {
+            token printMessage("handling the args")
+        }
 
         for(arg in args) {
             if(debugCondition()) "Handling arg %s" format(arg toString()) println()
@@ -625,10 +641,14 @@ FunctionDecl: class extends Declaration {
             }
         }
 
-        if(debugCondition()) "Handling isClosure" println()
+        if(debugCondition()) {
+            token printMessage("handling isClosure")
+        }
 
+        /*
+         * Handle closure unwrapping
+         */
         isClosure := name empty?()
-
         if (isClosure) {
             fromClosure = true
 
@@ -638,13 +658,22 @@ FunctionDecl: class extends Declaration {
                     return Response OK
                 }
             }
-            args each(| arg |
+
+            unresolvedArgs := false
+
+            args each(|arg|
                 if (arg getType() == null || !arg getType() isResolved()) {
-                    if (debugCondition()) "Looping because of arg %s" format(arg toString()) println()
-                    res wholeAgain(this, "need arg type for the ref")
-                    return
+                    if (debugCondition()) {
+                        token printMessage("looping because of arg #{arg}")
+                    }
+                    unresolvedArgs = true
                 }
             )
+
+            if (unresolvedArgs) {
+                res wholeAgain(this, "need arg type for the ref")
+                return Response OK
+            }
         }
 
         if(debugCondition()) "Handling typeArgs" println()
@@ -652,27 +681,32 @@ FunctionDecl: class extends Declaration {
         for(typeArg in typeArgs) {
             response := typeArg resolve(trail, res)
             if(!response ok()) {
-                if(debugCondition() || res params veryVerbose) "Response of typeArg %s = %s" printfln(typeArg toString(), response toString())
+                if(debugCondition() || res params veryVerbose) {
+                    token printMessage("response of typeArg #{typeArg} = #{response}")
+                }
                 trail pop(this)
                 return response
             }
         }
 
-        if(debugCondition()) "Handling the body." println()
-
         {
             response := returnType resolve(trail, res)
             if(!response ok()) {
-                if(debugCondition() || res params veryVerbose) "))))))) For %s, response of return type %s = %s" printfln(toString(), returnType toString(), response toString())
+                if(debugCondition() || res params veryVerbose) {
+                    token printMessage("for #{this}, response of return type #{returnType} = #{response}")
+                }
                 trail pop(this)
                 return response
             }
+
             if(!returnType isResolved()) {
                 res wholeAgain(this, "need returnType of a FunctionDecl to be resolved")
                 trail pop(this)
                 return Response OK
             } else if(returnType isGeneric()) {
-                if(returnArgs empty?()) createReturnArg(returnType, "genericReturn")
+                if(returnArgs empty?()) {
+                    createReturnArg(returnType, "genericReturn")
+                }
             } else if(returnType instanceOf?(TypeList)) {
                 list := returnType as TypeList
                 if(returnArgs empty?()) {
@@ -683,42 +717,56 @@ FunctionDecl: class extends Declaration {
             }
         }
 
+
+        if(debugCondition()) {
+            token printMessage("handling the body")
+        }
+
         {
             response := body resolve(trail, res)
-            if(!response ok()) {
-                if(debugCondition() || res params veryVerbose) "))))))) For %s, response of body = %s" printfln(toString(), response toString())
+            if(!response ok() || !body isResolved()) {
+                if(debugCondition() || res params veryVerbose) {
+                    token printMessage("for #{this}, response of body = #{response}")
+                }
                 trail pop(this)
-                res wholeAgain(this, "body wanna LOOP")
+                res wholeAgain(this, "body of function asked for a loop")
                 return Response OK
-
-                // Why aren't we relaying the response of the body? Because
-                // the trail is usually clean below the body and it would
-                // blow-up way too soon if we LOOP-ed on every foreach/evil thing
-                //return response
             }
         }
 
         if(!isAbstract() && !isExtern() && vDecl == null) {
+            /*
+             * Enforce return type of main
+             */
             if(isMain()) {
                 if(isVoid()) {
                     returnType = BaseType new("Int", token)
                     body add(Return new(IntLiteral new(0, nullToken), nullToken))
-                    res wholeAgain(this, "because changed returnType to %s" format(returnType toString()))
+                    res wholeAgain(this, "because forced return type of main to int" format(returnType toString()))
                 }
             }
 
+            /*
+             * Turn expressions into return statements if needed
+             */
             response := autoReturn(trail, res, this, body, returnType)
             if(!response ok()) {
-                if(debugCondition() || res params veryVerbose) "))))))) For %s, response of autoReturn = %s" printfln(toString(), response toString())
+                if(debugCondition() || res params veryVerbose) {
+                    token printMessage("for #{this}, response of autoReturn = #{response}")
+                }
                 trail pop(this)
                 return response
             }
         }
         trail pop(this)
 
+        /*
+         * Handle 'super' funcs definitions.
+         */
         if(isSuper) {
             if(!owner) {
                 res throwError(SyntaxError new(token, "Super funcs are only legal in type declarations!"))
+                return Response OK
             }
 
             superTypeDecl := owner getSuperRef()
@@ -760,94 +808,53 @@ FunctionDecl: class extends Declaration {
                 }
 
                 res wholeAgain(this, "Just changed super func")
+                return Response OK
             } else {
                 msg := "There is no such super-func in %s!" format(superTypeDecl toString())
                 err := UnresolvedCall new(token, superCall, msg)
                 res throwError(err)
+                return Response OK
             }
         }
 
-       if(isMain()) {
-            // TODO: move out of middle/
-
-            match (args getSize()) {
-                case 0 => {
-                    // turn main into a standard prototype. Some libraries, like SDL, will
-                    // require that because of SDL_main.
-                    argc := Argument new(BaseType new("Int", token), generateTempName("argc"), token)
-                    argv := Argument new(PointerType new(BaseType new("CString", token), token), generateTempName("argv"), token)
-                    args add(argc)
-                    args add(argv)
-                }
-                case 1 => {
-                    // replace (args: ArrayList<String>) with (argc: Int, argv1: CString*)
-                    // and assign args to the array-list version of main's arguments
-                    if (args first() getType() getName() == "ArrayList") {
-                        arg := args first()
-                        args clear()
-                        argc := Argument new(BaseType new("Int", arg token), generateTempName("argc"), arg token)
-                        argv := Argument new(PointerType new(BaseType new("CString", arg token), arg token), generateTempName("argv"), arg token)
-                        args add(argc)
-                        args add(argv)
-
-                        constructCall := FunctionCall new("strArrayListFromCString", arg token)
-                        constructCall args add(VariableAccess new(argc, arg token)) \
-                                          .add(VariableAccess new(argv, arg token))
-                        vdfe := VariableDecl new(null, arg getName(), constructCall, token)
-                        body add(0, vdfe)
-                    }else if(args first() getType() getName() == "String"){
-                        // replace (String[]) with (argc: Int, argv: CString*)
-                        // and assign args to string array
-                        arg := args first()
-                        args clear()
-                        argc := Argument new(BaseType new("Int", arg token), generateTempName("argc"), arg token)
-                        argv := Argument new(PointerType new(BaseType new("CString", arg token), arg token), generateTempName("argv"), arg token)
-                        args add(argc)
-                        args add(argv)
-
-                        constructCall := FunctionCall new("strArrayFromCString", arg token)
-                        constructCall args add(VariableAccess new(argc, arg token)) \
-                                          .add(VariableAccess new(argv, arg token))
-                        arg fullName = "%s__%s" format(arg token module getUnderName(), arg name)
-                        vdfe := VariableDecl new(null, arg getFullName(), constructCall, token)
-                        body add(0, vdfe)
-                    }
-                }
-                case 2 => {
-                    // Replace (argc: Int, argv: String*) with (argc: Int, argv1: CString*)
-                    // and assign argv to the "String" version of argv1
-                    // argv := cStringPtrToStringPtr(argv1, argc)
-
-                    if (args get(0) getType() getName() == "Int" && args get(1) getType() getName() == "String") {
-                        arg := args get(1)
-                        pseudoArgv := BaseType new("CString", arg token)
-                        argv := Argument new(PointerType new(pseudoArgv, arg token), generateTempName("argv"), arg token)
-                        argvAccess := VariableAccess new(argv, argv token)
-                        argcAccess := VariableAccess new(args get(0), args get(0) token)
-                        constructCall := FunctionCall new("cStringPtrToStringPtr", arg token)
-                        constructCall args add(argvAccess)
-                        constructCall args add(argcAccess)
-
-                        myArgv := VariableDecl new(null, "argv", constructCall, nullToken)
-                        args[1] = argv
-                        body add(0, myArgv)
-                    }
-                }
-            }
+        match (checkMain(trail, res)) {
+            case BranchResult BREAK => return Response OK
+            case BranchResult LOOP  => return Response LOOP
         }
 
         if (isClosure) {
+            // FIXME: remove that filthy hack.. -- amos
             if(countdown > 0) {
                 countdown -= 1
                 res wholeAgain(this, "countdown!")
+                return Response OK
             } else {
-                unwrapClosure(trail, res)
+                match (unwrapClosure(trail, res)) {
+                    case BranchResult BREAK => return Response OK
+                    case BranchResult LOOP  => return Response LOOP
+                }
             }
         }
+
+        _resolved = true
 
         return Response OK
     }
 
+    refresh: func {
+        _resolved = false
+    }
+
+    isResolved: func -> Bool {
+        _resolved && body isResolved() &&
+            returnType != null && returnType isResolved()
+    }
+
+    _unwrappedACS := false
+
+    /**
+     * Unwrap awesome closure syntax, if needed
+     */
     unwrapACS: func (trail: Trail, res: Resolver) -> Bool {
         if(_unwrappedACS) return true
 
@@ -967,27 +974,35 @@ FunctionDecl: class extends Declaration {
         return true
     }
 
-    unwrapClosure: func (trail: Trail, res: Resolver) {
-        if(_unwrappedClosure) return
+    /**
+     * Unwrap a closure, ie. create a thunk with our code, a context
+     * if we've captured any variables, etc.
+     */
+    unwrapClosure: func (trail: Trail, res: Resolver) -> BranchResult {
+        if(_unwrappedClosure) {
+            return BranchResult CONTINUE
+        }
+
+        /* First, check all partials */
 
         for(e in partialByReference) {
             if(e getType() == null || !e getType() isResolved()) {
                 res wholeAgain(this, "Need partial-by-reference's return types")
-                return
+                return BranchResult BREAK
             }
         }
 
         for (e in partialByValue) {
             if(e getType() == null || !e getType() isResolved()) {
                 res wholeAgain(this, "Need partial-by-value's return types")
-                return
+                return BranchResult BREAK
             }
         }
 
         closureType := getType()
         if (!closureType) {
             res wholeAgain(this, "Need our complete type before unwarapping")
-            return
+            return BranchResult BREAK
         }
         closureType = closureType clone()
 
@@ -997,7 +1012,7 @@ FunctionDecl: class extends Declaration {
 
         if(parentCall && parentCall getRef() == null) {
             res wholeAgain(this, "Need outer call ref")
-            return
+            return BranchResult BREAK
         }
 
         module := trail module()
@@ -1014,215 +1029,322 @@ FunctionDecl: class extends Declaration {
         if (isFlat) {
             message := "Passing closure to C function - that's no good!"
             res throwError(InternalError new(token, message))
-            return
+            return BranchResult BREAK
         }
 
         if(partialByReference empty?() && partialByValue empty?()) {
 
-            closureElements := [
-                varAcc
-                NullLiteral new(token)
-            ] as ArrayList<Expression>
+            closureElements := ArrayList<Expression> new().
+                add(varAcc).
+                add(NullLiteral new(token))
 
             closure := StructLiteral new(closureType, closureElements, token)
-            trail peek() replace(this, closure)
 
-        } else {
-
-            // create the context struct's cover
-            ctxStruct := CoverDecl new(name + "_ctx", token)
-            ctxStruct isGenerated = true
-            ctxStruct fromClosure = true
-
-            // look for versioned nodes or VersionBlocks in the trail. If we're using
-            // a closure in a versioned context, we don't want the context struct to appear
-            // in any other context - it results in gcc errors. See #197.
-            // The same `ctxVersion` instance is used for the thunk function later.
-            ctxVersion: VersionSpec
-            for(i in 1..trail size) {
-                node := trail peek(i)
-                verzion: VersionSpec
-                // There are several types of versioned nodes.
-                if(node instanceOf?(TypeDecl) && node as TypeDecl verzion != null) {
-                    // TypeDecl?
-                    verzion = node as TypeDecl verzion
-                } else if(node instanceOf?(FunctionDecl) && node as FunctionDecl verzion != null) {
-                    // Or a versioned FunctionDecl?
-                    verzion = node as FunctionDecl verzion
-                } else if(node instanceOf?(VersionBlock)) {
-                    // Or, of course, a version block.
-                    verzion = node as VersionBlock spec
-                } else {
-                    // No? Okay. Skip this.
-                    continue
-                }
-                // There is a version somewhere - merge the specs.
-                if(ctxVersion == null) {
-                    ctxVersion = verzion clone()
-                } else {
-                    ctxVersion = VersionAnd new(
-                        ctxVersion,
-                        verzion clone(),
-                        node token
-                    )
-                }
-            }
-
-            if(ctxVersion != null)
-                ctxStruct setVersion(ctxVersion)
-
-            outerClosures := ArrayList<FunctionDecl> new()
-
-            // find outer closures in case they already have some things by reference,
-            // in which case we don't need to do AddressOf again
-            for(i in 1..trail size) {
-                node := trail peek(i)
-                match node {
-                    case fd: FunctionDecl =>
-                        if (!fd fromClosure) continue
-                        outerClosures add(fd)
-                }
-            }
-
-            // add corresponding variables to the context struct
-            // and to the struct initializer for the context
-            elements := ArrayList<Expression> new()
-
-            // by-value (read-only) variables
-            for(e in partialByValue) {
-                eDeclType := e getType() clone()
-                acc: Expression = VariableAccess new(e, e token)
-                if (e getType() instanceOf?(ReferenceType)) {
-                    eDeclType = eDeclType refToPointer()
-                    acc = AddressOf new(acc, acc token)
+            if (!trail peek() replace(this, closure)) {
+                if (res fatal) {
+                    res throwError(CouldntReplace new(token, this, closure, trail))
+                    return BranchResult BREAK
                 }
 
-                eDecl := VariableDecl new(eDeclType, e getName(), token)
-                ctxStruct addVariable(eDecl)
-                elements add(acc)
+                res wholeAgain(this, "couldn't replace closure with struct literal")
+                return BranchResult BREAK
             }
+            res wholeAgain(this, "replaced with struct literal")
+            return BranchResult BREAK
 
-            // by-reference (read/write) variables
-            for(e in partialByReference) {
-                eDeclType := PointerType new(e getType(), e getType() token)
-                eDecl := VariableDecl new(eDeclType, e getName(), token)
-                ctxStruct addVariable(eDecl)
-
-                alreadyByRef := false
-                for (outerClosure in outerClosures) {
-                    for (ee in outerClosure partialByReference) {
-                        if (ee name == e name) {
-                            alreadyByRef = true
-                            break
-                        }
-                    }
-                    if (alreadyByRef) break
-                }
-
-                el: Expression = VariableAccess new(e, e token)
-                if (!alreadyByRef) {
-                    el = AddressOf new(el, token)
-                }
-
-                elements add(el)
-            }
-
-            // add the context struct's cover to the Module so we can actually use it
-            module addType(ctxStruct)
-
-            // initialize the context struct
-            ctxAllocCall := FunctionCall new("gc_malloc", token)
-            ctxAllocCall args add(VariableAccess new(VariableAccess new(ctxStruct getInstanceType(), token), "size", token))
-            ctxInit := StructLiteral new(ctxStruct getInstanceType(), elements, token)
-
-            ctxDecl := VariableDecl new(PointerType new(ctxStruct getInstanceType(), token), generateTempName("ctx"), ctxAllocCall, token)
-            trail addBeforeInScope(this, ctxDecl)
-
-            ctxAssign := BinaryOp new(Dereference new(VariableAccess new(ctxDecl, token), token), ctxInit, OpType ass, token)
-            trail addBeforeInScope(this, ctxAssign)
-
-            closureElements := [
-                VariableAccess new(getName() + "_thunk" /* hackish - would prefer a direct reference */, token)
-                VariableAccess new(ctxDecl, token)
-            ] as ArrayList<VariableAccess>
-
-            closure := StructLiteral new(closureType, closureElements, token)
-            closureDecl := VariableDecl new(null, generateTempName("closure"), closure, token)
-            trail addBeforeInScope(this, closureDecl)
-
-            thunk := FunctionDecl new(getName() + "_thunk", token)
-            thunk isGenerated = true
-            thunk fromClosure = true
-            thunk typeArgs addAll(typeArgs)
-            thunk args addAll(args)
-            thunk returnType = returnType
-
-            // The thunk might have to be versioned, too.
-            if(ctxVersion != null)
-                thunk setVersion(ctxVersion)
-
-            ctxArg := VariableDecl new(ReferenceType new(ctxStruct getInstanceType(), token), "__context__", token)
-            thunk args add(ctxArg)
-
-            call := FunctionCall new(getName(), token)
-
-            argOffset := 0
-
-            ctxAcc := VariableAccess new(ctxArg, token)
-
-            // add to the thunk call the by-value variables from the context
-            for(arg in partialByValue) {
-                argAcc := VariableAccess new(ctxAcc, arg getName(), token)
-                call args add(argAcc)
-            }
-
-            // add to the thunk call the by-reference variables from the context
-            for(arg in partialByReference) {
-                argAcc := VariableAccess new(ctxAcc, arg getName(), token)
-                call args add(argAcc)
-            }
-
-            // add to the thunk call the variable arguments that are not part of the context
-            for(arg in args) {
-                call args add(VariableAccess new(arg, token))
-            }
-            thunk getBody() add(call)
-            module addFunction(thunk)
-
-            // now add the by-value variables from the context as arguments to the closure
-            for(e in partialByValue) {
-                argument := VariableDecl new(e getType(), e getName(), e token)
-                args add(argOffset, argument); argOffset += 1
-            }
-
-            // now add the by-reference variables from the context as arguments to the closure
-            for(e in partialByReference) {
-                argumentType := ReferenceType new(e getType(), e getType() token)
-                argument := VariableDecl new(argumentType, e getName(), e token)
-                args add(argOffset, argument); argOffset += 1
-                for (acs in clsAccesses) {
-                    if (acs ref == e) acs ref = argument
-                }
-            }
-
-            // now say that the FuncType arguments of our context are closures
-            for(e in ctxStruct getVariables()) {
-                if(e getType() instanceOf?(FuncType)) {
-                    eType := e getType() clone()
-                    eType as FuncType isClosure = true
-                    e setType(eType)
-                }
-            }
-
-            closureAcc := VariableAccess new(closureDecl, token)
-            if(!trail peek() replace(this, closureAcc)) {
-                res throwError(CouldntReplace new(token, this, closureAcc, trail))
-            }
-
-            _unwrappedClosure = true
-            context = trail clone()
-            res wholeAgain(this, "Unwrapped closure")
         }
+        
+        // create the context struct's cover
+        ctxStruct := CoverDecl new(name + "_ctx", token)
+        ctxStruct isGenerated = true
+        ctxStruct fromClosure = true
+
+        // look for versioned nodes or VersionBlocks in the trail. If we're using
+        // a closure in a versioned context, we don't want the context struct to appear
+        // in any other context - it results in gcc errors. See #197.
+        // The same `ctxVersion` instance is used for the thunk function later.
+        // FIXME: use backward() to iterate -- amos
+        ctxVersion: VersionSpec
+        for(i in 1..trail size) {
+            node := trail peek(i)
+
+            verzion: VersionSpec
+            match node {
+                case td: TypeDecl =>
+                    verzion = td verzion
+                case fd: FunctionDecl =>
+                    verzion = fd verzion
+                case vb: VersionBlock =>
+                    verzion = vb spec
+            }
+
+            if (!verzion) continue
+
+            // There is a version somewhere - merge the specs.
+            if (ctxVersion == null) {
+                ctxVersion = verzion clone()
+            } else {
+                ctxVersion = VersionAnd new(
+                    ctxVersion,
+                    verzion clone(),
+                    node token
+                )
+            }
+        }
+
+        if(ctxVersion != null) {
+            // version out our struct
+            ctxStruct setVersion(ctxVersion)
+        }
+
+        outerClosures := ArrayList<FunctionDecl> new()
+
+        // find outer closures in case they already have some things by reference,
+        // in which case we don't need to do AddressOf again
+        // FIXME: use backward() to iterate -- amos
+        for(i in 1..trail size) {
+            node := trail peek(i)
+            match node {
+                case fd: FunctionDecl =>
+                    if (!fd fromClosure) continue
+                    outerClosures add(fd)
+            }
+        }
+
+        // add corresponding variables to the context struct
+        // and to the struct initializer for the context
+        elements := ArrayList<Expression> new()
+
+        // by-value (read-only) variables
+        for(e in partialByValue) {
+            eDeclType := e getType() clone()
+            acc: Expression = VariableAccess new(e, e token)
+            if (e getType() instanceOf?(ReferenceType)) {
+                eDeclType = eDeclType refToPointer()
+                acc = AddressOf new(acc, acc token)
+            }
+
+            eDecl := VariableDecl new(eDeclType, e getName(), token)
+            ctxStruct addVariable(eDecl)
+            elements add(acc)
+        }
+
+        // by-reference (read/write) variables
+        for(e in partialByReference) {
+            eDeclType := PointerType new(e getType(), e getType() token)
+            eDecl := VariableDecl new(eDeclType, e getName(), token)
+            ctxStruct addVariable(eDecl)
+
+            alreadyByRef := false
+            for (outerClosure in outerClosures) {
+                for (ee in outerClosure partialByReference) {
+                    if (ee name == e name) {
+                        alreadyByRef = true
+                        break
+                    }
+                }
+                if (alreadyByRef) break
+            }
+
+            el: Expression = VariableAccess new(e, e token)
+            if (!alreadyByRef) {
+                el = AddressOf new(el, token)
+            }
+
+            elements add(el)
+        }
+
+        // add the context struct's cover to the Module so we can actually use it
+        module addType(ctxStruct)
+
+        // initialize the context struct
+        ctxAllocCall := FunctionCall new("gc_malloc", token)
+        ctxAllocCall args add(VariableAccess new(VariableAccess new(ctxStruct getInstanceType(), token), "size", token))
+        ctxInit := StructLiteral new(ctxStruct getInstanceType(), elements, token)
+
+        ctxPtrType := PointerType new(ctxStruct getInstanceType(), token)
+        ctxDecl := VariableDecl new(ctxPtrType, generateTempName("ctx"), ctxAllocCall, token)
+        trail addBeforeInScope(this, ctxDecl)
+
+        ctxAssign := BinaryOp new(Dereference new(VariableAccess new(ctxDecl, token), token), ctxInit, OpType ass, token)
+        trail addBeforeInScope(this, ctxAssign)
+
+        closureElements := ArrayList<VariableAccess> new().
+            add(VariableAccess new(getName() + "_thunk" /* hackish - would prefer a direct reference */, token)).
+            add(VariableAccess new(ctxDecl, token))
+
+        closure := StructLiteral new(closureType, closureElements, token)
+        closureDecl := VariableDecl new(null, generateTempName("closure"), closure, token)
+        trail addBeforeInScope(this, closureDecl)
+
+        thunk := FunctionDecl new(getName() + "_thunk", token)
+        thunk isGenerated = true
+        thunk fromClosure = true
+        thunk typeArgs addAll(typeArgs)
+        thunk args addAll(args)
+        thunk returnType = returnType
+
+        if(ctxVersion != null) {
+            // The thunk might have to be versioned, too.
+            thunk setVersion(ctxVersion)
+        }
+
+        ctxArg := VariableDecl new(ReferenceType new(ctxStruct getInstanceType(), token), "__context__", token)
+        thunk args add(ctxArg)
+
+        call := FunctionCall new(getName(), token)
+
+        argOffset := 0
+
+        ctxAcc := VariableAccess new(ctxArg, token)
+
+        // add to the thunk call the by-value variables from the context
+        for(arg in partialByValue) {
+            argAcc := VariableAccess new(ctxAcc, arg getName(), token)
+            call args add(argAcc)
+        }
+
+        // add to the thunk call the by-reference variables from the context
+        for(arg in partialByReference) {
+            argAcc := VariableAccess new(ctxAcc, arg getName(), token)
+            call args add(argAcc)
+        }
+
+        // add to the thunk call the variable arguments that are not part of the context
+        for(arg in args) {
+            call args add(VariableAccess new(arg, token))
+        }
+        thunk getBody() add(call)
+        module addFunction(thunk)
+
+        // now add the by-value variables from the context as arguments to the closure
+        for(e in partialByValue) {
+            argument := VariableDecl new(e getType(), e getName(), e token)
+            args add(argOffset, argument); argOffset += 1
+        }
+
+        // now add the by-reference variables from the context as arguments to the closure
+        for(e in partialByReference) {
+            argumentType := ReferenceType new(e getType(), e getType() token)
+            argument := VariableDecl new(argumentType, e getName(), e token)
+            args add(argOffset, argument); argOffset += 1
+            for (acs in clsAccesses) {
+                if (acs ref == e) acs ref = argument
+            }
+        }
+
+        // now say that the FuncType arguments of our context are closures
+        for(e in ctxStruct getVariables()) {
+            if(e getType() instanceOf?(FuncType)) {
+                eType := e getType() clone()
+                eType as FuncType isClosure = true
+                e setType(eType)
+            }
+        }
+
+        closureAcc := VariableAccess new(closureDecl, token)
+        if(!trail peek() replace(this, closureAcc)) {
+            res throwError(CouldntReplace new(token, this, closureAcc, trail))
+        }
+
+        _unwrappedClosure = true
+        context = trail clone()
+        res wholeAgain(this, "unwrapped closure")
+        BranchResult BREAK
+    }
+
+    _checkMainDone := false
+
+    /**
+     * Check the various prototypes ooc accepts, converts them to C main prototypes.
+     */
+    checkMain: func (trail: Trail, res: Resolver) -> BranchResult {
+        
+        if (_checkMainDone) {
+            // already done
+            return BranchResult CONTINUE
+        }
+
+        if(!isMain()) {
+            // nothing to do
+            _checkMainDone = true
+            return BranchResult CONTINUE
+        }
+
+        // TODO: move out of middle/
+        match (args getSize()) {
+            case 0 => {
+                // turn main into a standard prototype. Some libraries, like SDL, will
+                // require that because of SDL_main.
+                argc := Argument new(BaseType new("Int", token), generateTempName("argc"), token)
+                argv := Argument new(PointerType new(BaseType new("CString", token), token), generateTempName("argv"), token)
+                args add(argc)
+                args add(argv)
+            }
+            case 1 => {
+                // replace (args: ArrayList<String>) with (argc: Int, argv1: CString*)
+                // and assign args to the array-list version of main's arguments
+                if (args first() getType() getName() == "ArrayList") {
+                    arg := args first()
+                    args clear()
+                    argc := Argument new(BaseType new("Int", arg token), generateTempName("argc"), arg token)
+                    argv := Argument new(PointerType new(BaseType new("CString", arg token), arg token), generateTempName("argv"), arg token)
+                    args add(argc)
+                    args add(argv)
+
+                    constructCall := FunctionCall new("strArrayListFromCString", arg token)
+                    constructCall args add(VariableAccess new(argc, arg token)) \
+                                        .add(VariableAccess new(argv, arg token))
+                    vdfe := VariableDecl new(null, arg getName(), constructCall, token)
+                    body add(0, vdfe)
+                }else if(args first() getType() getName() == "String"){
+                    // replace (String[]) with (argc: Int, argv: CString*)
+                    // and assign args to string array
+                    arg := args first()
+                    args clear()
+                    argc := Argument new(BaseType new("Int", arg token), generateTempName("argc"), arg token)
+                    argv := Argument new(PointerType new(BaseType new("CString", arg token), arg token), generateTempName("argv"), arg token)
+                    args add(argc)
+                    args add(argv)
+
+                    constructCall := FunctionCall new("strArrayFromCString", arg token)
+                    constructCall args add(VariableAccess new(argc, arg token)) \
+                                        .add(VariableAccess new(argv, arg token))
+                    arg fullName = "%s__%s" format(arg token module getUnderName(), arg name)
+                    vdfe := VariableDecl new(null, arg getFullName(), constructCall, token)
+                    body add(0, vdfe)
+                }
+            }
+            case 2 => {
+                // Replace (argc: Int, argv: String*) with (argc: Int, argv1: CString*)
+                // and assign argv to the "String" version of argv1
+                // argv := cStringPtrToStringPtr(argv1, argc)
+
+                if (args get(0) getType() getName() == "Int" && args get(1) getType() getName() == "String") {
+                    arg := args get(1)
+                    pseudoArgv := BaseType new("CString", arg token)
+                    argv := Argument new(PointerType new(pseudoArgv, arg token), generateTempName("argv"), arg token)
+                    argvAccess := VariableAccess new(argv, argv token)
+                    argcAccess := VariableAccess new(args get(0), args get(0) token)
+                    constructCall := FunctionCall new("cStringPtrToStringPtr", arg token)
+                    constructCall args add(argvAccess)
+                    constructCall args add(argcAccess)
+
+                    myArgv := VariableDecl new(null, "argv", constructCall, nullToken)
+                    args[1] = argv
+                    body add(0, myArgv)
+                }
+            }
+            case => {
+                err := InternalError new(token, "Invalid number of args for main prototype: #{args size}")
+                res throwError(err)
+                return BranchResult BREAK
+            }
+        }
+
+        _checkMainDone = true
+        BranchResult CONTINUE
+
     }
 
     /**

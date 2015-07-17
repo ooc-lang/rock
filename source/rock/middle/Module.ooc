@@ -103,7 +103,10 @@ Module: class extends Node {
 
     getSource: func -> String {
         if (!_cachedSource) {
-            _cachedSource = File new(getOocPath()) read()
+            oocFile := File new(getOocPath())
+            if (oocFile exists?()) {
+                _cachedSource = oocFile read()
+            }
         }
         _cachedSource
     }

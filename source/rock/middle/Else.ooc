@@ -21,10 +21,13 @@ Else: class extends Conditional {
     }
 
     resolve: func(trail: Trail, res: Resolver) -> Response {
-        trail push(this)
-        response := body resolve(trail, res)
-        trail pop(this)
-        return response
+        resolveBody(trail, res)
+
+        Response OK
+    }
+
+    isResolved: func -> Bool {
+        body isResolved()
     }
 
 }

@@ -167,7 +167,16 @@ FunctionCall: class extends Expression {
      * a return expression, when it's being used.
      */
     debugCondition: final func -> Bool {
-        false
+        match expr {
+            case va: VariableAccess =>
+                match (va getRef()) {
+                    case td: TypeDecl =>
+                        return td getName() == "Exception"
+                }
+        }
+
+        name == "format"
+        // false
     }
 
     /**
@@ -308,13 +317,17 @@ FunctionCall: class extends Expression {
                 }
                 response := arg resolve(trail, res)
                 if(!response ok()) {
+                    if (debugCondition()) {
+                        token printMessage("got hard loop from `#{arg}`")
+                    }
                     trail pop(this)
                     return response
                 }
                 if(!replaced?) i += 1
+
                 if(!arg isResolved() || arg getType() == null) {
                     if (debugCondition() || res params veryVerbose) {
-                        "for call %s, arg still not resolved: %s" printfln(toString(), arg toString())
+                        token printMessage("in call to #{name}, arg still not resolved: #{arg} (type = #{arg getType() ? arg getType() toString() : "<unknown>"})")
                     }
                     unresolvedArgs = true
                 }
@@ -324,7 +337,13 @@ FunctionCall: class extends Expression {
 
             for(arg in args) {
                 response := resolveArg(arg, false)
-                if(!response ok()) return response
+                if(!response ok()) {
+                    return response
+                }
+            }
+
+            if (debugCondition()) {
+                token printMessage("now taking care of varargs")
             }
 
             // resolve the arguments we replaced with the varArg structure access
@@ -335,6 +354,10 @@ FunctionCall: class extends Expression {
                         return response
                     }
                 }
+            }
+
+            if (debugCondition()) {
+                token printMessage("done taking care of arguments")
             }
 
             trail pop(this)
@@ -353,6 +376,14 @@ FunctionCall: class extends Expression {
             }
 
             if (!expr isResolved()) {
+                if (res fatal) {
+                    msg := "#{expr} is not resolved, but didn't throw an error on fatal"
+                    err := InternalError new(token, msg)
+                    res throwError(err)
+                }
+                if (debugCondition()) {
+                    token printMessage("waiting on expr #{expr} (a #{expr class name}) to resolve")
+                }
                 res wholeAgain(this, "waiting on expr to resolve...")
                 return Response OK
             }
@@ -365,11 +396,20 @@ FunctionCall: class extends Expression {
             if(!returnArg) continue // they can be null, after all.
 
             response := returnArg resolve(trail, res)
-            if(!response ok()) return response
+            if(!response ok()) {
+                if (debugCondition()) {
+                    token printMessage("looping because of returnArg")
+                }
+                return response
+            }
 
             if(returnArg isResolved() && !returnArg instanceOf?(AddressOf)) {
                 returnArgs[i] = returnArg getGenericOperand()
             }
+        }
+
+        if (debugCondition()) {
+            token printMessage("now actually resolving. refScore = #{refScore}")
         }
 
         /*
@@ -550,51 +590,47 @@ FunctionCall: class extends Expression {
 
             precisions := ""
 
-            // Still no match, and in the fatal round? Throw an error.
-            if(res fatal || (refScore < -1 && refScore > INT_MIN)) {
-                if (refScore == -1) {
-                    // something went wrong somewhere else
-                    res wholeAgain(this, "(in refScore <= 0) waiting on some FunctionDecl to resolve.")
-                    return Response OK
-                }
-
-                message := "No such function"
-                if(expr == null) {
-                    message = "No such function %s%s" format(prettyName, getArgsTypesRepr())
-                } else if (expr getType() != null) {
-                    if(res params veryVerbose) {
-                        message = "No such function %s%s for `%s` (%s)" format(prettyName, getArgsTypesRepr(),
-                            expr getType() toString(), expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)")
-                    } else {
-                        message = "No such function %s%s for `%s`" format(prettyName, getArgsTypesRepr(), expr getType() toString())
-                    }
-                }
-
-                if(ref) {
-                    // If we have a near-match, show it here.
-                    precisions += showNearestMatch(res params)
-                    // TODO: add levenshtein distance
-
-                    if (ref && candidateUsesAs) {
-                        precisions += "\n\n(Hint: 'implicit as' isn't allowed on non-extern functions)"
-                    }
-                } else {
-                    if(res params helpful) {
-                        // Try to find such a function in other modules in the sourcepath
-                        similar := findSimilar(res)
-                        if(similar) message += similar
-                    }
-                }
-                err := UnresolvedCall new(this, message)
-                if (!precisions empty?()) {
-                    err next = InfoError new(ref ? ref token : nullToken, precisions)
-                }
-                res throwError(err)
-                return Response OK
-            } else {
+            if (!res fatal) {
+                // ref score might be < -1 and still have a chance to resolve later on
+                // because of `implicit as` overloads.
                 res wholeAgain(this, "no match yet")
                 return Response OK
             }
+
+            // still no match, and in the fatal round? Throw an error.
+            message := "No such function"
+            if(expr == null) {
+                message = "No such function %s%s" format(prettyName, getArgsTypesRepr())
+            } else if (expr getType() != null) {
+                if(res params veryVerbose) {
+                    message = "No such function %s%s for `%s` (%s)" format(prettyName, getArgsTypesRepr(),
+                        expr getType() toString(), expr getType() getRef() ? expr getType() getRef() token toString() : "(nil)")
+                } else {
+                    message = "No such function %s%s for `%s`" format(prettyName, getArgsTypesRepr(), expr getType() toString())
+                }
+            }
+
+            if(ref) {
+                // If we have a near-match, show it here.
+                precisions += showNearestMatch(res params)
+                // TODO: add levenshtein distance
+
+                if (ref && candidateUsesAs) {
+                    precisions += "\n\n(Hint: 'implicit as' isn't allowed on non-extern functions)"
+                }
+            } else {
+                if(res params helpful) {
+                    // Try to find such a function in other modules in the sourcepath
+                    similar := findSimilar(res)
+                    if(similar) message += similar
+                }
+            }
+            err := UnresolvedCall new(this, message)
+            if (!precisions empty?()) {
+                err next = InfoError new(ref ? ref token : nullToken, precisions)
+            }
+            res throwError(err)
+            return Response OK
 
         }
 
@@ -1465,16 +1501,14 @@ FunctionCall: class extends Expression {
                 }
                 return -1
             }
-            if (decl isExtern()) {
-                if(typeScore == Type NOLUCK_SCORE) {
-                    ref := callArg getType() getRef()
-                    if(ref instanceOf?(TypeDecl)) {
-                        ref as TypeDecl implicitConversions each(|opdecl|
-                            if(opdecl fDecl getReturnType() equals?(declArgType)) {
+            if (decl isExtern() && typeScore == Type NOLUCK_SCORE) {
+                match (callArg getType() getRef()) {
+                    case td: TypeDecl =>
+                        for (opDecl in td implicitConversions) {
+                            if(opDecl fDecl getReturnType() equals?(declArgType)) {
                                 typeScore = Type SCORE_SEED / 4
                             }
-                        )
-                    }
+                        }
                 }
             }
 
