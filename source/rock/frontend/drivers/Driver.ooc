@@ -62,17 +62,16 @@ Driver: abstract class {
             copyLocals(imp getModule(), params, done, usesDone)
         }
 
-	usedefCollection := ArrayList<UseDef> new()
+        usedefCollection := ArrayList<UseDef> new()
         for(uze: Use in module getUses()) {
-            useDef := uze useDef
+            usedefCollection add(uze useDef)
+            walkUseDef(uze useDef, usedefCollection)
+        }
+        
+        for(useDef: UseDef in usedefCollection) {
             if (usesDone contains?(useDef)) {
                 continue
             }
-	    walkUseDef(useDef, usedefCollection)
-	}
-
-
-	for(useDef: UseDef in usedefCollection){
             usesDone add(useDef)
 
             props := useDef getRelevantProperties(params)
