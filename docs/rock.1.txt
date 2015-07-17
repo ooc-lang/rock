@@ -39,6 +39,13 @@ OPTIONS
     and the LLVM's clang frontend. Also, you can pass 'onlygen' to only generate the code
     and not to run any compiler.
 
+*-O0, -O1, -O2, -O3, -Os*::
+    Choose an optimization level.
+
+*-pipe*::
+    Use pipes rather than temporary files for communication between the
+    various stages of compilation.
+
 *-gc=[dynamic,static,off]*::
     Link dynamically, link statically, or don't link with the boehm GC at all.
     Linking dynamically is -lgc, linking statically uses libs/'ARCH'/libgc.a
