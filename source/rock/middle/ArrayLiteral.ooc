@@ -2,7 +2,7 @@ import ../frontend/[Token, BuildParams]
 import Literal, Visitor, Type, Expression, FunctionCall, Block,
        VariableDecl, VariableAccess, Cast, Node, ClassDecl, TypeDecl, BaseType,
        Statement, IntLiteral, BinaryOp, Block, ArrayCreation, FunctionCall,
-       FunctionDecl, CommaSequence, Scope
+       FunctionDecl, CommaSequence, Scope, Addon
 import tinker/[Response, Resolver, Trail, Errors]
 import algo/typeAnalysis
 import structs/[List, ArrayList]
@@ -260,12 +260,8 @@ ArrayLiteral: class extends Literal {
         arrLit isGenerated = true
         arrAcc := VariableAccess new(arrLit, token)
 
-        seq add(arrLit)
 
-        parent := trail peek()
-        if (!parent replace(this, seq)) {
-            res throwError(CouldntReplace new(token, this, seq, trail))
-        }
+        seq add(arrLit)
 
         ptrType := match (arrType inner) {
             case aType: ArrayType =>
@@ -292,7 +288,40 @@ ArrayLiteral: class extends Literal {
 
         type = PointerType new(arrType inner, arrType token)
 
-        return Response LOOP
+        createInitFunc := func -> FunctionDecl {
+            arrInitFunc := FunctionDecl new(generateTempName("arrInit"), token)
+            arrInitFunc isInline = true
+            arrInitFunc hasBody = true
+            arrInitFunc isGenerated = true
+            arrInitFunc isStatic= true
+            arrInitFunc returnType = ArrayType new(arrType inner, null, token)
+            arrInitFunc body add(seq)
+            arrInitFunc
+        }
+
+        newThis: Node = seq
+
+        parentIdx := trail size - 1
+        while(parentIdx >= 0){
+            match(trail get(parentIdx)){
+                case tDecl: TypeDecl =>
+                    arrInitFunc := createInitFunc()
+                    tDecl addFunction(arrInitFunc)
+                    newThis = FunctionCall new(VariableAccess new("This", token), arrInitFunc getName(), token)
+                    break
+                case aDecl: Addon =>
+                case fDecl: FunctionDecl => break
+            }
+            parentIdx -= 1
+        }
+
+        parent := trail peek()
+        if (!parent replace(this, newThis)) {
+            res throwError(CouldntReplace new(token, this, newThis, trail))
+        }
+
+        res wholeAgain(this, "just replaced arraylit %s with %s" format(this toString(), newThis toString()))
+        return Response OK
     }
 
     replace: func (oldie, kiddo: Node) -> Bool {
