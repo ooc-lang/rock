@@ -14,10 +14,8 @@ version (windows) {
      * Implementation of TerminalHandler for Windows systems
      */
     TerminalWin32: class extends TerminalHandler {
-        bg := (-1) as Color
-        fg := (-1) as Color
-
-        init: func
+        bg : Color
+        fg : Color
 
         /* Color codes */
         colors := static const [
@@ -31,6 +29,29 @@ version (windows) {
             7 , // grey
             31  // white
         ]
+
+        _toColor: func(c: Int) -> Color{
+            match(c){
+                case 0 => Color black
+                case 12 => Color red
+                case 10 => Color green
+                case 14 => Color yellow
+                case 9 => Color blue
+                case 13 => Color magenta
+                case 7 => Color grey
+                case 31 => Color white
+                case => (-1) as Color
+            }
+        }
+
+        init: func {
+            hStdOut := GetStdHandle(STD_OUTPUT_HANDLE)
+            info: ConsoleScreenBufferInfo
+            if(GetConsoleScreenBufferInfo(hStdOut, info&)){
+                fg = _toColor(info attributes & 0x0F)
+                bg = _toColor(info attributes & 0xF0)
+            }
+        }
 
         _lookupColor: func (c: Color) -> Int {
             value := c as Int
