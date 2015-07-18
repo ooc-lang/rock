@@ -82,4 +82,49 @@ version(windows) {
     LPTSTR: extern cover from CString
 
     MAKEWORD: extern func (low, high: BYTE) -> WORD
+
+    /*
+     * Defines the coordinates of a character cell in a console screen buffer. 
+     * The origin of the coordinate system (0,0) is at the top, left cell of the buffer.
+     */
+    Coord: cover from COORD{
+        x: extern(X) Short
+        y: extern(Y) Short
+    }
+    PCoord: cover from Coord*
+
+    /*
+     * Defines the coordinates of the upper left and lower right corners of a rectangle.
+     */
+    SmallRect: cover from SMALL_RECT{
+        left: extern(Left) Short
+        top: extern(Top) Short
+        right: extern(Right) Short
+        bottom: extern(Bottom) Short
+    }
+
+    ConsoleScreenBufferInfo: cover from CONSOLE_SCREEN_BUFFER_INFO{
+        size: extern(dwSize) Coord
+        cursorPosition: extern(dwCursorPosition) Coord
+        attributes: extern(wAttributes) UInt16
+        window: extern(srWindow) SmallRect
+        maximumWindowSize: extern(dwMaximumWindowSize) Coord
+    }
+    PConsoleScreenBufferInfo: cover from ConsoleScreenBufferInfo*
+
+    FOREGROUND_BLUE            : extern const UInt16
+    FOREGROUND_GREEN           : extern const UInt16
+    FOREGROUND_RED             : extern const UInt16
+    FOREGROUND_INTENSITY       : extern const UInt16
+    BACKGROUND_BLUE            : extern const UInt16
+    BACKGROUND_GREEN           : extern const UInt16
+    BACKGROUND_RED             : extern const UInt16
+    BACKGROUND_INTENSITY       : extern const UInt16
+    COMMON_LVB_LEADING_BYTE    : extern const UInt16
+    COMMON_LVB_TRAILING_BYTE   : extern const UInt16
+    COMMON_LVB_GRID_HORIZONTAL : extern const UInt16
+    COMMON_LVB_GRID_LVERTICAL  : extern const UInt16
+    COMMON_LVB_GRID_RVERTICAL  : extern const UInt16
+    COMMON_LVB_REVERSE_VIDEO   : extern const UInt16
+    COMMON_LVB_UNDERSCORE      : extern const UInt16
 }
