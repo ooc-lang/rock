@@ -51,6 +51,7 @@ CMakefileWriter: class extends MetaDriverWriter {
         writeIncludes()
         writeSources()
         writeExecutable()
+        writeLinkLibraries()
     }
 
     writePrelude: func {
@@ -60,9 +61,17 @@ CMakefileWriter: class extends MetaDriverWriter {
     }
 
     writeBasicConfig: func{
-        tw writeln("cmake_minimum_required (VERSION 2.6)")
+        tw writeln("cmake_minimum_required (VERSION 3.0)")
         tw nl()
-        //tw writeln("set(${CMAKE_EXE_LINKER_FLAGS} \"${CMAKE_EXE_LINKER_FLAGS} -ldl -lm\")")
+
+        tw write("find_program(customCC ").
+            write(params compiler executableName). writeln(")")
+        tw writeln("IF(EXISTS ${customCC})")
+        tw write("\tSET(CMAKE_C_COMPILER \""). write(params compiler executableName).
+            write("\")"). nl()
+        tw writeln("ENDIF(EXISTS ${customCC})")
+        tw writeln("ENABLE_LANGUAGE(C)")
+        tw writeln("include(CheckCCompilerFlag)")
         tw nl()
     }
 
@@ -72,33 +81,82 @@ CMakefileWriter: class extends MetaDriverWriter {
 
     writeThreadFlags: func {
         tw writeln("find_package (Threads)")
-        tw writeln("set(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ${Threads_INCLUDE_DIRS}\")")
-        tw writeln("if(CMAKE_USE_PTHREADS_INIT)")
-        tw writeln("  set(CMAKE_EXE_LINKER_FLAGS \"${CMAKE_EXE_LINKER_FLAGS} ${CMAKE_THREAD_LIBS_INIT}\")")
-        tw writeln("endif(CMAKE_USE_PTHREADS_INIT)")
+        tw writeln("SET(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ${Threads_INCLUDE_DIRS}\")")
+        tw writeln("IF(CMAKE_USE_PTHREADS_INIT)")
+        tw writeln("  SET(CMAKE_EXE_LINKER_FLAGS \"${CMAKE_EXE_LINKER_FLAGS} ${CMAKE_THREAD_LIBS_INIT}\")")
+        tw writeln("ENDIF(CMAKE_USE_PTHREADS_INIT)")
         tw nl()
+    }
+
+    writeAddCFlags: func(flag: String, tab: Int = 0, variable: String="CMAKE_C_FLAGS", failOnNotExists: Bool = false){
+        prefix := ""
+        for(i in 0..tab) prefix += "\t"
+        tw write(prefix). writeln("check_c_compiler_flag("+flag+" FLAG_"+flag[1..-1]+")")
+        tw write(prefix). writeln("IF(FLAG_"+flag[1..-1]+")")
+        tw write(prefix). writeln("\tSET("+variable+" \"${"+variable+"} "+flag+"\")")
+        if(failOnNotExists){
+            tw write(prefix). writeln("ELSE()")
+            tw write(prefix). writeln("\tmessage( FATAL_ERROR \"Flag "+flag+" is required but is not supported by compiler\")")
+            tw write(prefix). writeln("ENDIF()")
+        } else {
+            tw write(prefix). writeln("ENDIF(FLAG_"+flag[1..-1]+")")
+        }
     }
 
     writeBasicFlags: func {
+        prof := match (params profile){
+            case Profile DEBUG => "Debug"
+            case Profile RELEASE => "Release"
+            case => ""
+        }
+        if(prof != ""){
+            tw writeln("IF( NOT CMAKE_BUILD_TYPE )")
+            tw writeln("\tSET( CMAKE_BUILD_TYPE "+ prof + ")")
+            tw writeln("ENDIF()")
+        }
+        optimization := match(params optimization){
+            case OptimizationLevel O0 => "-O0"
+            case OptimizationLevel O1 => "-O1"
+            case OptimizationLevel O2 => "-O2"
+            case OptimizationLevel O3 => "-O3"
+            case OptimizationLevel Os => "-Os"
+            case => ""
+        }
+        writeAddCFlags("-pg", 0, "CMAKE_C_FLAGS_DEBUG")
+        writeAddCFlags(optimization == "" ? "-O0" : optimization, 0, "CMAKE_C_FLAGS_DEBUG")
+        writeAddCFlags("-fno-inline", 0, "CMAKE_C_FLAGS_DEBUG")
+        writeAddCFlags(optimization == "" ? "-O3" : optimization, 0, "CMAKE_C_FLAGS_RELEASE")
+        tw writeln("SET(CMAKE_EXE_LINKER_FLAGS_DEBUG \" ${CMAKE_EXE_LINKER_FLAGS_DEBUG} -pg\")")
 
-        tw writeln("set(CMAKE_C_FLAGS_DEBUG \"-g -O0 -fno-inline ${CMAKE_C_FLAGS_DEBUG}\")")
-        tw writeln("set(CMAKE_C_FLAGS_RELEASE \"-O3 ${CMAKE_C_FLAGS_RELEASE}\")")
+        if(prof == "" && optimization != ""){
+            writeAddCFlags(optimization)
+        }
     }
 
     writeFlags: func {
-        tw writeln("if(CMAKE_SIZEOF_VOID_P EQUAL 8)")
-        tw writeln("    set(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} -m64\")")
-        tw writeln("else()")
-        tw writeln("    set(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} -m32\")")
-        tw writeln("endif()")
+        tw writeln("IF(CMAKE_SIZEOF_VOID_P EQUAL 8)")
+        tw writeln("\tSET(CMAKE_DET_ARCH_FLAG \"-m64\")")
+        tw writeln("ELSE()")
+        tw writeln("\tSET(CMAKE_DET_ARCH_FLAG \"-m32\")")
+        tw writeln("ENDIF()")
+        if(params arch == ""){
+            tw writeln("IF(NOT CMAKE_GENERATOR STREQUAL Xcode)")
+            writeAddCFlags("${CMAKE_DET_ARCH_FLAG}", 1)
+            tw writeln("ENDIF(NOT CMAKE_GENERATOR STREQUAL Xcode)")
+        } else {
+            tw writeln("IF(NOT \"${CMAKE_DET_ARCH_FLAG}\" MATCHES \"-m"+params arch+"\")")
+            tw writeln("\tmessage(WARNING \"You have arch ${CMAKE_DET_ARCH_FLAG} but -m"+params arch+" is used\")")
+            tw writeln("ENDIF(NOT \"${CMAKE_DET_ARCH_FLAG}\" MATCHES \"-m"+params arch+"\")")
+            writeAddCFlags("-m"+params arch)
+        }
         tw nl()
 
-        tw write("set(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} -I/usr/pkg/include")
+        tw writeln("IF(EXISTS /usr/pkg/include)")
+        writeAddCFlags("-I/usr/pkg/include", 1)
+        tw writeln("ENDIF(EXISTS /usr/pkg/include)")
         for (flag in flags compilerFlags) {
-            tw write(" "). write(flag)
+            writeAddCFlags(flag)
         }
-        tw writeln("\")")
-        tw nl(). nl()
 
         tw write("SET(CMAKE_EXE_LINKER_FLAGS \"${CMAKE_EXE_LINKER_FLAGS} -L/usr/pkg/lib")
         for(dynamicLib in params dynamicLibs) {
@@ -112,8 +170,7 @@ CMakefileWriter: class extends MetaDriverWriter {
         for(linkerFlag in flags linkerFlags) {
             tw write(" "). write(linkerFlag)
         }
-        tw write("\")")
-        tw nl(). nl()
+        tw writeln("\")"). nl()
 
         targets := HashMap<Int, String> new()
         targets put(Target LINUX, "Linux")
@@ -123,8 +180,8 @@ CMakefileWriter: class extends MetaDriverWriter {
             if(Target LINUX == target){
                 tw writeln("IF(CMAKE_SYSTEM_NAME STREQUAL Linux)")
                 tw write("\tmessage(STATUS \"Found System: ").
-                write(name).
-                writeln("\")")
+                    write(name).
+                    writeln("\")")
                 for (useDef in flags uses) {
                     writeUseDef(useDef getPropertiesForTarget(target))
                 }
@@ -133,8 +190,8 @@ CMakefileWriter: class extends MetaDriverWriter {
             }
             tw write("IF("). write(name). writeln(")")
             tw write("\tmessage(STATUS \"Found System: ").
-            write(name).
-            writeln("\")")
+                write(name).
+                writeln("\")")
             for (useDef in flags uses) {
                 writeUseDef(useDef getPropertiesForTarget(target))
             }
@@ -142,19 +199,39 @@ CMakefileWriter: class extends MetaDriverWriter {
         )
 
         if(params enableGC) {
-            tw writeln("pkg_check_modules(GC REQUIRED bdw-gc)")
+            tw writeln("pkg_check_modules(GC bdw-gc)")
             tw writeln("link_directories(${GC_LIBRARY_DIRS})")
-            tw writeln("# If there's a threaded version, use it")
-            tw writeln("find_library(LIBGC gc-threaded PATHS ${GC_LIBRARY_DIRS})")
-            tw writeln("if (LIBGC)")
-            tw writeln("else ()")
-            tw writeln("	find_library(LIBGC gc PATHS GC_LIBRARY_DIRS)")
-            tw writeln("endif ()")
-            tw writeln("message(STATUS \"Using Boehm GC library: ${LIBGC}\")")
-            tw writeln("include_directories(${GC_INCLUDE_DIRS})")
-            tw writeln("set(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ${GC_CFLAGS}\")")
-            tw write("SET(CMAKE_EXE_LINKER_FLAGS \"${CMAKE_EXE_LINKER_FLAGS} -lgc\")")
-
+            if(params dynGC){
+                tw writeln("find_library(LIBGC gc-threaded PATHS ${GC_LIBRARY_DIRS})")
+                tw writeln("IF(LIBGC)")
+                tw writeln("ELSE()")
+                tw writeln("\tfind_library(LIBGC gc PATHS GC_LIBRARY_DIRS)")
+                tw writeln("ENDIF()")
+                tw writeln("if (NOT LIBGC)")
+                tw writeln("\tmessage( FATAL_ERROR \"Can not find libgc\" )")
+                tw writeln("ENDIF(NOT LIBGC)")
+                tw writeln("message(STATUS \"Using Boehm GC library: ${LIBGC}\")")
+                tw writeln("include_directories(${GC_INCLUDE_DIRS})")
+                tw writeln("SET(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ${GC_CFLAGS}\")")
+            } else {
+                tw writeln("find_library(LIBGC libgc-threaded.a PATHS ${GC_LIBRARY_DIRS})")
+                tw writeln("IF(LIBGC)")
+                tw writeln("ELSE()")
+                tw writeln("\tfind_library(LIBGC NAMES libgc.a PATHS GC_LIBRARY_DIRS)")
+                tw writeln("ENDIF()")
+                tw writeln("IF(NOT LIBGC)")
+                tw writeln("\tmessage( FATAL_ERROR \"Can not find static libgc\" )")
+                tw writeln("ENDIF(NOT LIBGC)")
+                tw writeln("message(STATUS \"Using Boehm GC library: ${LIBGC}\")")
+                tw writeln("include_directories(${GC_INCLUDE_DIRS})")
+                tw writeln("SET(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ${GC_CFLAGS}\")")
+                tw writeln("message(STATUS \"Static Boehm GC needs -pthread flag\")")
+                tw writeln("IF(WIN32)")
+                writeAddCFlags("-mthread", 1, "CMAKE_C_FLAGS", true)
+                tw writeln("ELSE()")
+                writeAddCFlags("-pthread", 1, "CMAKE_C_FLAGS", true)
+                tw writeln("ENDIF()")
+            }
             tw nl()
         }
     }
@@ -167,12 +244,9 @@ CMakefileWriter: class extends MetaDriverWriter {
         }
 
         if (!cflags empty?()) {
-            tw write("\tset(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ")
             for (flag in cflags) {
-                tw write(flag). write(" ")
+                writeAddCFlags(flag)
             }
-            tw write("\")")
-            tw nl()
         }
 
         // ldflags
@@ -186,7 +260,7 @@ CMakefileWriter: class extends MetaDriverWriter {
         }
 
         if (!ldflags empty?()) {
-            tw write("\tset(CMAKE_EXE_LINKER_FLAGS \"${CMAKE_EXE_LINKER_FLAGS} ")
+            tw write("\tSET(CMAKE_EXE_LINKER_FLAGS \"${CMAKE_EXE_LINKER_FLAGS} ")
             for (flag in ldflags) {
                 tw write(flag). write(" ")
             }
@@ -194,7 +268,7 @@ CMakefileWriter: class extends MetaDriverWriter {
             tw nl()
         }
 
-        if(!props pkgs empty?() > 0){
+        if(!props pkgs empty?()){
             tw write("\tpkg_check_modules(pkgs REQUIRED ")
             props pkgs each(|name, value|
                 tw write(name). write(" "). nl()
@@ -202,69 +276,103 @@ CMakefileWriter: class extends MetaDriverWriter {
             tw writeln(")")
             tw writeln("\tlink_directories(${pkgs_LIBRARY_DIRS})")
             tw writeln("\tinclude_directories(${pkgs_INCLUDE_DIRS})")
-            tw writeln("\tset(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} ${pkgs_CFLAGS})")
-            tw writeln("\tset(CMAKE_EXE_LINKER_FLAGS ${CAMKE_EXE_LINKER_FLAGS} ${pkgs_CFLAGS})")
+            tw writeln("\tSET(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ${pkgs_CFLAGS}\")")
+            tw writeln("\tSET(CMAKE_EXE_LINKER_FLAGS \"${CAMKE_EXE_LINKER_FLAGS} ${pkgs_CFLAGS}\")")
             tw nl()
         }
 
         if(!props customPkgs empty?()){
             props customPkgs each(|customPkg|
-                tw write("set(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ")
+                tw write("\texecute_process(COMMAND ")
+                tw write(customPkg utilName). write(" ")
                 for (name in customPkg names) {
                     tw write(" "). write(name)
                 }
                 for (arg in customPkg cflagArgs) {
                     tw write(" "). write(arg)
                 }
-                tw write("\")"). nl()
-
-                tw write("set(CMAKE_EXE_LINKER_FLAGS \"${CAMKE_EXE_LINKER_FLAGS} ")
+                tw writeln(" OUTPUT_VARIABLE custompkgs OUTPUT_STRIP_TRAILING_WHITESPACE)")
+                tw writeln("\tSTRING(REGEX REPLACE \"(\\r?\\n)+$\" \"\" custompkgs \"${custompkgs}\")")
+                tw writeln("\tSET(CMAKE_C_FLAGS \"${CMAKE_C_FLAGS} ${custompkgs} \")")
+                tw write("\texecute_process(COMMAND ")
+                tw write(customPkg utilName). write(" ")
                 for (name in customPkg names) {
                     tw write(" "). write(name)
                 }
                 for (arg in customPkg libsArgs) {
                     tw write(" "). write(arg)
                 }
-                tw write("\")"). nl()
+                tw writeln(" OUTPUT_VARIABLE custompkgs OUTPUT_STRIP_TRAILING_WHITESPACE)")
+                tw writeln("\tSTRING(REGEX REPLACE \"(\\r?\\n)+$\" \"\" custompkgs \"${custompkgs}\")")
+                tw writeln("\tSET(CMAKE_EXE_LINKER_FLAGS \"${CAMKE_EXE_LINKER_FLAGS} ${custompkgs} \")")
             )
         }
     }
 
-    writeProject: func {
-        tw write("project(")
+    projectName: func -> (String, Bool){
+        projName := ""
         if(params binaryPath != "") {
-            tw write(params binaryPath)
+            projName = params binaryPath
         } else {
-            tw write(module simpleName)
+            projName = module simpleName
         }
-        tw write(")")
+        (projName, module dummy)
+    }
+
+    writeProject: func {
+        (name, dummy) := projectName()
+        tw write("project(")
+        tw write(name == "" ? "dummy" : name)
+        tw writeln(")")
         tw nl()
     }
 
-    writeExecutable: func{
-        tw write("add_executable(")
-        if(params binaryPath != "") {
-            tw write(params binaryPath)
-        } else {
-            tw write(module simpleName)
+    libraryType: func -> String{
+        if(params staticLib){
+            return "STATIC"
         }
-        tw write(" ${cset_SOURCES})"). nl()
+        "SHARED"
+    }
+
+    writeExecutable: func{
+        (name, dummy) := projectName()
+        if(dummy){
+            tw write("add_library(")
+            tw write(name). write(" ")
+            tw write(libraryType())
+        } else if(name == ""){
+            tw write("add_library(")
+            tw write("dummy ")
+            tw write(libraryType())
+        } else {
+            tw write("add_executable(")
+            tw write(name)
+        }
+        tw writeln(" ${cset_SOURCES} )"). nl()
+    }
+
+    writeLinkLibraries: func{
+        (name, dummy) := projectName()
+        tw write("target_link_libraries(").
+            write(name == "" ? "dummy" : name).
+            write(" ").
+            write("${LIBGC})")
     }
 
     writeIncludes: func{
-        tw write("set(cset_HEADERS ")
+        tw write("SET(cset_HEADERS ")
         for(currentModule in toCompile) {
             path := File new(originalOutPath, currentModule getPath("")) getPath()
             tw write(path). write(".h ").
             write(path). write("-fwd.h ")
         }
-        tw writeln(")")
-        tw nl()
+        tw writeln(")"). nl()
     }
 
     writeSources: func{
-        tw write("set(cset_SOURCES ")
+        tw write("SET(cset_SOURCES ")
         for(currentModule in toCompile) {
+            if(currentModule dummy) continue
             path := File new(originalOutPath, currentModule getPath("")) getPath()
             tw write(path). write(".c ")
         }

@@ -61,9 +61,14 @@ Driver: abstract class {
         for(imp: Import in module getAllImports()) {
             copyLocals(imp getModule(), params, done, usesDone)
         }
-        
+
+        usedefCollection := ArrayList<UseDef> new()
         for(uze: Use in module getUses()) {
-            useDef := uze useDef
+            usedefCollection add(uze useDef)
+            walkUseDef(uze useDef, usedefCollection)
+        }
+        
+        for(useDef: UseDef in usedefCollection) {
             if (usesDone contains?(useDef)) {
                 continue
             }
@@ -88,6 +93,16 @@ Driver: abstract class {
             }
         }
 
+    }
+
+    walkUseDef: func(u: UseDef, usedefCollection: ArrayList<UseDef> = ArrayList<UseDef> new()) -> ArrayList<UseDef> {
+        for(req in u requirements){
+            if(!usedefCollection contains?(req useDef)){
+                usedefCollection add(req useDef)
+                walkUseDef(req useDef, usedefCollection)
+            }
+        }
+        return usedefCollection
     }
 
     findExec: func (name: String) -> File {
