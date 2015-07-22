@@ -313,7 +313,8 @@ ArrayLiteral: class extends Literal {
                 case aDecl: Addon =>
                     // nothing to do
                 case fDecl: FunctionDecl =>
-                    // nothing to do
+                    // a FunctionDecl parent is safe, no need for a wrapper.
+                    break
             }
             parentIdx -= 1
         }
