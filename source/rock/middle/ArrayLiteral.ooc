@@ -227,6 +227,17 @@ ArrayLiteral: class extends Literal {
         return 0
     }
 
+    _createInitFunc: func (arrType: ArrayType, seq: CommaSequence) -> FunctionDecl {
+        arrInitFunc := FunctionDecl new(generateTempName("arrInit"), token)
+        arrInitFunc isInline = true
+        arrInitFunc hasBody = true
+        arrInitFunc isGenerated = true
+        arrInitFunc isStatic = true
+        arrInitFunc returnType = ArrayType new(arrType inner, null, token)
+        arrInitFunc body add(seq)
+        arrInitFunc
+    }
+
     /**
         unwrap something like:
 
@@ -288,29 +299,21 @@ ArrayLiteral: class extends Literal {
 
         type = PointerType new(arrType inner, arrType token)
 
-        createInitFunc := func -> FunctionDecl {
-            arrInitFunc := FunctionDecl new(generateTempName("arrInit"), token)
-            arrInitFunc isInline = true
-            arrInitFunc hasBody = true
-            arrInitFunc isGenerated = true
-            arrInitFunc isStatic= true
-            arrInitFunc returnType = ArrayType new(arrType inner, null, token)
-            arrInitFunc body add(seq)
-            arrInitFunc
-        }
-
         newThis: Node = seq
 
         parentIdx := trail size - 1
         while(parentIdx >= 0){
-            match(trail get(parentIdx)){
+            match (trail get(parentIdx)) {
                 case tDecl: TypeDecl =>
-                    arrInitFunc := createInitFunc()
+                    arrInitFunc := _createInitFunc(arrType, seq)
                     tDecl addFunction(arrInitFunc)
-                    newThis = FunctionCall new(VariableAccess new("This", token), arrInitFunc getName(), token)
+                    thisAcc := VariableAccess new("This", token)
+                    newThis = FunctionCall new(thisAcc, arrInitFunc name, token)
                     break
                 case aDecl: Addon =>
-                case fDecl: FunctionDecl => break
+                    // nothing to do
+                case fDecl: FunctionDecl =>
+                    // nothing to do
             }
             parentIdx -= 1
         }
