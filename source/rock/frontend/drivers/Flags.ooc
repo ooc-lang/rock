@@ -255,24 +255,25 @@ Flags: class {
             addLinkerFlag("-L" + vendorLib)
 
             addLinkerFlag("-lgc")
+        }
 
-            target := params target
+        // pthreads (mthreads on Windows) should be used unconditionally
+        target := params target
 
-            match target {
-                case Target WIN =>
-                    // The SDK doesn't use pthreads on Windows
-                    addCompilerFlag("-mthreads")
-                    addLinkerFlag("-mthreads")
-                case Target OSX =>
-                    // For OSX, -lpthread suffices, -pthread yields a warning
-                    addLinkerFlag("-lpthread")
-                case =>
-                    // for other unices, -pthread is apparently a good idea.
-                    // Some unices don't have a separate pthread library and it
-                    // might do some other stuff (like define D_REENTRANT)
-                    addCompilerFlag("-pthread")
-                    addLinkerFlag("-pthread")
-            }
+        match target {
+            case Target WIN =>
+                // The SDK doesn't use pthreads on Windows
+                addCompilerFlag("-mthreads")
+                addLinkerFlag("-mthreads")
+            case Target OSX =>
+                // For OSX, -lpthread suffices, -pthread yields a warning
+                addLinkerFlag("-lpthread")
+            case =>
+                // for other unices, -pthread is apparently a good idea.
+                // Some unices don't have a separate pthread library and it
+                // might do some other stuff (like define D_REENTRANT)
+                addCompilerFlag("-pthread")
+                addLinkerFlag("-pthread")
         }
     }
 
