@@ -6,12 +6,12 @@ import tinker/Errors
 Use: class {
 
     identifier: String
-    useDef: UseDef { get set }
+    useDef: UseDef
     token: Token
 
     init: func (=identifier, params: BuildParams, =token) {
-        uDef := UseDef parse(identifier, params)
-        if(!uDef) {
+        useDef = UseDef parse(identifier, params)
+        if(!useDef) {
             params errorHandler onError(UseNotFound new(this,
 "Use not found in the ooc library path: %s
 \nTo install ooc libraries, copy their directories to /usr/lib/ooc/
@@ -21,9 +21,8 @@ For more information, see http://ooc-lang.org/docs/tools/rock/usefiles/
 -------------------" format(identifier, identifier))
             )
         } else {
-	    useDef = uDef
-	    useDef apply(params)
-	}
+            useDef apply(params)
+        }
     }
 
 }

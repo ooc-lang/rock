@@ -65,6 +65,9 @@ Driver: abstract class {
 
         usedefCollection := ArrayList<UseDef> new()
         for(uze: Use in module getUses()) {
+            if (!uze useDef) {
+                uze token printMessage("Found uze with null useDef in #{module getFullName()}")
+            }
             usedefCollection add(uze useDef)
             walkUseDef(uze useDef, usedefCollection)
         }

@@ -7,7 +7,7 @@ import structs/[List, ArrayList, HashMap]
 import rock/frontend/[BuildParams, Target]
 import rock/frontend/drivers/[Archive, SourceFolder]
 import rock/frontend/pkgconfig/[PkgInfo, PkgConfigFrontend]
-import rock/middle/[Module, UseDef]
+import rock/middle/[Module, UseDef, Use]
 
 /**
  * Various flags that can be passed to the compiler/linker, classified
