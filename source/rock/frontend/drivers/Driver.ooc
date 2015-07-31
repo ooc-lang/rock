@@ -24,6 +24,7 @@ Driver: abstract class {
 
     copyLocals: func (module: Module, params: BuildParams,
         done := ArrayList<Module> new(), usesDone := ArrayList<UseDef> new()) {
+        "Copying locals for #{module getFullName()}" println()
 
         if(done contains?(module)) return
         done add(module)
@@ -96,6 +97,7 @@ Driver: abstract class {
     }
 
     walkUseDef: func(u: UseDef, usedefCollection: ArrayList<UseDef> = ArrayList<UseDef> new()) -> ArrayList<UseDef> {
+        "Walking useDef #{u identifier}" println()
         for(req in u requirements){
             if(!usedefCollection contains?(req useDef)){
                 usedefCollection add(req useDef)
