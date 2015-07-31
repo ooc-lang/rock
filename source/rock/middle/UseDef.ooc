@@ -91,7 +91,7 @@ UseDef: class {
         if(!cached) {
             cached = UseDef new(identifier)
             file := findUse(identifier + ".use", params)
-            if(!file) return null
+            if (!file) return null
 
             if (params verboser) {
                 "Use %s sourced from %s" printfln(identifier, file path)
@@ -102,7 +102,13 @@ UseDef: class {
 
             // parse requirements, if any
             for (req in cached requirements) {
+                "Parsing use #{req name}"
                 req useDef = This parse(req name, params)
+                if(!req useDef) {
+                    params errorHandler onError(UseNotFound new(nullToken, req name))
+                }  else {
+                    req useDef apply(params)
+                }
             }
         }
 
