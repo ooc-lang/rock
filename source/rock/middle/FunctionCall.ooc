@@ -167,7 +167,7 @@ FunctionCall: class extends Expression {
      * a return expression, when it's being used.
      */
     debugCondition: final func -> Bool {
-        name == "yoyo"
+        name == "bind"
     }
 
     /**
@@ -1261,24 +1261,31 @@ FunctionCall: class extends Expression {
                             }
                         } else if (retType) {
                             if (implArg instanceOf?(FunctionDecl)) {
-                                argType := implArg getType() as FuncType returnType
+                                argType := implArg as FunctionDecl inferredReturnType
 
-                                if (debugCondition()) "Trying to realtype typearg #{typeArgName} from function pointer return type #{retType} (argument's type: #{argType})" println()
+                                if (argType) {
+                                    // We don't return on the else case because we are not even sure we can qualify the type arg from the inferred return type
+                                    if (debugCondition()) {
+                                        "Trying to realtype typearg #{typeArgName} from function pointer return type #{retType} (argument's type: #{argType})" println()
+                                    }
 
-                                // Assuming the argument's type has been well inferred
-                                score := 0
-                                result := argType searchTypeArg(typeArgName, score&)
+                                    // Assuming the argument's type has been well inferred
+                                    score := 0
+                                    result := argType searchTypeArg(typeArgName, score&)
 
-                                if (score == -1) {
-                                    finalScore = -1
-                                    return null
-                                }
+                                    if (score == -1) {
+                                        finalScore = -1
+                                        return null
+                                    }
 
-                                if (result) {
-                                    if (debugCondition()) "Found matching #{typeArgName} = #{result}, with score #{score}" println()
+                                    if (result) {
+                                        if (debugCondition()) {
+                                            "Found matching #{typeArgName} = #{result}, with score #{score}" println()
+                                        }
 
-                                    finalScore = score
-                                    return result
+                                        finalScore = score
+                                        return result
+                                    }
                                 }
                             }
                         }
