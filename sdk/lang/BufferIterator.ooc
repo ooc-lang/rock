@@ -14,7 +14,7 @@ BufferIterator: class <T> extends BackIterator<T> {
     }
 
     next: func -> T {
-        c := (str data +i)@
+        c := (str data + i)@
         i += 1
         return c
     }
