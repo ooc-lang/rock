@@ -16,7 +16,7 @@ import ../../middle/[Module, FunctionDecl, FunctionCall, Expression, Type,
 
 JSONGenerator: class extends Visitor {
 
-    VERSION := static "2.0.0"
+    VERSION := static "2.1.0"
 
     params: BuildParams
     outFile: File
@@ -97,12 +97,28 @@ JSONGenerator: class extends Visitor {
                 ref := type getRef()
                 match ref {
                     case td: TypeDecl =>
-                        td getFullName()
+                        result := td getFullName()
+                        typeArgs := type getTypeArgs()
+                        if (typeArgs && !typeArgs empty?()) {
+                            result += "<"
+                            first := true
+                            for (typeArg in typeArgs) {
+                                if (first) {
+                                    first = false
+                                } else {
+                                    result += ", "
+                                }
+                                result += typeArg getName()
+                            }
+                            result += ">"
+                        }
+                        result
                     case =>
                         "any"
                 }
             } else {
-                return type as BaseType name /* TODO? */
+                /* TODO? */
+                type as BaseType name
             }
         } else {
             "any"
