@@ -1,4 +1,7 @@
 include stdlib, stdint, stddef, float, ctype, sys/types
+version(windows) {
+    include limits
+}
 
 LLong: cover from signed long long {
 
