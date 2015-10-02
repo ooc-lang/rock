@@ -1274,6 +1274,10 @@ FunctionCall: class extends Expression {
                                     result := argType searchTypeArg(typeArgName, score&)
 
                                     if (score == -1) {
+                                        if (debugCondition()) {
+                                            "Got score -1 while fetching #{typeArgName} from #{argType}, retrying." println()
+                                        }
+
                                         finalScore = -1
                                         return null
                                     }
