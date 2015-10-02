@@ -13,8 +13,13 @@ version (windows) {
 Env: class {
     /** returns an environment variable. if not found, it returns null */
     get: static func (variableName: String) -> String {
-        x := getenv(variableName as CString)
+        x := getenv(variableName)
         x != null ? x toString() : null
+    }
+
+    get: static func ~withDefault (variableName, defaultValue: String) -> String {
+        x := getenv(variableName)
+        x != null ? x toString() : defaultValue
     }
 
     set: static func (key, value: String, overwrite: Bool) -> Int {
