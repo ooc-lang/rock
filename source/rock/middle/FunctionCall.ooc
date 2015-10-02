@@ -1260,30 +1260,31 @@ FunctionCall: class extends Expression {
                                 }
                             }
                         } else if (retType) {
-                            if (implArg instanceOf?(FunctionDecl)) {
-                                argType := implArg as FunctionDecl inferredReturnType
+                            match implArg {
+                                case argumentFunctionType: FunctionDecl =>
+                                    argType := argumentFunctionType inferredReturnType
 
-                                if (argType) {
-                                    // We don't return on the else case because we are not even sure we can qualify the type arg from the inferred return type
+                                    if (argType) {
+                                        // We don't return on the else case because we are not even sure we can qualify the type arg from the inferred return type
 
-                                    // Here is how we will proceed:
-                                    // We will find the index of our type arg name in the retType typeargs
-                                    // Then match it to the type at that index of the argType
-                                    returnTypeTypeargs := retType getTypeArgs()
-                                    for ((i, typeArg) in returnTypeTypeargs) {
-                                        if (typeArgName == typeArg getName()) {
-                                            // Match found!
-                                            finalScore = 0
-                                            result := argType getTypeArgs()[i]
+                                        // Here is how we will proceed:
+                                        // We will find the index of our type arg name in the retType typeargs
+                                        // Then match it to the type at that index of the argType
+                                        returnTypeTypeargs := retType getTypeArgs()
+                                        for ((i, typeArg) in returnTypeTypeargs) {
+                                            if (typeArgName == typeArg getName()) {
+                                                // Match found!
+                                                finalScore = 0
+                                                result := argType getTypeArgs()[i]
 
-                                            if (debugCondition()) {
-                                                "Matched #{typeArgName} with #{result}" println()
+                                                if (debugCondition()) {
+                                                    "Matched #{typeArgName} with #{result}" println()
+                                                }
+
+                                                return result
                                             }
-
-                                            return result
                                         }
                                     }
-                                }
                             }
                         }
                     }
