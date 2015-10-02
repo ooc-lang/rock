@@ -1272,7 +1272,7 @@ FunctionCall: class extends Expression {
                                     returnTypeTypeargs := retType getTypeArgs()
                                     for ((i, typeArg) in returnTypeTypeargs) {
                                         if (typeArgName == typeArg getName()) {
-                                            //Yuup
+                                            // Match found!
                                             finalScore = 0
                                             result := argType getTypeArgs()[i]
 
