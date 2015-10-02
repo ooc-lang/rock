@@ -37,7 +37,7 @@ grammar:
 # The build/ directory contains all the C sources needed to build rock
 # and a nice Makefile, too
 prepare_bootstrap:
-	@echo "Preparing boostrap (in build/ directory)"
+	@echo "Preparing bootstrap (in build/ directory)"
 	rm -rf build/
 	$(OOC) -driver=make rock.use --outpath=c-source -o=../bin/c_rock -v -pg +-w
 	@echo "Done!"
@@ -72,7 +72,7 @@ else
 endif
 	@echo "Now re-compiling ourself"
 	OOC=bin/c_rock ROCK_DIST=. $(MAKE) self
-	@echo "Congrats! you have a boostrapped version of rock in bin/rock now. Have fun!"
+	@echo "Congrats! you have a bootstrapped version of rock in bin/rock now. Have fun!"
 else
 	@cat BOOTSTRAP
 	@exit 1
@@ -85,7 +85,7 @@ half-bootstrap: boehmgc
 	cd build/ && ROCK_DIST=.. $(MAKE) -j4
 	@echo "Renaming c_rock to rock"
 	mv bin/c_rock bin/rock
-	@echo "Congrats! you have a half-boostrapped version of rock in bin/rock now. Have fun!"
+	@echo "Congrats! you have a half-bootstrapped version of rock in bin/rock now. Have fun!"
 
 # Copy the manpage and create a symlink to the binary
 install:
