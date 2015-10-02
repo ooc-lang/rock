@@ -48,7 +48,7 @@ BaseType: class extends Type {
      * from rock.
      */
     debugCondition: final func -> Bool {
-        name == "Maybe"
+        false
     }
 
     pointerLevel: func -> Int { 0 }
@@ -666,10 +666,9 @@ BaseType: class extends Type {
         }
 
         typeRef := getRef() as TypeDecl
-        if (debugCondition()) "Typeref: #{typeRef}, has #{typeRef typeArgs getSize()} typeargs" println()
+
         j := 0
         for (arg in typeRef typeArgs) {
-            if (debugCondition()) "Arg name: #{arg getName()}, typearg name: #{typeArgName}" println()
             if (arg getName() == typeArgName) {
                 //printf("Looking for %s in %s (ref %s), candidate = %s, j = %d, typeArgs size() = %d\n", typeArgName, toString(), typeRef toString(), arg getName(), j, typeArgs ? typeArgs size() : -1)
                 if (typeArgs == null || typeArgs getSize() <= j) {
