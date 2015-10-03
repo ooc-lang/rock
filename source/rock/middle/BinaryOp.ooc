@@ -692,7 +692,7 @@ BinaryOp: class extends Expression {
                                 case vDecl: VariableDecl =>
                                     if (vDecl owner) {
                                         if (vDecl owner typeArgs contains?(vDecl)) {
-                                            token module params errorHandler onError(Warning new(vAccess token,
+                                            token module params errorHandler onError(InvalidOperatorUse new(vAccess token,
                                                 "Trying to reassign typeArg #{vAccess}"))
                                         }
                                     }
