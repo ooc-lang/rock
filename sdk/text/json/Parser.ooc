@@ -318,8 +318,8 @@ Parser: class {
     pushSimpleValue: func (token: Token@) {
         T: Class
         valuePtr := _parseSimpleValue(token&, T&)
-        cell := Cell<Pointer> new((valuePtr as Pointer*)@) // TODO: EVIL, evil hack.
-        cell T = T
+
+        cell := Cell new(valuePtr as T)
         stack data add(cell)
     }
 

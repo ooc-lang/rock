@@ -679,6 +679,29 @@ BinaryOp: class extends Expression {
     }
 
     isLegal: func (res: Resolver) -> Bool {
+        if (type == OpType ass) {
+            // This makes sure we do not reassign a type arg
+            // To be more precise, it disallows reassignment outside the class
+            match left {
+                case vAccess: VariableAccess =>
+                    match (vAccess expr) {
+                        case null =>
+                        case potentialThis: VariableAccess =>
+                            if (potentialThis name != "this") match (vAccess ref) {
+                                case null =>
+                                case vDecl: VariableDecl =>
+                                    if (vDecl owner) {
+                                        if (vDecl owner typeArgs contains?(vDecl)) {
+                                            token module params errorHandler onError(InvalidOperatorUse new(vAccess token,
+                                                "Trying to reassign typeArg #{vAccess}"))
+                                        }
+                                    }
+                            }
+                    }
+            }
+        }
+
+
         (lType, rType) := (left getType(), right getType())
 
         if(lType == null || lType getRef() == null || rType == null || rType getRef() == null) {
