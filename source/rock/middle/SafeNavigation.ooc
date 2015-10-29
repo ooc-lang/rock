@@ -27,6 +27,19 @@ SafeNavigation: class extends Expression {
     resolve: func (trail: Trail, res: Resolver) -> Response {
         if (_resolved?) return Response OK
 
+        trail push(this)
+        resp := expr resolve(trail, res)
+        if (!resp ok()) {
+            trail pop(this)
+            return resp
+        }
+        trail pop(this)
+
+        if (!expr getType()) {
+            res wholeAgain(this, "need type of safe navigation access expression")
+            return Response OK
+        }
+
         // We need to avoid multiple evaluation of the expression, so we will use a variable declaration and assign it in a comma list before this
         vDecl := VariableDecl new(expr getType(), generateTempName("safeNavExpr"), token)
         vAccess := VariableAccess new(vDecl, token)
