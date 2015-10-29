@@ -554,7 +554,7 @@ BinaryOp: class extends Expression {
             seq add(ternary)
 
             if(!trail peek() replace(this, seq)) {
-                res throwError(CouldntReplace new(token, this, ternary, trail))
+                res throwError(CouldntReplace new(token, this, seq, trail))
                 return Response OK
             }
 
