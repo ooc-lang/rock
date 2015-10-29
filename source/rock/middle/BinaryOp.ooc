@@ -4,7 +4,7 @@ import Expression, Visitor, Type, Node, FunctionCall, OperatorDecl,
        Import, Module, FunctionCall, ClassDecl, CoverDecl, AddressOf,
        ArrayAccess, VariableAccess, Cast, NullLiteral, PropertyDecl,
        Tuple, VariableDecl, FuncType, TypeDecl, StructLiteral, TypeList,
-       Scope, TemplateDef, Ternary, Comparison
+       Scope, TemplateDef, Ternary, Comparison, CommaSequence
 import tinker/[Trail, Resolver, Response, Errors]
 import algo/typeAnalysis
 
@@ -532,16 +532,33 @@ BinaryOp: class extends Expression {
 
         // We must replace the null-coalescing operator with a ternary operator
         if(type == OpType nullCoal) {
-            // The final expression we want is (left != null ? left : right)
-            condition := Comparison new(left, NullLiteral new(token), CompType notEqual, token)
-            ternary := Ternary new(condition, left, right, token)
+            // So we generate a variable declaration that will hold the value of the 'left' expression
+            // Then a comma sequence that assigns the value and the ternary
 
-            if(!trail peek() replace(this, ternary)) {
-                res throwError(CouldntReplace new(token, this, ternary, trail))
+            vDecl := VariableDecl new(left getType(), generateTempName("nullCoalLeft"), token)
+            vAccess := VariableAccess new(vDecl, token)
+
+            if (!trail addBeforeInScope(this, vDecl)) {
+                res throwError(CouldntAddBeforeInScope new(token, this, vDecl, trail))
                 return Response OK
             }
 
-            res wholeAgain(this, "replaced null coalescing operator with ternary")
+            seq := CommaSequence new(token)
+            assignment := BinaryOp new(vAccess, left, OpType ass, token)
+
+            seq add(assignment)
+
+            condition := Comparison new(vAccess, NullLiteral new(token), CompType notEqual, token)
+            ternary := Ternary new(condition, vAccess, right, token)
+
+            seq add(ternary)
+
+            if(!trail peek() replace(this, seq)) {
+                res throwError(CouldntReplace new(token, this, seq, trail))
+                return Response OK
+            }
+
+            res wholeAgain(this, "replaced null coalescing operator with comma sequence of assignment and ternary")
             return Response OK
         }
 
