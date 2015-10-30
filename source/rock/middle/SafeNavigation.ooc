@@ -7,7 +7,10 @@ import structs/ArrayList
 
 SafeNavigation: class extends Expression {
     expr: Expression
-    idents := ArrayList<String> new()
+
+    // Sections are groups of identifiers separated by the safenav operator
+    // This allows us to navigate into cover members and continue navigation afterwise
+    sections := ArrayList<ArrayList<String>> new()
 
     _resolved? := false
 
@@ -20,7 +23,7 @@ SafeNavigation: class extends Expression {
 
     clone: func -> This {
         other := This new(expr clone(), token)
-        other idents = idents clone()
+        other sections = sections clone()
         other
     }
 
@@ -54,14 +57,21 @@ SafeNavigation: class extends Expression {
 
         seq add(assignment)
 
-        // If we have 'expr $ a $ b $ c', our list is now [expr a, expr a b, expr a b c]
-        vas := ArrayList<VariableAccess> new(idents size)
-        for ((index, ident) in idents) {
-            if (index == 0) {
-                vas add(VariableAccess new(vAccess, ident, token))
-            } else {
-                vas add(VariableAccess new(vas last(), ident, token))
+        // So, we need to iterate through sections and build a list of variable accesses that will show up ternary operators
+        // For example, something like that: expr $ a b $ c d $ e
+        // Will generate this list: [ expr a b, expr a b c d, expr a b c d e ]
+        vAs := ArrayList<VariableAccess> new()
+        for ((index, sec) in sections) {
+            lastAcc := match index {
+                case 0 => vAccess
+                case   => vAs last()
             }
+
+            for (ident in sec) {
+                lastAcc = VariableAccess new(lastAcc, ident, token)
+            }
+
+            vAs add(lastAcc)
         }
 
         localNull := NullLiteral new(token)
@@ -74,16 +84,15 @@ SafeNavigation: class extends Expression {
             Ternary new(cond, e, localNull, token)
         }
 
-        curr : Ternary = null
-        iterator := vas backIterator()
+        // We don't need to generate a ternary for the last access.
+        // 'foo != null ? foo : null' is equivalent to 'foo'
+        iterator := vAs backIterator()
+        curr : Expression = iterator prev()
 
         while (iterator hasPrev?()) {
             access := iterator prev()
 
-            curr = match curr {
-                case null => makeTernary(makeNotEquals(access), access)
-                case      => makeTernary(makeNotEquals(access), curr)
-            }
+            curr = makeTernary(makeNotEquals(access), curr)
         }
 
         curr = makeTernary(makeNotEquals(vAccess), curr)
@@ -105,8 +114,8 @@ SafeNavigation: class extends Expression {
         buff := Buffer new()
         buff append(expr toString())
 
-        for (i in idents) {
-            buff append(" $ ") . append(i)
+        for (sec in sections) {
+            buff append(" $ ") . append(sec join(" "))
         }
 
         buff toString()

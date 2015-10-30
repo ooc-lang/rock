@@ -1285,8 +1285,12 @@ AstBuilder: class {
         stack push(safeNav)
     }
 
+    onSafeNavigationSection: unmangled(nq_onSafeNavigationSection) func {
+        peek(SafeNavigation) sections add(ArrayList<String> new())
+    }
+
     onSafeNavigationIdent: unmangled(nq_onSafeNavigationIdent) func (ident: CString) {
-        peek(SafeNavigation) idents add(ident toString())
+        peek(SafeNavigation) sections last() add(ident toString())
     }
 
     onSafeNavigationEnd: unmangled(nq_onSafeNavigationEnd) func -> SafeNavigation {
