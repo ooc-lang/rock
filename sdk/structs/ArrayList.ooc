@@ -79,7 +79,7 @@ ArrayList: class <T> extends List<T> {
     get: inline func(index: SSizeT) -> T {
         if(index < 0) index = _size + index
         if(index < 0 || index >= _size) OutOfBoundsException new(This, index, _size) throw()
-        checkIndex(index)
+
         return data[index]
     }
 
