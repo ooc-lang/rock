@@ -124,12 +124,7 @@ Range: cover {
 
     min, max: Int
 
-    new: static func (.min, .max) -> This {
-        this : This
-        this min = min
-        this max = max
-        return this
-    }
+    init: func@ (=min, =max)
 
     reduce: func (f: Func (Int, Int) -> Int) -> Int {
         acc := f(min, min + 1)
