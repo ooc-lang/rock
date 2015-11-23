@@ -11,10 +11,13 @@ Foreach: class extends ControlStatement {
     collection: Expression
 
     replaced := false
+    _resolved? := false
 
     init: func ~_foreach (=variable, =collection, .token) {
         super(token)
     }
+
+    isResolved: func -> Bool { _resolved? }
 
     clone: func -> This {
         copy := new(variable clone(), collection clone(), token)
@@ -44,6 +47,7 @@ Foreach: class extends ControlStatement {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
+        if (_resolved?) return Response OK
 
         match variable {
             case vAcc: VariableAccess =>
@@ -107,6 +111,48 @@ Foreach: class extends ControlStatement {
                 return Response OK
             }
             collection getType() resolve(trail, res)
+
+            match (collection getType()) {
+                case baseType: BaseType =>
+                    // I'm not sure this is the best idea, I don't think we have another way of checking against core types atm though.
+                    if (baseType name == "Range") {
+                        // If we have a range collection, just go ahead and turn it into a literal for the backend to use.
+
+                        access: VariableAccess
+                        match collection {
+                            case va: VariableAccess =>
+                                // If this is an access to a range, just make accesses
+                                access = va
+                            case =>
+                                // No side effects please! Make a vDecl and access it
+                                vDecl := VariableDecl new(collection getType(), generateTempName("foreachRangeVar"), collection token)
+                                access = VariableAccess new(vDecl, token)
+
+                                if (!trail addBeforeInScope(this, vDecl)) {
+                                    res throwError(CouldntAddBeforeInScope new(token, this, vDecl, trail))
+                                    return Response OK
+                                }
+                        }
+
+                        // This is a pretty dirty hack.
+                        // We will basically replace ourselves with a foreach that does have a RangeLiteral collection.
+                        // We do this because the backend only supports that at the minute and I think the transformation is better fit for the resolver.
+                        newCol := RangeLiteral new(VariableAccess new(access, "min", collection token),
+                                                   VariableAccess new(access, "max", collection token), collection token)
+
+                        collection = newCol
+                        replaced = false
+
+                        // Rewind to a variable access, let resolve do what it needs to again
+                        match variable {
+                            case vDecl: VariableDecl =>
+                                variable = VariableAccess new(vDecl name, vDecl token)
+                        }
+
+                        res wholeAgain(this, "replaced foreach collection to range literal")
+                        return Response OK
+                    }
+            }
 
             iterCall := FunctionCall new(collection, "iterator", token)
 
@@ -180,6 +226,8 @@ Foreach: class extends ControlStatement {
             res wholeAgain(this, "Just turned into a while =)")
             return Response OK
         }
+
+        _resolved? = true
 
         return super(trail, res)
 
