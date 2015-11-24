@@ -129,7 +129,7 @@ Foreach: class extends ControlStatement {
                                 access = va
                             case =>
                                 // We want to avoid side effects, so we create a new declaration and get an access to it.
-                                vDecl := VariableDecl new(collection getType(), generateTempName("foreachRangeVar"), collection token)
+                                vDecl := VariableDecl new(collection getType(), generateTempName("foreachRangeVar"), collection, collection token)
                                 access = VariableAccess new(vDecl, token)
 
                                 if (!trail addBeforeInScope(this, vDecl)) {
@@ -156,8 +156,10 @@ Foreach: class extends ControlStatement {
                                 variable = VariableAccess new(vDecl name, vDecl token)
                         }
 
+                        trail toString() println()
+
                         // Let's go again!
-                        res wholeAgain(this, "replaced foreach collection to range literal")
+                        res wholeAgain(this, "replaced foreach range collection with equivalent range literal")
                         return Response OK
                     }
             }
