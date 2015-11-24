@@ -110,21 +110,25 @@ Foreach: class extends ControlStatement {
                 res wholeAgain(this, "need collection type")
                 return Response OK
             }
+
+            // TODO/FIXME: Should 'this' be in the trail when resolving the collection type?
+            // This could lead to some weird bugs but is most likely completely irrelevant since a type should not need to use the trail to resolve itself.
             collection getType() resolve(trail, res)
 
             match (collection getType()) {
                 case baseType: BaseType =>
                     // I'm not sure this is the best idea, I don't think we have another way of checking against core types atm though.
                     if (baseType name == "Range") {
-                        // If we have a range collection, just go ahead and turn it into a literal for the backend to use.
+                        // If we have a range collection, just go ahead and turn it into a literal node for the backend to generate a C for loop directly.
 
+                        // We will create an access to the range collection and make a range literal with its min and max values.
                         access: VariableAccess
                         match collection {
                             case va: VariableAccess =>
-                                // If this is an access to a range, just make accesses
+                                // We already have an access, keep that one
                                 access = va
                             case =>
-                                // No side effects please! Make a vDecl and access it
+                                // We want to avoid side effects, so we create a new declaration and get an access to it.
                                 vDecl := VariableDecl new(collection getType(), generateTempName("foreachRangeVar"), collection token)
                                 access = VariableAccess new(vDecl, token)
 
@@ -135,11 +139,14 @@ Foreach: class extends ControlStatement {
                         }
 
                         // This is a pretty dirty hack.
-                        // We will basically replace ourselves with a foreach that does have a RangeLiteral collection.
-                        // We do this because the backend only supports that at the minute and I think the transformation is better fit for the resolver.
+                        // We basically mutate the foreache's state to a range literal foreach and force it to be resolved again.
+                        // That way, it is not replaced by a while loop + iterator calls but is rather passed to the backend that directly generates a C for loop.
+
+                        // This is our new collection
                         newCol := RangeLiteral new(VariableAccess new(access, "min", collection token),
                                                    VariableAccess new(access, "max", collection token), collection token)
 
+                        // "Reset" our state
                         collection = newCol
                         replaced = false
 
@@ -149,6 +156,7 @@ Foreach: class extends ControlStatement {
                                 variable = VariableAccess new(vDecl name, vDecl token)
                         }
 
+                        // Let's go again!
                         res wholeAgain(this, "replaced foreach collection to range literal")
                         return Response OK
                     }
@@ -227,9 +235,13 @@ Foreach: class extends ControlStatement {
             return Response OK
         }
 
-        _resolved? = true
+        resp := super(trail, res)
+        if (!resp ok()) {
+            return resp
+        }
 
-        return super(trail, res)
+        _resolved? = true
+        return Response OK
 
     }
 
