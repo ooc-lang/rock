@@ -9,7 +9,7 @@ f: func -> Range {
 describe("foreach should iterate through any range expression, not just literals", ||
 
     for ((j, i) in f()) {
-        expect(j, i + 10)
+        expect(j + 10, i)
     }
 
     expect(counter, 1)
