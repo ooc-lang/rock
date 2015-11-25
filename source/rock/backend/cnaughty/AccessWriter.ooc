@@ -12,7 +12,13 @@ AccessWriter: abstract class extends Skeleton {
 
         if(isMember && !(vDecl isExtern() && vDecl isStatic())) {
             casted := false
-            if(vDecl owner != expr getType() getRef()) {
+
+            // Cover types don't need to be cast before accessing their members (in fact, it is harmful)
+            // Effectively, for the owner of the decl not to be of the same type as the expr, we must have cover hierarchy, which is expressed
+            // through typedefs.
+            coverType? := vDecl owner instanceOf?(CoverDecl)
+
+            if(!coverType? && vDecl owner != expr getType() getRef()) {
                 casted = true
                 current app("(("). app(vDecl owner getInstanceType()) .app(')')
             }
