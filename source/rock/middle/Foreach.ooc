@@ -11,13 +11,10 @@ Foreach: class extends ControlStatement {
     collection: Expression
 
     replaced := false
-    _resolved? := false
 
     init: func ~_foreach (=variable, =collection, .token) {
         super(token)
     }
-
-    isResolved: func -> Bool { _resolved? }
 
     clone: func -> This {
         copy := new(variable clone(), collection clone(), token)
@@ -47,8 +44,6 @@ Foreach: class extends ControlStatement {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        if (_resolved?) return Response OK
-
         if (!replaced) match variable {
             case vAcc: VariableAccess =>
                 _createDeclFromAccess(vAcc)
@@ -253,7 +248,6 @@ Foreach: class extends ControlStatement {
             return resp
         }
 
-        _resolved? = true
         return Response OK
 
     }
