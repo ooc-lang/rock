@@ -49,31 +49,27 @@ Foreach: class extends ControlStatement {
     resolve: func (trail: Trail, res: Resolver) -> Response {
         if (_resolved?) return Response OK
 
-        match variable {
+        if (!replaced) match variable {
             case vAcc: VariableAccess =>
-                if (!replaced) {
-                    _createDeclFromAccess(vAcc)
-                }
+                _createDeclFromAccess(vAcc)
             case tuple: Tuple =>
-                if (!replaced) {
-                    (a, b) := (tuple[0], tuple[1])
-                    match a {
-                        case vAcc: VariableAccess =>
-                            intType := BaseType new("Int", a token)
-                            initialValue := IntLiteral new(-1, vAcc token)
-                            indexVariable = VariableDecl new(intType, vAcc getName(), initialValue, a token)
-                        case =>
-                            res throwError(InvalidForeach new(a token, "Invalid element in foreach tuple, expected identifier"))
-                            return Response OK
-                    }
+                (a, b) := (tuple[0], tuple[1])
+                match a {
+                    case vAcc: VariableAccess =>
+                        intType := BaseType new("Int", a token)
+                        initialValue := IntLiteral new(-1, vAcc token)
+                        indexVariable = VariableDecl new(intType, vAcc getName(), initialValue, a token)
+                    case =>
+                        res throwError(InvalidForeach new(a token, "Invalid element in foreach tuple, expected identifier"))
+                        return Response OK
+                }
 
-                    match b {
-                        case vAcc: VariableAccess =>
-                            _createDeclFromAccess(vAcc)
-                        case =>
-                            res throwError(InvalidForeach new(b token, "Invalid element in foreach tuple, expected identifier"))
-                            return Response OK
-                    }
+                match b {
+                    case vAcc: VariableAccess =>
+                        _createDeclFromAccess(vAcc)
+                    case =>
+                        res throwError(InvalidForeach new(b token, "Invalid element in foreach tuple, expected identifier"))
+                        return Response OK
                 }
         }
 
@@ -146,17 +142,21 @@ Foreach: class extends ControlStatement {
                         newCol := RangeLiteral new(VariableAccess new(access, "min", collection token),
                                                    VariableAccess new(access, "max", collection token), collection token)
 
-                        // "Reset" our state
                         collection = newCol
                         replaced = false
 
-                        // Rewind to a variable access, let resolve do what it needs to again
-                        match variable {
-                            case vDecl: VariableDecl =>
-                                variable = VariableAccess new(vDecl name, vDecl token)
-                        }
+                        // We need to remove the unwrapped index vDecl from our parent scope
+                        // because it's type is unknown and currently unresolvable.
+                        scope := trail get(trail findScope()) as Scope
 
-                        trail toString() println()
+                        for (stmt in scope list) {
+                            match stmt {
+                                case vDecl: VariableDecl =>
+                                    if (vDecl name == variable toString() && vDecl type == null) {
+                                        scope remove(vDecl)
+                                    }
+                            }
+                        }
 
                         // Let's go again!
                         res wholeAgain(this, "replaced foreach range collection with equivalent range literal")
