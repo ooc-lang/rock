@@ -2,7 +2,7 @@ import structs/[ArrayList, HashMap]
 import ../io/TabbedWriter
 import TypeDecl, Declaration, Visitor, Node, VariableAccess, Type,
        VariableDecl, IntLiteral, FloatLiteral, Expression, FunctionDecl,
-       CoverDecl, Module, StructLiteral, BaseType
+       CoverDecl, Module, StructLiteral, BaseType, Version
 import tinker/[Trail, Resolver, Response, Errors]
 import ../frontend/Token
 
@@ -34,15 +34,16 @@ EnumDecl: class extends TypeDecl {
         }
 
         if (valuesCoverDecl == null) {
-            createCovers()
+            createCovers(trail)
             res wholeAgain(this, "need to resolve coverdecls for enum")
         }
 
         Response OK
     }
 
-    createCovers: func {
+    createCovers: func (trail: Trail) {
         valuesCoverDecl = CoverDecl new(name + "__values_t", token)
+
         for (v in getMeta() variables) {
             vDecl := VariableDecl new(BaseType new("Int", token), v name, v token)
             valuesCoverDecl addVariable(vDecl)
@@ -58,7 +59,21 @@ EnumDecl: class extends TypeDecl {
         slit := StructLiteral new(valuesCoverDecl getInstanceType(), elements, token)
         valuesGlobal = VariableDecl new(null, name + "__values", slit, token)
         valuesGlobal isGlobal = true
-        token module body add(valuesGlobal)
+
+        if (verzion) {
+            valuesCoverDecl verzion = verzion
+
+            // Find the version block upstream and add our globals and whatnot
+            for (i in 1 .. trail size + 1) {
+                match (trail peek(i)) {
+                    case vb: VersionBlock => if (vb spec == verzion) {
+                        vb body add(slit) . add(valuesGlobal)
+                    }
+                }
+            }
+        } else {
+            token module body add(valuesGlobal)
+        }
     }
 
     addFunction: func (fDecl: FunctionDecl) {
