@@ -145,15 +145,26 @@ Foreach: class extends ControlStatement {
                         collection = newCol
                         replaced = false
 
-                        // We need to remove the unwrapped index vDecl from our parent scope
+                        // We need to remove the unwrapped index vDecl from some parent scope
                         // because it's type is unknown and currently unresolvable.
-                        scope := trail get(trail findScope()) as Scope
+
+                        lastScope := trail findScope()
+                        scope := trail get(lastScope, Scope)
+
+                        // If we have an index variable, the variable decl will end up in another scope
+                        // TODO: Is this always true? Can the decl end up further upstream?
+                        // A more general solution would be to go up scopes until we remove the vDecl
+                        if (indexVariable != null) {
+                            lastScope = trail find(Scope, lastScope - 1)
+                            scope = trail get(lastScope, Scope)
+                        }
 
                         for (stmt in scope list) {
                             match stmt {
                                 case vDecl: VariableDecl =>
                                     if (vDecl name == variable toString() && vDecl type == null) {
                                         scope remove(vDecl)
+                                        break
                                     }
                             }
                         }
