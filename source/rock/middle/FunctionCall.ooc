@@ -282,6 +282,11 @@ FunctionCall: class extends Expression {
                     if (!trail peek() replace(this, kid)) {
                         res throwError(CouldntReplace new(token, this, kid, trail))
                     }
+
+                    if (!mod slurps contains?(path)) {
+                        mod slurps add(path)
+                    }
+
                     res wholeAgain(this, "just unwrapped")
                     return Response OK
 

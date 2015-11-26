@@ -393,6 +393,7 @@ ArchiveModule: class {
 
     types := HashMap<String, ArchiveType> new()
     functions := ArrayList<String> new()
+    slurps := HashMap<String, Long> new()
     hasMain? ::= functions contains?("main")
 
     /**
@@ -416,6 +417,11 @@ ArchiveModule: class {
         module getFunctions() each(|key, fDecl|
             functions add(fDecl getFullName())
         )
+
+        for (slurp in module slurps) {
+            slurpFile := File new(module pathElement, slurp)
+            slurps put(slurp, slurpFile lastModified())
+        }
     }
 
     /**
@@ -436,6 +442,14 @@ ArchiveModule: class {
         for(i in 0..functionsSize) {
             fName := fR readLine()
             functions add(fName)
+        }
+
+        slurpSize := fR readLine() toInt()
+        for (i in 0 .. slurpSize) {
+            path := fR readLine()
+            lastMod := fR readLine() toLong()
+
+            slurps put(path, lastMod)
         }
 
         _getModule()
@@ -511,6 +525,23 @@ ArchiveModule: class {
                 }
             }
 
+            if (module slurps size != slurps size) {
+                if (archive params debugLibcache) "Slurp counts not the same, %s not up-to-date" printfln(oocPath)
+                return false
+            }
+
+            for (slurp in module slurps) {
+                if (!slurps contains?(slurp)) {
+                    if(archive params debugLibcache) "Slurp %s wasn't there last time, %s not up-to-date" printfln(slurp, oocPath)
+                    return false
+                }
+
+                if (File new(module pathElement, slurp) lastModified() != slurps get(slurp)) {
+                    if(archive params debugLibcache) "Slurp %s was was modified since last time, %s not up-to-date" printfln(slurp, oocPath)
+                    return false
+                }
+            }
+
             return true
         }
     }
@@ -547,6 +578,13 @@ ArchiveModule: class {
         for (f in functions) {
             fW writef("%s\n", f)
         }
+
+        // write each slurp
+        fW writef("%d\n", slurps size)
+        slurps each(|slurpPath, lastMod|
+            fW writef("%s\n", slurpPath)
+            fW writef("%ld\n", lastMod)
+        )
     }
 }
 

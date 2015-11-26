@@ -39,6 +39,9 @@ Module: class extends Node {
     namespaces := HashMap<String, NamespaceDecl> new()
     uses       := ArrayList<Use> new()
 
+    // Files the module slurps
+    slurps     := ArrayList<String> new()
+
     funcTypesMap := HashMap<String, FuncType> new()
 
     body       := Scope new()
