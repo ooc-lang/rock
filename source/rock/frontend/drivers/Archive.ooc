@@ -17,7 +17,7 @@ import rock/backend/cnaughty/ModuleWriter
  */
 Archive: class {
 
-    supportedVersion := static "0.5"
+    supportedVersion := static "0.6"
 
     map := static HashMap<Module, Archive> new()
     dirtyModules := ArrayList<Module> new()
@@ -545,7 +545,7 @@ ArchiveModule: class {
         // write each function
         fW writef("%d\n", functions size)
         for (f in functions) {
-            fW writef("%s\n")
+            fW writef("%s\n", f)
         }
     }
 }
