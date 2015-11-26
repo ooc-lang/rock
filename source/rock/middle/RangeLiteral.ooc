@@ -77,4 +77,8 @@ RangeLiteral: class extends Literal {
         super() && !replaced
     }
 
+    toString: func -> String {
+        "#{lower} .. #{upper}"
+    }
+
 }

@@ -44,32 +44,27 @@ Foreach: class extends ControlStatement {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-
-        match variable {
+        if (!replaced) match variable {
             case vAcc: VariableAccess =>
-                if (!replaced) {
-                    _createDeclFromAccess(vAcc)
-                }
+                _createDeclFromAccess(vAcc)
             case tuple: Tuple =>
-                if (!replaced) {
-                    (a, b) := (tuple[0], tuple[1])
-                    match a {
-                        case vAcc: VariableAccess =>
-                            intType := BaseType new("Int", a token)
-                            initialValue := IntLiteral new(-1, vAcc token)
-                            indexVariable = VariableDecl new(intType, vAcc getName(), initialValue, a token)
-                        case =>
-                            res throwError(InvalidForeach new(a token, "Invalid element in foreach tuple, expected identifier"))
-                            return Response OK
-                    }
+                (a, b) := (tuple[0], tuple[1])
+                match a {
+                    case vAcc: VariableAccess =>
+                        intType := BaseType new("Int", a token)
+                        initialValue := IntLiteral new(-1, vAcc token)
+                        indexVariable = VariableDecl new(intType, vAcc getName(), initialValue, a token)
+                    case =>
+                        res throwError(InvalidForeach new(a token, "Invalid element in foreach tuple, expected identifier"))
+                        return Response OK
+                }
 
-                    match b {
-                        case vAcc: VariableAccess =>
-                            _createDeclFromAccess(vAcc)
-                        case =>
-                            res throwError(InvalidForeach new(b token, "Invalid element in foreach tuple, expected identifier"))
-                            return Response OK
-                    }
+                match b {
+                    case vAcc: VariableAccess =>
+                        _createDeclFromAccess(vAcc)
+                    case =>
+                        res throwError(InvalidForeach new(b token, "Invalid element in foreach tuple, expected identifier"))
+                        return Response OK
                 }
         }
 
@@ -106,7 +101,74 @@ Foreach: class extends ControlStatement {
                 res wholeAgain(this, "need collection type")
                 return Response OK
             }
+
+            // TODO/FIXME: Should 'this' be in the trail when resolving the collection type?
+            // This could lead to some weird bugs but is most likely completely irrelevant since a type should not need to use the trail to resolve itself.
             collection getType() resolve(trail, res)
+
+            match (collection getType()) {
+                case baseType: BaseType =>
+                    // I'm not sure this is the best idea, I don't think we have another way of checking against core types atm though.
+                    if (baseType name == "Range") {
+                        // If we have a range collection, just go ahead and turn it into a literal node for the backend to generate a C for loop directly.
+
+                        // We will create an access to the range collection and make a range literal with its min and max values.
+                        access: VariableAccess
+                        match collection {
+                            case va: VariableAccess =>
+                                // We already have an access, keep that one
+                                access = va
+                            case =>
+                                // We want to avoid side effects, so we create a new declaration and get an access to it.
+                                vDecl := VariableDecl new(collection getType(), generateTempName("foreachRangeVar"), collection, collection token)
+                                access = VariableAccess new(vDecl, token)
+
+                                if (!trail addBeforeInScope(this, vDecl)) {
+                                    res throwError(CouldntAddBeforeInScope new(token, this, vDecl, trail))
+                                    return Response OK
+                                }
+                        }
+
+                        // This is a pretty dirty hack.
+                        // We basically mutate the foreache's state to a range literal foreach and force it to be resolved again.
+                        // That way, it is not replaced by a while loop + iterator calls but is rather passed to the backend that directly generates a C for loop.
+
+                        // This is our new collection
+                        newCol := RangeLiteral new(VariableAccess new(access, "min", collection token),
+                                                   VariableAccess new(access, "max", collection token), collection token)
+
+                        collection = newCol
+                        replaced = false
+
+                        // We need to remove the unwrapped index vDecl from some parent scope
+                        // because it's type is unknown and currently unresolvable.
+
+                        lastScope := trail findScope()
+                        scope := trail get(lastScope, Scope)
+
+                        // If we have an index variable, the variable decl will end up in another scope
+                        // TODO: Is this always true? Can the decl end up further upstream?
+                        // A more general solution would be to go up scopes until we remove the vDecl
+                        if (indexVariable != null) {
+                            lastScope = trail find(Scope, lastScope - 1)
+                            scope = trail get(lastScope, Scope)
+                        }
+
+                        for (stmt in scope list) {
+                            match stmt {
+                                case vDecl: VariableDecl =>
+                                    if (vDecl name == variable toString() && vDecl type == null) {
+                                        scope remove(vDecl)
+                                        break
+                                    }
+                            }
+                        }
+
+                        // Let's go again!
+                        res wholeAgain(this, "replaced foreach range collection with equivalent range literal")
+                        return Response OK
+                    }
+            }
 
             iterCall := FunctionCall new(collection, "iterator", token)
 
@@ -181,7 +243,12 @@ Foreach: class extends ControlStatement {
             return Response OK
         }
 
-        return super(trail, res)
+        resp := super(trail, res)
+        if (!resp ok()) {
+            return resp
+        }
+
+        return Response OK
 
     }
 
