@@ -82,11 +82,8 @@ BaseType: class extends Type {
                     return suggest(tDecl getBase() getNonMeta())
                 }
 
-                match decl {
-                    case cDecl: CoverDecl =>
-                        if (cDecl template) {
-                            return suggest(cDecl getTemplateInstance(this))
-                        }
+                if (tDecl template) {
+                    return suggest(tDecl getTemplateInstance(this))
                 }
         }
 

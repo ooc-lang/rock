@@ -10,6 +10,20 @@ ClassDeclWriter: abstract class extends Skeleton {
 
     write: static func ~_class (this: Skeleton, cDecl: ClassDecl) {
 
+        if (cDecl template) {
+            if (cDecl instances) for (instance in cDecl instances) {
+                // write templates instances
+                This write(this, instance as ClassDecl)
+
+                meta := instance getMeta()
+                // write templates instances' meta
+                ClassDeclWriter write(this, meta)
+            }
+
+            // cover templates themselves are not written down, silly compilerbro
+            return
+        }
+
         if(cDecl isMeta) {
 
             current = hw
@@ -67,6 +81,21 @@ ClassDeclWriter: abstract class extends Skeleton {
     }
 
     writeObjectStruct: static func (this: Skeleton, cDecl: ClassDecl, name: String = null) {
+
+        if (cDecl template) {
+            for (instance in cDecl instances) {
+                // write object struct template instances
+                This writeObjectStruct(this, instance as ClassDecl)
+
+                meta := instance getMeta()
+                // write-typedef template instances' meta
+                ClassDeclWriter writeStructTypedef(this, meta)
+            }
+
+            // cover templates themselves are not written down, silly compilerbro
+            return
+        }
+
         current nl(). app("struct ")
         if(name == null) {
             current app('_'). app(cDecl underName())
