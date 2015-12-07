@@ -679,6 +679,9 @@ TypeDecl: abstract class extends Declaration {
                     return response
                 }
             }
+
+            // We don't want to resolve the type template.
+            return Response OK
         }
 
         trail push(this)
