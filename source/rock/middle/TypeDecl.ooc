@@ -592,11 +592,18 @@ TypeDecl: abstract class extends Declaration {
         instance module = module
         instance setVersion(instance getVersion())
 
-        i := 0
-        for (typeArg in spec typeArgs) {
-            if (i >= template typeArgs size) {
-                Exception new("Too many template args for %s" format(toString())) throw()
-            }
+        typeArgSize := match (!typeArgs empty?()) {
+            case true =>  template typeArgs size + typeArgs size
+            case false => template typeArgs size
+        }
+
+        if (typeArgSize != spec typeArgs size) {
+            Exception new("You need to specify every generic and template argument for now (in #{this})") throw()
+        }
+
+        for ((i, typeArg) in spec typeArgs) {
+
+            // TODO: Generics first, typeArgs second
 
             name := template typeArgs get(i) getName()
             ref := typeArg getRef()
@@ -615,8 +622,6 @@ TypeDecl: abstract class extends Declaration {
                     "While generating instance #{instance}, added template arg #{name} => #{ref}" println()
                 }
             }
-
-            i += 1
         }
 
         // Let's clone our generic typeArgs
