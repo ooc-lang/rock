@@ -619,6 +619,12 @@ TypeDecl: abstract class extends Declaration {
             i += 1
         }
 
+        // Let's clone our generic typeArgs
+        // The vDecls are already there and get added in the next, so let's just add them to typeArgs
+        for (typeArg in typeArgs) {
+            instance typeArgs add(typeArg clone())
+        }
+
         for (variable in variables) {
             instance addVariable(variable clone())
         }
