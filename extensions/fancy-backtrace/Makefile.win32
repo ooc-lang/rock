@@ -3,7 +3,7 @@
 GCC ?= gcc
 
 # This is needed for some installs of MSYS/MinGW... don't ask.
-WIN_FLAGS:= -I/mingw/include -L/mingw/lib -I/usr/local/include -L/usr/local/lib
+WIN_FLAGS:= -I/mingw/include -L/mingw/lib -I/usr/local/include -L/usr/local/lib -L/mingw32/lib/binutils
 
 MINGW64_PRESENT := $(shell echo __MINGW64__ | cpp -E - | tail -1)
 

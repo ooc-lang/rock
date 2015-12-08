@@ -554,9 +554,11 @@ TypeDecl: abstract class extends Declaration {
         buffer := Buffer new()
         buffer append("__"). append(name)
 
-        for (i in 0..spec typeArgs size) {
+        genSize := typeArgs size
+
+        for (i in genSize .. spec typeArgs size) {
             theirs := spec typeArgs get(i)
-            ours   := template typeArgs get(i)
+            ours   := template typeArgs get(i - genSize)
 
             buffer append("__")
 
@@ -592,10 +594,8 @@ TypeDecl: abstract class extends Declaration {
         instance module = module
         instance setVersion(instance getVersion())
 
-        typeArgSize := match (!typeArgs empty?()) {
-            case true =>  template typeArgs size + typeArgs size
-            case false => template typeArgs size
-        }
+        typeArgSize := template typeArgs size + typeArgs size
+        genSize := typeArgs size
 
         if (typeArgSize != spec typeArgs size) {
             Exception new("You need to specify every generic and template argument for now (in #{this})") throw()
@@ -603,9 +603,13 @@ TypeDecl: abstract class extends Declaration {
 
         for ((i, typeArg) in spec typeArgs) {
 
-            // TODO: Generics first, typeArgs second
+            // Skip the generics, nothing to do.
+            if (i < genSize) {
+                continue
+            }
 
-            name := template typeArgs get(i) getName()
+            // Template time!
+            name := template typeArgs get(i - genSize) getName()
             ref := typeArg getRef()
 
             if (typeArg inner isGeneric()) {
