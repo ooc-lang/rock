@@ -613,6 +613,10 @@ TypeDecl: abstract class extends Declaration {
             case      => superType clone()
         }
 
+        if (newSuperType && newSuperType getRef()) {
+            newSuperType setRef(null)
+        }
+
         for ((i, typeArg) in spec typeArgs) {
             // Skip the generics, nothing to do.
             if (i < genSize) {
@@ -646,6 +650,7 @@ TypeDecl: abstract class extends Declaration {
         }
 
         if (newSuperType) {
+            // This doesn't use a fingerprint correctly :/
             instance setSuperType(newSuperType)
         }
 
@@ -772,6 +777,21 @@ TypeDecl: abstract class extends Declaration {
                 if (!response ok()) {
                     trail pop(this)
                     return response
+                }
+            }
+
+            // If our super type is a type template instance, we need to correctly find its metaclass
+            if (superType getRef()) {
+                superRef := superType getRef() as This
+                if (superRef templateParent) {
+                    fingerprint := superRef templateParent _getFingerprint(superType as BaseType)
+
+                    if (!isMeta) {
+                        metaType := BaseType new(fingerprint + "Class", superType as BaseType namespace, superType token)
+                        metaType ref = superRef getMeta()
+
+                        meta setSuperType(metaType)
+                    }
                 }
             }
 
