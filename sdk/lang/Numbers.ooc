@@ -1,5 +1,6 @@
 include stdlib, stdint, stddef, float, ctype, sys/types
-version(windows) {
+
+version (windows || apple) {
     include limits
 }
 

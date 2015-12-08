@@ -282,6 +282,11 @@ FunctionCall: class extends Expression {
                     if (!trail peek() replace(this, kid)) {
                         res throwError(CouldntReplace new(token, this, kid, trail))
                     }
+
+                    if (!mod slurps contains?(path)) {
+                        mod slurps add(path)
+                    }
+
                     res wholeAgain(this, "just unwrapped")
                     return Response OK
 
@@ -1271,7 +1276,7 @@ FunctionCall: class extends Expression {
                                         // We will find the index of our type arg name in the retType typeargs
                                         // Then match it to the type at that index of the argType
                                         returnTypeTypeargs := retType getTypeArgs()
-                                        for ((i, typeArg) in returnTypeTypeargs) {
+                                        if(returnTypeTypeargs) for ((i, typeArg) in returnTypeTypeargs) {
                                             if (typeArgName == typeArg getName()) {
                                                 // Match found!
                                                 finalScore = 0

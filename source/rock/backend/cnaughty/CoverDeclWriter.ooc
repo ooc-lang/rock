@@ -59,7 +59,7 @@ CoverDeclWriter: abstract class extends Skeleton {
     writeTypedef: static func (this: Skeleton, cDecl: CoverDecl) {
 
         if (cDecl template) {
-            for (instance in cDecl instances) {
+            if(cDecl instances) for (instance in cDecl instances) {
                 // write-typedef template instances
                 This writeTypedef(this, instance)
 
