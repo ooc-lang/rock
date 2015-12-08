@@ -40,7 +40,8 @@ ClassDecl: class extends TypeDecl {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
-        if(isMeta) {
+        // We MUST not resolve the type template
+        if(!template && isMeta) {
             meat := getNonMeta()
             isClass := meat class == ClassDecl
             isCover := meat class == CoverDecl

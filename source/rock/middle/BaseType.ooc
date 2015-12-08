@@ -143,6 +143,18 @@ BaseType: class extends Type {
                 node := trail get(depth, Node)
                 node resolveType(this, res, trail)
                 if (ref) {
+                    match ref {
+                        case tDecl: TypeDecl =>
+                            // This is a pretty ugly hack.
+                            // TODO: Try to infer template arguments the same way we do generics, do this more elegantly there.
+                            if (tDecl templateParent) {
+                                // We just got a template instance.
+                                // We wholeAgain to force it to be resolved.
+                                res wholeAgain(this, "Just got template instance, we need to resolve it")
+                            }
+                    }
+
+
                     break // break on first match
                 }
                 depth -= 1
@@ -165,7 +177,7 @@ BaseType: class extends Type {
             }
             return Response LOOP
         }
-        
+
         checkMismatchedTypeParams(trail, res)
 
         return Response OK

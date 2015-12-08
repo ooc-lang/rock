@@ -592,14 +592,13 @@ TypeDecl: abstract class extends Declaration {
             case ClassDecl =>
                 ClassDecl new(fingerprint, token)
             case =>
-                // TypeDecl new(fingerprint, token)
                 raise("Internal compiler error: Trying to instanciate type template that is neither class nor cover?...")
                 null as TypeDecl
         }
 
         instance templateParent = this
         instance module = module
-        instance setVersion(instance getVersion())
+        instance setVersion(getVersion())
 
         for ((i, typeArg) in spec typeArgs) {
             // Skip the generics, nothing to do.
@@ -696,11 +695,6 @@ TypeDecl: abstract class extends Declaration {
 
             // We don't want to resolve the type template.
             return Response OK
-        }
-
-        if (templateParent) {
-            "Yo, I'm here #{this}" println()
-            stdout flush()
         }
 
         trail push(this)
