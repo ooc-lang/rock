@@ -189,9 +189,6 @@ FunctionDeclWriter: abstract class extends Skeleton {
                             // c vararg
                             current app("...")
                         } else {
-                            // We segfault here (arg type is null)
-                            // (=fn)
-                            // It appears the instace cover is not resolved at all, just passed to the backend
                             current app(arg type)
                         }
                     }
