@@ -15,7 +15,7 @@ import ../middle/[FunctionDecl, VariableDecl, TypeDecl, ClassDecl, CoverDecl,
     Match, FlowControl, While, CharLiteral, InterfaceDecl, NamespaceDecl,
     Version, Use, Block, ArrayLiteral, EnumDecl, BaseType, FuncType,
     Declaration, PropertyDecl, CallChain, Tuple, Addon, Try, CommaSequence,
-    TemplateDef]
+    TemplateDef, SafeNavigation]
 
 nq_parse: extern proto func (AstBuilder, CString) -> Int
 
@@ -1278,6 +1278,23 @@ AstBuilder: class {
 
     onNullCoalescing: unmangled(nq_onNullCoalescing) func (left, right: Expression) -> BinaryOp {
         BinaryOp new(left, right, OpType nullCoal, token())
+    }
+
+    onSafeNavigationStart: unmangled(nq_onSafeNavigationStart) func (expr: Expression) {
+        safeNav := SafeNavigation new(expr, token())
+        stack push(safeNav)
+    }
+
+    onSafeNavigationSection: unmangled(nq_onSafeNavigationSection) func {
+        peek(SafeNavigation) sections add(ArrayList<String> new())
+    }
+
+    onSafeNavigationIdent: unmangled(nq_onSafeNavigationIdent) func (ident: CString) {
+        peek(SafeNavigation) sections last() add(ident toString())
+    }
+
+    onSafeNavigationEnd: unmangled(nq_onSafeNavigationEnd) func -> SafeNavigation {
+        pop(SafeNavigation)
     }
 
     onLogicalOr: unmangled(nq_onLogicalOr) func (left, right: Expression) -> BinaryOp {
