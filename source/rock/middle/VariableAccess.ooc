@@ -612,14 +612,23 @@ VariableAccess: class extends Expression {
 
         hasGenericTypeArgs := false
         for (typeArg in typeArgs) {
-            if (typeArg getRef() == null) {
-                res wholeAgain(this, "need ref of all typeArgs of our type")
-                return
-            }
+            // TODO: Sometimes Type typeArgs get a VariableDecl instead of a TypeAccess (see #895)
+            decl: Declaration
 
-            if (typeArg isGeneric()) {
-                hasGenericTypeArgs = true
-                break
+            match typeArg {
+                case vDecl: VariableDecl =>
+                    hasGenericTypeArgs = true
+                    break
+                case =>
+                    if (typeArg getRef() == null) {
+                        res wholeAgain(this, "need ref of all typeArgs of our type")
+                        return
+                    }
+
+                    if (typeArg isGeneric()) {
+                        hasGenericTypeArgs = true
+                        break
+                    }
             }
         }
 
