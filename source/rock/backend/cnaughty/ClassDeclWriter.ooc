@@ -15,9 +15,9 @@ ClassDeclWriter: abstract class extends Skeleton {
                 // write templates instances
                 This write(this, instance as ClassDecl)
 
-                meta := instance getMeta()
-                // write templates instances' meta
-                This write(this, meta)
+                if (instance hasMeta?() && instance getMeta()) {
+                    This write(this, instance getMeta())
+                }
             }
 
             // cover templates themselves are not written down, silly compilerbro

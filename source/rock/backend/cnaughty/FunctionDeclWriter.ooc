@@ -96,7 +96,6 @@ FunctionDeclWriter: abstract class extends Skeleton {
      * @see FunctionCallWriter
      */
     writeFuncArgs: static func (this: Skeleton, fDecl: FunctionDecl, mode: ArgsWriteMode, baseType: TypeDecl) {
-
         current app('(')
         isFirst := true
 
@@ -177,6 +176,7 @@ FunctionDeclWriter: abstract class extends Skeleton {
         /* Step 4 : write real args */
         while(iter hasNext?()) {
             arg := iter next()
+
             if(!isFirst) current app(", ")
             else isFirst = false
 
@@ -189,6 +189,9 @@ FunctionDeclWriter: abstract class extends Skeleton {
                             // c vararg
                             current app("...")
                         } else {
+                            // We segfault here (arg type is null)
+                            // (=fn)
+                            // It appears the instace cover is not resolved at all, just passed to the backend
                             current app(arg type)
                         }
                     }

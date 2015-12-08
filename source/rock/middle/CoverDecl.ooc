@@ -28,6 +28,10 @@ CoverDecl: class extends TypeDecl {
         true
     }
 
+    hasMeta?: func -> Bool {
+        !template
+    }
+
     accept: func (visitor: Visitor) { visitor visitCoverDecl(this) }
 
     setFromType: func (=fromType) {}
