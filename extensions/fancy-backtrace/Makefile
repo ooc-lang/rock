@@ -21,8 +21,6 @@ else ifeq ($(MYOS), CYGWIN_NT-5.1)
 else ifeq ($(MYOS), MINGW32_NT-5.1)
     ARCH=win
 else ifeq ($(MYOS), MINGW32_NT-6.1)
-	ARCH=win
-else ifeq ($(MYOS), MSYS_NT-6.1)
     ARCH=win
 else ifeq ($(MYOS),)
   ifeq (${OS}, Windows_NT)

@@ -573,6 +573,14 @@ TypeDecl: abstract class extends Declaration {
     }
 
     getTemplateInstance: func (spec: BaseType) -> TypeDecl {
+
+        typeArgSize := template typeArgs size + typeArgs size
+        genSize := typeArgs size
+
+        if (typeArgSize != spec typeArgs size) {
+            token module params errorHandler onError(TypeArgSizeMismatch new(typeArgSize, spec typeArgs size, spec token))
+        }
+
         fingerprint := _getFingerprint(spec)
 
         if (instances && instances contains?(fingerprint)) {
@@ -586,20 +594,13 @@ TypeDecl: abstract class extends Declaration {
                 ClassDecl new(fingerprint, token)
             case =>
                 // TypeDecl new(fingerprint, token)
-                // TODO: error here?
+                raise("Internal compiler error: Trying to instanciate type template that is neither class nor cover?...")
                 null as TypeDecl
         }
 
         instance templateParent = this
         instance module = module
         instance setVersion(instance getVersion())
-
-        typeArgSize := template typeArgs size + typeArgs size
-        genSize := typeArgs size
-
-        if (typeArgSize != spec typeArgs size) {
-            Exception new("You need to specify every generic and template argument for now (in #{this})") throw()
-        }
 
         for ((i, typeArg) in spec typeArgs) {
 
@@ -1358,3 +1359,10 @@ FinalInherit: class extends Error {
 
 }
 
+TypeArgSizeMismatch: class extends Error {
+    wanted, got: Int
+
+    init: func (=wanted, =got, .token) {
+        super(token, "For now, type templates need to be fully specified (first generics, then templates). Expected #{wanted} typeArgs, got #{got}")
+    }
+}
