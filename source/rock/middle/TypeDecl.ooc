@@ -37,6 +37,14 @@ TypeDecl: abstract class extends Declaration {
     templateParent: TypeDecl { get set }
 
     /**
+     * This is a mapping from our template arguments to indexes in the superType that descend form them.
+     * e.g. If we have Foo: class <U> template <T, V> extends Bar <Int, T>
+     * we will have a ["T" => 1] mapping.
+     * That way, when generating an instance, we can correctly generate a superType and its instance.
+     */
+    superTemplates: HashMap<String, Int>
+
+    /**
      * Generated type declaration of this type template
      */
     instances: HashMap<String, TypeDecl>
@@ -600,6 +608,11 @@ TypeDecl: abstract class extends Declaration {
         instance module = module
         instance setVersion(getVersion())
 
+        newSuperType := match superType {
+            case null => null as Type
+            case      => superType clone()
+        }
+
         for ((i, typeArg) in spec typeArgs) {
             // Skip the generics, nothing to do.
             if (i < genSize) {
@@ -620,10 +633,20 @@ TypeDecl: abstract class extends Declaration {
             } else {
                 instance templateArgs put(name, ref)
 
+                if (newSuperType != null && superTemplates != null) {
+                    if (superTemplates contains?(name)) {
+                        newSuperType getTypeArgs()[superTemplates[name]] = typeArg clone()
+                    }
+                }
+
                 if (token module params debugTemplates) {
                     "While generating instance #{instance}, added template arg #{name} => #{ref}" println()
                 }
             }
+        }
+
+        if (newSuperType) {
+            instance setSuperType(newSuperType)
         }
 
         // Let's clone our generic typeArgs
@@ -678,6 +701,26 @@ TypeDecl: abstract class extends Declaration {
         if (template) {
             if (token module params debugTemplates) {
                 "Resolving type template #{this}, templateDef = #{template}" println()
+            }
+
+            if (superType) {
+                superTypeArgs := superType getTypeArgs()
+
+                if (superTypeArgs) {
+                    superTemplates = HashMap<String, Int> new()
+
+                    // Find matches!
+                    for (tArg in template typeArgs) {
+                        for ((i, superTArg) in superTypeArgs) {
+                            match (superTArg inner) {
+                                case bType: BaseType =>
+                                    if (!bType typeArgs && bType name == tArg name) {
+                                        superTemplates put(tArg name, i)
+                                    }
+                            }
+                        }
+                    }
+                }
             }
 
             response := Response OK
