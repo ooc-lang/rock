@@ -102,9 +102,13 @@ Addon: class extends Node {
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
         if(base == null) {
+            // So, if we have typeArgs, we need to make sure that the generic ones are not actual types
+            // because we cannot extend a realized generic type but we must rather extend the whole type.
             typeArgs? := baseType getTypeArgs() != null && !baseType getTypeArgs() empty?()
 
-            // First, we will give the typeArgs that can't get one a dummy ref
+            // To get our base type's ref while using undefined typeArg types, we will point those to a
+            // dummy declaration.
+            // At the moment, we let the rest, that have a ref be, until we can get our base ref and do some checking.
             dummy := VariableDecl new(null, "dummy", token)
 
             if (typeArgs?) {
@@ -125,6 +129,9 @@ Addon: class extends Node {
                 base addons add(this)
 
                 if (typeArgs?) {
+                    // We will now check that all our generic typeArgs point to the dummy.
+                    // In addition to that, we build the typeArg mapping as described on its decl.
+
                     // Only go through generics, not templates
                     genSize := base typeArgs size
 
@@ -184,30 +191,33 @@ Addon: class extends Node {
         }
 
         finalResponse := Response OK
-        //trail push(base getMeta())
+
         trail push(this)
-        for(f in functions) {
+
+        for (f in functions) {
             response := f resolve(trail, res)
             if(!response ok()) {
                 finalResponse = response
             }
         }
-        for(p in properties) {
+
+        for (p in properties) {
             response := p resolve(trail, res)
             if(!response ok()) {
                 finalResponse = response
             } else {
                 // all functions of an addon are final, because we *definitely* don't have a 'class' field
-                if(p getter) p getter isFinal = true
-                if(p setter) p setter isFinal = true
+                if (p getter) p getter isFinal = true
+                if (p setter) p setter isFinal = true
             }
         }
-        //trail pop(base getMeta())
+
         trail pop(this)
 
         return finalResponse
     }
 
+    // These resolve methods are called back from TypeDecl.
     resolveCallFromClass: func (call : FunctionCall, res: Resolver, trail: Trail) -> Int {
         if(base == null) return 0
 
