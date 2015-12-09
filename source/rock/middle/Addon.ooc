@@ -301,6 +301,14 @@ Addon: class extends Node {
         0
     }
 
+    resolveCall: func (call: FunctionCall, res: Resolver, trail: Trail) -> Int {
+        if (base) {
+            return base getMeta() resolveCall(call, res, trail)
+        }
+
+        0
+    }
+
     toString: func -> String {
         "Addon of %s in module %s" format(baseType toString(), token module getFullName())
     }
