@@ -612,14 +612,21 @@ VariableAccess: class extends Expression {
 
         hasGenericTypeArgs := false
         for (typeArg in typeArgs) {
-            if (typeArg getRef() == null) {
-                res wholeAgain(this, "need ref of all typeArgs of our type")
-                return
-            }
+            // TODO: Sometimes Type typeArgs get a VariableDecl instead of a TypeAccess (see #895)
+            match typeArg {
+                case vDecl: VariableDecl =>
+                    hasGenericTypeArgs = true
+                    break
+                case =>
+                    if (typeArg getRef() == null) {
+                        res wholeAgain(this, "need ref of all typeArgs of our type")
+                        return
+                    }
 
-            if (typeArg isGeneric()) {
-                hasGenericTypeArgs = true
-                break
+                    if (typeArg isGeneric()) {
+                        hasGenericTypeArgs = true
+                        break
+                    }
             }
         }
 
@@ -706,8 +713,16 @@ VariableAccess: class extends Expression {
         replacedSome := false
 
         for ((i, typeArg) in typeArgs) {
+            // TODO: see #895
+            name := match typeArg {
+                case vDecl: VariableDecl =>
+                    vDecl name
+                case =>
+                    typeArg getName()
+            }
+
             finalScore := 0
-            realType := exprType searchTypeArg(typeArg getName(), finalScore&)
+            realType := exprType searchTypeArg(name, finalScore&)
 
             if (finalScore == -1) {
                 // try again next time!

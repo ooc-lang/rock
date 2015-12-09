@@ -201,7 +201,7 @@ AstBuilder: class {
 
     onTemplateEnd: unmangled(nq_onTemplateEnd) func {
         tDef := pop(TemplateDef)
-        cDecl := peek(CoverDecl)
+        cDecl := peek(TypeDecl)
         cDecl template = tDef
     }
 

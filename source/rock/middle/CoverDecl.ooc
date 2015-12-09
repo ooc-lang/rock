@@ -6,19 +6,13 @@ import ../io/TabbedWriter
 // our stuff
 import ../frontend/[Token, BuildParams]
 import Expression, Type, Visitor, TypeDecl, Node, FunctionDecl,
-       FunctionCall, VariableAccess, TemplateDef, BaseType, VariableDecl
+       FunctionCall, VariableAccess, BaseType, VariableDecl
 import tinker/[Response, Resolver, Trail, Errors]
 
 CoverDecl: class extends TypeDecl {
-
     fromType: Type
     isProto: Bool
     isGenerated := false
-
-    template: TemplateDef { get set }
-    templateParent: CoverDecl { get set }
-
-    instances: HashMap<String, CoverDecl>
 
     fromClosure := false
 
@@ -32,6 +26,10 @@ CoverDecl: class extends TypeDecl {
 
     isPrimitiveType: func -> Bool {
         true
+    }
+
+    hasMeta?: func -> Bool {
+        !template
     }
 
     accept: func (visitor: Visitor) { visitor visitCoverDecl(this) }
@@ -52,36 +50,21 @@ CoverDecl: class extends TypeDecl {
             "Resolving CoverDecl #{this}, template = #{template ? template toString() : "<none>"}" println()
         }
 
-        if (template) {
-            response := Response OK
+        // resolve the body, methods, arguments
+        response := super(trail, res)
+        if(!response ok()) return response
 
-            if (instances) for (instance in instances) {
-                if (debugCondition()) {
-                    "Resolving instance #{instance}" println()
-                }
-                response = instance resolve(trail, res)
-
-                if (!response ok()) {
-                    return response
-                }
+        if(fromType) {
+            trail push(this)
+            response := fromType resolve(trail, res)
+            if(!response ok()) {
+                fromType setRef(BuiltinType new(fromType getName(), nullToken))
             }
-        } else {
-            // resolve the body, methods, arguments
-            response := super(trail, res)
-            if(!response ok()) return response
 
-            if(fromType) {
-                trail push(this)
-                response := fromType resolve(trail, res)
-                if(!response ok()) {
-                    fromType setRef(BuiltinType new(fromType getName(), nullToken))
-                }
-
-                if(fromType getRef() != null) {
-                    fromType checkedDig(res)
-                }
-                trail pop(this)
+            if(fromType getRef() != null) {
+                fromType checkedDig(res)
             }
+            trail pop(this)
         }
 
         return Response OK
@@ -126,107 +109,6 @@ CoverDecl: class extends TypeDecl {
             return super(access, res, trail)
         }
         0
-    }
-
-    hasMeta?: func -> Bool {
-        if (debugCondition()) {
-            "hasMeta called, they want %s / %p back" printfln(toString(), template)
-        }
-
-        // templates have no meta-class. Like, none at all.
-        !template
-    }
-
-    _getFingerprint: func (spec: BaseType) -> String {
-        buffer := Buffer new()
-        buffer append("__"). append(name)
-
-        for (i in 0..spec typeArgs size) {
-            theirs := spec typeArgs get(i)
-            ours   := template typeArgs get(i)
-
-            buffer append("__")
-
-            if (theirs inner isGeneric()) {
-                buffer append(ours getName())
-            } else {
-                buffer append(theirs getName())
-            }
-        }
-
-        buffer toString()
-    }
-
-    getTemplateInstance: func (spec: BaseType) -> CoverDecl {
-        fingerprint := _getFingerprint(spec)
-
-        if (instances && instances contains?(fingerprint)) {
-            return instances get(fingerprint)
-        }
-
-        instance := This new(fingerprint, token)
-        instance templateParent = this
-        instance module = module
-        instance setVersion(instance getVersion())
-
-        i := 0
-        for (typeArg in spec typeArgs) {
-            if (i >= template typeArgs size) {
-                Exception new("Too many template args for %s" format(toString())) throw()
-            }
-
-            name := template typeArgs get(i) getName()
-            ref := typeArg getRef()
-
-            if (typeArg inner isGeneric()) {
-                thisRef := VariableDecl new(typeArg inner getRef() getType(), name, spec token)
-                instance addTypeArg(thisRef)
-            } else {
-                instance templateArgs put(name, ref)
-            }
-
-            i += 1
-        }
-
-        for (variable in variables) {
-            instance addVariable(variable clone())
-        }
-
-        for (oDecl in operators) {
-            instance addOperator(oDecl clone())
-        }
-
-        for (fDecl in getMeta() functions) {
-            if (fDecl oDecl) {
-                // already been added at last step
-                continue
-            }
-
-            if (fDecl autoNew) {
-                // let autoNew do its thing in CoverDecl
-                continue
-            }
-
-            fDeclClone := fDecl clone()
-            fDeclClone owner = null
-
-            instance addFunction(fDeclClone)
-        }
-
-        if (!instances) {
-            instances = HashMap<String, CoverDecl> new()
-        }
-
-        if (token module params debugTemplates) {
-            "Instanciated #{fingerprint} => #{instance}" println()
-            meta := instance getMeta()
-            for (f in meta functions) {
-                "- #{f}" println()
-            }
-        }
-        instances put(fingerprint, instance)
-
-        instance
     }
 
     writeSize: func (w: TabbedWriter, instance: Bool) {

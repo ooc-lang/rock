@@ -9,7 +9,7 @@ CoverDeclWriter: abstract class extends Skeleton {
         if (cDecl template) {
             if (cDecl instances) for (instance in cDecl instances) {
                 // write templates instances
-                This write(this, instance)
+                This write(this, instance as CoverDecl)
 
                 meta := instance getMeta()
                 // write templates instances' meta
@@ -61,7 +61,7 @@ CoverDeclWriter: abstract class extends Skeleton {
         if (cDecl template) {
             if(cDecl instances) for (instance in cDecl instances) {
                 // write-typedef template instances
-                This writeTypedef(this, instance)
+                This writeTypedef(this, instance as CoverDecl)
 
                 meta := instance getMeta()
                 // write-typedef template instances' meta

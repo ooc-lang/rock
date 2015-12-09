@@ -4,7 +4,7 @@ import ../io/TabbedWriter
 import Expression, Type, Visitor, Declaration, VariableDecl, ClassDecl,
     FunctionDecl, FunctionCall, Module, VariableAccess, Node,
     InterfaceImpl, Version, EnumDecl, BaseType, FuncType, OperatorDecl,
-    Addon, Cast, PropertyDecl, CoverDecl
+    Addon, Cast, PropertyDecl, CoverDecl, TemplateDef
 import tinker/[Resolver, Response, Trail, Errors]
 
 /**
@@ -24,6 +24,30 @@ TypeDecl: abstract class extends Declaration {
     prettyName: String { get {
       unbangify(name)
     } }
+
+
+    /**
+     * Template definition (a list of declarations, much like typeArgs)
+     */
+    template: TemplateDef { get set }
+
+    /**
+     * Type template this type declaration was generated from, if it was indeed generated
+     */
+    templateParent: TypeDecl { get set }
+
+    /**
+     * This is a mapping from our template arguments to indexes in the superType that descend form them.
+     * e.g. If we have Foo: class <U> template <T, V> extends Bar <Int, T>
+     * we will have a ["T" => 1] mapping.
+     * That way, when generating an instance, we can correctly generate a superType and its instance.
+     */
+    superTemplates: HashMap<String, Int>
+
+    /**
+     * Generated type declaration of this type template
+     */
+    instances: HashMap<String, TypeDecl>
 
     /**
      * Generic type args, e.g. the T in 'List: class <T>'
@@ -196,7 +220,13 @@ TypeDecl: abstract class extends Declaration {
     getInterfaceDecls: func -> List<InterfaceImpl> { interfaceDecls }
 
     hasMeta?: func -> Bool {
-        !isMeta
+        if (debugCondition()) {
+            "hasMeta called, they want %s / %p back" printfln(toString(), template)
+        }
+
+        // Type templates have no metaclass!
+        // Otherwise, check if we already are the meta.
+        !template && !isMeta
     }
 
     addFunction: func (fDecl: FunctionDecl) {
@@ -524,7 +554,196 @@ TypeDecl: abstract class extends Declaration {
 
     }
 
+
+    /**
+     * Generates the name (fingerprint) of a type template instance from a realized type.
+     */
+    _getFingerprint: func (spec: BaseType) -> String {
+        buffer := Buffer new()
+        buffer append("__"). append(name)
+
+        genSize := typeArgs size
+
+        for (i in genSize .. spec typeArgs size) {
+            theirs := spec typeArgs get(i)
+            ours   := template typeArgs get(i - genSize)
+
+            buffer append("__")
+
+            if (theirs inner isGeneric()) {
+                buffer append(ours getName())
+            } else {
+                buffer append(theirs getName())
+            }
+        }
+
+        buffer toString()
+    }
+
+    getTemplateInstance: func (spec: BaseType) -> TypeDecl {
+        typeArgSize := template typeArgs size + typeArgs size
+        genSize := typeArgs size
+
+        if (typeArgSize != spec typeArgs size) {
+            token module params errorHandler onError(TypeArgSizeMismatch new(typeArgSize, spec typeArgs size, spec token))
+        }
+
+        fingerprint := _getFingerprint(spec)
+
+        if (instances && instances contains?(fingerprint)) {
+            return instances get(fingerprint)
+        }
+
+        instance := match class {
+            case CoverDecl =>
+                CoverDecl new(fingerprint, token)
+            case ClassDecl =>
+                ClassDecl new(fingerprint, token)
+            case =>
+                raise("Internal compiler error: Trying to instanciate type template that is neither class nor cover?...")
+                null as TypeDecl
+        }
+
+        instance templateParent = this
+        instance module = module
+        instance setVersion(getVersion())
+
+        newSuperType := match superType {
+            case null => null as Type
+            case      => superType clone()
+        }
+
+        if (newSuperType && newSuperType getRef()) {
+            newSuperType setRef(null)
+        }
+
+        for ((i, typeArg) in spec typeArgs) {
+            // Skip the generics, nothing to do.
+            if (i < genSize) {
+                continue
+            }
+
+            // Template time!
+            name := template typeArgs get(i - genSize) getName()
+            ref := typeArg getRef()
+
+            if (typeArg inner isGeneric()) {
+                thisRef := VariableDecl new(typeArg inner getRef() getType(), name, spec token)
+                instance addTypeArg(thisRef)
+
+                if (token module params debugTemplates) {
+                    "While generating instance #{instance}, added type arg #{thisRef}" println()
+                }
+            } else {
+                instance templateArgs put(name, ref)
+
+                if (newSuperType != null && superTemplates != null) {
+                    if (superTemplates contains?(name)) {
+                        newSuperType getTypeArgs()[superTemplates[name]] = typeArg clone()
+                    }
+                }
+
+                if (token module params debugTemplates) {
+                    "While generating instance #{instance}, added template arg #{name} => #{ref}" println()
+                }
+            }
+        }
+
+        if (newSuperType) {
+            // This doesn't use a fingerprint correctly :/
+            instance setSuperType(newSuperType)
+        }
+
+        // Let's clone our generic typeArgs
+        // The vDecls are already there and get added in the next, so let's just add them to typeArgs
+        for (typeArg in typeArgs) {
+            instance typeArgs add(typeArg clone())
+        }
+
+        for (variable in variables) {
+            instance addVariable(variable clone())
+        }
+
+        for (oDecl in operators) {
+            instance addOperator(oDecl clone())
+        }
+
+        for (fDecl in getMeta() functions) {
+            if (fDecl oDecl) {
+                // already been added at last step
+                continue
+            }
+
+            if (fDecl autoNew) {
+                // let autoNew do its thing in CoverDecl
+                continue
+            }
+
+            fDeclClone := fDecl clone()
+            fDeclClone owner = null
+
+            instance addFunction(fDeclClone)
+        }
+
+        if (!instances) {
+            instances = HashMap<String, CoverDecl> new()
+        }
+
+        if (token module params debugTemplates) {
+            "Instanciated #{fingerprint} => #{instance}" println()
+            meta := instance getMeta()
+            for (f in meta functions) {
+                "- #{f}" println()
+            }
+        }
+        instances put(fingerprint, instance)
+
+        instance
+    }
+
     resolve: func (trail: Trail, res: Resolver) -> Response {
+
+        if (template) {
+            if (token module params debugTemplates) {
+                "Resolving type template #{this}, templateDef = #{template}" println()
+            }
+
+            if (superType) {
+                superTypeArgs := superType getTypeArgs()
+
+                if (superTypeArgs) {
+                    superTemplates = HashMap<String, Int> new()
+
+                    // Find matches!
+                    for (tArg in template typeArgs) {
+                        for ((i, superTArg) in superTypeArgs) {
+                            match (superTArg inner) {
+                                case bType: BaseType =>
+                                    if (!bType typeArgs && bType name == tArg name) {
+                                        superTemplates put(tArg name, i)
+                                    }
+                            }
+                        }
+                    }
+                }
+            }
+
+            response := Response OK
+
+            if (instances) for (instance in instances) {
+                if (debugCondition() || token module params debugTemplates) {
+                    "Resolving instance #{instance}" println()
+                }
+                response = instance resolve(trail, res)
+
+                if (!response ok()) {
+                    return response
+                }
+            }
+
+            // We don't want to resolve the type template.
+            return Response OK
+        }
 
         trail push(this)
 
@@ -558,6 +777,21 @@ TypeDecl: abstract class extends Declaration {
                 if (!response ok()) {
                     trail pop(this)
                     return response
+                }
+            }
+
+            // If our super type is a type template instance, we need to correctly find its metaclass
+            if (superType getRef()) {
+                superRef := superType getRef() as This
+                if (superRef templateParent) {
+                    fingerprint := superRef templateParent _getFingerprint(superType as BaseType)
+
+                    if (!isMeta) {
+                        metaType := BaseType new(fingerprint + "Class", superType as BaseType namespace, superType token)
+                        metaType ref = superRef getMeta()
+
+                        meta setSuperType(metaType)
+                    }
                 }
             }
 
@@ -1185,3 +1419,10 @@ FinalInherit: class extends Error {
 
 }
 
+TypeArgSizeMismatch: class extends Error {
+    wanted, got: Int
+
+    init: func (=wanted, =got, .token) {
+        super(token, "For now, type templates need to be fully specified (first generics, then templates). Expected #{wanted} typeArgs, got #{got}")
+    }
+}

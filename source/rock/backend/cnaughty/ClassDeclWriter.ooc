@@ -10,6 +10,20 @@ ClassDeclWriter: abstract class extends Skeleton {
 
     write: static func ~_class (this: Skeleton, cDecl: ClassDecl) {
 
+        if (cDecl template) {
+            if (cDecl instances) for (instance in cDecl instances) {
+                // write templates instances
+                This write(this, instance as ClassDecl)
+
+                if (instance hasMeta?() && instance getMeta()) {
+                    This write(this, instance getMeta())
+                }
+            }
+
+            // cover templates themselves are not written down, silly compilerbro
+            return
+        }
+
         if(cDecl isMeta) {
 
             current = hw
@@ -256,6 +270,11 @@ ClassDeclWriter: abstract class extends Skeleton {
         if(superType != null && superType getTypeArgs() != null) {
             j := 0
             for(typeArg in superType getTypeArgs()) {
+                // Only do this for generics, not templates
+                if (j >= superRef typeArgs size) {
+                    break
+                }
+
                 refTypeArg := superRef getTypeArgs() get(j)
 
                 shouldAssign := true
@@ -445,6 +464,19 @@ ClassDeclWriter: abstract class extends Skeleton {
     }
 
     writeStructTypedef: static func (this: Skeleton, cDecl: ClassDecl) {
+        if (cDecl template) {
+            if (cDecl instances) for (instance in cDecl instances) {
+                // write templates instances
+                This writeStructTypedef(this, instance as ClassDecl)
+
+                meta := instance getMeta()
+                // write templates instances' meta
+                This writeStructTypedef(this, meta)
+            }
+
+            // cover templates themselves are not written down, silly compilerbro
+            return
+        }
 
         structName := cDecl underName()
         if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
