@@ -1,6 +1,7 @@
 import structs/[List, ArrayList, HashMap, MultiMap]
 import Node, Type, TypeDecl, FunctionDecl, FunctionCall, Visitor, VariableAccess, PropertyDecl, ClassDecl, CoverDecl, BaseType, VariableDecl
 import tinker/[Trail, Resolver, Response, Errors]
+import ../frontend/Token
 
 /**
  * An addon is a collection of methods added to a type via the 'extend'
@@ -28,6 +29,10 @@ Addon: class extends Node {
     // For example, if we 'extend Foo <K>' and Foo was defined as a class <T>
     // we will have a "K" -> T: Class mapping
     typeArgMapping: HashMap<String, VariableDecl>
+
+    // Illegal generics are the symbols that appear in the generics of our ref
+    // AND do not appear in the generics of our baseType.
+    illegalGenerics: ArrayList<String>
 
     functions := MultiMap<String, FunctionDecl> new()
 
@@ -125,6 +130,11 @@ Addon: class extends Node {
 
                     typeArgMapping = HashMap<String, VariableDecl> new()
 
+                    // Start off by making all the ref generics illegal, remove as we go
+                    illegalGenerics = base typeArgs map(|ta|
+                        ta name
+                    )
+
                     for ((i, typeArg) in baseType getTypeArgs()) {
                         if (i >= genSize) {
                             break
@@ -141,6 +151,12 @@ Addon: class extends Node {
                         typeArg setRef(genDecl)
 
                         typeArgMapping put(typeArg getName(), genDecl)
+
+                        index := illegalGenerics indexOf(typeArg getName())
+                        if (index != -1) {
+                            illegalGenerics removeAt(index)
+                        }
+
                     }
                 }
 
@@ -168,7 +184,8 @@ Addon: class extends Node {
         }
 
         finalResponse := Response OK
-        trail push(base getMeta())
+        //trail push(base getMeta())
+        trail push(this)
         for(f in functions) {
             response := f resolve(trail, res)
             if(!response ok()) {
@@ -185,12 +202,13 @@ Addon: class extends Node {
                 if(p setter) p setter isFinal = true
             }
         }
-        trail pop(base getMeta())
+        //trail pop(base getMeta())
+        trail pop(this)
 
         return finalResponse
     }
 
-    resolveCall: func (call : FunctionCall, res: Resolver, trail: Trail) -> Int {
+    resolveCallFromClass: func (call : FunctionCall, res: Resolver, trail: Trail) -> Int {
         if(base == null) return 0
 
         functions getEach(call name, |fDecl|
@@ -210,7 +228,7 @@ Addon: class extends Node {
         return 0
     }
 
-    resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
+    resolveAccessFromClass: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
         if(base == null) return 0
 
         vDecl := properties[access name]
@@ -222,6 +240,62 @@ Addon: class extends Node {
                     res throwError(ExtendFieldDefinition new(vDecl token, "Property tries to define a field in type extension." ))
                 }
             }
+        }
+
+        0
+    }
+
+    _checkInIllegal: func (name: String, tok: Token, res: Resolver) -> Bool {
+        if (illegalGenerics && illegalGenerics contains?(name)) {
+            // If we got up the trail so match, we didn't get any match sooner, so we error out immediately.
+            ours: String = "<unknown>"
+            typeArgMapping each(|src, dist|
+                if (dist name == name) {
+                    ours = src
+                }
+            )
+
+            res throwError(IllegalGenericAccess new(name, ours, tok))
+            return true
+        }
+
+        false
+    }
+
+    // These resolve functions are here to intercept attempts to use illegal generics or
+    // generics we have a mapping for.
+    // Then, they give up and let the base do its thing
+    resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
+        if (_checkInIllegal(access name, access token, res)) {
+            return -1
+        }
+
+        if (typeArgMapping && typeArgMapping contains?(access name)) {
+            if (access suggest(typeArgMapping[access name])) {
+                return 0
+            }
+        }
+
+        if (base) {
+            return base resolveAccess(access, res, trail)
+        }
+
+        0
+    }
+
+    resolveType: func (type: BaseType, res: Resolver, trail: Trail) -> Int {
+        if (_checkInIllegal(type name, type token, res)) {
+            return -1
+        }
+
+        if (typeArgMapping && typeArgMapping contains?(type name)) {
+            if (type suggest(typeArgMapping[type name])) {
+                return 0
+            }
+        }
+
+        if (base) {
+            return base resolveType(type, res, trail)
         }
 
         0
@@ -242,5 +316,13 @@ ExtendRealizedGeneric: class extends Error {
 
     init: func (=baseType, =realizedType, .token) {
         super(token, "Trying to extend type #{baseType} with realized generic #{realizedType}, which is unsupported.")
+    }
+}
+
+IllegalGenericAccess: class extends Error {
+    illegalGeneric, ourGeneric: String
+
+    init: func (=illegalGeneric, =ourGeneric, .token) {
+        super(token, "Trying to use generic argument '#{illegalGeneric}', which is defined in base declaration but not the addon. You should use '#{ourGeneric}' instead.")
     }
 }
