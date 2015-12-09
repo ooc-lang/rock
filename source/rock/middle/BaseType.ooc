@@ -208,7 +208,20 @@ BaseType: class extends Type {
                     return
                 }
 
-                numDeclTypeArgs := tDecl getTypeArgs() getSize()
+
+                templateSize := match (tDecl template) {
+                    case null => match (tDecl templateParent) {
+                        case null => 0
+                        case      => match (name != tDecl name) {
+                                        case true => tDecl templateArgs getSize()
+                                        case      => 0
+                                    }
+                    }
+                    case      => tDecl template typeArgs size
+                }
+
+                numDeclTypeArgs := tDecl getTypeArgs() getSize() + templateSize
+
                 numTypeArgs := typeArgs == null ? 0 : typeArgs size
 
                 if (numTypeArgs != numDeclTypeArgs) {
