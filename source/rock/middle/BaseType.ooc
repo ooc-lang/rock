@@ -5,7 +5,7 @@ import tinker/[Response, Resolver, Trail, Errors]
 
 import Type, Declaration, VariableAccess, VariableDecl, TypeDecl,
        InterfaceDecl, Node, ClassDecl, CoverDecl, Cast, FuncType,
-       FunctionCall, Module, NamespaceDecl, Match
+       FunctionCall, Module, NamespaceDecl, Match, TemplateDef
 
 /**
  * BaseType(s) are types that are neither pointers, nor references.
@@ -328,6 +328,67 @@ BaseType: class extends Type {
         // compare generic type arguments
         lhsTypeArgs := getTypeArgs()
         rhsTypeArgs := other getTypeArgs()
+
+        // If both are template instances then we are lenient about typeArgs.
+        // We allow the difference of typeArgs to be exactly as many template args
+        // as there exist.
+
+        match ourRef {
+            case ourTD: TypeDecl =>
+                match hisRef {
+                    case hisTD: TypeDecl =>
+                        if (ourTD templateParent && hisTD templateParent && ourTD == hisTD) {
+                            // If both have template parents and the same ref, these are of the same instance.
+                            // All we need to do is compare the generics, if any.
+
+                            ourTArgSize := match lhsTypeArgs {
+                                case null => 0
+                                case      => lhsTypeArgs size
+                            }
+
+                            hisTArgSize := match rhsTypeArgs {
+                                case null => 0
+                                case      => rhsTypeArgs size
+                            }
+
+                            templateCount := ourTD templateParent template typeArgs size
+                            typeArgDiff := (ourTArgSize - hisTArgSize) abs()
+
+                            weSmaller? := (ourTArgSize - hisTArgSize) < 0
+
+                            if (typeArgDiff != templateCount && typeArgDiff != 0) {
+                                raise("Internal error: Two types of the same template instance with typeArg count difference #{typeArgDiff} (template count is #{templateCount})")
+                            }
+
+                            genSize := ourTArgSize - match weSmaller? {
+                                case true => 0
+                                case      => typeArgDiff
+                            }
+
+                            // assert (ourGenSize == hisGenSize)
+                            for (i in 0 .. genSize) {
+                                ourGen := lhsTypeArgs[i]
+                                hisGen := rhsTypeArgs[i]
+
+                                if (ourGen == null || hisGen == null) {
+                                    return -1
+                                }
+
+                                innerScore := ourGen getScore(hisGen)
+                                if (innerScore < 0) {
+                                    if (superType) {
+                                        return superType getScore(other)
+                                    } else {
+                                        return innerScore
+                                    }
+                                }
+                            }
+
+                            // We passed everything with positive scores, let's just call it a perfect match :) (TODO: this should take generic scores into account)
+                            return scoreSeed
+                        }
+                }
+        }
 
         // one has, other doesn't? no luck
         if ((lhsTypeArgs == null) != (rhsTypeArgs == null)) {
