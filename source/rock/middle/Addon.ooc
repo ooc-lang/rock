@@ -1,5 +1,5 @@
 import structs/[List, ArrayList, HashMap, MultiMap]
-import Node, Type, TypeDecl, FunctionDecl, FunctionCall, Visitor, VariableAccess, PropertyDecl, ClassDecl, CoverDecl, BaseType
+import Node, Type, TypeDecl, FunctionDecl, FunctionCall, Visitor, VariableAccess, PropertyDecl, ClassDecl, CoverDecl, BaseType, VariableDecl
 import tinker/[Trail, Resolver, Response, Errors]
 
 /**
@@ -24,8 +24,10 @@ Addon: class extends Node {
 
     base: TypeDecl { get set }
 
-    // typeArgs of our baseType
-    typeArgs: List<TypeAccess>
+    // Map of name -> VariableDecl of our typeArgs to our classe's
+    // For example, if we 'extend Foo <K>' and Foo was defined as a class <T>
+    // we will have a "K" -> T: Class mapping
+    typeArgMapping: HashMap<String, VariableDecl>
 
     functions := MultiMap<String, FunctionDecl> new()
 
@@ -94,53 +96,55 @@ Addon: class extends Node {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-
         if(base == null) {
+            typeArgs? := baseType getTypeArgs() != null && !baseType getTypeArgs() empty?()
 
-            // If we have a base type base, then we will do somehting a little bit special.
-            // We will take its typeArgs off, resolve it that way, then resolve through the generic typeArgs
-            // and error out if they can get a ref (we want to extend generically, can't extend a realized type)
-            typeArgs = match baseType {
-                case bt: BaseType =>
-                    typeArgs := bt typeArgs
-                    bt = bt clone()
-                    bt typeArgs = null
-                    typeArgs
-                case =>
-                    null
+            // First, we will give the typeArgs that can't get one a dummy ref
+            dummy := VariableDecl new(null, "dummy", token)
+
+            if (typeArgs?) {
+                for (typeArg in baseType getTypeArgs()) {
+                    typeArg resolve(trail, res)
+
+                    if (!typeArg getRef()) {
+                        typeArg setRef(dummy)
+                    }
+                }
             }
 
             baseType resolve(trail, res)
 
-            if(baseType isResolved()) {
+            if (baseType isResolved()) {
                 base = baseType getRef() as TypeDecl
                 checkRedefinitions(trail, res)
                 base addons add(this)
 
-                if (typeArgs) {
-                    // Only go through generics, not templates too
-
-                    // But first, let's check our count
-                    // baseTArgCount := base typeArgs size + match (base templateParent)
-
+                if (typeArgs?) {
+                    // Only go through generics, not templates
                     genSize := base typeArgs size
 
-                    for ((i, typeArg) in typeArgs) {
+                    typeArgMapping = HashMap<String, VariableDecl> new()
+
+                    for ((i, typeArg) in baseType getTypeArgs()) {
                         if (i >= genSize) {
                             break
                         }
 
-                        typeArg resolve(trail, res)
-
-                        // Matched against a typeDecl, not good
-                        if (typeArg getRef() != null) {
+                        // Matched against a declaration, not good
+                        if (typeArg getRef() != dummy) {
                             res throwError(ExtendRealizedGeneric new(baseType, typeArg, token))
                             return Response OK
                         }
+
+                        // We "link" the type ourselves, to our base's generics.
+                        genDecl := base typeArgs get(i)
+                        typeArg setRef(genDecl)
+
+                        typeArgMapping put(typeArg getName(), genDecl)
                     }
                 }
 
-                for(fDecl in functions) {
+                for (fDecl in functions) {
                     if(fDecl name == "init" && (base instanceOf?(ClassDecl) || base instanceOf?(CoverDecl))) {
                         if(base instanceOf?(ClassDecl)) base as ClassDecl addInit(fDecl)
                         else base getMeta() addInit(fDecl)
@@ -148,7 +152,7 @@ Addon: class extends Node {
                     fDecl setOwner(base)
                 }
 
-                for(prop in properties) {
+                for (prop in properties) {
                     old := base getVariable(prop name)
                     if(old) token module params errorHandler onError(DuplicateField new(old, prop))
                     prop owner = base
