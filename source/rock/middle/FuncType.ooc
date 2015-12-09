@@ -88,7 +88,13 @@ FuncType: class extends Type {
         copy
     }
 
-    getTypeArgs: func -> List<VariableDecl> { typeArgs }
+    getTypeArgs: func -> List<TypeAccess> {
+        if(typeArgs) {
+            typeArgs map(|targ| TypeAccess new(targ, targ token))
+        } else {
+            null
+        }
+    }
 
     addTypeArg: func (typeArg: VariableDecl) -> Bool {
         if(!typeArgs) typeArgs = ArrayList<VariableDecl> new()
