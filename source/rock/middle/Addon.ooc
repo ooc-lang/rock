@@ -1,5 +1,5 @@
-import structs/[ArrayList, HashMap, MultiMap]
-import Node, Type, TypeDecl, FunctionDecl, FunctionCall, Visitor, VariableAccess, PropertyDecl, ClassDecl, CoverDecl
+import structs/[List, ArrayList, HashMap, MultiMap]
+import Node, Type, TypeDecl, FunctionDecl, FunctionCall, Visitor, VariableAccess, PropertyDecl, ClassDecl, CoverDecl, BaseType
 import tinker/[Trail, Resolver, Response, Errors]
 
 /**
@@ -23,6 +23,9 @@ Addon: class extends Node {
     baseType: Type
 
     base: TypeDecl { get set }
+
+    // typeArgs of our baseType
+    typeArgs: List<TypeAccess>
 
     functions := MultiMap<String, FunctionDecl> new()
 
@@ -93,11 +96,49 @@ Addon: class extends Node {
     resolve: func (trail: Trail, res: Resolver) -> Response {
 
         if(base == null) {
+
+            // If we have a base type base, then we will do somehting a little bit special.
+            // We will take its typeArgs off, resolve it that way, then resolve through the generic typeArgs
+            // and error out if they can get a ref (we want to extend generically, can't extend a realized type)
+            typeArgs = match baseType {
+                case bt: BaseType =>
+                    typeArgs := bt typeArgs
+                    bt = bt clone()
+                    bt typeArgs = null
+                    typeArgs
+                case =>
+                    null
+            }
+
             baseType resolve(trail, res)
+
             if(baseType isResolved()) {
                 base = baseType getRef() as TypeDecl
                 checkRedefinitions(trail, res)
                 base addons add(this)
+
+                if (typeArgs) {
+                    // Only go through generics, not templates too
+
+                    // But first, let's check our count
+                    // baseTArgCount := base typeArgs size + match (base templateParent)
+
+                    genSize := base typeArgs size
+
+                    for ((i, typeArg) in typeArgs) {
+                        if (i >= genSize) {
+                            break
+                        }
+
+                        typeArg resolve(trail, res)
+
+                        // Matched against a typeDecl, not good
+                        if (typeArg getRef() != null) {
+                            res throwError(ExtendRealizedGeneric new(baseType, typeArg, token))
+                            return Response OK
+                        }
+                    }
+                }
 
                 for(fDecl in functions) {
                     if(fDecl name == "init" && (base instanceOf?(ClassDecl) || base instanceOf?(CoverDecl))) {
@@ -190,4 +231,12 @@ Addon: class extends Node {
 
 ExtendFieldDefinition: class extends Error {
     init: super func ~tokenMessage
+}
+
+ExtendRealizedGeneric: class extends Error {
+    baseType, realizedType: Type
+
+    init: func (=baseType, =realizedType, .token) {
+        super(token, "Trying to extend type #{baseType} with realized generic #{realizedType}, which is unsupported.")
+    }
 }
