@@ -274,13 +274,22 @@ Addon: class extends Node {
 
     // These resolve functions are here to intercept attempts to use illegal generics or
     // generics we have a mapping for.
-    // Then, they give up and let the base do its thing
+    // Then, they give up and let the base do its thing.
+
     resolveAccess: func (access: VariableAccess, res: Resolver, trail: Trail) -> Int {
-        if (_checkInIllegal(access name, access token, res)) {
+        // This is true if we are accessing a field, false otherwise
+        thisAccess? := access expr == null || match (access expr) {
+            case va: VariableAccess =>
+                va name == "this"
+            case =>
+                false
+        }
+
+        if (thisAccess? && _checkInIllegal(access name, access token, res)) {
             return -1
         }
 
-        if (typeArgMapping && typeArgMapping contains?(access name)) {
+        if (thisAccess? && typeArgMapping && typeArgMapping contains?(access name)) {
             if (access suggest(typeArgMapping[access name])) {
                 return 0
             }
