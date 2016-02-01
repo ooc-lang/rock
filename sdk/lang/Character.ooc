@@ -195,7 +195,7 @@ CString: cover from Char* {
     equals?: func( other: This) -> Bool {
         if (other == null) return false
         l := length()
-        l2 := length()
+        l2 := other length()
         if (l != l2) return false
 
         for (i in 0..l) {
