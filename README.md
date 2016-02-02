@@ -1,9 +1,9 @@
-[![Build Status](https://travis-ci.org/fasterthanlime/rock.svg?branch=master)](https://travis-ci.org/fasterthanlime/rock)
+[![Build Status](https://travis-ci.org/ooc-lang/rock.svg?branch=master)](https://travis-ci.org/ooc-lang/rock)
 
 # rock
 
   * [ooc](http://ooc-lang.org/)
-  * [rock](https://github.com/fasterthanlime/rock)
+  * [rock](https://github.com/ooc-lang/rock)
 
 rock is an ooc compiler written in ooc - in other words, it's
 where things begin to become really exciting.
@@ -37,7 +37,7 @@ make sure it can find the SDK!
 See the `INSTALL` file
 
 To switch to the most recent git, read
-[ReleaseToGit](https://github.com/fasterthanlime/rock/blob/master/docs/workflow/ReleaseToGit.md)
+[ReleaseToGit](https://github.com/ooc-lang/rock/blob/master/docs/workflow/ReleaseToGit.md)
 
 ## License
 

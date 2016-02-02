@@ -1,5 +1,5 @@
 
-// Test for https://github.com/fasterthanlime/rock/issues/595
+// Test for https://github.com/ooc-lang/rock/issues/595
 
 describe("accessing & assigning references inside closures should work", ||
     alamanthus : Int@ = gc_malloc(Int size)

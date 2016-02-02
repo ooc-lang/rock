@@ -1,7 +1,7 @@
 
 //!shouldfail
 
-// Test for https://github.com/fasterthanlime/rock/pull/901
+// Test for https://github.com/ooc-lang/rock/pull/901
 
 describe("bar test()() should be a compile error (args mismatch)", ||
     bar := Foo new()

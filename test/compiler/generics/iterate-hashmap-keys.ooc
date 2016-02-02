@@ -1,5 +1,5 @@
 
-// Test for https://github.com/fasterthanlime/rock/issues/361
+// Test for https://github.com/ooc-lang/rock/issues/361
 
 import structs/HashMap
 

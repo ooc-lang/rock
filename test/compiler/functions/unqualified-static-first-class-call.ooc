@@ -1,5 +1,5 @@
 
-// regression test for: https://github.com/fasterthanlime/rock/issues/635
+// regression test for: https://github.com/ooc-lang/rock/issues/635
 // "Can't call static first-class functions without the class name."
 
 // Don't use sam-assert, otherwise we hit #885

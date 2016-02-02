@@ -1,5 +1,5 @@
 
-// Test for https://github.com/fasterthanlime/rock/issues/889
+// Test for https://github.com/ooc-lang/rock/issues/889
 
 describe("should be able to assign, plus-assign, access generic member", ||
     g := Gift<Int> new(42)

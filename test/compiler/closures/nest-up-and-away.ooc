@@ -1,5 +1,5 @@
 
-// Test for https://github.com/fasterthanlime/rock/issues/907
+// Test for https://github.com/ooc-lang/rock/issues/907
 
 finalValue: Int = 42
 

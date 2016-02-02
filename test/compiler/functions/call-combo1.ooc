@@ -1,5 +1,5 @@
 
-// Test for https://github.com/fasterthanlime/rock/pull/901
+// Test for https://github.com/ooc-lang/rock/pull/901
 
 describe("bar test()(1) should be recognized properly", ||
     bar := Foo new()

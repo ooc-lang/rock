@@ -28,8 +28,8 @@ all: bootstrap
 # Regenerate NagaQueen.c from the greg grammar
 # you need ../nagaqueen and greg to be in your path
 #
-# http://github.com/fasterthanlime/nagaqueen
-# http://github.com/fasterthanlime/greg
+# http://github.com/ooc-lang/nagaqueen
+# http://github.com/ooc-lang/greg
 grammar:
 	$(PARSER_GEN) ../nagaqueen/grammar/nagaqueen.leg > $(NQ_PATH)
 

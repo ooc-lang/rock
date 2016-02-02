@@ -1,5 +1,5 @@
 
-// Test for https://github.com/fasterthanlime/rock/pull/897
+// Test for https://github.com/ooc-lang/rock/pull/897
 
 include ./constnum
 

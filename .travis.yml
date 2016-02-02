@@ -15,7 +15,7 @@ script:
   - make -s rescue
   - make clean self
   - make clean self
-  - git clone --depth=1 git://github.com/fasterthanlime/sam.git 
+  - git clone --depth=1 git://github.com/ooc-lang/sam.git 
   - (cd sam && rock --quiet sam.use)
   - sam test rock.use
 

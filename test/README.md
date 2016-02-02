@@ -1,6 +1,6 @@
 
-[sam]: https://github.com/fasterthanlime/sam
-[travis]: https://travis-ci.org/fasterthanlime/rock/builds 
+[sam]: https://github.com/ooc-lang/sam
+[travis]: https://travis-ci.org/ooc-lang/rock/builds 
 
 ## about rock tests
 

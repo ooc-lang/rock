@@ -1,5 +1,5 @@
 
-// cf. https://github.com/fasterthanlime/rock/issues/882
+// cf. https://github.com/ooc-lang/rock/issues/882
 
 describe("nested closures should be able to modify outer variable by ref", ||
     g := (1, 0) as Tuple

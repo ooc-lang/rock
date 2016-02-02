@@ -1,6 +1,6 @@
 
-// cf. https://github.com/fasterthanlime/rock/issues/840
-// and https://github.com/fasterthanlime/rock/pull/854
+// cf. https://github.com/ooc-lang/rock/issues/840
+// and https://github.com/ooc-lang/rock/pull/854
 
 describe("generic properties should work", ||
     tbar := Foo<Int> new()

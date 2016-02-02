@@ -1,5 +1,5 @@
 
-// Test for https://github.com/fasterthanlime/rock/issues/783
+// Test for https://github.com/ooc-lang/rock/issues/783
 
 describe("it should be legal to compare the address of structs", ||
     s := (1, 5) as S
