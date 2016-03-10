@@ -66,7 +66,7 @@ FileReader: class extends Reader {
      * 
      * @return The number of bytes read.
      */
-    read: func (buffer: Char*, offset: Int, count: SizeT) -> SizeT {
+    read: func (buffer: CString, offset: Int, count: Int) -> SizeT {
         file read(buffer + offset, count)
     }
 
