@@ -469,7 +469,18 @@ ArrayAccess: class extends Expression {
         b toString()
     }
 
-    isReferencable: func -> Bool { true }
+    isReferencable: func -> Bool {
+        if (array getType()) {
+            if (array getType() instanceOf?(ArrayType)) {
+                // ooc arrays are not referencable
+                return false
+            } else if (array getType() instanceOf?(PointerType)) {
+                return true
+            }
+        }
+
+        array isReferencable()
+    }
 
     replace: func (oldie, kiddo: Node) -> Bool {
         match oldie {
