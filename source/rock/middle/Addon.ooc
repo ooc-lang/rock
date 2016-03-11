@@ -152,8 +152,12 @@ Addon: class extends Node {
                     }
 
                     for ((i, typeArg) in baseType getTypeArgs()) {
-                        if (i >= genSize || i < _stoppedAt) {
+                        if (i >= genSize) {
                             break
+                        }
+
+                        if (i < _stoppedAt) {
+                            continue
                         }
 
                         // Matched against a declaration, not good
