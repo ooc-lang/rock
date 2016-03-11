@@ -163,12 +163,7 @@ Addon: class extends Node {
                         }
 
                         // We "link" the type ourselves, to our base's generics.
-
-                        // This is wrong.
-                        // We should find where the generic was originally defined by going up the super refs.
-
-                        //genDecl := base typeArgs get(i)
-                        //typeArg setRef(genDecl)
+                        // Here, we go up the base class's hierarchy and fidn where the generic declaration originally came from.
 
                         superRef := base
                         genDecl := base typeArgs get(i)
@@ -210,9 +205,7 @@ Addon: class extends Node {
 
 
                         _stoppedAt = i + 1
-
                         typeArg setRef(genDecl)
-
                         typeArgMapping put(typeArg getName(), genDecl)
 
                         index := illegalGenerics indexOf(typeArg getName())
@@ -336,7 +329,7 @@ Addon: class extends Node {
         // This is true if we are accessing a field, false otherwise
         thisAccess? := access expr == null || match (access expr) {
             case va: VariableAccess =>
-                va name == "this"
+                va name == "this" || va name == "This"
             case =>
                 false
         }
@@ -347,6 +340,8 @@ Addon: class extends Node {
 
         if (thisAccess? && typeArgMapping && typeArgMapping contains?(access name)) {
             if (access suggest(typeArgMapping[access name])) {
+                // This is a pretty bad hack but by setting the expr to 'this' we force it to be seen as a member
+                access expr = VariableAccess new("this", access token)
                 return 0
             }
         }
