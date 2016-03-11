@@ -1,7 +1,7 @@
 
 //! shouldfail
 
-// Test for https://github.com/fasterthanlime/rock/issues/860
+// Test for https://github.com/ooc-lang/rock/issues/860
 
 Foo: class {
     b ::= 1

@@ -3,7 +3,7 @@
 
 import structs/ArrayList
 
-// Test case for https://github.com/fasterthanlime/rock/issues/842
+// Test case for https://github.com/ooc-lang/rock/issues/842
 
 describe("should refuse invalid generic assignment", ||
     data: ArrayList<ArrayList<Int>>

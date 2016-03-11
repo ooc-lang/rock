@@ -28,8 +28,8 @@ all: bootstrap
 # Regenerate NagaQueen.c from the greg grammar
 # you need ../nagaqueen and greg to be in your path
 #
-# http://github.com/fasterthanlime/nagaqueen
-# http://github.com/fasterthanlime/greg
+# http://github.com/ooc-lang/nagaqueen
+# http://github.com/ooc-lang/greg
 grammar:
 	$(PARSER_GEN) ../nagaqueen/grammar/nagaqueen.leg > $(NQ_PATH)
 
@@ -109,9 +109,7 @@ backup:
 
 download-bootstrap:
 	rm -rf build/
-	# Note: ./utils/downloader tries curl, ftp, and then wget.
-	#        GNU ftp will _not_ work: it does not accept a url as an argument.
-	./utils/downloader.sh http://downloads.ooc-lang.org/rock/0.9.11/latest-bootstrap.tar.bz2 | tar xjmf - 1>/dev/null
+	utils/download-bootstrap.sh
 	if [ ! -e build ]; then cp -rfv rock-*/build ./; fi
 
 # Attempt to grab a rock bootstrap from Alpaca and recompile

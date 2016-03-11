@@ -1,5 +1,5 @@
 
-// Test for https://github.com/fasterthanlime/rock/issues/802
+// Test for https://github.com/ooc-lang/rock/issues/802
 
 getType: func <T> (t: T) -> String {
     match t {

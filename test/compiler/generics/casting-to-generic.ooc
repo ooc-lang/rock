@@ -1,7 +1,7 @@
 
 //! shouldfail
 
-// Test for https://github.com/fasterthanlime/rock/issues/891
+// Test for https://github.com/ooc-lang/rock/issues/891
 
 Peeker: class {
     inner: Object

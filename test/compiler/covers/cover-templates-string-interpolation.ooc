@@ -1,5 +1,5 @@
 
-// test for https://github.com/fasterthanlime/rock/issues/886
+// test for https://github.com/ooc-lang/rock/issues/886
 
 formatInt: func (i: Int) -> String {
     "~#{i}"

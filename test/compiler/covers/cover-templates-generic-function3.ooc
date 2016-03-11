@@ -1,7 +1,7 @@
 
 //! shouldfail
 
-// Test for https://github.com/fasterthanlime/rock/issues/626
+// Test for https://github.com/ooc-lang/rock/issues/626
 
 result := 0
 

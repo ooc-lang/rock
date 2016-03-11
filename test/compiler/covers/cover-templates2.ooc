@@ -1,7 +1,7 @@
 
 // this test triggers a particular bug in old versions of rock
 // where resolve orders is so that things don't get resolved properly.
-// see https://github.com/fasterthanlime/rock/issues/887
+// see https://github.com/ooc-lang/rock/issues/887
 
 assignDone := false
 pleaseDone := false

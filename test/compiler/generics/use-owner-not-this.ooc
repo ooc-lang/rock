@@ -1,5 +1,5 @@
 
-// Test for https://github.com/fasterthanlime/rock/issues/346
+// Test for https://github.com/ooc-lang/rock/issues/346
 
 import structs/HashBag
 

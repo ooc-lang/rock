@@ -573,7 +573,24 @@ TypeDecl: abstract class extends Declaration {
             if (theirs inner isGeneric()) {
                 buffer append(ours getName())
             } else {
-                buffer append(theirs getName())
+                // So, when we want to pass our template parameters to another type template
+                // 'theirs' ends up with a ref to a template, but it's name still is 'T' or something similar.
+                // We want to check that the ref of 'theirs' exists and is a TypeDecl and if it is we use its name.
+                name := match (theirs inner) {
+                    case bt: BaseType =>
+                        match (bt ref) {
+                            case null =>
+                                bt name
+                            case tDecl: TypeDecl =>
+                                tDecl name
+                            case =>
+                                bt name
+                        }
+                    case =>
+                        theirs getName()
+                }
+
+                buffer append(name)
             }
         }
 

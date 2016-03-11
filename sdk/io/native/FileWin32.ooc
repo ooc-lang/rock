@@ -163,7 +163,7 @@ version(windows) {
             // For now, `executable?` and `setExecutable` are enough
             // to set basic permissions when creating files on *nix.
             // See discussion on this commit for more details:
-            // https://github.com/fasterthanlime/rock/commit/c6b8e9a23079451f2d6c6964cace8ff786f4d434
+            // https://github.com/ooc-lang/rock/commit/c6b8e9a23079451f2d6c6964cace8ff786f4d434
             false
         }
 

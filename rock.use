@@ -1,6 +1,6 @@
 Name: rock
 Version: head
-Origin: git://github.com/fasterthanlime/rock.git
+Origin: git://github.com/ooc-lang/rock.git
 Description: ooc compiler written in ooc
 SourcePath: source
 
