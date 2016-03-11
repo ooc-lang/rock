@@ -38,6 +38,9 @@ Addon: class extends Node {
 
     properties := HashMap<String, PropertyDecl> new()
 
+    _stoppedAt := -1
+    dummy: VariableDecl
+
     init: func (=baseType, .token) {
         super(token)
     }
@@ -101,7 +104,8 @@ Addon: class extends Node {
     }
 
     resolve: func (trail: Trail, res: Resolver) -> Response {
-        if(base == null) {
+        retry? := _stoppedAt != -1
+        if(base == null || retry?) {
             // So, if we have typeArgs, we need to make sure that the generic ones are not actual types
             // because we cannot extend a realized generic type but we must rather extend the whole type.
             typeArgs? := baseType getTypeArgs() != null && !baseType getTypeArgs() empty?()
@@ -109,9 +113,9 @@ Addon: class extends Node {
             // To get our base type's ref while using undefined typeArg types, we will point those to a
             // dummy declaration.
             // At the moment, we let the rest, that have a ref be, until we can get our base ref and do some checking.
-            dummy := VariableDecl new(null, "dummy", token)
+            if (!dummy) dummy = VariableDecl new(null, "dummy", token)
 
-            if (typeArgs?) {
+            if (typeArgs? && !retry?) {
                 for (typeArg in baseType getTypeArgs()) {
                     typeArg resolve(trail, res)
 
@@ -125,8 +129,11 @@ Addon: class extends Node {
 
             if (baseType isResolved()) {
                 base = baseType getRef() as TypeDecl
-                checkRedefinitions(trail, res)
-                base addons add(this)
+
+                if (!retry?) {
+                    checkRedefinitions(trail, res)
+                    base addons add(this)
+                }
 
                 if (typeArgs?) {
                     // We will now check that all our generic typeArgs point to the dummy.
@@ -135,15 +142,17 @@ Addon: class extends Node {
                     // Only go through generics, not templates
                     genSize := base typeArgs size
 
-                    typeArgMapping = HashMap<String, VariableDecl> new()
+                    if (!retry?) {
+                        typeArgMapping = HashMap<String, VariableDecl> new()
 
-                    // Start off by making all the ref generics illegal, remove as we go
-                    illegalGenerics = base typeArgs map(|ta|
-                        ta name
-                    )
+                        // Start off by making all the ref generics illegal, remove as we go
+                        illegalGenerics = base typeArgs map(|ta|
+                            ta name
+                        )
+                    }
 
                     for ((i, typeArg) in baseType getTypeArgs()) {
-                        if (i >= genSize) {
+                        if (i >= genSize || i < _stoppedAt) {
                             break
                         }
 
@@ -154,7 +163,54 @@ Addon: class extends Node {
                         }
 
                         // We "link" the type ourselves, to our base's generics.
+
+                        // This is wrong.
+                        // We should find where the generic was originally defined by going up the super refs.
+
+                        //genDecl := base typeArgs get(i)
+                        //typeArg setRef(genDecl)
+
+                        superRef := base
                         genDecl := base typeArgs get(i)
+
+                        while (superRef) {
+                            superType := superRef getSuperType()
+                            superRef = superRef getSuperRef()
+                            if (superRef && superRef isMeta) {
+                                superRef = superRef getNonMeta()
+                            }
+
+                            if (!superType || !superType isResolved() || !superRef) {
+                                _stoppedAt = i
+                                res wholeAgain(this, "Need all super refs and super types of addon base")
+                                return Response OK
+                            }
+
+                            if (superRef isObjectClass()) {
+                                break
+                            }
+
+                            // Extract the next index from the supertype
+                            found? := false
+
+                            if (superType) {
+                                targs := superType getTypeArgs()
+                                if (targs) for ((j, ta) in targs) {
+                                    if (ta getName() == genDecl name) {
+                                        found? = true
+                                        genDecl = superRef typeArgs get(j)
+                                    }
+                                }
+                            }
+
+                            if (!found?) {
+                                break
+                            }
+                        }
+
+
+                        _stoppedAt = i + 1
+
                         typeArg setRef(genDecl)
 
                         typeArgMapping put(typeArg getName(), genDecl)
