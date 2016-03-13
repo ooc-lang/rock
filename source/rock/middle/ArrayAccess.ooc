@@ -32,8 +32,8 @@ ArrayAccess: class extends Expression {
         visitor visitArrayAccess(this)
     }
 
-    // We have side effects if at least one of our indeices has a side effect
-    hasSideEffects : func -> Bool {
+    // We have side effects if at least one of our indices has a side effect
+    hasSideEffects: func -> Bool {
         for (index in indices) {
             if (index hasSideEffects()) {
                 return true
