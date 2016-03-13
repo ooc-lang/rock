@@ -32,8 +32,16 @@ ArrayAccess: class extends Expression {
         visitor visitArrayAccess(this)
     }
 
-    // It's just an access, it has no side-effects whatsoever
-    hasSideEffects : func -> Bool { false }
+    // We have side effects if at least one of our indeices has a side effect
+    hasSideEffects : func -> Bool {
+        for (index in indices) {
+            if (index hasSideEffects()) {
+                return true
+            }
+        }
+
+        false
+    }
 
     getGenericOperand: func -> Expression {
         if(getType() isGeneric() && getType() pointerLevel() == 0) {
