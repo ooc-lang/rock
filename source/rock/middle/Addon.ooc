@@ -363,7 +363,11 @@ Addon: class extends Node {
         }
 
         if (typeArgMapping && typeArgMapping contains?(type name)) {
-            if (type suggest(typeArgMapping[type name])) {
+            vDecl := typeArgMapping[type name]
+            if (type suggest(vDecl)) {
+                // We replace our name so that rock's generic inference can do its thing.
+                // This is very much a hack, all of rock's typeArg systems very much need a rewrite
+                type name = vDecl name
                 return 0
             }
         }
