@@ -141,7 +141,7 @@ String: class extends Iterable<Char> {
             case 0 => this
             case 1 => toUpper()
             case =>
-                this[0..1] toUpper() + this[1..-1]
+                this[0] toUpper() + substring(1)
         }
     }
 
