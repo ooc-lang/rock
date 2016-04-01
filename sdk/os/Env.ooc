@@ -25,13 +25,8 @@ Env: class {
     set: static func (key, value: String, overwrite: Bool) -> Int {
         if(key != null && value != null) {
             version(windows) {
-                exists := false
-                if (!overwrite) {
-                    old := This get(key)
-                    exists = (old != null)
-                }
-                if (overwrite || !exists)
-                    return putenv( "%s=%s" format(key toCString(), value toCString()) toCString() )
+                if (overwrite || This get(key) == null)
+                    return putenv("%s=%s" format(key toCString(), value toCString()) toCString())
             }
             version(!windows) {
                 return setenv(key toCString(), value toCString(), overwrite)
