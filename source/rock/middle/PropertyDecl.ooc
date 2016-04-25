@@ -67,7 +67,7 @@ PropertyDecl: class extends VariableDecl {
                     res wholeAgain(this, "need addon's base type")
                     return Response OK
                 }
-                node = ad base
+                node = ad base getMeta()
             case td: TypeDecl =>
                 // Everything ok
             case =>

@@ -1279,7 +1279,7 @@ TypeDecl: abstract class extends Declaration {
         }
 
         if (has) {
-            if (addon resolveCall(call, res, trail) == -1) return -1
+            if (addon resolveCallFromClass(call, res, trail) == -1) return -1
         }
 
         0
@@ -1299,7 +1299,7 @@ TypeDecl: abstract class extends Declaration {
         }
 
         if (has) {
-            if (addon resolveAccess(access, res, trail) == -1) return -1
+            if (addon resolveAccessFromClass(access, res, trail) == -1) return -1
         }
 
         0

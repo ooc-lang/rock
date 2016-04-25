@@ -3,7 +3,7 @@ import BinaryOp, Visitor, Expression, VariableDecl, FunctionDecl,
        TypeDecl, Declaration, Type, Node, ClassDecl, NamespaceDecl,
        EnumDecl, PropertyDecl, FunctionCall, Module, Import, FuncType,
        NullLiteral, AddressOf, BaseType, StructLiteral, Return,
-       Argument, Scope, CoverDecl, StringLiteral, Cast
+       Argument, Scope, CoverDecl, StringLiteral, Cast, Addon
 
 import tinker/[Resolver, Response, Trail, Errors]
 import structs/ArrayList
@@ -372,6 +372,29 @@ VariableAccess: class extends Expression {
                 return BranchResult BREAK
             }
 
+            // If we still don't have a ref, we're going to try to go up the trail and find an Addon.
+            if (!ref) {
+                depth := trail getSize() - 1
+                while (depth >= 0) {
+                    node := trail get(depth)
+
+                    match node {
+                        case addon: Addon =>
+                            status := node resolveAccess(this, res, trail)
+
+                            if (status == -1) {
+                                res wholeAgain(this, "asked to wait while resolving access")
+                                return BranchResult BREAK
+                            }
+
+                            if (ref) {
+                                break
+                            }
+                    }
+
+                    depth -= 1
+                }
+            }
         } else {
             /*
              * Try resolving as a builtin, e.g. __BUILD_DATE__, etc.
