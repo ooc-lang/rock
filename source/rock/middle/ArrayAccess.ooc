@@ -472,8 +472,10 @@ ArrayAccess: class extends Expression {
     isReferencable: func -> Bool {
         if (array getType()) {
             if (array getType() instanceOf?(ArrayType)) {
-                // ooc arrays are not referencable
-                return false
+                // ArrayTypes with expressions are actually C arrays, which are referencable (while ooc arrays are not)
+                arrayType := array getType() as ArrayType
+
+                return arrayType expr != null
             } else if (array getType() instanceOf?(PointerType)) {
                 return true
             }
