@@ -165,13 +165,13 @@ ModuleWriter: abstract class extends Skeleton {
 
         // Finally, the rest of the variable declarations and statements
         for (stmt in module body) {
-            match stmt {
-                case vd: VariableDecl =>
-                    if (!vd getType() instanceOf?(AnonymousStructType) && !vd isGenerated && !vd isExtern() && !vd getExpr() == null) {
-                        writeVDecl(vd)
-                    }
-                case =>
-                    writeLine(stmt)
+            if (stmt instanceOf?(VariableDecl) && !stmt as VariableDecl getType() instanceOf?(AnonymousStructType)) {
+                vd := stmt as VariableDecl
+                if (!vd isGenerated && !vd isExtern() && !vd getExpr() == null) {
+                    writeVDecl(vd)
+                }
+            } else {
+                writeLine(stmt)
             }
         }
         current untab(). nl(). app("}")
