@@ -187,6 +187,10 @@ ClassDeclWriter: abstract class extends Skeleton {
             current app(' '). openBlock(). nl()
 
             if(decl getName() == ClassDecl LOAD_FUNC_NAME) {
+
+                // Make sure the load function is only evaluated once.
+                current app("static _Bool __done__ = false;") . nl() . app("if(!__done__)") . openBlock() . nl() . app("__done__ = true;") . nl()
+
                 superRef := cDecl getSuperRef()
                 finalScore: Int
                 superLoad := superRef getFunction(ClassDecl LOAD_FUNC_NAME, null, null, finalScore&)
@@ -198,6 +202,8 @@ ClassDeclWriter: abstract class extends Skeleton {
                     if(vDecl getExpr() == null) continue
                     current nl(). app(cDecl getNonMeta() underName()). app("_class()->"). app(vDecl getName()). app(" = "). app(vDecl getExpr()). app(';')
                 }
+
+                current closeBlock()
             }
 
             for(stat in decl body) {
