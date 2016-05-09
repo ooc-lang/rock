@@ -135,6 +135,21 @@ ModuleWriter: abstract class extends Skeleton {
             current nl(). app(imp getModule() getLoadFuncName()). app("();")
         }
 
+        writeVDecl := func (decl: VariableDecl) {
+            current nl() . app(decl getFullName()) . app(" = ") . app(decl getExpr()) . app(';')
+        }
+
+        // We write generated variable declarations first, as they may be required by class static initializers.
+        for (stmt in module body) {
+            match stmt {
+                case vd: VariableDecl =>
+                    if (vd isGenerated) {
+                        writeVDecl(vd)
+                    }
+            }
+        }
+
+        // Then, class load calls
         for (type in module types) {
             if(type instanceOf?(ClassDecl)) {
                 cDecl := type as ClassDecl
@@ -148,11 +163,13 @@ ModuleWriter: abstract class extends Skeleton {
             }
         }
 
-        for(stmt in module body) {
-            if(stmt instanceOf?(VariableDecl) && !stmt as VariableDecl getType() instanceOf?(AnonymousStructType)) {
+        // Finally, the rest of the variable declarations and statements
+        for (stmt in module body) {
+            if (stmt instanceOf?(VariableDecl) && !stmt as VariableDecl getType() instanceOf?(AnonymousStructType)) {
                 vd := stmt as VariableDecl
-                if(vd isExtern() || vd getExpr() == null) continue
-                current nl(). app(vd getFullName()). app(" = "). app(vd getExpr()). app(';')
+                if (!vd isGenerated && !vd isExtern() && !vd getExpr() == null) {
+                    writeVDecl(vd)
+                }
             } else {
                 writeLine(stmt)
             }
