@@ -825,10 +825,6 @@ VariableAccess: class extends Expression {
             }
         }
 
-        if (expr) {
-            return expr isReferencable()
-        }
-
         true
     }
 
