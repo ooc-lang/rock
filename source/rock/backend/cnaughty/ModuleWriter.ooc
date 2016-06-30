@@ -149,10 +149,13 @@ ModuleWriter: abstract class extends Skeleton {
             }
         }
 
-        // Then, class load calls
+        // Then, class load calls and class names.
         for (type in module types) {
             if(type instanceOf?(ClassDecl)) {
                 cDecl := type as ClassDecl
+
+                if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
+
                 finalScore: Int
                 loadFunc := cDecl getFunction(ClassDecl LOAD_FUNC_NAME, null, null, finalScore&)
                 if(loadFunc) {
@@ -160,6 +163,17 @@ ModuleWriter: abstract class extends Skeleton {
                     current nl(). app(loadFunc getFullName()). app("();")
                     if(cDecl getVersion()) VersionWriter writeEnd(this, cDecl getVersion())
                 }
+
+               if(cDecl getNonMeta() && (!cDecl getNonMeta() instanceOf?(CoverDecl) || !(cDecl getNonMeta() as CoverDecl isExtern() || cDecl getNonMeta() as CoverDecl isAddon()))) {
+                    if (cDecl getNonMeta() getSuperRef()) {
+                        realDecl := ClassDeclWriter getClassType(cDecl)
+                        current nl(). app("(("). app(ClassDeclWriter CLASS_NAME). app(" *) &"). app(cDecl getNonMeta() getFullName()). app("_class"). app(")->name = ")
+                        writeStringLiteral(realDecl getNonMeta() name)
+                        current app(";")
+                    }
+                }
+
+                if(cDecl getVersion()) VersionWriter writeEnd(this, cDecl getVersion())
             }
         }
 

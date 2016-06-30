@@ -96,9 +96,9 @@ CGenerator: class extends Skeleton {
         match ref {
             case tDecl: TypeDecl =>
                 if (typeAccess inner pointerLevel() > 0) {
-                    current app("lang_types__Pointer_class()")
+                    current app("&lang_types__Pointer_class")
                 } else {
-                    current app(tDecl underName()). app("_class()")
+                    current app("(&"). app(tDecl underName()). app("_class)")
                 }
             case vDecl: VariableDecl =>
                 // TODO: fix namespaced type accesses?
@@ -140,7 +140,7 @@ CGenerator: class extends Skeleton {
 
         if(isFunc) {
             fDecl := op left as VariableAccess ref as FunctionDecl
-            current app(fDecl owner as TypeDecl getFullName()). app("_class()->"). app(fDecl name)
+            current app(fDecl owner as TypeDecl getFullName()). app("_class."). app(fDecl name)
         } else {
             current app(op left)
         }
@@ -240,14 +240,14 @@ CGenerator: class extends Skeleton {
                 while(tDecl instanceOf?(CoverDecl) && tDecl as CoverDecl isAddon()) {
                     tDecl = tDecl as CoverDecl getBase() getNonMeta()
                 }
-                current app(tDecl getFullName()). app("_class()")
+                current app("(&"). app(tDecl getFullName()). app("_class)")
 
             case fDecl: FunctionDecl =>
                 FunctionDeclWriter writeFullName(this, fDecl)
 
             case fType: FuncType =>
                 // Yes, we need to write function types too ;D
-                current app("lang_types__Closure_class()")
+                current app("&lang_types__Closure_class")
         }
     }
 
