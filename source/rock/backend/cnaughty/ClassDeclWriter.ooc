@@ -44,12 +44,6 @@ ClassDeclWriter: abstract class extends Skeleton {
                 writeInstanceVirtualFuncs(this, cDecl)
                 writeStaticFuncs(this, cDecl)
             } else {
-                current = fw
-                if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
-                //writeClassGettingPrototype(this, cDecl)
-                if(cDecl getVersion()) VersionWriter writeEnd(this, cDecl getVersion())
-
-                current = cw
                 if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
             }
 
@@ -142,8 +136,6 @@ ClassDeclWriter: abstract class extends Skeleton {
 
     /** Write the prototypes of member functions */
     writeMemberFuncPrototypes: static func (this: Skeleton, cDecl: ClassDecl) {
-        //writeClassGettingPrototype(this, cDecl)
-
         for(fDecl: FunctionDecl in cDecl functions) {
 
             if(fDecl isExtern()) {
@@ -328,8 +320,6 @@ ClassDeclWriter: abstract class extends Skeleton {
     }
 
     writeMetaClass: static func (this: Skeleton, cDecl: ClassDecl) {
-        //current = hw
-
         if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
 
         realDecl := getClassType(cDecl)
@@ -350,8 +340,6 @@ ClassDeclWriter: abstract class extends Skeleton {
         current app(';')
 
         if(cDecl getVersion()) VersionWriter writeEnd(this, cDecl getVersion())
-
-        //current = cw
     }
 
     /**
