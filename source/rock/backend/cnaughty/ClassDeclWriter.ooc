@@ -44,18 +44,12 @@ ClassDeclWriter: abstract class extends Skeleton {
                 writeInstanceVirtualFuncs(this, cDecl)
                 writeStaticFuncs(this, cDecl)
             } else {
-                current = fw
-                if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
-                writeClassGettingPrototype(this, cDecl)
-                if(cDecl getVersion()) VersionWriter writeEnd(this, cDecl getVersion())
-
-                current = cw
                 if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
             }
 
-            // don't write class-getting functions of extern covers - it hurts
+            // don't write meta classes of extern covers - it hurts
             if(cDecl getNonMeta() == null || !cDecl getNonMeta() instanceOf?(CoverDecl) || !(cDecl getNonMeta() as CoverDecl isExtern() || cDecl getNonMeta() as CoverDecl isAddon())) {
-                writeClassGettingFunction(this, cDecl)
+                writeMetaClass(this, cDecl)
             }
 
             if(cDecl getVersion()) VersionWriter writeEnd(this, cDecl getVersion())
@@ -142,8 +136,6 @@ ClassDeclWriter: abstract class extends Skeleton {
 
     /** Write the prototypes of member functions */
     writeMemberFuncPrototypes: static func (this: Skeleton, cDecl: ClassDecl) {
-        writeClassGettingPrototype(this, cDecl)
-
         for(fDecl: FunctionDecl in cDecl functions) {
 
             if(fDecl isExtern()) {
@@ -200,7 +192,7 @@ ClassDeclWriter: abstract class extends Skeleton {
                 }
                 for(vDecl in cDecl variables) {
                     if(vDecl getExpr() == null) continue
-                    current nl(). app(cDecl getNonMeta() underName()). app("_class()->"). app(vDecl getName()). app(" = "). app(vDecl getExpr()). app(';')
+                    current nl(). app(cDecl getNonMeta() underName()). app("_class."). app(vDecl getName()). app(" = "). app(vDecl getExpr()). app(';')
                 }
 
                 current closeBlock()
@@ -327,44 +319,27 @@ ClassDeclWriter: abstract class extends Skeleton {
         }
     }
 
-    writeClassGettingPrototype: static func (this: Skeleton, cDecl: ClassDecl) {
-        realDecl := getClassType(cDecl)
-        current nl(). app(realDecl underName()). app(" *"). app(cDecl getNonMeta() getFullName()). app("_class();")
-    }
-
-    writeClassGettingFunction: static func (this: Skeleton, cDecl: ClassDecl) {
+    writeMetaClass: static func (this: Skeleton, cDecl: ClassDecl) {
+        if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
 
         realDecl := getClassType(cDecl)
         underName := realDecl underName()
 
-        current nl(). nl(). app(underName). app(" *"). app(cDecl getNonMeta() getFullName()). app("_class()"). openBlock(). nl()
+        // Write forward declaration
+        current = hw
+        if(cDecl getVersion()) VersionWriter writeStart(this, cDecl getVersion())
+        current nl(). nl(). app(underName). app(" "). app(cDecl getNonMeta() getFullName()). app("_class;")
+        if(cDecl getVersion()) VersionWriter writeEnd(this, cDecl getVersion())
+        current = cw
 
-        if (cDecl getNonMeta() getSuperRef()) {
-            current app("static _Bool __done__ = false;"). nl()
-        }
-        current app("static "). app(underName). app(" class = "). nl()
+        // Write the initialization
+        current nl(). nl(). app(underName). app(" "). app(cDecl getNonMeta() getFullName()). app("_class = ")
 
         writeClassStructInitializers(this, realDecl, cDecl, ArrayList<FunctionDecl> new(), true)
 
         current app(';')
-        if (cDecl getNonMeta() getSuperRef()) {
-            current nl(). app(This CLASS_NAME). app(" *classPtr = ("). app(This CLASS_NAME). app(" *) &class;")
-            current nl(). app("if(!__done__)"). openBlock()
-            match (cDecl getNonMeta()) {
-                case cd: CoverDecl =>
-                    // covers don't have super classes, silly.
-                    current nl(). app("classPtr->super = NULL;")
-                case =>
-                    current nl(). app("classPtr->super = ("). app(This CLASS_NAME). app("*) "). app(cDecl getNonMeta() getSuperRef() getFullName()). app("_class();")
-            }
-            current nl(). app("__done__ = true;").
-                    nl(). app("classPtr->name = ")
-            writeStringLiteral(realDecl getNonMeta() name)
-            current app(";").
-                    closeBlock()
-        }
 
-        current nl(). app("return &class;"). closeBlock()
+        if(cDecl getVersion()) VersionWriter writeEnd(this, cDecl getVersion())
     }
 
     /**
@@ -382,6 +357,7 @@ ClassDeclWriter: abstract class extends Skeleton {
 
             current app(','). nl(). app(".size = ")
             realClass getNonMeta() writeSize(current, false) // instance = false
+
         } else {
             writeClassStructInitializers(this, parentClass getSuperRef() as ClassDecl, realClass, done, false)
         }
