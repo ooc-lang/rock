@@ -3,6 +3,7 @@
 import threading/Thread
 import structs/[Stack, LinkedList]
 import lang/Backtrace
+import os/Terminal
 
 include setjmp, assert, errno
 
@@ -179,7 +180,9 @@ Exception: class {
      * Print just the message
      */
     printMessage: func {
+        Terminal setFgColor(Color red)
         fprintf(stderr, "%s", formatMessage() toCString())
+        Terminal reset()
     }
 
     /**
